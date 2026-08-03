@@ -1,0 +1,15 @@
+{
+  "name": "emberweave-heroes",
+  "version": "0.8.0",
+  "description": "Emberweave Heroes — cloud game server + PWA (accounts, arena ladder, city world)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.21.1"
+  }
+}
