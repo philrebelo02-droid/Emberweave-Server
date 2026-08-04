@@ -61,10 +61,21 @@
   #townWrap::-webkit-scrollbar{height:0;width:0;}
   #townMap{position:relative;height:100%;width:max-content;}
   #townHots{position:absolute;inset:0;}
-  /* floating HUD on the town */
-  #townHud{position:absolute;left:2%;top:2.5%;z-index:20;display:flex;gap:6px;flex-wrap:wrap;}
-  #townHud .hudpill{display:inline-flex;align-items:center;gap:4px;background:rgba(10,14,22,.82);border:1px solid #2a3550;border-radius:11px;padding:4px 10px;font-size:13px;font-weight:800;color:#e6edf3;box-shadow:0 3px 10px rgba(0,0,0,.5);white-space:nowrap;}
-  #townHud .hudpill i{font-style:normal;font-size:10px;color:#bff0a8;}
+  /* floating HUD on the town — clean framed resource chips with icon + value + buy(+) */
+  #townHud{position:absolute;left:1.5%;top:2.5%;z-index:20;display:flex;gap:8px;flex-wrap:wrap;}
+  .resframe{display:inline-flex;align-items:center;gap:5px;padding:3px 3px 3px 6px;
+    background:linear-gradient(180deg,#2a344c 0%,#161d2f 100%);border:1px solid #4a638f;border-radius:12px;
+    box-shadow:0 3px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15);}
+  .resframe .resicon{display:inline-flex;align-items:center;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55));}
+  .resframe .resval{font-weight:800;font-size:13px;color:#fff;white-space:nowrap;text-shadow:0 1px 2px #000;min-width:14px;}
+  .resframe .resval i{font-style:normal;font-size:10px;color:#bff0a8;margin-left:2px;}
+  #resGold{color:#ffe08a;} #resGems{color:#c9b6ff;} #resStamina{color:#bff0a8;}
+  .resplus{width:20px;height:20px;border-radius:50%;border:1px solid #ffe6b0;cursor:pointer;padding:0;
+    background:radial-gradient(circle at 50% 32%,#ffe27c,#f2a13a);color:#5a3405;font-weight:900;font-size:15px;line-height:1;
+    box-shadow:0 2px 5px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;}
+  .resplus:active{transform:scale(.9);}
+  /* top-right corner stack: portrait with the menu tucked directly beneath it */
+  #cornerHud{position:absolute;right:1.4%;top:2%;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:16px;}
   /* building name labels + lock badges (scroll with the map) */
   .townlbl{position:absolute;transform:translate(-50%,-50%);z-index:5;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;pointer-events:none;
     background:linear-gradient(180deg,#2a2416,#171208);border:1px solid #6b5a2e;border-radius:20px;padding:3px 11px;
@@ -82,7 +93,7 @@
   .resnum{position:absolute;transform:translateY(-50%);font-weight:800;color:#fff;font-size:clamp(11px,2.4vw,18px);text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.75);white-space:nowrap;z-index:4;pointer-events:none;}
   #resGold{color:#ffe08a;} #resGems{color:#c9b6ff;} #resStamina{color:#bff0a8;}
   /* clickable ornate hero portrait (original frame, Magic-Rush-style) */
-  #profileBtn{position:absolute;right:2%;top:2.4%;width:13.5%;aspect-ratio:1;cursor:pointer;z-index:6;transition:.12s;filter:drop-shadow(0 3px 9px rgba(0,0,0,.65));}
+  #profileBtn{position:relative;width:clamp(56px,10vh,92px);aspect-ratio:1;cursor:pointer;z-index:6;transition:.12s;filter:drop-shadow(0 3px 9px rgba(0,0,0,.65));}
   #profileBtn:hover{transform:scale(1.05);}
   /* thin XP progress arc sits just inside the gold frame */
   #xpRing{position:absolute;inset:9%;border-radius:50%;box-sizing:border-box;padding:5.5%;
@@ -104,6 +115,33 @@
   #profileModal,#stageModal{position:absolute;inset:0;background:rgba(6,9,14,.72);display:none;align-items:center;justify-content:center;z-index:60;}
   #profileModal.active,#stageModal.active{display:flex;}
   #profileModal .pm,#stageModal .pm{background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:88%;max-width:380px;max-height:86%;overflow:auto;}
+  /* resource shop (food / gold / diamonds) */
+  #hudShop{position:absolute;inset:0;background:rgba(6,9,14,.74);display:none;align-items:center;justify-content:center;z-index:70;}
+  #hudShop.active{display:flex;}
+  #hudShop .pm{background:linear-gradient(180deg,#182034,#10151f);border:1px solid #3a4a6e;border-radius:16px;padding:16px;width:92%;max-width:560px;max-height:88%;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.6);}
+  .pmhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .pmhead .ttl{font-weight:800;font-size:17px;color:#f2e6c8;}
+  .shopnote{font-size:11.5px;color:#9fb0c4;line-height:1.4;margin-bottom:10px;}
+  .buyrow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#0f1524;border:1px solid #2a3550;border-radius:12px;padding:10px 12px;margin-bottom:8px;}
+  .buyrow .bl{font-weight:800;font-size:14px;color:#e6edf3;}
+  .buyrow .bs{font-size:11px;color:#8b98a9;margin-top:2px;}
+  .buyrow .bcost{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+  .costtrack{font-size:11px;color:#8794aa;margin:6px 2px 2px;line-height:1.7;}
+  .costtrack span{padding:1px 5px;border-radius:6px;background:#141c2c;border:1px solid #26304a;}
+  .costtrack span.used{opacity:.4;text-decoration:line-through;}
+  .costtrack span.next{border-color:#ffce6b;color:#ffe6a8;background:#2a2412;}
+  .shopbal{margin-top:10px;text-align:right;font-size:12px;font-weight:800;color:#c9b6ff;}
+  .gemgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(max-width:520px){ .gemgrid{grid-template-columns:repeat(2,1fr);} }
+  .gemcard{background:linear-gradient(165deg,#1b2740,#121a2b);border:1px solid #3a4f7e;border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;transition:.12s;box-shadow:0 3px 10px rgba(0,0,0,.4);}
+  .gemcard:hover{transform:translateY(-2px);border-color:#ffce6b;box-shadow:0 6px 16px rgba(0,0,0,.5);}
+  .gemcard:active{transform:scale(.97);}
+  .gemcard .gc-orb{font-size:30px;line-height:1;}
+  .gemcard .gc-name{font-weight:800;font-size:13px;color:#e6edf3;margin:4px 0 2px;}
+  .gemcard .gc-desc{font-size:10.5px;color:#9fb0c4;min-height:26px;line-height:1.3;}
+  .gemcard .gc-price{margin-top:6px;font-weight:900;font-size:15px;color:#7ee0a0;background:#0f2018;border:1px solid #2e6b45;border-radius:9px;padding:3px 0;}
+  .gemcard.special{border-color:#c9a24a;background:linear-gradient(165deg,#2a2413,#14110a);}
+  .gemcard.special .gc-price{color:#ffd45e;background:#241d0c;border-color:#6b5a20;}
   .avpick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:6px;}
   .avpick .av{aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid #2a3550;cursor:pointer;}
   .avpick .av.sel{border-color:#ffce6b;box-shadow:0 0 0 2px rgba(255,206,107,.5);}
@@ -199,7 +237,7 @@
   #pauseModal .pm{background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:22px;width:80%;max-width:320px;text-align:center;}
 
   /* medieval hub menu (top-right dropdown) */
-  #hubMenu{position:absolute;right:2%;top:18%;z-index:30;display:none;}
+  #hubMenu{position:relative;z-index:30;display:none;}
   #hubMenu.active{display:block;}
   #menuBtn{display:flex;align-items:center;gap:7px;padding:8px 12px;cursor:pointer;user-select:none;
     font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:14px;color:#f6e8c8;letter-spacing:.5px;
@@ -299,7 +337,9 @@
   .cnode.elite.cleared{background:linear-gradient(140deg,#5a3a8a,#8a5cc0);border-color:#e6d4ff;}
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
   /* world map zone */
-  #wzone{position:relative;width:100%;max-width:680px;margin:2px auto 0;height:78vh;overflow:auto;border-radius:14px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
+  #wzone{position:relative;width:100%;max-width:none;margin:0;height:100%;overflow:auto;border-radius:12px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
+  #worldBody{display:flex;flex-direction:column;flex:1;width:100%;min-height:0;}
+  #worldBody>div:last-child{flex:1;min-height:0;width:100%;}
   #world{padding:8px 10px 10px;justify-content:flex-start;}
   /* animated marching airship: 16-frame sprite strip cycled via steps() */
   .marchShip{width:100%;height:100%;background-repeat:no-repeat;background-position:0% center;background-size:1600% 100%;
@@ -406,10 +446,23 @@
     </div></div>
     <!-- fixed HUD overlays (float above the scrollable town) -->
     <div id="townHud">
-      <span class="hudpill">⧗ <b id="resStamina">60/60</b><i id="resStaminaTimer"></i></span>
-      <span class="hudpill">🪙 <b id="resGold">200</b></span>
-      <span class="hudpill">💎 <b id="resGems">0</b></span>
+      <div class="resframe">
+        <span class="resicon"><svg viewBox="0 0 24 24" width="21" height="21"><path d="M3 8.4q0-5.4 9-5.4t9 5.4z" fill="#e8a94e"/><circle cx="8" cy="6.2" r=".7" fill="#fff5d8"/><circle cx="12" cy="5.2" r=".7" fill="#fff5d8"/><circle cx="16" cy="6.2" r=".7" fill="#fff5d8"/><path d="M3 8.4h18v1.6H3z" fill="#7dc242"/><path d="M3.4 10.6q8.6 2.4 17.2 0v2.6q-8.6 2.4-17.2 0z" fill="#9a5230"/><path d="M3.5 13.4h17v1.3h-17z" fill="#f2c14e"/><path d="M3 14.8q0 4.4 9 4.4t9-4.4z" fill="#e8a94e"/></svg></span>
+        <span class="resval"><b id="resStamina">60/60</b><i id="resStaminaTimer"></i></span>
+        <button class="resplus" id="staminaPlus" aria-label="Buy food">+</button>
+      </div>
+      <div class="resframe">
+        <span class="resicon"><svg viewBox="0 0 24 24" width="21" height="21"><circle cx="5.6" cy="19.4" r="2.5" fill="#ffcf5a" stroke="#a76a12" stroke-width=".6"/><circle cx="9.6" cy="20.8" r="2" fill="#ffe08a" stroke="#a76a12" stroke-width=".6"/><path d="M8 8q-3 3-3 7 0 4.2 7 4.2T19 15q0-4-3-7z" fill="#b6772f"/><path d="M8 8q4-2 8 0l-1.2-3.2q-2.8-1-5.6 0z" fill="#d8a24e"/><path d="M8.6 5q3.4-1.3 6.8 0" fill="none" stroke="#7a4a1e" stroke-width="1"/><text x="12" y="16.8" font-size="7" text-anchor="middle" fill="#7a4a1e" font-weight="bold">$</text></svg></span>
+        <span class="resval"><b id="resGold">200</b></span>
+        <button class="resplus" id="goldPlus" aria-label="Buy gold">+</button>
+      </div>
+      <div class="resframe">
+        <span class="resicon"><svg viewBox="0 0 24 24" width="21" height="21"><path d="M4.6 18.8l1.5-2.1 1.5 2.1-1.5 2.1z" fill="#7fe0ff"/><path d="M8.8 20.4l1.1-1.6 1.1 1.6-1.1 1.6z" fill="#b58bff"/><path d="M8 8q-3 3-3 7 0 4.2 7 4.2T19 15q0-4-3-7z" fill="#3a5aa8"/><path d="M8 8q4-2 8 0l-1.2-3.2q-2.8-1-5.6 0z" fill="#557bd0"/><path d="M8.6 5q3.4-1.3 6.8 0" fill="none" stroke="#24386e" stroke-width="1"/><path d="M12 10.8l2.1 2.3-2.1 2.7-2.1-2.7z" fill="#bff3ff"/></svg></span>
+        <span class="resval"><b id="resGems">0</b></span>
+        <button class="resplus" id="gemPlus" aria-label="Open shop">+</button>
+      </div>
     </div>
+    <div id="cornerHud">
     <div id="profileBtn">
       <div id="xpRing"><div id="pcAvatarWrap"><img id="pcAvatar" alt=""></div></div>
       <svg id="pfFrame" viewBox="0 0 100 100" aria-hidden="true">
@@ -422,11 +475,27 @@
       <div id="pfLvBadge"><i>Lv</i><b id="resLevel">1</b></div>
       <div id="pfName"><span class="pname" id="resName">Commander</span></div>
     </div>
+    <div id="hubMenu">
+      <div id="menuBtn"><span style="font-size:16px">📜</span><span>Menu</span><span class="chev">▾</span></div>
+      <div id="menuPanel">
+        <div class="mitem" data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
+        <div class="mitem" data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
+        <div class="mitem" data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
+        <div class="mitem" data-nav="settings"><span class="mi">⚙️</span> Settings</div>
+      </div>
+    </div>
+    </div><!-- /cornerHud -->
     <span id="pLevel" style="display:none"></span><span id="pGold" style="display:none"></span><span id="pGems" style="display:none"></span>
     <!-- profile modal -->
     <div id="profileModal"><div class="pm">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px">👤 Profile</div><button class="btn sm secondary" id="profClose">✕</button></div>
       <div id="profileModalBody"></div>
+    </div></div>
+    <!-- resource shop modal (food / gold / diamonds) -->
+    <div id="hudShop"><div class="pm">
+      <div class="pmhead"><div class="ttl" id="hudShopTitle"></div><button class="btn sm secondary" id="hudShopClose">✕</button></div>
+      <div id="hudShopBody"></div>
     </div></div>
   </div>
 
@@ -590,17 +659,6 @@
   </div>
 
   <!-- medieval hub dropdown (top-right) -->
-  <div id="hubMenu">
-    <div id="menuBtn"><span style="font-size:16px">📜</span><span>Menu</span><span class="chev">▾</span></div>
-    <div id="menuPanel">
-      <div class="mitem" data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
-      <div class="mitem" data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
-      <div class="mitem" data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
-      <div class="mitem" data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
-      <div class="mitem" data-nav="settings"><span class="mi">⚙️</span> Settings</div>
-    </div>
-  </div>
-
   <!-- BATTLE HUD -->
   <div id="topStatus">
     <div class="tag">🟦 <span id="allyCount">5</span></div>
@@ -1796,6 +1854,10 @@ const DEV_NAMES = DEV_ACCOUNTS.map(a=>a.user.toLowerCase());
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
 let acctMode='signin';   // 'signin' | 'create' — which tab the account panel shows
 function show(name){
+  // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
+  { const wasHome=document.getElementById('home').classList.contains('active'), wrap=document.getElementById('townWrap');
+    if(wasHome && name!=='home' && wrap) _homeScroll=wrap.scrollLeft;
+    if(name==='home' && !wasHome) _restoreHomeScroll=true; }
   state=name;
   SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
   ['hud','topStatus','battleCtrls'].forEach(id=>document.getElementById(id).classList.remove('active'));
@@ -1889,9 +1951,13 @@ function renderHome(){
     box.appendChild(lab);
   });
   applyHomeZoom();
-  // center the scroll on load
-  const wrap=document.getElementById('townWrap'); requestAnimationFrame(()=>{ wrap.scrollLeft=(wrap.scrollWidth-wrap.clientWidth)*0.5; });
+  // restore the exact spot the player left from (set when navigating into a building); otherwise center; a live-tick refresh leaves it put
+  const wrap=document.getElementById('townWrap');
+  requestAnimationFrame(()=>{ if(!wrap)return;
+    if(_restoreHomeScroll){ _restoreHomeScroll=false; wrap.scrollLeft = (_homeScroll!=null? _homeScroll : (wrap.scrollWidth-wrap.clientWidth)*0.5); }
+  });
 }
+let _homeScroll=null, _restoreHomeScroll=true;   // town scroll memory (first load centers)
 /* ---- player profile (name / avatar / xp) ---- */
 function openProfile(){ renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
 function closeProfile(){ document.getElementById('profileModal').classList.remove('active'); }
@@ -3878,6 +3944,64 @@ document.getElementById('profileBtn').onclick=openProfile;
 document.getElementById('profClose').onclick=closeProfile;
 document.getElementById('profileModal').addEventListener('click',(e)=>{ if(e.target.id==='profileModal') closeProfile(); });
 document.getElementById('stageModal').addEventListener('click',(e)=>{ if(e.target.id==='stageModal') closeStageModal(); });
+
+/* ---- resource shops: Food (stamina), Gold, Diamonds ---- */
+const FOOD_COSTS=[50,100,100,200,200,400,400];        // diamonds per meal that day (resets 09:00)
+const GOLD_COSTS=[20,20,40,40,60,60,100,100];         // diamonds per gold purchase that day
+const FOOD_STAMINA=120;                               // stamina granted per meal
+function goldPerBuy(){ return 1000; }                 // placeholder gold amount — will scale by level later
+const GEM_OFFERS=[
+  {price:'$4.99', orb:'🔮', name:'Cluster Pack',  desc:'150 💎 a day for 14 days', special:true},
+  {price:'$2.99', orb:'🍔', name:'Burger Meal',   desc:'120 stamina a day for 30 days', special:true},
+  {price:'$4.99', orb:'💎', name:'500 Diamonds',  desc:'One-time bundle'},
+  {price:'$9.99', orb:'💎', name:'1,200 Diamonds',desc:'One-time bundle'},
+  {price:'$19.99',orb:'💎', name:'2,800 Diamonds',desc:'One-time bundle'},
+  {price:'$50.00',orb:'💎', name:'6,000 Diamonds',desc:'One-time bundle'},
+];
+function foodDayReset(){ const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
+function goldDayReset(){ const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
+function foodNextCost(){ foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
+function goldNextCost(){ goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
+function buyFood(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at 09:00.'); return; }
+  if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
+  G.gems-=c; G.stamina=(G.stamina||0)+FOOD_STAMINA; G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
+function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at 09:00.'); return; }
+  if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
+  const amt=goldPerBuy(); G.gems-=c; G.gold=(G.gold||0)+amt; G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+amt+' gold!'); }
+function buyGemOffer(i){ bannerMsg('In-app purchases are coming soon!'); }
+function openHudShop(kind){ renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
+function closeHudShop(){ document.getElementById('hudShop').classList.remove('active'); }
+function renderHudShop(kind){ document.getElementById('hudShop').dataset.kind=kind;
+  if(kind==='food') renderFoodShop(); else if(kind==='gold') renderGoldShop(); else renderGemShop(); }
+function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||0, n=G.foodBuys||0, out=(c==null);
+  document.getElementById('hudShopTitle').innerHTML='🍔 Food · Restore Stamina';
+  document.getElementById('hudShopBody').innerHTML=`
+    <div class="shopnote">Each meal instantly restores <b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b>. The price rises with each meal and resets daily at 09:00.</div>
+    <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at 09:00</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
+    <div class="costtrack">${FOOD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
+    <div class="shopbal">Balance: 💎 ${gems}</div>`;
+  const b=document.getElementById('foodBuyBtn'); if(b) b.onclick=buyFood; }
+function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||0, n=G.goldBuys||0, out=(c==null), amt=goldPerBuy();
+  document.getElementById('hudShopTitle').innerHTML='🪙 Buy Gold';
+  document.getElementById('hudShopBody').innerHTML=`
+    <div class="shopnote">Trade diamonds for <b style="color:#ffe08a">${amt.toLocaleString()} gold</b> per purchase. Price rises with each buy and resets daily at 09:00. <i>(Gold amount will scale with your level later.)</i></div>
+    <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at 09:00</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
+    <div class="costtrack">${GOLD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
+    <div class="shopbal">Balance: 💎 ${gems}</div>`;
+  const b=document.getElementById('goldBuyBtn'); if(b) b.onclick=buyGold; }
+function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='💎 Diamond Shop';
+  document.getElementById('hudShopBody').innerHTML=`
+    <div class="gemgrid">${GEM_OFFERS.map((o,i)=>`<div class="gemcard${o.special?' special':''}" data-i="${i}">
+      <div class="gc-orb">${o.orb}</div><div class="gc-name">${o.name}</div><div class="gc-desc">${o.desc}</div><div class="gc-price">${o.price}</div></div>`).join('')}</div>
+    <div class="shopnote" style="margin-top:10px;text-align:center">In-app purchases will be enabled soon.</div>`;
+  document.querySelectorAll('#hudShopBody .gemcard').forEach(el=>el.onclick=()=>buyGemOffer(+el.dataset.i)); }
+document.getElementById('staminaPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('food'); };
+document.getElementById('goldPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gold'); };
+document.getElementById('gemPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gem'); };
+document.getElementById('hudShopClose').onclick=closeHudShop;
+document.getElementById('hudShop').addEventListener('click',(e)=>{ if(e.target.id==='hudShop') closeHudShop(); });
 let homeZoom=1;
 function applyHomeZoom(){ const m=document.getElementById('townMap'); if(m) m.style.zoom=homeZoom; }  // main screen no longer zoomable; kept for legacy calls
 // free left/right panning of the town panorama (mouse drag on desktop; touch uses native pan-x). Tap still opens buildings.
@@ -3924,7 +4048,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785880007673';
+const BUILD_ID='1785882218492';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
