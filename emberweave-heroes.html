@@ -167,10 +167,10 @@
   .wishpool .wp-free.locked{color:#ff9a9a;}
   .wishpool .wp-sub{font-size:10.5px;color:#6f7d90;margin:2px 0 10px;min-height:26px;line-height:1.3;}
   .wishpool .btn{width:100%;}
-  .teleopt{background:rgba(20,27,43,.7);border:1px solid #2a3550;border-radius:12px;padding:11px 12px;margin-bottom:10px;}
-  .teleopt .to-h{font-weight:800;font-size:14px;color:#e6edf3;}
-  .teleopt .to-d{font-size:11px;color:#8b98a9;line-height:1.4;margin:3px 0 6px;}
-  .teleopt .to-s{font-size:11px;color:#9fb0c4;margin-bottom:8px;}
+  .teleopt{background:rgba(20,27,43,.7);border:1px solid #2a3550;border-radius:10px;padding:8px 9px;margin-bottom:7px;}
+  .teleopt .to-h{font-weight:800;font-size:12.5px;color:#e6edf3;}
+  .teleopt .to-d{font-size:10px;color:#8b98a9;line-height:1.35;margin:2px 0 4px;}
+  .teleopt .to-s{font-size:10px;color:#9fb0c4;margin-bottom:6px;}
   .teleopt .btn{width:100%;}
   #playerChip{display:flex;align-items:center;gap:10px;background:rgba(21,27,43,.85);border:1px solid #2a3550;border-radius:30px;padding:5px 16px 5px 5px;}
   #playerChip .pcAv{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #ffb347;}
@@ -282,7 +282,8 @@
   .cnode.elite.cleared{background:linear-gradient(140deg,#5a3a8a,#8a5cc0);border-color:#e6d4ff;}
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
   /* world map zone */
-  #wzone{position:relative;width:100%;max-width:680px;margin:8px auto 0;height:66vh;overflow:auto;border-radius:14px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
+  #wzone{position:relative;width:100%;max-width:680px;margin:2px auto 0;height:78vh;overflow:auto;border-radius:14px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
+  #world{padding:8px 10px 10px;justify-content:flex-start;}
   #wzone:active{cursor:grabbing;}
   #wzoneInner{position:relative;
          background:radial-gradient(circle at 20% 15%,#356048,#183025 55%),radial-gradient(circle at 75% 70%,#2a4a5a,#16261f 60%),linear-gradient(160deg,#1e3e2e,#122019);}
@@ -437,9 +438,6 @@
     <div id="wallBody"></div>
   </div>
   <div class="screen hub" id="world">
-    <button class="btn secondary sm backbtn" data-nav="wall">◀ City Wall</button>
-    <div class="titlebar"><h1>🌍 WORLD</h1></div>
-    <div class="sub">Four kingdoms, the Wild, and the World Tree at the centre</div>
     <div id="worldBody"></div>
   </div>
 
@@ -1042,7 +1040,7 @@ const DEFAULT_G = {
   questChainStep:0,               // progress through the campaign quest chain (0..4)
   created:0,                       // account-creation timestamp
   wishGoldDay:'', wishGoldUsed:0, wishGoldLast:0,   // gold pool: free-wish daily count + last free time
-  wishGemLast:0, wishGemFirstDone:false,            // diamond pool: last free time + first(rigged) wish done
+  wishGemLast:0, wishGemDay:'', wishGemFirstDone:false,   // diamond pool: first-free marker + daily(09:00) free-wish key + first(rigged) wish done
   wishClicks:0,                   // total wishing-pool taps (for the "toss a coin 3×" quest)
 };
 const JOINABLE_GUILDS=[];   // no pre-made guilds exist yet — players create their own
@@ -2426,8 +2424,20 @@ function worldNodes(){
   for(let i=0;i<34;i++){ const type=types[i%4]; const x=6+rand01(i+1)*88, y=5+rand01(i*3+7)*90; nodes.push({id:'n'+i,type,x,y,amt:8+Math.floor(rand01(i*5+2)*12)}); }
   return nodes;
 }
-let worldZoom=0.55;
-function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; }
+let worldZoom=0.62;   // opens zoomed in enough that castles are visible (< 500 squares) on phone and desktop
+// ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
+const GHOST_MAX_SQ=30;      // teleport ghost markers only render when the view spans ≤ 30×30 squares
+const CASTLE_MAX_SQ=500;    // castles only render when fewer than 500 squares are visible (zoom in to see them)
+function mapVisibleSquares(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom) return null;
+  const cellPx=WORLD_W/GRID_COLS;   // px per grid square in unzoomed world coords (≈50)
+  const vx=(zone.clientWidth/worldZoom)/cellPx, vy=(zone.clientHeight/worldZoom)/cellPx;
+  return {vx,vy,area:vx*vy}; }
+function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const s=mapVisibleSquares(); if(!s)return;
+  const ghostsOn=(s.vx<=GHOST_MAX_SQ && s.vy<=GHOST_MAX_SQ);
+  inner.querySelectorAll('.teleghost').forEach(g=>{ g.style.display=ghostsOn?'':'none'; });
+  const castlesOn=(s.area<CASTLE_MAX_SQ);
+  inner.querySelectorAll('.wnode.city').forEach(el=>{ el.style.display=castlesOn?'':'none'; }); }
+function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); }
 // scroll so the player's castle is centered in the viewport (castle can be anywhere in the world now)
 function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!zone)return;
   const p=myCastlePos(), fx=p.x/100, fy=p.y/100;
@@ -2477,19 +2487,19 @@ function openTelePopout(){ closeTelePopout();
   const free=wildTeleFreeReady();
   const ov=document.createElement('div'); ov.id='telePopout';
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:310;padding:16px';
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:16px;width:100%;max-width:340px;box-shadow:0 12px 40px #000b">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:800;font-size:16px">✨ Teleport</div><button class="btn xs secondary" id="tpClose">✕</button></div>
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:13px;padding:11px;width:100%;max-width:256px;box-shadow:0 10px 32px #000b">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="font-weight:800;font-size:13px">✨ Teleport</div><button class="btn xs secondary" id="tpClose" style="padding:1px 7px">✕</button></div>
     <div class="teleopt">
       <div class="to-h">🎯 Teleport Scroll</div>
-      <div class="to-d">Tap any square in <b>your own lands</b> to move there. Other kingdoms are off-limits. Uses your free daily teleport first.</div>
-      <div class="to-s">Free today: <b>${teleportsLeft()}</b> · Scrolls: <b>${G.teleScrolls||0}</b></div>
-      <button class="btn sm" id="tpTargeted">${teleportTotal()>0?'Choose a location':'Buy scroll · 💎'+TELE_SCROLL_COST}</button>
+      <div class="to-d">Tap any square in <b>your own lands</b>. Uses your free daily teleport first.</div>
+      <div class="to-s">Free: <b>${teleportsLeft()}</b> · Scrolls: <b>${G.teleScrolls||0}</b></div>
+      <button class="btn xs" id="tpTargeted">${teleportTotal()>0?'Choose a location':'Buy · 💎'+TELE_SCROLL_COST}</button>
     </div>
     <div class="teleopt">
       <div class="to-h">🌀 Wild Teleport</div>
-      <div class="to-d">Jump to a <b>random</b> square somewhere in your kingdom. One free relocation every 6 hours.</div>
-      <div class="to-s">${free?'<b style="color:#5ee89b">✨ Free jump ready</b>':'⏳ Next free in <b>'+fmtDur(wildTeleNextMs())+'</b>'} · Scrolls: <b>${G.wildScrolls||0}</b></div>
-      <button class="btn sm" id="tpWild">${free||(G.wildScrolls||0)>0?'Wild Teleport':'Buy scroll · 💎'+WILD_SCROLL_COST}</button>
+      <div class="to-d">Jump to a <b>random</b> square in your kingdom. One free every 6h.</div>
+      <div class="to-s">${free?'<b style="color:#5ee89b">✨ Free ready</b>':'⏳ <b>'+fmtDur(wildTeleNextMs())+'</b>'} · Scrolls: <b>${G.wildScrolls||0}</b></div>
+      <button class="btn xs" id="tpWild">${free||(G.wildScrolls||0)>0?'Wild Teleport':'Buy · 💎'+WILD_SCROLL_COST}</button>
     </div></div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov)closeTelePopout(); });
@@ -2550,19 +2560,32 @@ function renderWorldMap(){
   const body=document.getElementById('worldBody'); if(!body)return; body.innerHTML='';
   maybeSpawnRaid();
   const czone=myCastleZone(), cz=ZONES[czone];
-  const head=document.createElement('div'); head.style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center';
-  head.innerHTML=`<button class="btn sm secondary" id="wmBack">◀ Base</button><span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · marches ×3':''}</span>`+RES.map(([k,ic])=>`<span class="pill">${ic} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')+`<span style="display:inline-flex;gap:4px"><button class="btn sm secondary" id="wzOut">－</button><button class="btn sm secondary" id="wzIn">＋</button></span>`;
-  body.appendChild(head); head.querySelector('#wmBack').onclick=()=>show('wall');
-  const hint=document.createElement('div'); hint.style='font-size:11px;color:#8b98a9;text-align:center;margin:6px 0'; hint.textContent='Scroll anywhere to explore the whole world. Tap a stronghold for actions. Teleport (bottom bar) moves your castle — only within your own kingdom, the Wild, or the World Tree.'; body.appendChild(hint);
+  const head=document.createElement('div'); head.style='display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;margin:0 0 4px';
+  head.innerHTML=`<button class="btn sm secondary" id="wmBack">🎯 Base</button>`
+    +`<span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · ×3':''}</span>`
+    +RES.map(([k,ic])=>`<span class="pill">${ic} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')
+    +`<button class="btn sm secondary" id="wbInfo">ℹ️</button>`
+    +`<button class="btn sm secondary" id="wbTele" style="${_teleMode?'color:#46e07a;border-color:#2f6b45':''}">✨ ${_teleMode?'Cancel':teleportTotal()+'('+teleportsLeft()+')'}</button>`
+    +`<button class="btn sm secondary" id="wbGrid">▦</button>`
+    +`<button class="btn sm secondary" id="wbShield" style="${shieldActive()?'color:#5ee89b;border-color:#2f6b45':''}">🛡 ${shieldActive()?fmtDur(shieldLeft()):(G.shieldItems||0)}</button>`
+    +`<span style="display:inline-flex;gap:4px"><button class="btn sm secondary" id="wzOut">－</button><button class="btn sm secondary" id="wzIn">＋</button></span>`;
+  body.appendChild(head);
+  head.querySelector('#wmBack').onclick=()=>{ closeCityMenu(); centerOnCastle(); };   // snap the view back to your castle
   const zone=document.createElement('div'); zone.id='wzone'; const inner=document.createElement('div'); inner.id='wzoneInner'; inner.style.width=WORLD_W+'px'; inner.style.height=WORLD_H+'px'; inner.style.background='#0c1018';
   // 9 zone terrain panels tiled into one continuous map
+  const ghostImg=CASTLE_IMGS.castle2||'';                 // faded level-2 castle drawn in every teleportable square
+  const ghostCellPx=WORLD_W*GRID_CELL/100;                // one grid square in px (≈50px)
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){ const key=zoneAt(col,row), z=ZONES[key], biome=BIOME[z.terrain];
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
     const pane=document.createElement('div');
-    const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 60px rgba(70,224,122,.35);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 60px rgba(230,72,63,.30);') : 'box-shadow:inset 0 0 0 2px rgba(0,0,0,.28);';
+    const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 34px rgba(70,224,122,.16);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 34px rgba(230,72,63,.14);') : 'box-shadow:inset 0 0 0 2px rgba(0,0,0,.28);';
     const gimg=GROUND_IMGS[z.terrain]||''; const tpx=(2*GRID_CELL/100*WORLD_W); const bg = gimg ? `background:url(${gimg}) repeat;background-size:${tpx}px ${tpx}px;` : `background:${biome?biome.base:'#26331a'};`;   // one tile ≈ a 2×2 block of grid squares
     pane.style.cssText=`position:absolute;left:${col*100/3}%;top:${row*100/3}%;width:${100/3}%;height:${100/3}%;${bg}${teleTint}${locked&&!_teleMode?'filter:grayscale(.5) brightness(.6)':''}`;
-    pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
+    pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
+    // teleport mode: tile a faded green (allowed) / red (blocked) castle silhouette into every grid square of this pane
+    if(_teleMode && ghostImg){ const gcol=accessible?'#46e07a':'#e6483f'; const gh=document.createElement('div'); gh.className='teleghost';
+      gh.style.cssText=`position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.30;background:${gcol};-webkit-mask:url(${ghostImg}) repeat;mask:url(${ghostImg}) repeat;-webkit-mask-size:${ghostCellPx}px ${ghostCellPx}px;mask-size:${ghostCellPx}px ${ghostCellPx}px;`;
+      pane.appendChild(gh); }
     inner.appendChild(pane); }
   // optional grid overlay across the whole world
   if(G.showGrid!==false){ const go=document.createElement('div'); go.style.cssText=`position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:${GRID_CELL}% ${GRID_CELL}%`; inner.appendChild(go); }
@@ -2581,7 +2604,7 @@ function renderWorldMap(){
   const myImg=playerCastleImg(), myH=CASTLE_H[castleTier(playerLevel())]||90;
   const meIc = myImg ? `<img class="castle-spr" src="${myImg}" style="height:${myH}px" draggable="false">` : `<div class="ic">🏰</div>`;
   meEl.innerHTML=`${meIc}<div class="wlab"><div class="nl">${escapeHTML(G.playerName||'You')} · YOU</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${playerLevel()}</div></div>`;
-  meEl.onclick=(e)=>{ e.stopPropagation(); closeCityMenu(); bannerMsg('🏰 Your stronghold · Lv '+playerLevel()); }; inner.appendChild(meEl);
+  meEl.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); show('home'); }; inner.appendChild(meEl);   // tap your own castle → back to your city
   // the World Tree — centered on the middle 2×2 tiles of the world
   if(WORLDTREE_IMG){ const wt=document.createElement('div'); wt.className='wnode'; wt.style.cssText='left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;min-width:0';
     const twPx=(8*GRID_CELL/100*WORLD_W);   // ~8 cells wide, scales with the map
@@ -2601,16 +2624,10 @@ function renderWorldMap(){
   head.querySelector('#wzIn').onclick=()=>{ worldZoomTo(worldZoom+0.15); closeCityMenu(); };
   head.querySelector('#wzOut').onclick=()=>{ worldZoomTo(worldZoom-0.15); closeCityMenu(); };
   drawMarches();
-  const bar=document.createElement('div'); bar.style.cssText='position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:9;background:rgba(10,14,22,.82);padding:6px 8px;border-radius:12px;border:1px solid #2a3550;box-shadow:0 4px 14px rgba(0,0,0,.5)';
-  bar.innerHTML=`<button class="btn sm secondary" id="wbInfo">ℹ️ Info</button>
-    <button class="btn sm secondary" id="wbTele" style="${_teleMode?'color:#46e07a;border-color:#2f6b45':''}">✨ ${_teleMode?'Cancel':'Teleport '+teleportTotal()+'('+teleportsLeft()+')'}</button>
-    <button class="btn sm secondary" id="wbGrid">▦ Grid</button>
-    <button class="btn sm secondary" id="wbShield" style="${shieldActive()?'color:#5ee89b;border-color:#2f6b45':''}">🛡 ${shieldActive()?fmtDur(shieldLeft()):(G.shieldItems||0)}</button>`;
-  mapWrap.appendChild(bar);
-  bar.querySelector('#wbInfo').onclick=openMarchInfo;
-  bar.querySelector('#wbTele').onclick=toggleTeleMode;
-  bar.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(); };
-  bar.querySelector('#wbShield').onclick=openShield;
+  head.querySelector('#wbInfo').onclick=openMarchInfo;
+  head.querySelector('#wbTele').onclick=toggleTeleMode;
+  head.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(); };
+  head.querySelector('#wbShield').onclick=openShield;
   updateChatVisibility();
   requestAnimationFrame(()=>centerOnCastle(zone));
 }
@@ -3260,7 +3277,7 @@ const BUILD_VERSION='v0.16';
 /* ============================ WISHING POOL ============================ */
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000;   // 1 free gold wish/hour, up to 3/day
-const WISH_GEM_FREE_MS=24*3600000;                        // 1 free diamond wish / 24h
+// (diamond free wish resets at the 09:00 ET daily reset — see wishGemFreeReady)
 const WISH_FIRST_GEM_DELAY_MS=20*60000;                   // first diamond wish unlocks 20 min after account creation
 const WISH_RIGGED_HEROES=['rook','sylva','thorne'];       // first diamond wish is rigged to one of these at 2★
 const WISH_HERO_CHANCE=0.10;                              // diamond pool: 10% chance of a full 2★ hero
@@ -3271,9 +3288,11 @@ function wishGoldFreeLeft(){ wishGoldFreeReset(); return Math.max(0,WISH_GOLD_FR
 function wishGoldFreeReady(){ return wishGoldFreeLeft()>0 && (Date.now()-(G.wishGoldLast||0))>=WISH_GOLD_FREE_MS; }
 function wishGoldNextFreeMs(){ if(wishGoldFreeLeft()<=0) return null; return Math.max(0, WISH_GOLD_FREE_MS-(Date.now()-(G.wishGoldLast||0))); }
 function wishGemUnlockAt(){ return (G.created||Date.now())+WISH_FIRST_GEM_DELAY_MS; }
-function wishGemLocked(){ return !G.wishGemFirstDone && Date.now()<wishGemUnlockAt(); }
-function wishGemFreeReady(){ if(wishGemLocked()) return false; if(!G.wishGemFirstDone) return true; return (Date.now()-(G.wishGemLast||0))>=WISH_GEM_FREE_MS; }
-function wishGemNextFreeMs(){ if(!G.wishGemFirstDone) return Math.max(0, wishGemUnlockAt()-Date.now()); return Math.max(0, WISH_GEM_FREE_MS-(Date.now()-(G.wishGemLast||0))); }
+// the POOL is never fully locked — a paid wish (💎300) is always available if you have the diamonds.
+// only the FREE wish is gated: the first free wish opens 20 min after account creation, then one
+// per server-day, resetting at the 09:00 ET daily reset (same boundary as all daily rewards).
+function wishGemFreeReady(){ if(!G.wishGemLast){ return Date.now()>=wishGemUnlockAt(); } return G.wishGemDay!==arenaDayKey(); }
+function wishGemNextFreeMs(){ if(!G.wishGemLast){ return Math.max(0, wishGemUnlockAt()-Date.now()); } return G.wishGemDay!==arenaDayKey()?0:arenaNextResetMs(); }
 // ---- reward grants (return {icon,name,extra?,big?}) ----
 function wishMat(rk,n){ if(!G.mats)G.mats={}; G.mats[rk]=(G.mats[rk]||0)+n; const m=MATS.find(x=>x[0]===rk); return {icon:m[1], name:n+'× '+m[2]+' Rune Shards'}; }
 function wishFrags(n){ const hk=randLockedHero(), t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n); return {icon:t.emoji, name:n+'× '+t.name+' fragments', extra:msg||''}; }
@@ -3314,15 +3333,15 @@ function wishGoldDo(){ const free=wishGoldFreeReady();
   if(!free && (G.gold||0)<WISH_GOLD_COST){ bannerMsg('Need 🪙'+WISH_GOLD_COST+' to wish.'); return; }
   if(free){ wishGoldFreeReset(); G.wishGoldUsed=(G.wishGoldUsed||0)+1; G.wishGoldLast=Date.now(); } else G.gold-=WISH_GOLD_COST;
   finishWish(doGoldRoll(),'gold'); }
-function wishGemDo(){ if(wishGemLocked()) return; const rigged=!G.wishGemFirstDone, free=rigged||wishGemFreeReady();
+function wishGemDo(){ const rigged=!G.wishGemFirstDone, free=wishGemFreeReady();
   if(!free && (G.gems||0)<WISH_GEM_COST){ bannerMsg('Need 💎'+WISH_GEM_COST+' to wish.'); return; }
-  if(free){ G.wishGemLast=Date.now(); } else G.gems-=WISH_GEM_COST;
+  if(free){ G.wishGemLast=Date.now(); G.wishGemDay=arenaDayKey(); } else G.gems-=WISH_GEM_COST;   // free wish consumes today's daily slot; otherwise pay diamonds
   G.wishGemFirstDone=true; finishWish(doGemRoll(rigged),'gem'); }
 function renderWishing(){ const b=document.getElementById('wishingBody'); if(!b)return;
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
-  const gemLocked=wishGemLocked(), gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
+  const gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
-  const canGem = !gemLocked && (gemFree || (G.gems||0)>=WISH_GEM_COST);
+  const canGem = gemFree || (G.gems||0)>=WISH_GEM_COST;
   b.innerHTML=`
   <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">Make a wish for <b>rune shards</b>, <b>hero fragments</b>, gold &amp; diamonds. The Diamond Pool can even surface a full <b>2★ hero</b>.</div>
   <div class="wishpools">
@@ -3338,14 +3357,13 @@ function renderWishing(){ const b=document.getElementById('wishingBody'); if(!b)
       <div class="wp-orb">🔮</div>
       <div class="wp-name">Diamond Pool</div>
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
-      ${gemLocked
-        ? `<div class="wp-free locked">🔒 Unlocks in ${fmtDur(gemNext||0)}</div><div class="wp-sub">Your first diamond wish is free &amp; guaranteed.</div>`
-        : `<div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Next free '+fmtDur(gemNext||0))}</div><div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free every 24h · 10% chance of a 2★ hero'}</div>`}
-      <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemLocked?'Locked':(gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST)}</button>
+      <div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0))}</div>
+      <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (09:00 reset) · 10% chance of a 2★ hero'}</div>
+      <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
     </div>
   </div>`;
   const g=b.querySelector('#wpGold'); if(g)g.onclick=wishGoldDo;
-  const m=b.querySelector('#wpGem'); if(m&&!gemLocked)m.onclick=wishGemDo; }
+  const m=b.querySelector('#wpGem'); if(m)m.onclick=wishGemDo; }
 /* ============================ QUESTS ============================ */
 // Starter quest chain over the campaign:
 //   clear 1-1 → 3 Grohm frags, 1-2 → 3 Grohm frags, 1-3 → 4 Grohm frags,
@@ -3744,7 +3762,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785854226633';
+const BUILD_ID='1785857909230';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
