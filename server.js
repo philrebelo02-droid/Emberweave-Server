@@ -164,9 +164,12 @@ try{
   const roomCode = ()=>{ let c; do{ c=crypto.randomBytes(3).toString('hex').toUpperCase().slice(0,5); }while(rooms[c]); return c; };
   const wsend = (ws,o)=>{ try{ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }catch(e){} };
   // ---- live chat: world/region broadcast + name-addressed whispers ----
-  const chatHist = { world:[], region:[] };
+  // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
+  const CHAT_KEEP=100, CHAT_AGE_MS=3*3600000;
   const clip = (s,n)=> String(s==null?'':s).slice(0,n);
-  const chatBroadcast = (o)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c.readyState===1) c.send(j); }catch(e){} }); };
+  function chatStore(){ if(!DB.chat)DB.chat={world:[],region:[]}; if(!Array.isArray(DB.chat.world))DB.chat.world=[]; if(!Array.isArray(DB.chat.region))DB.chat.region=[]; return DB.chat; }
+  function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
+  const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
   WSS.on('connection', ws=>{
     ws.on('message', raw=>{ let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
       if(m.t==='host'){ const c=roomCode(); rooms[c]={host:ws,guest:null}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
@@ -175,9 +178,10 @@ try{
         if(r.guest){ wsend(ws,{t:'joinfail',reason:'room full'}); return; }
         r.guest=ws; ws._room=c; ws._role='guest'; wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
       else if(m.t==='msg'){ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
-      else if(m.t==='chatjoin'){ ws._chatName=clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:chatHist.world,region:chatHist.region}); }
-      else if(m.t==='chat'){ const ch=(m.channel==='region')?'region':'world'; const msg={who:ws._chatName||'Player',txt:clip(m.text,200)}; if(!msg.txt)return;
-        chatHist[ch].push(msg); if(chatHist[ch].length>50) chatHist[ch].shift(); chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt}); }
+      else if(m.t==='chatjoin'){ ws._chatName=clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
+      else if(m.t==='chat'){ const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return; const msg={who:ws._chatName||'Player',txt,t:Date.now()};
+        chatStore()[ch].push(msg); pruneChat(ch); writeDB();
+        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
       else if(m.t==='whisper'){ const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
         WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:ws._chatName||'Player',txt})); }catch(e){} } }); }
     });
