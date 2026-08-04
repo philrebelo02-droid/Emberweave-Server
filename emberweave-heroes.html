@@ -2346,7 +2346,7 @@ function doTransfer(rk){ if(rk===myRegion())return;
   if(free) apply(); else gameConfirm('Transfer your kingdom to <b>'+ZONES[rk].name+'</b> for <b>💎'+TRANSFER_COST+'</b>?<br><span style="font-size:11px;color:#8b98a9">Your free monthly transfer is already used.</span>', apply);
 }
 // a big open zone: ~20x a screen. Nodes/cities placed deterministically across it.
-const WORLD_W=4320, WORLD_H=4320;   // one continuous square world (3×3 zones of 60×60)
+const WORLD_W=9000, WORLD_H=9000;   // one continuous square world (3×3 zones of 60×60) — 50px cells so castles fit
 function rand01(seed){ const x=Math.sin(seed*127.1+311.7)*43758.5453; return x-Math.floor(x); }
 function worldNodes(){
   const nodes=[]; const types=['iron','crystal','silver','coal'];
@@ -2359,7 +2359,7 @@ function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if
 function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!zone)return;
   const p=myCastlePos(), fx=p.x/100, fy=p.y/100;
   zone.scrollLeft=zone.scrollWidth*fx - zone.clientWidth/2; zone.scrollTop=zone.scrollHeight*fy - zone.clientHeight/2; }
-const WORLD_ZMIN=0.18, WORLD_ZMAX=1.6;
+const WORLD_ZMIN=0.1, WORLD_ZMAX=1.6;
 // zoom toward a screen point (mouse cursor / pinch centre) so that point stays put under the finger/cursor
 function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('wzone'); if(!zone)return;
   nz=Math.max(WORLD_ZMIN,Math.min(WORLD_ZMAX,+(+nz).toFixed(3))); if(nz===worldZoom)return;
@@ -2368,8 +2368,8 @@ function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('
   worldZoom=nz; applyWorldZoom();
   zone.scrollLeft=px*worldZoom-cx; zone.scrollTop=py*worldZoom-cy; }
 // desktop click-drag panning (added once; operates on the current world-map zone)
-let curWorldZone=null,_wdrag=false,_wsx=0,_wsy=0,_wsl=0,_wst=0;
-document.addEventListener('mousemove',(e)=>{ if(!_wdrag||!curWorldZone)return; curWorldZone.scrollLeft=_wsl-(e.clientX-_wsx); curWorldZone.scrollTop=_wst-(e.clientY-_wsy); });
+let curWorldZone=null,_wdrag=false,_wsx=0,_wsy=0,_wsl=0,_wst=0,_wMoved=false;
+document.addEventListener('mousemove',(e)=>{ if(!_wdrag||!curWorldZone)return; if(Math.abs(e.clientX-_wsx)+Math.abs(e.clientY-_wsy)>6)_wMoved=true; curWorldZone.scrollLeft=_wsl-(e.clientX-_wsx); curWorldZone.scrollTop=_wst-(e.clientY-_wsy); });
 document.addEventListener('mouseup',()=>{ if(_wdrag){ _wdrag=false; if(curWorldZone)curWorldZone.style.cursor='grab'; } });
 // ---- region picker (first world entry) ----
 function openRegionPicker(){
@@ -2388,28 +2388,32 @@ function openRegionPicker(){
 }
 function renderWorldOverview(){ renderWorldMap(); }   // the World screen is now the continuous map
 // ---- Teleport (separate button): relocate your castle to your own kingdom, the Wild, or the World Tree ----
-function openTeleport(){
-  const dests=[myRegion(),'wildN','wildW','wildE','wildS','worldtree'];
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:13000;display:flex;align-items:center;justify-content:center;padding:16px';
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:16px;width:100%;max-width:420px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">✨ Teleport Castle</div><button class="btn sm secondary" id="tpX">✕</button></div>
-    <div style="font-size:12px;color:#8b98a9;margin-bottom:10px">Move your castle to your own kingdom, the Wild, or the World Tree. <b>${teleportsLeft()}</b> free teleport today (Teleport Scrolls coming soon). You cannot teleport into another kingdom.</div>
-    <div id="tpRow" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div></div>`;
-  document.body.appendChild(ov); ov.querySelector('#tpX').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); });
-  const row=ov.querySelector('#tpRow');
-  dests.forEach(key=>{ const z=ZONES[key], terr=TERRAIN_IMGS[z.terrain]||'', here=(myCastleZone()===key);
-    const c=document.createElement('div'); c.style.cssText='border-radius:10px;overflow:hidden;border:2px solid '+(here?'#ffd45e':'#33405e')+';cursor:pointer;background:#0f1420';
-    c.innerHTML=`<div style="height:52px;background:url(${terr});background-size:cover;background-position:center"></div><div style="padding:6px 8px;font-weight:800;font-size:12px">${z.type==='worldtree'?'🌳 ':''}${z.name}${here?' · 📍 here':''}</div>`;
-    c.onclick=()=>{ if(teleportCastleTo(key)) ov.remove(); };
-    row.appendChild(c); });
+// Teleport MODE: tap any square to place your castle. Accessible zones are tinted green, other kingdoms red.
+let _teleMode=false;
+function toggleTeleMode(){
+  if(!_teleMode && teleportsLeft()<=0){ bannerMsg('No free teleport left today. Teleport Scrolls coming soon.'); return; }
+  _teleMode=!_teleMode; renderWorldMap();
+  if(_teleMode) bannerMsg('✨ Teleport: tap a green square to move your castle there. Red kingdoms are off-limits.');
 }
-function teleportCastleTo(key){
-  if(!zoneAccessible(key)){ bannerMsg('🔒 You can only teleport into your own kingdom, the Wild, or the World Tree.'); return false; }
-  if(myCastleZone()===key){ bannerMsg('Your castle is already here.'); return false; }
-  if(!useTeleport()){ bannerMsg('No free teleport left today. Teleport Scrolls coming soon.'); return false; }
-  const c=zoneCenter(key); G.castleX=c.x; G.castleY=c.y; G.zone=key; _botCache={}; saveG();
-  bannerMsg('✨ Teleported to '+ZONES[key].name); renderWorldMap(); return true;
+// convert a screen tap to a snapped world %-coordinate {x,y}
+function tapToWorldPct(zone, clientX, clientY){ const r=zone.getBoundingClientRect();
+  const ux=(zone.scrollLeft+(clientX-r.left))/worldZoom, uy=(zone.scrollTop+(clientY-r.top))/worldZoom;
+  return {x:snapToGrid(Math.max(0,Math.min(100,ux/WORLD_W*100))), y:snapToGrid(Math.max(0,Math.min(100,uy/WORLD_H*100)))}; }
+function teleportPlace(x,y){
+  const key=zoneOfPos(x,y);
+  if(!zoneAccessible(key)){ dropTelePin(x,y,false); bannerMsg('🔒 '+ZONES[key].name+' is another kingdom — you can’t teleport there.'); return; }
+  dropTelePin(x,y,true);
+  gameConfirm('Teleport your castle to this square in <b>'+ZONES[key].name+'</b>?',()=>{
+    if(!useTeleport()){ bannerMsg('No free teleport left today.'); return; }
+    G.castleX=x; G.castleY=y; G.zone=key; _teleMode=false; _botCache={}; saveG();
+    bannerMsg('✨ Teleported to '+ZONES[key].name); renderWorldMap();
+    requestAnimationFrame(()=>centerOnCastle());
+  });
 }
+function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner'); if(!inner)return;
+  const old=inner.querySelector('#telePin'); if(old)old.remove();
+  const pin=document.createElement('div'); pin.id='telePin'; pin.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)';
+  pin.textContent=ok?'📍':'⛔'; inner.appendChild(pin); }
 function renderWorldMap(){
   if(!G.regionChosen){ openRegionPicker(); return; }
   const body=document.getElementById('worldBody'); if(!body)return; body.innerHTML='';
@@ -2422,10 +2426,11 @@ function renderWorldMap(){
   const zone=document.createElement('div'); zone.id='wzone'; const inner=document.createElement('div'); inner.id='wzoneInner'; inner.style.width=WORLD_W+'px'; inner.style.height=WORLD_H+'px'; inner.style.background='#0c1018';
   // 9 zone terrain panels tiled into one continuous map
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){ const key=zoneAt(col,row), z=ZONES[key], terr=TERRAIN_IMGS[z.terrain]||'';
-    const locked=(z.type==='region'&&key!==myRegion());
+    const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
     const pane=document.createElement('div');
-    pane.style.cssText=`position:absolute;left:${col*100/3}%;top:${row*100/3}%;width:${100/3}%;height:${100/3}%;background:${terr?'url('+terr+')':'#26331a'};background-size:cover;background-position:center;box-shadow:inset 0 0 0 2px rgba(0,0,0,.35);${locked?'filter:grayscale(.55) brightness(.55)':''}`;
-    pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none">${z.type==='worldtree'?'🌳 ':''}${z.name}${key===myRegion()?' 🏰':locked?' 🔒':''}</div>`;
+    const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 60px rgba(70,224,122,.35);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 60px rgba(230,72,63,.30);') : 'box-shadow:inset 0 0 0 2px rgba(0,0,0,.35);';
+    pane.style.cssText=`position:absolute;left:${col*100/3}%;top:${row*100/3}%;width:${100/3}%;height:${100/3}%;background:${terr?'url('+terr+') repeat':'#26331a'};background-size:760px auto;${teleTint}${locked&&!_teleMode?'filter:grayscale(.55) brightness(.55)':''}`;
+    pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
     inner.appendChild(pane); }
   // optional grid overlay across the whole world
   if(G.showGrid!==false){ const go=document.createElement('div'); go.style.cssText=`position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:${GRID_CELL}% ${GRID_CELL}%`; inner.appendChild(go); }
@@ -2435,36 +2440,37 @@ function renderWorldMap(){
   // all rival castles (bots) across every region
   const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
   cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=c.x+'%'; el.style.top=c.y+'%';
-    const ic = npcCastle ? `<img class="castle-spr" src="${npcCastle}" style="height:60px" draggable="false">` : `<div class="ic">🏰</div>`;
+    const ic = npcCastle ? `<img class="castle-spr" src="${npcCastle}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
     el.innerHTML=`${ic}<div class="nl" style="color:${cityNameColor(c)};font-weight:800">${c.name}${c.ally?' 🤝':''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div>`;
-    el.onclick=(e)=>{ e.stopPropagation(); openCityMenu(c); }; inner.appendChild(el); });
-  // your castle at its world position
-  const CASTLE_H=[0,64,80,96,108,120];
+    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openCityMenu(c); }; inner.appendChild(el); });
+  // your castle at its world position (fits a grid cell; grows a little with kingdom level)
+  const CASTLE_H=[0,46,52,58,64,70];
   const cp=myCastlePos(); const meEl=document.createElement('div'); meEl.className='wnode city me'; meEl.style.left=cp.x+'%'; meEl.style.top=cp.y+'%';
   const myImg=playerCastleImg(), myH=CASTLE_H[castleTier(playerLevel())]||90;
   const meIc = myImg ? `<img class="castle-spr" src="${myImg}" style="height:${myH}px" draggable="false">` : `<div class="ic">🏰</div>`;
   meEl.innerHTML=`${meIc}<div class="nl">${escapeHTML(G.playerName||'You')} · YOU</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${playerLevel()}</div>`;
   meEl.onclick=(e)=>{ e.stopPropagation(); closeCityMenu(); bannerMsg('🏰 Your stronghold · Lv '+playerLevel()); }; inner.appendChild(meEl);
-  zone.addEventListener('click',()=>closeCityMenu());
+  zone.addEventListener('click',(e)=>{ closeCityMenu();
+    if(_teleMode && !_wMoved){ const p=tapToWorldPct(zone, e.clientX, e.clientY); teleportPlace(p.x,p.y); } });
   zone.addEventListener('wheel',(e)=>{ e.preventDefault(); closeCityMenu(); worldZoomTo(worldZoom*(e.deltaY<0?1.12:1/1.12), e.clientX, e.clientY); },{passive:false});
   let _pd=0,_pz=1; const tdist=(e)=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
   zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
   curWorldZone=zone;
-  zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
+  zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   applyWorldZoom();
   head.querySelector('#wzIn').onclick=()=>{ worldZoomTo(worldZoom+0.15); closeCityMenu(); };
   head.querySelector('#wzOut').onclick=()=>{ worldZoomTo(worldZoom-0.15); closeCityMenu(); };
   drawMarches();
   const bar=document.createElement('div'); bar.style.cssText='position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:9;background:rgba(10,14,22,.82);padding:6px 8px;border-radius:12px;border:1px solid #2a3550;box-shadow:0 4px 14px rgba(0,0,0,.5)';
   bar.innerHTML=`<button class="btn sm secondary" id="wbInfo">ℹ️ Info</button>
-    <button class="btn sm secondary" id="wbTele">✨ Teleport${teleportsLeft()>0?' · '+teleportsLeft():''}</button>
-    <button class="btn sm secondary" id="wbGrid">▦ ${G.showGrid===false?'Grid':'Grid'}</button>
+    <button class="btn sm secondary" id="wbTele" style="${_teleMode?'color:#46e07a;border-color:#2f6b45':''}">✨ ${_teleMode?'Cancel':'Teleport'}${!_teleMode&&teleportsLeft()>0?' · '+teleportsLeft():''}</button>
+    <button class="btn sm secondary" id="wbGrid">▦ Grid</button>
     <button class="btn sm secondary" id="wbShield" style="${shieldActive()?'color:#5ee89b;border-color:#2f6b45':''}">🛡${shieldActive()?' '+fmtDur(shieldLeft()):''}</button>`;
   mapWrap.appendChild(bar);
   bar.querySelector('#wbInfo').onclick=openMarchInfo;
-  bar.querySelector('#wbTele').onclick=openTeleport;
+  bar.querySelector('#wbTele').onclick=toggleTeleMode;
   bar.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(); };
   bar.querySelector('#wbShield').onclick=openShield;
   updateChatVisibility();
@@ -3492,9 +3498,15 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785815676270';
+const BUILD_ID='1785818477699';
 let _updating=false, _updateNoticeShown=false;
-function doUpdateReload(){ if(_updating)return; _updating=true;
+// loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
+// (e.g. version.json is stale / from a different host), stop trying and just play.
+function updLoopBlocked(){ try{ const now=Date.now(), g=JSON.parse(localStorage.getItem('ew_updguard')||'{}');
+  return g.t && (now-g.t)<60000 && (g.n||0)>=2; }catch(e){ return false; } }
+function updLoopMark(){ try{ const now=Date.now(); let g=JSON.parse(localStorage.getItem('ew_updguard')||'{}');
+  if(!g.t || (now-g.t)>60000) g={t:now,n:0}; g.n=(g.n||0)+1; localStorage.setItem('ew_updguard',JSON.stringify(g)); }catch(e){} }
+function doUpdateReload(){ if(_updating)return; _updating=true; updLoopMark();
   const st=document.getElementById('splashStatus'); if(st){ st.className='splashStatus check'; st.textContent='Updating…'; }
   const fin=()=>{ try{ location.reload(); }catch(e){ location.href=location.href; } };
   try{ const jobs=[];
@@ -3526,7 +3538,7 @@ function checkForUpdate(cb){ if(location.protocol==='file:'||!online()){ cb&&cb(
   let done=false; const proceed=()=>{ if(done)return; done=true; cb&&cb(); };
   const t=setTimeout(proceed,2500);   // never block play on a slow network
   fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{ clearTimeout(t);
-    if(j&&j.build&&String(j.build)!==BUILD_ID){ done=true; applyUpdate(); } else proceed();
+    if(j&&j.build&&String(j.build)!==BUILD_ID&&!updLoopBlocked()){ done=true; applyUpdate(); } else proceed();
   }).catch(()=>{ clearTimeout(t); proceed(); }); }
 function goLandscape(){
   const de=document.documentElement;
