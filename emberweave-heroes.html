@@ -290,6 +290,12 @@
   .marchShip{width:100%;height:100%;background-repeat:no-repeat;background-position:0% center;background-size:1600% 100%;
     transform-origin:center;animation:marchFly 1.15s steps(16,jump-none) infinite;}
   @keyframes marchFly{from{background-position-x:0%}to{background-position-x:100%}}
+  /* single-file control bar fixed to the screen bottom-right (mirrors the chat bar at bottom-left) */
+  #mapCtl{position:fixed;right:10px;bottom:10px;z-index:8000;display:flex;flex-direction:row;align-items:center;gap:6px;
+    background:rgba(10,14,22,.85);padding:5px 9px;border-radius:12px;border:1px solid #2a3550;box-shadow:0 3px 12px rgba(0,0,0,.5);white-space:nowrap;}
+  #mapCtl .pill{white-space:nowrap;}
+  #mapCtl .coordRead{font-size:12px;font-weight:800;color:#9fc0d6;font-variant-numeric:tabular-nums;padding:0 4px;letter-spacing:.5px;white-space:nowrap;}
+  #mapCtl .btn{padding:5px 10px;}
   #wzone:active{cursor:grabbing;}
   #wzoneInner{position:relative;
          background:radial-gradient(circle at 20% 15%,#356048,#183025 55%),radial-gradient(circle at 75% 70%,#2a4a5a,#16261f 60%),linear-gradient(160deg,#1e3e2e,#122019);}
@@ -2579,12 +2585,10 @@ function renderWorldMap(){
   head.innerHTML=`<button class="btn sm secondary" id="wmCity">🏰 City</button>`
     +`<button class="btn sm secondary" id="wmBack">🎯 Base</button>`
     +`<span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · ×3':''}</span>`
-    +RES.map(([k,ic])=>`<span class="pill">${ic} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')
     +`<button class="btn sm secondary" id="wbInfo">ℹ️</button>`
     +`<button class="btn sm secondary" id="wbTele" style="${_teleMode?'color:#46e07a;border-color:#2f6b45':''}">✨ ${_teleMode?'Cancel':teleportTotal()+'('+teleportsLeft()+')'}</button>`
     +`<button class="btn sm secondary" id="wbGrid">▦</button>`
-    +`<button class="btn sm secondary" id="wbShield" style="${shieldActive()?'color:#5ee89b;border-color:#2f6b45':''}">🛡 ${shieldActive()?fmtDur(shieldLeft()):(G.shieldItems||0)}</button>`
-    +`<span style="display:inline-flex;gap:4px"><button class="btn sm secondary" id="wzOut">－</button><button class="btn sm secondary" id="wzIn">＋</button></span>`;
+    +`<button class="btn sm secondary" id="wbShield" style="${shieldActive()?'color:#5ee89b;border-color:#2f6b45':''}">🛡 ${shieldActive()?fmtDur(shieldLeft()):(G.shieldItems||0)}</button>`;
   body.appendChild(head);
   head.querySelector('#wmCity').onclick=()=>{ closeCityMenu(); show('home'); };        // return to your city (town)
   head.querySelector('#wmBack').onclick=()=>{ closeCityMenu(); centerOnCastle(); };   // snap the view back to your castle
@@ -2638,15 +2642,47 @@ function renderWorldMap(){
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   applyWorldZoom();
-  head.querySelector('#wzIn').onclick=()=>{ worldZoomTo(worldZoom+0.15); closeCityMenu(); };
-  head.querySelector('#wzOut').onclick=()=>{ worldZoomTo(worldZoom-0.15); closeCityMenu(); };
+  // ---- bottom-right control cluster: resources · coordinate readout · search · zoom ----
+  const ctl=document.createElement('div'); ctl.id='mapCtl';
+  ctl.innerHTML=RES.map(([k,ic])=>`<span class="pill">${ic} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')
+    +`<span id="coordRead" class="coordRead">X0 Y0</span>`
+    +`<button class="btn sm secondary" id="mapSearch" title="Go to coordinate">🔍</button>`
+    +`<button class="btn sm secondary" id="wzOut">－</button><button class="btn sm secondary" id="wzIn">＋</button>`;
+  mapWrap.appendChild(ctl);
+  ctl.querySelector('#wzIn').onclick=()=>{ worldZoomTo(worldZoom+0.15); closeCityMenu(); };
+  ctl.querySelector('#wzOut').onclick=()=>{ worldZoomTo(worldZoom-0.15); closeCityMenu(); };
+  ctl.querySelector('#mapSearch').onclick=openCoordSearch;
   drawMarches();
   head.querySelector('#wbInfo').onclick=openMarchInfo;
   head.querySelector('#wbTele').onclick=toggleTeleMode;
   head.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(); };
   head.querySelector('#wbShield').onclick=openShield;
   updateChatVisibility();
-  requestAnimationFrame(()=>centerOnCastle(zone));
+  requestAnimationFrame(()=>{ centerOnCastle(zone); updateCoordReadout(); });
+}
+// ---- coordinate search: jump the map to any X/Y grid cell ----
+function dropCoordPin(cx,cy){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const old=inner.querySelector('#coordPin'); if(old)old.remove();
+  const px=(cx+0.5)*GRID_CELL, py=(cy+0.5)*GRID_CELL;
+  const pin=document.createElement('div'); pin.id='coordPin'; pin.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;transform:translate(-50%,-100%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)'; pin.textContent='📍'; inner.appendChild(pin);
+  setTimeout(()=>{ if(pin.parentNode)pin.remove(); },6000); }
+function openCoordSearch(){ closeCityMenu(); const cur=viewCenterCoord();
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  const inp='width:66px;margin-left:5px;padding:7px;border-radius:8px;border:1px solid #33405e;background:#0e1420;color:#e6edf3;font-size:14px;text-align:center';
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:18px 16px;width:100%;max-width:262px;text-align:center;box-shadow:0 12px 40px #000b">
+    <div style="font-weight:800;font-size:15px;margin-bottom:3px">🔍 Go to coordinate</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:12px">Each axis runs 0–${GRID_COLS-1}.</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:14px">
+      <label style="font-size:13px;color:#9fc0d6;font-weight:700">X<input id="csX" type="number" inputmode="numeric" min="0" max="${GRID_COLS-1}" value="${cur.cx}" style="${inp}"></label>
+      <label style="font-size:13px;color:#9fc0d6;font-weight:700">Y<input id="csY" type="number" inputmode="numeric" min="0" max="${GRID_COLS-1}" value="${cur.cy}" style="${inp}"></label>
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn secondary" style="flex:1" id="csCancel">Cancel</button><button class="btn" style="flex:1" id="csGo">Go</button></div></div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  ov.querySelector('#csCancel').onclick=close;
+  const go=()=>{ const clamp=v=>Math.max(0,Math.min(GRID_COLS-1,parseInt(v)||0));
+    const x=clamp(ov.querySelector('#csX').value), y=clamp(ov.querySelector('#csY').value); close(); centerOnCoord(x,y); dropCoordPin(x,y); };
+  ov.querySelector('#csGo').onclick=go;
+  ov.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{ if(e.key==='Enter')go(); }));
 }
 function raidCity(c){ CUR={mode:'raid',oppName:c.name}; startVersus(c.team,false); }
 
@@ -2662,6 +2698,21 @@ function zoneCenter(key){ const z=ZONES[key]; return {x:(z.col+0.5)*(100/3), y:(
 // your castle's world position (defaults to the centre of your home region; teleport relocates it)
 function myCastlePos(){ if(G.castleX!=null&&G.castleY!=null) return {x:G.castleX,y:G.castleY}; const c=zoneCenter(myRegion()); return {x:c.x,y:c.y}; }
 function myCastleZone(){ const p=myCastlePos(); return zoneOfPos(p.x,p.y); }
+// ---- map grid coordinates: every %-position maps to a cell (X,Y) in the 0..179 world grid ----
+function coordOf(x,y){ return {cx:cellIndex(x), cy:cellIndex(y)}; }
+function coordStr(x,y){ const c=coordOf(x,y); return c.cx+':'+c.cy; }
+// scroll the map so a given grid coordinate is centred (used by search + city jumps)
+function centerOnCoord(cx,cy){ const zone=document.getElementById('wzone'); if(!zone)return;
+  cx=Math.max(0,Math.min(GRID_COLS-1,cx)); cy=Math.max(0,Math.min(GRID_COLS-1,cy));
+  const fx=((cx+0.5)*GRID_CELL)/100, fy=((cy+0.5)*GRID_CELL)/100;
+  zone.scrollLeft=zone.scrollWidth*fx - zone.clientWidth/2; zone.scrollTop=zone.scrollHeight*fy - zone.clientHeight/2;
+  updateCoordReadout(); }
+// the grid coordinate currently at the centre of the viewport
+function viewCenterCoord(){ const zone=document.getElementById('wzone'); if(!zone) return {cx:0,cy:0};
+  const fx=(zone.scrollLeft+zone.clientWidth/2)/Math.max(1,zone.scrollWidth), fy=(zone.scrollTop+zone.clientHeight/2)/Math.max(1,zone.scrollHeight);
+  return coordOf(fx*100, fy*100); }
+// the bottom bar shows the PLAYER'S OWN coordinates (you can't click your own castle to read them)
+function updateCoordReadout(){ const el=document.getElementById('coordRead'); if(!el)return; const p=myCastlePos(); el.textContent='🏰 X'+cellIndex(p.x)+' Y'+cellIndex(p.y); }
 function gridDist(tx,ty){ const c=myCastlePos(); const dc=cellIndex(tx)-cellIndex(c.x), dr=cellIndex(ty)-cellIndex(c.y); return Math.max(1, Math.round(Math.hypot(dc,dr))); }
 function marchOutMs(ctype,tx,ty){ const per=(ctype==='defend')?MARCH_MS_PER_SQUARE/2:MARCH_MS_PER_SQUARE;
   let ms=gridDist(tx,ty)*per*marchZoneMul();   // ×3 inside the World Tree
@@ -2779,15 +2830,20 @@ function drawMarches(){
   const g=svg.querySelector('#marchG'); g.innerHTML=''; veh.innerHTML='';
   const now=Date.now(), home=myCastlePos();   // marches originate at your castle's world position
   activeMarches().forEach(m=>{ const far={x:m.fx,y:m.fy};
+    // scouting marches are private — only the scouter and the scouted ever see the ship + arrows.
+    // every march in this client's list is one the player is party to (their own, or incoming to them),
+    // so scouts here are correctly visible; third-party scouts are never sent to this client.
     let legStart, legEnd, p, col, showLine=true, etaMs=0, stationed=false;
+    // COLOURS: blue = you marching out (attack/defend/scout); red = an enemy marching to you;
+    //          green = a guild ally marching to you / parked at your castle. (Returning ships are your own → blue.)
     if(m.retreated){                          // recalled → sailing home from where it turned around
       legStart=m.retFrom||far; legEnd=home; p=(now-m.retStart)/m.retDur; col='#6ea8ff'; etaMs=(m.retStart+m.retDur)-now;
-    } else if(m.stationed){                    // defenders parked at the ally castle
+    } else if(m.stationed){                    // guild defenders parked at the castle
       legStart=legEnd=far; p=0; col='#5ee89b'; showLine=false; stationed=true;
-    } else if(now<m.arrive){                    // outbound
+    } else if(now<m.arrive){                    // in transit
       legStart = m.dir==='in'?far:home; legEnd = m.dir==='in'?home:far; p=(now-m.depart)/m.out; etaMs=m.arrive-now;
-      col = m.dir==='in' ? (m.ctype==='defend'?'#5ee89b':'#ff5555') : (m.ctype==='defend'?'#5ee89b':m.ctype==='scout'?'#8fe3ff':'#ffb347');
-    } else {                                    // returning home (normal)
+      col = m.dir==='in' ? (m.ctype==='defend' ? '#5ee89b' : '#ff5555') : '#6ea8ff';
+    } else {                                    // returning home (your own ship)
       legStart = m.dir==='in'?home:far; legEnd = m.dir==='in'?far:home; p=(now-m.arrive)/m.out; col='#6ea8ff'; etaMs=m.home-now;
     }
     p=Math.max(0,Math.min(1,p));
@@ -2844,10 +2900,11 @@ function openCityMenu(c){
   if(!canAct){
     // another kingdom — view only
     const pop0=document.createElement('div'); pop0.className='citymenu'; pop0.style.left=c.x+'%'; pop0.style.top=c.y+'%'; pop0.style.zoom=(1/worldZoom);
-    pop0.innerHTML=`<div class="cm-t">${escapeHTML(c.name)} · Lv ${c.level||1}</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">🔒 ${ZONES[c.region]?ZONES[c.region].name:'Another kingdom'} — you can't march here.<br>Transfer your kingdom to operate here.</div><button class="cm-b" data-a="whisper">💬 Whisper</button>`;
+    pop0.innerHTML=`<div class="cm-t">${escapeHTML(c.name)} · Lv ${c.level||1}</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">🔒 ${ZONES[c.region]?ZONES[c.region].name:'Another kingdom'} — you can't march here.<br>Transfer your kingdom to operate here.</div><button class="cm-b" data-a="info">ℹ️ Info</button><button class="cm-b" data-a="whisper">💬 Whisper</button>`;
     inner.appendChild(pop0); cityMenuEl=pop0; pop0.addEventListener('click',e=>e.stopPropagation());
     pop0.querySelectorAll('.cm-b').forEach(btn=>btn.onclick=()=>cityAction(btn.dataset.a,c)); return;
   }
+  opts.push(['info','ℹ️ Info']);
   if(enemy){ opts.push(['attack','⚔ Attack'],['group','⚔ Group Attack']); }
   if(c.ally){ opts.push(['defend','🛡 Defend']); }
   opts.push(['scout','🔭 Scout'],['whisper','💬 Whisper']);
@@ -2858,7 +2915,22 @@ function openCityMenu(c){
   pop.addEventListener('click',e=>e.stopPropagation());
   pop.querySelectorAll('.cm-b').forEach(btn=>btn.onclick=()=>cityAction(btn.dataset.a,c));
 }
+function showCityInfo(c){ closeCityMenu();
+  const cx=cellIndex(c.x), cy=cellIndex(c.y), rank=c.rank||'—', pw=c.power!=null?c.power:null;
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:18px 16px;width:100%;max-width:262px;text-align:center;box-shadow:0 12px 40px #000b">
+    <div style="font-weight:800;font-size:16px;margin-bottom:2px">${escapeHTML(c.name)}${c.ally?' <span style="color:#5ee89b;font-size:12px">· Guild</span>':''}</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:12px">Stronghold info</div>
+    <div style="font-size:13px;line-height:2;text-align:left;display:inline-block">
+      🏰 Level&nbsp; <b>${c.level||1}</b><br>
+      📍 Coordinates&nbsp; <b style="color:#9fc0d6">X${cx} Y${cy}</b><br>
+      🏆 Arena rank&nbsp; <b style="color:#ffd45e">#${rank}</b>${pw!=null?'<br>⚔ Power&nbsp; <b>'+pw+'</b>':''}
+    </div>
+    <button class="btn" style="width:100%;margin-top:14px" id="ciClose">Close</button></div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); }); ov.querySelector('#ciClose').onclick=close; }
 function cityAction(a,c){ closeCityMenu();
+  if(a==='info'){ showCityInfo(c); return; }
   if(a==='whisper'){ gamePrompt('💬 Whisper to '+escapeHTML(c.name),'Type your message…',txt=>{ if(txt&&txt.trim()) marchReport('💬 Whisper sent','To '+c.name+': “'+txt.trim()+'”'); }); return; }
   if(a==='war'){ if(atWarWith(c.name,false)){ bannerMsg('⚔ War with '+c.name+' is already live — attack now!'); return; }
     if(warPending(c.name,false)){ bannerMsg('🔥 War already declared — combat begins in ⏳ '+fmtDur(warPrepRemaining(c.name,false))); return; }
@@ -3561,6 +3633,14 @@ function renderSettings(){
       </div>
       <button class="btn sm" data-dev="update" style="width:100%;margin-top:8px;background:#3a6df0">🔄 Check for update (reload newest)</button>
       <div id="devDone" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div>
+      <div style="margin-top:10px;border-top:1px solid #23304a;padding-top:8px">
+        <div style="font-weight:800;font-size:12px;color:#8fd0ff;margin-bottom:6px">🛰 Server admin</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="btn sm secondary" data-dev="online" style="font-size:11px">👥 Players online</button>
+          <button class="btn sm secondary" data-dev="accounts" style="font-size:11px">🗂 All accounts</button>
+        </div>
+        <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:220px;overflow:auto"></div>
+      </div>
     </div>`;
   }
   // save-management tools (Show save code / Reset all progress) are DEV-only
@@ -3629,8 +3709,26 @@ function devAction(a,b){
   else if(a==='guildcoins'){ G.guildCoins=(G.guildCoins||0)+5000; done('+5,000 guild coins'); }
   else if(a==='shielditem'){ G.shieldItems=(G.shieldItems||0)+3; done('+3 protection shields'); }
   else if(a==='update'){ devForceUpdate(); return; }
+  else if(a==='online'||a==='accounts'){ devAdminList(a,b); return; }
   saveG(); updateHubChrome();
 }
+// dev-only: pull the live server lists (players online / all created accounts)
+function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!out)return;
+  out.innerHTML='<span style="color:#8b98a9">Loading…</span>';
+  api(kind==='online'?'/api/admin/online':'/api/admin/accounts').then(d=>{
+    if(!d||d.error){ out.innerHTML='<span style="color:#ff8b8b">'+escapeHTML((d&&d.error)||'Server unreachable')+'</span>'; return; }
+    const rows=(kind==='online'?d.online:d.accounts)||[];
+    const ago=t=>{ if(!t)return '—'; const s=Math.floor((Date.now()-t)/1000); if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; };
+    const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
+    let html='<div style="font-weight:800;margin-bottom:4px">'+(kind==='online'?'👥 Online now: '+rows.length:'🗂 Total accounts: '+rows.length)+'</div>';
+    if(!rows.length) html+='<span style="color:#8b98a9">None found.</span>';
+    else html+='<table style="width:100%;border-collapse:collapse;font-size:11px">'+rows.map(r=>
+      '<tr style="border-top:1px solid #1c2434"><td style="padding:3px 4px;font-weight:700">'+escapeHTML(r.name)+'</td>'
+      +'<td style="padding:3px 4px;color:#ffd45e">#'+r.rank+'</td>'
+      +'<td style="padding:3px 4px;color:#8b98a9;text-align:right;white-space:nowrap">'+(kind==='online'?ago(r.lastSeen):('made '+dt(r.created)))+'</td></tr>'
+    ).join('')+'</table>';
+    out.innerHTML=html;
+  }); }
 // force the installed app to pull the freshest deployed build: drop caches, unregister SW, hard reload
 function devForceUpdate(){
   const fin=()=>{ try{ location.reload(); }catch(e){ location.href=location.href; } };
@@ -3800,7 +3898,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785867950622';
+const BUILD_ID='1785869275067';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
