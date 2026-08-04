@@ -18,7 +18,15 @@ const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
 const GAME_FILE = path.join(__dirname, 'emberweave-heroes.html');
-const DB_FILE   = process.env.DB_FILE || path.join(__dirname, 'emberweave-db.json');  // point at a mounted volume in production so accounts persist
+// Resolve a PERSISTENT db path so accounts survive redeploys. Priority:
+//   1) explicit DB_FILE env var  2) a writable mounted /data volume  3) app dir (EPHEMERAL — wiped on every redeploy!)
+function resolveDBFile(){
+  if(process.env.DB_FILE) return process.env.DB_FILE;
+  try{ fs.accessSync('/data', fs.constants.W_OK); return path.join('/data','emberweave-db.json'); }catch(e){}
+  return path.join(__dirname, 'emberweave-db.json');
+}
+const DB_FILE = resolveDBFile();
+const DB_PERSISTENT = !!process.env.DB_FILE || DB_FILE.startsWith('/data');
 // where to pull the game from when it isn't bundled next to server.js (so the repo can be just server.js + package.json)
 const GAME_URL  = (process.env.GAME_URL || 'https://sunny-biscotti-e5128b.netlify.app').replace(/\/+$/,'');
 const _rcache={}, RCACHE_TTL=60000;   // re-fetch from GAME_URL at most once a minute so Netlify updates propagate
@@ -29,7 +37,9 @@ async function remoteAsset(urlPath){ const c=_rcache[urlPath]; if(c && Date.now(
 let DB = { users:{}, byName:{}, tokens:{}, seeded:false };
 function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
 let saveTimer=null;
-function writeDB(){ if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null; try{ fs.writeFileSync(DB_FILE, JSON.stringify(DB)); }catch(e){} },200); }
+function writeDB(){ if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
+  try{ const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE); }   // atomic: write temp, then rename
+  catch(e){ console.error('⚠ DB write failed:', e.message); } },200); }
 
 /* ------------------------------- helpers ---------------------------------- */
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
@@ -39,6 +49,8 @@ function body(req){ return new Promise(r=>{ let d=''; req.on('data',c=>d+=c); re
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
 function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0 }; }
+const DEV_NAMES=['phil','ember'];   // usernames that unlock the dev/admin tools (must match the client's DEV_ACCOUNTS)
+function isDev(u){ return !!(u && !u.isNpc && DEV_NAMES.includes((u.name||'').toLowerCase())); }
 
 const HERO_KEYS=['aldric','thorne','grohm','vex','sylva','rook','zephyr','lumi','aria'];
 function defaultTeam(){ return [ {key:'aldric',level:1,rank:0},{key:'sylva',level:1,rank:0},{key:'zephyr',level:1,rank:0},{key:'lumi',level:1,rank:0},{key:'vex',level:1,rank:0} ]; }
@@ -88,7 +100,7 @@ async function api(req,res,url){
 
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').trim().slice(0,16);
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
-    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Name taken'});
+    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username is already taken — choose another.'});
     const id=uid(), salt=crypto.randomBytes(8).toString('hex');
     const u={ id, name, hash:hashPass(b.pass,salt), salt, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -100,6 +112,17 @@ async function api(req,res,url){
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   const me=authUser(req);
+  if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
+  // ---- developer/admin endpoints (only usable while signed into a dev account) ----
+  if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const cutoff=Date.now()-5*60000;
+    const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
+      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({name:u.name,rank:u.rank,lastSeen:u.lastSeen||0}));
+    return send(res,200,{online, count:online.length}); }
+  if(p==='/api/admin/accounts'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
+      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0}));
+    return send(res,200,{accounts, count:accounts.length}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
@@ -191,4 +214,7 @@ try{
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
 readDB(); seed();
+const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
+console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
+console.log('👤 Player accounts loaded: '+realAccts);
 server.listen(PORT,()=>{ console.log('🔥 Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
