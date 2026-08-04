@@ -3762,7 +3762,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785857909230';
+const BUILD_ID='1785858514229';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -3778,15 +3778,16 @@ function doUpdateReload(){ if(_updating)return; _updating=true; updLoopMark();
     if('serviceWorker' in navigator) jobs.push(navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.update().catch(()=>{})))));
     Promise.all(jobs).then(fin).catch(fin); setTimeout(fin,2000);
   }catch(e){ fin(); } }
-// while playing: show a 20s "update applied — restarting" notice with a Restart-now button.
 // on the boot splash (not entered yet): just reload straight to the newest build.
+// mid-battle: give a short grace countdown so progress isn't lost.
+// anywhere else (menus / map / home): apply right away with a brief 3s heads-up.
 function applyUpdate(){ if(_updating)return;
   if(!_splashEntered){ doUpdateReload(); return; }
-  showUpdateCountdown();
+  showUpdateCountdown((state==='battle' && !ended) ? 8 : 3);
 }
-function showUpdateCountdown(){ if(_updateNoticeShown)return; _updateNoticeShown=true;
+function showUpdateCountdown(secs){ if(_updateNoticeShown)return; _updateNoticeShown=true;
   const ov=document.createElement('div'); ov.id='updateNotice'; ov.style.cssText='position:fixed;inset:0;z-index:15000;background:rgba(4,6,10,.86);display:flex;align-items:center;justify-content:center';
-  let n=20;
+  let n=secs||3;
   const render=()=>{ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a6df0;border-radius:16px;padding:22px 20px;width:88%;max-width:360px;text-align:center;box-shadow:0 10px 34px rgba(0,0,0,.6)">
       <div style="font-size:38px">🔄</div>
       <div style="font-weight:800;font-size:17px;margin:6px 0">Update applied</div>
@@ -3946,7 +3947,7 @@ else { document.body.classList.add('gated'); loadG(); loadAcc(); initThree(); up
       if(applyCloudSave(d.profile,false)){ updateHubChrome(); if(state==='home') renderHome(); } }   // pull cloud save if it's newer than local (cross-device sync)
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); }   // token no longer valid → sign out
     /* else: offline / transient error → stay signed in with local progress */ }); }
-  setInterval(()=>{ if(_splashEntered && online() && !_updating && !_updateNoticeShown) checkForUpdate(); }, 15000);   // watch for a new build while playing (server caches version for ~60s, so 15s is plenty) → graceful restart notice
+  setInterval(()=>{ if(_splashEntered && online() && !_updating && !_updateNoticeShown) checkForUpdate(); }, 10000);   // poll version.json every 10s (served no-store, so it's always fresh) → apply the new build quickly
   setInterval(marchTick,1000);                                             // resolve arrivals / free troops (works off the map too)
   setInterval(()=>{ if(document.getElementById('wzone')) drawMarches(); },150);   // smooth ship movement while the map is open
   requestAnimationFrame(loop); }
