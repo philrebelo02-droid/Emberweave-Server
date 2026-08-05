@@ -108,7 +108,14 @@ async function api(req,res,url){
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req); const id=DB.byName[(b.name||'').trim().toLowerCase()];
-    const u=id&&DB.users[id]; if(!u||u.hash!==hashPass(b.pass||'',u.salt)) return send(res,401,{error:'Wrong name or password'});
+    const u=id&&DB.users[id]; if(!u) return send(res,401,{error:'Wrong name or password'});
+    // account flagged by an admin for password recovery: the next login sets a brand-new password
+    if(u.mustReset){
+      if(b.newPass){ if((b.newPass||'').length<1) return send(res,400,{error:'Enter a new password'});
+        u.salt=crypto.randomBytes(8).toString('hex'); u.hash=hashPass(b.newPass,u.salt); u.mustReset=false;
+        const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+      return send(res,200,{ reset:true, name:u.name }); }   // tell the client to prompt for a new password
+    if(u.hash!==hashPass(b.pass||'',u.salt)) return send(res,401,{error:'Wrong name or password'});
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   const me=authUser(req);
@@ -117,12 +124,24 @@ async function api(req,res,url){
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const cutoff=Date.now()-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
-      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({name:u.name,rank:u.rank,lastSeen:u.lastSeen||0}));
+      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset}));
     return send(res,200,{online, count:online.length}); }
   if(p==='/api/admin/accounts'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
-      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0}));
+      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset}));
     return send(res,200,{accounts, count:accounts.length}); }
+  // admin: flag an account for password recovery — its owner sets a new password on next login
+  if(p==='/api/admin/reset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    u.mustReset=true;
+    for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===tid) delete DB.tokens[t]; }  // sign out any active sessions
+    writeDB(); return send(res,200,{ok:true, name:u.name}); }
+  // admin: clear the recovery flag (undo)
+  if(p==='/api/admin/unreset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    u.mustReset=false; writeDB(); return send(res,200,{ok:true, name:u.name}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
