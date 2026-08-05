@@ -46,7 +46,7 @@
   .screen.hub{background:linear-gradient(170deg,#0f1524 0%,#1a1330 60%,#241826 100%);}
   /* POP-OUT: a menu screen shown as a centered modal over home (instead of a full-page swap) */
   .screen.popout{position:fixed;top:0;right:0;bottom:0;left:auto;transform:none;width:min(440px,94vw);height:100vh;max-height:100vh;border-radius:16px 0 0 16px;border:1px solid #3a4a6e;border-right:none;box-shadow:-18px 0 55px rgba(0,0,0,.6);z-index:9000;padding:18px 12px 14px;overflow-y:auto;}
-  .screen.popout .backbtn{display:none;}
+  .screen.popout .backbtn,.screen.popout .hero-nav{display:none;}
   .screen.popout .popoutClose{position:absolute;top:10px;right:12px;background:#1a2233;border:1px solid #33405e;color:#c3ccd8;font-size:15px;font-weight:800;width:30px;height:30px;border-radius:8px;cursor:pointer;z-index:3;}
   #popoutBackdrop{position:fixed;inset:0;background:rgba(4,6,10,.72);z-index:8990;display:none;}
   /* kill the ~300ms tap delay that <div> click-targets carry on touch devices (chat head, menu items, cards…) */
@@ -1579,7 +1579,11 @@ function resize3D(){ if(!renderer)return; DPR=Math.min(window.devicePixelRatio||
   renderer.setPixelRatio(DPR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
   renderer.domElement.style.width='100%'; renderer.domElement.style.height='100%';   // always fill #app (buffer aspect already matches)
   overlay.width=CW*DPR; overlay.height=CH*DPR; overlay.style.width=CW+'px'; overlay.style.height=CH+'px'; octx.setTransform(DPR,0,0,DPR,0,0); }
-window.addEventListener('resize',()=>{if(renderer)resize3D();});
+// Only rebuild the 3D/overlay buffers when the WIDTH changes. The mobile soft keyboard changes only the
+// viewport HEIGHT (open on input focus, close on tap) and would otherwise fire this expensive realloc
+// repeatedly → multi-second freezes (e.g. opening the dev fragment tool / tapping a hero row).
+let _lastResizeW=window.innerWidth;
+window.addEventListener('resize',()=>{ if(!renderer)return; const w=window.innerWidth; if(w===_lastResizeW)return; _lastResizeW=w; resize3D(); });
 window.addEventListener('orientationchange',()=>{ for(const d of [60,250,600,1000]) setTimeout(()=>{if(renderer)resize3D();},d); });
 document.addEventListener('fullscreenchange',()=>{ for(const d of [60,300,700]) setTimeout(()=>{if(renderer)resize3D();},d); });
 document.addEventListener('webkitfullscreenchange',()=>{ for(const d of [60,300,700]) setTimeout(()=>{if(renderer)resize3D();},d); });
@@ -2169,6 +2173,7 @@ function popoutRender(name){
   else if(name==='signin') renderSignin();
   else if(name==='tutorial') renderTutorial();
   else if(name==='mail') renderMail();
+  else if(name==='heroDetail') renderHeroDetail();
 }
 function popoutScreen(name){ const el=document.getElementById(name); if(!el){ show(name); return; }
   closePopout();
@@ -4014,7 +4019,7 @@ function renderHeroList(){
         <div class="name" style="font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
         <div class="role" style="font-size:9px;line-height:1.25">${t.role}${rarity}</div>
         ${unlocked?'':`<div class="stats" style="margin-top:1px;font-size:10px">${lockedLine}</div>`}</div>`;
-    card.onclick=()=>{ detailHero=key; show('heroDetail'); };
+    card.onclick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);
   });
 }
@@ -4052,12 +4057,12 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       ${starBlock}${refineBlock}
       <div id="spMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${pendingMsg?`<span style="color:${msgCol||'#8b98a9'}">${pendingMsg}</span>`:''}</div></div>`;
     ov.querySelector('#spX').onclick=()=>ov.remove();
-    const sp=ov.querySelector('#spStar'); if(sp) sp.onclick=()=>{ if(doStarStep(key)){ saveG(); updateHubChrome(); render(); if(state==='heroDetail') renderHeroDetail(); } };
+    const sp=ov.querySelector('#spStar'); if(sp) sp.onclick=()=>{ if(doStarStep(key)){ saveG(); updateHubChrome(); render(); if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); } };
     const rf=ov.querySelector('#spRefine'); if(rf) rf.onclick=()=>{ const r=doRefine(key);
       if(!r||r.locked) return;
       if(r.broke){ render('Not enough fragments.','#ff8b8b'); return; }
       render(r.success?'✨ Refine success! +1 progress':'💥 Refine failed — fragments lost.', r.success?'#5ee89b':'#ff8b8b');
-      if(state==='heroDetail') renderHeroDetail(); };
+      if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); };
   }
   render(); document.body.appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
@@ -5694,7 +5699,7 @@ document.getElementById('autoBtn').onclick=()=>{ if(CUR.mode==='arena')return; a
 /* loop */
 let last=performance.now();
 function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
-  if(renderer){ const app=document.getElementById('app'); if(app && (app.clientWidth!==CW||app.clientHeight!==CH)) resize3D(); }  // auto-correct any size drift (fullscreen/rotation)
+  if(renderer){ const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }  // auto-correct WIDTH drift only (ignore height — the mobile keyboard changes height and must NOT trigger a per-frame realloc)
   if(aiming&&!aiming.alive)aiming=null;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
@@ -5709,7 +5714,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785969558209';
+const BUILD_ID='1785970367614';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
