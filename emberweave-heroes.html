@@ -1922,7 +1922,9 @@ let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, me
 const DEV={ on:false, god:false, who:'' };   // session-only (resets each launch; never saved)
 const DEV_NAMES = ['phil'];   // must match server.js DEV_NAMES
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
-let acctMode='signin';   // 'signin' | 'create' | 'reset' — which tab the account panel shows
+let acctMode='signin';   // 'signin' | 'create' | 'reset' | 'forgot' — which tab the account panel shows
+let pwStep='idle';       // 'idle' | 'sent' — email password-reset flow state (signed-in account panel)
+let _forgotName='', _forgotStep='name';   // signed-out "forgot password" recovery: 'name' → 'code'
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
 let devTab='cheats';     // developer panel tab: 'cheats' | 'accounts' | 'qa'
 function show(name){
@@ -4002,10 +4004,32 @@ function renderSettings(){
   if(!online()){
     account=`<div class="panel"><div style="font-weight:800;font-size:13px;margin-bottom:2px">☁️ Cloud Account</div><div style="font-size:12px;color:#8b98a9">Open the game through your online link to sign in.</div></div>`;
   } else if(ACC.token){
+    const em=ACC.email||'';
+    const emailRow = em
+      ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">📧 Recovery email: <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">change</a></div>`
+      : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">📧 No recovery email linked — add one so you can reset your password if you forget it. <a href="#" id="acEditEmail" style="color:#9ab0d6">add email</a></div>`;
+    const emailForm = `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
+        <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="${escapeHTML(em)}">
+        <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSave" style="flex:1">Save email</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
+        <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
+    const resetBlock = (pwStep==='idle')
+      ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>🔑 Reset password by email${em?'':' (add an email first)'}</button>`
+      : `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
+          <div style="font-weight:800;font-size:12px;margin-bottom:4px">🔑 Reset your password</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes.</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="acRCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
+            <input id="acRNew" type="password" placeholder="New password" autocomplete="new-password" style="${inp}">
+            <input id="acRNew2" type="password" placeholder="Confirm new password" autocomplete="new-password" style="${inp}">
+            <button class="btn" id="acRSubmit">Change password</button>
+            <div style="display:flex;gap:6px"><button class="btn xs secondary" id="acRResend" style="flex:1">Resend code</button><button class="btn xs secondary" id="acRCancel" style="flex:1">Cancel</button></div>
+          </div>
+          <div id="acRMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
     account=`<div class="panel" style="border-color:#4aa3ff55">
       <div style="font-weight:800;font-size:13px;margin-bottom:4px">☁️ Cloud Account</div>
       <div style="font-size:13px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div>
-      <div style="font-size:11px;color:#8b98a9;margin:4px 0 8px">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
+      <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
+      ${emailRow}${emailForm}${resetBlock}
       <button class="btn sm secondary" id="acLogout">Log out</button></div>`;
   } else if(acctMode==='reset'){
     account=`<div class="panel" style="border-color:#c9a24a66">
@@ -4018,6 +4042,28 @@ function renderSettings(){
         <button class="btn xs secondary" id="acResetBack">Back</button>
       </div>
       <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
+  } else if(acctMode==='forgot'){
+    account = (_forgotStep==='name')
+      ? `<div class="panel" style="border-color:#c9a24a66">
+          <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Forgot password</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter your username. If it has a recovery email linked, we'll send a one-time 6-digit code to reset your password.</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="fgName" type="text" placeholder="Username" maxlength="16" autocomplete="username" autocapitalize="off" spellcheck="false" style="${inp}">
+            <button class="btn" id="fgSend">Send reset code</button>
+            <button class="btn xs secondary" id="fgBack">Back to sign in</button>
+          </div>
+          <div id="fgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`
+      : `<div class="panel" style="border-color:#c9a24a66">
+          <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Enter your code</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">If <b>${escapeHTML(_forgotName)}</b> has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in 15 minutes.</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="fgCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
+            <input id="fgNew" type="password" placeholder="New password" autocomplete="new-password" style="${inp}">
+            <input id="fgNew2" type="password" placeholder="Confirm new password" autocomplete="new-password" style="${inp}">
+            <button class="btn" id="fgSubmit">Set password &amp; sign in</button>
+            <div style="display:flex;gap:6px"><button class="btn xs secondary" id="fgResend" style="flex:1">Resend code</button><button class="btn xs secondary" id="fgBack" style="flex:1">Back to sign in</button></div>
+          </div>
+          <div id="fgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
   } else {
     const create = acctMode==='create';
     account=`<div class="panel">
@@ -4033,6 +4079,7 @@ function renderSettings(){
         ${create?`<input id="acPass2" type="password" placeholder="Confirm password" autocomplete="off" style="${inp}">`:''}
         <button class="btn" id="acGo">${create?'Create Account':'Sign In'}</button>
       </div>
+      ${create?'':`<div style="text-align:center;margin-top:8px"><a href="#" id="acForgot" style="font-size:11px;color:#9ab0d6;text-decoration:none">Forgot your password?</a></div>`}
       <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
   }
   // ---- DEV tools: shown only when signed into a developer account ----
@@ -4104,6 +4151,31 @@ function renderSettings(){
   const tabIn=b.querySelector('#acTabIn'), tabNew=b.querySelector('#acTabNew');
   if(tabIn) tabIn.onclick=()=>{ acctMode='signin'; renderSettings(); };
   if(tabNew) tabNew.onclick=()=>{ acctMode='create'; renderSettings(); };
+  // ---- forgot-password (signed-out recovery) ----
+  const acForgot=b.querySelector('#acForgot'); if(acForgot) acForgot.onclick=(e)=>{ e.preventDefault(); acctMode='forgot'; _forgotStep='name'; _forgotName=''; renderSettings(); };
+  const fgBack=b.querySelector('#fgBack'); if(fgBack) fgBack.onclick=()=>{ acctMode='signin'; renderSettings(); };
+  const fgSend=b.querySelector('#fgSend'); if(fgSend){ const send=()=>{ const msg=b.querySelector('#fgMsg'); const nm=(b.querySelector('#fgName').value||'').trim();
+      if(nm.length<2){ msg.style.color='#ff8b8b'; msg.textContent='Enter your username.'; return; }
+      msg.style.color='#8b98a9'; msg.textContent='Sending…';
+      api('/api/reset-request','POST',{name:nm}).then(()=>{ _forgotName=nm; _forgotStep='code'; renderSettings(); }); };
+    fgSend.onclick=send; const i=b.querySelector('#fgName'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') send(); }; }
+  const fgResend=b.querySelector('#fgResend'); if(fgResend) fgResend.onclick=()=>{ const msg=b.querySelector('#fgMsg'); msg.style.color='#8b98a9'; msg.textContent='Sending a new code…';
+    api('/api/reset-request','POST',{name:_forgotName}).then(()=>{ msg.style.color='#5ee89b'; msg.textContent='✔ If an email is linked, a new code is on its way.'; }); };
+  const fgSubmit=b.querySelector('#fgSubmit'); if(fgSubmit){ const doSubmit=()=>{ const msg=b.querySelector('#fgMsg');
+      const code=(b.querySelector('#fgCode').value||'').replace(/\D/g,''), np=(b.querySelector('#fgNew').value||''), cf=(b.querySelector('#fgNew2').value||'');
+      if(code.length!==6){ msg.style.color='#ff8b8b'; msg.textContent='Enter the 6-digit code from your email.'; return; }
+      if(np.length<1){ msg.style.color='#ff8b8b'; msg.textContent='Enter a new password.'; return; }
+      if(np!==cf){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
+      msg.style.color='#8b98a9'; msg.textContent='Setting password…';
+      api('/api/reset-verify','POST',{name:_forgotName, code, newPass:np, roster:rosterPayload()}).then(d=>{
+        if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reset password.'; return; }
+        if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc(); DEV.on=isDevAcct();
+        if(!applyCloudSave(d.profile,true)) pushSave();
+        _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
+        bannerMsg('🔑 Password reset — you\'re signed in.'); }); };
+    fgSubmit.onclick=doSubmit;
+    ['#fgCode','#fgNew','#fgNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
   const acGo=b.querySelector('#acGo');
   if(acGo){ const go=()=>{ const msg=b.querySelector('#acMsg');
       const name=(b.querySelector('#acUser').value||'').trim(), pass=(b.querySelector('#acPass').value||'');
@@ -4116,7 +4188,7 @@ function renderSettings(){
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id}; saveAcc();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc();
         DEV.on=isDevAcct();
         if(isCreate){ pushSave(); }                            // new account → seed the cloud with your current progress
         else if(!applyCloudSave(d.profile,true)){ pushSave(); } // sign in → load THIS account's own cloud save
@@ -4135,7 +4207,7 @@ function renderSettings(){
       api('/api/login','POST',{name:_resetName, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc(); DEV.on=isDevAcct();
         if(!applyCloudSave(d.profile,true)) pushSave();
         _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
     acSet.onclick=doSet;
@@ -4144,9 +4216,37 @@ function renderSettings(){
   }
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
     flushCloud();                                   // save this account's latest progress before leaving
-    ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc();
+    ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc();
+    pwStep='idle';
     G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // clean slate so the next account loads its own save, not this one's
     updateHubChrome(); renderSettings(); };
+  // ---- recovery email: add / change the email on this account ----
+  const acEdit=b.querySelector('#acEditEmail'); if(acEdit) acEdit.onclick=(e)=>{ e.preventDefault(); const f=b.querySelector('#acEmailForm'); if(f){ f.style.display='block'; const i=b.querySelector('#acEmailIn'); if(i)i.focus(); } };
+  const acEmCancel=b.querySelector('#acEmailCancel'); if(acEmCancel) acEmCancel.onclick=()=>{ const f=b.querySelector('#acEmailForm'); if(f)f.style.display='none'; };
+  const acEmSave=b.querySelector('#acEmailSave'); if(acEmSave){ const save=()=>{ const msg=b.querySelector('#acEmailMsg'); const val=(b.querySelector('#acEmailIn').value||'').trim();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){ msg.style.color='#ff8b8b'; msg.textContent='Enter a valid email address.'; return; }
+      msg.style.color='#8b98a9'; msg.textContent='Saving…';
+      api('/api/email','POST',{email:val}).then(d=>{ if(d&&d.ok){ ACC.email=d.email; saveAcc(); renderSettings(); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not save email.'; } }); };
+    acEmSave.onclick=save; const i=b.querySelector('#acEmailIn'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') save(); }; }
+  // ---- password reset by email: request a code, then verify code + new password ----
+  const acPwReset=b.querySelector('#acPwReset'); if(acPwReset) acPwReset.onclick=()=>{
+    api('/api/reset-request','POST',{name:ACC.name}).then(()=>{ pwStep='sent'; renderSettings(); }); };
+  const acRResend=b.querySelector('#acRResend'); if(acRResend) acRResend.onclick=()=>{ const msg=b.querySelector('#acRMsg');
+    msg.style.color='#8b98a9'; msg.textContent='Sending a new code…';
+    api('/api/reset-request','POST',{name:ACC.name}).then(()=>{ msg.style.color='#5ee89b'; msg.textContent='✔ A new code is on its way.'; }); };
+  const acRCancel=b.querySelector('#acRCancel'); if(acRCancel) acRCancel.onclick=()=>{ pwStep='idle'; renderSettings(); };
+  const acRSubmit=b.querySelector('#acRSubmit'); if(acRSubmit){ const doSubmit=()=>{ const msg=b.querySelector('#acRMsg');
+      const code=(b.querySelector('#acRCode').value||'').replace(/\D/g,''), np=(b.querySelector('#acRNew').value||''), cf=(b.querySelector('#acRNew2').value||'');
+      if(code.length!==6){ msg.style.color='#ff8b8b'; msg.textContent='Enter the 6-digit code from your email.'; return; }
+      if(np.length<1){ msg.style.color='#ff8b8b'; msg.textContent='Enter a new password.'; return; }
+      if(np!==cf){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
+      msg.style.color='#8b98a9'; msg.textContent='Changing password…';
+      api('/api/reset-verify','POST',{name:ACC.name, code, newPass:np}).then(d=>{
+        if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not change password.'; return; }
+        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc(); }
+        pwStep='idle'; renderSettings(); bannerMsg('🔑 Password changed. Other devices have been signed out.'); }); };
+    acRSubmit.onclick=doSubmit;
+    ['#acRCode','#acRNew','#acRNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
   // ---- dev tools wiring ----
   const _exp=b.querySelector('#expBtn'); if(_exp) _exp.onclick=()=>{ b.querySelector('#saveOut').textContent=JSON.stringify(G); };
   const _rst=b.querySelector('#resetBtn'); if(_rst) _rst.onclick=()=>{
@@ -4677,7 +4777,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785900969191';
+const BUILD_ID='1785902619998';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -4870,7 +4970,7 @@ else { document.body.classList.add('gated'); loadG(); loadAcc(); initThree(); up
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
-  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;saveAcc(); DEV.on=isDevAcct();
+  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';saveAcc(); DEV.on=isDevAcct();
       if(applyCloudSave(d.profile,false)){ updateHubChrome(); if(state==='home') renderHome(); } }   // pull cloud save if it's newer than local (cross-device sync)
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); }   // token no longer valid → sign out
     /* else: offline / transient error → stay signed in with local progress */ }); }
