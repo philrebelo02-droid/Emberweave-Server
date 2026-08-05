@@ -1142,8 +1142,8 @@ function craftGlyph(gid){ if(!glyphCanCraft(gid))return false; const r=glyphReci
 function glyphRecipeStr(gid){ const r=glyphRecipe(gid); if(!r) return 'Drops from campaign stages'; return r.items.map(([g,n])=>n+'× '+glyphName(g)).join(' + ')+(r.gold?' + 🪙'+r.gold:''); }
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
-// starting star = per-hero `start` (1/2/3). Most begin at 1★; some at 2★; any hero CAN be set to 3★ (legendaries are 3★, but not exclusively).
-function heroStartStars(key){ const t=HERO_TYPES[key]; return t ? Math.max(1,Math.min(MAX_STARS,t.start||1)) : 1; }
+// starting star: all MYTHICAL heroes start at 3★; otherwise per-hero `start` (1/2/3), default 1. Any hero can be given an explicit `start`.
+function heroStartStars(key){ const t=HERO_TYPES[key]; if(!t) return 1; const s=t.start || (t.myth?3:1); return Math.max(1,Math.min(MAX_STARS,s)); }
 const SUMMON_COST={1:10,2:30,3:80};                                   // hero-fragments to summon (unlock) a hero, by its starting star
 function summonCost(key){ return SUMMON_COST[heroStartStars(key)]||10; }
 function heroStars(key){ const s=heroStartStars(key); return Math.max(s,Math.min(MAX_STARS,(G.starLevel&&G.starLevel[key])||s)); }
@@ -1502,10 +1502,11 @@ function eliteHeroFor(g){ if(!isEliteStage(g)) return null; const idx=(chapterOf
 const FRAG_UNLOCK=10, ELITE_FRAG_MIN=2, ELITE_FRAG_MAX=4;
 function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
 // grant fragments; auto-unlock a locked hero once enough are gathered. returns a status message.
-function giveHeroFrag(key,amt){ if(!G.heroFrag)G.heroFrag={}; G.heroFrag[key]=(G.heroFrag[key]||0)+amt;
-  const t=HERO_TYPES[key];
-  if(t.locked && !G.unlocked[key] && G.heroFrag[key]>=summonCost(key)){ G.unlocked[key]=true; G.heroFrag[key]-=summonCost(key); if(!G.starLevel)G.starLevel={}; G.starLevel[key]=heroStartStars(key); return `🎉 ${t.emoji} ${t.name} summoned at ${heroStartStars(key)}★!`; }
-  return ''; }
+function giveHeroFrag(key,amt){ if(!G.heroFrag)G.heroFrag={}; G.heroFrag[key]=(G.heroFrag[key]||0)+amt; return ''; }   // fragments only accumulate — summon is a MANUAL action (no auto-summon)
+function canSummon(key){ const t=HERO_TYPES[key]; return !!(t && t.locked && !G.unlocked[key] && heroFrag(key)>=summonCost(key)); }
+function doSummon(key){ if(!canSummon(key)) return false; G.heroFrag[key]-=summonCost(key); G.unlocked[key]=true;
+  if(!G.starLevel)G.starLevel={}; G.starLevel[key]=heroStartStars(key); if(!G.starPip)G.starPip={}; G.starPip[key]=0;
+  saveG(); updateHubChrome(); return true; }
 
 // combined stat modifiers from quality + glyphs + tech (owned heroes only)
 function heroMuls(key){
@@ -3960,7 +3961,7 @@ function renderHeroList(){
     const gr=glyphRank(key), gi=GRANK[gr];
     const cHp=Math.round(heroStat(key,t.hp)*heroMuls(key).hp)+(unlocked?heroFlatHp(key):0), cAtk=Math.round(heroStat(key,t.dmg)*heroMuls(key).atk)+(unlocked?heroFlatAtk(key):0);
     const rarity = myth?`<span style="font-size:9px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>`:`<span style="font-size:9px;color:${gi.col};font-weight:700">${gi.name}</span>`;
-    const lockedLine = myth?'✦ <span style="color:#ffcf40">Mythical — special offer</span>':('🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags');
+    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON NOW ▸</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key)+' fragments');
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">
         <div style="display:flex;flex-direction:column;align-items:center;gap:3px">${heroIcon(key,52)}${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,13)}</div>`:''}</div>
         <div><div class="name">${t.name}</div><div class="role">${t.role} · ${rarity}</div>${unlocked?`<div style="font-size:10px;color:#ffd45e;font-weight:800;margin-top:2px">⚡ POWER ${heroPower(key).toLocaleString()}</div>`:''}</div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${cHp.toLocaleString()}</span><span class="pill">⚔ ${cAtk.toLocaleString()}</span><br>${unlocked?'💠 '+gi.name:lockedLine}</div>`;
@@ -4036,7 +4037,7 @@ function renderHeroDetail(){
   const st=stars;
   // star sub-line (precomputed to avoid deep template nesting)
   let starSubLine;
-  if(!owned){ starSubLine = `<span style="color:#c9a35e">${myth?'✦ Mythical — special offer':'🔒 Not yet recruited'}</span>`; }
+  if(!owned){ starSubLine = ''; }   // not owned: summon bar (below) shows the fragment counter / SUMMON NOW button
   else { starSubLine = ''; }   // owned: no sub-line — tap the stars themselves to open the Stars panel (star-up / refine)
   const left=`<div class="hd-left">
     <div class="hd-name">${t.name}${myth?'':`<span class="hd-starbadge">${stars}★</span>`}</div>
@@ -4155,7 +4156,18 @@ function renderHeroDetail(){
       </div>`;
   }
   const right=`<div class="hd-right"><div class="hd-tabbar">${tabBar}</div><div class="hd-tabcontent">${tab}${armorPanel}</div><div class="hd-power">⚔ POWER <b>${heroPower(key)}</b></div></div>`;
-  body.innerHTML=`<div class="hd-wrap">${left}${right}</div>`;
+  // SUMMON area for a locked hero: fragment progress until ready, then a large SUMMON NOW button.
+  const smFrags=heroFrag(key), smNeed=summonCost(key), smReady=canSummon(key), smPct=Math.min(100,Math.round(smFrags/smNeed*100));
+  const summonBar = (!owned && t.locked) ? `<div style="margin:0 0 10px;padding:12px 14px;border-radius:12px;background:linear-gradient(160deg,#221a2e,#141a26);border:1px solid ${smReady?'#5ee89b':(myth?'#ffcf40':'#33405e')};text-align:center">
+      ${smReady
+        ? `<button class="btn" id="hdSummon" style="width:100%;font-size:17px;font-weight:900;letter-spacing:1.5px;padding:14px;background:linear-gradient(#5ee89b,#33b06b);color:#07220f;box-shadow:0 3px 12px #2fae6a55">✨ SUMMON NOW</button>
+           <div style="font-size:10px;color:#8b98a9;margin-top:7px">Unlocks ${escapeHTML(t.name)} at ${heroStartStars(key)}★ · spends ${smNeed} fragments</div>`
+        : `<div style="font-size:14px;font-weight:800;color:${myth?'#ffcf40':'#c9a2ff'};margin-bottom:8px">🧩 ${smFrags} / ${smNeed} fragments</div>
+           <div style="height:11px;background:#1a2030;border-radius:6px;overflow:hidden"><div style="height:100%;width:${smPct}%;background:linear-gradient(90deg,#8a7bff,#c9a2ff);transition:width .3s"></div></div>
+           <div style="font-size:10px;color:#6f7d90;margin-top:7px">Collect ${smNeed} ${escapeHTML(t.name)} fragments to summon at ${heroStartStars(key)}★.${myth?' Mythical — also a rare 1% Diamond wish.':''}</div>`}
+    </div>` : '';
+  body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
+  { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=()=>{ if(doSummon(key)){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
   // clicking an equipment slot on the left jumps to the Equipment tab focused on that slot
   body.querySelectorAll('.hd-armor').forEach(el=>el.onclick=()=>{ eqSlotSel=+el.dataset.eq; heroTab='equip'; renderHeroDetail(); });
@@ -5647,7 +5659,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785966176969';
+const BUILD_ID='1785966835295';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
