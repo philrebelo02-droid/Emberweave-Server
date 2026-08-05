@@ -48,7 +48,7 @@ function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,{
 function body(req){ return new Promise(r=>{ let d=''; req.on('data',c=>d+=c); req.on('end',()=>{ try{r(JSON.parse(d||'{}'));}catch(e){r({});} }); }); }
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
-function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0 }; }
+function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'' }; }
 const DEV_NAMES=['phil'];   // usernames that unlock the dev/admin tools (add more devs here later)
 function isDev(u){ return !!(u && !u.isNpc && DEV_NAMES.includes((u.name||'').toLowerCase())); }
 // --- security helpers: per-IP rate limiting, single-session, admin diamond edits ---
@@ -65,6 +65,29 @@ function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); 
   const stamp=new Date().toISOString().replace(/[:.]/g,'-'); fs.writeFileSync(path.join(dir,'db-'+stamp+'.json'), JSON.stringify(DB));
   const files=fs.readdirSync(dir).filter(f=>f.startsWith('db-')).sort(); while(files.length>48){ try{ fs.unlinkSync(path.join(dir,files.shift())); }catch(e){} }
 }catch(e){ console.error('⚠ backup failed:', e.message); } }
+
+// --- email: password-reset codes over SMTP (any provider via env vars). Degrades gracefully: if SMTP
+//     isn't configured (or nodemailer isn't installed) the code is logged to the server console so the
+//     flow still works for local/dev testing. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM to send real mail.
+function normalizeEmail(e){ e=(e||'').toString().trim().toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)?e.slice(0,120):''; }
+function gen6(){ return String(crypto.randomInt(0,1000000)).padStart(6,'0'); }   // cryptographically-random 6-digit code
+let _mailer=null, _mailerTried=false;
+function getMailer(){ if(_mailerTried) return _mailer; _mailerTried=true;
+  if(!process.env.SMTP_HOST){ console.log('✉  SMTP not configured — password-reset codes will be logged to the console only. Set SMTP_HOST/SMTP_USER/SMTP_PASS to send real email.'); return null; }
+  try{ const nm=require('nodemailer');
+    _mailer=nm.createTransport({ host:process.env.SMTP_HOST, port:+(process.env.SMTP_PORT||587),
+      secure:String(process.env.SMTP_SECURE||'')==='true',
+      auth: process.env.SMTP_USER ? {user:process.env.SMTP_USER, pass:process.env.SMTP_PASS} : undefined });
+    console.log('✉  SMTP mailer ready ('+process.env.SMTP_HOST+').');
+  }catch(e){ console.log('✉  nodemailer not installed — run `npm install`. Reset codes will be logged to the console only.'); _mailer=null; }
+  return _mailer; }
+function sendResetEmail(to, name, code){
+  const from=process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@emberweave.game';
+  const subject='Your Emberweave Heroes password reset code';
+  const text=`Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`;
+  const m=getMailer();
+  if(!m){ console.log('✉  [DEV] reset code for '+name+' <'+to+'>: '+code); return; }
+  m.sendMail({from, to, subject, text}).then(()=>console.log('✉  reset code emailed to '+to)).catch(e=>console.log('✉  send failed ('+e.message+') — code for '+name+' is '+code)); }
 
 const HERO_KEYS=['aldric','thorne','grohm','vex','sylva','rook','zephyr','lumi','aria'];
 function defaultTeam(){ return [ {key:'aldric',level:1,rank:0},{key:'sylva',level:1,rank:0},{key:'zephyr',level:1,rank:0},{key:'lumi',level:1,rank:0},{key:'vex',level:1,rank:0} ]; }
@@ -141,6 +164,30 @@ async function api(req,res,url){
     dropTokens(id);   // single session: signing in here kicks any other device
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
+  // email password reset — step 1: request a one-time 6-digit code sent to the account's linked email.
+  // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
+  if(p==='/api/reset-request' && req.method==='POST'){ const b=await body(req);
+    if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
+    const id=DB.byName[(b.name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
+    if(u && !u.isNpc && u.email){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+      u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
+      sendResetEmail(u.email, u.name, code); }
+    return send(res,200,{ ok:true, hasEmail: !!(u && !u.isNpc && u.email) }); }
+
+  // email password reset — step 2: verify the code and set a new password. Signs the user in on success.
+  if(p==='/api/reset-verify' && req.method==='POST'){ const b=await body(req);
+    if(rateLimited(req,'resetver',12,10*60000)) return send(res,429,{error:'Too many attempts — wait a few minutes.'});
+    const id=DB.byName[(b.name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
+    if(!u||u.isNpc||!u.reset) return send(res,400,{error:'No active reset — request a new code.'});
+    if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return send(res,400,{error:'That code expired — request a new one.'}); }
+    if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return send(res,400,{error:'Too many wrong codes — request a new one.'}); }
+    const code=(b.code||'').toString().replace(/\D/g,'');
+    if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
+    const np=(b.newPass||'').toString(); if(np.length<1) return send(res,400,{error:'Enter a new password.'});
+    u.salt=crypto.randomBytes(8).toString('hex'); u.hash=hashPass(np,u.salt); u.mustReset=false; delete u.reset;
+    dropTokens(id); const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();   // invalidate other sessions, sign this one in
+    return send(res,200,{ ok:true, token:tok, profile:profileFor(u) }); }
+
   const me=authUser(req);
   if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
   // ---- developer/admin endpoints (only usable while signed into a dev account) ----
@@ -205,6 +252,13 @@ async function api(req,res,url){
     if(b.action==='delete') DB.reports=DB.reports.filter(x=>x.id!==b.id); else r.resolved=!r.resolved;
     writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
+
+  // link / change the email on your own account (used for password recovery). Signed-in only.
+  if(p==='/api/email' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'setemail',10,60000)) return send(res,429,{error:'Too many changes — wait a minute.'});
+    const b=await body(req); const email=normalizeEmail(b.email);
+    if(!email) return send(res,400,{error:'Enter a valid email address.'});
+    me.email=email; writeDB(); return send(res,200,{ ok:true, email }); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
     if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall; if(b.roster) me.roster=b.roster; writeDB();
