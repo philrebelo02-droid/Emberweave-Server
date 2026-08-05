@@ -1188,7 +1188,8 @@ function starSVG(frac,size,col){ size=size||40; const fill=col||'#ffc23a', strok
 // a hero's full star row; the MIDDLE star, once refined, doubles in size and takes the refine tier's colour
 function starFillRow(key,size){ size=size||40; const lv=heroStars(key),pip=starPips(key); const rc=refineColorTier(refineLevel(key)); let s='';
   for(let i=1;i<=MAX_STARS;i++){
-    if(i===3 && rc){ s+=starSVG(1, Math.round(size*2), REFINE_TIERS[rc].col); continue; }   // refined middle star
+    if(i===3 && rc){ const lvl=refineLevel(key), base=(rc==='gold'?10:rc==='silver'?5:0), frac=Math.min(1,Math.max(0,(lvl-base)/5));
+      s+=starSVG(frac, Math.round(size*2), REFINE_TIERS[rc].col); continue; }   // refined middle star fills gradually within its tier (like pips before 5★)
     const frac = i<=lv?1 : (i===lv+1 && lv<MAX_STARS ? pip/STAR_PIPS : 0); s+=starSVG(frac,size);
   }
   return s; }
@@ -4032,7 +4033,7 @@ function renderHeroList(){
 }
 // ---- STARS PANEL: opened by tapping a hero's stars. Star-up (shards) + Refine (fragments) live here. ----
 function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:13000;display:flex;align-items:center;justify-content:center;padding:16px';
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:13000;display:flex;align-items:stretch;justify-content:flex-end';
   const fIcon = t.emoji || '🧩';
   function render(pendingMsg,msgCol){
     const st=heroStars(key), pips=starPips(key), ncost=starNextCost(key), canStar=canStarStep(key), conf=starIsConfirm(key);
@@ -4057,7 +4058,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
           Success: <b style="color:#5ee89b">${sucPct}%</b> · <b style="color:#ff8b8b">${failPct}% fail</b><br>
           <span style="color:#8b98a9">You have ${fIcon} <b>${frags}</b> fragments. They're spent even on a failure.</span></div>
         <button class="btn" id="spRefine" style="width:100%;${afford?'background:'+T.col+';color:#1a1206':''}" ${afford?'':'disabled'}>⚒ Refine (${T.cost} frags)</button></div>`; }
-    ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:16px;width:100%;max-width:340px;max-height:88vh;overflow:auto">
+    ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:18px 16px;width:min(380px,94vw);height:100vh;max-height:100vh;overflow:auto;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">⭐ ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">✕</button></div>
       <div style="display:flex;gap:3px;justify-content:center;align-items:center;min-height:58px;margin-bottom:6px">${starFillRow(key,24)}</div>
       <div style="text-align:center;font-size:12px;color:#c9a2ff;margin-bottom:10px">🧩 <b>${frags}</b> ${escapeHTML(t.name)} fragments owned</div>
@@ -5706,6 +5707,7 @@ document.getElementById('autoBtn').onclick=()=>{ if(CUR.mode==='arena')return; a
 /* loop */
 let last=performance.now();
 function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
+  if(document.body.classList.contains('gated')){ requestAnimationFrame(loop); return; }   // splash still up → don't render the 3D scene/overlay yet (prevents a half-loaded frame from flashing)
   if(renderer){ const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }  // auto-correct WIDTH drift only (ignore height — the mobile keyboard changes height and must NOT trigger a per-frame realloc)
   if(aiming&&!aiming.alive)aiming=null;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
@@ -5721,7 +5723,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785971466531';
+const BUILD_ID='1785972046983';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
