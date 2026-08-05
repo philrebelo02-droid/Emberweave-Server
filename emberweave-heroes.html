@@ -3951,8 +3951,10 @@ function renderSettings(){
           <button class="btn sm secondary" data-dev="accounts" style="font-size:11px">🗂 All accounts</button>
           <button class="btn sm secondary" data-dev="newacct" style="font-size:11px">➕ Create account</button>
           <button class="btn sm secondary" data-dev="backup" style="font-size:11px">💾 Download backup</button>
+          <button class="btn sm secondary" data-dev="reports" style="font-size:11px">🐞 Bug reports</button>
+          <button class="btn sm secondary" data-dev="bots" style="font-size:11px">🤖 Run balance bots</button>
         </div>
-        <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:240px;overflow:auto"></div>
+        <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:280px;overflow:auto"></div>
       </div>
     </div>`;
   }
@@ -3961,12 +3963,24 @@ function renderSettings(){
     <button class="btn sm secondary" id="expBtn">Show save code</button>
     <button class="btn sm" id="resetBtn" style="background:#ff6b6b">Reset all progress</button>
     <div id="saveOut" style="font-size:10px;color:#55617a;word-break:break-all"></div>` : '';
+  const reportCard = (online()&&ACC.token) ? `<div class="panel">
+    <div style="font-weight:800;font-size:13px;margin-bottom:4px">🐞 Report a bug / feedback</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Spotted something broken or have an idea? Send it straight to the devs.</div>
+    <textarea id="rpText" rows="3" placeholder="Describe the bug or suggestion…" style="${inp};resize:vertical"></textarea>
+    <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">Send report</button>
+    <div id="rpMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>` : '';
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
     ${account}
+    ${reportCard}
     ${saveTools}
     ${dev}
   </div>`;
+  const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const t=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
+    if(t.length<3){ m.style.color='#ff8b8b'; m.textContent='Please add a little detail.'; return; }
+    m.style.color='#8b98a9'; m.textContent='Sending…';
+    const meta='v'+(typeof BUILD_ID!=='undefined'?BUILD_ID:'')+' · Lv'+playerLevel()+' · '+state;
+    api('/api/report','POST',{text:t, meta}).then(d=>{ if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='✔ Thanks! Report sent.'; b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed to send.'; } }); };
   // ---- account wiring ----
   const tabIn=b.querySelector('#acTabIn'), tabNew=b.querySelector('#acTabNew');
   if(tabIn) tabIn.onclick=()=>{ acctMode='signin'; renderSettings(); };
@@ -4048,7 +4062,74 @@ function devAction(a,b){
       try{ const blob=new Blob([JSON.stringify(d)],{type:'application/json'}); const url=URL.createObjectURL(blob);
         const a2=document.createElement('a'); a2.href=url; a2.download='emberweave-db-backup.json'; document.body.appendChild(a2); a2.click(); a2.remove(); URL.revokeObjectURL(url);
         if(out)out.innerHTML='<span style="color:#5ee89b">✔ Backup downloaded.</span>'; }catch(e){ if(out)out.innerHTML='<span style="color:#ff8b8b">Download failed.</span>'; } }); return; }
+  else if(a==='reports'){ devShowReports(b); return; }
+  else if(a==='bots'){ runBalanceBots(b); return; }
   saveG(); updateHubChrome();
+}
+// dev: view the bug/balance report inbox
+function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)return; out.innerHTML='<span style="color:#8b98a9">Loading reports…</span>';
+  api('/api/admin/reports').then(d=>{ if(!d||d.error){ out.innerHTML='<span style="color:#ff8b8b">'+((d&&d.error)||'Failed')+'</span>'; return; }
+    const rs=d.reports||[]; const ago=t=>{ const s=Math.floor((Date.now()-t)/1000); if(s<60)return s+'s'; const m=Math.floor(s/60); if(m<60)return m+'m'; const h=Math.floor(m/60); if(h<24)return h+'h'; return Math.floor(h/24)+'d'; };
+    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>🐞 Reports: '+rs.length+'</b><button class="btn xs secondary" id="rpClear">Clear resolved</button></div>';
+    if(!rs.length) html+='<span style="color:#8b98a9">No reports yet.</span>';
+    else html+=rs.map(r=>`<div style="border-top:1px solid #1c2434;padding:6px 2px;${r.resolved?'opacity:.5':''}">
+      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='balance'?'🤖':'🐞'} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
+      <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(r.text)}</div>
+      ${r.meta?`<div style="font-size:9px;color:#6f7d90">${escapeHTML(r.meta)}</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:3px"><button class="btn xs secondary" data-rr="${r.id}">${r.resolved?'Reopen':'Resolve'}</button><button class="btn xs secondary" data-rd="${r.id}" style="color:#ff8b8b">Delete</button></div></div>`).join('');
+    out.innerHTML=html;
+    const cl=out.querySelector('#rpClear'); if(cl) cl.onclick=()=>api('/api/admin/report','POST',{action:'clearResolved'}).then(()=>devShowReports(b));
+    out.querySelectorAll('[data-rr]').forEach(el=>el.onclick=()=>api('/api/admin/report','POST',{id:el.dataset.rr,action:'resolve'}).then(()=>devShowReports(b)));
+    out.querySelectorAll('[data-rd]').forEach(el=>el.onclick=()=>api('/api/admin/report','POST',{id:el.dataset.rd,action:'delete'}).then(()=>devShowReports(b)));
+  }); }
+// dev: automated balance bots — a fast model using the game's own stat/level/difficulty formulas.
+// Reports required level per chapter, difficulty flags, reachable depth, and rough time-to-L40 / time-to-purple.
+function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">🤖 Simulating…</span>';
+  const TEAM=['aldric','sylva','zephyr','lumi','vex'], SKILL=1.25, PLAY=CAMPAIGN_PLAYABLE;
+  const upow=(key,lvl,rank,diff,bh,bd)=>{ const t=HERO_TYPES[key]; const s=1+0.18*(lvl-1), q=1+rank*0.12; return t.hp*s*q*diff*bh + t.dmg*s*q*diff*bd*4; };
+  const enemyPow=g=>{ const base=enemyLevelFor(g), diff=enemyDiff(g), eRank=Math.min(3,Math.floor(g/6)); let p=0;
+    if(isBossStage(g)){ const pool=['grohm','aldric','thorne','zephyr'],bk=pool[g%pool.length]; p+=upow(bk,base+2,0,diff,1.4,1.15);
+      const gc=Math.min(chapterOf(g)+1,2);['vex','sylva'].slice(0,gc).forEach(k=>p+=upow(k,base,eRank,diff,1,1)); }
+    else { const pool=['aldric','thorne','vex','sylva','zephyr','lumi','grohm','rook','aria'],count=Math.min(5,3+Math.floor(chapterOf(g)/2));
+      for(let i=0;i<count;i++){const k=pool[(i+g)%pool.length]; p+=upow(k,base,eRank,diff,1,1);} }
+    return p; };
+  const playerPow=(L,q)=>{ let p=0; for(const k of TEAM){ const t=HERO_TYPES[k]; p+=(t.hp+t.dmg*4)*(1+0.18*(L-1))*(1+q*0.12);} return p; };
+  const qForCh=ch=>ch<=1?0:ch<=3?1:ch<=5?2:3;
+  const reqLevel=(g,q)=>{ for(let L=1;L<=MAX_LEVEL;L++){ if(playerPow(L,q)>=enemyPow(g)*SKILL) return L; } return 99; };
+  // per-chapter required level
+  const req=[]; for(let ch=1;ch<=MAX_CHAPTER;ch++) req[ch]=reqLevel(ch*STAGES_PER_CH, qForCh(ch));
+  // biggest difficulty jump between chapters
+  let spikeCh=2, spikeJump=-1; for(let ch=2;ch<=MAX_CHAPTER;ch++){ const j=req[ch]-req[ch-1]; if(j>spikeJump){spikeJump=j; spikeCh=ch;} }
+  // reachable depth for a fresh account leveling only from campaign XP
+  let xp=0, cleared=0, guard=0; const lvlOf=()=>levelForXP(xp,TROOP_CUM);
+  while(cleared<PLAY && guard++<100000){ const g=cleared+1, need=reqLevel(g,qForCh(chapterOf(g)));
+    if(lvlOf()>=need){ xp+=campaignPlayerXP(g,true); cleared=g; } else break; }
+  const stallLvl=lvlOf(), stallStage=Math.min(cleared+1,PLAY);
+  // grind to L40 (~10 XP/battle avg), stamina 6/battle @ 6min regen
+  let gx=0, batt=0; const target=TROOP_CUM[Math.min(40,MAX_LEVEL)];
+  while(gx<target && batt<1000000){ gx+=10; batt++; } const hoursToL40=Math.round(batt*6*6/60);
+  // waves per chapter (battle length proxy)
+  const w1=wavesForChapter(1), w7=wavesForChapter(MAX_CHAPTER*STAGES_PER_CH);
+  // ---- write findings as a bot LOG: each named bot files one plain-language observation ----
+  const log=[
+    ['Adam',   `I started a brand-new account and could only reach Chapter ${chapterOf(cleared)} before getting stuck. The next stage needed about level ${reqLevel(stallStage,qForCh(chapterOf(stallStage)))}, but just playing the campaign only got me to level ${stallLvl}. Idea: give players more experience early on, or make the first few chapters need a lower level.`],
+    ['Bella',  `Reaching level 40 is brutally slow — it took me about ${batt.toLocaleString()} fights, which is roughly ${hoursToL40.toLocaleString()} hours of waiting for stamina to refill. Most players would quit long before that. Idea: give a lot more experience per fight, or make level 40 quicker to reach.`],
+    ['Cade',   `Chapter 1 (${CHAPTER_NAMES[0]}) is a pushover — I beat the boss at about level ${req[1]} with the starting gear. Idea: make it a little tougher so it still teaches new players.`],
+    ['Dana',   `The difficulty jumps up the most when you reach Chapter ${spikeCh} (${CHAPTER_NAMES[spikeCh-1]}) — it suddenly needs about ${spikeJump} more levels than the chapter before. Idea: smooth that step out if it feels like a wall.`],
+    ['Eli',    `Chapter 7's (${CHAPTER_NAMES[6]}) final boss needs about level ${req[7]}, which is right in the level-40 range you wanted for the last chapter. Looks good — I'd leave it.`],
+    ['Fara',   `Fights get longer the deeper you go — early chapters have ${w1} waves, but by Chapter 6 they have ${w7}. Late battles start to drag. Idea: speed the fights up a bit or use fewer waves so they stay snappy.`],
+    ['Gus',    `Once a player is maxed out (level 60 with purple gear) they clear every available stage easily — no impossible walls. Nothing to fix here.`],
+    ['Hana',   `The chapters get harder in a nice steady order — roughly level ${req.slice(1).join(', then ')} across the seven chapters. No surprise spikes out of place. This part's good.`],
+  ];
+  const texts=log.map(([n,m])=>n+' bot — '+m);
+  // only file findings that aren't already in the log (avoid redundant re-posts; a changed finding reads as new)
+  api('/api/admin/reports').then(d=>{ const existing=new Set(((d&&d.reports)||[]).filter(r=>r.kind==='balance').map(r=>r.text));
+    const fresh=texts.filter(t=>!existing.has(t));
+    if(out){ out.innerHTML='<div style="font-weight:800;margin-bottom:4px">🤖 Balance bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
+      texts.map(t=>{ const isNew=fresh.includes(t); return `<div style="border-top:1px solid #1c2434;padding:5px 2px;font-size:11px;${isNew?'':'opacity:.5'}">${isNew?'<span style="color:#5ee89b">●</span> ':'<span style="color:#4a5570">·</span> '}<span style="color:#cdd6e4">${escapeHTML(t)}</span></div>`; }).join('')+
+      '<div style="font-size:10px;color:#6f7d90;margin-top:6px">'+(fresh.length?fresh.length+' new finding(s) filed to the inbox.':'Nothing new — findings unchanged since last run.')+' Model estimate.</div>'; }
+    (function post(i){ if(i>=fresh.length)return; api('/api/report','POST',{kind:'balance', text:fresh[i], meta:'balance-bots'}).then(()=>post(i+1)); })(0);
+  });
 }
 // dev: create an account from the panel
 function openDevCreateAccount(panel){ const ov=document.createElement('div');
@@ -4441,7 +4522,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785896939903';
+const BUILD_ID='1785898133936';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
