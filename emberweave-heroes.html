@@ -1324,6 +1324,9 @@ function gameConfirm(msg,onYes){ const ov=document.createElement('div');
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
   ov.querySelector('#_gcNo').onclick=close; ov.querySelector('#_gcYes').onclick=()=>{ close(); onYes&&onYes(); }; }
 function playerLevel(){ return levelForXP(G.playerXP, TROOP_CUM); }
+// add player XP and award +30 stamina for each level gained (may overflow the cap, like a stamina item)
+function addPlayerXP(xp){ const before=playerLevel(); G.playerXP=(G.playerXP||0)+xp; const after=playerLevel();
+  const gained=after-before; if(gained>0) G.stamina=(G.stamina||0)+30*gained; return gained; }
 function playerXPInto(){ const L=playerLevel(); return L>=MAX_LEVEL?0:G.playerXP-TROOP_CUM[L]; }
 function playerXPSpan(){ const L=playerLevel(); return L>=MAX_LEVEL?0:TROOP_CUM[L+1]-TROOP_CUM[L]; }
 function xpIntoLevel(){ const s=playerXPSpan(); return s?Math.max(0,Math.min(100,Math.round(playerXPInto()/s*100))):100; }
@@ -1699,8 +1702,7 @@ function grantRewards(){
   let msg='';
   if(CUR.mode==='campaign'){
     const gold=(firstClear?120:40)+node*30, xp=campaignPlayerXP(node,firstClear);
-    const lvlBefore=playerLevel(); G.gold+=gold; G.playerXP+=xp; const lvlAfter=playerLevel();
-    if(lvlAfter>lvlBefore) G.stamina=maxStamina();   // level-up refills stamina to the new max
+    G.gold+=gold; const lvlGain=addPlayerXP(xp);      // +30 stamina per level gained
     regenStamina(); G.stamina=Math.max(0,G.stamina-STAM_STAGE_COST);          // spend 6 for clearing the stage
     const hxp=(firstClear?STAGE_XP_FIRST:STAGE_XP_SWEEP); grantTeamXP(hxp);
     const drops=rollDrops(node); for(const k in drops) G.mats[k]+=drops[k];
@@ -1718,7 +1720,8 @@ function grantRewards(){
       glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gGreen).rk).col}"> · ${glyphName(gGreen)}</span>`;
       const hk=CAMPAIGN_ELITE_HERO[node], fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
       const um=giveHeroFrag(hk,amt); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${fh.emoji} ${fh.name} fragments</span>`; if(um)unlockMsg=um; }
-    msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
+    const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
+    msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
   } else {
     G.trophies+=12; G.gold+=80; G.mats.blue+=2; G.mats.purple+=1; grantTeamXP(60);
     msg=`🏆 +12 trophies · <span class="coins">🪙 +80</span><br>Glyph shards: 🔵2 🟣1`;
@@ -2215,7 +2218,7 @@ function closeStageModal(){ document.getElementById('stageModal').classList.remo
 function sweepStage(i){
   regenStamina(); if(G.stamina<STAM_STAGE_COST){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
   G.stamina-=STAM_STAGE_COST;
-  const gold=30+i*20, pxp=campaignPlayerXP(i,false); G.gold+=gold; G.playerXP+=pxp; grantTeamXP(STAGE_XP_SWEEP);   // sweeping now grants player XP
+  const gold=30+i*20, pxp=campaignPlayerXP(i,false); G.gold+=gold; addPlayerXP(pxp); grantTeamXP(STAGE_XP_SWEEP);   // sweeping grants player XP (+30 stamina per level)
   const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
   const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
   let eliteStr='',um='';
@@ -2360,8 +2363,8 @@ function renderAccount(){ const b=document.getElementById('accountBody');
 // shown when an account was flagged for password recovery — the owner sets a fresh password
 function renderSetNewPass(name){ const b=document.getElementById('accountBody'); if(!b)return;
   b.innerHTML=`<div style="text-align:center;margin-bottom:10px"><div style="font-size:28px">🔑</div>
-      <div style="font-weight:800;font-size:15px">Set a new password</div>
-      <div style="font-size:12px;color:#8b98a9;margin-top:4px">Account <b>${escapeHTML(name)}</b> was flagged for recovery. Choose a new password to regain access.</div></div>
+      <div style="font-weight:800;font-size:15px">Your password has been reset</div>
+      <div style="font-size:12px;color:#8b98a9;margin-top:4px">Please type and confirm a new password for <b>${escapeHTML(name)}</b> to regain access.</div></div>
     <input id="npPass" type="password" placeholder="New password" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="npConf" type="password" placeholder="Confirm new password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="npSet" style="flex:1">Set password &amp; log in</button><button class="btn secondary" id="npCancel" style="flex:0 0 auto">Back</button></div>
@@ -3207,10 +3210,10 @@ function addGuildExp(n){ if(!G.guild||guildMaxed())return; G.guild.exp=(G.guild.
   while(!guildMaxed() && G.guild.exp>=guildExpNeeded(G.guild.level)){ G.guild.exp-=guildExpNeeded(G.guild.level); G.guild.level=(G.guild.level||1)+1;
     bannerMsg('🎉 Guild reached level '+G.guild.level+'!\nMax players '+guildMaxPlayers()+' · shop items '+guildShopSlots()); }
   if(guildMaxed())G.guild.exp=0; saveG(); }
-// contribution offers: 2 map-resource offers (+5 exp) and 1 diamond offer (10💎 → +10 exp); refreshes each contribution
+// contribution offers: 2 map-resource offers (5 res → +10 exp) and 1 diamond offer (10💎 → +20 exp); refreshes each contribution
 function rollContribs(){ const rs=RES.map(r=>r[0]); const o=[];
-  for(let i=0;i<2;i++){ const res=rs[Math.floor(Math.random()*rs.length)]; o.push({kind:'res',res,cost:10+Math.floor(Math.random()*21),exp:5}); }
-  o.push({kind:'dia',cost:10,exp:10}); G.guildContribs=o; }
+  for(let i=0;i<2;i++){ const res=rs[Math.floor(Math.random()*rs.length)]; o.push({kind:'res',res,cost:5,exp:10}); }
+  o.push({kind:'dia',cost:10,exp:20}); G.guildContribs=o; }
 function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())return false;
   if(o.kind==='res'){ if((G.res[o.res]||0)<o.cost)return false; G.res[o.res]-=o.cost; }
   else { if((G.gems||0)<o.cost)return false; G.gems-=o.cost; }
@@ -3288,7 +3291,8 @@ function renderGuildChat(el,members,total,online,npc){
   el.querySelector('#gSend').onclick=send; el.querySelector('#gInput').onkeydown=(e)=>{ if(e.key==='Enter')send(); };
 }
 function renderGuildContribute(el){
-  if(!G.guildContribs||!G.guildContribs.length) rollContribs();
+  const c=G.guildContribs;   // re-roll stale offers so saved games pick up the current reward rates
+  if(!c||!c.length||c.some(o=> o.kind==='dia' ? o.exp!==20 : (o.exp!==10||o.cost!==5))) rollContribs();
   const need=guildExpNeeded(), have=guildExp(), pct=guildMaxed()?100:Math.min(100,Math.round(have/need*100));
   el.innerHTML=`<div class="panel"><div style="display:flex;justify-content:space-between;font-size:12px"><b>Guild Level ${guildLevel()}</b><span style="color:#8b98a9">${guildMaxed()?'MAX LEVEL':have+' / '+need+' exp'}</span></div>
       <div style="height:8px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#5ee89b,#4aa3ff)"></div></div></div>
@@ -3692,6 +3696,7 @@ function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(
 function questsAvailable(){ let n=0; if(questChainReady())n++; questDefs().forEach(q=>{ if(q.ready&&!G.questClaimed[q.id])n++; }); if(typeof dailyPacksReady==='function'&&dailyPacksReady())n++; return n; }
 function renderQuests(){ const b=document.getElementById('questBody'); if(!b)return;
   const today=arenaDayKey();
+  consolidateDailyPacks();   // one stacked entry per pack type; claimable once per day
   // 1) purchased packs (Cluster / Burger) — pinned to the very top; recurring, never removed until they expire
   let packsHtml='';
   (G.dailyPacks||[]).forEach(p=>{ const ready=(p.lastClaim!==today && p.daysLeft>0);
@@ -4004,7 +4009,10 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
   ov.querySelector('#paX').onclick=close;
   const msg=ov.querySelector('#paMsg');
   const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
-    msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); devAdminList(kind,panel); } else msg.textContent=(d&&d.error)||'Failed'; }); }); };
+    msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{
+      if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
+      else if(d&&d.error==='offline'){ msg.style.color='#ff8b8b'; msg.textContent='Reset endpoint not found — deploy the latest server.js to Railway, then retry.'; }
+      else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
   const un=ov.querySelector('#paUndo'); if(un) un.onclick=()=>{ msg.textContent='Working…'; api('/api/admin/unreset','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); devAdminList(kind,panel); } else msg.textContent=(d&&d.error)||'Failed'; }); };
 }
 // force the installed app to pull the freshest deployed build: drop caches, unregister SW, hard reload
@@ -4162,12 +4170,21 @@ const GEM_OFFERS=[
 function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.reward) return; const rw=o.reward;
   if(rw.kind==='gems'){ G.gems=(G.gems||0)+rw.amount; bannerMsg('💎 +'+rw.amount+' diamonds!'); }
   else if(rw.kind==='dailyGems'||rw.kind==='dailyStamina'){
-    G.dailyPacks=G.dailyPacks||[];
-    G.dailyPacks.push({ id:'dp'+Date.now()+'_'+Math.floor(Math.random()*1e4),
-      type:(rw.kind==='dailyGems'?'gems':'stamina'), amount:rw.amount, daysLeft:rw.days, lastClaim:null, name:o.name, icon:o.img });
-    bannerMsg('🎁 '+o.name+' added — claim it daily in Quests!');
+    G.dailyPacks=G.dailyPacks||[]; consolidateDailyPacks();
+    const type=(rw.kind==='dailyGems'?'gems':'stamina'), key=type+'_'+rw.amount;
+    let p=G.dailyPacks.find(x=>x.key===key);
+    if(p){ p.daysLeft+=rw.days; bannerMsg('🎁 '+o.name+' — +'+rw.days+' days ('+p.daysLeft+' total)'); }   // buying again stacks the days
+    else { G.dailyPacks.push({ id:'dp'+Date.now()+'_'+Math.floor(Math.random()*1e4), key, type, amount:rw.amount, daysLeft:rw.days, lastClaim:null, name:o.name, icon:o.img });
+      bannerMsg('🎁 '+o.name+' added — claim it daily in Quests!'); }
   }
   saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges(); }
+// merge any duplicate daily packs of the same type into one stacked entry (one claim per day, days add up)
+function consolidateDailyPacks(){ if(!Array.isArray(G.dailyPacks))return; const map={};
+  G.dailyPacks.forEach(p=>{ const k=p.key||((p.type||'gems')+'_'+p.amount); p.key=k;
+    if(!map[k]) map[k]=p;
+    else { map[k].daysLeft+=p.daysLeft;                                   // stack the durations
+      if(p.lastClaim && (!map[k].lastClaim || p.lastClaim>map[k].lastClaim)) map[k].lastClaim=p.lastClaim; } });  // keep the latest claim so today can't be double-claimed
+  G.dailyPacks=Object.values(map); }
 // claim one day's reward from an active daily pack (once per 09:00 reset day)
 function claimDailyPack(id){ const p=(G.dailyPacks||[]).find(x=>x.id===id); if(!p)return;
   const today=arenaDayKey();
@@ -4177,7 +4194,7 @@ function claimDailyPack(id){ const p=(G.dailyPacks||[]).find(x=>x.id===id); if(!
   p.lastClaim=today; p.daysLeft-=1;
   if(p.daysLeft<=0) G.dailyPacks=G.dailyPacks.filter(x=>x.id!==id);
   saveG(); updateHubChrome(); renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
-function dailyPacksReady(){ const today=arenaDayKey(); return (G.dailyPacks||[]).some(p=>p.lastClaim!==today && p.daysLeft>0); }
+function dailyPacksReady(){ consolidateDailyPacks(); const today=arenaDayKey(); return (G.dailyPacks||[]).some(p=>p.lastClaim!==today && p.daysLeft>0); }
 function foodDayReset(){ const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
 function goldDayReset(){ const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
 function foodNextCost(){ foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
@@ -4311,7 +4328,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785889206889';
+const BUILD_ID='1785890327278';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
