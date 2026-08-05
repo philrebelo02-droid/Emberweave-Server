@@ -4017,7 +4017,7 @@ function renderSettings(){
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`
       : `<div id="acEmailForm" style="display:block;margin:4px 0 8px;background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px">
           <div style="font-weight:800;font-size:12px;margin-bottom:4px">📧 Confirm email change</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter the 6-digit code sent to <b>${escapeHTML(_emSentTo)}</b>${_emToCurrent?' (your current recovery email)':''}. Changing to: <b>${escapeHTML(_emPending)}</b></div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter the 6-digit code sent to <b>${escapeHTML(_emSentTo)}</b>${_emToCurrent?' (your current recovery email)':''}. Changing to: <b>${escapeHTML(_emPending)}</b>. <span style="color:#c9a35e">Don't see it? Check your spam folder.</span></div>
           <input id="acEmailCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
           <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">Confirm</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
@@ -4025,7 +4025,7 @@ function renderSettings(){
       ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>🔑 Reset password by email${em?'':' (add an email first)'}</button>`
       : `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:4px">🔑 Reset your password</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes.</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes. <span style="color:#c9a35e">Don't see it? Check your spam folder.</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="acRCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
             <input id="acRNew" type="password" placeholder="New password" autocomplete="new-password" style="${inp}">
@@ -4064,7 +4064,7 @@ function renderSettings(){
           <div id="fgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`
       : `<div class="panel" style="border-color:#c9a24a66">
           <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Enter your code</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">If <b>${escapeHTML(_forgotName)}</b> has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in 15 minutes.</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">If <b>${escapeHTML(_forgotName)}</b> has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in 15 minutes. <span style="color:#c9a35e">Don't see it? Check your spam folder.</span></div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="fgCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
             <input id="fgNew" type="password" placeholder="New password" autocomplete="new-password" style="${inp}">
@@ -4795,7 +4795,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785905179702';
+const BUILD_ID='1785906961022';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
