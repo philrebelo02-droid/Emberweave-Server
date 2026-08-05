@@ -2066,12 +2066,12 @@ function renderHome(){
   // ---- the floating Island of Trials: bobbing animated sprite; opens the Sky trials (unlocks at Lv 20) ----
   if(SKY_ISLAND && SKY_ISLAND.indexOf('data:image')===0){
     const ix=(G.skyIsleX!=null?G.skyIsleX:52.5), iy=(G.skyIsleY!=null?G.skyIsleY:73);
-    const isleLocked = lv<20 && !AUDIT_MODE();
+    const isleLocked = lv<10 && !AUDIT_MODE();
     const isle=document.createElement('div'); isle.id='skyIsle'; isle.title='Island of Trials';
     isle.style.left=ix+'%'; isle.style.top=iy+'%';
     isle.innerHTML=`<div class="isleBob"><img class="isleStrip" src="${SKY_ISLAND}" draggable="false"></div>`;
     if(isleLocked){ isle.style.cursor='not-allowed'; isle.querySelector('.isleBob').style.filter='brightness(1.0) grayscale(.4) drop-shadow(0 8px 11px rgba(0,0,0,.5))'; }
-    isle.onclick=()=>{ if(isleLocked){ bannerMsg('🔒 Island of Trials unlocks at level 20.'); return; } show('skyisland'); };
+    isle.onclick=()=>{ if(isleLocked){ bannerMsg('🔒 Island of Trials unlocks at level 10.'); return; } show('skyisland'); };
     box.appendChild(isle);
     // size it in explicit px so the sprite window shows exactly ONE frame (scales with the town via the parent transform)
     const sizeIsle=()=>{ const h=box.clientHeight||0; if(h){ const ih=h*0.30; isle.style.height=ih+'px'; isle.style.width=(ih*175/190)+'px'; } };
@@ -2079,7 +2079,7 @@ function renderHome(){
     // ornate name label, like the other buildings
     const ilab=document.createElement('div'); ilab.className='townlbl'; ilab.style.left=ix+'%'; ilab.style.top=(iy+17)+'%';
     let inner2='<span>Island of Trials</span>';
-    if(isleLocked) inner2+='<span class="lockwrap">🔒<span class="locktip">Unlocks at Lv 20</span></span>';
+    if(isleLocked) inner2+='<span class="lockwrap">🔒<span class="locktip">Unlocks at Lv 10</span></span>';
     ilab.innerHTML=inner2;
     const w2=ilab.querySelector('.lockwrap');
     if(w2){ let t2=null; w2.addEventListener('touchstart',(e)=>{ e.preventDefault(); w2.classList.add('show'); },{passive:false});
@@ -4305,19 +4305,170 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutDismissed) retur
   ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); };
   ov.querySelector('#tutLater').onclick=()=>{ G.tutDismissed=true; saveG(); close(); }; }
 
-/* ============================ FLOATING ISLE ============================ */
-const SKY_SPOTS=[
-  {ic:'🗼', name:'Tower of Trials', desc:'Endless floor-climb — no healing between fights. How high can you go?'},
-  {ic:'🌀', name:'Training Province', desc:'Rotating daily training grounds, each yielding a different material.'},
-  {ic:'🎲', name:'The Gauntlet', desc:'A branching roguelike run — pick boons, survive as far as you can.'},
+/* ============================ FLOATING ISLE: THREE TRIALS ============================ */
+const ISLE_FEATURES=[
+  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — battle for gold and runes.', open:()=>openTrainingProvince()},
+  {id:'gauntlet', ic:'🎲', name:'The Gauntlet',      lvl:25, desc:'A roguelike run — pick powerful boons and survive.', open:()=>openGauntlet()},
+  {id:'tower',    ic:'🗼', name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
 ];
-function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if(!b)return;
-  b.innerHTML=`<div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:12px">The isle holds three trials. They're being raised now — tap a marker to preview.</div>`
-    + SKY_SPOTS.map((s,i)=>`<div class="skyspot" data-si="${i}" style="display:flex;align-items:center;gap:12px;background:linear-gradient(160deg,#161f30,#0e1420);border:1px solid #2a3550;border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer">
-      <div style="font-size:30px;width:44px;text-align:center">${s.ic}</div>
-      <div style="flex:1"><div style="font-weight:800;font-size:14px">${escapeHTML(s.name)}</div><div style="font-size:11px;color:#8b98a9;margin-top:2px">${escapeHTML(s.desc)}</div></div>
-      <div style="font-size:10px;color:#c9a35e;border:1px solid #5a4a2a;border-radius:6px;padding:3px 6px;white-space:nowrap">Coming soon</div></div>`).join('');
-  b.querySelectorAll('[data-si]').forEach(el=>el.onclick=()=>{ const s=SKY_SPOTS[+el.dataset.si]; bannerMsg('☁️ '+s.name+'\nComing soon to the Floating Isle!'); });
+function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if(!b)return; const lv=playerLevel();
+  b.innerHTML=`<div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:12px">Three trials drift among the clouds. Grow stronger to unlock each one.</div>`
+    + ISLE_FEATURES.slice().sort((a,c)=>a.lvl-c.lvl).map(f=>{ const locked=lv<f.lvl;
+      return `<div class="skyspot" data-if="${f.id}" style="display:flex;align-items:center;gap:12px;background:linear-gradient(160deg,#161f30,#0e1420);border:1px solid ${locked?'#242c3e':'#3a4c72'};border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;opacity:${locked?.72:1}">
+        <div style="font-size:30px;width:44px;text-align:center;${locked?'filter:grayscale(.6)':''}">${f.ic}</div>
+        <div style="flex:1"><div style="font-weight:800;font-size:14px">${escapeHTML(f.name)}</div><div style="font-size:11px;color:#8b98a9;margin-top:2px">${escapeHTML(f.desc)}</div></div>
+        <div style="font-size:10px;${locked?'color:#c9a35e;border:1px solid #5a4a2a':'color:#5ee89b;border:1px solid #2f6b45'};border-radius:6px;padding:3px 7px;white-space:nowrap">${locked?'🔒 Lv '+f.lvl:'Enter ▸'}</div></div>`; }).join('');
+  b.querySelectorAll('[data-if]').forEach(el=>el.onclick=()=>{ const f=ISLE_FEATURES.find(x=>x.id===el.dataset.if); if(playerLevel()<f.lvl){ bannerMsg('🔒 '+f.name+' unlocks at level '+f.lvl+'.'); return; } f.open(); });
+}
+function isleOverlay(){ const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:13500;display:flex;align-items:center;justify-content:center;padding:16px'; ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); }); document.body.appendChild(ov); return ov; }
+function isleCard(inner,max){ return `<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:16px;width:100%;max-width:${max||360}px;max-height:88vh;overflow:auto">${inner}</div>`; }
+function battlePow(){ return Math.max(1, bestTeamPower()); }
+
+/* ---- TRAINING PROVINCE: two grounds (Gold / Rune), stages of rising difficulty, 2 plays/day, sweep cleared stages ---- */
+const PROV_STAGES=12, PROV_PLAYS=2;
+function provState(t){ if(!G.prov)G.prov={}; if(!G.prov[t])G.prov[t]={stage:0,day:'',used:0}; const p=G.prov[t], dk=arenaDayKey(); if(p.day!==dk){ p.day=dk; p.used=0; } return p; }
+function provPlaysLeft(t){ return Math.max(0,PROV_PLAYS-provState(t).used); }
+function provReqPower(t,stage){ const base=t==='gold'?420:640; return Math.round(base*Math.pow(1.4,stage-1)); }
+function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }
+function provRuneAmt(stage){ return 1+Math.floor(stage/2); }
+function provRewardStr(t,stage){ return t==='gold'?('🪙 '+provGoldAmt(stage).toLocaleString()):('💠 '+provRuneAmt(stage)+' runes'); }
+function grantProvReward(t,stage){ if(t==='gold'){ G.gold=(G.gold||0)+provGoldAmt(stage); } else { const n=provRuneAmt(stage); for(let i=0;i<n;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } } updateHubChrome(); return provRewardStr(t,stage); }
+function provChallenge(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; const next=p.stage+1; if(next>PROV_STAGES) return {maxed:true}; if(battlePow()<provReqPower(t,next)) return {weak:true}; p.used++; p.stage=next; const rw=grantProvReward(t,next); saveG(); return {win:true,stage:next,reward:rw}; }
+function provSweep(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; if(p.stage<1) return {invalid:true}; p.used++; const rw=grantProvReward(t,p.stage); saveG(); return {swept:true,stage:p.stage,reward:rw}; }
+function openTrainingProvince(){ const ov=isleOverlay();
+  const cards=[['gold','🪙','Gold Province',10,'Battle for gold'],['rune','💠','Rune Province',15,'Battle for runes']];
+  ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🌀 Training Province</div><button class="btn sm secondary" id="ipX">✕</button></div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Two training grounds, each a ladder of rising difficulty. Beat a stage to earn its reward, then sweep it later for the same haul. Two plays each per day.</div>`
+    + cards.map(([t,ic,nm,rl,d])=>{ const locked=playerLevel()<rl; return `<div data-prov="${t}" style="display:flex;align-items:center;gap:12px;background:#0f1420;border:1px solid ${locked?'#242c3e':'#3a4c72'};border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;opacity:${locked?.65:1}">
+      <div style="font-size:26px">${ic}</div><div style="flex:1"><div style="font-weight:800;font-size:13px">${nm}</div><div style="font-size:10px;color:#8b98a9">${d} · Stage ${provState(t).stage}/${PROV_STAGES} · ${provPlaysLeft(t)}/${PROV_PLAYS} plays left</div></div>
+      <div style="font-size:10px;${locked?'color:#c9a35e':'color:#5ee89b'};white-space:nowrap">${locked?'🔒 Lv '+rl:'Open ▸'}</div></div>`; }).join(''));
+  ov.querySelector('#ipX').onclick=()=>ov.remove();
+  ov.querySelectorAll('[data-prov]').forEach(el=>el.onclick=()=>{ const t=el.dataset.prov, rl=t==='rune'?15:10; if(playerLevel()<rl){ bannerMsg('🔒 '+(t==='rune'?'Rune':'Gold')+' Province unlocks at level '+rl+'.'); return; } ov.remove(); openProvince(t); });
+}
+function openProvince(t){ const meta=t==='gold'?{ic:'🪙',nm:'Gold Province',col:'#ffd45e'}:{ic:'💠',nm:'Rune Province',col:'#8fd0ff'}; const ov=isleOverlay();
+  function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), next=p.stage+1, maxed=p.stage>=PROV_STAGES, req=maxed?0:provReqPower(t,next), pow=battlePow(), canGo=!maxed&&pow>=req&&left>0;
+    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${meta.ic} ${meta.nm}</div><button class="btn sm secondary" id="pvX">✕</button></div>
+      <div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:10px">Cleared <b style="color:${meta.col}">Stage ${p.stage}/${PROV_STAGES}</b> · Plays today <b style="color:#ffd45e">${left}/${PROV_PLAYS}</b> · Your power ⚔ ${pow.toLocaleString()}</div>
+      ${maxed?`<div style="text-align:center;color:#5ee89b;font-weight:800;margin:12px 0">★ All ${PROV_STAGES} stages cleared! Sweep for daily rewards.</div>`:
+        `<div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
+          <div style="font-weight:800;font-size:12px;margin-bottom:3px">⚔ Challenge Stage ${next}</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enemy power ⚔ <b style="color:${pow>=req?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b> · Reward ${provRewardStr(t,next)}</div>
+          <button class="btn" id="pvGo" style="width:100%" ${canGo?'':'disabled'}>${left<=0?'No plays left today':(pow<req?'Squad too weak':'⚔ Challenge (1 play)')}</button></div>`}
+      ${p.stage>0?`<div style="background:#0f1420;border-radius:10px;padding:11px">
+          <div style="font-weight:800;font-size:12px;margin-bottom:3px">🔁 Sweep Stage ${p.stage}</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Instantly re-earn your best cleared reward: ${provRewardStr(t,p.stage)}</div>
+          <button class="btn secondary" id="pvSweep" style="width:100%" ${left>0?'':'disabled'}>${left>0?'🔁 Sweep (1 play)':'No plays left today'}</button></div>`:''}
+      <div id="pvMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
+    ov.querySelector('#pvX').onclick=()=>ov.remove();
+    const go=ov.querySelector('#pvGo'); if(go) go.onclick=()=>{ const r=provChallenge(t); render(r.win?('✔ Stage '+r.stage+' cleared! '+r.reward):(r.weak?'Squad too weak — level up and return.':'No plays left today.'), r.win?'#5ee89b':'#ff8b8b'); };
+    const sw=ov.querySelector('#pvSweep'); if(sw) sw.onclick=()=>{ const r=provSweep(t); render(r.swept?('🔁 Swept Stage '+r.stage+'! '+r.reward):'No plays left today.', r.swept?'#5ee89b':'#ff8b8b'); };
+  }
+  render();
+}
+
+/* ---- THE GAUNTLET: a roguelike run. Auto-resolve waves; pick a boon every 3 waves; run ends on a loss. 3 runs/day. ---- */
+const GAUNT_RUNS_DAY=3;
+const GAUNT_PERKS=[
+  {id:'banner',  ic:'⚔', name:'War Banner',     desc:'+22% squad power for the rest of the run'},
+  {id:'momentum',ic:'🔥', name:'Momentum',       desc:'+6% power for every wave you clear'},
+  {id:'wind',    ic:'💚', name:'Second Wind',     desc:'Survive your next defeat — the run continues'},
+  {id:'slayer',  ic:'🗡', name:'Giant-Slayer',    desc:'+50% power against boss waves (every 5th)'},
+  {id:'treasure',ic:'💰', name:'Treasure Hunter', desc:'+80% rewards for the rest of the run'},
+  {id:'phantom', ic:'👻', name:'Phantom Step',    desc:'30% chance to skip a wave entirely'},
+  {id:'overload',ic:'⚡', name:'Overload',        desc:'+40% power for the next 3 waves'},
+  {id:'fortune', ic:'🍀', name:"Fortune's Favor", desc:'+2 bonus runes every wave from now on'},
+];
+let _gaunt=null;
+function gauntDay(){ if(!G.gauntlet)G.gauntlet={day:'',runs:0,best:0}; const dk=arenaDayKey(); if(G.gauntlet.day!==dk){ G.gauntlet.day=dk; G.gauntlet.runs=0; } return G.gauntlet; }
+function gauntRunsLeft(){ return Math.max(0,GAUNT_RUNS_DAY-gauntDay().runs); }
+function gauntWaveReq(w){ return Math.round(520*Math.pow(1.24,w-1)); }
+function gauntEff(w,isBoss){ const r=_gaunt; let m=r.banner*(1+r.momentum*(Math.max(0,w-1)))*(w<=r.overloadUntil?1.4:1); if(isBoss)m*=(1+r.slayer); return battlePow()*m; }
+function gauntStart(){ const d=gauntDay(); if(gauntRunsLeft()<=0) return false; d.runs++; saveG();
+  _gaunt={wave:0, banner:1, momentum:0, slayer:0, rewardMul:1, phantom:0, overloadUntil:0, fortune:0, wind:false, perks:[], gold:0, gems:0, runes:0, alive:true, pendingPerk:false}; return true; }
+function gauntApplyPerk(id){ const r=_gaunt; if(!r)return; r.perks.push(id);
+  if(id==='banner')r.banner*=1.22; else if(id==='momentum')r.momentum+=0.06; else if(id==='wind')r.wind=true; else if(id==='slayer')r.slayer+=0.50;
+  else if(id==='treasure')r.rewardMul*=1.80; else if(id==='phantom')r.phantom=Math.min(0.6,r.phantom+0.30); else if(id==='overload')r.overloadUntil=r.wave+3; else if(id==='fortune')r.fortune+=2;
+  r.pendingPerk=false; }
+function gauntBank(){ const r=_gaunt; if(!r)return; if(r.wave>gauntDay().best){ gauntDay().best=r.wave; } G.gold=(G.gold||0)+r.gold; if(r.gems>0)G.gems=(G.gems||0)+r.gems; for(let i=0;i<r.runes;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } updateHubChrome(); saveG(); }
+function gauntFight(){ const r=_gaunt; if(!r||!r.alive) return {ended:true};
+  const w=r.wave+1, isBoss=(w%5===0);
+  if(r.phantom && Math.random()<r.phantom){ r.wave=w; const rw=gauntWaveReward(w,isBoss); r.pendingPerk=(w%3===0); return {wave:w,skipped:true,reward:rw,isBoss,perk:r.pendingPerk}; }
+  const eff=gauntEff(w,isBoss), req=gauntWaveReq(w);
+  if(eff>=req){ r.wave=w; const rw=gauntWaveReward(w,isBoss); r.pendingPerk=(w%3===0); return {wave:w,cleared:true,reward:rw,isBoss,perk:r.pendingPerk}; }
+  if(r.wind){ r.wind=false; r.wave=w; return {wave:w,revived:true,isBoss,perk:(w%3===0)&&(r.pendingPerk=true)}; }
+  r.alive=false; return {defeat:true, wave:r.wave}; }
+function gauntWaveReward(w,isBoss){ const r=_gaunt; const g=Math.round(220*w*r.rewardMul); r.gold+=g; let s='🪙 '+g;
+  const runes=(isBoss?2:0)+r.fortune; if(runes>0){ r.runes+=runes; s+=' · 💠 '+runes; }
+  if(isBoss){ const gm=Math.round(4*r.rewardMul); r.gems+=gm; s+=' · 💎 '+gm; } return s; }
+function openGauntlet(){ const ov=isleOverlay();
+  function render(msg,mc){
+    if(!_gaunt || !_gaunt.alive){
+      const left=gauntRunsLeft(), best=gauntDay().best;
+      ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🎲 The Gauntlet</div><button class="btn sm secondary" id="gaX">✕</button></div>
+        <div style="text-align:center;font-size:11px;color:#8b98a9;margin-bottom:12px">Fight endless waves; every 3 waves you pick a powerful boon. One defeat ends the run — bank your loot and climb higher next time.</div>
+        <div style="display:flex;justify-content:space-around;margin-bottom:14px"><div style="text-align:center"><div style="color:#8b98a9;font-size:11px">Best wave</div><div style="font-weight:800;color:#ffd45e;font-size:20px">${best}</div></div><div style="text-align:center"><div style="color:#8b98a9;font-size:11px">Runs left today</div><div style="font-weight:800;color:#5ee89b;font-size:20px">${left}</div></div></div>
+        ${msg?`<div style="text-align:center;font-size:12px;color:${mc};margin-bottom:10px">${msg}</div>`:''}
+        <button class="btn" id="gaStart" style="width:100%" ${left>0?'':'disabled'}>${left>0?'⚔ Begin a run':'⏳ No runs left today'}</button>`);
+      ov.querySelector('#gaX').onclick=()=>ov.remove();
+      const st=ov.querySelector('#gaStart'); if(st) st.onclick=()=>{ if(gauntStart()) render(); };
+      return;
+    }
+    const r=_gaunt;
+    if(r.pendingPerk){ // perk choice
+      const pool=GAUNT_PERKS.slice().sort(()=>Math.random()-0.5).slice(0,3);
+      ov.innerHTML=isleCard(`<div style="font-weight:800;font-size:15px;text-align:center;margin-bottom:4px">✨ Choose a Boon</div><div style="text-align:center;font-size:11px;color:#8b98a9;margin-bottom:12px">Wave ${r.wave} cleared — pick one to carry forward.</div>`
+        + pool.map(p=>`<div data-perk="${p.id}" style="display:flex;align-items:center;gap:11px;background:#0f1420;border:1px solid #3a4c72;border-radius:11px;padding:11px;margin-bottom:8px;cursor:pointer">
+            <div style="font-size:24px;width:34px;text-align:center">${p.ic}</div><div style="flex:1"><div style="font-weight:800;font-size:13px">${p.name}</div><div style="font-size:10px;color:#8b98a9">${p.desc}</div></div></div>`).join(''));
+      ov.querySelectorAll('[data-perk]').forEach(el=>el.onclick=()=>{ gauntApplyPerk(el.dataset.perk); render('✨ '+GAUNT_PERKS.find(x=>x.id===el.dataset.perk).name+' gained!','#c9a2ff'); });
+      return;
+    }
+    const nextW=r.wave+1, isBoss=(nextW%5===0), req=gauntWaveReq(nextW);
+    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:15px">🎲 Gauntlet · Wave ${r.wave}</div><button class="btn sm secondary" id="gaX">✕</button></div>
+      <div style="display:flex;justify-content:space-around;font-size:11px;margin-bottom:10px"><div style="text-align:center"><div style="color:#8b98a9">Banked</div><div style="font-weight:800;color:#ffd45e">🪙${r.gold.toLocaleString()}${r.gems?' 💎'+r.gems:''}${r.runes?' 💠'+r.runes:''}</div></div><div style="text-align:center"><div style="color:#8b98a9">Boons</div><div style="font-weight:800;color:#c9a2ff">${r.perks.length}</div></div></div>
+      <div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
+        <div style="font-weight:800;font-size:12px">${isBoss?'👹 BOSS — ':''}Wave ${nextW}</div>
+        <div style="font-size:11px;color:#8b98a9;margin:3px 0 8px">Enemy power ⚔ ${req.toLocaleString()} · your effective ⚔ <b style="color:${gauntEff(nextW,isBoss)>=req?'#5ee89b':'#ff8b8b'}">${Math.round(gauntEff(nextW,isBoss)).toLocaleString()}</b></div>
+        <button class="btn" id="gaFight" style="width:100%">⚔ Fight Wave ${nextW}</button></div>
+      <button class="btn secondary" id="gaRetire" style="width:100%">🏳 Retire &amp; bank loot</button>
+      <div id="gaMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
+    ov.querySelector('#gaX').onclick=()=>{ ov.remove(); };
+    ov.querySelector('#gaRetire').onclick=()=>{ gauntBank(); _gaunt.alive=false; render('🏳 Retired at wave '+_gaunt.wave+' — loot banked.','#5ee89b'); };
+    ov.querySelector('#gaFight').onclick=()=>{ const res=gauntFight();
+      if(res.defeat){ gauntBank(); render('💀 Defeated at wave '+(res.wave+1)+'. Reached wave '+res.wave+' — loot banked.','#ff8b8b'); }
+      else if(res.perk){ render(); }
+      else render((res.skipped?'👻 Skipped wave '+res.wave:(res.revived?'💚 Second Wind! Survived wave '+res.wave:'✔ Wave '+res.wave+' cleared'))+' · '+(res.reward||''),'#5ee89b'); };
+  }
+  render();
+}
+
+/* ---- TOWER OF TRIALS (the Ascendant Spire): a permanent power ladder. Beat a floor to advance; best floor is
+        recorded forever. Elite floors (every 5th) are tougher Wardens; every 10th pays diamonds. Once-daily tribute. ---- */
+function towerState(){ if(!G.tower)G.tower={floor:0,trib:''}; return G.tower; }
+function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)); if(floor%5===0)r=Math.round(r*1.3); return r; }
+function towerFloorReward(floor){ const gold=Math.round(400*floor*Math.pow(1.08,floor)); let s='🪙 '+gold.toLocaleString(); G.gold=(G.gold||0)+gold;
+  if(floor%2===0){ const gg=rollGlyphDrop(); giveGlyph(gg,1); s+=' · 💠 1 rune'; }
+  if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; s+=' · 💎 '+gm; } updateHubChrome(); return s; }
+function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next); if(battlePow()<req) return {wall:true,req}; st.floor=next; const rw=towerFloorReward(next); saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
+function towerTribReady(){ return towerState().trib!==arenaDayKey() && towerState().floor>0; }
+function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; st.trib=arenaDayKey(); const gold=Math.round(500*st.floor); G.gold=(G.gold||0)+gold; const runes=1+Math.floor(st.floor/4); for(let i=0;i<runes;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } updateHubChrome(); saveG(); return {gold, runes}; }
+function openTower(){ const ov=isleOverlay();
+  function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
+    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🗼 Tower of Trials</div><button class="btn sm secondary" id="twX">✕</button></div>
+      <div style="text-align:center;margin-bottom:12px"><div style="font-size:11px;color:#8b98a9">The Ascendant Spire · your record</div><div style="font-weight:800;font-size:30px;color:#ffd45e">Floor ${st.floor}</div><div style="font-size:11px;color:#8b98a9">Your power ⚔ ${pow.toLocaleString()}</div></div>
+      <div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
+        <div style="font-weight:800;font-size:12px">${next%5===0?'👑 Warden of Floor '+next:'Guardian of Floor '+next}</div>
+        <div style="font-size:11px;color:#8b98a9;margin:3px 0 8px">Requires power ⚔ <b style="color:${canGo?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b>${next%5===0?' <span style="color:#c9a35e">(Elite — reinforced)</span>':''} · Reward ${next%10===0?'🪙+💠+💎':'🪙+💠'}</div>
+        <button class="btn" id="twGo" style="width:100%" ${canGo?'':'disabled'}>${canGo?'⚔ Ascend to Floor '+next:'Squad too weak — grow stronger'}</button></div>
+      <div style="background:#0f1420;border-radius:10px;padding:11px">
+        <div style="font-weight:800;font-size:12px;margin-bottom:3px">🎖 Spire Tribute <span style="font-size:10px;color:#8b98a9">(once daily)</span></div>
+        <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${st.floor>0?'Claim a daily reward scaled to your record: 🪙 '+(500*st.floor).toLocaleString()+' · 💠 '+(1+Math.floor(st.floor/4))+' runes':'Reach Floor 1 to unlock the tribute.'}</div>
+        <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?'🎖 Claim tribute':(st.floor>0?'✔ Claimed today':'Locked')}</button></div>
+      <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
+    ov.querySelector('#twX').onclick=()=>ov.remove();
+    ov.querySelector('#twGo').onclick=()=>{ const r=towerAscend(); render(r.win?((r.elite?'👑 Warden felled! ':'⚔ ')+'Floor '+r.floor+' conquered! '+r.reward):'Squad too weak for this floor.', r.win?'#5ee89b':'#ff8b8b'); };
+    ov.querySelector('#twTrib').onclick=()=>{ const r=towerTribute(); render(r.none?'Already claimed today.':('🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()+' · 💠 '+r.runes+' runes'), r.none?'#ff8b8b':'#5ee89b'); };
+  }
+  render();
 }
 
 /* ============================ MAIL ============================ */
@@ -5199,7 +5350,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785939467660';
+const BUILD_ID='1785940734345';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
