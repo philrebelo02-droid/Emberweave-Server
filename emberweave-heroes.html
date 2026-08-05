@@ -520,6 +520,7 @@
       <div id="menuPanel">
         <div class="mitem" data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
         <div class="mitem" data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
+        <div class="mitem" data-nav="tutorial"><span class="mi">🎓</span> Getting Started <span id="tutDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-nav="signin"><span class="mi">📅</span> Sign-In <span id="signinDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
@@ -690,6 +691,12 @@
     <div class="titlebar"><h1>📅 DAILY SIGN-IN</h1></div>
     <div class="sub">Sign in each day for rewards — every week earns Hero-of-the-Month fragments.</div>
     <div class="panel" id="signinBody"></div>
+  </div>
+  <div class="screen hub" id="tutorial">
+    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
+    <div class="titlebar"><h1>🎓 GETTING STARTED</h1></div>
+    <div class="sub">Follow these steps to learn the ropes — each one hands you a reward.</div>
+    <div class="panel" id="tutorialBody"></div>
   </div>
   <div class="screen hub" id="mail">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
@@ -1907,7 +1914,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 }
 
 /* =============================== HUB / UI ================================= */
-const SCREENS=['home','campaign','menu','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','mail','result'];
+const SCREENS=['home','campaign','menu','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','mail','result'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign';
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
@@ -1953,6 +1960,7 @@ function show(name){
   if(name==='settings') renderSettings();
   if(name==='quest') renderQuests();
   if(name==='signin') renderSignin();
+  if(name==='tutorial') renderTutorial();
   if(name==='mail') renderMail();
   if(name==='world') renderWorldOverview();
   updateChatVisibility();
@@ -1969,6 +1977,7 @@ function updateHubChrome(){
   const mx=maxStamina(), full=G.stamina>=mx; set('resStamina',G.stamina+'/'+mx);
   const st=document.getElementById('resStaminaTimer'); if(st) st.textContent=full?'':('⏳'+fmtDur(staminaToNext()));
   const ring=document.getElementById('xpRing'); if(ring) ring.style.setProperty('--xp',(xpIntoLevel()*3.6)+'deg');
+  if(typeof checkTutorial==='function') checkTutorial();
 }
 function renderHome(){
   updateHubChrome();
@@ -2022,6 +2031,7 @@ function renderHome(){
   requestAnimationFrame(()=>{ if(!wrap)return;
     if(_restoreHomeScroll){ _restoreHomeScroll=false; wrap.scrollLeft = (_homeScroll!=null? _homeScroll : (wrap.scrollWidth-wrap.clientWidth)*0.5); }
   });
+  if(typeof maybeOfferTutorial==='function') maybeOfferTutorial();
 }
 let _homeScroll=null, _restoreHomeScroll=true;   // town scroll memory (first load centers)
 /* ---- player profile (name / avatar / xp) ---- */
@@ -3841,6 +3851,55 @@ function renderSignin(){ signinEnsure(); const b=document.getElementById('signin
   const img=b.querySelector('#siHeroImg'); if(img) setHead(img,hk);
   const btn=b.querySelector('#siClaim'); if(btn) btn.onclick=signinClaimToday; }
 
+/* ============================ TUTORIAL (getting started) ============================ */
+function anyGlyphSocketed(){ return HERO_KEYS.some(k=> glyphRank(k)>0 || ((G.glyphCur&&G.glyphCur[k])||[]).some(Boolean)); }
+function anySkillRaised(){ return HERO_KEYS.some(k=> ((G.skillLevel&&G.skillLevel[k])||[1,1,1,1]).some(v=>v>1)); }
+const TUTORIAL_STEPS=[
+  {id:'win11', icon:'⚔️', title:'Win your first battle', desc:'Open the Campaign and clear Stage 1-1.', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
+  {id:'rune',  icon:'💠', title:'Empower a hero', desc:'Open a hero (Menu → Heroes), then socket a rune to raise their quality.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
+  {id:'win12', icon:'🗺️', title:'Push onward', desc:'Clear Stage 1-2 in the Campaign.', go:()=>show('campaign'), reward:{frag:3}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'skill', icon:'✨', title:'Train a skill', desc:'On a hero, raise one of their skills a level (costs gold).', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
+  {id:'name',  icon:'🪶', title:'Claim your title', desc:'Tap your portrait and set your commander name.', go:()=>{show('home'); if(typeof openProfile==='function') openProfile();}, reward:{gems:20}, done:()=>!!G.nameChanged},
+  {id:'signin',icon:'📅', title:'Grab a daily reward', desc:'Open Daily Sign-In and claim today’s reward.', go:()=>show('signin'), reward:{stam:60}, done:()=>((G.signinClaimed||[]).length>0)},
+  {id:'wish',  icon:'🔮', title:'Make a wish', desc:'Visit the Wishing Pool and toss a coin.', go:()=>show('wishing'), reward:{gems:40}, done:()=>((G.wishClicks||0)>0)},
+];
+function grantTutReward(r){ let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push('🪙 '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push('💎 '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
+  if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } return s.join(' · '); }
+function tutComplete(){ return TUTORIAL_STEPS.every(s=>s.done()); }
+function tutReady(){ if(G.tutDone) return false; return TUTORIAL_STEPS.some(s=>s.done() && !(G.tutRewarded&&G.tutRewarded[s.id])); }
+// grant rewards for any steps newly completed; called after actions via updateHubChrome
+function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded={}; let changed=false;
+  TUTORIAL_STEPS.forEach(s=>{ if(s.done() && !G.tutRewarded[s.id]){ const str=grantTutReward(s.reward); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); } });
+  if(!G.tutDone && tutComplete()){ G.tutDone=true; changed=true; G.gems=(G.gems||0)+100; if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds'); }
+  if(changed){ saveG(); if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); } }
+function renderTutorial(){ checkTutorial(); const b=document.getElementById('tutorialBody'); if(!b)return;
+  const doneCount=TUTORIAL_STEPS.filter(s=>s.done()).length; const cur=TUTORIAL_STEPS.find(s=>!s.done());
+  let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?'🎉 All done!':'Your journey begins'}</div>
+    <div style="font-size:12px;color:#8b98a9;margin-top:2px">${doneCount} / ${TUTORIAL_STEPS.length} steps complete</div>
+    <div class="qbar" style="margin-top:6px"><i style="width:${Math.round(doneCount/TUTORIAL_STEPS.length*100)}%"></i></div></div>`;
+  TUTORIAL_STEPS.forEach((s,i)=>{ const done=s.done(), isCur=(cur&&cur.id===s.id);
+    const rew=[]; if(s.reward.gold)rew.push('🪙 '+s.reward.gold); if(s.reward.gems)rew.push('💎 '+s.reward.gems); if(s.reward.stam)rew.push('⧗ '+s.reward.stam); if(s.reward.frag)rew.push('⭐ '+s.reward.frag+' frags');
+    html+=`<div class="qcard${done?' done':isCur?' ready':''}" style="${done?'opacity:.65':''}">
+      <div class="qh"><div class="qt">${done?'✅':s.icon} ${escapeHTML(s.title)}</div><div class="qrew">🎁 ${rew.join(' · ')}</div></div>
+      <div class="qd">${escapeHTML(s.desc)}</div>
+      <div class="qmeta"><span>${done?'<span style="color:#5ee89b;font-weight:800">Complete</span>':(isCur?'Next up':'Locked')}</span>
+        ${isCur?`<button class="btn xs" data-tut="${s.id}">Go →</button>`:''}</div></div>`; });
+  if(G.tutDone||!cur) html+=`<div style="text-align:center;color:#8b98a9;font-size:12px;margin-top:8px">You’ve got the basics — now go build the strongest kingdom in the realm. 🔥</div>`;
+  b.innerHTML=html;
+  b.querySelectorAll('[data-tut]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tut); if(s&&s.go)s.go(); });
+}
+// first-run prompt for brand-new accounts
+function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutDismissed) return; if((G.campaignCleared||0)>0) return;
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px';
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
+    <div style="font-size:40px">🎓</div><div style="font-weight:800;font-size:17px;margin:6px 0">Welcome, Commander!</div>
+    <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">New here? Take a quick guided tour of the essentials — you’ll earn rewards for each step.</div>
+    <button class="btn" style="width:100%;margin-bottom:6px" id="tutStart">Start the tour</button>
+    <button class="btn xs secondary" style="width:100%" id="tutLater">Maybe later</button></div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove();
+  ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); };
+  ov.querySelector('#tutLater').onclick=()=>{ G.tutDismissed=true; saveG(); close(); }; }
+
 /* ============================ MAIL ============================ */
 let mailTab='inbox';
 function timeAgo(t){ const s=Math.floor((Date.now()-(t||Date.now()))/1000); if(s<60)return 'now'; const m=Math.floor(s/60); if(m<60)return m+'m'; const h=Math.floor(m/60); if(h<24)return h+'h'; return Math.floor(h/24)+'d'; }
@@ -3878,7 +3937,47 @@ function updateMailBadges(){ ensureMail(); pruneWars();
   if(md){ const n=mailUnread()+incomingWars().length; md.textContent=n>9?'9+':(n||''); md.style.display=n?'inline-flex':'none'; }
   if(qd){ const n=questsAvailable(); qd.textContent=n?'!':''; qd.style.display=n?'inline-flex':'none'; }
   const sd=document.getElementById('signinDot'); if(sd){ const on=(typeof signinReadyToday==='function'&&signinReadyToday()); sd.textContent='!'; sd.style.display=on?'inline-flex':'none'; }
+  const td=document.getElementById('tutDot'); if(td){ const on=(typeof tutReady==='function'&&tutReady())&&!G.tutDone; td.textContent='!'; td.style.display=on?'inline-flex':'none'; }
   if(state==='mail') renderMail();
+}
+
+/* ============================ TERMS OF SERVICE / PRIVACY ============================ */
+const TOS_UPDATED='August 2026';
+function showTerms(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:220;padding:16px';
+  const s='margin:14px 0 5px;font-weight:800;color:#ffd45e;font-size:13px';
+  const p='font-size:12px;color:#cdd6e4;line-height:1.55;margin:0 0 6px';
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid #223052">
+      <div style="font-weight:800;font-size:15px">📜 Terms of Service &amp; Privacy</div>
+      <button id="tosClose" class="btn xs secondary" style="padding:4px 10px">✕</button></div>
+    <div style="overflow-y:auto;padding:6px 16px 16px">
+      <p style="${p}color:#8b98a9">Last updated: ${TOS_UPDATED}. Please read these terms before playing Emberweave Heroes (the “Game”). By creating an account or playing, you agree to them.</p>
+      <div style="${s}">1. Your account</div>
+      <p style="${p}">You are responsible for keeping your username and password safe. One account is intended for one person. You may not share, sell, or transfer your account, and you may not use another player’s account without permission.</p>
+      <div style="${s}">2. Fair play</div>
+      <p style="${p}">Don’t cheat, exploit bugs, use bots or unauthorized third-party tools, or interfere with other players or the Game’s servers. We may suspend or remove accounts that break these rules, adjust balances, or roll back progress gained through exploits.</p>
+      <div style="${s}">3. Virtual items</div>
+      <p style="${p}">Diamonds, gold, heroes, and all other in-game items have no real-world monetary value and cannot be redeemed for cash. They are a limited licence to use them inside the Game, and they may change, expire, or be removed. If diamonds are ever sold, those purchases are for in-game use only and are non-refundable except where refunds are required by law.</p>
+      <div style="${s}">4. Conduct &amp; chat</div>
+      <p style="${p}">Keep chat and player names respectful. Harassment, hate speech, threats, spam, impersonation, and illegal content are not allowed. We may hide, remove, or report content and restrict accounts that violate this.</p>
+      <div style="${s}">5. Your data &amp; privacy</div>
+      <p style="${p}">To run the Game we store the account details you provide (username, a securely hashed password, and — if you add one — your email) and your game progress. Progress is synced to our servers so you can play across devices. We use this data only to operate the Game (saving progress, signing you in, recovering accounts, and keeping things fair). We do not sell your personal data. Passwords are stored only as a salted hash — we can never see your actual password.</p>
+      <div style="${s}">6. Account deletion</div>
+      <p style="${p}">You can ask to have your account and its data deleted at any time. Some minimal records may be retained where required for security or legal reasons.</p>
+      <div style="${s}">7. Availability</div>
+      <p style="${p}">The Game is provided “as is.” We may update, pause, or discontinue it, and we don’t guarantee it will always be available or bug-free. We are not liable for lost progress, items, or downtime, to the extent the law allows.</p>
+      <div style="${s}">8. Changes</div>
+      <p style="${p}">We may update these terms as the Game grows. Continued play after an update means you accept the revised terms.</p>
+      <div style="${s}">9. Contact</div>
+      <p style="${p}">Questions, data requests, or account issues? Use the “Report a problem” box in Settings, or the contact address published with the Game.</p>
+      <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language summary written for players and is not legal advice. Before any commercial or app-store launch, have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction.</p>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelector('#tosClose').onclick=close;
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
 }
 
 function renderSettings(){
@@ -3978,7 +4077,11 @@ function renderSettings(){
     ${reportCard}
     ${saveTools}
     ${dev}
+    <div style="text-align:center;margin-top:6px;font-size:11px;color:#6f7d90">
+      <a href="#" id="tosLink" style="color:#9ab0d6;text-decoration:none">Terms of Service &amp; Privacy</a>
+    </div>
   </div>`;
+  const tosL=b.querySelector('#tosLink'); if(tosL) tosL.onclick=(e)=>{ e.preventDefault(); showTerms(); };
   const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const t=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
     if(t.length<3){ m.style.color='#ff8b8b'; m.textContent='Please add a little detail.'; return; }
     m.style.color='#8b98a9'; m.textContent='Sending…';
@@ -4541,7 +4644,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785899235151';
+const BUILD_ID='1785900050790';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
