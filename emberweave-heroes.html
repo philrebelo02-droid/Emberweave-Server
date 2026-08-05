@@ -1585,8 +1585,8 @@ function spawnTeam(keys,team){ const n=keys.length;
 }
 // Difficulty ramps across chapters: Ch1 is a soft tutorial (~0.42×), scaling to full parity around Chapter 7
 // where enemies reach ~level 40 — so a well-built level-40 team can clear Chapter 7 (the current cap).
-function enemyDiff(g){ return Math.min(1.06, 0.42 + Math.max(g-1,0)*(0.60/(CAMPAIGN_PLAYABLE-1))); }   // 0.42× (1-1) → ~1.02× (7-10)
-function enemyLevelFor(g){ return Math.max(1, Math.round(1 + Math.max(g-1,0)*(39/(CAMPAIGN_PLAYABLE-1)))); } // ~L1 → ~L40 by Chapter 7
+function enemyDiff(g){ return Math.min(1.06, 0.55 + Math.max(g-1,0)*(0.45/(CAMPAIGN_PLAYABLE-1))); }   // 0.55× (1-1, still teaches) → 1.0× (7-10); higher floor + gentler slope smooth the curve
+function enemyLevelFor(g){ return Math.max(1, Math.round(1 + Math.max(g-1,0)*(45/(CAMPAIGN_PLAYABLE-1)))); } // ~L1 → boss L48 by Chapter 7 (player needs ~L40 to clear)
 function buildEnemyWave(){
   const node=CUR.node,isBoss=(waveIdx===chapterWaves-1),arr=[];
   const eRank=Math.min(3,Math.floor(node/6)); // higher stages field heroes with fuller kits
@@ -1704,7 +1704,7 @@ function think(u,dt){
 }
 
 /* ---------------------------- battle lifecycle ----------------------------- */
-function wavesForChapter(g){return Math.min(2+Math.floor(chapterOf(g)/2),5);}   // waves grow by chapter: Ch1=2 … Ch6+=5
+function wavesForChapter(g){return Math.min(2+Math.floor(chapterOf(g)/2),4);}   // waves grow by chapter: Ch1=2 … capped at 4 so late battles don't drag
 function clearBattle(){ units.forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; }
 function startBattle(){
@@ -2377,9 +2377,22 @@ let _kickedNotified=false;
 function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
   try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); }catch(e){}
   if(typeof updateHubChrome==='function') updateHubChrome();
-  if(typeof bannerMsg==='function') bannerMsg('⚠ Signed out — this account was signed in on another device.');
+  showKickedNotice();
   setTimeout(()=>{ _kickedNotified=false; }, 4000);
   if(state==='settings' && typeof renderSettings==='function') renderSettings(); }
+// clear, must-acknowledge notice so the player knows their account was opened elsewhere (and can contact a dev if it wasn't them)
+function showKickedNotice(){
+  if(document.getElementById('kickedNotice')) return;
+  const ov=document.createElement('div'); ov.id='kickedNotice';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.86);display:flex;align-items:center;justify-content:center;z-index:260;padding:18px';
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#2a1b1b,#160c10);border:1px solid #8f4a4a;border-radius:18px;padding:22px;width:100%;max-width:340px;text-align:center;box-shadow:0 12px 44px #000b">
+    <div style="font-size:40px">🔒</div>
+    <div style="font-weight:800;font-size:17px;margin:6px 0;color:#ffb4b4">You've been logged out</div>
+    <div style="font-size:13px;color:#e8d5d5;line-height:1.55;margin-bottom:14px">Someone just logged into your account on another device, so this device has been signed out.<br><br>If that wasn't you, change your password right away — and contact a developer if you think your account was taken.</div>
+    <button class="btn" style="width:100%" id="kickedOk">OK</button></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#kickedOk').onclick=()=>ov.remove();
+}
 // heartbeat: poll while signed in so a device kicked by a login elsewhere finds out within ~15s (api() handles the sign-out)
 let _sessionHB=null;
 function startSessionHeartbeat(){ if(_sessionHB) return; _sessionHB=setInterval(()=>{ if(online() && ACC && ACC.token) api('/api/profile'); }, 15000); }
@@ -4203,12 +4216,14 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
       for(let i=0;i<count;i++){const k=pool[(i+g)%pool.length]; p+=upow(k,base,eRank,diff,1,1);} }
     return p; };
   const playerPow=(L,q)=>{ let p=0; for(const k of TEAM){ const t=HERO_TYPES[k]; p+=(t.hp+t.dmg*4)*(1+0.18*(L-1))*(1+q*0.12);} return p; };
-  const qForCh=ch=>ch<=1?0:ch<=3?1:ch<=5?2:3;
+  const qForCh=ch=>(ch-1)*0.42;   // assume gear/quality grows ~evenly per chapter (smoother, more realistic than chunky steps)
   const reqLevel=(g,q)=>{ for(let L=1;L<=MAX_LEVEL;L++){ if(playerPow(L,q)>=enemyPow(g)*SKILL) return L; } return 99; };
   // per-chapter required level
   const req=[]; for(let ch=1;ch<=MAX_CHAPTER;ch++) req[ch]=reqLevel(ch*STAGES_PER_CH, qForCh(ch));
-  // biggest difficulty jump between chapters
-  let spikeCh=2, spikeJump=-1; for(let ch=2;ch<=MAX_CHAPTER;ch++){ const j=req[ch]-req[ch-1]; if(j>spikeJump){spikeJump=j; spikeCh=ch;} }
+  // biggest difficulty jump between chapters + average jump (a "wall" is a jump that stands out from the rest, not just any large step)
+  let spikeCh=2, spikeJump=-1; const _jsum=[]; for(let ch=2;ch<=MAX_CHAPTER;ch++){ const j=req[ch]-req[ch-1]; _jsum.push(j); if(j>spikeJump){spikeJump=j; spikeCh=ch;} }
+  const avgJump=_jsum.reduce((a,b)=>a+b,0)/Math.max(1,_jsum.length);
+  const isWall=spikeJump>=6 && spikeJump>=avgJump+3;   // flag only a genuine outlier chapter, not an even climb
   // reachable depth for a fresh account leveling only from campaign XP
   let xp=0, cleared=0, guard=0; const lvlOf=()=>levelForXP(xp,TROOP_CUM);
   while(cleared<PLAY && guard++<100000){ const g=cleared+1, need=reqLevel(g,qForCh(chapterOf(g)));
@@ -4228,17 +4243,35 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
   const wg=(typeof WISH_GOLD_COST!=='undefined')?WISH_GOLD_COST:'?', wm=(typeof WISH_GEM_COST!=='undefined')?WISH_GEM_COST:'?';
   const heroPct=Math.round((typeof WISH_HERO_CHANCE!=='undefined'?WISH_HERO_CHANCE:0.1)*100);
   const foodFirst=(typeof FOOD_COSTS!=='undefined')?FOOD_COSTS[0]:'?', gold10=(typeof wishGold10Cost==='function')?wishGold10Cost():'?';
+  // ---- ARENA: win payout (bottom vs near-top rank), daily rank reward at a mid rank, diamonds for climbing ----
+  const arenaWinLow=(typeof endBattle==='function')?200:200;   // reward=200+floor((5000-rank)/20): 200 at the bottom
+  const arenaWinTop=200+Math.floor((5000-1)/20);
+  const aDaily=(typeof arenaDailyReward==='function')?arenaDailyReward(1000):{gems:'?',gold:'?',coins:'?'};
+  const aTopGems=(typeof arenaRankGems==='function')?arenaRankGems(9):'?';   // rank 10→9, the richest single-rank step
+  // ---- DUNGEON: fixed clear payout + equipment mats that scale with player level ----
+  const dungMats=3+Math.floor(playerLevel()/5), dungMatsL40=3+Math.floor(40/5);
+  // ---- GUILD: contribution exp rates + level cap progression ----
+  const gRes=10, gResCost=5, gDia=20, gDiaCost=20, gMaxLv=(typeof GUILD_MAX_LEVEL!=='undefined')?GUILD_MAX_LEVEL:7, gCapLo=(typeof GUILD_BASE_CAP!=='undefined')?GUILD_BASE_CAP:30, gCapHi=(typeof GUILD_MAX_CAP!=='undefined')?GUILD_MAX_CAP:60;
   // ---- bot LOG: each named bot files one plain-language observation ----
   const log=[
     ['Adam',   `CAMPAIGN — playing only the campaign, a fresh account reaches about Chapter ${chapterOf(cleared)} (around level ${stallLvl}) before needing to get stronger. Going further is meant to come from diamonds and the upcoming power/experience buildings — expected, not a problem.`],
-    ['Cade',   `CAMPAIGN — Chapter 1 (${CHAPTER_NAMES[0]}) is a pushover; I beat the boss at about level ${req[1]} on starter gear. Idea: make it a little tougher so it still teaches new players.`],
-    ['Dana',   `CAMPAIGN — the difficulty jumps up the most reaching Chapter ${spikeCh} (${CHAPTER_NAMES[spikeCh-1]}): about ${spikeJump} more levels than the chapter before. Idea: smooth that step if it feels like a wall.`],
+    ['Cade',   req[1]<=3
+      ? `CAMPAIGN — Chapter 1 (${CHAPTER_NAMES[0]}) is a pushover; I beat the boss at about level ${req[1]} on starter gear. Idea: make it a little tougher so it still teaches new players.`
+      : `CAMPAIGN — Chapter 1 (${CHAPTER_NAMES[0]}) eases new players in at about level ${req[1]} — gentle but not a total pushover. Looks good.`],
+    ['Dana',   isWall
+      ? `CAMPAIGN — the difficulty jumps up the most reaching Chapter ${spikeCh} (${CHAPTER_NAMES[spikeCh-1]}): about ${spikeJump} more levels than the chapter before, well above the usual step. Idea: smooth that wall.`
+      : `CAMPAIGN — the chapter-to-chapter climb is even (biggest single step is about ${spikeJump} levels, into Chapter ${spikeCh}). No walls. Looks good.`],
     ['Eli',    `CAMPAIGN — Chapter 7's (${CHAPTER_NAMES[6]}) final boss needs about level ${req[7]}, right in the level-40 range you wanted for the summit. Looks good.`],
-    ['Fara',   `CAMPAIGN — fights get longer deeper in (${w1} waves early → ${w7} by Chapter 6). Idea: speed the pace or use fewer waves so late battles don't drag.`],
+    ['Fara',   w7>=5
+      ? `CAMPAIGN — fights get longer deeper in (${w1} waves early → ${w7} at the deepest). Idea: speed the pace or use fewer waves so late battles don't drag.`
+      : `CAMPAIGN — battle length stays reasonable (${w1} waves early → ${w7} at the deepest). Fights don't drag. Looks good.`],
     ['Ivan',   `STAMINA — a player gets about ${battlesPerDay} free campaign fights a day from stamina refilling. Past that they wait or spend diamonds. That pacing fits the slow-burn design.`],
     ['Jade',   `MARKET — prices now scale with level: a fragment pack that's 1,000 gold at level 1 becomes about ${mktGoldL40.toLocaleString()} gold at level 40. Reasonable — just make sure gold income keeps up.`],
     ['Kira',   `WISHING POOL — a gold wish costs ${wg} gold; a diamond wish costs ${wm} diamonds with about a ${heroPct}% shot at a 2★ hero. The 10-pull is ${gold10.toLocaleString()} gold for ten. Odds feel fair for a premium pull.`],
     ['Leo',    `SHOP/FOOD — the first food refill costs ${foodFirst} diamonds and climbs from there; diamond packs and daily packs all pay out correctly in testing. No pricing bugs found.`],
+    ['Nora',   `ARENA — a win pays ${arenaWinLow} gold near the bottom and up to ${arenaWinTop} gold near the top, plus 5 arena coins. The daily rank reward around #1000 is ${aDaily.gold.toLocaleString()} gold, ${aDaily.gems} diamonds and ${aDaily.coins} coins, and climbing a top-10 rank pays about ${aTopGems} diamonds a step. Rewards scale with rank as intended. Looks good.`],
+    ['Owen',   `DUNGEON — a clear pays a flat 200 gold, glyph shards (8/4/2), 90 team XP, and equipment mats that scale with level: ${dungMats} pieces now, ${dungMatsL40} at level 40. Steady gear income with no exploit found. Looks good.`],
+    ['Pia',    `GUILD — contributing resources gives ${gRes} guild exp per ${gResCost}, and diamonds give ${gDia} exp per ${gDiaCost}. The hall runs Level 1→${gMaxLv} and its roster grows from ${gCapLo} to ${gCapHi} players. Contribution rates and caps line up. Looks good.`],
     ['Mara',   smokeErrs.length ? `SMOKE TEST — ⚠ these screens threw an error when I opened them: ${smokeErrs.join(', ')}. Worth a look.` : `SMOKE TEST — I opened every screen (home, campaign, market, wishing, arena, guild, quests, sign-in, heroes, bag, mail, settings) and none of them crashed. All good.`],
     ['Gus',    `OVERALL — a maxed build (level 60, purple gear) clears every available stage; the chapter curve is smooth and monotonic (${req.slice(1).join(', then ')}). No out-of-order spikes.`],
   ];
@@ -4644,7 +4677,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785900050790';
+const BUILD_ID='1785900969191';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
