@@ -45,7 +45,7 @@
   .screen.active{display:flex;}
   .screen.hub{background:linear-gradient(170deg,#0f1524 0%,#1a1330 60%,#241826 100%);}
   /* POP-OUT: a menu screen shown as a centered modal over home (instead of a full-page swap) */
-  .screen.popout{position:fixed;inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);width:min(680px,94vw);max-height:88vh;height:auto;border-radius:16px;border:1px solid #3a4a6e;box-shadow:0 24px 70px rgba(0,0,0,.65);z-index:9000;padding:18px 14px 14px;overflow-y:auto;}
+  .screen.popout{position:fixed;top:0;right:0;bottom:0;left:auto;transform:none;width:min(440px,94vw);height:100vh;max-height:100vh;border-radius:16px 0 0 16px;border:1px solid #3a4a6e;border-right:none;box-shadow:-18px 0 55px rgba(0,0,0,.6);z-index:9000;padding:18px 12px 14px;overflow-y:auto;}
   .screen.popout .backbtn{display:none;}
   .screen.popout .popoutClose{position:absolute;top:10px;right:12px;background:#1a2233;border:1px solid #33405e;color:#c3ccd8;font-size:15px;font-weight:800;width:30px;height:30px;border-radius:8px;cursor:pointer;z-index:3;}
   #popoutBackdrop{position:fixed;inset:0;background:rgba(4,6,10,.72);z-index:8990;display:none;}
@@ -366,11 +366,11 @@
   .tw-node .tw-lv{font-size:8.5px;font-weight:800;color:#ffd45e;margin-top:1px;}
   .tw-detail{background:#141b2b;border:1px solid #2a3550;border-radius:12px;padding:12px 13px;margin-top:2px;}
 
-  .hero-card{flex:1 1 150px;min-width:140px;background:#1e2740;border:2px solid #33405e;border-radius:12px;padding:10px;cursor:pointer;position:relative;transition:.12s;}
+  .hero-card{background:#1e2740;border:2px solid #33405e;border-radius:12px;padding:8px 6px;cursor:pointer;position:relative;transition:.12s;}
   .hero-card.selected{border-color:#ffb347;box-shadow:0 0 0 2px rgba(255,179,71,.35);background:#2a3350;}
   .hero-card.locked{opacity:.45;} .hero-card:active{transform:scale(.98);}
-  /* uniform grid so a lone card (e.g. the 10th hero) never stretches to fill the row */
-  #heroList,#roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;align-content:start;}
+  /* uniform 3-column grid (2 rows of 3 visible); a lone card never stretches to fill the row */
+  #heroList,#roster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start;}
   .hero-card .emoji{font-size:26px;} .hero-card .name{font-weight:700;font-size:14px;margin-top:2px;}
   .hero-card .role{font-size:10px;color:#8b98a9;text-transform:uppercase;letter-spacing:.5px;}
   .hero-card .stats{font-size:11px;color:#aeb9c9;margin-top:6px;line-height:1.5;}
@@ -4005,12 +4005,15 @@ function renderHeroList(){
   const locked=HERO_KEYS.filter(k=>!G.unlocked[k]).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
   [...owned,...locked].forEach(key=>{ const t=HERO_TYPES[key],unlocked=G.unlocked[key],myth=isMythic(key);
     const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(myth?' mythic':'');
-    const rarity = myth?` · <span style="font-size:9px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>`:'';   // rarity tag only for mythicals
-    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON NOW ▸</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key)+' fragments');
-    // card = icon (+ stars if owned), name, role (+mythical tag). NO power/hp/glyph — those live on the Stats tab.
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">${heroIcon(key,52)}${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,13)}</div>`:''}</div>
-        <div style="min-width:0"><div class="name">${t.name}</div><div class="role">${t.role}${rarity}</div></div></div>${unlocked?'':`<div class="stats" style="margin-top:6px">${lockedLine}</div>`}`;
+    const rarity = myth?`<br><span style="font-size:8px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>`:'';   // rarity tag only for mythicals
+    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
+    // compact vertical card (icon on top) so 3 fit per row. NO power/hp/glyph — those live on the Stats tab.
+    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0">
+        ${heroIcon(key,50)}
+        ${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,12)}</div>`:''}
+        <div class="name" style="font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
+        <div class="role" style="font-size:9px;line-height:1.25">${t.role}${rarity}</div>
+        ${unlocked?'':`<div class="stats" style="margin-top:1px;font-size:10px">${lockedLine}</div>`}</div>`;
     card.onclick=()=>{ detailHero=key; show('heroDetail'); };
     r.appendChild(card);
   });
@@ -4044,7 +4047,8 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
         <button class="btn" id="spRefine" style="width:100%;${afford?'background:'+T.col+';color:#1a1206':''}" ${afford?'':'disabled'}>⚒ Refine (${T.cost} frags)</button></div>`; }
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:16px;width:100%;max-width:340px;max-height:88vh;overflow:auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">⭐ ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">✕</button></div>
-      <div style="display:flex;gap:3px;justify-content:center;align-items:center;min-height:58px;margin-bottom:10px">${starFillRow(key,24)}</div>
+      <div style="display:flex;gap:3px;justify-content:center;align-items:center;min-height:58px;margin-bottom:6px">${starFillRow(key,24)}</div>
+      <div style="text-align:center;font-size:12px;color:#c9a2ff;margin-bottom:10px">🧩 <b>${frags}</b> ${escapeHTML(t.name)} fragments owned</div>
       ${starBlock}${refineBlock}
       <div id="spMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${pendingMsg?`<span style="color:${msgCol||'#8b98a9'}">${pendingMsg}</span>`:''}</div></div>`;
     ov.querySelector('#spX').onclick=()=>ov.remove();
@@ -5170,7 +5174,7 @@ function openDevFragGranter(b){
     if(!keys.length){ listEl.innerHTML='<div style="color:#8b98a9;font-size:12px;text-align:center;padding:12px">No heroes match.</div>'; return; }
     listEl.innerHTML=keys.map(k=>{ const t=HERO_TYPES[k];
       return `<button class="btn sm secondary" data-fk="${k}" style="display:flex;align-items:center;gap:9px;justify-content:flex-start;text-align:left;padding:6px 9px">
-        ${heroIcon(k,28)}<span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}★ · ${G.unlocked[k]?'owned':'locked'}</span></span>
+        <span style="font-size:20px;width:28px;text-align:center;flex:none">${t.emoji||'🧩'}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}★ · ${G.unlocked[k]?'owned':'locked'}</span></span>
         <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)}🧩</span></button>`; }).join('');
     listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
       const um=giveHeroFrag(k,AMT); saveG(); updateHubChrome();
@@ -5705,7 +5709,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785968903811';
+const BUILD_ID='1785969558209';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
