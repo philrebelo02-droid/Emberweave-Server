@@ -70,6 +70,7 @@ function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); 
 //     isn't configured (or nodemailer isn't installed) the code is logged to the server console so the
 //     flow still works for local/dev testing. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM to send real mail.
 function normalizeEmail(e){ e=(e||'').toString().trim().toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)?e.slice(0,120):''; }
+function maskEmail(e){ e=(e||'').toString(); const i=e.indexOf('@'); if(i<1) return '•••'; const u=e.slice(0,i); return u.slice(0,Math.min(2,u.length))+'•••'+e.slice(i); }
 function gen6(){ return String(crypto.randomInt(0,1000000)).padStart(6,'0'); }   // cryptographically-random 6-digit code
 let _mailer=null, _mailerTried=false;
 function getMailer(){ if(_mailerTried) return _mailer; _mailerTried=true;
@@ -81,13 +82,19 @@ function getMailer(){ if(_mailerTried) return _mailer; _mailerTried=true;
     console.log('✉  SMTP mailer ready ('+process.env.SMTP_HOST+').');
   }catch(e){ console.log('✉  nodemailer not installed — run `npm install`. Reset codes will be logged to the console only.'); _mailer=null; }
   return _mailer; }
-function sendResetEmail(to, name, code){
+function mailCode(to, name, subject, text, label, code){
   const from=process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@emberweave.game';
-  const subject='Your Emberweave Heroes password reset code';
-  const text=`Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`;
   const m=getMailer();
-  if(!m){ console.log('✉  [DEV] reset code for '+name+' <'+to+'>: '+code); return; }
-  m.sendMail({from, to, subject, text}).then(()=>console.log('✉  reset code emailed to '+to)).catch(e=>console.log('✉  send failed ('+e.message+') — code for '+name+' is '+code)); }
+  if(!m){ console.log('✉  [DEV] '+label+' for '+name+' <'+to+'>: '+code); return; }
+  m.sendMail({from, to, subject, text}).then(()=>console.log('✉  '+label+' emailed to '+to)).catch(e=>console.log('✉  send failed ('+e.message+') — '+label+' for '+name+' is '+code)); }
+function sendResetEmail(to, name, code){
+  mailCode(to, name, 'Your Emberweave Heroes password reset code',
+    `Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`,
+    'reset code', code); }
+function sendChangeCode(to, name, code, toCurrent){
+  mailCode(to, name, 'Confirm your Emberweave Heroes recovery email',
+    `Hi ${name},\n\nA request was made to change the recovery email on your account. Your confirmation code is: ${code}\n\nEnter it in the game to confirm the change. This code expires in 15 minutes.\n\n${toCurrent?'If this wasn\'t you, do NOT enter this code and change your password right away — someone may have access to your account.':'If you didn\'t request this, you can ignore this email.'}\n\n— Emberweave Heroes`,
+    'email-change code', code); }
 
 const HERO_KEYS=['aldric','thorne','grohm','vex','sylva','rook','zephyr','lumi','aria'];
 function defaultTeam(){ return [ {key:'aldric',level:1,rank:0},{key:'sylva',level:1,rank:0},{key:'zephyr',level:1,rank:0},{key:'lumi',level:1,rank:0},{key:'vex',level:1,rank:0} ]; }
@@ -253,12 +260,30 @@ async function api(req,res,url){
     writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
-  // link / change the email on your own account (used for password recovery). Signed-in only.
-  if(p==='/api/email' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    if(rateLimited(req,'setemail',10,60000)) return send(res,429,{error:'Too many changes — wait a minute.'});
+  // change / link recovery email — STEP 1: request a confirmation code. Signed-in only.
+  // If an email is already on file the code goes to the CURRENT email (so a hijacked session can't silently
+  // redirect account recovery); if none is on file yet the code goes to the NEW email to prove ownership.
+  if(p==='/api/email-request' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'emailreq',6,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes.'});
     const b=await body(req); const email=normalizeEmail(b.email);
     if(!email) return send(res,400,{error:'Enter a valid email address.'});
-    me.email=email; writeDB(); return send(res,200,{ ok:true, email }); }
+    if(me.email && email===me.email) return send(res,400,{error:'That is already your recovery email.'});
+    const toCurrent=!!me.email, target=toCurrent?me.email:email;
+    const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+    me.emailChange={ newEmail:email, hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0, toCurrent };
+    writeDB(); sendChangeCode(target, me.name, code, toCurrent);
+    return send(res,200,{ ok:true, toCurrent, sentTo:maskEmail(target) }); }
+
+  // change / link recovery email — STEP 2: verify the code and commit the new email. Signed-in only.
+  if(p==='/api/email-verify' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'emailver',12,10*60000)) return send(res,429,{error:'Too many attempts — wait a few minutes.'});
+    const b=await body(req); if(!me.emailChange) return send(res,400,{error:'No pending email change — start again.'});
+    if(Date.now()>me.emailChange.exp){ delete me.emailChange; writeDB(); return send(res,400,{error:'That code expired — start again.'}); }
+    if((me.emailChange.tries||0)>=5){ delete me.emailChange; writeDB(); return send(res,400,{error:'Too many wrong codes — start again.'}); }
+    const code=(b.code||'').toString().replace(/\D/g,'');
+    if(hashPass(code,me.emailChange.salt)!==me.emailChange.hash){ me.emailChange.tries=(me.emailChange.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
+    me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
+    return send(res,200,{ ok:true, email:me.email }); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
     if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall; if(b.roster) me.roster=b.roster; writeDB();
