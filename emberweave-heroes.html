@@ -1896,14 +1896,11 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 /* =============================== HUB / UI ================================= */
 const SCREENS=['home','campaign','menu','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','mail','result'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign';
-// ---- Developer mode: account-gated dev tools in Settings (client-side gate; edit accounts below) ----
-const DEV_ACCOUNTS=[
-  { user:'phil',  pass:'Ember-Forge-01', name:'Phil (Owner)' },
-  { user:'ember', pass:'Ashen-Anvil-02', name:'Ember Dev' },
-];
+// ---- Developer mode: account-gated dev tools in Settings ----
+// NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
+// against its own DEV_NAMES). The client list below is only a UI hint; the server is the real gate.
 const DEV={ on:false, god:false, who:'' };   // session-only (resets each launch; never saved)
-// cloud accounts whose NAME matches one of these unlock the dev tools (sign in with that account)
-const DEV_NAMES = DEV_ACCOUNTS.map(a=>a.user.toLowerCase());
+const DEV_NAMES = ['phil'];   // must match server.js DEV_NAMES
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
 let acctMode='signin';   // 'signin' | 'create' | 'reset' — which tab the account panel shows
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
@@ -2325,8 +2322,20 @@ let ACC={token:null,name:null,rank:null,coins:0,id:null};
 function loadAcc(){ try{const s=localStorage.getItem('ew_acc');if(s)ACC=JSON.parse(s);}catch(e){} }
 function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} }
 function online(){ return location.protocol!=='file:'; }
+// stable-ish per-device id used to cap account creation (3 per device)
+function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
 async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; if(ACC.token)h['x-token']=ACC.token;
-  const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); return await r.json(); }catch(e){ return {error:'offline'}; } }
+  const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); const j=await r.json();
+  // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
+  if(j&&j.error==='auth'&&ACC.token){ handleSignedOutElsewhere(); }
+  return j; }catch(e){ return {error:'offline'}; } }
+let _kickedNotified=false;
+function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
+  try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); }catch(e){}
+  if(typeof updateHubChrome==='function') updateHubChrome();
+  if(typeof bannerMsg==='function') bannerMsg('⚠ Signed out — this account was used on another device.');
+  setTimeout(()=>{ _kickedNotified=false; }, 4000);
+  if(state==='settings' && typeof renderSettings==='function') renderSettings(); }
 function rosterPayload(){ const r={}; HERO_KEYS.forEach(k=>r[k]={level:heroLevel(k),rank:heroQuality(k)}); return r; }
 function teamPayload(arr){ return arr.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
 // ---- per-account cloud save: the FULL game blob rides along in roster.__save (no server change needed) ----
@@ -2355,7 +2364,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
     const isReg=path.indexOf('register')>=0;
-    api(path,'POST',{name,pass,roster:rosterPayload()}).then(d=>{
+    api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
       if(d.error){b.querySelector('#acMsg').textContent=d.error;return;}
       finishAuth(d,isReg); }); };
@@ -3023,8 +3032,9 @@ function drawMarches(){
     const vx=legStart.x+(legEnd.x-legStart.x)*p, vy=legStart.y+(legEnd.y-legStart.y)*p;
     const dx=legEnd.x-legStart.x, dy=legEnd.y-legStart.y, moving=(Math.abs(dx)+Math.abs(dy))>0.01;
     const rot = !moving ? 'rotate(0deg)' : (dx>0 ? ('scaleX(-1) rotate('+(Math.atan2(-dy,dx)*180/Math.PI)+'deg)') : ('rotate('+(Math.atan2(-dy,-dx)*180/Math.PI)+'deg)'));
-    const wrap=document.createElement('div'); wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:56px;height:56px';
-    const glow='drop-shadow(0 0 1.4px '+col+') drop-shadow(0 0 3px '+col+') drop-shadow(0 1px 2px rgba(0,0,0,.5))';   // slight faction-colored glow outline
+    const wrap=document.createElement('div'); wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:64px;height:64px';
+    // brighter + stronger faction-coloured halo so an incoming ship is easy to spot against dark terrain
+    const glow='brightness(1.3) contrast(1.05) drop-shadow(0 0 2px '+col+') drop-shadow(0 0 6px '+col+') drop-shadow(0 0 12px '+col+') drop-shadow(0 1px 2px rgba(0,0,0,.55))';
     if(AIRSHIP_SHEET && AIRSHIP_SHEET.indexOf('data:image')===0){
       const ship=document.createElement('div'); ship.className='marchShip';
       ship.style.transform=rot; ship.style.filter=glow;
@@ -3907,8 +3917,10 @@ function renderSettings(){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <button class="btn sm secondary" data-dev="online" style="font-size:11px">👥 Players online</button>
           <button class="btn sm secondary" data-dev="accounts" style="font-size:11px">🗂 All accounts</button>
+          <button class="btn sm secondary" data-dev="newacct" style="font-size:11px">➕ Create account</button>
+          <button class="btn sm secondary" data-dev="backup" style="font-size:11px">💾 Download backup</button>
         </div>
-        <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:220px;overflow:auto"></div>
+        <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:240px;overflow:auto"></div>
       </div>
     </div>`;
   }
@@ -3935,7 +3947,7 @@ function renderSettings(){
       if(acctMode==='create' && pass!==(b.querySelector('#acPass2').value||'')){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
       msg.style.color='#8b98a9'; msg.textContent=acctMode==='create'?'Creating account…':'Signing in…';
       const isCreate=acctMode==='create';
-      api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload()}).then(d=>{
+      api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
@@ -3998,7 +4010,32 @@ function devAction(a,b){
   else if(a==='shielditem'){ G.shieldItems=(G.shieldItems||0)+3; done('+3 protection shields'); }
   else if(a==='update'){ devForceUpdate(); return; }
   else if(a==='online'||a==='accounts'){ devAdminList(a,b); return; }
+  else if(a==='newacct'){ openDevCreateAccount(b); return; }
+  else if(a==='backup'){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">Preparing backup…</span>';
+    api('/api/admin/backup').then(d=>{ if(!d||d.error){ if(out)out.innerHTML='<span style="color:#ff8b8b">'+((d&&d.error)||'Failed')+'</span>'; return; }
+      try{ const blob=new Blob([JSON.stringify(d)],{type:'application/json'}); const url=URL.createObjectURL(blob);
+        const a2=document.createElement('a'); a2.href=url; a2.download='emberweave-db-backup.json'; document.body.appendChild(a2); a2.click(); a2.remove(); URL.revokeObjectURL(url);
+        if(out)out.innerHTML='<span style="color:#5ee89b">✔ Backup downloaded.</span>'; }catch(e){ if(out)out.innerHTML='<span style="color:#ff8b8b">Download failed.</span>'; } }); return; }
   saveG(); updateHubChrome();
+}
+// dev: create an account from the panel
+function openDevCreateAccount(panel){ const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
+  const inp='background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:9px 10px;font-size:13px;width:100%';
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:320px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">➕ Create Account</div><button class="btn sm secondary" id="caX">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <input id="caName" placeholder="Username" maxlength="16" autocomplete="off" style="${inp}">
+      <input id="caPass" type="password" placeholder="Password" autocomplete="off" style="${inp}">
+      <button class="btn" id="caGo">Create</button></div>
+    <div id="caMsg" style="font-size:11px;color:#ffd45e;margin-top:8px;min-height:14px"></div></div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  ov.querySelector('#caX').onclick=close;
+  ov.querySelector('#caGo').onclick=()=>{ const name=(ov.querySelector('#caName').value||'').trim(), pass=(ov.querySelector('#caPass').value||''), m=ov.querySelector('#caMsg');
+    if(name.length<2){ m.textContent='Name needs 2+ characters.'; return; } if(!pass){ m.textContent='Enter a password.'; return; }
+    m.style.color='#8b98a9'; m.textContent='Creating…';
+    api('/api/admin/create','POST',{name,pass}).then(d=>{ if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='✔ Created '+d.name; devAdminList('accounts',panel); setTimeout(close,1200); } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed'; } }); };
 }
 // dev-only: pull the live server lists (players online / all created accounts)
 function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!out)return;
@@ -4030,15 +4067,28 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">✕</button></div>
     <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}</div>
     <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+      <button class="btn sm" id="paGrant" style="background:#2e7d46">💎 +2000</button>
+      <button class="btn sm secondary" id="paTake">💎 −2000</button>
+    </div>
     ${r.mustReset
       ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
       : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">🔑 Recover password</button>`}
-    <div style="font-size:10px;color:#6f7d90;line-height:1.4">Recovery signs this account out everywhere and makes their <b>next login</b> prompt them to create &amp; confirm a new password.</div>
+    <button class="btn sm secondary" id="paDelete" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">🗑 Delete account</button>
+    <div style="font-size:10px;color:#6f7d90;line-height:1.4">Diamond changes apply to their cloud save and sign them out so they reload it. Delete &amp; recovery ask for confirmation.</div>
   </div>`;
   document.body.appendChild(ov); const close=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
   ov.querySelector('#paX').onclick=close;
   const msg=ov.querySelector('#paMsg');
+  const gemAct=(path,label)=>{ msg.style.color='#8b98a9'; msg.textContent='Working…';
+    api(path,'POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ '+label+' — '+d.name+' now has 💎'+d.gems; }
+      else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); };
+  const gB=ov.querySelector('#paGrant'); if(gB) gB.onclick=()=>gemAct('/api/admin/grant','Granted 2000');   // no confirmation
+  const tB=ov.querySelector('#paTake');  if(tB) tB.onclick=()=>gemAct('/api/admin/take','Took 2000');      // no confirmation
+  const dB=ov.querySelector('#paDelete'); if(dB) dB.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
+    msg.style.color='#8b98a9'; msg.textContent='Deleting…'; api('/api/admin/delete','POST',{id:r.id,name:r.name}).then(d=>{
+      if(d&&d.ok){ close(); devAdminList(kind,panel); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
   const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
     msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{
       if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
@@ -4359,7 +4409,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785890967535';
+const BUILD_ID='1785894832310';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -4422,8 +4472,9 @@ function whisperReply(){ return WHISPER_REPLIES[Math.floor(rand01(Date.now()*3)*
 function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
 // server time = America/New_York (EST/EDT), 24-hour clock, shown by the chat header
 let _serverClock=null;
-function estTimeStr(){ try{ return new Intl.DateTimeFormat('en-GB',{timeZone:'America/New_York',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()); }catch(e){ return '--:--:--'; } }
-function startServerClock(){ const upd=()=>{ const el=document.getElementById('cwClock'); if(el) el.textContent='Server '+estTimeStr(); }; upd(); if(_serverClock)clearInterval(_serverClock); _serverClock=setInterval(upd,1000); }
+function estTimeStr(){ try{ return new Intl.DateTimeFormat('en-GB',{timeZone:'America/New_York',hourCycle:'h23',hour:'2-digit',minute:'2-digit'}).format(new Date()); }catch(e){ return '--:--'; } }
+function localTimeStr(){ try{ return new Intl.DateTimeFormat(undefined,{hourCycle:'h23',hour:'2-digit',minute:'2-digit'}).format(new Date()); }catch(e){ return '--:--'; } }
+function startServerClock(){ const upd=()=>{ const el=document.getElementById('cwClock'); if(el) el.textContent='Server '+estTimeStr()+' · Local '+localTimeStr(); }; upd(); if(_serverClock)clearInterval(_serverClock); _serverClock=setInterval(upd,1000); }
 function ensureChatWidget(){ if(document.getElementById('chatWidget'))return;
   const w=document.createElement('div'); w.id='chatWidget'; w.className='min';
   w.innerHTML=`<div class="cw-head" id="cwHead"><span style="display:flex;align-items:center;gap:8px">💬 Chat<span id="cwClock" class="cw-clock">Server —:—:—</span></span><span class="cw-ctrls"><button class="cw-ic" id="cwExpand" title="Expand">⤢</button><button class="cw-ic" id="cwToggle">▲</button></span></div>
