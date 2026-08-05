@@ -547,7 +547,8 @@
   <div class="screen hub" id="campaign">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
     <div class="titlebar"><h1>🗺️ CAMPAIGN</h1></div>
-    <div class="sub">Climb the 10 stages. Every 3rd is an Elite stage. Each chapter ends in a boss.</div>
+    <div class="sub">10 chapters, 10 stages each. Every 3rd stage is Elite; each chapter ends in a boss. Chapter 7 is the current summit.</div>
+    <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;max-width:560px;margin:0 auto 6px"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
   </div>
 
@@ -1193,8 +1194,8 @@ const JOINABLE_GUILDS=[];   // no pre-made guilds exist yet — players create t
 const RES=[['iron','⛓️','Iron','#c9d1d9'],['crystal','💎','Crystal','#7fe3ff'],['silver','🔗','Silver','#e6e6f0'],['coal','🪨','Coal','#8b98a9']];
 function resMeta(k){ return RES.find(r=>r[0]===k); }
 const NODE_GATHER_MS=8*60*1000; // a node refills 8 min after you gather it
-// AUDIT_MODE: when true, locked buildings can be opened for a look. Flip to false to lock them again.
-const AUDIT_MODE=true;   // testing: locked buildings can still be opened for a look (flip to false for real gating at launch)
+// AUDIT_MODE(): lets locked buildings/stages be opened for a look — DEVS ONLY. Regular players must play the game.
+function AUDIT_MODE(){ return typeof isDevAcct==='function' && isDevAcct(); }
 // Temple prayer: unlocks at level 40, costs major gold, permanently boosts every hero's ATK & HP.
 const PRAYER_UNLOCK_LEVEL=40;
 function prayerCost(lvl){ return 50000 + lvl*30000; }
@@ -1337,11 +1338,20 @@ function heroLevel(key){ return Math.max(1, Math.min(playerLevel(), levelFromXP(
 function heroCapped(key){ return levelFromXP(G.heroXP[key]||0) >= playerLevel(); } // xp level hit the account cap
 function heroStat(key,base){ return base*(1+0.18*(heroLevel(key)-1)); }
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
-const TEAM_SIZE=5, CAMPAIGN_NODES=10, WALL_UNLOCK_LEVEL=15;
-// every 3rd campaign stage is an ELITE stage that drops a specific hero's fragments
-const CAMPAIGN_ELITE_HERO={3:'rook',6:'grohm',9:'aria'};
-function isEliteStage(i){ return Object.prototype.hasOwnProperty.call(CAMPAIGN_ELITE_HERO,i); }
-function stageCode(i){ return '1-'+i; }   // chapter-stage label: chapter 1, stage i
+const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=15;
+// ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). Chapters 8-10 are authored but locked. ----
+const STAGES_PER_CH=10, TOTAL_CHAPTERS=10, MAX_CHAPTER=7;         // chapters 1-7 playable; 8-10 "coming soon"
+const CAMPAIGN_NODES=TOTAL_CHAPTERS*STAGES_PER_CH;               // 100 authored stages
+const CAMPAIGN_PLAYABLE=MAX_CHAPTER*STAGES_PER_CH;              // 70 currently clearable
+function chapterOf(g){ return Math.floor((g-1)/STAGES_PER_CH)+1; }
+function stageInChapter(g){ return ((g-1)%STAGES_PER_CH)+1; }
+function stageCode(g){ return chapterOf(g)+'-'+stageInChapter(g); }   // e.g. "3-7"
+const CHAPTER_NAMES=['Emberfall Vale','The Ashen Marsh','Frostspire Reach','The Sunken Bastion','Duskwood Hollows','The Molten Keep','Stormcrag Summit','The Shattered Expanse','Voidmere Depths','The World-Tree Crown'];
+// every 3rd stage of each chapter (3/6/9) is an ELITE stage that drops a specific hero's fragments; the hero rotates by chapter
+const ELITE_HERO_POOL=['rook','grohm','aria','thorne','vex','sylva','zephyr','lumi','aldric'];
+function isEliteStage(g){ const s=stageInChapter(g); return s===3||s===6||s===9; }
+function isBossStage(g){ return stageInChapter(g)===STAGES_PER_CH; }   // stage 10 of every chapter is a boss
+function eliteHeroFor(g){ if(!isEliteStage(g)) return null; const idx=(chapterOf(g)-1)*3 + ({3:0,6:1,9:2}[stageInChapter(g)]); return ELITE_HERO_POOL[idx%ELITE_HERO_POOL.length]; }
 const FRAG_UNLOCK=10, ELITE_FRAG_MIN=2, ELITE_FRAG_MAX=4;
 function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
 // grant fragments; auto-unlock a locked hero once enough are gathered. returns a status message.
@@ -1566,22 +1576,25 @@ function makeUnit(key,team,x,y,levelOverride,extra){
 function spawnTeam(keys,team){ const n=keys.length;
   keys.forEach((key,i)=>{const role=HERO_TYPES[key].role,x=laneXi(i,n),y=roleLaneY(team,role);const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
 }
-// Chapter 1 is a tutorial — enemies are deliberately soft early and only approach parity by Stage 10.
-function enemyDiff(node){ return 0.42 + Math.min(Math.max(node-1,0),9)*0.05; }   // node1 = 0.42×, node10 ≈ 0.87×
+// Difficulty ramps across chapters: Ch1 is a soft tutorial (~0.42×), scaling to full parity around Chapter 7
+// where enemies reach ~level 40 — so a well-built level-40 team can clear Chapter 7 (the current cap).
+function enemyDiff(g){ return Math.min(1.06, 0.42 + Math.max(g-1,0)*(0.60/(CAMPAIGN_PLAYABLE-1))); }   // 0.42× (1-1) → ~1.02× (7-10)
+function enemyLevelFor(g){ return Math.max(1, Math.round(1 + Math.max(g-1,0)*(39/(CAMPAIGN_PLAYABLE-1)))); } // ~L1 → ~L40 by Chapter 7
 function buildEnemyWave(){
   const node=CUR.node,isBoss=(waveIdx===chapterWaves-1),arr=[];
-  const eRank=Math.min(3,Math.floor(node/3)); // higher stages field heroes with fuller kits
+  const eRank=Math.min(3,Math.floor(node/6)); // higher stages field heroes with fuller kits
+  const base=enemyLevelFor(node);
   if(isBoss){
-    const pool=['grohm','aldric','thorne','zephyr'],bossKey=pool[node%pool.length],lvl=1+Math.floor((node-1)*0.95);
+    const pool=['grohm','aldric','thorne','zephyr'],bossKey=pool[node%pool.length],lvl=base+2;
     arr.push({key:bossKey,level:lvl,boss:true,x:500,y:roleLaneY('enemy',HERO_TYPES[bossKey].role)});
-    const gc=Math.min(node-1,2);['vex','sylva'].slice(0,gc).forEach((k,i)=>arr.push({key:k,level:lvl,rank:eRank,x:i?680:320,y:roleLaneY('enemy',HERO_TYPES[k].role)}));
+    const gc=Math.min(chapterOf(node)+1,2);['vex','sylva'].slice(0,gc).forEach((k,i)=>arr.push({key:k,level:base,rank:eRank,x:i?680:320,y:roleLaneY('enemy',HERO_TYPES[k].role)}));
   } else {
-    const pool=['aldric','thorne','vex','sylva','zephyr','lumi','grohm','rook','aria'],count=Math.min(3+Math.floor(node/3),5),lvl=1+Math.floor((node-1)*0.7+waveIdx*0.35);
+    const pool=['aldric','thorne','vex','sylva','zephyr','lumi','grohm','rook','aria'],count=Math.min(5,3+Math.floor(chapterOf(node)/2)),lvl=base+Math.floor(waveIdx*0.5);
     for(let i=0;i<count;i++){const key=pool[(i+node+waveIdx)%pool.length];arr.push({key,level:lvl,rank:eRank,x:laneXi(i,count),y:roleLaneY('enemy',HERO_TYPES[key].role)});}
   }
   const diff=enemyDiff(node);
   arr.forEach(e=>{const u=makeUnit(e.key,'enemy',e.x,e.y,e.level,{boss:e.boss,rank:e.rank});
-    u.maxHp*=diff; u.hp=u.maxHp; u.dmg*=diff;   // tutorial-chapter difficulty scaling
+    u.maxHp*=diff*(e.boss?1.4:1); u.hp=u.maxHp; u.dmg*=diff*(e.boss?1.15:1);   // difficulty scaling (+ boss bump)
     units.push(u);buildFigure(u);});
 }
 
@@ -1684,7 +1697,7 @@ function think(u,dt){
 }
 
 /* ---------------------------- battle lifecycle ----------------------------- */
-function wavesForChapter(n){return Math.min(2+Math.floor(n/3),5);}   // gentler early ramp: Stage 1 = 2 waves
+function wavesForChapter(g){return Math.min(2+Math.floor(chapterOf(g)/2),5);}   // waves grow by chapter: Ch1=2 … Ch6+=5
 function clearBattle(){ units.forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; }
 function startBattle(){
@@ -1718,7 +1731,7 @@ function grantRewards(){
     let eliteStr='';
     if(isEliteStage(node)){ const gGreen=rollGlyphDropRk('green'); giveGlyph(gGreen,1);
       glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gGreen).rk).col}"> · ${glyphName(gGreen)}</span>`;
-      const hk=CAMPAIGN_ELITE_HERO[node], fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
+      const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
       const um=giveHeroFrag(hk,amt); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${fh.emoji} ${fh.name} fragments</span>`; if(um)unlockMsg=um; }
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
@@ -1916,7 +1929,7 @@ function show(name){
   if(name==='battle'){document.getElementById('hud').classList.add('active');document.getElementById('topStatus').classList.add('active');document.getElementById('battleCtrls').classList.add('active');}
   else if(document.getElementById(name)) document.getElementById(name).classList.add('active');
   if(name==='home') renderHome();
-  if(name==='campaign') renderRoadmap();
+  if(name==='campaign'){ campViewCh=0; renderRoadmap(); }
   if(name==='menu') renderRoster();
   if(name==='tech') renderTech();
   if(name==='wall') renderWall();
@@ -1981,7 +1994,7 @@ function renderHome(){
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
     el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%`;
     el.title=h.label;
-    const clickable = !h.locked || AUDIT_MODE;   // audit mode lets you open locked buildings
+    const clickable = !h.locked || AUDIT_MODE();   // audit mode lets you open locked buildings
     const hit=document.createElement('div'); hit.className='hit';
     if(clickable){ hit.onclick=()=>show(h.nav); } else { hit.style.cursor='not-allowed'; }
     el.appendChild(hit);
@@ -2081,13 +2094,13 @@ function renderTemple(){
   const b=document.getElementById('templeBody');
   const lv=playerLevel(), unlocked=lv>=PRAYER_UNLOCK_LEVEL, plvl=G.prayer||0, cost=prayerCost(plvl), canPray=unlocked&&G.gold>=cost;
   const now=Date.now(), ready=(now-(G.lastBless||0))>=20*60*60*1000;
-  const lockNote = unlocked ? '' : `<div style="font-size:12px;color:#ff9a9a;margin:4px 0 8px">🔒 Prayer opens at player level ${PRAYER_UNLOCK_LEVEL}. You are level ${lv}.${AUDIT_MODE?' (Audit view — you can still see it.)':''}</div>`;
+  const lockNote = unlocked ? '' : `<div style="font-size:12px;color:#ff9a9a;margin:4px 0 8px">🔒 Prayer opens at player level ${PRAYER_UNLOCK_LEVEL}. You are level ${lv}.${AUDIT_MODE()?' (Audit view — you can still see it.)':''}</div>`;
   b.innerHTML=`<div style="text-align:center"><div style="font-size:40px">🙏</div>
       <div style="font-weight:800;margin:6px 0">Prayer of Power</div>
       <div style="font-size:12px;color:#8b98a9;margin-bottom:6px">Offer great sums of gold to permanently strengthen <b>every</b> hero. Each prayer adds <b>+2% ATK &amp; HP</b> to your whole roster.</div>
       ${lockNote}
       <div style="margin:8px 0;font-size:13px"><span class="pill">Prayer Lv ${plvl}</span> <span class="pill">now +${prayerBonusPct(plvl)}% ATK/HP</span></div>
-      <button class="btn" id="prayBtn" ${(canPray||(AUDIT_MODE&&unlocked))?'':'disabled'}>🙏 Pray → Lv ${plvl+1} · 🪙 ${cost.toLocaleString()}</button>
+      <button class="btn" id="prayBtn" ${(canPray||(AUDIT_MODE()&&unlocked))?'':'disabled'}>🙏 Pray → Lv ${plvl+1} · 🪙 ${cost.toLocaleString()}</button>
       <div id="prayMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div>
     </div>`;
   const pray=b.querySelector('#prayBtn'); if(pray) pray.onclick=()=>{ if(!unlocked)return; const c=prayerCost(G.prayer||0); if(G.gold>=c){ G.gold-=c; G.prayer=(G.prayer||0)+1; saveG(); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; } else { document.getElementById('prayMsg').textContent='Not enough gold for this offering.'; } };
@@ -2153,17 +2166,31 @@ function renderMarket(){
     o.bought=true; saveG(); updateHubChrome(); if(msg)bannerMsg(msg); renderMarket();
   });
 }
+let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
 function renderRoadmap(){
-  const map=document.getElementById('cmap'); const N=CAMPAIGN_NODES;
-  const rowH=72, H=N*rowH+40; map.style.height=H+'px';
-  // node positions (%): serpentine, bottom (stage 1) to top (stage 10)
+  const map=document.getElementById('cmap');
+  // default the viewed chapter to the one containing your current stage (clamped to what's unlocked)
+  const curStage=Math.min(G.campaignCleared+1, CAMPAIGN_PLAYABLE);
+  if(!campViewCh) campViewCh=Math.min(chapterOf(curStage), MAX_CHAPTER);
+  const ch=Math.max(1,Math.min(campViewCh, TOTAL_CHAPTERS));
+  const locked = ch>MAX_CHAPTER;
+  const first=(ch-1)*STAGES_PER_CH+1, last=ch*STAGES_PER_CH;
+  // chapter header + nav
+  const hdr=document.getElementById('cmapHdr');
+  if(hdr){ hdr.innerHTML=`<button class="btn xs secondary" id="chPrev" ${ch<=1?'disabled':''}>◀</button>
+    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">Chapter ${ch}${locked?' 🔒':''}</div><div style="font-size:11px;color:#c9a35e">${CHAPTER_NAMES[ch-1]||''}</div></div>
+    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CHAPTERS?'disabled':''}>▶</button>`;
+    const pv=hdr.querySelector('#chPrev'), nx=hdr.querySelector('#chNext');
+    if(pv) pv.onclick=()=>{ campViewCh=ch-1; renderRoadmap(); };
+    if(nx) nx.onclick=()=>{ campViewCh=ch+1; renderRoadmap(); }; }
+  if(locked){ map.style.height='auto'; map.innerHTML=`<div style="text-align:center;color:#8b98a9;padding:60px 20px">
+      <div style="font-size:44px">🔒</div><div style="font-weight:800;font-size:16px;margin-top:8px;color:#e6edf3">Chapter ${ch} — ${CHAPTER_NAMES[ch-1]||''}</div>
+      <div style="font-size:12px;margin-top:6px">Coming soon. Chapters ${MAX_CHAPTER+1}–${TOTAL_CHAPTERS} aren't open yet — Chapter ${MAX_CHAPTER} is the current summit.</div></div>`; return; }
+  const N=STAGES_PER_CH, rowH=72, H=N*rowH+40; map.style.height=H+'px';
   const pts=[];
-  for(let i=1;i<=N;i++){ const t=(i-1)/(N-1); const y=H-40-(i-1)*rowH; const x=50+38*Math.sin((i-1)*1.05); pts.push({i,x,y}); }
-  // build a smooth path string through the points (in px; use viewBox=100 x H)
-  const toX=x=>x, toY=y=>y;
+  for(let s=1;s<=N;s++){ const y=H-40-(s-1)*rowH; const x=50+38*Math.sin((s-1)*1.05); pts.push({s, g:first+s-1, x, y}); }
   let dPath=`M ${pts[0].x} ${pts[0].y}`;
   for(let k=1;k<pts.length;k++){ const p0=pts[k-1],p1=pts[k],dy=p1.y-p0.y; dPath+=` C ${p0.x} ${p0.y+dy*0.42}, ${p1.x} ${p0.y+dy*0.58}, ${p1.x} ${p1.y}`; }
-  // decorative trees scattered
   const trees=['🌲','🌳','🌲','🌴','🌲','🌳'];
   let treeHtml=''; for(let k=0;k<10;k++){ const tx=(k%2? 12:88)+(k%3-1)*4; const ty=30+k*(H-60)/10; treeHtml+=`<div class="ctree" style="left:${tx}%;top:${ty}px;font-size:${22+(k%3)*6}px">${trees[k%trees.length]}</div>`; }
   map.innerHTML=`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none">
@@ -2171,25 +2198,27 @@ function renderRoadmap(){
       <path d="${dPath}" fill="none" stroke="#d8b878" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="${dPath}" fill="none" stroke="#fff2cf" stroke-width="1.4" stroke-dasharray="3 5" stroke-linecap="round" opacity="0.8"/>
     </svg>${treeHtml}`;
-  pts.forEach(p=>{ const i=p.i; const cleared=i<=G.campaignCleared, current=i===G.campaignCleared+1, boss=(i===CAMPAIGN_NODES), elite=isEliteStage(i);
-    const clickable=cleared||current;   // locked until the previous stage is cleared
+  pts.forEach(p=>{ const g=p.g; const cleared=g<=G.campaignCleared, current=g===G.campaignCleared+1, boss=isBossStage(g), elite=isEliteStage(g);
+    const clickable=(cleared||current) && g<=CAMPAIGN_PLAYABLE;
     const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
-    const face=cleared?'✓':(boss?'👑':(elite?'★':i));
-    el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(i)}${boss?' 👑':(elite?' ★':'')}</div>`;
-    if(clickable){ el.onclick=()=>openStageModal(i); } else { el.style.cursor='default'; }
+    const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
+    el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}</div>`;
+    if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
     map.appendChild(el);
   });
-  // scroll to the current stage (inside the scrollable map wrapper)
   const cur=map.querySelector('.cnode.current')||map.querySelector('.cnode.cleared'); if(cur){ requestAnimationFrame(()=>{ const scr=document.getElementById('cmapScroll'); if(scr) scr.scrollTop=Math.max(0, cur.offsetTop-scr.clientHeight*0.5); }); }
 }
 const STAGE_XP_FIRST=24, STAGE_XP_SWEEP=6;
-// player (account) XP from campaign: first-time 30 (normal) / 60 (elite); sweep or replay 6 (normal) / 12 (elite)
-function campaignPlayerXP(node,firstClear){ const elite=isEliteStage(node); return firstClear?(elite?60:30):(elite?12:6); }
+// player (account) XP from campaign — first-clears scale up with the global stage so deeper chapters reward more.
+function campaignPlayerXP(g,firstClear){ const elite=isEliteStage(g), boss=isBossStage(g);
+  if(firstClear){ let x=20+g*4; if(elite)x*=2; if(boss)x*=3; return Math.round(x); }
+  return elite?12:6; }
 function openStageModal(i){
   if(i>G.campaignCleared+1) return;   // locked — must clear the previous stage first
-  const boss=(i===CAMPAIGN_NODES), cleared=i<=G.campaignCleared, elite=isEliteStage(i);
-  const fragHero=elite?CAMPAIGN_ELITE_HERO[i]:null, fh=fragHero?HERO_TYPES[fragHero]:null;
+  if(i>CAMPAIGN_PLAYABLE){ bannerMsg('🔒 Chapters '+(MAX_CHAPTER+1)+'–'+TOTAL_CHAPTERS+' are coming soon.'); return; }
+  const boss=isBossStage(i), cleared=i<=G.campaignCleared, elite=isEliteStage(i);
+  const fragHero=elite?eliteHeroFor(i):null, fh=fragHero?HERO_TYPES[fragHero]:null;
   const body=document.getElementById('stageModalBody');
   regenStamina();
   const canPay=G.stamina>=STAM_STAGE_COST;
@@ -2220,7 +2249,7 @@ function sweepStage(i){
   const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
   const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
   let eliteStr='',um='';
-  if(isEliteStage(i)){ const hk=CAMPAIGN_ELITE_HERO[i], fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
+  if(isEliteStage(i)){ const hk=eliteHeroFor(i), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
     um=giveHeroFrag(hk,amt); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${fh.emoji} ${fh.name} fragments</span>`; }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
@@ -2333,9 +2362,12 @@ let _kickedNotified=false;
 function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
   try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); }catch(e){}
   if(typeof updateHubChrome==='function') updateHubChrome();
-  if(typeof bannerMsg==='function') bannerMsg('⚠ Signed out — this account was used on another device.');
+  if(typeof bannerMsg==='function') bannerMsg('⚠ Signed out — this account was signed in on another device.');
   setTimeout(()=>{ _kickedNotified=false; }, 4000);
   if(state==='settings' && typeof renderSettings==='function') renderSettings(); }
+// heartbeat: poll while signed in so a device kicked by a login elsewhere finds out within ~15s (api() handles the sign-out)
+let _sessionHB=null;
+function startSessionHeartbeat(){ if(_sessionHB) return; _sessionHB=setInterval(()=>{ if(online() && ACC && ACC.token) api('/api/profile'); }, 15000); }
 function rosterPayload(){ const r={}; HERO_KEYS.forEach(k=>r[k]={level:heroLevel(k),rank:heroQuality(k)}); return r; }
 function teamPayload(arr){ return arr.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
 // ---- per-account cloud save: the FULL game blob rides along in roster.__save (no server change needed) ----
@@ -2573,7 +2605,7 @@ function renderArenaShop(){
 function renderWall(){
   const lv=playerLevel(), body=document.getElementById('wallBody'); body.innerHTML='';
   const locked = lv<WALL_UNLOCK_LEVEL;
-  if(locked && !AUDIT_MODE){ body.innerHTML=`<div class="panel" style="text-align:center">🔒 The City Wall world opens at player level ${WALL_UNLOCK_LEVEL}.<br><span style="color:#8b98a9;font-size:12px">You are level ${lv}. Clear campaign stages to level up.</span></div>`; return; }
+  if(locked && !AUDIT_MODE()){ body.innerHTML=`<div class="panel" style="text-align:center">🔒 The City Wall world opens at player level ${WALL_UNLOCK_LEVEL}.<br><span style="color:#8b98a9;font-size:12px">You are level ${lv}. Clear campaign stages to level up.</span></div>`; return; }
   document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : `Set defenders · then raid the world map`;
   const defP=document.createElement('div'); defP.className='panel';
   defP.innerHTML=`<div style="font-weight:700;margin-bottom:6px">🛡️ Your Wall Defenders</div><div class="row" style="justify-content:center;gap:6px;margin-bottom:8px">${G.wall.map(k=>`<div style="width:44px;height:44px;border-radius:9px;overflow:hidden;border:1px solid #2a3550">${heroIcon(k,44)}</div>`).join('')}</div><button class="btn sm secondary" id="setDef">Edit defenders</button>`;
@@ -3673,7 +3705,7 @@ function renderWishing(){ const b=document.getElementById('wishingBody'); if(!b)
 //   clear 1-1 → 3 Grohm frags, 1-2 → 3 Grohm frags, 1-3 → 4 Grohm frags,
 //   then every 3 stages cleared (1-6, 1-9, ...) → 20 diamonds.
 function questChainDef(){ const steps=[{node:1,frags:3},{node:2,frags:3},{node:3,frags:4}];
-  for(let n=6;n<=CAMPAIGN_NODES;n+=3) steps.push({node:n,gems:20});
+  for(let n=6;n<=CAMPAIGN_PLAYABLE;n+=3) steps.push({node:n,gems:20});
   return steps; }
 const QUEST_CHAIN_HERO='grohm';
 function questChainSteps(){ return questChainDef(); }
@@ -4409,7 +4441,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785894832310';
+const BUILD_ID='1785896939903';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -4597,6 +4629,7 @@ function setupLandscape(){
 if(!TH){ document.getElementById('home').innerHTML='<h1>3D engine failed to load</h1>'; }
 else { document.body.classList.add('gated'); loadG(); loadAcc(); initThree(); updateHubChrome(); show('home');
   if('serviceWorker' in navigator && online()){ try{ navigator.serviceWorker.register('/sw.js'); }catch(e){} }
+  startSessionHeartbeat();
   setupLandscape();
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
