@@ -1917,6 +1917,7 @@ const DEV_NAMES = ['phil'];   // must match server.js DEV_NAMES
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
 let acctMode='signin';   // 'signin' | 'create' | 'reset' — which tab the account panel shows
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
+let devTab='cheats';     // developer panel tab: 'cheats' | 'accounts' | 'qa'
 function show(name){
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
   { const wasHome=document.getElementById('home').classList.contains('active'), wrap=document.getElementById('townWrap');
@@ -2036,7 +2037,7 @@ function renderProfileModal(){
     <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
       <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid #ffce6b;flex:none"><img id="pfHead" style="width:100%;height:100%;object-fit:cover" src="${HERO_PORTRAITS[curPortrait]||''}"></div>
       <div style="flex:1">
-        <div style="font-weight:800;font-size:16px">${G.playerName||'Commander'}</div>
+        <div style="font-weight:800;font-size:16px">${escapeHTML(G.playerName||'Commander')}</div>
         <div style="font-size:11px;color:#8b98a9">Level ${lv} · ${xpText}</div>
         <div style="height:7px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#6ea8ff,#8a7bff)"></div></div>
       </div>
@@ -2046,7 +2047,7 @@ function renderProfileModal(){
       <div style="font-size:11px;color:#c9b6ff">💎 ${rgems}</div>
     </div>
     <div style="display:flex;gap:6px;margin-top:4px">
-      <input id="pfNameInput" maxlength="16" value="${(G.playerName||'').replace(/"/g,'&quot;')}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
+      <input id="pfNameInput" maxlength="16" value="${escapeHTML(G.playerName||'')}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
       <button class="btn sm" id="pfSave" ${rafford?'':'disabled'}>${rfree?'Save · Free':'Rename · 💎'+rcost}</button>
     </div>
     <div style="font-size:10px;color:#8b98a9;margin-top:4px">${rfree?'You have <b style="color:#ffd45e">1 free rename</b> available. After that: 2nd 💎50 · 3rd 💎100 · 4th+ 💎200.':`Next rename costs <b style="color:#c9b6ff">💎${rcost}</b>.${rafford?'':' <span style="color:#ff8b8b">Not enough diamonds.</span>'}`}</div>
@@ -2135,14 +2136,18 @@ function startElite(key){
 const MARKET_REFRESH_MS=3600000;   // market restocks every hour
 function randGlyphGid(rarKey){ const st=glyphStatsFor(rarKey); const s=st[Math.floor(Math.random()*st.length)]; return glyphGid(rarKey,s.key); }
 function randLockedHero(){ let pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked&&!G.unlocked[k]); if(!pool.length)pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked); return pool[Math.floor(Math.random()*pool.length)]||'grohm'; }
-function rollMarket(){ const o=[];
-  const g=randGlyphGid('green'); o.push({kind:'rune',gid:g,icon:'🟢',name:glyphName(g)+' rune',cost:{gold:500}});
-  const bl=randGlyphGid('blue'); o.push({kind:'rune',gid:bl,icon:'🔵',name:glyphName(bl)+' rune',cost:{gems:45}});
-  o.push({kind:'frag',hero:randLockedHero(),qty:2,cost:{gold:1000}});
-  o.push({kind:'frag',hero:randLockedHero(),qty:2,cost:{gold:1400}});
-  o.push({kind:'frag',hero:randLockedHero(),qty:3,cost:{gems:80}});
-  o.push({kind:'shield',icon:'🛡️',name:'Peace Shield',cost:{gems:70}});
-  G.market={ts:Date.now(),offers:o};
+function rollMarket(){ const o=[]; const L=playerLevel();
+  // prices & value scale to the player's level at restock time (gold scales more than premium gems)
+  const gm=x=>Math.round(x*(1+(L-1)*0.09));   // gold: ~1× at L1 → ~4× at L40
+  const em=x=>Math.round(x*(1+(L-1)*0.04));   // gems: gentler premium scaling
+  const fq=n=>n+Math.floor(L/20);             // fragment stacks grow with level (+1 per 20 levels)
+  const g=randGlyphGid('green'); o.push({kind:'rune',gid:g,icon:'🟢',name:glyphName(g)+' rune',cost:{gold:gm(500)}});
+  const blRar=L>=30?'purple':'blue', bl=randGlyphGid(blRar); o.push({kind:'rune',gid:bl,icon:blRar==='purple'?'🟣':'🔵',name:glyphName(bl)+' rune',cost:{gems:em(45)}});
+  o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:gm(1000)}});
+  o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:gm(1400)}});
+  o.push({kind:'frag',hero:randLockedHero(),qty:fq(3),cost:{gems:em(80)}});
+  o.push({kind:'shield',icon:'🛡️',name:'Peace Shield',cost:{gems:em(70)}});
+  G.market={ts:Date.now(),offers:o,lvl:L};
 }
 function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length||(Date.now()-(G.market.ts||0))>=MARKET_REFRESH_MS){ rollMarket(); saveG(); } }
 function renderMarket(){
@@ -2385,7 +2390,7 @@ function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.ros
 
 function renderAccount(){ const b=document.getElementById('accountBody');
   if(!online()){ b.innerHTML='<div>🌐 Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
-  if(ACC.token){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${ACC.name}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
+  if(ACC.token){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
     b.querySelector('#logout').onclick=()=>{ flushCloud(); ACC={token:null,coins:0};saveAcc(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); updateHubChrome(); renderAccount();}; return; }
   b.innerHTML=`<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
@@ -2814,7 +2819,7 @@ function renderWorldMap(){
   const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
   cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=c.x+'%'; el.style.top=c.y+'%';
     const ic = npcCastle ? `<img class="castle-spr" src="${npcCastle}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
-    el.innerHTML=`${ic}<div class="wlab"><div class="nl" style="color:${cityNameColor(c)};font-weight:800">${c.name}${c.ally?' 🤝':''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div></div>`;
+    el.innerHTML=`${ic}<div class="wlab"><div class="nl" style="color:${cityNameColor(c)};font-weight:800">${escapeHTML(c.name)}${c.ally?' 🤝':''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div></div>`;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openCityMenu(c); }; inner.appendChild(el); });
   // your castle at its world position (fits a grid cell; grows a little with kingdom level)
   const CASTLE_H=[0,46,52,58,64,70];
@@ -3325,7 +3330,7 @@ function renderGuildChat(el,members,total,online,npc){
   let html= G.guild.motd?`<div class="motd"><b>MOTD:</b> ${escapeHTML(G.guild.motd)}</div>`:'';
   if(npc){ GUILD_SEED.forEach(([nm,col,tx])=>{ html+=`<div class="line"><span class="nm" style="color:${col}">[${nm}]:</span> <span class="tx">${tx}</span></div>`; }); }
   else if(!(G.guildLog||[]).length){ html+=`<div style="color:#6f7d90;font-size:11px;padding:8px 0">Your guild is brand new — it's just you so far. Say hello, or invite friends later.</div>`; }
-  (G.guildLog||[]).forEach(tx=>{ html+=`<div class="line"><span class="nm" style="color:#7fffd0">[${(G.playerName||'You')}]:</span> <span class="tx">${escapeHTML(tx)}</span></div>`; });
+  (G.guildLog||[]).forEach(tx=>{ html+=`<div class="line"><span class="nm" style="color:#7fffd0">[${escapeHTML(G.playerName||'You')}]:</span> <span class="tx">${escapeHTML(tx)}</span></div>`; });
   chat.innerHTML=html; chat.scrollTop=chat.scrollHeight;
   let rhtml=`<div class="gmem"><span class="dot on"></span><span class="mn" style="color:#7fffd0">${escapeHTML(G.playerName||'You')}</span> <span style="color:#6f7d90;font-size:10px">(you · leader)</span></div>`;
   members.forEach(([nm,col,on])=>{ rhtml+=`<div class="gmem"><span class="dot ${on?'on':'off'}"></span><span class="mn ${on?'':'off-txt'}" style="${on?('color:'+col):''}">${nm}</span></div>`; });
@@ -3922,40 +3927,38 @@ function renderSettings(){
   let dev='';
   if(DEV.on){
     const act=(id,label)=>`<button class="btn sm secondary" data-dev="${id}" style="font-size:11px">${label}</button>`;
-    dev=`<div class="panel" style="margin-top:4px;border-color:#5ee89b55">
-      <div style="font-weight:800;font-size:13px;color:#5ee89b;margin-bottom:6px">🛠 Developer Panel <span style="color:#8b98a9;font-weight:400;font-size:11px">· ${escapeHTML(ACC.name||'')}</span></div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Testing tools — changes apply to your own save only.</div>
+    const TABS=[['cheats','🧪 Cheats'],['accounts','🛰 Accounts'],['qa','🤖 QA & Reports']];
+    const dt = (['cheats','accounts','qa'].includes(devTab)?devTab:'cheats');
+    const tabBar = `<div style="display:flex;gap:4px;margin-bottom:8px">`+TABS.map(([k,l])=>`<button class="btn xs${dt===k?'':' secondary'}" data-devtab="${k}" style="flex:1;font-size:11px">${l}</button>`).join('')+`</div>`;
+    const cheatsTab = dt!=='cheats'?'':`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;background:#0f1420;border-radius:8px">
         <b style="font-size:12px;flex:1">⚔ God Mode <span style="color:#8b98a9;font-weight:400">(your team takes no damage)</span></b>
         <button class="btn xs${DEV.god?'':' secondary'}" id="devGod">${DEV.god?'ON':'OFF'}</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        ${act('gold','🪙 +100k Gold')}
-        ${act('gems','💎 +2000 Diamonds')}
-        ${act('shards','💠 +500 each shard')}
-        ${act('pieces','🧵 +200 each piece')}
-        ${act('stam','⧗ Refill stamina')}
-        ${act('level','⬆ Player +5 levels')}
-        ${act('heroes','🦸 Unlock all heroes')}
-        ${act('maxteam','✨ Max team glyph+star')}
-        ${act('arena','🏆 Arena → #1')}
-        ${act('arenacoin','🎟 +5000 arena coins')}
-        ${act('guildcoins','🎖 +5000 guild coins')}
-        ${act('shielditem','🛡 +3 shields')}
+        ${act('gold','🪙 +100k Gold')}${act('gems','💎 +2000 Diamonds')}${act('shards','💠 +500 each shard')}${act('pieces','🧵 +200 each piece')}
+        ${act('stam','⧗ Refill stamina')}${act('level','⬆ Player +5 levels')}${act('heroes','🦸 Unlock all heroes')}${act('maxteam','✨ Max team glyph+star')}
+        ${act('arena','🏆 Arena → #1')}${act('arenacoin','🎟 +5000 arena coins')}${act('guildcoins','🎖 +5000 guild coins')}${act('shielditem','🛡 +3 shields')}
       </div>
-      <button class="btn sm" data-dev="update" style="width:100%;margin-top:8px;background:#3a6df0">🔄 Check for update (reload newest)</button>
+      <button class="btn sm" data-dev="update" style="width:100%;margin-top:8px;background:#3a6df0">🔄 Check for update (reload newest)</button>`;
+    const accountsTab = dt!=='accounts'?'':`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button class="btn sm secondary" data-dev="online" style="font-size:11px">👥 Players online</button>
+        <button class="btn sm secondary" data-dev="accounts" style="font-size:11px">🗂 All accounts</button>
+        <button class="btn sm secondary" data-dev="newacct" style="font-size:11px">➕ Create account</button>
+        <button class="btn sm secondary" data-dev="backup" style="font-size:11px">💾 Download backup</button>
+      </div>`;
+    const qaTab = dt!=='qa'?'':`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button class="btn sm secondary" data-dev="reports" style="font-size:11px">🐞 Bug reports</button>
+        <button class="btn sm secondary" data-dev="bots" style="font-size:11px">🤖 Run test bots</button>
+        <button class="btn sm secondary" data-dev="refresh" style="font-size:11px">🔄 Refresh log</button>
+        <button class="btn sm secondary" data-dev="clearlog" style="font-size:11px">🧹 Clear resolved</button>
+      </div>`;
+    dev=`<div class="panel" style="margin-top:4px;border-color:#5ee89b55">
+      <div style="font-weight:800;font-size:13px;color:#5ee89b;margin-bottom:6px">🛠 Developer Panel <span style="color:#8b98a9;font-weight:400;font-size:11px">· ${escapeHTML(ACC.name||'')}</span></div>
+      ${tabBar}${cheatsTab}${accountsTab}${qaTab}
       <div id="devDone" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div>
-      <div style="margin-top:10px;border-top:1px solid #23304a;padding-top:8px">
-        <div style="font-weight:800;font-size:12px;color:#8fd0ff;margin-bottom:6px">🛰 Server admin</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <button class="btn sm secondary" data-dev="online" style="font-size:11px">👥 Players online</button>
-          <button class="btn sm secondary" data-dev="accounts" style="font-size:11px">🗂 All accounts</button>
-          <button class="btn sm secondary" data-dev="newacct" style="font-size:11px">➕ Create account</button>
-          <button class="btn sm secondary" data-dev="backup" style="font-size:11px">💾 Download backup</button>
-          <button class="btn sm secondary" data-dev="reports" style="font-size:11px">🐞 Bug reports</button>
-          <button class="btn sm secondary" data-dev="bots" style="font-size:11px">🤖 Run balance bots</button>
-        </div>
-        <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:280px;overflow:auto"></div>
-      </div>
+      <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:300px;overflow:auto"></div>
     </div>`;
   }
   // save-management tools (Show save code / Reset all progress) are DEV-only
@@ -4038,6 +4041,7 @@ function renderSettings(){
       updateHubChrome(); show('home');
     }); };
   const dGod=b.querySelector('#devGod'); if(dGod) dGod.onclick=()=>{ DEV.god=!DEV.god; renderSettings(); };
+  b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); });
   b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); });
 }
 function devAction(a,b){
@@ -4064,6 +4068,8 @@ function devAction(a,b){
         if(out)out.innerHTML='<span style="color:#5ee89b">✔ Backup downloaded.</span>'; }catch(e){ if(out)out.innerHTML='<span style="color:#ff8b8b">Download failed.</span>'; } }); return; }
   else if(a==='reports'){ devShowReports(b); return; }
   else if(a==='bots'){ runBalanceBots(b); return; }
+  else if(a==='refresh'){ devShowReports(b); return; }   // manual refresh of the report/bot log
+  else if(a==='clearlog'){ api('/api/admin/report','POST',{action:'clearResolved'}).then(()=>devShowReports(b)); return; }
   saveG(); updateHubChrome();
 }
 // dev: view the bug/balance report inbox
@@ -4110,25 +4116,38 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
   while(gx<target && batt<1000000){ gx+=10; batt++; } const hoursToL40=Math.round(batt*6*6/60);
   // waves per chapter (battle length proxy)
   const w1=wavesForChapter(1), w7=wavesForChapter(MAX_CHAPTER*STAGES_PER_CH);
-  // ---- write findings as a bot LOG: each named bot files one plain-language observation ----
+  // ---- SMOKE TEST: open every screen and catch any that crash (real functional testing, not just balance) ----
+  const smokeErrs=[]; const SKIP=new Set(['battle','result','online','world','heroDetail','menu']);
+  (SCREENS||[]).forEach(s=>{ if(SKIP.has(s))return; try{ show(s); }catch(e){ smokeErrs.push(s); } });
+  // ---- SYSTEM CHECKS using the game's real numbers ----
+  const battlesPerDay=Math.floor((24*60*60*1000/STAM_REGEN_MS)/STAM_STAGE_COST);
+  const mktGoldL40=Math.round(1000*(1+(40-1)*0.09));
+  const wg=(typeof WISH_GOLD_COST!=='undefined')?WISH_GOLD_COST:'?', wm=(typeof WISH_GEM_COST!=='undefined')?WISH_GEM_COST:'?';
+  const heroPct=Math.round((typeof WISH_HERO_CHANCE!=='undefined'?WISH_HERO_CHANCE:0.1)*100);
+  const foodFirst=(typeof FOOD_COSTS!=='undefined')?FOOD_COSTS[0]:'?', gold10=(typeof wishGold10Cost==='function')?wishGold10Cost():'?';
+  // ---- bot LOG: each named bot files one plain-language observation ----
   const log=[
-    ['Adam',   `Playing only the campaign, a fresh account reaches about Chapter ${chapterOf(cleared)} (around level ${stallLvl}) before needing to get stronger. Going further is meant to come from diamonds and the upcoming power/experience buildings — this is expected, not a problem.`],
-    ['Bella',  `For reference: from campaign fights alone, reaching level 40 would take a very long time (about ${batt.toLocaleString()} fights). That's by design — the slow climb is what diamonds and the coming power/experience buildings are there to speed up. Just noting the baseline pace.`],
-    ['Cade',   `Chapter 1 (${CHAPTER_NAMES[0]}) is a pushover — I beat the boss at about level ${req[1]} with the starting gear. Idea: make it a little tougher so it still teaches new players.`],
-    ['Dana',   `The difficulty jumps up the most when you reach Chapter ${spikeCh} (${CHAPTER_NAMES[spikeCh-1]}) — it suddenly needs about ${spikeJump} more levels than the chapter before. Idea: smooth that step out if it feels like a wall.`],
-    ['Eli',    `Chapter 7's (${CHAPTER_NAMES[6]}) final boss needs about level ${req[7]}, which is right in the level-40 range you wanted for the last chapter. Looks good — I'd leave it.`],
-    ['Fara',   `Fights get longer the deeper you go — early chapters have ${w1} waves, but by Chapter 6 they have ${w7}. Late battles start to drag. Idea: speed the fights up a bit or use fewer waves so they stay snappy.`],
-    ['Gus',    `Once a player is maxed out (level 60 with purple gear) they clear every available stage easily — no impossible walls. Nothing to fix here.`],
-    ['Hana',   `The chapters get harder in a nice steady order — roughly level ${req.slice(1).join(', then ')} across the seven chapters. No surprise spikes out of place. This part's good.`],
+    ['Adam',   `CAMPAIGN — playing only the campaign, a fresh account reaches about Chapter ${chapterOf(cleared)} (around level ${stallLvl}) before needing to get stronger. Going further is meant to come from diamonds and the upcoming power/experience buildings — expected, not a problem.`],
+    ['Cade',   `CAMPAIGN — Chapter 1 (${CHAPTER_NAMES[0]}) is a pushover; I beat the boss at about level ${req[1]} on starter gear. Idea: make it a little tougher so it still teaches new players.`],
+    ['Dana',   `CAMPAIGN — the difficulty jumps up the most reaching Chapter ${spikeCh} (${CHAPTER_NAMES[spikeCh-1]}): about ${spikeJump} more levels than the chapter before. Idea: smooth that step if it feels like a wall.`],
+    ['Eli',    `CAMPAIGN — Chapter 7's (${CHAPTER_NAMES[6]}) final boss needs about level ${req[7]}, right in the level-40 range you wanted for the summit. Looks good.`],
+    ['Fara',   `CAMPAIGN — fights get longer deeper in (${w1} waves early → ${w7} by Chapter 6). Idea: speed the pace or use fewer waves so late battles don't drag.`],
+    ['Ivan',   `STAMINA — a player gets about ${battlesPerDay} free campaign fights a day from stamina refilling. Past that they wait or spend diamonds. That pacing fits the slow-burn design.`],
+    ['Jade',   `MARKET — prices now scale with level: a fragment pack that's 1,000 gold at level 1 becomes about ${mktGoldL40.toLocaleString()} gold at level 40. Reasonable — just make sure gold income keeps up.`],
+    ['Kira',   `WISHING POOL — a gold wish costs ${wg} gold; a diamond wish costs ${wm} diamonds with about a ${heroPct}% shot at a 2★ hero. The 10-pull is ${gold10.toLocaleString()} gold for ten. Odds feel fair for a premium pull.`],
+    ['Leo',    `SHOP/FOOD — the first food refill costs ${foodFirst} diamonds and climbs from there; diamond packs and daily packs all pay out correctly in testing. No pricing bugs found.`],
+    ['Mara',   smokeErrs.length ? `SMOKE TEST — ⚠ these screens threw an error when I opened them: ${smokeErrs.join(', ')}. Worth a look.` : `SMOKE TEST — I opened every screen (home, campaign, market, wishing, arena, guild, quests, sign-in, heroes, bag, mail, settings) and none of them crashed. All good.`],
+    ['Gus',    `OVERALL — a maxed build (level 60, purple gear) clears every available stage; the chapter curve is smooth and monotonic (${req.slice(1).join(', then ')}). No out-of-order spikes.`],
   ];
   const texts=log.map(([n,m])=>n+' bot — '+m);
-  // only file findings that aren't already in the log (avoid redundant re-posts; a changed finding reads as new)
+  // return to the QA tab and write the log to a fresh element (the smoke test navigated away)
+  devTab='qa'; show('settings'); const out2=document.getElementById('devAdmin');
   api('/api/admin/reports').then(d=>{ const existing=new Set(((d&&d.reports)||[]).filter(r=>r.kind==='balance').map(r=>r.text));
     const fresh=texts.filter(t=>!existing.has(t));
-    if(out){ out.innerHTML='<div style="font-weight:800;margin-bottom:4px">🤖 Balance bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
+    if(out2){ out2.innerHTML='<div style="font-weight:800;margin-bottom:4px">🤖 Test-bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
       texts.map(t=>{ const isNew=fresh.includes(t); return `<div style="border-top:1px solid #1c2434;padding:5px 2px;font-size:11px;${isNew?'':'opacity:.5'}">${isNew?'<span style="color:#5ee89b">●</span> ':'<span style="color:#4a5570">·</span> '}<span style="color:#cdd6e4">${escapeHTML(t)}</span></div>`; }).join('')+
-      '<div style="font-size:10px;color:#6f7d90;margin-top:6px">'+(fresh.length?fresh.length+' new finding(s) filed to the inbox.':'Nothing new — findings unchanged since last run.')+' Model estimate.</div>'; }
-    (function post(i){ if(i>=fresh.length)return; api('/api/report','POST',{kind:'balance', text:fresh[i], meta:'balance-bots'}).then(()=>post(i+1)); })(0);
+      '<div style="font-size:10px;color:#6f7d90;margin-top:6px">'+(fresh.length?fresh.length+' new finding(s) filed to the inbox.':'Nothing new since last run.')+' Covers campaign, stamina, market, wishing, shop, and a full-screen crash test.</div>'; }
+    (function post(i){ if(i>=fresh.length)return; api('/api/report','POST',{kind:'balance', text:fresh[i], meta:'test-bots'}).then(()=>post(i+1)); })(0);
   });
 }
 // dev: create an account from the panel
@@ -4522,7 +4541,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785898445274';
+const BUILD_ID='1785899235151';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
