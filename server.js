@@ -112,7 +112,7 @@ async function api(req,res,url){
   const p=url.pathname;
   if(req.method==='OPTIONS'){ res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-token'}); res.end(); return; }
 
-  if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').trim().slice(0,16);
+  if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username is already taken — choose another.'});
@@ -167,7 +167,7 @@ async function api(req,res,url){
     u.mustReset=false; writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: create an account directly
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const b=await body(req); const name=(b.name||'').trim().slice(0,16);
+    const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username already taken'});
     const id=uid(), salt=crypto.randomBytes(8).toString('hex');
@@ -190,6 +190,20 @@ async function api(req,res,url){
     dropTokens(tid); writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng}); }
   // admin: download the whole DB as a backup
   if(p==='/api/admin/backup'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'}); backupDB(); return send(res,200, DB); }
+  // bug / balance reports: any signed-in player (or a dev's balance bots) can file one
+  if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
+    const b=await body(req); const text=(b.text||'').toString().slice(0,2000); if(!text.trim()) return send(res,400,{error:'Report is empty'});
+    DB.reports=DB.reports||[]; DB.reports.push({ id:uid(), name:me.name, kind:(b.kind==='balance'?'balance':'bug'), text, meta:(b.meta||'').toString().slice(0,400), t:Date.now(), resolved:false });
+    if(DB.reports.length>1000) DB.reports=DB.reports.slice(-1000); writeDB(); return send(res,200,{ok:true}); }
+  if(p==='/api/admin/reports'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const reports=(DB.reports||[]).slice().reverse().slice(0,200); return send(res,200,{reports, count:(DB.reports||[]).length}); }
+  if(p==='/api/admin/report' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); DB.reports=DB.reports||[]; const r=DB.reports.find(x=>x.id===b.id);
+    if(b.action==='clearResolved'){ DB.reports=DB.reports.filter(x=>!x.resolved); writeDB(); return send(res,200,{ok:true}); }
+    if(!r) return send(res,404,{error:'not found'});
+    if(b.action==='delete') DB.reports=DB.reports.filter(x=>x.id!==b.id); else r.resolved=!r.resolved;
+    writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
