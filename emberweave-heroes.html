@@ -46,7 +46,9 @@
   .screen.hub{background:linear-gradient(170deg,#0f1524 0%,#1a1330 60%,#241826 100%);}
   /* POP-OUT: a menu screen shown as a centered modal over home (instead of a full-page swap) */
   .screen.popout{position:fixed;top:0;right:0;bottom:0;left:auto;transform:none;width:min(440px,94vw);height:100vh;max-height:100vh;border-radius:16px 0 0 16px;border:1px solid #3a4a6e;border-right:none;box-shadow:-18px 0 55px rgba(0,0,0,.6);z-index:9000;padding:18px 12px 14px;overflow-y:auto;}
-  .screen.popout .backbtn,.screen.popout .hero-nav{display:none;}
+  .screen.popout .hero-nav{display:none;}
+  .screen.popout:not(#heroDetail) .backbtn{display:none;}   /* heroDetail keeps its ◀ Heroes back button */
+  #heroDetail.popout .backbtn{top:10px;left:12px;z-index:4;}
   .screen.popout .popoutClose{position:absolute;top:10px;right:12px;background:#1a2233;border:1px solid #33405e;color:#c3ccd8;font-size:15px;font-weight:800;width:30px;height:30px;border-radius:8px;cursor:pointer;z-index:3;}
   #popoutBackdrop{position:fixed;inset:0;background:rgba(4,6,10,.72);z-index:8990;display:none;}
   /* kill the ~300ms tap delay that <div> click-targets carry on touch devices (chat head, menu items, cards…) */
@@ -717,7 +719,7 @@
     <div class="panel"><div class="row" id="heroList"></div></div>
   </div>
   <div class="screen hub" id="heroDetail">
-    <button class="btn secondary sm backbtn" data-nav="heroesPanel">◀ Heroes</button>
+    <button class="btn secondary sm backbtn" data-pop data-nav="heroesPanel">◀ Heroes</button>
     <button class="hero-nav" id="heroPrev" aria-label="Previous hero">‹</button>
     <button class="hero-nav" id="heroNext" aria-label="Next hero">›</button>
     <div id="heroDetailBody" style="width:100%;max-width:560px;margin-top:36px;"></div>
@@ -4018,14 +4020,20 @@ function renderHeroList(){
   const locked=HERO_KEYS.filter(k=>!G.unlocked[k]).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
   [...owned,...locked].forEach(key=>{ const t=HERO_TYPES[key],unlocked=G.unlocked[key],myth=isMythic(key);
     const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(myth?' mythic':'');
-    const rarity = myth?`<br><span style="font-size:8px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>`:'';   // rarity tag only for mythicals
     const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
-    // compact vertical card (icon on top) so 3 fit per row. NO power/hp/glyph — those live on the Stats tab.
+    // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
+    const powerLine = unlocked ? `<div style="font-size:9.5px;font-weight:800;color:#ffd45e;line-height:1.1">⚔ Total Power: ${heroPower(key).toLocaleString()}</div>` : '<div style="height:12px"></div>';
+    // mythicals show the purple MYTHICAL banner on the card (falls back to a text tag if the art isn't built in)
+    const mythBnr = (myth && MYTHICAL_BANNER && MYTHICAL_BANNER.indexOf('data:')===0)
+      ? `<img src="${MYTHICAL_BANNER}" alt="Mythical" style="width:96%;max-width:150px;height:auto;display:block;margin:-1px auto -3px;filter:drop-shadow(0 1px 3px #0008)">` : '';
+    const roleTag = (myth && !mythBnr) ? `${t.role}<br><span style="font-size:8px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>` : t.role;
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0">
+        ${powerLine}
         ${heroIcon(key,50)}
         ${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,12)}</div>`:''}
         <div class="name" style="font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
-        <div class="role" style="font-size:9px;line-height:1.25">${t.role}${rarity}</div>
+        ${mythBnr}
+        <div class="role" style="font-size:9px;line-height:1.25">${roleTag}</div>
         ${unlocked?'':`<div class="stats" style="margin-top:1px;font-size:10px">${lockedLine}</div>`}</div>`;
     card.onclick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);
@@ -5173,8 +5181,8 @@ function devAction(a,b){
 // dev: search any hero in the database and grant 100 of their fragments
 function openDevFragGranter(b){
   const AMT=100, ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:14000;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px';
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:100%;max-width:360px;max-height:82vh;display:flex;flex-direction:column">
+  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:14000;display:flex;align-items:stretch;justify-content:flex-end';
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:16px;width:min(380px,94vw);height:100vh;max-height:100vh;display:flex;flex-direction:column;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">🧩 Give ${AMT} fragments</b><button class="btn sm secondary" id="dfgX">✕</button></div>
     <input id="dfgSearch" placeholder="Type a hero name…" autocomplete="off" style="width:100%;padding:9px 11px;border-radius:9px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:14px;margin-bottom:8px">
     <div id="dfgList" style="overflow:auto;flex:1;display:flex;flex-direction:column;gap:5px"></div>
@@ -5723,7 +5731,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785972046983';
+const BUILD_ID='1785973018522';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
