@@ -49,8 +49,22 @@ function body(req){ return new Promise(r=>{ let d=''; req.on('data',c=>d+=c); re
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
 function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0 }; }
-const DEV_NAMES=['phil','ember'];   // usernames that unlock the dev/admin tools (must match the client's DEV_ACCOUNTS)
+const DEV_NAMES=['phil'];   // usernames that unlock the dev/admin tools (add more devs here later)
 function isDev(u){ return !!(u && !u.isNpc && DEV_NAMES.includes((u.name||'').toLowerCase())); }
+// --- security helpers: per-IP rate limiting, single-session, admin diamond edits ---
+const _hits={};
+function clientIP(req){ return ((req.headers['x-forwarded-for']||'').split(',')[0].trim()) || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
+function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now();
+  const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); arr.push(now); _hits[k]=arr; return arr.length>max; }
+function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===id) delete DB.tokens[t]; } }   // single-session / force re-login
+function adjustGems(u, delta){ try{ if(!u.roster||typeof u.roster.__save!=='string') return null;
+  const g=JSON.parse(u.roster.__save); g.gems=Math.max(0,(g.gems||0)+delta); g.mtime=Date.now();
+  u.roster.__save=JSON.stringify(g); return g.gems; }catch(e){ return null; } }
+// rotating hourly DB backups (kept alongside the db file)
+function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-'); fs.writeFileSync(path.join(dir,'db-'+stamp+'.json'), JSON.stringify(DB));
+  const files=fs.readdirSync(dir).filter(f=>f.startsWith('db-')).sort(); while(files.length>48){ try{ fs.unlinkSync(path.join(dir,files.shift())); }catch(e){} }
+}catch(e){ console.error('⚠ backup failed:', e.message); } }
 
 const HERO_KEYS=['aldric','thorne','grohm','vex','sylva','rook','zephyr','lumi','aria'];
 function defaultTeam(){ return [ {key:'aldric',level:1,rank:0},{key:'sylva',level:1,rank:0},{key:'zephyr',level:1,rank:0},{key:'lumi',level:1,rank:0},{key:'vex',level:1,rank:0} ]; }
@@ -99,23 +113,32 @@ async function api(req,res,url){
   if(req.method==='OPTIONS'){ res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-token'}); res.end(); return; }
 
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').trim().slice(0,16);
+    if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username is already taken — choose another.'});
+    // cap account creation to 3 per device (and a softer per-network cap so clearing storage can't fully bypass it)
+    const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
+    if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
+    if((DB.ipAccounts[ip]||0)>=6) return send(res,429,{error:'Too many accounts from this network.'});
     const id=uid(), salt=crypto.randomBytes(8).toString('hex');
     const u={ id, name, hash:hashPass(b.pass,salt), salt, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();
+    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
+    const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
-  if(p==='/api/login' && req.method==='POST'){ const b=await body(req); const id=DB.byName[(b.name||'').trim().toLowerCase()];
+  if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
+    if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
+    const id=DB.byName[(b.name||'').trim().toLowerCase()];
     const u=id&&DB.users[id]; if(!u) return send(res,401,{error:'Wrong name or password'});
     // account flagged by an admin for password recovery: the next login sets a brand-new password
     if(u.mustReset){
       if(b.newPass){ if((b.newPass||'').length<1) return send(res,400,{error:'Enter a new password'});
         u.salt=crypto.randomBytes(8).toString('hex'); u.hash=hashPass(b.newPass,u.salt); u.mustReset=false;
-        const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+        dropTokens(id); const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
       return send(res,200,{ reset:true, name:u.name }); }   // tell the client to prompt for a new password
     if(u.hash!==hashPass(b.pass||'',u.salt)) return send(res,401,{error:'Wrong name or password'});
+    dropTokens(id);   // single session: signing in here kicks any other device
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   const me=authUser(req);
@@ -142,6 +165,31 @@ async function api(req,res,url){
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     u.mustReset=false; writeDB(); return send(res,200,{ok:true, name:u.name}); }
+  // admin: create an account directly
+  if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const name=(b.name||'').trim().slice(0,16);
+    if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
+    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username already taken'});
+    const id=uid(), salt=crypto.randomBytes(8).toString('hex');
+    DB.users[id]={ id, name, hash:hashPass(b.pass,salt), salt, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
+      roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+    DB.byName[name.toLowerCase()]=id; writeDB(); return send(res,200,{ok:true, name}); }
+  // admin: delete an account
+  if(p==='/api/admin/delete' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    if(isDev(u)) return send(res,400,{error:'cannot delete a dev account'});
+    delete DB.byName[(u.name||'').toLowerCase()]; delete DB.users[tid]; dropTokens(tid);
+    writeDB(); return send(res,200,{ok:true, name:u.name}); }
+  // admin: grant / take 2000 diamonds (edits the player's cloud save; forces them to reload it)
+  if((p==='/api/admin/grant'||p==='/api/admin/take') && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    const ng=adjustGems(u, p==='/api/admin/grant'?2000:-2000);
+    if(ng==null) return send(res,400,{error:'That player has no cloud save yet — they must open the game once first.'});
+    dropTokens(tid); writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng}); }
+  // admin: download the whole DB as a backup
+  if(p==='/api/admin/backup'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'}); backupDB(); return send(res,200, DB); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
@@ -233,6 +281,7 @@ try{
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
 readDB(); seed();
+backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
 const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
 console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
 console.log('👤 Player accounts loaded: '+realAccts);
