@@ -59,7 +59,28 @@ function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), no
 function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===id) delete DB.tokens[t]; } }   // single-session / force re-login
 function adjustGems(u, delta){ try{ if(!u.roster||typeof u.roster.__save!=='string') return null;
   const g=JSON.parse(u.roster.__save); g.gems=Math.max(0,(g.gems||0)+delta); g.mtime=Date.now();
-  u.roster.__save=JSON.stringify(g); return g.gems; }catch(e){ return null; } }
+  u.roster.__save=JSON.stringify(g); u.econ={gems:g.gems||0,gold:g.gold||0,t:Date.now()}; return g.gems; }catch(e){ return null; } }
+// ---- anti-tamper: the economy is client-side, so the server can't fully trust a save. It CAN reject the impossible:
+//      clamp values no legitimate player can reach (undoing "set my diamonds to 2 billion"), and FLAG (never block, to
+//      avoid false positives) implausible single-save jumps so a dev can investigate. Not a full server-authoritative
+//      economy — that's the pre-real-money rewrite — but it stops casual console cheating cold. ----
+const ECON_CAP={ gems:5000000, gold:2000000000, stamina:100000, arenaCoins:50000000, guildCoins:50000000, playerXP:100000000, gemFrac:1000000 };
+const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
+function clampNum(v,cap){ if(typeof v!=='number'||!isFinite(v)) return v; if(v<0) return 0; if(v>cap) return cap; return v; }
+function sanitizeSave(u, roster){
+  if(!roster || typeof roster.__save!=='string') return roster;
+  let g; try{ g=JSON.parse(roster.__save); }catch(e){ return roster; }   // unparseable → store as-is, nothing to validate
+  let clamped=false;
+  for(const k in ECON_CAP){ if(typeof g[k]==='number'){ const nv=clampNum(g[k],ECON_CAP[k]); if(nv!==g[k]){ g[k]=nv; clamped=true; } } }
+  for(const map of ['mats','eqMats','starShards','heroFrag','glyphRank']){ const o=g[map]; if(o&&typeof o==='object'){ for(const k in o){ if(typeof o[k]==='number'){ const nv=clampNum(o[k],MAP_CAP); if(nv!==o[k]){ o[k]=nv; clamped=true; } } } } }
+  const prev=u.econ||{}, now=Date.now(); const dGems=(g.gems||0)-(prev.gems||0), dGold=(g.gold||0)-(prev.gold||0);
+  let reason=null;
+  if(clamped) reason='impossible value clamped';
+  else if(prev.gems!=null && dGems>GEM_SPIKE) reason='diamond spike (+'+dGems+')';
+  else if(prev.gold!=null && dGold>GOLD_SPIKE) reason='gold spike (+'+dGold+')';
+  if(reason){ u.flag={ reason, t:now, gems:g.gems||0, gold:g.gold||0 }; console.log('⚠ integrity flag — '+u.name+': '+reason); }
+  u.econ={ gems:g.gems||0, gold:g.gold||0, t:now };
+  roster.__save=JSON.stringify(g); return roster; }
 // rotating hourly DB backups (kept alongside the db file)
 function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
   const stamp=new Date().toISOString().replace(/[:.]/g,'-'); fs.writeFileSync(path.join(dir,'db-'+stamp+'.json'), JSON.stringify(DB));
@@ -216,11 +237,11 @@ async function api(req,res,url){
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const cutoff=Date.now()-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
-      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset}));
+      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
     return send(res,200,{online, count:online.length}); }
   if(p==='/api/admin/accounts'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
-      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset}));
+      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
     return send(res,200,{accounts, count:accounts.length}); }
   // admin: flag an account for password recovery — its owner sets a new password on next login
   if(p==='/api/admin/reset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -234,6 +255,18 @@ async function api(req,res,url){
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     u.mustReset=false; writeDB(); return send(res,200,{ok:true, name:u.name}); }
+  // admin: clear or set a player's recovery email (for the "lost my old inbox" case — clearing lets them
+  // bind a fresh email through the normal verified flow, since first-time binding sends the code to the new address)
+  if(p==='/api/admin/email' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    if(b.action==='clear'){ delete u.email; delete u.emailChange; writeDB(); return send(res,200,{ok:true, name:u.name, email:''}); }
+    const email=normalizeEmail(b.email); if(!email) return send(res,400,{error:'Enter a valid email address.'});
+    u.email=email; delete u.emailChange; writeDB(); return send(res,200,{ok:true, name:u.name, email}); }
+  // admin: clear an account's integrity flag (after reviewing / resetting them)
+  if(p==='/api/admin/clearflag' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'}); delete u.flag; writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: create an account directly
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
@@ -301,13 +334,16 @@ async function api(req,res,url){
     return send(res,200,{ ok:true, email:me.email }); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
-    if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall; if(b.roster) me.roster=b.roster; writeDB();
-    return send(res,200,{ok:true}); }
+    if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall;
+    if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
+    writeDB(); return send(res,200,{ok:true}); }
 
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:o.team, isNpc:!!o.isNpc } }); }
 
-  if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
+  if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
+    const b=await body(req);
     const opp=DB.users[b.oppId]; const r=applyResult(me,opp,!!b.won); const reward=b.won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward; writeDB();
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
 
