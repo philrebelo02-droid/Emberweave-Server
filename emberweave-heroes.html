@@ -44,6 +44,13 @@
           padding:14px;overflow-y:auto;z-index:20;}
   .screen.active{display:flex;}
   .screen.hub{background:linear-gradient(170deg,#0f1524 0%,#1a1330 60%,#241826 100%);}
+  /* POP-OUT: a menu screen shown as a centered modal over home (instead of a full-page swap) */
+  .screen.popout{position:fixed;inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);width:min(680px,94vw);max-height:88vh;height:auto;border-radius:16px;border:1px solid #3a4a6e;box-shadow:0 24px 70px rgba(0,0,0,.65);z-index:9000;padding:18px 14px 14px;overflow-y:auto;}
+  .screen.popout .backbtn{display:none;}
+  .screen.popout .popoutClose{position:absolute;top:10px;right:12px;background:#1a2233;border:1px solid #33405e;color:#c3ccd8;font-size:15px;font-weight:800;width:30px;height:30px;border-radius:8px;cursor:pointer;z-index:3;}
+  #popoutBackdrop{position:fixed;inset:0;background:rgba(4,6,10,.72);z-index:8990;display:none;}
+  /* kill the ~300ms tap delay that <div> click-targets carry on touch devices (chat head, menu items, cards…) */
+  button,.cw-head,.cw-tab,.mitem,.hero-card,.gemcard,.portrait,.popoutClose,[data-nav]{touch-action:manipulation;}
   h1{font-size:22px;letter-spacing:1px;margin-bottom:2px;text-align:center;
      background:linear-gradient(90deg,#ffb347,#b98bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
   .sub{color:#8b98a9;font-size:12px;margin-bottom:10px;text-align:center;}
@@ -362,6 +369,8 @@
   .hero-card{flex:1 1 150px;min-width:140px;background:#1e2740;border:2px solid #33405e;border-radius:12px;padding:10px;cursor:pointer;position:relative;transition:.12s;}
   .hero-card.selected{border-color:#ffb347;box-shadow:0 0 0 2px rgba(255,179,71,.35);background:#2a3350;}
   .hero-card.locked{opacity:.45;} .hero-card:active{transform:scale(.98);}
+  /* uniform grid so a lone card (e.g. the 10th hero) never stretches to fill the row */
+  #heroList,#roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;align-content:start;}
   .hero-card .emoji{font-size:26px;} .hero-card .name{font-weight:700;font-size:14px;margin-top:2px;}
   .hero-card .role{font-size:10px;color:#8b98a9;text-transform:uppercase;letter-spacing:.5px;}
   .hero-card .stats{font-size:11px;color:#aeb9c9;margin-top:6px;line-height:1.5;}
@@ -564,13 +573,13 @@
     <div id="hubMenu">
       <div id="menuBtn"><span style="font-size:16px">📜</span><span>Menu</span><span class="chev">▾</span></div>
       <div id="menuPanel">
-        <div class="mitem" data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
-        <div class="mitem" data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
-        <div class="mitem" data-nav="tutorial"><span class="mi">🎓</span> Getting Started <span id="tutDot" class="menuDot" style="display:none">!</span></div>
-        <div class="mitem" data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
-        <div class="mitem" data-nav="signin"><span class="mi">📅</span> Sign-In <span id="signinDot" class="menuDot" style="display:none">!</span></div>
-        <div class="mitem" data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
-        <div class="mitem" data-nav="settings"><span class="mi">⚙️</span> Settings</div>
+        <div class="mitem" data-pop data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
+        <div class="mitem" data-pop data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
+        <div class="mitem" data-pop data-nav="tutorial"><span class="mi">🎓</span> Getting Started <span id="tutDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="signin"><span class="mi">📅</span> Sign-In <span id="signinDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
+        <div class="mitem" data-pop data-nav="settings"><span class="mi">⚙️</span> Settings</div>
       </div>
     </div>
     </div><!-- /cornerHud -->
@@ -2150,7 +2159,32 @@ let _forgotName='', _forgotStep='name';   // signed-out "forgot password" recove
 let emStep='idle', _emPending='', _emSentTo='', _emToCurrent=false;   // change-recovery-email flow: 'idle' → 'code'
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
 let devTab='cheats';     // developer panel tab: 'cheats' | 'accounts' | 'qa'
+// ---- POP-OUT screens: menu items (Heroes, Bag, Quests, …) open as a modal overlay over home, not a full-page swap ----
+let _popout=null;
+function popoutRender(name){
+  if(name==='heroesPanel') renderHeroList();
+  else if(name==='bag') renderBag();
+  else if(name==='settings') renderSettings();
+  else if(name==='quest') renderQuests();
+  else if(name==='signin') renderSignin();
+  else if(name==='tutorial') renderTutorial();
+  else if(name==='mail') renderMail();
+}
+function popoutScreen(name){ const el=document.getElementById(name); if(!el){ show(name); return; }
+  closePopout();
+  _popout=name;
+  let bd=document.getElementById('popoutBackdrop');
+  if(!bd){ bd=document.createElement('div'); bd.id='popoutBackdrop'; bd.onclick=closePopout; document.body.appendChild(bd); }
+  bd.style.display='block';
+  popoutRender(name);
+  if(!el.querySelector('.popoutClose')){ const x=document.createElement('button'); x.className='popoutClose'; x.textContent='✕'; x.onclick=closePopout; el.appendChild(x); }
+  el.classList.add('active','popout');
+  const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
+}
+function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none';
+  if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
+  if(_popout) closePopout();   // any full navigation closes an open pop-out
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
   { const wasHome=document.getElementById('home').classList.contains('active'), wrap=document.getElementById('townWrap');
     if(wasHome && name!=='home' && wrap) _homeScroll=wrap.scrollLeft;
@@ -3954,18 +3988,30 @@ function startVersus(enemyTeam,auto){
   document.getElementById('waveTag').textContent = (CUR.mode==='arena'?'🏆 ARENA':'🗺️ RAID');
   if(auto){ gameSpeed=2; refreshCtrlBtns(); }
 }
+let heroSort='power';   // roster sort for OWNED heroes: 'power' | 'level' | 'stars'
 function renderHeroList(){
   const r=document.getElementById('heroList'); r.innerHTML='';
-  HERO_KEYS.forEach(key=>{ const t=HERO_TYPES[key],unlocked=G.unlocked[key],myth=isMythic(key);
+  // sort control (spans the full grid width)
+  const sortBar=document.createElement('div');
+  sortBar.style.cssText='grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0 2px 2px';
+  sortBar.innerHTML=`<span style="font-size:11px;color:#8b98a9">Sort owned by</span>
+    <select id="heroSortSel" style="background:#0f1420;color:#e6edf3;border:1px solid #33405e;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer">
+      <option value="power">Total Power</option><option value="level">Level</option><option value="stars">Stars</option></select>`;
+  r.appendChild(sortBar);
+  const sel=sortBar.querySelector('#heroSortSel'); sel.value=heroSort; sel.onchange=()=>{ heroSort=sel.value; renderHeroList(); };
+  // owned/summoned heroes first (by the chosen sort), then locked heroes (closest-to-summon first)
+  const sv=(k)=> heroSort==='level'?heroLevel(k) : heroSort==='stars'?(heroStars(k)*100+starPips(k)) : heroPower(k);
+  const owned=HERO_KEYS.filter(k=>G.unlocked[k]).sort((a,b)=>sv(b)-sv(a));
+  const locked=HERO_KEYS.filter(k=>!G.unlocked[k]).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
+  [...owned,...locked].forEach(key=>{ const t=HERO_TYPES[key],unlocked=G.unlocked[key],myth=isMythic(key);
     const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(myth?' mythic':'');
-    const gr=glyphRank(key), gi=GRANK[gr];
-    const cHp=Math.round(heroStat(key,t.hp)*heroMuls(key).hp)+(unlocked?heroFlatHp(key):0), cAtk=Math.round(heroStat(key,t.dmg)*heroMuls(key).atk)+(unlocked?heroFlatAtk(key):0);
-    const rarity = myth?`<span style="font-size:9px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>`:`<span style="font-size:9px;color:${gi.col};font-weight:700">${gi.name}</span>`;
+    const rarity = myth?` · <span style="font-size:9px;color:#ffcf40;font-weight:800;letter-spacing:.5px">✦ MYTHICAL</span>`:'';   // rarity tag only for mythicals
     const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON NOW ▸</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key)+' fragments');
+    // card = icon (+ stars if owned), name, role (+mythical tag). NO power/hp/glyph — those live on the Stats tab.
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">
         <div style="display:flex;flex-direction:column;align-items:center;gap:3px">${heroIcon(key,52)}${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,13)}</div>`:''}</div>
-        <div><div class="name">${t.name}</div><div class="role">${t.role} · ${rarity}</div>${unlocked?`<div style="font-size:10px;color:#ffd45e;font-weight:800;margin-top:2px">⚡ POWER ${heroPower(key).toLocaleString()}</div>`:''}</div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${cHp.toLocaleString()}</span><span class="pill">⚔ ${cAtk.toLocaleString()}</span><br>${unlocked?'💠 '+gi.name:lockedLine}</div>`;
-    card.onclick=()=>{ detailHero=key; show('heroDetail'); };   // any hero opens its screen (locked heroes are view-only, incl. Lore)
+        <div style="min-width:0"><div class="name">${t.name}</div><div class="role">${t.role}${rarity}</div></div></div>${unlocked?'':`<div class="stats" style="margin-top:6px">${lockedLine}</div>`}`;
+    card.onclick=()=>{ detailHero=key; show('heroDetail'); };
     r.appendChild(card);
   });
 }
@@ -5476,7 +5522,7 @@ overlay.addEventListener('pointerup',onUp);
 overlay.addEventListener('pointercancel',()=>{ if(aiming)fireAimed(); });
 
 /* nav wiring */
-function bindNav(root){ (root||document).querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=>show(el.dataset.nav); }); }
+function bindNav(root){ (root||document).querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=> el.hasAttribute('data-pop') ? popoutScreen(el.dataset.nav) : show(el.dataset.nav); }); }
 bindNav(document);
 document.getElementById('profileBtn').onclick=openProfile;
 document.getElementById('profClose').onclick=closeProfile;
@@ -5659,7 +5705,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785966835295';
+const BUILD_ID='1785968903811';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
