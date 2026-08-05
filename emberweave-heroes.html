@@ -1925,6 +1925,7 @@ function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includ
 let acctMode='signin';   // 'signin' | 'create' | 'reset' | 'forgot' — which tab the account panel shows
 let pwStep='idle';       // 'idle' | 'sent' — email password-reset flow state (signed-in account panel)
 let _forgotName='', _forgotStep='name';   // signed-out "forgot password" recovery: 'name' → 'code'
+let emStep='idle', _emPending='', _emSentTo='', _emToCurrent=false;   // change-recovery-email flow: 'idle' → 'code'
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
 let devTab='cheats';     // developer panel tab: 'cheats' | 'accounts' | 'qa'
 function show(name){
@@ -4008,10 +4009,18 @@ function renderSettings(){
     const emailRow = em
       ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">📧 Recovery email: <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">change</a></div>`
       : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">📧 No recovery email linked — add one so you can reset your password if you forget it. <a href="#" id="acEditEmail" style="color:#9ab0d6">add email</a></div>`;
-    const emailForm = `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
-        <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="${escapeHTML(em)}">
-        <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSave" style="flex:1">Save email</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
-        <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
+    const emailForm = (emStep!=='code')
+      ? `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
+          <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="">
+          <div style="font-size:11px;color:#8b98a9;margin-top:4px">${em?'For security, we\'ll email a 6-digit code to your <b>current</b> recovery email to confirm the change.':'We\'ll email a 6-digit code to this address to confirm you own it.'}</div>
+          <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSend" style="flex:1">Send code</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
+          <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`
+      : `<div id="acEmailForm" style="display:block;margin:4px 0 8px;background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px">
+          <div style="font-weight:800;font-size:12px;margin-bottom:4px">📧 Confirm email change</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter the 6-digit code sent to <b>${escapeHTML(_emSentTo)}</b>${_emToCurrent?' (your current recovery email)':''}. Changing to: <b>${escapeHTML(_emPending)}</b></div>
+          <input id="acEmailCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
+          <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">Confirm</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
+          <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
     const resetBlock = (pwStep==='idle')
       ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>🔑 Reset password by email${em?'':' (add an email first)'}</button>`
       : `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
@@ -4217,17 +4226,26 @@ function renderSettings(){
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
     flushCloud();                                   // save this account's latest progress before leaving
     ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc();
-    pwStep='idle';
+    pwStep='idle'; emStep='idle'; _emPending='';
     G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // clean slate so the next account loads its own save, not this one's
     updateHubChrome(); renderSettings(); };
-  // ---- recovery email: add / change the email on this account ----
+  // ---- recovery email: add / change requires an emailed code (to the CURRENT email if one exists) ----
   const acEdit=b.querySelector('#acEditEmail'); if(acEdit) acEdit.onclick=(e)=>{ e.preventDefault(); const f=b.querySelector('#acEmailForm'); if(f){ f.style.display='block'; const i=b.querySelector('#acEmailIn'); if(i)i.focus(); } };
-  const acEmCancel=b.querySelector('#acEmailCancel'); if(acEmCancel) acEmCancel.onclick=()=>{ const f=b.querySelector('#acEmailForm'); if(f)f.style.display='none'; };
-  const acEmSave=b.querySelector('#acEmailSave'); if(acEmSave){ const save=()=>{ const msg=b.querySelector('#acEmailMsg'); const val=(b.querySelector('#acEmailIn').value||'').trim();
+  const acEmCancel=b.querySelector('#acEmailCancel'); if(acEmCancel) acEmCancel.onclick=()=>{ emStep='idle'; _emPending=''; renderSettings(); };
+  const acEmSend=b.querySelector('#acEmailSend'); if(acEmSend){ const send=()=>{ const msg=b.querySelector('#acEmailMsg'); const val=(b.querySelector('#acEmailIn').value||'').trim();
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){ msg.style.color='#ff8b8b'; msg.textContent='Enter a valid email address.'; return; }
-      msg.style.color='#8b98a9'; msg.textContent='Saving…';
-      api('/api/email','POST',{email:val}).then(d=>{ if(d&&d.ok){ ACC.email=d.email; saveAcc(); renderSettings(); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not save email.'; } }); };
-    acEmSave.onclick=save; const i=b.querySelector('#acEmailIn'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') save(); }; }
+      msg.style.color='#8b98a9'; msg.textContent='Sending code…';
+      api('/api/email-request','POST',{email:val}).then(d=>{ if(d&&d.ok){ _emPending=val; _emSentTo=d.sentTo||''; _emToCurrent=!!d.toCurrent; emStep='code'; renderSettings(); }
+        else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not send code.'; } }); };
+    acEmSend.onclick=send; const i=b.querySelector('#acEmailIn'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') send(); }; }
+  const acEmResend=b.querySelector('#acEmailResend'); if(acEmResend) acEmResend.onclick=()=>{ const msg=b.querySelector('#acEmailMsg'); msg.style.color='#8b98a9'; msg.textContent='Sending a new code…';
+    api('/api/email-request','POST',{email:_emPending}).then(d=>{ if(d&&d.ok){ _emSentTo=d.sentTo||_emSentTo; msg.style.color='#5ee89b'; msg.textContent='✔ A new code was sent.'; } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not resend.'; } }); };
+  const acEmConfirm=b.querySelector('#acEmailConfirm'); if(acEmConfirm){ const confirm=()=>{ const msg=b.querySelector('#acEmailMsg'); const code=(b.querySelector('#acEmailCode').value||'').replace(/\D/g,'');
+      if(code.length!==6){ msg.style.color='#ff8b8b'; msg.textContent='Enter the 6-digit code.'; return; }
+      msg.style.color='#8b98a9'; msg.textContent='Confirming…';
+      api('/api/email-verify','POST',{code}).then(d=>{ if(d&&d.ok){ ACC.email=d.email; saveAcc(); emStep='idle'; _emPending=''; renderSettings(); bannerMsg('📧 Recovery email updated.'); }
+        else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not confirm.'; } }); };
+    acEmConfirm.onclick=confirm; const i=b.querySelector('#acEmailCode'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') confirm(); }; }
   // ---- password reset by email: request a code, then verify code + new password ----
   const acPwReset=b.querySelector('#acPwReset'); if(acPwReset) acPwReset.onclick=()=>{
     api('/api/reset-request','POST',{name:ACC.name}).then(()=>{ pwStep='sent'; renderSettings(); }); };
@@ -4777,7 +4795,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785902619998';
+const BUILD_ID='1785905179702';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
