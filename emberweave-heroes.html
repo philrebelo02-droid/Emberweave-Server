@@ -4112,8 +4112,8 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
   const w1=wavesForChapter(1), w7=wavesForChapter(MAX_CHAPTER*STAGES_PER_CH);
   // ---- write findings as a bot LOG: each named bot files one plain-language observation ----
   const log=[
-    ['Adam',   `I started a brand-new account and could only reach Chapter ${chapterOf(cleared)} before getting stuck. The next stage needed about level ${reqLevel(stallStage,qForCh(chapterOf(stallStage)))}, but just playing the campaign only got me to level ${stallLvl}. Idea: give players more experience early on, or make the first few chapters need a lower level.`],
-    ['Bella',  `Reaching level 40 is brutally slow — it took me about ${batt.toLocaleString()} fights, which is roughly ${hoursToL40.toLocaleString()} hours of waiting for stamina to refill. Most players would quit long before that. Idea: give a lot more experience per fight, or make level 40 quicker to reach.`],
+    ['Adam',   `Playing only the campaign, a fresh account reaches about Chapter ${chapterOf(cleared)} (around level ${stallLvl}) before needing to get stronger. Going further is meant to come from diamonds and the upcoming power/experience buildings — this is expected, not a problem.`],
+    ['Bella',  `For reference: from campaign fights alone, reaching level 40 would take a very long time (about ${batt.toLocaleString()} fights). That's by design — the slow climb is what diamonds and the coming power/experience buildings are there to speed up. Just noting the baseline pace.`],
     ['Cade',   `Chapter 1 (${CHAPTER_NAMES[0]}) is a pushover — I beat the boss at about level ${req[1]} with the starting gear. Idea: make it a little tougher so it still teaches new players.`],
     ['Dana',   `The difficulty jumps up the most when you reach Chapter ${spikeCh} (${CHAPTER_NAMES[spikeCh-1]}) — it suddenly needs about ${spikeJump} more levels than the chapter before. Idea: smooth that step out if it feels like a wall.`],
     ['Eli',    `Chapter 7's (${CHAPTER_NAMES[6]}) final boss needs about level ${req[7]}, which is right in the level-40 range you wanted for the last chapter. Looks good — I'd leave it.`],
@@ -4522,7 +4522,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785898133936';
+const BUILD_ID='1785898445274';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
