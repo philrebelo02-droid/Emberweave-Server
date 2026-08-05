@@ -102,7 +102,7 @@
   .resnum{position:absolute;transform:translateY(-50%);font-weight:800;color:#fff;font-size:clamp(11px,2.4vw,18px);text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.75);white-space:nowrap;z-index:4;pointer-events:none;}
   #resGold{color:#ffe08a;} #resGems{color:#c9b6ff;} #resStamina{color:#bff0a8;}
   /* clickable ornate hero portrait (original frame, Magic-Rush-style) */
-  #profileBtn{position:relative;width:clamp(56px,10vh,92px);aspect-ratio:1;cursor:pointer;z-index:6;transition:.12s;filter:drop-shadow(0 3px 9px rgba(0,0,0,.65));margin-right:clamp(30px,4.7vh,46px);}
+  #profileBtn{position:relative;width:clamp(56px,10vh,92px);aspect-ratio:1;cursor:pointer;z-index:6;transition:.12s;filter:drop-shadow(0 3px 9px rgba(0,0,0,.65));margin-right:clamp(30px,4.7vh,46px);margin-bottom:clamp(20px,3.4vh,30px);}
   #profileBtn:hover{transform:scale(1.05);}
   /* thin XP progress arc sits just inside the gold frame */
   #xpRing{position:absolute;inset:9%;border-radius:50%;box-sizing:border-box;padding:5.5%;
@@ -5603,7 +5603,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785960044637';
+const BUILD_ID='1785961733760';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
