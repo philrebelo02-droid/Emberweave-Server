@@ -1905,7 +1905,8 @@ const DEV={ on:false, god:false, who:'' };   // session-only (resets each launch
 // cloud accounts whose NAME matches one of these unlock the dev tools (sign in with that account)
 const DEV_NAMES = DEV_ACCOUNTS.map(a=>a.user.toLowerCase());
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
-let acctMode='signin';   // 'signin' | 'create' — which tab the account panel shows
+let acctMode='signin';   // 'signin' | 'create' | 'reset' — which tab the account panel shows
+let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
 function show(name){
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
   { const wasHome=document.getElementById('home').classList.contains('active'), wrap=document.getElementById('townWrap');
@@ -3847,6 +3848,17 @@ function renderSettings(){
       <div style="font-size:13px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div>
       <div style="font-size:11px;color:#8b98a9;margin:4px 0 8px">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
       <button class="btn sm secondary" id="acLogout">Log out</button></div>`;
+  } else if(acctMode==='reset'){
+    account=`<div class="panel" style="border-color:#c9a24a66">
+      <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Your password has been reset</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Please type and confirm a new password for <b>${escapeHTML(_resetName||'')}</b> to regain access.</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <input id="acNew" type="password" placeholder="New password" autocomplete="off" style="${inp}">
+        <input id="acNew2" type="password" placeholder="Confirm new password" autocomplete="off" style="${inp}">
+        <button class="btn" id="acSetPass">Set password &amp; sign in</button>
+        <button class="btn xs secondary" id="acResetBack">Back</button>
+      </div>
+      <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
   } else {
     const create = acctMode==='create';
     account=`<div class="panel">
@@ -3924,7 +3936,9 @@ function renderSettings(){
       msg.style.color='#8b98a9'; msg.textContent=acctMode==='create'?'Creating account…':'Signing in…';
       const isCreate=acctMode==='create';
       api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload()}).then(d=>{
+        if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
+        if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id}; saveAcc();
         DEV.on=isDevAcct();
         if(isCreate){ pushSave(); }                            // new account → seed the cloud with your current progress
@@ -3933,6 +3947,23 @@ function renderSettings(){
       }); };
     acGo.onclick=go;
     ['#acUser','#acPass','#acPass2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') go(); });
+  }
+  // password-reset form (shown after an admin armed recovery)
+  const acSet=b.querySelector('#acSetPass');
+  if(acSet){ const doSet=()=>{ const msg=b.querySelector('#acMsg');
+      const np=(b.querySelector('#acNew').value||''), cf=(b.querySelector('#acNew2').value||'');
+      if(np.length<1){ msg.style.color='#ff8b8b'; msg.textContent='Enter a new password.'; return; }
+      if(np!==cf){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
+      msg.style.color='#8b98a9'; msg.textContent='Setting password…';
+      api('/api/login','POST',{name:_resetName, newPass:np, roster:rosterPayload()}).then(d=>{
+        if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server.'; return; }
+        if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id}; saveAcc(); DEV.on=isDevAcct();
+        if(!applyCloudSave(d.profile,true)) pushSave();
+        _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
+    acSet.onclick=doSet;
+    ['#acNew','#acNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSet(); });
+    const backB=b.querySelector('#acResetBack'); if(backB) backB.onclick=()=>{ _resetName=''; acctMode='signin'; renderSettings(); };
   }
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
     flushCloud();                                   // save this account's latest progress before leaving
@@ -4328,7 +4359,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785890327278';
+const BUILD_ID='1785890967535';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
