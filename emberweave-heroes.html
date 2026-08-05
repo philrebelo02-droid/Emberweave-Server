@@ -280,6 +280,28 @@
   .tabrow .tab.on{background:#22406b;border-color:#4d7bd1;color:#eaf2ff;}
   .tabrow .tab .cnt{position:absolute;top:-6px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e6483f;color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;}
   .qcard{background:#141b2b;border:1px solid #2a3550;border-radius:12px;padding:12px 13px;margin-bottom:10px;}
+  .qcard.ready{border-color:#5ee89b;box-shadow:0 0 0 1px rgba(94,232,155,.35),0 4px 14px rgba(0,0,0,.4);}
+  /* daily sign-in calendar */
+  .si-hero{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#241a34,#141b2b);border:1px solid #4a3a6e;border-radius:14px;padding:12px;margin-bottom:12px;}
+  .si-hero .av{width:56px;height:56px;border-radius:12px;overflow:hidden;border:2px solid #a07bd0;flex:none;background:#0d1117;}
+  .si-hero .av img{width:100%;height:100%;object-fit:cover;display:block;}
+  .si-hero .nm{font-weight:800;font-size:15px;color:#e6d6ff;}
+  .si-hero .sub{font-size:11px;color:#9fb0c4;line-height:1.35;margin-top:2px;}
+  .si-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .si-dow{text-align:center;font-size:10px;font-weight:800;color:#8b98a9;padding:2px 0;}
+  .si-cell{position:relative;aspect-ratio:1;border-radius:9px;border:1px solid #2a3550;background:#0f1420;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;overflow:hidden;}
+  .si-cell .dn{position:absolute;top:2px;left:4px;font-size:9px;color:#7f8ba0;font-weight:700;}
+  .si-cell .ic{font-size:19px;line-height:1;}
+  .si-cell .rl{font-size:7.5px;color:#9fb0c4;text-align:center;line-height:1.05;padding:0 2px;}
+  .si-cell.week{border-color:#7a5aa0;background:linear-gradient(160deg,#241a34,#111827);}
+  .si-cell.week.big{border-color:#e0b84a;background:linear-gradient(160deg,#332812,#141018);}
+  .si-cell.week .rl{color:#d3b8ff;font-weight:800;}
+  .si-cell.week.big .rl{color:#ffd45e;}
+  .si-cell.blank{background:transparent;border:none;}
+  .si-cell.claimed{opacity:.45;}
+  .si-cell.claimed::after{content:'✔';position:absolute;font-size:20px;color:#5ee89b;text-shadow:0 1px 3px #000;}
+  .si-cell.today{border-color:#5ee89b;box-shadow:0 0 0 2px rgba(94,232,155,.45);}
+  .si-cell.missed{opacity:.32;}
   .qcard.done{border-color:#3f7a4d;}
   .qcard .qh{display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .qcard .qt{font-weight:800;font-size:14px;color:#eef3fb;}
@@ -499,6 +521,7 @@
         <div class="mitem" data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
         <div class="mitem" data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
         <div class="mitem" data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-nav="signin"><span class="mi">📅</span> Sign-In <span id="signinDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
         <div class="mitem" data-nav="settings"><span class="mi">⚙️</span> Settings</div>
       </div>
@@ -660,6 +683,12 @@
     <div class="titlebar"><h1>📜 QUESTS</h1></div>
     <div class="sub">Complete objectives to earn hero fragments, gold and diamonds.</div>
     <div class="panel" id="questBody"></div>
+  </div>
+  <div class="screen hub" id="signin">
+    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
+    <div class="titlebar"><h1>📅 DAILY SIGN-IN</h1></div>
+    <div class="sub">Sign in each day for rewards — every week earns Hero-of-the-Month fragments.</div>
+    <div class="panel" id="signinBody"></div>
   </div>
   <div class="screen hub" id="mail">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
@@ -1862,7 +1891,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 }
 
 /* =============================== HUB / UI ================================= */
-const SCREENS=['home','campaign','menu','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','mail','result'];
+const SCREENS=['home','campaign','menu','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','mail','result'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign';
 // ---- Developer mode: account-gated dev tools in Settings (client-side gate; edit accounts below) ----
 const DEV_ACCOUNTS=[
@@ -1908,6 +1937,7 @@ function show(name){
   if(name==='bag') renderBag();
   if(name==='settings') renderSettings();
   if(name==='quest') renderQuests();
+  if(name==='signin') renderSignin();
   if(name==='mail') renderMail();
   if(name==='world') renderWorldOverview();
   updateChatVisibility();
@@ -1940,11 +1970,11 @@ function renderHome(){
     {nav:'market',  label:'Market',        x:24,   y:6.5,  w:21.5, h:14.8, lx:24,   ly:17},
     {nav:'tech',    label:'Academy',       x:35,   y:27.5, w:17.5, h:41.1, lx:35,   ly:51,   academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
     {nav:'campaign',label:'Campaign',      x:48,   y:14.5, w:18.5, h:48.2, lx:48,   ly:42},
-    {nav:'temple',  label:'Temple',        x:7.2,  y:52.5, w:15.5, h:48.3, lx:10,   ly:80,   ...lk(40)},
-    {nav:'dungeon', label:'Dungeon',       x:7.5,  y:84.5, w:19,   h:22.8, lx:10,   ly:70,   ...lk(10)},
+    {nav:'temple',  label:'Temple',        x:7.2,  y:52.5, w:15.5, h:48.3, lx:10,   ly:70,   ...lk(40)},
+    {nav:'dungeon', label:'Dungeon',       x:7.5,  y:84.5, w:19,   h:22.8, lx:10,   ly:82,   ...lk(10)},
     {nav:'guild',   label:'Guild Hall',    x:37.8, y:76,   w:15.5, h:36.4, lx:37.8, ly:56,   ...lk(10)},
     {nav:'wishing', label:'Wishing Pool',  x:68.6, y:42.5, w:9.2,  h:18.1, lx:68.6, ly:55},
-    {nav:'arena',   label:'Arena',         x:84.8, y:80.5, w:22,   h:38.7, lx:82,   ly:58,   ...lk(10)},
+    {nav:'arena',   label:'Arena',         x:84.8, y:80.5, w:22,   h:38.7, lx:84.8, ly:99,   ...lk(10)},
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
@@ -2316,12 +2346,34 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
+  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id};saveAcc(); DEV.on=isDevAcct();
+      if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
+      updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
     const isReg=path.indexOf('register')>=0;
-    api(path,'POST',{name,pass,roster:rosterPayload()}).then(d=>{ if(d.error){b.querySelector('#acMsg').textContent=d.error;return;} ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id};saveAcc(); DEV.on=isDevAcct();
-      if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
-      updateHubChrome(); renderAccount(); }); };
+    api(path,'POST',{name,pass,roster:rosterPayload()}).then(d=>{
+      if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
+      if(d.error){b.querySelector('#acMsg').textContent=d.error;return;}
+      finishAuth(d,isReg); }); };
   b.querySelector('#loginBtn').onclick=()=>go('/api/login'); b.querySelector('#regBtn').onclick=()=>go('/api/register');
+}
+// shown when an account was flagged for password recovery — the owner sets a fresh password
+function renderSetNewPass(name){ const b=document.getElementById('accountBody'); if(!b)return;
+  b.innerHTML=`<div style="text-align:center;margin-bottom:10px"><div style="font-size:28px">🔑</div>
+      <div style="font-weight:800;font-size:15px">Set a new password</div>
+      <div style="font-size:12px;color:#8b98a9;margin-top:4px">Account <b>${escapeHTML(name)}</b> was flagged for recovery. Choose a new password to regain access.</div></div>
+    <input id="npPass" type="password" placeholder="New password" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
+    <input id="npConf" type="password" placeholder="Confirm new password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
+    <div style="display:flex;gap:8px"><button class="btn" id="npSet" style="flex:1">Set password &amp; log in</button><button class="btn secondary" id="npCancel" style="flex:0 0 auto">Back</button></div>
+    <div id="npMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
+  b.querySelector('#npCancel').onclick=renderAccount;
+  b.querySelector('#npSet').onclick=()=>{ const np=b.querySelector('#npPass').value, cf=b.querySelector('#npConf').value, m=b.querySelector('#npMsg');
+    if((np||'').length<1){ m.textContent='Enter a new password.'; return; }
+    if(np!==cf){ m.textContent='Passwords do not match.'; return; }
+    api('/api/login','POST',{name, newPass:np, roster:rosterPayload()}).then(d=>{ if(d.error){ m.textContent=d.error; return; }
+      if(!d.token){ m.textContent='Could not set password.'; return; }
+      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id};saveAcc(); DEV.on=isDevAcct();
+      if(!applyCloudSave(d.profile,true)) pushSave(); updateHubChrome(); renderAccount(); }); };
 }
 function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">🌐 '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
   if(!ACC.token){ body.innerHTML='<div class="panel" style="text-align:center">Sign in to enter '+what+'.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return true; } return false; }
@@ -3547,6 +3599,29 @@ function wishGemDo(){ const rigged=!G.wishGemFirstDone, free=wishGemFreeReady();
   if(!free && (G.gems||0)<WISH_GEM_COST){ bannerMsg('Need 💎'+WISH_GEM_COST+' to wish.'); return; }
   if(free){ G.wishGemLast=Date.now(); G.wishGemDay=arenaDayKey(); } else G.gems-=WISH_GEM_COST;   // free wish consumes today's daily slot; otherwise pay diamonds
   G.wishGemFirstDone=true; finishWish(doGemRoll(rigged),'gem'); }
+// ---- 10× bulk wishes at a 10% discount (10 wishes for the price of 9) ----
+const WISH10_MULT=9;
+function wishGold10Cost(){ return WISH_GOLD_COST*WISH10_MULT; }
+function wishGem10Cost(){ return WISH_GEM_COST*WISH10_MULT; }
+function showWishResults10(list,pool){ const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 12px 46px #000b">
+    <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='gem'?'🔮 Diamond Wishes ×10':'⛲ Gold Wishes ×10'}</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:14px 0">
+      ${list.map(r=>`<div style="background:#0f1524;border:1px solid ${r.big?'#ffd45e':'#2a3550'};border-radius:10px;padding:7px 3px;${r.big?'box-shadow:0 0 8px rgba(255,212,94,.5)':''}">
+        <div style="font-size:24px;line-height:1">${r.icon}</div><div style="font-size:8.5px;color:#cdd6e4;line-height:1.2;margin-top:3px">${r.name}</div></div>`).join('')}
+    </div>
+    <button class="btn" style="width:100%" id="_w10Ok">Collect All</button></div>`;
+  document.body.appendChild(ov); ov.querySelector('#_w10Ok').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); }); }
+function wishGold10(){ const cost=wishGold10Cost();
+  if((G.gold||0)<cost){ bannerMsg('Need 🪙'+cost+' for 10 wishes.'); return; }
+  G.gold-=cost; const out=[]; for(let i=0;i<10;i++) out.push(doGoldRoll());
+  G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gold'); renderWishing(); }
+function wishGem10(){ const cost=wishGem10Cost();
+  if((G.gems||0)<cost){ bannerMsg('Need 💎'+cost+' for 10 wishes.'); return; }
+  G.gems-=cost; const out=[]; for(let i=0;i<10;i++){ const rigged=!G.wishGemFirstDone; out.push(doGemRoll(rigged)); G.wishGemFirstDone=true; }
+  G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gem'); renderWishing(); }
 function renderWishing(){ const b=document.getElementById('wishingBody'); if(!b)return;
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
   const gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
@@ -3562,6 +3637,7 @@ function renderWishing(){ const b=document.getElementById('wishingBody'); if(!b)
       <div class="wp-free ${goldFree?'on':''}">${goldFree?'✨ Free wish ready':(goldLeft>0?('⏳ Next free '+fmtDur(goldNext||0)):'Daily free wishes used')}</div>
       <div class="wp-sub">Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour</div>
       <button class="btn ${canGold?'':'secondary'}" id="wpGold" ${canGold?'':'disabled'}>${goldFree?'Wish · Free':'Wish · 🪙'+WISH_GOLD_COST}</button>
+      <button class="btn secondary ${(G.gold||0)>=wishGold10Cost()?'':'secondary'}" id="wpGold10" ${(G.gold||0)>=wishGold10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 🪙${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
     <div class="wishpool gem">
       <div class="wp-orb">🔮</div>
@@ -3570,10 +3646,13 @@ function renderWishing(){ const b=document.getElementById('wishingBody'); if(!b)
       <div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0))}</div>
       <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (09:00 reset) · 10% chance of a 2★ hero'}</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
+      <button class="btn secondary" id="wpGem10" ${(G.gems||0)>=wishGem10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
   </div>`;
   const g=b.querySelector('#wpGold'); if(g)g.onclick=wishGoldDo;
-  const m=b.querySelector('#wpGem'); if(m)m.onclick=wishGemDo; }
+  const m=b.querySelector('#wpGem'); if(m)m.onclick=wishGemDo;
+  const g10=b.querySelector('#wpGold10'); if(g10)g10.onclick=wishGold10;
+  const m10=b.querySelector('#wpGem10'); if(m10)m10.onclick=wishGem10; }
 /* ============================ QUESTS ============================ */
 // Starter quest chain over the campaign:
 //   clear 1-1 → 3 Grohm frags, 1-2 → 3 Grohm frags, 1-3 → 4 Grohm frags,
@@ -3610,32 +3689,104 @@ function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(
   else { let m=''; for(let i=0;i<st.frags;i++){ const x=giveHeroFrag(QUEST_CHAIN_HERO,1); if(x)m=x; } r=m||('+'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'); }
   G.questChainStep=(G.questChainStep||0)+1; saveG(); updateHubChrome(); updateMailBadges();
   bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); }
-function questsAvailable(){ let n=0; if(questChainReady())n++; questDefs().forEach(q=>{ if(q.ready&&!G.questClaimed[q.id])n++; }); return n; }
-function renderQuests(){ const b=document.getElementById('questBody'); if(!b)return; let html='';
-  // campaign chain card
-  const chSteps=questChainDef(); const step=G.questChainStep||0, chDone=questChainDone(), chReady=questChainReady();
-  const st=chDone?chSteps[chSteps.length-1]:chSteps[step];
-  const node=st.node;
-  const chProg=Math.min(node,G.campaignCleared||0);
-  const rewLbl=st.gems?('💎 '+st.gems+' diamonds'):('×'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments');
-  html+=`<div class="qcard${chDone?' done':''}">
-    <div class="qh"><div class="qt">🗺️ Rise Through the Ranks</div><div class="qrew">${chDone?'✔ Done':('🎁 '+rewLbl)}</div></div>
-    <div class="qd">${chDone?'You cleared every stage in the chain.':('Clear Stage '+stageCode(node)+' of the campaign. ('+(step)+'/'+chSteps.length+' steps done)')}</div>
-    <div class="qbar"><i style="width:${chDone?100:Math.round(chProg/node*100)}%"></i></div>
-    <div class="qmeta"><span>${chDone?'Complete':('Stage '+stageCode(chProg)+' / '+stageCode(node)+' cleared')}</span>
-      ${chDone?'':`<button class="btn xs${chReady?'':' secondary'}" id="qcClaim" ${chReady?'':'disabled'}>${chReady?'Claim':'Locked'}</button>`}</div></div>`;
-  // one-off quests
-  questDefs().forEach(q=>{ const claimed=!!G.questClaimed[q.id]; const pct=Math.round(q.prog/q.goal*100);
-    html+=`<div class="qcard${claimed?' done':''}">
+function questsAvailable(){ let n=0; if(questChainReady())n++; questDefs().forEach(q=>{ if(q.ready&&!G.questClaimed[q.id])n++; }); if(typeof dailyPacksReady==='function'&&dailyPacksReady())n++; return n; }
+function renderQuests(){ const b=document.getElementById('questBody'); if(!b)return;
+  const today=arenaDayKey();
+  // 1) purchased packs (Cluster / Burger) — pinned to the very top; recurring, never removed until they expire
+  let packsHtml='';
+  (G.dailyPacks||[]).forEach(p=>{ const ready=(p.lastClaim!==today && p.daysLeft>0);
+    const rew=(p.type==='gems')?('💎 '+p.amount+' diamonds'):('⧗ '+p.amount+' stamina');
+    packsHtml+=`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
+      <div class="qh"><div class="qt">🎁 ${escapeHTML(p.name)}</div><div class="qrew">${rew} / day</div></div>
+      <div class="qd">Daily reward pack — <b style="color:#ffd45e">${p.daysLeft}</b> day${p.daysLeft===1?'':'s'} remaining.</div>
+      <div class="qmeta"><span>${ready?'✨ Ready to claim':'✔ Claimed today · resets 09:00'}</span>
+        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.id}" ${ready?'':'disabled'}>${ready?'Claim':'Claimed'}</button></div></div>`; });
+  // 2) regular quests — completed (claimable) ones bubble to the top; claimed/finished ones drop off the log entirely
+  const cards=[];   // {ready, html}
+  if(!questChainDone()){ const chSteps=questChainDef(); const step=G.questChainStep||0, chReady=questChainReady();
+    const st=chSteps[step], node=st.node, chProg=Math.min(node,G.campaignCleared||0);
+    const rewLbl=st.gems?('💎 '+st.gems+' diamonds'):('×'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments');
+    cards.push({ready:chReady, html:`<div class="qcard${chReady?' ready':''}">
+      <div class="qh"><div class="qt">🗺️ Rise Through the Ranks</div><div class="qrew">🎁 ${rewLbl}</div></div>
+      <div class="qd">Clear Stage ${stageCode(node)} of the campaign. (${step}/${chSteps.length} steps done)</div>
+      <div class="qbar"><i style="width:${Math.round(chProg/node*100)}%"></i></div>
+      <div class="qmeta"><span>Stage ${stageCode(chProg)} / ${stageCode(node)} cleared</span>
+        <button class="btn xs${chReady?'':' secondary'}" id="qcClaim" ${chReady?'':'disabled'}>${chReady?'Claim':'Locked'}</button></div></div>`}); }
+  questDefs().forEach(q=>{ if(G.questClaimed[q.id]) return;   // claimed one-offs have no follow-up → removed from the log
+    const pct=Math.round(q.prog/q.goal*100);
+    cards.push({ready:!!q.ready, html:`<div class="qcard${q.ready?' ready':''}">
       <div class="qh"><div class="qt">${q.title}</div><div class="qrew">🎁 ${q.reward}</div></div>
       <div class="qd">${q.desc}</div>
       <div class="qbar"><i style="width:${pct}%"></i></div>
       <div class="qmeta"><span>${q.prog} / ${q.goal}</span>
-        ${claimed?'<span style="color:#5ee89b;font-weight:800">✔ Claimed</span>':`<button class="btn xs${q.ready?'':' secondary'}" data-q="${q.id}" ${q.ready?'':'disabled'}>${q.ready?'Claim':'In progress'}</button>`}</div></div>`; });
-  b.innerHTML=html;
+        <button class="btn xs${q.ready?'':' secondary'}" data-q="${q.id}" ${q.ready?'':'disabled'}>${q.ready?'Claim':'In progress'}</button></div></div>`}); });
+  // completed quests always sit at the top; claim one and the next completed quest rises up
+  cards.sort((a,b)=> (b.ready?1:0)-(a.ready?1:0));
+  const questHtml=cards.map(c=>c.html).join('');
+  b.innerHTML = (packsHtml + questHtml) || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">🎉 All quests complete! New quests will appear here as you play.</div>';
   const cc=b.querySelector('#qcClaim'); if(cc)cc.onclick=claimChain;
   b.querySelectorAll('button[data-q]').forEach(btn=>btn.onclick=()=>{ const q=questDefs().find(x=>x.id===btn.dataset.q); if(q)claimQuest(q); });
+  b.querySelectorAll('button[data-pack]').forEach(btn=>btn.onclick=()=>claimDailyPack(btn.dataset.pack));
 }
+
+/* ============================ DAILY SIGN-IN ============================ */
+function signinNow(){ return new Date(Date.now()-9*3600000); }          // 09:00-reset-aligned "today"
+function signinMonthKey(d){ return d.getFullYear()+'-'+(d.getMonth()+1); }
+function signinEnsure(){ const d=signinNow(), mk=signinMonthKey(d);
+  if(G.signinMonth!==mk){ G.signinMonth=mk; G.signinClaimed=[]; }        // new month → fresh calendar
+  if(!Array.isArray(G.signinClaimed)) G.signinClaimed=[]; }
+function monthlyHeroKey(){ const d=signinNow(); return HERO_KEYS[(d.getFullYear()*12+d.getMonth())%HERO_KEYS.length]; }
+function isLastSaturday(y,m,day){ return day+7 > new Date(y,m+1,0).getDate(); }
+const SIGNIN_DAILY=[
+  {icon:'🪙', label:'300 Gold',     grant:()=>{ G.gold=(G.gold||0)+300; }},
+  {icon:'⧗',  label:'+60 Stamina',  grant:()=>{ G.stamina=(G.stamina||0)+60; }},
+  {icon:'💎', label:'20 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+20; }},
+  {icon:'💠', label:'6 Rune Shards',grant:()=>{ wishMat('green',6); }},
+  {icon:'🪙', label:'600 Gold',     grant:()=>{ G.gold=(G.gold||0)+600; }},
+  {icon:'💎', label:'30 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+30; }},
+];
+function signinDayReward(y,m,day){ const dow=new Date(y,m,day).getDay();
+  if(dow===6){ const big=isLastSaturday(y,m,day), n=big?15:5, hk=monthlyHeroKey();   // Saturday = end of week
+    return {week:true, big, hero:hk, frag:n, label:n+'× '+HERO_TYPES[hk].name+' frags', grant:()=>{ giveHeroFrag(hk,n); }}; }
+  return SIGNIN_DAILY[(day-1)%SIGNIN_DAILY.length]; }
+function signinReadyToday(){ signinEnsure(); return !G.signinClaimed.includes(signinNow().getDate()); }
+function showSigninReward(rew,hk){ const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid ${rew.week?'#c9a24a':'#3f6fae'};border-radius:18px;padding:22px;width:100%;max-width:300px;text-align:center;box-shadow:0 12px 46px #000b">
+    <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">Daily Sign-In</div>
+    <div style="font-size:56px;margin:8px 0" id="_siIcon">${rew.week?'':rew.icon}</div>
+    <div style="font-size:16px;font-weight:800;color:#e6edf3">${rew.label}</div>
+    <button class="btn" style="margin-top:16px;width:100%" id="_siOk">Collect</button></div>`;
+  document.body.appendChild(ov);
+  if(rew.week && hk){ const ic=ov.querySelector('#_siIcon'); ic.innerHTML=`<img style="width:66px;height:66px;border-radius:12px;object-fit:cover" alt="">`; const img=ic.querySelector('img'); if(img) setHead(img,hk); }
+  ov.querySelector('#_siOk').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); }); }
+function signinClaimToday(){ signinEnsure(); const d=signinNow(), day=d.getDate();
+  if(G.signinClaimed.includes(day)){ bannerMsg('Already signed in today — back at 09:00.'); return; }
+  const rew=signinDayReward(d.getFullYear(), d.getMonth(), day);
+  rew.grant(); G.signinClaimed.push(day); saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges();
+  showSigninReward(rew, rew.hero); renderSignin(); }
+function renderSignin(){ signinEnsure(); const b=document.getElementById('signinBody'); if(!b)return;
+  const d=signinNow(), y=d.getFullYear(), m=d.getMonth(), today=d.getDate();
+  const monthName=['January','February','March','April','May','June','July','August','September','October','November','December'][m];
+  const daysIn=new Date(y,m+1,0).getDate(), first=new Date(y,m,1).getDay(), hk=monthlyHeroKey();
+  const claimed=new Set(G.signinClaimed), ready=!claimed.has(today);
+  let cells=['S','M','T','W','T','F','S'].map(x=>`<div class="si-dow">${x}</div>`).join('');
+  for(let i=0;i<first;i++) cells+='<div class="si-cell blank"></div>';
+  for(let day=1; day<=daysIn; day++){ const rew=signinDayReward(y,m,day);
+    let cls='si-cell'; if(rew.week) cls+=' week'+(rew.big?' big':'');
+    if(claimed.has(day)) cls+=' claimed'; else if(day===today) cls+=' today'; else if(day<today) cls+=' missed';
+    const inner=rew.week?`<div class="ic">🎁</div><div class="rl">${rew.frag} frag${rew.frag===1?'':'s'}</div>`:`<div class="ic">${rew.icon}</div><div class="rl">${rew.label}</div>`;
+    cells+=`<div class="${cls}"><span class="dn">${day}</span>${inner}</div>`; }
+  b.innerHTML=`
+    <div class="si-hero"><div class="av"><img id="siHeroImg" alt=""></div>
+      <div style="flex:1"><div class="nm">⭐ Hero of the Month: ${HERO_TYPES[hk].name}</div>
+        <div class="sub">Every Saturday earns <b style="color:#c9a2ff">5 ${HERO_TYPES[hk].name} fragments</b> — the last week of ${monthName} gives <b style="color:#ffd45e">15</b>.</div></div></div>
+    <div style="text-align:center;font-weight:800;font-size:15px;margin:2px 0 8px">${monthName} ${y}</div>
+    <div class="si-cal">${cells}</div>
+    <button class="btn" id="siClaim" style="width:100%;margin-top:14px" ${ready?'':'disabled'}>${ready?'✨ Sign In — Claim Today':'✔ Signed in today · back at 09:00'}</button>`;
+  const img=b.querySelector('#siHeroImg'); if(img) setHead(img,hk);
+  const btn=b.querySelector('#siClaim'); if(btn) btn.onclick=signinClaimToday; }
 
 /* ============================ MAIL ============================ */
 let mailTab='inbox';
@@ -3673,6 +3824,7 @@ function updateMailBadges(){ ensureMail(); pruneWars();
   const md=document.getElementById('mailDot'), qd=document.getElementById('questDot');
   if(md){ const n=mailUnread()+incomingWars().length; md.textContent=n>9?'9+':(n||''); md.style.display=n?'inline-flex':'none'; }
   if(qd){ const n=questsAvailable(); qd.textContent=n?'!':''; qd.style.display=n?'inline-flex':'none'; }
+  const sd=document.getElementById('signinDot'); if(sd){ const on=(typeof signinReadyToday==='function'&&signinReadyToday()); sd.textContent='!'; sd.style.display=on?'inline-flex':'none'; }
   if(state==='mail') renderMail();
 }
 
@@ -3822,13 +3974,39 @@ function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!ou
     const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
     let html='<div style="font-weight:800;margin-bottom:4px">'+(kind==='online'?'👥 Online now: '+rows.length:'🗂 Total accounts: '+rows.length)+'</div>';
     if(!rows.length) html+='<span style="color:#8b98a9">None found.</span>';
-    else html+='<table style="width:100%;border-collapse:collapse;font-size:11px">'+rows.map(r=>
-      '<tr style="border-top:1px solid #1c2434"><td style="padding:3px 4px;font-weight:700">'+escapeHTML(r.name)+'</td>'
-      +'<td style="padding:3px 4px;color:#ffd45e">#'+r.rank+'</td>'
-      +'<td style="padding:3px 4px;color:#8b98a9;text-align:right;white-space:nowrap">'+(kind==='online'?ago(r.lastSeen):('made '+dt(r.created)))+'</td></tr>'
-    ).join('')+'</table>';
+    else { html+='<div style="font-size:10px;color:#6f7d90;margin-bottom:4px">Tap a player for admin options.</div>';
+      html+=rows.map((r,idx)=>
+      '<div class="devrow" data-idx="'+idx+'" style="display:flex;align-items:center;gap:8px;border-top:1px solid #1c2434;padding:6px 4px;cursor:pointer">'
+      +'<span style="font-weight:700;flex:1">'+escapeHTML(r.name)+(r.mustReset?' <span style="color:#ffb454;font-size:10px">🔑 reset pending</span>':'')+'</span>'
+      +'<span style="color:#ffd45e">#'+r.rank+'</span>'
+      +'<span style="color:#8b98a9;text-align:right;white-space:nowrap;font-size:10px">'+(kind==='online'?ago(r.lastSeen):('made '+dt(r.created)))+'</span>'
+      +'<span style="color:#4a5570">›</span></div>'
+    ).join(''); }
     out.innerHTML=html;
+    out.querySelectorAll('.devrow').forEach(el=>el.onclick=()=>openPlayerAdmin(rows[+el.dataset.idx], kind, b));
   }); }
+// admin options for one player (dev only)
+function openPlayerAdmin(r, kind, panel){ if(!r)return;
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
+  const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:340px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">✕</button></div>
+    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}</div>
+    <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
+    ${r.mustReset
+      ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
+      : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">🔑 Recover password</button>`}
+    <div style="font-size:10px;color:#6f7d90;line-height:1.4">Recovery signs this account out everywhere and makes their <b>next login</b> prompt them to create &amp; confirm a new password.</div>
+  </div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  ov.querySelector('#paX').onclick=close;
+  const msg=ov.querySelector('#paMsg');
+  const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
+    msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); devAdminList(kind,panel); } else msg.textContent=(d&&d.error)||'Failed'; }); }); };
+  const un=ov.querySelector('#paUndo'); if(un) un.onclick=()=>{ msg.textContent='Working…'; api('/api/admin/unreset','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); devAdminList(kind,panel); } else msg.textContent=(d&&d.error)||'Failed'; }); };
+}
 // force the installed app to pull the freshest deployed build: drop caches, unregister SW, hard reload
 function devForceUpdate(){
   const fin=()=>{ try{ location.reload(); }catch(e){ location.href=location.href; } };
@@ -3979,12 +4157,27 @@ const GEM_OFFERS=[
   {price:'$19.99',img:'d2800',   name:'2,800 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,800 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2800}},
   {price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 💎 diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:6000}},
 ];
-// grant a pack's listed reward to the player (used once real purchases are enabled)
+// grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
+// drop a claimable entry at the top of the Quest log that pays out once per day until its days run out.
 function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.reward) return; const rw=o.reward;
-  if(rw.kind==='gems'){ G.gems=(G.gems||0)+rw.amount; }
-  else if(rw.kind==='dailyGems'){ G.gems=(G.gems||0)+rw.amount; G.dailyGemPack={amount:rw.amount, left:rw.days}; }
-  else if(rw.kind==='dailyStamina'){ G.stamina=(G.stamina||0)+rw.amount; G.dailyStaminaPack={amount:rw.amount, left:rw.days}; }
-  saveG(); updateHubChrome(); }
+  if(rw.kind==='gems'){ G.gems=(G.gems||0)+rw.amount; bannerMsg('💎 +'+rw.amount+' diamonds!'); }
+  else if(rw.kind==='dailyGems'||rw.kind==='dailyStamina'){
+    G.dailyPacks=G.dailyPacks||[];
+    G.dailyPacks.push({ id:'dp'+Date.now()+'_'+Math.floor(Math.random()*1e4),
+      type:(rw.kind==='dailyGems'?'gems':'stamina'), amount:rw.amount, daysLeft:rw.days, lastClaim:null, name:o.name, icon:o.img });
+    bannerMsg('🎁 '+o.name+' added — claim it daily in Quests!');
+  }
+  saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges(); }
+// claim one day's reward from an active daily pack (once per 09:00 reset day)
+function claimDailyPack(id){ const p=(G.dailyPacks||[]).find(x=>x.id===id); if(!p)return;
+  const today=arenaDayKey();
+  if(p.lastClaim===today){ bannerMsg('Already claimed today — back at 09:00.'); return; }
+  if(p.type==='gems'){ G.gems=(G.gems||0)+p.amount; bannerMsg('💎 +'+p.amount+' from '+p.name); }
+  else { G.stamina=(G.stamina||0)+p.amount; bannerMsg('⧗ +'+p.amount+' stamina from '+p.name); }
+  p.lastClaim=today; p.daysLeft-=1;
+  if(p.daysLeft<=0) G.dailyPacks=G.dailyPacks.filter(x=>x.id!==id);
+  saveG(); updateHubChrome(); renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
+function dailyPacksReady(){ const today=arenaDayKey(); return (G.dailyPacks||[]).some(p=>p.lastClaim!==today && p.daysLeft>0); }
 function foodDayReset(){ const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
 function goldDayReset(){ const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
 function foodNextCost(){ foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
@@ -3996,7 +4189,22 @@ function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
   const amt=goldPerBuy(); G.gems-=c; G.gold=(G.gold||0)+amt; G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+amt+' gold!'); }
 function buyGemOffer(i){
-  // real purchases aren't live yet — grantGemOffer(i) will hand out the listed reward once they are
+  // Devs get a test popup that actually grants the reward, so packs can be verified before purchases go live.
+  if(isDevAcct()){
+    const o=GEM_OFFERS[i]||{};
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:320;padding:20px';
+    ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:22px 20px;width:100%;max-width:330px;text-align:center;box-shadow:0 14px 44px #000b">
+      <div style="font-size:34px;line-height:1;margin-bottom:6px">🛠️</div>
+      <div style="font-family:Georgia,serif;font-weight:900;font-size:19px;color:#ffd45e;text-shadow:0 1px 4px #000">Dev Pack Test</div>
+      <div style="font-size:12px;color:#cdd6e4;margin:8px 0 16px;line-height:1.4"><b>${escapeHTML(o.name||'')}</b><br>Press OK to grant this pack's reward and verify it works.</div>
+      <button class="btn" style="width:100%" id="_dpOk">OK — grant reward</button></div>`;
+    document.body.appendChild(ov); const close=()=>ov.remove();
+    ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+    ov.querySelector('#_dpOk').onclick=(e)=>{ e.stopPropagation(); close(); grantGemOffer(i); };
+    return;
+  }
+  // Normal players: "no diamond packs yet — coming soon" art popup.
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:320;padding:20px';
   ov.innerHTML=`<div style="position:relative;width:min(88vw,460px)">
@@ -4103,7 +4311,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785886624315';
+const BUILD_ID='1785889206889';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
