@@ -59,28 +59,7 @@ function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), no
 function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===id) delete DB.tokens[t]; } }   // single-session / force re-login
 function adjustGems(u, delta){ try{ if(!u.roster||typeof u.roster.__save!=='string') return null;
   const g=JSON.parse(u.roster.__save); g.gems=Math.max(0,(g.gems||0)+delta); g.mtime=Date.now();
-  u.roster.__save=JSON.stringify(g); u.econ={gems:g.gems||0,gold:g.gold||0,t:Date.now()}; return g.gems; }catch(e){ return null; } }
-// ---- anti-tamper: the economy is client-side, so the server can't fully trust a save. It CAN reject the impossible:
-//      clamp values no legitimate player can reach (undoing "set my diamonds to 2 billion"), and FLAG (never block, to
-//      avoid false positives) implausible single-save jumps so a dev can investigate. Not a full server-authoritative
-//      economy — that's the pre-real-money rewrite — but it stops casual console cheating cold. ----
-const ECON_CAP={ gems:5000000, gold:2000000000, stamina:100000, arenaCoins:50000000, guildCoins:50000000, playerXP:100000000, gemFrac:1000000 };
-const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
-function clampNum(v,cap){ if(typeof v!=='number'||!isFinite(v)) return v; if(v<0) return 0; if(v>cap) return cap; return v; }
-function sanitizeSave(u, roster){
-  if(!roster || typeof roster.__save!=='string') return roster;
-  let g; try{ g=JSON.parse(roster.__save); }catch(e){ return roster; }   // unparseable → store as-is, nothing to validate
-  let clamped=false;
-  for(const k in ECON_CAP){ if(typeof g[k]==='number'){ const nv=clampNum(g[k],ECON_CAP[k]); if(nv!==g[k]){ g[k]=nv; clamped=true; } } }
-  for(const map of ['mats','eqMats','starShards','heroFrag','glyphRank']){ const o=g[map]; if(o&&typeof o==='object'){ for(const k in o){ if(typeof o[k]==='number'){ const nv=clampNum(o[k],MAP_CAP); if(nv!==o[k]){ o[k]=nv; clamped=true; } } } } }
-  const prev=u.econ||{}, now=Date.now(); const dGems=(g.gems||0)-(prev.gems||0), dGold=(g.gold||0)-(prev.gold||0);
-  let reason=null;
-  if(clamped) reason='impossible value clamped';
-  else if(prev.gems!=null && dGems>GEM_SPIKE) reason='diamond spike (+'+dGems+')';
-  else if(prev.gold!=null && dGold>GOLD_SPIKE) reason='gold spike (+'+dGold+')';
-  if(reason){ u.flag={ reason, t:now, gems:g.gems||0, gold:g.gold||0 }; console.log('⚠ integrity flag — '+u.name+': '+reason); }
-  u.econ={ gems:g.gems||0, gold:g.gold||0, t:now };
-  roster.__save=JSON.stringify(g); return roster; }
+  u.roster.__save=JSON.stringify(g); return g.gems; }catch(e){ return null; } }
 // rotating hourly DB backups (kept alongside the db file)
 function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
   const stamp=new Date().toISOString().replace(/[:.]/g,'-'); fs.writeFileSync(path.join(dir,'db-'+stamp+'.json'), JSON.stringify(DB));
@@ -103,34 +82,19 @@ function getMailer(){ if(_mailerTried) return _mailer; _mailerTried=true;
     console.log('✉  SMTP mailer ready ('+process.env.SMTP_HOST+').');
   }catch(e){ console.log('✉  nodemailer not installed — run `npm install`. Reset codes will be logged to the console only.'); _mailer=null; }
   return _mailer; }
-function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-// a simple branded HTML version — a well-formed multipart email looks more legitimate to spam filters than bare text
-function codeHtml(name, intro, code, note){
-  return `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:460px;margin:0 auto;padding:8px;color:#1a1f2b">
-    <div style="font-size:20px;font-weight:800;color:#c8501e;margin-bottom:14px">🔥 Emberweave Heroes</div>
-    <p style="margin:0 0 10px">Hi ${escHtml(name)},</p>
-    <p style="margin:0 0 14px">${intro}</p>
-    <div style="font-size:30px;font-weight:800;letter-spacing:8px;background:#f4f5f8;border:1px solid #e3e6ee;border-radius:12px;padding:16px;text-align:center;margin:0 0 14px;color:#1a1f2b">${code}</div>
-    <p style="margin:0 0 14px;color:#5a6472;font-size:13px">${note}</p>
-    <p style="margin:0;color:#9aa2b1;font-size:12px">— Emberweave Heroes</p></div>`;
-}
-function mailCode(to, name, subject, text, label, code, html){
-  const addr=process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@emberweave.game';
-  const from='"Emberweave Heroes" <'+addr+'>';   // friendly display name reads as legitimate, not a bare script
+function mailCode(to, name, subject, text, label, code){
+  const from=process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@emberweave.game';
   const m=getMailer();
   if(!m){ console.log('✉  [DEV] '+label+' for '+name+' <'+to+'>: '+code); return; }
-  const msg={ from, to, replyTo:addr, subject, text }; if(html) msg.html=html;
-  m.sendMail(msg).then(()=>console.log('✉  '+label+' emailed to '+to)).catch(e=>console.log('✉  send failed ('+e.message+') — '+label+' for '+name+' is '+code)); }
+  m.sendMail({from, to, subject, text}).then(()=>console.log('✉  '+label+' emailed to '+to)).catch(e=>console.log('✉  send failed ('+e.message+') — '+label+' for '+name+' is '+code)); }
 function sendResetEmail(to, name, code){
   mailCode(to, name, 'Your Emberweave Heroes password reset code',
     `Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`,
-    'reset code', code,
-    codeHtml(name, 'Your one-time password reset code is:', code, 'Enter it in the game to set a new password. This code expires in 15 minutes and can only be used once. If you didn\'t request this, you can safely ignore this email.')); }
+    'reset code', code); }
 function sendChangeCode(to, name, code, toCurrent){
   mailCode(to, name, 'Confirm your Emberweave Heroes recovery email',
     `Hi ${name},\n\nA request was made to change the recovery email on your account. Your confirmation code is: ${code}\n\nEnter it in the game to confirm the change. This code expires in 15 minutes.\n\n${toCurrent?'If this wasn\'t you, do NOT enter this code and change your password right away — someone may have access to your account.':'If you didn\'t request this, you can ignore this email.'}\n\n— Emberweave Heroes`,
-    'email-change code', code,
-    codeHtml(name, 'A request was made to change the recovery email on your account. Your confirmation code is:', code, toCurrent?'Enter it in the game to confirm the change (expires in 15 minutes). If this wasn\'t you, do NOT enter this code and change your password right away.':'Enter it in the game to confirm the change. Expires in 15 minutes. If you didn\'t request this, you can ignore this email.')); }
+    'email-change code', code); }
 
 const HERO_KEYS=['aldric','thorne','grohm','vex','sylva','rook','zephyr','lumi','aria'];
 function defaultTeam(){ return [ {key:'aldric',level:1,rank:0},{key:'sylva',level:1,rank:0},{key:'zephyr',level:1,rank:0},{key:'lumi',level:1,rank:0},{key:'vex',level:1,rank:0} ]; }
@@ -237,11 +201,11 @@ async function api(req,res,url){
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const cutoff=Date.now()-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
-      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
+      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset}));
     return send(res,200,{online, count:online.length}); }
   if(p==='/api/admin/accounts'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
-      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
+      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset}));
     return send(res,200,{accounts, count:accounts.length}); }
   // admin: flag an account for password recovery — its owner sets a new password on next login
   if(p==='/api/admin/reset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -255,18 +219,6 @@ async function api(req,res,url){
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     u.mustReset=false; writeDB(); return send(res,200,{ok:true, name:u.name}); }
-  // admin: clear or set a player's recovery email (for the "lost my old inbox" case — clearing lets them
-  // bind a fresh email through the normal verified flow, since first-time binding sends the code to the new address)
-  if(p==='/api/admin/email' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
-    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
-    if(b.action==='clear'){ delete u.email; delete u.emailChange; writeDB(); return send(res,200,{ok:true, name:u.name, email:''}); }
-    const email=normalizeEmail(b.email); if(!email) return send(res,400,{error:'Enter a valid email address.'});
-    u.email=email; delete u.emailChange; writeDB(); return send(res,200,{ok:true, name:u.name, email}); }
-  // admin: clear an account's integrity flag (after reviewing / resetting them)
-  if(p==='/api/admin/clearflag' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
-    if(!u||u.isNpc) return send(res,404,{error:'account not found'}); delete u.flag; writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: create an account directly
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
@@ -334,16 +286,13 @@ async function api(req,res,url){
     return send(res,200,{ ok:true, email:me.email }); }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
-    if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall;
-    if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
-    writeDB(); return send(res,200,{ok:true}); }
+    if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall; if(b.roster) me.roster=b.roster; writeDB();
+    return send(res,200,{ok:true}); }
 
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:o.team, isNpc:!!o.isNpc } }); }
 
-  if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
-    const b=await body(req);
+  if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
     const opp=DB.users[b.oppId]; const r=applyResult(me,opp,!!b.won); const reward=b.won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward; writeDB();
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
 
@@ -385,8 +334,9 @@ const server=http.createServer((req,res)=>{
   if(p==='/icon-512-maskable.png') return serveFile(res,'icon-512-maskable.png','image/png');
   if(p==='/apple-touch-icon.png') return serveFile(res,'apple-touch-icon.png','image/png');
   // everything else -> the game (local file if bundled, else pulled from GAME_URL). Supports /?room deep links.
-  fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); res.end(buf); return; }
-    remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); res.end(r.buf); }); });
+  const HTML_HDRS={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store, no-cache, must-revalidate','Pragma':'no-cache','Expires':'0'};
+  fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,HTML_HDRS); res.end(buf); return; }
+    remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;} res.writeHead(200,HTML_HDRS); res.end(r.buf); }); });
 });
 
 /* ---------------------- live PvP: 2-player room relay ---------------------- */
