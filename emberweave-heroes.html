@@ -2072,7 +2072,7 @@ function clearBattle(){ units.forEach(u=>{if(u.mesh){scene.remove(u.mesh);dispos
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 function startBattle(){
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; setBattleZoom(1);   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
@@ -4186,7 +4186,7 @@ function startVersus(enemyTeam,auto){
   autoUlt=!!auto;
   buildPortraitBar('ally');refreshCtrlBtns();updateCounts();show('battle');
   document.getElementById('waveTag').textContent = (CUR.mode==='arena'?'🏆 ARENA':'🗺️ RAID');
-  if(auto){ gameSpeed=2; refreshCtrlBtns(); }
+  gameSpeed=1; refreshCtrlBtns();
 }
 let heroSort='power';   // roster sort for OWNED heroes: 'power' | 'level' | 'stars'
 function renderHeroList(){
@@ -5902,7 +5902,7 @@ document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getEleme
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
-document.getElementById('speedBtn').onclick=()=>{gameSpeed=gameSpeed>=3?1:gameSpeed+1;refreshCtrlBtns();};
+document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
 document.getElementById('autoBtn').onclick=()=>{ if(CUR.mode==='arena')return; autoUlt=!autoUlt;refreshCtrlBtns();};
 
 /* loop */
@@ -5914,7 +5914,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
-    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; for(let i=0;i<spd&&!ended;i++)updateBattle(dt*BATTLE_PACE);
+    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; const _steps=spd>=1?Math.round(spd):1, _sdt=(spd>=1?dt:dt*spd)*BATTLE_PACE; for(let i=0;i<_steps&&!ended;i++)updateBattle(_sdt);
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
@@ -5924,7 +5924,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786050588690';
+const BUILD_ID='1786051595218';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
