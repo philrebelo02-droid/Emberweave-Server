@@ -2292,6 +2292,12 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);if(state!=='battle')return;
     // highlight the target the ult will hit
     const tt=battleTime*8, best=nearestToScreen(aimTX,aimTY,aimTargetTeam());
     if(best){const bp=project(best.x,best.y,1);octx.strokeStyle='#ff5b6b';octx.lineWidth=3;octx.beginPath();octx.arc(bp.x,bp.y,20+Math.sin(tt)*3,0,7);octx.stroke();}
+    // AoE ultimate telegraph: a dashed ground ring showing the radius the ult will cover (radius ults only)
+    { const AIMPT=['gravcrush','fireball','aoeStun','monkSlam'], ULD=ULT_DEF[aiming.t.ability]||{};
+      let ctr=null; if(AIMPT.includes(aiming.t.ability)&&ULD.radius) ctr=best||aiming; else if(aiming.t.ability==='cleave'&&ULD.radius) ctr=aiming;
+      if(ctr){ const cp=project(ctr.x,ctr.y,0.15), rp=project(ctr.x+ULD.radius,ctr.y,0.15), rr=Math.max(12,Math.abs(rp.x-cp.x));
+        octx.fillStyle='rgba(139,92,246,.16)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rr,rr*0.5,0,0,7); octx.fill();
+        octx.strokeStyle='rgba(160,120,255,.95)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.beginPath(); octx.ellipse(cp.x,cp.y,rr,rr*0.5,0,0,7); octx.stroke(); octx.setLineDash([]); } }
     octx.fillStyle='#ffd45e';octx.font='bold 13px sans-serif';octx.textAlign='center';octx.fillText('🎯 '+aiming.t.abilityName,ap.x,ap.y-24); }
   updatePortraits();
 }
@@ -5918,7 +5924,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786049452866';
+const BUILD_ID='1786049686572';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
