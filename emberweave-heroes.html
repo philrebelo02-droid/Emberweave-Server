@@ -4039,7 +4039,7 @@ function renderHeroList(){
         ${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,12)}</div>`:''}
         <div class="name" style="font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
         ${mythBnr}
-        <div class="role" style="font-size:9px;line-height:1.25">${roleTag}</div>
+        <div class="role" style="font-size:9px;line-height:1.25;${unlocked?'align-self:stretch;text-align:left;padding:0 34px 0 3px':''}">${roleTag}</div>
         ${unlocked?'':`<div class="stats" style="margin-top:1px;font-size:10px">${lockedLine}</div>`}</div>`;
     card.onclick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);
@@ -5737,7 +5737,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785974148430';
+const BUILD_ID='1785975563212';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
