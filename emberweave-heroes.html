@@ -28,7 +28,8 @@
   /* online / offline status under the word "Heroes" */
   #rotateGate .splashStatus{position:absolute;left:0;right:0;top:85.5%;text-align:center;font-weight:800;font-size:clamp(12px,2.7vw,20px);letter-spacing:1.5px;text-shadow:0 2px 6px #000,0 0 10px rgba(0,0,0,.75);pointer-events:none;}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
-  body.gated #app{visibility:hidden;}
+  body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
+  body.gated #three,body.gated #three canvas,body.gated #overlay{visibility:hidden;opacity:0;}
   /* hero detail: prev/next hero navigation arrows */
   .hero-nav{position:absolute;top:190px;transform:translateY(-50%);width:38px;height:66px;border:1px solid #3a4a6a;background:rgba(16,21,31,.9);color:#e6edf3;font-size:30px;font-weight:800;border-radius:11px;cursor:pointer;z-index:6;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);}
   #heroPrev{left:8px;} #heroNext{right:8px;}
@@ -378,6 +379,7 @@
   .hero-card .stats{font-size:11px;color:#aeb9c9;margin-top:6px;line-height:1.5;}
   .pill{display:inline-block;background:#33405e;border-radius:20px;padding:1px 8px;font-size:10px;margin-right:4px;}
   .lvl{position:absolute;top:8px;right:8px;background:#ffb347;color:#0b0e14;font-weight:800;font-size:11px;border-radius:20px;padding:1px 7px;}
+  .hero-card .lvl{top:auto;bottom:8px;right:8px;}   /* on roster cards the Lv badge sits bottom-right so it doesn't block the Total Power line at the top */
 
   .btn{background:linear-gradient(90deg,#ffb347,#ff8a5b);color:#0b0e14;border:none;padding:12px 20px;border-radius:12px;
        font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.4px;box-shadow:0 6px 18px rgba(255,138,91,.28);transition:.1s;}
@@ -1172,12 +1174,15 @@ function doStarStep(key){ if(!canStarStep(key))return false; if(!G.heroFrag)G.he
   else { G.starPip[key]=starPips(key)+1; }                                                // otherwise fill one pip
   return true; }
 // accumulated FLAT stats from stars: full totals for completed stars + per-pip shares of the in-progress star
-function starFlat(key){ const lv=heroStars(key), pip=starPips(key); let hp=0,atk=0;
-  for(let s=1;s<lv;s++){ hp+=STAR_TOTAL[s].hp; atk+=STAR_TOTAL[s].atk; }
-  if(lv<MAX_STARS){ const t=STAR_TOTAL[lv]; hp+=(pip/STAR_PIPS)*t.hp; atk+=(pip/STAR_PIPS)*t.atk; }
-  return {hp:Math.round(hp),atk:Math.round(atk)}; }
-function heroFlatAtk(key){ return (glyphSockMul(key).atk||0)+starFlat(key).atk; }
-function heroFlatHp(key){ return (glyphSockMul(key).hp||0)+starFlat(key).hp; }
+// ---- STAR STAT MULTIPLIER (Magic-Rush style: TOTAL stat power vs the 1★ baseline; replaces the old flat per-star bonus) ----
+const STAR_MULT=[1.00,1.15,1.35,1.60,1.90];                    // 1★..5★ whole-star anchors
+const REFINE_ANCHORS=[1.90,2.25,2.65,2.90];                   // 5★ · Bronze-done · Silver-done · Gold-done  (5 refine steps per tier)
+function starMult(key){ const lv=heroStars(key), pip=starPips(key);
+  if(lv<MAX_STARS){ const a=STAR_MULT[lv-1], b=STAR_MULT[lv]; return a+(b-a)*(pip/STAR_PIPS); }        // smooth across pips
+  const rl=refineLevel(key); if(rl>=REFINE_MAX) return REFINE_ANCHORS[3];                              // fully Gold
+  const seg=Math.floor(rl/5), within=(rl%5)/5; return REFINE_ANCHORS[seg]+(REFINE_ANCHORS[seg+1]-REFINE_ANCHORS[seg])*within; }   // smooth across refine steps
+function heroFlatAtk(key){ return (glyphSockMul(key).atk||0); }   // stars are a MULTIPLIER now (heroStat / makeUnit), not a flat add
+function heroFlatHp(key){ return (glyphSockMul(key).hp||0); }
 function starRow(cur,max){ let s=''; for(let i=1;i<=max;i++) s+=`<span style="font-size:15px;filter:${i<=cur?'none':'grayscale(1) brightness(.5)'}">⭐</span>`; return s; }
 // SVG star filled left→right by `frac` (0..1) — used to show a star filling like a gauge
 let _starUid=0;
@@ -1494,7 +1499,7 @@ function xpForLevel(l){ l=Math.max(1,Math.min(MAX_LEVEL,l)); return HERO_CUM[l];
 function levelFromXP(xp){ return levelForXP(xp, HERO_CUM); }
 function heroLevel(key){ return Math.max(1, Math.min(playerLevel(), levelFromXP(G.heroXP[key]||0))); }
 function heroCapped(key){ return levelFromXP(G.heroXP[key]||0) >= playerLevel(); } // xp level hit the account cap
-function heroStat(key,base){ return base*(1+0.18*(heroLevel(key)-1)); }
+function heroStat(key,base){ return base*(1+0.18*(heroLevel(key)-1))*starMult(key); }   // stars multiply base HP/ATK (Magic-Rush style)
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
 const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=15;
 // ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). Chapters 8-10 are authored but locked. ----
@@ -1726,7 +1731,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   const rank = owned ? heroQuality(key) : (boss?3 : (extra&&extra.rank!=null?extra.rank:0)); // "rank" = quality tier (glyph colour)
   const kit=KITS[key];
   const fAtk = owned?(heroFlatAtk(key)+techTotal('atk')):0, fHp = owned?(heroFlatHp(key)+techTotal('hp')):0;   // flat glyph + star + Academy tech Attack/Health
-  const uHp=t.hp*scale*bhp*mul.hp + fHp, uDmg=t.dmg*scale*bdmg*mul.atk + fAtk;
+  const sm=owned?starMult(key):1;   // stars multiply an OWNED hero's base HP/ATK (enemies keep base stats)
+  const uHp=t.hp*scale*bhp*mul.hp*sm + fHp, uDmg=t.dmg*scale*bdmg*mul.atk*sm + fAtk;
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
@@ -5731,7 +5737,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1785973018522';
+const BUILD_ID='1785974148430';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
