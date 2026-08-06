@@ -1188,6 +1188,12 @@ function glyphRecipeStr(gid){ const r=glyphRecipe(gid); if(!r) return 'Drops fro
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
 // starting star: all MYTHICAL heroes start at 3★; otherwise per-hero `start` (1/2/3), default 1. Any hero can be given an explicit `start`.
 function heroStartStars(key){ const t=HERO_TYPES[key]; if(!t) return 1; const s=t.start || (t.myth?3:1); return Math.max(1,Math.min(MAX_STARS,s)); }
+// ===== BETA MODE — everyone owns EVERY hero at its starting stars. To END beta: set BETA_ALL_HEROES=false
+// (or delete this block and the two applyBetaUnlocks() calls in loadG + applyCloudSave). =====
+const BETA_ALL_HEROES = true;
+function applyBetaUnlocks(){ if(!BETA_ALL_HEROES || typeof G==='undefined' || !G.unlocked) return;
+  HERO_KEYS.forEach(k=>{ G.unlocked[k]=true; const ss=heroStartStars(k);
+    if((G.starLevel[k]||1) < ss){ G.starLevel[k]=ss; G.starPip[k]=0; } }); }
 const SUMMON_COST={1:10,2:30,3:80};                                   // hero-fragments to summon (unlock) a hero, by its starting star
 function summonCost(key){ return SUMMON_COST[heroStartStars(key)]||10; }
 function heroStars(key){ const s=heroStartStars(key); return Math.max(s,Math.min(MAX_STARS,(G.starLevel&&G.starLevel[key])||s)); }
@@ -2809,7 +2815,7 @@ function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=n
 // on boot we only overwrite local if the cloud copy is newer, so recent offline play isn't clobbered.
 function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.roster&&profile.roster.__save; if(!blob) return false;
     const cloud=JSON.parse(blob); if(!forceLoad && (G.mtime||0) >= (cloud.mtime||0)) return false;
-    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateRename(); saveGLocalOnly(); if(granted && ACC.token) pushSave(); return true;
+    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateRename(); applyBetaUnlocks(); saveGLocalOnly(); if(granted && ACC.token) pushSave(); return true;
   }catch(e){ return false; } }
 
 function renderAccount(){ const b=document.getElementById('accountBody');
@@ -5829,7 +5835,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786028157491';
+const BUILD_ID='1786029347961';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6019,7 +6025,7 @@ function setupLandscape(){
 }
 /* boot */
 if(!TH){ document.getElementById('home').innerHTML='<h1>3D engine failed to load</h1>'; }
-else { document.body.classList.add('gated'); loadG(); loadAcc(); initThree(); updateHubChrome(); show('home');
+else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAcc(); initThree(); updateHubChrome(); show('home');
   if('serviceWorker' in navigator && online()){ try{ navigator.serviceWorker.register('/sw.js'); }catch(e){} }
   startSessionHeartbeat();
   setupLandscape();
