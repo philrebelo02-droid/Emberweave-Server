@@ -333,6 +333,12 @@ const server=http.createServer((req,res)=>{
   if(p==='/icon-512.png') return serveFile(res,'icon-512.png','image/png');
   if(p==='/icon-512-maskable.png') return serveFile(res,'icon-512-maskable.png','image/png');
   if(p==='/apple-touch-icon.png') return serveFile(res,'apple-touch-icon.png','image/png');
+  // external game assets (animation sprite-sheets, etc.): serve from disk, else proxy from GAME_URL.
+  if(p.startsWith('/assets/') && !p.includes('..')){
+    const ext=p.slice(p.lastIndexOf('.')+1).toLowerCase();
+    const type = ext==='webp'?'image/webp' : ext==='png'?'image/png' : (ext==='jpg'||ext==='jpeg')?'image/jpeg' : 'application/octet-stream';
+    return serveFile(res, p.slice(1), type, p);
+  }
   // everything else -> the game (local file if bundled, else pulled from GAME_URL). Supports /?room deep links.
   const HTML_HDRS={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store, no-cache, must-revalidate','Pragma':'no-cache','Expires':'0'};
   fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,HTML_HDRS); res.end(buf); return; }
