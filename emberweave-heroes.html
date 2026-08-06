@@ -2040,7 +2040,11 @@ function spawnFxPlate(key,fx,fy){ if(!TH||!scene)return; const d=FX_PLATE_DEF[ke
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:1}));
   spr.center.set(.5,.12); spr.renderOrder=992; const asp=d.fw/d.fh; spr.scale.set(d.scale*asp,d.scale,1); spr.position.set(wx(fx),1.1,wz(fy)); scene.add(spr);
   _fxPlates.push({spr,d,t:0}); }
-function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fxPlates[i]; p.t+=dt; const fr=Math.min(p.d.n-1,Math.floor((p.t/p.d.dur)*p.d.n)); if(p.spr.material.map){ p.spr.material.map.offset.x=fr/p.d.n; } if(p.t>=p.d.dur){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _fxPlates.splice(i,1); } } }
+function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fxPlates[i]; p.t+=dt; const prog=Math.min(1,p.t/p.d.dur); const fr=Math.min(p.d.n-1,Math.floor(prog*p.d.n)); if(p.spr.material.map){ p.spr.material.map.offset.x=fr/p.d.n; }
+    // graceful dissolve: many FX plates end on a near-full-quad smoke/glow mass; deleting it in one frame
+    // reads as a rectangular "box" popping out. Fade opacity (ease-out) + expand slightly over the last 35% so it disperses.
+    const FS=0.65; if(prog>FS){ const k=(prog-FS)/(1-FS); p.spr.material.opacity=Math.max(0,1-k*k); const gs=1+0.14*k, asp=p.d.fw/p.d.fh; p.spr.scale.set(p.d.scale*asp*gs, p.d.scale*gs, 1); }
+    if(p.t>=p.d.dur){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _fxPlates.splice(i,1); } } }
 function think(u,dt){
   if(u.stunned>0){u.stunned-=dt;return;}
   if(u._castT>0)u._castT-=dt;   // casting: locked out of auto-attacks
@@ -5924,7 +5928,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786051595218';
+const BUILD_ID='1786052601191';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
