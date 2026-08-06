@@ -868,17 +868,17 @@ function transferFree(){ return !G.lastTransfer || (Date.now()-(G.lastTransfer||
 
 /* --------------------------------- heroes ---------------------------------- */
 const HERO_TYPES = {
-  aldric: {name:'Aldric',emoji:'🛡️',role:'Tank',    stars:3,hp:360,dmg:16,range:26, speed:58,atkSpeed:1.0, color:0x6ea8ff,abilityName:'Thunder Slam',   ability:'aoeStun'},
-  thorne: {name:'Thorne',emoji:'⛏️',role:'Bruiser', stars:3,hp:300,dmg:20,range:28, speed:58,atkSpeed:0.95,color:0x7f8ea3,abilityName:'Rending Cleave', ability:'cleave',locked:true,start:2},
-  grohm:  {name:'Grohm', emoji:'🪓',role:'Warrior', stars:5,hp:270,dmg:24,range:28, speed:58,atkSpeed:1.0, color:0xffa657,abilityName:'Cull',          ability:'execute',locked:true,unlockNode:2,start:2},
-  vex:    {name:'Vex',   emoji:'🗡️',role:'Assassin',stars:4,hp:150,dmg:34,range:24, speed:58,atkSpeed:1.4, color:0xff8fb0,abilityName:'Shadowstrike',  ability:'burst',locked:true},
-  sylva:  {name:'Sylva', emoji:'🏹',role:'Marksman',stars:3,hp:160,dmg:26,range:200,speed:58,atkSpeed:1.15,color:0x5ee89b,abilityName:'Arrow Tempest', ability:'multiShot',locked:true},
-  rook:   {name:'Rook',  emoji:'🔫',role:'Marksman',stars:4,hp:150,dmg:30,range:220,speed:58,atkSpeed:1.0, color:0x9ff0c0,abilityName:'Explosive Volley',ability:'multiShot',locked:true,unlockNode:4,start:2},
-  zephyr: {name:'Zephyr',emoji:'🔮',role:'Mage',    stars:4,hp:135,dmg:22,range:180,speed:58,atkSpeed:0.8, color:0xb98bff,abilityName:'Meteor',        ability:'fireball'},
-  lumi:   {name:'Lumi',  emoji:'✨',role:'Support', stars:3,hp:170,dmg:8, range:150,speed:58,atkSpeed:0.9, color:0xffd45e,abilityName:'Divine Radiance',ability:'heal',healer:true},
-  aria:   {name:'Aria',  emoji:'🎐',role:'Support', stars:4,hp:150,dmg:12,range:160,speed:58,atkSpeed:0.9, color:0xffe08a,abilityName:'Rallying Anthem',ability:'rally',locked:true},
-  konwu:  {name:'KonWu', emoji:'🐒',role:'Bruiser', stars:5,hp:380,dmg:34,range:26, speed:58,atkSpeed:1.15,color:0xE7B84B,abilityName:'Heaven-Splitting Slam',ability:'monkSlam',locked:true,myth:true,source:'purchase'},
-  grosk:  {name:'Grosk', emoji:'🦛',role:'Tank',    stars:3,hp:520,dmg:22,range:26, speed:58,atkSpeed:0.85,color:0x9a7b40,abilityName:'Croc Drop',    ability:'hipposlam',locked:true,start:3,source:'arena'},
+  aldric: {name:'Aldric',emoji:'🛡️',role:'Tank',    swing:2.0, stars:3,hp:360,dmg:16,range:26, speed:58,atkSpeed:1.0, color:0x6ea8ff,abilityName:'Thunder Slam',   ability:'aoeStun'},
+  thorne: {name:'Thorne',emoji:'⛏️',role:'Bruiser', swing:3.8, stars:3,hp:300,dmg:20,range:28, speed:58,atkSpeed:0.95,color:0x7f8ea3,abilityName:'Rending Cleave', ability:'cleave',locked:true,start:2},
+  grohm:  {name:'Grohm', emoji:'🪓',role:'Warrior', swing:2.4, stars:5,hp:270,dmg:24,range:28, speed:58,atkSpeed:1.0, color:0xffa657,abilityName:'Cull',          ability:'execute',locked:true,unlockNode:2,start:2},
+  vex:    {name:'Vex',   emoji:'🗡️',role:'Assassin',swing:1.4, stars:4,hp:150,dmg:34,range:24, speed:58,atkSpeed:1.4, color:0xff8fb0,abilityName:'Shadowstrike',  ability:'burst',locked:true},
+  sylva:  {name:'Sylva', emoji:'🏹',role:'Marksman',swing:1.5, stars:3,hp:160,dmg:26,range:200,speed:58,atkSpeed:1.15,color:0x5ee89b,abilityName:'Arrow Tempest', ability:'multiShot',locked:true},
+  rook:   {name:'Rook',  emoji:'🔫',role:'Marksman',swing:2.0, stars:4,hp:150,dmg:30,range:220,speed:58,atkSpeed:1.0, color:0x9ff0c0,abilityName:'Explosive Volley',ability:'multiShot',locked:true,unlockNode:4,start:2},
+  zephyr: {name:'Zephyr',emoji:'🔮',role:'Mage',    swing:2.0, stars:4,hp:135,dmg:22,range:180,speed:58,atkSpeed:0.8, color:0xb98bff,abilityName:'Meteor',        ability:'fireball'},
+  lumi:   {name:'Lumi',  emoji:'✨',role:'Support', swing:2.0, stars:3,hp:170,dmg:8, range:150,speed:58,atkSpeed:0.9, color:0xffd45e,abilityName:'Divine Radiance',ability:'heal',healer:true},
+  aria:   {name:'Aria',  emoji:'🎐',role:'Support', swing:2.3, stars:4,hp:150,dmg:12,range:160,speed:58,atkSpeed:0.9, color:0xffe08a,abilityName:'Rallying Anthem',ability:'rally',locked:true},
+  konwu:  {name:'KonWu', emoji:'🐒',role:'Bruiser', swing:1.9, stars:5,hp:380,dmg:34,range:26, speed:58,atkSpeed:1.15,color:0xE7B84B,abilityName:'Heaven-Splitting Slam',ability:'monkSlam',locked:true,myth:true,source:'purchase'},
+  grosk:  {name:'Grosk', emoji:'🦛',role:'Tank',    swing:2.6, stars:3,hp:520,dmg:22,range:26, speed:58,atkSpeed:0.85,color:0x9a7b40,abilityName:'Croc Drop',    ability:'hipposlam',locked:true,start:3,source:'arena'},
 };
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
@@ -1592,7 +1592,7 @@ let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=f
 const BATTLE_PACE=0.82;   // slightly slower overall battle tempo
 // per-class attack swing interval (seconds) — lower = faster swings
 const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
-function swingInterval(t){ return ROLE_SWING[t.role]||1.0; }
+function swingInterval(t){ return (t.swing!=null? t.swing : (ROLE_SWING[t.role]||1.0)); }
 let chapterWaves=3,waveIdx=0;
 let CUR={node:1,mode:'campaign',opp:null};
 
@@ -1779,6 +1779,8 @@ function formationSlots(team,n){const s=[];const backY=team==='ally'?1150:250,fr
 const CHAR_DIST=52;
 function roleDepth(role){ if(role==='Tank')return 0; if(role==='Warrior'||role==='Bruiser'||role==='Brute'||role==='Assassin')return 1; return 3.4; }
 function roleLaneY(team,role){ const d=roleDepth(role)*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
+const ROW_OVERRIDE={aria:2};   // per-hero combat-row depth override (0 front .. 3.4 back); aria = midrow support
+function laneDepthY(team,key){ const role=HERO_TYPES[key].role; const d=((ROW_OVERRIDE[key]!=null)?ROW_OVERRIDE[key]:roleDepth(role))*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
 function laneXi(i,n,team){ return 500 + (i-(n-1)/2)*150 + (team?teamXOff(team):0); }   // centered spread + diagonal team offset
 function makeUnit(key,team,x,y,levelOverride,extra){
   const t=HERO_TYPES[key],lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike)
@@ -1806,7 +1808,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   return u;
 }
 function spawnTeam(keys,team){ const n=keys.length;
-  keys.forEach((key,i)=>{const role=HERO_TYPES[key].role,x=laneXi(i,n,team),y=roleLaneY(team,role);const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
+  keys.forEach((key,i)=>{const role=HERO_TYPES[key].role,x=laneXi(i,n,team),y=laneDepthY(team,key);const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
 }
 // Difficulty ramps across chapters: Ch1 is a soft tutorial (~0.42×), scaling to full parity around Chapter 7
 // where enemies reach ~level 40 — so a well-built level-40 team can clear Chapter 7 (the current cap).
@@ -1818,11 +1820,11 @@ function buildEnemyWave(){
   const base=enemyLevelFor(node);
   if(isBoss){
     const pool=['grohm','aldric','thorne','zephyr'],bossKey=pool[node%pool.length],lvl=base+2;
-    arr.push({key:bossKey,level:lvl,boss:true,x:500+teamXOff('enemy'),y:roleLaneY('enemy',HERO_TYPES[bossKey].role)});
-    const gc=Math.min(chapterOf(node)+1,2);['vex','sylva'].slice(0,gc).forEach((k,i)=>arr.push({key:k,level:base,rank:eRank,x:(i?680:320)+teamXOff('enemy'),y:roleLaneY('enemy',HERO_TYPES[k].role)}));
+    arr.push({key:bossKey,level:lvl,boss:true,x:500+teamXOff('enemy'),y:laneDepthY('enemy',bossKey)});
+    const gc=Math.min(chapterOf(node)+1,2);['vex','sylva'].slice(0,gc).forEach((k,i)=>arr.push({key:k,level:base,rank:eRank,x:(i?680:320)+teamXOff('enemy'),y:laneDepthY('enemy',k)}));
   } else {
     const pool=['aldric','thorne','vex','sylva','zephyr','lumi','grohm','rook','aria'],count=Math.min(5,3+Math.floor(chapterOf(node)/2)),lvl=base+Math.floor(waveIdx*0.5);
-    for(let i=0;i<count;i++){const key=pool[(i+node+waveIdx)%pool.length];arr.push({key,level:lvl,rank:eRank,x:laneXi(i,count,'enemy'),y:roleLaneY('enemy',HERO_TYPES[key].role)});}
+    for(let i=0;i<count;i++){const key=pool[(i+node+waveIdx)%pool.length];arr.push({key,level:lvl,rank:eRank,x:laneXi(i,count,'enemy'),y:laneDepthY('enemy',key)});}
   }
   const diff=enemyDiff(node);
   arr.forEach(e=>{const u=makeUnit(e.key,'enemy',e.x,e.y,e.level,{boss:e.boss,rank:e.rank});
@@ -5854,7 +5856,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786044519940';
+const BUILD_ID='1786046232334';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
