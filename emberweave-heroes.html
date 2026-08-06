@@ -5854,7 +5854,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786039692075';
+const BUILD_ID='1786044082261';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6022,7 +6022,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
 function setupLandscape(){
   const img=document.getElementById('splashImg'); if(img&&SPLASH_BG) img.src=SPLASH_BG;
   const vid=document.getElementById('splashVid');
-  if(vid && isAssetRef(SPLASH_VID)){   // wire the animated splash loop (static image stays as fallback)
+  if(false){/* splash video disabled per user — was the KonWu flame loop; static logo only */   // wire the animated splash loop (static image stays as fallback)
     const RATE=1.0;   // natural speed — realistic flame motion (locked-camera clip loops on its own)
     vid.muted=true; vid.defaultPlaybackRate=RATE; vid.playbackRate=RATE; vid.src=SPLASH_VID;
     const setRate=()=>{ try{ vid.playbackRate=RATE; }catch(e){} };   // some browsers reset the rate on load — re-assert it
