@@ -1,0 +1,26 @@
+EMBERWEAVE HEROES — "upload to github"
+Build id: 1786029347961   (clean rebuild from source via build.cjs)
+
+This session's changes baked in:
+  - UNIFORM SPEED (all heroes = 58)
+  - HERO COLLISION (same-team units are solid; slide around each other)
+  - BETA MODE: every player owns ALL heroes at their starting stars
+      (flag BETA_ALL_HEROES in source; remove later to end beta)
+
+WHAT TO UPLOAD to philrebelo02-droid/Emberweave-Server:
+
+EVERY DEPLOY — the core files (drop into repo root, overwrite):
+  - emberweave-heroes.html
+  - version.json          (build id matches the HTML)
+  - server.js
+  - sw.js
+
+ONE-TIME (only if the repo doesn't already have them):
+  - package.json, manifest.webmanifest, icon-192.png, icon-512.png,
+    icon-512-maskable.png, apple-touch-icon.png
+  - the whole  assets/  folder at the repo ROOT (jsDelivr serves the
+    animations from here; only re-commit when a hero's art changes)
+
+AFTER DEPLOY:
+  - Railway redeploys automatically on push.
+  - Check  your-url/version.json  shows  1786029347961
