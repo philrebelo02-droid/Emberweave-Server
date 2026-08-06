@@ -495,15 +495,19 @@
     box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:14;pointer-events:none;text-align:left;}
   #abilityTip b{color:#ffd45e;} #abilityTip .atSub{color:#9aa6bb;font-size:11px;margin-top:4px;}
   /* one framed hero tile (frame plate art set as bg via JS) */
-  .pslot{position:relative;width:60px;height:85px;background-size:100% 100%;background-repeat:no-repeat;flex:0 0 auto;}
+  .pslot{position:relative;width:120px;height:170px;background-size:100% 100%;background-repeat:no-repeat;flex:0 0 auto;}
   /* portrait window sits in the top box of the frame; whole window is the ult button */
-  .portrait{pointer-events:auto;position:absolute;left:8%;top:15%;width:84%;height:52%;border-radius:5px;background:#10151f;overflow:hidden;cursor:pointer;transition:.1s;}
-  .portrait .pPortrait{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
-  .portrait .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;}
-  .portrait .pInfo{position:absolute;top:1px;left:1px;width:13px;height:13px;line-height:12px;text-align:center;font-size:9px;font-weight:900;color:#cdd8ea;background:rgba(0,0,0,.55);border:1px solid #3a4a6e;border-radius:50%;z-index:3;pointer-events:auto;cursor:pointer;}
-  .pslot.ready .portrait{box-shadow:0 0 11px 2px rgba(255,212,94,.95);animation:pulse 1s infinite;}
-  .pslot.ready::after{content:'⚡';position:absolute;top:12%;right:8%;font-size:12px;z-index:4;text-shadow:0 0 4px #000;pointer-events:none;}
+  .portrait{pointer-events:auto;position:absolute;left:8%;top:15%;width:84%;height:52%;border-radius:8px;background:#10151f;overflow:hidden;cursor:pointer;transition:.1s;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  .portrait .pPortrait{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none;}
+  .portrait .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:56px;pointer-events:none;}
+  .portrait .pInfo{position:absolute;top:2px;left:2px;width:19px;height:19px;line-height:18px;text-align:center;font-size:12px;font-weight:900;color:#cdd8ea;background:rgba(0,0,0,.6);border:1px solid #3a4a6e;border-radius:50%;z-index:3;pointer-events:auto;cursor:pointer;}
+  .pslot.ready .portrait{box-shadow:0 0 16px 3px rgba(255,212,94,.95);animation:pulse 1s infinite;}
+  .pslot.ready::after{content:'⚡';position:absolute;top:11%;right:7%;font-size:20px;z-index:4;text-shadow:0 0 5px #000;pointer-events:none;}
   .pslot.dead{opacity:.4;filter:grayscale(1);}
+  /* ult aim Cancel target (bottom-left): drag the ult onto it — or tap it — to cancel */
+  #ultCancel{position:absolute;left:14px;bottom:16px;display:none;align-items:center;gap:6px;background:rgba(40,16,20,.92);color:#ff9a9a;border:2px solid #b0444a;border-radius:16px;padding:12px 18px;font-size:15px;font-weight:800;z-index:20;pointer-events:auto;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.55);}
+  #ultCancel.active{display:flex;}
+  #ultCancel.hot{background:#b0444a;color:#fff;transform:scale(1.1);box-shadow:0 0 18px rgba(255,80,90,.85);}
   /* the two horizontal bars in the lower slots of the frame: HP (top) then energy (bottom) */
   .pHp{position:absolute;left:12%;top:75.5%;width:76.5%;height:6.4%;background:#0b0f18;border-radius:2px;overflow:hidden;pointer-events:none;}
   .pHp .pHpFill{height:100%;width:100%;background:linear-gradient(90deg,#ff8a5e,#e0483a);transition:width .12s;}
@@ -786,6 +790,7 @@
     <button id="autoBtn" class="ctrlBtn">AUTO: OFF</button>
   </div>
   <div id="enemyBar"></div>
+  <div id="ultCancel">✕ Cancel</div>
   <div id="banner"></div>
   <button id="pauseBtn">⏸</button>
   <div id="pauseModal"><div class="pm">
@@ -2276,7 +2281,9 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
 }
 const _v=TH?new TH.Vector3():null;
 function project(x,y,h){_v.set(wx(x),h||1.2,wz(y));_v.project(camera);return{x:(_v.x*.5+.5)*CW,y:(-_v.y*.5+.5)*CH,vis:_v.z<1};}
-function drawOverlay(){octx.clearRect(0,0,CW,CH);if(state!=='battle')return;
+function drawOverlay(){octx.clearRect(0,0,CW,CH);
+  { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
+  if(state!=='battle')return;
   // Magic Rush UI: allies use the framed HUD tiles; enemies show a small HP bar floating ~0.5 m over the head.
   // Silence/stun mask icons float ~2 m over the head of ANY affected unit.
   units.forEach(u=>{if(!u.alive)return;const hh=(u.boss?3.2:2.0)*(u.r/18),p=project(u.x,u.y,hh);if(!p.vis)return;const bw=(u.boss?70:44),x=p.x-bw/2,y=p.y;
@@ -5680,11 +5687,10 @@ function buildGuestPortraits(){const bar=document.getElementById('portraitBar');
   if(bar.dataset.mode!=='guest'||bar.childElementCount!==mine.length){bar.innerHTML='';bar.dataset.mode='guest';
     mine.forEach(u=>{const slot=document.createElement('div');slot.className='pslot';slot.style.backgroundImage=`url(${MR_UI.frame})`;
       const pv=HERO_PORTRAITS[u.key];
-      const el=document.createElement('div');el.className='portrait';el.innerHTML=(pv?`<img class="pPortrait" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`);
+      const el=document.createElement('div');el.className='portrait';el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`);
       const hp=document.createElement('div');hp.className='pHp';hp.innerHTML='<div class="pHpFill"></div>';
       const en=document.createElement('div');en.className='pEnergyBar';en.innerHTML='<div class="pEnFill"></div>';
-      const fire=()=>{ if(!(u.alive&&u.energy>=100))return; if(ULT_AIMED.includes(u.t.ability)) enterAim(u); else relay({k:'ult',id:u.id,tid:-1}); };
-      el.addEventListener('click',fire);el.addEventListener('touchstart',(e)=>{e.preventDefault();fire();},{passive:false});
+      attachUltPress(el,u,true);   // guest side relays the ult to the host
       u.portraitEl=el;u.hpEl=hp;u.enEl=en;u.slotEl=slot;slot.appendChild(el);slot.appendChild(hp);slot.appendChild(en);bar.appendChild(slot);});}
   mine.forEach(u=>{const el=u.portraitEl;if(!el)return;const pct=Math.max(0,u.hp/u.maxHp*100),ready=u.alive&&u.energy>=100;
     if(u.hpEl){const f=u.hpEl.querySelector('.pHpFill');if(f)f.style.width=(u.alive?pct:0)+'%';u.hpEl.classList.toggle('low',u.alive&&pct<30);}
@@ -5708,15 +5714,12 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     const slot=document.createElement('div'); slot.className='pslot'; slot.style.backgroundImage=`url(${MR_UI.frame})`;
     const pv=HERO_PORTRAITS[u.key];
     const el=document.createElement('div');el.className='portrait';
-    el.innerHTML=(pv?`<img class="pPortrait" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`)+`<div class="pInfo">?</div>`;
+    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`)+`<div class="pInfo">?</div>`;
     const hp=document.createElement('div'); hp.className='pHp'; hp.innerHTML='<div class="pHpFill"></div>';
     const en=document.createElement('div'); en.className='pEnergyBar'; en.innerHTML='<div class="pEnFill"></div>';
-    const fire=()=>{ if(u.alive&&u.energy>=100){ const ab=u.abilityOverride||u.t.ability; if(ULT_AIMED.includes(ab)) enterAim(u); else castAbility(u); hideAbilityTip(); }
-      else { showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,3000); } };   // not ready → show what the ability does
-    el.addEventListener('click',fire);el.addEventListener('touchstart',(e)=>{e.preventDefault();fire();},{passive:false});
-    el.addEventListener('mouseenter',()=>showAbilityTip(u)); el.addEventListener('mouseleave',hideAbilityTip);
+    attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
     // dedicated info tap: always shows the description (even when the ult is ready)
-    const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,3000); }; info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
+    const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,3000); }; info.addEventListener('pointerdown',(e)=>e.stopPropagation()); info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
     u.portraitEl=el; u.hpEl=hp; u.enEl=en; u.slotEl=slot; slot.appendChild(el); slot.appendChild(hp); slot.appendChild(en); bar.appendChild(slot);});
   buildEnemyBar();
 }
@@ -5744,20 +5747,54 @@ function evXY(e){const r=overlay.getBoundingClientRect();return {x:(e.clientX)-r
 function aimTargetTeam(){ return (OL.active&&!OL.host)?'ally':'enemy'; }
 function nearestToScreen(sx,sy,team){ let best=null,bd=1e9; units.forEach(o=>{if(!o.alive||o.team!==team)return;const p=project(o.x,o.y,1);if(!p.vis)return;const d=Math.hypot(p.x-sx,p.y-sy);if(d<bd){bd=d;best=o;}}); return best; }
 function setAimDefault(u){ const b=nearestToScreen(project(u.x,u.y,1).x,project(u.x,u.y,1).y-30,aimTargetTeam()); if(b){const p=project(b.x,b.y,1);aimTX=p.x;aimTY=p.y;} else {const ap=project(u.x,u.y,1);aimTX=ap.x;aimTY=ap.y-140;} }
-function enterAim(u){ aiming=u; setAimDefault(u); document.getElementById('ultHint').textContent='🎯 Drag to aim '+u.t.abilityName+' · release to fire'; }
-function fireAimed(){ const u=aiming; aiming=null; document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100)return;
+function enterAim(u){ aiming=u; setAimDefault(u); document.getElementById('ultHint').textContent='🎯 Drag to aim '+u.t.abilityName+' · release to fire · drag to ✕ Cancel to abort'; }
+function ultCancelEl(){ return document.getElementById('ultCancel'); }
+function overCancel(cx,cy){ const c=ultCancelEl(); if(!c||!c.classList.contains('active'))return false; const r=c.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
+function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; }
+function fireAimed(){ const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100)return;
   const best=nearestToScreen(aimTX,aimTY,aimTargetTeam());
   if(OL.active&&!OL.host){ if(best) relay({k:'ult',id:u.id,tid:best.id}); }
   else { if(best)u.target=best; castAbility(u); } }
 function onDown(e){ if(state!=='battle')return; const p=evXY(e);
   if(aiming){ aimTX=p.x; aimTY=p.y; return; }              // during aim: set direction (fire on release)
   let hit=null,hd=44; units.forEach(u=>{if(!u.alive||u.team!=='ally')return;const q=project(u.x,u.y,1);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<hd){hd=d;hit=u;}}); selected=hit; }
-function onMove(e){ if(aiming){ const p=evXY(e); aimTX=p.x; aimTY=p.y; } }
-function onUp(e){ if(aiming){ const p=evXY(e); aimTX=p.x; aimTY=p.y; fireAimed(); } }
+function onMove(e){ if(aiming){ const p=evXY(e); aimTX=p.x; aimTY=p.y; const c=ultCancelEl(); if(c)c.classList.toggle('hot',overCancel(e.clientX,e.clientY)); } }
+function onUp(e){ if(aiming){ if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; } const p=evXY(e); aimTX=p.x; aimTY=p.y; fireAimed(); } }
 overlay.addEventListener('pointerdown',onDown);
 overlay.addEventListener('pointermove',onMove);
 overlay.addEventListener('pointerup',onUp);
 overlay.addEventListener('pointercancel',()=>{ if(aiming)fireAimed(); });
+(function(){ const c=document.getElementById('ultCancel'); if(c) c.addEventListener('click',()=>{ if(aiming) cancelAim(); }); })();
+// press-hold-drag-release ult aiming, started from a hero HUD portrait tile.
+// Prevents the browser's native image-drag; a quick tap fires at the nearest target; dragging carries the
+// radius circle over the field (release to fire), and releasing over the ✕ Cancel chip aborts.
+function attachUltPress(el,u,relayMode){
+  let holdAim=false,pending=false,sx=0,sy=0,moved=false;
+  const notReady=()=>{ showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,3000); };
+  el.addEventListener('pointerdown',(e)=>{
+    if(e.target&&e.target.classList&&e.target.classList.contains('pInfo'))return;   // info tap handled separately
+    if(e.button!=null&&e.button>0)return;
+    e.preventDefault();
+    if(!(u.alive&&u.energy>=100)){ notReady(); return; }
+    const ab=u.abilityOverride||u.t.ability;
+    if(ULT_AIMED.includes(ab)){ enterAim(u); holdAim=true; sx=e.clientX; sy=e.clientY; moved=false; hideAbilityTip(); try{el.setPointerCapture(e.pointerId);}catch(_){} }
+    else { pending=true; }
+  });
+  el.addEventListener('pointermove',(e)=>{ if(!holdAim)return; e.preventDefault();
+    if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>8) moved=true;
+    if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; }
+    const c=ultCancelEl(); if(c)c.classList.toggle('hot',overCancel(e.clientX,e.clientY)); });
+  const finish=(e)=>{
+    if(holdAim){ holdAim=false; try{el.releasePointerCapture(e.pointerId);}catch(_){}
+      if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; }
+      if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; }
+      fireAimed(); }
+    else if(pending){ pending=false; if(u.alive&&u.energy>=100){ const ab=u.abilityOverride||u.t.ability; if(!ULT_AIMED.includes(ab)){ if(relayMode) relay({k:'ult',id:u.id,tid:-1}); else castAbility(u); } } hideAbilityTip(); }
+  };
+  el.addEventListener('pointerup',finish);
+  el.addEventListener('pointercancel',()=>{ if(holdAim){ holdAim=false; cancelAim(); } pending=false; });
+  el.addEventListener('mouseenter',()=>showAbilityTip(u)); el.addEventListener('mouseleave',hideAbilityTip);
+}
 
 /* nav wiring */
 function bindNav(root){ (root||document).querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=> el.hasAttribute('data-pop') ? popoutScreen(el.dataset.nav) : show(el.dataset.nav); }); }
@@ -5944,7 +5981,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786053483031';
+const BUILD_ID='1786056936988';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
