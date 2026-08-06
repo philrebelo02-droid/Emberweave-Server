@@ -518,7 +518,32 @@
   /* enemy team bar removed in Magic Rush UI (enemy HP now floats over the head, drawn on the overlay canvas) */
   #enemyBar{display:none!important;}
   #topStatus{position:absolute;top:8px;left:58px;right:auto;display:none;justify-content:flex-start;gap:8px;font-size:12px;z-index:15;pointer-events:none;}
-  #topStatus.active{display:flex;} .tag{background:rgba(21,27,43,.85);padding:5px 11px;border-radius:20px;}
+  #topStatus.active{display:none!important;} .tag{background:rgba(21,27,43,.85);padding:5px 11px;border-radius:20px;}
+  /* Magic Rush-style top battle banner */
+  #battleBanner{position:absolute;top:0;left:50%;transform:translateX(-50%);display:none;z-index:15;pointer-events:none;
+    background:linear-gradient(180deg,#5a1414,#3a0d0d);border:2px solid #d9a441;border-top:none;border-radius:0 0 14px 14px;
+    box-shadow:0 4px 14px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,220,150,.25);padding:5px 6px 9px;}
+  #battleBanner.active{display:flex;align-items:stretch;}
+  #battleBanner .bbCell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:78px;padding:1px 12px;}
+  #battleBanner .bbLabel{font-size:11px;font-weight:800;color:#f2d9a0;letter-spacing:.5px;text-shadow:0 1px 2px #000;line-height:1.2;}
+  #battleBanner .bbVal{font-size:17px;font-weight:900;color:#fff;text-shadow:0 1px 2px #000,0 0 4px rgba(0,0,0,.6);line-height:1.15;}
+  #battleBanner .bbVal.low{color:#ff7b6b;}
+  #battleBanner .bbDiv{width:2px;background:linear-gradient(180deg,rgba(217,164,65,.1),#d9a441,rgba(217,164,65,.1));margin:2px 0;}
+  #battleBanner .bbGem{position:absolute;left:50%;bottom:-7px;width:14px;height:14px;background:linear-gradient(135deg,#ffd45e,#c8892a);transform:translateX(-50%) rotate(45deg);border:1.5px solid #7a4c14;box-shadow:0 2px 4px rgba(0,0,0,.5);}
+  /* Victory screen: gold stars + hero squad cards */
+  #resultStars{display:none;justify-content:center;gap:8px;margin:2px 0 6px;}
+  #resultStars.show{display:flex;}
+  #resultStars .rStar{font-size:34px;color:#ffd45e;text-shadow:0 0 10px rgba(255,200,70,.85),0 2px 3px #000;transform:scale(0);animation:starPop .35s ease-out forwards;}
+  #resultStars .rStar:nth-child(2){animation-delay:.12s;} #resultStars .rStar:nth-child(3){animation-delay:.24s;}
+  #resultStars .rStar.dim{color:#3a3f52;text-shadow:none;}
+  @keyframes starPop{0%{transform:scale(0) rotate(-40deg);}70%{transform:scale(1.25) rotate(8deg);}100%{transform:scale(1) rotate(0);}}
+  #resultSquad{display:none;justify-content:center;flex-wrap:wrap;gap:8px;margin:6px 0 10px;max-width:min(94vw,520px);}
+  #resultSquad.show{display:flex;}
+  #resultSquad .rCard{position:relative;width:70px;height:70px;border-radius:10px;overflow:hidden;border:2px solid #c8973a;background:#151b2b;box-shadow:0 3px 8px rgba(0,0,0,.5);}
+  #resultSquad .rCard img{width:100%;height:100%;object-fit:cover;display:block;}
+  #resultSquad .rCard .rEmoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:34px;}
+  #resultSquad .rCard .rLv{position:absolute;top:0;left:0;background:rgba(10,14,22,.86);color:#ffd45e;font-size:9px;font-weight:900;padding:1px 4px;border-bottom-right-radius:6px;}
+  #resultSquad .rCard .rStars{position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:8px;color:#ffd45e;text-shadow:0 1px 2px #000;line-height:1;}
   #battleCtrls{position:absolute;top:8px;right:8px;display:none;flex-direction:column;gap:6px;z-index:16;}
   #battleCtrls.active{display:flex;}
   .ctrlBtn{pointer-events:auto;background:rgba(21,27,43,.92);color:#e6edf3;border:1px solid #33405e;border-radius:20px;padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;min-width:74px;text-align:center;}
@@ -773,6 +798,8 @@
   <!-- RESULT -->
   <div class="screen" id="result" style="background:linear-gradient(160deg,#0b0e14,#14182a);">
     <div class="result-big" id="resultTitle">VICTORY</div>
+    <div id="resultStars"></div>
+    <div id="resultSquad"></div>
     <div class="reward" id="resultReward"></div>
     <div class="hint" id="resultHint"></div>
     <button class="btn wide" id="resultBtn" style="margin-top:20px">CONTINUE ▶</button>
@@ -784,6 +811,13 @@
     <div class="tag">🟦 <span id="allyCount">5</span></div>
     <div class="tag" id="waveTag">Wave 1</div>
     <div class="tag">🟥 <span id="enemyCount">0</span></div>
+  </div>
+  <!-- Magic Rush-style top battle banner: Time (countdown) + Progress (wave/total) -->
+  <div id="battleBanner">
+    <div class="bbCell"><div class="bbLabel">Time</div><div class="bbVal" id="bbTime">1:30</div></div>
+    <div class="bbDiv"></div>
+    <div class="bbCell"><div class="bbLabel">Progress</div><div class="bbVal" id="bbProg">1/1</div></div>
+    <div class="bbGem"></div>
   </div>
   <div id="battleCtrls">
     <button id="speedBtn" class="ctrlBtn">▶ x1</button>
@@ -1608,6 +1642,8 @@ function wx(x){return (x-FW/2)*SC;} function wz(y){return (y-FD/2)*SC;}
 /* --------------------------------- state ----------------------------------- */
 let units=[],shots=[],particles=[],floatTexts=[];
 let selected=null,battleTime=0,ended=false,rageMul=1;
+const BATTLE_TIME_LIMIT=90;                 // Magic Rush-style battle countdown shown in the top banner (display)
+let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state (stars + hero cards)
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
 const BATTLE_PACE=0.82;   // slightly slower overall battle tempo
 // per-class attack swing interval (seconds) — lower = faster swings
@@ -1826,7 +1862,10 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
     atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:35,target:null,alive:true,r:18*br,
-    flash:0,stunned:0,slow:0,portraitEl:null,laneX:x,melee:(t.range<60),attackAnim:0,castAnim:0,deathT:0,bob:(x*.7+y*.3)%6.28,
+    flash:0,stunned:0,slow:0,portraitEl:null,laneX:x,melee:(t.range<60),
+    // desired fighting distance by row: melee closes to attack range (~1 m), mid-row holds 13 m, back row holds 25 m
+    combatDist:(t.range<60 ? t.range*(boss?1.4:1) : Math.min(((ROW_OVERRIDE[key]!=null?ROW_OVERRIDE[key]:roleDepth(t.role))<=2?13*METER:25*METER), t.range*(boss?1.4:1))),
+    attackAnim:0,castAnim:0,deathT:0,bob:(x*.7+y*.3)%6.28,
     abilityOverride:boss?'cleave':null,
     greenAb: rank>=1?kit.green:null, blueAb: rank>=2?kit.blue:null,
     greenCd: rank>=1?kit.green.cd*0.5:0, blueCd: rank>=2?kit.blue.cd*0.6:0, pass:null,
@@ -2068,12 +2107,14 @@ function think(u,dt){
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt
   else if(!u.target||!u.target.alive) u.target=nearestEnemy(u);
   const t=u.target;if(!t)return;const d=dist(u,t);
-  if(d<=u.range){ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
-    if(u.atkCd<=0 && (u._castT||0)<=0){ u.atkCd=ai; u.attackAnim=.18;
+  const cd=u.combatDist||u.range;   // row-based hold distance (back 25 m / mid 13 m / melee ~1 m)
+  if(d>cd){ u.x+=(t.x-u.x)/d*spd*dt;u.y+=(t.y-u.y)/d*spd*dt; }   // approach until at fighting distance
+  else{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
+    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=u.range){ u.atkCd=ai; u.attackAnim=.18;
       const dmg=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       dealDamage(u,t,dmg,'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); }
-    if(!u.melee&&d<15*METER){const dir=u.team==='ally'?1:-1;u.y+=dir*spd*dt*.7;u.x+=(u.laneX-u.x)*Math.min(1,dt*2.5);}}   // ranged kite to hold ~15 m from the fight
-  else{u.x+=(t.x-u.x)/d*spd*dt;u.y+=(t.y-u.y)/d*spd*dt;}
+    // ranged rows retreat to re-open their distance if an enemy pushes inside it (keeps back row at 25 m, mid at 13 m)
+    if(!u.melee && d < cd-6){const dir=u.team==='ally'?1:-1;u.y+=dir*spd*dt*.7;u.x+=(u.laneX-u.x)*Math.min(1,dt*2.5);}}
 }
 
 /* ---------------------------- battle lifecycle ----------------------------- */
@@ -2125,6 +2166,11 @@ function grantRewards(){
 // Chapter 1 (the first 10 stages) is a tutorial: normal stages drop only GREY shards; Elite stages add a little GREEN.
 function rollDrops(node){ const d={grey:4+node}; if(isEliteStage(node)) d.green=2; return d; }
 function endBattle(won){ ended=true;
+  // snapshot Victory-screen data before any mode-specific early return (used by renderResultExtras)
+  resultWon=won;
+  { const al=units.filter(u=>u.team==='ally'); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
+    const total=al.length||1, alive=al.filter(u=>u.alive).length;
+    resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); setTimeout(()=>onlineResult(won),800); return; }
   if(CUR.mode==='arena'){ if(won)grantTeamXP(70);
     let reward=0, gemsWon=0, swapped=false; const oldRank=G.arenaRank;
@@ -2283,6 +2329,7 @@ const _v=TH?new TH.Vector3():null;
 function project(x,y,h){_v.set(wx(x),h||1.2,wz(y));_v.project(camera);return{x:(_v.x*.5+.5)*CW,y:(-_v.y*.5+.5)*CH,vis:_v.z<1};}
 function drawOverlay(){octx.clearRect(0,0,CW,CH);
   { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
+  updateBattleBanner();
   if(state!=='battle')return;
   // Magic Rush UI: allies use the framed HUD tiles; enemies show a small HP bar floating ~0.5 m over the head.
   // Silence/stun mask icons float ~2 m over the head of ANY affected unit.
@@ -2405,12 +2452,13 @@ function show(name){
     if(name==='home' && !wasHome) _restoreHomeScroll=true; }
   state=name;
   SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
-  ['hud','topStatus','battleCtrls'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  ['hud','topStatus','battleCtrls','battleBanner'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('active');});
   { const hm=document.getElementById('hubMenu'); hm.classList.toggle('active', name==='home'); hm.classList.remove('open'); }
-  if(name==='battle'){document.getElementById('hud').classList.add('active');document.getElementById('topStatus').classList.add('active');document.getElementById('battleCtrls').classList.add('active');}
+  if(name==='battle'){document.getElementById('hud').classList.add('active');document.getElementById('battleCtrls').classList.add('active');const bb=document.getElementById('battleBanner');if(bb)bb.classList.add('active');}
   else if(document.getElementById(name)) document.getElementById(name).classList.add('active');
   { const bg=document.getElementById('battleBg'); if(bg) bg.style.display = (name==='battle') ? 'block' : 'none';
     const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
+  if(name==='result') renderResultExtras();
   if(name==='home') renderHome();
   if(name==='campaign'){ campViewCh=0; renderRoadmap(); }
   if(name==='menu') renderRoster();
@@ -5736,6 +5784,21 @@ function buildEnemyBar(){ const bar=document.getElementById('enemyBar'); if(bar)
 function updateEnemyBar(){ /* over-head enemy HP handled in drawOverlay */ }
 function updateCounts(){document.getElementById('allyCount').textContent=units.filter(u=>u.team==='ally'&&u.alive).length;document.getElementById('enemyCount').textContent=units.filter(u=>u.team==='enemy'&&u.alive).length;}
 function updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);document.getElementById('waveTag').innerHTML=CUR.mode==='pvp'?'⚔️ Raid':`${stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}
+// Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
+function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
+  const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
+  const rem=Math.max(0,BATTLE_TIME_LIMIT-battleTime), m=Math.floor(rem/60), s=Math.floor(rem%60);
+  const t=document.getElementById('bbTime'); if(t){ t.textContent=m+':'+(s<10?'0'+s:s); t.classList.toggle('low',rem<=10); }
+  const total=Math.max(1,chapterWaves||1), cur=Math.min(total,(waveIdx||0)+1);
+  const pr=document.getElementById('bbProg'); if(pr) pr.textContent=cur+'/'+total; }
+// Victory screen extras: 3 gold stars + the surviving squad as hero cards (level + star badges)
+function renderResultExtras(){ const stars=document.getElementById('resultStars'), squad=document.getElementById('resultSquad'); if(!stars||!squad)return;
+  if(!resultWon){ stars.classList.remove('show'); squad.classList.remove('show'); stars.innerHTML=''; squad.innerHTML=''; return; }
+  stars.innerHTML=[0,1,2].map(i=>`<span class="rStar${i<resultStars?'':' dim'}">★</span>`).join(''); stars.classList.add('show');
+  squad.innerHTML=(resultSquadKeys||[]).filter(Boolean).map(key=>{ const t=HERO_TYPES[key]; if(!t)return '';
+    const pv=HERO_PORTRAITS[key], inner=pv?`<img src="${pv}">`:`<div class="rEmoji">${t.emoji}</div>`;
+    return `<div class="rCard">${inner}<div class="rLv">Lv ${heroLevel(key)}</div><div class="rStars">${'★'.repeat(Math.max(1,heroStars(key)))}</div></div>`; }).join('');
+  squad.classList.add('show'); }
 function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
   const forced=(CUR.mode==='arena');   // arena is 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
@@ -5981,7 +6044,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786056936988';
+const BUILD_ID='1786058545385';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
