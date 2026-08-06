@@ -1605,8 +1605,14 @@ function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSpri
 const ZOOM_LEVELS=[0.5,0.75,1,1.25,1.5];
 let battleZoom=1;
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
-function setBattleZoom(z){ battleZoom=snapZoom(Math.max(0.5,Math.min(1.5,z))); if(camera){ camera.zoom=battleZoom; camera.updateProjectionMatrix(); } }
-function stepBattleZoom(dir){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZoom)); i=Math.max(0,Math.min(ZOOM_LEVELS.length-1,i+dir)); setBattleZoom(ZOOM_LEVELS[i]); }
+function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(0.5,Math.min(1.5,z)));
+  // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
+  const tf='scale('+battleZoom+')';
+  let origin='50% 50%';   // default: zoom around screen centre
+  if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.getBoundingClientRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
+  ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; el.style.transform=tf; } });
+  if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); } }
+function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZoom)); i=Math.max(0,Math.min(ZOOM_LEVELS.length-1,i+dir)); setBattleZoom(ZOOM_LEVELS[i], fx, fy); }
 function initThree(){
   SPH=new TH.SphereGeometry(0.1,6,6);
   renderer=new TH.WebGLRenderer({antialias:true,alpha:true});
@@ -1614,9 +1620,9 @@ function initThree(){
   // battle zoom input: mouse-wheel steps through levels; two-finger pinch scales then snaps to the nearest
   { const dom=window; let pd=0, pz=1;    // window so a UI overlay canvas can't swallow the gesture
     const pdist=(e)=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-    dom.addEventListener('wheel',(e)=>{ if(state!=='battle')return; e.preventDefault(); stepBattleZoom(e.deltaY<0?1:-1); },{passive:false});
+    dom.addEventListener('wheel',(e)=>{ if(state!=='battle')return; e.preventDefault(); stepBattleZoom(e.deltaY<0?1:-1, e.clientX, e.clientY); },{passive:false});
     dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&e.touches.length===2){ pd=pdist(e); pz=battleZoom; } },{passive:true});
-    dom.addEventListener('touchmove',(e)=>{ if(state==='battle'&&e.touches.length===2&&pd>0){ e.preventDefault(); setBattleZoom(pz*(pdist(e)/pd)); } },{passive:false});
+    dom.addEventListener('touchmove',(e)=>{ if(state==='battle'&&e.touches.length===2&&pd>0){ e.preventDefault(); const mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; setBattleZoom(pz*(pdist(e)/pd), mx, my); } },{passive:false});
     dom.addEventListener('touchend',(e)=>{ if(pd>0&&e.touches.length<2){ pd=0; } },{passive:true}); }
   scene=new TH.Scene();   // no fog: units read cleanly over the painted map
   camera=new TH.PerspectiveCamera(47,1,0.1,200); camera.position.set(0,20.5,16.5); camera.lookAt(0,0.8,0);
@@ -5848,7 +5854,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786034748753';
+const BUILD_ID='1786036033750';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
