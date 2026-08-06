@@ -977,10 +977,10 @@ const AIRSHIP_SHEET = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave
 const AIRSHIP_FRAMES = 16;                       // frames in the strip
 const SKY_ISLAND = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@main/assets/img/skyisland.png";          // floating isle: 18-frame transparent sprite strip
 const BATTLE_BG = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@main/assets/img/battlebg.jpg";            // painted battlefield map (shown behind battle units)
-(function(){ if(BATTLE_BG && BATTLE_BG.indexOf('data:')===0){ const el=document.getElementById('battleBg'); if(el) el.style.backgroundImage='url('+BATTLE_BG+')'; } })();
+(function(){ if(isAssetRef(BATTLE_BG)){ const el=document.getElementById('battleBg'); if(el) el.style.backgroundImage='url('+BATTLE_BG+')'; } })();
 const SKY_ISLAND_FRAMES = 18;
 // inject the (large) sprite-sheet URL into one CSS rule so it's stored once, not per-march
-(function(){ if(AIRSHIP_SHEET && AIRSHIP_SHEET.indexOf('data:image')===0){
+(function(){ if(isAssetRef(AIRSHIP_SHEET)){
   const st=document.createElement('style');
   st.textContent='.marchShip{background-image:url('+AIRSHIP_SHEET+')}';
   document.head.appendChild(st);
@@ -2405,7 +2405,7 @@ function renderHome(){
     box.appendChild(lab);
   });
   // ---- the floating Island of Trials: bobbing animated sprite; opens the Sky trials (unlocks at Lv 20) ----
-  if(SKY_ISLAND && SKY_ISLAND.indexOf('data:image')===0){
+  if(isAssetRef(SKY_ISLAND)){
     const ix=(G.skyIsleX!=null?G.skyIsleX:52.5), iy=(G.skyIsleY!=null?G.skyIsleY:73);
     const isleLocked = lv<10 && !AUDIT_MODE();
     const isle=document.createElement('div'); isle.id='skyIsle'; isle.title='Island of Trials';
@@ -2497,7 +2497,7 @@ setInterval(()=>{
 function renderDungeon(){
   const b=document.getElementById('dungeonBody');
   const startDg=()=>{ CUR={mode:'dungeon'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); };
-  if(DUNGEON_BG && DUNGEON_BG.indexOf('data:')===0){
+  if(isAssetRef(DUNGEON_BG)){
     // full splash art with an invisible clickable hotspot over the drawn "Choose squad" button
     b.innerHTML=`<div style="position:relative;width:100%;aspect-ratio:1280/591;border-radius:14px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.6)">
       <img src="${DUNGEON_BG}" alt="Dungeon" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none" draggable="false">
@@ -3540,7 +3540,7 @@ function drawMarches(){
     const wrap=document.createElement('div'); wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:64px;height:64px';
     // brighter + stronger faction-coloured halo so an incoming ship is easy to spot against dark terrain
     const glow='brightness(1.3) contrast(1.05) drop-shadow(0 0 2px '+col+') drop-shadow(0 0 6px '+col+') drop-shadow(0 0 12px '+col+') drop-shadow(0 1px 2px rgba(0,0,0,.55))';
-    if(AIRSHIP_SHEET && AIRSHIP_SHEET.indexOf('data:image')===0){
+    if(isAssetRef(AIRSHIP_SHEET)){
       const ship=document.createElement('div'); ship.className='marchShip';
       ship.style.transform=rot; ship.style.filter=glow;
       wrap.appendChild(ship);
@@ -5848,7 +5848,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786034019287';
+const BUILD_ID='1786034748753';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -5876,8 +5876,8 @@ function showUpdateCountdown(secs){ if(_updateNoticeShown)return; _updateNoticeS
   let n=secs||3;
   const render=()=>{ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a6df0;border-radius:16px;padding:22px 20px;width:88%;max-width:360px;text-align:center;box-shadow:0 10px 34px rgba(0,0,0,.6)">
       <div style="font-size:38px">🔄</div>
-      <div style="font-weight:800;font-size:17px;margin:6px 0">Update applied</div>
-      <div style="font-size:13px;color:#8b98a9;margin-bottom:14px">A new version is ready — the game will shut down and restart in <b style="color:#ffd45e">${n}s</b>.</div>
+      <div style="font-weight:800;font-size:17px;margin:6px 0">Updates in progress</div>
+      <div style="font-size:13px;color:#8b98a9;margin-bottom:14px">There is currently updates being done — please be patient with restarts. Restarting in <b style="color:#ffd45e">${n}s</b>.</div>
       <button class="btn" id="upNow" style="width:100%">Restart now</button>
       <div style="font-size:11px;color:#6f7d90;margin-top:8px">Wrap up what you're doing — it restarts automatically.</div></div>`;
     const btn=ov.querySelector('#upNow'); if(btn) btn.onclick=doUpdateReload; };
@@ -6016,7 +6016,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
 function setupLandscape(){
   const img=document.getElementById('splashImg'); if(img&&SPLASH_BG) img.src=SPLASH_BG;
   const vid=document.getElementById('splashVid');
-  if(vid && SPLASH_VID && SPLASH_VID.indexOf('data:video')===0){   // wire the animated splash loop (static image stays as fallback)
+  if(vid && isAssetRef(SPLASH_VID)){   // wire the animated splash loop (static image stays as fallback)
     const RATE=1.0;   // natural speed — realistic flame motion (locked-camera clip loops on its own)
     vid.muted=true; vid.defaultPlaybackRate=RATE; vid.playbackRate=RATE; vid.src=SPLASH_VID;
     const setRate=()=>{ try{ vid.playbackRate=RATE; }catch(e){} };   // some browsers reset the rate on load — re-assert it
