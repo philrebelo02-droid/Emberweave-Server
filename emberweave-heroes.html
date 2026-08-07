@@ -2294,13 +2294,17 @@ function startBattle(){
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.hp=u.maxHp;u.energy=Math.max(u.energy,40);u.target=null;});buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
 // ---- Wave run-on / run-off cinematic (Phil's spec) ----
-// EVERY wave: heroes RUN ONTO the screen from off the bottom-left at ~2x into their diagonal home slots;
-// once all are in position combat resumes at 1x. When the wave/stage clears they RUN OFF the RIGHT side at
-// ~2x, completely off-screen (down to the last hero); then the next wave loads and they run on again.
+// EVERY wave: heroes RUN ONTO the screen from off the bottom-left, ALONG the invisible bottom-left → top-right
+// line, into their diagonal home slots (walk-in is 25% slower than the sprint); once all in position combat
+// resumes at 1x. When the wave/stage clears they RUN OFF along that SAME line out the top-right, completely
+// off-screen (down to the last hero); then the next wave loads and they run on again.
 // Runs as an early-return branch in updateBattle so normal combat is paused during the run.
-const XFER_SPD=820;   // ~2x sprint speed for the run-on / run-off
-function heroOffscreenStart(hx,hy){ return {x:hx-640, y:hy+480}; }   // staging point off the bottom-left corner
-// snap surviving heroes to their home slots (heal/reset), then shove them off the bottom-left to run back in
+const XFER_SPD=820*0.75;                   // walk speed for BOTH run-on and run-off (25% slower than the old 820 sprint)
+const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same reduced speed
+const XFER_DIR={x:0.70,y:-0.71};          // the invisible line: bottom-left → top-right (field +x, -y)
+const XFER_OFFSCREEN=880;                 // how far back down the line the off-screen staging point sits
+function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:hy - XFER_DIR.y*XFER_OFFSCREEN}; }   // straight down the line, off the bottom-left
+// snap surviving heroes to their home slots (heal/reset), then shove them down the line off the bottom-left to walk back in
 function beginWaveEnter(){
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.slow=0;
@@ -2312,20 +2316,20 @@ function beginWaveExit(){ waveXfer={phase:'exit',t:0}; bannerMsg(waveIdx>=chapte
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
   const allies=units.filter(u=>u.team==='ally'&&u.alive);
-  if(waveXfer.phase==='enter'){   // run ONTO the screen into home slots, then resume combat
+  if(waveXfer.phase==='enter'){   // walk UP the line into home slots (25% slower), then resume combat
     let allIn=true;
     allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
-      if(d>10){ allIn=false; const mv=Math.min(d, XFER_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
-    if(allIn || waveXfer.t>3.4){ allies.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // all in position → resume 1x combat
+      if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
+    if(allIn || waveXfer.t>4.2){ allies.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // all in position → resume 1x combat
     return;
   }
-  // phase 'exit' → sprint completely off the RIGHT side, down to the last hero
+  // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
   let allOut=true;
   allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null; u.stunned=0; u.slow=0;
-    const ex=FW+260, dx=ex-u.x; u.x+=Math.sign(dx)*Math.min(Math.abs(dx), XFER_SPD*dt);
-    if(u.x<FW+40)allOut=false; });
-  if(allOut || waveXfer.t>3.2){
+    u.x+=XFER_DIR.x*XFER_SPD*dt; u.y+=XFER_DIR.y*XFER_SPD*dt;
+    if(u.x<FW+40 && u.y>-40)allOut=false; });   // off the top-right corner
+  if(allOut || waveXfer.t>3.8){
     if(waveIdx<chapterWaves-1){ waveIdx++; buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();
       bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
       beginWaveEnter(); }                       // next wave: heroes run back on from the bottom-left
@@ -6340,7 +6344,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786125540722';
+const BUILD_ID='1786126562243';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
