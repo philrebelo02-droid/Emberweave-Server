@@ -1003,16 +1003,16 @@ const BATTLE_ANIM = { konwu:{
   walk:{u:GROSK_WALK,n:20,fw:182,fh:180,fps:14,flip:false},
   attack:{u:GROSK_ATK,n:20,fw:182,fh:180,fps:26,hold:0.75,flip:false},
   hit:{u:GROSK_HIT,n:16,fw:182,fh:180,fps:16,flip:false},
-  croc:{u:GROSK_CROC,n:24,fw:182,fh:180,fps:10.5,flip:false},   // ULT Croc Drop (jump-slam) — half-speed (2× anim duration)
-  pull:{u:GROSK_PULL,n:20,fw:182,fh:180,fps:11,flip:false},   // GREEN Gravemaw Pull — half-speed (2× anim duration)
-  fists:{u:GROSK_FISTS,n:20,fw:182,fh:180,fps:12,flip:false}, // BLUE Hammer Fists — half-speed (2× anim duration)
+  croc:{u:GROSK_CROC,n:24,fw:182,fh:180,fps:21,flip:false},   // ULT Croc Drop (jump-slam)
+  pull:{u:GROSK_PULL,n:20,fw:182,fh:180,fps:22,flip:false},   // GREEN Gravemaw Pull
+  fists:{u:GROSK_FISTS,n:20,fw:182,fh:180,fps:24,flip:false}, // BLUE Hammer Fists
 }, vulmar:{
   idle:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_idle.webp',n:20,fw:195,fh:180,fps:8,flip:false},
   attack:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_attack.webp',n:20,fw:208,fh:180,fps:16,hold:0.5,flip:false},
   hit:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_hit.webp',n:16,fw:195,fh:180,fps:14,flip:false},
-  ult:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_ult.webp',n:24,fw:180,fh:180,fps:7,flip:false},
-  sling:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_sling.webp',n:22,fw:198,fh:180,fps:8,flip:false},
-  grasp:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,fps:7,flip:false},
+  ult:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_ult.webp',n:24,fw:180,fh:180,fps:14,flip:false},
+  sling:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_sling.webp',n:22,fw:198,fh:180,fps:16,flip:false},
+  grasp:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,fps:14,flip:false},
   passive:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_passive.webp',n:24,fw:148,fh:180,fps:12,flip:false}
 }};
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
@@ -1169,7 +1169,7 @@ const MONSTER_KITS={
   'ice beast':          {green:{name:'Frost Nova',type:'nova',mul:1.0,radius:2.8*METER,slow:true,cd:8},                     blue:{name:'Blizzard',type:'ashfall',dps:0.45,dur:4,radius:3.2*METER,slow:2,color:'#9fe0ff',cd:12},          pass:'deepfreeze'},   // Wintercrag
   'monster with fireball':{green:{name:'Fireball',type:'fireball',mul:1.6,radius:2.4*METER,cd:8},                          blue:{name:'Ignite All',type:'aoedot',mul:0,dps:0.5,dur:4,radius:99999,cd:12},                              pass:'immolate'},    // Magmourn
   'nashor beast':       {green:{name:'Ground Pound',type:'aoeStun',mul:1.0,stun:1.3,radius:2.6*METER,cd:9},                blue:{name:'Charge',type:'charge',mul:1.6,radius:2.4*METER,stun:0.8,cd:11},                                 pass:'lifesteal'},   // Voraxis
-  'ogre beast':         {green:{name:'Club Smash',type:'stun',mul:1.6,stun:1.4,cd:8},                                      blue:{name:'Bellow',type:'warcry',mul:1.4,dur:6,stun:0.9,radius:2.6*METER,cd:11},                          pass:'unstoppable'}, // Grommash
+  'ogre beast':         {green:{name:'Club Smash',type:'stun',mul:1.6,stun:1.4,cd:8},                                      blue:{name:'Bellow',type:'warcry',mul:1.4,dur:6,stun:0.9,fear:2,radius:2.6*METER,cd:11},                          pass:'unstoppable'}, // Grommash
   'water monster':      {green:{name:'Tidal Wave',type:'cleave',mul:1.2,radius:2.8*METER,cd:8},                            blue:{name:'Geyser',type:'stun',mul:2.0,stun:1.2,cd:10},                                                    pass:'wrath'},       // Leviath
   'water serpent':      {green:{name:'Tail Lash',type:'cleavecone',mul:1.1,radius:3*METER,angle:60,stun:1.0,cd:8},         blue:{name:'Tsunami',type:'nova',mul:1.4,radius:3.2*METER,slow:true,cd:11},                                 pass:'selfregen'},   // Sylphice
   'skeletal warrior':  {green:{name:'Soul Harvest',type:'lifestealbuff',pct:0.3,dur:5,cd:8},                          blue:{name:'Reaping Cleave',type:'cleavecone',mul:1.35,radius:2.8*METER,angle:90,cd:10}},   // Mordath
@@ -2081,7 +2081,7 @@ const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
 // Target + damage are recomputed HERE (at landing), not at cast, since a second may have passed.
 function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;return;}
-  HERO_FX_MUL=2;   // KonWu's deferred blink strike — double its FX duration to match the rest of his kit
+  HERO_FX_MUL=1;   // KonWu's deferred blink strike — FX at normal speed
   const sm=u._blinkSM||1, rm=rageMul, dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
   const R=o.range||15*METER; const inRange=enemiesOf(u).filter(e=>dist(u,e)<=R);
   let tg=inRange.length?inRange.reduce((a,b)=>a.hp<=b.hp?a:b):nearestEnemy(u); if(!tg){u._blinkO=null;return;}
@@ -2094,10 +2094,10 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
   u.target=tg; u._blinkO=null; HERO_FX_MUL=1; }
 let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while one of the 3 built heroes casts, so their FX (particles, plates, staff) last twice as long; 1 for everyone else. Cast times are untouched.
 function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); const aimCtr=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
-  HERO_FX_MUL=(u.key==='konwu'||u.key==='grosk'||u.key==='vulmar')?2:1;
+  HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
   const tgt=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
   fxFor(type,u,tgt,o);   // ability visual effect
-  { const aa=ABIL_ANIM[type]; if(aa && u.anim && u.anim[aa.st]){ u._abilAnim=aa.st; u._abilHold=(u._castNow?4*u._castNow:2*aa.hold); } }  // trigger ability billboard clip (hold doubled → clip plays fully at the halved fps = 2× anim duration)
+  { const aa=ABIL_ANIM[type]; if(aa && u.anim && u.anim[aa.st]){ const A=u.anim[aa.st]; u._abilAnim=aa.st; u._abilHold=A.n/(A.fps||10); } }  // trigger ability billboard clip — hold = exactly ONE playthrough at the (halved) fps, so the clip plays once at 2× duration and never loops/repeats
   switch(type){
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
@@ -2153,7 +2153,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       spawnShot(u,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
     case 'warcry':{ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=o.dur||6;   // self attack buff + a brief fear (short stun) on nearby heroes
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
-      const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && o.stun && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.stun); floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
+      const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
     case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,o.dur||3);});u.drMul=Math.max(0.15,1-0.4*sm);u.drT=o.dur||3;burstAt(u.x,u.y,0x6ea8ff,12);break;}
@@ -2267,7 +2267,10 @@ function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fx
 function think(u,dt){
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
   if(u.stunned>0){u.stunned-=dt;return;}
-  if((u.fearT||0)>0){u.fearT-=dt;return;}   // feared: can't act (short freeze) while the fear emote shows
+  if((u.fearT||0)>0){ u.fearT-=dt;   // feared: FLEE away from the fearer (no attacking/casting) while the fear emote shows
+    const ff=(u._fearFrom&&u._fearFrom.alive)?u._fearFrom:nearestEnemy(u);
+    if(ff){ const dx=u.x-ff.x, dy=u.y-ff.y, dl=Math.hypot(dx,dy)||1; const spd=u.speed*(u.slow>0?0.55:1); u.x+=dx/dl*spd*dt; u.y+=dy/dl*spd*dt; u._faceDir=dx>=0?1:-1; }
+    u.target=null; return; }
   if(u._castT>0)u._castT-=dt;   // casting: locked out of auto-attacks
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if(u.slow>0)u.slow-=dt; const spd=u.speed*(u.slow>0?0.55:1);
@@ -2327,7 +2330,16 @@ const XFER_OFFSCREEN=880;                 // how far back down the line the off-
 function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:hy - XFER_DIR.y*XFER_OFFSCREEN}; }   // straight down the line, off the bottom-left
 // snap surviving heroes to their home slots (heal/reset), then shove them down the line off the bottom-left to walk back in
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
-function beginWaveEnter(){ purgeDead();
+// stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
+function purgeTransientFx(){
+  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; });
+  shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();}); shots=[];
+  particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=[];
+  floatTexts=[];
+  staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
+  if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
+}
+function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
   allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0;
@@ -2335,8 +2347,8 @@ function beginWaveEnter(){ purgeDead();
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   waveXfer={phase:'enter',t:0};
 }
-function beginWaveExit(){ purgeDead(); waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
-function beginWaveWin(){ purgeDead(); waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
+function beginWaveExit(){ purgeDead(); purgeTransientFx(); waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
+function beginWaveWin(){ purgeDead(); purgeTransientFx(); waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
   const allies=units.filter(u=>u.team==='ally'&&u.alive);
@@ -6394,7 +6406,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786141797335';
+const BUILD_ID='1786143025027';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
