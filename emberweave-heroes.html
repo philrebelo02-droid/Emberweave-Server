@@ -1115,7 +1115,7 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
 const ULT_AIMED=['fireball','burst','multiShot','aoeStun','cleave','execute','monkSlam','gravcrush']; // ultimates the player aims at an enemy
 // WoW-style kits: Green/Blue are auto actives, Purple is a passive. Mechanics = DoT/HoT/shield/stun/execute/taunt/buffs.
-const METER=9.4;   // field-units per in-game metre (fight-mode grid line spacing = 10 m)
+const METER=28.2;   // field-units per in-game metre (tripled from 9.4 so 13 m / 25 m rows read as real spacing; melee touching still governed by body-collision floor, not this)
 const KITS={
   aldric:{green:{name:"Guardian's Challenge",type:'taunt',dur:3,cd:6},blue:{name:'Sanctified Ground',type:'aoedot',mul:0.4,dps:0.5,dur:4,cd:9},purple:{name:'Ironhide',pass:'bulwark'}},
   thorne:{green:{name:'Rending Gash',type:'dot',mul:0.6,dps:0.5,dur:4,cd:4},blue:{name:'Crimson Ward',type:'shield',mul:0.4,dur:5,cd:8,self:true},purple:{name:'Sanguine',pass:'lifesteal'}},
@@ -1739,6 +1739,7 @@ const BATTLE_PACE=0.82;   // slightly slower overall battle tempo
 const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
 function swingInterval(t){ return (t.swing!=null? t.swing : (ROLE_SWING[t.role]||1.0)); }
 let chapterWaves=3,waveIdx=0;
+let waveXfer=null;   // wave-transition cinematic: {phase:'exit',t} — surviving heroes run OFF the top-right, then the next wave re-enters on the SAME battle map (meet-in-the-middle repeats)
 let CUR={node:1,mode:'campaign',opp:null};
 
 /* ============================== 3D SCENE ================================== */
@@ -1962,8 +1963,9 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
     atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:35,target:null,alive:true,r:18*br,
     flash:0,stunned:0,slow:0,portraitEl:null,laneX:x,melee:(t.range<60),
-    // desired fighting distance by row: melee closes to ~2 m (touching, no overlap — cross-team collision stops them), mid-row holds 13 m, back row holds 25 m
-    combatDist:(t.range<60 ? 2*METER*(boss?1.5:1) : Math.min(((ROW_OVERRIDE[key]!=null?ROW_OVERRIDE[key]:roleDepth(t.role))<=2?13*METER:25*METER), t.range*(boss?1.4:1))),
+    // desired fighting distance by row: melee closes to touching (~1-2 m, cross-team collision stops overlap), mid-row holds 13 m, back row holds 25 m.
+    // Melee hold is clamped just inside its attack range so it can actually swing; ranged holds the FULL row distance (range is widened below to reach it).
+    combatDist:(t.range<60 ? Math.min(2*METER*(boss?1.5:1), t.range*(boss?1.4:1)-4) : (((ROW_OVERRIDE[key]!=null?ROW_OVERRIDE[key]:roleDepth(t.role))<=2?13*METER:25*METER))),
     attackAnim:0,castAnim:0,deathT:0,bob:(x*.7+y*.3)%6.28,
     abilityOverride:(t.monster?null:(boss?'cleave':null)),
     greenAb:(rank>=1&&kit.green)?kit.green:null, blueAb:(rank>=2&&kit.blue)?kit.blue:null,
@@ -1971,6 +1973,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: owned?skillLvArr(key).slice():[1,1,1,1], passMul:1, _castSM:1, apMul: owned?abilityPowerMul():(t.ap||1),
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
+  if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   if(rank>=3 && kit.purple){ const p=kit.purple.pass, pm=skillMul(u.skillLv[3]||1); u.passMul=pm;
     if(p==='power') u.dmg*=1+0.15*pm; else if(p==='fury') u.atkInterval/=(1+0.25*pm); else { u.pass={[p]:true}; if(p==='unstepped') u.immovable=true; } }
   if(t.monster && MONSTER_KITS[key]){ const mk=MONSTER_KITS[key];   // batch-wired monsters auto-cast their 2 abilities (no rank gate)
@@ -2242,8 +2245,8 @@ function think(u,dt){
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
   if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&(u._castT||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
   if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&(u._castT||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
-  if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt
-  else if(!u.target||!u.target.alive) u.target=nearestEnemy(u);
+  if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
+  else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   const t=u.target;if(!t)return;const d=dist(u,t);
   const cd=u.combatDist||u.range;   // row-based hold distance (back 25 m / mid 13 m / melee ~1 m)
   // Both teams run in from their corners and meet in the middle. Ranged units keep their ROW distance from the
@@ -2275,6 +2278,29 @@ function startBattle(){
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.hp=u.maxHp;u.energy=Math.max(u.energy,40);u.target=null;});buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
+// ---- Wave transition (Phil's spec): on clear, surviving heroes RUN OFF the top-right corner, then the next
+// wave loads on the SAME battle map — heroes re-enter from the bottom-left, enemies from the top-right, and
+// the meet-in-the-middle charge repeats. Runs as an early-return branch in updateBattle so normal combat pauses.
+function beginWaveXfer(){ waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
+function updateWaveXfer(dt){
+  waveXfer.t+=dt;
+  const allies=units.filter(u=>u.team==='ally'&&u.alive);
+  const ex=FW+220, ey=-60;   // off-screen top-right exit point
+  let allOut=true;
+  allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null; u.stunned=0; u.slow=0;
+    const dx=ex-u.x, dy=ey-u.y, d=Math.hypot(dx,dy)||1, spd=780;   // brisk sprint off the top-right corner
+    u.x+=dx/d*spd*dt; u.y+=dy/d*spd*dt;
+    if(u.x<FW+30)allOut=false; });
+  if(allOut || waveXfer.t>2.6){   // everyone has exited → reset positions and spawn the next wave
+    waveIdx++;
+    const n=allies.length;
+    allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null;
+      const x=laneXi(i,n,'ally'), y=laneDepthY('ally',u.key); u.x=x; u.y=y; u.laneX=x; });   // heroes re-enter from bottom-left
+    buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();   // fresh enemies at top-right on the same map
+    bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
+    waveXfer=null;   // hand back to normal combat → both sides run in and meet in the middle
+  }
+}
 function grantRewards(){
   const node=CUR.node, firstClear=(CUR.mode==='campaign'&&node>G.campaignCleared);
   let msg='';
@@ -2365,6 +2391,7 @@ function endBattle(won){ ended=true;
 },800); }
 
 function updateBattle(dt){
+  if(waveXfer){ updateWaveXfer(dt); return; }   // wave-transition cinematic: heroes run off top-right, next wave re-enters — normal combat paused
   battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);think(u,dt);u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
@@ -2415,7 +2442,7 @@ function updateBattle(dt){
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended){const a=units.filter(u=>u.team==='ally'&&u.alive).length,f=units.filter(u=>u.team==='enemy'&&u.alive).length;
-    if(a===0)endBattle(false); else if(f===0){ if(waveIdx<chapterWaves-1)startNextWave(); else endBattle(true); }}
+    if(a===0)endBattle(false); else if(f===0){ if(waveIdx<chapterWaves-1)beginWaveXfer(); else endBattle(true); }}
 }
 
 /* ------------------------------- 3D sync ----------------------------------- */
@@ -6282,7 +6309,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786093699796';
+const BUILD_ID='1786123897938';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
