@@ -2313,10 +2313,16 @@ function beginWaveEnter(){
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   waveXfer={phase:'enter',t:0};
 }
-function beginWaveExit(){ waveXfer={phase:'exit',t:0}; bannerMsg(waveIdx>=chapterWaves-1?'STAGE CLEARED':'WAVE CLEARED'); }
+function beginWaveExit(){ waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
+function beginWaveWin(){ waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
   const allies=units.filter(u=>u.team==='ally'&&u.alive);
+  if(waveXfer.phase==='win'){   // stage cleared: heroes stand still and idle for 2 s, then go to the victory screen
+    allies.forEach(u=>{ u.target=null; u.attackAnim=0; u.castAnim=0; });
+    if(waveXfer.t>=2){ waveXfer=null; endBattle(true); }
+    return;
+  }
   if(waveXfer.phase==='enter'){   // walk UP the line into home slots (25% slower), then resume combat
     let allIn=true;
     allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0;
@@ -2478,7 +2484,7 @@ function updateBattle(dt){
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended){const a=units.filter(u=>u.team==='ally'&&u.alive).length,f=units.filter(u=>u.team==='enemy'&&u.alive).length;
-    if(a===0)endBattle(false); else if(f===0){ beginWaveExit(); }}   // wave/stage cleared → heroes run off the right; updateWaveXfer loads the next wave or ends the stage
+    if(a===0)endBattle(false); else if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); }}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
 
 /* ------------------------------- 3D sync ----------------------------------- */
@@ -6346,7 +6352,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786127696984';
+const BUILD_ID='1786128373672';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
