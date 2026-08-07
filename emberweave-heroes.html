@@ -1007,13 +1007,13 @@ const BATTLE_ANIM = { konwu:{
   pull:{u:GROSK_PULL,n:20,fw:182,fh:180,fps:22,flip:false},   // GREEN Gravemaw Pull
   fists:{u:GROSK_FISTS,n:20,fw:182,fh:180,fps:24,flip:false}, // BLUE Hammer Fists
 }, vulmar:{
-  idle:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_idle.webp',n:20,fw:195,fh:180,fps:8,flip:false},
-  attack:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_attack.webp',n:20,fw:208,fh:180,fps:16,hold:0.5,flip:false},
+  idle:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_idle.webp',n:20,fw:195,fh:180,fps:6,stride:0.06,flip:false},
+  attack:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_attack.webp',n:20,fw:208,fh:180,fps:10,hold:0.5,flip:false},
   hit:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_hit.webp',n:16,fw:195,fh:180,fps:14,flip:false},
   ult:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_ult.webp',n:24,fw:180,fh:180,fps:14,flip:false},
   sling:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_sling.webp',n:22,fw:198,fh:180,fps:16,flip:false},
-  grasp:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,fps:14,flip:false},
-  passive:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_passive.webp',n:24,fw:148,fh:180,fps:12,flip:false}
+  grasp:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,fps:7,flip:false},
+  passive:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_passive.webp',n:24,fw:148,fh:180,fps:8,flip:false}
 }};
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
 // 0 Croc Drop (ult), 1 Gravemaw Pull (green), 2 Hammer Fists (blue), 3 Juggernaut (passive → idle stance).
@@ -1138,7 +1138,7 @@ const KITS={
   aria:{green:{name:'Soothing Wind',type:'hot',hps:0.05,dur:6,cd:4},blue:{name:'Empower',type:'dmgbuff',mul:1.25,dur:6,cd:8},purple:{name:'Cadence',pass:'battery'}},
   konwu:{green:{name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:3*METER,angle:45,cd:6},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10},purple:{name:'Adamant Discipline',pass:'warden'}},
   grosk:{green:{name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10},blue:{name:'Hammer Fists',type:'punchflurry',hits:4,mul:0.30,tauntChance:0.25,tauntDur:2,cd:6},purple:{name:'Juggernaut',pass:'juggernaut'}},
-  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,root:1.2,dur:2,cd:10},purple:{name:'Unstepped',pass:'unstepped'}},
+  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:10,cd:10},purple:{name:'Unstepped',pass:'unstepped'}},
 };
 // ---- MONSTER kits (Batch 1) — each monster auto-casts its two chosen abilities on cooldown (no ults). ----
 // Stronger ability goes on the longer cooldown, per the balance rule in claude/monster-picks.md.
@@ -2168,7 +2168,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); e.stunned=Math.max(e.stunned||0,o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ e.silencedT=Math.max(e.silencedT||0,dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,dur); e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); } });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ e.silencedT=Math.max(e.silencedT||0,dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,dur); e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } });
       ringBurst(u.x,u.y,0x9a7b40,16); burstAt(u.x,u.y,0xcaa050,14); break; }
     case 'punchflurry':{ const tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,dB*(o.mul||0.30)*rm,'#e0b070');
@@ -2176,7 +2176,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
     // ---- Vulmar (gravity) ----
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
+      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18); if(typeof spawnFxPlate==='function')spawnFxPlate('ultland',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
       const proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; const others=foes.filter(e=>e!==proj);
@@ -2184,9 +2184,11 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); proj.stunned=Math.max(proj.stunned||0,0.6);
       if(anvil){ if(!proj.immovable){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); anvil.stunned=Math.max(anvil.stunned||0,0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); if(typeof spawnFxPlate==='function')spawnFxPlate('slingfx',anvil.x,anvil.y); }
       burstAt(proj.x,proj.y,0x8B5CF6,14); break; }
-    case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;
+    case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       const tg2=o.nearest?foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]:foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
-      if(!tg2.immovable){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,o.dur||2); } if(o.silence)tg2.silencedT=Math.max(tg2.silencedT||0,o.dur||2); if(o.root)tg2.stunned=Math.max(tg2.stunned||0,o.root);
+      const dur=o.dur||3, stopD=(o.stop||10)*METER;
+      if(!tg2.immovable){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(22,(dist(u,tg2)-stopD)/dur); } // speed sized to cover the distance to 10 m over the full duration
+      if(o.silence)tg2.silencedT=Math.max(tg2.silencedT||0,dur); tg2.stunned=Math.max(tg2.stunned||0,dur);   // rooted for the whole drag so it can't walk back out
       ringBurst(u.x,u.y,0x8B5CF6,14); if(typeof spawnFxPlate==='function')spawnFxPlate('graspfx',tg2.x,tg2.y); break; }
   }
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
@@ -2503,7 +2505,7 @@ function updateBattle(dt){
     if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt;
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
-    if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; if(dd>u.r+p.r){ const pull=22*dt; u.x+=dx/dd*pull; u.y+=dy/dd*pull; } } }   // Grosk pull: slow drag toward him
+    if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null){ u.pullStop=null; u.pullSpeed=null; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe to 10 m over 3 s.
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
   for(let i=groundHazards.length-1;i>=0;i--){ const h=groundHazards[i]; h.life-=dt; h.acc+=dt;
@@ -2547,7 +2549,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         const st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
         const A=u.anim[st]||u.anim.idle;
         if(u._animSt!==st){u._animSt=st;u._animAcc=0;}
-        if(st==='walk') u._animAcc=(u._animAcc||0)+moved*WALK_STRIDE;   // legs advance with distance travelled → realistic cadence at any speed
+        if(st==='walk') u._animAcc=(u._animAcc||0)+moved*(A.stride||WALK_STRIDE);   // legs advance with distance travelled → realistic cadence at any speed (per-clip stride override, e.g. Vulmar's slower glide)
         else u._animAcc=(u._animAcc||0)+dt*(A.fps||10);
         const fr=Math.floor(u._animAcc)%A.n;
         // desired facing: face the way he's MOVING while walking; otherwise face the target (remembered when neither)
@@ -6406,7 +6408,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786143025027';
+const BUILD_ID='1786143982536';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
