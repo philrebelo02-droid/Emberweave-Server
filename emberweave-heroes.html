@@ -1480,7 +1480,7 @@ function recipeStr(r){ if(r.base) return r.base.map(([k,n])=>baseMeta(k)[1]+'×'
   return r.items.map(([id,n])=>{ const p=eqParse(id); return EQ_TIERS[p.t][0]+' '+eqName(p.g,p.s,p.t)+(n>1?'×'+n:''); }).join(' + '); }
 function equipArr(key){ if(!G.equip[key])G.equip[key]=[null,null,null,null,null,null]; return G.equip[key]; }
 function eqSlotUnlocked(key,s){ return glyphRank(key)>=EQ_SLOTS[s].unlock; }
-function equipItem(key,s,id){ const cur=equipArr(key)[s]; if(cur){ if(!G.eqInv)G.eqInv={}; G.eqInv[cur]=(G.eqInv[cur]||0)+1; } if(eqInv(id)<=0)return false; G.eqInv[id]-=1; equipArr(key)[s]=id; return true; }
+function equipItem(key,s,id){ if(eqInv(id)<=0)return false; const cur=equipArr(key)[s]; if(cur){ if(!G.eqInv)G.eqInv={}; G.eqInv[cur]=(G.eqInv[cur]||0)+1; } G.eqInv[id]-=1; equipArr(key)[s]=id; return true; }
 function unequipItem(key,s){ const cur=equipArr(key)[s]; if(cur){ if(!G.eqInv)G.eqInv={}; G.eqInv[cur]=(G.eqInv[cur]||0)+1; equipArr(key)[s]=null; } }
 // per-slot stat lean; each equipped item scales with its tier (Grey×1 … Purple×4)
 const EQ_SLOT_STAT=[
@@ -1598,7 +1598,8 @@ function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+v).j
 let G = JSON.parse(JSON.stringify(DEFAULT_G));
 function saveGLocalOnly(){ try{ localStorage.setItem('emberweave_save_v08', JSON.stringify(G)); }catch(e){} }
 function saveG(){ G.mtime=Date.now(); saveGLocalOnly(); if(ACC.token) cloudSync(); }
-function loadG(){ try{ const s=localStorage.getItem('emberweave_save_v08'); if(s){ deepMerge(G, JSON.parse(s)); } }catch(e){}
+function loadG(){ try{ const s=localStorage.getItem('emberweave_save_v08'); if(s){ deepMerge(G, JSON.parse(s)); } }catch(e){} migrateG(); }
+function migrateG(){
   // migrate old glyph/quality system → new glyph rank ladder
   if(!G.glyphRank) G.glyphRank={};
   if(G.quality){ const map=[0,2,5,9]; HERO_KEYS.forEach(k=>{ if(G.glyphRank[k]==null) G.glyphRank[k]=map[G.quality[k]||0]||0; }); delete G.quality; delete G.glyphs; }
@@ -1623,7 +1624,7 @@ function loadG(){ try{ const s=localStorage.getItem('emberweave_save_v08'); if(s
   // 72h beginner peace shield for brand-new players (not veterans)
   if(!G.beginnerShieldInit){ G.beginnerShieldInit=true;
     if((G.campaignCleared||0)===0 && playerLevel()<30) G.beginnerShieldUntil=Date.now()+72*3600000; }
-  migrateRename(); }
+  return migrateRename(); }
 // ---- Tech scaling: small FLAT per-track amounts that grow gently each level (see reference tables). ----
 //   Health/Attack Power add flat HP/ATK. Ability Power / Def / Armor / Magic Resist / Crit / Crit Resist add flat % points.
 const TECH_MAX=60;                                        // every tech tops out at kingdom level 60
@@ -1815,8 +1816,8 @@ function resize3D(){ if(!renderer)return; DPR=Math.min(window.devicePixelRatio||
 // Only rebuild the 3D/overlay buffers when the WIDTH changes. The mobile soft keyboard changes only the
 // viewport HEIGHT (open on input focus, close on tap) and would otherwise fire this expensive realloc
 // repeatedly → multi-second freezes (e.g. opening the dev fragment tool / tapping a hero row).
-let _lastResizeW=window.innerWidth;
-window.addEventListener('resize',()=>{ if(!renderer)return; const w=window.innerWidth; if(w===_lastResizeW)return; _lastResizeW=w; resize3D(); });
+let _lastResizeW=window.innerWidth, _lastResizeH=window.innerHeight;
+window.addEventListener('resize',()=>{ if(!renderer)return; const w=window.innerWidth,h=window.innerHeight; if(w!==_lastResizeW){ _lastResizeW=w; _lastResizeH=h; resize3D(); return; } const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName); if(state==='battle'&&!foc&&Math.abs(h-_lastResizeH)>60){ _lastResizeH=h; resize3D(); } });
 window.addEventListener('orientationchange',()=>{ for(const d of [60,250,600,1000]) setTimeout(()=>{if(renderer)resize3D();},d); });
 document.addEventListener('fullscreenchange',()=>{ for(const d of [60,300,700]) setTimeout(()=>{if(renderer)resize3D();},d); });
 document.addEventListener('webkitfullscreenchange',()=>{ for(const d of [60,300,700]) setTimeout(()=>{if(renderer)resize3D();},d); });
@@ -2098,7 +2099,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
     case 'volley':{enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||3).forEach(e=>{dealDamage(u,e,dB*(o.mul||.9)*rm,'#5ee89b');spawnShot(u,e,u.t.color);});break;}
-    case 'nova':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)e.slow=2;}});burstAt(u.x,u.y,o.slow?0x7fb0ff:0xff8844,12);break;}
+    case 'nova':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)e.slow=Math.max(e.slow||0,2);}});burstAt(u.x,u.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,u.dmg*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a'); if(o.stun)e.stunned=Math.max(e.stunned||0,o.stun); } } });
       ringBurst(u.x,u.y,0xffa657,10); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,10); break; }
@@ -2107,7 +2108,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(Math.random()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a'); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
       break; }
     case 'multiShot':{enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');spawnShot(u,e,'#5ee89b');});break;}
-    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=o.stun||2;}});burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
+    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);}});burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
     case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,u.dmg*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'monkSlam':{ const ctr=(tgt&&tgt.alive)?tgt:u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to all enemies at the aimed point; a phantom Ruyi slams each
       let di=0; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||130)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); e.stunned=Math.max(e.stunned||0,o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
@@ -2122,7 +2123,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
     case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8'); pushDot(tgt,u.dmg*(o.dps||.5)*sm,o.dur||4,o.interval||1,o.color||'#ff8844'); if(u.range>60)spawnShot(u,tgt,u.t.color); break;}
     case 'aoedot':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(u.x,u.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=o.stun||1.3;if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
-    case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=2;break;}
+    case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=Math.max(tgt.slow||0,2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
     case 'heal':{alliesOf(u).forEach(a=>healUnit(a,a.maxHp*(o.mul||.9)*sm));burstAt(u.x,u.y,0x5ee89b,16);break;}
     case 'selfheal':{healUnit(u,u.maxHp*(o.mul||0.25)*sm);burstAt(u.x,u.y,0x5ee89b,14);break;}   // Ooznik: Divide — regenerate own HP
@@ -2152,7 +2153,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && o.stun && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.stun); floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
-    case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=o.dur||3;});u.drMul=Math.max(0.15,1-0.4*sm);u.drT=o.dur||3;burstAt(u.x,u.y,0x6ea8ff,12);break;}
+    case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,o.dur||3);});u.drMul=Math.max(0.15,1-0.4*sm);u.drT=o.dur||3;burstAt(u.x,u.y,0x6ea8ff,12);break;}
     case 'rally':{alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+40);healUnit(a,a.maxHp*.3);a.hasteMul=1.2;a.hasteT=5;floatTexts.push({x:a.x,y:a.y-16,txt:'Rally!',t:1.0,color:'#ffd45e',vy:1.0,sz:14});});break;}
     // ---- Grosk ----
     case 'hipposlam':{ const foes=enemiesOf(u); if(!foes.length)break;   // ULT: leap onto the densest 3m cluster; damage = % of his OWN max HP
@@ -2296,7 +2297,7 @@ function think(u,dt){
 
 /* ---------------------------- battle lifecycle ----------------------------- */
 function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is exactly 3 waves
-function clearBattle(){ units.forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
+function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite&&x.material){try{x.material.dispose();}catch(_){}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 function startBattle(){
@@ -2324,7 +2325,8 @@ function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 function beginWaveEnter(){ purgeDead();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
-  allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0;
+  battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
+  allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0;
     const sl=laneSlot('ally',u.key,i,n); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   waveXfer={phase:'enter',t:0};
@@ -2471,7 +2473,7 @@ function updateBattle(dt){
     if(u.pass.juggernaut) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.04*(u.passMul||1)*dt);   // Grosk self-heal 4% max HP/s
     if(u.pass.warden){ u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1; ringBurst(u.x,u.y,0xE7B84B,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#E7B84B',vy:1}); } }
     if(u.pass.selfregen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.02*dt);   // Serpentine Regen (Sylphice)
-    if(u.pass.wrath){ u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
+    if(u.pass.wrath){ if(u._baseDmg==null)u._baseDmg=u.dmg; u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
     if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) damage(e,u.dmg*0.25,'#ff6a3a',true); }); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(battleTime*7)%foes.length]; e.stunned=Math.max(e.stunned||0,1.2); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag)
   });
@@ -2479,10 +2481,12 @@ function updateBattle(dt){
   // WoW-style status effects: DoT / HoT ticks + buff/debuff timers
   units.forEach(u=>{ if(!u.alive)return;
     for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; damage(u,d.dps,d.color,true); d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
+    if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
     if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt;
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
+    if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
     if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; if(dd>u.r+p.r){ const pull=22*dt; u.x+=dx/dd*pull; u.y+=dy/dd*pull; } } }   // Grosk pull: slow drag toward him
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
@@ -2601,13 +2605,13 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     if(u===selected){octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11);}
     // over-head status icons (~2 m above head): silence mask, then stun mask
     { const si=project(u.x,u.y,hh+0.72), isz=(u.boss?32:23);
-      const nIc=(u.silencedT>0?1:0)+(u.stunned>0?1:0)+(u.fearT>0?1:0)+(u.forcedTargetT>0?1:0);
-      let ix=si.x-((nIc-1)*(isz+2))/2;
-      const drawIcon=(img)=>{ if(img&&img.complete&&img.naturalWidth){ octx.drawImage(img, ix-isz/2, si.y-isz, isz, isz); ix+=isz+2; } };
-      if((u.silencedT||0)>0) drawIcon(_mrSilImg);
-      if((u.stunned||0)>0) drawIcon(_mrStunImg);
-      if((u.fearT||0)>0) drawIcon(_mrFearImg);
-      if((u.forcedTargetT||0)>0) drawIcon(_mrTauntImg); } });
+      const _rdy=(img)=>img&&img.complete&&img.naturalWidth, _ic=[];
+      if((u.silencedT||0)>0&&_rdy(_mrSilImg))_ic.push(_mrSilImg);
+      if((u.stunned||0)>0&&_rdy(_mrStunImg))_ic.push(_mrStunImg);
+      if((u.fearT||0)>0&&_rdy(_mrFearImg))_ic.push(_mrFearImg);
+      if((u.forcedTargetT||0)>0&&_rdy(_mrTauntImg))_ic.push(_mrTauntImg);
+      let ix=si.x-((_ic.length-1)*(isz+2))/2;
+      _ic.forEach(img=>{ octx.drawImage(img, ix-isz/2, si.y-isz, isz, isz); ix+=isz+2; }); } });
   // Magic Rush-style juicy combat text: thick-outlined, color-coded, crits are bigger with a starburst
   octx.textAlign='center'; octx.textBaseline='middle'; octx.lineJoin='round';
   floatTexts.forEach(f=>{const p=project(f.x,f.y,1.8);if(!p.vis)return;
@@ -2719,6 +2723,7 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
 function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none';
+  document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
   if(_popout) closePopout();   // any full navigation closes an open pop-out
@@ -3096,8 +3101,7 @@ function sweepStage(i){
   const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
   const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
   let eliteStr='',um='';
-  if(isEliteStage(i)){ const hk=eliteHeroFor(i), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
-    um=giveHeroFrag(hk,amt); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${fh.emoji} ${fh.name} fragments</span>`; }
+  if(isEliteStage(i)){ const fh=HERO_TYPES[eliteHeroFor(i)]; eliteStr=`<br><span style="color:#8b98a9">⭐ ${fh.name} fragments come from the daily Elite run (capped) — not sweeping</span>`; }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
   document.getElementById('smMsg').innerHTML=`Swept! 🪙 +${gold} · +${pxp} XP · +${STAGE_XP_SWEEP} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
@@ -3311,8 +3315,8 @@ function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=n
 // load this account's cloud save into G. forceLoad=true on an explicit sign-in (always adopt that account);
 // on boot we only overwrite local if the cloud copy is newer, so recent offline play isn't clobbered.
 function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.roster&&profile.roster.__save; if(!blob) return false;
-    const cloud=JSON.parse(blob); if(!forceLoad && (G.mtime||0) >= (cloud.mtime||0)) return false;
-    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateRename(); applyBetaUnlocks(); saveGLocalOnly(); if(granted && ACC.token) pushSave(); return true;
+    const cloud=JSON.parse(blob); if(!forceLoad && (G.mtime||0) >= (cloud.mtime||0)){ const moreCloud=((cloud.campaignCleared||0)>(G.campaignCleared||0))||((cloud.playerXP||0)>(G.playerXP||0)); if(!moreCloud) return false; }
+    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateG(); applyBetaUnlocks(); saveGLocalOnly(); if(granted && ACC.token) pushSave(); return true;
   }catch(e){ return false; } }
 
 function renderAccount(){ const b=document.getElementById('accountBody');
@@ -5114,7 +5118,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
 }
 
 /* ============================ DAILY SIGN-IN ============================ */
-function signinNow(){ return new Date(Date.now()-9*3600000); }          // 09:00-reset-aligned "today"
+function signinNow(){ const shifted=new Date(Date.now()-9*3600000); return new Date(shifted.toLocaleString('en-US',{timeZone:'America/New_York'})); }   // 09:00 ET-reset-aligned "today"
 function signinMonthKey(d){ return d.getFullYear()+'-'+(d.getMonth()+1); }
 function signinEnsure(){ const d=signinNow(), mk=signinMonthKey(d);
   if(G.signinMonth!==mk){ G.signinMonth=mk; G.signinClaimed=[]; }        // new month → fresh calendar
@@ -6019,7 +6023,7 @@ function onPeer(d){
   if(d.k==='roster'){OL.guestRoster=d.roster;hostStartMatch();}
   else if(d.k==='start'){guestStartMatch();}
   else if(d.k==='state'){if(!OL.host)applyState(d.u);}
-  else if(d.k==='ult'){if(OL.host)hostApplyUlt(d.id,d.tid);}
+  else if(d.k==='ult'){if(OL.host)hostApplyUlt(d.id,d.tid,d.wx,d.wy);}
   else if(d.k==='end'){if(!OL.host)onlineResult(d.won);}
 }
 function onPeerLeft(msg){ if(OL.active&&state==='battle'){ended=true;document.getElementById('resultTitle').textContent='OPPONENT LEFT';document.getElementById('resultTitle').className='result-big';document.getElementById('resultReward').innerHTML=msg||'';document.getElementById('resultHint').textContent='';show('result');} OL.active=false; }
@@ -6042,7 +6046,7 @@ function renderOnline(){
   if(NET.role==='host'&&NET.code){const link=location.origin+location.pathname+'?room='+NET.code;document.getElementById('hostInfo').innerHTML=`Room <b style="color:#ffd45e;letter-spacing:2px">${NET.code}</b><br><span style="color:#8b98a9">Share this link:</span><br><span style="word-break:break-all;color:#8fd0ff">${link}</span><br><span style="color:#8b98a9">Waiting for opponent…</span>`;}
 }
 function hostStartMatch(){
-  OL.active=true;OL.host=true;OL.byId={};CUR={mode:'online',host:true,node:0};
+  OL.active=true;OL.host=true;OL.byId={};CUR={mode:'online',host:true,node:0};waveXfer=null;
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0;
   spawnTeam(G.team,'ally');
   const slots=formationSlots('enemy',OL.guestRoster.length);
@@ -6068,7 +6072,7 @@ function applyState(list){
   units=units.filter(u=>!u._gone);
   buildGuestPortraits();updateCounts();
 }
-function hostApplyUlt(id,tid){const u=units.find(x=>x.id===id),t=units.find(x=>x.id===tid);if(u&&u.alive&&u.energy>=100){if(t)u.target=t;castAbility(u);}}
+function hostApplyUlt(id,tid,wx,wy){const u=units.find(x=>x.id===id),t=units.find(x=>x.id===tid);if(u&&u.alive&&u.energy>=100){if(t)u.target=t; if(wx!=null){u._aimWX=wx;u._aimWY=wy;} castAbility(u);}}
 function onlineResult(won){ended=true;document.getElementById('resultTitle').textContent=won?'VICTORY':'DEFEAT';document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');document.getElementById('resultReward').innerHTML=won?'You won the live match! 🏆 +15 trophies':'Defeated in the arena.';document.getElementById('resultHint').textContent='';if(won){G.trophies+=15;saveG();}OL.active=false;show('result');}
 function buildGuestPortraits(){const bar=document.getElementById('portraitBar');const mine=units.filter(u=>u.team==='enemy');
   if(bar.dataset.mode!=='guest'||bar.childElementCount!==mine.length){bar.innerHTML='';bar.dataset.mode='guest';
@@ -6153,11 +6157,11 @@ function enterAim(u){ aiming=u; setAimDefault(u); document.getElementById('ultHi
 function ultCancelEl(){ return document.getElementById('ultCancel'); }
 function overCancel(cx,cy){ const c=ultCancelEl(); if(!c||!c.classList.contains('active'))return false; const r=c.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
 function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; }
-function fireAimed(){ const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100)return;
+function fireAimed(){ const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0)return;
   const mode=ultAimMode(u.abilityOverride||u.t.ability), best=nearestToScreen(aimTX,aimTY,aimTargetTeam());
   if(mode==='radius'||mode==='line'){ const w=screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point
   else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
-  if(OL.active&&!OL.host){ if(best) relay({k:'ult',id:u.id,tid:best.id}); }
+  if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:best?best.id:-1,wx:(mode==='radius'||mode==='line')?u._aimWX:null,wy:(mode==='radius'||mode==='line')?u._aimWY:null}); }
   else castAbility(u); }
 function onDown(e){ if(state!=='battle')return; const p=evXY(e);
   if(aiming){ aimTX=p.x; aimTY=p.y; return; }              // during aim: set direction (fire on release)
@@ -6179,7 +6183,7 @@ function attachUltPress(el,u,relayMode){
     if(e.target&&e.target.classList&&e.target.classList.contains('pInfo'))return;   // info tap handled separately
     if(e.button!=null&&e.button>0)return;
     e.preventDefault();
-    if(!(u.alive&&u.energy>=100)){ notReady(); return; }
+    if(!(u.alive&&u.energy>=100)||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0){ notReady(); return; }
     const ab=u.abilityOverride||u.t.ability;
     if(ULT_AIMED.includes(ab)){ enterAim(u); holdAim=true; sx=e.clientX; sy=e.clientY; moved=false; hideAbilityTip(); try{el.setPointerCapture(e.pointerId);}catch(_){} }
     else { pending=true; }
@@ -6386,7 +6390,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786138639484';
+const BUILD_ID='1786140767099';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
