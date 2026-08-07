@@ -2003,15 +2003,12 @@ function buildEnemyWave(){
     if(i<0){ const cnt={}; slots.forEach(r=>cnt[r]=(cnt[r]||0)+1); let best=slots[0],bc=0; slots.forEach(r=>{if(cnt[r]>bc){bc=cnt[r];best=r;}}); i=slots.indexOf(best); }   // no matching row → drop the most-duplicated one (keeps the rare rows like tank/mid)
     slots.splice(i,1); };
   const spawn=[];
-  if(addHero){ const k=randOf(heroPool3star()); takeSlot(monsterRow(k)); spawn.push({key:k, isHero:true}); }   // hero FIRST (takes its row)
-  if(addBoss){ const k=randOf(BOSS_POOL); takeSlot(monsterRow(k)); spawn.push({key:k, boss:true}); }           // then boss (takes a remaining row)
+  if(addBoss){ const k=randOf(BOSS_POOL); takeSlot(monsterRow(k)); spawn.push({key:k, boss:true}); }           // boss FIRST (takes its row)
+  if(addHero){ const k=randOf(heroPool3star()); takeSlot(monsterRow(k)); spawn.push({key:k, isHero:true}); }   // then hero (takes a remaining row)
   slots.forEach(role=>{ const pool=MONSTER_ROLE_POOL[role]; if(pool&&pool.length) spawn.push({key:randOf(pool)}); });   // monsters fill remaining rows
   const n=spawn.length, hRank=Math.min(3,Math.floor(node/6));
-  spawn.forEach((s,i)=>{ const key=s.key, lvl=base+(s.boss?2:0), laneX=laneXi(i,n,'enemy');
-    // WAVE ENTRANCE: appear at the TOP-RIGHT corner, staggered, then march in on the standing heroes.
-    const sx=FW-36-(i%3)*46, sy=44+Math.floor(i/3)*74+(i%2)*26;
-    const u=makeUnit(key,'enemy',sx,sy,lvl,{boss:s.boss,rank:s.isHero?hRank:0});
-    u.laneX=laneX;   // hold this lane column once engaged (used by the ranged-kite logic)
+  spawn.forEach((s,i)=>{ const key=s.key, lvl=base+(s.boss?2:0), x=laneXi(i,n,'enemy'), y=laneDepthY('enemy',key);   // spawn in role-based rows (upper-right), then run in
+    const u=makeUnit(key,'enemy',x,y,lvl,{boss:s.boss,rank:s.isHero?hRank:0});
     if(s.boss){ u.maxHp*=1.4; u.hp=u.maxHp; u.dmg*=1.15; }
     units.push(u); buildFigure(u); });
 }
@@ -2249,14 +2246,18 @@ function think(u,dt){
   else if(!u.target||!u.target.alive) u.target=nearestEnemy(u);
   const t=u.target;if(!t)return;const d=dist(u,t);
   const cd=u.combatDist||u.range;   // row-based hold distance (back 25 m / mid 13 m / melee ~1 m)
-  // HEROES HOLD THE LINE: your team stands still and lets the monsters come to them; only enemies advance.
-  if(d>cd && u.team!=='ally'){ const mv=spd*(d>cd+150?2.6:1); u.x+=(t.x-u.x)/d*mv*dt;u.y+=(t.y-u.y)/d*mv*dt; }   // enemies march in from the corner (fast while far), then hold at fighting distance
-  else{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
+  // Both teams run in from their corners and meet in the middle. Ranged units keep their ROW distance from the
+  // NEAREST foe (the front line) — so mid holds 13 m and back holds 25 m even while heroes charge in from the side.
+  const ne = u.melee ? t : (nearestEnemy(u)||t);
+  const dn = dist(u,ne);
+  const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
     if(u.atkCd<=0 && (u._castT||0)<=0 && d<=u.range){ u.atkCd=ai; u.attackAnim=.18;
       const dmg=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
-      dealDamage(u,t,dmg,'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); }
-    // ranged ENEMY rows retreat to re-open their distance if a hero pushes inside it (keeps back row at 25 m, mid at 13 m). Heroes stand still.
-    if(!u.melee && u.team!=='ally' && d < cd-6){u.y-=spd*dt*.7;u.x+=(u.laneX-u.x)*Math.min(1,dt*2.5);}}
+      dealDamage(u,t,dmg,'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); } };
+  if(!u.melee && dn < cd-6){ // a foe is inside our row → kite straight away from it, drifting back to our lane column
+    const dx=u.x-ne.x, dy=u.y-ne.y, dd=Math.hypot(dx,dy)||1; u.x+=dx/dd*spd*dt*.9; u.y+=dy/dd*spd*dt*.9; u.x+=(u.laneX-u.x)*Math.min(1,dt*2.2); doAtk(); }
+  else if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
+  else { doAtk(); }
 }
 
 /* ---------------------------- battle lifecycle ----------------------------- */
