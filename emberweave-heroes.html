@@ -875,6 +875,7 @@
   <div id="pauseModal"><div class="pm">
     <div style="font-size:20px;font-weight:900;margin-bottom:14px">Paused</div>
     <button class="btn wide" id="resumeBtn">▶ Resume</button>
+    <button class="btn wide secondary" id="restartBtn" style="margin-top:10px">↻ Restart Stage</button>
     <button class="btn wide secondary" id="exitBtn" style="margin-top:10px">Exit to Base</button>
   </div></div>
   <div id="hud"><div id="abilityTip"></div><div id="ultHint"></div><div id="portraitBar"></div></div>
@@ -2299,7 +2300,7 @@ function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).for
 // resumes at 1x. When the wave/stage clears they RUN OFF along that SAME line out the top-right, completely
 // off-screen (down to the last hero); then the next wave loads and they run on again.
 // Runs as an early-return branch in updateBattle so normal combat is paused during the run.
-const XFER_SPD=820*0.75*0.75;              // walk speed for BOTH run-on and run-off — 25% slower again on Phil's call (≈461, was 615)
+const XFER_SPD=820*0.75*0.75*0.75;         // walk speed for BOTH run-on and run-off — reduced 25% three times on Phil's calls (≈346, was 820)
 const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same reduced speed
 const XFER_DIR={x:0.70,y:-0.71};          // the invisible line: bottom-left → top-right (field +x, -y)
 const XFER_OFFSCREEN=880;                 // how far back down the line the off-screen staging point sits
@@ -2321,7 +2322,7 @@ function updateWaveXfer(dt){
     allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
-    if(allIn || waveXfer.t>4.2){ allies.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // all in position → resume 1x combat
+    if(allIn || waveXfer.t>6){ allies.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // all in position → resume 1x combat (safety timeout raised for the slower walk speed)
     return;
   }
   // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
@@ -2329,7 +2330,7 @@ function updateWaveXfer(dt){
   allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null; u.stunned=0; u.slow=0;
     u.x+=XFER_DIR.x*XFER_SPD*dt; u.y+=XFER_DIR.y*XFER_SPD*dt;
     if(u.x<FW+40 && u.y>-40)allOut=false; });   // off the top-right corner
-  if(allOut || waveXfer.t>3.8){
+  if(allOut || waveXfer.t>6){
     if(waveIdx<chapterWaves-1){ waveIdx++; buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();
       bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
       beginWaveEnter(); }                       // next wave: heroes run back on from the bottom-left
@@ -6320,6 +6321,7 @@ document.getElementById('menuBack').onclick=()=>show(menuReturn);
 document.getElementById('startBtn').onclick=()=>{ if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<STAM_STAGE_COST) return; } startBattle(); };
 document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
+document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
@@ -6344,7 +6346,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786126981014';
+const BUILD_ID='1786127696984';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
