@@ -1962,8 +1962,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
     atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:35,target:null,alive:true,r:18*br,
     flash:0,stunned:0,slow:0,portraitEl:null,laneX:x,melee:(t.range<60),
-    // desired fighting distance by row: melee closes to attack range (~1 m), mid-row holds 13 m, back row holds 25 m
-    combatDist:(t.range<60 ? t.range*(boss?1.4:1) : Math.min(((ROW_OVERRIDE[key]!=null?ROW_OVERRIDE[key]:roleDepth(t.role))<=2?13*METER:25*METER), t.range*(boss?1.4:1))),
+    // desired fighting distance by row: melee closes to ~2 m (touching, no overlap — cross-team collision stops them), mid-row holds 13 m, back row holds 25 m
+    combatDist:(t.range<60 ? 2*METER*(boss?1.5:1) : Math.min(((ROW_OVERRIDE[key]!=null?ROW_OVERRIDE[key]:roleDepth(t.role))<=2?13*METER:25*METER), t.range*(boss?1.4:1))),
     attackAnim:0,castAnim:0,deathT:0,bob:(x*.7+y*.3)%6.28,
     abilityOverride:(t.monster?null:(boss?'cleave':null)),
     greenAb:(rank>=1&&kit.green)?kit.green:null, blueAb:(rank>=2&&kit.blue)?kit.blue:null,
@@ -2368,13 +2368,13 @@ function updateBattle(dt){
   battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);think(u,dt);u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
-  // ---- hero collision: heroes are SOLID obstacles. Same-team units can never overlap — if one runs
-  // into another it gets pushed out each frame and slides AROUND it. (Cross-team pairs are left alone
-  // so melee can still close to attack range; radii sum > melee range would otherwise block combat.)
+  // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
+  // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
+  // meet but never overlap while still landing inside attack range.
   for(let _it=0;_it<2;_it++){
     for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive)continue;
-      for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B.team!==A.team)continue;
-        let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=A.r+B.r;
+      for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive)continue;
+        let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=(A.team===B.team)?(A.r+B.r):(A.r+B.r)*0.58;   // cross-team bodies touch a bit closer than same-team
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const push=(min-d)/2,ux=dx/d,uy=dy/d; A.x-=ux*push;A.y-=uy*push;B.x+=ux*push;B.y+=uy*push; } } }
     units.forEach(u=>{if(!u.alive)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
