@@ -5993,7 +5993,7 @@ function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KI
   if(kit.blue)  h+=`<div class="atSub">🔵 <b style="color:#6ea8ff">${kit.blue.name}</b> — ${KIT_DESC[kit.blue.type]||''}</div>`;
   if(kit.purple)h+=`<div class="atSub">🟣 <b style="color:#c9b6ff">${kit.purple.name}</b> — ${PASS_DESC[kit.purple.pass]||''}</div>`;
   return h; }
-function showAbilityTip(u){ const tip=document.getElementById('abilityTip'); if(tip){ tip.innerHTML=abilityTipHTML(u); tip.style.display='block'; } }
+function showAbilityTip(u){ /* ability-description panel removed — redundant (Phil): players know their heroes' ults */ }
 function hideAbilityTip(){ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
 function buildPortraitBar(side){side=side||'ally';const bar=document.getElementById('portraitBar');bar.innerHTML='';bar.dataset.mode='host';
   units.filter(u=>u.team===side).forEach(u=>{
