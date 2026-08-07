@@ -877,7 +877,7 @@
     <button class="btn wide" id="resumeBtn">▶ Resume</button>
     <button class="btn wide secondary" id="exitBtn" style="margin-top:10px">Exit to Base</button>
   </div></div>
-  <div id="hud"><div id="abilityTip"></div><div id="ultHint">⚡ Tap a glowing hero to unleash their Ultimate</div><div id="portraitBar"></div></div>
+  <div id="hud"><div id="abilityTip"></div><div id="ultHint"></div><div id="portraitBar"></div></div>
 </div>
 
 <script>/**
@@ -6043,7 +6043,7 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
   ab.textContent='AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':'');ab.className='ctrlBtn'+(autoUlt?' on':'')+(forced?' locked':'');ab.style.opacity=forced?'.7':'';}
 
 /* input */
-const AIM_HINT='⚡ Tap a glowing hero, then drag to aim their Ultimate';
+const AIM_HINT='';   // persistent ult hint removed (redundant, Phil); the brief drag instruction still shows while actively aiming
 function evXY(e){const r=overlay.getBoundingClientRect();return {x:(e.clientX)-r.left,y:(e.clientY)-r.top};}
 function aimTargetTeam(){ return (OL.active&&!OL.host)?'ally':'enemy'; }
 function nearestToScreen(sx,sy,team){ let best=null,bd=1e9; units.forEach(o=>{if(!o.alive||o.team!==team)return;const p=project(o.x,o.y,1);if(!p.vis)return;const d=Math.hypot(p.x-sx,p.y-sy);if(d<bd){bd=d;best=o;}}); return best; }
