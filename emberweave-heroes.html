@@ -18,12 +18,12 @@
   #home{padding:0;}
   /* boot splash gate: shown for everyone until they tap the (invisible) logo Play button while online */
   #rotateGate{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;background:#0a0603;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-  #rotateGate .splashWrap{position:relative;aspect-ratio:1024/545;width:min(100vw,calc(100vh*1024/545));}
-  #rotateGate .splashImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none;}
+  #rotateGate .splashWrap{position:relative;aspect-ratio:852/480;width:min(100vw,calc(100vh*852/480));height:min(100vh,calc(100vw*480/852));}
+  #rotateGate .splashImg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none;}
   #rotateGate #splashVid{pointer-events:none;opacity:0;transition:opacity .5s ease;}   /* animated splash: fades in over the static image once it's playing */
   #rotateGate #splashVid.on{opacity:1;}
   /* invisible Click-to-Play button sitting over the Emberweave Heroes logo */
-  #rotateGate .splashPlay{position:absolute;left:28%;top:55%;width:44%;height:30%;padding:0;margin:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  #rotateGate .splashPlay{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   #rotateGate .splashPlay:active{transform:scale(.98);}
   /* online / offline status under the word "Heroes" */
   #rotateGate .splashStatus{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));left:auto;top:auto;max-width:56vw;text-align:center;font-weight:800;font-size:clamp(11px,2.2vw,18px);letter-spacing:1px;line-height:1.15;text-shadow:0 2px 6px #000,0 0 10px rgba(0,0,0,.75);pointer-events:none;z-index:10001;}
@@ -6357,7 +6357,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786131839383';
+const BUILD_ID='1786132349147';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
