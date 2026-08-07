@@ -26,7 +26,8 @@
   #rotateGate .splashPlay{position:absolute;left:28%;top:55%;width:44%;height:30%;padding:0;margin:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   #rotateGate .splashPlay:active{transform:scale(.98);}
   /* online / offline status under the word "Heroes" */
-  #rotateGate .splashStatus{position:absolute;left:0;right:0;top:85.5%;text-align:center;font-weight:800;font-size:clamp(12px,2.7vw,20px);letter-spacing:1.5px;text-shadow:0 2px 6px #000,0 0 10px rgba(0,0,0,.75);pointer-events:none;}
+  #rotateGate .splashStatus{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));left:auto;top:auto;max-width:56vw;text-align:center;font-weight:800;font-size:clamp(11px,2.2vw,18px);letter-spacing:1px;line-height:1.15;text-shadow:0 2px 6px #000,0 0 10px rgba(0,0,0,.75);pointer-events:none;z-index:10001;}
+  #rotateGate .splashVer{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));right:auto;top:auto;font-weight:700;font-size:clamp(10px,1.7vw,13px);letter-spacing:.5px;color:#d8c8a8;opacity:.82;text-shadow:0 2px 6px #000,0 0 8px rgba(0,0,0,.7);pointer-events:none;z-index:10001;}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
   body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
   body.gated #three,body.gated #three canvas,body.gated #overlay{visibility:hidden;opacity:0;}
@@ -589,7 +590,7 @@
 </style>
 </head>
 <body>
-<div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div></div></div>
+<div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashVer" id="splashVer"></div></div></div>
 <div id="app">
   <div id="battleBg"></div>
   <div id="three"></div>
@@ -6356,7 +6357,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786131340751';
+const BUILD_ID='1786131839383';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6523,6 +6524,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
 }
 function setupLandscape(){
   const img=document.getElementById('splashImg'); if(img&&SPLASH_BG) img.src=SPLASH_BG;
+  const _ver=document.getElementById('splashVer'); if(_ver) _ver.textContent='v'+BUILD_ID;
   const vid=document.getElementById('splashVid');
   if(vid && isAssetRef(SPLASH_VID)){   // wire the animated splash loop (static image stays as fallback)
     const RATE=1.0;   // natural speed — realistic flame motion (locked-camera clip loops on its own)
