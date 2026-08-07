@@ -2286,34 +2286,50 @@ function clearBattle(){ units.forEach(u=>{if(u.mesh){scene.remove(u.mesh);dispos
 function startBattle(){
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
-    bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); }
+    bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
     const oppSlots=formationSlots('enemy',CUR.opp.length); CUR.opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
-    bannerMsg('RAID!\nDefeat the rival squad'); }
+    bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.hp=u.maxHp;u.energy=Math.max(u.energy,40);u.target=null;});buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
-// ---- Wave transition (Phil's spec): on clear, surviving heroes RUN OFF the top-right corner, then the next
-// wave loads on the SAME battle map — heroes re-enter from the bottom-left, enemies from the top-right, and
-// the meet-in-the-middle charge repeats. Runs as an early-return branch in updateBattle so normal combat pauses.
-function beginWaveXfer(){ waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
+// ---- Wave run-on / run-off cinematic (Phil's spec) ----
+// EVERY wave: heroes RUN ONTO the screen from off the bottom-left at ~2x into their diagonal home slots;
+// once all are in position combat resumes at 1x. When the wave/stage clears they RUN OFF the RIGHT side at
+// ~2x, completely off-screen (down to the last hero); then the next wave loads and they run on again.
+// Runs as an early-return branch in updateBattle so normal combat is paused during the run.
+const XFER_SPD=820;   // ~2x sprint speed for the run-on / run-off
+function heroOffscreenStart(hx,hy){ return {x:hx-640, y:hy+480}; }   // staging point off the bottom-left corner
+// snap surviving heroes to their home slots (heal/reset), then shove them off the bottom-left to run back in
+function beginWaveEnter(){
+  const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
+  allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.slow=0;
+    const sl=laneSlot('ally',u.key,i,n); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
+    const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
+  waveXfer={phase:'enter',t:0};
+}
+function beginWaveExit(){ waveXfer={phase:'exit',t:0}; bannerMsg(waveIdx>=chapterWaves-1?'STAGE CLEARED':'WAVE CLEARED'); }
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
   const allies=units.filter(u=>u.team==='ally'&&u.alive);
-  const ex=FW+220, ey=-60;   // off-screen top-right exit point
+  if(waveXfer.phase==='enter'){   // run ONTO the screen into home slots, then resume combat
+    let allIn=true;
+    allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0;
+      const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
+      if(d>10){ allIn=false; const mv=Math.min(d, XFER_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
+    if(allIn || waveXfer.t>3.4){ allies.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // all in position → resume 1x combat
+    return;
+  }
+  // phase 'exit' → sprint completely off the RIGHT side, down to the last hero
   let allOut=true;
   allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null; u.stunned=0; u.slow=0;
-    const dx=ex-u.x, dy=ey-u.y, d=Math.hypot(dx,dy)||1, spd=780;   // brisk sprint off the top-right corner
-    u.x+=dx/d*spd*dt; u.y+=dy/d*spd*dt;
-    if(u.x<FW+30)allOut=false; });
-  if(allOut || waveXfer.t>2.6){   // everyone has exited → reset positions and spawn the next wave
-    waveIdx++;
-    const n=allies.length;
-    allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null;
-      const sl=laneSlot('ally',u.key,i,n); u.x=sl.x; u.y=sl.y; u.laneX=sl.x; u.homeX=sl.x; u.homeY=sl.y; });   // heroes re-enter along the bottom-left diagonal, back row deepest
-    buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();   // fresh enemies at top-right on the same map
-    bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
-    waveXfer=null;   // hand back to normal combat → both sides run in and meet in the middle
+    const ex=FW+260, dx=ex-u.x; u.x+=Math.sign(dx)*Math.min(Math.abs(dx), XFER_SPD*dt);
+    if(u.x<FW+40)allOut=false; });
+  if(allOut || waveXfer.t>3.2){
+    if(waveIdx<chapterWaves-1){ waveIdx++; buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();
+      bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
+      beginWaveEnter(); }                       // next wave: heroes run back on from the bottom-left
+    else { waveXfer=null; endBattle(true); }     // stage cleared → victory
   }
 }
 function grantRewards(){
@@ -2457,7 +2473,7 @@ function updateBattle(dt){
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended){const a=units.filter(u=>u.team==='ally'&&u.alive).length,f=units.filter(u=>u.team==='enemy'&&u.alive).length;
-    if(a===0)endBattle(false); else if(f===0){ if(waveIdx<chapterWaves-1)beginWaveXfer(); else endBattle(true); }}
+    if(a===0)endBattle(false); else if(f===0){ beginWaveExit(); }}   // wave/stage cleared → heroes run off the right; updateWaveXfer loads the next wave or ends the stage
 }
 
 /* ------------------------------- 3D sync ----------------------------------- */
@@ -6324,7 +6340,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786124951146';
+const BUILD_ID='1786125540722';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
