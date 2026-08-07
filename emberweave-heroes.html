@@ -1992,12 +1992,13 @@ function enemyLevelFor(g){ return Math.max(1, Math.round(1 + Math.max(g-1,0)*(45
 // clear-level target (see claude/campaign-wave-structure.md).
 function buildEnemyWave(){
   const node=CUR.node, elite=isEliteStage(node), bossStage=isBossStage(node), base=campEnemyLevel(node);
-  let monCount, addHero=false, addBoss=false;
-  if(bossStage){ monCount=[4,5,3][waveIdx]||3; if(waveIdx===2){ addHero=true; addBoss=true; } }
-  else if(elite){ monCount=[4,5,4][waveIdx]||4; if(waveIdx===2) addHero=true; }
-  else { monCount=[3,4,5][waveIdx]||3; }
+  const type=bossStage?'boss':(elite?'elite':'normal');
+  const comp=WAVE_COMP[type][waveIdx]||WAVE_COMP[type][WAVE_COMP[type].length-1];   // roles this wave
+  let addHero=false, addBoss=false;
+  if(bossStage && waveIdx===2){ addHero=true; addBoss=true; }
+  else if(elite && waveIdx===2){ addHero=true; }
   const spawn=[];
-  for(let i=0;i<monCount;i++) spawn.push({key:randOf(MONSTER_POOL)});
+  comp.forEach(role=>{ const pool=MONSTER_ROLE_POOL[role]; if(pool&&pool.length) spawn.push({key:randOf(pool)}); });   // role-based monster picks
   if(addHero) spawn.push({key:randOf(heroPool3star()), isHero:true});
   if(addBoss) spawn.push({key:randOf(BOSS_POOL), boss:true});
   const n=spawn.length, hRank=Math.min(3,Math.floor(node/6));
@@ -3018,7 +3019,18 @@ const MONSTER_POOL=Object.keys(MONSTER_TYPES).filter(k=>!MONSTER_TYPES[k].isboss
 const BOSS_POOL=Object.keys(MONSTER_TYPES).filter(k=>MONSTER_TYPES[k].isboss);
 const CAMP_TARGET=[1,8,14,20,27,33,40,45,49,55];   // clear-level per chapter (index 1..9; [0]=1)
 function randOf(a){ return a[Math.floor(Math.random()*a.length)]; }
-function heroPool3star(){ const p=Object.keys(HERO_TYPES).filter(k=>(HERO_TYPES[k].stars>=3)||HERO_TYPES[k].myth); return p.length?p:Object.keys(HERO_TYPES); }
+// enemy "3★ hero" pool = only heroes that START at 3★ (cost 80 fragments to summon). Excludes 2★ starters like Thorne.
+function heroPool3star(){ const p=Object.keys(HERO_TYPES).filter(k=>summonCost(k)===80); return p.length?p:Object.keys(HERO_TYPES); }
+// classify each monster into a battle row for role-based wave building
+function monsterRow(key){ const ov=ROW_OVERRIDE[key], t=MONSTER_TYPES[key]||{}; const d=(ov!=null)?ov:roleDepth(t.role||'Warrior');
+  if(d>=3) return 'back'; if(d>=2) return 'mid'; return (t.role==='Tank')?'tank':'fighter'; }
+const MONSTER_ROLE_POOL={ tank:MONSTER_POOL.filter(k=>monsterRow(k)==='tank'), fighter:MONSTER_POOL.filter(k=>monsterRow(k)==='fighter'), mid:MONSTER_POOL.filter(k=>monsterRow(k)==='mid'), back:MONSTER_POOL.filter(k=>monsterRow(k)==='back') };
+// wave composition by role (Phil's spec 2026-08-07). Elite W3 also +1 hero; Boss W3 also +1 hero +1 boss.
+const WAVE_COMP={
+  normal:[ ['tank','mid','back'],            ['tank','fighter','mid','back'],        ['tank','fighter','mid','back','back'] ],
+  elite: [ ['tank','fighter','mid','back'],  ['tank','fighter','mid','back','back'], ['tank','fighter','mid','back','back'] ],
+  boss:  [ ['tank','fighter','mid','back'],  ['tank','fighter','mid','back','back'], ['tank','fighter','mid','back','back'] ],
+};
 function campEnemyLevel(node){ const c=chapterOf(node), s=stageInChapter(node); const lo=CAMP_TARGET[c-1]!=null?CAMP_TARGET[c-1]:1, hi=CAMP_TARGET[c]!=null?CAMP_TARGET[c]:(lo+6); return Math.max(1,Math.round(lo+(hi-lo)*(s/10))); }
 let glTab='heroes';
 function renderGlossary(){
