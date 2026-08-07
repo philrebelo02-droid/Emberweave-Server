@@ -1948,6 +1948,20 @@ const ROW_OVERRIDE={aria:2,   // combat-row depth override (0 front .. 2 mid .. 
   'fire skeleton':3.4, 'shadow ghoul':3.4};                                        // → BACK (ranged, 25 m)
 function laneDepthY(team,key){ const role=(HERO_TYPES[key]||MONSTER_TYPES[key]).role; const d=((ROW_OVERRIDE[key]!=null)?ROW_OVERRIDE[key]:roleDepth(role))*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
 function laneXi(i,n,team){ return 500 + (i-(n-1)/2)*150 + (team?teamXOff(team):0); }   // centered spread + diagonal team offset
+// Both teams line up along the bottom-left → top-right diagonal, IN ROW ORDER: the ally BACK row sits
+// deepest in the bottom-left corner and the ally front near centre; the enemy front is near centre and the
+// enemy BACK row deepest in the top-right corner. Depth (0 front … 3.4 back) slides a unit along that line.
+function laneSlot(team,key,i,n){
+  const depth=(ROW_OVERRIDE[key]!=null)?ROW_OVERRIDE[key]:roleDepth((HERO_TYPES[key]||MONSTER_TYPES[key]||{}).role||'Warrior');
+  const t=Math.min(1,depth/3.4);
+  const AF={x:560,y:770}, AC={x:150,y:1055};   // ally: front (near centre) → back (bottom-left corner)
+  const EF={x:440,y:630}, EC={x:850,y:345};    // enemy: front (near centre) → back (top-right corner)
+  const F=(team==='ally')?AF:EF, C=(team==='ally')?AC:EC;
+  let x=F.x+(C.x-F.x)*t, y=F.y+(C.y-F.y)*t;
+  const dx=C.x-F.x, dy=C.y-F.y, L=Math.hypot(dx,dy)||1, px=-dy/L, py=dx/L, off=(i-(n-1)/2)*72;   // spread same-row units perpendicular to the diagonal
+  x+=px*off; y+=py*off;
+  return {x:Math.max(60,Math.min(FW-60,x)), y:Math.max(80,Math.min(FD-60,y))};
+}
 function makeUnit(key,team,x,y,levelOverride,extra){
   const t=HERO_TYPES[key]||MONSTER_TYPES[key],lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike)
   const boss=extra&&extra.boss, owned=extra&&extra.owned;
@@ -1962,7 +1976,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
     atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:35,target:null,alive:true,r:18*br,
-    flash:0,stunned:0,slow:0,portraitEl:null,laneX:x,melee:(t.range<60),
+    flash:0,stunned:0,slow:0,portraitEl:null,laneX:x,homeX:x,homeY:y,melee:(t.range<60),
     // desired fighting distance by row: melee closes to touching (~1-2 m, cross-team collision stops overlap), mid-row holds 13 m, back row holds 25 m.
     // Melee hold is clamped just inside its attack range so it can actually swing; ranged holds the FULL row distance (range is widened below to reach it).
     combatDist:(t.range<60 ? Math.min(2*METER*(boss?1.5:1), t.range*(boss?1.4:1)-4) : (((ROW_OVERRIDE[key]!=null?ROW_OVERRIDE[key]:roleDepth(t.role))<=2?13*METER:25*METER))),
@@ -1984,7 +1998,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   return u;
 }
 function spawnTeam(keys,team){ const n=keys.length;
-  keys.forEach((key,i)=>{const role=HERO_TYPES[key].role,x=laneXi(i,n,team),y=laneDepthY(team,key);const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
+  keys.forEach((key,i)=>{const sl=laneSlot(team,key,i,n),x=sl.x,y=sl.y;const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
 }
 // Difficulty ramps across chapters: Ch1 is a soft tutorial (~0.42×), scaling to full parity around Chapter 7
 // where enemies reach ~level 40 — so a well-built level-40 team can clear Chapter 7 (the current cap).
@@ -2010,7 +2024,7 @@ function buildEnemyWave(){
   if(addHero){ const k=randOf(heroPool3star()); takeSlot(monsterRow(k)); spawn.push({key:k, isHero:true}); }   // then hero (takes a remaining row)
   slots.forEach(role=>{ const pool=MONSTER_ROLE_POOL[role]; if(pool&&pool.length) spawn.push({key:randOf(pool)}); });   // monsters fill remaining rows
   const n=spawn.length, hRank=Math.min(3,Math.floor(node/6));
-  spawn.forEach((s,i)=>{ const key=s.key, lvl=base+(s.boss?2:0), x=laneXi(i,n,'enemy'), y=laneDepthY('enemy',key);   // spawn in role-based rows (upper-right), then run in
+  spawn.forEach((s,i)=>{ const key=s.key, lvl=base+(s.boss?2:0), sl=laneSlot('enemy',key,i,n), x=sl.x, y=sl.y;   // spawn along the diagonal in row order (back = top-right corner), then run in
     const u=makeUnit(key,'enemy',x,y,lvl,{boss:s.boss,rank:s.isHero?hRank:0});
     if(s.boss){ u.maxHp*=1.4; u.hp=u.maxHp; u.dmg*=1.15; }
     units.push(u); buildFigure(u); });
@@ -2257,8 +2271,9 @@ function think(u,dt){
     if(u.atkCd<=0 && (u._castT||0)<=0 && d<=u.range){ u.atkCd=ai; u.attackAnim=.18;
       const dmg=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       dealDamage(u,t,dmg,'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); } };
-  if(!u.melee && dn < cd-6){ // a foe is inside our row → kite straight away from it, drifting back to our lane column
-    const dx=u.x-ne.x, dy=u.y-ne.y, dd=Math.hypot(dx,dy)||1; u.x+=dx/dd*spd*dt*.9; u.y+=dy/dd*spd*dt*.9; u.x+=(u.laneX-u.x)*Math.min(1,dt*2.2); doAtk(); }
+  if(!u.melee && dn < cd-6){ // a foe pushed inside our row → settle back into our HOME row/lane (never past it, so we can't flee off-map) and keep firing
+    const hx=(u.homeX!=null?u.homeX:u.laneX), hy=(u.homeY!=null?u.homeY:u.y);
+    u.x+=(hx-u.x)*Math.min(1,dt*2.4); u.y+=(hy-u.y)*Math.min(1,dt*2.4); doAtk(); }
   else if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
   else { doAtk(); }
 }
@@ -2295,7 +2310,7 @@ function updateWaveXfer(dt){
     waveIdx++;
     const n=allies.length;
     allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null;
-      const x=laneXi(i,n,'ally'), y=laneDepthY('ally',u.key); u.x=x; u.y=y; u.laneX=x; });   // heroes re-enter from bottom-left
+      const sl=laneSlot('ally',u.key,i,n); u.x=sl.x; u.y=sl.y; u.laneX=sl.x; u.homeX=sl.x; u.homeY=sl.y; });   // heroes re-enter along the bottom-left diagonal, back row deepest
     buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();   // fresh enemies at top-right on the same map
     bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
     waveXfer=null;   // hand back to normal combat → both sides run in and meet in the middle
@@ -6309,7 +6324,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786123897938';
+const BUILD_ID='1786124951146';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
