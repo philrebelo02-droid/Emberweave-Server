@@ -1138,7 +1138,7 @@ const KITS={
   aria:{green:{name:'Soothing Wind',type:'hot',hps:0.05,dur:6,cd:4},blue:{name:'Empower',type:'dmgbuff',mul:1.25,dur:6,cd:8},purple:{name:'Cadence',pass:'battery'}},
   konwu:{green:{name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:3*METER,angle:45,cd:6},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10},purple:{name:'Adamant Discipline',pass:'warden'}},
   grosk:{green:{name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10},blue:{name:'Hammer Fists',type:'punchflurry',hits:4,mul:0.30,tauntChance:0.25,tauntDur:2,cd:6},purple:{name:'Juggernaut',pass:'juggernaut'}},
-  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:10,cd:10},purple:{name:'Unstepped',pass:'unstepped'}},
+  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10},purple:{name:'Unstepped',pass:'unstepped'}},
 };
 // ---- MONSTER kits (Batch 1) — each monster auto-casts its two chosen abilities on cooldown (no ults). ----
 // Stronger ability goes on the longer cooldown, per the balance rule in claude/monster-picks.md.
@@ -2187,7 +2187,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
     case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       const tg2=o.nearest?foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]:foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const dur=o.dur||3, stopD=(o.stop||10)*METER;
-      if(!tg2.immovable){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(22,(dist(u,tg2)-stopD)/dur); } // speed sized to cover the distance to 10 m over the full duration
+      if(!tg2.immovable){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(22,(dist(u,tg2)-stopD)/dur); tg2._pullGhost=true; } // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
       if(o.silence)tg2.silencedT=Math.max(tg2.silencedT||0,dur); tg2.stunned=Math.max(tg2.stunned||0,dur);   // rooted for the whole drag so it can't walk back out
       ringBurst(u.x,u.y,0x8B5CF6,14); if(typeof spawnFxPlate==='function')spawnFxPlate('graspfx',tg2.x,tg2.y); break; }
   }
@@ -2477,8 +2477,8 @@ function updateBattle(dt){
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
   for(let _it=0;_it<2;_it++){
-    for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive)continue;
-      for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive)continue;
+    for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive||A._pullGhost)continue;   // a Grasping-Vow'd target phases through bodies so it can be yanked all the way to Vulmar
+      for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B._pullGhost)continue;
         let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=(A.team===B.team)?(A.r+B.r):(A.r+B.r)*0.58;   // cross-team bodies touch a bit closer than same-team
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const push=(min-d)/2,ux=dx/d,uy=dy/d; A.x-=ux*push;A.y-=uy*push;B.x+=ux*push;B.y+=uy*push; } } }
@@ -2505,7 +2505,7 @@ function updateBattle(dt){
     if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt;
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
-    if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null){ u.pullStop=null; u.pullSpeed=null; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe to 10 m over 3 s.
+    if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null||u._pullGhost){ u.pullStop=null; u.pullSpeed=null; u._pullGhost=false; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe right up to Vulmar, phasing through bodies.
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
   for(let i=groundHazards.length-1;i>=0;i--){ const h=groundHazards[i]; h.life-=dt; h.acc+=dt;
@@ -6408,7 +6408,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786143982536';
+const BUILD_ID='1786145148884';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
