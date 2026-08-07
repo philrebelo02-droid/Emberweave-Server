@@ -2299,7 +2299,7 @@ function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).for
 // resumes at 1x. When the wave/stage clears they RUN OFF along that SAME line out the top-right, completely
 // off-screen (down to the last hero); then the next wave loads and they run on again.
 // Runs as an early-return branch in updateBattle so normal combat is paused during the run.
-const XFER_SPD=820*0.75;                   // walk speed for BOTH run-on and run-off (25% slower than the old 820 sprint)
+const XFER_SPD=820*0.75*0.75;              // walk speed for BOTH run-on and run-off — 25% slower again on Phil's call (≈461, was 615)
 const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same reduced speed
 const XFER_DIR={x:0.70,y:-0.71};          // the invisible line: bottom-left → top-right (field +x, -y)
 const XFER_OFFSCREEN=880;                 // how far back down the line the off-screen staging point sits
@@ -6344,7 +6344,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786126562243';
+const BUILD_ID='1786126981014';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
