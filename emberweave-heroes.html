@@ -2624,7 +2624,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     const ap=project(aiming.x,aiming.y,1.0), tt=battleTime*8, ULD=ULT_DEF[aiming.t.ability]||{};
     const mode=ultAimMode(aiming.abilityOverride||aiming.t.ability), best=nearestToScreen(aimTX,aimTY,aimTargetTeam());
     if(mode==='radius'){
-      const ctr=best||aiming, cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
+      const ctr=screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
       const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));   // ellipse axes = the ACTUAL projected ult radius in both directions
       octx.fillStyle='rgba(139,92,246,.18)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.fill();
       octx.strokeStyle='rgba(170,130,255,.98)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.lineDashOffset=-tt*2; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); octx.lineDashOffset=0;
@@ -6139,9 +6139,11 @@ function ultCancelEl(){ return document.getElementById('ultCancel'); }
 function overCancel(cx,cy){ const c=ultCancelEl(); if(!c||!c.classList.contains('active'))return false; const r=c.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
 function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; }
 function fireAimed(){ const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100)return;
-  const best=nearestToScreen(aimTX,aimTY,aimTargetTeam());   // every aimed ult centers on the nearest enemy to the cursor
+  const mode=ultAimMode(u.abilityOverride||u.t.ability), best=nearestToScreen(aimTX,aimTY,aimTargetTeam());
+  if(mode==='radius'||mode==='line'){ const w=screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point
+  else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
   if(OL.active&&!OL.host){ if(best) relay({k:'ult',id:u.id,tid:best.id}); }
-  else { if(best)u.target=best; castAbility(u); } }
+  else castAbility(u); }
 function onDown(e){ if(state!=='battle')return; const p=evXY(e);
   if(aiming){ aimTX=p.x; aimTY=p.y; return; }              // during aim: set direction (fire on release)
   let hit=null,hd=44; units.forEach(u=>{if(!u.alive||u.team!=='ally')return;const q=project(u.x,u.y,1);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<hd){hd=d;hit=u;}}); selected=hit; }
@@ -6369,7 +6371,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786134707871';
+const BUILD_ID='1786135393599';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
