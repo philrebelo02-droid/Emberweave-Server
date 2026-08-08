@@ -1947,7 +1947,7 @@ function laneSlot(team,key,i,n){
   return {x:Math.max(60,Math.min(FW-60,x)), y:Math.max(80,Math.min(FD-60,y))};
 }
 function makeUnit(key,team,x,y,levelOverride,extra){
-  const t=HERO_TYPES[key]||MONSTER_TYPES[key],lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike)
+  const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
   const boss=extra&&extra.boss, owned=extra&&extra.owned;
   const bhp=boss?2.4:1,bdmg=boss?1.8:1,br=boss?2.2:1;   // bosses ~3× a normal monster's damage (Phil's rule); HP already tanky
   const mul=owned?heroMuls(key):{atk:1,hp:1,dr:0,regen:0,crit:0,critRes:0,energyReg:0};
@@ -2284,7 +2284,8 @@ function startBattle(){
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
-    const oppSlots=formationSlots('enemy',CUR.opp.length); CUR.opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
+    const _opp0=(CUR.opp||[]).filter(e=>e&&HERO_TYPES[e.key]); const _opp=_opp0.length?_opp0:[{key:'grosk',level:1,rank:0}];   // drop stale/removed hero keys from opponent teams (old NPC/arena data); never spawn an empty enemy squad
+    const oppSlots=formationSlots('enemy',_opp.length); _opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
     bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
 }
@@ -6378,7 +6379,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786198720941';
+const BUILD_ID='1786199464791';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

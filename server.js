@@ -132,8 +132,8 @@ function sendChangeCode(to, name, code, toCurrent){
     'email-change code', code,
     codeHtml(name, 'A request was made to change the recovery email on your account. Your confirmation code is:', code, toCurrent?'Enter it in the game to confirm the change (expires in 15 minutes). If this wasn\'t you, do NOT enter this code and change your password right away.':'Enter it in the game to confirm the change. Expires in 15 minutes. If you didn\'t request this, you can ignore this email.')); }
 
-const HERO_KEYS=['aldric','thorne','grohm','vex','sylva','rook','zephyr','lumi','aria'];
-function defaultTeam(){ return [ {key:'aldric',level:1,rank:0},{key:'sylva',level:1,rank:0},{key:'zephyr',level:1,rank:0},{key:'lumi',level:1,rank:0},{key:'vex',level:1,rank:0} ]; }
+const HERO_KEYS=['konwu','grosk','vulmar'];
+function defaultTeam(){ return [ {key:'konwu',level:1,rank:0},{key:'grosk',level:1,rank:0},{key:'vulmar',level:1,rank:0} ]; }
 
 /* --------------------------- NPC / world seeding -------------------------- */
 const NPC_NAMES=['Ironhold','Stormgate','Ashvale','Highcliff','Duskmere','Ravenspire','Frostholm','Emberton','Wolfden','Goldreach','Thornwick','Mistfall','Grimwater','Sunspear','Blackmoor','Oakenshield','Redkeep','Silverbrook','Winterfell','Stonehaven','Bramblewood','Nightvale','Dawnkeep','Shadowfen','Windmere','Coldharbor','Firebrand','Greymarch','Hollowreach','Larkspur','Direhold','Kingsmoor','Valebright','Ashenford','Cragmaw','Elmsworth','Ferncove','Gale’s Rest','Hearthglen','Ivywatch'];
@@ -385,8 +385,8 @@ const server=http.createServer((req,res)=>{
   if(p==='/icon-512-maskable.png') return serveFile(res,'icon-512-maskable.png','image/png');
   if(p==='/apple-touch-icon.png') return serveFile(res,'apple-touch-icon.png','image/png');
   // everything else -> the game (local file if bundled, else pulled from GAME_URL). Supports /?room deep links.
-  fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); res.end(buf); return; }
-    remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); res.end(r.buf); }); });
+  fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}); res.end(buf); return; }
+    remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}); res.end(r.buf); }); });
 });
 
 /* ---------------------- live PvP: 2-player room relay ---------------------- */
