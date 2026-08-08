@@ -6379,7 +6379,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786199464791';
+const BUILD_ID='1786199854529';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6600,6 +6600,9 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
     // OK: mark this icon version acknowledged (won't re-prompt), refresh + reload to install the update.
     document.getElementById('iconUpdOk').onclick=()=>{ never(); try{ localStorage.setItem('ewIconVer', window.APP_ICON_VER); }catch(e){} if(window.refreshAppShell)window.refreshAppShell(); wrap.remove(); setTimeout(()=>{ try{ location.reload(); }catch(e){} },450); };
   };
+  // one-time re-arm: an earlier build's buggy Cancel permanently silenced the icon popup; clear that stored state ONCE
+  // (keyed by ewPromptGen) so everyone who dismissed it gets the popup back exactly one more time. Bump 'r1' to re-broadcast again later.
+  try{ if(localStorage.getItem('ewPromptGen')!=='r1'){ localStorage.removeItem('ewIconPromptOff'); localStorage.removeItem('ewIconVer'); localStorage.setItem('ewPromptGen','r1'); } }catch(e){}
   try{ const off=localStorage.getItem('ewIconPromptOff'), seen=localStorage.getItem('ewIconVer');
     if(!off && seen!==window.APP_ICON_VER){ setTimeout(()=>{ try{ window.showIconUpdatePopup(); }catch(e){} }, 1600); } }catch(e){}
   setupLandscape();
