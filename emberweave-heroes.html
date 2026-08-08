@@ -3319,7 +3319,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
   const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id};saveAcc(); DEV.on=isDevAcct();
       if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
       updateHubChrome(); renderAccount(); };
-  const go=(path)=>{ if(window.refreshAppShell)window.refreshAppShell(); const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
+  const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
     const isReg=path.indexOf('register')>=0;
     api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
@@ -5652,7 +5652,7 @@ function renderSettings(){
     fgSubmit.onclick=doSubmit;
     ['#fgCode','#fgNew','#fgNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
   const acGo=b.querySelector('#acGo');
-  if(acGo){ const go=()=>{ if(window.refreshAppShell)window.refreshAppShell(); const msg=b.querySelector('#acMsg');
+  if(acGo){ const go=()=>{ const msg=b.querySelector('#acMsg');
       const name=(b.querySelector('#acUser').value||'').trim(), pass=(b.querySelector('#acPass').value||'');
       if(name.length<2){ msg.style.color='#ff8b8b'; msg.textContent='Username needs at least 2 characters.'; return; }
       if(!pass){ msg.style.color='#ff8b8b'; msg.textContent='Enter a password.'; return; }
@@ -6379,7 +6379,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786199854529';
+const BUILD_ID='1786200257505';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6573,38 +6573,6 @@ if(!TH){ document.getElementById('home').innerHTML='<h1>3D engine failed to load
 else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAcc(); initThree(); updateHubChrome(); show('home');
   if('serviceWorker' in navigator && online()){ try{ navigator.serviceWorker.register('/sw.js'); }catch(e){} }
   startSessionHeartbeat();
-  // Sign-in update check: re-check the service worker + re-pull the manifest/icons so the newest build and app
-  // icon are cached. (An installed launcher icon is OS-owned and can't be repainted from JS — this refreshes the
-  // cache + nudges the browser's own icon-update check; the icon then updates on the browser's schedule / reinstall.)
-  window.refreshAppShell=function(){ try{
-      if('serviceWorker' in navigator) navigator.serviceWorker.getRegistration().then(r=>{ if(r) r.update().catch(()=>{}); }).catch(()=>{});
-      ['/manifest.webmanifest','/icon-192.png','/icon-512.png','/icon-512-maskable.png','/apple-touch-icon.png'].forEach(u=>{ fetch(u+'?v='+Date.now(),{cache:'reload'}).catch(()=>{}); });
-    }catch(e){} };
-  if(online()) window.refreshAppShell();   // on launch (splash): re-pull manifest + icons so the newest set is cached and the browser's icon-update check is nudged
-  // ---- app-icon update prompt ----
-  // Bump APP_ICON_VER whenever the app icon art changes → returning players get a one-time "new icon available" popup.
-  window.APP_ICON_VER='grosk-1';
-  window.showIconUpdatePopup=function(){ if(document.getElementById('iconUpdModal'))return;
-    const wrap=document.createElement('div'); wrap.id='iconUpdModal';
-    wrap.style.cssText='position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.62)';
-    wrap.innerHTML='<div style="background:#141a26;border:1px solid #33405e;border-radius:14px;max-width:330px;width:86%;padding:20px;text-align:center;box-shadow:0 12px 44px rgba(0,0,0,.6);color:#e6edf3">'
-      +'<div style="font-size:34px;margin-bottom:6px">\u{1F504}</div>'
-      +'<div style="font-weight:800;font-size:16px;margin-bottom:6px">New app icon available</div>'
-      +'<div style="font-size:13px;color:#9aa7bd;line-height:1.5;margin-bottom:14px">There is a new app installation. Install it to refresh Emberweave to the latest look.</div>'
-      +'<label style="display:flex;align-items:center;gap:7px;justify-content:center;font-size:12px;color:#8b98a9;margin-bottom:14px;cursor:pointer"><input type="checkbox" id="iconUpdNever" style="width:15px;height:15px"> Don’t show this again</label>'
-      +'<div style="display:flex;gap:8px"><button class="btn secondary" id="iconUpdCancel" style="flex:1">Cancel</button><button class="btn" id="iconUpdOk" style="flex:1">OK, install</button></div></div>';
-    document.body.appendChild(wrap);
-    const never=()=>{ try{ if(document.getElementById('iconUpdNever').checked) localStorage.setItem('ewIconPromptOff','1'); }catch(e){} };
-    // Cancel: dismiss for now only — it does NOT mark the icon as seen, so it re-appears next launch (unless "don't show again" is ticked → permanent).
-    document.getElementById('iconUpdCancel').onclick=()=>{ never(); wrap.remove(); };
-    // OK: mark this icon version acknowledged (won't re-prompt), refresh + reload to install the update.
-    document.getElementById('iconUpdOk').onclick=()=>{ never(); try{ localStorage.setItem('ewIconVer', window.APP_ICON_VER); }catch(e){} if(window.refreshAppShell)window.refreshAppShell(); wrap.remove(); setTimeout(()=>{ try{ location.reload(); }catch(e){} },450); };
-  };
-  // one-time re-arm: an earlier build's buggy Cancel permanently silenced the icon popup; clear that stored state ONCE
-  // (keyed by ewPromptGen) so everyone who dismissed it gets the popup back exactly one more time. Bump 'r1' to re-broadcast again later.
-  try{ if(localStorage.getItem('ewPromptGen')!=='r1'){ localStorage.removeItem('ewIconPromptOff'); localStorage.removeItem('ewIconVer'); localStorage.setItem('ewPromptGen','r1'); } }catch(e){}
-  try{ const off=localStorage.getItem('ewIconPromptOff'), seen=localStorage.getItem('ewIconVer');
-    if(!off && seen!==window.APP_ICON_VER){ setTimeout(()=>{ try{ window.showIconUpdatePopup(); }catch(e){} }, 1600); } }catch(e){}
   setupLandscape();
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
