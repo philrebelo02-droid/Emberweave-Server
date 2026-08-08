@@ -6378,7 +6378,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786198283180';
+const BUILD_ID='1786198720941';
 let _updating=false, _updateNoticeShown=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6593,9 +6593,11 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
       +'<label style="display:flex;align-items:center;gap:7px;justify-content:center;font-size:12px;color:#8b98a9;margin-bottom:14px;cursor:pointer"><input type="checkbox" id="iconUpdNever" style="width:15px;height:15px"> Don’t show this again</label>'
       +'<div style="display:flex;gap:8px"><button class="btn secondary" id="iconUpdCancel" style="flex:1">Cancel</button><button class="btn" id="iconUpdOk" style="flex:1">OK, install</button></div></div>';
     document.body.appendChild(wrap);
-    const setSeen=()=>{ try{ localStorage.setItem('ewIconVer', window.APP_ICON_VER); if(document.getElementById('iconUpdNever').checked) localStorage.setItem('ewIconPromptOff','1'); }catch(e){} };
-    document.getElementById('iconUpdCancel').onclick=()=>{ setSeen(); wrap.remove(); };
-    document.getElementById('iconUpdOk').onclick=()=>{ setSeen(); if(window.refreshAppShell)window.refreshAppShell(); wrap.remove(); setTimeout(()=>{ try{ location.reload(); }catch(e){} },450); };
+    const never=()=>{ try{ if(document.getElementById('iconUpdNever').checked) localStorage.setItem('ewIconPromptOff','1'); }catch(e){} };
+    // Cancel: dismiss for now only — it does NOT mark the icon as seen, so it re-appears next launch (unless "don't show again" is ticked → permanent).
+    document.getElementById('iconUpdCancel').onclick=()=>{ never(); wrap.remove(); };
+    // OK: mark this icon version acknowledged (won't re-prompt), refresh + reload to install the update.
+    document.getElementById('iconUpdOk').onclick=()=>{ never(); try{ localStorage.setItem('ewIconVer', window.APP_ICON_VER); }catch(e){} if(window.refreshAppShell)window.refreshAppShell(); wrap.remove(); setTimeout(()=>{ try{ location.reload(); }catch(e){} },450); };
   };
   try{ const off=localStorage.getItem('ewIconPromptOff'), seen=localStorage.getItem('ewIconVer');
     if(!off && seen!==window.APP_ICON_VER){ setTimeout(()=>{ try{ window.showIconUpdatePopup(); }catch(e){} }, 1600); } }catch(e){}
