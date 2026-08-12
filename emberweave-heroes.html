@@ -2521,26 +2521,23 @@ function endBattle(won){ ended=true;
     resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); setTimeout(()=>onlineResult(won),800); return; }
   if(CUR.mode==='arena'){ if(won)grantTeamXP(70);
-    let reward=0, gemsWon=0, swapped=false; const oldRank=G.arenaRank;
-    if(won){ reward=200+Math.floor((5000-G.arenaRank)/20); G.gold+=reward; G.arenaCoins=(G.arenaCoins||0)+5;
-      // LADDER SWAP: if you beat someone ranked above you, you take their rank and they drop to yours.
-      if(CUR.oppRank && CUR.oppRank<G.arenaRank){
-        G.arenaRank=CUR.oppRank; swapped=true;
-        // first-time rank rewards: diamonds for every newly-reached rank below your previous best
-        if(G.arenaRank < (G.bestArenaRank||5000)){
-          let dia=0; for(let r=G.arenaRank; r<G.bestArenaRank; r++) dia+=arenaRankGems(r);
-          G.bestArenaRank=G.arenaRank; G.gemFrac=(G.gemFrac||0)+dia;
-          gemsWon=Math.floor(G.gemFrac); G.gemFrac-=gemsWon; if(gemsWon>0) G.gems+=gemsWon;
-        }
-      }
-      // beating someone ranked below you: you already outrank them — no rank change, just the reward.
-    }
-    // losing costs no rank — you simply failed to take their spot.
+    const oldRank=G.arenaRank; let reward=0;
+    if(won){ reward=200+Math.floor((5000-G.arenaRank)/20); G.gold+=reward; G.arenaCoins=(G.arenaCoins||0)+5; }
     saveG(); updateHubChrome();
-    setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ARENA WIN':'ARENA LOSS'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
+    setTimeout(async()=>{ let newRank=oldRank;
+      if(ACC.token && CUR.oppId){ const d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won}); if(d&&typeof d.rank==='number') newRank=d.rank; }
+      else if(won && CUR.oppRank && CUR.oppRank<oldRank){ newRank=CUR.oppRank; }   // offline fallback
+      let swapped=false, gemsWon=0;
+      if(won && newRank<oldRank){ swapped=true; G.arenaRank=newRank;
+        if(G.arenaRank < (G.bestArenaRank||5000)){ let dia=0; for(let r=G.arenaRank; r<G.bestArenaRank; r++) dia+=arenaRankGems(r);
+          G.bestArenaRank=G.arenaRank; G.gemFrac=(G.gemFrac||0)+dia; gemsWon=Math.floor(G.gemFrac); G.gemFrac-=gemsWon; if(gemsWon>0) G.gems+=gemsWon; }
+      } else { G.arenaRank=newRank; }
+      ARENA.oppsRank=null;   // refresh opponent list next time the arena is opened
+      saveG(); updateHubChrome();
+      document.getElementById('resultTitle').textContent=won?'ARENA WIN':'ARENA LOSS'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       const winMsg = swapped
         ? `Took <b>${CUR.oppName}</b>'s spot — you're now <b style="color:#ffd45e">#${G.arenaRank}</b> (they drop to #${oldRank}) · 🪙 +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">💎 +${gemsWon}</span>`:''}`
-        : `Beat <b>${CUR.oppName}</b> · you hold <b style="color:#ffd45e">#${G.arenaRank}</b> (they were ranked below you) · 🪙 +${reward}`;
+        : `Beat <b>${CUR.oppName}</b> · you hold <b style="color:#ffd45e">#${G.arenaRank}</b> · 🪙 +${reward}`;
       document.getElementById('resultReward').innerHTML=won?winMsg:`Lost to <b>${CUR.oppName}</b> — you keep rank #${G.arenaRank}.`;
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='dungeon'){ const gold=won?200:0, drops={grey:8,green:4,blue:2}; let dropLog=''; if(won){G.gold+=gold;for(const k in drops)G.mats[k]+=drops[k];
@@ -3521,7 +3518,7 @@ function localCities(n){ const out=[]; for(let i=0;i<n;i++){ const seed=(i*29+pl
   out.push({name:NPC_NAMES[(seed+3)%NPC_NAMES.length], rank:100+seed%4900, team, power:teamPower(team), level}); } return out; }
 // ---- Arena leaderboard: the server's top 100 (you slot in at your rank if you're in the top 100) ----
 const ARENA_SURNAMES=['Stormcaller','Ironhand','Nightblade','Emberheart','Frostborn','Dawnbreaker','Grimfell','Ashwood','Ravenscar','Duskbane','Wyrmbane','Silvermark'];
-function arenaLeaderboard(){ const list=[];
+function arenaLeaderboard(){ if(ACC.token&&ARENA.ladder&&ARENA.ladder.length) return ARENA.ladder; const list=[];
   const myPower=teamPower(G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})));
   const P1=Math.max(6000, myPower*2);   // #1 power anchor; ladder strictly descends by rank
   for(let rank=1;rank<=100;rank++){
@@ -3590,10 +3587,23 @@ function arenaNextResetMs(){ // ms until the next 09:00 Eastern
   const get=t=>+(parts.find(p=>p.type===t)||{value:0}).value; let secsNow=get('hour')*3600+get('minute')*60+get('second');
   let diff=9*3600-secsNow; if(diff<=0)diff+=24*3600; return diff*1000; }
 function arenaRefreshLeft(){ return G.arenaRefreshDay===arenaDayKey()? Math.max(0,ARENA_FREE_REFRESH-(G.arenaRefreshUsed||0)) : ARENA_FREE_REFRESH; }
-function genArenaOpps(){ G.arenaOpps={rank:G.arenaRank,list:localOpponents()}; }
+function genArenaOpps(){ if(ARENA.opps&&ARENA.oppsRank===G.arenaRank){ G.arenaOpps={rank:G.arenaRank,list:ARENA.opps}; return; } G.arenaOpps={rank:G.arenaRank,list:localOpponents()}; }
 function useArenaRefresh(){ const day=arenaDayKey(); if(G.arenaRefreshDay!==day){ G.arenaRefreshDay=day; G.arenaRefreshUsed=0; }
   if((G.arenaRefreshUsed||0)>=ARENA_FREE_REFRESH) return false; G.arenaRefreshUsed=(G.arenaRefreshUsed||0)+1; genArenaOpps(); saveG(); return true; }
+// ================= REAL server-backed Arena =================
+let ARENA={rank:null, opps:null, oppsRank:null, ladder:null, fetching:false, fetchingLad:false};
+function _arenaTeamPow(team){ try{ return teamPower((team||[]).map(e=>({key:e.key,level:e.level||1,rank:e.rank||0}))); }catch(e){ return 0; } }
+async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.fetching=true;
+  try{ const d=await api('/api/arena/opponents'); if(d&&!d.error){ ARENA.rank=d.rank; G.arenaRank=d.rank;
+      if(G.bestArenaRank==null||d.rank<G.bestArenaRank)G.bestArenaRank=d.rank;
+      ARENA.opps=(d.opponents||[]).filter(o=>o&&o.team&&o.team.length).map(o=>({ id:o.id, name:o.name, rank:o.rank, isNpc:!!o.isNpc, team:o.team.map(e=>({key:e.key,level:e.level||1,rank:e.rank||0})), power:_arenaTeamPow(o.team) }));
+      ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; saveG(); } }
+  catch(e){} finally{ ARENA.fetching=false; } return true; }
+async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true;
+  try{ const d=await api('/api/arena/ladder'); if(d&&!d.error){ ARENA.ladder=(d.top||[]).filter(e=>e&&e.team).map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:_arenaTeamPow(e.team), region:'' })); } }
+  catch(e){} finally{ ARENA.fetchingLad=false; } return true; }
 function renderArena(){ const b=document.getElementById('arenaBody');
+  if(ACC.token){ if(ARENA.oppsRank!==G.arenaRank||!ARENA.opps){ arenaSync().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } if(!ARENA.ladder){ arenaSyncLadder().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } }
   const myPower=teamPower(G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})));
   if(!G.arenaOpps||G.arenaOpps.rank!==G.arenaRank||!G.arenaOpps.list) genArenaOpps();
   const opps=G.arenaOpps.list;
@@ -3625,7 +3635,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
       <div style="font-size:11px;color:#6f7d90;margin-top:6px;text-align:center">This team defends your rank when other players challenge you.</div></div>
     <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">⚔️ Opponents — challenge to climb</div><button class="btn xs secondary" id="arenaRefresh">🔄 Refresh · ${arenaRefreshLeft()} free</button></div><div id="arenaOpps"></div>
       <div style="font-size:11px;color:#6f7d90;margin-top:8px">Arena is 100% auto — power comes from hero levels, quality, glyphs & prayer. Beat someone ranked above you to take their spot. 💎 shows first-time diamonds you'd earn.</div></div>`;
-  const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.disabled=arenaRefreshLeft()<=0; _arf.onclick=()=>{ if(useArenaRefresh()) renderArena(); else bannerMsg('No free arena refreshes left today.'); }; }
+  const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.disabled=arenaRefreshLeft()<=0; _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg('No free arena refreshes left today.'); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
   b.querySelector('#setArenaDef').onclick=()=>{ teamCtx='arena'; menuReturn='arena'; show('menu'); };
   b.querySelector('#arenaShopBtn').onclick=()=>show('arenaShop');
   b.querySelector('#arenaRankings').onclick=openRankings;
@@ -3639,12 +3649,12 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   opps.forEach(o=>{ const row=document.createElement('div'); row.style='padding:8px 0;border-bottom:1px solid #222b40';
     const gemsPossible=previewWinGems(o.rank);
     const preview=o.team.map(e=>`<div style="width:34px;height:34px;border-radius:7px;overflow:hidden;border:1px solid #2a3550;position:relative" title="${HERO_TYPES[e.key].name} Lv ${e.level}">${heroIcon(e.key,34)}<span style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.75);color:#fff;font-size:8px;padding:0 2px;border-radius:3px">${e.level}</span></div>`).join('');
-    row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:700">${o.name} <span style="font-size:10px;color:#6f7d90">NPC</span></div><div style="font-size:10px;color:#8b98a9">Rank #${o.rank} · power ${o.power.toLocaleString()}</div></div><div style="text-align:right">${gemsPossible>0?`<div style="font-size:11px;color:#c9b6ff;font-weight:700;margin-bottom:3px">💎 +${gemsPossible}</div>`:''}<button class="btn sm">Challenge ▶</button></div></div>
+    row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:700">${escapeHTML(o.name)} ${o.isNpc?'<span style="font-size:10px;color:#6f7d90">NPC</span>':'<span style="font-size:10px;color:#5ee89b">● player</span>'}</div><div style="font-size:10px;color:#8b98a9">Rank #${o.rank} · power ${o.power.toLocaleString()}</div></div><div style="text-align:right">${gemsPossible>0?`<div style="font-size:11px;color:#c9b6ff;font-weight:700;margin-bottom:3px">💎 +${gemsPossible}</div>`:''}<button class="btn sm">Challenge ▶</button></div></div>
       <div style="display:flex;gap:5px;margin-top:6px">${preview}</div>`;
-    row.querySelector('button').onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); };   // choose your attacking composition first
+    row.querySelector('button').onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); };   // choose your attacking composition first
     el.appendChild(row); });
 }
-function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank}; startVersus(o.team,true); }
+function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; startVersus(o.team,true); }
 const ARENA_SHOP=[
   {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', cost:500, give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3★ Tank — 80 to summon'},
   {id:'gold1',  name:'Gold Cache',      icon:'🪙', cost:120, give:()=>{G.gold+=5000;},    desc:'+5,000 gold'},
@@ -6605,7 +6615,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786580000000';
+const BUILD_ID='1786590000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -341,13 +341,24 @@ async function api(req,res,url){
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:o.team, isNpc:!!o.isNpc } }); }
 
+  if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'});
+    const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
+    const above=pool.filter(u=>u.rank<me.rank).sort((a,b)=>b.rank-a.rank);   // closest ABOVE first (harder = lower rank #)
+    let cand = above.length? above : pool.slice().sort((a,b)=>a.rank-b.rank);
+    cand = cand.slice(0, 30);
+    const opps=[], used=new Set();
+    while(opps.length<5 && used.size<cand.length){ const u=cand[Math.floor(Math.random()*cand.length)]; if(!u||used.has(u.id))continue; used.add(u.id); opps.push({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }); }
+    opps.sort((a,b)=>a.rank-b.rank);
+    return send(res,200,{ rank:me.rank, opponents:opps }); }
+
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
     const b=await body(req);
     const opp=DB.users[b.oppId]; const r=applyResult(me,opp,!!b.won); const reward=b.won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward; writeDB();
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
 
-  if(p==='/api/arena/ladder'){ if(!me)return send(res,401,{error:'auth'}); const top=allUsersByRank().slice(0,10).map(u=>({name:u.name,rank:u.rank,isNpc:!!u.isNpc}));
+  if(p==='/api/arena/ladder'){ if(!me)return send(res,401,{error:'auth'});
+    const top=allUsersByRank().slice(0,100).map(u=>({name:u.name,rank:u.rank,isNpc:!!u.isNpc,team:u.team||[],you:u.id===me.id}));
     return send(res,200,{ top, you:{name:me.name,rank:me.rank} }); }
 
   if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const now=Date.now();
