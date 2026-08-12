@@ -138,20 +138,31 @@ function defaultTeam(){ return [ {key:'konwu',level:1,rank:0},{key:'grosk',level
 /* --------------------------- NPC / world seeding -------------------------- */
 const NPC_NAMES=['Ironhold','Stormgate','Ashvale','Highcliff','Duskmere','Ravenspire','Frostholm','Emberton','Wolfden','Goldreach','Thornwick','Mistfall','Grimwater','Sunspear','Blackmoor','Oakenshield','Redkeep','Silverbrook','Winterfell','Stonehaven','Bramblewood','Nightvale','Dawnkeep','Shadowfen','Windmere','Coldharbor','Firebrand','Greymarch','Hollowreach','Larkspur','Direhold','Kingsmoor','Valebright','Ashenford','Cragmaw','Elmsworth','Ferncove','Gale’s Rest','Hearthglen','Ivywatch'];
 function randTeam(power){ const t=[]; const pool=HERO_KEYS.slice(); for(let i=0;i<5;i++){ const key=pool[(i*3+power)%pool.length]; t.push({key,level:1+Math.floor(power*0.6+Math.random()*power*0.4),rank:Math.min(3,Math.floor(power/6))}); } return t; }
+const BOT_FIRST=['Ash','Storm','Iron','Frost','Dusk','Dawn','Grim','Raven','Wolf','Gold','Thorn','Mist','Grey','Sun','Black','Oak','Red','Silver','Winter','Stone','Bramble','Night','Shadow','Wind','Cold','Fire','Hollow','Lark','Dire','King','Vale','Fern','Crag','Elm','Gale','Hearth','Ivy','Bright','Pale','Swift'];
+const BOT_LAST=['caller','hand','blade','heart','born','breaker','fell','wood','scar','bane','mark','guard','watch','reach','moor','vale','crest','fall','wind','forge','claw','fang','song','veil','thorn','ridge','holt','mere','gate','spire'];
+function botName(i){ const n=BOT_FIRST[i%BOT_FIRST.length]+BOT_LAST[Math.floor(i/BOT_FIRST.length)%BOT_LAST.length]; return (i>=BOT_FIRST.length*BOT_LAST.length)? n+' '+(i+1) : n; }
+const BOT_COUNT=5000, SEED_VERSION=2;
 function seed(){
-  if(DB.seeded) return;
-  NPC_NAMES.forEach((name,i)=>{
-    const id='npc_'+i;
-    const rank = Math.max(1, Math.round(5000 - i*(5000/NPC_NAMES.length) + (Math.random()*80-40)));
-    const power = Math.max(1, Math.round(20 - (rank/5000)*18)); // better rank -> stronger
-    DB.users[id]={ id, name, isNpc:true, rank, coins:0, team:randTeam(power), wall:randTeam(power),
-      roster:{}, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:0 };
-  });
-  DB.seeded=true; writeDB();
+  if(DB.seedVersion===SEED_VERSION) return;
+  // wipe any prior bots (old npc_* set or a previous bot generation)
+  for(const id of Object.keys(DB.users)){ if(DB.users[id] && DB.users[id].isNpc) delete DB.users[id]; }
+  // 5000 bots fill ranks 1..5000 (rank 1 = strongest)
+  for(let r=1;r<=BOT_COUNT;r++){ const i=r-1;
+    const power=Math.max(1, Math.round(20 - (r/BOT_COUNT)*18));
+    DB.users['bot_'+i]={ id:'bot_'+i, name:botName(i), isNpc:true, rank:r, coins:0, team:randTeam(power),
+      cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:0 };
+  }
+  // every real player inherits the next rank below the bots, in join order: 5001, 5002, ...
+  const reals=Object.values(DB.users).filter(u=>!u.isNpc).sort((a,b)=>(a.created||0)-(b.created||0));
+  reals.forEach((u,i)=>{ u.rank=BOT_COUNT+1+i; });
+  DB.seeded=true; DB.seedVersion=SEED_VERSION; writeDB();
 }
+// the next open rank a newly-registered player inherits (just below the 5000 bots)
+function nextJoinRank(){ return BOT_COUNT + 1 + Object.values(DB.users).filter(u=>!u.isNpc).length; }
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
+function serverTeamPower(team){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; } return Math.round(p); }
 function pickOpponent(me){
   const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
   // prefer someone slightly ABOVE the player (lower rank number)
@@ -187,7 +198,7 @@ async function api(req,res,url){
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
     if((DB.ipAccounts[ip]||0)>=6) return send(res,429,{error:'Too many accounts from this network.'});
     const id=uid(), salt=crypto.randomBytes(8).toString('hex');
-    const u={ id, name, hash:hashPass(b.pass,salt), salt, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
+    const u={ id, name, hash:hashPass(b.pass,salt), salt, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();
@@ -358,8 +369,15 @@ async function api(req,res,url){
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
 
   if(p==='/api/arena/ladder'){ if(!me)return send(res,401,{error:'auth'});
-    const top=allUsersByRank().slice(0,100).map(u=>({name:u.name,rank:u.rank,isNpc:!!u.isNpc,team:u.team||[],you:u.id===me.id}));
-    return send(res,200,{ top, you:{name:me.name,rank:me.rank} }); }
+    const all=allUsersByRank(); const total=all.length; const youIndex=all.findIndex(u=>u.id===me.id);
+    const q=(url.searchParams.get('q')||'').toLowerCase().trim();
+    let offset=parseInt(url.searchParams.get('offset')||'0',10); if(!(offset>=0))offset=0;
+    let limit=parseInt(url.searchParams.get('limit')||'100',10); if(!(limit>=1))limit=100; limit=Math.min(200,limit);
+    if(q){ // name search across the WHOLE server
+      const hits=[]; for(let i=0;i<all.length && hits.length<60;i++){ const u=all[i]; if((u.name||'').toLowerCase().includes(q)) hits.push({ pos:i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team), you:u.id===me.id }); }
+      return send(res,200,{ entries:hits, total, youIndex, youRank:me.rank, search:true }); }
+    const entries=all.slice(offset,offset+limit).map((u,i)=>({ pos:offset+i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team), you:u.id===me.id }));
+    return send(res,200,{ entries, total, youIndex, youRank:me.rank, offset, limit }); }
 
   if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const now=Date.now();
     if(now-(me.lastDaily||0) < 20*60*60*1000) return send(res,200,{granted:0, coins:me.coins, next:(me.lastDaily+20*60*60*1000)});

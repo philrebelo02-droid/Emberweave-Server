@@ -3529,18 +3529,30 @@ function arenaLeaderboard(){ if(ACC.token&&ARENA.ladder&&ARENA.ladder.length) re
   }
   return list; }
 function rankTier(rank){ return rank===1?{name:'Gold',medal:'🥇',col:'#ffd45e'}:rank===2?{name:'Silver',medal:'🥈',col:'#c8d2e0'}:rank===3?{name:'Bronze',medal:'🥉',col:'#e0a06a'}:null; }
-function openRankings(){ const lb=arenaLeaderboard();
+function _rkRow(e){ const t=rankTier(e.rank), medal=t?t.medal:'#'+e.rank, col=t?t.col:'#8b98a9';
+  return `<div style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #1f2740;${e.me||e.you?'background:rgba(255,212,94,.12);border-radius:8px':''}">
+    <div style="width:52px;text-align:center;font-weight:800;color:${col};font-size:12px">${medal}</div>
+    <div style="flex:1;min-width:0"><div style="font-weight:700;color:${(e.me||e.you)?'#ffd45e':'#e6edf3'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(e.name)}${(e.me||e.you)?' · YOU':''} ${e.isNpc?'<span style="font-size:9px;color:#6f7d90">NPC</span>':'<span style="font-size:9px;color:#5ee89b">●</span>'}</div></div>
+    <div style="font-weight:800;color:#8fe3ff;font-size:13px">${(e.power||0).toLocaleString()}</div></div>`; }
+function openRankings(){
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:13000;display:flex;align-items:center;justify-content:center;padding:14px';
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:14px;width:100%;max-width:440px;max-height:88vh;display:flex;flex-direction:column">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px">🏆 Arena Rankings · Top 100</div><button class="btn sm secondary" id="rkX">✕</button></div>
-    <div id="rkList" style="overflow:auto"></div></div>`;
-  document.body.appendChild(ov); ov.querySelector('#rkX').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); });
-  ov.querySelector('#rkList').innerHTML=lb.map(e=>{ const t=rankTier(e.rank), medal=t?t.medal:'#'+e.rank;
-    const sub=(t?`<span style="color:${t.col};font-weight:800">${t.name} Rank</span> · `:'')+(e.region||'');
-    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #1f2740;${e.me?'background:rgba(255,212,94,.12);border-radius:8px':''}">
-      <div style="width:34px;text-align:center;font-weight:800;color:${t?t.col:'#8b98a9'}">${medal}</div>
-      <div style="flex:1;min-width:0"><div style="font-weight:700;color:${e.me?'#ffd45e':'#e6edf3'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(e.name)}${e.me?' · YOU':''}</div><div style="font-size:10px;color:#6f7d90">${sub}</div></div>
-      <div style="font-weight:800;color:#8fe3ff;font-size:13px">${e.power.toLocaleString()}</div></div>`; }).join('');
+  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:14px;width:100%;max-width:460px;height:88vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px">🏆 Arena Rankings <span id="rkTotal" style="font-size:11px;color:#8b98a9;font-weight:600"></span></div><button class="btn sm secondary" id="rkX">✕</button></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px"><input id="rkSearch" placeholder="Search a player…" style="flex:1;padding:7px 9px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:12px"><button class="btn sm" id="rkGo">Search</button><button class="btn sm secondary" id="rkMe">Me</button></div>
+    <div id="rkList" style="overflow:auto;flex:1"></div></div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove(); ov.querySelector('#rkX').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
+  const listEl=ov.querySelector('#rkList'), totalEl=ov.querySelector('#rkTotal');
+  if(!ACC.token){ const lb=arenaLeaderboard(); totalEl.textContent='· offline (top 100)'; listEl.innerHTML=lb.map(_rkRow).join(''); return; }
+  let loaded=[], total=0, nextOffset=0, loading=false, done=false, mode='page';
+  const render=()=>{ listEl.innerHTML = loaded.length? loaded.map(_rkRow).join('') + ((mode==='page'&&!done)?'<div style="text-align:center;padding:10px;color:#8b98a9;font-size:11px">Loading more…</div>':'') : '<div style="text-align:center;padding:20px;color:#8b98a9">No players found.</div>'; };
+  async function loadMore(){ if(loading||done||mode!=='page')return; loading=true; const d=await api('/api/arena/ladder?offset='+nextOffset+'&limit=100'); loading=false; if(!d||d.error||!d.entries)return; total=d.total; totalEl.textContent='· '+total.toLocaleString()+' players'; loaded=loaded.concat(d.entries); nextOffset+=d.entries.length; if(d.entries.length===0||nextOffset>=total)done=true; render(); }
+  listEl.onscroll=()=>{ if(listEl.scrollTop+listEl.clientHeight>=listEl.scrollHeight-60) loadMore(); };
+  async function jumpToMe(){ const probe=await api('/api/arena/ladder?offset=0&limit=1'); if(!probe||probe.error)return; const yi=probe.youIndex; if(yi<0)return; const off=Math.max(0,yi-12); mode='page'; done=false; loaded=[]; nextOffset=off; await loadMore(); const meRow=[...listEl.children].find(c=>/YOU/.test(c.textContent)); if(meRow) meRow.scrollIntoView({block:'center'}); }
+  async function doSearch(q){ q=(q||'').trim(); if(!q){ mode='page'; loaded=[]; nextOffset=0; done=false; render(); loadMore(); return; } const d=await api('/api/arena/ladder?q='+encodeURIComponent(q)); if(!d||d.error)return; mode='search'; done=true; total=d.total; loaded=d.entries||[]; totalEl.textContent='· '+(loaded.length)+' match'+(loaded.length===1?'':'es'); render(); }
+  ov.querySelector('#rkGo').onclick=()=>doSearch(ov.querySelector('#rkSearch').value);
+  ov.querySelector('#rkSearch').onkeydown=(e)=>{ if(e.key==='Enter')doSearch(e.target.value); };
+  ov.querySelector('#rkMe').onclick=jumpToMe;
+  loadMore();
 }
 // deterministic placement of the 8 NPC strongholds onto grid cells (centre 7,7 reserved for YOU).
 // cached so the render loop and raid logic agree on where each rival castle actually sits.
@@ -3600,7 +3612,7 @@ async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.f
       ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; saveG(); } }
   catch(e){} finally{ ARENA.fetching=false; } return true; }
 async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true;
-  try{ const d=await api('/api/arena/ladder'); if(d&&!d.error){ ARENA.ladder=(d.top||[]).filter(e=>e&&e.team).map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:_arenaTeamPow(e.team), region:'' })); } }
+  try{ const d=await api('/api/arena/ladder?offset=0&limit=100'); if(d&&!d.error&&d.entries){ ARENA.ladderTotal=d.total; ARENA.ladder=d.entries.map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:e.power||0, region:'' })); } }
   catch(e){} finally{ ARENA.fetchingLad=false; } return true; }
 function renderArena(){ const b=document.getElementById('arenaBody');
   if(ACC.token){ if(ARENA.oppsRank!==G.arenaRank||!ARENA.opps){ arenaSync().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } if(!ARENA.ladder){ arenaSyncLadder().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } }
@@ -6615,7 +6627,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786590000000';
+const BUILD_ID='1786600000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
