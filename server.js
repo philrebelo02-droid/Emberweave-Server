@@ -362,6 +362,117 @@ async function api(req,res,url){
   if(p==='/api/raid' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req); const c=DB.users[b.id];
     if(!c) return send(res,404,{error:'no city'}); return send(res,200,{ defense:c.wall||c.team, name:c.name, rank:c.rank }); }
 
+
+  /* ------------------------------- GUILDS (real, cross-device) --------------
+     A guild is a shared server object in DB.guilds; each user carries a guildId
+     pointer. Membership, join-requests, roster, shared level/exp and chat are all
+     server-authoritative. Clients poll /api/guild/mine while the guild screen is open. */
+  if(p.startsWith('/api/guild')){
+    if(!me) return send(res,401,{error:'auth'});
+    DB.guilds = DB.guilds || {};
+    const GBASE=30,GPER=5,GMAXCAP=60,GMAXLVL=7;
+    const gCap = g => Math.min(GMAXCAP, GBASE+((g.level||1)-1)*GPER);
+    const gExpNeed = lvl => 1000*lvl;
+    const myGuild = () => me.guildId ? DB.guilds[me.guildId] : null;
+    const nameOf = id => { const u=DB.users[id]; return u?u.name:'—'; };
+    const rankOf = id => { const u=DB.users[id]; return u?u.rank:99999; };
+    const isOnline = id => { const u=DB.users[id]; return !!(u && (Date.now()-(u.lastSeen||0) < 5*60000)); };
+    const capWords = s => s.replace(/\b\w/g,c=>c.toUpperCase());
+    function guildView(g){
+      const mem=(g.members||[]).map(id=>({id,name:nameOf(id),rank:rankOf(id),online:isOnline(id),leader:id===g.leader}))
+        .sort((a,b)=>(b.leader?1:0)-(a.leader?1:0) || (b.online?1:0)-(a.online?1:0) || a.rank-b.rank);
+      const youLeader = g.leader===me.id;
+      return { id:g.id, name:g.name, level:g.level||1, exp:g.exp||0, expNeed:gExpNeed(g.level||1),
+        motd:g.motd||'', leader:g.leader, leaderName:nameOf(g.leader), cap:gCap(g),
+        members:mem, count:mem.length, youLeader,
+        requests: youLeader ? (g.reqs||[]).map(r=>({id:r.id,name:nameOf(r.id),rank:rankOf(r.id),t:r.t})) : [],
+        pendingReqCount:(g.reqs||[]).length,
+        log:(g.log||[]).slice(-60) };
+    }
+    // ---- reads ----
+    if(p==='/api/guild/mine'){ const g=myGuild(); return send(res,200,{ guild: g?guildView(g):null }); }
+    if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
+      const list=Object.values(DB.guilds)
+        .filter(g=> !q || (g.name||'').toLowerCase().includes(q))
+        .map(g=>({id:g.id,name:g.name,level:g.level||1,count:(g.members||[]).length,cap:gCap(g),
+                  leaderName:nameOf(g.leader),requested:(g.reqs||[]).some(r=>r.id===me.id)}))
+        .sort((a,b)=> b.count-a.count).slice(0,40);
+      return send(res,200,{ guilds:list, mine: me.guildId||null }); }
+
+    if(req.method!=='POST') return send(res,404,{error:'not found'});
+    const b=await body(req);
+
+    if(p==='/api/guild/create'){
+      if(rateLimited(req,'gcreate',10,60000)) return send(res,429,{error:'Slow down and try again in a moment.'});
+      if(myGuild()) return send(res,400,{error:'You are already in a guild.'});
+      let name=capWords((b.name||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).slice(0,24);
+      if(name.length<2) return send(res,400,{error:'Guild name must be at least 2 characters.'});
+      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase())) return send(res,409,{error:'That guild name is taken.'});
+      const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
+      DB.guilds[id]=g; me.guildId=id; writeDB();
+      return send(res,200,{ guild:guildView(g) }); }
+
+    if(p==='/api/guild/request'){
+      if(myGuild()) return send(res,400,{error:'Leave your current guild first.'});
+      const g=DB.guilds[b.guildId]; if(!g) return send(res,404,{error:'Guild not found.'});
+      if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'That guild is full.'});
+      g.reqs=g.reqs||[]; if(g.reqs.some(r=>r.id===me.id)) return send(res,200,{ ok:true, already:true });
+      if(g.reqs.length>=80) return send(res,400,{error:'That guild has too many pending requests right now.'});
+      g.reqs.push({id:me.id,t:Date.now()}); writeDB(); return send(res,200,{ ok:true }); }
+
+    if(p==='/api/guild/cancelRequest'){ const g=DB.guilds[b.guildId]; if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB(); } return send(res,200,{ok:true}); }
+
+    const g=myGuild();
+    if(['/api/guild/approve','/api/guild/deny','/api/guild/kick','/api/guild/transfer','/api/guild/disband','/api/guild/motd'].includes(p)){
+      if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(g.leader!==me.id) return send(res,403,{error:'Only the guild leader can do that.'});
+    }
+    if(p==='/api/guild/approve'){ const tid=b.id; g.reqs=g.reqs||[];
+      if(!g.reqs.some(r=>r.id===tid)) return send(res,400,{error:'No such request.'});
+      const tu=DB.users[tid]; if(!tu){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB(); return send(res,400,{error:'That player no longer exists.'}); }
+      if(tu.guildId){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB(); return send(res,400,{error:'That player already joined a guild.'}); }
+      if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'Your guild is full.'});
+      g.members.push(tid); tu.guildId=g.id; g.reqs=g.reqs.filter(r=>r.id!==tid);
+      g.log=g.log||[]; g.log.push({sys:1,tx:tu.name+' joined the guild.',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/deny'){ g.reqs=(g.reqs||[]).filter(r=>r.id!==b.id); writeDB(); return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/kick'){ if(b.id===me.id) return send(res,400,{error:'Use Leave instead.'});
+      if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
+      g.members=g.members.filter(x=>x!==b.id); const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
+      g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()});
+      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/transfer'){ if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
+      g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()});
+      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/motd'){ g.motd=(b.motd||'').toString().replace(/[<>]/g,'').slice(0,160); writeDB(); return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
+      delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
+
+    if(p==='/api/guild/leave'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
+      g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
+      if((g.members||[]).length===0){ delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
+      g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()});
+      writeDB(); return send(res,200,{ ok:true }); }
+
+    if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(rateLimited(req,'gchat',25,60000)) return send(res,429,{error:'Slow down.'});
+      const tx=(b.tx||'').toString().replace(/[<>]/g,'').slice(0,200).trim(); if(!tx) return send(res,200,{ok:true});
+      g.log=g.log||[]; g.log.push({id:me.id,name:me.name,tx,t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+      writeDB(); return send(res,200,{ ok:true, log:g.log.slice(-60) }); }
+
+    if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(rateLimited(req,'gcontrib',80,60000)) return send(res,429,{error:'Slow down.'});
+      let amt=Math.max(0,Math.min(100000, parseInt(b.exp,10)||0)); if(!amt) return send(res,200,{ guild:guildView(g) });
+      g.exp=(g.exp||0)+amt;
+      while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1;
+        g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
+      if((g.level||1)>=GMAXLVL) g.exp=0;
+      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+
+    return send(res,404,{error:'not found'});
+  }
+
   return send(res,404,{error:'not found'});
 }
 

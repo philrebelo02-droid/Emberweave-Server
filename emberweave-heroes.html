@@ -2878,7 +2878,7 @@ function show(name){
   if(name==='dungeon') renderDungeon();
   if(name==='elite') renderElite();
   if(name==='temple') renderTemple();
-  if(name==='guild') renderGuild();
+  if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
   document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'));
   if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); }
@@ -4449,9 +4449,10 @@ function guildMaxPlayers(){ return Math.min(GUILD_MAX_CAP, GUILD_BASE_CAP+(guild
 function guildExpNeeded(lvl){ lvl=lvl||guildLevel(); return 1000*lvl; }        // Lv1 needs 1000, Lv2 needs 2000 …
 function guildShopSlots(){ return 4+(guildLevel()-1)*2; }
 function guildMaxed(){ return guildLevel()>=GUILD_MAX_LEVEL; }
-function addGuildExp(n){ if(!G.guild||guildMaxed())return; G.guild.exp=(G.guild.exp||0)+n;
-  while(!guildMaxed() && G.guild.exp>=guildExpNeeded(G.guild.level)){ G.guild.exp-=guildExpNeeded(G.guild.level); G.guild.level=(G.guild.level||1)+1;
-    bannerMsg('🎉 Guild reached level '+G.guild.level+'!\nMax players '+guildMaxPlayers()+' · shop items '+guildShopSlots()); }
+function addGuildExp(n){ if(!G.guild)return;
+  if(G.guild.type==='real'){ const before=(GS.guild&&GS.guild.level)||G.guild.level||1; api('/api/guild/contribute','POST',{exp:n}).then(d=>{ if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); if(GS.guild.level>before) bannerMsg('&#127881; Guild reached level '+GS.guild.level+'!'); if(state==='guild')renderGuild(); } }); return; }
+  if(guildMaxed())return; G.guild.exp=(G.guild.exp||0)+n;
+  while(!guildMaxed() && G.guild.exp>=guildExpNeeded(G.guild.level)){ G.guild.exp-=guildExpNeeded(G.guild.level); G.guild.level=(G.guild.level||1)+1; bannerMsg('&#127881; Guild reached level '+G.guild.level+'!'); }
   if(guildMaxed())G.guild.exp=0; saveG(); }
 // contribution offers: 2 map-resource offers (5 res → +10 exp) and 1 diamond offer (10💎 → +20 exp); refreshes each contribution
 function rollContribs(){ const rs=RES.map(r=>r[0]); const o=[];
@@ -4567,61 +4568,107 @@ function guildWarAttack(idx){ const gw=guildWarEnsure(); if(!gw) return null;
   if(win){ e.beaten=true; const pts=Math.round(e.power/10); gw.points+=pts; const coins=Math.round(e.power/8); G.guildCoins=(G.guildCoins||0)+coins; saveG(); updateHubChrome(); return {win:true, pts, coins}; }
   saveG(); return {win:false}; }
 
+// ================= REAL server-backed guilds =================
+let GS={guild:null};
+let _guildPoll=null,_guildFetching=false;
+function syncLocalGuild(){
+  if(GS.guild){ G.guild=G.guild||{}; G.guild.id=GS.guild.id; G.guild.name=GS.guild.name;
+    G.guild.level=GS.guild.level; G.guild.exp=GS.guild.exp; G.guild.type='real'; G.guild.leader=GS.guild.youLeader; G.guild.motd=GS.guild.motd; }
+  else if(ACC.token){ G.guild=null; }
+}
+async function guildFetch(){ if(!ACC.token){ GS.guild=null; syncLocalGuild(); return null; }
+  if(_guildFetching) return GS.guild; _guildFetching=true;
+  try{ const d=await api('/api/guild/mine'); if(d&&!d.error){ GS.guild=d.guild||null; syncLocalGuild(); } }catch(e){} finally{ _guildFetching=false; }
+  return GS.guild; }
+async function guildRefresh(){ await guildFetch(); if(state==='guild') renderGuild(); }
+function startGuildPoll(){ if(_guildPoll)return; _guildPoll=setInterval(()=>{ if(state==='guild'&&ACC.token) guildRefresh(); else stopGuildPoll(); },6000); }
+function stopGuildPoll(){ if(_guildPoll){ clearInterval(_guildPoll); _guildPoll=null; } }
+async function guildAct(path,bodyObj){ const d=await api('/api/guild/'+path,'POST',bodyObj||{}); if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); } return d; }
+function doGuildLeave(){ const g=GS.guild; if(!g)return; gameConfirm('Leave &lt;'+escapeHTML(g.name)+'&gt;?',async()=>{ const d=await api('/api/guild/leave','POST',{}); if(d&&d.error){ bannerMsg('&#9888; '+d.error); return; } GS.guild=null; syncLocalGuild(); guildTab='chat'; renderGuild(); }); }
+function guildMemberMenu(id,name){ const g=GS.guild; if(!g||!g.youLeader)return; const s=modalShell();
+  s.body.innerHTML=`<div style="font-weight:800;margin-bottom:12px">${escapeHTML(name)}</div>
+    <button class="btn" id="gmLead" style="width:100%;margin-bottom:8px">&#128081; Make Guild Leader</button>
+    <button class="btn secondary" id="gmKick" style="width:100%;color:#ff9b9b">&#128682; Remove from Guild</button>`;
+  s.body.querySelector('#gmLead').onclick=()=>{ s.close(); gameConfirm('Make '+escapeHTML(name)+' the leader? You will step down as leader.',async()=>{ const d=await guildAct('transfer',{id}); if(d&&d.error)bannerMsg('&#9888; '+d.error); renderGuild(); }); };
+  s.body.querySelector('#gmKick').onclick=()=>{ s.close(); gameConfirm('Remove '+escapeHTML(name)+' from the guild?',async()=>{ const d=await guildAct('kick',{id}); if(d&&d.error)bannerMsg('&#9888; '+d.error); renderGuild(); }); };
+}
+function openGuildManage(){ const g=GS.guild; if(!g)return; const s=modalShell();
+  s.body.innerHTML=`<div style="font-weight:800;margin-bottom:8px">&#128737; Manage &lt;${escapeHTML(g.name)}&gt;</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:4px">Message of the day</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px"><input id="gmMotd" maxlength="160" value="${escapeHTML(g.motd||'')}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3"><button class="btn sm" id="gmMotdSave">Save</button></div>
+    <button class="btn secondary" id="gmDisband" style="width:100%;color:#ff9b9b">&#128165; Disband Guild</button>
+    <div style="font-size:10px;color:#6f7d90;margin-top:8px">To step down and leave, first make another member the leader (tap their name in the roster).</div>`;
+  s.body.querySelector('#gmMotdSave').onclick=async()=>{ const v=s.body.querySelector('#gmMotd').value; const d=await guildAct('motd',{motd:v}); if(!(d&&d.error))bannerMsg('&#128220; MOTD updated'); if(state==='guild')renderGuild(); };
+  s.body.querySelector('#gmDisband').onclick=()=>{ s.close(); gameConfirm('Disband &lt;'+escapeHTML(g.name)+'&gt; permanently? Every member will be removed.',async()=>{ const d=await api('/api/guild/disband','POST',{}); if(d&&d.ok){ GS.guild=null; syncLocalGuild(); guildTab='chat'; renderGuild(); } }); };
+}
 let guildTab='chat';
 function renderGuild(){
-  const b=document.getElementById('guildBody');
-  if(!G.guild){ renderGuildLobby(b); return; }
-  if(!G.guild.level)G.guild.level=1; if(G.guild.exp==null)G.guild.exp=0;
-  const npc=G.guild.type==='npc', members=npc?GUILD_MEMBERS:[], total=members.length+1, online=members.filter(m=>m[2]).length;
-  const tabs=[['chat','💬','Chat'],['contribute','🎁','Contribute'],['embassy','🏛','Embassy'],['war','⚔','War'],['raid','🐲','Raid'],['level','📈','Level'],['shop','🛡','Shop']];
+  const b=document.getElementById('guildBody'); if(!b) return;
+  if(!ACC.token){ b.innerHTML=`<div class="panel" style="text-align:center;max-width:420px;margin:0 auto"><div style="font-size:38px">&#127984;</div><div style="font-weight:800;font-size:17px;margin:6px 0">Guilds are multiplayer</div><div style="font-size:12px;color:#8b98a9;margin-bottom:12px">Sign in to create a real guild or join one with players on other devices.</div><button class="btn" id="gSignIn">Sign In / Register</button></div>`; const si=b.querySelector('#gSignIn'); if(si)si.onclick=()=>show('account'); return; }
+  const g=GS.guild;
+  if(!g){ renderGuildLobby(b); return; }
+  const tabs=[['chat','&#128172;','Chat'],['contribute','&#127873;','Contribute'],['embassy','&#127963;','Embassy'],['war','&#9876;','War'],['raid','&#128050;','Raid'],['level','&#128200;','Level'],['shop','&#128737;','Shop']];
+  if(g.youLeader) tabs.splice(1,0,['requests','&#128233;','Requests']);
   if(!tabs.some(t=>t[0]===guildTab)) guildTab='chat';
+  const reqBadge=(g.youLeader&&g.pendingReqCount)?` <span style="background:#e0483f;color:#fff;border-radius:9px;padding:0 5px;font-size:9px;font-weight:800">${g.pendingReqCount}</span>`:'';
   const tabBar=`<div style="display:flex;gap:3px;margin-bottom:12px;background:#0c111d;border:1px solid #212b40;border-radius:13px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch">`
-    +tabs.map(t=>{ const on=guildTab===t[0];
-      const bg = on?'linear-gradient(165deg,#33477a,#1d2940)':'transparent';
-      const col = on?'#ffffff':'#7f8da9';
-      const sh = on?'inset 0 0 0 1px #4f6aa0, 0 2px 8px rgba(0,0,0,.35)':'none';
-      return `<button data-gt="${t[0]}" style="flex:1 0 auto;min-width:52px;border:none;border-radius:9px;padding:7px 8px 6px;cursor:pointer;background:${bg};color:${col};box-shadow:${sh};display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .12s">
-        <span style="font-size:16px;line-height:1">${t[1]}</span><span style="font-size:9.5px;font-weight:${on?'800':'600'};letter-spacing:.2px">${t[2]}</span></button>`; }).join('')
+    +tabs.map(t=>{ const on=guildTab===t[0]; const bg=on?'linear-gradient(165deg,#33477a,#1d2940)':'transparent'; const col=on?'#ffffff':'#7f8da9'; const sh=on?'inset 0 0 0 1px #4f6aa0, 0 2px 8px rgba(0,0,0,.35)':'none';
+      return `<button data-gt="${t[0]}" style="flex:1 0 auto;min-width:52px;border:none;border-radius:9px;padding:7px 8px 6px;cursor:pointer;background:${bg};color:${col};box-shadow:${sh};display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .12s"><span style="font-size:16px;line-height:1">${t[1]}</span><span style="font-size:9.5px;font-weight:${on?'800':'600'};letter-spacing:.2px">${t[2]}${t[0]==='requests'?reqBadge:''}</span></button>`; }).join('')
     +`</div>`;
   b.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-weight:800;font-size:15px">&lt;${escapeHTML(G.guild.name)}&gt; <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${guildLevel()}</span></div>
-      <button class="btn sm secondary" id="gLeave">Leave</button></div>
+      <div style="font-weight:800;font-size:15px">&lt;${escapeHTML(g.name)}&gt; <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${g.level}</span> <span style="font-size:10px;color:#8b98a9">${g.count}/${g.cap}</span></div>
+      <button class="btn sm secondary" id="gLeave">${g.youLeader?'Manage':'Leave'}</button></div>
     ${tabBar}
     <div id="gTabBody"></div>`;
-  b.querySelector('#gLeave').onclick=()=>{ gameConfirm('Leave &lt;'+escapeHTML(G.guild.name)+'&gt;?',()=>{ G.guild=null; G.guildLog=[]; saveG(); renderGuild(); }); };
+  b.querySelector('#gLeave').onclick=()=> g.youLeader?openGuildManage():doGuildLeave();
   b.querySelectorAll('[data-gt]').forEach(t=>t.onclick=()=>{ guildTab=t.dataset.gt; renderGuild(); });
   const el=b.querySelector('#gTabBody');
+  if(guildTab==='requests') return renderGuildRequests(el,g);
   if(guildTab==='contribute') return renderGuildContribute(el);
   if(guildTab==='embassy') return renderGuildEmbassy(el);
   if(guildTab==='war') return renderGuildWar(el);
   if(guildTab==='raid') return renderGuildRaid(el);
-  if(guildTab==='level') return renderGuildLevel(el,total);
+  if(guildTab==='level') return renderGuildLevel(el,g.count);
   if(guildTab==='shop') return renderGuildShopInto(el);
-  renderGuildChat(el,members,total,online,npc);
+  renderGuildChat(el,g);
 }
-function renderGuildChat(el,members,total,online,npc){
+function renderGuildChat(el,g){
+  const online=g.members.filter(m=>m.online).length;
   el.innerHTML=`<div id="guildWrap">
     <div class="gcol" id="gChatCol">
-      <div class="gbar"><span>💬 Guild Chat</span><span style="color:#8b98a9;font-weight:600;font-size:11px">${online+1}/${total} online</span></div>
+      <div class="gbar"><span>&#128172; Guild Chat</span><span style="color:#8b98a9;font-weight:600;font-size:11px">${online}/${g.count} online</span></div>
       <div id="gChat"></div>
-      <div id="gInputRow"><input id="gInput" maxlength="200" placeholder="Message your guild…"><button class="btn sm" id="gSend">Send</button></div>
+      <div id="gInputRow"><input id="gInput" maxlength="200" placeholder="Message your guild&#8230;"><button class="btn sm" id="gSend">Send</button></div>
     </div>
     <div class="gcol" id="gRosterCol">
-      <div class="gbar"><span>Roster</span><span style="color:#8b98a9;font-weight:600;font-size:11px">${online+1}/${guildMaxPlayers()}</span></div>
+      <div class="gbar"><span>Roster</span><span style="color:#8b98a9;font-weight:600;font-size:11px">${g.count}/${g.cap}</span></div>
       <div id="gRoster"></div>
     </div>
   </div>`;
   const chat=el.querySelector('#gChat');
-  let html= G.guild.motd?`<div class="motd"><b>MOTD:</b> ${escapeHTML(G.guild.motd)}</div>`:'';
-  if(npc){ GUILD_SEED.forEach(([nm,col,tx])=>{ html+=`<div class="line"><span class="nm" style="color:${col}">[${nm}]:</span> <span class="tx">${tx}</span></div>`; }); }
-  else if(!(G.guildLog||[]).length){ html+=`<div style="color:#6f7d90;font-size:11px;padding:8px 0">Your guild is brand new — it's just you so far. Say hello, or invite friends later.</div>`; }
-  (G.guildLog||[]).forEach(tx=>{ html+=`<div class="line"><span class="nm" style="color:#7fffd0">[${escapeHTML(G.playerName||'You')}]:</span> <span class="tx">${escapeHTML(tx)}</span></div>`; });
+  let html= g.motd?`<div class="motd"><b>MOTD:</b> ${escapeHTML(g.motd)}</div>`:'';
+  if(!g.log.length) html+=`<div style="color:#6f7d90;font-size:11px;padding:8px 0">No messages yet &#8212; say hello to your guild.</div>`;
+  g.log.forEach(m=>{ if(m.sys){ html+=`<div class="line" style="opacity:.8"><span class="tx" style="color:#8fb0d8;font-style:italic">&#8212; ${escapeHTML(m.tx)}</span></div>`; }
+    else{ const mine=m.id===ACC.id; html+=`<div class="line"><span class="nm" style="color:${mine?'#7fffd0':'#9ec2ff'}">[${escapeHTML(m.name||'?')}]:</span> <span class="tx">${escapeHTML(m.tx)}</span></div>`; } });
   chat.innerHTML=html; chat.scrollTop=chat.scrollHeight;
-  let rhtml=`<div class="gmem"><span class="dot on"></span><span class="mn" style="color:#7fffd0">${escapeHTML(G.playerName||'You')}</span> <span style="color:#6f7d90;font-size:10px">(you · leader)</span></div>`;
-  members.forEach(([nm,col,on])=>{ rhtml+=`<div class="gmem"><span class="dot ${on?'on':'off'}"></span><span class="mn ${on?'':'off-txt'}" style="${on?('color:'+col):''}">${nm}</span></div>`; });
-  el.querySelector('#gRoster').innerHTML=rhtml;
-  const send=()=>{ const inp=el.querySelector('#gInput'); const v=inp.value.trim(); if(!v)return; if(!G.guildLog)G.guildLog=[]; G.guildLog.push(v); if(G.guildLog.length>50)G.guildLog=G.guildLog.slice(-50); saveG(); inp.value=''; renderGuild(); };
+  let rhtml='';
+  g.members.forEach(m=>{ const you=m.id===ACC.id; const clickable=(g.youLeader&&!you);
+    rhtml+=`<div class="gmem"${clickable?` data-mem="${m.id}" data-mn="${escapeHTML(m.name)}" style="cursor:pointer"`:''}><span class="dot ${m.online?'on':'off'}"></span><span class="mn ${m.online?'':'off-txt'}" style="${m.online?('color:'+(m.leader?'#ffd45e':'#cfe0f5')):''}">${escapeHTML(m.name)}</span><span style="color:#6f7d90;font-size:10px">${m.leader?' &#128081; leader':(you?' (you)':'')}</span></div>`; });
+  const rEl=el.querySelector('#gRoster'); rEl.innerHTML=rhtml;
+  if(g.youLeader) rEl.querySelectorAll('[data-mem]').forEach(row=>row.onclick=()=>guildMemberMenu(row.dataset.mem,row.dataset.mn));
+  const send=async()=>{ const inp=el.querySelector('#gInput'); const v=inp.value.trim(); if(!v)return; inp.value=''; const d=await api('/api/guild/chat','POST',{tx:v}); if(d&&d.log){ if(GS.guild)GS.guild.log=d.log; renderGuild(); } else guildRefresh(); };
   el.querySelector('#gSend').onclick=send; el.querySelector('#gInput').onkeydown=(e)=>{ if(e.key==='Enter')send(); };
+}
+function renderGuildRequests(el,g){
+  if(!g.requests.length){ el.innerHTML=`<div class="panel" style="text-align:center;padding:22px 16px"><div style="font-size:30px">&#128233;</div><div style="font-weight:800;margin-top:6px">No pending requests</div><div style="font-size:11px;color:#8b98a9;margin-top:4px">When a player asks to join &lt;${escapeHTML(g.name)}&gt;, they'll show up here for you to accept.</div></div>`; return; }
+  el.innerHTML=`<div style="font-weight:700;font-size:12px;margin:2px 2px 8px">Join requests (${g.requests.length})</div><div id="gReqList"></div>`;
+  const list=el.querySelector('#gReqList');
+  list.innerHTML=g.requests.map(r=>`<div style="display:flex;align-items:center;gap:8px;background:#0f1420;border:1px solid #1e2740;border-radius:10px;padding:9px 10px;margin-bottom:7px">
+      <div style="width:30px;height:30px;border-radius:50%;background:#1a2338;display:flex;align-items:center;justify-content:center;font-size:14px">&#129485;</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:13px">${escapeHTML(r.name)}</div><div style="font-size:10px;color:#8b98a9">Rank ${r.rank}</div></div>
+      <button class="btn sm" data-appr="${r.id}">Accept</button><button class="btn sm secondary" data-deny="${r.id}">Deny</button></div>`).join('');
+  list.querySelectorAll('[data-appr]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; const d=await guildAct('approve',{id:btn.dataset.appr}); if(d&&d.error)bannerMsg('&#9888; '+d.error); renderGuild(); });
+  list.querySelectorAll('[data-deny]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; await guildAct('deny',{id:btn.dataset.deny}); renderGuild(); });
 }
 // ---- EMBASSY tab: guild-wide perks that grow with guild level ----
 function renderGuildEmbassy(el){
@@ -4719,20 +4766,28 @@ function renderGuildLevel(el,total){
 }
 function renderGuildLobby(b){
   b.innerHTML=`<div class="panel" style="text-align:center;max-width:440px;margin:0 auto">
-      <div style="font-size:40px">🏰</div>
+      <div style="font-size:40px">&#127984;</div>
       <div style="font-weight:800;font-size:18px;margin:4px 0">You're not in a guild yet</div>
-      <div style="font-size:12px;color:#8b98a9;margin-bottom:12px">Create your own guild, or join an existing one to chat and team up.</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px"><input id="gcName" maxlength="18" placeholder="Your guild name…" style="flex:1;padding:9px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3"><button class="btn" id="gcCreate">Create</button></div>
+      <div style="font-size:12px;color:#8b98a9;margin-bottom:12px">Create your own guild, or search for one and request to join &#8212; real players on other devices.</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px"><input id="gcName" maxlength="24" placeholder="New guild name&#8230;" style="flex:1;padding:9px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3"><button class="btn" id="gcCreate">Create</button></div>
       <div id="gcMsg" style="font-size:11px;color:#ffd45e;min-height:14px"></div>
     </div>
-    <div class="panel" style="max-width:440px;margin:10px auto 0"><div style="font-weight:700;margin-bottom:6px">🔍 Join a Guild</div><div id="gJoinList"></div></div>`;
-  b.querySelector('#gcCreate').onclick=()=>{ let v=b.querySelector('#gcName').value.trim(); if(v.length<2){ b.querySelector('#gcMsg').textContent='Guild name needs at least 2 characters.'; return; } v=v.charAt(0).toUpperCase()+v.slice(1);   // always auto-capitalize the first letter
-    G.guild={name:v,type:'own',motd:'Welcome to '+v+'! We just formed — invite your friends.',level:1,exp:0,leader:true,created:Date.now()}; G.guildLog=[]; G.guildContribs=null; saveG(); renderGuild(); };
-  const jl=b.querySelector('#gJoinList'); jl.innerHTML='';
-  if(!JOINABLE_GUILDS.length){ jl.innerHTML=`<div style="text-align:center;padding:10px 6px;color:#8b98a9;font-size:12px">No guilds exist yet — be the first to <b style="color:#e6edf3">create one</b> above.</div>`; }
-  JOINABLE_GUILDS.forEach(([nm,cnt,motd])=>{ const row=document.createElement('div'); row.style='display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222b40';
-    row.innerHTML=`<div><b>&lt;${nm}&gt;</b><div style="font-size:10px;color:#8b98a9">${cnt} members</div></div><button class="btn sm">Join</button>`;
-    row.querySelector('button').onclick=()=>{ G.guild={name:nm,type:'npc',motd,level:1,exp:0}; G.guildLog=[]; G.guildContribs=null; saveG(); renderGuild(); }; jl.appendChild(row); });
+    <div class="panel" style="max-width:440px;margin:10px auto 0">
+      <div style="font-weight:700;margin-bottom:6px">&#128269; Find a Guild</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px"><input id="gSearch" maxlength="24" placeholder="Search by name&#8230;" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3"><button class="btn sm" id="gSearchBtn">Search</button></div>
+      <div id="gJoinList"><div style="text-align:center;color:#8b98a9;font-size:12px;padding:8px">Loading guilds&#8230;</div></div>
+    </div>`;
+  const msg=b.querySelector('#gcMsg');
+  b.querySelector('#gcCreate').onclick=async()=>{ const v=b.querySelector('#gcName').value.trim(); if(v.length<2){ msg.style.color='#ffd45e'; msg.textContent='Guild name needs at least 2 characters.'; return; } msg.style.color='#8b98a9'; msg.textContent='Creating&#8230;'; const d=await api('/api/guild/create','POST',{name:v}); if(d&&d.error){ msg.style.color='#ff8b8b'; msg.textContent=d.error; return; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); guildTab='chat'; renderGuild(); } };
+  const doBrowse=async(q)=>{ const list=b.querySelector('#gJoinList'); if(!list)return; const d=await api('/api/guild/browse'+(q?('?q='+encodeURIComponent(q)):''),'GET'); if(!d||d.error){ list.innerHTML='<div style="text-align:center;color:#ff8b8b;font-size:12px;padding:8px">Offline &#8212; try again.</div>'; return; }
+    if(!d.guilds.length){ list.innerHTML=`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">${q?'No guilds match that search.':'No guilds exist yet &#8212; <b style="color:#e6edf3">create one</b> above.'}</div>`; return; }
+    list.innerHTML=d.guilds.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
+        <div style="min-width:0"><b>&lt;${escapeHTML(g.name)}&gt;</b> <span style="font-size:10px;color:#ffd45e">Lv ${g.level}</span><div style="font-size:10px;color:#8b98a9">${g.count}/${g.cap} members &#183; leader ${escapeHTML(g.leaderName)}</div></div>
+        <button class="btn sm ${g.requested?'secondary':''}" data-req="${g.id}" ${(g.count>=g.cap&&!g.requested)?'disabled':''}>${g.requested?'Requested &#10003;':(g.count>=g.cap?'Full':'Request')}</button></div>`).join('');
+    list.querySelectorAll('[data-req]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; btn.textContent='&#8230;'; const r=await api('/api/guild/request','POST',{guildId:btn.dataset.req}); if(r&&r.error){ bannerMsg('&#9888; '+r.error); doBrowse(b.querySelector('#gSearch').value.trim()); return; } btn.textContent='Requested &#10003;'; btn.classList.add('secondary'); }); };
+  b.querySelector('#gSearchBtn').onclick=()=>doBrowse(b.querySelector('#gSearch').value.trim());
+  b.querySelector('#gSearch').onkeydown=(e)=>{ if(e.key==='Enter')doBrowse(b.querySelector('#gSearch').value.trim()); };
+  doBrowse('');
 }
 function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -6545,7 +6600,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786560000000';
+const BUILD_ID='1786570000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
