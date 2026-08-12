@@ -2100,7 +2100,7 @@ function damage(u,a,c,noEnergy,crit){
 
   if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; floatTexts.push({x:u.x,y:u.y,txt:'ABSORB',t:.6,color:'#6fe0ff',vy:1.1,sz:15}); return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
   a=Math.max(0,a); u.hp-=a; u.flash=.14; if(!noEnergy)u.energy=Math.min(100,u.energy+7);
-  floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?'#ff5b3a':((c&&c!=='#fff')?c:'#ffd9a8'),vy:crit?1.5:1,crit:!!crit,sz:crit?30:17});
+  floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?'#ff5b3a':((c&&c!=='#fff')?c:'#ffd9a8'),vy:crit?1.5:1,crit:!!crit,sz:crit?15:9});
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
     if(u._contagion && (u.dots&&u.dots.length)){ // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
       units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ pushDot(e,u._plagueDps||6,4,1,'#8fbf3f'); e._contagion=true; e._plagueDps=u._plagueDps||6; } });
@@ -2291,7 +2291,7 @@ function kitReady(u,ab){ const ty=ab.type;
   return !!nearestEnemy(u);
 }
 function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct; doEffect(u,ab.type,ab); u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct); }
-function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a; floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:16}); }
+function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a; floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   doEffect(u, ab, ULT_DEF[ab]||{}); u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
@@ -6639,7 +6639,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786622000000';
+const BUILD_ID='1786623000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
