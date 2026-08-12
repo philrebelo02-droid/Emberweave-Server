@@ -390,6 +390,16 @@ async function api(req,res,url){
         log:(g.log||[]).slice(-60) };
     }
     // ---- reads ----
+    // ---- shared Guild Raid boss helpers ----
+    const RAID_ATT=5;
+    const BOSS_NAMES=['Gorehollow the Ravager','Sablewing the Black Wyrm','The Ashen Colossus','Molgra, Fist of Ruin','Vaelthrun the Deathless','Irongale Behemoth','Nyxaroth the Devourer'];
+    const bossMax=lvl=>Math.round(80000*Math.pow(1.6,(lvl||1)-1));
+    function ensureRaid(gg){ if(!gg.raid){ gg.raid={level:1,max:bossMax(1),hp:bossMax(1),kills:0,contrib:{},used:{},day:''}; }
+      const dk=new Date().toISOString().slice(0,10); if(gg.raid.day!==dk){ gg.raid.day=dk; gg.raid.used={}; } return gg.raid; }
+    function raidView(gg){ const r=ensureRaid(gg); const gd=Object.values(r.contrib).reduce((a,b)=>a+b,0);
+      const top=Object.entries(r.contrib).map(([id,dmg])=>({name:nameOf(id),dmg})).sort((a,b)=>b.dmg-a.dmg).slice(0,5);
+      return { level:r.level, max:r.max, hp:r.hp, kills:r.kills, yourDmg:r.contrib[me.id]||0, guildDmg:gd,
+        attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:BOSS_NAMES[((r.level||1)-1)%BOSS_NAMES.length] }; }
     if(p==='/api/guild/mine'){ const g=myGuild(); return send(res,200,{ guild: g?guildView(g):null }); }
     if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
       const list=Object.values(DB.guilds)
@@ -399,6 +409,7 @@ async function api(req,res,url){
         .sort((a,b)=> b.count-a.count).slice(0,40);
       return send(res,200,{ guilds:list, mine: me.guildId||null }); }
 
+    if(p==='/api/guild/raid'){ const g=myGuild(); if(!g) return send(res,400,{error:'You are not in a guild.'}); return send(res,200,{ raid:raidView(g) }); }
     if(req.method!=='POST') return send(res,404,{error:'not found'});
     const b=await body(req);
 
@@ -469,6 +480,22 @@ async function api(req,res,url){
         g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
       if((g.level||1)>=GMAXLVL) g.exp=0;
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
+
+    if(p==='/api/guild/raid/assault'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(rateLimited(req,'graid',30,60000)) return send(res,429,{error:'Slow down.'});
+      const r=ensureRaid(g); if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
+      let power=Math.max(1,Math.min(5000000, parseInt(b.power,10)||1));
+      const dmg=Math.max(1, Math.round(power*(1.4+Math.random()*0.8)));
+      r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1;
+      let killed=false, reward=null;
+      if(r.hp<=0){ killed=true; const lv=r.level;
+        g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
+        if((g.level||1)>=GMAXLVL) g.exp=0;
+        r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
+        g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' landed the killing blow on '+BOSS_NAMES[(lv-1)%BOSS_NAMES.length]+' (Tier '+lv+')!',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+        reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
+      else { reward={ guildCoins:Math.round(dmg/50) }; }
+      writeDB(); return send(res,200,{ dmg, killed, reward, raid:raidView(g) }); }
 
     return send(res,404,{error:'not found'});
   }

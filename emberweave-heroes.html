@@ -4715,27 +4715,32 @@ function renderGuildWar(el){
     setTimeout(()=>renderGuild(),700); });
 }
 // ---- RAID tab: the whole guild grinds one boss down over time ----
-function renderGuildRaid(el){
-  const tick=guildBossPassiveTick(); const gb=guildBossEnsure(); if(!gb){ el.innerHTML='<div class="panel">Join a guild first.</div>'; return; }
-  const left=guildBossAttemptsLeft(), pct=Math.round(gb.hp/gb.max*100);
+async function renderGuildRaid(el){
+  el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:22px">Loading the guild raid…</div>';
+  const d=await api('/api/guild/raid'); if(!d||d.error||!d.raid){ el.innerHTML='<div class="panel" style="text-align:center;padding:18px">Could not load the raid — try again.</div>'; return; }
+  const r=d.raid, pct=Math.round(r.hp/r.max*100);
+  const medal=['🥇','🥈','🥉','4.','5.'];
   el.innerHTML=`<div class="panel" style="text-align:center">
       <div style="font-size:34px">🐲</div>
-      <div style="font-weight:800;font-size:16px">${escapeHTML(guildBossName(gb))}</div>
-      <div style="font-size:11px;color:#ffd45e;margin:1px 0 8px">Raid Boss · Tier ${gb.level}</div>
+      <div style="font-weight:800;font-size:16px">${escapeHTML(r.name)}</div>
+      <div style="font-size:11px;color:#ffd45e;margin:1px 0 8px">Guild Raid Boss · Tier ${r.level}</div>
       <div style="height:16px;background:#3a1e1e;border-radius:8px;overflow:hidden;position:relative"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#e0483f,#ff7a5e);transition:width .4s"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000">${gb.hp.toLocaleString()} / ${gb.max.toLocaleString()} HP</div></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000">${r.hp.toLocaleString()} / ${r.max.toLocaleString()} HP</div></div>
       <div style="display:flex;justify-content:space-around;margin-top:10px;font-size:11px">
-        <div><div style="color:#8b98a9">Your damage</div><div style="font-weight:800;color:#ffbf69">${(gb.dmg||0).toLocaleString()}</div></div>
-        <div><div style="color:#8b98a9">Guildmates</div><div style="font-weight:800;color:#9ad">${(gb.guildDmg||0).toLocaleString()}</div></div>
-        <div><div style="color:#8b98a9">Bosses felled</div><div style="font-weight:800;color:#5ee89b">${gb.kills||0}</div></div></div></div>
-    <div style="font-size:10px;color:#8b98a9;text-align:center;margin:2px 0 8px">Your guildmates chip away at the boss around the clock. Add your own blows for bonus loot — the killing blow pays the most.</div>
-    <button class="btn" id="gbAssault" style="width:100%" ${left<=0?'disabled':''}>${left>0?`⚔ Assault the boss  ·  ${left} left today`:'⏳ No assaults left — back tomorrow'}</button>
-    <div id="gbMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${tick&&tick.passiveKill?('🎉 The guild felled '+ 'the boss while you were away! '+tick.reward):''}</div>`;
-  const btn=el.querySelector('#gbAssault'); if(btn) btn.onclick=()=>{ const r=guildBossAssault(); const msg=el.querySelector('#gbMsg');
-    if(!r) return; if(r.none){ msg.style.color='#ff8b8b'; msg.textContent='No assaults left today — back tomorrow.'; return; }
-    if(r.killed){ msg.style.color='#ffd45e'; msg.innerHTML='💥 <b>BOSS DOWN!</b> You landed the killing blow!<br>'+r.reward; }
-    else { msg.style.color='#5ee89b'; msg.textContent='⚔ You hit for '+r.dmg.toLocaleString()+' · 🎖 +'+r.coins; }
-    setTimeout(()=>renderGuild(),900); };
+        <div><div style="color:#8b98a9">Your damage</div><div style="font-weight:800;color:#ffbf69">${r.yourDmg.toLocaleString()}</div></div>
+        <div><div style="color:#8b98a9">Guild total</div><div style="font-weight:800;color:#9ad">${r.guildDmg.toLocaleString()}</div></div>
+        <div><div style="color:#8b98a9">Bosses felled</div><div style="font-weight:800;color:#5ee89b">${r.kills||0}</div></div></div></div>
+    ${(r.top&&r.top.length)?('<div style="font-size:10px;color:#8b98a9;margin:2px 2px 6px">Top damage on this boss</div>'+r.top.map((t,i)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 9px;background:#0f1420;border-radius:7px;margin-bottom:4px"><span>${medal[i]||''} ${escapeHTML(t.name)}</span><span style="color:#ffbf69;font-weight:700">${t.dmg.toLocaleString()}</span></div>`).join('')):''}
+    <div style="font-size:10px;color:#8b98a9;text-align:center;margin:6px 0 8px">Your whole guild chips this boss down together — same HP for everyone. The killing blow pays the most.</div>
+    <button class="btn" id="gbAssault" style="width:100%" ${r.attemptsLeft<=0?'disabled':''}>${r.attemptsLeft>0?`⚔ Assault the boss  ·  ${r.attemptsLeft} left today`:'⏳ No assaults left — back tomorrow'}</button>
+    <div id="gbMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px"></div>`;
+  const btn=el.querySelector('#gbAssault'); if(btn) btn.onclick=async()=>{ btn.disabled=true; const res=await api('/api/guild/raid/assault','POST',{power:bestTeamPower()}); const msg=el.querySelector('#gbMsg');
+    if(!res||res.error){ msg.style.color='#ff8b8b'; msg.textContent=(res&&res.error)||'Failed — try again.'; btn.disabled=false; return; }
+    if(res.none){ msg.style.color='#ff8b8b'; msg.textContent='No assaults left today — back tomorrow.'; return; }
+    if(res.reward){ if(res.reward.guildCoins)G.guildCoins=(G.guildCoins||0)+res.reward.guildCoins; if(res.reward.gold)G.gold=(G.gold||0)+res.reward.gold; if(res.reward.gems)G.gems=(G.gems||0)+res.reward.gems; saveG(); if(typeof updateHubChrome==='function')updateHubChrome(); }
+    if(res.killed){ msg.style.color='#ffd45e'; msg.innerHTML=`💥 <b>KILLING BLOW!</b> Tier ${res.reward.tier} down · 🪙 ${res.reward.gold.toLocaleString()} · 💎 ${res.reward.gems}`; if(typeof bannerMsg==='function')bannerMsg('💥 Guild boss felled! It respawns stronger.'); }
+    else { msg.style.color='#5ee89b'; msg.textContent='⚔ You hit for '+res.dmg.toLocaleString()+'!'; }
+    setTimeout(()=>renderGuildRaid(el),1000); };
 }
 function renderGuildContribute(el){
   const c=G.guildContribs;   // re-roll stale offers so saved games pick up the current reward rates
@@ -6600,7 +6605,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786570000000';
+const BUILD_ID='1786580000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
