@@ -874,6 +874,7 @@
   <div id="battleCtrls">
     <button id="speedBtn" class="ctrlBtn">▶ x1</button>
     <button id="autoBtn" class="ctrlBtn">AUTO: OFF</button>
+    <button id="skipBtn" class="ctrlBtn">⏭ Skip</button>
   </div>
   <div id="enemyBar"></div>
   <div id="ultCancel">✕ Cancel</div>
@@ -3288,9 +3289,9 @@ function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); 
 function renderRoster(){
   const isWall = isWallCtx(teamCtx);
   const setDef = (isWall||teamCtx==='arena');   // defense contexts: no BATTLE button
-  const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:squadFor(squadModeKey()));
+  const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:(teamCtx==='arenaAtk'?squadFor('arenaAtk'):squadFor(squadModeKey())));
   const wallTitle = isWall?('SET WALL — LINE '+WALL_NUM[teamCtx]):'';
-  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(CUR.mode==='pvp'?'RAID SQUAD':'STAGE '+CUR.node));
+  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':'STAGE '+CUR.node)));
   document.getElementById('menuSub').textContent = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`:`Choose up to ${TEAM_SIZE} heroes`; if(CUR.mode==='campaign'&&typeof campEnemyLevel==='function'){ try{ document.getElementById('menuSub').textContent+=' · Enemies ~Lv '+campEnemyLevel(CUR.node); }catch(_){}}
   document.getElementById('startBtn').style.display = setDef?'none':'block';
   const r=document.getElementById('roster'); r.innerHTML='';
@@ -3630,7 +3631,8 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     const preview=o.team.map(e=>`<div style="width:34px;height:34px;border-radius:7px;overflow:hidden;border:1px solid #2a3550;position:relative" title="${HERO_TYPES[e.key].name} Lv ${e.level}">${heroIcon(e.key,34)}<span style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.75);color:#fff;font-size:8px;padding:0 2px;border-radius:3px">${e.level}</span></div>`).join('');
     row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:700">${o.name} <span style="font-size:10px;color:#6f7d90">NPC</span></div><div style="font-size:10px;color:#8b98a9">Rank #${o.rank} · power ${o.power.toLocaleString()}</div></div><div style="text-align:right">${gemsPossible>0?`<div style="font-size:11px;color:#c9b6ff;font-weight:700;margin-bottom:3px">💎 +${gemsPossible}</div>`:''}<button class="btn sm">Challenge ▶</button></div></div>
       <div style="display:flex;gap:5px;margin-top:6px">${preview}</div>`;
-    row.querySelector('button').onclick=()=>startArena(o); el.appendChild(row); });
+    row.querySelector('button').onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); };   // choose your attacking composition first
+    el.appendChild(row); });
 }
 function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank}; startVersus(o.team,true); }
 const ARENA_SHOP=[
@@ -6499,13 +6501,19 @@ setHead(document.getElementById('heroesMenuIcon'),'konwu');
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
 document.getElementById('menuBack').onclick=()=>show(menuReturn);
-document.getElementById('startBtn').onclick=()=>{ if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return; } startBattle(); };
+document.getElementById('startBtn').onclick=()=>{
+  if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
+  if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return; } startBattle(); };
 document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
+// ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
+document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
+  for(let i=0;i<7200 && !ended && state==='battle';i++){ updateBattle(1/30); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
+  if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 document.getElementById('autoBtn').onclick=()=>{ if(CUR.mode==='arena')return; autoUlt=!autoUlt;refreshCtrlBtns();};
 
 /* loop */
@@ -6527,7 +6535,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786549351823';
+const BUILD_ID='1786550192848';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
