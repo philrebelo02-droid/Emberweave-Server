@@ -2038,6 +2038,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
+  if(u.melee){ const touch=2*u.r; u.combatDist=Math.max(u.combatDist, touch); u.range=Math.max(u.range, touch+16); }   // solid bodies: melee holds at BODY-TOUCH distance (2×radius) and its swing range covers that gap so it still attacks without overlapping
   if(rank>=3 && kit.purple){ const p=kit.purple.pass, pm=skillMul(u.skillLv[3]||1); u.passMul=pm;
     if(p==='power') u.dmg*=1+0.15*pm; else if(p==='fury') u.atkInterval/=(1+0.25*pm); else { u.pass={[p]:true}; if(p==='unstepped') u.immovable=true; } }
   if(t.monster && MONSTER_KITS[key]){ const mk=MONSTER_KITS[key];   // batch-wired monsters auto-cast their 2 abilities (no rank gate)
@@ -2288,7 +2289,7 @@ function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   doEffect(u, ab, ULT_DEF[ab]||{}); u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
-  u.energy=0;u.castAnim=Math.max(.5,_ct);burstAt(u.x,u.y,0xffd45e,16);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName+'!',t:1.1,color:'#ffd45e',vy:1.4});if(u.team==='ally')screenFlash=.3;
+  u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName+'!',t:1.1,color:'#ffd45e',vy:1.4});if(u.team==='ally')screenFlash=.3;
 }
 function spawnShot(from,to,color){const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2);mesh.position.set(wx(from.x),1,wz(from.y));scene.add(mesh);shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL});}
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
@@ -2577,7 +2578,7 @@ function updateBattle(dt){
   for(let _it=0;_it<2;_it++){
     for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive||A._pullGhost)continue;   // a Grasping-Vow'd target phases through bodies so it can be yanked all the way to Vulmar
       for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B._pullGhost)continue;
-        let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=(A.team===B.team)?(A.r+B.r):(A.r+B.r)*0.58;   // cross-team bodies touch a bit closer than same-team
+        let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=A.r+B.r;   // SOLID bodies: never overlap — same-team OR cross-team, stop when footprints just touch (Phil: characters are obstacles, never touch)
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const push=(min-d)/2,ux=dx/d,uy=dy/d; A.x-=ux*push;A.y-=uy*push;B.x+=ux*push;B.y+=uy*push; } } }
     units.forEach(u=>{if(!u.alive)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
@@ -6635,7 +6636,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786574646000';
+const BUILD_ID='1786620000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
