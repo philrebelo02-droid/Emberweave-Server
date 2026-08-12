@@ -1783,7 +1783,7 @@ function wx(x){return (x-FW/2)*SC;} function wz(y){return (y-FD/2)*SC;}
 // SOLID-BODY collision radius in FIELD units, derived from the sprite's actual on-screen width.
 // NOTE: u.r can't be the collision size — it also multiplies the sprite scale (h=2.5*(r/18)*...), so a
 // unit's picture is ~3–4× wider than u.r. BODY_FRAC≈half the billboard width ≈ the character's body.
-const BODY_FRAC=0.55;   // TUNABLE: bigger = characters keep more space between them
+const BODY_FRAC=0.72;   // TUNABLE: bigger = characters keep more space between them
 function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (u.r||18)*2;
   const w=u.sprH*(u.sprA||0.7); return (u._bodyR=Math.max(u.r||18, w*BODY_FRAC/(2*SC))); }
 
@@ -2752,10 +2752,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
   floatTexts.forEach(f=>{const p=project(f.x,f.y,1.8);if(!p.vis)return;
     const life=Math.min(1,f.t*2.2), sz=f.sz||16, col=f.color||'#fff';
     octx.globalAlpha=life;
-    if(f.crit){ octx.save(); octx.translate(p.x,p.y); octx.rotate((1-f.t)*0.5);
-      octx.fillStyle='rgba(255,176,40,'+(life*0.42)+')'; const sp=9,rO=sz*1.7,rI=sz*0.72; octx.beginPath();
-      for(let i=0;i<sp*2;i++){const r=(i%2)?rI:rO,a=(i/(sp*2))*6.2832;octx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}
-      octx.closePath(); octx.fill(); octx.restore(); octx.globalAlpha=life; }
+    // (removed the orange crit starburst — Phil: ugly. Crits still read big via sz + color.)
     octx.font='900 '+sz+'px sans-serif';
     octx.lineWidth=Math.max(3,sz*0.24); octx.strokeStyle='rgba(0,0,0,.9)'; octx.strokeText(f.txt,p.x,p.y);
     octx.fillStyle=col; octx.fillText(f.txt,p.x,p.y); });
@@ -6642,7 +6639,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786621000000';
+const BUILD_ID='1786622000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
