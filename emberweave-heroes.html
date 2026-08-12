@@ -962,7 +962,7 @@ const HERO_TYPES = {
   vulmar: {name:'Vulmar', emoji:'🪷',role:'Mage',    swing:2.0, stars:5,hp:175,dmg:26,range:235,speed:54,atkSpeed:0.85,color:0x8B5CF6,abilityName:'Weight of the World',ability:'gravcrush',locked:true,myth:true,source:'purchase'},
   tick:   {name:'Tick',      emoji:'⚙️',role:'Bruiser', swing:2.2, stars:1,hp:360,dmg:28,range:28, speed:60,atkSpeed:1.1, color:0xd9a441,abilityName:'Flywheel',ability:'flywheel',locked:true},
   sylthaine:{name:'Sylthaine',emoji:'❄️',role:'Mage',   swing:2.0, stars:2,hp:150,dmg:14,apow:32,range:200,speed:56,atkSpeed:0.85,color:0x7fb6ff,abilityName:'Blizzard',ability:'blizzard',locked:true},
-  aureth: {name:'Aureth',    emoji:'☯️',role:'Tank',    swing:2.4, stars:3,hp:460,dmg:24,apow:24,range:28, speed:56,atkSpeed:0.9, color:0xe8c65a,abilityName:'Eclipse',ability:'eclipse',hybrid:true,myth:true,source:'purchase',locked:true},
+  aureth: {name:'Aureth',    emoji:'☯️',role:'Fighter', swing:2.4, stars:3,hp:460,dmg:24,apow:24,range:28, speed:56,atkSpeed:0.9, color:0xe8c65a,abilityName:'Eclipse',ability:'eclipse',hybrid:true,myth:true,source:'purchase',locked:true},
   bloatus:{name:'King Bloatus',emoji:'🐸',role:'Tank',  swing:2.4, stars:2,hp:540,dmg:24,apow:28,range:120,speed:52,atkSpeed:0.9, color:0x8fbf3f,abilityName:'Plague Sovereign',ability:'plaguesov',locked:true},
   vireo:  {name:'Vireo',     emoji:'🎼',role:'Mage',    swing:2.0, stars:2,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
   fritz:  {name:'Fritz',     emoji:'⚡',role:'Assassin', swing:1.8, stars:3,hp:200,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
@@ -1115,10 +1115,10 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 
 /* ---- ability RANK kit: Grey=Ultimate only, Green/Blue=auto actives, Purple=passive ---- */
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
-const ULT_RADIUS=['aoeStun','fireball','gravcrush'];   // drag a ground circle sized to the spell radius
+const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard'];   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_LINE=[];                                      // single straight-line directional ult (reserved: line+arrow)
-const ULT_TARGET=['execute','burst','multiShot'];       // hover an in-range enemy -> it glows; release to hit it
+const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony','thundershower'];       // hover an in-range enemy -> it glows; release to fire
 const ULT_AIMED=[...ULT_RADIUS,...ULT_CONE,...ULT_LINE,...ULT_TARGET]; // ults that open the aim UI (rest fire instantly)
 function ultAimMode(ab){ return ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':'none'; }
 function screenToField(sx,sy,h){ h=(h==null?0.15:h); if(typeof TH==='undefined'||!camera) return {x:(typeof aiming!=='undefined'&&aiming)?aiming.x:FW/2,y:(typeof aiming!=='undefined'&&aiming)?aiming.y:FD/2};
@@ -1184,8 +1184,8 @@ const ABILITY_CAST_MON={
   'ice beast':{green:0.6,blue:0.9}, 'monster with fireball':{green:0.7,blue:1.0}, 'nashor beast':{green:0.7,blue:0.9},
   'ogre beast':{green:0.7,blue:0.9}, 'water monster':{green:0.7,blue:0.8}, 'water serpent':{green:0.6,blue:0.9},
 };
-const PASS_DESC={bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second'};
-const KIT_DESC={strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves enemies in a 45° arc (3 m) toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Ground zone — burns enemies inside',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team'};
+const PASS_DESC={bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second',momentum:'attack speed ramps up the longer he fights (up to +50%)',coldsnap:'frozen foes take +25% damage from everyone',twinfonts:'in Dark stance he drains foes into himself; in Light stance he steadily regenerates',contagion:'when a poisoned foe dies its poison spreads to nearby enemies',perfectpitch:'her heals also grant a small shield',stormdodge:'30% chance to dodge attacks while casting or channeling'};
+const KIT_DESC={strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves enemies in a 45° arc (3 m) toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Ground zone — burns enemies inside',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team',punchflurry:'A rapid flurry of quick strikes',frozenorb:'A drifting orb that chills and damages nearby foes',freeze:'Freezes a single target solid (stun)',sunburst:'A burst of light — burns nearby foes and heals nearby allies',duality:'Swaps stance — Dark (bonus damage) or Light (team shield)',toxbreath:'A cone of poison that lingers as a damage-over-time',swamproot:'Summons vines that root enemies in place',crescendo:'A rising note that heals allies',harmonyshield:'A shield-song that guards nearby allies',stormsurge:'Calls down bolts on several random foes',chainlight:'A bolt of lightning that leaps between enemies'};
 function promoteCost(rank){ const mat=['green','blue','purple'][rank]; return {[mat]:4+rank*4, gold:150+rank*150}; }
 // ---- SKILL LEVELS: each unlocked skill has a level, upgraded with gold; leveling boosts its damage / heal / DR ----
 const SKILL_MAX=10, SKILL_UP_BASE=[300,220,260,400];   // gold base per skill index (ult / green / blue / passive)
@@ -1195,21 +1195,41 @@ function skillMul(lv){ return 1+((lv||1)-1)*0.15; }               // +15% effect
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(1.55,(lv||1)-1)); }
 function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL_MAX||!skillUnlocked(key,idx))return false; const c=skillUpCost(idx,lv); if((G.gold||0)<c)return false; G.gold-=c; skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:1.8,bleed:true,radius:100},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:130},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6}};
+const ULT_DEF={aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:1.8,bleed:true,radius:100},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:130},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true}};
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:1,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
-const ULT_DESC={aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — grants energy and healing to the whole team.',monkSlam:'Player-aimed ultimate — spins the staff overhead then slams it down, dealing 100% ATK and stunning every enemy within 3 frames for 2 seconds.'};
+const ULT_DESC={aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — grants energy and healing to the whole team.',monkSlam:'Player-aimed ultimate — spins the staff overhead then slams it down, dealing 100% ATK and stunning every enemy within 3 frames for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).'};
+// ability scaling labels (what stat an ability scales with) — shown in the (…) tag and used for balance
+const ULT_SCALE={flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—'};
+const KIT_SCALE={haste:'—',dmgbuff:'—',rally:'—',punchflurry:'Attack',frozenorb:'Ability Power',freeze:'Ability Power',sunburst:'Ability Power',duality:'Health',toxbreath:'Ability Power',swamproot:'Ability Power',crescendo:'Ability Power',harmonyshield:'Ability Power',stormsurge:'Ability Power',chainlight:'Ability Power',strike:'Attack',double:'Attack',volley:'Attack',nova:'Attack',cleavecone:'Attack',blink:'Attack',dot:'Attack',aoedot:'Attack',fireorb:'Ability Power',stun:'Attack',slow:'Attack',mortal:'Attack',hot:'Health',shield:'Health',taunt:'Health'};
+// build the "(CD Xs · Y m · scales Z)" tag from the ability's own data
+function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!kit)return ''; const seg=[];
+  if(idx===0){ const d=ULT_DEF[t.ability]||{}; seg.push('Ultimate'); if(d.channel&&d.dur)seg.push(d.dur+'s channel'); if(d.radius)seg.push(+(d.radius/METER).toFixed(1)+' m'); if(ULT_SCALE[t.ability]&&ULT_SCALE[t.ability]!=='—')seg.push('scales '+ULT_SCALE[t.ability]); }
+  else if(idx===1||idx===2){ const ab=idx===1?kit.green:kit.blue; if(!ab)return ''; if(ab.cd)seg.push('CD '+ab.cd+'s');
+    let rad=ab.radius; if(!rad && (ab.type==='freeze'||ab.type==='chainlight'||ab.type==='stun'||ab.type==='slow'||ab.type==='mortal')) rad=t.range;
+    if(rad)seg.push(+(rad/METER).toFixed(1)+' m'); const sc=KIT_SCALE[ab.type]; if(sc&&sc!=='—')seg.push('scales '+sc); }
+  else return '';
+  return seg.length?(' ('+seg.join(' · ')+')'):'';
+}
 function skillDesc(key,idx){ const t=HERO_TYPES[key],kit=KITS[key];
-  if(idx===0) return ULT_DESC[t.ability]||'Ultimate ability.';
+  if(idx===0) return (ULT_DESC[t.ability]||'Ultimate ability.')+abilityMeta(key,0);
   const ab=idx===1?kit.green:idx===2?kit.blue:kit.purple;
   if(idx===3) return 'Passive (always on) — '+(PASS_DESC[ab.pass]||'');
-  return 'Auto-cast on cooldown — '+(KIT_DESC[ab.type]||'active ability')+'.';
+  return 'Auto-cast on cooldown — '+(KIT_DESC[ab.type]||'active ability')+'.'+abilityMeta(key,idx);
 }
 // a short "current effect" readout for a skill at its level, given the hero's effective attack/HP
 function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
-  if(idx===0){ const d=ULT_DEF[t.ability]||{}; if(t.ability==='heal') return '✚ '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '⚡ +40 energy · ✚ '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '⚔ '+Math.round(atk*3*sm); if(d.hpMul) return '⚔ '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('⚔ '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'⚔ strike'; }
+  const apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
+  if(idx===0){ const d=ULT_DEF[t.ability]||{};
+    if(t.ability==='flywheel') return '⚔ '+Math.round(atk*(d.mul||1.6)*sm)+' AoE';
+    if(t.ability==='blizzard') return '❄ '+Math.round(apw*0.5*sm)+'/tick · '+(d.dur||4)+'s';
+    if(t.ability==='eclipse') return '⚔ '+Math.round(apw*(d.mul||2.2)*sm)+' AoE + team shield';
+    if(t.ability==='plaguesov') return '☠ '+Math.round(apw*(d.mul||1.6)*sm)+' + poison';
+    if(t.ability==='symphony') return '✚ team heal + ⚔ '+Math.round(apw*(d.dmgMul||1.4)*sm);
+    if(t.ability==='thundershower') return '⚡ '+Math.round(apw*(d.mul||0.6)*sm)+'/tick · '+(d.dur||3)+'s';
+    if(t.ability==='heal') return '✚ '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '⚡ +40 energy · ✚ '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '⚔ '+Math.round(atk*3*sm); if(d.hpMul) return '⚔ '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('⚔ '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'⚔ strike'; }
   const ab=idx===1?kit.green:idx===2?kit.blue:kit.purple;
   if(idx===3){ const P={bulwark:'🛡 −'+Math.round(18*sm)+'% dmg taken',fury:'⚡ +'+Math.round(25*sm)+'% atk speed',crit:'✦ +'+Math.round(20*sm)+'% crit',power:'⚔ +'+Math.round(15*sm)+'% dmg',regen:'✚ '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',battery:'⚡ faster energy',lifesteal:'✚ '+Math.round(20*sm)+'% lifesteal',ignite:'🔥 burn',warden:'🛡 +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'✚ '+(+(4*sm).toFixed(1))+'%/s self-heal'}; return P[ab.pass]||'passive'; }
   switch(ab.type){
@@ -1219,6 +1239,17 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'haste': return '⚡ +'+Math.round(((ab.mul||1.3)-1)*100)+'% atk speed';
     case 'taunt': return '🛡 −'+Math.round(40*sm)+'% dmg taken';
     case 'dot': case 'aoedot': return '⚔ '+(ab.mul?Math.round(atk*ab.mul*sm)+' + ':'')+'DoT '+Math.round(atk*(ab.dps||.5)*sm)+'/s';
+    case 'punchflurry': return '⚔ '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5);
+    case 'frozenorb': return '❄ '+Math.round(apw*(ab.mul||1.1)*sm)+' + slow';
+    case 'freeze': return '❄ '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+(ab.stun||2)+'s stun';
+    case 'sunburst': return '☀ '+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
+    case 'duality': return '⚔/🛡 stance swap';
+    case 'toxbreath': return '☠ '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
+    case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+' + '+(ab.root||2)+'s root';
+    case 'crescendo': return '✚ '+Math.round(apw*2*sm)+' heal';
+    case 'harmonyshield': return '🛡 '+Math.round(apw*(ab.mul||2.4)*sm)+' shield';
+    case 'stormsurge': return '⚡ '+Math.round(apw*(ab.mul||0.85)*sm)+' ×'+(ab.n||5);
+    case 'chainlight': return '⚡ '+Math.round(apw*(ab.mul||1.1)*sm)+' chain';
     default: return '⚔ '+Math.round(atk*(ab.mul||1)*sm)+(ab.stun?' + stun':'');
   }
 }
@@ -1568,7 +1599,8 @@ function cumArr(steps){ const c=new Array(MAX_LEVEL+1); c[1]=0; for(let L=2;L<=M
 const TROOP_CUM=cumArr(TROOP_STEP), HERO_CUM=cumArr(HERO_STEP);
 function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
 // stamina: max = 59 + level (60 at Lv1 ... 119 at Lv60); spend 6 per cleared stage; +1 every 6 min; refills to full on level-up
-const STAM_REGEN_MS=6*60*1000, STAM_STAGE_COST=6;
+const STAM_REGEN_MS=6*60*1000, STAM_STAGE_COST=6, BOSS_STAM_COST=12;
+function stageStamCost(g){ return (typeof isBossStage==='function' && isBossStage(g)) ? BOSS_STAM_COST : STAM_STAGE_COST; }   // boss rounds cost 12 stamina
 function maxStamina(){ return 59 + playerLevel() + (typeof embassyStamBonus==='function'?embassyStamBonus():0); }
 function regenStamina(){ if(!G.staminaTS)G.staminaTS=Date.now(); const now=Date.now(); const mx=maxStamina();
   if(G.stamina<mx){ const gained=Math.floor((now-G.staminaTS)/STAM_REGEN_MS);
@@ -1708,7 +1740,7 @@ function stageInChapter(g){ return ((g-1)%STAGES_PER_CH)+1; }
 function stageCode(g){ return chapterOf(g)+'-'+stageInChapter(g); }   // e.g. "3-7"
 const CHAPTER_NAMES=['Emberfall Vale','The Ashen Marsh','Frostspire Reach','The Sunken Bastion','Duskwood Hollows','The Molten Keep','Stormcrag Summit','The Shattered Expanse','Voidmere Depths','The World-Tree Crown'];
 // every 3rd stage of each chapter (3/6/9) is an ELITE stage that drops a specific hero's fragments; the hero rotates by chapter
-const ELITE_HERO_POOL=['konwu','grosk','vulmar'];
+const ELITE_HERO_POOL=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && HERO_TYPES[k].source!=='purchase');   // elite stages never award mythical/shop heroes
 function isEliteStage(g){ const s=stageInChapter(g); return s===3||s===6||s===9; }
 function isBossStage(g){ return stageInChapter(g)===STAGES_PER_CH; }   // stage 10 of every chapter is a boss
 function eliteHeroFor(g){ if(!isEliteStage(g)) return null; const idx=(chapterOf(g)-1)*3 + ({3:0,6:1,9:2}[stageInChapter(g)]); return ELITE_HERO_POOL[idx%ELITE_HERO_POOL.length]; }
@@ -1947,7 +1979,7 @@ function teamXOff(team){ return team==='ally' ? -DIAG_X : DIAG_X; }
 function formationSlots(team,n){const s=[];const backY=team==='ally'?1150:250,frontY=team==='ally'?950:450;const ox=teamXOff(team);const lx=i=>ox+320+360*(n<=1?0.5:(i/(n-1)));for(let i=0;i<n;i++)s.push({x:lx(i),backY,frontY});return s;}
 // role-based depth: Tank leads at the front, melee just behind, ranged & healers ~3.4 character-distances back
 const CHAR_DIST=52;
-function roleDepth(role){ if(role==='Tank')return 0; if(role==='Warrior'||role==='Bruiser'||role==='Brute'||role==='Assassin')return 1; return 3.4; }
+function roleDepth(role){ if(role==='Tank')return 0; if(role==='Fighter')return 0.4; if(role==='Warrior'||role==='Bruiser'||role==='Brute'||role==='Assassin')return 1; return 3.4; }   // Fighter ≈ 2 m behind the tank line
 function roleLaneY(team,role){ const d=roleDepth(role)*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
 const ROW_OVERRIDE={// combat-row depth override (0 front .. 2 mid .. 3.4 back). Front=melee, mid/back=ranged.
   'bug':1, 'monster with fireball':1,                                              // → FRONT (melee)
@@ -1959,14 +1991,18 @@ function laneXi(i,n,team){ return 500 + (i-(n-1)/2)*150 + (team?teamXOff(team):0
 // Both teams line up along the bottom-left → top-right diagonal, IN ROW ORDER: the ally BACK row sits
 // deepest in the bottom-left corner and the ally front near centre; the enemy front is near centre and the
 // enemy BACK row deepest in the top-right corner. Depth (0 front … 3.4 back) slides a unit along that line.
-function laneSlot(team,key,i,n){
-  const depth=(ROW_OVERRIDE[key]!=null)?ROW_OVERRIDE[key]:roleDepth((HERO_TYPES[key]||MONSTER_TYPES[key]||{}).role||'Warrior');
+function _laneDepthOf(k){ return (ROW_OVERRIDE[k]!=null)?ROW_OVERRIDE[k]:roleDepth((HERO_TYPES[k]||MONSTER_TYPES[k]||{}).role||'Warrior'); }
+function laneSlot(team,key,i,n,keys){
+  const depth=_laneDepthOf(key);
+  // separate row-mates left↔right by 2 m so a team with 2-3 in one row never spawns stacked.
+  let rowIdx=i, rowCount=n;
+  if(keys&&keys.length){ rowIdx=0; rowCount=0; for(let j=0;j<keys.length;j++){ if(Math.abs(_laneDepthOf(keys[j])-depth)<0.01){ if(j<i)rowIdx++; rowCount++; } } }
   const t=Math.min(1,depth/3.4);
   const AF={x:560,y:770}, AC={x:150,y:1055};   // ally: front (near centre) → back (bottom-left corner)
   const EF={x:440,y:630}, EC={x:850,y:345};    // enemy: front (near centre) → back (top-right corner)
   const F=(team==='ally')?AF:EF, C=(team==='ally')?AC:EC;
   let x=F.x+(C.x-F.x)*t, y=F.y+(C.y-F.y)*t;
-  const dx=C.x-F.x, dy=C.y-F.y, L=Math.hypot(dx,dy)||1, px=-dy/L, py=dx/L, off=(i-(n-1)/2)*72;   // spread same-row units perpendicular to the diagonal
+  const dx=C.x-F.x, dy=C.y-F.y, L=Math.hypot(dx,dy)||1, px=-dy/L, py=dx/L, off=(rowIdx-(rowCount-1)/2)*(2*METER);   // 2 m between row-mates, perpendicular to the diagonal
   x+=px*off; y+=py*off;
   return {x:Math.max(60,Math.min(FW-60,x)), y:Math.max(80,Math.min(FD-60,y))};
 }
@@ -2007,7 +2043,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   return u;
 }
 function spawnTeam(keys,team){ const n=keys.length;
-  keys.forEach((key,i)=>{const sl=laneSlot(team,key,i,n),x=sl.x,y=sl.y;const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
+  keys.forEach((key,i)=>{const sl=laneSlot(team,key,i,n,keys),x=sl.x,y=sl.y;const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
 }
 // Difficulty ramps across chapters: Ch1 is a soft tutorial (~0.42×), scaling to full parity around Chapter 7
 // where enemies reach ~level 40 — so a well-built level-40 team can clear Chapter 7 (the current cap).
@@ -2033,7 +2069,7 @@ function buildEnemyWave(){
   if(addHero){ const k=randOf(heroPool3star()); takeSlot(monsterRow(k)); spawn.push({key:k, isHero:true}); }   // then hero (takes a remaining row)
   slots.forEach(role=>{ const pool=MONSTER_ROLE_POOL[role]; if(pool&&pool.length) spawn.push({key:randOf(pool)}); });   // monsters fill remaining rows
   const n=spawn.length, hRank=Math.min(3,Math.floor(node/6));
-  spawn.forEach((s,i)=>{ const key=s.key, lvl=base+(s.boss?2:0), sl=laneSlot('enemy',key,i,n), x=sl.x, y=sl.y;   // spawn along the diagonal in row order (back = top-right corner), then run in
+  const _enemyKeys=spawn.map(s=>s.key); spawn.forEach((s,i)=>{ const key=s.key, lvl=base+(s.boss?2:0), sl=laneSlot('enemy',key,i,n,_enemyKeys), x=sl.x, y=sl.y;   // spawn along the diagonal in row order (back = top-right corner), then run in
     const u=makeUnit(key,'enemy',x,y,lvl,{boss:s.boss,rank:s.isHero?hRank:0});
     if(s.boss){ u.maxHp*=1.4; u.hp=u.maxHp; u.dmg*=1.15; }
     units.push(u); buildFigure(u); });
@@ -2200,7 +2236,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
     case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
-    case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=(u.apow||0)*3; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
+    case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
     case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff'); e.stunned=Math.max(e.stunned||0,0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     // ---- King Bloatus (poison tank) — poison scales off ability power ----
     case 'toxbreath':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||2.6*METER, half=(60*Math.PI/180)/2, pd=apB*(o.dps||0.5), con=!!(u.pass&&u.pass.contagion);
@@ -2400,7 +2436,7 @@ function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
   allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
-    const sl=laneSlot('ally',u.key,i,n); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
+    const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   waveXfer={phase:'enter',t:0};
 }
@@ -2440,8 +2476,8 @@ function grantRewards(){
   if(CUR.mode==='campaign'){
     const gold=(firstClear?120:40)+node*30, xp=campaignPlayerXP(node,firstClear);
     G.gold+=gold; const lvlGain=addPlayerXP(xp);      // +30 stamina per level gained
-    regenStamina(); G.stamina=Math.max(0,G.stamina-STAM_STAGE_COST);          // spend 6 for clearing the stage
-    const hxp=(firstClear?STAGE_XP_FIRST:STAGE_XP_SWEEP); grantTeamXP(hxp);
+    regenStamina(); G.stamina=Math.max(0,G.stamina-stageStamCost(node));      // spend 6 (boss: 12) for clearing the stage
+    const hxp=(firstClear?STAGE_XP_FIRST:(isBossStage(node)?12:STAGE_XP_SWEEP)); grantTeamXP(hxp);   // boss sweep gives 12 XP
     const drops=rollDrops(node); for(const k in drops) G.mats[k]+=drops[k];
     if(firstClear) G.campaignCleared=node;
     // hero unlocks
@@ -3165,14 +3201,14 @@ function openStageModal(i){
     </div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
-  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<STAM_STAGE_COST)return; closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
+  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i);
 }
 function closeStageModal(){ document.getElementById('stageModal').classList.remove('active'); }
 function sweepStage(i){
-  regenStamina(); if(G.stamina<STAM_STAGE_COST){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
-  G.stamina-=STAM_STAGE_COST;
-  const gold=30+i*20, pxp=campaignPlayerXP(i,false); G.gold+=gold; addPlayerXP(pxp); grantTeamXP(STAGE_XP_SWEEP);   // sweeping grants player XP (+30 stamina per level)
+  regenStamina(); if(G.stamina<stageStamCost(i)){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
+  G.stamina-=stageStamCost(i);
+  const gold=30+i*20, pxp=campaignPlayerXP(i,false); G.gold+=gold; addPlayerXP(pxp); grantTeamXP(isBossStage(i)?12:STAGE_XP_SWEEP);   // sweeping grants player XP (+30 stamina per level)
   const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
   const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
   let eliteStr='',um='';
@@ -3269,7 +3305,7 @@ function renderRoster(){
   });
   const full=teamArr.length>=1;   // partial teams allowed (1..TEAM_SIZE)
   regenStamina();
-  const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<STAM_STAGE_COST;
+  const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<stageStamCost(CUR.node);
   const ok=full&&!lowStam;
   const sb=document.getElementById('startBtn'); sb.disabled=!ok;
   sb.textContent=!full?`PICK AT LEAST 1 HERO`:(lowStam?`NEED ${STAM_STAGE_COST} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${STAM_STAGE_COST}`:'BATTLE ▶'));
@@ -5003,7 +5039,7 @@ const WISH_GOLD_COST=1000, WISH_GEM_COST=300;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000;   // 1 free gold wish/hour, up to 3/day
 // (diamond free wish resets at the 09:00 ET daily reset — see wishGemFreeReady)
 const WISH_FIRST_GEM_DELAY_MS=20*60000;                   // first diamond wish unlocks 20 min after account creation
-const WISH_RIGGED_HEROES=['grosk','vulmar','konwu'];       // first diamond wish is rigged to one of these (all 2★ starters)
+const WISH_RIGGED_HEROES=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && HERO_TYPES[k].source!=='purchase');   // rigged first wish → a non-mythical, non-shop starter only
 const WISH_HERO_CHANCE=0.10;                              // diamond pool: 10% chance of a full hero (unlocked at its starting rarity)
 const WISH_KONWU_CHANCE=0.01;                             // diamond pool: 1% chance of KonWu (full mythical hero)
 const DUPE_FRAG={1:7,2:14,3:30};                          // fragments refunded when a FULL-hero wish duplicates one you already own, by starting star
@@ -5020,15 +5056,16 @@ function wishGemFreeReady(){ if(!G.wishGemLast){ return Date.now()>=wishGemUnloc
 function wishGemNextFreeMs(){ if(!G.wishGemLast){ return Math.max(0, wishGemUnlockAt()-Date.now()); } return G.wishGemDay!==arenaDayKey()?0:arenaNextResetMs(); }
 // ---- reward grants (return {icon,name,extra?,big?}) ----
 function wishMat(rk,n){ if(!G.mats)G.mats={}; G.mats[rk]=(G.mats[rk]||0)+n; const m=MATS.find(x=>x[0]===rk); return {icon:m[1], name:n+'× '+m[2]+' Rune Shards'}; }
-function wishFrags(n){ const hk=randLockedHero(), t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n); return {icon:t.emoji, name:n+'× '+t.name+' fragments', extra:msg||''}; }
+function heroBigIcon(hk){ const t=HERO_TYPES[hk]; return HERO_PORTRAITS[hk]?('<img src="'+HERO_PORTRAITS[hk]+'" style="width:92px;height:92px;border-radius:14px;object-fit:cover;box-shadow:0 3px 12px #000a">'):t.emoji; }
+function wishFrags(n){ const hk=randLockedHero(), t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n); return {icon:heroBigIcon(hk), name:n+'× '+t.name+' fragments', extra:msg||''}; }
 function wishGold(n){ G.gold=(G.gold||0)+n; return {icon:'🪙', name:'+'+n+' gold'}; }
 function wishGems(n){ G.gems=(G.gems||0)+n; return {icon:'💎', name:'+'+n+' diamonds'}; }
 function wishHeroPool(){ const pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && !HERO_TYPES[k].source); return pool[Math.floor(Math.random()*pool.length)]||'grosk'; }
 // grant a FULL hero from a wish: unlock at its starting star, or refund duplicate fragments (by starting star) if already owned.
 function grantFullHero(hk){ const t=HERO_TYPES[hk], ss=heroStartStars(hk), stars='★'.repeat(ss);
-  if(G.unlocked[hk]){ const d=DUPE_FRAG[ss]||7; giveHeroFrag(hk,d); return {icon:t.emoji, name:stars+' '+t.name+' — already owned', extra:'+'+d+' '+t.name+' fragments', big:true}; }
+  if(G.unlocked[hk]){ const d=DUPE_FRAG[ss]||7; giveHeroFrag(hk,d); return {icon:heroBigIcon(hk), name:stars+' '+t.name+' — already owned', extra:'+'+d+' '+t.name+' fragments', big:true}; }
   G.unlocked[hk]=true; if(!G.starLevel)G.starLevel={}; G.starLevel[hk]=ss; if(!G.starPip)G.starPip={}; G.starPip[hk]=0;
-  return {icon:t.emoji, name:'🎉 '+t.name+' — new '+ss+'★ hero!', extra:'A full hero, unlocked at '+ss+' star'+(ss>1?'s':''), big:true}; }
+  return {icon:heroBigIcon(hk), name:'🎉 '+t.name+' — new '+ss+'★ hero!', extra:'A full hero, unlocked at '+ss+' star'+(ss>1?'s':''), big:true}; }
 function doGoldRoll(){ const r=Math.random();
   if(r<0.42) return wishMat('grey', 10+Math.floor(Math.random()*16));
   if(r<0.66) return wishMat('green', 4+Math.floor(Math.random()*6));
@@ -5037,7 +5074,7 @@ function doGoldRoll(){ const r=Math.random();
   return wishGems(5+Math.floor(Math.random()*11)); }
 function doGemRoll(rigged){
   if(rigged){ return grantFullHero(WISH_RIGGED_HEROES[Math.floor(Math.random()*WISH_RIGGED_HEROES.length)]); }
-  if(Math.random()<WISH_KONWU_CHANCE){ return grantFullHero('konwu'); }        // 1% chance: KonWu (full mythical hero)
+  // (mythical & shop heroes are never awarded from wishes)
   if(Math.random()<WISH_HERO_CHANCE){ return grantFullHero(wishHeroPool()); }
   const r=Math.random();
   if(r<0.34) return wishMat('blue', 3+Math.floor(Math.random()*5));
@@ -6440,7 +6477,7 @@ setHead(document.getElementById('heroesMenuIcon'),'konwu');
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
 document.getElementById('menuBack').onclick=()=>show(menuReturn);
-document.getElementById('startBtn').onclick=()=>{ if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<STAM_STAGE_COST) return; } startBattle(); };
+document.getElementById('startBtn').onclick=()=>{ if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return; } startBattle(); };
 document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
@@ -6468,7 +6505,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786540431978';
+const BUILD_ID='1786543425449';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
