@@ -132,33 +132,39 @@ function sendChangeCode(to, name, code, toCurrent){
     'email-change code', code,
     codeHtml(name, 'A request was made to change the recovery email on your account. Your confirmation code is:', code, toCurrent?'Enter it in the game to confirm the change (expires in 15 minutes). If this wasn\'t you, do NOT enter this code and change your password right away.':'Enter it in the game to confirm the change. Expires in 15 minutes. If you didn\'t request this, you can ignore this email.')); }
 
-const HERO_KEYS=['konwu','grosk','vulmar'];
+const HERO_KEYS=['konwu','grosk','vulmar','tick','sylthaine','aureth','bloatus','vireo','fritz'];
 function defaultTeam(){ return [ {key:'konwu',level:1,rank:0},{key:'grosk',level:1,rank:0},{key:'vulmar',level:1,rank:0} ]; }
 
 /* --------------------------- NPC / world seeding -------------------------- */
 const NPC_NAMES=['Ironhold','Stormgate','Ashvale','Highcliff','Duskmere','Ravenspire','Frostholm','Emberton','Wolfden','Goldreach','Thornwick','Mistfall','Grimwater','Sunspear','Blackmoor','Oakenshield','Redkeep','Silverbrook','Winterfell','Stonehaven','Bramblewood','Nightvale','Dawnkeep','Shadowfen','Windmere','Coldharbor','Firebrand','Greymarch','Hollowreach','Larkspur','Direhold','Kingsmoor','Valebright','Ashenford','Cragmaw','Elmsworth','Ferncove','Gale’s Rest','Hearthglen','Ivywatch'];
-function randTeam(power){ const t=[]; const pool=HERO_KEYS.slice(); for(let i=0;i<5;i++){ const key=pool[(i*3+power)%pool.length]; t.push({key,level:1+Math.floor(power*0.6+Math.random()*power*0.4),rank:Math.min(3,Math.floor(power/6))}); } return t; }
+function randTeam(power){ const pool=HERO_KEYS.slice(), t=[], n=Math.min(5,pool.length);
+  for(let i=0;i<n;i++){ const idx=Math.floor(Math.random()*pool.length); const key=pool.splice(idx,1)[0];   // splice => never repeats a hero
+    t.push({ key, level:1+Math.floor(power*0.6+Math.random()*power*0.4), rank:Math.min(3,Math.floor(power/6)) }); }
+  return t; }
 const BOT_FIRST=['Ash','Storm','Iron','Frost','Dusk','Dawn','Grim','Raven','Wolf','Gold','Thorn','Mist','Grey','Sun','Black','Oak','Red','Silver','Winter','Stone','Bramble','Night','Shadow','Wind','Cold','Fire','Hollow','Lark','Dire','King','Vale','Fern','Crag','Elm','Gale','Hearth','Ivy','Bright','Pale','Swift'];
 const BOT_LAST=['caller','hand','blade','heart','born','breaker','fell','wood','scar','bane','mark','guard','watch','reach','moor','vale','crest','fall','wind','forge','claw','fang','song','veil','thorn','ridge','holt','mere','gate','spire'];
 function botName(i){ const n=BOT_FIRST[i%BOT_FIRST.length]+BOT_LAST[Math.floor(i/BOT_FIRST.length)%BOT_LAST.length]; return (i>=BOT_FIRST.length*BOT_LAST.length)? n+' '+(i+1) : n; }
-const BOT_COUNT=5000, SEED_VERSION=2;
+const BOT_COUNT=5000, SEED_VERSION=3;
 function seed(){
   if(DB.seedVersion===SEED_VERSION) return;
-  // wipe any prior bots (old npc_* set or a previous bot generation)
+  const bots=Object.values(DB.users).filter(u=>u.isNpc);
+  if(bots.length>=BOT_COUNT){
+    // upgrade in place: regenerate every bot's team (distinct heroes) but KEEP ranks & players intact
+    for(const u of bots){ const r=Math.max(1,Math.min(BOT_COUNT,u.rank||2500)); const power=Math.max(1, Math.round(20-(r/BOT_COUNT)*18)); u.team=randTeam(power); if(u.wall)u.wall=randTeam(power); }
+    DB.seedVersion=SEED_VERSION; writeDB(); return;
+  }
+  // fresh seed: 5000 bots fill ranks 1..5000 (rank 1 = strongest); players inherit 5001, 5002, ...
   for(const id of Object.keys(DB.users)){ if(DB.users[id] && DB.users[id].isNpc) delete DB.users[id]; }
-  // 5000 bots fill ranks 1..5000 (rank 1 = strongest)
-  for(let r=1;r<=BOT_COUNT;r++){ const i=r-1;
-    const power=Math.max(1, Math.round(20 - (r/BOT_COUNT)*18));
+  for(let r=1;r<=BOT_COUNT;r++){ const i=r-1; const power=Math.max(1, Math.round(20 - (r/BOT_COUNT)*18));
     DB.users['bot_'+i]={ id:'bot_'+i, name:botName(i), isNpc:true, rank:r, coins:0, team:randTeam(power),
       cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:0 };
   }
-  // every real player inherits the next rank below the bots, in join order: 5001, 5002, ...
   const reals=Object.values(DB.users).filter(u=>!u.isNpc).sort((a,b)=>(a.created||0)-(b.created||0));
   reals.forEach((u,i)=>{ u.rank=BOT_COUNT+1+i; });
   DB.seeded=true; DB.seedVersion=SEED_VERSION; writeDB();
 }
 // the next open rank a newly-registered player inherits (just below the 5000 bots)
-function nextJoinRank(){ return BOT_COUNT + 1 + Object.values(DB.users).filter(u=>!u.isNpc).length; }
+function nextJoinRank(){ const occ=new Set(Object.values(DB.users).map(u=>u.rank)); let r=BOT_COUNT+1; while(occ.has(r)) r++; return r; }
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
@@ -172,13 +178,14 @@ function pickOpponent(me){
 }
 function applyResult(me, opp, won){
   const before=me.rank;
-  if(won){
-    if(opp && opp.rank < me.rank){ // beat someone above -> take their rank, they drop one
-      const taken=opp.rank; opp.rank=Math.min(taken+1, before); me.rank=taken;
-    } else { me.rank=Math.max(1, me.rank - (2+Math.floor(Math.random()*4))); }
-  } else {
-    me.rank = me.rank + (2+Math.floor(Math.random()*4));
+  if(won && opp && opp.rank < me.rank){
+    const taken=opp.rank; me.rank=taken;
+    // A BOT that would be bumped BEYOND rank 5000 disappears entirely — the slot it would have taken
+    // (your old rank, in the 5001-10000 zone) opens up as the next new player's starting rank.
+    if(opp.isNpc && before>BOT_COUNT){ delete DB.users[opp.id]; }
+    else { opp.rank=before; }   // otherwise a normal position swap: bot stays in the top 5000, or a real player trades places with you
   }
+  // win vs someone at/below you, or any loss: no rank change.
   me.rank=Math.max(1,me.rank);
   return { rank:me.rank, delta:before-me.rank };
 }
@@ -354,12 +361,10 @@ async function api(req,res,url){
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'});
     const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
-    const above=pool.filter(u=>u.rank<me.rank).sort((a,b)=>b.rank-a.rank);   // closest ABOVE first (harder = lower rank #)
-    let cand = above.length? above : pool.slice().sort((a,b)=>a.rank-b.rank);
-    cand = cand.slice(0, 30);
-    const opps=[], used=new Set();
-    while(opps.length<5 && used.size<cand.length){ const u=cand[Math.floor(Math.random()*cand.length)]; if(!u||used.has(u.id))continue; used.add(u.id); opps.push({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }); }
-    opps.sort((a,b)=>a.rank-b.rank);
+    // the 5 rungs DIRECTLY above you (nearest first) — the actual next ranks you climb into
+    const above=pool.filter(u=>u.rank<me.rank).sort((a,b)=>b.rank-a.rank);
+    const src = above.length? above : pool.slice().sort((a,b)=>a.rank-b.rank);   // top ranks if you're already #1-ish
+    const opps=src.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }));
     return send(res,200,{ rank:me.rank, opponents:opps }); }
 
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
