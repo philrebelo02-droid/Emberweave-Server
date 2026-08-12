@@ -1780,6 +1780,12 @@ function heroMuls(key){
 /* -------------------------- logical field + 3D map ------------------------- */
 const FW=1000,FD=1400,SC=0.02;
 function wx(x){return (x-FW/2)*SC;} function wz(y){return (y-FD/2)*SC;}
+// SOLID-BODY collision radius in FIELD units, derived from the sprite's actual on-screen width.
+// NOTE: u.r can't be the collision size — it also multiplies the sprite scale (h=2.5*(r/18)*...), so a
+// unit's picture is ~3–4× wider than u.r. BODY_FRAC≈half the billboard width ≈ the character's body.
+const BODY_FRAC=0.55;   // TUNABLE: bigger = characters keep more space between them
+function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (u.r||18)*2;
+  const w=u.sprH*(u.sprA||0.7); return (u._bodyR=Math.max(u.r||18, w*BODY_FRAC/(2*SC))); }
 
 /* --------------------------------- state ----------------------------------- */
 let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[];
@@ -2038,7 +2044,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
-  if(u.melee){ const touch=2*u.r; u.combatDist=Math.max(u.combatDist, touch); u.range=Math.max(u.range, touch+16); }   // solid bodies: melee holds at BODY-TOUCH distance (2×radius) and its swing range covers that gap so it still attacks without overlapping
+  // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   if(rank>=3 && kit.purple){ const p=kit.purple.pass, pm=skillMul(u.skillLv[3]||1); u.passMul=pm;
     if(p==='power') u.dmg*=1+0.15*pm; else if(p==='fury') u.atkInterval/=(1+0.25*pm); else { u.pass={[p]:true}; if(p==='unstepped') u.immovable=true; } }
   if(t.monster && MONSTER_KITS[key]){ const mk=MONSTER_KITS[key];   // batch-wired monsters auto-cast their 2 abilities (no rank gate)
@@ -2387,13 +2393,13 @@ function think(u,dt){
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   const t=u.target;if(!t)return;const d=dist(u,t);
-  const cd=u.combatDist||u.range;   // row-based hold distance (back 25 m / mid 13 m / melee ~1 m)
+  let cd=u.combatDist||u.range; if(u.melee)cd=bodyR(u)+bodyR(t)+2;   // melee holds where the two BODIES just touch (solid obstacles); ranged keeps its row hold (13 m / 25 m)
   // Both teams run in from their corners and meet in the middle. Ranged units keep their ROW distance from the
   // NEAREST foe (the front line) — so mid holds 13 m and back holds 25 m even while heroes charge in from the side.
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
-    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=u.range){ u.atkCd=ai; u.attackAnim=.18;
+    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18;
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); } };
@@ -2578,7 +2584,7 @@ function updateBattle(dt){
   for(let _it=0;_it<2;_it++){
     for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive||A._pullGhost)continue;   // a Grasping-Vow'd target phases through bodies so it can be yanked all the way to Vulmar
       for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B._pullGhost)continue;
-        let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=A.r+B.r;   // SOLID bodies: never overlap — same-team OR cross-team, stop when footprints just touch (Phil: characters are obstacles, never touch)
+        let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=bodyR(A)+bodyR(B);   // SOLID bodies: never overlap — same-team OR cross-team, stop when the actual sprite bodies just touch (Phil: characters are obstacles, never touch)
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const push=(min-d)/2,ux=dx/d,uy=dy/d; A.x-=ux*push;A.y-=uy*push;B.x+=ux*push;B.y+=uy*push; } } }
     units.forEach(u=>{if(!u.alive)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
@@ -6636,7 +6642,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786620000000';
+const BUILD_ID='1786621000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
