@@ -2400,6 +2400,7 @@ function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.trave
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 function startBattle(){
+  syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
@@ -3065,6 +3066,7 @@ function renderTemple(){
   const pray=b.querySelector('#prayBtn'); if(pray) pray.onclick=()=>{ if(!unlocked)return; const c=prayerCost(G.prayer||0); if(G.gold>=c){ G.gold-=c; G.prayer=(G.prayer||0)+1; saveG(); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; } else { document.getElementById('prayMsg').textContent='Not enough gold for this offering.'; } };
 }
 function startDungeon(){
+  syncActiveSquad();   // per-mode squad
   const lv=playerLevel(), eLvl=Math.max(2,Math.min(30,lv+2)), rank=Math.min(3,Math.floor(lv/5));
   const pool=HERO_KEYS.slice(), team=[]; for(let i=0;i<5;i++) team.push({key:pool[(i*2+lv)%pool.length],level:eLvl,rank});
   CUR={mode:'dungeon',opp:team}; startVersus(team,false);
@@ -3279,10 +3281,14 @@ function closeGlossaryCard(){ const m=document.getElementById('glModal'); if(m)m
 (function(){ const gb=document.getElementById('glossaryBtn'); if(gb) gb.addEventListener('click',()=>show('glossary'));
   document.querySelectorAll('.glTab').forEach(t=>t.addEventListener('click',()=>{ glTab=t.dataset.gtab; renderGlossary(); }));
   const m=document.getElementById('glModal'); if(m) m.addEventListener('click',(ev)=>{ if(ev.target.id==='glModal') closeGlossaryCard(); }); })();
+// ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
+function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
+function squadFor(k){ G.squads=G.squads||{}; if(!G.squads[k]) G.squads[k]=[]; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
+function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); }   // call right before a battle so all G.team readers use this mode's squad
 function renderRoster(){
   const isWall = isWallCtx(teamCtx);
   const setDef = (isWall||teamCtx==='arena');   // defense contexts: no BATTLE button
-  const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:G.team);
+  const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:squadFor(squadModeKey()));
   const wallTitle = isWall?('SET WALL — LINE '+WALL_NUM[teamCtx]):'';
   document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(CUR.mode==='pvp'?'RAID SQUAD':'STAGE '+CUR.node));
   document.getElementById('menuSub').textContent = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`:`Choose up to ${TEAM_SIZE} heroes`; if(CUR.mode==='campaign'&&typeof campEnemyLevel==='function'){ try{ document.getElementById('menuSub').textContent+=' · Enemies ~Lv '+campEnemyLevel(CUR.node); }catch(_){}}
@@ -4597,6 +4603,10 @@ function renderGuildChat(el,members,total,online,npc){
 // ---- EMBASSY tab: guild-wide perks that grow with guild level ----
 function renderGuildEmbassy(el){
   const lv=guildLevel(), maxed=guildMaxed();
+  if(lv<4){ el.innerHTML=`<div class="panel" style="text-align:center;padding:26px 18px">
+      <div style="font-size:34px">🔒</div><div style="font-weight:800;font-size:16px;margin-top:6px">Embassy — Locked</div>
+      <div style="font-size:12px;color:#8b98a9;margin-top:6px">The Embassy unlocks at <b style="color:#ffd45e">Guild Level 4</b>. Your guild is currently Level ${lv}.</div>
+      <div style="font-size:11px;color:#6f7d90;margin-top:8px">Level the guild up in the Contribute tab to unlock guild-wide perks.</div></div>`; return; }
   let rows=EMBASSY_PERKS.map(([ic,name,desc,valFn,flat])=>{ const v=valFn();
     return `<div style="display:flex;align-items:center;gap:10px;background:#0f1420;border:1px solid #1e2740;border-radius:10px;padding:10px;margin-bottom:7px">
       <div style="font-size:22px;width:30px;text-align:center">${ic}</div>
@@ -4693,7 +4703,8 @@ function renderGuildLobby(b){
       <div id="gcMsg" style="font-size:11px;color:#ffd45e;min-height:14px"></div>
     </div>
     <div class="panel" style="max-width:440px;margin:10px auto 0"><div style="font-weight:700;margin-bottom:6px">🔍 Join a Guild</div><div id="gJoinList"></div></div>`;
-  b.querySelector('#gcCreate').onclick=()=>{ const v=b.querySelector('#gcName').value.trim(); if(v.length<2){ b.querySelector('#gcMsg').textContent='Guild name needs at least 2 characters.'; return; } G.guild={name:v,type:'own',motd:'Welcome to '+v+'! We just formed — invite your friends.',level:1,exp:0}; G.guildLog=[]; G.guildContribs=null; saveG(); renderGuild(); };
+  b.querySelector('#gcCreate').onclick=()=>{ let v=b.querySelector('#gcName').value.trim(); if(v.length<2){ b.querySelector('#gcMsg').textContent='Guild name needs at least 2 characters.'; return; } v=v.charAt(0).toUpperCase()+v.slice(1);   // always auto-capitalize the first letter
+    G.guild={name:v,type:'own',motd:'Welcome to '+v+'! We just formed — invite your friends.',level:1,exp:0,leader:true,created:Date.now()}; G.guildLog=[]; G.guildContribs=null; saveG(); renderGuild(); };
   const jl=b.querySelector('#gJoinList'); jl.innerHTML='';
   if(!JOINABLE_GUILDS.length){ jl.innerHTML=`<div style="text-align:center;padding:10px 6px;color:#8b98a9;font-size:12px">No guilds exist yet — be the first to <b style="color:#e6edf3">create one</b> above.</div>`; }
   JOINABLE_GUILDS.forEach(([nm,cnt,motd])=>{ const row=document.createElement('div'); row.style='display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222b40';
@@ -6505,7 +6516,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786543425449';
+const BUILD_ID='1786543983690';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
