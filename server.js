@@ -556,7 +556,10 @@ const server=http.createServer((req,res)=>{
   if(p==='/icon-512.png') return serveFile(res,'icon-512.png','image/png');
   if(p==='/icon-512-maskable.png') return serveFile(res,'icon-512-maskable.png','image/png');
   if(p==='/apple-touch-icon.png') return serveFile(res,'apple-touch-icon.png','image/png');
-  // everything else -> the game (local file if bundled, else pulled from GAME_URL). Supports /?room deep links.
+  if(p==='/patchnotes.json') return serveFile(res,'patchnotes.json','application/json');
+  // marketing site at the bare root; the game lives at /play and on deep links (/?room=..., etc.)
+  if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8');
+  // everything else (/play, /?room deep links, other paths) -> the game (local file if bundled, else GAME_URL).
   fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}); res.end(buf); return; }
     remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}); res.end(r.buf); }); });
 });

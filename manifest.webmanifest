@@ -2,7 +2,7 @@
   "name": "Emberweave Heroes",
   "short_name": "Emberweave",
   "description": "3D hero-battler — campaign, glyphs, arena ladder, and city raids.",
-  "start_url": "/",
+  "start_url": "/play",
   "scope": "/",
   "display": "standalone",
   "orientation": "landscape",

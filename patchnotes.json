@@ -1,0 +1,26 @@
+{
+  "patches": [
+    {
+      "ver": "0.16",
+      "date": "August 2026",
+      "title": "Animation & studio update",
+      "items": [
+        "New size-normalization pipeline: heroes render at a consistent size with no bouncing across every clip.",
+        "Removed AI watermarks from all hero animations.",
+        "Role-based battlefield sizing \u2014 tanks are largest, backline mages smallest.",
+        "Fritz, Aureth, and Vireo animations rebuilt and cleaned up.",
+        "Xanthyr Games branding + studio logo added."
+      ]
+    },
+    {
+      "ver": "0.15",
+      "date": "August 2026",
+      "title": "Terms & accounts",
+      "items": [
+        "Added a first-sign-in Terms of Service acceptance step.",
+        "Cloud accounts: sign in and sync progress across devices.",
+        "Installable app support (add Emberweave to your home screen)."
+      ]
+    }
+  ]
+}
