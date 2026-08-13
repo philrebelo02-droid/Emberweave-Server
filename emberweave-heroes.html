@@ -2951,21 +2951,22 @@ function renderHome(){
   // placed over them (x,y = CENTER %, w/h = size %, of the 1024x392 image). lx,ly = name-label center %.
   // hotspots over the NEW painted town map (1536×1024). x,y = CENTER %, w/h = box size %, lx/ly = label center %.
   const hots=[
-    {nav:'wall',        label:'City Wall',      x:8,  y:30, w:16, h:56, lx:12, ly:30, ...lk(WALL_UNLOCK_LEVEL)},
-    {nav:'market',      label:'Market',         x:45, y:11, w:17, h:16, lx:45, ly:20},
+    {nav:'wall',        label:'City Wall',      x:15, y:10, w:30, h:22, lx:13, ly:24, ...lk(WALL_UNLOCK_LEVEL)},
+    {nav:'wall',        label:'',               x:6,  y:40, w:13, h:54, lx:6,  ly:40, ...lk(WALL_UNLOCK_LEVEL)},
+    {nav:'market',      label:'Market',         x:47, y:11, w:22, h:16, lx:47, ly:20},
     {nav:'shadymarket', label:'Shady Market',   x:31, y:24, w:13, h:14, lx:31, ly:31, coming:true},
     {nav:'temple',      label:'Temple',         x:65, y:13, w:15, h:20, lx:65, ly:24, ...lk(40)},
-    {nav:'campaign',    label:'Campaign',       x:84, y:12, w:14, h:23, lx:84, ly:26},
-    {nav:'tech',        label:'Academy',        x:48, y:35, w:18, h:28, lx:48, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
+    {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
+    {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
     {nav:'rankings',    label:'Server Rankings', x:69, y:37, w:15, h:16, lx:69, ly:46, coming:true},
     {nav:'dungeon',     label:'Dungeon',        x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
     {nav:'wishing',     label:'Wishing Pool',   x:62, y:54, w:10, h:16, lx:62, ly:63},
-    {nav:'arena',       label:'Arena',          x:85, y:59, w:19, h:21, lx:85, ly:70, ...lk(10)},
-    {nav:'watchtower',  label:'Watch Tower',    x:13, y:76, w:12, h:19, lx:13, ly:87, coming:true},
-    {nav:'guild',       label:'Guild Hall',     x:31, y:76, w:17, h:19, lx:31, ly:87, ...lk(10)},
-    {nav:'skyisland',   label:'Island of Trials', x:62, y:78, w:15, h:26, lx:62, ly:92, ...lk(10)},
-    {nav:'coming1',     label:'Coming Soon',    x:24, y:37, w:15, h:13, lx:24, ly:44, coming:true},
-    {nav:'coming2',     label:'Coming Soon',    x:22, y:55, w:17, h:17, lx:22, ly:64, coming:true},
+    {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
+    {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, coming:true},
+    {nav:'guild',       label:'Guild Hall',     x:34, y:76, w:17, h:19, lx:34, ly:87, ...lk(10)},
+    {nav:'skyisland',   label:'Island of Trials', x:70, y:80, w:15, h:25, lx:70, ly:93, ...lk(10)},
+    {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:15, h:13, lx:24, ly:47, coming:true},
+    {nav:'coming2',     label:'Coming Soon',    x:22, y:58, w:17, h:17, lx:22, ly:67, coming:true},
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
@@ -2979,6 +2980,7 @@ function renderHome(){
     el.appendChild(hit);
     box.appendChild(el);
     // ornate name label (scrolls with the map); locked buildings carry a 🔒 that reveals the level on hover / press-hold
+    if(!h.label) return;   // label-less boxes (e.g. the 2nd City Wall segment) get no label
     const lab=document.createElement('div'); lab.className='townlbl'; lab.style.left=h.lx+'%'; lab.style.top=h.ly+'%';
     let inner='<span>'+h.label+'</span>';
     if(h.locked) inner+='<span class="lockwrap">🔒<span class="locktip">Unlocks at Lv '+h.lockLv+'</span></span>';
@@ -6779,7 +6781,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786662461745';
+const BUILD_ID='1786663035127';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
