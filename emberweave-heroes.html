@@ -31,6 +31,19 @@
   #rotateGate .splashVer{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));right:auto;top:auto;font-weight:700;font-size:clamp(10px,1.7vw,13px);letter-spacing:.5px;color:#d8c8a8;opacity:.82;text-shadow:0 2px 6px #000,0 0 8px rgba(0,0,0,.7);pointer-events:none;z-index:10001;}
   #rotateGate .splashStudio{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(27px + env(safe-area-inset-bottom,0px));right:auto;top:auto;display:flex;align-items:center;gap:5px;font-weight:600;font-size:clamp(9px,1.35vw,11px);letter-spacing:.3px;color:#c9b78d;opacity:.72;text-shadow:0 1px 4px #000;pointer-events:none;z-index:10001;}
   #rotateGate .splashStudio svg{width:13px;height:13px;opacity:.9;flex:0 0 auto}
+  /* ---- Install gate: browser visitors see an app-install screen, not the game ---- */
+  #installGate{position:fixed;inset:0;z-index:10200;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:#0b0e14 center/cover no-repeat;color:#e6edf3}
+  #installGate.show{display:flex}
+  #installGate::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,14,20,.5),rgba(11,14,20,.88))}
+  #installGate>*{position:relative;z-index:1}
+  #igTitle{font-weight:900;font-size:clamp(24px,7vw,46px);letter-spacing:1px;color:#ffd98a;text-shadow:0 3px 14px #000,0 0 24px rgba(255,150,40,.35);margin:0 0 4px}
+  #igSub{font-size:clamp(12px,3.4vw,15px);color:#dbe3ee;margin:10px 0 24px;max-width:440px;line-height:1.55}
+  #igInstall{font-weight:800;font-size:clamp(15px,4.4vw,18px);padding:15px 34px;border:none;border-radius:14px;color:#1a1206;cursor:pointer;background:linear-gradient(180deg,#ffe6a0,#e8a94e);box-shadow:0 8px 26px rgba(232,169,78,.42),inset 0 1px 0 rgba(255,255,255,.55)}
+  #igInstall:active{transform:translateY(1px)}
+  #igNote{display:none;margin-top:18px;max-width:430px;font-size:13px;color:#e6edf3;background:rgba(18,24,36,.78);border:1px solid #33405e;border-radius:12px;padding:14px 16px;line-height:1.6}
+  #igNote.show{display:block}
+  #igStudio{margin-top:28px;font-size:11px;font-weight:700;color:#c9b78d;letter-spacing:.8px;opacity:.8}
+  #igBrowser{margin-top:12px;font-size:12px;color:#8090a4;text-decoration:underline;cursor:pointer;background:none;border:none}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
   body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
   body.gated #three,body.gated #three canvas,body.gated #overlay{visibility:hidden;opacity:0;}
@@ -598,6 +611,14 @@
 .glStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.gsRow{display:flex;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:7px;padding:4px 9px;font-size:13px}.gsRow b{color:#ffd45e}.gsNote{grid-column:1/-1;color:#9aa;font-size:11px;margin-top:2px}.gsBtn{grid-column:1/-1;margin-top:7px;background:#7c5cff;color:#fff;border:0;border-radius:9px;padding:8px;font-weight:700;cursor:pointer;font-size:13px}.gsBtn:active{transform:scale(.98)}.glAb{margin-top:5px}.glPass{color:#ffce54}#statChartModal{display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.72);align-items:center;justify-content:center}#statChartModal.open{display:flex}.scBox{position:relative;background:#161225;border:1px solid #3a2f56;border-radius:16px;padding:18px;width:340px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column}.scBox h3{color:#ffd45e;font-size:18px;margin:0 26px 2px 0}.scSub{color:#b9a9d6;font-size:12px;margin-bottom:10px}.scScroll{overflow:auto;border:1px solid #2a2340;border-radius:10px}.scTbl{width:100%;border-collapse:collapse;font-size:13px}.scTbl th{position:sticky;top:0;background:#241a3a;color:#ffd45e;padding:7px;text-align:center}.scTbl td{padding:5px 7px;text-align:center;color:#e7e0f5;border-top:1px solid #241a3a}.scTbl tr.mile td{background:rgba(124,92,255,.16);font-weight:700}</style>
 </head>
 <body>
+<div id="installGate">
+  <h1 id="igTitle">EMBERWEAVE HEROES</h1>
+  <div id="igSub">Install the app to play — fullscreen, faster, and it works offline. One tap puts Emberweave Heroes right on your home screen.</div>
+  <button id="igInstall">⬇&nbsp;&nbsp;Install App</button>
+  <div id="igNote"></div>
+  <div id="igStudio">A XANTHYR GAMES production</div>
+  <button id="igBrowser">Continue in browser</button>
+</div>
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
 <div id="app">
   <div id="battleBg"></div>
@@ -6711,7 +6732,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786700000000';
+const BUILD_ID='1786710000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -6863,6 +6884,33 @@ function setSplashStatus(state){ const el=document.getElementById('splashStatus'
 }
 function refreshSplashStatus(){ setSplashStatus('check');
   return pingServer().then(ok=>{ _splashOnline=ok; if(!_splashEntered) setSplashStatus(ok?'on':'off'); return ok; }); }
+/* ---- Install gate: show an app-install front door to browser visitors (installed app skips it) ---- */
+(function(){
+  let deferredPrompt=null;
+  const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const $=(id)=>document.getElementById(id);
+  window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; });
+  window.addEventListener('appinstalled',()=>{
+    const n=$('igNote'), i=$('igInstall'), s=$('igSub'), b=$('igBrowser');
+    if(i) i.style.display='none'; if(b) b.style.display='none';
+    if(s) s.textContent='';
+    if(n){ n.innerHTML='<b style="color:#7ee89b">✓ Installed!</b><br>Open <b>Emberweave Heroes</b> from your home screen to play.'; n.classList.add('show'); }
+  });
+  function showGate(){ const g=$('installGate'); if(!g) return;
+    try{ if(typeof SPLASH_BG!=='undefined' && SPLASH_BG) g.style.backgroundImage="url('"+SPLASH_BG+"')"; }catch(e){}
+    g.classList.add('show');
+    const inst=$('igInstall'), note=$('igNote'), br=$('igBrowser');
+    if(inst) inst.onclick=async ()=>{
+      if(deferredPrompt){ deferredPrompt.prompt(); try{ await deferredPrompt.userChoice; }catch(e){} deferredPrompt=null; }
+      else if(isIOS){ note.innerHTML='<b>To install on iPhone / iPad:</b><br>Tap the <b>Share</b> icon, then <b>“Add to Home Screen.”</b> Open Emberweave from your home screen to play.'; note.classList.add('show'); }
+      else { note.innerHTML='<b>To install:</b><br>Open your browser menu (⋮) and choose <b>“Install app”</b> or <b>“Add to Home screen.”</b>'; note.classList.add('show'); }
+    };
+    if(br) br.onclick=()=>{ g.classList.remove('show'); };
+  }
+  function init(){ if(!isApp) showGate(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
 function enterGame(){ if(_splashEntered)return; _splashEntered=true;
   const gate=document.getElementById('rotateGate');
   document.body.classList.remove('gated');   // reveal #app (still covered by the splash gate for now)
