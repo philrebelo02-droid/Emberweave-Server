@@ -1120,7 +1120,7 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 
 /* ---- ability RANK kit: Grey=Ultimate only, Green/Blue=auto actives, Purple=passive ---- */
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
-const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard'];   // drag a ground circle sized to the spell radius
+const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard','thundershower'];   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_LINE=[];                                      // single straight-line directional ult (reserved: line+arrow)
 const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony','thundershower'];       // hover an in-range enemy -> it glows; release to fire
@@ -2280,7 +2280,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev)spawnShot(prev,cur,'#bfe6ff'); prev=cur; dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<4*METER){nd=d;nxt=e;} } }); cur=nxt; }
       break; }
-    case 'thundershower':{ u._stormT=o.dur||3; u._stormAcc=0; u._stormMul=(o.mul||0.6); u._castT=Math.max(u._castT||0,o.dur||3); floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(u.x,u.y,0xf2d84a,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'thundershower':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
   }
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
 }
@@ -2376,10 +2376,12 @@ function think(u,dt){
       enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealDamage(u,e,dmg,'#bfefff'); if(Math.random()<0.10){ e.stunned=Math.max(e.stunned||0,1.2); e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
-  if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius centered on him
+  if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
+    const sx=(u._stormX!=null?u._stormX:u.x), sy=(u._stormY!=null?u._stormY:u.y);
+    if(u._stormFxAcc>=1.25 && u._stormT>0.3){ u._stormFxAcc=0; if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',sx,sy); }   // re-spawn the shower FX so it covers the whole channel
     if(u._stormAcc>=0.5){ u._stormAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*(u._stormMul||0.6)*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
-      enemiesOf(u).forEach(e=>{ if(e.alive && dist(u,e)<R){ dealDamage(u,e,dmg,'#f2e07a'); if(Math.random()<0.5)burstAt(e.x,e.y,0xfff0a0,5); } });
-      ringBurst(u.x,u.y,0xf2d84a,14); for(let i=0;i<3;i++){ const a=Math.random()*6.28, d=Math.random()*R; burstAt(u.x+Math.cos(a)*d,u.y+Math.sin(a)*d,0xfff0a0,3); } }
+      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:sx,y:sy},e)<R){ dealDamage(u,e,dmg,'#f2e07a'); if(Math.random()<0.5)burstAt(e.x,e.y,0xfff0a0,5); } });
+      ringBurst(sx,sy,0xf2d84a,14); for(let i=0;i<3;i++){ const a=Math.random()*6.28, d=Math.random()*R; burstAt(sx+Math.cos(a)*d,sy+Math.sin(a)*d,0xfff0a0,3); } }
     return; }   // rooted: cannot auto-attack or cast during the channel (Static Veil grants 30% dodge throughout)
   if(u.slow>0)u.slow-=dt; const spd=u.speed*(u.slow>0?0.55:1);
   const silenced=(u.silencedT||0)>0;   // silenced (Grosk): can't use ANY ability — only auto-attack
@@ -6641,7 +6643,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786625000000';
+const BUILD_ID='1786626000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
