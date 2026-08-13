@@ -2436,8 +2436,8 @@ function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).for
 // resumes at 1x. When the wave/stage clears they RUN OFF along that SAME line out the top-right, completely
 // off-screen (down to the last hero); then the next wave loads and they run on again.
 // Runs as an early-return branch in updateBattle so normal combat is paused during the run.
-const XFER_SPD=820*0.75*0.75*0.75;         // walk speed for BOTH run-on and run-off — reduced 25% three times on Phil's calls (≈346, was 820)
-const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same reduced speed
+const XFER_SPD=880;                        // run-on/run-off MOVEMENT speed — brisk (the run ANIMATION is time-based during xfer, so moving fast no longer spins the legs)
+const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same speed
 const XFER_DIR={x:0.70,y:-0.71};          // the invisible line: bottom-left → top-right (field +x, -y)
 const XFER_OFFSCREEN=880;                 // how far back down the line the off-screen staging point sits
 function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:hy - XFER_DIR.y*XFER_OFFSCREEN}; }   // straight down the line, off the bottom-left
@@ -2654,12 +2654,16 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(u.attackAnim>0)u._atkHold=_ah; else if(u._atkHold>0)u._atkHold-=dt;
         if(u._critHit&&!(u._atkHold>0))u._hitHold=0.28; else if(u._hitHold>0)u._hitHold-=dt; u._critHit=false;
         if(u._abilHold>0)u._abilHold-=dt;
-        const walking=moved>0.2;
+        const walking=moved>0.05;   // any real repositioning counts as walking (even a short 2 m step) — no idle-sliding
         const abilActive=(u._abilHold>0 && u._abilAnim && u.anim[u._abilAnim]);   // ability clip overrides everything while it plays
-        const st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
-        const A=u.anim[st]||u.anim.idle;
+        let st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
+        let A=u.anim[st]||u.anim.idle;
+        // NEVER go invisible: if this clip's sheet hasn't finished downloading (or failed), show idle instead of a blank frame.
+        const _rdyC=(c)=>c&&c.tex&&!c._err&&c.tex.image&&c.tex.image.complete&&c.tex.image.naturalWidth>0;
+        if(!_rdyC(A)){ if(_rdyC(u.anim.idle)){ A=u.anim.idle; st='idle'; } }
         if(u._animSt!==st){u._animSt=st;u._animAcc=0;}
-        if(st==='walk') u._animAcc=(u._animAcc||0)+moved*(A.stride||WALK_STRIDE);   // legs advance with distance travelled → realistic cadence at any speed (per-clip stride override, e.g. Vulmar's slower glide)
+        if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12);   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
+          else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8)); }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else u._animAcc=(u._animAcc||0)+dt*(A.fps||10);
         const fr=Math.floor(u._animAcc)%A.n;
         // desired facing: face the way he's MOVING while walking; otherwise face the target (remembered when neither)
@@ -6643,7 +6647,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786627000000';
+const BUILD_ID='1786628000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
