@@ -2964,8 +2964,8 @@ function renderHome(){
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
     {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, coming:true},
     {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(10)},
-    {nav:'skyisland',   label:'Island of Trials', x:71, y:80, w:18, h:28, lx:71, ly:94, ...lk(10)},
-    {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:15, h:13, lx:24, ly:47, coming:true},
+    {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},
+    {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
     {nav:'coming2',     label:'Coming Soon',    x:22, y:58, w:17, h:17, lx:22, ly:67, coming:true},
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
@@ -6781,7 +6781,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786663378687';
+const BUILD_ID='1786663676744';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
