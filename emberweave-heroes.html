@@ -29,6 +29,7 @@
   /* online / offline status under the word "Heroes" */
   #rotateGate .splashStatus{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));left:auto;top:auto;max-width:56vw;text-align:center;font-weight:800;font-size:clamp(11px,2.2vw,18px);letter-spacing:1px;line-height:1.15;text-shadow:0 2px 6px #000,0 0 10px rgba(0,0,0,.75);pointer-events:none;z-index:10001;}
   #rotateGate .splashVer{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));right:auto;top:auto;font-weight:700;font-size:clamp(10px,1.7vw,13px);letter-spacing:.5px;color:#d8c8a8;opacity:.82;text-shadow:0 2px 6px #000,0 0 8px rgba(0,0,0,.7);pointer-events:none;z-index:10001;}
+  #rotateGate .splashStudio{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));right:auto;top:auto;font-weight:800;font-size:clamp(11px,1.9vw,14px);letter-spacing:1.2px;color:#e9dcbe;opacity:.92;text-shadow:0 2px 6px #000,0 0 8px rgba(0,0,0,.7);pointer-events:none;z-index:10001;}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
   body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
   body.gated #three,body.gated #three canvas,body.gated #overlay{visibility:hidden;opacity:0;}
@@ -596,7 +597,7 @@
 .glStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.gsRow{display:flex;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:7px;padding:4px 9px;font-size:13px}.gsRow b{color:#ffd45e}.gsNote{grid-column:1/-1;color:#9aa;font-size:11px;margin-top:2px}.gsBtn{grid-column:1/-1;margin-top:7px;background:#7c5cff;color:#fff;border:0;border-radius:9px;padding:8px;font-weight:700;cursor:pointer;font-size:13px}.gsBtn:active{transform:scale(.98)}.glAb{margin-top:5px}.glPass{color:#ffce54}#statChartModal{display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.72);align-items:center;justify-content:center}#statChartModal.open{display:flex}.scBox{position:relative;background:#161225;border:1px solid #3a2f56;border-radius:16px;padding:18px;width:340px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column}.scBox h3{color:#ffd45e;font-size:18px;margin:0 26px 2px 0}.scSub{color:#b9a9d6;font-size:12px;margin-bottom:10px}.scScroll{overflow:auto;border:1px solid #2a2340;border-radius:10px}.scTbl{width:100%;border-collapse:collapse;font-size:13px}.scTbl th{position:sticky;top:0;background:#241a3a;color:#ffd45e;padding:7px;text-align:center}.scTbl td{padding:5px 7px;text-align:center;color:#e7e0f5;border-top:1px solid #241a3a}.scTbl tr.mile td{background:rgba(124,92,255,.16);font-weight:700}</style>
 </head>
 <body>
-<div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashVer" id="splashVer"></div></div></div>
+<div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio">XANTHYR GAMES</div><div class="splashVer" id="splashVer"></div></div></div>
 <div id="app">
   <div id="battleBg"></div>
   <div id="three"></div>
@@ -604,7 +605,6 @@
 
   <!-- HOME BASE -->
   <div class="screen hub active" id="home">
-    <div id="studioTag" style="position:fixed;left:9px;bottom:6px;z-index:6;font-size:9px;font-weight:700;letter-spacing:.09em;color:rgba(230,237,243,.5);pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.65)">XANTHYR GAMES</div>
     <div id="townWrap"><div id="townMap"><img id="townImg" alt="">
       <div id="townHots"></div>
     </div></div>
@@ -5740,6 +5740,7 @@ function showTerms(){
       <div style="${s}">9. Contact</div>
       <p style="${p}">Questions, data requests, or account issues? Use the “Report a problem” box in Settings, or the contact address published with the Game.</p>
       <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language summary written for players and is not legal advice. Before any commercial or app-store launch, have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction.</p>
+      <p style="${p}color:#7d8a9c;text-align:center;margin-top:12px;font-weight:700">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</p>
     </div></div>`;
   document.body.appendChild(ov);
   const close=()=>ov.remove();
@@ -6673,7 +6674,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786670000000';
+const BUILD_ID='1786680000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
