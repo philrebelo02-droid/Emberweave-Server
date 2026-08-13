@@ -29,7 +29,8 @@
   /* online / offline status under the word "Heroes" */
   #rotateGate .splashStatus{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));left:auto;top:auto;max-width:56vw;text-align:center;font-weight:800;font-size:clamp(11px,2.2vw,18px);letter-spacing:1px;line-height:1.15;text-shadow:0 2px 6px #000,0 0 10px rgba(0,0,0,.75);pointer-events:none;z-index:10001;}
   #rotateGate .splashVer{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));right:auto;top:auto;font-weight:700;font-size:clamp(10px,1.7vw,13px);letter-spacing:.5px;color:#d8c8a8;opacity:.82;text-shadow:0 2px 6px #000,0 0 8px rgba(0,0,0,.7);pointer-events:none;z-index:10001;}
-  #rotateGate .splashStudio{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));right:auto;top:auto;font-weight:800;font-size:clamp(11px,1.9vw,14px);letter-spacing:1.2px;color:#e9dcbe;opacity:.92;text-shadow:0 2px 6px #000,0 0 8px rgba(0,0,0,.7);pointer-events:none;z-index:10001;}
+  #rotateGate .splashStudio{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(27px + env(safe-area-inset-bottom,0px));right:auto;top:auto;display:flex;align-items:center;gap:5px;font-weight:600;font-size:clamp(9px,1.35vw,11px);letter-spacing:.3px;color:#c9b78d;opacity:.72;text-shadow:0 1px 4px #000;pointer-events:none;z-index:10001;}
+  #rotateGate .splashStudio svg{width:13px;height:13px;opacity:.9;flex:0 0 auto}
   #rotateGate .splashStatus.on{color:#39e075;} #rotateGate .splashStatus.off{color:#ff4d4d;} #rotateGate .splashStatus.check{color:#ffce54;}
   body.gated #app{visibility:hidden;opacity:0;}   /* opacity:0 also hides the WebGL/overlay canvases, which can sit on their own GPU layer and ignore the parent's visibility:hidden (the "wukong flash" on load) */
   body.gated #three,body.gated #three canvas,body.gated #overlay{visibility:hidden;opacity:0;}
@@ -597,7 +598,7 @@
 .glStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.gsRow{display:flex;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:7px;padding:4px 9px;font-size:13px}.gsRow b{color:#ffd45e}.gsNote{grid-column:1/-1;color:#9aa;font-size:11px;margin-top:2px}.gsBtn{grid-column:1/-1;margin-top:7px;background:#7c5cff;color:#fff;border:0;border-radius:9px;padding:8px;font-weight:700;cursor:pointer;font-size:13px}.gsBtn:active{transform:scale(.98)}.glAb{margin-top:5px}.glPass{color:#ffce54}#statChartModal{display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.72);align-items:center;justify-content:center}#statChartModal.open{display:flex}.scBox{position:relative;background:#161225;border:1px solid #3a2f56;border-radius:16px;padding:18px;width:340px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column}.scBox h3{color:#ffd45e;font-size:18px;margin:0 26px 2px 0}.scSub{color:#b9a9d6;font-size:12px;margin-bottom:10px}.scScroll{overflow:auto;border:1px solid #2a2340;border-radius:10px}.scTbl{width:100%;border-collapse:collapse;font-size:13px}.scTbl th{position:sticky;top:0;background:#241a3a;color:#ffd45e;padding:7px;text-align:center}.scTbl td{padding:5px 7px;text-align:center;color:#e7e0f5;border-top:1px solid #241a3a}.scTbl tr.mile td{background:rgba(124,92,255,.16);font-weight:700}</style>
 </head>
 <body>
-<div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio">XANTHYR GAMES</div><div class="splashVer" id="splashVer"></div></div></div>
+<div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
 <div id="app">
   <div id="battleBg"></div>
   <div id="three"></div>
@@ -3483,6 +3484,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
       if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
+    if(!tosOK()){ requireTos(()=>go(path), ()=>{ const m=b.querySelector('#acMsg'); if(m){ m.style.color='#ff8b8b'; m.textContent='You must accept the Terms to sign in.'; } }); return; }
     const isReg=path.indexOf('register')>=0;
     api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
@@ -5710,42 +5712,74 @@ function updateMailBadges(){ ensureMail(); pruneWars();
 
 /* ============================ TERMS OF SERVICE / PRIVACY ============================ */
 const TOS_UPDATED='August 2026';
+// Device-level acceptance (asked once per device, on first sign-in). "First time only" — never re-prompted.
+function tosOK(){ try{ return localStorage.getItem('ew_tos_accepted')==='1'; }catch(e){ return false; } }
+function tosSetOK(){ try{ localStorage.setItem('ew_tos_accepted','1'); }catch(e){} }
+function tosBodyHTML(){
+  const s='margin:15px 0 5px;font-weight:800;color:#ffd45e;font-size:13px';
+  const p='font-size:12px;color:#cdd6e4;line-height:1.55;margin:0 0 6px';
+  return `
+    <p style="${p}color:#8b98a9">Last updated: ${TOS_UPDATED}. These Terms of Service and Privacy Notice ("Terms") are an agreement between you and Xanthyr Games ("we", "us") covering Emberweave Heroes (the "Game"). By creating an account, signing in, or playing, you agree to them. If you don't agree, please don't use the Game.</p>
+    <div style="${s}">1. Who can play (age)</div>
+    <p style="${p}">You must be at least 13 years old to create an account. If you are under 18 (or the age of majority where you live), you may only play with the permission and supervision of a parent or legal guardian, who agrees to these Terms on your behalf. We do not knowingly collect data from children under 13; if we learn we have, we will delete it.</p>
+    <div style="${s}">2. Your account &amp; security</div>
+    <p style="${p}">You're responsible for your username, password, and everything that happens on your account. Keep your credentials safe. One account is intended for one person — don't share, sell, or transfer accounts, or use someone else's without permission. Tell us right away if you think your account has been compromised.</p>
+    <div style="${s}">3. Fair play</div>
+    <p style="${p}">Don't cheat, exploit bugs, use bots, macros, or unauthorized third-party tools, tamper with the Game or its network traffic, or interfere with other players or our servers. We may suspend or close accounts, adjust balances, or roll back progress gained through exploits or cheating.</p>
+    <div style="${s}">4. Purchases, virtual items &amp; refunds</div>
+    <p style="${p}">Diamonds, gold, heroes, and all other in-game items have no real-world monetary value, are licensed to you for use inside the Game only, and cannot be redeemed for cash. Items may change, expire, or be removed. If diamonds or other items are offered for sale, those purchases are final and non-refundable except where a refund is required by law or by the store you purchased through.</p>
+    <div style="${s}">5. AI-generated content</div>
+    <p style="${p}">Some artwork and animation in the Game were produced with the assistance of generative-AI tools and then edited, arranged, and integrated by us. The Game as a whole, its code, design, characters, and lore are our work. You may not scrape, extract, resell, or reuse the Game's assets outside the Game.</p>
+    <div style="${s}">6. Names, chat &amp; conduct</div>
+    <p style="${p}">Keep usernames, chat, and any content you submit respectful and lawful. Harassment, hate speech, threats, spam, impersonation, sexual content involving minors, and other illegal or abusive content are prohibited. We may hide, remove, or report content and restrict or remove accounts that break these rules.</p>
+    <div style="${s}">7. Your data &amp; privacy</div>
+    <p style="${p}">To run the Game we store the details you provide (username, a securely salted-and-hashed password, and — if you add one — your email) and your game progress, which we sync to our servers so you can play across devices. We may also process basic technical data (like a device identifier) to sign you in, keep the Game fair, and prevent abuse. We use this data only to operate and improve the Game. We do not sell your personal data. Passwords are stored only as a hash — we can never see your actual password.</p>
+    <div style="${s}">8. Suspension, termination &amp; deletion</div>
+    <p style="${p}">You can stop playing and request deletion of your account and its data at any time (some minimal records may be kept where required for security or legal reasons). We may suspend or terminate accounts that violate these Terms or that we reasonably believe create risk to other players or to the Game.</p>
+    <div style="${s}">9. Availability &amp; changes to the Game</div>
+    <p style="${p}">The Game is provided on an "as is" and "as available" basis. We may update, change, pause, or discontinue any part of it, including features and items, at any time, and we don't guarantee it will always be available, uninterrupted, or error-free.</p>
+    <div style="${s}">10. Disclaimers</div>
+    <p style="${p}">To the fullest extent allowed by law, the Game is provided without warranties of any kind, whether express or implied, including fitness for a particular purpose, and we don't warrant that it will be secure, error-free, or that progress and items will never be lost.</p>
+    <div style="${s}">11. Limitation of liability</div>
+    <p style="${p}">To the fullest extent allowed by law, we are not liable for indirect, incidental, special, or consequential damages, or for lost progress, items, data, or profits arising from your use of the Game. Where liability cannot be excluded, it is limited to the amount you paid us (if any) for the Game in the 12 months before the claim.</p>
+    <div style="${s}">12. Governing law &amp; disputes</div>
+    <p style="${p}">These Terms are governed by the laws of the jurisdiction in which Xanthyr Games operates, without regard to conflict-of-laws rules. Before starting any formal dispute, please contact us so we can try to resolve it directly. <span style="color:#8b98a9">[Insert your specific governing state/country and any arbitration or venue clause before launch.]</span></p>
+    <div style="${s}">13. Changes to these Terms</div>
+    <p style="${p}">We may update these Terms as the Game grows. If we make material changes, we'll update the "last updated" date, and continued play after an update means you accept the revised Terms.</p>
+    <div style="${s}">14. Contact</div>
+    <p style="${p}">Questions, privacy requests, or account issues? Use the "Report a problem" box in Settings, or the contact address published with the Game.</p>
+    <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language agreement written for players. It is a starting point and not legal advice — before a commercial or app-store launch, have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction (including the bracketed items above).</p>
+    <p style="${p}color:#7d8a9c;text-align:center;margin-top:12px;font-weight:700">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</p>`;
+}
 function showTerms(){
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:220;padding:16px';
-  const s='margin:14px 0 5px;font-weight:800;color:#ffd45e;font-size:13px';
-  const p='font-size:12px;color:#cdd6e4;line-height:1.55;margin:0 0 6px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:9600;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid #223052">
       <div style="font-weight:800;font-size:15px">📜 Terms of Service &amp; Privacy</div>
       <button id="tosClose" class="btn xs secondary" style="padding:4px 10px">✕</button></div>
-    <div style="overflow-y:auto;padding:6px 16px 16px">
-      <p style="${p}color:#8b98a9">Last updated: ${TOS_UPDATED}. Please read these terms before playing Emberweave Heroes (the “Game”). By creating an account or playing, you agree to them.</p>
-      <div style="${s}">1. Your account</div>
-      <p style="${p}">You are responsible for keeping your username and password safe. One account is intended for one person. You may not share, sell, or transfer your account, and you may not use another player’s account without permission.</p>
-      <div style="${s}">2. Fair play</div>
-      <p style="${p}">Don’t cheat, exploit bugs, use bots or unauthorized third-party tools, or interfere with other players or the Game’s servers. We may suspend or remove accounts that break these rules, adjust balances, or roll back progress gained through exploits.</p>
-      <div style="${s}">3. Virtual items</div>
-      <p style="${p}">Diamonds, gold, heroes, and all other in-game items have no real-world monetary value and cannot be redeemed for cash. They are a limited licence to use them inside the Game, and they may change, expire, or be removed. If diamonds are ever sold, those purchases are for in-game use only and are non-refundable except where refunds are required by law.</p>
-      <div style="${s}">4. Conduct &amp; chat</div>
-      <p style="${p}">Keep chat and player names respectful. Harassment, hate speech, threats, spam, impersonation, and illegal content are not allowed. We may hide, remove, or report content and restrict accounts that violate this.</p>
-      <div style="${s}">5. Your data &amp; privacy</div>
-      <p style="${p}">To run the Game we store the account details you provide (username, a securely hashed password, and — if you add one — your email) and your game progress. Progress is synced to our servers so you can play across devices. We use this data only to operate the Game (saving progress, signing you in, recovering accounts, and keeping things fair). We do not sell your personal data. Passwords are stored only as a salted hash — we can never see your actual password.</p>
-      <div style="${s}">6. Account deletion</div>
-      <p style="${p}">You can ask to have your account and its data deleted at any time. Some minimal records may be retained where required for security or legal reasons.</p>
-      <div style="${s}">7. Availability</div>
-      <p style="${p}">The Game is provided “as is.” We may update, pause, or discontinue it, and we don’t guarantee it will always be available or bug-free. We are not liable for lost progress, items, or downtime, to the extent the law allows.</p>
-      <div style="${s}">8. Changes</div>
-      <p style="${p}">We may update these terms as the Game grows. Continued play after an update means you accept the revised terms.</p>
-      <div style="${s}">9. Contact</div>
-      <p style="${p}">Questions, data requests, or account issues? Use the “Report a problem” box in Settings, or the contact address published with the Game.</p>
-      <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language summary written for players and is not legal advice. Before any commercial or app-store launch, have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction.</p>
-      <p style="${p}color:#7d8a9c;text-align:center;margin-top:12px;font-weight:700">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</p>
-    </div></div>`;
+    <div style="overflow-y:auto;padding:6px 16px 16px">${tosBodyHTML()}</div></div>`;
   document.body.appendChild(ov);
   const close=()=>ov.remove();
   ov.querySelector('#tosClose').onclick=close;
   ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+}
+// Blocking gate shown on a device's FIRST sign-in. onAccept() proceeds with login; onDecline() cancels it.
+function requireTos(onAccept,onDecline){
+  if(tosOK()){ onAccept&&onAccept(); return; }
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.92);display:flex;align-items:center;justify-content:center;z-index:9700;padding:16px';
+  ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
+    <div style="padding:14px 16px 8px;border-bottom:1px solid #223052"><div style="font-weight:800;font-size:15px">📜 Terms of Service &amp; Privacy</div>
+      <div style="font-size:11px;color:#8b98a9;margin-top:3px">Please review and accept to continue signing in.</div></div>
+    <div style="overflow-y:auto;padding:6px 16px 12px">${tosBodyHTML()}</div>
+    <div style="display:flex;gap:8px;padding:10px 16px 14px;border-top:1px solid #223052">
+      <button class="btn secondary" id="tosDecline" style="flex:0 0 auto">Decline</button>
+      <button class="btn" id="tosAccept" style="flex:1">I Agree &amp; Continue</button></div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#tosAccept').onclick=()=>{ tosSetOK(); ov.remove(); onAccept&&onAccept(); };
+  ov.querySelector('#tosDecline').onclick=()=>{ ov.remove(); onDecline&&onDecline(); };
 }
 
 function renderSettings(){
@@ -5946,6 +5980,7 @@ function renderSettings(){
       if(name.length<2){ msg.style.color='#ff8b8b'; msg.textContent='Username needs at least 2 characters.'; return; }
       if(!pass){ msg.style.color='#ff8b8b'; msg.textContent='Enter a password.'; return; }
       if(acctMode==='create' && pass!==(b.querySelector('#acPass2').value||'')){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
+      if(!tosOK()){ requireTos(go, ()=>{ msg.style.color='#ff8b8b'; msg.textContent='You must accept the Terms to sign in.'; }); return; }
       msg.style.color='#8b98a9'; msg.textContent=acctMode==='create'?'Creating account…':'Signing in…';
       const isCreate=acctMode==='create';
       api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
@@ -6674,7 +6709,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786680000000';
+const BUILD_ID='1786690000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
