@@ -2512,7 +2512,7 @@ function grantRewards(){
     if(isEliteStage(node)){ const gGreen=rollGlyphDropRk('green'); giveGlyph(gGreen,1);
       glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gGreen).rk).col}"> · ${glyphName(gGreen)}</span>`;
       const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
-      const um=giveHeroFrag(hk,amt); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${fh.emoji} ${fh.name} fragments</span>`; if(um)unlockMsg=um; }
+      const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragments</span>`; if(um)unlockMsg=um; }
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
   } else {
@@ -3688,7 +3688,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
 }
 function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; startVersus(o.team,true); }
 const ARENA_SHOP=[
-  {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', cost:500, give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3★ Tank — 80 to summon'},
+  {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', hero:'grosk', cost:500, give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3★ Tank — 80 to summon'},
   {id:'gold1',  name:'Gold Cache',      icon:'🪙', cost:120, give:()=>{G.gold+=5000;},    desc:'+5,000 gold'},
   {id:'gems1',  name:'Diamond Pouch',   icon:'💎', cost:300, give:()=>{G.gems+=40;},      desc:'+40 diamonds'},
   {id:'grey',   name:'Grey Glyph Shards×30', icon:'⚪', cost:150, give:()=>{G.mats.grey+=30;}, desc:'+30 grey shards'},
@@ -3705,7 +3705,7 @@ function renderArenaShop(){
   const list=b.querySelector('#arenaShopList');
   ARENA_SHOP.forEach(it=>{ const can=(G.arenaCoins||0)>=it.cost;
     const row=document.createElement('div'); row.style='display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40';
-    row.innerHTML=`<div><span style="font-size:20px">${it.icon}</span> <b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div><button class="btn sm" ${can?'':'disabled'}>🎟️ ${it.cost}</button>`;
+    row.innerHTML=`<div style="display:flex;align-items:center;gap:6px">${it.hero?`<span style="display:inline-block;vertical-align:middle">${heroIcon(it.hero,26)}</span>`:`<span style="font-size:20px">${it.icon}</span>`} <div><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div><button class="btn sm" ${can?'':'disabled'}>🎟️ ${it.cost}</button>`;
     row.querySelector('button').onclick=()=>{ if((G.arenaCoins||0)<it.cost)return; G.arenaCoins-=it.cost; it.give(); saveG(); updateHubChrome(); renderArenaShop(); document.getElementById('arenaShopMsg').textContent='Purchased '+it.name+'!'; };
     list.appendChild(row); });
 }
@@ -5193,6 +5193,14 @@ function wishGemNextFreeMs(){ if(!G.wishGemLast){ return Math.max(0, wishGemUnlo
 // ---- reward grants (return {icon,name,extra?,big?}) ----
 function wishMat(rk,n){ if(!G.mats)G.mats={}; G.mats[rk]=(G.mats[rk]||0)+n; const m=MATS.find(x=>x[0]===rk); return {icon:m[1], name:n+'× '+m[2]+' Rune Shards'}; }
 function heroBigIcon(hk){ const t=HERO_TYPES[hk]; return HERO_PORTRAITS[hk]?('<img src="'+HERO_PORTRAITS[hk]+'" style="width:92px;height:92px;border-radius:14px;object-fit:cover;box-shadow:0 3px 12px #000a">'):t.emoji; }
+// animated IDLE clip for the "you earned a full hero!" popup — steps through the idle sheet's grid (works for grid + single-row sheets)
+function heroIdleAnimHTML(hk){ const A=BATTLE_ANIM[hk]&&BATTLE_ANIM[hk].idle; if(!A||!A.u) return heroBigIcon(hk); const asp=(A.fw/A.fh)||0.75; const H=150, W=Math.round(H*asp);
+  return `<div class="heroIdleAnim" data-hk="${hk}" style="width:${W}px;height:${H}px;margin:0 auto;background-repeat:no-repeat;filter:drop-shadow(0 4px 10px #000a)"></div>`; }
+function startHeroIdleAnims(root){ (root||document).querySelectorAll('.heroIdleAnim[data-hk]').forEach(el=>{ if(el._animIv)return; const hk=el.dataset.hk; const A=BATTLE_ANIM[hk]&&BATTLE_ANIM[hk].idle; if(!A||!A.u)return;
+  const cols=A.cols||A.n, rows=A.rows||1, fps=A.fps||8; el.style.backgroundImage=`url('${A.u}')`; el.style.backgroundSize=`${cols*100}% ${rows*100}%`;
+  let i=0; const step=()=>{ const col=i%cols, row=Math.floor(i/cols)%rows; el.style.backgroundPosition=`${cols>1?(col/(cols-1))*100:0}% ${rows>1?(row/(rows-1))*100:0}%`; i=(i+1)%A.n; };
+  step(); el._animIv=setInterval(step,1000/fps); }); }
+function stopHeroIdleAnims(root){ (root||document).querySelectorAll('.heroIdleAnim[data-hk]').forEach(el=>{ if(el._animIv){clearInterval(el._animIv); el._animIv=null;} }); }
 function wishFrags(n){ const hk=randLockedHero(), t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n); return {icon:heroBigIcon(hk), name:n+'× '+t.name+' fragments', extra:msg||''}; }
 function wishGold(n){ G.gold=(G.gold||0)+n; return {icon:'🪙', name:'+'+n+' gold'}; }
 function wishGems(n){ G.gems=(G.gems||0)+n; return {icon:'💎', name:'+'+n+' diamonds'}; }
@@ -5201,7 +5209,7 @@ function wishHeroPool(){ const pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && 
 function grantFullHero(hk){ const t=HERO_TYPES[hk], ss=heroStartStars(hk), stars='★'.repeat(ss);
   if(G.unlocked[hk]){ const d=DUPE_FRAG[ss]||7; giveHeroFrag(hk,d); return {icon:heroBigIcon(hk), name:stars+' '+t.name+' — already owned', extra:'+'+d+' '+t.name+' fragments', big:true}; }
   G.unlocked[hk]=true; if(!G.starLevel)G.starLevel={}; G.starLevel[hk]=ss; if(!G.starPip)G.starPip={}; G.starPip[hk]=0;
-  return {icon:heroBigIcon(hk), name:'🎉 '+t.name+' — new '+ss+'★ hero!', extra:'A full hero, unlocked at '+ss+' star'+(ss>1?'s':''), big:true}; }
+  return {icon:heroBigIcon(hk), heroAnim:hk, name:'🎉 '+t.name+' — new '+ss+'★ hero!', extra:'A full hero, unlocked at '+ss+' star'+(ss>1?'s':''), big:true}; }
 function doGoldRoll(){ const r=Math.random();
   if(r<0.42) return wishMat('grey', 10+Math.floor(Math.random()*16));
   if(r<0.66) return wishMat('green', 4+Math.floor(Math.random()*6));
@@ -5222,12 +5230,14 @@ function showWishResult(res,pool){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 46px #000b">
     <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='gem'?'🔮 Diamond Wish':'⛲ Gold Wish'}</div>
-    <div style="font-size:60px;margin:8px 0;${res.big?'animation:wishbob 1.6s ease-in-out infinite':''}">${res.icon}</div>
+    <div style="font-size:60px;margin:8px 0;${res.big?'animation:wishbob 1.6s ease-in-out infinite':''}">${res.heroAnim?heroIdleAnimHTML(res.heroAnim):res.icon}</div>
     <div style="font-size:16px;font-weight:800;color:#e6edf3;line-height:1.4">${res.name}</div>
     ${res.extra?`<div style="font-size:12px;color:#5ee89b;margin-top:6px">${res.extra}</div>`:''}
     <button class="btn" style="margin-top:16px;width:100%" id="_wishOk">Collect</button></div>`;
-  document.body.appendChild(ov); ov.querySelector('#_wishOk').onclick=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); }); }
+  document.body.appendChild(ov); startHeroIdleAnims(ov);
+  const _close=()=>{ stopHeroIdleAnims(ov); ov.remove(); };
+  ov.querySelector('#_wishOk').onclick=_close;
+  ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
 function finishWish(res,pool){ G.wishClicks=(G.wishClicks||0)+1; saveG(); updateHubChrome(); updateMailBadges(); showWishResult(res,pool); renderWishing(); }
 function wishGoldDo(){ const free=wishGoldFreeReady();
   if(!free && (G.gold||0)<WISH_GOLD_COST){ bannerMsg('Need 🪙'+WISH_GOLD_COST+' to wish.'); return; }
@@ -6053,7 +6063,7 @@ function openDevFragGranter(b){
     if(!keys.length){ listEl.innerHTML='<div style="color:#8b98a9;font-size:12px;text-align:center;padding:12px">No heroes match.</div>'; return; }
     listEl.innerHTML=keys.map(k=>{ const t=HERO_TYPES[k];
       return `<button class="btn sm secondary" data-fk="${k}" style="display:flex;align-items:center;gap:9px;justify-content:flex-start;text-align:left;padding:6px 9px">
-        <span style="font-size:20px;width:28px;text-align:center;flex:none">${t.emoji||'🧩'}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}★ · ${G.unlocked[k]?'owned':'locked'}</span></span>
+        <span style="width:30px;flex:none;display:flex;align-items:center;justify-content:center">${heroIcon(k,28)}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}★ · ${G.unlocked[k]?'owned':'locked'}</span></span>
         <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)}🧩</span></button>`; }).join('');
     listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
       const um=giveHeroFrag(k,AMT); saveG(); updateHubChrome();
@@ -6647,7 +6657,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786628000000';
+const BUILD_ID='1786629000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
