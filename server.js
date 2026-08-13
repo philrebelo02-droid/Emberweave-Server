@@ -360,12 +360,25 @@ async function api(req,res,url){
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:o.team, isNpc:!!o.isNpc } }); }
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'});
-    const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
-    // the 5 rungs DIRECTLY above you (nearest first) — the actual next ranks you climb into
-    const above=pool.filter(u=>u.rank<me.rank).sort((a,b)=>b.rank-a.rank);
-    const src = above.length? above : pool.slice().sort((a,b)=>a.rank-b.rank);   // top ranks if you're already #1-ish
-    const opps=src.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }));
-    return send(res,200,{ rank:me.rank, opponents:opps }); }
+    // SPREAD opponents across %-better rank bands (mirrors client arenaTargetRanks) so you can see JUMP targets,
+    // not just the 5 consecutive ranks directly above you. The spread widens as you climb.
+    const pool=Object.values(DB.users).filter(u=>u.id!==me.id && u.rank<me.rank).sort((a,b)=>a.rank-b.rank);
+    function bandBonus(m){ let b=Math.min(4,Math.floor((5000-m)/1000));
+      if(m<=1000)b+=Math.min(18,Math.floor((1000-m)/100)*2); if(m<=100)b+=Math.min(15,Math.floor((100-m)/10)*3); if(m<=50)b+=Math.min(12,Math.floor((50-m)/10)*3); return b; }
+    function targetRanks(m){ if(m<=1)return []; if(m<=10){ const o=[]; for(let r=1;r<m&&o.length<4;r++)o.push(r); return o; }
+      const T=3.5+bandBonus(m), oneRank=100/m;
+      const bands=[[Math.min(T,oneRank),T],[Math.max(oneRank,T*0.26),T+4],[Math.max(oneRank,T*0.5),T+8],[Math.max(oneRank,T*0.75),T+12]];
+      const used=new Set(), out=[];
+      bands.forEach(bd=>{ const lo=bd[0], hi=Math.min(97,Math.max(bd[1],lo+0.5)), pct=lo+Math.random()*(hi-lo);
+        let r=Math.max(1,Math.round(m*(1-pct/100))); while((used.has(r)||r>=m)&&r>1)r--; while(used.has(r)&&r<m-1)r++;
+        if(!used.has(r)&&r>=1&&r<m){ used.add(r); out.push(r); } });
+      out.sort((a,b)=>a-b); return out; }
+    const targets=targetRanks(me.rank), chosen=new Set(), opps=[];
+    for(const tr of targets){ let best=null,bd=1e9; for(const u of pool){ if(chosen.has(u.id))continue; const d=Math.abs(u.rank-tr); if(d<bd){bd=d;best=u;} } if(best){ chosen.add(best.id); opps.push(best); } }
+    for(const u of pool){ if(opps.length>=5)break; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } }   // fill if the spread came up short
+    opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
+    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }));
+    return send(res,200,{ rank:me.rank, opponents:out }); }
 
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
