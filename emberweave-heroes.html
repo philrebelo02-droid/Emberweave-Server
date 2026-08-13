@@ -3921,7 +3921,7 @@ function renderWorldMap(){
   head.querySelector('#wmBack').onclick=()=>{ closeCityMenu(); centerOnCastle(); };   // snap the view back to your castle
   const zone=document.createElement('div'); zone.id='wzone'; const inner=document.createElement('div'); inner.id='wzoneInner'; inner.style.width=WORLD_W+'px'; inner.style.height=WORLD_H+'px'; inner.style.background='#0c1018';
   // 9 zone terrain panels tiled into one continuous map
-  const ghostImg=CASTLE_IMGS.castle2||'';                 // faded level-2 castle drawn in every teleportable square
+  const ghostImg=CASTLE_IMGS.castle1||'';                 // faded green level-1 castle drawn in every teleportable square
   const ghostCellPx=WORLD_W*GRID_CELL/100;                // one grid square in px (≈50px)
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){ const key=zoneAt(col,row), z=ZONES[key], biome=BIOME[z.terrain];
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
@@ -3932,7 +3932,7 @@ function renderWorldMap(){
     pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
     // teleport mode: tile a faded green (allowed) / red (blocked) castle silhouette into every grid square of this pane
     if(_teleMode && ghostImg){ const gcol=accessible?'#46e07a':'#e6483f'; const gh=document.createElement('div'); gh.className='teleghost';
-      gh.style.cssText=`position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.30;background:${gcol};-webkit-mask:url(${ghostImg}) repeat;mask:url(${ghostImg}) repeat;-webkit-mask-size:${ghostCellPx}px ${ghostCellPx}px;mask-size:${ghostCellPx}px ${ghostCellPx}px;`;
+      gh.style.cssText=`position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.5;background:${gcol};-webkit-mask:url(${ghostImg}) repeat;mask:url(${ghostImg}) repeat;-webkit-mask-size:${ghostCellPx}px ${ghostCellPx}px;mask-size:${ghostCellPx}px ${ghostCellPx}px;-webkit-mask-position:center;mask-position:center;`;
       pane.appendChild(gh); }
     inner.appendChild(pane); }
   // optional grid overlay across the whole world
@@ -6705,7 +6705,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786655088867';
+const BUILD_ID='1786655351959';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
