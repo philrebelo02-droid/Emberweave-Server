@@ -5711,10 +5711,12 @@ function updateMailBadges(){ ensureMail(); pruneWars();
 }
 
 /* ============================ TERMS OF SERVICE / PRIVACY ============================ */
-const TOS_UPDATED='August 2026';
-// Device-level acceptance (asked once per device, on first sign-in). "First time only" — never re-prompted.
-function tosOK(){ try{ return localStorage.getItem('ew_tos_accepted')==='1'; }catch(e){ return false; } }
-function tosSetOK(){ try{ localStorage.setItem('ew_tos_accepted','1'); }catch(e){} }
+const TOS_UPDATED='August 2026';   // ← change this whenever the Terms change; it re-prompts everyone to re-accept
+// Device-level acceptance, keyed to the Terms version (TOS_UPDATED). On first sign-in the player must accept.
+// If the Terms are later updated (TOS_UPDATED changes), stored acceptance no longer matches and the player is
+// asked to re-confirm the new Terms on their next sign-in.
+function tosOK(){ try{ return localStorage.getItem('ew_tos_accepted')===TOS_UPDATED; }catch(e){ return false; } }
+function tosSetOK(){ try{ localStorage.setItem('ew_tos_accepted',TOS_UPDATED); }catch(e){} }
 function tosBodyHTML(){
   const s='margin:15px 0 5px;font-weight:800;color:#ffd45e;font-size:13px';
   const p='font-size:12px;color:#cdd6e4;line-height:1.55;margin:0 0 6px';
@@ -5743,12 +5745,12 @@ function tosBodyHTML(){
     <div style="${s}">11. Limitation of liability</div>
     <p style="${p}">To the fullest extent allowed by law, we are not liable for indirect, incidental, special, or consequential damages, or for lost progress, items, data, or profits arising from your use of the Game. Where liability cannot be excluded, it is limited to the amount you paid us (if any) for the Game in the 12 months before the claim.</p>
     <div style="${s}">12. Governing law &amp; disputes</div>
-    <p style="${p}">These Terms are governed by the laws of the jurisdiction in which Xanthyr Games operates, without regard to conflict-of-laws rules. Before starting any formal dispute, please contact us so we can try to resolve it directly. <span style="color:#8b98a9">[Insert your specific governing state/country and any arbitration or venue clause before launch.]</span></p>
+    <p style="${p}">These Terms, and any dispute arising out of or relating to them or the Game, are governed by the laws of the State of North Carolina, United States, without regard to its conflict-of-laws rules, together with applicable United States federal law. Before starting any formal dispute, you agree to first contact us so we can try to resolve it informally. Any dispute that cannot be resolved informally shall be brought exclusively in the state or federal courts located in North Carolina, and you and Xanthyr Games consent to the personal jurisdiction and venue of those courts. If you reside outside the United States, this choice of law and venue does not remove any mandatory consumer-protection rights you have under the laws of your home country.</p>
     <div style="${s}">13. Changes to these Terms</div>
     <p style="${p}">We may update these Terms as the Game grows. If we make material changes, we'll update the "last updated" date, and continued play after an update means you accept the revised Terms.</p>
     <div style="${s}">14. Contact</div>
     <p style="${p}">Questions, privacy requests, or account issues? Use the "Report a problem" box in Settings, or the contact address published with the Game.</p>
-    <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language agreement written for players. It is a starting point and not legal advice — before a commercial or app-store launch, have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction (including the bracketed items above).</p>
+    <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language agreement written for players. It is a starting point and not legal advice — before a commercial or app-store launch, it's wise to have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction.</p>
     <p style="${p}color:#7d8a9c;text-align:center;margin-top:12px;font-weight:700">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</p>`;
 }
 function showTerms(){
@@ -6709,7 +6711,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786690000000';
+const BUILD_ID='1786700000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
