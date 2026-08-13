@@ -58,6 +58,7 @@
   .flogo svg{width:18px;height:18px}
   .fcopy{margin-top:10px;font-size:11px;color:#6f7d90}
 </style>
+<script>window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__bip=e;});window.addEventListener("appinstalled",function(){window.__bip=null;});</script>
 </head>
 <body>
   <nav>
@@ -138,7 +139,8 @@
   window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; });
   function doInstall(noteId){
     var note=document.getElementById(noteId);
-    if(deferred){ deferred.prompt(); deferred.userChoice.finally(function(){ deferred=null; }); }
+    var dp=window.__bip||deferred;
+    if(dp){ dp.prompt(); dp.userChoice.finally(function(){ window.__bip=null; deferred=null; }); }
     else if(isIOS){ note.innerHTML='On iPhone/iPad: tap <b>Share</b> ▸ <b>Add to Home Screen</b>.'; }
     else { note.innerHTML='Open your browser menu (⋮) ▸ <b>Install app</b> / <b>Add to Home screen</b>.'; }
   }
