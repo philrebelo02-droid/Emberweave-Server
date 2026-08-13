@@ -779,6 +779,22 @@
     <div class="panel" id="marketBody" style="max-width:520px"></div>
   </div>
 
+  <!-- SHADY MARKET (diamond-only premium shop) -->
+  <div class="screen hub" id="shadymarket">
+    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
+    <div class="titlebar"><h1>🕯️ SHADY MARKET</h1></div>
+    <div class="sub">Premium goods — diamonds only</div>
+    <div class="panel" id="shadyBody" style="max-width:520px"></div>
+  </div>
+
+  <!-- SERVER RANKINGS -->
+  <div class="screen hub" id="rankings">
+    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
+    <div class="titlebar"><h1>📊 SERVER RANKINGS</h1></div>
+    <div class="sub">Arena, guilds & your standings across the server</div>
+    <div id="rankingsBody" style="width:100%;max-width:520px"></div>
+  </div>
+
   <!-- WISHING POOL -->
   <div class="screen hub" id="wishing">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
@@ -2839,7 +2855,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 }
 
 /* =============================== HUB / UI ================================= */
-const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result'];
+const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign', skClipIdx=0;
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
@@ -2905,6 +2921,8 @@ function show(name){
   if(name==='arena') renderArena();
   if(name==='arenaShop') renderArenaShop();
   if(name==='market') renderMarket();
+  if(name==='shadymarket') renderShadyMarket();
+  if(name==='rankings') renderRankings();
   if(name==='wishing') renderWishing();
   if(name==='dungeon') renderDungeon();
   if(name==='elite') renderElite();
@@ -2954,11 +2972,11 @@ function renderHome(){
     {nav:'wall',        label:'City Wall',      x:17, y:12, w:34, h:26, lx:13, ly:24, z:1, ...lk(WALL_UNLOCK_LEVEL)},
     {nav:'wall',        label:'',               x:6,  y:40, w:13, h:54, lx:6,  ly:40, z:1, ...lk(WALL_UNLOCK_LEVEL)},
     {nav:'market',      label:'Market',         x:47, y:11, w:22, h:16, lx:47, ly:20},
-    {nav:'shadymarket', label:'Shady Market',   x:31, y:24, w:13, h:14, lx:31, ly:31, coming:true},
+    {nav:'shadymarket', label:'Shady Market',   x:31, y:24, w:13, h:14, lx:31, ly:31},
     {nav:'temple',      label:'Temple',         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(40)},
     {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
     {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
-    {nav:'rankings',    label:'Server Rankings', x:69, y:37, w:15, h:16, lx:69, ly:46, coming:true},
+    {nav:'rankings',    label:'Server Rankings', x:69, y:37, w:15, h:16, lx:69, ly:46},
     {nav:'dungeon',     label:'Dungeon',        x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
     {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
@@ -2970,7 +2988,7 @@ function renderHome(){
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
-    el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%;z-index:${h.z||2};outline:2px solid #ffe23c;background:rgba(255,226,60,.20)`;   // TEMP: visible tap-boxes for placement check
+    el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%;z-index:${h.z||2}`;
     el.title=h.label;
     const clickable = !h.locked || AUDIT_MODE();   // audit mode lets you open locked buildings
     const hit=document.createElement('div'); hit.className='hit';
@@ -3163,6 +3181,48 @@ function rollMarket(){ const o=[]; const L=playerLevel();
   G.market={ts:Date.now(),offers:o,lvl:L};
 }
 function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length||(Date.now()-(G.market.ts||0))>=MARKET_REFRESH_MS){ rollMarket(); saveG(); } }
+// ===== SHADY MARKET — a shady dealer's premium stock, diamonds only =====
+const SHADY_SHOP=[
+  {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  give:()=>{ G.gold=(G.gold||0)+80000; }, desc:'+80,000 gold'},
+  {id:'purple', name:'Purple Glyph Cache ×8',    icon:'🟣',  cost:1800, give:()=>{ G.mats.purple=(G.mats.purple||0)+8; }, desc:'+8 purple glyph shards — the top tier'},
+  {id:'blue',   name:'Blue Glyph Shards ×40',    icon:'🔵',  cost:800,  give:()=>{ G.mats.blue=(G.mats.blue||0)+40; }, desc:'+40 blue glyph shards'},
+  {id:'green',  name:'Green Glyph Shards ×80',   icon:'🟢',  cost:500,  give:()=>{ G.mats.green=(G.mats.green||0)+80; }, desc:'+80 green glyph shards'},
+  {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  give:()=>{ G.shieldItems=(G.shieldItems||0)+3; }, desc:'3× 12-hour attack immunity'},
+  {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
+  {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  give:()=>{ G.arenaCoins=(G.arenaCoins||0)+3000; }, desc:'+3,000 arena coins'},
+];
+function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!b)return;
+  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>💎 ${G.gems}</span><span style="color:#c9a2ff">Diamonds only</span></div>`
+    +SHADY_SHOP.map((it,i)=>{ const can=(G.gems||0)>=it.cost;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
+        <div style="display:flex;gap:8px;align-items:center;min-width:0"><span style="font-size:22px">${it.icon}</span><div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
+        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('')
+    +`<div style="font-size:11px;color:#6f7d90;margin-top:8px">A shady dealer's premium stock — everything here costs diamonds.</div>`;
+  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return; G.gems-=it.cost; it.give(); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); });
+}
+// ===== SERVER RANKINGS — your standings + live arena & guild leaderboards =====
+async function renderRankings(){ const b=document.getElementById('rankingsBody'); if(!b)return;
+  b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">Loading rankings…</div>';
+  if(ACC.token){ try{ if(typeof arenaSyncLadder==='function') await arenaSyncLadder(); }catch(e){} }
+  let guilds=[]; if(ACC.token){ try{ const d=await api('/api/guild/browse'); if(d&&d.guilds) guilds=d.guilds; }catch(e){} }
+  const lad=arenaLeaderboard()||[], myArena=G.arenaRank||5000;
+  let html=`<div class="panel"><div style="font-weight:800;margin-bottom:8px">⭐ Your Standings</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:#8b98a9">
+      <div>🏆 Arena rank<br><b style="color:#ffd45e;font-size:16px">#${myArena}</b></div>
+      <div>🛡 Guild<br><b style="color:#5ee89b;font-size:14px">${G.guild?escapeHTML(G.guild.name)+' · Lv '+(G.guild.level||1):'—'}</b></div>
+      <div>🗺️ Campaign<br><b style="color:#8fe3ff;font-size:14px">Stage ${G.campaignBest||G.node||1}</b></div>
+      <div>🐲 Dungeon<br><b style="color:#ff9a6b;font-size:14px">${G.dungeonBest?('Floor '+G.dungeonBest):'—'}</b></div>
+    </div></div>`;
+  html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">🏆 Arena — Top Players</div>`
+    +(lad.length?lad.slice(0,20).map(e=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 6px;border-radius:6px;${e.me?'background:#1a2b1f':''}">
+      <span>${e.rank<=3?['🥇','🥈','🥉'][e.rank-1]:'#'+e.rank} ${escapeHTML(e.name)}${e.me?' (you)':''}</span><span style="color:#ffbf69">⚔ ${(e.power||0).toLocaleString()}</span></div>`).join('')
+      :'<div style="color:#8b98a9;font-size:12px">No arena data.</div>')+`</div>`;
+  if(guilds.length){ html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">🛡 Top Guilds</div>`
+    +guilds.slice(0,15).map((g,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 6px">
+      <span>${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)} &lt;${escapeHTML(g.name)}&gt; · Lv ${g.level||1}</span><span style="color:#8b98a9">${g.count||0}/${g.cap||30}</span></div>`).join('')+`</div>`;
+  } else if(!ACC.token){ html+=`<div class="panel" style="color:#8b98a9;font-size:12px">Sign in to see live guild & arena rankings.</div>`; }
+  b.innerHTML=html;
+}
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
@@ -6781,7 +6841,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786663875349';
+const BUILD_ID='1786664291842';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
