@@ -199,7 +199,7 @@ async function api(req,res,url){
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
-    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username is already taken — choose another.'});
+    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
     // cap account creation to 3 per device (and a softer per-network cap so clearing storage can't fully bypass it)
     const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
@@ -289,7 +289,7 @@ async function api(req,res,url){
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
-    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'Username already taken'});
+    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
     const id=uid(), salt=crypto.randomBytes(8).toString('hex');
     DB.users[id]={ id, name, hash:hashPass(b.pass,salt), salt, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -495,7 +495,7 @@ async function api(req,res,url){
       if(myGuild()) return send(res,400,{error:'You are already in a guild.'});
       let name=capWords((b.name||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).slice(0,24);
       if(name.length<2) return send(res,400,{error:'Guild name must be at least 2 characters.'});
-      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase())) return send(res,409,{error:'That guild name is taken.'});
+      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase())) return send(res,409,{error:'That guild name is already taken'});
       const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
       DB.guilds[id]=g; me.guildId=id; writeDB();
       return send(res,200,{ guild:guildView(g) }); }
