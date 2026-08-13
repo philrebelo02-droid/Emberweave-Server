@@ -2951,8 +2951,8 @@ function renderHome(){
   // placed over them (x,y = CENTER %, w/h = size %, of the 1024x392 image). lx,ly = name-label center %.
   // hotspots over the NEW painted town map (1536×1024). x,y = CENTER %, w/h = box size %, lx/ly = label center %.
   const hots=[
-    {nav:'wall',        label:'City Wall',      x:17, y:12, w:34, h:26, lx:13, ly:24, ...lk(WALL_UNLOCK_LEVEL)},
-    {nav:'wall',        label:'',               x:6,  y:40, w:13, h:54, lx:6,  ly:40, ...lk(WALL_UNLOCK_LEVEL)},
+    {nav:'wall',        label:'City Wall',      x:17, y:12, w:34, h:26, lx:13, ly:24, z:1, ...lk(WALL_UNLOCK_LEVEL)},
+    {nav:'wall',        label:'',               x:6,  y:40, w:13, h:54, lx:6,  ly:40, z:1, ...lk(WALL_UNLOCK_LEVEL)},
     {nav:'market',      label:'Market',         x:47, y:11, w:22, h:16, lx:47, ly:20},
     {nav:'shadymarket', label:'Shady Market',   x:31, y:24, w:13, h:14, lx:31, ly:31, coming:true},
     {nav:'temple',      label:'Temple',         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(40)},
@@ -2970,7 +2970,7 @@ function renderHome(){
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
-    el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%;outline:2px solid #ffe23c;background:rgba(255,226,60,.20)`;   // TEMP: visible tap-boxes for placement check
+    el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%;z-index:${h.z||2};outline:2px solid #ffe23c;background:rgba(255,226,60,.20)`;   // TEMP: visible tap-boxes for placement check
     el.title=h.label;
     const clickable = !h.locked || AUDIT_MODE();   // audit mode lets you open locked buildings
     const hit=document.createElement('div'); hit.className='hit';
@@ -6781,7 +6781,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786663676744';
+const BUILD_ID='1786663875349';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
