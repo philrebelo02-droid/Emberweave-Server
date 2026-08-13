@@ -3784,10 +3784,35 @@ function mapVisibleSquares(){ const zone=document.getElementById('wzone'); if(!z
   const vx=(zone.clientWidth/worldZoom)/cellPx, vy=(zone.clientHeight/worldZoom)/cellPx;
   return {vx,vy,area:vx*vy}; }
 function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const s=mapVisibleSquares(); if(!s)return;
-  const ghostsOn=(s.vx<=GHOST_MAX_SQ && s.vy<=GHOST_MAX_SQ);
-  inner.querySelectorAll('.teleghost').forEach(g=>{ g.style.display=ghostsOn?'':'none'; });
+  refreshTeleGhosts();
   const castlesOn=(s.area<CASTLE_MAX_SQ);
   inner.querySelectorAll('.wnode.city').forEach(el=>{ el.style.display=castlesOn?'':'none'; }); }
+// cells that already hold a real castle / mine / the World Tree — teleport ghosts skip these
+function occupiedCells(){ const s=new Set(); const add=(x,y)=>{ if(x!=null&&y!=null) s.add(cellIndex(x)+','+cellIndex(y)); };
+  const me=myCastlePos(); add(me.x,me.y);
+  try{ worldCities().forEach(c=>add(c.x,c.y)); }catch(e){}
+  try{ worldMines().forEach(m=>{ if(mineAvailable(m)) add(m.x,m.y); }); }catch(e){}
+  const c=Math.floor(GRID_COLS/2); for(let i=c-2;i<=c+1;i++)for(let j=c-2;j<=c+1;j++) s.add(i+','+j);   // World Tree core
+  return s; }
+// draw a faded green level-1 castle in each VISIBLE teleportable cell that isn't already occupied
+let _teleGhostRaf=0;
+function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(!inner||!zone)return;
+  let layer=inner.querySelector('#teleGhostLayer');
+  const s=mapVisibleSquares();
+  if(!_teleMode || !GHOST_CASTLE || !s || s.vx>GHOST_MAX_SQ || s.vy>GHOST_MAX_SQ){ if(layer)layer.remove(); return; }   // off / too zoomed out
+  if(!layer){ layer=document.createElement('div'); layer.id='teleGhostLayer'; layer.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:1'; inner.appendChild(layer); }
+  const zw=zone.scrollWidth||WORLD_W*worldZoom, zh=zone.scrollHeight||WORLD_H*worldZoom;
+  const i0=cellIndex(zone.scrollLeft/zw*100), i1=cellIndex((zone.scrollLeft+zone.clientWidth)/zw*100);
+  const j0=cellIndex(zone.scrollTop/zh*100), j1=cellIndex((zone.scrollTop+zone.clientHeight)/zh*100);
+  const occ=occupiedCells(), cellPx=WORLD_W/GRID_COLS; let html='',count=0; const CAP=800;
+  for(let ci=i0; ci<=i1 && count<CAP; ci++) for(let cj=j0; cj<=j1 && count<CAP; cj++){
+    if(occ.has(ci+','+cj)) continue;
+    const zkey=zoneAt(Math.floor(ci/ZONE_CELLS), Math.floor(cj/ZONE_CELLS)); if(!zoneAccessible(zkey)) continue;
+    const cx=(ci+0.5)*GRID_CELL, cy=(cj+0.5)*GRID_CELL;
+    html+=`<img src="${GHOST_CASTLE}" style="position:absolute;left:${cx}%;top:${cy}%;width:${cellPx}px;height:${cellPx}px;transform:translate(-50%,-50%);opacity:.42" draggable="false">`;
+    count++; }
+  layer.innerHTML=html; }
+function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimationFrame(()=>{ _teleGhostRaf=0; refreshTeleGhosts(); }); }
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); }
 // scroll so the player's castle is centered in the viewport (castle can be anywhere in the world now)
 function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!zone)return;
@@ -3933,10 +3958,7 @@ function renderWorldMap(){
     const gimg=GROUND_IMGS[z.terrain]||''; const tpx=(2*GRID_CELL/100*WORLD_W); const bg = gimg ? `background:url(${gimg}) repeat;background-size:${tpx}px ${tpx}px;` : `background:${biome?biome.base:'#26331a'};`;   // one tile ≈ a 2×2 block of grid squares
     pane.style.cssText=`position:absolute;left:${col*100/3}%;top:${row*100/3}%;width:${100/3}%;height:${100/3}%;${bg}${teleTint}${locked&&!_teleMode?'filter:grayscale(.5) brightness(.6)':''}`;
     pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
-    // teleport mode: show the actual level-1 castle art at 50% opacity in each grid square you CAN teleport to
-    if(_teleMode && ghostImg && accessible){ const gh=document.createElement('div'); gh.className='teleghost';
-      gh.style.cssText=`position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.42;background:url(${ghostImg}) repeat;background-size:${ghostCellPx}px ${ghostCellPx}px;background-position:0 0;`;
-      pane.appendChild(gh); }
+    // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
   // optional grid overlay across the whole world
   if(G.showGrid!==false){ const go=document.createElement('div'); go.style.cssText=`position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:${GRID_CELL}% ${GRID_CELL}%`; inner.appendChild(go); }
@@ -3970,6 +3992,7 @@ function renderWorldMap(){
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
   zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
+  zone.addEventListener('scroll',()=>{ if(_teleMode) queueTeleGhosts(); },{passive:true});   // ghosts follow the viewport as you pan
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   applyWorldZoom();
@@ -6733,7 +6756,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786658623434';
+const BUILD_ID='1786658983470';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
