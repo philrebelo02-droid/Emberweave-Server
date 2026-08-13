@@ -4161,8 +4161,16 @@ function resolveMarch(m){
     addMail('inbox',{from:m.tName,subj:'⚠ Raided your castle',body:m.tName+'’s army broke through your defense lines and looted 🪙 '+loss+' gold. Raise a protection shield or strengthen your wall lines.',battle:{mine:defMine,foe:foeRaider,won:false,oppName:m.tName}});
     marchReport('⚠ Raided by '+m.tName,'An enemy raided your castle and stole 🪙 '+loss+'. Consider a protection shield.'); updateMailBadges(); return;
   }
-  if(m.ctype==='mine'){ const amt=m.yieldAmt||0; if(!G.res)G.res={}; G.res[m.res]=(G.res[m.res]||0)+amt; updateHubChrome();
-    marchReport('⛏ Mining complete','Your miners struck '+mnResIcon(m.res)+' '+amt+' '+mnResName(m.res)+' and are marching home.'); return; }
+  if(m.ctype==='mine'){   // mining = fight the mine's 5 monster guardians; win → haul the resources
+    const garrison=(m.garrison&&m.garrison.length)?m.garrison:mineGarrison({id:m.mineId,level:m.mineLevel||1,x:m.fx,y:m.fy});
+    const gp=mineReqPower(m.mineLevel||1), myPow=marchPower(m.heroes), win=myPow>=gp*(0.85+rand01(Date.now())*0.3);
+    const rlabel=mnResName(m.res), rpt={ mine:snapSquad(m.heroes), foe:trimTeam(garrison), won:win, oppName:mineLabel({level:m.mineLevel,res:m.res}) };
+    if(win){ const amt=m.yieldAmt||0; if(!G.res)G.res={}; G.res[m.res]=(G.res[m.res]||0)+amt; updateHubChrome();
+      addMail('reports',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — '+rlabel,body:'Your squad defeated the mine\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+amt+' '+rlabel+' home.',battle:rpt});
+      marchReport('⛏ Mining complete','Your miners cleared the guardians and struck '+mnResIcon(m.res)+' '+amt+' '+rlabel+'.'); }
+    else { addMail('reports',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
+      marchReport('⛏ Mining failed','The mine\'s guardians drove your miners off — no resources gathered.'); }
+    updateMailBadges(); return; }
   if(m.ctype==='scout'){ const body='Rank #'+m.tRank+' · defence power ~'+(m.tPower||'?')+'. Their walls look '+(( m.tPower||300)>420?'heavily guarded':'lightly held')+'.';
     addMail('reports',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
   if(m.ctype==='defend'){ marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); return; }
@@ -4283,6 +4291,11 @@ function mineYield(res,level){ return Math.round((40+level*55) * (1 + (level-1)*
 function mineReqPower(level){ return Math.round(300*Math.pow(1.75,level-1)); }               // L1 300 … L5 ~2750
 function mineReqLevel(level){ return [1,8,16,26,36,44,52,58][level-1]||1; }                    // hero-level gate per tier (1-8)
 function mineGatherMs(level){ return (20+level*18)*60000; }                                   // L1 38min … L5 110min gathering
+// each mine is guarded by 5 monsters (deterministic per node) — you must beat them to mine it
+function mineGarrison(m){ const rows=['tank','fighter','fighter','mid','back'], lvl=mineReqLevel(m.level), rank=Math.min(3,Math.floor((m.level-1)/2));
+  let sd=m.level*911; const idstr=String(m.id||(m.x+'_'+m.y)); for(let i=0;i<idstr.length;i++)sd+=idstr.charCodeAt(i);
+  const out=[]; rows.forEach((row,i)=>{ const pool=MONSTER_ROLE_POOL[row]; if(pool&&pool.length){ out.push({key:pool[(sd+i*7)%pool.length], level:lvl, rank}); } });
+  return out; }
 // deterministic RNG so every device sees the same mine field this epoch
 function mineRand(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 let _mineCache=null, _mineCacheEpoch=-1;
@@ -4332,6 +4345,7 @@ function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('
   pop.innerHTML=`<div class="cm-t">${resIconHtml(m.res,18)} Lv ${m.level} ${escapeHTML(mnResName(m.res))} Mine</div>
     <div style="font-size:10px;color:#cdd6e4;padding:3px 6px 5px;line-height:1.6">
       Yield <b style="color:#ffd45e">${resIconHtml(m.res,16)} ${y}</b><br>
+      🛡 Guarded by <b style="color:#ff9a6b">5 monsters</b> — beat them to mine it<br>
       Needs squad ⚔ <b style="color:#ff9a6b">${reqP}</b> · a hero Lv <b style="color:#ff9a6b">${reqL}+</b><br>
       ⛏ Mine ${fmtDur(gm)} · 🚩 travel ${fmtDur(travel)} each way<br>
       <span style="color:#8b98a9">Total round trip ${fmtDur(travel*2+gm)}</span></div>
@@ -4360,7 +4374,7 @@ function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(
 // send a squad to mine: a march with a travel-out → gather → travel-home timeline
 function startMine(m, heroes){ const travel=marchOutMs('mine',m.x,m.y), gather=mineGatherMs(m.level), t=Date.now();
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype:'mine', mineId:m.id, res:m.res, mineLevel:m.level, yieldAmt:mineYield(m.res,m.level),
-    tName:mineLabel(m), fx:m.x, fy:m.y, heroes:(heroes||[]).slice(), depart:t, reachAt:t+travel, arrive:t+travel+gather, home:t+travel+gather+travel, out:travel, resolved:false });
+    tName:mineLabel(m), fx:m.x, fy:m.y, heroes:(heroes||[]).slice(), garrison:mineGarrison(m), depart:t, reachAt:t+travel, arrive:t+travel+gather, home:t+travel+gather+travel, out:travel, resolved:false });
   mineClaimedSet().push(m.id);   // reserve this node so it can't be double-mined this epoch
   saveG(); bannerMsg('⛏ Mining '+mineLabel(m)+'\nHome in '+fmtDur(travel*2+gather));
   if(document.getElementById('wzone')) drawMarches(); renderWorldMap(); }
@@ -4895,7 +4909,7 @@ function startVersus(enemyTeam,auto,allyKeys){
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0;
   spawnTeam((allyKeys&&allyKeys.length)?allyKeys:G.team,'ally');
   const slots=formationSlots('enemy',enemyTeam.length);
-  enemyTeam.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
+  enemyTeam.forEach((e,i)=>{const et=HERO_TYPES[e.key]||MONSTER_TYPES[e.key]||{range:100},melee=et.range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
   autoUlt=!!auto;
   buildPortraitBar('ally');refreshCtrlBtns();updateCounts();show('battle');
   document.getElementById('waveTag').textContent = (CUR.mode==='arena'?'🏆 ARENA':'🗺️ RAID');
@@ -6756,7 +6770,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786658983470';
+const BUILD_ID='1786659497661';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
