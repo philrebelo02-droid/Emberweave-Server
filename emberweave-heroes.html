@@ -2539,6 +2539,10 @@ function endBattle(won){ ended=true;
   { const al=units.filter(u=>u.team==='ally'); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
     const total=al.length||1, alive=al.filter(u=>u.alive).length;
     resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0; }
+  if(CUR.mode==='replay'){ const rw=CUR.replayWon;   // re-enactment of a recorded fight — no rewards, back to mail
+    setTimeout(()=>{ document.getElementById('resultTitle').textContent=rw?'BATTLE WON':'BATTLE LOST'; document.getElementById('resultTitle').className='result-big '+(rw?'win':'lose');
+      document.getElementById('resultReward').innerHTML='Re-enactment of your battle vs <b>'+escapeHTML(CUR.oppName||'the enemy')+'</b>.';
+      document.getElementById('resultHint').textContent='A replay of the recorded fight — no rewards are given.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); setTimeout(()=>onlineResult(won),800); return; }
   if(CUR.mode==='arena'){ if(won)grantTeamXP(70);
     const oldRank=G.arenaRank; let reward=0;
@@ -4054,7 +4058,7 @@ function startMarch(ctype,c,heroes){
   if(ctype==='attack'||ctype==='group'||ctype==='scout') breakBeginnerShield();   // scouting/attacking a player ends beginner peace
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg('🛡 Protection shield broke — you launched an attack.'); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, fx:c.x, fy:c.y,
-    tRank:c.rank, tPower:c.power||1, ally:!!c.ally, heroes:(heroes||[]).slice(), depart:t, arrive:t+out, home:t+out*2, out, resolved:false });
+    tRank:c.rank, tPower:c.power||1, ally:!!c.ally, heroes:(heroes||[]).slice(), dTeam:(c.team||[]).slice(), depart:t, arrive:t+out, home:t+out*2, out, resolved:false });
   saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+' each way');
   if(document.getElementById('wzone')) drawMarches();
 }
@@ -4110,16 +4114,28 @@ function maybeSpawnRaid(){ if(shieldActive())return; if(activeMarches().some(m=>
   if(!foes.length)return;
   if(rand01(Date.now())<0.5){ const w=foes[Math.floor(rand01(Date.now()*7)*foes.length)]; spawnIncoming('attack',w.name,w.power||300,w.x,w.y); } }
 function marchReport(title,body){ if(!G.marchLog)G.marchLog=[]; G.marchLog.unshift({t:Date.now(),title,body}); if(G.marchLog.length>20)G.marchLog.length=20; bannerMsg(title+'\n'+body); }
+// ---- battle replay: snapshot both squads into the mail report so the fight can be re-watched ----
+function snapSquad(keys){ return (keys||[]).filter(Boolean).map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
+function trimTeam(team){ return (team||[]).filter(t=>t&&t.key).map(t=>({key:t.key,level:t.level||1,rank:t.rank||0})); }
+function genFoeTeam(power,seedName){ const pool=HERO_KEYS.slice(), n=4, t=[]; let sd=1; for(const ch of String(seedName||'foe'))sd+=ch.charCodeAt(0);
+  const per=Math.max(74,(power||600)/n);
+  for(let i=0;i<n;i++){ const key=pool[(sd+i*7)%pool.length], rank=Math.min(3,(((sd+i*5)%100)/34)|0), level=Math.max(1,Math.min(60,Math.round((per-60-rank*70)/14))); t.push({key,level,rank}); }
+  return t; }
+// launch an auto-played re-enactment of a recorded fight (viewer's heroes = meta.mine, enemy = meta.foe)
+function watchBattle(meta){ if(!meta||!(meta.mine||[]).length||!(meta.foe||[]).length)return;
+  CUR={mode:'replay', replayWon:!!meta.won, oppName:meta.oppName||'the enemy'};
+  startVersus(trimTeam(meta.foe), true, meta.mine.map(h=>h.key)); }
 function resolveMarch(m){
   if(m.dir==='in'){   // something arriving AT your castle
     if(m.ctype==='defend'){ marchReport('🛡 Ally reinforced you','A guild ally reinforced your castle, then marched home.'); return; }
     if(shieldActive()){ marchReport('🛡 Attack blocked!','Your protection shield held — '+m.tName+' could not raid you.'); return; }
     const def=wallDefensePower(), atk=m.tPower||300, n=wallActiveTeamCount();
+    const defMine=snapSquad(wallOrderedSquad()), foeRaider=genFoeTeam(atk,m.tName);
     if(def>0 && def>=atk){   // the wall lines fight in order — combined active defense held the attacker off
-      addMail('inbox',{from:m.tName,subj:'🛡 Raid repelled',body:'Your wall held! '+m.tName+'’s raid was driven off across '+n+' defense line'+(n===1?'':'s')+'. No gold was lost.'});
+      addMail('inbox',{from:m.tName,subj:'🛡 Raid repelled',body:'Your wall held! '+m.tName+'’s raid was driven off across '+n+' defense line'+(n===1?'':'s')+'. No gold was lost.',battle:{mine:defMine,foe:foeRaider,won:true,oppName:m.tName}});
       marchReport('🛡 Wall held!','Your defenders repelled '+m.tName+'’s raid ('+n+' line'+(n===1?'':'s')+' defending). No gold lost.'); updateMailBadges(); return; }
     const loss=Math.min(G.gold||0, 100+Math.floor(rand01(Date.now())*300)); G.gold=(G.gold||0)-loss; updateHubChrome();
-    addMail('inbox',{from:m.tName,subj:'⚠ Raided your castle',body:m.tName+'’s army broke through your defense lines and looted 🪙 '+loss+' gold. Raise a protection shield or strengthen your wall lines.'});
+    addMail('inbox',{from:m.tName,subj:'⚠ Raided your castle',body:m.tName+'’s army broke through your defense lines and looted 🪙 '+loss+' gold. Raise a protection shield or strengthen your wall lines.',battle:{mine:defMine,foe:foeRaider,won:false,oppName:m.tName}});
     marchReport('⚠ Raided by '+m.tName,'An enemy raided your castle and stole 🪙 '+loss+'. Consider a protection shield.'); updateMailBadges(); return;
   }
   if(m.ctype==='mine'){ const amt=m.yieldAmt||0; if(!G.res)G.res={}; G.res[m.res]=(G.res[m.res]||0)+amt; updateHubChrome();
@@ -4128,9 +4144,13 @@ function resolveMarch(m){
     addMail('reports',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
   if(m.ctype==='defend'){ marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); return; }
   const myPow=marchPower(m.heroes), enemy=m.tPower||1, win=myPow>=enemy*(0.85+rand01(Date.now())*0.3);
+  const rptBattle={ mine:snapSquad(m.heroes), foe:(m.dTeam&&m.dTeam.length)?trimTeam(m.dTeam):genFoeTeam(enemy,m.tName), won:win, oppName:m.tName };
   if(win){ const gold=Math.round((200+Math.floor(rand01(Date.now()+1)*400))*embassyRaidMul()); G.gold=(G.gold||0)+gold; G.guildCoins=(G.guildCoins||0)+40; updateHubChrome();
+    addMail('reports',{from:m.tName,subj:'⚔ Victory — '+m.tName,body:'Your army broke '+m.tName+'’s wall and looted 🪙 '+gold+' + 🎖 40 guild coins.',battle:rptBattle});
     marchReport('⚔ Victory at '+m.tName,'Your army broke their wall — looted 🪙 '+gold+' and 🎖 40 guild coins. Troops are marching home.'); }
-  else marchReport('⚔ Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.');
+  else { addMail('reports',{from:m.tName,subj:'⚔ Defeat — '+m.tName,body:m.tName+'’s defenders held. Your heroes retreat and march home.',battle:rptBattle});
+    marchReport('⚔ Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.'); }
+  updateMailBadges();
 }
 const STATION_HOME=3153600000000;   // ~100 years — defenders garrison "forever" until retreat
 // global tick: resolves arrivals (even off the map) and frees troops once they're home
@@ -4848,9 +4868,9 @@ function renderGuildLobby(b){
 function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* generic PvE-style versus battle used by Arena (auto) and Raid (manual) */
-function startVersus(enemyTeam,auto){
+function startVersus(enemyTeam,auto,allyKeys){
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0;
-  spawnTeam(G.team,'ally');
+  spawnTeam((allyKeys&&allyKeys.length)?allyKeys:G.team,'ally');
   const slots=formationSlots('enemy',enemyTeam.length);
   enemyTeam.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
   autoUlt=!!auto;
@@ -5681,10 +5701,12 @@ function renderMail(){ ensureMail(); pruneWars();
   if(mailTab==='war'){ renderMailWar(b); return; }
   const list=G.mail[mailTab]||[];
   if(!list.length){ b.innerHTML=`<div style="text-align:center;color:#6f7d90;padding:26px 10px">${mailTab==='inbox'?'📭 No messages yet. War declarations and raids from other players will appear here.':'🔭 No scout reports yet. Scout a rival stronghold from the World Map.'}</div>`; return; }
-  b.innerHTML=list.map(m=>`<div class="mailrow${m.read?'':' unread'}"><span class="mtime">${timeAgo(m.t)}</span>
+  b.innerHTML=list.map((m,i)=>`<div class="mailrow${m.read?'':' unread'}"><span class="mtime">${timeAgo(m.t)}</span>
     <div class="mfrom">${escapeHTML(m.from||'System')}</div>
     <div class="msub">${escapeHTML(m.subj||'')}</div>
-    <div class="mbody">${escapeHTML(m.body||'')}</div></div>`).join('');
+    <div class="mbody">${escapeHTML(m.body||'')}</div>
+    ${(m.battle&&(m.battle.mine||[]).length&&(m.battle.foe||[]).length)?`<button class="btn sm" data-battle="${i}" style="margin-top:8px">▶ Watch Battle</button>`:''}</div>`).join('');
+  b.querySelectorAll('[data-battle]').forEach(btn=>btn.onclick=()=>{ const mm=list[+btn.dataset.battle]; if(mm&&mm.battle) watchBattle(mm.battle); });
 }
 function renderMailWar(b){ const inc=incomingWars(), out=outgoingWars();
   let html=`<div class="qd" style="margin-bottom:8px">Declaring war starts a <b style="color:#ffd45e">30-minute countdown</b>. Nobody can attack during it — once it reaches zero the war goes <b style="color:#ff8f8f">live</b>. A declared war lasts <b style="color:#ff8f8f">72 hours</b> total, then must be re-declared. Declare war from a castle's menu on the World Map.</div>`;
@@ -6684,7 +6706,7 @@ document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getEleme
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
-document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
+document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='replay'?'mail':m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
 // ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
@@ -6711,7 +6733,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786656407032';
+const BUILD_ID='1786657247173';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
