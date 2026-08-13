@@ -404,6 +404,7 @@ async function api(req,res,url){
   if(p.startsWith('/api/guild')){
     if(!me) return send(res,401,{error:'auth'});
     DB.guilds = DB.guilds || {};
+    DB.wars = DB.wars || {};
     const GBASE=30,GPER=5,GMAXCAP=60,GMAXLVL=7;
     const gCap = g => Math.min(GMAXCAP, GBASE+((g.level||1)-1)*GPER);
     const gExpNeed = lvl => 1000*lvl;
@@ -434,6 +435,47 @@ async function api(req,res,url){
       const top=Object.entries(r.contrib).map(([id,dmg])=>({name:nameOf(id),dmg})).sort((a,b)=>b.dmg-a.dmg).slice(0,5);
       return { level:r.level, max:r.max, hp:r.hp, kills:r.kills, yourDmg:r.contrib[me.id]||0, guildDmg:gd,
         attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:BOSS_NAMES[((r.level||1)-1)%BOSS_NAMES.length] }; }
+    // ---- shared Guild War helpers (REAL guild-vs-guild, weekly matchmaking) ----
+    // A war is a shared DB.wars object referenced by BOTH guilds (g.war={week,id}). Each guild's
+    // members duel the opposing guild's real member squads; wins score war points for their side.
+    // Server-authoritative: duel outcome computed here from each side's serverTeamPower (client can't fake a win).
+    const WAR_ATT=5, WAR_WEEK_MS=7*24*3600000;
+    const warWeek=()=>Math.floor(Date.now()/WAR_WEEK_MS);
+    const warDay=()=>new Date().toISOString().slice(0,10);
+    function guildStrength(gg){ let s=0; for(const id of (gg.members||[])){ const u=DB.users[id]; if(u) s+=serverTeamPower(u.team); } return s+((gg.level||1)-1)*400; }
+    function npcWarChamps(strength,seed){ const avg=Math.max(200,Math.round(strength/3)); const n=5,champs=[];
+      for(let i=0;i<n;i++){ const x=Math.sin(seed*7.13+i*3.71)*43758.5, f=x-Math.floor(x);
+        champs.push({ id:'npc_'+i, name:NPC_NAMES[Math.floor(f*NPC_NAMES.length)]+' Sworn', power:Math.max(150,Math.round(avg*(0.72+i*0.11+f*0.24))) }); }
+      return champs; }
+    function ensureWar(g){ const wk=warWeek();
+      if(g.war && g.war.week===wk && DB.wars[g.war.id]) return DB.wars[g.war.id];
+      // prune stale wars (nobody references a war older than last week)
+      for(const wid in DB.wars){ if((DB.wars[wid].week||0) < wk-1) delete DB.wars[wid]; }
+      const myStr=guildStrength(g);
+      const cands=Object.values(DB.guilds).filter(x=> x.id!==g.id && (x.members||[]).length>0 && !(x.war && x.war.week===wk && DB.wars[x.war.id]));
+      cands.sort((a,b)=>Math.abs(guildStrength(a)-myStr)-Math.abs(guildStrength(b)-myStr));
+      const id=uid(); let war;
+      if(cands.length){ const foe=cands[0];
+        war={ id, week:wk, a:g.id, b:foe.id, aName:g.name, bName:foe.name, aPts:0, bPts:0, beaten:{}, used:{}, log:[{sys:1,tx:'War declared: <'+g.name+'> vs <'+foe.name+'>',t:Date.now()}], npc:false, createdAt:Date.now(), endsAt:(wk+1)*WAR_WEEK_MS };
+        DB.wars[id]=war; g.war={week:wk,id}; foe.war={week:wk,id}; }
+      else { const champs=npcWarChamps(myStr, wk*131+((g.id&&g.id.charCodeAt(0))||7));
+        war={ id, week:wk, a:g.id, b:null, aName:g.name, bName:'The Wilds Coalition', aPts:0, bPts:0, beaten:{}, used:{}, log:[{sys:1,tx:'No rival guild available — you face The Wilds Coalition this week.',t:Date.now()}], npc:true, npcChamps:champs, createdAt:Date.now(), endsAt:(wk+1)*WAR_WEEK_MS };
+        DB.wars[id]=war; g.war={week:wk,id}; }
+      writeDB(); return war; }
+    function warView(g){ const war=ensureWar(g); const iAmA=war.a===g.id;
+      const youPts=iAmA?war.aPts:war.bPts, foePts=iAmA?war.bPts:war.aPts;
+      let champs;
+      if(war.npc){ champs=(war.npcChamps||[]).map(c=>({ id:c.id, name:c.name, power:c.power, online:false, npc:true })); }
+      else { const foeId=iAmA?war.b:war.a, foe=DB.guilds[foeId];
+        champs=((foe&&foe.members)||[]).map(id=>{ const u=DB.users[id]; return { id, name:nameOf(id), power:serverTeamPower(u&&u.team), online:isOnline(id), npc:false }; })
+          .sort((a,b)=>b.power-a.power); }
+      const bm=war.beaten[me.id]||{}; champs=champs.map(c=>({ ...c, beaten:!!bm[c.id] }));
+      const ud=war.used[me.id], usedToday=(ud&&ud.day===warDay())?ud.n:0;
+      return { week:war.week, endsAt:war.endsAt, npc:war.npc,
+        you:{ name:iAmA?war.aName:war.bName, pts:youPts },
+        foe:{ name:iAmA?war.bName:war.aName, pts:foePts, npc:war.npc },
+        champs, attemptsLeft:Math.max(0,WAR_ATT-usedToday), yourPower:serverTeamPower(me.team),
+        winning: youPts>=foePts, log:(war.log||[]).slice(-30) }; }
     if(p==='/api/guild/mine'){ const g=myGuild(); return send(res,200,{ guild: g?guildView(g):null }); }
     if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
       const list=Object.values(DB.guilds)
@@ -444,6 +486,7 @@ async function api(req,res,url){
       return send(res,200,{ guilds:list, mine: me.guildId||null }); }
 
     if(p==='/api/guild/raid'){ const g=myGuild(); if(!g) return send(res,400,{error:'You are not in a guild.'}); return send(res,200,{ raid:raidView(g) }); }
+    if(p==='/api/guild/war'){ const g=myGuild(); if(!g) return send(res,400,{error:'You are not in a guild.'}); return send(res,200,{ war:warView(g) }); }
     if(req.method!=='POST') return send(res,404,{error:'not found'});
     const b=await body(req);
 
@@ -530,6 +573,28 @@ async function api(req,res,url){
         reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
       else { reward={ guildCoins:Math.round(dmg/50) }; }
       writeDB(); return send(res,200,{ dmg, killed, reward, raid:raidView(g) }); }
+
+    if(p==='/api/guild/war/attack'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(rateLimited(req,'gwar',30,60000)) return send(res,429,{error:'Slow down.'});
+      const war=ensureWar(g); const iAmA=war.a===g.id;
+      const tid=(b.targetId||'').toString();
+      let target=null;
+      if(war.npc){ const c=(war.npcChamps||[]).find(c=>c.id===tid); if(c) target={ id:c.id, name:c.name, power:c.power }; }
+      else { const foeId=iAmA?war.b:war.a, foe=DB.guilds[foeId];
+        if(foe && (foe.members||[]).includes(tid)){ const u=DB.users[tid]; target={ id:tid, name:nameOf(tid), power:serverTeamPower(u&&u.team) }; } }
+      if(!target) return send(res,400,{error:'That champion is no longer in the war.'});
+      war.beaten[me.id]=war.beaten[me.id]||{};
+      if(war.beaten[me.id][tid]) return send(res,200,{ already:true, war:warView(g) });
+      const ud=war.used[me.id], usedToday=(ud&&ud.day===warDay())?ud.n:0;
+      if(usedToday>=WAR_ATT) return send(res,200,{ none:true, war:warView(g) });
+      war.used[me.id]={ day:warDay(), n:usedToday+1 };
+      const mine=serverTeamPower(me.team)*(0.9+Math.random()*0.3), win= mine>=target.power;
+      let pts=0, coins=0;
+      if(win){ war.beaten[me.id][tid]=1; pts=Math.max(1,Math.round(target.power/10)); coins=Math.max(1,Math.round(target.power/8));
+        if(iAmA) war.aPts+=pts; else war.bPts+=pts;
+        war.log=war.log||[]; war.log.push({ id:me.id, tx:me.name+' defeated '+target.name+' (+'+pts+' war points)', t:Date.now() }); if(war.log.length>60)war.log=war.log.slice(-60);
+        if(war.npc){ war.bPts+=Math.max(1,Math.round(pts*(0.7+Math.random()*0.5))); } }
+      writeDB(); return send(res,200,{ win, pts, coins, target:target.name, war:warView(g) }); }
 
     return send(res,404,{error:'not found'});
   }

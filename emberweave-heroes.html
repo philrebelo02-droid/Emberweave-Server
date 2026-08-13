@@ -4593,31 +4593,10 @@ function guildBossAssault(){ const gb=guildBossEnsure(); if(!gb) return null;
   saveG(); updateHubChrome();
   return { dmg, coins, killed, reward }; }
 
-// ---- GUILD WAR: guild-vs-guild. Field your best squad against a rival guild's members; wins score war points
-//      for your guild. Weekly cycle — top score at the end takes the spoils. (v1 auto-resolves each duel.) ----
-const GUILD_WAR_ATTEMPTS=5;   // duels per day
-const RIVAL_GUILD_NAMES=['Crimson Vanguard','Ironclad Legion','Duskblade Pact','Stormcallers','The Gilded Fangs','Obsidian Wardens'];
-function guildWeek(){ return Math.floor(Date.now()/(7*24*3600000)); }
-function guildWarEnsure(){ if(!G.guild) return null;
-  const wk=guildWeek();
-  if(!G.guildWar || G.guildWar.week!==wk){
-    const seed=wk*911, rnd=(n)=>{ const x=Math.sin(seed*13.1+n*7.3)*43758.5; return x-Math.floor(x); };
-    const rname=RIVAL_GUILD_NAMES[Math.floor(rnd(1)*RIVAL_GUILD_NAMES.length)];
-    const base=Math.max(600, Math.round(bestTeamPower()*0.7)||600);
-    const enemies=[]; for(let i=0;i<6;i++){ enemies.push({ name:(typeof NPC_NAMES!=='undefined'?NPC_NAMES[Math.floor(rnd(i+3)*NPC_NAMES.length)]:'Rival '+(i+1)), power:Math.round(base*(0.75+i*0.16+rnd(i+9)*0.15)), beaten:false }); }
-    G.guildWar={ week:wk, rival:rname, enemies, points:0, rivalPoints:Math.round(300+rnd(20)*900), day:'', used:0 };
-  }
-  const gw=G.guildWar; const dk=(typeof arenaDayKey==='function')?arenaDayKey():new Date().toDateString();
-  if(gw.day!==dk){ gw.day=dk; gw.used=0; }
-  return gw; }
-function guildWarAttemptsLeft(){ const gw=guildWarEnsure(); return gw?Math.max(0,GUILD_WAR_ATTEMPTS-(gw.used||0)):0; }
-function guildWarAttack(idx){ const gw=guildWarEnsure(); if(!gw) return null;
-  const e=gw.enemies[idx]; if(!e||e.beaten) return {invalid:true};
-  if(guildWarAttemptsLeft()<=0) return {none:true};
-  gw.used=(gw.used||0)+1;
-  const mine=bestTeamPower()*(0.9+Math.random()*0.3), win=mine>=e.power;
-  if(win){ e.beaten=true; const pts=Math.round(e.power/10); gw.points+=pts; const coins=Math.round(e.power/8); G.guildCoins=(G.guildCoins||0)+coins; saveG(); updateHubChrome(); return {win:true, pts, coins}; }
-  saveG(); return {win:false}; }
+// ---- GUILD WAR is now REAL & server-backed: weekly matchmaking pairs your guild against another
+//      real guild; your members duel the opponent guild's real member squads for shared war points.
+//      Server-authoritative (see /api/guild/war). Client logic lives in renderGuildWar +
+//      guildWarAttackServer below. (Falls back to an NPC coalition only if no rival guild is free.) ----
 
 // ================= REAL server-backed guilds =================
 let GS={guild:null};
@@ -4739,31 +4718,44 @@ function renderGuildEmbassy(el){
     ${rows}
     <div style="font-size:10px;color:#6f7d90;text-align:center;margin-top:6px">Level the guild up (Contribute tab) to strengthen every perk.</div>`;
 }
-// ---- WAR tab: guild-vs-guild duels ----
-function renderGuildWar(el){
-  const gw=guildWarEnsure(); if(!gw){ el.innerHTML='<div class="panel">Join a guild first.</div>'; return; }
-  const left=guildWarAttemptsLeft(), winning=gw.points>=gw.rivalPoints, remaining=gw.enemies.filter(e=>!e.beaten).length;
-  const total=gw.points+gw.rivalPoints||1, myPct=Math.round(gw.points/total*100);
+// ---- WAR tab: REAL guild-vs-guild. Your members duel the opponent guild's real member squads. ----
+function warResetLabel(endsAt){ const ms=endsAt-Date.now(); if(ms<=0) return 'ending now';
+  const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000); return d>0?(d+'d '+h+'h'):(h+'h'); }
+async function renderGuildWar(el){
+  if(!ACC.token){ el.innerHTML='<div class="panel" style="text-align:center;padding:20px;color:#8b98a9">Sign in to fight guild wars.</div>'; return; }
+  el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:22px">Finding your guild&#8217;s war&#8230;</div>';
+  const d=await api('/api/guild/war'); if(!d||d.error||!d.war){ el.innerHTML='<div class="panel" style="text-align:center;padding:18px">'+escapeHTML((d&&d.error)||'Could not load the war — try again.')+'</div>'; return; }
+  const w=d.war; const total=(w.you.pts+w.foe.pts)||1, myPct=Math.round(w.you.pts/total*100);
+  const left=w.attemptsLeft, winning=w.winning, remaining=w.champs.filter(c=>!c.beaten).length;
   el.innerHTML=`<div class="panel">
-      <div style="text-align:center;font-weight:800;font-size:14px;margin-bottom:2px">⚔ Guild War</div>
-      <div style="font-size:10px;color:#8b98a9;text-align:center;margin-bottom:8px">Defeat the rival guild's champions to score war points. Resets weekly — lead at the end to win the spoils.</div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800"><span style="color:#5ee89b">&lt;${escapeHTML(G.guild.name)}&gt; ${gw.points}</span><span style="color:#ff8b8b">${gw.rivalPoints} &lt;${escapeHTML(gw.rival)}&gt;</span></div>
+      <div style="text-align:center;font-weight:800;font-size:14px;margin-bottom:2px">&#9876; Guild War</div>
+      <div style="font-size:10px;color:#8b98a9;text-align:center;margin-bottom:8px">Defeat the rival guild&#8217;s members to score war points for your guild. Resets weekly &#8212; lead at the end to win.</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800"><span style="color:#5ee89b">&lt;${escapeHTML(w.you.name)}&gt; ${w.you.pts}</span><span style="color:#ff8b8b">${w.foe.pts} &lt;${escapeHTML(w.foe.name)}&gt;${w.foe.npc?' <span style="font-size:9px;color:#6f7d90">(NPC)</span>':''}</span></div>
       <div style="height:10px;background:#3a1e1e;border-radius:6px;overflow:hidden;margin-top:5px;display:flex"><div style="height:100%;width:${myPct}%;background:linear-gradient(90deg,#3ec46b,#5ee89b)"></div></div>
-      <div style="text-align:center;font-size:11px;margin-top:6px;color:${winning?'#5ee89b':'#ff8b8b'}">${winning?'🏆 Your guild is winning the war':'⚠ The rival is ahead — score more points'}</div>
-      <div style="text-align:center;font-size:11px;color:#8b98a9;margin-top:4px">⚔ Duels left today: <b style="color:#ffd45e">${left}</b> · Your squad power ⚔ ${bestTeamPower()}</div></div>
-    <div style="font-weight:700;font-size:12px;margin:4px 2px 6px">Rival champions${remaining?'':' — all defeated! 🎉'}</div>
+      <div style="text-align:center;font-size:11px;margin-top:6px;color:${winning?'#5ee89b':'#ff8b8b'}">${winning?'&#127942; Your guild is winning the war':'&#9888; The rival is ahead — score more points'}</div>
+      <div style="text-align:center;font-size:11px;color:#8b98a9;margin-top:4px">&#9876; Duels left today: <b style="color:#ffd45e">${left}</b> &#183; Your squad power &#9876; ${w.yourPower} &#183; Resets in <b style="color:#ffd45e">${warResetLabel(w.endsAt)}</b></div></div>
+    <div style="font-weight:700;font-size:12px;margin:4px 2px 6px">Rival champions${remaining?'':' — all defeated this week! &#127881;'}</div>
     <div id="gwList"></div>
     <div id="gwMsg" style="font-size:11px;text-align:center;min-height:16px;margin-top:6px"></div>`;
   const list=el.querySelector('#gwList');
-  list.innerHTML=gw.enemies.map((e,i)=>`<div style="display:flex;align-items:center;gap:8px;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px;opacity:${e.beaten?.55:1}">
-      <div style="width:34px;height:34px;border-radius:50%;background:#1a2338;display:flex;align-items:center;justify-content:center;font-size:16px">${e.beaten?'💀':'🛡'}</div>
-      <div style="flex:1"><div style="font-weight:700;font-size:12px">${escapeHTML(e.name)}</div><div style="font-size:10px;color:#8b98a9">⚔ ${e.power}${e.beaten?' · defeated':''}</div></div>
-      <button class="btn sm" data-gw="${i}" ${(e.beaten||left<=0)?'disabled':''}>${e.beaten?'✔':'Fight'}</button></div>`).join('');
-  list.querySelectorAll('[data-gw]').forEach(btn=>btn.onclick=()=>{ const r=guildWarAttack(+btn.dataset.gw); const msg=el.querySelector('#gwMsg');
-    if(!r||r.invalid) return; if(r.none){ msg.style.color='#ff8b8b'; msg.textContent='No duels left today — back tomorrow.'; return; }
-    if(r.win){ msg.style.color='#5ee89b'; msg.textContent='🏆 Victory! +'+r.pts+' war points · 🎖 '+r.coins; }
-    else { msg.style.color='#ff8b8b'; msg.textContent='Defeated — strengthen your squad and try another.'; }
-    setTimeout(()=>renderGuild(),700); });
+  if(!w.champs.length){ list.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">The rival guild has no members to field right now.</div>'; return; }
+  list.innerHTML=w.champs.map(c=>`<div style="display:flex;align-items:center;gap:8px;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px;opacity:${c.beaten?.55:1}">
+      <div style="width:34px;height:34px;border-radius:50%;background:#1a2338;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative">${c.beaten?'&#128128;':'&#128737;'}${(!c.npc&&c.online)?'<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:#3ec46b;border:2px solid #0f1420"></span>':''}</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:12px">${escapeHTML(c.name)}${c.npc?'':(c.online?' <span style="font-size:9px;color:#5ee89b">online</span>':'')}</div><div style="font-size:10px;color:#8b98a9">&#9876; ${c.power}${c.beaten?' &#183; defeated':''}</div></div>
+      <button class="btn sm" data-gw="${escapeHTML(c.id)}" ${(c.beaten||left<=0)?'disabled':''}>${c.beaten?'&#10004;':'Fight'}</button></div>`).join('');
+  list.querySelectorAll('[data-gw]').forEach(btn=>btn.onclick=()=>guildWarAttackServer(btn.dataset.gw, btn, el));
+}
+async function guildWarAttackServer(targetId, btn, el){
+  const msg=el.querySelector('#gwMsg'); if(btn) btn.disabled=true; if(msg){ msg.style.color='#8b98a9'; msg.textContent='Marching&#8230;'; }
+  const r=await api('/api/guild/war/attack','POST',{targetId});
+  if(!r||r.error){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent=(r&&r.error)||'Failed — try again.'; } if(btn)btn.disabled=false; return; }
+  if(r.already){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent='You already defeated that champion this week.'; } setTimeout(()=>renderGuild(),500); return; }
+  if(r.none){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent='No duels left today — back tomorrow.'; } return; }
+  if(r.win){ if(r.coins){ G.guildCoins=(G.guildCoins||0)+r.coins; saveG(); if(typeof updateHubChrome==='function')updateHubChrome(); }
+    if(msg){ msg.style.color='#5ee89b'; msg.innerHTML='&#127942; Victory over '+escapeHTML(r.target||'the rival')+'! +'+r.pts+' war points &#183; &#127942; '+r.coins; } }
+  else { if(msg){ msg.style.color='#ff8b8b'; msg.textContent='Defeated by '+(r.target||'the rival')+' — strengthen your squad and try another.'; } }
+  if(r.war){ /* keep the fresh view for the re-render */ }
+  setTimeout(()=>renderGuild(),900);
 }
 // ---- RAID tab: the whole guild grinds one boss down over time ----
 async function renderGuildRaid(el){
@@ -6711,7 +6703,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786720000000';
+const BUILD_ID='1786651340223';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
