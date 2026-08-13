@@ -604,6 +604,7 @@
 
   <!-- HOME BASE -->
   <div class="screen hub active" id="home">
+    <div id="studioTag" style="position:fixed;left:9px;bottom:6px;z-index:6;font-size:9px;font-weight:700;letter-spacing:.09em;color:rgba(230,237,243,.5);pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.65)">XANTHYR GAMES</div>
     <div id="townWrap"><div id="townMap"><img id="townImg" alt="">
       <div id="townHots"></div>
     </div></div>
@@ -5892,6 +5893,7 @@ function renderSettings(){
     <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">Send report</button>
     <div id="rpMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>` : '';
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
     ${account}
     ${reportCard}
@@ -6671,7 +6673,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786660000000';
+const BUILD_ID='1786670000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
