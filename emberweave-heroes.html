@@ -4208,16 +4208,18 @@ function drawMarches(){
     const wrap=document.createElement('div'); wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:40px;height:40px';
     // art is now solid & sharp — a light faction ring for spotting + a soft ground shadow (no brightness lift / haze)
     const glow='contrast(1.03) saturate(1.05) drop-shadow(0 0 3px '+col+') drop-shadow(0 0 7px '+col+') drop-shadow(0 2px 3px rgba(0,0,0,.6))';
-    if(isAssetRef(AIRSHIP_SHEET)){
-      const ship=document.createElement('div'); ship.className='marchShip';
-      ship.style.transform=rot; ship.style.filter=glow;
-      wrap.appendChild(ship);
-    } else {
-      const img=document.createElement('img'); img.src=AIRSHIP_IMG; img.draggable=false;
-      img.style.cssText='width:100%;height:100%;object-fit:contain;image-rendering:auto;transform-origin:center;transform:'+rot+';filter:'+glow;
-      wrap.appendChild(img);
+    if(!mining){   // while mining, show only the ⛏ symbol on the node — no airship hovering the mine
+      if(isAssetRef(AIRSHIP_SHEET)){
+        const ship=document.createElement('div'); ship.className='marchShip';
+        ship.style.transform=rot; ship.style.filter=glow;
+        wrap.appendChild(ship);
+      } else {
+        const img=document.createElement('img'); img.src=AIRSHIP_IMG; img.draggable=false;
+        img.style.cssText='width:100%;height:100%;object-fit:contain;image-rendering:auto;transform-origin:center;transform:'+rot+';filter:'+glow;
+        wrap.appendChild(img);
+      }
+      veh.appendChild(wrap);
     }
-    veh.appendChild(wrap);
     const t=document.createElement('div'); t.textContent=mining?('⛏ '+fmtDur(etaMs)):(stationed?'🛡 stationed':fmtDur(etaMs));
     t.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,22px);font-size:9px;font-weight:800;color:'+col+';text-shadow:0 1px 2px #000;white-space:nowrap'; veh.appendChild(t);
   });
@@ -6703,7 +6705,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786653480688';
+const BUILD_ID='1786653702940';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
