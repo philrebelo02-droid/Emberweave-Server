@@ -375,7 +375,7 @@ async function api(req,res,url){
       out.sort((a,b)=>a-b); return out; }
     const targets=targetRanks(me.rank), chosen=new Set(), opps=[];
     for(const tr of targets){ let best=null,bd=1e9; for(const u of pool){ if(chosen.has(u.id))continue; const d=Math.abs(u.rank-tr); if(d<bd){bd=d;best=u;} } if(best){ chosen.add(best.id); opps.push(best); } }
-    for(const u of pool){ if(opps.length>=5)break; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } }   // fill if the spread came up short
+    for(let k=pool.length-1; k>=0 && opps.length<5; k--){ const u=pool[k]; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } }   // fill remaining with the NEAREST ranks above you (pool is ascending → never the very top)
     opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
     const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }));
     return send(res,200,{ rank:me.rank, opponents:out }); }
