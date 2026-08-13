@@ -787,6 +787,19 @@
     <div class="panel" id="shadyBody" style="max-width:520px"></div>
   </div>
 
+  <!-- WATCH TOWER -->
+  <div class="screen hub" id="watchtower">
+    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
+    <div class="titlebar"><h1>🗼 WATCH TOWER</h1></div>
+    <div class="sub">Live guild activity on the world map</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px" id="watchTabs">
+      <button class="btn sm" data-wt="attack">⚔ Attack</button>
+      <button class="btn sm secondary" data-wt="defend">🛡 Defend</button>
+      <button class="btn sm secondary" data-wt="scout">🔭 Scout</button>
+    </div>
+    <div id="watchBody" style="width:100%;max-width:520px"></div>
+  </div>
+
   <!-- SERVER RANKINGS -->
   <div class="screen hub" id="rankings">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
@@ -2855,7 +2868,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 }
 
 /* =============================== HUB / UI ================================= */
-const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings'];
+const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings','watchtower'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign', skClipIdx=0;
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
@@ -2923,6 +2936,7 @@ function show(name){
   if(name==='market') renderMarket();
   if(name==='shadymarket') renderShadyMarket();
   if(name==='rankings') renderRankings();
+  if(name==='watchtower') renderWatchTower();
   if(name==='wishing') renderWishing();
   if(name==='dungeon') renderDungeon();
   if(name==='elite') renderElite();
@@ -2980,7 +2994,7 @@ function renderHome(){
     {nav:'dungeon',     label:'Dungeon',        x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
     {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
-    {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, coming:true},
+    {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91},
     {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(10)},
     {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},
     {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
@@ -3221,6 +3235,70 @@ async function renderRankings(){ const b=document.getElementById('rankingsBody')
     +guilds.slice(0,15).map((g,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 6px">
       <span>${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)} &lt;${escapeHTML(g.name)}&gt; · Lv ${g.level||1}</span><span style="color:#8b98a9">${g.count||0}/${g.cap||30}</span></div>`).join('')+`</div>`;
   } else if(!ACC.token){ html+=`<div class="panel" style="color:#8b98a9;font-size:12px">Sign in to see live guild & arena rankings.</div>`; }
+  b.innerHTML=html;
+}
+
+/* ---------------- WATCH TOWER: live guild activity feed ---------------- */
+let _watchTab='attack';
+// categorize MY own live outgoing marches into attack/defend/scout buckets for publishing + display
+function myWatchMarches(){
+  const now=Date.now(), out={attacks:[],defends:[],scouts:[]};
+  activeMarches().forEach(m=>{
+    if(m.dir==='in' || m.resolved || now>=m.home) return;
+    const entry={ name:m.tName||'?', eta:Math.max(0,(m.arrive||now)-now), ret:(now>=(m.arrive||0)) };
+    if(m.ctype==='attack'||m.ctype==='group') out.attacks.push(entry);
+    else if(m.ctype==='defend') out.defends.push(entry);
+    else if(m.ctype==='scout') out.scouts.push(entry);
+  });
+  return out;
+}
+async function pushWatchReport(){
+  if(!ACC.token) return;
+  const mine=myWatchMarches();
+  try{ await api('/api/watch/report','POST',{ attacks:mine.attacks, defends:mine.defends, scouts:mine.scouts }); }catch(e){}
+}
+async function renderWatchTower(){
+  const b=document.getElementById('watchBody'); if(!b)return;
+  // tab chrome
+  document.querySelectorAll('#watchTabs button[data-wt]').forEach(btn=>{
+    const on=btn.dataset.wt===_watchTab; btn.className='btn sm'+(on?'':' secondary');
+    btn.onclick=()=>{ _watchTab=btn.dataset.wt; renderWatchTower(); };
+  });
+  b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">Loading…</div>';
+  const mine=myWatchMarches();
+  let mates=[], scoutedBy=[], guilded=false;
+  if(ACC.token){
+    await pushWatchReport();
+    try{ const d=await api('/api/watch'); if(d){ mates=d.mates||[]; scoutedBy=d.scoutedBy||[]; guilded=!!d.guilded; } }catch(e){}
+  }
+  const line=(who,tgt,eta,ret,you)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 8px;border-radius:6px;${you?'background:#1a2b1f;border:1px solid #2f5e3f':'border-bottom:1px solid #222b40'}">
+    <span><b style="color:${you?'#5ee89b':'#cdd6e4'}">${escapeHTML(who)}</b>${you?' (you)':''} → ${escapeHTML(tgt)}</span>
+    <span style="color:#8b98a9">${ret?'↩ returning':(eta!=null?'⏱ '+fmtDur(eta):'')}</span></div>`;
+  const empty=t=>`<div class="panel" style="color:#8b98a9;font-size:12px;text-align:center;padding:14px">${t}</div>`;
+  let html='';
+  if(!ACC.token){ b.innerHTML=empty('Sign in to share live activity with your guild.'); return; }
+
+  if(_watchTab==='attack'){
+    const rows=[];
+    // your attacks pinned top
+    mine.attacks.forEach(a=>rows.push(line(ACC.name||'You', a.name, a.eta, a.ret, true)));
+    mates.filter(w=>!w.you).forEach(w=>(w.attacks||[]).forEach(a=>rows.push(line(w.name, a.name, a.eta, a.ret, false))));
+    html = `<div class="panel"><div style="font-weight:800;margin-bottom:6px">⚔ Attacks in progress</div>${rows.length?rows.join(''):'<div style="color:#8b98a9;font-size:12px">No active attacks.</div>'}</div>`;
+    if(!guilded) html+=empty('Join a guild to see your guildmates’ attacks here.');
+  } else if(_watchTab==='defend'){
+    const rows=[];
+    mine.defends.forEach(a=>rows.push(line(ACC.name||'You', a.name, a.eta, a.ret, true)));
+    mates.filter(w=>!w.you).forEach(w=>(w.defends||[]).forEach(a=>rows.push(line(w.name, a.name, a.eta, a.ret, false))));
+    html = `<div class="panel"><div style="font-weight:800;margin-bottom:6px">🛡 Guild defenses</div>${rows.length?rows.join(''):'<div style="color:#8b98a9;font-size:12px">No one is defending right now.</div>'}</div>`;
+    if(!guilded) html+=empty('Join a guild to coordinate defenses.');
+  } else {
+    // scout tab: my scouts + who is scouting me
+    const outRows=mine.scouts.map(a=>line(ACC.name||'You', a.name, a.eta, a.ret, true));
+    const inRows=scoutedBy.map(s=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 8px;border-bottom:1px solid #222b40">
+      <span>🔭 <b style="color:#ff9a6b">${escapeHTML(s.by)}</b> is scouting you</span><span style="color:#8b98a9">${s.eta!=null?'⏱ '+fmtDur(s.eta):''}</span></div>`);
+    html = `<div class="panel"><div style="font-weight:800;margin-bottom:6px">🔭 Your scouts</div>${outRows.length?outRows.join(''):'<div style="color:#8b98a9;font-size:12px">No scouts out.</div>'}</div>`
+         + `<div class="panel"><div style="font-weight:800;margin-bottom:6px">👁 Incoming scouts</div>${inRows.length?inRows.join(''):'<div style="color:#8b98a9;font-size:12px">No one is scouting you.</div>'}</div>`;
+  }
   b.innerHTML=html;
 }
 function renderMarket(){
@@ -4155,6 +4233,7 @@ function startMarch(ctype,c,heroes){
     tRank:c.rank, tPower:c.power||1, ally:!!c.ally, heroes:(heroes||[]).slice(), dTeam:(c.team||[]).slice(), depart:t, arrive:t+out, home:t+out*2, out, resolved:false });
   saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+' each way');
   if(document.getElementById('wzone')) drawMarches();
+  if(typeof pushWatchReport==='function') pushWatchReport();   // publish live activity to guild watch tower
 }
 // ---- protection shield (guild-shop consumable): 12h immunity, breaks if YOU attack ----
 // beginner peace shield: 72h for new players, ends when you scout/attack a player OR reach level 30 (whichever first)
@@ -4262,8 +4341,10 @@ function marchTick(){ const now=Date.now(); let changed=false;
       changed=true; } });
   const before=activeMarches().length; G.marches=activeMarches().filter(m=> now<m.home ); if(G.marches.length!==before) changed=true;
   if(changed) saveG();
+  if(changed && typeof pushWatchReport==='function' && ACC.token){ const nn=Date.now(); if(nn-(_lastWatchPush||0)>15000){ _lastWatchPush=nn; pushWatchReport(); } }
   if(document.getElementById('wzone')) drawMarches();
 }
+let _lastWatchPush=0;
 // instantly recall a march: turn around at the current position and sail home over the distance already travelled
 function retreatMarch(id){ const m=activeMarches().find(x=>x.id===id); if(!m||m.dir!=='out'||m.retreated)return false; const now=Date.now();
   if(now<m.arrive){ const h=myCastlePos(); const p=(now-m.depart)/m.out; m.retFrom={x:h.x+(m.fx-h.x)*p, y:h.y+(m.fy-h.y)*p}; m.retDur=Math.max(800, now-m.depart); m.resolved=true; }  // cancel the pending action
@@ -6841,7 +6922,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786664291842';
+const BUILD_ID='1786664703801';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -410,6 +410,49 @@ async function api(req,res,url){
     if(!c) return send(res,404,{error:'no city'}); return send(res,200,{ defense:c.wall||c.team, name:c.name, rank:c.rank }); }
 
 
+  /* ------------------------------- WATCH TOWER ------------------------------
+     Guild members publish their live world-map activity (attacks/defends/scouts)
+     to DB.watch keyed by user id. GET /api/watch aggregates fresh (<10min) entries
+     for everyone in the caller's guild, plus who is scouting the caller. */
+  if(p.startsWith('/api/watch')){
+    if(!me) return send(res,401,{error:'auth'});
+    DB.watch = DB.watch || {};
+    const WFRESH = 10*60*1000;
+    if(p==='/api/watch/report' && req.method==='POST'){
+      const b=await body(req)||{};
+      DB.watch[me.id] = {
+        id:me.id, name:me.name, guildId:me.guildId||null,
+        attacks:Array.isArray(b.attacks)?b.attacks.slice(0,20):[],
+        defends:Array.isArray(b.defends)?b.defends.slice(0,20):[],
+        scouts: Array.isArray(b.scouts) ?b.scouts.slice(0,20):[],
+        t:Date.now()
+      };
+      writeDB();
+      return send(res,200,{ok:true});
+    }
+    if(p==='/api/watch'){
+      const now=Date.now();
+      // prune stale entries
+      for(const k of Object.keys(DB.watch)){ if(now-(DB.watch[k].t||0) > WFRESH) delete DB.watch[k]; }
+      const fresh=Object.values(DB.watch).filter(w=>now-(w.t||0)<=WFRESH);
+      const mates = me.guildId
+        ? fresh.filter(w=>w.guildId===me.guildId)
+              .map(w=>({ id:w.id, name:w.name, you:w.id===me.id, attacks:w.attacks||[], defends:w.defends||[], scouts:w.scouts||[], t:w.t }))
+        : fresh.filter(w=>w.id===me.id)
+              .map(w=>({ id:w.id, name:w.name, you:true, attacks:w.attacks||[], defends:w.defends||[], scouts:w.scouts||[], t:w.t }));
+      const myName=(me.name||'').toLowerCase();
+      const scoutedBy=[];
+      for(const w of fresh){
+        if(w.id===me.id) continue;
+        for(const s of (w.scouts||[])){
+          if((s.name||'').toLowerCase()===myName){ scoutedBy.push({ by:w.name, eta:s.eta||null, t:w.t }); }
+        }
+      }
+      return send(res,200,{ mates, scoutedBy, guilded:!!me.guildId });
+    }
+    return send(res,404,{error:'watch'});
+  }
+
   /* ------------------------------- GUILDS (real, cross-device) --------------
      A guild is a shared server object in DB.guilds; each user carries a guildId
      pointer. Membership, join-requests, roster, shared level/exp and chat are all
