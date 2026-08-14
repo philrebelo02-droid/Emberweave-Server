@@ -1699,9 +1699,9 @@ function migrateG(){
   // best rank can never be worse than current (prevents retroactive over-rewarding old saves)
   if(G.bestArenaRank==null || G.bestArenaRank>G.arenaRank) G.bestArenaRank=G.arenaRank;
   // ensure mail/quest/war structures exist on older saves
-  if(!G.mail || typeof G.mail!=='object') G.mail={inbox:[],reports:[]};
+  if(!G.mail || typeof G.mail!=='object') G.mail={inbox:[],war:[],mines:[],scouts:[]};
   if(!Array.isArray(G.mail.inbox)) G.mail.inbox=[];
-  if(!Array.isArray(G.mail.reports)) G.mail.reports=[];
+  ['war','mines','scouts'].forEach(k=>{ if(!Array.isArray(G.mail[k])) G.mail[k]=[]; });
   if(!Array.isArray(G.wars)) G.wars=[];
   if(G.questArena==null) G.questArena=0;
   if(!G.questClaimed || typeof G.questClaimed!=='object') G.questClaimed={};
@@ -2077,6 +2077,51 @@ function laneSlot(team,key,i,n,keys){
   x+=px*off; y+=py*off;
   return {x:Math.max(60,Math.min(FW-60,x)), y:Math.max(80,Math.min(FD-60,y))};
 }
+/* --- Phase 2: portable resolved-stat snapshot + rebuild (for exact, device-independent replays) ---
+   snapUnitResolved captures a built unit's FULLY-RESOLVED combat numbers (glyphs/stars/tech/skills already baked in),
+   so a replay never recomputes from the viewer's own G. buildUnitFromSnapshot rebuilds that exact fighter anywhere:
+   static structure (type, kit abilities by rank) comes from the key+rank (present in code on every device), the
+   resolved numbers are overwritten from the snapshot. Enemy teams stay portable as {key,level,rank} (makeUnit owned:false
+   is deterministic), so only the OWNED side needs a snapshot. */
+function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, boss:!!u.boss,
+  maxHp:u.maxHp, dmg:u.dmg, range:u.range, speed:u.speed, atkInterval:u.atkInterval, combatDist:u.combatDist, r:u.r, melee:!!u.melee,
+  apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
+  critRes:u.critRes||0, energyReg:u.energyReg||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
+  immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null }; }
+function buildUnitFromSnapshot(s,team,x,y){
+  const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank,boss:s.boss});   // structure + kit abilities by rank
+  u.maxHp=u.hp=s.maxHp; u.dmg=s.dmg; u.range=s.range; u.speed=s.speed; u.atkInterval=s.atkInterval; u.combatDist=s.combatDist; u.r=s.r; u.melee=s.melee;
+  u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg;
+  u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune; u.pass=s.pass;
+  if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18;   // re-apply the ranged reach gate after overriding stats
+  return u;
+}
+/* Headless deterministic fight resolver (Rule 3: attack/raid/mine decided by the two teams fighting on full auto).
+   Rebuilds allies from resolved snapshots + foes from {key,level,rank}, seeds, runs the fixed-step sim to a result with
+   NO rendering/rewards (via window._p2guard in endBattle). Returns the winner. Identical inputs+seed → identical result,
+   and the stored replay (same snapshots+seed) reproduces this exact fight. Safe: only runs off-battle (marchTick). */
+// Build BOTH teams into `units` from data via laneSlot — the SINGLE shared setup used by the headless resolver AND the
+// on-screen replay, so a report's replay reproduces the recorded fight byte-for-byte. render=true builds meshes (replay);
+// render=false skips them (headless). Positioning + stats + seed are identical either way (buildFigure uses no battle-RNG).
+function setupMarchTeams(allySnaps, foeTeam, render){
+  units=[];
+  (allySnaps||[]).forEach((s,i)=>{ const sl=laneSlot('ally',s.key,i,allySnaps.length,allySnaps.map(z=>z.key)); const u=buildUnitFromSnapshot(s,'ally',sl.x,sl.y); u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
+  (foeTeam||[]).forEach((f,i)=>{ const sl=laneSlot('enemy',f.key,i,foeTeam.length,foeTeam.map(z=>z.key)); const u=makeUnit(f.key,'enemy',sl.x,sl.y,f.level||1,{owned:false,rank:f.rank||0}); u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
+}
+function simFightResult(allySnaps, foeTeam, seed){
+  const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
+  window._p2guard=true;
+  ended=false; state='battle'; CUR={mode:'replay',seed}; battleTime=0; gameSpeed=1; window._p2win=null;
+  try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){} waveXfer=null; chapterWaves=1; waveIdx=0;
+  setupMarchTeams(allySnaps, foeTeam, false);
+  seedBattle(seed);
+  for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
+  const allyAlive=units.filter(u=>u.team==='ally'&&u.alive).length, foeAlive=units.filter(u=>u.team==='enemy'&&u.alive).length;
+  const won = (window._p2win===true) || (allyAlive>0 && foeAlive===0);   // win if the sim said so, or allies stand and foes are wiped (timeout = loss)
+  window._p2guard=false;
+  ({units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx}=sv);
+  return won;
+}
 function makeUnit(key,team,x,y,levelOverride,extra){
   const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
   const boss=extra&&extra.boss, owned=extra&&extra.owned;
@@ -2426,7 +2471,7 @@ function think(u,dt){
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
   if(u.stunned>0){u.stunned-=dt;return;}
   if((u.fearT||0)>0){ u.fearT-=dt; u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
-  if(u._castT>0)u._castT-=dt;   // casting: locked out of auto-attacks
+  if(u._castT>0)u._castT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
     if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
@@ -2448,8 +2493,8 @@ function think(u,dt){
       else if(u.t.ability==='rally'){if(units.some(o=>o.alive&&o.team===u.team&&o.energy<60)){castAbility(u);return;}}
       else if(u.target){castAbility(u);}}}
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
-  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&(u._castT||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
-  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&(u._castT||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
+  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
+  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   const t=u.target;if(!t)return;const d=dist(u,t);
@@ -2459,7 +2504,7 @@ function think(u,dt){
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
-    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18;
+    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); } };
@@ -2578,6 +2623,7 @@ function grantRewards(){
 // Chapter 1 (the first 10 stages) is a tutorial: normal stages drop only GREY shards; Elite stages add a little GREEN.
 function rollDrops(node){ const d={grey:4+node}; if(isEliteStage(node)) d.green=2; return d; }
 function endBattle(won){ ended=true;
+  if(window._p2guard){ window._p2win=won; return; }   // Phase 2 headless sim: record winner, skip all UI/rewards
   // snapshot Victory-screen data before any mode-specific early return (used by renderResultExtras)
   resultWon=won;
   { const al=units.filter(u=>u.team==='ally'); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
@@ -4297,7 +4343,13 @@ function spawnIncoming(ctype,name,power,fx,fy){ const t=Date.now();
 //      When the timer hits 0 the war goes LIVE and combat is allowed for a 1-hour window, then peace. ----
 const WAR_PREP_MS=30*60000;      // 30-min declaration lockout before any attack is possible
 const WAR_TOTAL_MS=72*3600000;   // a declared war lasts 72 hours total, then must be re-declared
-function ensureMail(){ if(!G.mail)G.mail={inbox:[],reports:[]}; if(!Array.isArray(G.mail.inbox))G.mail.inbox=[]; if(!Array.isArray(G.mail.reports))G.mail.reports=[]; if(!Array.isArray(G.wars))G.wars=[]; return G.mail; }
+const MAIL_KINDS=['inbox','war','mines','scouts'];   // Inbox = guild+player only · War = attacks made/taken + defends · Mines = mine reports · Scouts = scout reports + declare-war
+function ensureMail(){ if(!G.mail||typeof G.mail!=='object')G.mail={}; MAIL_KINDS.forEach(k=>{ if(!Array.isArray(G.mail[k]))G.mail[k]=[]; }); if(!Array.isArray(G.wars))G.wars=[];
+  // one-time migration from the old {inbox,reports} layout → new tabs
+  if(Array.isArray(G.mail.reports)){ G.mail.reports.forEach(mm=>{ const s=(mm&&mm.subj)||''; if(s.indexOf('⛏')>=0)G.mail.mines.push(mm); else if(s.indexOf('🔭')>=0)G.mail.scouts.push(mm); else G.mail.war.push(mm); }); delete G.mail.reports; }
+  { const keep=[],moved=[]; G.mail.inbox.forEach(mm=>{ (mm&&mm.battle)?moved.push(mm):keep.push(mm); }); if(moved.length){ G.mail.war.push(...moved); G.mail.inbox=keep; } }   // old raid battle-mails left inbox → war
+  MAIL_KINDS.forEach(k=>{ if(G.mail[k].length>40)G.mail[k].length=40; });
+  return G.mail; }
 function pruneWars(){ ensureMail(); const now=Date.now(); G.wars=G.wars.filter(w=>(w.expireAt||w.until||0)>now); return G.wars; }
 function warReady(w){ return Date.now() >= (w.readyAt||0); }          // prep timer elapsed → combat allowed
 function warPrepLeft(w){ return Math.max(0,(w.readyAt||0)-Date.now()); }
@@ -4310,7 +4362,7 @@ function atWarWith(name,incoming){ return pruneWars().some(w=>w.name===name && !
 function warPending(name,incoming){ return pruneWars().some(w=>w.name===name && !!w.incoming===!!incoming && !warReady(w)); }
 function warPrepRemaining(name,incoming){ const w=pruneWars().find(x=>x.name===name && !!x.incoming===!!incoming && !warReady(x)); return w?warPrepLeft(w):0; }
 function addMail(kind,m){ ensureMail(); m.t=m.t||Date.now(); m.read=false; G.mail[kind].unshift(m); if(G.mail[kind].length>40)G.mail[kind].length=40; }
-function mailUnread(kind){ ensureMail(); const list=kind?G.mail[kind]:[...G.mail.inbox,...G.mail.reports]; return list.filter(x=>!x.read).length; }
+function mailUnread(kind){ ensureMail(); const list=kind?(G.mail[kind]||[]):MAIL_KINDS.reduce((a,k)=>a.concat(G.mail[k]||[]),[]); return list.filter(x=>!x.read).length; }
 function pushWar(c,incoming){ ensureMail(); const now=Date.now(), readyAt=now+WAR_PREP_MS, expireAt=now+WAR_TOTAL_MS;   // 30-min prep, 72h total
   G.wars=G.wars.filter(w=>!(!!w.incoming===!!incoming && w.name===c.name));   // one war per foe per direction
   G.wars.push({name:c.name,x:c.x,y:c.y,power:c.power||300,readyAt,expireAt,incoming}); saveG(); updateMailBadges(); }
@@ -4336,42 +4388,52 @@ function genFoeTeam(power,seedName){ const pool=HERO_KEYS.slice(), n=4, t=[]; le
   const per=Math.max(74,(power||600)/n);
   for(let i=0;i<n;i++){ const key=pool[(sd+i*7)%pool.length], rank=Math.min(3,(((sd+i*5)%100)/34)|0), level=Math.max(1,Math.min(60,Math.round((per-60-rank*70)/14))); t.push({key,level,rank}); }
   return t; }
-// launch an auto-played re-enactment of a recorded fight (viewer's heroes = meta.mine, enemy = meta.foe)
-function watchBattle(meta){ if(!meta||!(meta.mine||[]).length||!(meta.foe||[]).length)return;
+function snapAllySquad(keys){ return (keys||[]).filter(Boolean).map(k=>snapUnitResolved(makeUnit(k,'ally',0,0,null,{owned:true}))); }
+function newFightSeed(){ return ((Math.floor(Math.random()*4294967296))>>>0); }   // one-time random seed per fight; stored → the replay is deterministic
+// launch the recorded fight. v2 reports carry {seed, mineSnap[resolved], foe[{key,level,rank}]} → EXACT deterministic replay
+// (portable: rebuilt from the snapshot, never from the viewer's own account). Older reports fall back to re-enactment.
+function watchBattle(meta){ if(!meta)return;
+  if(meta.v>=2 && meta.mineSnap && meta.mineSnap.length && (meta.foe||[]).length){
+    CUR={mode:'replay', seed:(meta.seed>>>0), replayWon:!!meta.won, oppName:meta.oppName||'the enemy', replayAlly:meta.mineSnap};
+    startVersus(trimTeam(meta.foe), true, meta.mineSnap.map(s=>s.key)); return; }
+  if(!(meta.mine||[]).length||!(meta.foe||[]).length)return;
   CUR={mode:'replay', replayWon:!!meta.won, oppName:meta.oppName||'the enemy'};
   startVersus(trimTeam(meta.foe), true, meta.mine.map(h=>h.key)); }
 function resolveMarch(m){
   if(m.dir==='in'){   // something arriving AT your castle
-    if(m.ctype==='defend'){ marchReport('🛡 Ally reinforced you','A guild ally reinforced your castle, then marched home.'); return; }
+    if(m.ctype==='defend'){ addMail('war',{from:m.tName||'Guild ally',subj:'🛡 Ally reinforced you',body:'A guild ally reinforced your castle, then marched home.'}); marchReport('🛡 Ally reinforced you','A guild ally reinforced your castle, then marched home.'); updateMailBadges(); return; }
     if(shieldActive()){ marchReport('🛡 Attack blocked!','Your protection shield held — '+m.tName+' could not raid you.'); return; }
-    const def=wallDefensePower(), atk=m.tPower||300, n=wallActiveTeamCount();
-    const defMine=snapSquad(wallOrderedSquad()), foeRaider=genFoeTeam(atk,m.tName);
-    if(def>0 && def>=atk){   // the wall lines fight in order — combined active defense held the attacker off
-      addMail('inbox',{from:m.tName,subj:'🛡 Raid repelled',body:'Your wall held! '+m.tName+'’s raid was driven off across '+n+' defense line'+(n===1?'':'s')+'. No gold was lost.',battle:{mine:defMine,foe:foeRaider,won:true,oppName:m.tName}});
+    const atk=m.tPower||300, n=wallActiveTeamCount();
+    const defKeys=wallOrderedSquad(), defSnap=snapAllySquad(defKeys), foeRaider=trimTeam(genFoeTeam(atk,m.tName));
+    const seed=newFightSeed(), won=simFightResult(defSnap, foeRaider, seed);   // Rule 3: your wall vs the raider, full auto
+    const meta={v:2,seed,mine:snapSquad(defKeys),mineSnap:defSnap,foe:foeRaider,won,oppName:m.tName};
+    if(won){
+      addMail('war',{from:m.tName,subj:'🛡 Raid repelled',body:'Your wall held! '+m.tName+'’s raid was driven off across '+n+' defense line'+(n===1?'':'s')+'. No gold was lost.',battle:meta});
       marchReport('🛡 Wall held!','Your defenders repelled '+m.tName+'’s raid ('+n+' line'+(n===1?'':'s')+' defending). No gold lost.'); updateMailBadges(); return; }
     const loss=Math.min(G.gold||0, 100+Math.floor(rand01(Date.now())*300)); G.gold=(G.gold||0)-loss; updateHubChrome();
-    addMail('inbox',{from:m.tName,subj:'⚠ Raided your castle',body:m.tName+'’s army broke through your defense lines and looted 🪙 '+loss+' gold. Raise a protection shield or strengthen your wall lines.',battle:{mine:defMine,foe:foeRaider,won:false,oppName:m.tName}});
+    addMail('war',{from:m.tName,subj:'⚠ Raided your castle',body:m.tName+'’s army broke through your defense lines and looted 🪙 '+loss+' gold. Raise a protection shield or strengthen your wall lines.',battle:meta});
     marchReport('⚠ Raided by '+m.tName,'An enemy raided your castle and stole 🪙 '+loss+'. Consider a protection shield.'); updateMailBadges(); return;
   }
-  if(m.ctype==='mine'){   // mining = fight the mine's 5 monster guardians; win → haul the resources
-    const garrison=(m.garrison&&m.garrison.length)?m.garrison:mineGarrison({id:m.mineId,level:m.mineLevel||1,x:m.fx,y:m.fy});
-    const gp=mineReqPower(m.mineLevel||1), myPow=marchPower(m.heroes), win=myPow>=gp*(0.85+rand01(Date.now())*0.3);
-    const rlabel=mnResName(m.res), rpt={ mine:snapSquad(m.heroes), foe:trimTeam(garrison), won:win, oppName:mineLabel({level:m.mineLevel,res:m.res}) };
+  if(m.ctype==='mine'){   // mining = fight the mine's 5 monster guardians on full auto; win → haul the resources
+    const garrison=trimTeam((m.garrison&&m.garrison.length)?m.garrison:mineGarrison({id:m.mineId,level:m.mineLevel||1,x:m.fx,y:m.fy}));
+    const allySnap=snapAllySquad(m.heroes), seed=newFightSeed(), win=simFightResult(allySnap, garrison, seed);
+    const rlabel=mnResName(m.res), rpt={ v:2, seed, mine:snapSquad(m.heroes), mineSnap:allySnap, foe:garrison, won:win, oppName:mineLabel({level:m.mineLevel,res:m.res}) };
     if(win){ const amt=m.yieldAmt||0; if(!G.res)G.res={}; G.res[m.res]=(G.res[m.res]||0)+amt; updateHubChrome();
-      addMail('reports',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — '+rlabel,body:'Your squad defeated the mine\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+amt+' '+rlabel+' home.',battle:rpt});
+      addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — '+rlabel,body:'Your squad defeated the mine\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+amt+' '+rlabel+' home.',battle:rpt});
       marchReport('⛏ Mining complete','Your miners cleared the guardians and struck '+mnResIcon(m.res)+' '+amt+' '+rlabel+'.'); }
-    else { addMail('reports',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
+    else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
       marchReport('⛏ Mining failed','The mine\'s guardians drove your miners off — no resources gathered.'); }
     updateMailBadges(); return; }
   if(m.ctype==='scout'){ const body='Rank #'+m.tRank+' · defence power ~'+(m.tPower||'?')+'. Their walls look '+(( m.tPower||300)>420?'heavily guarded':'lightly held')+'.';
-    addMail('reports',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
-  if(m.ctype==='defend'){ marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); return; }
-  const myPow=marchPower(m.heroes), enemy=m.tPower||1, win=myPow>=enemy*(0.85+rand01(Date.now())*0.3);
-  const rptBattle={ mine:snapSquad(m.heroes), foe:(m.dTeam&&m.dTeam.length)?trimTeam(m.dTeam):genFoeTeam(enemy,m.tName), won:win, oppName:m.tName };
+    addMail('scouts',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
+  if(m.ctype==='defend'){ addMail('war',{from:m.tName,subj:'🛡 Defending '+m.tName,body:'Your heroes are stationed at '+m.tName+', defending a guild member. They stay until you Retreat them from Info.'}); marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); updateMailBadges(); return; }
+  const enemy=m.tPower||1, foeTeam=(m.dTeam&&m.dTeam.length)?trimTeam(m.dTeam):trimTeam(genFoeTeam(enemy,m.tName));
+  const allySnap=snapAllySquad(m.heroes), seed=newFightSeed(), win=simFightResult(allySnap, foeTeam, seed);   // Rule 3: your army vs their wall, full auto
+  const rptBattle={ v:2, seed, mine:snapSquad(m.heroes), mineSnap:allySnap, foe:foeTeam, won:win, oppName:m.tName };
   if(win){ const gold=Math.round((200+Math.floor(rand01(Date.now()+1)*400))*embassyRaidMul()); G.gold=(G.gold||0)+gold; G.guildCoins=(G.guildCoins||0)+40; updateHubChrome();
-    addMail('reports',{from:m.tName,subj:'⚔ Victory — '+m.tName,body:'Your army broke '+m.tName+'’s wall and looted 🪙 '+gold+' + 🎖 40 guild coins.',battle:rptBattle});
+    addMail('war',{from:m.tName,subj:'⚔ Victory — '+m.tName,body:'Your army broke '+m.tName+'’s wall and looted 🪙 '+gold+' + 🎖 40 guild coins.',battle:rptBattle});
     marchReport('⚔ Victory at '+m.tName,'Your army broke their wall — looted 🪙 '+gold+' and 🎖 40 guild coins. Troops are marching home.'); }
-  else { addMail('reports',{from:m.tName,subj:'⚔ Defeat — '+m.tName,body:m.tName+'’s defenders held. Your heroes retreat and march home.',battle:rptBattle});
+  else { addMail('war',{from:m.tName,subj:'⚔ Defeat — '+m.tName,body:m.tName+'’s defenders held. Your heroes retreat and march home.',battle:rptBattle});
     marchReport('⚔ Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.'); }
   updateMailBadges();
 }
@@ -5102,9 +5164,13 @@ function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 /* generic PvE-style versus battle used by Arena (auto) and Raid (manual) */
 function startVersus(enemyTeam,auto,allyKeys){
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
-  spawnTeam((allyKeys&&allyKeys.length)?allyKeys:G.team,'ally');
-  const slots=formationSlots('enemy',enemyTeam.length);
-  enemyTeam.forEach((e,i)=>{const et=HERO_TYPES[e.key]||MONSTER_TYPES[e.key]||{range:100},melee=et.range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
+  if(CUR&&CUR.replayAlly&&CUR.replayAlly.length){   // v2 exact replay: build BOTH teams from data exactly as the headless resolver did (laneSlot), so the replay == the recorded fight
+    setupMarchTeams(CUR.replayAlly, enemyTeam, true);
+  } else {
+    spawnTeam((allyKeys&&allyKeys.length)?allyKeys:G.team,'ally');
+    const slots=formationSlots('enemy',enemyTeam.length);
+    enemyTeam.forEach((e,i)=>{const et=HERO_TYPES[e.key]||MONSTER_TYPES[e.key]||{range:100},melee=et.range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
+  }
   autoUlt=!!auto;
   buildPortraitBar('ally');refreshCtrlBtns();updateCounts();show('battle');
   document.getElementById('waveTag').textContent = (CUR.mode==='arena'?'🏆 ARENA':'🗺️ RAID');
@@ -5937,22 +6003,24 @@ let mailTab='inbox';
 function timeAgo(t){ const s=Math.floor((Date.now()-(t||Date.now()))/1000); if(s<60)return 'now'; const m=Math.floor(s/60); if(m<60)return m+'m'; const h=Math.floor(m/60); if(h<24)return h+'h'; return Math.floor(h/24)+'d'; }
 function renderMail(){ ensureMail(); pruneWars();
   const tabs=document.getElementById('mailTabs'), b=document.getElementById('mailBody'); if(!tabs||!b)return;
-  const inU=mailUnread('inbox'), rpU=mailUnread('reports'), warN=incomingWars().length;
-  const TB=[['inbox','📥 Inbox',inU],['reports','🔭 Reports',rpU],['war','⚔ Declare War',warN]];
+  const warN=incomingWars().length;
+  const TB=[['inbox','📥 Inbox',mailUnread('inbox')],['war','⚔ War',mailUnread('war')],['mines','⛏ Mines',mailUnread('mines')],['scouts','🔭 Scouts',mailUnread('scouts')+warN]];
   tabs.innerHTML=TB.map(([k,l,n])=>`<div class="tab${mailTab===k?' on':''}" data-t="${k}">${l}${n?`<span class="cnt">${n}</span>`:''}</div>`).join('');
-  tabs.querySelectorAll('.tab').forEach(el=>el.onclick=()=>{ mailTab=el.dataset.t; if(mailTab==='inbox'||mailTab==='reports'){ G.mail[mailTab].forEach(m=>m.read=true); saveG(); updateMailBadges(); } renderMail(); });
-  if(mailTab==='war'){ renderMailWar(b); return; }
+  tabs.querySelectorAll('.tab').forEach(el=>el.onclick=()=>{ mailTab=el.dataset.t; if(G.mail[mailTab]){ G.mail[mailTab].forEach(m=>m.read=true); saveG(); updateMailBadges(); } renderMail(); });
   const list=G.mail[mailTab]||[];
-  if(!list.length){ b.innerHTML=`<div style="text-align:center;color:#6f7d90;padding:26px 10px">${mailTab==='inbox'?'📭 No messages yet. War declarations and raids from other players will appear here.':'🔭 No scout reports yet. Scout a rival stronghold from the World Map.'}</div>`; return; }
-  b.innerHTML=list.map((m,i)=>`<div class="mailrow${m.read?'':' unread'}"><span class="mtime">${timeAgo(m.t)}</span>
+  const emptyMsg={inbox:'📭 No messages yet. Guild and player messages appear here.',war:'⚔ No war reports yet. Attacks you make, raids on your castle, and defends appear here.',mines:'⛏ No mine reports yet. Send a squad to mine a node on the World Map.',scouts:'🔭 No scout reports yet. Scout a rival stronghold from the World Map.'}[mailTab]||'No messages.';
+  const hasWatch=(mm)=> mm.battle && ((mm.battle.mineSnap&&mm.battle.mineSnap.length)||(mm.battle.mine||[]).length) && (mm.battle.foe||[]).length;
+  b.innerHTML = list.length ? list.map((m,i)=>`<div class="mailrow${m.read?'':' unread'}"><span class="mtime">${timeAgo(m.t)}</span>
     <div class="mfrom">${escapeHTML(m.from||'System')}</div>
     <div class="msub">${escapeHTML(m.subj||'')}</div>
     <div class="mbody">${escapeHTML(m.body||'')}</div>
-    ${(m.battle&&(m.battle.mine||[]).length&&(m.battle.foe||[]).length)?`<button class="btn sm" data-battle="${i}" style="margin-top:8px">▶ Watch Battle</button>`:''}</div>`).join('');
+    ${hasWatch(m)?`<button class="btn sm" data-battle="${i}" style="margin-top:8px">▶ Watch Battle</button>`:''}</div>`).join('')
+    : `<div style="text-align:center;color:#6f7d90;padding:26px 10px">${emptyMsg}</div>`;
   b.querySelectorAll('[data-battle]').forEach(btn=>btn.onclick=()=>{ const mm=list[+btn.dataset.battle]; if(mm&&mm.battle) watchBattle(mm.battle); });
+  if(mailTab==='scouts'){ renderMailWar(b); }   // Scouts tab ALSO carries the Declare-War section (appended below the scout reports)
 }
 function renderMailWar(b){ const inc=incomingWars(), out=outgoingWars();
-  let html=`<div class="qd" style="margin-bottom:8px">Declaring war starts a <b style="color:#ffd45e">30-minute countdown</b>. Nobody can attack during it — once it reaches zero the war goes <b style="color:#ff8f8f">live</b>. A declared war lasts <b style="color:#ff8f8f">72 hours</b> total, then must be re-declared. Declare war from a castle's menu on the World Map.</div>`;
+  let html=`<div style="font-weight:800;color:#cbd7ff;margin:16px 0 8px;border-top:1px solid #26324a;padding-top:12px">⚔ Declare War</div><div class="qd" style="margin-bottom:8px">Declaring war starts a <b style="color:#ffd45e">30-minute countdown</b>. Nobody can attack during it — once it reaches zero the war goes <b style="color:#ff8f8f">live</b>. A declared war lasts <b style="color:#ff8f8f">72 hours</b> total, then must be re-declared. Declare war from a castle's menu on the World Map.</div>`;
   html+=`<div style="font-weight:800;color:#ff9a9a;margin:10px 0 6px">⚔ Enemies at war with you (${inc.length})</div>`;
   html+= inc.length ? inc.map(w=>{ const live=warReady(w);
     return `<div class="warrow"><div><b>${escapeHTML(w.name)}</b><div style="font-size:11px;color:${live?'#ff8f8f':'#c9a35e'}">${live?'⚔ can attack you now':'🔒 preparing — cannot attack yet'}</div></div>`
@@ -5963,7 +6031,7 @@ function renderMailWar(b){ const inc=incomingWars(), out=outgoingWars();
     return `<div class="warrow out"><div><b>${escapeHTML(w.name)}</b><div style="font-size:11px;color:${live?'#8fb':'#c9a35e'}">${live?'⚔ you can attack them now':'🔒 preparing — cannot attack yet'}</div></div>`
       +`<div style="text-align:right"><div style="color:${live?'#8fb':'#ffd45e'};font-weight:800">⏳ ${fmtDur(live?warLiveLeft(w):warPrepLeft(w))}</div><div style="font-size:10px;color:#8b98a9">${live?'until peace':'until you can attack'}</div></div></div>`; }).join('')
     : `<div style="color:#6f7d90;font-size:12px">You haven't declared war on anyone. Open a castle on the World Map and choose 🔥 Declare War to attack it.</div>`;
-  b.innerHTML=html;
+  b.innerHTML+=html;   // APPEND under the scout reports (Scouts + Declare-War share one tab)
 }
 // badges: menu dots + live mail tab counts
 function updateMailBadges(){ ensureMail(); pruneWars();
@@ -6966,6 +7034,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
+    else if(CUR.mode==='replay' && !freeze){ const n=Math.max(1,Math.round(gameSpeed||1)); for(let i=0;i<n&&!ended;i++)updateBattle(SIM_STEP); }   // REPLAY: fixed SIM_STEP, N steps/frame (N=speed). Smooth (fresh sim every render frame, no interpolation jitter) AND deterministic (fixed dt+seed → identical fight everywhere; only wall-clock duration varies with fps). Live play stays variable-timestep below.
     else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; const _steps=spd>=1?Math.round(spd):1, _sdt=(spd>=1?dt:dt*spd)*BATTLE_PACE; for(let i=0;i<_steps&&!ended;i++)updateBattle(_sdt);   // variable timestep: sim advances once per RENDER frame, so positions + all anim timers update every frame → smooth, no lag, no jitter (fixed-timestep+interpolation was reverted — it stepped anim timers and jittered)
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
@@ -6976,7 +7045,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786727163510';
+const BUILD_ID='1786737677027';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -7185,5 +7254,6 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   setInterval(()=>{ if(document.getElementById('wzone')) drawMarches(); },150);   // smooth ship movement while the map is open
   requestAnimationFrame(loop); }
 </script>
+
 </body>
 </html>
