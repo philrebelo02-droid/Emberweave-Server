@@ -1846,7 +1846,13 @@ let selected=null,battleTime=0,ended=false,rageMul=1;
 const BATTLE_TIME_LIMIT=90;                 // Magic Rush-style battle countdown shown in the top banner (display)
 let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state (stars + hero cards)
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
-const BATTLE_PACE=0.82;   // slightly slower overall battle tempo
+const BATTLE_PACE=0.82;
+/* --- Phase 1: deterministic battle core --- */
+const SIM_STEP=BATTLE_PACE/30;
+let _brng=null, _bacc=0;
+function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+function brnd(){ return _brng?_brng():Math.random(); }
+function seedBattle(sd){ let seed=(sd!=null)?(sd>>>0):(((Date.now()>>>0)^((Math.random()*4294967296)>>>0))>>>0); try{ if(CUR&&typeof CUR==='object') CUR.seed=seed; }catch(e){} _brng=mulberry32(seed); _bacc=0; return seed; };   // slightly slower overall battle tempo
 // per-class attack swing interval (seconds) — lower = faster swings
 const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
 function swingInterval(t){ return (t.swing!=null? t.swing : (ROLE_SWING[t.role]||1.0)); }
@@ -2163,11 +2169,11 @@ function damage(u,a,c,noEnergy,crit){
 }
 /* outgoing damage — applies the attacker's passives (crit / lifesteal / ignite) */
 function dealDamage(src,tgt,amt,color){
-  if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && Math.random()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
+  if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
   if((tgt._frozenT||0)>0) amt*=1.25;   // Cold Snap (Sylthaine): frozen foes take +25% damage from everyone
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
-  if(cc&&Math.random()<cc){ let mult=1.6; if(tgt.critRes) mult=1+(mult-1)*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }
+  if(cc&&brnd()<cc){ let mult=1.6; if(tgt.critRes) mult=1+(mult-1)*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }
   damage(tgt,amt,color,false,_crit);
   if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,amt*0.2);
   if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,amt*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
@@ -2211,7 +2217,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       ringBurst(u.x,u.y,0xffa657,10); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,10); break; }
     case 'fireball':{const ctr=aimCtr||tgt;if(!ctr)break;enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||95)){dealDamage(u,e,dB*(o.mul||2.2)*rm,'#b98bff');}});burstAt(ctr.x,ctr.y,0xb98bff,24);break;}
     case 'fireorb':{ if(!tgt)break; const dmgAmt=dB*(o.mul||2.6)*rm, R=o.radius||58, atk=u, tx=tgt.x, ty=tgt.y;
-      spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(Math.random()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a'); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
+      spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(brnd()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a'); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
       break; }
     case 'multiShot':{enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');spawnShot(u,e,'#5ee89b');});break;}
     case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);}});burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
@@ -2275,7 +2281,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       ringBurst(u.x,u.y,0x9a7b40,16); burstAt(u.x,u.y,0xcaa050,14); break; }
     case 'punchflurry':{ const tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,dB*(o.mul||0.30)*rm,'#e0b070');
-        if(Math.random()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); tg.silencedT=Math.max(tg.silencedT||0,o.tauntDur||2); } }
+        if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); tg.silencedT=Math.max(tg.silencedT||0,o.tauntDur||2); } }
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
     // ---- Vulmar (gravity) ----
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
@@ -2327,7 +2333,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, dB=u.dm
       floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     // ---- Fritz (lightning assassin) — lightning scales off ability power ----
     case 'stormsurge':{ let foes=enemiesOf(u); if(!foes.length)break; const n=Math.min(o.n||5, foes.length);
-      for(let i=0;i<n && foes.length;i++){ const k=Math.floor(Math.random()*foes.length); const e=foes.splice(k,1)[0]; dealDamage(u,e,apB*(o.mul||0.85)*rm,'#f2e07a'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); }
+      for(let i=0;i<n && foes.length;i++){ const k=Math.floor(brnd()*foes.length); const e=foes.splice(k,1)[0]; dealDamage(u,e,apB*(o.mul||0.85)*rm,'#f2e07a'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); }
       floatTexts.push({x:u.x,y:u.y-12,txt:'STORM SURGE',t:.9,color:'#f2e07a',vy:1,sz:12}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); break; }
     case 'chainlight':{ let cur=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!cur)break; const hit=new Set(); let dmg=apB*(o.mul||1.1)*rm; const jumps=o.jumps||4, dec=o.decay||0.8; let prev=u;
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev)spawnShot(prev,cur,'#bfe6ff'); prev=cur; dmg*=dec;
@@ -2426,7 +2432,7 @@ function think(u,dt){
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
     if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
-      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealDamage(u,e,dmg,'#bfefff'); if(Math.random()<0.10){ e.stunned=Math.max(e.stunned||0,1.2); e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
+      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealDamage(u,e,dmg,'#bfefff'); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,1.2); e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
   if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
@@ -2473,7 +2479,7 @@ function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.trave
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 function startBattle(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1);   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
@@ -5098,7 +5104,7 @@ function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 
 /* generic PvE-style versus battle used by Arena (auto) and Raid (manual) */
 function startVersus(enemyTeam,auto,allyKeys){
-  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0;
+  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
   spawnTeam((allyKeys&&allyKeys.length)?allyKeys:G.team,'ally');
   const slots=formationSlots('enemy',enemyTeam.length);
   enemyTeam.forEach((e,i)=>{const et=HERO_TYPES[e.key]||MONSTER_TYPES[e.key]||{range:100},melee=et.range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
@@ -6950,7 +6956,7 @@ document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='r
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
 // ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
-  for(let i=0;i<7200 && !ended && state==='battle';i++){ updateBattle(1/30); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
+  for(let i=0;i<7200 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 document.getElementById('autoBtn').onclick=()=>{ if(CUR.mode==='arena')return; autoUlt=!autoUlt;refreshCtrlBtns();};
 
@@ -6963,7 +6969,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
-    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; const _steps=spd>=1?Math.round(spd):1, _sdt=(spd>=1?dt:dt*spd)*BATTLE_PACE; for(let i=0;i<_steps&&!ended;i++)updateBattle(_sdt);
+    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; _bacc+=dt*30*spd; let _bsteps=Math.floor(_bacc); _bacc-=_bsteps; if(_bsteps>8)_bsteps=8; for(let i=0;i<_bsteps&&!ended;i++)updateBattle(SIM_STEP);
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
@@ -6973,7 +6979,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786722147000';
+const BUILD_ID='1786723105442';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
