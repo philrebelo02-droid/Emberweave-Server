@@ -409,7 +409,7 @@
   .node .conn{position:absolute;bottom:-2px;left:50%;width:3px;height:22px;background:#33405e;transform:translateX(-50%);}
   .node.cleared .conn{background:#5ee89b;}
   /* graphic campaign trail */
-  #cmapScroll{width:100%;max-width:min(96vw,940px);margin:0 auto;text-align:center;max-height:calc(100vh - 130px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:14px;overscroll-behavior:contain;}
+  #campaign{position:relative;overflow:hidden;}#campaign::before{content:'';position:absolute;inset:-30px;background-image:var(--campbg,none);background-size:cover;background-position:center;filter:blur(34px) brightness(.34);z-index:0;pointer-events:none;}#campaign>*{position:relative;z-index:1;}#cmapScroll{width:100%;max-width:min(94vw,500px);margin:0 auto;text-align:center;max-height:calc(100vh - 118px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:14px;overscroll-behavior:contain;position:relative;z-index:1;}
   #cmap{position:relative;width:100%;margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid #2a3550;
         background:linear-gradient(180deg,#a9d8ef 0%,#bfe3c7 22%,#9fd08a 45%,#7fb86a 70%,#5e964e 100%);}
   #cmap svg{position:absolute;inset:0;width:100%;height:100%;}
@@ -3355,11 +3355,11 @@ function renderRoadmap(){
   const _dim=(typeof CH_MAP_DIMS!=='undefined'&&CH_MAP_DIMS[ch])?CH_MAP_DIMS[ch]:[1000,1450];
   const _nodes=(typeof CH_NODES!=='undefined'&&CH_NODES[ch])?CH_NODES[ch]:null;
   if(_mapUrl&&_nodes){
-    applySceneBg('campaign',_mapUrl);
+    const _sc=document.getElementById('campaign'); if(_sc){ _sc.style.setProperty('--campbg','url('+_mapUrl+')'); }
     map.style.height=''; map.style.aspectRatio=''; map.style.background='none'; map.style.textAlign='center'; map.innerHTML='';
-    const _inner=document.createElement('div'); _inner.style.cssText='position:relative;display:inline-block;max-width:100%;vertical-align:top';
+    const _inner=document.createElement('div'); _inner.style.cssText='position:relative;display:inline-block;width:100%;vertical-align:top';
     const _img=document.createElement('img'); _img.src=_mapUrl; _img.draggable=false;
-    _img.style.cssText='display:block;max-width:100%;max-height:calc(100vh - 172px);width:auto;height:auto;border-radius:12px;-webkit-user-drag:none';
+    _img.style.cssText='display:block;width:100%;height:auto;border-radius:12px;-webkit-user-drag:none';
     _inner.appendChild(_img);
     for(let s=1;s<=N;s++){ const g=first+s-1; const nd=_nodes[s-1]||[50,100-(s-1)*10];
       const cleared=g<=G.campaignCleared, current=g===G.campaignCleared+1, boss=isBossStage(g), elite=isEliteStage(g);
@@ -6969,7 +6969,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786703454756';
+const BUILD_ID='1786708108512';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
