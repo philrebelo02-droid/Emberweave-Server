@@ -7067,7 +7067,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
-    else if(CUR.mode==='replay' && !freeze){ const n=Math.max(1,Math.round(gameSpeed||1)); for(let i=0;i<n&&!ended;i++)updateBattle(SIM_STEP); }   // REPLAY: fixed SIM_STEP, N steps/frame (N=speed). Smooth (fresh sim every render frame, no interpolation jitter) AND deterministic (fixed dt+seed → identical fight everywhere; only wall-clock duration varies with fps). Live play stays variable-timestep below.
+    else if(CUR.mode==='replay' && !freeze){ _bacc+=dt*SIM_HZ*(gameSpeed||1); let n=Math.floor(_bacc); if(n>8)n=8; _bacc-=n; for(let i=0;i<n&&!ended;i++)updateBattle(SIM_STEP); }   // REPLAY: fixed SIM_STEP via a real-time ACCUMULATOR → advances 30×speed steps/sec = the SAME wall-clock speed as live combat (bug fix: was 1 step/frame = 2× fast at 60fps). Cap-before-subtract keeps leftover steps so a frame hitch never drops steps (determinism). Live play stays variable-timestep below.
     else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; const _steps=spd>=1?Math.round(spd):1, _sdt=(spd>=1?dt:dt*spd)*BATTLE_PACE; for(let i=0;i<_steps&&!ended;i++)updateBattle(_sdt);   // variable timestep: sim advances once per RENDER frame, so positions + all anim timers update every frame → smooth, no lag, no jitter (fixed-timestep+interpolation was reverted — it stepped anim timers and jittered)
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
@@ -7078,7 +7078,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786741078423';
+const BUILD_ID='1786743732507';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
