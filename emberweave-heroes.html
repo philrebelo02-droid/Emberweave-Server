@@ -409,7 +409,7 @@
   .node .conn{position:absolute;bottom:-2px;left:50%;width:3px;height:22px;background:#33405e;transform:translateX(-50%);}
   .node.cleared .conn{background:#5ee89b;}
   /* graphic campaign trail */
-  #campaign{position:relative;overflow:hidden;}#campaign::before{content:'';position:absolute;inset:-30px;background-image:var(--campbg,none);background-size:cover;background-position:center;filter:blur(34px) brightness(.34);z-index:0;pointer-events:none;}#campaign>*{position:relative;z-index:1;}#cmapScroll{width:100%;max-width:min(94vw,500px);margin:0 auto;text-align:center;max-height:calc(100vh - 118px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:14px;overscroll-behavior:contain;position:relative;z-index:1;}
+  #campaign{position:relative;overflow:hidden;}#campaign::before{content:'';position:absolute;inset:-30px;background-image:var(--campbg,none);background-size:cover;background-position:center;filter:blur(34px) brightness(.34);z-index:0;pointer-events:none;}#campaign>*{position:relative;z-index:1;}#cmapScroll{width:100%;max-width:none;margin:0;text-align:center;max-height:calc(100vh - 52px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1;}
   #cmap{position:relative;width:100%;margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid #2a3550;
         background:linear-gradient(180deg,#a9d8ef 0%,#bfe3c7 22%,#9fd08a 45%,#7fb86a 70%,#5e964e 100%);}
   #cmap svg{position:absolute;inset:0;width:100%;height:100%;}
@@ -670,11 +670,9 @@
   <div id="stageModal"><div class="pm"><div id="stageModalBody"></div></div></div>
 
   <!-- CAMPAIGN ROADMAP -->
-  <div class="screen hub" id="campaign">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>🗺️ CAMPAIGN</h1></div>
-    <div class="sub">10 chapters, 10 stages each. Every 3rd stage is Elite; each chapter ends in a boss. All 10 chapters are open.</div>
-    <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;max-width:560px;margin:0 auto 6px"></div>
+  <div class="screen hub" id="campaign" style="padding:0">
+    <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ Base</button>
+    <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 8px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
   </div>
 
@@ -1012,7 +1010,7 @@ const DUNGEON_BG = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Se
 const ART_BASE="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@03cc854ceba3f90adf8e2b26db3f7cd935dfb617/assets/img/";
 const CH_MAPS={1:ART_BASE+"ch1.webp",2:ART_BASE+"ch2.webp",3:ART_BASE+"ch3.webp",4:ART_BASE+"ch4.webp",5:ART_BASE+"ch5.webp",6:ART_BASE+"ch6.webp",7:ART_BASE+"ch7.webp",8:ART_BASE+"ch8.webp",9:ART_BASE+"ch9.webp",10:ART_BASE+"ch10.webp"};
 const CH_MAP_DIMS={1:[1023,1537],2:[1088,1445],3:[1086,1448],4:[1024,1536],5:[1086,1448],6:[1086,1448],7:[1086,1448],8:[1068,1473],9:[1075,1464],10:[1146,1372]};
-const CH_NODES={1:[[48,94],[50,84],[40,74],[28,64],[26,54],[38,49],[50,45],[58,38],[63,27],[64,15]],2:[[50,86],[43,78],[40,68],[52,60],[66,54],[56,46],[44,40],[44,30],[54,21],[50,12]],3:[[37,90],[24,81],[21,72],[33,65],[46,58],[49,49],[38,43],[33,33],[45,24],[40,14]],4:[[48,91],[57,82],[60,72],[50,64],[38,57],[37,48],[48,44],[58,39],[58,27],[44,15]],5:[[50,94],[45,85],[53,76],[57,64],[45,56],[35,47],[45,40],[56,32],[50,22],[42,12]],6:[[48,87],[53,78],[57,68],[52,60],[42,54],[34,47],[35,39],[47,35],[57,29],[49,15]],7:[[50,89],[45,80],[42,71],[50,63],[56,54],[49,46],[43,38],[43,28],[44,19],[46,11]],8:[[50,90],[61,81],[43,73],[58,64],[41,56],[56,49],[40,41],[57,33],[43,24],[50,13]],9:[[48,89],[42,80],[53,70],[54,61],[42,54],[40,46],[53,39],[55,31],[45,23],[50,10]],10:[[48,90],[42,81],[55,73],[59,63],[45,55],[38,47],[50,41],[60,32],[50,22],[50,11]]};
+const CH_NODES={1:[[47.7,91.4],[70.8,85.4],[76.9,73.4],[53.3,68.0],[30.3,61.9],[21.0,48.1],[43.0,41.9],[65.6,35.0],[72.7,21.6],[49.5,17.3]],2:[[52.3,84.7],[73.9,78.5],[77.5,67.5],[55.6,62.6],[33.3,57.8],[24.3,45.8],[45.0,38.0],[66.3,31.9],[74.9,22.7],[52.3,18.2]],3:[[46.8,91.7],[61.6,81.8],[68.7,68.5],[49.5,62.4],[28.2,58.7],[25.9,46.5],[46.4,41.3],[66.0,34.8],[66.7,23.5],[46.6,17.7]],4:[[45.2,90.4],[66.2,83.7],[72.7,69.6],[53.8,60.4],[31.4,55.9],[24.2,44.5],[43.8,36.8],[66.3,32.5],[60.2,22.0],[38.9,15.8]],5:[[43.2,92.2],[57.1,79.9],[69.1,67.9],[50.6,61.0],[31.0,55.2],[25.6,43.3],[43.8,35.0],[64.6,31.4],[66.5,21.1],[47.0,15.2]],6:[[48.1,91.0],[62.8,80.9],[68.2,68.0],[50.7,62.2],[32.8,57.2],[25.2,46.4],[40.7,37.4],[58.4,31.9],[66.1,22.7],[48.0,18.0]],7:[[37.5,94.4],[55.4,85.1],[72.3,74.3],[61.7,62.9],[41.1,57.9],[23.6,48.7],[37.3,38.7],[57.2,32.7],[63.8,21.9],[44.2,16.5]],8:[[51.0,94.6],[64.9,83.3],[50.1,74.7],[42.3,65.8],[61.2,58.6],[75.7,47.9],[60.1,40.0],[53.1,31.7],[68.0,23.4],[48.9,17.0]],9:[[49.4,95.5],[65.5,82.8],[48.3,75.3],[38.1,66.8],[58.8,59.7],[75.9,48.4],[58.8,40.1],[52.6,31.8],[65.5,22.6],[49.5,12.3]],10:[[51.0,94.8],[65.4,82.2],[45.4,75.3],[45.4,65.5],[65.5,59.0],[46.6,51.6],[34.1,45.3],[52.5,34.9],[69.0,24.9],[49.8,15.7]]};
 const GUILD_BG=ART_BASE+"guildhall.webp",WISHPOOL_BG=ART_BASE+"wishingpool.webp",ACADEMY_BG=ART_BASE+"academy.webp",ISLAND_BG=ART_BASE+"trials.webp";
 const SCENE_SCRIM="linear-gradient(180deg,rgba(8,10,16,.30),rgba(8,10,16,.72))";
 function _isArt(u){return !!u&&(u.indexOf("http")===0||u.indexOf("data:")===0||u.indexOf("assets/")===0);}
@@ -3355,11 +3353,10 @@ function renderRoadmap(){
   const _dim=(typeof CH_MAP_DIMS!=='undefined'&&CH_MAP_DIMS[ch])?CH_MAP_DIMS[ch]:[1000,1450];
   const _nodes=(typeof CH_NODES!=='undefined'&&CH_NODES[ch])?CH_NODES[ch]:null;
   if(_mapUrl&&_nodes){
-    const _sc=document.getElementById('campaign'); if(_sc){ _sc.style.setProperty('--campbg','url('+_mapUrl+')'); }
     map.style.height=''; map.style.aspectRatio=''; map.style.background='none'; map.style.textAlign='center'; map.innerHTML='';
     const _inner=document.createElement('div'); _inner.style.cssText='position:relative;display:inline-block;width:100%;vertical-align:top';
     const _img=document.createElement('img'); _img.src=_mapUrl; _img.draggable=false;
-    _img.style.cssText='display:block;width:100%;height:auto;border-radius:12px;-webkit-user-drag:none';
+    _img.style.cssText='display:block;width:100%;height:auto;-webkit-user-drag:none';
     _inner.appendChild(_img);
     for(let s=1;s<=N;s++){ const g=first+s-1; const nd=_nodes[s-1]||[50,100-(s-1)*10];
       const cleared=g<=G.campaignCleared, current=g===G.campaignCleared+1, boss=isBossStage(g), elite=isEliteStage(g);
@@ -6969,7 +6966,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786708108512';
+const BUILD_ID='1786717149227';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
