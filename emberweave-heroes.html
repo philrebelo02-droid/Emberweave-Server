@@ -424,7 +424,7 @@
          align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;border:3px solid #2a3550;box-shadow:0 4px 10px rgba(0,0,0,.4);z-index:3;}
   .cnode .clbl{font-size:8px;font-weight:700;margin-top:0;text-shadow:0 1px 2px #000;}
   .cnode.cleared{background:linear-gradient(140deg,#1f7a52,#2ea36a);border-color:#8effc0;cursor:pointer;}
-  .cnode.current{background:linear-gradient(140deg,#c9922a,#ffcf5e);border-color:#fff2c2;color:#3a2a00;cursor:pointer;animation:pulse 1.2s infinite;}
+  .cnode.current{background:linear-gradient(140deg,#c9922a,#ffcf5e);border-color:#fff2c2;color:#3a2a00;cursor:pointer;animation:cnpulse 1.2s infinite;}
   .cnode.locked{background:linear-gradient(140deg,#4a5163,#39404f);border-color:#5a6478;opacity:.75;}
   .cnode.boss{width:50px;height:50px;border-radius:50%;font-size:16px;}
   .cnode.elite{border-color:#c9a0ff;box-shadow:0 0 10px rgba(201,160,255,.5),0 4px 10px rgba(0,0,0,.4);}
@@ -492,6 +492,7 @@
   #chatWidget .cw-input{display:flex;gap:6px;padding:6px;border-top:1px solid #1c2434;}
   #chatWidget .cw-input input{flex:1;padding:7px;border-radius:7px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:12px;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+  @keyframes cnpulse{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.07);}}
 
   /* rune slots */
   .rune-slot{flex:1 1 30%;background:#161d2e;border:1px solid #2a3550;border-radius:10px;padding:8px;text-align:center;}
@@ -6972,7 +6973,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786720398195';
+const BUILD_ID='1786722147000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
