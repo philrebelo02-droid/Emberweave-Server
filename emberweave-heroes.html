@@ -368,6 +368,13 @@
   .tw-node.sel{border-color:#ffd45e;box-shadow:0 0 0 2px rgba(255,212,94,.4),0 3px 8px rgba(0,0,0,.55);}
   .tw-node.learning{border-color:#8fe3ff;}
   .tw-node.busyOther{opacity:.5;}
+  /* Academy: show only text + symbols over the art (Phil) */
+  #tech .panel{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
+  #tech .tw-node,#tech .tw-node.sel,#tech .tw-node.capped,#tech .tw-node.learning{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
+  #tech .tw-center{background:transparent!important;}
+  #tech .pill{background:transparent!important;border:0!important;}
+  #tech .tw-ic,#tech .tw-lv,#tech .tw-lbl,#tech .pill,#tech .sub{text-shadow:0 1px 3px #000,0 0 3px #000;}
+  #guild{background-size:100% auto!important;background-position:top center!important;background-repeat:no-repeat!important;}
   .tw-node.capped{border-color:#5a4a2a;} .tw-node.capped .tw-lv{color:#c9a35e;}
   .tw-node .tw-ic{font-size:19px;line-height:1;}
   .tw-node .tw-lv{font-size:8.5px;font-weight:800;color:#ffd45e;margin-top:1px;}
@@ -5751,7 +5758,7 @@ const ISLE_FEATURES=[
   {id:'tower',    ic:'🗼', name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
 ];
 function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if(!b)return; const lv=playerLevel();
-  const ISLE_POS={training:[22,55],tower:[48,60],gauntlet:[78,55]};
+  const ISLE_POS={training:[22,55],tower:[49,74],gauntlet:[78,55]};
   const _useMap=(typeof ISLAND_BG!=='undefined')&&_isArt(ISLAND_BG);
   if(_useMap){
     b.innerHTML=`<div class="islemap" style="position:relative;width:100%;aspect-ratio:1692/930;border-radius:14px;overflow:hidden;background:url('${ISLAND_BG}') center/cover;box-shadow:0 8px 26px rgba(0,0,0,.5)">`
@@ -6965,7 +6972,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786718949076';
+const BUILD_ID='1786720398195';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
