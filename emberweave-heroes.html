@@ -2635,6 +2635,14 @@ function endBattle(won){ ended=true;
       document.getElementById('resultHint').textContent='A replay of the recorded fight — no rewards are given.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); setTimeout(()=>onlineResult(won),800); return; }
   if(CUR.mode==='arena'){ if(won)grantTeamXP(70);
+    // record a watchable arena-attack report. The live arena fight is variable-timestep (non-deterministic), so we
+    // seed-SEARCH for a fixed-step seed whose deterministic sim ends in the SAME result → the replay is exact AND matches
+    // the real outcome. (Arena is 100% auto, no player input, so the seed fully determines the fight.)
+    try{ if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]}; if(!Array.isArray(G.arenaReports.attacks))G.arenaReports.attacks=[];
+      const snap=CUR.arenaSnap||[], foe=CUR.arenaFoe||[];
+      if(snap.length&&foe.length){ let sd=(CUR.seed>>>0)||newFightSeed(); for(let t=0;t<5;t++){ if(simFightResult(snap,foe,sd)===!!won)break; sd=newFightSeed(); }
+        G.arenaReports.attacks.unshift({v:2,seed:sd,mineSnap:snap,foe,won:!!won,oppName:CUR.oppName,t:Date.now()});
+        if(G.arenaReports.attacks.length>10)G.arenaReports.attacks.length=10; } }catch(e){}
     const oldRank=G.arenaRank; let reward=0;
     if(won){ reward=200+Math.floor((5000-G.arenaRank)/20); G.gold+=reward; G.arenaCoins=(G.arenaCoins||0)+5; }
     saveG(); updateHubChrome();
@@ -3903,7 +3911,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   b.innerHTML=`<div class="panel" style="text-align:center">
       <div style="font-size:13px;color:#8b98a9">Your rank</div><div style="font-size:34px;font-weight:900;color:#ffd45e">#${G.arenaRank}</div>
       <div style="font-size:12px;color:#8b98a9">power <b style="color:#8fe3ff">${myPower.toLocaleString()}</b> · <span style="color:#ffd45e">🎟️ ${G.arenaCoins||0} arena coins</span></div>
-      <button class="btn sm secondary" id="arenaShopBtn" style="margin-top:8px">🛒 Arena Shop</button>
+      <div class="row" style="justify-content:center;gap:6px;margin-top:8px"><button class="btn sm secondary" id="arenaShopBtn">🛒 Arena Shop</button><button class="btn sm secondary" id="arenaReportsBtn">📜 Reports</button></div>
     </div>
     <div class="panel">
       <div style="font-weight:700;text-align:center;margin-bottom:8px">🏆 Server Top 3</div>
@@ -3922,6 +3930,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.disabled=arenaRefreshLeft()<=0; _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg('No free arena refreshes left today.'); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
   b.querySelector('#setArenaDef').onclick=()=>{ teamCtx='arena'; menuReturn='arena'; show('menu'); };
   b.querySelector('#arenaShopBtn').onclick=()=>show('arenaShop');
+  b.querySelector('#arenaReportsBtn').onclick=()=>renderArenaReports();
   b.querySelector('#arenaRankings').onclick=openRankings;
   const cd=b.querySelector('#claimDaily'); if(cd&&dready) cd.onclick=()=>{
     if(!arenaDailyReady())return; const dr=arenaDailyReward(G.arenaRank);
@@ -3938,7 +3947,31 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     row.querySelector('button').onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); };   // choose your attacking composition first
     el.appendChild(row); });
 }
-function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; startVersus(o.team,true); }
+function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id};
+  CUR.arenaSnap=snapAllySquad((G.team||[]).filter(Boolean)); CUR.arenaFoe=trimTeam(o.team||[]);   // capture both squads (resolved) for a watchable report
+  startVersus(o.team,true); }
+/* Arena Reports — a sub-view INSIDE the Arena screen (Attacks = your last 10 challenges; Defenses = incoming, server-fed). */
+function renderArenaReports(){ const b=document.getElementById('arenaBody'); if(!b)return;
+  if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]};
+  if(!Array.isArray(G.arenaReports.attacks))G.arenaReports.attacks=[]; if(!Array.isArray(G.arenaReports.defenses))G.arenaReports.defenses=[];
+  const sub=(G._arenaRepTab==='defenses')?'defenses':'attacks', list=G.arenaReports[sub];
+  const rows = list.length ? list.map((r,i)=>`<div class="mailrow"><span class="mtime">${timeAgo(r.t)}</span>
+      <div class="mfrom">${sub==='attacks'?'⚔ vs ':'🛡 vs '}${escapeHTML(r.oppName||'Opponent')}</div>
+      <div class="msub" style="color:${r.won?'#7ee0a6':'#ff9a9a'};font-weight:800">${sub==='attacks'?(r.won?'Victory':'Defeat'):(r.won?'Defended':'Lost the rank')}</div>
+      ${(r.mineSnap&&r.mineSnap.length&&r.foe&&r.foe.length)?`<button class="btn sm" data-arep="${i}" style="margin-top:6px">▶ Watch Battle</button>`:''}</div>`).join('')
+    : `<div style="text-align:center;color:#6f7d90;padding:22px 10px">${sub==='attacks'?'No arena attacks yet — challenge an opponent to climb.':'No defenses recorded yet. These are captured when other players attack your arena defense (server feature — coming soon).'}</div>`;
+  b.innerHTML=`<div class="panel">
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+      <button class="btn sm ${sub==='attacks'?'':'secondary'}" id="arSubAtk">⚔ Attacks</button>
+      <button class="btn sm ${sub==='defenses'?'':'secondary'}" id="arSubDef">🛡 Defenses</button>
+      <button class="btn sm secondary" id="arRepBack" style="margin-left:auto">← Back</button></div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Your last 10 ${sub}. ▶ Watch replays the exact fight.</div>
+    ${rows}</div>`;
+  b.querySelector('#arSubAtk').onclick=()=>{ G._arenaRepTab='attacks'; renderArenaReports(); };
+  b.querySelector('#arSubDef').onclick=()=>{ G._arenaRepTab='defenses'; renderArenaReports(); };
+  b.querySelector('#arRepBack').onclick=()=>renderArena();
+  b.querySelectorAll('[data-arep]').forEach(btn=>btn.onclick=()=>{ const r=list[+btn.dataset.arep]; if(r)watchBattle(r); });
+}
 const ARENA_SHOP=[
   {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', hero:'grosk', cost:500, give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3★ Tank — 80 to summon'},
   {id:'gold1',  name:'Gold Cache',      icon:'🪙', cost:120, give:()=>{G.gold+=5000;},    desc:'+5,000 gold'},
@@ -7045,7 +7078,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786737677027';
+const BUILD_ID='1786741078423';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
