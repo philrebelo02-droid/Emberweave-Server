@@ -2424,10 +2424,7 @@ function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fx
 function think(u,dt){
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
   if(u.stunned>0){u.stunned-=dt;return;}
-  if((u.fearT||0)>0){ u.fearT-=dt;   // feared: FLEE away from the fearer (no attacking/casting) while the fear emote shows
-    const ff=(u._fearFrom&&u._fearFrom.alive)?u._fearFrom:nearestEnemy(u);
-    if(ff){ const dx=u.x-ff.x, dy=u.y-ff.y, dl=Math.hypot(dx,dy)||1; const spd=u.speed*(u.slow>0?0.55:1); u.x+=dx/dl*spd*dt; u.y+=dy/dl*spd*dt; u._faceDir=dx>=0?1:-1; }
-    u.target=null; return; }
+  if((u.fearT||0)>0){ u.fearT-=dt; u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
   if(u._castT>0)u._castT-=dt;   // casting: locked out of auto-attacks
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
@@ -2465,11 +2462,8 @@ function think(u,dt){
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); } };
-  if(!u.melee && dn < cd-6){ // a foe pushed inside our row → settle back into our HOME row/lane (never past it, so we can't flee off-map) and keep firing
-    const hx=(u.homeX!=null?u.homeX:u.laneX), hy=(u.homeY!=null?u.homeY:u.y);
-    u.x+=(hx-u.x)*Math.min(1,dt*2.4); u.y+=(hy-u.y)*Math.min(1,dt*2.4); doAtk(); }
-  else if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
-  else { doAtk(); }
+  if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
+  else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
 
 /* ---------------------------- battle lifecycle ----------------------------- */
@@ -6980,7 +6974,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786724376609';
+const BUILD_ID='1786725678918';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
