@@ -1848,7 +1848,7 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
 const BATTLE_PACE=0.82;
 /* --- Phase 1: deterministic battle core --- */
-const SIM_STEP=BATTLE_PACE/30;
+const SIM_STEP=BATTLE_PACE/60;
 let _brng=null, _bacc=0;
 function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
 function brnd(){ return _brng?_brng():Math.random(); }
@@ -6956,7 +6956,7 @@ document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='r
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
 // ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
-  for(let i=0;i<7200 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
+  for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 document.getElementById('autoBtn').onclick=()=>{ if(CUR.mode==='arena')return; autoUlt=!autoUlt;refreshCtrlBtns();};
 
@@ -6969,7 +6969,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
-    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; _bacc+=dt*30*spd; let _bsteps=Math.floor(_bacc); _bacc-=_bsteps; if(_bsteps>8)_bsteps=8; for(let i=0;i<_bsteps&&!ended;i++)updateBattle(SIM_STEP);
+    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; _bacc+=dt*60*spd; let _bsteps=Math.floor(_bacc); _bacc-=_bsteps; if(_bsteps>16)_bsteps=16; for(let i=0;i<_bsteps&&!ended;i++)updateBattle(SIM_STEP);
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
@@ -6979,7 +6979,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786723105442';
+const BUILD_ID='1786723849897';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
