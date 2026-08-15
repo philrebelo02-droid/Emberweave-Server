@@ -610,7 +610,9 @@ async function api(req,res,url){
     if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'gchat',25,60000)) return send(res,429,{error:'Slow down.'});
       const tx=(b.tx||'').toString().replace(/[<>]/g,'').slice(0,200).trim(); if(!tx) return send(res,200,{ok:true});
-      g.log=g.log||[]; g.log.push({id:me.id,name:me.name,tx,t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+      g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now()};
+      try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
+      g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
       writeDB(); return send(res,200,{ ok:true, log:g.log.slice(-60) }); }
 
     if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
@@ -681,11 +683,25 @@ const server=http.createServer((req,res)=>{
   if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }
   if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json');
-  if(p==='/icon-192.png') return serveFile(res,'icon-192.png','image/png');
-  if(p==='/icon-512.png') return serveFile(res,'icon-512.png','image/png');
-  if(p==='/icon-512-maskable.png') return serveFile(res,'icon-512-maskable.png','image/png');
-  if(p==='/apple-touch-icon.png') return serveFile(res,'apple-touch-icon.png','image/png');
+  // PWA icons live in assets/icons/ now (kept off the repo root); the public URLs stay the same.
+  if(p==='/icon-192.png') return serveFile(res,'assets/icons/icon-192.png','image/png');
+  if(p==='/icon-512.png') return serveFile(res,'assets/icons/icon-512.png','image/png');
+  if(p==='/icon-512-maskable.png') return serveFile(res,'assets/icons/icon-512-maskable.png','image/png');
+  if(p==='/apple-touch-icon.png') return serveFile(res,'assets/icons/apple-touch-icon.png','image/png');
   if(p==='/patchnotes.json') return serveFile(res,'patchnotes.json','application/json');
+  // static asset folder: images, icons, animation sheets. Served straight from the repo (local file first,
+  // GAME_URL proxy as a fallback) so the game HTML can stay tiny — the images live here, not baked into the page.
+  if(p.startsWith('/assets/')){
+    const rel=path.normalize(p.replace(/^\/+/,''));                 // strip leading slash, collapse the path
+    if(rel.indexOf('..')!==-1 || p.indexOf('\0')!==-1){ res.writeHead(400); res.end(); return; }
+    const ext=path.extname(rel).toLowerCase();
+    const MIME={'.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.json':'application/json','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.ttf':'font/ttf'};
+    const type=MIME[ext]||'application/octet-stream';
+    return fs.readFile(path.join(__dirname,rel),(e,buf)=>{
+      if(!e){ res.writeHead(200,{'Content-Type':type,'Cache-Control':'public, max-age=86400'}); res.end(buf); return; }
+      remoteAsset('/'+rel).then(r=>{ if(!r){res.writeHead(404);res.end();return;} res.writeHead(200,{'Content-Type':type||r.ct,'Cache-Control':'public, max-age=86400'}); res.end(r.buf); });
+    });
+  }
   // marketing site at the bare root; the game lives at /play and on deep links (/?room=..., etc.)
   if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8');
   // everything else (/play, /?room deep links, other paths) -> the game (local file if bundled, else GAME_URL).
