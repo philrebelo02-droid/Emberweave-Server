@@ -1014,8 +1014,8 @@ const HERO_PORTRAITS = {"bloatus":"/assets/img/hero-portraits/hero-bloatus.jpg",
 HERO_PORTRAITS.vulmar='/assets/img/hero-portraits/hero-vulmar-2.jpg'; HERO_PORTRAITS.grosk='/assets/img/hero-portraits/hero-grosk-2.jpg';
 const MYTHIC_BANNERS = {/*__MYTHBANNERS__*/}; // per-mythical-hero banner art OVERRIDE (optional), shown under the portrait
 const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHARED "MYTHICAL" plaque shown under ANY myth:true hero (per-hero MYTHIC_BANNERS wins if set)
-const DUNGEON_BG = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@03cc854ceba3f90adf8e2b26db3f7cd935dfb617/assets/img/world-map/dungeon.webp";
-const ART_BASE="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@03cc854ceba3f90adf8e2b26db3f7cd935dfb617/assets/img/";
+const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
+const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"ch1.webp",2:ART_BASE+"ch2.webp",3:ART_BASE+"ch3.webp",4:ART_BASE+"ch4.webp",5:ART_BASE+"ch5.webp",6:ART_BASE+"ch6.webp",7:ART_BASE+"ch7.webp",8:ART_BASE+"ch8.webp",9:ART_BASE+"ch9.webp",10:ART_BASE+"ch10.webp"};
 const CH_MAP_DIMS={1:[1023,1537],2:[1088,1445],3:[1086,1448],4:[1024,1536],5:[1086,1448],6:[1086,1448],7:[1086,1448],8:[1068,1473],9:[1075,1464],10:[1146,1372]};
 const CH_NODES={1:[[47.7,91.4],[73.8,85.4],[76.9,73.4],[53.3,68.0],[30.3,61.9],[21.0,48.1],[43.0,41.9],[65.6,35.0],[72.7,21.6],[49.5,17.3]],2:[[52.3,84.7],[73.9,78.5],[77.5,67.5],[55.6,62.6],[33.3,57.8],[24.3,45.8],[45.0,38.0],[66.3,31.9],[74.9,22.7],[52.3,15.2]],3:[[46.8,91.7],[61.6,81.8],[68.7,68.5],[49.5,62.4],[28.2,58.7],[25.9,46.5],[46.4,41.3],[66.0,34.8],[66.7,23.5],[46.6,17.7]],4:[[45.2,90.4],[66.2,83.7],[72.7,69.6],[53.8,60.4],[31.4,55.9],[24.2,44.5],[43.8,33.8],[66.3,32.5],[60.2,22.0],[38.9,15.8]],5:[[43.2,92.2],[57.1,79.9],[69.1,67.9],[50.6,61.0],[31.0,55.2],[25.6,43.3],[43.8,35.0],[64.6,31.4],[66.5,21.1],[47.0,15.2]],6:[[48.1,91.0],[62.8,80.9],[68.2,68.0],[50.7,62.2],[32.8,57.2],[25.2,46.4],[40.7,37.4],[58.4,31.9],[66.1,22.7],[48.0,18.0]],7:[[37.5,94.4],[55.4,85.1],[72.3,74.3],[61.7,62.9],[41.1,57.9],[23.6,48.7],[37.3,38.7],[57.2,32.7],[63.8,21.9],[44.2,16.5]],8:[[51.0,94.6],[64.9,83.3],[50.1,74.7],[42.3,65.8],[61.2,58.6],[75.7,47.9],[60.1,40.0],[53.1,31.7],[68.0,23.4],[48.9,17.0]],9:[[49.4,95.5],[65.5,82.8],[48.3,75.3],[38.1,66.8],[58.8,59.7],[75.9,48.4],[58.8,40.1],[52.6,31.8],[65.5,22.6],[49.5,12.3]],10:[[51.0,94.8],[65.4,82.2],[45.4,75.3],[45.4,65.5],[65.5,59.0],[46.6,51.6],[34.1,45.3],[52.5,34.9],[69.0,24.9],[49.8,15.7]]};
@@ -1119,17 +1119,17 @@ const HERO_LORE = {
   fritz:{title:'Between the Ticks',text:"Fritz ran packages once — the fast ones, the ones that couldn't wait — threaded through the rain-black alleys of the lower wards for anyone whose coin was good and whose business was their own. He was good at it because he was quick and because he never asked questions, and the pocket-watch he carried was the whole of his fortune: a gift from a fare he'd never see again, the one beautiful thing a courier's life had ever put in his hand.\n\nThe last run was a storm run, the kind sensible couriers wait out, and Fritz had never once been sensible about a deadline. The bolt found him in an open square with the watch in his fist and struck them both in the same hundredth of a second — and where the watch stopped, so, in a manner of speaking, did he. Not dead. Just left behind by his own next moment, standing half a heartbeat ahead of a world that hasn't yet noticed he's there.\n\nHe's still running, in his way — quick as ever, quicker, slipping between instants no one else can find the edges of. But the watch has read the same dead minute for a very long time now, and Fritz knows what a stopped watch is really waiting for. One day it will tick again. He would very much like to be somewhere that matters when it does."},
 };
 const HERO_SPRITES = {"bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png"};     // transparent battlefield sprites (2D billboards)
-const TOWN_BG = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@4082bc8d58d4996f24efc2858cb7b0551b1e227d/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
-const SHOP_FRAME = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
+const TOWN_BG = "/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
+const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
-const SHOP_SOON = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
+const SHOP_SOON = "/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
 const SPLASH_BG = "/assets/img/miscellaneous/splash.jpg";         // boot splash / loading-screen artwork (static fallback)
-const SPLASH_VID = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@65fb5f69630d87d753f66a90df9e60ab97e2a1d6/assets/img/miscellaneous/splashvid.mp4";     // animated splash loop (plays over the static image)
-const AIRSHIP_IMG = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@7ae5c7dd83dc8d1a07b7946ee529522b558dc50e/assets/img/world-map/airship.webp";      // NEW airship art (static, clean green-key crop; nose points left in the source)
+const SPLASH_VID = "/assets/img/miscellaneous/splashvid.mp4";     // animated splash loop (plays over the static image)
+const AIRSHIP_IMG = "/assets/img/world-map/airship.webp";      // NEW airship art (static, clean green-key crop; nose points left in the source)
 const AIRSHIP_SHEET = "";   // disabled → render uses the static AIRSHIP_IMG (new art is a single high-res frame, not a strip)
 const AIRSHIP_FRAMES = 16;                       // frames in the strip
-const SKY_ISLAND = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/img/world-map/skyisland.png";          // floating isle: 18-frame transparent sprite strip
-const BATTLE_BG = "https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/img/miscellaneous/battlebg.jpg";            // painted battlefield map (shown behind battle units)
+const SKY_ISLAND = "/assets/img/world-map/skyisland.png";          // floating isle: 18-frame transparent sprite strip
+const BATTLE_BG = "/assets/img/miscellaneous/battlebg.jpg";            // painted battlefield map (shown behind battle units)
 (function(){ if(isAssetRef(BATTLE_BG)){ const el=document.getElementById('battleBg'); if(el) el.style.backgroundImage='url('+BATTLE_BG+')'; } })();
 const SKY_ISLAND_FRAMES = 18;
 // inject the (large) sprite-sheet URL into one CSS rule so it's stored once, not per-march
@@ -7092,7 +7092,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786799935985';
+const BUILD_ID='1786801839538';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
