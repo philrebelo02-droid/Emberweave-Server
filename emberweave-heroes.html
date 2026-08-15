@@ -2525,7 +2525,7 @@ function think(u,dt){
     if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
-      dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.t.color); } };
+      dealDamage(u,t,dmg,u.key==='umbris'?'#c9a6ff':(u.hybrid?'#ffe6b0':'#fff')); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.key==='umbris'?0x8a5cff:u.t.color); if(u.key==='umbris'){burstAt(u.x,u.y+1,0x7a3fb0,4);} } };
   if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
   else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
@@ -7108,7 +7108,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786836771431';
+const BUILD_ID='1786837089236';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
