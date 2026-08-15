@@ -3965,7 +3965,7 @@ function renderArenaReports(){ const b=document.getElementById('arenaBody'); if(
   const rows = list.length ? list.map((r,i)=>`<div class="mailrow"><span class="mtime">${timeAgo(r.t)}</span>
       <div class="mfrom">${sub==='attacks'?'⚔ vs ':'🛡 vs '}${escapeHTML(r.oppName||'Opponent')}</div>
       <div class="msub" style="color:${(sub==='attacks'?r.won:!r.won)?'#7ee0a6':'#ff9a9a'};font-weight:800">${sub==='attacks'?(r.won?'Victory':'Defeat'):(!r.won?'Defended':'Lost the rank')}</div>
-      ${(r.mineSnap&&r.mineSnap.length&&r.foe&&r.foe.length)?`<button class="btn sm" data-arep="${i}" style="margin-top:6px">▶ Watch Battle</button>`:''}</div>`).join('')
+      ${(r.mineSnap&&r.mineSnap.length&&r.foe&&r.foe.length)?`<button class="btn sm" data-arep="${i}" style="margin-top:6px">▶ Watch</button> <button class="btn sm secondary" data-ashare="${i}" style="margin-top:6px">📤 Share</button>`:''}</div>`).join('')
     : `<div style="text-align:center;color:#6f7d90;padding:22px 10px">${sub==='attacks'?'No arena attacks yet — challenge an opponent to climb.':'No defenses recorded yet — they appear when other players challenge your arena defense.'}</div>`;
   b.innerHTML=`<div class="panel">
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
@@ -3977,7 +3977,8 @@ function renderArenaReports(){ const b=document.getElementById('arenaBody'); if(
   b.querySelector('#arSubAtk').onclick=()=>{ G._arenaRepTab='attacks'; renderArenaReports(); };
   b.querySelector('#arSubDef').onclick=()=>{ G._arenaRepTab='defenses'; renderArenaReports(); };
   b.querySelector('#arRepBack').onclick=()=>renderArena();
-  b.querySelectorAll('[data-arep]').forEach(btn=>btn.onclick=()=>{ const r=list[+btn.dataset.arep]; if(r)watchBattle(r); });
+  b.querySelectorAll('[data-arep]').forEach(btn=>btn.onclick=()=>{ const r=list[+btn.dataset.arep]; if(r){ _replayReturn=()=>{ show('arena'); renderArenaReports(); }; watchBattle(r); } });
+  b.querySelectorAll('[data-ashare]').forEach(btn=>btn.onclick=()=>{ const r=list[+btn.dataset.ashare]; if(r)shareBattle(r); });
 }
 const ARENA_SHOP=[
   {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', hero:'grosk', cost:500, give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3★ Tank — 80 to summon'},
@@ -4432,6 +4433,7 @@ function snapAllySquad(keys){ return (keys||[]).filter(Boolean).map(k=>snapUnitR
 function newFightSeed(){ return ((Math.floor(Math.random()*4294967296))>>>0); }   // one-time random seed per fight; stored → the replay is deterministic
 // launch the recorded fight. v2 reports carry {seed, mineSnap[resolved], foe[{key,level,rank}]} → EXACT deterministic replay
 // (portable: rebuilt from the snapshot, never from the viewer's own account). Older reports fall back to re-enactment.
+let _replayReturn=null;   // where to go after a replay's result screen is dismissed (set by whoever opened the replay)
 function watchBattle(meta){ if(!meta)return;
   if(meta.v>=2 && meta.mineSnap && meta.mineSnap.length && (meta.foe||[]).length){
     CUR={mode:'replay', seed:(meta.seed>>>0), replayWon:!!meta.won, oppName:meta.oppName||'the enemy', replayAlly:meta.mineSnap};
@@ -6054,9 +6056,10 @@ function renderMail(){ ensureMail(); pruneWars();
     <div class="mfrom">${escapeHTML(m.from||'System')}</div>
     <div class="msub">${escapeHTML(m.subj||'')}</div>
     <div class="mbody">${escapeHTML(m.body||'')}</div>
-    ${hasWatch(m)?`<button class="btn sm" data-battle="${i}" style="margin-top:8px">▶ Watch Battle</button>`:''}</div>`).join('')
+    ${hasWatch(m)?`<button class="btn sm" data-battle="${i}" style="margin-top:8px">▶ Watch</button> ${(m.battle&&m.battle.mineSnap&&m.battle.mineSnap.length)?`<button class="btn sm secondary" data-mshare="${i}" style="margin-top:8px">📤 Share</button>`:''}`:''}</div>`).join('')
     : `<div style="text-align:center;color:#6f7d90;padding:26px 10px">${emptyMsg}</div>`;
-  b.querySelectorAll('[data-battle]').forEach(btn=>btn.onclick=()=>{ const mm=list[+btn.dataset.battle]; if(mm&&mm.battle) watchBattle(mm.battle); });
+  b.querySelectorAll('[data-battle]').forEach(btn=>btn.onclick=()=>{ const mm=list[+btn.dataset.battle]; if(mm&&mm.battle){ const tb=mailTab; _replayReturn=()=>{ show('mail'); mailTab=tb; renderMail(); }; watchBattle(mm.battle); } });
+  b.querySelectorAll('[data-mshare]').forEach(btn=>btn.onclick=()=>{ const mm=list[+btn.dataset.mshare]; if(mm&&mm.battle)shareBattle(mm.battle); });
   if(mailTab==='scouts'){ renderMailWar(b); }   // Scouts tab ALSO carries the Declare-War section (appended below the scout reports)
 }
 function renderMailWar(b){ const inc=incomingWars(), out=outgoingWars();
@@ -7057,7 +7060,7 @@ document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getEleme
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
-document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; show(m==='replay'?'mail':m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
+document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; } show(m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
 // ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
@@ -7085,7 +7088,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786792648620';
+const BUILD_ID='1786793362786';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -7141,7 +7144,7 @@ function goLandscape(){
 /* =============================== WORLD CHAT ================================= */
 const CHAT_LINES=['anyone farming coal in the north?','WTB blue glyphs, pm me','gz on the rank up!','our guild is recruiting, 40+ active daily','who wants to run the dungeon','that arena match was so close lol','selling spare equipment cheap','server is popping today','the new airship marches look sick','anyone beat the elite boss yet?','LF guild, active every day','trading silver for crystal 1:1','shield saved me from a raid haha','grinding to rank 100 lets go'];
 const WHISPER_REPLIES=['hey!','sup','gimme a sec','sure thing','lol nice','on my way','ty!','what do you need?','sounds good','haha yeah','one moment','in a battle rn, brb'];
-let CHAT=null, chatTab='world', openWhispers=[];
+let CHAT=null, chatTab='world', openWhispers=[], _chatBattles=[];
 function initChat(){ if(CHAT)return; CHAT={ world:seedChannel(1,12), region:seedChannel(77,8) }; }
 function seedChannel(seed,n){ const out=[]; for(let i=0;i<n;i++){ out.push({who:NPC_NAMES[Math.floor(rand01(seed+i*7)*NPC_NAMES.length)], txt:CHAT_LINES[Math.floor(rand01(seed+i*13+3)*CHAT_LINES.length)]}); } return out; }
 function whisperReply(){ return WHISPER_REPLIES[Math.floor(rand01(Date.now()*3)*WHISPER_REPLIES.length)]; }
@@ -7188,10 +7191,11 @@ function renderChat(){ initChat(); const w=document.getElementById('chatWidget')
     wireChat(w); return; }
   let msgs=[];
   if(chatTab==='world')msgs=CHAT.world; else if(chatTab==='region')msgs=CHAT.region;
-  else if(chatTab==='guild'){ if(G.guild){ if(G.guild.type==='npc')GUILD_SEED.forEach(([nm,,tx])=>msgs.push({who:nm,txt:tx})); (G.guildLog||[]).forEach(tx=>msgs.push({who:G.playerName||'You',txt:tx,me:true})); } }
+  else if(chatTab==='guild'){ if(G.guild){ if(G.guild.type==='npc')GUILD_SEED.forEach(([nm,,tx])=>msgs.push({who:nm,txt:tx})); (G.guildLog||[]).forEach(tx=>{ if(tx&&typeof tx==='object')msgs.push({who:G.playerName||'You',txt:tx.txt,me:true,battle:tx.battle||null}); else msgs.push({who:G.playerName||'You',txt:tx,me:true}); }); } }
   else if(chatTab.indexOf('w:')===0){ msgs=(G.whispers&&G.whispers[chatTab.slice(2)])||[]; }
   if(chatTab==='guild'&&!G.guild){ msgsEl.innerHTML='<div style="font-size:11px;color:#6f7d90;padding:6px">Join a guild to use guild chat.</div>'; wireChat(w); return; }
-  msgsEl.innerHTML=msgs.length?msgs.map(m=>`<div class="cw-msg">${nameSpan(m.who,m.me)}: <span>${escapeHTML(m.txt)}</span></div>`).join('')
+  _chatBattles=[];
+  msgsEl.innerHTML=msgs.length?msgs.map(m=>{ let btn=''; if(m.battle&&m.battle.mineSnap&&m.battle.mineSnap.length&&(m.battle.foe||[]).length){ const idx=_chatBattles.push(m.battle)-1; btn=` <button class="btn sm" data-cbat="${idx}" style="padding:2px 8px;margin-left:4px">▶ Watch</button>`; } return `<div class="cw-msg">${nameSpan(m.who,m.me)}: <span>${escapeHTML(m.txt)}</span>${btn}</div>`; }).join('')
     :'<div style="font-size:11px;color:#6f7d90;padding:6px">No messages yet — say hi!</div>';
   msgsEl.scrollTop=msgsEl.scrollHeight; wireChat(w);
 }
@@ -7199,7 +7203,33 @@ function wireChat(w){
   w.querySelectorAll('#cwTabs .cw-tab').forEach(t=>{ t.onclick=(e)=>{ const cl=e.target&&e.target.dataset&&e.target.dataset.close; if(cl){ e.stopPropagation(); closeWhisper(cl); return; }
     if(t.dataset.w!==undefined){ chatTab='w:'+t.dataset.w; } else { chatTab=t.dataset.t; } renderChat(); }; });
   w.querySelectorAll('#cwMsgs .nm[data-w]').forEach(el=>el.onclick=()=>openWhisper(el.dataset.w));
+  w.querySelectorAll('#cwMsgs [data-cbat]').forEach(bb=>bb.onclick=()=>{ const meta=_chatBattles[+bb.dataset.cbat]; if(meta){ _replayReturn=()=>{ show('home'); const cw=document.getElementById('chatWidget'); if(cw){ cw.classList.remove('min'); const tg=cw.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; } renderChat(); }; watchBattle(meta); } });
   const s=w.querySelector('#cwSend'), i=w.querySelector('#cwInput'); if(s)s.onclick=chatSend; if(i)i.onkeydown=(e)=>{ if(e.key==='Enter')chatSend(); };
+}
+// ---- Share a battle replay as a watchable chip in World / Region / Guild chat ----
+function shareBattle(meta){
+  if(!meta || !(meta.mineSnap&&meta.mineSnap.length&&meta.foe&&meta.foe.length)){ bannerMsg('This battle can’t be shared'); return; }
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:99999';
+  ov.innerHTML=`<div style="background:#16202b;border:1px solid #2a3a4d;border-radius:14px;padding:16px 16px 14px;max-width:300px;width:84%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.5)">
+    <div style="font-weight:800;font-size:15px;margin-bottom:4px">\u{1F4E4} Share replay</div>
+    <div style="font-size:12px;color:#8b98a9;margin-bottom:12px">Post this battle as a watchable chip.</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn" data-sh="world">\u{1F30D} World chat</button>
+      <button class="btn" data-sh="region">\u{1F4CD} Region chat</button>
+      <button class="btn" data-sh="guild">\u{1F6E1} Guild chat</button>
+      <button class="btn secondary" data-sh="">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.onclick=(e)=>{ if(e.target===ov)ov.remove(); };
+  ov.querySelectorAll('[data-sh]').forEach(b=>b.onclick=()=>{ const ch=b.dataset.sh; ov.remove(); if(ch)postReplayChip(ch,meta); });
+}
+function postReplayChip(channel, meta){
+  const chip={ v:2, seed:(meta.seed>>>0), mineSnap:meta.mineSnap, foe:meta.foe, won:!!meta.won, oppName:meta.oppName||'' };
+  const txt='\u{1F4FD} shared a battle'+(chip.oppName?(' vs '+chip.oppName):'');
+  if(channel==='guild'){ if(!G.guild){ bannerMsg('Join a guild to share there'); return; } if(!Array.isArray(G.guildLog))G.guildLog=[]; G.guildLog.push({txt,battle:chip}); if(G.guildLog.length>50)G.guildLog=G.guildLog.slice(-50); saveG(); chatTab='guild'; bannerMsg('\u{1F4E4} Shared to guild chat'); }
+  else { const ch=(channel==='region')?'region':'world'; initChat(); CHAT[ch].push({who:chatName(),txt,me:true,battle:chip}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(CHATNET.connected)chatNetSend({t:'chat',channel:ch,text:txt,battle:chip}); chatTab=ch; bannerMsg('\u{1F4E4} Shared to '+(ch==='region'?'region':'world')+' chat'); }
+  const w=document.getElementById('chatWidget'); if(w){ w.classList.remove('min'); const tg=w.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; }
+  renderChat();
 }
 function updateChatVisibility(){ const w=document.getElementById('chatWidget'); if(!w)return;
   const onMap=!!document.getElementById('wzone'); const vis=_splashEntered && !document.body.classList.contains('gated') && (state==='home'||onMap);
@@ -7217,8 +7247,8 @@ function chatConnect(){ if(location.protocol==='file:'||!online())return; if(CHA
 }
 function chatNetSend(o){ try{ if(CHATNET.ws&&CHATNET.ws.readyState===1){ CHATNET.ws.send(JSON.stringify(o)); return true; } }catch(e){} return false; }
 function onChatNet(m){
-  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name})); if(chatTab==='world'||chatTab==='region')renderChat(); }
-  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
+  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
+  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
   else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }
 }
 // ---- boot splash: online/offline status + invisible logo Play button ----

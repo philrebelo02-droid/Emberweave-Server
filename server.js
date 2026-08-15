@@ -718,8 +718,10 @@ try{
       else if(m.t==='msg'){ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
       else if(m.t==='chatjoin'){ ws._chatName=clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
       else if(m.t==='chat'){ const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return; const msg={who:ws._chatName||'Player',txt,t:Date.now()};
+        let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
+        if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); writeDB();
-        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
+        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
       else if(m.t==='whisper'){ const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
         WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:ws._chatName||'Player',txt})); }catch(e){} } }); }
     });
