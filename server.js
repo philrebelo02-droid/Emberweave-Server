@@ -383,8 +383,16 @@ async function api(req,res,url){
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
     const b=await body(req);
-    const opp=DB.users[b.oppId]; const r=applyResult(me,opp,!!b.won); const reward=b.won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward; writeDB();
+    const opp=DB.users[b.oppId]; const r=applyResult(me,opp,!!b.won); const reward=b.won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
+    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won.
+      opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
+      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:!!b.won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
+      if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
+    writeDB();
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
+
+  if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
+    return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
 
   if(p==='/api/arena/ladder'){ if(!me)return send(res,401,{error:'auth'});
     const all=allUsersByRank(); const total=all.length; const youIndex=all.findIndex(u=>u.id===me.id);
