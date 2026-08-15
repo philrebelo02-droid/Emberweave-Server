@@ -1034,7 +1034,7 @@ const HERO_SKILL_CLIPS = { konwu:{
 const MOBILE=(('ontouchstart' in window)||(navigator.maxTouchPoints||0)>0);
 // an animation source is "real" if the build replaced its marker — either an inline data: URI OR an external
 // assets/ URL. An un-replaced marker (starts with "/*__") means that clip wasn't built in → treat as absent.
-function isAssetRef(u){ return !!u && (u.indexOf('data:')===0 || u.indexOf('http')===0 || u.indexOf('assets/')===0); }
+function isAssetRef(u){ return !!u && (u.indexOf('data:')===0 || u.indexOf('http')===0 || u.indexOf('assets/')>=0); }
 // per-hero: has skill previews iff that hero's own slot-0 clip was actually built in (not KonWu-global)
 function heroHasClips(key){ const s=HERO_SKILL_CLIPS[key]; return !!(s && s[0] && isAssetRef(s[0].u)); }
 // ---- in-battle sprite animation (idle/walk/attack/hit sheets played on a hero's billboard) ----
@@ -7092,7 +7092,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786804813043';
+const BUILD_ID='1786807446589';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
