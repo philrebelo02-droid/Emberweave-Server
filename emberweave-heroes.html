@@ -1191,7 +1191,7 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 
 /* ---- ability RANK kit: Grey=Ultimate only, Green/Blue=auto actives, Purple=passive ---- */
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
-const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard','thundershower'];   // drag a ground circle sized to the spell radius
+const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard','thundershower','umbralcata'];   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_LINE=[];                                      // single straight-line directional ult (reserved: line+arrow)
 const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony','thundershower'];       // hover an in-range enemy -> it glows; release to fire
@@ -7196,7 +7196,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786888080966';
+const BUILD_ID='1786888241155';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
