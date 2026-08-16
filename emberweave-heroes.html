@@ -752,9 +752,9 @@
   </div>
 
   <!-- DUNGEON -->
-  <div class="screen hub" id="dungeon">
+  <div class="screen hub" id="dungeon" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="z-index:5">◀ Base</button>
-    <div id="dungeonBody" style="width:100%;max-width:960px;margin:auto"></div>
+    <div id="dungeonBody" style="position:absolute;inset:0;max-width:none;margin:0"></div>
   </div>
 
   <!-- ELITE STAGES -->
@@ -3341,7 +3341,7 @@ function renderDungeon(){
   const startDg=()=>{ CUR={mode:'dungeon'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); };
   if(isAssetRef(DUNGEON_BG)){
     // full splash art with an invisible clickable hotspot over the drawn "Choose squad" button
-    b.innerHTML=`<div style="position:relative;width:100%;aspect-ratio:1676/939;border-radius:14px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.6)">
+    b.innerHTML=`<div style="position:absolute;inset:0;overflow:hidden">
       <img src="${DUNGEON_BG}" alt="Dungeon" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none" draggable="false">
       <button id="dgStart" style="position:absolute;left:50%;bottom:5%;transform:translateX(-50%);padding:11px 26px;background:linear-gradient(140deg,#c9922a,#ffcf5e);color:#2a1c00;font-weight:900;font-size:clamp(13px,2.6vw,18px);border:2px solid #fff2c2;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.55);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">⚔️ Choose Your Squad</button>
     </div>`;
@@ -7254,7 +7254,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786897430814';
+const BUILD_ID='1786897757676';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
