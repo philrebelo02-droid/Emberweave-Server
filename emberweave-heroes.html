@@ -2460,9 +2460,8 @@ function spawnShot(from,to,color){const mesh=new TH.Mesh(SPH,new TH.MeshStandard
 function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,t));
   const ox=u.x+(t.x-u.x)/d*22, oy=u.y+(t.y-u.y)/d*22;   // ~arm's-reach forward = where his hand releases
   const tx=t.x, ty=t.y;   // lock the landing point at release
-  const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x8a5cff,emissive:0x7a3fb0,emissiveIntensity:1.3,transparent:true,opacity:.96}));
-  mesh.scale.setScalar(1.4); mesh.position.set(wx(ox),1,wz(oy)); scene.add(mesh);   // a slightly smaller orb than the one at his hand
-  shots.push({mesh,sx:ox,sy:oy,tx,ty,t:0,dur:.24*HERO_FX_MUL,trail:0x8a5cff,onDone:()=>{ burstAt(tx,ty,0x8a5cff,10); ringBurst(tx,ty,0x7a3fb0,10); }});   // lands ON the target with a shadow burst
+  // auto-attack = the real Shadow Ball sprite, shrunk (1/4 of ability size), flying hand->target facing its travel
+  spawnProjFx('shadowball',ox,oy,tx,ty,3.4,.26*HERO_FX_MUL,()=>{ burstAt(tx,ty,0x8a5cff,10); ringBurst(tx,ty,0x7a3fb0,10); });
   burstAt(ox,oy,0x7a3fb0,4); }
 // Umbral Cataclysm orb: a big void orb that departs his raised hand and arcs to the aimed spot (cosmetic; the
 // zone + damage are fired deterministically by the sim fuse when it lands).
@@ -2502,12 +2501,15 @@ function updateChains(dt){ for(let i=chains.length-1;i>=0;i--){ const c=chains[i
 // Umbris "Umbral Cataclysm": an animated VOID ZONE that lands at the aimed/target point and lingers in its
 // radius — a dark pool with counter-rotating rims and rising void wisps, ticking shadow damage each second.
 function spawnVoidZone(u,cx,cy,R,dur,pd,con){
-  const z={x:cx,y:cy,r:R,life:dur,dur,acc:0,interval:1,team:u.team,owner:u,pd,con,t:0,wispAcc:0,disc:null,ring:null,ring2:null};
-  if(TH&&scene){ const R3=R*SC;
-    const mk=(geo,color,op)=>{ const m=new TH.Mesh(geo,new TH.MeshBasicMaterial({color,transparent:true,opacity:0,side:TH.DoubleSide,depthWrite:false})); m.rotation.x=-Math.PI/2; scene.add(m); m._baseOp=op; return m; };
-    z.disc=mk(new TH.CircleGeometry(R3,44),0x1a0b2e,0.6); z.disc.position.set(wx(cx),0.12,wz(cy));
-    z.ring=mk(new TH.RingGeometry(R3*0.85,R3,52),0x8a5cff,0.85); z.ring.position.set(wx(cx),0.15,wz(cy));
-    z.ring2=mk(new TH.RingGeometry(R3*0.28,R3*0.5,36,1,0,Math.PI*1.35),0x7a3fb0,0.7); z.ring2.position.set(wx(cx),0.18,wz(cy));
+  const z={x:cx,y:cy,r:R,life:dur,dur,acc:0,interval:1,team:u.team,owner:u,pd,con,t:0,wispAcc:0,disc:null,ring:null,ring2:null,gfx:null};
+  // the real animated Void Zone plate laid on the ground, sized to the zone radius, looping for its lifetime
+  if(TH&&scene){ z.gfx=spawnGroundFx('voidzone',cx,cy,R,dur);
+    if(!z.gfx){ const R3=R*SC;   // fallback: procedural disc if the plate can't load
+      const mk=(geo,color,op)=>{ const m=new TH.Mesh(geo,new TH.MeshBasicMaterial({color,transparent:true,opacity:0,side:TH.DoubleSide,depthWrite:false})); m.rotation.x=-Math.PI/2; scene.add(m); m._baseOp=op; return m; };
+      z.disc=mk(new TH.CircleGeometry(R3,44),0x1a0b2e,0.6); z.disc.position.set(wx(cx),0.12,wz(cy));
+      z.ring=mk(new TH.RingGeometry(R3*0.85,R3,52),0x8a5cff,0.85); z.ring.position.set(wx(cx),0.15,wz(cy));
+      z.ring2=mk(new TH.RingGeometry(R3*0.28,R3*0.5,36,1,0,Math.PI*1.35),0x7a3fb0,0.7); z.ring2.position.set(wx(cx),0.18,wz(cy));
+    }
   }
   voidZones.push(z); ringBurst(cx,cy,0x7a3fb0,30); burstAt(cx,cy,0x4a2a6a,24); }
 function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=voidZones[i]; z.life-=dt; z.t+=dt; z.acc+=dt; z.wispAcc+=dt;
@@ -2520,6 +2522,76 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
   if(z.ring2){ z.ring2.material.opacity=z.ring2._baseOp*a; z.ring2.rotation.z-=dt*1.5; }
   if(z.wispAcc>=0.11 && z.life>0.3 && typeof fxParticle==='function'){ z.wispAcc=0; const ang=Math.random()*6.28, rr=Math.sqrt(Math.random())*z.r; fxParticle(wx(z.x+Math.cos(ang)*rr),0.2,wz(z.y+Math.sin(ang)*rr),0,1.5+Math.random()*1.6,0,0x8a5cff,0.75,0.7); }
   if(z.life<=0){ [z.disc,z.ring,z.ring2].forEach(m=>{ if(m){ scene.remove(m); if(m.geometry)m.geometry.dispose(); m.material.dispose(); } }); voidZones.splice(i,1); } } }
+// ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
+const FX2_DEF={
+  voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=1',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0},
+  shadowball:{u:'/assets/anim/fx/shadowball.webp?v=1',n:18, fw:200, fh:200, cols:8, rows:3, dur:2.0},
+  fireball:  {u:'/assets/anim/fx/fireball.webp?v=1',  n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
+  frostball: {u:'/assets/anim/fx/frostball.webp?v=1', n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
+  bleed:     {u:'/assets/anim/fx/bleed.webp?v=1',     n:16, fw:130, fh:210, cols:4, rows:4, dur:2.2},
+  poison:    {u:'/assets/anim/fx/poison.webp?v=1',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
+  firepatch: {u:'/assets/anim/fx/firepatch.webp?v=1', n:20, fw:210, fh:200, cols:5, rows:4, dur:2.5},
+  blizzard:  {u:'/assets/anim/fx/blizzard.webp?v=1',  n:18, fw:207, fh:210, cols:6, rows:3, dur:2.5},
+  frostnova: {u:'/assets/anim/fx/frostnova.webp?v=1', n:14, fw:210, fh:183, cols:5, rows:3, dur:1.3},
+  groundslam:{u:'/assets/anim/fx/groundslam.webp?v=1',n:18, fw:210, fh:183, cols:6, rows:3, dur:1.6},
+  tsunami:   {u:'/assets/anim/fx/tsunami.webp?v=1',   n:26, fw:210, fh:189, cols:6, rows:5, dur:3.0},
+  tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=1', n:24, fw:210, fh:131, cols:6, rows:4, dur:2.6},
+  cleave:    {u:'/assets/anim/fx/cleave.webp?v=1',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0}
+};
+const _fx2Tex={};
+function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
+  const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t; return t; }
+function fx2SetFrame(tex,d,fr){ fr=((fr%d.n)+d.n)%d.n; const c=fr%d.cols, r=Math.floor(fr/d.cols);
+  tex.repeat.set(1/d.cols,1/d.rows); tex.offset.set(c/d.cols, 1-(r+1)/d.rows); }   // sheet cell -> texture UV (row 0 = top)
+// Ground zone: a flat animated quad laid on the battlefield, sized to the ability RADIUS, looping for `life` seconds.
+const _groundFx=[];
+function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
+  const tex=base.clone(); tex.needsUpdate=true; fx2SetFrame(tex,d,0);
+  const R3=radius*SC, w=R3*2*1.12, h=w*(d.fh/d.fw);
+  const m=new TH.Mesh(new TH.PlaneGeometry(w,h), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:TH.DoubleSide,opacity:0}));
+  m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)); m.renderOrder=5; scene.add(m);
+  const o={m,d,tex,t:0,life}; _groundFx.push(o); return o; }
+function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
+  fx2SetFrame(o.tex,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                          // loop the cycle
+  o.m.material.opacity=Math.min(1,o.t/0.3)*Math.min(1,(o.life+dt)/0.5);           // fade in / out
+  if(o.life<=0){ scene.remove(o.m); o.m.geometry.dispose(); if(o.m.material.map)o.m.material.map.dispose(); o.m.material.dispose(); _groundFx.splice(i,1); } } }
+// Traveling projectile: a billboard that flies from->to, its sheet looping (rubberband is baked in), rotated so the
+// orb FRONT (baked pointing +x) faces the direction of travel. onHit fires on arrival.
+const _projFx=[];
+function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit){ const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
+  const tex=base.clone(); tex.needsUpdate=true; fx2SetFrame(tex,d,0);
+  const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
+  spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;
+  let rot=0; try{ const a=new TH.Vector3(wx(fromx),1.2,wz(fromy)).project(camera), b=new TH.Vector3(wx(tox),1.2,wz(toy)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
+  spr.material.rotation=rot;                                                      // front(+x) -> travel direction on screen
+  spr.position.set(wx(fromx),1.2,wz(fromy)); scene.add(spr);
+  _projFx.push({spr,d,tex,sx:fromx,sy:fromy,tx:tox,ty:toy,t:0,dur:Math.max(.1,dur||.3),onHit}); }
+function updateProjFx(dt){ for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
+  fx2SetFrame(p.tex,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
+  p.spr.position.set(wx(p.sx+(p.tx-p.sx)*k),1.2,wz(p.sy+(p.ty-p.sy)*k));
+  if(k>=1){ if(p.onHit)p.onHit(); scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _projFx.splice(i,1); } } }
+// Universal DoT status FX: ANY unit (hero or monster) carrying a bleed/poison/burn DoT shows the matching effect
+// at its feet for the DoT's lifetime. Classified by the dot's colour. Burn = a small fire patch under the feet.
+function dotKind(color){ if(!color)return null; const h=color.replace('#',''); if(h.length<6)return null;
+  const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+  if(g>r-10 && g>b+40) return 'poison';                 // green
+  if(r>150 && b<110) return g<95 ? 'bleed' : 'burn';    // warm: low-green=bleed(red), more-green=burn(orange)
+  return null; }
+function unitDotKind(u){ if(!u.dots||!u.dots.length)return null; for(let i=u.dots.length-1;i>=0;i--){ const k=dotKind(u.dots[i].color); if(k)return k; } return null; }
+const STATUSFX_KEY={poison:'poison',bleed:'bleed',burn:'firepatch'};   // burn is rendered as a tiny fire patch
+function _killStatusFx(u){ if(u._statusFx){ scene.remove(u._statusFx.spr); if(u._statusFx.spr.material.map)u._statusFx.spr.material.map.dispose(); u._statusFx.spr.material.dispose(); u._statusFx=null; } }
+function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
+  const kind=u.alive?unitDotKind(u):null;
+  if(!kind || (u._statusFx&&u._statusFx.kind!==kind)) _killStatusFx(u);
+  if(!kind) return;
+  if(!u._statusFx){ const key=STATUSFX_KEY[kind], d=FX2_DEF[key], base=fx2Tex(key); if(!base)return;
+    const tex=base.clone(); tex.needsUpdate=true; fx2SetFrame(tex,d,0); const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
+    const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
+    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=993; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
+  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.tex,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.x),0.35,wz(u.y)); }); }
+function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.geometry.dispose();if(o.m.material.map)o.m.material.map.dispose();o.m.material.dispose();}); _groundFx.length=0;
+  _projFx.forEach(p=>{scene.remove(p.spr);if(p.spr.material.map)p.spr.material.map.dispose();p.spr.material.dispose();}); _projFx.length=0;
+  if(typeof units!=='undefined') units.forEach(u=>_killStatusFx(u)); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
@@ -2653,7 +2725,7 @@ function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is
 function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite&&x.material){try{x.material.dispose();}catch(_){}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
-  voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[];
+  voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 function startBattle(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
@@ -2686,7 +2758,7 @@ function purgeTransientFx(){
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();}); shots=[];
   particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
-  voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[];
+  voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
   floatTexts=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
   if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
@@ -2883,6 +2955,7 @@ function updateBattle(dt){
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
   updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
+  updateGroundFx(dt); updateProjFx(dt); updateStatusFx(dt);   // batch FX: ground zones, traveling projectiles, DoT feet-FX
   units.forEach(u=>{if(!u.alive)u.deathT+=dt;});
   units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
   units=units.filter(u=>!u._gone);
@@ -7254,7 +7327,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786897757676';
+const BUILD_ID='1786903133853';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
