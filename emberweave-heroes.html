@@ -1080,8 +1080,8 @@ const BATTLE_ANIM = { konwu:{
   attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b2',n:20,fw:445,fh:373,cols:6,rows:4,figH:300,feet:363,cx:222,fps:20,flip:true,hold:0.75,relFrac:0.95,handfx:0.174,handfy:0.378},
   hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=b2',n:30,fw:327,fh:324,cols:6,rows:5,figH:300,feet:316,cx:163,fps:14,flip:true},
   ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=b2',n:26,fw:429,fh:439,cols:6,rows:5,figH:300,feet:398,cx:178,fps:14,flip:true},
-  green:{u:'/assets/anim/umbris/umbris_green.webp?v=b2',n:24,fw:416,fh:348,cols:6,rows:4,figH:300,feet:314,cx:159,fps:14,flip:true},
-  blue:{u:'/assets/anim/umbris/umbris_blue.webp?v=b2',n:24,fw:376,fh:347,cols:6,rows:4,figH:300,feet:330,cx:123,fps:13,flip:true}
+  green:{u:'/assets/anim/umbris/umbris_green.webp?v=b2',n:24,fw:416,fh:348,cols:6,rows:4,figH:300,feet:314,cx:159,fps:14,flip:false},
+  blue:{u:'/assets/anim/umbris/umbris_blue.webp?v=b2',n:24,fw:376,fh:347,cols:6,rows:4,figH:300,feet:330,cx:123,fps:13,flip:false}
   }
  };
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
@@ -2443,10 +2443,11 @@ function spawnShot(from,to,color){const mesh=new TH.Mesh(SPH,new TH.MeshStandard
 // target, not his body center) the instant the sprite's body-ball is released — so the handoff is seamless.
 function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,t));
   const ox=u.x+(t.x-u.x)/d*22, oy=u.y+(t.y-u.y)/d*22;   // ~arm's-reach forward = where his hand releases
-  const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x8a5cff,emissive:0x7a3fb0,emissiveIntensity:1.25,transparent:true,opacity:.96}));
-  mesh.scale.setScalar(1.9); mesh.position.set(wx(ox),1,wz(oy)); scene.add(mesh);
-  shots.push({mesh,sx:ox,sy:oy,tx:t.x,ty:t.y,t:0,dur:.20*HERO_FX_MUL,trail:0x8a5cff});
-  burstAt(ox,oy,0x7a3fb0,5); }
+  const tx=t.x, ty=t.y;   // lock the landing point at release
+  const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x8a5cff,emissive:0x7a3fb0,emissiveIntensity:1.3,transparent:true,opacity:.96}));
+  mesh.scale.setScalar(1.4); mesh.position.set(wx(ox),1,wz(oy)); scene.add(mesh);   // a slightly smaller orb than the one at his hand
+  shots.push({mesh,sx:ox,sy:oy,tx,ty,t:0,dur:.24*HERO_FX_MUL,trail:0x8a5cff,onDone:()=>{ burstAt(tx,ty,0x8a5cff,10); ringBurst(tx,ty,0x7a3fb0,10); }});   // lands ON the target with a shadow burst
+  burstAt(ox,oy,0x7a3fb0,4); }
 // Umbris "Creeping Rot": a long shadow CHAIN that whips from his hand toward the monster and ERODES as it
 // travels — a line of dark-violet links that extend head-first to the target, then dissolve tail-first.
 function spawnShadowChain(u,t){ if(!TH||!scene||!t)return; const d=Math.max(1,dist(u,t));
@@ -7196,7 +7197,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786888241155';
+const BUILD_ID='1786888447424';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
