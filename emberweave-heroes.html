@@ -2254,7 +2254,10 @@ function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team); }
 
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
-const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'} };
+const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'} };
+// Umbris casts intentionally do NOT swap to a full-body clip: the pre-rendered Hailuo poses can't blend from
+// his idle float, so they snap ("teleport") and read unnatural. Instead he stays in his calm float and the
+// shadow EFFECTS (Creeping Rot chain, Umbral Cataclysm void zone, Shadeburst burst) carry each cast — subtle.
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
 // Target + damage are recomputed HERE (at landing), not at cast, since a second may have passed.
 function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;return;}
@@ -2312,6 +2315,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u;
       const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y));
       enemiesOf(u).forEach(e=>{ if(Math.hypot(e.x-cx,e.y-cy)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#c9a6ff'); e._darkAuraT=o.dur||5; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
+      burstAt(u.x,u.y+2,0x7a3fb0,16); ringBurst(u.x,u.y,0x4a2a6a,12);   // dark surge FROM Umbris as he sends the void out
       spawnVoidZone(u,cx,cy,R,o.dur||5,pd,con); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'aoedot':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(u.x,u.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=o.stun||1.3;if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
@@ -7197,7 +7201,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786888447424';
+const BUILD_ID='1786888995703';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
