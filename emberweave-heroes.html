@@ -1212,7 +1212,7 @@ const KITS={
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7},blue:{name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10},purple:{name:'Contagion',pass:'contagion'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:3*METER,dur:6,cd:9},purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7},purple:{name:'Static Veil',pass:'stormdodge'}},
-  umbris:{green:{name:'Shadeburst',type:'shadeburst',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,cd:6},purple:{name:'Lingering Dark',pass:'contagion'}},
+  umbris:{green:{name:'Shadeburst',type:'shadeburst',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,chain:true,cd:6},purple:{name:'Lingering Dark',pass:'contagion'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7},purple:{name:'Second Wind',pass:'selfregen'}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9},purple:{name:'Twin Fonts',pass:'twinfonts'}},
    rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8},blue:{name:'Dig In',type:'taunt',cd:10},purple:{name:'Thick Chitin',pass:'warden'}},
@@ -1863,7 +1863,7 @@ function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (
   const w=u.sprH*(u.sprA||0.7); return (u._bodyR=Math.max(u.r||18, w*BODY_FRAC/(2*SC))); }
 
 /* --------------------------------- state ----------------------------------- */
-let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[];
+let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],chains=[];
 let selected=null,battleTime=0,ended=false,rageMul=1;
 const BATTLE_TIME_LIMIT=90;                 // Magic Rush-style battle countdown shown in the top banner (display)
 let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state (stars + hero cards)
@@ -2304,11 +2304,15 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       burstAt(u.x,u.y,0x8f6fe0,14); ringBurst(u.x,u.y,0x8f6fe0,10);   // charge telegraph at the start point
       floatTexts.push({x:u.x,y:u.y-8,txt:'⚡ Phantom Step',t:1.0,color:'#c9b6ff',vy:1}); break; }
     case 'execute':{if(!tgt)break;const bonus=1+(1-tgt.hp/tgt.maxHp)*2;dealDamage(u,tgt,dB*(o.mul||2.2)*rm*bonus,'#ff5b6b');burstAt(tgt.x,tgt.y,0xff5b6b,14);break;}
-    case 'creeprot': case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8'); pushDot(tgt,u.dmg*(o.dps||.5)*sm,o.dur||4,o.interval||1,o.color||'#ff8844'); if(o.foot){tgt._darkAuraT=o.dur||4;tgt._plagueColor=o.color||'#8a5cff';tgt._plagueHex=0x7a3fb0;} if(u.range>60)spawnShot(u,tgt,u.t.color); break;}
+    case 'creeprot': case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8'); pushDot(tgt,u.dmg*(o.dps||.5)*sm,o.dur||4,o.interval||1,o.color||'#ff8844'); if(o.foot){tgt._darkAuraT=o.dur||4;tgt._plagueColor=o.color||'#8a5cff';tgt._plagueHex=0x7a3fb0;} if(o.chain){spawnShadowChain(u,tgt);} else if(u.range>60)spawnShot(u,tgt,u.t.color); break;}
     case 'shadeburst':{ enemiesOf(u).forEach(e=>{ if(dist(u,e)<(o.radius||90)){ if(o.mul)dealDamage(u,e,dB*o.mul,'#c9a6ff'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#8a5cff'); e._darkAuraT=o.dur||4; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } }); ringBurst(u.x,u.y,0x7a3fb0,16); burstAt(u.x,u.y,0x4a2a6a,12); break; }
     case 'umbralcata':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#c9a6ff'); pushDot(e,pd,o.dur||5,1,'#8a5cff'); e._plagueDps=pd; e._contagion=con; e._darkAuraT=o.dur||5; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
-      ringBurst(u.x,u.y,0x7a3fb0,28); burstAt(u.x,u.y,0x4a2a6a,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
+      // lands a VOID ZONE at the aimed point (or the target/nearest foe), clamped on-field. Initial slam hits
+      // everyone caught, then the pool lingers and ticks shadow damage each second for its duration.
+      const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u;
+      const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y));
+      enemiesOf(u).forEach(e=>{ if(Math.hypot(e.x-cx,e.y-cy)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#c9a6ff'); e._darkAuraT=o.dur||5; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
+      spawnVoidZone(u,cx,cy,R,o.dur||5,pd,con); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'aoedot':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(u.x,u.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=o.stun||1.3;if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=Math.max(tgt.slow||0,2);break;}
@@ -2443,6 +2447,48 @@ function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,
   mesh.scale.setScalar(1.9); mesh.position.set(wx(ox),1,wz(oy)); scene.add(mesh);
   shots.push({mesh,sx:ox,sy:oy,tx:t.x,ty:t.y,t:0,dur:.20*HERO_FX_MUL,trail:0x8a5cff});
   burstAt(ox,oy,0x7a3fb0,5); }
+// Umbris "Creeping Rot": a long shadow CHAIN that whips from his hand toward the monster and ERODES as it
+// travels — a line of dark-violet links that extend head-first to the target, then dissolve tail-first.
+function spawnShadowChain(u,t){ if(!TH||!scene||!t)return; const d=Math.max(1,dist(u,t));
+  const hx=u.x+(t.x-u.x)/d*22, hy=u.y+(t.y-u.y)/d*22;   // launch from his extended hand
+  const N=10, links=[];
+  for(let i=0;i<N;i++){ const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x7a3fb0,emissive:0x8a5cff,emissiveIntensity:1.15,transparent:true,opacity:0,depthWrite:false}));
+    m.scale.setScalar(1.7-0.06*i); scene.add(m); links.push(m); }
+  chains.push({sx:hx,sy:hy,tx:t.x,ty:t.y,target:t,t:0,dur:0.42*HERO_FX_MUL,links});
+  burstAt(hx,hy,0x7a3fb0,5); }
+function updateChains(dt){ for(let i=chains.length-1;i>=0;i--){ const c=chains[i]; c.t+=dt; const k=Math.min(1,c.t/c.dur), N=c.links.length;
+  if(c.target&&c.target.alive){ c.tx=c.target.x; c.ty=c.target.y; }   // home onto the moving monster
+  const EXT=0.55; const head=Math.min(1,k/EXT);            // chain extends hand->target over the first 55%
+  const erode=k>EXT?(k-EXT)/(1-EXT):0;                     // then dissolves from the hand end
+  for(let j=0;j<N;j++){ const f=j/(N-1), m=c.links[j];     // f=0 hand, f=1 head (at the target)
+    const px=c.sx+(c.tx-c.sx)*f, py=c.sy+(c.ty-c.sy)*f;
+    m.position.set(wx(px),1+Math.sin(c.t*16+j*0.9)*0.09,wz(py));   // slight serpentine wobble
+    let op=0; if(f<=head) op=0.95; if(f<erode) op=0;       // reveal head-first, erode tail-first
+    m.material.opacity=op; m.scale.setScalar(Math.max(0.2,(1.7-0.06*j)*(f<erode?0:1)*(1-0.35*erode)));
+    if(f<erode && f+1/(N-1)>=erode && Math.random()<0.5) burstAt(px,py,0x7a3fb0,2);   // erode puffs
+  }
+  if(c.t>=c.dur){ c.links.forEach(m=>{scene.remove(m); m.material.dispose();}); chains.splice(i,1); } } }
+// Umbris "Umbral Cataclysm": an animated VOID ZONE that lands at the aimed/target point and lingers in its
+// radius — a dark pool with counter-rotating rims and rising void wisps, ticking shadow damage each second.
+function spawnVoidZone(u,cx,cy,R,dur,pd,con){
+  const z={x:cx,y:cy,r:R,life:dur,dur,acc:0,interval:1,team:u.team,owner:u,pd,con,t:0,wispAcc:0,disc:null,ring:null,ring2:null};
+  if(TH&&scene){ const R3=R*SC;
+    const mk=(geo,color,op)=>{ const m=new TH.Mesh(geo,new TH.MeshBasicMaterial({color,transparent:true,opacity:0,side:TH.DoubleSide,depthWrite:false})); m.rotation.x=-Math.PI/2; scene.add(m); m._baseOp=op; return m; };
+    z.disc=mk(new TH.CircleGeometry(R3,44),0x1a0b2e,0.6); z.disc.position.set(wx(cx),0.12,wz(cy));
+    z.ring=mk(new TH.RingGeometry(R3*0.85,R3,52),0x8a5cff,0.85); z.ring.position.set(wx(cx),0.15,wz(cy));
+    z.ring2=mk(new TH.RingGeometry(R3*0.28,R3*0.5,36,1,0,Math.PI*1.35),0x7a3fb0,0.7); z.ring2.position.set(wx(cx),0.18,wz(cy));
+  }
+  voidZones.push(z); ringBurst(cx,cy,0x7a3fb0,30); burstAt(cx,cy,0x4a2a6a,24); }
+function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=voidZones[i]; z.life-=dt; z.t+=dt; z.acc+=dt; z.wispAcc+=dt;
+  if(z.acc>=z.interval){ z.acc-=z.interval;                 // tick: shadow damage to any enemy standing in the pool
+    units.forEach(e=>{ if(e.alive&&e.team!==z.team&&Math.hypot(e.x-z.x,e.y-z.y)<=z.r){ dealDamage(z.owner,e,z.pd,'#c9a6ff');
+      e._darkAuraT=Math.max(e._darkAuraT||0,1.5); e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; if(z.con){e._contagion=true;e._plagueDps=z.pd;e._plagueHex=0x7a3fb0;} } }); }
+  const a=Math.min(1,z.t/0.35)*Math.min(1,z.life/0.6), puls=0.82+0.18*Math.sin(z.t*4.2);   // fade in/out + pulse
+  if(z.disc){ z.disc.material.opacity=z.disc._baseOp*a*puls; }
+  if(z.ring){ z.ring.material.opacity=z.ring._baseOp*a; z.ring.rotation.z+=dt*0.7; }
+  if(z.ring2){ z.ring2.material.opacity=z.ring2._baseOp*a; z.ring2.rotation.z-=dt*1.5; }
+  if(z.wispAcc>=0.11 && z.life>0.3 && typeof fxParticle==='function'){ z.wispAcc=0; const ang=Math.random()*6.28, rr=Math.sqrt(Math.random())*z.r; fxParticle(wx(z.x+Math.cos(ang)*rr),0.2,wz(z.y+Math.sin(ang)*rr),0,1.5+Math.random()*1.6,0,0x8a5cff,0.75,0.7); }
+  if(z.life<=0){ [z.disc,z.ring,z.ring2].forEach(m=>{ if(m){ scene.remove(m); if(m.geometry)m.geometry.dispose(); m.material.dispose(); } }); voidZones.splice(i,1); } } }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
@@ -2570,6 +2616,8 @@ function think(u,dt){
 function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is exactly 3 waves
 function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite&&x.material){try{x.material.dispose();}catch(_){}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
+  chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
+  voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 function startBattle(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
@@ -2601,6 +2649,8 @@ function purgeTransientFx(){
   units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; });
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();}); shots=[];
   particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=[];
+  chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
+  voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[];
   floatTexts=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
   if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
@@ -2795,6 +2845,8 @@ function updateBattle(dt){
   floatTexts.forEach(f=>{f.t-=dt;f.y-=(f.vy||1)*(60*dt);}); floatTexts=floatTexts.filter(f=>f.t>0);
   updateStaffFx(dt);   // KonWu ultimate phantom-staff slams
   updateFxPlates(dt);   // Vulmar placed effect plates
+  updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
+  updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
   units.forEach(u=>{if(!u.alive)u.deathT+=dt;});
   units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
   units=units.filter(u=>!u._gone);
@@ -2980,7 +3032,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
   switch(type){
     case 'fireball': case 'aoedot': fireRain(T.x,T.y,o.radius||95,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break;
     case 'shadeburst': rainDown(u.x,u.y,o.radius||90,16,0x9a6fff); break;
-    case 'umbralcata': rainDown(u.x,u.y,o.radius||120,22,0x9a6fff); if(u.team==='ally')screenFlash=Math.max(screenFlash,.16); break;
+    case 'umbralcata': rainDown(T.x,T.y,o.radius||120,18,0x9a6fff); if(u.team==='ally')screenFlash=Math.max(screenFlash,.16); break;
     case 'multiShot': case 'volley': { const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4); (es.length?es:[T]).forEach(e=>rainDown(e.x,e.y,26,5,0x8fffb0)); break; }
     case 'aoeStun': case 'stun': boltAt(u.x,u.y,0x8fd0ff); ringBurst(u.x,u.y,0x6ea8ff,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.28); break;
     case 'monkSlam': boltAt(u.x,u.y,0xffe08a); ringBurst(u.x,u.y,0xffcf40,20); burstAt(u.x,u.y,0xffe08a,14); if(u.team==='ally')screenFlash=Math.max(screenFlash,.32); break;
@@ -7144,7 +7196,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786887131760';
+const BUILD_ID='1786888080966';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
