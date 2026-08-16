@@ -2541,12 +2541,14 @@ const FX2_DEF={
 const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
   const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t; return t; }
+// fresh per-instance texture — self-updates when the image loads (a clone made before load stays blank in three r128)
+function fx2NewTex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; return t; }
 function fx2SetFrame(tex,d,fr){ fr=((fr%d.n)+d.n)%d.n; const c=fr%d.cols, r=Math.floor(fr/d.cols);
   tex.repeat.set(1/d.cols,1/d.rows); tex.offset.set(c/d.cols, 1-(r+1)/d.rows); }   // sheet cell -> texture UV (row 0 = top)
 // Ground zone: a flat animated quad laid on the battlefield, sized to the ability RADIUS, looping for `life` seconds.
 const _groundFx=[];
 function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
-  const tex=base.clone(); tex.needsUpdate=true; fx2SetFrame(tex,d,0);
+  const tex=fx2NewTex(key); fx2SetFrame(tex,d,0);
   const R3=radius*SC, w=R3*2*1.12, h=w*(d.fh/d.fw);
   const m=new TH.Mesh(new TH.PlaneGeometry(w,h), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:TH.DoubleSide,opacity:0}));
   m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)); m.renderOrder=5; scene.add(m);
@@ -2559,7 +2561,7 @@ function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_gr
 // orb FRONT (baked pointing +x) faces the direction of travel. onHit fires on arrival.
 const _projFx=[];
 function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit){ const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
-  const tex=base.clone(); tex.needsUpdate=true; fx2SetFrame(tex,d,0);
+  const tex=fx2NewTex(key); fx2SetFrame(tex,d,0);
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
   spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;
   let rot=0; try{ const a=new TH.Vector3(wx(fromx),1.2,wz(fromy)).project(camera), b=new TH.Vector3(wx(tox),1.2,wz(toy)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
@@ -2585,7 +2587,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
   if(!kind || (u._statusFx&&u._statusFx.kind!==kind)) _killStatusFx(u);
   if(!kind) return;
   if(!u._statusFx){ const key=STATUSFX_KEY[kind], d=FX2_DEF[key], base=fx2Tex(key); if(!base)return;
-    const tex=base.clone(); tex.needsUpdate=true; fx2SetFrame(tex,d,0); const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
+    const tex=fx2NewTex(key); fx2SetFrame(tex,d,0); const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=993; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
   const s=u._statusFx; s.t+=dt; fx2SetFrame(s.tex,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.x),0.35,wz(u.y)); }); }
@@ -7327,7 +7329,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786903133853';
+const BUILD_ID='1786903854748';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
