@@ -1,7 +1,7 @@
 /* Emberweave Heroes service worker.
    Network-first for the app so your pushed updates reach players immediately,
    with a cache fallback so the installed app still opens offline.            */
-const CACHE = 'emberweave-v93';
+const CACHE = 'emberweave-v94';
 const SHELL = ['/', '/play', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-512-maskable.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
@@ -20,7 +20,11 @@ self.addEventListener('fetch', (e) => {
   // network-first: always try to get the freshest game (bypassing the HTTP cache), fall back to cache offline.
   // navigations / the HTML doc are fetched with cache:'reload' so a stale browser-cached page can never win.
   const isDoc = req.mode === 'navigate' || (req.destination === '' && url.pathname === '/') || req.destination === 'document';
-  const fetchOpts = isDoc ? { cache: 'reload' } : {};
+  // Same-origin /assets/ are revalidated (no-cache) so a redeploy that REPLACES a file at the same URL
+  // (e.g. a rebuilt sprite sheet) can never be served stale from the browser HTTP cache — the mismatch
+  // between an updated sheet's dimensions and its metadata would otherwise garble/clip the animation.
+  const isOwnAsset = url.origin === location.origin && url.pathname.startsWith('/assets/');
+  const fetchOpts = isDoc ? { cache: 'reload' } : (isOwnAsset ? { cache: 'no-cache' } : {});
   e.respondWith(
     fetch(new Request(req, fetchOpts)).then(res => {
       const copy = res.clone();
