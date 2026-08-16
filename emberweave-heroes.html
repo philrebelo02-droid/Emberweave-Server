@@ -15,7 +15,7 @@
   html,body{height:100%;background:radial-gradient(circle at 50% 32%,#15100f,#07090d 72%);overflow:hidden;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;color:#e6edf3;}
   body{display:flex;align-items:center;justify-content:center;}
   /* the whole game is a landscape stage (matches the town art ~1024:572) that scales to fill the window and centers */
-  #app{position:relative;width:min(100vw, calc(100vh * 1024 / 572));height:min(100vh, calc(100vw * 572 / 1024));overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.7);}
+  #app{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;}   /* full-bleed: the stage fills the whole window (no letterbox bars); art fills via cover-sizing */
   #home{padding:0;}
   /* boot splash gate: shown for everyone until they tap the (invisible) logo Play button while online */
   #rotateGate{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;background:#0a0603;overflow:hidden;-webkit-tap-highlight-color:transparent;}
@@ -73,7 +73,7 @@
 
   /* home buildings */
   /* painted town-map home base */
-  #townWrap{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;background:#0d1117;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;}
+  #townWrap{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;background:#0d1117;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;display:flex;align-items:center;}
   #townWrap.dragging{cursor:grabbing;}
   #skyIsle{position:absolute;transform:translate(-50%,-50%);z-index:6;cursor:pointer;}
   #skyIsle .isleBob{width:100%;height:100%;overflow:hidden;animation:isleBob 4.6s ease-in-out infinite;filter:brightness(1.32) contrast(1.02) saturate(1.06) drop-shadow(0 8px 11px rgba(0,0,0,.45));}
@@ -82,7 +82,7 @@
   @keyframes isleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3%)}}
   @keyframes islePlay{from{transform:translateX(0)}to{transform:translateX(-100%)}}
   #townWrap::-webkit-scrollbar{height:0;width:0;}
-  #townMap{position:relative;height:100%;width:max-content;}
+  #townMap{position:relative;height:100%;width:max-content;flex:none;}   /* size overridden by sizeTownMap() to COVER the stage */
   #townHots{position:absolute;inset:0;}
   /* floating HUD on the town — clean framed resource chips with icon + value + buy(+) */
   #townHud{position:absolute;left:1.5%;top:2.5%;z-index:20;display:flex;gap:8px;flex-wrap:wrap;}
@@ -111,7 +111,7 @@
   .zoomctl{position:absolute;left:8px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:8;}
   .zoomctl button{width:38px;height:38px;border-radius:10px;border:1px solid #33405e;background:rgba(16,21,31,.9);color:#e6edf3;font-size:20px;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.5);}
   .zoomctl button:active{transform:scale(.94);}
-  #townImg{height:100%;width:auto;display:block;user-select:none;-webkit-user-drag:none;}
+  #townImg{height:100%;width:auto;display:block;user-select:none;-webkit-user-drag:none;}   /* px size overridden by sizeTownMap() to COVER the stage */
   /* live resource numbers overlaid on the painted top bar (positioned as % so they scale with the image) */
   .resnum{position:absolute;transform:translateY(-50%);font-weight:800;color:#fff;font-size:clamp(11px,2.4vw,18px);text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.75);white-space:nowrap;z-index:4;pointer-events:none;}
   #resGold{color:#ffe08a;} #resGems{color:#c9b6ff;} #resStamina{color:#bff0a8;}
@@ -2466,11 +2466,17 @@ function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,
   burstAt(ox,oy,0x7a3fb0,4); }
 // Umbral Cataclysm orb: a big void orb that departs his raised hand and arcs to the aimed spot (cosmetic; the
 // zone + damage are fired deterministically by the sim fuse when it lands).
+let _umbrisOrbTex=null;
+const UMBRIS_ORB_SRC='data:image/webp;base64,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';
+function umbrisOrbTex(){ if(!_umbrisOrbTex&&TH){ _umbrisOrbTex=new TH.TextureLoader().load(UMBRIS_ORB_SRC); _umbrisOrbTex.magFilter=TH.LinearFilter; _umbrisOrbTex.minFilter=TH.LinearFilter; } return _umbrisOrbTex; }
 function spawnVoidOrb(u,vc){ if(!TH||!scene)return; const d=Math.max(1,Math.hypot(vc.cx-u.x,vc.cy-u.y));
   const ox=u.x+(vc.cx-u.x)/d*24, oy=u.y+(vc.cy-u.y)/d*24;
-  const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x8a5cff,emissive:0x7a3fb0,emissiveIntensity:1.45,transparent:true,opacity:.97}));
-  mesh.scale.setScalar(3.4); mesh.position.set(wx(ox),1,wz(oy)); scene.add(mesh);
-  shots.push({mesh,sx:ox,sy:oy,tx:vc.cx,ty:vc.cy,t:0,dur:.42*HERO_FX_MUL,trail:0x8a5cff});
+  // the ACTUAL gathered orb (cropped from his ult clip) detaches from his hand and flies to the void zone —
+  // a billboard sprite, so it reads as the real ball, not a plain attack sphere.
+  const spr=new TH.Sprite(new TH.SpriteMaterial({map:umbrisOrbTex(),transparent:true,depthWrite:false,depthTest:false,opacity:1}));
+  spr.scale.set(6.2,6.2,1); spr.renderOrder=993; spr.position.set(wx(ox),1.4,wz(oy)); scene.add(spr);
+  shots.push({mesh:spr,sx:ox,sy:oy,tx:vc.cx,ty:vc.cy,t:0,dur:.42*HERO_FX_MUL,trail:0x8a5cff,orb:true,
+    onDone:()=>{ burstAt(vc.cx,vc.cy,0x8a5cff,14); ringBurst(vc.cx,vc.cy,0x7a3fb0,16); }});
   burstAt(ox,oy,0x7a3fb0,7); ringBurst(u.x,u.y,0x4a2a6a,10); }
 // Umbris "Creeping Rot": a long shadow CHAIN that whips from his hand toward the monster and ERODES as it
 // travels — a line of dark-violet links that extend head-first to the target, then dissolve tail-first.
@@ -3187,7 +3193,7 @@ function renderHome(){
   updateHubChrome();
   if(typeof updateMailBadges==='function') updateMailBadges();
   const av=document.getElementById('pcAvatar'); const ak=(G.avatarHero&&HERO_PORTRAITS[G.avatarHero])?G.avatarHero:'konwu'; setHead(av,ak);
-  const img=document.getElementById('townImg'); if(img&&!img.src&&TOWN_BG) img.src=TOWN_BG;
+  const img=document.getElementById('townImg'); if(img&&!img.src&&TOWN_BG){ img.onload=sizeTownMap; img.src=TOWN_BG; }
   collectLearns();
   const lv=playerLevel();
   const lk=(need)=>({locked:lv<need, lockLv:need});
@@ -3263,10 +3269,10 @@ function renderHome(){
       const hide2=()=>{ clearTimeout(t2); t2=setTimeout(()=>w2.classList.remove('show'),1400); }; w2.addEventListener('touchend',hide2); w2.addEventListener('touchcancel',hide2); }
     box.appendChild(ilab);
   }
-  applyHomeZoom();
+  applyHomeZoom(); sizeTownMap();
   // restore the exact spot the player left from (set when navigating into a building); otherwise center; a live-tick refresh leaves it put
   const wrap=document.getElementById('townWrap');
-  requestAnimationFrame(()=>{ if(!wrap)return;
+  requestAnimationFrame(()=>{ if(!wrap)return; sizeTownMap();
     if(_restoreHomeScroll){ _restoreHomeScroll=false; wrap.scrollLeft = (_homeScroll!=null? _homeScroll : (wrap.scrollWidth-wrap.clientWidth)*0.5); }
   });
   if(typeof maybeOfferTutorial==='function') maybeOfferTutorial();
@@ -7183,6 +7189,17 @@ document.getElementById('hudShopClose').onclick=closeHudShop;
 document.getElementById('hudShop').addEventListener('click',(e)=>{ if(e.target.id==='hudShop') closeHudShop(); });
 let homeZoom=1;
 function applyHomeZoom(){ const m=document.getElementById('townMap'); if(m) m.style.zoom=homeZoom; }  // main screen no longer zoomable; kept for legacy calls
+// Size the town art to FILL the whole stage — no black bars, kept sharp (no blur), every building visible.
+// The map is stretched to the stage's width & height; hotspots are % of #townMap (= the stage), so they stay
+// aligned to their buildings under the uniform stretch.
+function sizeTownMap(){
+  const wrap=document.getElementById('townWrap'), map=document.getElementById('townMap'), img=document.getElementById('townImg');
+  if(!wrap||!map||!img) return;
+  const W=wrap.clientWidth, H=wrap.clientHeight; if(!W||!H) return;
+  map.style.width=W+'px'; map.style.height=H+'px';
+  img.style.width=W+'px'; img.style.height=H+'px';   // fill (stretch) — sharp, all buildings on screen
+}
+window.addEventListener('resize',()=>{ if(document.getElementById('home')&&document.getElementById('home').classList.contains('active')) sizeTownMap(); });
 // free left/right panning of the town panorama (mouse drag on desktop; touch uses native pan-x). Tap still opens buildings.
 (function initTownPan(){
   const wrap=document.getElementById('townWrap'); if(!wrap) return;
@@ -7230,13 +7247,13 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
-  if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);s.mesh.position.set(wx(s.sx+(s.tx-s.sx)*k),1,wz(s.sy+(s.ty-s.sy)*k));});renderer.render(scene,camera);}
+  if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);const yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):1;s.mesh.position.set(wx(s.sx+(s.tx-s.sx)*k),yy,wz(s.sy+(s.ty-s.sy)*k));if(s.orb){const g=6.2*(1-0.28*k);s.mesh.scale.set(g,g,1);}});renderer.render(scene,camera);}
   drawOverlay(); requestAnimationFrame(loop);
 }
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786895348783';
+const BUILD_ID='1786896532328';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
