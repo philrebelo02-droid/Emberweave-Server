@@ -3193,7 +3193,7 @@ function renderHome(){
   updateHubChrome();
   if(typeof updateMailBadges==='function') updateMailBadges();
   const av=document.getElementById('pcAvatar'); const ak=(G.avatarHero&&HERO_PORTRAITS[G.avatarHero])?G.avatarHero:'konwu'; setHead(av,ak);
-  const img=document.getElementById('townImg'); if(img&&!img.src&&TOWN_BG) img.src=TOWN_BG;
+  const img=document.getElementById('townImg'); if(img&&!img.src&&TOWN_BG){ img.onload=sizeTownMap; img.src=TOWN_BG; }
   collectLearns();
   const lv=playerLevel();
   const lk=(need)=>({locked:lv<need, lockLv:need});
@@ -3269,10 +3269,10 @@ function renderHome(){
       const hide2=()=>{ clearTimeout(t2); t2=setTimeout(()=>w2.classList.remove('show'),1400); }; w2.addEventListener('touchend',hide2); w2.addEventListener('touchcancel',hide2); }
     box.appendChild(ilab);
   }
-  applyHomeZoom();
+  applyHomeZoom(); sizeTownMap();
   // restore the exact spot the player left from (set when navigating into a building); otherwise center; a live-tick refresh leaves it put
   const wrap=document.getElementById('townWrap');
-  requestAnimationFrame(()=>{ if(!wrap)return;
+  requestAnimationFrame(()=>{ if(!wrap)return; sizeTownMap();
     if(_restoreHomeScroll){ _restoreHomeScroll=false; wrap.scrollLeft = (_homeScroll!=null? _homeScroll : (wrap.scrollWidth-wrap.clientWidth)*0.5); }
   });
   if(typeof maybeOfferTutorial==='function') maybeOfferTutorial();
@@ -7189,6 +7189,18 @@ document.getElementById('hudShopClose').onclick=closeHudShop;
 document.getElementById('hudShop').addEventListener('click',(e)=>{ if(e.target.id==='hudShop') closeHudShop(); });
 let homeZoom=1;
 function applyHomeZoom(){ const m=document.getElementById('townMap'); if(m) m.style.zoom=homeZoom; }  // main screen no longer zoomable; kept for legacy calls
+// Fill the STAGE (#app) width with the town map — the map's native 1.5:1 is narrower than the 1.79:1 stage, so it
+// used to leave a navy #townWrap gap on the right INSIDE the stage. We stretch it to the stage's exact width/height
+// (a mild fill, NOT the whole browser window — the window's letterbox black bars are left as-is). Hotspots are % of
+// #townMap, so they stay aligned to their buildings under the uniform stretch.
+function sizeTownMap(){
+  const wrap=document.getElementById('townWrap'), map=document.getElementById('townMap'), img=document.getElementById('townImg');
+  if(!wrap||!map||!img) return;
+  const W=wrap.clientWidth, H=wrap.clientHeight; if(!W||!H) return;
+  map.style.width=W+'px'; map.style.height=H+'px';
+  img.style.width=W+'px'; img.style.height=H+'px';
+}
+window.addEventListener('resize',()=>{ const h=document.getElementById('home'); if(h&&h.classList.contains('active')) sizeTownMap(); });
 // free left/right panning of the town panorama (mouse drag on desktop; touch uses native pan-x). Tap still opens buildings.
 (function initTownPan(){
   const wrap=document.getElementById('townWrap'); if(!wrap) return;
@@ -7242,7 +7254,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786897080896';
+const BUILD_ID='1786897430814';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
