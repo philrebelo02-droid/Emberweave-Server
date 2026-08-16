@@ -1004,7 +1004,7 @@ const HERO_TYPES = {
   aureth: {name:'Aureth',    emoji:'☯️',role:'Fighter', swing:2.4, stars:3,hp:460,dmg:24,apow:24,range:28, speed:56,atkSpeed:0.9, color:0xe8c65a,abilityName:'Eclipse',ability:'eclipse',hybrid:true,myth:true,source:'purchase',locked:true},
   bloatus:{name:'King Bloatus',emoji:'🐸',role:'Tank',  swing:2.4, stars:2,hp:540,dmg:24,apow:28,range:120,speed:52,atkSpeed:0.9, color:0x8fbf3f,abilityName:'Plague Sovereign',ability:'plaguesov',locked:true},
   vireo:  {name:'Vireo',     emoji:'🎼',role:'Mage',    swing:2.0, stars:2,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
-  fritz:  {name:'Fritz',     emoji:'⚡',role:'Assassin', swing:1.8, stars:3,hp:200,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
+  fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:3,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, dr:0.15, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
   umbris: {name:'Umbris',    emoji:'🌑',role:'Mage',    swing:2.0, stars:3,hp:170,dmg:22,apow:32,range:210,speed:54,atkSpeed:0.85,color:0x6d4aa3,abilityName:'Umbral Cataclysm',ability:'umbralcata',locked:true},
    vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:3,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
    oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true},
@@ -1851,7 +1851,7 @@ function heroMuls(key){
   const T=G.tech;
   // tech Attack/Health are now FLAT points (added in makeUnit); defensive/crit tracks add flat % here.
   let atk=1, hp=1;
-  let dr=(techTotal('def')+techTotal('armor')+techTotal('mr'))/100;   // Defense/Armor/Magic Resist → damage reduction
+  let dr=(techTotal('def')+techTotal('armor')+techTotal('mr'))/100 + ((HERO_TYPES[key]&&HERO_TYPES[key].dr)||0);   // Defense/Armor/Magic Resist → damage reduction (+ hero's innate armor/MR)
   let crit=techTotal('crit')/100, critRes=techTotal('critres')/100, regen=0, energyReg=0;
   const pray=1+prayerBonusPct(G.prayer||0)/100; atk*=pray; hp*=pray;      // Temple prayer boost
   const q=heroQuality(key), qm=1+q*0.12; atk*=qm; hp*=qm;                 // quality (glyph colour) boosts base stats
@@ -5438,7 +5438,7 @@ function renderHeroDetail(){
   const lvl=heroLevel(key), capped=heroCapped(key);
   const xp=G.heroXP[key]||0, curBase=xpForLevel(lvl), nextBase=xpForLevel(lvl+1);
   const into=Math.max(0,xp-curBase), span=Math.max(1,nextBase-curBase), pct=Math.max(0,Math.min(100,Math.round(into/span*100)));
-  const S_HP=Math.round(heroStat(key,t.hp)*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg)*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2);
+  const S_HP=Math.round(heroStat(key,t.hp)*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg)*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0)*abilityPowerMul());
   const gr=glyphRank(key), gi=GRANK[gr], stars=heroStars(key); eliteCheckReset();
   const grp=eqGroup(key);
   const owned=!!G.unlocked[key], myth=isMythic(key);
@@ -5478,7 +5478,7 @@ function renderHeroDetail(){
   const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}</button>`).join('');
   let tab='';
   if(heroTab==='stats'){
-    const rows=[['❤ Health',S_HP],['⚔ Attack',S_ATK],['⚡ Attack Speed',S_APS+' /s'],['🛡 Damage Reduction',Math.round((mul.dr||0)*100)+'%'],['✦ Crit Chance',Math.round((mul.crit||0)*100)+'%'],['✚ Crit Resist',Math.round((mul.critRes||0)*100)+'%'],['♻ HP Regen',(mul.regen||0)>0?(+(mul.regen*100).toFixed(1))+'% /s':'—'],['🎯 Type',t.range>=60?'Ranged':'Melee']];
+    const rows=[['❤ Health',S_HP],['⚔ Attack Damage',S_ATK],['✨ Ability Power',S_APOW],['⚡ Attack Speed',S_APS+' /s'],['🛡 Damage Reduction',Math.round((mul.dr||0)*100)+'%'],['✦ Crit Chance',Math.round((mul.crit||0)*100)+'%'],['✚ Crit Resist',Math.round((mul.critRes||0)*100)+'%'],['♻ HP Regen',(mul.regen||0)>0?(+(mul.regen*100).toFixed(1))+'% /s':'—'],['🎯 Type',t.range>=60?'Ranged':'Melee']];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>`;
   } else if(heroTab==='skills'){
@@ -7211,7 +7211,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786892748506';
+const BUILD_ID='1786893461334';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
