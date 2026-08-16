@@ -15,7 +15,7 @@
   html,body{height:100%;background:radial-gradient(circle at 50% 32%,#15100f,#07090d 72%);overflow:hidden;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;color:#e6edf3;}
   body{display:flex;align-items:center;justify-content:center;}
   /* the whole game is a landscape stage (matches the town art ~1024:572) that scales to fill the window and centers */
-  #app{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;}   /* full-bleed: the stage fills the whole window (no letterbox bars); art fills via cover-sizing */
+  #app{position:relative;width:min(100vw, calc(100vh * 1024 / 572));height:min(100vh, calc(100vw * 572 / 1024));overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.7);}
   #home{padding:0;}
   /* boot splash gate: shown for everyone until they tap the (invisible) logo Play button while online */
   #rotateGate{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;background:#0a0603;overflow:hidden;-webkit-tap-highlight-color:transparent;}
@@ -73,7 +73,7 @@
 
   /* home buildings */
   /* painted town-map home base */
-  #townWrap{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;background:#0d1117;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;display:flex;align-items:center;}
+  #townWrap{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;background:#0d1117;touch-action:pan-x;-webkit-overflow-scrolling:touch;cursor:grab;}
   #townWrap.dragging{cursor:grabbing;}
   #skyIsle{position:absolute;transform:translate(-50%,-50%);z-index:6;cursor:pointer;}
   #skyIsle .isleBob{width:100%;height:100%;overflow:hidden;animation:isleBob 4.6s ease-in-out infinite;filter:brightness(1.32) contrast(1.02) saturate(1.06) drop-shadow(0 8px 11px rgba(0,0,0,.45));}
@@ -82,7 +82,7 @@
   @keyframes isleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3%)}}
   @keyframes islePlay{from{transform:translateX(0)}to{transform:translateX(-100%)}}
   #townWrap::-webkit-scrollbar{height:0;width:0;}
-  #townMap{position:relative;height:100%;width:max-content;flex:none;}   /* size overridden by sizeTownMap() to COVER the stage */
+  #townMap{position:relative;height:100%;width:max-content;}
   #townHots{position:absolute;inset:0;}
   /* floating HUD on the town — clean framed resource chips with icon + value + buy(+) */
   #townHud{position:absolute;left:1.5%;top:2.5%;z-index:20;display:flex;gap:8px;flex-wrap:wrap;}
@@ -111,7 +111,7 @@
   .zoomctl{position:absolute;left:8px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:8;}
   .zoomctl button{width:38px;height:38px;border-radius:10px;border:1px solid #33405e;background:rgba(16,21,31,.9);color:#e6edf3;font-size:20px;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.5);}
   .zoomctl button:active{transform:scale(.94);}
-  #townImg{height:100%;width:auto;display:block;user-select:none;-webkit-user-drag:none;}   /* px size overridden by sizeTownMap() to COVER the stage */
+  #townImg{height:100%;width:auto;display:block;user-select:none;-webkit-user-drag:none;}
   /* live resource numbers overlaid on the painted top bar (positioned as % so they scale with the image) */
   .resnum{position:absolute;transform:translateY(-50%);font-weight:800;color:#fff;font-size:clamp(11px,2.4vw,18px);text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.75);white-space:nowrap;z-index:4;pointer-events:none;}
   #resGold{color:#ffe08a;} #resGems{color:#c9b6ff;} #resStamina{color:#bff0a8;}
@@ -3193,7 +3193,7 @@ function renderHome(){
   updateHubChrome();
   if(typeof updateMailBadges==='function') updateMailBadges();
   const av=document.getElementById('pcAvatar'); const ak=(G.avatarHero&&HERO_PORTRAITS[G.avatarHero])?G.avatarHero:'konwu'; setHead(av,ak);
-  const img=document.getElementById('townImg'); if(img&&!img.src&&TOWN_BG){ img.onload=sizeTownMap; img.src=TOWN_BG; }
+  const img=document.getElementById('townImg'); if(img&&!img.src&&TOWN_BG) img.src=TOWN_BG;
   collectLearns();
   const lv=playerLevel();
   const lk=(need)=>({locked:lv<need, lockLv:need});
@@ -3269,10 +3269,10 @@ function renderHome(){
       const hide2=()=>{ clearTimeout(t2); t2=setTimeout(()=>w2.classList.remove('show'),1400); }; w2.addEventListener('touchend',hide2); w2.addEventListener('touchcancel',hide2); }
     box.appendChild(ilab);
   }
-  applyHomeZoom(); sizeTownMap();
+  applyHomeZoom();
   // restore the exact spot the player left from (set when navigating into a building); otherwise center; a live-tick refresh leaves it put
   const wrap=document.getElementById('townWrap');
-  requestAnimationFrame(()=>{ if(!wrap)return; sizeTownMap();
+  requestAnimationFrame(()=>{ if(!wrap)return;
     if(_restoreHomeScroll){ _restoreHomeScroll=false; wrap.scrollLeft = (_homeScroll!=null? _homeScroll : (wrap.scrollWidth-wrap.clientWidth)*0.5); }
   });
   if(typeof maybeOfferTutorial==='function') maybeOfferTutorial();
@@ -7189,17 +7189,6 @@ document.getElementById('hudShopClose').onclick=closeHudShop;
 document.getElementById('hudShop').addEventListener('click',(e)=>{ if(e.target.id==='hudShop') closeHudShop(); });
 let homeZoom=1;
 function applyHomeZoom(){ const m=document.getElementById('townMap'); if(m) m.style.zoom=homeZoom; }  // main screen no longer zoomable; kept for legacy calls
-// Size the town art to FILL the whole stage — no black bars, kept sharp (no blur), every building visible.
-// The map is stretched to the stage's width & height; hotspots are % of #townMap (= the stage), so they stay
-// aligned to their buildings under the uniform stretch.
-function sizeTownMap(){
-  const wrap=document.getElementById('townWrap'), map=document.getElementById('townMap'), img=document.getElementById('townImg');
-  if(!wrap||!map||!img) return;
-  const W=wrap.clientWidth, H=wrap.clientHeight; if(!W||!H) return;
-  map.style.width=W+'px'; map.style.height=H+'px';
-  img.style.width=W+'px'; img.style.height=H+'px';   // fill (stretch) — sharp, all buildings on screen
-}
-window.addEventListener('resize',()=>{ if(document.getElementById('home')&&document.getElementById('home').classList.contains('active')) sizeTownMap(); });
 // free left/right panning of the town panorama (mouse drag on desktop; touch uses native pan-x). Tap still opens buildings.
 (function initTownPan(){
   const wrap=document.getElementById('townWrap'); if(!wrap) return;
@@ -7253,7 +7242,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786896532328';
+const BUILD_ID='1786897080896';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
