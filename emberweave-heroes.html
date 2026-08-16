@@ -1077,7 +1077,7 @@ const BATTLE_ANIM = { konwu:{
   umbris:{
   idle:{u:'/assets/anim/umbris/umbris_idle.webp',n:22,fw:310,fh:316,cols:6,rows:4,figH:300,feet:308,cx:155,fps:10,flip:true},
   walk:{u:'/assets/anim/umbris/umbris_walk.webp',n:22,fw:344,fh:318,cols:6,rows:4,figH:300,feet:310,cx:172,fps:12,flip:true},
-  attack:{u:'/assets/anim/umbris/umbris_attack.webp',n:30,fw:311,fh:317,cols:6,rows:5,figH:300,feet:309,cx:155,fps:16,flip:true,hold:0.5},
+  attack:{u:'/assets/anim/umbris/umbris_attack.webp',n:20,fw:445,fh:373,cols:6,rows:4,figH:300,feet:363,cx:222,fps:20,flip:true,hold:0.75,relFrac:0.95,handfx:0.174,handfy:0.378},
   hit:{u:'/assets/anim/umbris/umbris_hit.webp',n:30,fw:327,fh:324,cols:6,rows:5,figH:300,feet:316,cx:163,fps:14,flip:true}
   }
  };
@@ -2432,6 +2432,14 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName+'!',t:1.1,color:'#ffd45e',vy:1.4});if(u.team==='ally')screenFlash=.3;
 }
 function spawnShot(from,to,color){const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2);mesh.position.set(wx(from.x),1,wz(from.y));scene.add(mesh);shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL});}
+// Umbris basic-attack projectile: a violet shadow orb that departs from his HAND (a forward offset toward the
+// target, not his body center) the instant the sprite's body-ball is released — so the handoff is seamless.
+function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,t));
+  const ox=u.x+(t.x-u.x)/d*22, oy=u.y+(t.y-u.y)/d*22;   // ~arm's-reach forward = where his hand releases
+  const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x8a5cff,emissive:0x7a3fb0,emissiveIntensity:1.25,transparent:true,opacity:.96}));
+  mesh.scale.setScalar(1.9); mesh.position.set(wx(ox),1,wz(oy)); scene.add(mesh);
+  shots.push({mesh,sx:ox,sy:oy,tx:t.x,ty:t.y,t:0,dur:.20*HERO_FX_MUL,trail:0x8a5cff});
+  burstAt(ox,oy,0x7a3fb0,5); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
@@ -2497,6 +2505,12 @@ function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fx
     const FS=0.65; if(prog>FS){ const k=(prog-FS)/(1-FS); p.spr.material.opacity=Math.max(0,1-k*k); const gs=1+0.14*k, asp=p.d.fw/p.d.fh; p.spr.scale.set(p.d.scale*asp*gs, p.d.scale*gs, 1); }
     if(p.t>=DUR){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _fxPlates.splice(i,1); } } }
 function think(u,dt){
+  // Umbris seamless throw: the shadow ball is PART of his attack sheet until the release frame; only then
+  // does the flying projectile take over. _boltT is a sim-time fuse set when he starts the throw — timed so
+  // the orb spawns the instant the body-ball leaves his hand (relFrac of the attack clip, scaled by BATTLE_PACE
+  // so it stays frame-synced with the render clock at any game speed). Damage lands with the release, not the windup.
+  if(u._boltT>0){ u._boltT-=dt; if(u._boltT<=0){ u._boltT=0; const tg=u._boltTgt; u._boltTgt=null;
+    if(tg&&tg.alive){ dealDamage(u,tg,u._boltDmg||u.dmg,'#c9a6ff'); if(typeof spawnUmbrisBolt==='function')spawnUmbrisBolt(u,tg); } } }
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
   if(u.stunned>0){u.stunned-=dt;return;}
   if((u.fearT||0)>0){ u.fearT-=dt; u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
@@ -2536,7 +2550,15 @@ function think(u,dt){
     if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
-      dealDamage(u,t,dmg,u.key==='umbris'?'#c9a6ff':(u.hybrid?'#ffe6b0':'#fff')); u.energy=Math.min(100,u.energy+11); if(u.range>60)spawnShot(u,t,u.key==='umbris'?0x8a5cff:u.t.color); if(u.key==='umbris'){burstAt(u.x,u.y+1,0x7a3fb0,4);} } };
+      u.energy=Math.min(100,u.energy+11);
+      if(u.key==='umbris'){
+        // Seamless throw: hold the damage + flying orb until the attack clip's release frame (the ball leaves his
+        // hand). Until then the ball is drawn as part of his sprite. Fuse = relFrac × clipDur × BATTLE_PACE.
+        const A=u.anim&&u.anim.attack; const rel=(A&&A.relFrac!=null)?A.relFrac:0.857; const cd2=(A?A.n/A.fps:1.2);
+        u._boltT=rel*cd2*BATTLE_PACE; u._boltTgt=t; u._boltDmg=dmg;
+      } else {
+        dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); if(u.range>60)spawnShot(u,t,u.t.color);
+      } } };
   if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
   else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
@@ -2573,7 +2595,7 @@ function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
-  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; });
+  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; });
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();}); shots=[];
   particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=[];
   floatTexts=[];
@@ -7119,7 +7141,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786855192358';
+const BUILD_ID='1786885795779';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
