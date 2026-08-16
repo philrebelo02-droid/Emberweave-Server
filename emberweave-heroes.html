@@ -1004,7 +1004,7 @@ const HERO_TYPES = {
   aureth: {name:'Aureth',    emoji:'☯️',role:'Fighter', swing:2.4, stars:3,hp:460,dmg:24,apow:24,range:28, speed:56,atkSpeed:0.9, color:0xe8c65a,abilityName:'Eclipse',ability:'eclipse',hybrid:true,myth:true,source:'purchase',locked:true},
   bloatus:{name:'King Bloatus',emoji:'🐸',role:'Tank',  swing:2.4, stars:2,hp:540,dmg:24,apow:28,range:120,speed:52,atkSpeed:0.9, color:0x8fbf3f,abilityName:'Plague Sovereign',ability:'plaguesov',locked:true},
   vireo:  {name:'Vireo',     emoji:'🎼',role:'Mage',    swing:2.0, stars:2,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
-  fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:3,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, armor:0.08, mr:0.12, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
+  fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:3,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, armor:60, mr:90, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
   umbris: {name:'Umbris',    emoji:'🌑',role:'Mage',    swing:2.0, stars:3,hp:170,dmg:22,apow:32,range:210,speed:54,atkSpeed:0.85,color:0x6d4aa3,abilityName:'Umbral Cataclysm',ability:'umbralcata',locked:true},
    vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:3,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
    oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true},
@@ -1851,7 +1851,7 @@ function heroMuls(key){
   const T=G.tech;
   // tech Attack/Health are now FLAT points (added in makeUnit); defensive/crit tracks add flat % here.
   let atk=1, hp=1;
-  const _ht=HERO_TYPES[key]||{}; let dr=(techTotal('def')+techTotal('armor')+techTotal('mr'))/100 + (_ht.dr||0)+(_ht.armor||0)+(_ht.mr||0);   // Defense/Armor/Magic Resist all reduce damage (no phys/magic split) — includes the hero's innate armor & MR
+  const _ht=HERO_TYPES[key]||{}; let dr=techTotal('def')/100 + (_ht.dr||0);   // generic Defense tech → flat % reduction. Armor/Magic-Resist are FLAT ratings handled in makeUnit via defToDR().
   let crit=techTotal('crit')/100, critRes=techTotal('critres')/100, regen=0, energyReg=0;
   const pray=1+prayerBonusPct(G.prayer||0)/100; atk*=pray; hp*=pray;      // Temple prayer boost
   const q=heroQuality(key), qm=1+q*0.12; atk*=qm; hp*=qm;                 // quality (glyph colour) boosts base stats
@@ -2157,6 +2157,7 @@ function simFightResult(allySnaps, foeTeam, seed){
   ({units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx}=sv);
   return won;
 }
+function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   // flat Armor/Magic-Resist rating → diminishing damage-reduction fraction (caps well under 100%)
 function makeUnit(key,team,x,y,levelOverride,extra){
   const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
   const boss=extra&&extra.boss, owned=extra&&extra.owned;
@@ -2183,6 +2184,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     skillLv: owned?skillLvArr(key).slice():[1,1,1,1], passMul:1, _castSM:1, apMul: owned?abilityPowerMul():(t.ap||1),
     apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
+  u.glyphDR = (u.glyphDR||0) + defToDR((t.armor||0)*scale*sm + (t.mr||0)*scale*sm + (owned?techTotal('armor')+techTotal('mr'):0));   // flat Armor + Magic Resist → diminishing damage reduction
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   if(rank>=3 && kit.purple){ const p=kit.purple.pass, pm=skillMul(u.skillLv[3]||1); u.passMul=pm;
@@ -5478,16 +5480,16 @@ function renderHeroDetail(){
   const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}</button>`).join('');
   let tab='';
   if(heroTab==='stats'){
-    const armorPct=Math.round((techTotal('armor')/100+(t.armor||0))*100)+'%';
-    const mrPct=Math.round((techTotal('mr')/100+(t.mr||0))*100)+'%';
-    const drPct=Math.round((techTotal('def')/100+(t.dr||0))*100)+'%';
-    const regenStr=(mul.regen||0)>0?(+(mul.regen*100).toFixed(1))+'% /s':'—';
+    const armorFlat=Math.round(heroStat(key,t.armor||0)+techTotal('armor'));
+    const mrFlat=Math.round(heroStat(key,t.mr||0)+techTotal('mr'));
+    const regenStr=(mul.regen||0)>0?Math.round(S_HP*mul.regen)+' /s':'—';   // flat HP/s (tanks show a real number)
+    const enrStr=(mul.energyReg||0)>0?'+'+(mul.energyReg).toFixed(1)+' /s':'—';   // flat energy/s
     const rows=[
       ['❤ Health',S_HP],['♻ HP Regen',regenStr],
-      ['🛡 Armor',armorPct],['🔮 Magic Resistance',mrPct],
+      ['🛡 Armor',armorFlat],['🔮 Magic Resistance',mrFlat],
       ['⚔ Attack Damage',S_ATK],['✨ Ability Power',S_APOW],
       ['✦ Crit Chance',Math.round((mul.crit||0)*100)+'%'],['✚ Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
-      ['⚡ Attack Speed',S_APS+' /s'],['🔋 Energy Regen',(mul.energyReg||0)>0?'+'+Math.round((mul.energyReg||0)*100)+'%':'—'],
+      ['⚡ Attack Speed',S_APS+' /s'],['🔋 Energy Regen',enrStr],
       ['🎯 Type',t.range>=60?'Ranged':'Melee']];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>`;
@@ -7221,7 +7223,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786894079087';
+const BUILD_ID='1786894818057';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
