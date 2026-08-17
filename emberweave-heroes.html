@@ -1079,9 +1079,9 @@ const BATTLE_ANIM = { konwu:{
   walk:{u:'/assets/anim/umbris/umbris_walk.webp?v=f2',n:46,fw:210,fh:208,cols:12,rows:4,figH:177,feet:199,cx:76,fps:8,flip:true},
   attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b7',n:41,fw:402,fh:336,cols:10,rows:5,figH:300,feet:323,cx:157,fps:30,flip:true,hold:1.4,relFrac:0.5,handfx:0.861,handfy:0.476},
   hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=f2',n:29,fw:210,fh:181,cols:12,rows:3,figH:146,feet:174,cx:86,fps:8,flip:true},
-  ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:36,fw:206,fh:210,cols:12,rows:3,figH:178,feet:200,cx:84,fps:8,flip:true,relFrac:0.95},
-  green:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:191,feet:211,cx:85,fps:8,flip:true},
-  blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:191,feet:211,cx:85,fps:8,flip:true}
+  ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:36,fw:206,fh:210,cols:12,rows:3,figH:178,feet:200,cx:84,fps:9.6,flip:true,relFrac:0.95},
+  green:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:170,feet:211,cx:85,fps:8,flip:true},
+  blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:170,feet:211,cx:85,fps:8,flip:true}
   },
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
   "bug":{
@@ -7392,7 +7392,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786961596000';
+const BUILD_ID='1786962208000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
