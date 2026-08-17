@@ -1100,14 +1100,7 @@ const BATTLE_ANIM = { konwu:{
   green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=1',n:12,fw:158,fh:221,cols:6,rows:2,figH:207,feet:214,cx:83,fps:14,flip:false,hold:1.0},
   blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=1',n:12,fw:158,fh:249,cols:6,rows:2,figH:208,feet:242,cx:77,fps:14,flip:false,hold:1.0}
   },
-  rhukk:{
-  idle:{u:'/assets/anim/rhukk/rhukk_idle.webp?v=1',n:12,fw:254,fh:230,cols:6,rows:2,figH:196,feet:223,cx:140,fps:10,flip:true},
-  walk:{u:'/assets/anim/rhukk/rhukk_walk.webp?v=1',n:12,fw:231,fh:209,cols:6,rows:2,figH:194,feet:200,cx:121,fps:14,flip:true},
-  attack:{u:'/assets/anim/rhukk/rhukk_attack.webp?v=1',n:12,fw:231,fh:210,cols:6,rows:2,figH:196,feet:203,cx:121,fps:16,flip:true,hold:1.0,lunge:0.5},
-  ult:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=1',n:12,fw:235,fh:214,cols:6,rows:2,figH:196,feet:207,cx:121,fps:15,flip:true,hold:1.0},
-  green:{u:'/assets/anim/rhukk/rhukk_green.webp?v=1',n:12,fw:250,fh:244,cols:6,rows:2,figH:195,feet:236,cx:140,fps:13,flip:true,hold:1.0},
-  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=1',n:12,fw:231,fh:213,cols:6,rows:2,figH:196,feet:206,cx:120,fps:13,flip:true,hold:1.0}
-  },
+  // rhukk animations reverted 2026-08-17 (clips didn't meet bar) — falls back to static HERO_SPRITES; sheets remain in assets/anim/rhukk/ unused
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
   "bug":{
    idle:{u:'/assets/anim/mon/bug_walk.webp?v=2',n:6,fw:100,fh:113,cols:6,rows:3,figH:101,feet:100,cx:50,fps:6,flip:false,pingpong:true},
@@ -7449,7 +7442,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787005200000';
+const BUILD_ID='1787006000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
