@@ -1095,6 +1095,18 @@ const BATTLE_ANIM = { konwu:{
    walk:{u:'/assets/anim/mon/creep_walk.webp?v=1',n:16,fw:158,fh:171,cols:6,rows:3,figH:150,feet:163,cx:80,fps:14,flip:false},
    attack:{u:'/assets/anim/mon/creep_attack.webp?v=1',n:16,fw:169,fh:180,cols:6,rows:3,figH:150,feet:172,cx:55,fps:16,flip:false,hold:0.9},
    cast:{u:'/assets/anim/mon/creep_cast.webp?v=1',n:16,fw:122,fh:174,cols:6,rows:3,figH:150,feet:167,cx:58,fps:10,flip:false,hold:0.8}
+  },
+  "orc":{
+   idle:{u:'/assets/anim/mon/orc_walk.webp?v=1',n:6,fw:134,fh:176,cols:6,rows:3,figH:174,feet:169,cx:75,fps:6,flip:false,pingpong:true},
+   walk:{u:'/assets/anim/mon/orc_walk.webp?v=1',n:16,fw:134,fh:176,cols:6,rows:3,figH:174,feet:169,cx:75,fps:14,flip:false},
+   attack:{u:'/assets/anim/mon/orc_attack.webp?v=1',n:16,fw:121,fh:212,cols:6,rows:3,figH:174,feet:203,cx:87,fps:16,flip:false,hold:0.9},
+   cast:{u:'/assets/anim/mon/orc_cast.webp?v=1',n:16,fw:153,fh:207,cols:6,rows:3,figH:174,feet:199,cx:70,fps:10,flip:false,hold:0.8}
+  },
+  "golem":{
+   idle:{u:'/assets/anim/mon/golem_walk.webp?v=1',n:6,fw:99,fh:164,cols:6,rows:3,figH:153,feet:157,cx:62,fps:6,flip:false,pingpong:true},
+   walk:{u:'/assets/anim/mon/golem_walk.webp?v=1',n:16,fw:99,fh:164,cols:6,rows:3,figH:153,feet:157,cx:62,fps:14,flip:false},
+   attack:{u:'/assets/anim/mon/golem_attack.webp?v=1',n:16,fw:190,fh:181,cols:6,rows:3,figH:153,feet:174,cx:78,fps:16,flip:false,hold:0.9},
+   cast:{u:'/assets/anim/mon/golem_cast.webp?v=1',n:16,fw:147,fh:181,cols:6,rows:3,figH:153,feet:173,cx:80,fps:10,flip:false,hold:0.8}
   }
  };
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
@@ -7380,7 +7392,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786935198000';
+const BUILD_ID='1786935911000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
