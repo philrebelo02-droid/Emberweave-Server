@@ -2018,8 +2018,6 @@ function buildHeroGroup(key,team,boss){
   const SK=new TH.MeshStandardMaterial({color:skin,roughness:.85});
   const bx=(w,h,d,mt,x,y,z)=>{const m=new TH.Mesh(new TH.BoxGeometry(w,h,d),mt); if(x!==undefined)m.position.set(x,y,z); return m;};
   const g=new TH.Group(), body=new TH.Group(); g.add(body);
-  const ring=new TH.Mesh(new TH.TorusGeometry(.55,.07,10,24),new TH.MeshBasicMaterial({color:team==='ally'?0x4aa3ff:0xff5b6b,transparent:true,opacity:.85}));
-  ring.rotation.x=Math.PI/2; ring.position.y=.03; g.add(ring);
   const heavy=(headT==='full'||role==='Warrior'||role==='Bruiser');
   // legs + boots
   const lLeg=bx(.17,.4,.17,CL(dark)); lLeg.position.set(-.13,.42,0); body.add(lLeg);
@@ -2086,8 +2084,6 @@ function shadowTex(){ if(_shadowTex)return _shadowTex; const c=document.createEl
 function buildFigure(u){
   if(!HERO_SPRITES[u.key]) return buildFigure3D(u);   // fallback to low-poly if no sprite
   const g=new TH.Group();
-  const ring=new TH.Mesh(new TH.TorusGeometry(.55,.07,10,24),new TH.MeshBasicMaterial({color:u.team==='ally'?0x4aa3ff:0xff5b6b,transparent:true,opacity:.85}));
-  ring.rotation.x=Math.PI/2; ring.position.y=.03; ring.scale.setScalar(u.r/18); g.add(ring); u.ring=ring;
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
   shadow.rotation.x=-Math.PI/2; shadow.position.y=.02; shadow.scale.setScalar((u.r/18)*(u.boss?1.5:1)); g.add(shadow); u.shadow=shadow;
   const h=(u.boss?3.7:roleBattleH(u.key))*(u.r/18)*(HERO_BATTLE_SCALE[u.key]||1); u.sprH=h; u.sprA=0.7;
@@ -7435,7 +7431,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786984425000';
+const BUILD_ID='1786985249000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
