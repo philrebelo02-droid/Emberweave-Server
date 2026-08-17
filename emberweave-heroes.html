@@ -2595,7 +2595,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!sc
   const o={m,d,tex,t:0,life}; _groundFx.push(o); return o; }
 function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
   fx2SetFrame(o.tex,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                          // loop the cycle
-  o.m.material.opacity=Math.min(1,o.t/0.3)*Math.min(1,(o.life+dt)/0.5);           // fade in / out
+  o.m.material.opacity=Math.min(1,o.t/0.12)*Math.min(1,o.life/0.18);              // snappy fade in / out (so brief 0.5s curse telegraphs still reach full opacity)
   if(o.life<=0){ scene.remove(o.m); o.m.geometry.dispose(); if(o.m.material.map)o.m.material.map.dispose(); o.m.material.dispose(); _groundFx.splice(i,1); } } }
 // Traveling projectile: a billboard that flies from->to, its sheet looping (rubberband is baked in), rotated so the
 // orb FRONT (baked pointing +x) faces the direction of travel. onHit fires on arrival.
@@ -2638,7 +2638,7 @@ function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx
 // Plague/curse telegraph: a tiny void zone blooms under a struck unit; 0.5s later it fades and the DoT begins ticking.
 const _pendingDots=[];
 function plagueDot(t,dps,dur,interval,color){ if(!t)return; const k=dotKind(color); const curse=!!(color&&/8a5cff|7a3fb0|b06bff|c9a6ff|9a6fff/i.test(color));
-  if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.55*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5}); }
+  if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5}); }
   else pushDot(t,dps,dur,interval,color); }
 function updatePendingDots(dt){ for(let i=_pendingDots.length-1;i>=0;i--){ const p=_pendingDots[i]; p.delay-=dt; if(p.delay<=0){ if(p.t&&p.t.alive)pushDot(p.t,p.dps,p.dur,p.interval,p.color); _pendingDots.splice(i,1);} } }
 // Universal DoT status FX: ANY unit (hero or monster) carrying a bleed/poison/burn DoT shows the matching effect
@@ -5682,7 +5682,7 @@ function renderHeroDetail(){
         </div>`:''}
       </div>`; }).join('');
     const clipBox=hasClips?`<div class="sk-clipwrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div><div id="skClip">${skillClipHTML(key,skClipIdx)}</div><div class="sk-cliphint">${MOBILE?'Tap':'Hover'} a skill to preview its ability</div></div>`:'';
-    tab=`<div class="panel">${clipBox}${rows}<div style="font-size:10px;color:#6f7d90;margin-top:8px">${hasClips?(MOBILE?'Tap':'Hover')+' a skill to watch its ability clip. ':'Hover a skill to see what it does. '}Spend gold on ＋ to level it up. Raise <b>Quality</b> (Glyphs tab) to unlock more skills.</div></div>`;
+    tab=`<div class="panel">${clipBox}${rows}<div style="font-size:10px;color:#6f7d90;margin-top:8px">${hasClips?(MOBILE?'Tap':'Hover')+' a skill to watch its ability clip. ':''}<b>Double-tap</b> a skill to read its full description. Spend gold on ＋ to level it up. Raise <b>Quality</b> (Glyphs tab) to unlock more skills.</div></div>`;
   } else if(heroTab==='glyphs'){
     // ---- QUALITY: fixed glyph recipe per rank (no choice). Each slot = a specific glyph; ＋ green if owned, grey if not. ----
     const r=gr, atMax=r>=GMAX_RANK, rec=atMax?[]:rankRecipe(key,r);
@@ -5784,6 +5784,10 @@ function renderHeroDetail(){
       r.addEventListener('mouseenter',()=>setClip(idx));
       r.addEventListener('click',(e)=>{ if(e.target.closest('[data-skillup]'))return; setClip(idx); }); });
   }
+  // double-tap / double-click any skill row → show its full description (mobile has no hover tooltip)
+  body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=+r.dataset.skill;
+    r.addEventListener('dblclick',(e)=>{ if(e.target.closest('[data-skillup]'))return; e.preventDefault(); showSkillDesc(key,idx,r); });
+    let _lt=0; r.addEventListener('pointerup',(e)=>{ if(e.target.closest('[data-skillup]'))return; const now=Date.now(); if(now-_lt<340){ e.preventDefault(); showSkillDesc(key,idx,r); _lt=0; } else { _lt=now; } }); });
   // glyph socketing: tap a ＋ slot → confirm → use the glyph permanently (auto-promotes when all slots filled)
   body.querySelectorAll('[data-slot]').forEach(el=>el.onclick=()=>{ const i=+el.dataset.slot; if(!canFillSlot(key,i))return; const gid=slotGid(key,i);
     gameConfirm(`Use your <b style="color:${glyphRarityOf(glyphParse(gid).rk).col}">${glyphName(gid)}</b> glyph on ${HERO_TYPES[key].name}?<br><span style="font-size:11px;color:#8b98a9">This is permanent — the glyph is consumed and locks in.</span>`,
@@ -7101,6 +7105,27 @@ function showAbilityTip(u){ if(!u||!u.t)return; const tip=document.getElementByI
       tip.style.bottom=(hb.bottom-eb.top+8)+'px'; }
   }catch(e){} }
 function hideAbilityTip(){ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
+// Skills-tab: double-tap a skill row to view its full description (mobile has no hover tooltip)
+function hideSkillDesc(){ const p=document.getElementById('skDescPop'); if(p)p.remove(); }
+function showSkillDesc(key,idx,anchorEl){ hideSkillDesc();
+  const t=HERO_TYPES[key],kit=KITS[key];
+  const names=[t.abilityName, kit.green&&kit.green.name, kit.blue&&kit.blue.name, kit.purple&&kit.purple.name];
+  const cols=['#e6c15e','#5ee89b','#6ea8ff','#c9b6ff'], tiers=['Ultimate','Active','Active','Passive'];
+  const on=skillUnlocked(key,idx);
+  const pop=document.createElement('div'); pop.id='skDescPop';
+  pop.style.cssText='position:fixed;z-index:100000;max-width:min(340px,86vw);background:#0e1420;border:1px solid #2c3852;border-radius:11px;padding:12px 14px;box-shadow:0 8px 30px #000b;font-size:12.5px;line-height:1.52;color:#d6deea';
+  const head=document.createElement('div'); head.style.cssText=`font-weight:800;color:${cols[idx]};margin-bottom:5px`;
+  head.innerHTML=`⚡ ${escapeHTML(names[idx]||'')} <span style="font-size:10px;color:#8b98a9">· ${tiers[idx]}</span>`;
+  const bodyd=document.createElement('div'); bodyd.textContent=skillDesc(key,idx);
+  pop.appendChild(head); pop.appendChild(bodyd);
+  if(!on){ const u=document.createElement('div'); u.style.cssText='margin-top:6px;font-size:11px;color:#c99'; u.textContent='🔒 Unlocks at higher quality.'; pop.appendChild(u); }
+  document.body.appendChild(pop);
+  try{ const ab=anchorEl.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+    let left=Math.min(window.innerWidth-pw-8, Math.max(8, ab.left));
+    let top=ab.top-ph-8; if(top<8) top=Math.min(window.innerHeight-ph-8, ab.bottom+8);
+    pop.style.left=left+'px'; pop.style.top=top+'px'; }catch(e){}
+  setTimeout(()=>{ const h=(e)=>{ if(!pop.contains(e.target)){ hideSkillDesc(); document.removeEventListener('pointerdown',h,true); } }; document.addEventListener('pointerdown',h,true); },0);
+}
 function buildPortraitBar(side){side=side||'ally';const bar=document.getElementById('portraitBar');bar.innerHTML='';bar.dataset.mode='host';
   units.filter(u=>u.team===side).forEach(u=>{
     const slot=document.createElement('div'); slot.className='pslot'; slot.style.backgroundImage=`url(${MR_UI.frame})`;
@@ -7112,8 +7137,6 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
     // dedicated info tap: always shows the description (even when the ult is ready)
     const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,4500); }; info.addEventListener('pointerdown',(e)=>e.stopPropagation()); info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
-    // double-tap / double-click the tile to view its full skill description (mobile has no hover)
-    { let _lt=0; el.addEventListener('pointerup',(e)=>{ if(e.target&&e.target.classList&&e.target.classList.contains('pInfo'))return; const now=Date.now(); if(now-_lt<330){ e.preventDefault(); e.stopPropagation(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,5000); _lt=0; } else { _lt=now; } }); }
     u.portraitEl=el; u.hpEl=hp; u.enEl=en; u.slotEl=slot; slot.appendChild(el); slot.appendChild(hp); slot.appendChild(en); bar.appendChild(slot);});
   buildEnemyBar();
 }
@@ -7412,7 +7435,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786980929000';
+const BUILD_ID='1786984425000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
