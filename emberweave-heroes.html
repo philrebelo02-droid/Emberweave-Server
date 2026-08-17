@@ -1092,6 +1092,22 @@ const BATTLE_ANIM = { konwu:{
   green:{u:'/assets/anim/vael/vael_green.webp?v=1',n:16,fw:97,fh:135,cols:6,rows:3,figH:121,feet:128,cx:63,fps:12,flip:false,hold:0.9},
   blue:{u:'/assets/anim/vael/vael_blue.webp?v=1',n:16,fw:111,fh:133,cols:6,rows:3,figH:118,feet:125,cx:77,fps:12,flip:false,hold:0.9}
   },
+  oakmir:{
+  idle:{u:'/assets/anim/oakmir/oakmir_idle.webp?v=1',n:12,fw:185,fh:262,cols:6,rows:2,figH:248,feet:254,cx:92,fps:10,flip:false},
+  walk:{u:'/assets/anim/oakmir/oakmir_walk.webp?v=1',n:12,fw:156,fh:222,cols:6,rows:2,figH:208,feet:215,cx:81,fps:14,flip:false},
+  attack:{u:'/assets/anim/oakmir/oakmir_attack.webp?v=1',n:12,fw:153,fh:222,cols:6,rows:2,figH:207,feet:215,cx:77,fps:16,flip:false,hold:1.0},
+  ult:{u:'/assets/anim/oakmir/oakmir_ult.webp?v=1',n:12,fw:153,fh:221,cols:6,rows:2,figH:208,feet:214,cx:77,fps:15,flip:false,hold:1.0},
+  green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=1',n:12,fw:158,fh:221,cols:6,rows:2,figH:207,feet:214,cx:83,fps:14,flip:false,hold:1.0},
+  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=1',n:12,fw:158,fh:249,cols:6,rows:2,figH:208,feet:242,cx:77,fps:14,flip:false,hold:1.0}
+  },
+  rhukk:{
+  idle:{u:'/assets/anim/rhukk/rhukk_idle.webp?v=1',n:12,fw:254,fh:230,cols:6,rows:2,figH:196,feet:223,cx:140,fps:10,flip:true},
+  walk:{u:'/assets/anim/rhukk/rhukk_walk.webp?v=1',n:12,fw:231,fh:209,cols:6,rows:2,figH:194,feet:200,cx:121,fps:14,flip:true},
+  attack:{u:'/assets/anim/rhukk/rhukk_attack.webp?v=1',n:12,fw:231,fh:210,cols:6,rows:2,figH:196,feet:203,cx:121,fps:16,flip:true,hold:1.0,lunge:0.5},
+  ult:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=1',n:12,fw:235,fh:214,cols:6,rows:2,figH:196,feet:207,cx:121,fps:15,flip:true,hold:1.0},
+  green:{u:'/assets/anim/rhukk/rhukk_green.webp?v=1',n:12,fw:250,fh:244,cols:6,rows:2,figH:195,feet:236,cx:140,fps:13,flip:true,hold:1.0},
+  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=1',n:12,fw:231,fh:213,cols:6,rows:2,figH:196,feet:206,cx:120,fps:13,flip:true,hold:1.0}
+  },
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
   "bug":{
    idle:{u:'/assets/anim/mon/bug_walk.webp?v=2',n:6,fw:100,fh:113,cols:6,rows:3,figH:101,feet:100,cx:50,fps:6,flip:false,pingpong:true},
@@ -2299,7 +2315,7 @@ function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team); }
 
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
-const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'} };
+const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'} };
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
 // Target + damage are recomputed HERE (at landing), not at cast, since a second may have passed.
 function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;return;}
@@ -7433,7 +7449,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786993513000';
+const BUILD_ID='1787005200000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
