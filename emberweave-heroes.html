@@ -1083,6 +1083,15 @@ const BATTLE_ANIM = { konwu:{
   green:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:191,feet:212,cx:118,fps:8,flip:true},
   blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:191,feet:212,cx:118,fps:8,flip:true}
   },
+  vael:{
+  idle:{u:'/assets/anim/vael/vael_idle.webp?v=1',n:16,fw:93,fh:133,cols:6,rows:3,figH:118,feet:125,cx:58,fps:8,flip:false},
+  walk:{u:'/assets/anim/vael/vael_walk.webp?v=1',n:16,fw:103,fh:135,cols:6,rows:3,figH:120,feet:128,cx:69,fps:11,flip:false},
+  attack:{u:'/assets/anim/vael/vael_attack.webp?v=1',n:16,fw:107,fh:153,cols:6,rows:3,figH:119,feet:142,cx:58,fps:16,flip:false,hold:0.9},
+  hit:{u:'/assets/anim/vael/vael_hit.webp?v=1',n:16,fw:91,fh:133,cols:6,rows:3,figH:118,feet:125,cx:57,fps:11,flip:false},
+  ult:{u:'/assets/anim/vael/vael_ult.webp?v=1',n:16,fw:96,fh:134,cols:6,rows:3,figH:120,feet:126,cx:62,fps:12,flip:false,hold:1.2},
+  green:{u:'/assets/anim/vael/vael_green.webp?v=1',n:16,fw:97,fh:135,cols:6,rows:3,figH:121,feet:128,cx:63,fps:12,flip:false,hold:0.9},
+  blue:{u:'/assets/anim/vael/vael_blue.webp?v=1',n:16,fw:111,fh:133,cols:6,rows:3,figH:118,feet:125,cx:77,fps:12,flip:false,hold:0.9}
+  },
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
   "bug":{
    idle:{u:'/assets/anim/mon/bug_walk.webp?v=2',n:6,fw:100,fh:113,cols:6,rows:3,figH:101,feet:100,cx:50,fps:6,flip:false,pingpong:true},
@@ -2294,7 +2303,7 @@ function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team); }
 
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
-const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'} };
+const ABIL_ANIM={ hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'} };
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
 // Target + damage are recomputed HERE (at landing), not at cast, since a second may have passed.
 function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;return;}
@@ -7392,7 +7401,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786969885000';
+const BUILD_ID='1786971096000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
