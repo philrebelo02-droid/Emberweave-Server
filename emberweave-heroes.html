@@ -1082,6 +1082,13 @@ const BATTLE_ANIM = { konwu:{
   ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:36,fw:206,fh:210,cols:12,rows:3,figH:236,feet:200,cx:84,fps:8,flip:true,relFrac:0.95},
   green:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:451,feet:211,cx:85,fps:8,flip:true},
   blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=1',n:33,fw:230,fh:220,cols:12,rows:3,figH:451,feet:211,cx:85,fps:8,flip:true}
+  },
+  // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
+  "bug":{
+   idle:{u:'/assets/anim/mon/bug_walk.webp?v=1',n:6,fw:123,fh:193,cols:6,rows:3,figH:174,feet:175,cx:72,fps:6,flip:false,pingpong:true},
+   walk:{u:'/assets/anim/mon/bug_walk.webp?v=1',n:16,fw:123,fh:193,cols:6,rows:3,figH:174,feet:175,cx:72,fps:14,flip:false},
+   attack:{u:'/assets/anim/mon/bug_attack.webp?v=1',n:16,fw:149,fh:178,cols:6,rows:3,figH:174,feet:171,cx:87,fps:16,flip:false,hold:0.9},
+   cast:{u:'/assets/anim/mon/bug_cast.webp?v=1',n:16,fw:134,fh:201,cols:6,rows:3,figH:174,feet:135,cx:77,fps:10,flip:false,hold:0.8}
   }
  };
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
@@ -7367,7 +7374,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1786926124196';
+const BUILD_ID='1786934339000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
