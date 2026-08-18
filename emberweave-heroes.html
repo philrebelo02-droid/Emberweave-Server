@@ -1577,7 +1577,7 @@ function doRefine(key){ if(!canRefine(key)) return {locked:true};
   return {success, tier, cost:t.cost, newLevel:refineLevel(key)}; }
 // ---- ELITE stages: 3 attempts/day each, 12 stamina, drop star shards ----
 const ELITE_DAILY=3, ELITE_STAM=12;
-function eliteCheckReset(){ const now=Date.now(); if(!G.eliteResetTS || now-G.eliteResetTS>=24*3600*1000){ G.eliteUsed={}; G.eliteResetTS=now; } }
+function eliteCheckReset(){ const d=arenaDayKey(); if(G.eliteResetDay!==d){ G.eliteUsed={}; G.eliteResetDay=d; G.eliteResetTS=Date.now(); } }   // align to the shared 09:00 ET day key (matches "resets daily" UI + every other daily system)
 function eliteLeft(key){ eliteCheckReset(); return ELITE_DAILY-((G.eliteUsed&&G.eliteUsed[key])||0); }
 // ---- EQUIPMENT: crafted from small pieces into a tree that expands with quality tier ----
 // Base pieces drop from the Dungeon. Two pieces make a Grey item; a Grey item + its partner-slot
@@ -1680,7 +1680,7 @@ const DEFAULT_G = {
   eqMats:{cloth:6,blade:4,wood:4,ore:2},                       // base equipment pieces (drop from Dungeon)
   eqInv:{},                                                    // crafted items inventory (itemId -> count)
   equip:Object.fromEntries(HERO_KEYS.map(k=>[k,[null,null,null,null,null,null]])), // 6 equip slots per hero
-  eliteUsed:{}, eliteResetTS:0,                                // daily elite-stage attempts
+  eliteUsed:{}, eliteResetTS:0, eliteResetDay:'',              // daily elite-stage attempts (reset on 09:00 ET day key)
   tech:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0},   // academy = the research building's own level (speeds all research)
   techLearn:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0},   // 0 = idle; else timestamp (ms) research completes
   stamina:60, staminaTS:0,        // stamina (⧗ from food): max = 59+level, regen 1 per 6 min, refills on level-up
@@ -7441,7 +7441,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787014000000';
+const BUILD_ID='1787015000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
