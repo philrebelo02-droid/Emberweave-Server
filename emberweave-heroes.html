@@ -1238,7 +1238,7 @@ const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89
 const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard','thundershower','umbralcata'];   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_LINE=[];                                      // single straight-line directional ult (reserved: line+arrow)
-const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony','thundershower'];       // hover an in-range enemy -> it glows; release to fire
+const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony'];       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
 const ULT_AIMED=[...ULT_RADIUS,...ULT_CONE,...ULT_LINE,...ULT_TARGET]; // ults that open the aim UI (rest fire instantly)
 function ultAimMode(ab){ return ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':'none'; }
 function screenToField(sx,sy,h){ h=(h==null?0.15:h); if(typeof TH==='undefined'||!camera) return {x:(typeof aiming!=='undefined'&&aiming)?aiming.x:FW/2,y:(typeof aiming!=='undefined'&&aiming)?aiming.y:FD/2};
@@ -1257,7 +1257,7 @@ const KITS={
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:3*METER,dur:6,cd:9},purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{name:'Shadeburst',type:'shadeburst',dps:0.3,dur:6,radius:25*METER,cd:7},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6},purple:{name:'Lingering Dark',pass:'contagion'}},
-   vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7},purple:{name:'Second Wind',pass:'selfregen'}},
+   vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7},purple:{name:'Second Wind',pass:'selfregen'}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9},purple:{name:'Twin Fonts',pass:'twinfonts'}},
    rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8},blue:{name:'Dig In',type:'taunt',cd:10},purple:{name:'Thick Chitin',pass:'warden'}},
 };
@@ -2799,7 +2799,7 @@ function think(u,dt){
 
 /* ---------------------------- battle lifecycle ----------------------------- */
 function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is exactly 3 waves
-function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite&&x.material){try{x.material.dispose();}catch(_){}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
+function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite){if(x._utex){try{x._utex.dispose();}catch(_){}} if(x.material){try{x.material.dispose();}catch(_){}}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
   voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
@@ -2935,7 +2935,7 @@ function endBattle(won){ ended=true;
         _arepDef={seed:sd,mineSnap:snap,foe,atkName:(ACC.name||'A challenger')};   // sent to server so the DEFENDER gets a watchable report of this attack
       } }catch(e){}
     const oldRank=G.arenaRank; let reward=0;
-    if(won){ reward=200+Math.floor((5000-G.arenaRank)/20); G.gold+=reward; G.arenaCoins=(G.arenaCoins||0)+5; }
+    if(won){ reward=Math.max(0,200+Math.floor((5000-G.arenaRank)/20)); G.gold+=reward; G.arenaCoins=(G.arenaCoins||0)+5; }
     saveG(); updateHubChrome();
     setTimeout(async()=>{ let newRank=oldRank;
       if(ACC.token && CUR.oppId){ const d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef}); if(d&&typeof d.rank==='number') newRank=d.rank; }
@@ -3088,9 +3088,17 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // set (sourceRight = !A.flip); mirror the frame whenever the wanted on-screen facing differs from that.
         const sourceRight=!A.flip, mirror=(desired>0)!==sourceRight;
         if(A.tex){ const _c=A.cols||A.n,_r=A.rows||1,_col=fr%_c,_row=(_r>1)?Math.floor(fr/_c):0;
-          A.tex.repeat.x=(mirror?-1:1)/_c; A.tex.offset.x=(mirror?_col+1:_col)/_c;
-          if(_r>1){ A.tex.repeat.y=1/_r; A.tex.offset.y=1-(_row+1)/_r; }
-          if(spr.material.map!==A.tex){spr.material.map=A.tex;spr.material.needsUpdate=true;} }
+          // PER-UNIT texture (clone shares the sheet image): offset/repeat live on the Texture object, so a
+          // single shared per-state texture would force EVERY same-key unit to the LAST-synced unit's frame +
+          // facing (same-type monsters lockstep; mirror matchups face the wrong way). One clone per sprite,
+          // image swapped on state change, disposed in clearBattle.
+          let ut=spr._utex;
+          if(!ut && A.tex.image){ ut=A.tex.clone(); ut.needsUpdate=true; spr._utex=ut; spr._utexImg=A.tex.image; }
+          else if(ut && A.tex.image && spr._utexImg!==A.tex.image){ ut.image=A.tex.image; ut.needsUpdate=true; spr._utexImg=A.tex.image; }
+          const T=ut||A.tex;
+          T.repeat.x=(mirror?-1:1)/_c; T.offset.x=(mirror?_col+1:_col)/_c;
+          if(_r>1){ T.repeat.y=1/_r; T.offset.y=1-(_row+1)/_r; } else { T.repeat.y=1; T.offset.y=0; }
+          if(spr.material.map!==T){spr.material.map=T;spr.material.needsUpdate=true;} }
         if(A.figH){ // character-normalized clip: the frame may include effects bigger than the hero.
           // scale so the CHARACTER (figH px of the fh-tall frame) is exactly sprH tall — identical size in EVERY action —
           // and anchor at the character's feet/center so effects extend freely without moving him.
@@ -5964,7 +5972,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
   const canGem = gemFree || (G.gems||0)>=WISH_GEM_COST;
   b.innerHTML=`
-  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">Make a wish for <b>rune shards</b>, <b>hero fragments</b>, gold &amp; diamonds. The Diamond Pool can surface a <b>full hero</b> — with a rare <b>1% shot at KonWu</b>.</div>
+  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">Make a wish for <b>rune shards</b>, <b>hero fragments</b>, gold &amp; diamonds. The Diamond Pool can surface a <b>full hero</b>.</div>
   <div class="wishpools">
     <div class="wishpool gold">
       <div class="wp-orb">⛲</div>
@@ -5980,7 +5988,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-name">Diamond Pool</div>
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
       <div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0))}</div>
-      <div class="wp-sub">${gemRigged?'First wish: guaranteed hero':'1 free daily (09:00 reset) · 10% hero · 1% KonWu'}</div>
+      <div class="wp-sub">${gemRigged?'First wish: guaranteed hero':'1 free daily (09:00 reset) · 10% hero'}</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
       <button class="btn secondary" id="wpGem10" ${(G.gems||0)>=wishGem10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -7442,7 +7450,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787006000000';
+const BUILD_ID='1787007000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
