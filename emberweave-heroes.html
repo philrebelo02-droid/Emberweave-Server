@@ -2899,9 +2899,8 @@ function grantRewards(){
     let eliteStr='';
     if(isEliteStage(node)){ const gGreen=rollGlyphDropRk('green'); giveGlyph(gGreen,1);
       glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gGreen).rk).col}"> · ${glyphName(gGreen)}</span>`;
-      if(firstClear){ const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
-      const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragments</span>`; if(um)unlockMsg=um; }
-      else { const fh=HERO_TYPES[eliteHeroFor(node)]; eliteStr=`<br><span style="color:#8b98a9">⭐ ${fh.name} fragments are first-clear only — farm them at the Elite Trials (daily cap)</span>`; } }
+      const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=firstClear?(ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1))):1;   // first clear: full 3-4 roll; every farm run after: +1
+      const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragment${amt===1?'':'s'}</span>`; if(um)unlockMsg=um; }
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
   } else {
@@ -3810,7 +3809,7 @@ function sweepStage(i){
   const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
   const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
   let eliteStr='',um='';
-  if(isEliteStage(i)){ const fh=HERO_TYPES[eliteHeroFor(i)]; eliteStr=`<br><span style="color:#8b98a9">⭐ ${fh.name} fragments come from the daily Elite run (capped) — not sweeping</span>`; }
+  if(isEliteStage(i)){ const hk=eliteHeroFor(i), fh=HERO_TYPES[hk]; const _um=giveHeroFrag(hk,1); if(_um)um=_um; eliteStr=`<br><span style="color:#c9a0ff">⭐ +1 ${fh.name} fragment</span>`; }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
   document.getElementById('smMsg').innerHTML=`Swept! 🪙 +${gold} · +${pxp} XP · +${isBossStage(i)?12:STAGE_XP_SWEEP} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
@@ -7451,7 +7450,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787009000000';
+const BUILD_ID='1787010000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
