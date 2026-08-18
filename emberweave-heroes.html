@@ -548,7 +548,7 @@
   #glModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,10,.82);z-index:40;padding:16px;}
   #glModal.open{display:flex;}
   .glCardBig{position:relative;width:min(92vw,440px);max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#1b2334,#0f1522);border:2px solid #ffd45e;border-radius:18px;padding:14px 16px 18px;box-shadow:0 12px 40px rgba(0,0,0,.7);}
-  .glCardBig .glClose{position:absolute;top:8px;right:10px;font-size:22px;line-height:1;color:#aeb9c9;cursor:pointer;background:none;border:none;}
+  .glCardBig .glClose,.scBox .glClose{position:absolute;top:8px;right:10px;font-size:22px;line-height:1;color:#aeb9c9;cursor:pointer;background:none;border:none;}
   .glCardBig .glBigArt{width:100%;height:236px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 42%,rgba(255,212,94,.09),transparent 70%);}
   .glCardBig .glBigArt img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));}
   .glCardBig h2{text-align:center;font-size:20px;margin:8px 0 2px;color:#ffd45e;}
@@ -603,7 +603,7 @@
   .reward{font-size:16px;margin:6px 0;text-align:center;} .hint{font-size:12px;color:#6f7d90;margin-top:6px;text-align:center;max-width:480px;line-height:1.6;}
   .backbtn{position:absolute;top:12px;left:12px;z-index:22;}
   .titlebar{display:flex;align-items:center;justify-content:center;width:100%;max-width:560px;margin:2px 0 8px;}
-.glStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.gsRow{display:flex;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:7px;padding:4px 9px;font-size:13px}.gsRow b{color:#ffd45e}.gsNote{grid-column:1/-1;color:#9aa;font-size:11px;margin-top:2px}.gsBtn{grid-column:1/-1;margin-top:7px;background:#7c5cff;color:#fff;border:0;border-radius:9px;padding:8px;font-weight:700;cursor:pointer;font-size:13px}.gsBtn:active{transform:scale(.98)}.glAb{margin-top:5px}.glPass{color:#ffce54}#statChartModal{display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.72);align-items:center;justify-content:center}#statChartModal.open{display:flex}.scBox{position:relative;background:#161225;border:1px solid #3a2f56;border-radius:16px;padding:18px;width:340px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column}.scBox h3{color:#ffd45e;font-size:18px;margin:0 26px 2px 0}.scSub{color:#b9a9d6;font-size:12px;margin-bottom:10px}.scScroll{overflow:auto;border:1px solid #2a2340;border-radius:10px}.scTbl{width:100%;border-collapse:collapse;font-size:13px}.scTbl th{position:sticky;top:0;background:#241a3a;color:#ffd45e;padding:7px;text-align:center}.scTbl td{padding:5px 7px;text-align:center;color:#e7e0f5;border-top:1px solid #241a3a}.scTbl tr.mile td{background:rgba(124,92,255,.16);font-weight:700}</style>
+.glStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:6px}.gsRow{display:flex;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:7px;padding:4px 9px;font-size:13px}.gsRow b{color:#ffd45e}.gsNote{grid-column:1/-1;color:#9aa;font-size:11px;margin-top:2px}.gsBtn{grid-column:1/-1;margin-top:7px;background:#7c5cff;color:#fff;border:0;border-radius:9px;padding:8px;font-weight:700;cursor:pointer;font-size:13px}.gsBtn:active{transform:scale(.98)}.glAb{margin-top:5px}.glPass{color:#ffce54}#statChartModal{display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.72);align-items:center;justify-content:center}#statChartModal.open{display:flex}.scBox{position:relative;background:#161225;border:1px solid #3a2f56;border-radius:16px;padding:18px;width:340px;max-width:92vw;max-height:86vh;display:flex;flex-direction:column}.scBox h3{color:#ffd45e;font-size:18px;margin:0 26px 2px 0}.scSub{color:#b9a9d6;font-size:12px;margin-bottom:10px}.scScroll{flex:1;min-height:0;overflow:auto;border:1px solid #2a2340;border-radius:10px}.scTbl{width:100%;border-collapse:collapse;font-size:13px}.scTbl th{position:sticky;top:0;background:#241a3a;color:#ffd45e;padding:7px;text-align:center}.scTbl td{padding:5px 7px;text-align:center;color:#e7e0f5;border-top:1px solid #241a3a}.scTbl tr.mile td{background:rgba(124,92,255,.16);font-weight:700}</style>
 </head>
 <body>
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
@@ -680,7 +680,7 @@
   <!-- CAMPAIGN ROADMAP -->
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ Base</button>
-    <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 8px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
+    <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
   </div>
 
@@ -2377,7 +2377,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'hot':{const l=lowestAlly(u); if(l)pushHot(l,l.maxHp*(o.hps||.05)*sm,o.dur||6,1); break;}
     case 'shield':{const tg=o.self?u:lowestAlly(u); if(tg){tg.shield=Math.max(tg.shield,tg.maxHp*(o.mul||.4)*sm);tg.shieldT=o.dur||6;burstAt(tg.x,tg.y,0x8fd0ff,10);} break;}
     case 'dmgbuff':{alliesOf(u).forEach(a=>{a.dmgBuffMul=o.mul||1.25;a.dmgBuffT=o.dur||6;floatTexts.push({x:a.x,y:a.y-10,txt:'Raise Attack',t:1.1,color:'#8fff9b',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffd45e,10);break;}
-    case 'haste':{const tg2=o.self?[u]:alliesOf(u); tg2.forEach(a=>{a.hasteMul=o.mul||1.3;a.hasteT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
+    case 'haste':{const tg2=o.self?[u]:alliesOf(u); tg2.forEach(a=>{a.hasteMul=Math.max(a.hasteMul||1,o.mul||1.3);a.hasteT=Math.max(a.hasteT||0,o.dur||5);a._ocMul=o.mul||1.3;a._ocT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
     case 'lifestealbuff':{u._lifestealT=o.dur||5;u._lifestealPct=o.pct||0.25;floatTexts.push({x:u.x,y:u.y-10,txt:'Vigor',t:1.1,color:'#8fff9b',vy:1.0,sz:13});burstAt(u.x,u.y,0x5ee89b,10);break;}
     case 'devour':{if(tgt){const d=dB*(o.mul||1.6)*rm; dealDamage(u,tgt,d,'#9acd32'); healUnit(u,d*(o.heal||0.6)); burstAt(tgt.x,tgt.y,0x9acd32,12);} break;}
     case 'ashfall':{ const px=(tgt&&tgt.alive)?tgt.x:u.x, py=(tgt&&tgt.alive)?tgt.y:u.y;   // throw a burning/icy patch to the ground: ticks damage (+optional slow) to foes within radius for a few seconds
@@ -2440,7 +2440,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); }); ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Sylthaine (frost mage — AP scaling) ----
     case 'frozenorb':{ const ctr=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!ctr)break; const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff'); e.slow=Math.max(e.slow||0,2.5); } }); ringBurst(ctr.x,ctr.y,0x9fe0ff,20); burstAt(ctr.x,ctr.y,0xcfeeff,14); break; }
-    case 'freeze':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
+    case 'freeze':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap) tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
     case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
@@ -2752,7 +2752,7 @@ function think(u,dt){
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
     if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
-      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealDamage(u,e,dmg,'#bfefff'); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,1.2); e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
+      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealDamage(u,e,dmg,'#bfefff'); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,1.2); if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
   if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
@@ -3003,7 +3003,7 @@ function updateBattle(dt){
     if(u.pass.warden){ u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1; ringBurst(u.x,u.y,0xE7B84B,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#E7B84B',vy:1}); } }
     if(u.pass.selfregen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.02*dt);   // Serpentine Regen (Sylphice)
     if(u.pass.wrath){ if(u._baseDmg==null)u._baseDmg=u.dmg; u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
-    if(u.pass.momentum){ u._momStk=Math.min(0.5,(u._momStk||0)+0.025*dt); u.hasteMul=Math.max(1,1+u._momStk); u.hasteT=Math.max(u.hasteT,0.15); }   // Momentum Gears (Tick): attack speed ramps up to +50% the longer he fights
+    if(u.pass.momentum){ u._momStk=Math.min(0.5,(u._momStk||0)+0.025*dt); u.hasteMul=Math.max(1+u._momStk, (u._ocT>0?(u._ocMul||1):1)); u.hasteT=Math.max(u.hasteT,0.15); }   // ramp respects an active Overclock (uses the separate _ocT/_ocMul so it never self-perpetuates)   // Momentum Gears (Tick): attack speed ramps up to +50% the longer he fights
     if(u.pass.twinfonts){ if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt; dealDamage(u,e,dd,'#b06bff'); healUnit(u,dd*0.8); } } else { u.hp=Math.min(u.maxHp,u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt); } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
     if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) damage(e,u.dmg*0.25,'#ff6a3a',true); }); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(battleTime*7)%foes.length]; e.stunned=Math.max(e.stunned||0,1.2); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag)
@@ -3015,7 +3015,7 @@ function updateBattle(dt){
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
-    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._frozenT>0)u._frozenT-=dt;
+    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._ocT>0)u._ocT-=dt;
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
     if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null||u._pullGhost){ u.pullStop=null; u.pullSpeed=null; u._pullGhost=false; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe right up to Vulmar, phasing through bodies.
@@ -7441,7 +7441,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787011000000';
+const BUILD_ID='1787012000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
