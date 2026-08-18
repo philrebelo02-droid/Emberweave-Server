@@ -5907,7 +5907,7 @@ function doGoldRoll(){ const r=Math.random();
   return wishGems(5+Math.floor(Math.random()*11)); }
 function doGemRoll(rigged){
   if(rigged){ return grantFullHero(WISH_RIGGED_HEROES[Math.floor(Math.random()*WISH_RIGGED_HEROES.length)]); }
-  // (mythical & shop heroes are never awarded from wishes)
+  if(Math.random()<WISH_KONWU_CHANCE){ return grantFullHero('konwu'); }   // rare 1% pull of the mythic KonWu (advertised); all OTHER myth/shop heroes stay wish-excluded
   if(Math.random()<WISH_HERO_CHANCE){ return grantFullHero(wishHeroPool()); }
   const r=Math.random();
   if(r<0.34) return wishMat('blue', 3+Math.floor(Math.random()*5));
@@ -5972,7 +5972,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
   const canGem = gemFree || (G.gems||0)>=WISH_GEM_COST;
   b.innerHTML=`
-  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">Make a wish for <b>rune shards</b>, <b>hero fragments</b>, gold &amp; diamonds. The Diamond Pool can surface a <b>full hero</b>.</div>
+  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">Make a wish for <b>rune shards</b>, <b>hero fragments</b>, gold &amp; diamonds. The Diamond Pool can surface a <b>full hero</b> — with a rare <b>1% shot at KonWu</b>.</div>
   <div class="wishpools">
     <div class="wishpool gold">
       <div class="wp-orb">⛲</div>
@@ -5988,7 +5988,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-name">Diamond Pool</div>
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
       <div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0))}</div>
-      <div class="wp-sub">${gemRigged?'First wish: guaranteed hero':'1 free daily (09:00 reset) · 10% hero'}</div>
+      <div class="wp-sub">${gemRigged?'First wish: guaranteed hero':'1 free daily (09:00 reset) · 10% hero · 1% KonWu'}</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
       <button class="btn secondary" id="wpGem10" ${(G.gems||0)>=wishGem10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -7450,7 +7450,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787007000000';
+const BUILD_ID='1787008000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
