@@ -3038,7 +3038,7 @@ function updateBattle(dt){
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended){const a=units.filter(u=>u.team==='ally'&&u.alive).length,f=units.filter(u=>u.team==='enemy'&&u.alive).length;
-    if(a===0)endBattle(false); else if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); }}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
+    if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); } else if(a===0)endBattle(false);}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
 
 /* ------------------------------- 3D sync ----------------------------------- */
@@ -4197,7 +4197,7 @@ function _arenaTeamPow(team){ try{ return teamPower((team||[]).map(e=>({key:e.ke
 async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.fetching=true;
   try{ const d=await api('/api/arena/opponents'); if(d&&!d.error){ ARENA.rank=d.rank; G.arenaRank=d.rank;
       if(G.bestArenaRank==null||d.rank<G.bestArenaRank)G.bestArenaRank=d.rank;
-      ARENA.opps=(d.opponents||[]).filter(o=>o&&o.team&&o.team.length).map(o=>({ id:o.id, name:o.name, rank:o.rank, isNpc:!!o.isNpc, team:o.team.map(e=>({key:e.key,level:e.level||1,rank:e.rank||0})), power:_arenaTeamPow(o.team) }));
+      ARENA.opps=(d.opponents||[]).filter(o=>o&&o.team&&o.team.length).map(o=>({ id:o.id, name:o.name, rank:o.rank, isNpc:!!o.isNpc, team:o.team.filter(e=>e&&HERO_TYPES[e.key]).map(e=>({key:e.key,level:e.level||1,rank:e.rank||0})), power:_arenaTeamPow(o.team) }));
       ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; saveG(); } }
   catch(e){} finally{ ARENA.fetching=false; } return true; }
 async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true;
@@ -7076,7 +7076,7 @@ function serializeUnit(u){return {id:u.id,key:u.key,team:u.team,x:Math.round(u.x
 function applyState(list){
   const seen=new Set();
   list.forEach(s=>{seen.add(s.id);let u=OL.byId[s.id];
-    if(!u){u={id:s.id,key:s.key,team:s.team,t:HERO_TYPES[s.key],boss:!!s.bo,r:18*(s.bo?2.2:1),alive:true,melee:HERO_TYPES[s.key].range<60,bob:(s.x*.7+s.y*.3)%6.28,attackAnim:0,castAnim:0,flash:0,stunned:0,fearT:0,deathT:0,energy:s.e,laneX:s.x};OL.byId[s.id]=u;units.push(u);buildFigure(u);}
+    if(!u){const _t=HERO_TYPES[s.key]||HERO_TYPES.grosk;u={id:s.id,key:s.key,team:s.team,t:_t,boss:!!s.bo,r:18*(s.bo?2.2:1),alive:true,melee:_t.range<60,bob:(s.x*.7+s.y*.3)%6.28,attackAnim:0,castAnim:0,flash:0,stunned:0,fearT:0,deathT:0,energy:s.e,laneX:s.x};OL.byId[s.id]=u;units.push(u);buildFigure(u);}
     u.x=s.x;u.y=s.y;u.hp=s.hp;u.maxHp=s.mh;u.energy=s.e;u.attackAnim=s.aa;u.castAnim=s.ca;u.flash=s.fl?0.12:0;
     if(!s.al&&u.alive){u.alive=false;u.deathT=0;}});
   units.filter(u=>!seen.has(u.id)).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}delete OL.byId[u.id];u._gone=true;});
@@ -7089,7 +7089,7 @@ function buildGuestPortraits(){const bar=document.getElementById('portraitBar');
   if(bar.dataset.mode!=='guest'||bar.childElementCount!==mine.length){bar.innerHTML='';bar.dataset.mode='guest';
     mine.forEach(u=>{const slot=document.createElement('div');slot.className='pslot';slot.style.backgroundImage=`url(${MR_UI.frame})`;
       const pv=HERO_PORTRAITS[u.key];
-      const el=document.createElement('div');el.className='portrait';el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`);
+      const el=document.createElement('div');el.className='portrait';el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${(HERO_TYPES[u.key]||HERO_TYPES.grosk).emoji}</div>`);
       const hp=document.createElement('div');hp.className='pHp';hp.innerHTML='<div class="pHpFill"></div>';
       const en=document.createElement('div');en.className='pEnergyBar';en.innerHTML='<div class="pEnFill"></div>';
       attachUltPress(el,u,true);   // guest side relays the ult to the host
@@ -7203,7 +7203,7 @@ function onUp(e){ if(aiming){ if(overCancel(e.clientX,e.clientY)){ cancelAim(); 
 overlay.addEventListener('pointerdown',onDown);
 overlay.addEventListener('pointermove',onMove);
 overlay.addEventListener('pointerup',onUp);
-overlay.addEventListener('pointercancel',()=>{ if(aiming)fireAimed(); });
+overlay.addEventListener('pointercancel',()=>{ if(aiming)cancelAim(); });
 (function(){ const c=document.getElementById('ultCancel'); if(c) c.addEventListener('click',()=>{ if(aiming) cancelAim(); }); })();
 // press-hold-drag-release ult aiming, started from a hero HUD portrait tile.
 // Prevents the browser's native image-drag; a quick tap fires at the nearest target; dragging carries the
@@ -7426,7 +7426,7 @@ let last=performance.now();
 function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   if(document.body.classList.contains('gated')){ requestAnimationFrame(loop); return; }   // splash still up → don't render the 3D scene/overlay yet (prevents a half-loaded frame from flashing)
   if(renderer){ const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }  // auto-correct WIDTH drift only (ignore height — the mobile keyboard changes height and must NOT trigger a per-frame realloc)
-  if(aiming&&!aiming.alive)aiming=null;
+  if(aiming&&!aiming.alive)cancelAim();
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
@@ -7441,7 +7441,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787013000000';
+const BUILD_ID='1787014000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
