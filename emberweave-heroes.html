@@ -7109,16 +7109,7 @@ function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KI
   if(kit.blue)  h+=`<div class="atSub">🔵 <b style="color:#6ea8ff">${kit.blue.name}</b> — ${KIT_DESC[kit.blue.type]||''}</div>`;
   if(kit.purple)h+=`<div class="atSub">🟣 <b style="color:#c9b6ff">${kit.purple.name}</b> — ${PASS_DESC[kit.purple.pass]||''}</div>`;
   return h; }
-function showAbilityTip(u){ if(!u||!u.t)return; const tip=document.getElementById('abilityTip'); if(!tip)return;
-  tip.innerHTML=abilityTipHTML(u); tip.style.display='block';
-  // anchor the panel above the tapped hero's portrait tile (falls back to centered)
-  try{ const host=tip.offsetParent||document.getElementById('hud'); const el=u.portraitEl;
-    if(host&&el){ const hb=host.getBoundingClientRect(), eb=el.getBoundingClientRect();
-      let cx=eb.left+eb.width/2-hb.left; const half=tip.offsetWidth/2;
-      cx=Math.max(half+6, Math.min(hb.width-half-6, cx));   // keep on-screen
-      tip.style.left=cx+'px'; tip.style.transform='translateX(-50%)';
-      tip.style.bottom=(hb.bottom-eb.top+8)+'px'; }
-  }catch(e){} }
+function showAbilityTip(u){ /* DISABLED in combat — ability descriptions live in the Skill tab only (Phil's call). Never render the in-battle popup; keep it hidden no matter which handler calls this. */ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
 function hideAbilityTip(){ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
 // Skills-tab: double-tap a skill row to view its full description (mobile has no hover tooltip)
 function hideSkillDesc(){ const p=document.getElementById('skDescPop'); if(p)p.remove(); }
@@ -7146,7 +7137,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     const slot=document.createElement('div'); slot.className='pslot'; slot.style.backgroundImage=`url(${MR_UI.frame})`;
     const pv=HERO_PORTRAITS[u.key];
     const el=document.createElement('div');el.className='portrait';
-    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`)+`<div class="pInfo">?</div>`;
+    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`);   // no in-combat "?" info button — ability descriptions live in the Skill tab
     const hp=document.createElement('div'); hp.className='pHp'; hp.innerHTML='<div class="pHpFill"></div>';
     const en=document.createElement('div'); en.className='pEnergyBar'; en.innerHTML='<div class="pEnFill"></div>';
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
@@ -7450,7 +7441,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787010000000';
+const BUILD_ID='1787011000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
