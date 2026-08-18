@@ -1250,7 +1250,7 @@ const KITS={
   konwu:{green:{name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:3*METER,angle:45,cd:6},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10},purple:{name:'Adamant Discipline',pass:'warden'}},
   grosk:{green:{name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10},blue:{name:'Hammer Fists',type:'punchflurry',hits:4,mul:0.30,tauntChance:0.25,tauntDur:2,cd:6},purple:{name:'Juggernaut',pass:'juggernaut'}},
   vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10},purple:{name:'Unstepped',pass:'unstepped'}},
-  tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,cd:8},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,cd:7},purple:{name:'Momentum Gears',pass:'momentum'}},
+  tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,cd:8},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,radius:2.6*METER,cd:8},blue:{name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8},blue:{name:'Duality',type:'duality',cd:6},purple:{name:'Twin Fonts',pass:'twinfonts'}},
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7},blue:{name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10},purple:{name:'Contagion',pass:'contagion'}},
@@ -1309,7 +1309,7 @@ const ABILITY_CAST_MON={
   'ogre beast':{green:0.7,blue:0.9}, 'water monster':{green:0.7,blue:0.8}, 'water serpent':{green:0.6,blue:0.9},
 };
 const PASS_DESC={bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second',momentum:'attack speed ramps up the longer he fights (up to +50%)',coldsnap:'frozen foes take +25% damage from everyone',twinfonts:'in Dark stance he drains foes into himself; in Light stance he steadily regenerates',contagion:'when a poisoned foe dies its poison spreads to nearby enemies',perfectpitch:'her heals also grant a small shield',stormdodge:'30% chance to dodge attacks while casting or channeling',selfregen:'steadily regenerates a slice of health every second while in combat'};
-const KIT_DESC={strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves enemies in a 45° arc (3 m) toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Ground zone — burns enemies inside',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team',punchflurry:'A rapid flurry of quick strikes',frozenorb:'A drifting orb that chills and damages nearby foes',freeze:'Freezes a single target solid (stun)',sunburst:'A burst of light — burns nearby foes and heals nearby allies',duality:'Swaps stance — Dark (bonus damage) or Light (team shield)',toxbreath:'A cone of poison that lingers as a damage-over-time',swamproot:'Summons vines that root enemies in place',crescendo:'A rising note that heals allies',harmonyshield:'A shield-song that guards nearby allies',stormsurge:'Calls down bolts on several random foes',chainlight:'A bolt of lightning that leaps between enemies',shadeburst:'Erupts a wave of creeping shadow, sinking a lingering rot into every enemy caught in a wide radius around Umbris',creeprot:'Marks a single enemy with festering shadow-rot that eats away at them over time',warcry:'A savage roar that raises Vael’s damage and rattles nearby foes',lifestealbuff:'Vael feeds on the fight, healing for a share of all the damage he deals for a while',heal:'Channels living sap into the most wounded ally, restoring their health',defensive:'Rhukk braces behind his carapace, taking far less damage for a few seconds'};
+const KIT_DESC={strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves enemies in a 45° arc (3 m) toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Ground zone — burns enemies inside',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team',punchflurry:'A rapid flurry of quick strikes',frozenorb:'A drifting orb that chills and damages nearby foes',freeze:'Freezes a single target solid (stun)',sunburst:'A burst of light — burns nearby foes and heals nearby allies',duality:'Swaps stance — Dark (bonus damage) or Light (team shield)',toxbreath:'A cone of poison that lingers as a damage-over-time',swamproot:'Summons vines that root enemies in place',crescendo:'A rising note that heals allies',harmonyshield:'A shield-song that guards nearby allies',stormsurge:'Calls down bolts on several random foes',chainlight:'A bolt of lightning that leaps between enemies',shadeburst:'Erupts a wave of creeping shadow, sinking a lingering rot into every enemy caught in a wide radius around Umbris',creeprot:'Marks a single enemy with festering shadow-rot that eats away at them over time',warcry:'A savage roar that raises Vael’s damage and rattles nearby foes',lifestealbuff:'Vael feeds on the fight, healing for a share of all the damage he deals for a while',heal:'Channels living sap into the most wounded ally, restoring their health',defensive:'Rhukk braces behind his carapace, taking far less damage for a few seconds',pullsilence:'Yanks in and silences nearby enemies',gravsling:'Flings a gravity orb that splashes nearby foes',tendrilpull:'Drags the farthest enemy in and silences it'};
 function promoteCost(rank){ const mat=['green','blue','purple'][rank]; return {[mat]:4+rank*4, gold:150+rank*150}; }
 // ---- SKILL LEVELS: each unlocked skill has a level, upgraded with gold; leveling boosts its damage / heal / DR ----
 const SKILL_MAX=10, SKILL_UP_BASE=[300,220,260,400];   // gold base per skill index (ult / green / blue / passive)
@@ -1324,7 +1324,7 @@ const ULT_DEF={aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:1.8,bleed:true,ra
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:1,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
-const ULT_DESC={aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — grants energy and healing to the whole team.',monkSlam:'Player-aimed ultimate — spins the staff overhead then slams it down, dealing 100% ATK and stunning every enemy within 3 frames for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Ultimate — Oakmir calls the first bloom of spring, instantly healing the whole team and wrapping them in a lingering regrowth.',charge:'Player-aimed ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.'};
+const ULT_DESC={aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — grants energy and healing to the whole team.',monkSlam:'Player-aimed ultimate — spins the staff overhead then slams it down, dealing 100% ATK and stunning every nearby enemy for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Ultimate — Oakmir calls the first bloom of spring, instantly healing the whole team and wrapping them in a lingering regrowth.',charge:'Player-aimed ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.'};
 // ability scaling labels (what stat an ability scales with) — shown in the (…) tag and used for balance
 const ULT_SCALE={flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—',umbralcata:'Ability Power',laststand:'—',firstspring:'Health',charge:'Attack'};
 const KIT_SCALE={haste:'—',dmgbuff:'—',rally:'—',punchflurry:'Attack',frozenorb:'Ability Power',freeze:'Ability Power',sunburst:'Ability Power',duality:'Health',toxbreath:'Ability Power',swamproot:'Ability Power',crescendo:'Ability Power',harmonyshield:'Ability Power',stormsurge:'Ability Power',chainlight:'Ability Power',strike:'Attack',double:'Attack',volley:'Attack',nova:'Attack',cleavecone:'Attack',blink:'Attack',dot:'Attack',aoedot:'Attack',fireorb:'Ability Power',stun:'Attack',slow:'Attack',mortal:'Attack',hot:'Health',shield:'Health',taunt:'Health',shadeburst:'Ability Power',creeprot:'Ability Power',warcry:'—',lifestealbuff:'—',defensive:'—'};
@@ -2296,9 +2296,9 @@ function dealDamage(src,tgt,amt,color){
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(cc&&brnd()<cc){ let mult=1.6; if(tgt.critRes) mult=1+(mult-1)*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }
-  damage(tgt,amt,color,false,_crit);
-  if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,amt*0.2);
-  if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,amt*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
+  const _hpBefore=tgt.hp; damage(tgt,amt,color,false,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
+  if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.2);
+  if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
 }
 function pushDot(t,dps,dur,interval,color){ t.dots.push({dps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0,color:color||'#ff8844'}); }
@@ -2369,7 +2369,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       u._voidT=rel*cd2*BATTLE_PACE; u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'aoedot':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(u.x,u.y,0xffa657,14);break;}
-    case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=o.stun||1.3;if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
+    case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=Math.max(tgt.stunned||0,o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=Math.max(tgt.slow||0,2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
     case 'heal':{alliesOf(u).forEach(a=>healUnit(a,a.maxHp*(o.mul||.9)*sm));burstAt(u.x,u.y,0x5ee89b,16);break;}
@@ -2443,7 +2443,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'freeze':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
-    case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
     case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff'); e.stunned=Math.max(e.stunned||0,0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     // ---- King Bloatus (poison tank) — poison scales off ability power ----
@@ -2899,8 +2899,9 @@ function grantRewards(){
     let eliteStr='';
     if(isEliteStage(node)){ const gGreen=rollGlyphDropRk('green'); giveGlyph(gGreen,1);
       glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gGreen).rk).col}"> · ${glyphName(gGreen)}</span>`;
-      const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
+      if(firstClear){ const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1));
       const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragments</span>`; if(um)unlockMsg=um; }
+      else { const fh=HERO_TYPES[eliteHeroFor(node)]; eliteStr=`<br><span style="color:#8b98a9">⭐ ${fh.name} fragments are first-clear only — farm them at the Elite Trials (daily cap)</span>`; } }
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
   } else {
@@ -3604,7 +3605,7 @@ async function renderRankings(){ const b=document.getElementById('rankingsBody')
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:#8b98a9">
       <div>🏆 Arena rank<br><b style="color:#ffd45e;font-size:16px">#${myArena}</b></div>
       <div>🛡 Guild<br><b style="color:#5ee89b;font-size:14px">${G.guild?escapeHTML(G.guild.name)+' · Lv '+(G.guild.level||1):'—'}</b></div>
-      <div>🗺️ Campaign<br><b style="color:#8fe3ff;font-size:14px">Stage ${G.campaignBest||G.node||1}</b></div>
+      <div>🗺️ Campaign<br><b style="color:#8fe3ff;font-size:14px">${G.campaignCleared?('Stage '+stageCode(G.campaignCleared)):'—'}</b></div>
       <div>🐲 Dungeon<br><b style="color:#ff9a6b;font-size:14px">${G.dungeonBest?('Floor '+G.dungeonBest):'—'}</b></div>
     </div></div>`;
   html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">🏆 Arena — Top Players</div>`
@@ -3781,13 +3782,13 @@ function openStageModal(i){
   const fragHero=elite?eliteHeroFor(i):null, fh=fragHero?HERO_TYPES[fragHero]:null;
   const body=document.getElementById('stageModalBody');
   regenStamina();
-  const canPay=G.stamina>=STAM_STAGE_COST;
+  const canPay=G.stamina>=stageStamCost(i);
   body.innerHTML=`<div style="text-align:center">
       <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
       <div style="font-weight:800;font-size:18px">${boss?'Boss Stage '+stageCode(i):(elite?'Elite Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
       <div style="font-size:12px;color:#8b98a9;margin:4px 0 10px">${cleared?'Cleared — replay or sweep for rewards.':'First clear grants <b style="color:#5ee89b">'+campaignPlayerXP(i,true)+' XP</b>.'}</div>
       ${elite?`<div style="font-size:12px;color:#c9a0ff;margin:-4px 0 10px">Drops <b>${ELITE_FRAG_MIN}–${ELITE_FRAG_MAX}</b> ${fh.emoji} <b>${fh.name}</b> fragments${fh.locked&&!G.unlocked[fragHero]?` <span style="color:#8b98a9">(${heroFrag(fragHero)}/${summonCost(fragHero)} to unlock)</span>`:''}</div>`:''}
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Cost: <b>⧗ ${STAM_STAGE_COST} stamina</b> · you have ${G.stamina}/${maxStamina()}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Cost: <b>⧗ ${stageStamCost(i)} stamina</b> · you have ${G.stamina}/${maxStamina()}</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" id="smBattle" ${canPay?'':'disabled'}>⚔️ Battle ▶ ${cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'}</button>
         ${cleared?`<button class="btn secondary" id="smSweep" ${canPay?'':'disabled'}>💨 Sweep (instant · ${campaignPlayerXP(i,false)} XP)</button>`:''}
@@ -3805,14 +3806,14 @@ function closeStageModal(){ document.getElementById('stageModal').classList.remo
 function sweepStage(i){
   regenStamina(); if(G.stamina<stageStamCost(i)){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
   G.stamina-=stageStamCost(i);
-  const gold=30+i*20, pxp=campaignPlayerXP(i,false); G.gold+=gold; addPlayerXP(pxp); grantTeamXP(isBossStage(i)?12:STAGE_XP_SWEEP);   // sweeping grants player XP (+30 stamina per level)
+  const gold=40+i*30, pxp=campaignPlayerXP(i,false); G.gold+=gold; addPlayerXP(pxp); grantTeamXP(isBossStage(i)?12:STAGE_XP_SWEEP);   // sweeping grants player XP (+30 stamina per level)
   const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
   const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
   let eliteStr='',um='';
   if(isEliteStage(i)){ const fh=HERO_TYPES[eliteHeroFor(i)]; eliteStr=`<br><span style="color:#8b98a9">⭐ ${fh.name} fragments come from the daily Elite run (capped) — not sweeping</span>`; }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
-  document.getElementById('smMsg').innerHTML=`Swept! 🪙 +${gold} · +${pxp} XP · +${STAGE_XP_SWEEP} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
+  document.getElementById('smMsg').innerHTML=`Swept! 🪙 +${gold} · +${pxp} XP · +${isBossStage(i)?12:STAGE_XP_SWEEP} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
 }
 /* ===== GLOSSARY (bestiary + hero codex) ===== */
 const GLOSSARY_ART={"bosses/ice beast": "/assets/img/glossary/glossary-bosses-ice-beast.webp", "bosses/monster with fireball": "/assets/img/glossary/glossary-bosses-monster-with-fireball.webp", "bosses/nashor beast": "/assets/img/glossary/glossary-bosses-nashor-beast.webp", "bosses/ogre beast": "/assets/img/glossary/glossary-bosses-ogre-beast.webp", "bosses/water monster": "/assets/img/glossary/glossary-bosses-water-monster.webp", "bosses/water serpent": "/assets/img/glossary/glossary-bosses-water-serpent.webp", "heroes/Grohm": "/assets/img/glossary/glossary-heroes-grohm.webp", "heroes/Musician": "/assets/img/glossary/glossary-heroes-musician.webp", "heroes/ancient groot": "/assets/img/glossary/glossary-heroes-ancient-groot.webp", "heroes/beetle warrior": "/assets/img/glossary/glossary-heroes-beetle-warrior.webp", "heroes/clockwork fighter": "/assets/img/glossary/glossary-heroes-clockwork-fighter.webp", "heroes/explorer archeologist": "/assets/img/glossary/glossary-heroes-explorer-archeologist.webp", "heroes/flail fat guy": "/assets/img/glossary/glossary-heroes-flail-fat-guy.webp", "heroes/frost mage": "/assets/img/glossary/glossary-heroes-frost-mage.webp", "heroes/galaxy girl": "/assets/img/glossary/glossary-heroes-galaxy-girl.webp", "heroes/gods protector": "/assets/img/glossary/glossary-heroes-gods-protector.webp", "heroes/judge ant": "/assets/img/glossary/glossary-heroes-judge-ant.webp", "heroes/king toad": "/assets/img/glossary/glossary-heroes-king-toad.webp", "heroes/lizard warrior": "/assets/img/glossary/glossary-heroes-lizard-warrior.webp", "heroes/lost soul": "/assets/img/glossary/glossary-heroes-lost-soul.webp", "heroes/lumi": "/assets/img/glossary/glossary-heroes-lumi.webp", "heroes/meryln, candy wannabe": "/assets/img/glossary/glossary.webp", "heroes/no face man": "/assets/img/glossary/glossary-heroes-no-face-man.webp", "heroes/robot": "/assets/img/glossary/glossary-heroes-robot.webp", "heroes/static shock": "/assets/img/glossary/glossary-heroes-static-shock.webp", "heroes/sword 1 arm red vein guy": "/assets/img/glossary/glossary-heroes-sword-1-arm-red-vein-guy.webp", "heroes/time slicer": "/assets/img/glossary/glossary-heroes-time-slicer.webp", "heroes/time witch": "/assets/img/glossary/glossary-heroes-time-witch.webp", "heroes/vex": "/assets/img/glossary/glossary-heroes-vex.webp", "heroes/void mage": "/assets/img/glossary/glossary-heroes-void-mage.webp", "heroes/wailing landlord": "/assets/img/glossary/glossary-heroes-wailing-landlord.webp", "heroes/ying yang": "/assets/img/glossary/glossary-heroes-ying-yang.webp", "monsters/bug": "/assets/img/glossary/glossary-monsters-bug.webp", "monsters/creep": "/assets/img/glossary/glossary-monsters-creep.webp", "monsters/dyrmen": "/assets/img/glossary/glossary-monsters-dyrmen.webp", "monsters/fire boar": "/assets/img/glossary/glossary-monsters-fire-boar.webp", "monsters/fire skeleton": "/assets/img/glossary/glossary-monsters-fire-skeleton.webp", "monsters/garbage mob": "/assets/img/glossary/glossary-monsters-garbage-mob.webp", "monsters/ghoul fiend": "/assets/img/glossary/glossary-monsters-ghoul-fiend.webp", "monsters/glitch phantom": "/assets/img/glossary/glossary-monsters-glitch-phantom.webp", "monsters/golem": "/assets/img/glossary/glossary-monsters-golem.webp", "monsters/knat": "/assets/img/glossary/glossary-monsters-knat.webp", "monsters/lost soulss": "/assets/img/glossary/glossary-monsters-lost-soulss.webp", "monsters/mimic chest": "/assets/img/glossary/glossary-monsters-mimic-chest.webp", "monsters/orc": "/assets/img/glossary/glossary-monsters-orc.webp", "monsters/raven": "/assets/img/glossary/glossary-monsters-raven.webp", "monsters/rock golem": "/assets/img/glossary/glossary-monsters-rock-golem.webp", "monsters/shadow ghoul": "/assets/img/glossary/glossary-monsters-shadow-ghoul.webp", "monsters/skeletal warrior": "/assets/img/glossary/glossary-monsters-skeletal-warrior.webp", "monsters/slime": "/assets/img/glossary/glossary-monsters-slime.webp", "monsters/slug beast": "/assets/img/glossary/glossary-monsters-slug-beast.webp", "monsters/tin beast": "/assets/img/glossary/glossary-monsters-tin-beast.webp", "monsters/turtle": "/assets/img/glossary/glossary-monsters-turtle.webp", "monsters/whisp candle": "/assets/img/glossary/glossary-monsters-whisp-candle.webp"};      // { "cat/id": dataURI thumbnail }
@@ -3885,7 +3886,7 @@ function renderRoster(){
   const setDef = (isWall||teamCtx==='arena');   // defense contexts: no BATTLE button
   const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:(teamCtx==='arenaAtk'?squadFor('arenaAtk'):squadFor(squadModeKey())));
   const wallTitle = isWall?('SET WALL — LINE '+WALL_NUM[teamCtx]):'';
-  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':'STAGE '+CUR.node)));
+  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':(CUR.mode==='campaign'?'STAGE '+stageCode(CUR.node):'CHOOSE YOUR SQUAD'))));
   document.getElementById('menuSub').textContent = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`:`Choose up to ${TEAM_SIZE} heroes`; if(CUR.mode==='campaign'&&typeof campEnemyLevel==='function'){ try{ document.getElementById('menuSub').textContent+=' · Enemies ~Lv '+campEnemyLevel(CUR.node); }catch(_){}}
   document.getElementById('startBtn').style.display = setDef?'none':'block';
   const r=document.getElementById('roster'); r.innerHTML='';
@@ -3909,7 +3910,7 @@ function renderRoster(){
   const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<stageStamCost(CUR.node);
   const ok=full&&!lowStam;
   const sb=document.getElementById('startBtn'); sb.disabled=!ok;
-  sb.textContent=!full?`PICK AT LEAST 1 HERO`:(lowStam?`NEED ${STAM_STAGE_COST} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${STAM_STAGE_COST}`:'BATTLE ▶'));
+  sb.textContent=!full?`PICK AT LEAST 1 HERO`:(lowStam?`NEED ${stageStamCost(CUR.node)} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${stageStamCost(CUR.node)}`:'BATTLE ▶'));
 }
 const TECH_TRACKS=[
   ['atk','⚔','Attack Power','ATK to all heroes',3],
@@ -4228,7 +4229,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
       <button class="btn secondary" id="arenaRankings" style="margin-top:10px;width:100%">📋 Rankings — Top 100</button>
     </div>
     <div class="panel"><div style="font-weight:700;margin-bottom:4px">🎁 Daily Rank Reward</div>
-      <div style="font-size:12px;color:#8b98a9;margin-bottom:8px">Every 24h, based on your rank (#${G.arenaRank}): <b style="color:#c9b6ff">💎 ${daily.gems}</b> · <b style="color:#ffd45e">🪙 ${daily.gold.toLocaleString()}</b> · <b style="color:#ffd45e">🎟️ ${daily.coins}</b></div>
+      <div style="font-size:12px;color:#8b98a9;margin-bottom:8px">Each day (resets 09:00 ET), based on your rank (#${G.arenaRank}): <b style="color:#c9b6ff">💎 ${daily.gems}</b> · <b style="color:#ffd45e">🪙 ${daily.gold.toLocaleString()}</b> · <b style="color:#ffd45e">🎟️ ${daily.coins}</b></div>
       <button class="btn" id="claimDaily" ${dready?'':'disabled'}>${dready?'Claim Daily Reward':'Next in <span id="dailyLeft">'+fmtDur(dleft)+'</span>'}</button>
       <div id="dailyMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>
     <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">🛡️ Your Auto-Defense</div><button class="btn sm secondary" id="setArenaDef">Change</button></div>
@@ -4289,7 +4290,7 @@ const ARENA_SHOP=[
   {id:'grey',   name:'Grey Glyph Shards×30', icon:'⚪', cost:150, give:()=>{G.mats.grey+=30;}, desc:'+30 grey shards'},
   {id:'green',  name:'Green Glyph Shards×16',icon:'🟢', cost:250, give:()=>{G.mats.green+=16;},desc:'+16 green shards'},
   {id:'blue',   name:'Blue Glyph Shards×8', icon:'🔵', cost:400, give:()=>{G.mats.blue+=8;},  desc:'+8 blue shards'},
-  {id:'stam',   name:'Stamina Refill',   icon:'⧗', cost:200, give:()=>{G.stamina=maxStamina();}, desc:'Refill stamina to max'},
+  {id:'stam',   name:'Stamina Refill',   icon:'⧗', cost:200, give:()=>{G.stamina=Math.max(G.stamina,maxStamina());}, desc:'Refill stamina to max'},
 ];
 function renderArenaShop(){
   const b=document.getElementById('arenaShopBody');
@@ -5186,7 +5187,7 @@ const GUILD_SHOP=[
   {name:'Grey Shards ×40',desc:'+40 grey glyph shards',cost:250,give:()=>{G.mats.grey=(G.mats.grey||0)+40;}},
   {name:'Green Shards ×20',desc:'+20 green shards',cost:400,give:()=>{G.mats.green=(G.mats.green||0)+20;}},
   {name:'Blue Shards ×10',desc:'+10 blue shards',cost:650,give:()=>{G.mats.blue=(G.mats.blue||0)+10;}},
-  {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{G.stamina=maxStamina();G.staminaTS=Date.now();}},
+  {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{G.stamina=Math.max(G.stamina,maxStamina());G.staminaTS=Date.now();}},
   {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,give:()=>{G.arenaCoins=(G.arenaCoins||0)+2000;}},
   {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,give:()=>{if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0};EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+100);}},
   {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,give:()=>{G.gold=(G.gold||0)+15000;}},
@@ -6055,7 +6056,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
       <div class="qh"><div class="qt">🗺️ Rise Through the Ranks</div><div class="qrew">🎁 ${rewLbl}</div></div>
       <div class="qd">Clear Stage ${stageCode(node)} of the campaign. (${step}/${chSteps.length} steps done)</div>
       <div class="qbar"><i style="width:${Math.round(chProg/node*100)}%"></i></div>
-      <div class="qmeta"><span>Stage ${stageCode(chProg)} / ${stageCode(node)} cleared</span>
+      <div class="qmeta"><span>Stage ${chProg>=1?stageCode(chProg):'—'} / ${stageCode(node)} cleared</span>
         <button class="btn xs${chReady?'':' secondary'}" id="qcClaim" ${chReady?'':'disabled'}>${chReady?'Claim':'Locked'}</button></div></div>`}); }
   questDefs().forEach(q=>{ if(G.questClaimed[q.id]) return;   // claimed one-offs have no follow-up → removed from the log
     const pct=Math.round(q.prog/q.goal*100);
@@ -6220,7 +6221,7 @@ function provPlaysLeft(t){ return Math.max(0,PROV_PLAYS-provState(t).used); }
 function provReqPower(t,stage){ const base=t==='gold'?420:640; return Math.round(base*Math.pow(1.4,stage-1)); }
 function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }
 function provRuneAmt(stage){ return 1+Math.floor(stage/2); }
-function provRewardStr(t,stage){ return t==='gold'?('🪙 '+provGoldAmt(stage).toLocaleString()):('💠 '+provRuneAmt(stage)+' runes'); }
+function provRewardStr(t,stage){ const n=provRuneAmt(stage); return t==='gold'?('🪙 '+provGoldAmt(stage).toLocaleString()):('💠 '+n+' rune'+(n===1?'':'s')); }
 function grantProvReward(t,stage){ if(t==='gold'){ G.gold=(G.gold||0)+provGoldAmt(stage); } else { const n=provRuneAmt(stage); for(let i=0;i<n;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } } updateHubChrome(); return provRewardStr(t,stage); }
 function provChallenge(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; const next=p.stage+1; if(next>PROV_STAGES) return {maxed:true}; if(battlePow()<provReqPower(t,next)) return {weak:true}; p.used++; p.stage=next; const rw=grantProvReward(t,next); saveG(); return {win:true,stage:next,reward:rw}; }
 function provSweep(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; if(p.stage<1) return {invalid:true}; p.used++; const rw=grantProvReward(t,p.stage); saveG(); return {swept:true,stage:p.stage,reward:rw}; }
@@ -6350,12 +6351,12 @@ function openTower(){ const ov=isleOverlay();
         <button class="btn" id="twGo" style="width:100%" ${canGo?'':'disabled'}>${canGo?'⚔ Ascend to Floor '+next:'Squad too weak — grow stronger'}</button></div>
       <div style="background:#0f1420;border-radius:10px;padding:11px">
         <div style="font-weight:800;font-size:12px;margin-bottom:3px">🎖 Spire Tribute <span style="font-size:10px;color:#8b98a9">(once daily)</span></div>
-        <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${st.floor>0?'Claim a daily reward scaled to your record: 🪙 '+(500*st.floor).toLocaleString()+' · 💠 '+(1+Math.floor(st.floor/4))+' runes':'Reach Floor 1 to unlock the tribute.'}</div>
+        <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${st.floor>0?'Claim a daily reward scaled to your record: 🪙 '+(500*st.floor).toLocaleString()+' · 💠 '+(1+Math.floor(st.floor/4))+' rune'+((1+Math.floor(st.floor/4))===1?'':'s'):'Reach Floor 1 to unlock the tribute.'}</div>
         <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?'🎖 Claim tribute':(st.floor>0?'✔ Claimed today':'Locked')}</button></div>
       <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#twX').onclick=()=>ov.remove();
     ov.querySelector('#twGo').onclick=()=>{ const r=towerAscend(); render(r.win?((r.elite?'👑 Warden felled! ':'⚔ ')+'Floor '+r.floor+' conquered! '+r.reward):'Squad too weak for this floor.', r.win?'#5ee89b':'#ff8b8b'); };
-    ov.querySelector('#twTrib').onclick=()=>{ const r=towerTribute(); render(r.none?'Already claimed today.':('🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()+' · 💠 '+r.runes+' runes'), r.none?'#ff8b8b':'#5ee89b'); };
+    ov.querySelector('#twTrib').onclick=()=>{ const r=towerTribute(); render(r.none?'Already claimed today.':('🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()+' · 💠 '+r.runes+' rune'+(r.runes===1?'':'s')), r.none?'#ff8b8b':'#5ee89b'); };
   }
   render();
 }
@@ -7349,7 +7350,7 @@ function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||
 function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||0, n=G.goldBuys||0, out=(c==null), amt=goldPerBuy();
   document.getElementById('hudShopTitle').innerHTML='🪙 Buy Gold';
   document.getElementById('hudShopBody').innerHTML=`
-    <div class="shopnote">Trade diamonds for <b style="color:#ffe08a">${amt.toLocaleString()} gold</b> per purchase. Price rises with each buy and resets daily at 09:00. <i>(Gold amount will scale with your level later.)</i></div>
+    <div class="shopnote">Trade diamonds for <b style="color:#ffe08a">${amt.toLocaleString()} gold</b> per purchase. Price rises with each buy and resets daily at 09:00. <i>(Scales with your level.)</i></div>
     <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00':''}</div></div>
       <div class="bcost">${out?'<span class="bs">Back at 09:00</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${GOLD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
@@ -7450,7 +7451,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787008000000';
+const BUILD_ID='1787009000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
