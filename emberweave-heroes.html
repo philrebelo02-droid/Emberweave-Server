@@ -2953,13 +2953,13 @@ function endBattle(won){ ended=true;
         : `Beat <b>${CUR.oppName}</b> · you hold <b style="color:#ffd45e">#${G.arenaRank}</b> · 🪙 +${reward}`;
       document.getElementById('resultReward').innerHTML=won?winMsg:`Lost to <b>${CUR.oppName}</b> — you keep rank #${G.arenaRank}.`;
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='dungeon'){ const gold=won?200:0, drops={grey:8,green:4,blue:2}; let dropLog=''; if(won){G.dungeonBest=(G.dungeonBest||0)+1;G.gold+=gold;for(const k in drops)G.mats[k]+=drops[k];
+  if(CUR.mode==='dungeon'){ const gold=won?200:0, drops={grey:8,green:4,blue:2}; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;G.gold+=gold;for(const k in drops)G.mats[k]+=drops[k];
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; const bag=EQ_BASE.map(b=>b[0]); const n=3+Math.floor(playerLevel()/5); const got={};
       for(let i=0;i<n;i++){ const b=bag[Math.floor(Math.random()*bag.length)]; G.eqMats[b]=(G.eqMats[b]||0)+1; got[b]=(got[b]||0)+1; }
       dropLog=EQ_BASE.filter(b=>got[b[0]]).map(b=>b[1]+' +'+got[b[0]]).join(' ');
-      grantTeamXP(90);saveG();updateHubChrome();}
+      dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      document.getElementById('resultReward').innerHTML=won?`<span class="coins">🪙 +${gold}</span> · Glyph shards ⚪8 🟢4 🔵2 · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
+      document.getElementById('resultReward').innerHTML=won?`<span class="coins">🪙 +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · Glyph shards ⚪8 🟢4 🔵2 · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='elite'){ const key=CUR.eliteKey, frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; if(won){ eliteUnlock=giveHeroFrag(key,frags); grantTeamXP(70); saveG(); updateHubChrome(); }
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 +${frags} ${HERO_TYPES[key].name} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
@@ -3532,7 +3532,7 @@ function renderTemple(){
 }
 function startDungeon(){
   syncActiveSquad();   // per-mode squad
-  const lv=playerLevel(), eLvl=Math.max(2,Math.min(30,lv+2)), rank=Math.min(3,Math.floor(lv/5));
+  const lv=playerLevel(), eLvl=lv+2+Math.floor(lv/6), rank=Math.min(3,Math.floor(lv/5));   // ungated, but difficulty rises with player level: enemy level tracks + pulls ahead as you climb
   const pool=HERO_KEYS.slice(), team=[]; for(let i=0;i<5;i++) team.push({key:pool[(i*2+lv)%pool.length],level:eLvl,rank});
   CUR={mode:'dungeon',opp:team}; startVersus(team,false);
 }
@@ -7441,7 +7441,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787015000000';
+const BUILD_ID='1787016000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
