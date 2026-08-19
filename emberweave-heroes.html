@@ -1280,6 +1280,20 @@ HERO_SKILL_CLIPS.grosk = {
   3:{u:GROSK_IDLE, n:20,fw:202,fh:180,dur:2.6},
 };
 HERO_SKILL_CLIPS.vulmar = { 0:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_ult.webp',n:24,fw:180,fh:180,dur:2.6}, 1:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_sling.webp',n:22,fw:198,fh:180,dur:2.4}, 2:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,dur:2.4}, 3:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_passive.webp',n:24,fw:148,fh:180,dur:2.6} };
+// Vael + Oakmir skill-tab previews — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
+// Slots match the Skills list order: 0 ult, 1 green, 2 blue, 3 passive → idle stance.
+HERO_SKILL_CLIPS.vael = {
+  0:{u:'/assets/anim/vael/vael_sk_ult.webp',  n:16,fw:96, fh:134,dur:2.4},
+  1:{u:'/assets/anim/vael/vael_sk_green.webp',n:16,fw:97, fh:135,dur:2.4},
+  2:{u:'/assets/anim/vael/vael_sk_blue.webp', n:16,fw:111,fh:133,dur:2.4},
+  3:{u:'/assets/anim/vael/vael_sk_idle.webp', n:16,fw:93, fh:133,dur:3.0},
+};
+HERO_SKILL_CLIPS.oakmir = {
+  0:{u:'/assets/anim/oakmir/oakmir_sk_ult.webp',  n:12,fw:125,fh:180,dur:1.8},
+  1:{u:'/assets/anim/oakmir/oakmir_sk_green.webp',n:12,fw:129,fh:180,dur:1.8},
+  2:{u:'/assets/anim/oakmir/oakmir_sk_blue.webp', n:12,fw:114,fh:180,dur:1.8},
+  3:{u:'/assets/anim/oakmir/oakmir_sk_idle.webp', n:12,fw:127,fh:180,dur:2.4},
+};
 // a hero is "animated" if its own idle sheet was actually built into the bundle (per-hero, not KonWu-global)
 function heroHasAnim(key){ const set=BATTLE_ANIM[key]; return !!(set && set.idle && isAssetRef(set.idle.u)); }
 const WALK_STRIDE=0.12;                      // walk-cycle frames advanced per field-unit moved (foot-locked cadence; halved for a calmer stride)
@@ -7585,7 +7599,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787080000000';
+const BUILD_ID='1787081000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
