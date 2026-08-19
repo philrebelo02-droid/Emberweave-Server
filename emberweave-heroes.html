@@ -1086,19 +1086,19 @@ const BATTLE_ANIM = { konwu:{
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=1',n:16,fw:93,fh:133,cols:6,rows:3,figH:118,feet:125,cx:58,fps:8,flip:false},
   walk:{u:'/assets/anim/vael/vael_walk.webp?v=1',n:16,fw:103,fh:135,cols:6,rows:3,figH:120,feet:128,cx:69,fps:11,flip:false},
-  attack:{u:'/assets/anim/vael/vael_attack.webp?v=1',n:16,fw:107,fh:153,cols:6,rows:3,figH:119,feet:142,cx:58,fps:16,flip:false,hold:0.9},
-  hit:{u:'/assets/anim/vael/vael_hit.webp?v=1',n:16,fw:91,fh:133,cols:6,rows:3,figH:118,feet:125,cx:57,fps:11,flip:false},
-  ult:{u:'/assets/anim/vael/vael_ult.webp?v=1',n:16,fw:96,fh:134,cols:6,rows:3,figH:120,feet:126,cx:62,fps:12,flip:false,hold:1.2},
-  green:{u:'/assets/anim/vael/vael_green.webp?v=1',n:16,fw:97,fh:135,cols:6,rows:3,figH:121,feet:128,cx:63,fps:12,flip:false,hold:0.9},
-  blue:{u:'/assets/anim/vael/vael_blue.webp?v=1',n:16,fw:111,fh:133,cols:6,rows:3,figH:118,feet:125,cx:77,fps:12,flip:false,hold:0.9}
+  attack:{u:'/assets/anim/vael/vael_attack.webp?v=2',n:12,fw:188,fh:260,cols:6,rows:2,figH:191,feet:252,cx:103,fps:16,flip:false,hold:0.9},
+  hit:{u:'/assets/anim/vael/vael_hit.webp?v=2',n:12,fw:155,fh:223,cols:6,rows:2,figH:200,feet:216,cx:85,fps:11,flip:false},
+  ult:{u:'/assets/anim/vael/vael_ult.webp?v=2',n:12,fw:247,fh:243,cols:6,rows:2,figH:200,feet:218,cx:108,fps:12,flip:false,hold:1.2},
+  green:{u:'/assets/anim/vael/vael_green.webp?v=2',n:12,fw:260,fh:212,cols:6,rows:2,figH:196,feet:204,cx:119,fps:12,flip:false,hold:0.9},
+  blue:{u:'/assets/anim/vael/vael_blue.webp?v=2',n:12,fw:177,fh:226,cols:6,rows:2,figH:200,feet:218,cx:112,fps:12,flip:false,hold:0.9}
   },
   oakmir:{
   idle:{u:'/assets/anim/oakmir/oakmir_idle.webp?v=1',n:12,fw:185,fh:262,cols:6,rows:2,figH:248,feet:254,cx:92,fps:10,flip:false},
   walk:{u:'/assets/anim/oakmir/oakmir_walk.webp?v=1',n:12,fw:156,fh:222,cols:6,rows:2,figH:208,feet:215,cx:81,fps:14,flip:false},
   attack:{u:'/assets/anim/oakmir/oakmir_attack.webp?v=1',n:12,fw:153,fh:222,cols:6,rows:2,figH:207,feet:215,cx:77,fps:16,flip:false,hold:1.0},
   ult:{u:'/assets/anim/oakmir/oakmir_ult.webp?v=1',n:12,fw:153,fh:221,cols:6,rows:2,figH:208,feet:214,cx:77,fps:15,flip:false,hold:1.0},
-  green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=1',n:12,fw:158,fh:221,cols:6,rows:2,figH:207,feet:214,cx:83,fps:14,flip:false,hold:1.0},
-  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=1',n:12,fw:158,fh:249,cols:6,rows:2,figH:208,feet:242,cx:77,fps:14,flip:false,hold:1.0}
+  green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=2',n:12,fw:163,fh:226,cols:6,rows:2,figH:200,feet:219,cx:79,fps:12,flip:false,hold:1.0},
+  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=2',n:12,fw:162,fh:225,cols:6,rows:2,figH:200,feet:218,cx:83,fps:12,flip:false,hold:1.0}
   },
   // rhukk animations reverted 2026-08-17 (clips didn't meet bar) — falls back to static HERO_SPRITES; sheets remain in assets/anim/rhukk/ unused
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
@@ -1283,16 +1283,16 @@ HERO_SKILL_CLIPS.vulmar = { 0:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid
 // Vael + Oakmir skill-tab previews — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
 // Slots match the Skills list order: 0 ult, 1 green, 2 blue, 3 passive → idle stance.
 HERO_SKILL_CLIPS.vael = {
-  0:{u:'/assets/anim/vael/vael_sk_ult.webp',  n:16,fw:96, fh:134,dur:2.4},
-  1:{u:'/assets/anim/vael/vael_sk_green.webp',n:16,fw:97, fh:135,dur:2.4},
-  2:{u:'/assets/anim/vael/vael_sk_blue.webp', n:16,fw:111,fh:133,dur:2.4},
-  3:{u:'/assets/anim/vael/vael_sk_idle.webp', n:16,fw:93, fh:133,dur:3.0},
+  0:{u:'/assets/anim/vael/vael_sk_ult.webp?v=2',  n:12,fw:183,fh:180,dur:1.8},
+  1:{u:'/assets/anim/vael/vael_sk_green.webp?v=2',n:12,fw:221,fh:180,dur:1.8},
+  2:{u:'/assets/anim/vael/vael_sk_blue.webp?v=2', n:12,fw:141,fh:180,dur:1.8},
+  3:{u:'/assets/anim/vael/vael_sk_pass.webp',     n:12,fw:168,fh:180,dur:2.4},
 };
 HERO_SKILL_CLIPS.oakmir = {
-  0:{u:'/assets/anim/oakmir/oakmir_sk_ult.webp',  n:12,fw:125,fh:180,dur:1.8},
-  1:{u:'/assets/anim/oakmir/oakmir_sk_green.webp',n:12,fw:129,fh:180,dur:1.8},
-  2:{u:'/assets/anim/oakmir/oakmir_sk_blue.webp', n:12,fw:114,fh:180,dur:1.8},
-  3:{u:'/assets/anim/oakmir/oakmir_sk_idle.webp', n:12,fw:127,fh:180,dur:2.4},
+  0:{u:'/assets/anim/oakmir/oakmir_sk_ult.webp',      n:12,fw:125,fh:180,dur:1.8},
+  1:{u:'/assets/anim/oakmir/oakmir_sk_green.webp?v=2',n:12,fw:130,fh:180,dur:1.8},
+  2:{u:'/assets/anim/oakmir/oakmir_sk_blue.webp?v=2', n:12,fw:130,fh:180,dur:1.8},
+  3:{u:'/assets/anim/oakmir/oakmir_sk_pass.webp',     n:12,fw:135,fh:180,dur:2.4},
 };
 // a hero is "animated" if its own idle sheet was actually built into the bundle (per-hero, not KonWu-global)
 function heroHasAnim(key){ const set=BATTLE_ANIM[key]; return !!(set && set.idle && isAssetRef(set.idle.u)); }
@@ -2530,9 +2530,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=Math.max(tgt.stunned||0,o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=Math.max(tgt.slow||0,2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
-    case 'heal':{alliesOf(u).forEach(a=>healUnit(a,a.maxHp*(o.mul||.9)*sm));burstAt(u.x,u.y,0x5ee89b,16);break;}
+    case 'heal':{if(u.key==='oakmir')spawnGroundFx('rallyroots',u.x,u.y,2.2*METER,1.0);alliesOf(u).forEach(a=>healUnit(a,a.maxHp*(o.mul||.9)*sm));burstAt(u.x,u.y,0x5ee89b,16);break;}
     case 'selfheal':{healUnit(u,u.maxHp*(o.mul||0.25)*sm);burstAt(u.x,u.y,0x5ee89b,14);break;}   // Ooznik: Divide — regenerate own HP
-    case 'hot':{const l=lowestAlly(u); if(l)pushHot(l,l.maxHp*(o.hps||.05)*sm,o.dur||6,1); break;}
+    case 'hot':{const l=lowestAlly(u); if(l){pushHot(l,l.maxHp*(o.hps||.05)*sm,o.dur||6,1); if(u.key==='oakmir')spawnGroundFx('mendbloom',l.x,l.y,0.9*METER,1.4);} break;}
     case 'shield':{const tg=o.self?u:lowestAlly(u); if(tg){tg.shield=Math.max(tg.shield,tg.maxHp*(o.mul||.4)*sm);tg.shieldT=o.dur||6;burstAt(tg.x,tg.y,0x8fd0ff,10);} break;}
     case 'dmgbuff':{alliesOf(u).forEach(a=>{a.dmgBuffMul=o.mul||1.25;a.dmgBuffT=o.dur||6;floatTexts.push({x:a.x,y:a.y-10,txt:'Raise Attack',t:1.1,color:'#8fff9b',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffd45e,10);break;}
     case 'haste':{const tg2=o.self?[u]:alliesOf(u); tg2.forEach(a=>{a.hasteMul=Math.max(a.hasteMul||1,o.mul||1.3);a.hasteT=Math.max(a.hasteT||0,o.dur||5);a._ocMul=o.mul||1.3;a._ocT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
@@ -2559,7 +2559,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
     case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
-    case 'firstspring':{ alliesOf(u).forEach(a=>{ healUnit(a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(u.x,u.y,0x5ee89b,24); burstAt(u.x,u.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
+    case 'firstspring':{ spawnGroundFx('firstspring',u.x,u.y,2.6*METER,2.2); alliesOf(u).forEach(a=>{ healUnit(a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(u.x,u.y,0x5ee89b,24); burstAt(u.x,u.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,o.dur||3);});u.drMul=Math.max(0.15,1-0.4*sm);u.drT=o.dur||3;burstAt(u.x,u.y,0x6ea8ff,12);break;}
     case 'rally':{alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+40);healUnit(a,a.maxHp*.3);a.hasteMul=1.2;a.hasteT=5;floatTexts.push({x:a.x,y:a.y-16,txt:'Rally!',t:1.0,color:'#ffd45e',vy:1.0,sz:14});});break;}
     // ---- Grosk ----
@@ -2738,6 +2738,9 @@ const FX2_DEF={
   groundslam:{u:'/assets/anim/fx/groundslam.webp?v=1',n:18, fw:210, fh:183, cols:6, rows:3, dur:1.6},
   tsunami:   {u:'/assets/anim/fx/tsunami.webp?v=1',   n:26, fw:210, fh:189, cols:6, rows:5, dur:3.0},
   tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=1', n:24, fw:210, fh:131, cols:6, rows:4, dur:2.6},
+  firstspring:{u:'/assets/anim/fx/firstspring.webp?v=1',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
+  rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=1',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
+  mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=1',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=1',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
   toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=1', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]}
 };
@@ -7599,7 +7602,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787081000000';
+const BUILD_ID='1787082000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
