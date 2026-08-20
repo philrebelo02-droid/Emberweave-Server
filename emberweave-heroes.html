@@ -1103,7 +1103,7 @@ const BATTLE_ANIM = { konwu:{
   },
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=2',n:16,fw:93,fh:133,cols:6,rows:3,figH:118,feet:125,cx:53,fps:8,flip:false},
-  walk:{u:'/assets/anim/vael/vael_walk.webp?v=2',n:16,fw:103,fh:135,cols:6,rows:3,figH:120,feet:128,cx:62,fps:11,flip:false},
+  walk:{u:'/assets/anim/vael/vael_walk.webp?v=4',n:12,fw:161,fh:221,cols:6,rows:2,figH:200,feet:210,cx:80,fps:14,flip:false},
   attack:{u:'/assets/anim/vael/vael_attack.webp?v=3',n:12,fw:188,fh:260,cols:6,rows:2,figH:206,feet:252,cx:103,fps:16,flip:false,hold:0.9},
   hit:{u:'/assets/anim/vael/vael_hit.webp?v=3',n:12,fw:155,fh:223,cols:6,rows:2,figH:204,feet:216,cx:85,fps:11,flip:false},
   ult:{u:'/assets/anim/vael/vael_ult.webp?v=3',n:12,fw:247,fh:243,cols:6,rows:2,figH:211,feet:218,cx:108,fps:12,flip:false,hold:1.2},
@@ -1206,8 +1206,8 @@ const BATTLE_ANIM = { konwu:{
   "glitch phantom":{
    idle:{u:'/assets/anim/mon/glitchphantom_walk.webp?v=6',n:6,fw:245,fh:189,cols:6,rows:2,figH:98,feet:182,cx:122,fps:6,flip:false,pingpong:true},
    walk:{u:'/assets/anim/mon/glitchphantom_walk.webp?v=6',n:12,fw:245,fh:189,cols:6,rows:2,figH:98,feet:182,cx:122,fps:14,flip:false},
-   attack:{u:'/assets/anim/mon/glitchphantom_walk.webp?v=6',n:12,fw:245,fh:189,cols:6,rows:2,figH:98,feet:182,cx:122,fps:16,flip:false,hold:0.9},
-   cast:{u:'/assets/anim/mon/glitchphantom_walk.webp?v=6',n:12,fw:245,fh:189,cols:6,rows:2,figH:98,feet:182,cx:122,fps:10,flip:false,hold:0.8}
+   attack:{u:'/assets/anim/mon/glitchphantom_attack.webp?v=7',n:12,fw:249,fh:229,cols:6,rows:2,figH:200,feet:222,cx:132,fps:16,flip:false,hold:0.9},
+   cast:{u:'/assets/anim/mon/glitchphantom_cast.webp?v=7',n:12,fw:199,fh:227,cols:6,rows:2,figH:200,feet:219,cx:100,fps:10,flip:false,hold:0.8}
   },
   "lost soulss":{
    idle:{u:'/assets/anim/mon/lostsoulss_walk.webp?v=4',n:6,fw:236,fh:197,cols:6,rows:2,figH:75,feet:190,cx:118,fps:6,flip:false,pingpong:true},
@@ -7723,7 +7723,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787086000000';
+const BUILD_ID='1787087000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
