@@ -1000,15 +1000,15 @@ const HERO_TYPES = {
   grosk:  {name:'Grosk', emoji:'🦛',role:'Tank',    swing:2.6, stars:3,hp:520,dmg:22,range:26, speed:58,atkSpeed:0.85,color:0x9a7b40,abilityName:'Croc Drop',    ability:'hipposlam',locked:true,start:3,source:'arena'},
   vulmar: {name:'Vulmar', emoji:'🪷',role:'Mage',    swing:2.0, stars:5,hp:175,dmg:26,range:235,speed:54,atkSpeed:0.85,color:0x8B5CF6,abilityName:'Weight of the World',ability:'gravcrush',locked:true,myth:true,source:'purchase'},
   tick:   {name:'Tick',      emoji:'⚙️',role:'Bruiser', swing:2.2, stars:1,hp:360,dmg:28,range:28, speed:60,atkSpeed:1.1, color:0xd9a441,abilityName:'Flywheel',ability:'flywheel',locked:true},
-  sylthaine:{name:'Sylthaine',emoji:'❄️',role:'Mage',   swing:2.0, stars:2,hp:150,dmg:14,apow:32,range:200,speed:56,atkSpeed:0.85,color:0x7fb6ff,abilityName:'Blizzard',ability:'blizzard',locked:true},
+  sylthaine:{name:'Sylthaine',emoji:'❄️',role:'Mage',   swing:2.0, stars:1,hp:150,dmg:14,apow:32,range:200,speed:56,atkSpeed:0.85,color:0x7fb6ff,abilityName:'Blizzard',ability:'blizzard',locked:true},
   aureth: {name:'Aureth',    emoji:'☯️',role:'Fighter', swing:2.4, stars:3,hp:460,dmg:24,apow:24,range:28, speed:56,atkSpeed:0.9, color:0xe8c65a,abilityName:'Eclipse',ability:'eclipse',hybrid:true,myth:true,source:'purchase',locked:true},
-  bloatus:{name:'King Bloatus',emoji:'🐸',role:'Tank',  swing:2.4, stars:2,hp:540,dmg:24,apow:28,range:120,speed:52,atkSpeed:0.9, color:0x8fbf3f,abilityName:'Plague Sovereign',ability:'plaguesov',locked:true},
-  vireo:  {name:'Vireo',     emoji:'🎼',role:'Mage',    swing:2.0, stars:2,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
-  fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:3,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, armor:60, mr:90, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
+  bloatus:{name:'King Bloatus',emoji:'🐸',role:'Tank',  swing:2.4, stars:3,hp:540,dmg:24,apow:28,range:30,speed:52,atkSpeed:0.9, color:0x8fbf3f,abilityName:'Plague Sovereign',ability:'plaguesov',locked:true},
+  vireo:  {name:'Vireo',     emoji:'🎼',role:'Mage',    swing:2.0, stars:1,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
+  fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:2,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, armor:60, mr:90, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true},
   umbris: {name:'Umbris',    emoji:'🌑',role:'Mage',    swing:2.0, stars:3,hp:170,dmg:22,apow:32,range:210,speed:54,atkSpeed:0.85,color:0x6d4aa3,abilityName:'Umbral Cataclysm',ability:'umbralcata',locked:true},
-   vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:3,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
-   oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true},
-   rhukk:  {name:'Rhukk',     emoji:'🪲',role:'Bruiser', swing:2.4, stars:3,hp:430,dmg:26,range:28, speed:56,atkSpeed:0.9, color:0x7a5fb0,abilityName:'Impale Rush',ability:'charge',locked:true},
+   vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:2,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
+   oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:2,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true},
+   rhukk:  {name:'Rhukk',     emoji:'🪲',role:'Bruiser', swing:2.4, stars:2,hp:430,dmg:26,range:28, speed:56,atkSpeed:0.9, color:0x7a5fb0,abilityName:'Impale Rush',ability:'charge',locked:true},
 };
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
@@ -3076,7 +3076,13 @@ function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
-  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; });
+  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null;
+    // clear lingering damage-over-time as well. On a STAGE win the heroes idle for 2s before the victory
+    // screen, and updateStatusFx keeps re-spawning the burning/poison plate under their feet from a DoT that
+    // outlived the last enemy. (Phil: "fire debuff under feet stays between waves if the stage ends before
+    // the dot ends.") purgeTransientFx only runs at wave/stage boundaries, never mid-combat, so this can
+    // never cancel a DoT that is still meant to be ticking.
+    u.dots=[]; u.hots=[]; if(typeof _killStatusFx==='function')_killStatusFx(u); });
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();}); shots=[];
   particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
@@ -3341,8 +3347,16 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           if(!ut && A.tex.image){ ut=A.tex.clone(); ut.needsUpdate=true; spr._utex=ut; spr._utexImg=A.tex.image; }
           else if(ut && A.tex.image && spr._utexImg!==A.tex.image){ ut.image=A.tex.image; ut.needsUpdate=true; spr._utexImg=A.tex.image; }
           const T=ut||A.tex;
-          T.repeat.x=(mirror?-1:1)/_c; T.offset.x=(mirror?_col+1:_col)/_c;
-          if(_r>1){ T.repeat.y=1/_r; T.offset.y=1-(_row+1)/_r; } else { T.repeat.y=1; T.offset.y=0; }
+          // HALF-TEXEL INSET: sampling a cell at its exact boundary lets bilinear filtering blend in the
+          // NEIGHBOURING frame's edge pixels — that showed up as a thin box outline / sliver of the next
+          // frame flickering around the sprite. Pull the UV window in by half a texel on every side.
+          const _iw=(A.tex.image&&A.tex.image.width)||1024, _ih=(A.tex.image&&A.tex.image.height)||1024;
+          const _ex=0.5/_iw, _ey=0.5/_ih;
+          const _uw=Math.max(1e-6,(1/_c)-2*_ex);
+          if(mirror){ T.repeat.x=-_uw; T.offset.x=(_col+1)/_c-_ex; }
+          else      { T.repeat.x= _uw; T.offset.x=_col/_c+_ex; }
+          if(_r>1){ const _vh=Math.max(1e-6,(1/_r)-2*_ey); T.repeat.y=_vh; T.offset.y=1-(_row+1)/_r+_ey; }
+          else    { T.repeat.y=1-2*_ey; T.offset.y=_ey; }
           if(spr.material.map!==T){spr.material.map=T;spr.material.needsUpdate=true;} }
         if(A.figH){ // character-normalized clip: the frame may include effects bigger than the hero.
           // scale so the CHARACTER (figH px of the fh-tall frame) is exactly sprH tall — identical size in EVERY action —
@@ -7727,7 +7741,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787088000000';
+const BUILD_ID='1787089000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
