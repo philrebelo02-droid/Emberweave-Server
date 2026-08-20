@@ -1709,6 +1709,9 @@ function glyphParse(gid){ const p=gid.split(':'); return {rk:p[0], stat:p[1]}; }
 function glyphName(gid){ const p=glyphParse(gid); const s=glyphStatMeta(p.stat), r=glyphRarityOf(p.rk); return (r?r.name:'')+' '+(s?s.name:''); }
 function glyphValue(gid){ const p=glyphParse(gid); return Math.round((GLYPH_BASE[p.stat]||0)*(glyphRarityOf(p.rk)?glyphRarityOf(p.rk).mul:1)); }
 function glyphValStr(gid){ const p=glyphParse(gid), s=glyphStatMeta(p.stat); return '+'+glyphValue(gid)+(s.unit==='/s'?'/s':''); }
+// each of the 30 runes has its own engraved stone icon in /assets/img/runes/
+function glyphImg(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=1" alt="" style="width:'+px+'px;height:'+px+'px;display:block;margin:0 auto">'; }
+function glyphImgInline(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=1" alt="" style="width:'+px+'px;height:'+px+'px;vertical-align:-3px;display:inline-block">'; }
 function glyphInvCount(gid){ return (G.glyphInv&&G.glyphInv[gid])||0; }
 function allGlyphIds(){ const out=[]; GLYPH_RARITY.forEach(r=>glyphStatsFor(r.key).forEach(s=>out.push(glyphGid(r.key,s.key)))); return out; }
 // ---- Quality progression: each rank needs an EXACT mix of glyphs (from the GRANK cost table). Socketed glyphs LOCK in. ----
@@ -6007,7 +6010,7 @@ function renderHeroDetail(){
       const cells=rec.map((gid,i)=>{ const p=glyphParse(gid), rc=glyphRarityOf(p.rk).col, sm=glyphStatMeta(p.stat), filled=slotFilled(key,i), have=glyphInvCount(gid)>0;
         const plus= have?'#5ee89b':'#6f7d90';   // ＋ green if you own the glyph, grey if not
         return `<div class="gslot${filled?' filled':''}" ${filled?'':`data-slot="${i}"`} style="border-color:${filled?rc:(have?'#5ee89b':'#33405e')};${filled||!have?'':'cursor:pointer'}">
-          <div style="font-size:18px;color:${filled?rc:plus}">${filled?sm.icon:'＋'}</div>
+          <div style="font-size:18px;color:${filled?rc:plus};height:30px;display:flex;align-items:center;justify-content:center">${filled?glyphImg(gid,30):'＋'}</div>
           <div style="font-size:8px;color:${rc};font-weight:700">${sm.name}</div>
           <div style="font-size:7px;color:${glyphRarityOf(p.rk).col}">${glyphRarityOf(p.rk).name}${filled?' '+glyphValStr(gid):(have?' · ready':' · need')}</div>
         </div>`; }).join('');
@@ -6133,7 +6136,7 @@ function renderBag(){
   const rarBlocks=GLYPH_RARITY.map(r=>{
     const cells=glyphStatsFor(r.key).map(s=>{ const gid=glyphGid(r.key,s.key), n=glyphInvCount(gid), selc=(bagSel===gid);
       return `<div class="glcell" data-glyph="${gid}" style="cursor:pointer;border-color:${selc?'#ffd45e':r.col+(n>0?'':'55')};box-shadow:${selc?'0 0 0 1px #ffd45e88':'none'};opacity:${n>0?1:.5}" title="${glyphName(gid)} — ${glyphValStr(gid)} ${s.name}">
-        <div style="font-size:15px">${s.icon}</div><div style="font-size:8px;color:#c3ccd8">${s.name}</div>
+        <div style="height:30px;display:flex;align-items:center;justify-content:center">${glyphImg(gid,30)}</div><div style="font-size:8px;color:#c3ccd8">${s.name}</div>
         <div style="font-size:10px;font-weight:800;color:${r.col}">${glyphValStr(gid)}</div>
         <div style="font-size:8px;color:#8b98a9">×${n}</div></div>`; }).join('');
     return `<div style="margin-bottom:10px"><div style="font-weight:700;font-size:12px;color:${r.col};margin-bottom:4px">${r.name} <span style="color:#8b98a9;font-weight:400">· ${glyphStatsFor(r.key).length} types</span></div><div class="glgrid">${cells}</div></div>`;
@@ -6142,7 +6145,7 @@ function renderBag(){
   let detail='';
   if(bagSel){ const p=glyphParse(bagSel), col=glyphRarityOf(p.rk).col, rec=glyphRecipe(bagSel), can=glyphCanCraft(bagSel);
     detail=`<div class="panel" style="border-color:${col}66;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center"><b style="color:${col}">${glyphStatMeta(p.stat).icon} ${glyphName(bagSel)}</b><span style="font-size:11px;color:#8b98a9">you own ${glyphInvCount(bagSel)}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><b style="color:${col}">${glyphImgInline(bagSel,22)} ${glyphName(bagSel)}</b><span style="font-size:11px;color:#8b98a9">you own ${glyphInvCount(bagSel)}</span></div>
       <div style="font-size:12px;color:#e6edf3;margin:4px 0">${glyphValStr(bagSel)} ${glyphStatMeta(p.stat).name}</div>
       <div style="font-size:11px;color:#8b98a9">Recipe: <b style="color:#e6edf3">${glyphRecipeStr(bagSel)}</b></div>
       ${rec?`<div style="text-align:center;margin-top:8px"><button class="btn sm" id="craftGlyph" ${can?'':'disabled'}>⚒️ Craft ${glyphName(bagSel)}</button></div>`:`<div style="font-size:10px;color:#6f7d90;margin-top:6px">Basic glyph — drops from campaign stages.</div>`}
@@ -7741,7 +7744,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787089000000';
+const BUILD_ID='1787090000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
