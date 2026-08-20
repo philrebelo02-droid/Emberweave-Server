@@ -354,7 +354,34 @@ async function api(req,res,url){
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
     if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall;
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
+    if(b.world && typeof b.world==='object'){   // world-map presence: region + castle position + display stats
+      const w=b.world;
+      me.world={ region:String(w.region||'').slice(0,16), x:Math.max(0,Math.min(100,+w.x||0)), y:Math.max(0,Math.min(100,+w.y||0)),
+                 level:Math.max(1,Math.min(60,parseInt(w.level,10)||1)), power:Math.max(0,Math.min(99999999,parseInt(w.power,10)||0)), t:Date.now() }; }
     writeDB(); return send(res,200,{ok:true}); }
+
+  // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
+  if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});
+    const b=await body(req); const d=DB.users[String(b.defId||'')];
+    if(!d||d.isNpc||d.id===me.id) return send(res,200,{ok:false});
+    d.pvpMail=d.pvpMail||[]; const rec={from:me.name,won:!!b.won,t:Date.now()};
+    try{ if(b.battle&&typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) rec.battle=JSON.parse(s); } }catch(e){}
+    d.pvpMail.push(rec); if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
+    writeDB(); return send(res,200,{ok:true}); }
+  if(p==='/api/pvp/reports'){ if(!me)return send(res,401,{error:'auth'});
+    const out=me.pvpMail||[]; me.pvpMail=[]; writeDB(); return send(res,200,{reports:out}); }
+
+  // ---- WORLD MAP: every registered player's castle (real positions from their save).
+  //      The client shows these as REAL cities and fills the rest of each region with NPC bots. ----
+  if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
+    const cities=Object.values(DB.users)
+      .filter(u=>u.id!==me.id && u.world && u.world.region)
+      .slice(0,500)
+      .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:u.world.level||1, power:u.world.power||0,
+                 region:u.world.region, x:u.world.x, y:u.world.y, guildId:u.guildId||null,
+                 team:(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])).slice(0,5) }));
+    return send(res,200,{ cities, myGuildId: me.guildId||null }); }
 
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:o.team, isNpc:!!o.isNpc } }); }
