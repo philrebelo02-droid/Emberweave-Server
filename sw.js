@@ -1,7 +1,7 @@
 /* Emberweave Heroes service worker.
    Network-first for the app so your pushed updates reach players immediately,
    with a cache fallback so the installed app still opens offline.            */
-const CACHE = 'emberweave-v139';
+const CACHE = 'emberweave-v140';
 const SHELL = ['/', '/play', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-512-maskable.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
@@ -20,11 +20,23 @@ self.addEventListener('fetch', (e) => {
   // network-first: always try to get the freshest game (bypassing the HTTP cache), fall back to cache offline.
   // navigations / the HTML doc are fetched with cache:'reload' so a stale browser-cached page can never win.
   const isDoc = req.mode === 'navigate' || (req.destination === '' && url.pathname === '/') || req.destination === 'document';
-  // Same-origin /assets/ are revalidated (no-cache) so a redeploy that REPLACES a file at the same URL
-  // (e.g. a rebuilt sprite sheet) can never be served stale from the browser HTTP cache — the mismatch
-  // between an updated sheet's dimensions and its metadata would otherwise garble/clip the animation.
   const isOwnAsset = url.origin === location.origin && url.pathname.startsWith('/assets/');
-  const fetchOpts = isDoc ? { cache: 'reload' } : (isOwnAsset ? { cache: 'no-cache' } : {});
+  // CACHE-FIRST for same-origin assets: serving straight from cache removes the network
+  // revalidation round-trip that made sprite sheets / backgrounds visibly pop in on a slow phone.
+  // Every deploy bumps CACHE, and `activate` deletes every cache that isn't the current one — so a
+  // cache hit can never survive a deploy, and cache-first is safe for ALL same-origin assets, not
+  // just ?v= versioned ones. This also covers the battle backgrounds / terrain art in /assets/img/.
+  if (isOwnAsset) {
+    e.respondWith(
+      caches.match(req).then(hit => hit || fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+        return res;
+      }))
+    );
+    return;
+  }
+  const fetchOpts = isDoc ? { cache: 'reload' } : {};
   e.respondWith(
     fetch(new Request(req, fetchOpts)).then(res => {
       const copy = res.clone();
