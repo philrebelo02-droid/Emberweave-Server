@@ -1710,8 +1710,8 @@ function glyphName(gid){ const p=glyphParse(gid); const s=glyphStatMeta(p.stat),
 function glyphValue(gid){ const p=glyphParse(gid); return Math.round((GLYPH_BASE[p.stat]||0)*(glyphRarityOf(p.rk)?glyphRarityOf(p.rk).mul:1)); }
 function glyphValStr(gid){ const p=glyphParse(gid), s=glyphStatMeta(p.stat); return '+'+glyphValue(gid)+(s.unit==='/s'?'/s':''); }
 // each of the 30 runes has its own engraved stone icon in /assets/img/runes/
-function glyphImg(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=1" alt="" style="width:'+px+'px;height:'+px+'px;display:block;margin:0 auto">'; }
-function glyphImgInline(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=1" alt="" style="width:'+px+'px;height:'+px+'px;vertical-align:-3px;display:inline-block">'; }
+function glyphImg(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=2" alt="" style="width:'+px+'px;height:'+px+'px;display:block;margin:0 auto">'; }
+function glyphImgInline(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=2" alt="" style="width:'+px+'px;height:'+px+'px;vertical-align:-3px;display:inline-block">'; }
 function glyphInvCount(gid){ return (G.glyphInv&&G.glyphInv[gid])||0; }
 function allGlyphIds(){ const out=[]; GLYPH_RARITY.forEach(r=>glyphStatsFor(r.key).forEach(s=>out.push(glyphGid(r.key,s.key)))); return out; }
 // ---- Quality progression: each rank needs an EXACT mix of glyphs (from the GRANK cost table). Socketed glyphs LOCK in. ----
@@ -7744,7 +7744,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787090000000';
+const BUILD_ID='1787091000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
