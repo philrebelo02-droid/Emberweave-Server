@@ -1117,7 +1117,11 @@ const BATTLE_ANIM = {
     idle:{u:'/assets/anim/vex/vex_idle.webp?v=1',n:24,fw:210,fh:300,cols:6,rows:4,figH:292,feet:297,cx:105,fps:8,flip:false},
     walk:{u:'/assets/anim/vex/vex_walk.webp?v=1',n:24,fw:216,fh:300,cols:6,rows:4,figH:287,feet:294,cx:98,fps:14,flip:false},
     attack:{u:'/assets/anim/vex/vex_attack.webp?v=1',n:24,fw:243,fh:300,cols:6,rows:4,figH:247,feet:295,cx:114,fps:20,flip:false,hold:0.9},
-    hit:{u:'/assets/anim/vex/vex_hit.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:253,feet:296,cx:141,fps:16,flip:false}
+    hit:{u:'/assets/anim/vex/vex_hit.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:253,feet:296,cx:141,fps:16,flip:false},
+    green:{u:'/assets/anim/vex/vex_green.webp?v=1',n:20,fw:300,fh:242,cols:6,rows:4,figH:236,feet:238,cx:153,fps:14,flip:false,hold:0.8},
+    blue:{u:'/assets/anim/vex/vex_blue.webp?v=1',n:20,fw:272,fh:300,cols:6,rows:4,figH:270,feet:297,cx:131,fps:14,flip:false,hold:0.8},
+    ult:{u:'/assets/anim/vex/vex_ult.webp?v=1',n:20,fw:300,fh:273,cols:6,rows:4,figH:226,feet:271,cx:147,fps:16,flip:false},
+    passive:{u:'/assets/anim/vex/vex_passive.webp?v=1',n:12,fw:221,fh:300,cols:6,rows:2,figH:290,feet:297,cx:98,fps:14,flip:false,pingpong:true}
   },
   arrears:{
     idle:{u:'/assets/anim/arrears/arrears_idle.webp?v=1',n:24,fw:241,fh:300,cols:6,rows:4,figH:292,feet:297,cx:120,fps:8,flip:false},
@@ -2884,7 +2888,7 @@ function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team&&!o._dropH
 
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
-const ABIL_ANIM={ vanishpoint:{st:'ult',hold:0.9}, devourpack:{st:'ult',hold:1.4}, summonwarriors:{st:'green',hold:1.0}, summonshaman:{st:'blue',hold:1.0}, aoedot:{st:'cast'},
+const ABIL_ANIM={ triplecleave:{st:'ult',hold:1.1}, vanishpoint:{st:'ult',hold:0.9}, devourpack:{st:'ult',hold:1.4}, summonwarriors:{st:'green',hold:1.0}, summonshaman:{st:'blue',hold:1.0}, aoedot:{st:'cast'},
   monkSlam:{st:'attack'}, cleavecone:{st:'attack'}, blink:{st:'attack'}, hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'},
   blizzard:{st:'ult',hold:1.2}, frozenorb:{st:'green'}, freeze:{st:'blue'},           // Sylthaine (clips pending wiring)
   flywheel:{st:'ult',hold:1.0}, haste:{st:'green'} };                                  // Tick (blue Mainspring reuses punchflurry→'fists'; his sheet maps 'fists'→blue clip at wiring time)
@@ -8603,7 +8607,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787346500000';
+const BUILD_ID='1787351500000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
