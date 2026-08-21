@@ -1017,7 +1017,7 @@ const HERO_TYPES = {
    vharn:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:3,hp:430,dmg:32,range:28,speed:58,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,wip:true},
    fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true},
    lumi:    {name:'Lumi',emoji:'🌼',role:'Mage',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true},
-   hollow:  {name:'Hollow',emoji:'🕳️',role:'Bruiser',swing:1.8,stars:3,hp:430,dmg:34,range:26,speed:64,atkSpeed:1.15,color:0x1a1a22,abilityName:'Vanishing Point',ability:'execute',locked:true,wip:true},
+   hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:5,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
    sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:2,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,wip:true},
    carn:    {name:'Carn',emoji:'🩸',role:'Bruiser',swing:2.4,stars:2,hp:410,dmg:34,range:28,speed:60,atkSpeed:1.05,color:0xb03a3a,abilityName:'Crimson Reap',ability:'cleave',locked:true,wip:true},
    vesper:  {name:'The Annotator',emoji:'📖',role:'Mage',swing:2.0,stars:1,hp:190,dmg:16,apow:32,range:215,speed:54,atkSpeed:0.85,color:0xc9a227,abilityName:'Puncture',ability:'riftpuncture',locked:true,wip:true},
@@ -1171,7 +1171,12 @@ const BATTLE_ANIM = {
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=1',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false},
     walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=1',n:24,fw:232,fh:300,cols:6,rows:4,figH:272,feet:296,cx:136,fps:14,flip:false},
     attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=1',n:24,fw:300,fh:272,cols:6,rows:4,figH:265,feet:269,cx:144,fps:18,flip:false,hold:0.9},
-    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=1',n:20,fw:300,fh:257,cols:6,rows:4,figH:191,feet:250,cx:142,fps:16,flip:false}
+    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=1',n:20,fw:300,fh:257,cols:6,rows:4,figH:191,feet:250,cx:142,fps:16,flip:false},
+    green:{u:'/assets/anim/hollow/hollow_green.webp?v=1',n:24,fw:270,fh:300,cols:6,rows:4,figH:248,feet:296,cx:182,fps:12,flip:false,hold:0.8},
+    blue:{u:'/assets/anim/hollow/hollow_blue.webp?v=1',n:24,fw:276,fh:300,cols:6,rows:4,figH:231,feet:276,cx:140,fps:14,flip:false,hold:0.8},
+    ult:{u:'/assets/anim/hollow/hollow_ult.webp?v=1',n:24,fw:300,fh:298,cols:6,rows:4,figH:273,feet:283,cx:159,fps:12,flip:false},
+    passive:{u:'/assets/anim/hollow/hollow_passive.webp?v=1',n:24,fw:300,fh:293,cols:6,rows:4,figH:286,feet:290,cx:145,fps:16,flip:false},
+    drop:{u:'/assets/anim/hollow/hollow_drop.webp?v=1',n:24,fw:218,fh:300,cols:6,rows:4,figH:254,feet:298,cx:129,fps:14,flip:false}
   },
   sprocket:{
     idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=1',n:24,fw:300,fh:206,cols:6,rows:4,figH:200,feet:203,cx:133,fps:8,flip:false},
@@ -1225,13 +1230,13 @@ const BATTLE_ANIM = {
   pull:{u:GROSK_PULL,n:20,fw:182,fh:180,fps:22,flip:false},   // GREEN Gravemaw Pull
   fists:{u:GROSK_FISTS,n:20,fw:182,fh:180,fps:24,flip:false}, // BLUE Hammer Fists
 }, vulmar:{
-  idle:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_idle.webp',n:20,fw:195,fh:180,fps:6,stride:0.06,flip:false},
-  attack:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_attack.webp',n:20,fw:208,fh:180,fps:10,hold:0.5,flip:false},
-  hit:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_hit.webp',n:16,fw:195,fh:180,fps:14,flip:false},
-  ult:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_ult.webp',n:24,fw:180,fh:180,fps:14,flip:false},
-  sling:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_sling.webp',n:22,fw:198,fh:180,fps:16,flip:false},
-  grasp:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,fps:7,flip:false},
-  passive:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_passive.webp',n:24,fw:148,fh:180,fps:8,flip:false},
+  idle:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_idle.webp',n:20,fw:195,fh:180,figH:154,feet:163,cx:99,fps:6,stride:0.06,flip:false},
+  attack:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_attack.webp',n:20,fw:208,fh:180,figH:156,feet:167,cx:112,fps:10,hold:0.5,flip:false},
+  hit:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_hit.webp',n:16,fw:195,fh:180,figH:137,feet:157,cx:96,fps:14,flip:false},
+  ult:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_ult.webp',n:24,fw:180,fh:180,figH:121,feet:150,cx:92,fps:14,flip:false},
+  sling:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_sling.webp',n:22,fw:198,fh:180,figH:134,feet:165,cx:102,fps:16,flip:false},
+  grasp:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_grasp.webp',n:22,fw:178,fh:180,figH:145,feet:171,cx:75,fps:7,flip:false},
+  passive:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/vulmar_passive.webp',n:24,fw:148,fh:180,figH:146,feet:158,cx:75,fps:8,flip:false},
   walk:{u:'/assets/anim/vulmar/vulmar_walk.webp?v=1',n:20,fw:191,fh:180,figH:151,feet:167,cx:89,fps:12,flip:false}
   },
   fritz:{ idle:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_idle.webp',n:24,fw:343,fh:423,cols:5,rows:5,figH:300,feet:377,cx:171,fps:8,flip:false}, walk:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_walk.webp',n:24,fw:605,fh:454,cols:5,rows:5,figH:300,feet:401,cx:313,fps:8,flip:false}, attack:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_attack.webp',n:30,fw:695,fh:459,cols:6,rows:5,figH:300,feet:368,cx:191,fps:16,flip:false,hold:0.9}, hit:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_hit.webp',n:30,fw:481,fh:438,cols:6,rows:5,figH:300,feet:387,cx:293,fps:14,flip:false}, ult:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_ult.webp',n:27,fw:793,fh:820,cols:6,rows:5,figH:300,feet:661,cx:396,fps:9,flip:false}, chain:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_chain.webp',n:27,fw:614,fh:394,cols:6,rows:5,figH:300,feet:345,cx:183,fps:14,flip:false}, surge:{u:'https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@f4387856381534ae5cd07af04d918b18c79e94e1/assets/anim/fritz_surge.webp',n:27,fw:679,fh:614,cols:6,rows:5,figH:300,feet:563,cx:249,fps:14,flip:false} },
@@ -1679,7 +1684,7 @@ const KITS={
   vharn:{green:{name:'Comet Dash',type:'charge',mul:1.5,radius:2.4*METER,stun:0.6,cd:9},blue:{name:'Ember Cleave',type:'cleave',mul:1.6,radius:3.2*METER,cd:7},purple:{name:'Emberskin',pass:'immolate'}},
   fathom:{green:{name:'Tide Pool',type:'ashfall',dps:0.5,dur:4,radius:3*METER,slow:2,color:'#9fe0ff',cd:8},blue:{name:'Tsunami',type:'tidalsurge',mul:1.1,radius:3.4*METER,push:1.6*METER,slow:2.5,cd:10},purple:{name:'Deep Reserves',pass:'tidereserve'}},
   lumi:{green:{name:'Dawnward',type:'dawnward',dur:3,cd:11},blue:{name:'Quickening',type:'haste',mul:1.3,dur:5,cd:9},purple:{name:'Hush',pass:'hush'}},
-  hollow:{green:{name:'Fan of Knives',type:'bladefan',mul:0.9,radius:3*METER,angle:75,bleed:0.16,cd:7},blue:{name:'Lacerate',type:'bleedstack',mul:0.8,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6},purple:{name:'Bloodletter',pass:'lifesteal'}},
+  hollow:{green:{name:'Fan of Knives',type:'bladefan',mul:0.9,radius:3*METER,angle:75,bleed:0.16,cd:7},blue:{name:'Lacerate',type:'bleedstack',mul:0.8,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6},purple:{name:"The Space He Isn't In",pass:'notthere'}},
   sprocket:{green:{name:'Scattergun',type:'spread',mul:1.6,radius:3.2*METER,angle:60,falloff:0.85,minMul:0.25,cd:7},blue:{name:'Smoke Bomb',type:'slow',mul:0.8,cd:9},purple:{name:"Whatever's Loaded",pass:'arsenal'}},
   carn:{green:{name:'Reckless Blow',type:'reckless',mul:2.4,selfPct:0.06,cd:7},blue:{name:'Vein Burst',type:'bloodnova',mul:0.7,missingBonus:2.2,radius:2.8*METER,cd:9},purple:{name:'Unrelenting',pass:'fury'}},
   vesper:{green:{name:'Errata',type:'erratafield',dps:0.2,dur:5,radius:3*METER,silence:0.6,cd:9},blue:{name:'Loose Leaf',type:'pagestorm',mul:1.1,backMul:0.7,width:34,back:0.45,cd:8},purple:{name:'Scriptorium',pass:'scriptorium'}},
@@ -1737,7 +1742,7 @@ const ABILITY_CAST_MON={
   'ice beast':{green:0.6,blue:0.9}, 'monster with fireball':{green:0.7,blue:1.0}, 'nashor beast':{green:0.7,blue:0.9},
   'ogre beast':{green:0.7,blue:0.9}, 'water monster':{green:0.7,blue:0.8}, 'water serpent':{green:0.6,blue:0.9},
 };
-const PASS_DESC={packstats:'+5% damage dealt and damage shrugged off for every summon still alive',immolate:'a burning aura — 25% of attack to every enemy within 2.4 m, every second',wrath:'+12% damage every 5 seconds, compounding for the whole fight',deepfreeze:'every 5s one random enemy is frozen solid for 1.2s',unstoppable:'cannot be slowed, stunned, or displaced',stardust:'every auto-attack leaves a burn — 2s, ticking twice a second',tidereserve:'restores 1% of max health AND 1% energy every second',hush:'every 5s one random enemy is silenced for 1 second',arsenal:'every attack throws a different projectile — stun, splash, bleed, slow, chain, then a heavy shot',scriptorium:'the whole team gains energy faster, so every ultimate charges sooner',unwind:'every 5s one random ally is cleansed of a negative effect',debtaura:'damage-over-time on enemies near him lasts 20% longer',bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second',momentum:'attack speed ramps up the longer he fights (up to +50%)',coldsnap:'frozen foes take +25% damage from everyone',twinfonts:'in Dark stance he drains foes into himself; in Light stance he steadily regenerates',contagion:'when a foe dies still carrying this caster\u2019s plague or curse, it spreads to nearby enemies',perfectpitch:'her heals also grant a small shield',stormdodge:'30% chance to dodge attacks while casting or channeling',selfregen:'steadily regenerates a slice of health every second while in combat',unstepped:'cannot be pulled, knocked, or displaced by enemy abilities'};
+const PASS_DESC={notthere:'every 4s the next blow aimed at him simply misses \u2014 he was never there; and he heals for 10% of damage dealt',packstats:'+5% damage dealt and damage shrugged off for every summon still alive',immolate:'a burning aura — 25% of attack to every enemy within 2.4 m, every second',wrath:'+12% damage every 5 seconds, compounding for the whole fight',deepfreeze:'every 5s one random enemy is frozen solid for 1.2s',unstoppable:'cannot be slowed, stunned, or displaced',stardust:'every auto-attack leaves a burn — 2s, ticking twice a second',tidereserve:'restores 1% of max health AND 1% energy every second',hush:'every 5s one random enemy is silenced for 1 second',arsenal:'every attack throws a different projectile — stun, splash, bleed, slow, chain, then a heavy shot',scriptorium:'the whole team gains energy faster, so every ultimate charges sooner',unwind:'every 5s one random ally is cleansed of a negative effect',debtaura:'damage-over-time on enemies near him lasts 20% longer',bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second',momentum:'attack speed ramps up the longer he fights (up to +50%)',coldsnap:'frozen foes take +25% damage from everyone',twinfonts:'in Dark stance he drains foes into himself; in Light stance he steadily regenerates',contagion:'when a foe dies still carrying this caster\u2019s plague or curse, it spreads to nearby enemies',perfectpitch:'her heals also grant a small shield',stormdodge:'30% chance to dodge attacks while casting or channeling',selfregen:'steadily regenerates a slice of health every second while in combat',unstepped:'cannot be pulled, knocked, or displaced by enemy abilities'};
 const KIT_DESC={summonwarriors:'Three undead boar warriors claw their way up out of the floor and fight for him',summonshaman:'A boar shaman climbs out of the floor — it mends nearby allies and burns whatever stands near it',plumbline:'A ranged shot that hits HARDER the farther away the target is',weighdebt:'Marks the enemy with the most health — while marked, part of the damage they deal is redirected into him, and he heals from what he absorbs',tidalsurge:'A wave that physically shoves nearby enemies backwards and leaves them slowed',dawnward:'For a few seconds the ally nearest death cannot drop below 1 health',bladefan:'A cone of thrown daggers — every one adds a bleed stack',bleedstack:'Adds a bleed stack. The third stack RUPTURES for a burst of damage and clears them',spread:'A shotgun spread — devastating point-blank, weak at range',reckless:'An all-in blow that costs him a slice of his own health',bloodnova:'Bursts around him — the damage grows with the health he has already lost',erratafield:'Lays down a field of corrections. Anything standing in it cannot cast',pagestorm:'Pages tear down the lane and cut a second time on the way back',hookline:'Throws and hauls HERSELF in — lands behind the target with a guaranteed critical',debtmark:'A debt that grows: each stack ticks harder, and it can outlive its holder',drowsy:'The sting slows their hands. Sting an already-stung foe and they fall asleep until struck',piercethrow:'Hurls through the line — hits every enemy between the caster and the FARTHEST foe',charge:'Dashes to the farthest enemy, then slams everyone at the landing point',cleave:'A heavy 45° sweep in front of the caster',aoeStun:'Slams an area — damages and stuns everything inside it',ashfall:'Drops a lasting hazard on the ground that ticks damage to anything standing in it',selfheal:'Restores a chunk of the caster\u2019s own health',mendburst:'One large heal on the worst-off ally, plus a strong heal-over-time on top',spdsteal:'Steals attack speed from the enemy\u2019s fastest fighter and gives it to your fastest ally',strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves every enemy in a wide arc toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Bursts around the caster — damages every nearby enemy and leaves them burning',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team',punchflurry:'A rapid flurry of quick strikes',frozenorb:'A drifting orb that chills and damages nearby foes',freeze:'Freezes a single target solid (stun)',sunburst:'A burst of light — burns nearby foes and heals nearby allies',duality:'Swaps stance — Dark (bonus damage) or Light (team shield)',toxbreath:'A cone of poison that lingers as a damage-over-time',swamproot:'Summons vines that root enemies in place',crescendo:'A rising note that heals allies',harmonyshield:'A shield-song that guards nearby allies',stormsurge:'Calls down bolts on several random foes',chainlight:'A bolt of lightning that leaps between enemies',shadeburst:'Erupts a wave of creeping shadow, sinking a lingering rot into every enemy caught in a wide radius around Umbris',creeprot:'Marks a single enemy with festering shadow-rot that eats away at them over time',warcry:'A savage roar that raises Vael’s damage and rattles nearby foes',lifestealbuff:'Vael feeds on the fight, healing for a share of all the damage he deals for a while',heal:'Restores health to the WHOLE team at once',defensive:'Rhukk braces behind his carapace, taking far less damage for a few seconds',pullsilence:'Yanks in and silences nearby enemies',gravsling:'Flings a gravity orb that splashes nearby foes',tendrilpull:'Drags the farthest enemy in and silences it'};
 function promoteCost(rank){ const mat=['green','blue','purple'][rank]; return {[mat]:4+rank*4, gold:150+rank*150}; }
 // ---- SKILL LEVELS: each unlocked skill has a level, upgraded with gold; leveling boosts its damage / heal / DR ----
@@ -1748,14 +1753,14 @@ function skillMul(lv){ return 1+((lv||1)-1)*0.15; }               // +15% effect
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(1.55,(lv||1)-1)); }
 function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL_MAX||!skillUnlocked(key,idx))return false; const c=skillUpCost(idx,lv); if((G.gold||0)<c)return false; G.gold-=c; skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:130},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
+const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:130},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:1,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
-const ULT_DESC={devourpack:'Ultimate — Hurne tears apart every beast he has on the field and takes it into himself: he heals for their remaining health, gains a shield, carries their strength in every blow for a few seconds, and the rupture damages everything near him.',finalsurvey:'Ultimate — Meridian marks the whole enemy line: they bleed for 3 seconds and cannot be properly healed for 3 seconds, and while the marks hold he drains life from everything he has charted.',taunt:'Ultimate — slams the scales down: every nearby enemy is forced to attack him while he takes half damage.',volley:'Ultimate — a barrage delivered down the enemy line, striking the nearest several foes.',ashfall:'Ultimate — brings the blade down like a meteor and leaves the ground burning.',swamproot:'Player-aimed ultimate — the water closes over a wide area, damaging and rooting everything caught in it.',sunburst:'Ultimate — a detonation of daylight that sears every nearby enemy and heals the team in the same instant.',aoedot:'Ultimate — every enemy on the field is served, and bleeds for it.',riftpuncture:'Ultimate — tears through parallel space: every enemy freezes for 1 second, then comes out of the freeze silenced for 1 second.',triplecleave:'Player-aimed ultimate — three sweeping cuts with both daggers, back to back.',aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — the whole team is healed, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.',monkSlam:'Player-aimed ultimate — spins the staff overhead then slams it down, dealing 100% ATK and stunning every nearby enemy for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Ultimate — Oakmir calls the first bloom of spring, instantly healing the whole team and wrapping them in a lingering regrowth.',charge:'Ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.',hipposlam:'Ultimate — leaps onto the densest enemy cluster, dealing a share of his own max HP and briefly stunning them.',gravcrush:'Player-aimed ultimate — crushes a wide area with gravity, damaging and stunning every enemy dragged into the center.'};
+const ULT_DESC={vanishpoint:'Ultimate \u2014 Hollow steps off the field entirely, then comes down behind their back rank: the deepest enemy, not the nearest. The strike scales up as they weaken and finishes anything left under a fifth of its health outright \u2014 and if it kills, he is gone again before the body lands, up to three times.',devourpack:'Ultimate — Hurne tears apart every beast he has on the field and takes it into himself: he heals for their remaining health, gains a shield, carries their strength in every blow for a few seconds, and the rupture damages everything near him.',finalsurvey:'Ultimate — Meridian marks the whole enemy line: they bleed for 3 seconds and cannot be properly healed for 3 seconds, and while the marks hold he drains life from everything he has charted.',taunt:'Ultimate — slams the scales down: every nearby enemy is forced to attack him while he takes half damage.',volley:'Ultimate — a barrage delivered down the enemy line, striking the nearest several foes.',ashfall:'Ultimate — brings the blade down like a meteor and leaves the ground burning.',swamproot:'Player-aimed ultimate — the water closes over a wide area, damaging and rooting everything caught in it.',sunburst:'Ultimate — a detonation of daylight that sears every nearby enemy and heals the team in the same instant.',aoedot:'Ultimate — every enemy on the field is served, and bleeds for it.',riftpuncture:'Ultimate — tears through parallel space: every enemy freezes for 1 second, then comes out of the freeze silenced for 1 second.',triplecleave:'Player-aimed ultimate — three sweeping cuts with both daggers, back to back.',aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — the whole team is healed, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.',monkSlam:'Player-aimed ultimate — spins the staff overhead then slams it down, dealing 100% ATK and stunning every nearby enemy for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Ultimate — Oakmir calls the first bloom of spring, instantly healing the whole team and wrapping them in a lingering regrowth.',charge:'Ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.',hipposlam:'Ultimate — leaps onto the densest enemy cluster, dealing a share of his own max HP and briefly stunning them.',gravcrush:'Player-aimed ultimate — crushes a wide area with gravity, damaging and stunning every enemy dragged into the center.'};
 // ability scaling labels (what stat an ability scales with) — shown in the (…) tag and used for balance
-const ULT_SCALE={flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—',umbralcata:'Ability Power',laststand:'—',firstspring:'Health',charge:'Attack',devourpack:'\u2014',finalsurvey:'Attack',taunt:'—',volley:'Attack',ashfall:'Attack',swamproot:'Ability Power',sunburst:'Ability Power',aoedot:'Attack',riftpuncture:'—',triplecleave:'Attack'};
+const ULT_SCALE={vanishpoint:'Attack',flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—',umbralcata:'Ability Power',laststand:'—',firstspring:'Health',charge:'Attack',devourpack:'\u2014',finalsurvey:'Attack',taunt:'—',volley:'Attack',ashfall:'Attack',swamproot:'Ability Power',sunburst:'Ability Power',aoedot:'Attack',riftpuncture:'—',triplecleave:'Attack'};
 const KIT_SCALE={summonwarriors:'\u2014',summonshaman:'\u2014',plumbline:'Attack',weighdebt:'Attack',tidalsurge:'Ability Power',dawnward:'—',bladefan:'Attack',bleedstack:'Attack',spread:'Attack',reckless:'Attack',bloodnova:'Attack',erratafield:'Attack',pagestorm:'Attack',hookline:'Attack',debtmark:'Attack',drowsy:'Ability Power',piercethrow:'Attack',charge:'Attack',cleave:'Attack',aoeStun:'Attack',ashfall:'Attack',selfheal:'Health',mendburst:'Health',spdsteal:'—',haste:'—',dmgbuff:'—',rally:'—',punchflurry:'Attack',frozenorb:'Ability Power',freeze:'Ability Power',sunburst:'Ability Power',duality:'Health',toxbreath:'Ability Power',swamproot:'Ability Power',crescendo:'Ability Power',harmonyshield:'Ability Power',stormsurge:'Ability Power',chainlight:'Ability Power',strike:'Attack',double:'Attack',volley:'Attack',nova:'Attack',cleavecone:'Attack',blink:'Attack',dot:'Attack',aoedot:'Attack',fireorb:'Ability Power',stun:'Attack',slow:'Attack',mortal:'Attack',hot:'Health',shield:'Health',taunt:'Health',shadeburst:'Ability Power',creeprot:'Ability Power',warcry:'—',lifestealbuff:'—',defensive:'—',pullsilence:'—',gravsling:'Attack',tendrilpull:'—',heal:'Health'};
 // build the "(CD Xs · Y m · scales Z)" tag from the ability's own data
 // Standard meta line for every ability: Scales (AP/ATK/HP) · Range · Cast · Lasts (dot/hot) · CD.
@@ -2762,12 +2767,12 @@ function nearestEnemy(u){let b=null,bd=1e9;
   // Hollow hunts the BACK line: casters and support first, and he ignores the front rank
   // entirely while anything softer is still standing.
   if(u._backHunter){ let best=null,bs=-1e9;
-    for(const o of units){ if(!o.alive||o.team===u.team||o._dropHidden)continue;
+    for(const o of units){ if(!o.alive||o.team===u.team||o._dropHidden||o._noTarget)continue;
       const depth=(typeof _laneDepthOf==='function')?_laneDepthOf(o.key):1;
       const sc=depth*100 - dist(u,o)*0.05 - (o.hp/o.maxHp)*20;
       if(sc>bs){bs=sc;best=o;} }
     if(best)return best; }
-  for(const o of units){if(o.alive&&o.team!==u.team&&!o._dropHidden&&!(o._riseT>0)){const d=dist(u,o);if(d<bd){bd=d;b=o;}}}return b;}
+  for(const o of units){if(o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)){const d=dist(u,o);if(d<bd){bd=d;b=o;}}}return b;}
 function lowestAlly(u){let b=null,bp=1e9;for(const o of units){if(o.alive&&o.team===u.team){const p=o.hp/o.maxHp;if(p<bp){bp=p;b=o;}}}return b;}
 function damage(u,a,c,noEnergy,crit){
   if(DEV.god && u.team==='ally'){ return; }   // dev god-mode: your team takes no damage
@@ -2810,6 +2815,14 @@ function dealDamage(src,tgt,amt,color){
   // Drowsy (Dandra): sleep breaks the moment they're hit.
   if(tgt&&(tgt._sleepT||0)>0){ tgt._sleepT=0; tgt.stunned=0; }
 
+  // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
+  // arrives while it is banked never lands, which is the one thing his story says twice.
+  if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=4;
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13});
+    try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
+    if(tgt.anim&&tgt.anim.passive){ tgt._abilAnim='passive'; tgt._abilHold=(tgt.anim.passive.n/(tgt.anim.passive.fps||12)); }
+    return; }
+  if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
   if((tgt._frozenT||0)>0) amt*=1.25;   // Cold Snap (Sylthaine): frozen foes take +25% damage from everyone
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
@@ -2817,6 +2830,7 @@ function dealDamage(src,tgt,amt,color){
   if(cc&&brnd()<cc){ let mult=1.6; if(tgt.critRes) mult=1+(mult-1)*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }
   const _hpBefore=tgt.hp; damage(tgt,amt,color,false,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.2);
+  if(src.pass&&src.pass.notthere&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.10);   // the smaller Bloodletter that survived the rework
   if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
@@ -2853,17 +2867,50 @@ function pushDot(t,dps,dur,interval,color){
     if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1.2; break; } } } }catch(e){}
   t.dots.push({dps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0,color:color||'#ff8844'}); }
 function pushHot(t,hps,dur,interval){ t.hots.push({hps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0}); }
-function enemiesOf(u){ return units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!(o._riseT>0)); }
+function enemiesOf(u){ return units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)); }
 function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team&&!o._dropHidden&&!(o._riseT>0)); }
 
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
-const ABIL_ANIM={ devourpack:{st:'ult',hold:1.4}, summonwarriors:{st:'green',hold:1.0}, summonshaman:{st:'blue',hold:1.0}, aoedot:{st:'cast'},
+const ABIL_ANIM={ vanishpoint:{st:'ult',hold:0.9}, devourpack:{st:'ult',hold:1.4}, summonwarriors:{st:'green',hold:1.0}, summonshaman:{st:'blue',hold:1.0}, aoedot:{st:'cast'},
   monkSlam:{st:'attack'}, cleavecone:{st:'attack'}, blink:{st:'attack'}, hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'},
   blizzard:{st:'ult',hold:1.2}, frozenorb:{st:'green'}, freeze:{st:'blue'},           // Sylthaine (clips pending wiring)
   flywheel:{st:'ult',hold:1.0}, haste:{st:'green'} };                                  // Tick (blue Mainspring reuses punchflurry→'fists'; his sheet maps 'fists'→blue clip at wiring time)
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
 // Target + damage are recomputed HERE (at landing), not at cast, since a second may have passed.
+// Vanishing Point: one landing. Picks the DEEPEST enemy (the staves and the scrolls), arrives
+// behind them, and executes. A kill buys another hop; a survivor ends it and leaves him standing
+// behind their line, which for a 360 hp assassin is a real price.
+function hollowStrike(u){ const o=u._vpO||{}; if(!u.alive){ u._vpO=null; u._noTarget=false; return; }
+  const foes=units.filter(e=>e.alive&&e.team!==u.team&&!e._dropHidden&&!e._noTarget);
+  if(!foes.length){ u._vpO=null; u._noTarget=false; return; }
+  let tg=null,bs=-1e9;
+  for(const e of foes){ const depth=(typeof _laneDepthOf==='function')?_laneDepthOf(e.key):1;
+    const sc=depth*1000 - (e.hp/Math.max(1,e.maxHp))*100;   // deepest first, then whoever is closest to breaking
+    if(sc>bs){ bs=sc; tg=e; } }
+  if(!tg){ u._vpO=null; u._noTarget=false; return; }
+  // arrive behind them, on the far side from his own line
+  const home=u._dropHome||{x:FW/2,y:FD/2};
+  const behind=(tg.y<home.y)?tg.y-2.0*METER:tg.y+2.0*METER;
+  u.x=Math.max(60,Math.min(FW-60,tg.x)); u.y=Math.max(80,Math.min(FD-60,behind)); u._ax=u.x; u._ay=u.y;
+  u._noTarget=false; u.attackAnim=.18; u.target=tg;
+  const step=u._vpStep||0, fall=Math.pow(o.falloff||0.8, step);
+  const rm=rageMul, sm=u._vpSM||1;
+  const dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
+  const weak=1+(1-tg.hp/Math.max(1,tg.maxHp))*1.6;
+  const amt=dB*(o.mul||2.0)*rm*fall*weak;
+  const thresh=(o.exec||0.20)*tg.maxHp;
+  try{ burstAt(u.x,u.y,0x7a3fa0,18); ringBurst(u.x,u.y,0x1a1a22,14); }catch(e){}
+  if(tg.hp-amt<=thresh){   // anything left under a fifth is finished where it stands
+    dealDamage(u,tg,tg.hp+9999,'#c9a6ff');
+    try{ floatTexts.push({x:tg.x,y:tg.y-16,txt:'TERMINATED',t:1.2,color:'#c9a6ff',vy:1,sz:15}); }catch(e){} }
+  else dealDamage(u,tg,amt,'#c9a6ff');
+  try{ addBleedStack(u,tg,KITS.hollow?KITS.hollow.blue:{}); }catch(e){}
+  u._vpStep=step+1;
+  if(!tg.alive && u._vpStep<(o.chain||3)){   // it killed — he is gone again before the body lands
+    u._vpT=(o.hop||0.35); u._noTarget=true; u.target=null;
+    try{ ringBurst(u.x,u.y,0x1a1a22,12); }catch(e){} }
+  else { u._vpO=null; u._vpStep=0; if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); } }
 function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;return;}
   HERO_FX_MUL=1;   // KonWu's deferred blink strike — FX at normal speed
   const sm=u._blinkSM||1, rm=rageMul, dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
@@ -2926,6 +2973,12 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       u._blinkT=1.0; u._blinkO=o; u._blinkSM=sm; u.castAnim=1.0;
       burstAt(u.x,u.y,0x8f6fe0,14); ringBurst(u.x,u.y,0x8f6fe0,10);   // charge telegraph at the start point
       floatTexts.push({x:u.x,y:u.y-8,txt:'⚡ Phantom Step',t:1.0,color:'#c9b6ff',vy:1}); break; }
+    case 'vanishpoint':{   // he steps off the field; hollowStrike lands each hop
+      u._vpO=o; u._vpSM=sm; u._vpStep=0; u._vpT=(o.gone||0.9);
+      u._noTarget=true; u.target=null;
+      try{ for(let i=0;i<2;i++)ringBurst(u.x,u.y,0x1a1a22,16); burstAt(u.x,u.y,0x7a3fa0,20);
+        floatTexts.push({x:u.x,y:u.y-14,txt:'GONE',t:.9,color:'#c9a6ff',vy:1,sz:14}); }catch(e){}
+      break; }
     case 'execute':{if(!tgt)break;const bonus=1+(1-tgt.hp/tgt.maxHp)*2;dealDamage(u,tgt,dB*(o.mul||2.2)*rm*bonus,'#ff5b6b');burstAt(tgt.x,tgt.y,0xff5b6b,14);break;}
     case 'creeprot': case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8');
       const _pc=o.color||'#ff8844', _pd=u.dmg*(o.dps||.5)*sm; plagueDot(tgt,_pd,o.dur||4,o.interval||1,_pc);
@@ -3553,6 +3606,12 @@ function think(u,dt){
   if(u.stunned>0){u.stunned-=dt;return;}
   if((u.fearT||0)>0){ u.fearT-=dt; u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
   if(u._castT>0)u._castT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
+  // The Space He Isn't In recharges on a plain 4s timer, so the miss is banked, never rolled.
+  if(u.pass&&u.pass.notthere){ if(u._ntReady===undefined){ u._ntReady=true; u._ntCd=0; }
+    else if(!u._ntReady){ u._ntCd=(u._ntCd||0)-dt; if(u._ntCd<=0){ u._ntReady=true;
+      try{ sparkleUp(u.x,u.y,0x7a3fa0,4); }catch(e){} } } }
+  if(u._vpT>0){ u._vpT-=dt; u.target=null; u.attackAnim=0; u.castAnim=0;
+    if(u._vpT<=0){ u._vpT=0; hollowStrike(u); } return; }   // off the field between hops
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
     if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
@@ -3656,8 +3715,11 @@ function purgeTransientFx(){
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
-  allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
+  allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
+    if(u._backHunter){   // Hollow never marches — he goes back up into the dark and waits again
+      u._dropT=6; u._dropHidden=true; u._dropHome={x:sl.x,y:sl.y}; u._fallT=0; u._fallH=0; u._noTarget=false;
+      u.x=-9999; u.y=-9999; u._ax=u.x; u._ay=u.y; return; }
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   // the wave's monsters march on too — remember where each one belongs, then park it off the top-right
   units.filter(u=>u.team==='enemy'&&u.alive).forEach(u=>{ u.target=null; u.attackAnim=0; u.castAnim=0;
@@ -3677,7 +3739,7 @@ function updateWaveXfer(dt){
   }
   if(waveXfer.phase==='enter'){   // BOTH sides walk the line into their slots, then combat resumes
     let allIn=true;
-    const marching=units.filter(u=>u.alive && u.homeX!=null && (u.team==='ally'||u.team==='enemy'));
+    const marching=units.filter(u=>u.alive && u.homeX!=null && !u._dropHidden && (u.team==='ally'||u.team==='enemy'));
     marching.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
@@ -3818,9 +3880,11 @@ function updateBattle(dt){
   // have meant Hollow never dropped until his passive was unlocked.
   units.forEach(u=>{ if(!u.alive)return;
     // ---- Hollow's descent ----
+    // He does not march. He waits above, and for the last half second of the wait a dark disc
+    // opens over their back rank and he comes down out of it.
     if(u._dropHidden){ u._dropT-=dt;
       if(u._dropT<=0){ u._dropHidden=false;
-        const foes=units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden);
+        const foes=units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget);
         let anchor=null,bd=-1;
         for(const o of foes){ const d=(typeof _laneDepthOf==='function')?_laneDepthOf(o.key):1; if(d>bd){bd=d;anchor=o;} }
         const home=u._dropHome||{x:FW/2,y:FD/2};
@@ -3831,8 +3895,18 @@ function updateBattle(dt){
         for(let i=0;i<3;i++)ringBurst(u.x,u.y,0x1a1a22,18);
         burstAt(u.x,u.y,0x7a3fa0,26);
         floatTexts.push({x:u.x,y:u.y-16,txt:'HOLLOW',t:1.4,color:'#c9a6ff',vy:1,sz:15});
+        u._fallT=0.5; u._fallMax=0.5; u._noTarget=true;   // he is still in the air for half a second
+        if(u.anim&&u.anim.drop){ u._abilAnim='drop'; u._abilHold=0.5+(u.anim.drop.n/(u.anim.drop.fps||14)); }
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); }
       return; }   // nothing else ticks for him while he is still up there
+    if(u._fallT>0){ u._fallT-=dt; u.target=null; u.attackAnim=0;
+      const k=Math.max(0,u._fallT/(u._fallMax||0.5));
+      u._fallH=9.0*k*k;                                   // ease in — fastest at the ground
+      if(Math.random()<0.5){ try{ fxParticle(wx(u.x)+(Math.random()-.5)*1.2, 1+u._fallH, wz(u.y)+(Math.random()-.5)*1.2, 0,-3,0, 0x4a2a6a, .35, .5); }catch(e){} }
+      if(u._fallT<=0){ u._fallT=0; u._fallH=0; u._noTarget=false;
+        try{ for(let i=0;i<3;i++)ringBurst(u.x,u.y,0x1a1a22,20); burstAt(u.x,u.y,0x7a3fa0,24); }catch(e){}
+        if(u.team==='ally')screenFlash=Math.max(screenFlash,.26); }
+      return; }
     // ---- summons: finish rising, then run down their leash ----
     if(u._riseT>0){ u._riseT-=dt; if(u._riseT<=0){ u._riseT=0; burstAt(u.x,u.y,0x6b5230,10); } }
     if(u._summon){
@@ -3924,7 +3998,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       { const LU=(u.anim&&u.anim.attack&&u.anim.attack.lunge)||0;
         if(LU>0 && u._atkHold>0 && u.target){ const _ah2=((u.anim.attack.hold)||0.42); const p=Math.min(1,Math.max(0,1-(u._atkHold/_ah2))); const arc=Math.sin(p*Math.PI); const dx=Math.sign(wx(u.target.x)-wx(u.x))||0, dz=Math.sign(wz(u.target.y)-wz(u.y))||0; g.position.x+=dx*LU*arc; g.position.z+=dz*LU*arc; }
         else if(u.attackAnim>0&&u.target){const k=u.attackAnim/.18;g.position.x+=(Math.sign(wx(u.target.x)-wx(u.x))||0)*.28*k;g.position.z+=(Math.sign(wz(u.target.y)-wz(u.y))||0)*.28*k;} }
-      spr.position.y=.05+bob+(u.castAnim>0?.4*(u.castAnim/.5):0);
+      spr.position.y=.05+bob+(u.castAnim>0?.4*(u.castAnim/.5):0)+(u._fallH||0);
       spr.material.color.setRGB(1, u.flash>0?.5:1, u.flash>0?.5:1); spr.material.opacity=1;
       // SAFETY NET: if this hero's animation sheet failed to load (e.g. a missing/blocked external asset),
       // drop the animation and fall back to the static billboard so the hero is NEVER invisible.
@@ -4739,6 +4813,7 @@ function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)r
 // Finished hero-card art (Phil, 2026-08-21). These supersede the concept cutouts for both the
 // hero portrait and the glossary tile — the cutouts remain the ANIMATION source, not the display art.
 const HERO_CARD_ART={};
+HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=6';
 HERO_CARD_ART.carn='/assets/img/hero-cards/card-carn.webp?v=5';
 HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=6';
 HERO_CARD_ART.arrears='/assets/img/hero-cards/card-arrears.webp?v=5';
@@ -8444,7 +8519,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787337000000';
+const BUILD_ID='1787338000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
