@@ -1009,7 +1009,7 @@ const HERO_TYPES = {
    vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:2,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
    oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:2,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true},
    rhukk:  {name:'Rhukk',     emoji:'🪲',role:'Bruiser', swing:2.4, stars:2,hp:430,dmg:26,range:28, speed:56,atkSpeed:0.9, color:0x7a5fb0,abilityName:'Impale Rush',ability:'charge',locked:true},
-   hurne:   {name:'Hurne the Chained',emoji:'\u26D3\uFE0F',role:'Fighter',swing:2.5,stars:5,hp:520,dmg:32,range:30,speed:52,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase',wip:true},
+   hurne:   {name:'Hurne the Chained',emoji:'\u26D3\uFE0F',role:'Fighter',swing:2.5,stars:3,hp:520,dmg:32,range:30,speed:52,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase',wip:true},
    meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:2,hp:200,dmg:34,range:210,speed:54,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,wip:true},
    tallow:  {name:'Gruel',emoji:'🪙',role:'Tank',swing:2.6,stars:3,hp:560,dmg:26,range:30,speed:50,atkSpeed:0.85,color:0xb9a06a,abilityName:'The Reckoning',ability:'taunt',locked:true,wip:true},
    astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:3,hp:180,dmg:16,apow:34,range:230,speed:54,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Event Horizon',ability:'gravcrush',locked:true,wip:true},
@@ -2568,19 +2568,32 @@ function makeUnit(key,team,x,y,levelOverride,extra){
      · it expires on a timer, and
      · it is untargetable while it is still climbing out of the ground.
 --------------------------------------------------------------------------------------------- */
-const SUMMON_CAP=4;
+// Per-type caps. A flat cap made the shaman compete with the warriors for slots.
+const SUMMON_CAPS={'boar warrior':6,'boar shaman':2};
+// A summon's stats are a SHARE OF ITS MASTER'S, not the fixed numbers on its monster type — with
+// flat stats they died to 2-3 auto-attacks and got worse every chapter as enemies scaled up.
+const SUMMON_SCALE={'boar warrior':{hp:0.55,dmg:0.50,armor:120,mr:60},
+                    'boar shaman':{hp:0.42,dmg:0.30,apow:0.55,armor:70,mr:110}};
 function killSummon(p){ if(!p||!p.alive)return; p.hp=0; p.alive=false; p.deathT=0;
   p._summon=false; p._summonOwner=null;   // stop it being counted or healed on the way out
   try{ burstAt(p.x,p.y,0x4a3a22,14); }catch(e){} }
 function livingSummons(owner){ let n=0; for(const o of units){ if(o.alive&&o._summonOwner===owner)n++; } return n; }
+function livingSummonsOf(owner,key){ let n=0; for(const o of units){ if(o.alive&&o._summonOwner===owner&&o.key===key)n++; } return n; }
 function summonUnit(owner,key,dur,off){
   if(!owner||!owner.alive)return null;
-  if(livingSummons(owner)>=SUMMON_CAP)return null;
+  if(livingSummonsOf(owner,key)>=(SUMMON_CAPS[key]||3))return null;
   const ang=(off&&off.a)||0, rad=(off&&off.r)||1.6*METER;
   const px=Math.max(60,Math.min(FW-60, owner.x+Math.cos(ang)*rad));
   const py=Math.max(80,Math.min(FD-60, owner.y+Math.sin(ang)*rad));
   let u=null; try{ u=makeUnit(key,owner.team,px,py,heroLevel(owner.key)); }catch(e){ return null; }
   if(!u)return null;
+  const sc=SUMMON_SCALE[key];
+  if(sc){                                   // scale off the master so they stay relevant at every level
+    u.maxHp=Math.round(owner.maxHp*sc.hp); u.hp=u.maxHp;
+    u.dmg=Math.round(owner.dmg*sc.dmg);
+    if(sc.apow) u.apow=Math.round((owner.dmg||20)*sc.apow);
+    u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr;
+  }
   u._summon=true; u._summonOwner=owner; u._summonT=dur||15; u._riseT=0.7;
   units.push(u); try{ buildFigure(u); }catch(e){}
   // they claw their way up out of the floor
@@ -2933,7 +2946,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
         pushDot(tgt,u.apow*(o.dps||0.25)*sm,4,1,'#f2d84a');
         floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'STUNG',t:.9,color:'#f2d84a',vy:1,sz:12}); } break; }
     // ---- Hurne: three undead boar warriors haul themselves up out of the floor ----
-    case 'summonwarriors':{ const n=o.n||3, dur=o.dur||15;
+    case 'summonwarriors':{ const n=o.n||3, dur=o.dur||18;
       for(let i=0;i<n;i++){ const a=(-0.6+1.2*(i/(n-1||1))) + (u.team==='ally'?0:Math.PI);
         summonUnit(u,'boar warrior',dur,{a:a,r:(o.radius||1.7*METER)}); }
       ringBurst(u.x,u.y,0x6b5230,22);
@@ -8198,7 +8211,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787197000000';
+const BUILD_ID='1787198000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
