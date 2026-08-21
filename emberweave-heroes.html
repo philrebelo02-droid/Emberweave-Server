@@ -1100,7 +1100,30 @@ const GROSK_IDLE="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Serv
 const GROSK_CROC="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@e1b33b1652947eed5b7fe848104f9dc18c433e4a/assets/anim/grosk_crocdrop.webp", GROSK_PULL="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/grosk_gravemawpull.webp", GROSK_FISTS="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Server@1a8801205b45f64d36ad0ca588cec6683f89bde0/assets/anim/grosk_hammerfists.webp";
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
-const BATTLE_ANIM = { konwu:{
+const BATTLE_ANIM = {
+  hurne:{
+    idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=1',n:24,fw:247,fh:300,cols:6,rows:4,figH:293,feet:297,cx:106,fps:8,flip:false},
+    walk:{u:'/assets/anim/hurne/hurne_walk.webp?v=1',n:24,fw:268,fh:300,cols:6,rows:4,figH:278,feet:287,cx:116,fps:14,flip:false},
+    attack:{u:'/assets/anim/hurne/hurne_attack.webp?v=1',n:24,fw:300,fh:278,cols:6,rows:4,figH:226,feet:271,cx:137,fps:20,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/hurne/hurne_hit.webp?v=1',n:20,fw:300,fh:277,cols:6,rows:4,figH:226,feet:271,cx:137,fps:16,flip:false},
+    green:{u:'/assets/anim/hurne/hurne_green.webp?v=1',n:24,fw:248,fh:300,cols:6,rows:4,figH:265,feet:292,cx:97,fps:14,flip:false,hold:0.8},
+    blue:{u:'/assets/anim/hurne/hurne_blue.webp?v=1',n:24,fw:226,fh:300,cols:6,rows:4,figH:250,feet:297,cx:93,fps:12,flip:false,hold:0.8},
+    passive:{u:'/assets/anim/hurne/hurne_passive.webp?v=1',n:24,fw:209,fh:300,cols:6,rows:4,figH:247,feet:297,cx:90,fps:12,flip:false},
+    ult:{u:'/assets/anim/hurne/hurne_ult.webp?v=1',n:24,fw:262,fh:300,cols:6,rows:4,figH:280,feet:287,cx:116,fps:12,flip:false}
+  },
+  'boar warrior':{
+    idle:{u:'/assets/anim/boarwarrior/boarwarrior_idle.webp?v=1',n:24,fw:251,fh:300,cols:6,rows:4,figH:277,feet:296,cx:126,fps:8,flip:false},
+    walk:{u:'/assets/anim/boarwarrior/boarwarrior_walk.webp?v=1',n:24,fw:237,fh:300,cols:6,rows:4,figH:256,feet:283,cx:117,fps:14,flip:false},
+    attack:{u:'/assets/anim/boarwarrior/boarwarrior_attack.webp?v=1',n:24,fw:300,fh:252,cols:6,rows:4,figH:227,feet:238,cx:150,fps:20,flip:false,hold:0.9},
+    rise:{u:'/assets/anim/boarwarrior/boarwarrior_rise.webp?v=1',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:352,cx:192,fps:14,flip:false}
+  },
+  'boar shaman':{
+    attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=1',n:24,fw:300,fh:262,cols:6,rows:4,figH:245,feet:251,cx:183,fps:18,flip:false,hold:0.9},
+    idle:{u:'/assets/anim/boarshaman/boarshaman_idle.webp?v=1',n:24,fw:282,fh:300,cols:6,rows:4,figH:292,feet:296,cx:150,fps:8,flip:false},
+    walk:{u:'/assets/anim/boarshaman/boarshaman_walk.webp?v=1',n:24,fw:266,fh:300,cols:6,rows:4,figH:235,feet:288,cx:130,fps:14,flip:false},
+    rise:{u:'/assets/anim/boarshaman/boarshaman_rise.webp?v=1',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:353,cx:192,fps:14,flip:false}
+  },
+  konwu:{
   idle:{u:CLIP_IDLE,n:13,fw:121,fh:150,fps:9,flip:true},
   walk:{u:CLIP_WALK,n:15,fw:122,fh:150,fps:15,flip:true},
   attack:{u:CLIP_ATK,n:19,fw:116,fh:150,fps:24,flip:true},
@@ -1416,7 +1439,7 @@ const WALK_STRIDE=0.12;                      // walk-cycle frames advanced per f
 // Battlefield size is ROLE-DRIVEN so every hero (current + future) auto-sizes by role.
 // height(world) = ROLE_BATTLE_H[role] * (r/18) * (HERO_BATTLE_SCALE[key]||1  // optional per-hero fine-tune)
 const ROLE_BATTLE_H={ Tank:4.5, Bruiser:3.9, Fighter:3.9, Assassin:3.6, Mage:3.5 };
-const HERO_BATTLE_H={ vireo:3.6 };  // per-hero ROW override (absolute world height) — e.g. Vireo is mid-row support, not backline
+const HERO_BATTLE_H={ vireo:3.6, 'boar warrior':3.1, 'boar shaman':3.1 };  // per-hero ROW override (absolute world height) — e.g. Vireo is mid-row support, not backline
 const ROLE_BATTLE_DEFAULT=3.6;
 function roleBattleH(key){ if(HERO_BATTLE_H[key]!=null) return HERO_BATTLE_H[key]; const t=HERO_TYPES[key]; return (t&&ROLE_BATTLE_H[t.role])||ROLE_BATTLE_DEFAULT; }
 const HERO_BATTLE_SCALE={};  // optional per-hero fine-tune multipliers (default 1); role map above sets base size
@@ -1469,7 +1492,7 @@ const HERO_LORE = {
   oakmir:{title:'The Spring That Woke',text:"There is an oak older than the kingdom's oldest name, older than the road that curves to avoid it, and one grey morning — for no reason the trees have ever explained — it opened its eyes. Oakmir does not remember becoming. He remembers only the long green patience of being a tree: a hundred slow summers, the weight of nesting birds, the turning of the year felt through the soles of his roots. And then, all at once, he remembers the terrible speed of caring — the moment the patience broke open and became something that could no longer simply stand there while the world was being hurt.\n\nHe fights the way a forest fights: without hurry, and without end. He grows a whole season's worth of leaves with every stride and sheds them just as fast, and everything he passes mends a little in his wake — not out of mercy, exactly, but the way a root cannot help finding water. Wounds close. Fevers break. The dying discover, without quite knowing why, that they have decided to live a little longer. He asks nothing for it. A tree keeps no accounts; it grows toward the light and lets whatever needs the shade have the shade.\n\nThe speed still frightens him, on the nights he lets himself feel it. For a hundred years he loved the world at the pace of bark and stone, and to love it now at the pace of a beating heart is very nearly too much — every death a splinter, every spring a grief that it will not last. But he would not go back. Cut him down and he is already growing again, a little to the left, a little more stubborn, green fingers pushing up through the ash before the smoke has even cleared: the spring that woke, and having woken, will not be talked back into sleep."},
   rhukk:{title:'Straight Through',text:"In the deep loam beneath the Sunkfen, where the roots knot into ceilings and the light gives up entirely, there are things that never learned to be afraid — and Rhukk is the largest of them. The beetle-kin measure their elders in scars and in the length of their horns, and by both counts he stopped being measurable a long time ago. He is mostly horn and appetite: a moving wall of purple chitin that settled, at some point too far back in the dark to matter, on the single idea that has organized his entire life — that the fastest way through a thing is straight through it.\n\nHe does not circle. He does not feint. He does not, as far as anyone has ever been able to tell, plan. He lowers his head, and the world in front of him becomes the world behind him, and whatever was standing between the two learns very quickly that it should not have been. Walls are a suggestion. Shields are a noise he makes on his way past. The wise among the deep-things keep to the one rule that keeps them breathing: when the ground begins to shake in a straight line, do not be standing at the end of it.\n\nWhat little the beetle-kin call wisdom they carve onto their shells, every hard-won lesson etched in chitin for the young to read. Rhukk's shell is smooth. Unmarked. Not because he has learned nothing, but because he has never once needed to be read — he has never met the problem a running start and a lowered horn could not solve, and never lived long enough in doubt for doubt to leave a mark. There are older things in the deep than Rhukk, and cleverer ones, and a few even he steps around. But there is nothing down there that has ever made him turn."},
 };
-const HERO_SPRITES = {"bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
+const HERO_SPRITES = {"hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
 const TOWN_BG = "/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
@@ -1578,7 +1601,7 @@ const KITS={
 // ---- MONSTER kits (Batch 1) — each monster auto-casts its two chosen abilities on cooldown (no ults). ----
 // Stronger ability goes on the longer cooldown, per the balance rule in claude/monster-picks.md.
 const MONSTER_KITS={
-  'boar shaman': {green:{name:'Bone Chant',type:'crescendo',dur:4,cd:6},                  blue:{name:'Pyre Grunt',type:'aoedot',mul:0.5,dps:0.45,dur:4,radius:2.6*METER,cd:8}},
+  'boar shaman': {green:{name:'Bone Chant',type:'crescendo',dur:4,cd:6,gfx:'bonechant',radius:2.6*METER},blue:{name:'Pyre Grunt',type:'aoedot',mul:0.5,dps:0.45,dur:4,radius:2.6*METER,cd:8,gfx:'pyregrunt',gdur:2.4}},
 
   'bug':          {green:{name:'Frenzied Wings',type:'haste',mul:1.6,dur:4,self:true,cd:8},           blue:{name:'Hive Vigor',type:'lifestealbuff',pct:0.25,dur:5,cd:11}},                 // Skarrn
   'creep':        {green:{name:'Grasping Reach',type:'tendrilpull',dur:1.4,cd:8},                     blue:{name:'Rockskin Slam',type:'stun',mul:1.3,stun:1.2,cd:10}},                      // Skulk
@@ -2410,14 +2433,14 @@ function shadowTex(){ if(_shadowTex)return _shadowTex; const c=document.createEl
   x.fillStyle=gr; x.fillRect(0,0,64,64); _shadowTex=new TH.CanvasTexture(c); return _shadowTex; }
 // battlefield unit as a 2D sprite (the hero's cutout art) standing on the 3D field
 function buildFigure(u){
-  if(!HERO_SPRITES[u.key]) return buildFigure3D(u);   // fallback to low-poly if no sprite
+  if(!HERO_SPRITES[u.key] && !heroHasAnim(u.key)) return buildFigure3D(u);   // low-poly only when there is neither a cutout NOR a sheet
   const g=new TH.Group();
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
   shadow.rotation.x=-Math.PI/2; shadow.position.y=.02; shadow.scale.setScalar((u.r/18)*(u.boss?1.5:1)); g.add(shadow); u.shadow=shadow;
   const h=(u.boss?3.7:roleBattleH(u.key))*(u.r/18)*(HERO_BATTLE_SCALE[u.key]||1); u.sprH=h; u.sprA=0.7;
-  const spr=new TH.Sprite(new TH.SpriteMaterial({map:spriteTex(u.key),transparent:true,depthWrite:false}));
+  const spr=new TH.Sprite(new TH.SpriteMaterial({map:(HERO_SPRITES[u.key]?spriteTex(u.key):null),transparent:true,depthWrite:false}));
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
-  const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key];
+  if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
   if(heroHasAnim(u.key)){ const set=loadAnimSet(u.key); if(set&&set.idle&&set.idle.tex){ u.anim=set; u.sprA=set.idle.aspect; spr.material.map=set.idle.tex; spr.material.needsUpdate=true; } }
   u.mesh=g; scene.add(g); syncMesh(u,0);
 }
@@ -2576,7 +2599,12 @@ const SUMMON_CAPS={'boar warrior':6,'boar shaman':2};
 // flat stats they died to 2-3 auto-attacks and got worse every chapter as enemies scaled up.
 const SUMMON_SCALE={'boar warrior':{hp:0.55,dmg:0.50,armor:120,mr:60},
                     'boar shaman':{hp:0.42,dmg:0.30,apow:0.55,armor:70,mr:110}};
+// Packmaster: every beast that goes down sends its soul back to Hurne. Play his passive clip.
+function _soulHome(p){ const o=p&&p._summonOwner; if(!o||!o.alive)return;
+  if(o.anim&&o.anim.passive){ o._abilAnim='passive'; o._abilHold=(o.anim.passive.n/(o.anim.passive.fps||12)); }
+  try{ burstAt(o.x,o.y,0x8fd08f,12); floatTexts.push({x:o.x,y:o.y-18,txt:'RETURNED',t:1.0,color:'#8fd08f',vy:1,sz:11}); }catch(e){} }
 function killSummon(p){ if(!p||!p.alive)return; p.hp=0; p.alive=false; p.deathT=0;
+  try{ _soulHome(p); }catch(e){}
   p._summon=false; p._summonOwner=null;   // stop it being counted or healed on the way out
   try{ burstAt(p.x,p.y,0x4a3a22,14); }catch(e){} }
 function livingSummons(owner){ let n=0; for(const o of units){ if(o.alive&&o._summonOwner===owner)n++; } return n; }
@@ -2596,7 +2624,9 @@ function summonUnit(owner,key,dur,off){
     if(sc.apow) u.apow=Math.round((owner.dmg||20)*sc.apow);
     u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr;
   }
-  u._summon=true; u._summonOwner=owner; u._summonT=dur||15; u._riseT=0.7;
+  // rise clip is 12 frames at 14 fps — hold them underground for exactly that long so the
+  // last frame of the climb IS the first frame of idle and there is no pop.
+  u._summon=true; u._summonOwner=owner; u._summonT=dur||15; u._riseT=12/14; u._riseMax=12/14;
   units.push(u); try{ buildFigure(u); }catch(e){}
   // they claw their way up out of the floor
   ringBurst(px,py,0x6b5230,16); burstAt(px,py,0x4a3a22,14);
@@ -2662,6 +2692,7 @@ function damage(u,a,c,noEnergy,crit){
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
+    if(u._summon){ try{ _soulHome(u); }catch(e){} }   // a beast killed in the line still sends its soul home
     // Overdue (Grimsby): a debt that outlives the debtor is served on the room.
     if((u._debtStk||0)>0 && u._debtOwner && u._debtOwner.alive){
       const owner=u._debtOwner, blast=(u._debtDps||6)*(u._debtStk||1)*1.6;
@@ -2734,7 +2765,8 @@ function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team&&!o._dropH
 
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
-const ABIL_ANIM={ monkSlam:{st:'attack'}, cleavecone:{st:'attack'}, blink:{st:'attack'}, hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'},
+const ABIL_ANIM={ devourpack:{st:'ult',hold:1.4}, summonwarriors:{st:'green',hold:1.0}, summonshaman:{st:'blue',hold:1.0}, aoedot:{st:'cast'},
+  monkSlam:{st:'attack'}, cleavecone:{st:'attack'}, blink:{st:'attack'}, hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'},
   blizzard:{st:'ult',hold:1.2}, frozenorb:{st:'green'}, freeze:{st:'blue'},           // Sylthaine (clips pending wiring)
   flywheel:{st:'ult',hold:1.0}, haste:{st:'green'} };                                  // Tick (blue Mainspring reuses punchflurry→'fists'; his sheet maps 'fists'→blue clip at wiring time)
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
@@ -2800,7 +2832,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       const A=u.anim&&u.anim.ult; const rel=(A&&A.relFrac!=null)?A.relFrac:0.95; const cd2=(A?A.n/A.fps:1.85);
       u._voidT=rel*cd2*BATTLE_PACE; u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
-    case 'aoedot':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(u.x,u.y,0xffa657,14);break;}
+    case 'aoedot':{if(o.gfx)spawnGroundFx(o.gfx,u.x,u.y,o.radius||90,o.gdur||1.6);enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,u.dmg*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(u.x,u.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=Math.max(tgt.stunned||0,o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
     case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=Math.max(tgt.slow||0,2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=o.dur||5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
@@ -3059,7 +3091,8 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; } });
       ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Vireo (bard support) — heals/shields scale off ability power ----
-    case 'crescendo':{ u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
+    case 'crescendo':{ if(o.gfx)spawnGroundFx(o.gfx,u.x,u.y,o.radius||2.4*METER,o.gdur||1.8);
+      u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
       alliesOf(u).forEach(a=>{ healUnit(a,heal); pushHot(a, apB*0.4*ramp, o.dur||5, 1); if(pp){ a.shield=Math.max(a.shield,heal*0.5); a.shieldT=5; } });
       floatTexts.push({x:u.x,y:u.y-12,txt:'CRESCENDO',t:1.0,color:'#e0b6ff',vy:1,sz:13}); ringBurst(u.x,u.y,0xc07fe0,16); burstAt(u.x,u.y,0xe0b6ff,12); break; }
     case 'harmonyshield':{ const R=o.radius||3*METER, sh=apB*(o.mul||2.4);
@@ -3180,6 +3213,8 @@ const FX2_DEF={
   rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=1',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
   mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=1',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=1',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
+  bonechant: {u:'/assets/anim/fx/bonechant.webp?v=1', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
+  pyregrunt: {u:'/assets/anim/fx/pyregrunt.webp?v=1', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=1', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]}
 };
 const _fx2Tex={};
@@ -3732,6 +3767,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         const walking=moved>0.05;   // any real repositioning counts as walking (even a short 2 m step) — no idle-sliding
         const abilActive=(u._abilHold>0 && u._abilAnim && u.anim[u._abilAnim]);   // ability clip overrides everything while it plays
         let st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
+        const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
+        if(rising) st='rise';
         let A=u.anim[st]||u.anim.idle;
         // NEVER go invisible: if this clip's sheet hasn't finished downloading (or failed), show idle instead of a blank frame.
         const _rdyC=(c)=>c&&c.tex&&!c._err&&c.tex.image&&c.tex.image.complete&&c.tex.image.naturalWidth>0;
@@ -3741,7 +3778,11 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8)); }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else u._animAcc=(u._animAcc||0)+dt*(A.fps||10);
         // pingpong clips play forward THEN reverse (0..n-1..1) so the loop never hard-snaps back to frame 0
-        let fr; if(A.pingpong && A.n>1){ const per=2*A.n-2; let p=Math.floor(u._animAcc)%per; fr=p<A.n?p:per-p; }
+        let fr;
+        if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
+          const prog=1-Math.max(0,Math.min(1,u._riseT/(u._riseMax||(12/14))));
+          fr=Math.max(0,Math.min(A.n-1,Math.floor(prog*A.n))); }
+        else if(A.pingpong && A.n>1){ const per=2*A.n-2; let p=Math.floor(u._animAcc)%per; fr=p<A.n?p:per-p; }
         else fr=Math.floor(u._animAcc)%A.n;
         // desired facing: during the wave run-in/out they actually travel, so face movement direction; in COMBAT always
         // face the target — never turn our back when shoved into or Vulmar-dragged backward — with a small deadzone so a
@@ -8220,7 +8261,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787202000000';
+const BUILD_ID='1787284000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
