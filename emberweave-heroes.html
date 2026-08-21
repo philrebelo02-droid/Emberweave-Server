@@ -1101,6 +1101,59 @@ const GROSK_CROC="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Serv
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
 const BATTLE_ANIM = {
+  tallow:{
+    idle:{u:'/assets/anim/tallow/tallow_idle.webp?v=1',n:24,fw:253,fh:300,cols:6,rows:4,figH:254,feet:296,cx:125,fps:8,flip:false},
+    walk:{u:'/assets/anim/tallow/tallow_walk.webp?v=1',n:24,fw:276,fh:300,cols:6,rows:4,figH:252,feet:294,cx:144,fps:14,flip:false},
+    attack:{u:'/assets/anim/tallow/tallow_attack.webp?v=1',n:24,fw:300,fh:274,cols:6,rows:4,figH:226,feet:271,cx:147,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/tallow/tallow_hit.webp?v=1',n:20,fw:272,fh:300,cols:6,rows:4,figH:266,feet:291,cx:136,fps:16,flip:false}
+  },
+  astra:{
+    idle:{u:'/assets/anim/astra/astra_idle.webp?v=1',n:24,fw:229,fh:300,cols:6,rows:4,figH:283,feet:294,cx:111,fps:8,flip:false},
+    walk:{u:'/assets/anim/astra/astra_walk.webp?v=1',n:24,fw:233,fh:300,cols:6,rows:4,figH:280,feet:286,cx:111,fps:14,flip:false},
+    attack:{u:'/assets/anim/astra/astra_attack.webp?v=1',n:24,fw:289,fh:300,cols:6,rows:4,figH:274,feet:296,cx:105,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/astra/astra_hit.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:282,feet:296,cx:124,fps:16,flip:false}
+  },
+  magistrant:{
+    idle:{u:'/assets/anim/magistrant/magistrant_idle.webp?v=1',n:24,fw:240,fh:300,cols:6,rows:4,figH:291,feet:297,cx:117,fps:8,flip:false},
+    walk:{u:'/assets/anim/magistrant/magistrant_walk.webp?v=1',n:24,fw:248,fh:300,cols:6,rows:4,figH:288,feet:296,cx:116,fps:14,flip:false},
+    attack:{u:'/assets/anim/magistrant/magistrant_attack.webp?v=1',n:24,fw:231,fh:300,cols:6,rows:4,figH:264,feet:297,cx:115,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/magistrant/magistrant_hit.webp?v=1',n:20,fw:300,fh:274,cols:6,rows:4,figH:226,feet:271,cx:144,fps:16,flip:false}
+  },
+  vharn:{
+    idle:{u:'/assets/anim/vharn/vharn_idle.webp?v=1',n:24,fw:300,fh:270,cols:6,rows:4,figH:264,feet:267,cx:144,fps:8,flip:false},
+    walk:{u:'/assets/anim/vharn/vharn_walk.webp?v=1',n:24,fw:300,fh:283,cols:6,rows:4,figH:240,feet:257,cx:152,fps:14,flip:false},
+    attack:{u:'/assets/anim/vharn/vharn_attack.webp?v=1',n:24,fw:300,fh:274,cols:6,rows:4,figH:226,feet:271,cx:144,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/vharn/vharn_hit.webp?v=1',n:20,fw:286,fh:300,cols:6,rows:4,figH:242,feet:291,cx:154,fps:16,flip:false}
+  },
+  fathom:{
+    idle:{u:'/assets/anim/fathom/fathom_idle.webp?v=1',n:24,fw:281,fh:300,cols:6,rows:4,figH:287,feet:294,cx:141,fps:8,flip:false},
+    walk:{u:'/assets/anim/fathom/fathom_walk.webp?v=1',n:24,fw:246,fh:300,cols:6,rows:4,figH:275,feet:297,cx:121,fps:14,flip:false},
+    attack:{u:'/assets/anim/fathom/fathom_attack.webp?v=1',n:24,fw:300,fh:263,cols:6,rows:4,figH:226,feet:260,cx:149,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/fathom/fathom_hit.webp?v=1',n:20,fw:294,fh:300,cols:6,rows:4,figH:253,feet:285,cx:150,fps:16,flip:false}
+  },
+  lumi:{
+    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=1',n:24,fw:183,fh:300,cols:6,rows:4,figH:292,feet:297,cx:91,fps:8,flip:false},
+    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=1',n:24,fw:191,fh:300,cols:6,rows:4,figH:283,feet:297,cx:97,fps:14,flip:false},
+    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=1',n:24,fw:300,fh:266,cols:6,rows:4,figH:226,feet:263,cx:151,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=1',n:20,fw:283,fh:300,cols:6,rows:4,figH:247,feet:296,cx:157,fps:16,flip:false}
+  },
+  meryln:{
+    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=1',n:24,fw:285,fh:300,cols:6,rows:4,figH:293,feet:297,cx:143,fps:8,flip:false},
+    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=1',n:24,fw:259,fh:300,cols:6,rows:4,figH:265,feet:295,cx:118,fps:14,flip:false},
+    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=1',n:24,fw:300,fh:246,cols:6,rows:4,figH:230,feet:243,cx:145,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=1',n:20,fw:295,fh:300,cols:6,rows:4,figH:247,feet:296,cx:149,fps:16,flip:false}
+  },
+  hollow:{
+    idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=1',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false},
+    walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=1',n:24,fw:232,fh:300,cols:6,rows:4,figH:272,feet:296,cx:136,fps:14,flip:false},
+    attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=1',n:24,fw:300,fh:272,cols:6,rows:4,figH:265,feet:269,cx:144,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=1',n:20,fw:300,fh:257,cols:6,rows:4,figH:191,feet:250,cx:142,fps:16,flip:false}
+  },
+  sprocket:{
+    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=1',n:24,fw:300,fh:206,cols:6,rows:4,figH:200,feet:203,cx:133,fps:8,flip:false},
+    walk:{u:'/assets/anim/sprocket/sprocket_walk.webp?v=1',n:24,fw:300,fh:229,cols:6,rows:4,figH:209,feet:221,cx:140,fps:14,flip:false},
+    attack:{u:'/assets/anim/sprocket/sprocket_attack.webp?v=1',n:24,fw:300,fh:284,cols:6,rows:4,figH:198,feet:281,cx:135,fps:18,flip:false,hold:0.9}
+  },
   meridian:{
     idle:{u:'/assets/anim/meridian/meridian_idle.webp?v=1',n:24,fw:174,fh:300,cols:6,rows:4,figH:293,feet:297,cx:82,fps:8,flip:false},
     walk:{u:'/assets/anim/meridian/meridian_walk.webp?v=1',n:24,fw:156,fh:300,cols:6,rows:4,figH:281,feet:291,cx:78,fps:14,flip:false},
@@ -1200,14 +1253,14 @@ const BATTLE_ANIM = {
   passive:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=5',n:12,fw:239,fh:218,cols:6,rows:2,figH:200,feet:211,cx:127,fps:10,flip:true}
   },
   sylthaine:{
-  idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=2',n:12,fw:162,fh:230,cols:6,rows:2,figH:200,feet:220,cx:70,fps:8,flip:false},
-  walk:{u:'/assets/anim/sylthaine/sylthaine_walk.webp?v=2',n:12,fw:137,fh:214,cols:6,rows:2,figH:200,feet:207,cx:63,fps:12,flip:false},
-  attack:{u:'/assets/anim/sylthaine/sylthaine_attack.webp?v=2',n:12,fw:145,fh:215,cols:6,rows:2,figH:200,feet:207,cx:62,fps:16,flip:false,hold:0.9},
-  hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=2',n:12,fw:128,fh:215,cols:6,rows:2,figH:200,feet:208,cx:61,fps:11,flip:false},
-  ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=2',n:12,fw:132,fh:213,cols:6,rows:2,figH:200,feet:205,cx:59,fps:12,flip:false,hold:1.2},
-  green:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=2',n:12,fw:128,fh:213,cols:6,rows:2,figH:200,feet:206,cx:58,fps:12,flip:false,hold:1.0},
-  blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=2',n:12,fw:129,fh:213,cols:6,rows:2,figH:200,feet:205,cx:57,fps:12,flip:false,hold:1.0},
-  passive:{u:'/assets/anim/sylthaine/sylthaine_pass.webp?v=2',n:12,fw:127,fh:217,cols:6,rows:2,figH:200,feet:209,cx:60,fps:10,flip:false}
+  idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=2',n:12,fw:162,fh:230,cols:6,rows:2,figH:186,feet:223,cx:77,fps:8,flip:false},
+  walk:{u:'/assets/anim/sylthaine/sylthaine_walk.webp?v=2',n:12,fw:137,fh:214,cols:6,rows:2,figH:200,feet:207,cx:62,fps:12,flip:false},
+  attack:{u:'/assets/anim/sylthaine/sylthaine_attack.webp?v=2',n:12,fw:145,fh:215,cols:6,rows:2,figH:198,feet:208,cx:66,fps:16,flip:false,hold:0.9},
+  hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=2',n:12,fw:128,fh:215,cols:6,rows:2,figH:201,feet:208,cx:58,fps:11,flip:false},
+  ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=2',n:12,fw:132,fh:213,cols:6,rows:2,figH:198,feet:206,cx:60,fps:12,flip:false,hold:1.2},
+  green:{u:'/assets/anim/sylthaine/sylthaine_cast.webp?v=1',n:24,fw:133,fh:300,cols:6,rows:4,figH:247,feet:297,cx:65,fps:12,flip:false,hold:0.8},
+  blue:{u:'/assets/anim/sylthaine/sylthaine_cast.webp?v=1',n:24,fw:133,fh:300,cols:6,rows:4,figH:247,feet:297,cx:65,fps:12,flip:false,hold:0.8},
+  passive:{u:'/assets/anim/sylthaine/sylthaine_pass.webp?v=2',n:12,fw:127,fh:217,cols:6,rows:2,figH:199,feet:209,cx:58,fps:10,flip:false}
   },
   tick:{
   idle:{u:'/assets/anim/tick/tick_pass.webp?v=2',n:12,fw:260,fh:210,cols:6,rows:2,figH:166,feet:176,cx:159,fps:8,flip:true},
@@ -1503,7 +1556,7 @@ const HERO_LORE = {
   oakmir:{title:'The Spring That Woke',text:"There is an oak older than the kingdom's oldest name, older than the road that curves to avoid it, and one grey morning — for no reason the trees have ever explained — it opened its eyes. Oakmir does not remember becoming. He remembers only the long green patience of being a tree: a hundred slow summers, the weight of nesting birds, the turning of the year felt through the soles of his roots. And then, all at once, he remembers the terrible speed of caring — the moment the patience broke open and became something that could no longer simply stand there while the world was being hurt.\n\nHe fights the way a forest fights: without hurry, and without end. He grows a whole season's worth of leaves with every stride and sheds them just as fast, and everything he passes mends a little in his wake — not out of mercy, exactly, but the way a root cannot help finding water. Wounds close. Fevers break. The dying discover, without quite knowing why, that they have decided to live a little longer. He asks nothing for it. A tree keeps no accounts; it grows toward the light and lets whatever needs the shade have the shade.\n\nThe speed still frightens him, on the nights he lets himself feel it. For a hundred years he loved the world at the pace of bark and stone, and to love it now at the pace of a beating heart is very nearly too much — every death a splinter, every spring a grief that it will not last. But he would not go back. Cut him down and he is already growing again, a little to the left, a little more stubborn, green fingers pushing up through the ash before the smoke has even cleared: the spring that woke, and having woken, will not be talked back into sleep."},
   rhukk:{title:'Straight Through',text:"In the deep loam beneath the Sunkfen, where the roots knot into ceilings and the light gives up entirely, there are things that never learned to be afraid — and Rhukk is the largest of them. The beetle-kin measure their elders in scars and in the length of their horns, and by both counts he stopped being measurable a long time ago. He is mostly horn and appetite: a moving wall of purple chitin that settled, at some point too far back in the dark to matter, on the single idea that has organized his entire life — that the fastest way through a thing is straight through it.\n\nHe does not circle. He does not feint. He does not, as far as anyone has ever been able to tell, plan. He lowers his head, and the world in front of him becomes the world behind him, and whatever was standing between the two learns very quickly that it should not have been. Walls are a suggestion. Shields are a noise he makes on his way past. The wise among the deep-things keep to the one rule that keeps them breathing: when the ground begins to shake in a straight line, do not be standing at the end of it.\n\nWhat little the beetle-kin call wisdom they carve onto their shells, every hard-won lesson etched in chitin for the young to read. Rhukk's shell is smooth. Unmarked. Not because he has learned nothing, but because he has never once needed to be read — he has never met the problem a running start and a lowered horn could not solve, and never lived long enough in doubt for doubt to leave a mark. There are older things in the deep than Rhukk, and cleverer ones, and a few even he steps around. But there is nothing down there that has ever made him turn."},
 };
-const HERO_SPRITES = {"meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
+const HERO_SPRITES = {"tallow":"/assets/img/miscellaneous/hero-sprites-tallow.webp","astra":"/assets/img/miscellaneous/hero-sprites-astra.webp","magistrant":"/assets/img/miscellaneous/hero-sprites-magistrant.webp","vharn":"/assets/img/miscellaneous/hero-sprites-vharn.webp","fathom":"/assets/img/miscellaneous/hero-sprites-fathom.webp","lumi":"/assets/img/miscellaneous/hero-sprites-lumi.webp","meryln":"/assets/img/miscellaneous/hero-sprites-meryln.webp","hollow":"/assets/img/miscellaneous/hero-sprites-hollow.webp","sprocket":"/assets/img/miscellaneous/hero-sprites-sprocket.webp","meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
 const TOWN_BG = "/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
@@ -1583,7 +1636,7 @@ const KITS={
   grosk:{green:{name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10},blue:{name:'Hammer Fists',type:'punchflurry',hits:4,mul:0.30,tauntChance:0.25,tauntDur:2,cd:6},purple:{name:'Juggernaut',pass:'juggernaut'}},
   vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10},purple:{name:'Unstepped',pass:'unstepped'}},
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,cd:8},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7},purple:{name:'Momentum Gears',pass:'momentum'}},
-  sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,radius:2.6*METER,cd:8},blue:{name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9},purple:{name:'Cold Snap',pass:'coldsnap'}},
+  sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,radius:2.6*METER,cd:8,gfx:'frozenorb'},blue:{name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'glacialprison'},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8},blue:{name:'Duality',type:'duality',cd:6},purple:{name:'Twin Fonts',pass:'twinfonts'}},
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7},blue:{name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his plague, the plague bursts onto every enemy nearby — and can spread again from them'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:3*METER,dur:6,cd:9},purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
@@ -3078,9 +3131,13 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     // ---- Tick (clockwork bruiser) ----
     case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); }); ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Sylthaine (frost mage — AP scaling) ----
-    case 'frozenorb':{ const ctr=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!ctr)break; const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff'); e.slow=Math.max(e.slow||0,2.5); } }); ringBurst(ctr.x,ctr.y,0x9fe0ff,20); burstAt(ctr.x,ctr.y,0xcfeeff,14); break; }
-    case 'freeze':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap) tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
-    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
+    case 'frozenorb':{ const ctr=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!ctr)break; const R=o.radius||2.6*METER;
+      if(o.gfx)spawnGroundFx(o.gfx,ctr.x,ctr.y,R,o.gdur||2.0); enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff'); e.slow=Math.max(e.slow||0,2.5); } }); ringBurst(ctr.x,ctr.y,0x9fe0ff,20); burstAt(ctr.x,ctr.y,0xcfeeff,14); break; }
+    case 'freeze':{ if(!tgt)break; if(o.gfx)spawnGroundFx(o.gfx,tgt.x,tgt.y,o.radius||1.2*METER,o.gdur||2.2);
+      dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap) tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
+    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y;
+      spawnGroundFx('blizzard',ctr.x,ctr.y,o.radius||8*METER,(o.dur||4)+0.4);   // the storm itself — plate lives for the whole channel
+ u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
     case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
@@ -3224,6 +3281,8 @@ const FX2_DEF={
   rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=1',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
   mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=1',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=1',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
+  frozenorb: {u:'/assets/anim/fx/frozenorb.webp?v=1', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.0},
+  glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=1', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   bonechant: {u:'/assets/anim/fx/bonechant.webp?v=1', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   pyregrunt: {u:'/assets/anim/fx/pyregrunt.webp?v=1', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=1', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]}
@@ -8272,7 +8331,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787320000000';
+const BUILD_ID='1787330000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
