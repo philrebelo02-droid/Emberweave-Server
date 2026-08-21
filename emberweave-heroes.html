@@ -1034,21 +1034,21 @@ HERO_PORTRAITS.vulmar='/assets/img/hero-portraits/hero-vulmar-2.jpg'; HERO_PORTR
 HERO_PORTRAITS.umbris='/assets/img/hero-portraits/hero-umbris.png?v=p2'; HERO_PORTRAITS.vael='/assets/img/hero-portraits/hero-vael.png?v=p2'; HERO_PORTRAITS.oakmir='/assets/img/hero-portraits/hero-oakmir.png?v=p2'; HERO_PORTRAITS.rhukk='/assets/img/hero-portraits/hero-rhukk.png?v=p2';
 
 // batch-2 heroes: temporary portraits from the concept art until real portraits exist
-HERO_PORTRAITS.meridian='/assets/img/glossary/glossary-heroes-explorer-archeologist.webp';
-HERO_PORTRAITS.tallow='/assets/img/glossary/glossary-heroes-flail-fat-guy.webp';
-HERO_PORTRAITS.astra='/assets/img/glossary/glossary-heroes-galaxy-girl.webp';
-HERO_PORTRAITS.magistrant='/assets/img/glossary/glossary-heroes-judge-ant.webp';
-HERO_PORTRAITS.vharn='/assets/img/glossary/glossary-heroes-lizard-warrior.webp';
-HERO_PORTRAITS.fathom='/assets/img/glossary/glossary-heroes-lost-soul.webp';
-HERO_PORTRAITS.lumi='/assets/img/glossary/glossary-heroes-lumi.webp';
-HERO_PORTRAITS.hollow='/assets/img/glossary/glossary-heroes-no-face-man.webp';
-HERO_PORTRAITS.sprocket='/assets/img/glossary/glossary-heroes-robot.webp';
-HERO_PORTRAITS.carn='/assets/img/glossary/glossary-heroes-sword-1-arm-red-vein-guy.webp';
-HERO_PORTRAITS.vesper='/assets/img/glossary/glossary-heroes-time-slicer.webp';
-HERO_PORTRAITS.sablewick='/assets/img/glossary/glossary-heroes-time-witch.webp';
-HERO_PORTRAITS.vex='/assets/img/glossary/glossary-heroes-vex.webp';
-HERO_PORTRAITS.arrears='/assets/img/glossary/glossary-heroes-wailing-landlord.webp';
-HERO_PORTRAITS.meryln='/assets/img/glossary/glossary-heroes-meryln.webp';
+HERO_PORTRAITS.meridian='/assets/img/glossary/glossary-heroes-explorer-archeologist.webp?v=2';
+HERO_PORTRAITS.tallow='/assets/img/glossary/glossary-heroes-flail-fat-guy.webp?v=2';
+HERO_PORTRAITS.astra='/assets/img/glossary/glossary-heroes-galaxy-girl.webp?v=2';
+HERO_PORTRAITS.magistrant='/assets/img/glossary/glossary-heroes-judge-ant.webp?v=2';
+HERO_PORTRAITS.vharn='/assets/img/glossary/glossary-heroes-lizard-warrior.webp?v=2';
+HERO_PORTRAITS.fathom='/assets/img/glossary/glossary-heroes-lost-soul.webp?v=2';
+HERO_PORTRAITS.lumi='/assets/img/glossary/glossary-heroes-lumi.webp?v=2';
+HERO_PORTRAITS.hollow='/assets/img/glossary/glossary-heroes-no-face-man.webp?v=2';
+HERO_PORTRAITS.sprocket='/assets/img/glossary/glossary-heroes-robot.webp?v=2';
+HERO_PORTRAITS.carn='/assets/img/glossary/glossary-heroes-sword-1-arm-red-vein-guy.webp?v=2';
+HERO_PORTRAITS.vesper='/assets/img/glossary/glossary-heroes-time-slicer.webp?v=2';
+HERO_PORTRAITS.sablewick='/assets/img/glossary/glossary-heroes-time-witch.webp?v=2';
+HERO_PORTRAITS.vex='/assets/img/glossary/glossary-heroes-vex.webp?v=2';
+HERO_PORTRAITS.arrears='/assets/img/glossary/glossary-heroes-wailing-landlord.webp?v=2';
+HERO_PORTRAITS.meryln='/assets/img/glossary/glossary-heroes-meryln.webp?v=2';
 const MYTHIC_BANNERS = {/*__MYTHBANNERS__*/}; // per-mythical-hero banner art OVERRIDE (optional), shown under the portrait
 const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHARED "MYTHICAL" plaque shown under ANY myth:true hero (per-hero MYTHIC_BANNERS wins if set)
 const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
@@ -8064,7 +8064,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787190000000';
+const BUILD_ID='1787191000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
