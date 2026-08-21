@@ -1030,7 +1030,7 @@ const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
 function isMythic(key){ return !!(HERO_TYPES[key] && HERO_TYPES[key].myth); }
 function starStr(n){return '⭐'.repeat(n);}
-const HERO_PORTRAITS = {"bloatus":"/assets/img/hero-portraits/hero-bloatus.jpg","vireo":"/assets/img/hero-portraits/hero-vireo.jpg","fritz":"/assets/img/hero-portraits/hero-fritz.jpg","tick":"/assets/img/hero-portraits/hero-tick.jpg","sylthaine":"/assets/img/hero-portraits/hero-sylthaine.jpg","aureth":"/assets/img/hero-portraits/hero-aureth.jpg?v=2","vulmar":"/assets/img/hero-portraits/hero-vulmar.png","konwu":"/assets/img/hero-portraits/hero-konwu.jpg","grosk":"/assets/img/hero-portraits/hero-grosk.jpg"}; // hero portrait art (cards / UI)
+const HERO_PORTRAITS = {"bloatus":"/assets/img/hero-portraits/hero-bloatus.jpg","vireo":"/assets/img/hero-portraits/hero-vireo.jpg","fritz":"/assets/img/hero-portraits/hero-fritz.jpg","tick":"/assets/img/hero-portraits/hero-tick.jpg","sylthaine":"/assets/img/hero-portraits/hero-sylthaine.jpg","aureth":"/assets/img/hero-portraits/hero-aureth.jpg?v=2","vulmar":"/assets/img/hero-portraits/hero-vulmar-2.jpg","konwu":"/assets/img/hero-portraits/hero-konwu.jpg","grosk":"/assets/img/hero-portraits/hero-grosk-2.jpg"}; // hero portrait art (cards / UI)
 HERO_PORTRAITS.vulmar='/assets/img/hero-portraits/hero-vulmar-2.jpg'; HERO_PORTRAITS.grosk='/assets/img/hero-portraits/hero-grosk-2.jpg';
 HERO_PORTRAITS.umbris='/assets/img/hero-portraits/hero-umbris.png?v=p2'; HERO_PORTRAITS.vael='/assets/img/hero-portraits/hero-vael.png?v=p2'; HERO_PORTRAITS.oakmir='/assets/img/hero-portraits/hero-oakmir.png?v=p2'; HERO_PORTRAITS.rhukk='/assets/img/hero-portraits/hero-rhukk.png?v=p2';
 
@@ -8220,7 +8220,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787201000000';
+const BUILD_ID='1787202000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
