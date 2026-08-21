@@ -1016,7 +1016,7 @@ const HERO_TYPES = {
    magistrant:{name:'The Magistrant',emoji:'⚖️',role:'Fighter',swing:2.2,stars:2,hp:450,dmg:28,range:28,speed:56,atkSpeed:1.0,color:0x2f2f38,abilityName:'Contempt Storm',ability:'volley',locked:true,wip:true,start:2},
    vharn:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:2,hp:430,dmg:32,range:28,speed:58,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,wip:true,start:2},
    fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true,start:2},
-   lumi:    {name:'Lumi',emoji:'🌼',role:'Mage',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
+   lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
    sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:3,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,wip:true,start:3},
    carn:    {name:'Carn',emoji:'🩸',role:'Bruiser',swing:2.4,stars:1,hp:410,dmg:34,range:28,speed:60,atkSpeed:1.05,color:0xb03a3a,abilityName:'Crimson Reap',ability:'cleave',locked:true,wip:true},
@@ -2103,8 +2103,11 @@ function heroPower(key){ const m=heroMuls(key),t=HERO_TYPES[key]; const hp=heroS
 const DEFAULT_G = {
   gold:200, gems:0, playerXP:0, campaignCleared:0, dungeonBest:0, trophies:0, lastBless:0,
   heroXP:Object.fromEntries(HERO_KEYS.map(k=>[k,0])),          // heroes gain XP per battle
-  unlocked:Object.fromEntries(HERO_KEYS.map(k=>[k,true])),   // all remaining heroes owned by default
-  team:['konwu','grosk','vulmar'],
+  // STARTING ROSTER: a new account owns Vael, Sylthaine and Vireo. Vex is the 4th, earned from
+  // the 'Blade in the Dark' quest. Everything else is summoned with fragments or won at the pools.
+  // (BETA_ALL_HEROES above is the single switch that still grants the whole roster during beta.)
+  unlocked:{vael:true, sylthaine:true, vireo:true},
+  team:['vael','sylthaine','vireo'],
   mats:{grey:24,green:8,blue:2,purple:0,gold:0},               // glyph shards
   glyphRank:Object.fromEntries(HERO_KEYS.map(k=>[k,0])),       // 0..12 (Grey → Purple+3); colour tier = quality
   starLevel:Object.fromEntries(HERO_KEYS.map(k=>[k,1])),       // hero stars (start 1, max 6) — grow from elite stages
@@ -2122,13 +2125,13 @@ const DEFAULT_G = {
   tech:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0},   // academy = the research building's own level (speeds all research)
   techLearn:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0},   // 0 = idle; else timestamp (ms) research completes
   stamina:60, staminaTS:0,        // stamina (⧗ from food): max = 59+level, regen 1 per 6 min, refills on level-up
-  wall:['konwu','grosk','vulmar'],
-  arenaDef:['konwu','grosk','vulmar'], // auto-defense team shown to attackers
+  wall:['vael','sylthaine','vireo'],
+  arenaDef:['vael','sylthaine','vireo'], // auto-defense team shown to attackers
   arenaRank:5000,                 // local arena rank (climbs toward #1)
   bestArenaRank:5000, gemFrac:0,  // best rank ever + fractional diamond accumulator (first-time rank rewards)
   arenaCoins:0, lastArenaDaily:0, // arena points (spent in the arena shop) + last daily-claim timestamp
   prayer:0,                       // Temple prayer level — permanent stat boost bought with gold
-  playerName:'Commander', nameChanged:false, avatarHero:'konwu',
+  playerName:'Commander', nameChanged:false, avatarHero:'vael',
   res:{iron:0,crystal:0,silver:0,coal:0}, // world-map resources for Academy research
   nodeCd:{},                      // per-node gather cooldowns (id -> ready timestamp)
   guild:null,                     // null = not in a guild; else {name, type:'own'|'npc'}
@@ -2203,11 +2206,13 @@ function saveGLocalOnly(){ try{ localStorage.setItem('emberweave_save_v08', JSON
 function saveG(){ G.mtime=Date.now(); saveGLocalOnly(); if(ACC.token) cloudSync(); }
 function loadG(){ try{ const s=localStorage.getItem('emberweave_save_v08'); if(s){ deepMerge(G, JSON.parse(s)); } }catch(e){} migrateG(); }
 function migrateG(){
-  { const vh=k=>!!HERO_TYPES[k], D=['konwu','grosk','vulmar'];
+  // STARTING ROSTER (Phil 2026-08-21): every account begins with Vael, Sylthaine and Vireo.
+  // Vex is the 4th hero and is earned from the 'Blade in the Dark' quest, not granted here.
+  { const vh=k=>!!HERO_TYPES[k], D=['vael','sylthaine','vireo'];
     D.forEach(k=>{ if(HERO_TYPES[k]){ if(!G.unlocked)G.unlocked={}; G.unlocked[k]=true; } });
     const fx=a=>{ const f=Array.isArray(a)?a.filter(vh):[]; return f.length?f:D.slice(); };
     G.team=fx(G.team); G.wall=fx(G.wall); G.arenaDef=fx(G.arenaDef);
-    if(!vh(G.avatarHero))G.avatarHero='konwu'; }
+    if(!vh(G.avatarHero))G.avatarHero='vael'; }
   // migrate old glyph/quality system → new glyph rank ladder
   if(!G.glyphRank) G.glyphRank={};
   if(G.quality){ const map=[0,2,5,9]; HERO_KEYS.forEach(k=>{ if(G.glyphRank[k]==null) G.glyphRank[k]=map[G.quality[k]||0]||0; }); delete G.quality; delete G.glyphs; }
@@ -6936,9 +6941,18 @@ const WISH_GOLD_COST=1000, WISH_GEM_COST=300;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000;   // 1 free gold wish/hour, up to 3/day
 // (diamond free wish resets at the 09:00 ET daily reset — see wishGemFreeReady)
 const WISH_FIRST_GEM_DELAY_MS=20*60000;                   // first diamond wish unlocks 20 min after account creation
-const WISH_RIGGED_HEROES=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && HERO_TYPES[k].source!=='purchase');   // rigged first wish → a non-mythical, non-shop starter only
-const WISH_HERO_CHANCE=0.10;                              // diamond pool: 10% chance of a full hero (unlocked at its starting rarity)
-const WISH_KONWU_CHANCE=0.01;                             // diamond pool: 1% chance of KonWu (full mythical hero)
+function wishRiggedHeroes(){ const p=wishStarPool(2); return p.length?p:['fritz']; }   // rigged first wish → a non-mythical, non-shop starter only
+// ---- WISH POOLS (Phil's economy spec, 2026-08-21) ----
+// GOLD well carries the three 1★ heroes only. DIAMOND well carries the 2★ and 3★ ladders
+// (mythicals and shop/arena-exclusive heroes are excluded from both), plus a 0.1% KonWu.
+const GOLD_WELL_HEROES=['tick','meryln','carn'];          // Tick, Dandra, Carn
+function wishStarPool(n){ return HERO_KEYS.filter(k=>{ const t=HERO_TYPES[k];
+  return t && t.locked && !t.myth && !t.source && heroStartStars(k)===n; }); }
+function pickFrom(a,fb){ return a.length?a[Math.floor(Math.random()*a.length)]:fb; }
+const WISH_GOLD_HERO_CHANCE=0.03, WISH_GOLD_FRAG_CHANCE=0.10;   // gold: 3% full hero, 10% 2-3 fragments
+const WISH_GEM_KONWU=0.001, WISH_GEM_FULL3=0.01, WISH_GEM_FULL2=0.08, WISH_GEM_FRAG2=0.15, WISH_GEM_FRAG3=0.10;
+const WISH_HERO_CHANCE=WISH_GEM_FULL2+WISH_GEM_FULL3;     // total chance of a FULL hero from the diamond pool (9%)
+const WISH_KONWU_CHANCE=WISH_GEM_KONWU;                   // 0.1% KonWu
 const DUPE_FRAG={1:7,2:14,3:30};                          // fragments refunded when a FULL-hero wish duplicates one you already own, by starting star
 // ---- free-wish availability ----
 function wishGoldFreeReset(){ const d=arenaDayKey(); if(G.wishGoldDay!==d){ G.wishGoldDay=d; G.wishGoldUsed=0; } }
@@ -6965,27 +6979,40 @@ function stopHeroIdleAnims(root){ (root||document).querySelectorAll('.heroIdleAn
 function wishFrags(n){ const hk=randLockedHero(), t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n); return {icon:heroBigIcon(hk), hero:hk, name:n+'× '+t.name+' fragments', extra:msg||''}; }
 function wishGold(n){ G.gold=(G.gold||0)+n; return {icon:'🪙', name:'+'+n+' gold'}; }
 function wishGems(n){ G.gems=(G.gems||0)+n; return {icon:'💎', name:'+'+n+' diamonds'}; }
-function wishHeroPool(){ const pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && !HERO_TYPES[k].source); return pool[Math.floor(Math.random()*pool.length)]||'grosk'; }
+function wishHeroPool(){ return pickFrom(wishStarPool(2).concat(wishStarPool(3)),'tick'); }
+// fragments of one named hero (2-3 at a time)
+function wishHeroFrags(hk,n){ const t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n);
+  return {icon:heroBigIcon(hk), hero:hk, name:n+'× '+t.name+' fragments', extra:msg||''}; }
+function frags23(){ return 2+Math.floor(Math.random()*2); }   // 2 or 3
 // grant a FULL hero from a wish: unlock at its starting star, or refund duplicate fragments (by starting star) if already owned.
 function grantFullHero(hk){ const t=HERO_TYPES[hk], ss=heroStartStars(hk), stars='★'.repeat(ss);
   if(G.unlocked[hk]){ const d=DUPE_FRAG[ss]||7; giveHeroFrag(hk,d); return {icon:heroBigIcon(hk), heroAnim:hk, name:stars+' '+t.name+' — already owned', extra:'+'+d+' '+t.name+' fragments', big:true}; }
   G.unlocked[hk]=true; if(!G.starLevel)G.starLevel={}; G.starLevel[hk]=ss; if(!G.starPip)G.starPip={}; G.starPip[hk]=0;
   return {icon:heroBigIcon(hk), heroAnim:hk, name:'🎉 '+t.name+' — new '+ss+'★ hero!', extra:'A full hero, unlocked at '+ss+' star'+(ss>1?'s':''), big:true}; }
-function doGoldRoll(){ const r=Math.random();
-  if(r<0.42) return wishMat('grey', 10+Math.floor(Math.random()*16));
-  if(r<0.66) return wishMat('green', 4+Math.floor(Math.random()*6));
-  if(r<0.86) return wishFrags(1+Math.floor(Math.random()*2));
-  if(r<0.97) return wishGold(300+Math.floor(Math.random()*500));
+function doGoldRoll(){
+  // 3% a full 1★ hero from the gold trio, 10% 2-3 of their fragments, remainder = materials/currency.
+  const h=Math.random();
+  if(h<WISH_GOLD_HERO_CHANCE) return grantFullHero(pickFrom(GOLD_WELL_HEROES.filter(k=>HERO_TYPES[k]),'tick'));
+  if(h<WISH_GOLD_HERO_CHANCE+WISH_GOLD_FRAG_CHANCE) return wishHeroFrags(pickFrom(GOLD_WELL_HEROES.filter(k=>HERO_TYPES[k]),'tick'),frags23());
+  const r=Math.random();
+  if(r<0.46) return wishMat('grey', 10+Math.floor(Math.random()*16));
+  if(r<0.72) return wishMat('green', 4+Math.floor(Math.random()*6));
+  if(r<0.94) return wishGold(300+Math.floor(Math.random()*500));
   return wishGems(5+Math.floor(Math.random()*11)); }
 function doGemRoll(rigged){
-  if(rigged){ return grantFullHero(WISH_RIGGED_HEROES[Math.floor(Math.random()*WISH_RIGGED_HEROES.length)]); }
-  if(Math.random()<WISH_KONWU_CHANCE){ return grantFullHero('konwu'); }   // rare 1% pull of the mythic KonWu (advertised); all OTHER myth/shop heroes stay wish-excluded
-  if(Math.random()<WISH_HERO_CHANCE){ return grantFullHero(wishHeroPool()); }
+  if(rigged){ return grantFullHero(pickFrom(wishRiggedHeroes(),'fritz')); }   // first diamond wish is always a 2★ hero
+  // ONE roll decides the hero tiers, so the advertised odds are exactly the odds:
+  //   0.1% KonWu · 1% a full 3★ · 8% a full 2★ · 15% 2-3 fragments of a 2★ · 10% 2-3 fragments of a 3★
+  const h=Math.random(); let acc=WISH_GEM_KONWU;
+  if(h<acc) return grantFullHero('konwu');
+  acc+=WISH_GEM_FULL3; if(h<acc){ const p=wishStarPool(3); if(p.length) return grantFullHero(pickFrom(p,'umbris')); }
+  acc+=WISH_GEM_FULL2; if(h<acc){ const p=wishStarPool(2); if(p.length) return grantFullHero(pickFrom(p,'fritz')); }
+  acc+=WISH_GEM_FRAG2; if(h<acc){ const p=wishStarPool(2); if(p.length) return wishHeroFrags(pickFrom(p,'fritz'),frags23()); }
+  acc+=WISH_GEM_FRAG3; if(h<acc){ const p=wishStarPool(3); if(p.length) return wishHeroFrags(pickFrom(p,'umbris'),frags23()); }
   const r=Math.random();
-  if(r<0.34) return wishMat('blue', 3+Math.floor(Math.random()*5));
-  if(r<0.55) return wishMat('green', 8+Math.floor(Math.random()*8));
-  if(r<0.72) return wishMat('purple', 1+Math.floor(Math.random()*3));
-  if(r<0.90) return wishFrags(2+Math.floor(Math.random()*4));
+  if(r<0.36) return wishMat('blue', 3+Math.floor(Math.random()*5));
+  if(r<0.60) return wishMat('green', 8+Math.floor(Math.random()*8));
+  if(r<0.80) return wishMat('purple', 1+Math.floor(Math.random()*3));
   return wishGems(20+Math.floor(Math.random()*40)); }
 function showWishResult(res,pool){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
@@ -7044,7 +7071,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
   const canGem = gemFree || (G.gems||0)>=WISH_GEM_COST;
   b.innerHTML=`
-  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">Make a wish for <b>rune shards</b>, <b>hero fragments</b>, gold &amp; diamonds. The Diamond Pool can surface a <b>full hero</b> — with a rare <b>1% shot at KonWu</b>.</div>
+  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">The Gold Pool holds Tick, Dandra &amp; Carn. The Diamond Pool holds the 2★ and 3★ ladders — with a <b>0.1% shot at KonWu</b>.</div>
   <div class="wishpools">
     <div class="wishpool gold">
       <div class="wp-orb">⛲</div>
@@ -7052,6 +7079,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-cost">🪙 ${WISH_GOLD_COST} / wish</div>
       <div class="wp-free ${goldFree?'on':''}">${goldFree?'✨ Free wish ready':(goldLeft>0?('⏳ Next free '+fmtDur(goldNext||0)):'Daily free wishes used')}</div>
       <div class="wp-sub">Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour</div>
+      <div class="wp-sub" style="opacity:.75">3% full hero · 10% fragments</div>
       <button class="btn ${canGold?'':'secondary'}" id="wpGold" ${canGold?'':'disabled'}>${goldFree?'Wish · Free':'Wish · 🪙'+WISH_GOLD_COST}</button>
       <button class="btn secondary ${(G.gold||0)>=wishGold10Cost()?'':'secondary'}" id="wpGold10" ${(G.gold||0)>=wishGold10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 🪙${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -7060,7 +7088,8 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-name">Diamond Pool</div>
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
       <div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0))}</div>
-      <div class="wp-sub">${gemRigged?'First wish: guaranteed hero':'1 free daily (09:00 reset) · 10% hero · 1% KonWu'}</div>
+      <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (09:00 reset)'}</div>
+      <div class="wp-sub" style="opacity:.75">8% 2★ · 1% 3★ · 25% fragments · 0.1% KonWu</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
       <button class="btn secondary" id="wpGem10" ${(G.gems||0)>=wishGem10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -7094,6 +7123,9 @@ function questDefs(){
     { id:'q_collect', title:'Gather Your Champions', desc:'Collect 5 heroes in total.',
       prog:Math.min(5,ownedHeroCount()), goal:5, reward:'×5 random hero fragments', ready:ownedHeroCount()>=5,
       claim:()=>{ let msg=''; for(let i=0;i<5;i++){ const hk=randLockedHero(); const r=giveHeroFrag(hk,1); if(r)msg=r; } return msg||'+5 hero fragments'; } },
+    { id:'q_vex', title:'Blade in the Dark', desc:'Clear 6 campaign stages — someone has been following your company.',
+      prog:Math.min(6,G.campaignCleared||0), goal:6, reward:'🗡️ Vex joins your company', ready:(G.campaignCleared||0)>=6,
+      claim:()=>{ const r=grantFullHero('vex'); return r.name; } },
     { id:'q_wish', title:'Make a Wish', desc:'Toss a coin at any Wishing Pool 3 times.',
       prog:Math.min(3,G.wishClicks||0), goal:3, reward:'💎 20 diamonds', ready:(G.wishClicks||0)>=3,
       claim:()=>{ G.gems=(G.gems||0)+20; return '+💎 20 diamonds'; } },
@@ -8526,7 +8558,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787345000000';
+const BUILD_ID='1787430000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
