@@ -1101,6 +1101,30 @@ const GROSK_CROC="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Serv
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
 const BATTLE_ANIM = {
+  vesper:{
+    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=1',n:24,fw:241,fh:300,cols:6,rows:4,figH:294,feet:297,cx:123,fps:8,flip:true},
+    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=1',n:24,fw:232,fh:300,cols:6,rows:4,figH:294,feet:297,cx:122,fps:14,flip:true},
+    attack:{u:'/assets/anim/vesper/vesper_attack.webp?v=1',n:24,fw:300,fh:295,cols:6,rows:4,figH:288,feet:291,cx:116,fps:20,flip:true,hold:0.9},
+    hit:{u:'/assets/anim/vesper/vesper_hit.webp?v=1',n:24,fw:294,fh:300,cols:6,rows:4,figH:256,feet:285,cx:155,fps:16,flip:true}
+  },
+  sablewick:{
+    idle:{u:'/assets/anim/sablewick/sablewick_idle.webp?v=1',n:24,fw:212,fh:300,cols:6,rows:4,figH:273,feet:288,cx:112,fps:8,flip:true},
+    walk:{u:'/assets/anim/sablewick/sablewick_walk.webp?v=1',n:24,fw:234,fh:300,cols:6,rows:4,figH:281,feet:286,cx:114,fps:14,flip:true},
+    attack:{u:'/assets/anim/sablewick/sablewick_attack.webp?v=1',n:24,fw:300,fh:284,cols:6,rows:4,figH:278,feet:281,cx:188,fps:20,flip:true,hold:0.9},
+    hit:{u:'/assets/anim/sablewick/sablewick_hit.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:254,feet:282,cx:125,fps:16,flip:true}
+  },
+  vex:{
+    idle:{u:'/assets/anim/vex/vex_idle.webp?v=1',n:24,fw:210,fh:300,cols:6,rows:4,figH:292,feet:297,cx:105,fps:8,flip:false},
+    walk:{u:'/assets/anim/vex/vex_walk.webp?v=1',n:24,fw:216,fh:300,cols:6,rows:4,figH:287,feet:294,cx:98,fps:14,flip:false},
+    attack:{u:'/assets/anim/vex/vex_attack.webp?v=1',n:24,fw:243,fh:300,cols:6,rows:4,figH:247,feet:295,cx:114,fps:20,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/vex/vex_hit.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:253,feet:296,cx:141,fps:16,flip:false}
+  },
+  arrears:{
+    idle:{u:'/assets/anim/arrears/arrears_idle.webp?v=1',n:24,fw:241,fh:300,cols:6,rows:4,figH:292,feet:297,cx:120,fps:8,flip:false},
+    walk:{u:'/assets/anim/arrears/arrears_walk.webp?v=1',n:24,fw:240,fh:300,cols:6,rows:4,figH:265,feet:287,cx:120,fps:14,flip:false},
+    attack:{u:'/assets/anim/arrears/arrears_attack.webp?v=1',n:24,fw:300,fh:300,cols:6,rows:4,figH:258,feet:297,cx:123,fps:20,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/arrears/arrears_hit.webp?v=1',n:24,fw:286,fh:300,cols:6,rows:4,figH:254,feet:298,cx:129,fps:16,flip:false}
+  },
   tallow:{
     idle:{u:'/assets/anim/tallow/tallow_idle.webp?v=1',n:24,fw:253,fh:300,cols:6,rows:4,figH:254,feet:296,cx:125,fps:8,flip:false},
     walk:{u:'/assets/anim/tallow/tallow_walk.webp?v=1',n:24,fw:276,fh:300,cols:6,rows:4,figH:252,feet:294,cx:144,fps:14,flip:false},
@@ -1150,15 +1174,16 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=1',n:20,fw:300,fh:257,cols:6,rows:4,figH:191,feet:250,cx:142,fps:16,flip:false}
   },
   sprocket:{
-    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=1',n:24,fw:300,fh:206,cols:6,rows:4,figH:200,feet:203,cx:133,fps:8,flip:false},
-    walk:{u:'/assets/anim/sprocket/sprocket_walk.webp?v=1',n:24,fw:300,fh:229,cols:6,rows:4,figH:209,feet:221,cx:140,fps:14,flip:false},
-    attack:{u:'/assets/anim/sprocket/sprocket_attack.webp?v=1',n:24,fw:300,fh:284,cols:6,rows:4,figH:198,feet:281,cx:135,fps:18,flip:false,hold:0.9}
+    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=1',n:24,fw:300,fh:206,cols:6,rows:4,figH:200,feet:203,cx:133,fps:8,flip:true},
+    walk:{u:'/assets/anim/sprocket/sprocket_walk.webp?v=1',n:24,fw:300,fh:229,cols:6,rows:4,figH:209,feet:221,cx:140,fps:14,flip:true},
+    attack:{u:'/assets/anim/sprocket/sprocket_attack.webp?v=1',n:24,fw:300,fh:284,cols:6,rows:4,figH:198,feet:281,cx:135,fps:18,flip:true,hold:0.9},
+    hit:{u:'/assets/anim/sprocket/sprocket_hit.webp?v=1',n:24,fw:300,fh:289,cols:6,rows:4,figH:193,feet:273,cx:139,fps:16,flip:true}
   },
   meridian:{
-    idle:{u:'/assets/anim/meridian/meridian_idle.webp?v=1',n:24,fw:174,fh:300,cols:6,rows:4,figH:293,feet:297,cx:82,fps:8,flip:false},
-    walk:{u:'/assets/anim/meridian/meridian_walk.webp?v=1',n:24,fw:156,fh:300,cols:6,rows:4,figH:281,feet:291,cx:78,fps:14,flip:false},
-    attack:{u:'/assets/anim/meridian/meridian_attack.webp?v=1',n:24,fw:300,fh:257,cols:6,rows:4,figH:226,feet:255,cx:151,fps:18,flip:false,hold:0.9},
-    hit:{u:'/assets/anim/meridian/meridian_hit.webp?v=1',n:20,fw:300,fh:248,cols:6,rows:4,figH:226,feet:240,cx:147,fps:16,flip:false}
+    idle:{u:'/assets/anim/meridian/meridian_idle.webp?v=1',n:24,fw:174,fh:300,cols:6,rows:4,figH:293,feet:297,cx:82,fps:8,flip:true},
+    walk:{u:'/assets/anim/meridian/meridian_walk.webp?v=1',n:24,fw:156,fh:300,cols:6,rows:4,figH:281,feet:291,cx:78,fps:14,flip:true},
+    attack:{u:'/assets/anim/meridian/meridian_attack.webp?v=1',n:24,fw:300,fh:257,cols:6,rows:4,figH:226,feet:255,cx:151,fps:18,flip:true,hold:0.9},
+    hit:{u:'/assets/anim/meridian/meridian_hit.webp?v=1',n:20,fw:300,fh:248,cols:6,rows:4,figH:226,feet:240,cx:147,fps:16,flip:true}
   },
   hurne:{
     idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=1',n:24,fw:247,fh:300,cols:6,rows:4,figH:293,feet:297,cx:106,fps:8,flip:false},
@@ -1260,6 +1285,7 @@ const BATTLE_ANIM = {
   ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=2',n:12,fw:132,fh:213,cols:6,rows:2,figH:198,feet:206,cx:60,fps:12,flip:false,hold:1.2},
   green:{u:'/assets/anim/sylthaine/sylthaine_cast.webp?v=1',n:24,fw:133,fh:300,cols:6,rows:4,figH:247,feet:297,cx:65,fps:12,flip:false,hold:0.8},
   blue:{u:'/assets/anim/sylthaine/sylthaine_cast.webp?v=1',n:24,fw:133,fh:300,cols:6,rows:4,figH:247,feet:297,cx:65,fps:12,flip:false,hold:0.8},
+  channel:{u:'/assets/anim/sylthaine/sylthaine_channel.webp?v=2',n:24,fw:193,fh:300,cols:6,rows:4,figH:248,feet:298,cx:57,fps:10,flip:false},
   passive:{u:'/assets/anim/sylthaine/sylthaine_pass.webp?v=2',n:12,fw:127,fh:217,cols:6,rows:2,figH:199,feet:209,cx:58,fps:10,flip:false}
   },
   tick:{
@@ -1556,7 +1582,7 @@ const HERO_LORE = {
   oakmir:{title:'The Spring That Woke',text:"There is an oak older than the kingdom's oldest name, older than the road that curves to avoid it, and one grey morning — for no reason the trees have ever explained — it opened its eyes. Oakmir does not remember becoming. He remembers only the long green patience of being a tree: a hundred slow summers, the weight of nesting birds, the turning of the year felt through the soles of his roots. And then, all at once, he remembers the terrible speed of caring — the moment the patience broke open and became something that could no longer simply stand there while the world was being hurt.\n\nHe fights the way a forest fights: without hurry, and without end. He grows a whole season's worth of leaves with every stride and sheds them just as fast, and everything he passes mends a little in his wake — not out of mercy, exactly, but the way a root cannot help finding water. Wounds close. Fevers break. The dying discover, without quite knowing why, that they have decided to live a little longer. He asks nothing for it. A tree keeps no accounts; it grows toward the light and lets whatever needs the shade have the shade.\n\nThe speed still frightens him, on the nights he lets himself feel it. For a hundred years he loved the world at the pace of bark and stone, and to love it now at the pace of a beating heart is very nearly too much — every death a splinter, every spring a grief that it will not last. But he would not go back. Cut him down and he is already growing again, a little to the left, a little more stubborn, green fingers pushing up through the ash before the smoke has even cleared: the spring that woke, and having woken, will not be talked back into sleep."},
   rhukk:{title:'Straight Through',text:"In the deep loam beneath the Sunkfen, where the roots knot into ceilings and the light gives up entirely, there are things that never learned to be afraid — and Rhukk is the largest of them. The beetle-kin measure their elders in scars and in the length of their horns, and by both counts he stopped being measurable a long time ago. He is mostly horn and appetite: a moving wall of purple chitin that settled, at some point too far back in the dark to matter, on the single idea that has organized his entire life — that the fastest way through a thing is straight through it.\n\nHe does not circle. He does not feint. He does not, as far as anyone has ever been able to tell, plan. He lowers his head, and the world in front of him becomes the world behind him, and whatever was standing between the two learns very quickly that it should not have been. Walls are a suggestion. Shields are a noise he makes on his way past. The wise among the deep-things keep to the one rule that keeps them breathing: when the ground begins to shake in a straight line, do not be standing at the end of it.\n\nWhat little the beetle-kin call wisdom they carve onto their shells, every hard-won lesson etched in chitin for the young to read. Rhukk's shell is smooth. Unmarked. Not because he has learned nothing, but because he has never once needed to be read — he has never met the problem a running start and a lowered horn could not solve, and never lived long enough in doubt for doubt to leave a mark. There are older things in the deep than Rhukk, and cleverer ones, and a few even he steps around. But there is nothing down there that has ever made him turn."},
 };
-const HERO_SPRITES = {"tallow":"/assets/img/miscellaneous/hero-sprites-tallow.webp","astra":"/assets/img/miscellaneous/hero-sprites-astra.webp","magistrant":"/assets/img/miscellaneous/hero-sprites-magistrant.webp","vharn":"/assets/img/miscellaneous/hero-sprites-vharn.webp","fathom":"/assets/img/miscellaneous/hero-sprites-fathom.webp","lumi":"/assets/img/miscellaneous/hero-sprites-lumi.webp","meryln":"/assets/img/miscellaneous/hero-sprites-meryln.webp","hollow":"/assets/img/miscellaneous/hero-sprites-hollow.webp","sprocket":"/assets/img/miscellaneous/hero-sprites-sprocket.webp","meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
+const HERO_SPRITES = {"vesper":"/assets/img/miscellaneous/hero-sprites-vesper.webp","sablewick":"/assets/img/miscellaneous/hero-sprites-sablewick.webp","vex":"/assets/img/miscellaneous/hero-sprites-vex.webp","arrears":"/assets/img/miscellaneous/hero-sprites-arrears.webp","tallow":"/assets/img/miscellaneous/hero-sprites-tallow.webp","astra":"/assets/img/miscellaneous/hero-sprites-astra.webp","magistrant":"/assets/img/miscellaneous/hero-sprites-magistrant.webp","vharn":"/assets/img/miscellaneous/hero-sprites-vharn.webp","fathom":"/assets/img/miscellaneous/hero-sprites-fathom.webp","lumi":"/assets/img/miscellaneous/hero-sprites-lumi.webp","meryln":"/assets/img/miscellaneous/hero-sprites-meryln.webp","hollow":"/assets/img/miscellaneous/hero-sprites-hollow.webp","sprocket":"/assets/img/miscellaneous/hero-sprites-sprocket.webp","meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
 const TOWN_BG = "/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
@@ -2797,13 +2823,16 @@ function dealDamage(src,tgt,amt,color){
   if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*0.10,2,0.5,'#6fe3d4');
   // Whatever's Loaded (Rivet): every attack throws a DIFFERENT projectile, each with its own effect
   if(src.pass&&src.pass.arsenal&&tgt.alive){ src._armIdx=((src._armIdx||0)+1)%6; const pm=(src.passMul||1);
-    switch(src._armIdx){
-      case 0: tgt.stunned=Math.max(tgt.stunned||0,0.4*pm); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'WRENCH',t:.6,color:'#b08d57',vy:1,sz:10}); break;
-      case 1: enemiesOf(src).forEach(e=>{ if(e.alive&&dist(tgt,e)<1.6*METER) dealDamage(src,e,src.dmg*0.35*pm,'#ffa657'); }); burstAt(tgt.x,tgt.y,0xffa657,8); break;
+    const _i=src._armIdx, _tx=tgt.x, _ty=tgt.y;
+    try{ spawnArsenalShot(src,tgt,_i,()=>arsenalImpact(_i,_tx,_ty)); }catch(e){}
+    switch(_i){
+      case 0: tgt.stunned=Math.max(tgt.stunned||0,0.4*pm); break;
+      case 1: enemiesOf(src).forEach(e=>{ if(e.alive&&dist(tgt,e)<1.6*METER) dealDamage(src,e,src.dmg*0.35*pm,'#ffa657'); }); break;
       case 2: pushDot(tgt,src.dmg*0.18*pm,3,1,'#c0392b'); break;
       case 3: tgt.slow=Math.max(tgt.slow||0,1.5*pm); break;
       case 4: { let nx=null,nd=1e9; enemiesOf(src).forEach(e=>{ if(e.alive&&e!==tgt){ const d=dist(tgt,e); if(d<nd&&d<3*METER){nd=d;nx=e;} } });
-               if(nx){ dealDamage(src,nx,src.dmg*0.45*pm,'#bfe6ff'); spawnShot(tgt,nx,'#bfe6ff'); } break; }
+               if(nx){ const _nx=nx.x,_ny=nx.y; dealDamage(src,nx,src.dmg*0.45*pm,'#bfe6ff');
+                       try{ spawnArsenalShot(tgt,nx,4,()=>arsenalImpact(4,_nx,_ny)); }catch(e){} } break; }
       case 5: dealDamage(src,tgt,src.dmg*0.40*pm,'#ffe08a'); break;
     } }
 }
@@ -2869,7 +2898,23 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'fireorb':{ if(!tgt)break; const dmgAmt=dB*(o.mul||2.6)*rm, R=o.radius||58, atk=u, tx=tgt.x, ty=tgt.y;
       spawnOrb(u,tgt,0xff3411,3.6,()=>{ enemiesOf(atk).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-tx,e.y-ty); if(d<R){ dealDamage(atk,e,dmgAmt*(d<18?1:0.6),'#ff5b2a'); if(brnd()<.7)pushDot(e,atk.dmg*0.22,3,1,'#ff6a3a'); } }); burstAt(tx,ty,0xff3411,22); fireRain(tx,ty,R,15); if(atk.team==='ally')screenFlash=Math.max(screenFlash,.3); });
       break; }
-    case 'multiShot':{enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');spawnShot(u,e,'#5ee89b');});break;}
+    case 'multiShot':{
+      // Full Arsenal (Rivet): he stops choosing and fires every arm at once — all six
+      // rounds leave together, each landing with its own effect on top of the volley damage.
+      if(u.pass&&u.pass.arsenal){ const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).filter(e=>e.alive);
+        const prime=(tgt&&tgt.alive)?tgt:(es[0]||null); if(!prime)break; const pm=(u.passMul||1);
+        es.slice(0,o.n||5).forEach(e=>dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffe08a'));
+        for(let i=0;i<6;i++){ const e=es[i%Math.max(1,es.length)]||prime; const ex=e.x, ey=e.y;
+          try{ spawnArsenalShot(u,e,i,()=>arsenalImpact(i,ex,ey)); }catch(err){} }
+        // and every rider at once, on the primary
+        prime.stunned=Math.max(prime.stunned||0,0.4*pm);
+        prime.slow=Math.max(prime.slow||0,1.5*pm);
+        pushDot(prime,u.dmg*0.18*pm,3,1,'#c0392b');
+        enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,u.dmg*0.35*pm,'#ffa657'); });
+        dealDamage(u,prime,u.dmg*0.40*pm,'#ffe08a');
+        if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
+        break; }
+      enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');spawnShot(u,e,'#5ee89b');});break;}
     case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);}});burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
     case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,u.dmg*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'monkSlam':{ const ctr=(tgt&&tgt.alive)?tgt:u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to all enemies at the aimed point; a phantom Ruyi slams each
@@ -3194,6 +3239,54 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   doEffect(u, ab, ULT_DEF[ab]||{}); u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
   u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName+'!',t:1.1,color:'#ffd45e',vy:1.4});if(u.team==='ally')screenFlash=.3;
+}
+
+// ---------------------------------------------------------------------------
+// Rivet — "Whatever's Loaded". Nothing he throws is the same thing twice, so
+// every index of the passive gets its own physical projectile: its own shape,
+// its own weight (arc + flight time), its own trail and its own impact.
+// The ultimate, Full Arsenal, throws all six at once.
+// ---------------------------------------------------------------------------
+const ARSENAL=[
+  {k:'wrench', label:'WRENCH',     col:0xb08d57, trail:0x8a6b3f, geo:'box',  sc:[2.2,.42,.30], dur:.26, arc:2.4, spin:24, aim:false},
+  {k:'shell',  label:'INCENDIARY', col:0xffa657, trail:0xff6a2a, geo:'cone', sc:[1.5,.62,.62], dur:.24, arc:1.6, spin:0,  aim:true },
+  {k:'barb',   label:'BARB',       col:0xc0392b, trail:0x8f2b22, geo:'cone', sc:[2.0,.24,.24], dur:.16, arc:0,   spin:0,  aim:true },
+  {k:'oil',    label:'OIL',        col:0x6f8a55, trail:0x3f5230, geo:'sph',  sc:[1.05,.92,.92],dur:.28, arc:3.0, spin:5,  aim:false},
+  {k:'bearing',label:'RICOCHET',   col:0xbfe6ff, trail:0x9fd0ff, geo:'sph',  sc:[.62,.62,.62], dur:.13, arc:0,   spin:0,  aim:false},
+  {k:'slug',   label:'HEAVY',      col:0xffe08a, trail:0xd9b25a, geo:'cyl',  sc:[1.7,.95,.95], dur:.30, arc:1.1, spin:12, aim:true }
+];
+let _arsGeo=null;
+function arsGeo(kind){ if(!TH)return null;
+  if(!_arsGeo) _arsGeo={ box:new TH.BoxGeometry(.34,.34,.34), cone:new TH.ConeGeometry(.22,.7,7),
+                         sph:new TH.SphereGeometry(.2,8,8),   cyl:new TH.CylinderGeometry(.2,.2,.6,8) };
+  return _arsGeo[kind]||_arsGeo.sph; }
+// One arsenal round in flight. Cosmetic only — the sim has already resolved the
+// hit, exactly like spawnShot; onHit just plays the landing.
+function spawnArsenalShot(from,to,idx,onHit){ if(!TH||!scene||!from||!to)return; const A=ARSENAL[idx%6]; if(!A)return;
+  const g=arsGeo(A.geo); if(!g)return;
+  const mesh=new TH.Mesh(g,new TH.MeshStandardMaterial({color:A.col,emissive:A.col,emissiveIntensity:.55,roughness:.5,metalness:.6}));
+  // cone/cylinder geometry runs along local +Y, so the LENGTH goes in y for those two
+  if(A.geo==='cone'||A.geo==='cyl') mesh.scale.set(A.sc[1],A.sc[0],A.sc[2]);
+  else mesh.scale.set(A.sc[0],A.sc[1],A.sc[2]);
+  const sxw=wx(from.x), szw=wz(from.y), txw=wx(to.x), tzw=wz(to.y);
+  if(A.aim){ mesh.rotation.z=-Math.PI/2; mesh.rotation.y=Math.atan2(-(tzw-szw),txw-sxw); }   // long axis -> travel
+  mesh.position.set(sxw,1,szw); scene.add(mesh);
+  shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:A.dur*HERO_FX_MUL,
+              spin:A.spin,arc:A.arc,trailC:A.trail,onDone:onHit});
+  try{ burstAt(from.x,from.y,A.col,4); }catch(e){} }
+// The landing: each round breaks differently.
+function arsenalImpact(idx,x,y){ const A=ARSENAL[idx%6]; if(!A)return;
+  try{
+    switch(idx%6){
+      case 0: burstAt(x,y,A.col,10); ringBurst(x,y,0xffe08a,10); break;             // wrench — clang
+      case 1: burstAt(x,y,0xffa657,16); fireRain(x,y,26,8); break;                  // incendiary — splash
+      case 2: burstAt(x,y,0xc0392b,8); break;                                       // barb — small red spit
+      case 3: ringBurst(x,y,0x3f5230,14); burstAt(x,y,0x6f8a55,8); break;           // oil — slick spreads
+      case 4: burstAt(x,y,0xbfe6ff,6); break;                                       // bearing — spark
+      case 5: burstAt(x,y,0xffe08a,20); ringBurst(x,y,0xd9b25a,16); break;          // slug — heavy
+    }
+    floatTexts.push({x,y:y-9,txt:A.label,t:.65,color:'#'+A.col.toString(16).padStart(6,'0'),vy:1,sz:10});
+  }catch(e){}
 }
 function spawnShot(from,to,color){const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2);mesh.position.set(wx(from.x),1,wz(from.y));scene.add(mesh);shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL});}
 // Umbris basic-attack projectile: a violet shadow orb that departs from his HAND (a forward offset toward the
@@ -3538,6 +3631,9 @@ const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same 
 const XFER_DIR={x:0.70,y:-0.71};          // the invisible line: bottom-left → top-right (field +x, -y)
 const XFER_OFFSCREEN=880;                 // how far back down the line the off-screen staging point sits
 function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:hy - XFER_DIR.y*XFER_OFFSCREEN}; }   // straight down the line, off the bottom-left
+// The monsters use the OTHER end of that line: they come on from off the top-right and walk down
+// into their slots while the heroes walk up into theirs, so a wave opens with both sides marching in.
+function monsterOffscreenStart(hx,hy){ return {x:hx + XFER_DIR.x*XFER_OFFSCREEN, y:hy + XFER_DIR.y*XFER_OFFSCREEN}; }
 // snap surviving heroes to their home slots (heal/reset), then shove them down the line off the bottom-left to walk back in
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
@@ -3563,6 +3659,10 @@ function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
+  // the wave's monsters march on too — remember where each one belongs, then park it off the top-right
+  units.filter(u=>u.team==='enemy'&&u.alive).forEach(u=>{ u.target=null; u.attackAnim=0; u.castAnim=0;
+    u.homeX=u.x; u.homeY=u.y;
+    const st=monsterOffscreenStart(u.x,u.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   waveXfer={phase:'enter',t:0};
 }
 function beginWaveExit(){ purgeDead(); purgeTransientFx(); waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
@@ -3575,12 +3675,13 @@ function updateWaveXfer(dt){
     if(waveXfer.t>=2){ waveXfer=null; endBattle(true); }
     return;
   }
-  if(waveXfer.phase==='enter'){   // walk UP the line into home slots (25% slower), then resume combat
+  if(waveXfer.phase==='enter'){   // BOTH sides walk the line into their slots, then combat resumes
     let allIn=true;
-    allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0;
+    const marching=units.filter(u=>u.alive && u.homeX!=null && (u.team==='ally'||u.team==='enemy'));
+    marching.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
-    if(allIn || waveXfer.t>6){ allies.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // all in position → resume 1x combat (safety timeout raised for the slower walk speed)
+    if(allIn || waveXfer.t>6){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // everyone in position → resume 1x combat
     return;
   }
   // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
@@ -3839,6 +3940,9 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         let st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
         if(rising) st='rise';
+        // Channelled ultimates (Blizzard / Thunder Shower): once the cast clip has finished
+        // raising the staff, hold the channel clip for the rest of the storm.
+        else if(!abilActive && ((u._blizzT||0)>0 || (u._stormT||0)>0) && u.anim.channel) st='channel';
         let A=u.anim[st]||u.anim.idle;
         // NEVER go invisible: if this clip's sheet hasn't finished downloading (or failed), show idle instead of a blank frame.
         const _rdyC=(c)=>c&&c.tex&&!c._err&&c.tex.image&&c.tex.image.complete&&c.tex.image.naturalWidth>0;
@@ -4017,7 +4121,8 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
     case 'fireball': case 'aoedot': fireRain(T.x,T.y,o.radius||95,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break;
     case 'shadeburst': rainDown(u.x,u.y,o.radius||90,16,0x9a6fff); break;
     case 'umbralcata': burstAt(u.x,u.y+2,0x7a3fb0,14); ringBurst(u.x,u.y,0x4a2a6a,10); if(u.team==='ally')screenFlash=Math.max(screenFlash,.16); break;
-    case 'multiShot': case 'volley': { const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4); (es.length?es:[T]).forEach(e=>rainDown(e.x,e.y,26,5,0x8fffb0)); break; }
+    case 'multiShot': case 'volley': { if(u.pass&&u.pass.arsenal){ ringBurst(u.x,u.y,0xb08d57,18); break; }
+      const es=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4); (es.length?es:[T]).forEach(e=>rainDown(e.x,e.y,26,5,0x8fffb0)); break; }
     case 'aoeStun': case 'stun': boltAt(u.x,u.y,0x8fd0ff); ringBurst(u.x,u.y,0x6ea8ff,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.28); break;
     case 'monkSlam': boltAt(u.x,u.y,0xffe08a); ringBurst(u.x,u.y,0xffcf40,20); burstAt(u.x,u.y,0xffe08a,14); if(u.team==='ally')screenFlash=Math.max(screenFlash,.32); break;
     case 'nova': ringBurst(u.x,u.y,o.slow?0x7fb0ff:0xff8844,20); break;
@@ -4635,12 +4740,12 @@ function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)r
 // hero portrait and the glossary tile — the cutouts remain the ANIMATION source, not the display art.
 const HERO_CARD_ART={};
 HERO_CARD_ART.carn='/assets/img/hero-cards/card-carn.webp?v=5';
-HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=5';
+HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=6';
 HERO_CARD_ART.arrears='/assets/img/hero-cards/card-arrears.webp?v=5';
 HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=5';
 HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=5';
-HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=5';
-HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=5';
+HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=6';
+HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=6';
 HERO_CARD_ART.tallow='/assets/img/hero-cards/card-tallow.webp?v=5';
 HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=5';
 HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=5';
@@ -8325,13 +8430,21 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
-  if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);const yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):1;s.mesh.position.set(wx(s.sx+(s.tx-s.sx)*k),yy,wz(s.sy+(s.ty-s.sy)*k));if(s.orb){const g=6.2*(1-0.28*k);s.mesh.scale.set(g,g,1);}});renderer.render(scene,camera);}
+  if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);
+    let yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):1;
+    if(s.arc) yy=1+Math.sin(k*Math.PI)*s.arc;                                  // heavy rounds lob, darts fly flat
+    s.mesh.position.set(wx(s.sx+(s.tx-s.sx)*k),yy,wz(s.sy+(s.ty-s.sy)*k));
+    if(s.orb){const g=6.2*(1-0.28*k);s.mesh.scale.set(g,g,1);}
+    if(s.spin){ s.mesh.rotation.z+=s.spin*dt; s.mesh.rotation.x+=s.spin*.45*dt; }   // the wrench tumbles end over end
+    if(s.trailC!==undefined){ s._tacc=(s._tacc||0)+dt; if(s._tacc>=.022){ s._tacc=0;
+      try{ fxParticle(s.mesh.position.x,s.mesh.position.y,s.mesh.position.z,(Math.random()-.5)*.3,.35,(Math.random()-.5)*.3,s.trailC,.34,.34); }catch(e){} } }
+  });renderer.render(scene,camera);}
   drawOverlay(); requestAnimationFrame(loop);
 }
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787330000000';
+const BUILD_ID='1787335000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
