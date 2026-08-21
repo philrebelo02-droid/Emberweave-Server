@@ -1003,11 +1003,11 @@ const HERO_TYPES = {
   sylthaine:{name:'Sylthaine',emoji:'❄️',role:'Mage',   swing:2.0, stars:1,hp:150,dmg:14,apow:32,range:200,speed:56,atkSpeed:0.85,color:0x7fb6ff,abilityName:'Blizzard',ability:'blizzard',locked:true},
   aureth: {name:'Aureth',    emoji:'☯️',role:'Fighter', swing:2.4, stars:3,hp:460,dmg:24,apow:24,range:28, speed:56,atkSpeed:0.9, color:0xe8c65a,abilityName:'Eclipse',ability:'eclipse',hybrid:true,myth:true,source:'purchase',locked:true},
   bloatus:{name:'King Bloatus',emoji:'🐸',role:'Tank',  swing:2.4, stars:3,hp:540,dmg:24,apow:28,range:30,speed:52,atkSpeed:0.9, color:0x8fbf3f,abilityName:'Plague Sovereign',ability:'plaguesov',locked:true,start:3},
-  vireo:  {name:'Vireo',     emoji:'🎼',role:'Mage',    swing:2.0, stars:1,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
+  vireo:  {name:'Vireo',     emoji:'🎼',role:'Support',    swing:2.0, stars:1,hp:220,dmg:16,apow:30,range:180,speed:56,atkSpeed:0.9, color:0xc07fe0,abilityName:'Grand Symphony',ability:'symphony',healer:true,locked:true},
   fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:2,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, armor:60, mr:90, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true,start:2},
   umbris: {name:'Umbris',    emoji:'🌑',role:'Mage',    swing:2.0, stars:3,hp:170,dmg:22,apow:32,range:210,speed:54,atkSpeed:0.85,color:0x6d4aa3,abilityName:'Umbral Cataclysm',ability:'umbralcata',locked:true,start:3},
    vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:1,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
-   oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true,start:3},
+   oakmir: {name:'Oakmir',    emoji:'🌳',role:'Support', swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true,start:3},
    rhukk:  {name:'Rhukk',     emoji:'🪲',role:'Bruiser', swing:2.4, stars:2,hp:430,dmg:26,range:28, speed:56,atkSpeed:0.9, color:0x7a5fb0,abilityName:'Impale Rush',ability:'charge',locked:true,start:2},
    hurne:   {name:'Hurne the Chained',emoji:'\u26D3\uFE0F',role:'Fighter',swing:2.5,stars:3,hp:520,dmg:32,range:30,speed:52,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase',wip:true},
    meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:3,hp:200,dmg:34,range:210,speed:54,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,wip:true,start:3},
@@ -1021,10 +1021,10 @@ const HERO_TYPES = {
    sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:3,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,wip:true,start:3},
    carn:    {name:'Carn',emoji:'🩸',role:'Bruiser',swing:2.4,stars:1,hp:410,dmg:34,range:28,speed:60,atkSpeed:1.05,color:0xb03a3a,abilityName:'Crimson Reap',ability:'cleave',locked:true,wip:true},
    vesper:  {name:'The Annotator',emoji:'📖',role:'Mage',swing:2.0,stars:2,hp:190,dmg:16,apow:32,range:215,speed:54,atkSpeed:0.85,color:0xc9a227,abilityName:'Puncture',ability:'riftpuncture',locked:true,wip:true,start:2},
-   sablewick:{name:'Tessit',emoji:'⏳',role:'Mage',swing:2.0,stars:2,hp:200,dmg:15,apow:31,range:205,speed:54,atkSpeed:0.85,color:0x4fc4a8,abilityName:'Hourglass',ability:'aoeStun',locked:true,wip:true,start:2},
+   sablewick:{name:'Tessit',emoji:'⏳',role:'Support',swing:2.0,stars:2,hp:200,dmg:15,apow:31,range:205,speed:54,atkSpeed:0.85,color:0x4fc4a8,abilityName:'Hourglass',ability:'aoeStun',locked:true,wip:true,start:2},
    vex:     {name:'Vex',emoji:'🔪',role:'Assassin',swing:1.8,stars:1,hp:320,dmg:34,range:26,speed:64,atkSpeed:1.15,color:0x7a3fa0,abilityName:'Razor Tempest',ability:'triplecleave',locked:true,wip:true},
-   arrears: {name:'Grimsby',emoji:'📜',role:'Mage',swing:2.2,stars:3,hp:230,dmg:20,apow:30,range:200,speed:52,atkSpeed:0.85,color:0x3a3a44,abilityName:'Foreclosure',ability:'aoedot',locked:true,wip:true,start:3},
-   meryln:  {name:'Dandra',emoji:'🌸',role:'Mage',swing:2.0,stars:1,hp:200,dmg:12,apow:30,range:185,speed:56,atkSpeed:0.9,color:0x8a5fd0,abilityName:"Queen's Call",ability:'rally',healer:true,locked:true,wip:true},
+   arrears: {name:'Grimsby',emoji:'📜',role:'Bruiser',swing:2.2,stars:3,hp:360,dmg:28,range:200,speed:52,atkSpeed:0.85,color:0x3a3a44,abilityName:'Foreclosure',ability:'aoedot',locked:true,wip:true,start:3},
+   meryln:  {name:'Dandra',emoji:'🌸',role:'Support',swing:2.0,stars:1,hp:200,dmg:12,apow:30,range:185,speed:56,atkSpeed:0.9,color:0x8a5fd0,abilityName:"Queen's Call",ability:'rally',healer:true,locked:true,wip:true},
 };
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
@@ -1533,7 +1533,7 @@ function heroHasAnim(key){ const set=BATTLE_ANIM[key]; return !!(set && set.idle
 const WALK_STRIDE=0.12;                      // walk-cycle frames advanced per field-unit moved (foot-locked cadence; halved for a calmer stride)
 // Battlefield size is ROLE-DRIVEN so every hero (current + future) auto-sizes by role.
 // height(world) = ROLE_BATTLE_H[role] * (r/18) * (HERO_BATTLE_SCALE[key]||1  // optional per-hero fine-tune)
-const ROLE_BATTLE_H={ Tank:4.5, Bruiser:3.9, Fighter:3.9, Assassin:3.6, Mage:3.5 };
+const ROLE_BATTLE_H={ Tank:4.5, Bruiser:3.9, Fighter:3.9, Assassin:3.6, Mage:3.5, Marksman:3.5, Support:3.5 };
 const HERO_BATTLE_H={ vireo:3.6, 'boar warrior':3.1, 'boar shaman':3.1 };  // per-hero ROW override (absolute world height) — e.g. Vireo is mid-row support, not backline
 const ROLE_BATTLE_DEFAULT=3.6;
 function roleBattleH(key){ if(HERO_BATTLE_H[key]!=null) return HERO_BATTLE_H[key]; const t=HERO_TYPES[key]; return (t&&ROLE_BATTLE_H[t.role])||ROLE_BATTLE_DEFAULT; }
@@ -2562,7 +2562,7 @@ function teamXOff(team){ return team==='ally' ? -DIAG_X : DIAG_X; }
 function formationSlots(team,n){const s=[];const backY=team==='ally'?1150:250,frontY=team==='ally'?950:450;const ox=teamXOff(team);const lx=i=>ox+320+360*(n<=1?0.5:(i/(n-1)));for(let i=0;i<n;i++)s.push({x:lx(i),backY,frontY});return s;}
 // role-based depth: Tank leads at the front, melee just behind, ranged & healers ~3.4 character-distances back
 const CHAR_DIST=52;
-function roleDepth(role){ if(role==='Tank')return 0; if(role==='Fighter')return 0.4; if(role==='Warrior'||role==='Bruiser'||role==='Brute'||role==='Assassin')return 1; return 3.4; }   // Fighter ≈ 2 m behind the tank line
+function roleDepth(role){ if(role==='Tank')return 0; if(role==='Fighter')return 0.4; if(role==='Warrior'||role==='Bruiser'||role==='Brute'||role==='Assassin')return 1; return 3.4; }   // Mage, Marksman and Support all hold the back row   // Fighter ≈ 2 m behind the tank line
 function roleLaneY(team,role){ const d=roleDepth(role)*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
 const ROW_OVERRIDE={// combat-row depth override (0 front .. 2 mid .. 3.4 back). Front=melee, mid/back=ranged.
   'bug':1, 'monster with fireball':1,                                              // → FRONT (melee)
@@ -8526,7 +8526,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787344000000';
+const BUILD_ID='1787345000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
