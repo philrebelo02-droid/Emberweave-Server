@@ -2573,7 +2573,9 @@ const ROW_OVERRIDE={// combat-row depth override (0 front .. 2 mid .. 3.4 back).
   'bug':1, 'monster with fireball':1,                                              // → FRONT (melee)
   'glitch phantom':2, 'knat':2, 'raven':2, 'ice beast':2, 'water monster':2, 'dyrmen':2,   // → MID (ranged, 13 m)
   'fire skeleton':3.4, 'shadow ghoul':3.4,                                         // → BACK (ranged, 25 m)
-  hurne:0, vireo:2, fritz:2,                                                              // bloatus REMOVED 2026-08-20: he is a FRONT-row magical tank (Phil), and this override
+  hurne:0, vireo:2, fritz:2, sablewick:2,   // Support is a ROLE, not a row (Phil): Vireo and Tessit are mid-row supports;
+                                          // Oakmir, Dandra and Lumi hold the true backline.
+                                                              // bloatus REMOVED 2026-08-20: he is a FRONT-row magical tank (Phil), and this override
                                                                                   // was beating roleDepth('Tank')=0 and pinning him to the mid row.
   fathom:2, sprocket:2, arrears:2};                                               // batch-2 mid-row heroes                                                    // new heroes → MID row (Phil's pick)
 function laneDepthY(team,key){ const role=(HERO_TYPES[key]||MONSTER_TYPES[key]).role; const d=((ROW_OVERRIDE[key]!=null)?ROW_OVERRIDE[key]:roleDepth(role))*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
@@ -4763,6 +4765,7 @@ function openStageModal(i){
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" id="smBattle" ${canPay?'':'disabled'}>⚔️ Battle ▶ ${cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'}</button>
         ${cleared?`<button class="btn secondary" id="smSweep" ${canPay?'':'disabled'}>💨 Sweep (instant · ${campaignPlayerXP(i,false)} XP)</button>`:''}
+        ${cleared?`<button class="btn secondary" id="smSweep10" ${canPay?'':'disabled'}>💨 Sweep ×10 (⧗ ${stageStamCost(i)*10} · ${campaignPlayerXP(i,false)*10} XP)</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
       </div>
       ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
@@ -4772,19 +4775,38 @@ function openStageModal(i){
   body.querySelector('#smClose').onclick=closeStageModal;
   body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i);
+  const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10);
 }
 function closeStageModal(){ document.getElementById('stageModal').classList.remove('active'); }
-function sweepStage(i){
-  regenStamina(); if(G.stamina<stageStamCost(i)){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
-  G.stamina-=stageStamCost(i);
-  const gold=40+i*30, pxp=campaignPlayerXP(i,false); G.gold+=gold; addPlayerXP(pxp); grantTeamXP(isBossStage(i)?12:STAGE_XP_SWEEP);   // sweeping grants player XP (+30 stamina per level)
-  const drops=rollDrops(i); for(const k in drops) G.mats[k]=(G.mats[k]||0)+drops[k];
-  const gg=rollGlyphDrop(); giveGlyph(gg,1); const glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
-  let eliteStr='',um='';
-  if(isEliteStage(i)){ const hk=eliteHeroFor(i), fh=HERO_TYPES[hk]; const _um=giveHeroFrag(hk,1); if(_um)um=_um; eliteStr=`<br><span style="color:#c9a0ff">⭐ +1 ${fh.name} fragment</span>`; }
+// Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
+// can actually pay for and says how many it ran, rather than refusing the whole batch at 9/10.
+function sweepStage(i,times){
+  times=Math.max(1,times||1);
+  regenStamina();
+  const cost=stageStamCost(i), afford=Math.floor(G.stamina/cost);
+  if(afford<1){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
+  const runs=Math.min(times,afford);
+  const heroXPEach=isBossStage(i)?12:STAGE_XP_SWEEP, pxpEach=campaignPlayerXP(i,false);
+  G.stamina-=cost*runs;
+  const gold=(40+i*30)*runs, pxp=pxpEach*runs, hxp=heroXPEach*runs;
+  G.gold+=gold; addPlayerXP(pxp); grantTeamXP(hxp);
+  const drops={}, glyphs={}; let frags=0, um='';
+  for(let r=0;r<runs;r++){
+    const d=rollDrops(i); for(const k in d){ drops[k]=(drops[k]||0)+d[k]; G.mats[k]=(G.mats[k]||0)+d[k]; }
+    const gg=rollGlyphDrop(); giveGlyph(gg,1); glyphs[gg]=(glyphs[gg]||0)+1;
+    if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _um=giveHeroFrag(hk,1); if(_um)um=_um; frags++; }
+  }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
-  document.getElementById('smMsg').innerHTML=`Swept! 🪙 +${gold} · +${pxp} XP · +${isBossStage(i)?12:STAGE_XP_SWEEP} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
+  // one line per distinct glyph, with a ×N when the same one dropped more than once
+  const glyphStr=Object.entries(glyphs).map(([g,c])=>
+    `<br><span style="color:${glyphRarityOf(glyphParse(g).rk).col}">💠 ${glyphName(g)} glyph${c>1?' ×'+c:''}</span>`).join('');
+  const eliteStr=frags?`<br><span style="color:#c9a0ff">⭐ +${frags} ${HERO_TYPES[eliteHeroFor(i)].name} fragment${frags>1?'s':''}</span>`:'';
+  const head=runs>1?`Swept ×${runs}!`+(runs<times?` <span style="color:#8b98a9">(stamina ran out)</span>`:''):'Swept!';
+  document.getElementById('smMsg').innerHTML=`${head} 🪙 +${gold} · +${pxp} XP · +${hxp} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
+  // refresh the modal's stamina line so the buttons disable when the bar is spent
+  const smb=document.getElementById('smBattle'), sms=document.getElementById('smSweep'), smt=document.getElementById('smSweep10');
+  [smb,sms,smt].forEach(b=>{ if(b) b.disabled = G.stamina<cost; });
 }
 /* ===== GLOSSARY (bestiary + hero codex) ===== */
 const GLOSSARY_ART={"bosses/ice beast": "/assets/img/glossary/glossary-bosses-ice-beast.webp", "bosses/monster with fireball": "/assets/img/glossary/glossary-bosses-monster-with-fireball.webp", "bosses/nashor beast": "/assets/img/glossary/glossary-bosses-nashor-beast.webp", "bosses/ogre beast": "/assets/img/glossary/glossary-bosses-ogre-beast.webp", "bosses/water monster": "/assets/img/glossary/glossary-bosses-water-monster.webp", "bosses/water serpent": "/assets/img/glossary/glossary-bosses-water-serpent.webp", "heroes/Grohm": "/assets/img/glossary/glossary-heroes-grohm.webp", "heroes/Musician": "/assets/img/glossary/glossary-heroes-musician.webp", "heroes/ancient groot": "/assets/img/glossary/glossary-heroes-ancient-groot.webp", "heroes/beetle warrior": "/assets/img/glossary/glossary-heroes-beetle-warrior.webp", "heroes/clockwork fighter": "/assets/img/glossary/glossary-heroes-clockwork-fighter.webp", "heroes/explorer archeologist": "/assets/img/glossary/glossary-heroes-explorer-archeologist.webp", "heroes/flail fat guy": "/assets/img/glossary/glossary-heroes-flail-fat-guy.webp", "heroes/frost mage": "/assets/img/glossary/glossary-heroes-frost-mage.webp", "heroes/galaxy girl": "/assets/img/glossary/glossary-heroes-galaxy-girl.webp", "heroes/gods protector": "/assets/img/glossary/glossary-heroes-gods-protector.webp", "heroes/judge ant": "/assets/img/glossary/glossary-heroes-judge-ant.webp", "heroes/king toad": "/assets/img/glossary/glossary-heroes-king-toad.webp", "heroes/lizard warrior": "/assets/img/glossary/glossary-heroes-lizard-warrior.webp", "heroes/lost soul": "/assets/img/glossary/glossary-heroes-lost-soul.webp", "heroes/lumi": "/assets/img/glossary/glossary-heroes-lumi.webp", "heroes/meryln, candy wannabe": "/assets/img/glossary/glossary.webp", "heroes/no face man": "/assets/img/glossary/glossary-heroes-no-face-man.webp", "heroes/robot": "/assets/img/glossary/glossary-heroes-robot.webp", "heroes/static shock": "/assets/img/glossary/glossary-heroes-static-shock.webp", "heroes/sword 1 arm red vein guy": "/assets/img/glossary/glossary-heroes-sword-1-arm-red-vein-guy.webp", "heroes/time slicer": "/assets/img/glossary/glossary-heroes-time-slicer.webp", "heroes/time witch": "/assets/img/glossary/glossary-heroes-time-witch.webp", "heroes/vex": "/assets/img/glossary/glossary-heroes-vex.webp", "heroes/void mage": "/assets/img/glossary/glossary-heroes-void-mage.webp", "heroes/wailing landlord": "/assets/img/glossary/glossary-heroes-wailing-landlord.webp", "heroes/ying yang": "/assets/img/glossary/glossary-heroes-ying-yang.webp", "monsters/bug": "/assets/img/glossary/glossary-monsters-bug.webp", "monsters/creep": "/assets/img/glossary/glossary-monsters-creep.webp", "monsters/dyrmen": "/assets/img/glossary/glossary-monsters-dyrmen.webp", "monsters/fire boar": "/assets/img/glossary/glossary-monsters-fire-boar.webp", "monsters/fire skeleton": "/assets/img/glossary/glossary-monsters-fire-skeleton.webp", "monsters/garbage mob": "/assets/img/glossary/glossary-monsters-garbage-mob.webp", "monsters/ghoul fiend": "/assets/img/glossary/glossary-monsters-ghoul-fiend.webp", "monsters/glitch phantom": "/assets/img/glossary/glossary-monsters-glitch-phantom.webp", "monsters/golem": "/assets/img/glossary/glossary-monsters-golem.webp", "monsters/knat": "/assets/img/glossary/glossary-monsters-knat.webp", "monsters/lost soulss": "/assets/img/glossary/glossary-monsters-lost-soulss.webp", "monsters/mimic chest": "/assets/img/glossary/glossary-monsters-mimic-chest.webp", "monsters/orc": "/assets/img/glossary/glossary-monsters-orc.webp", "monsters/raven": "/assets/img/glossary/glossary-monsters-raven.webp", "monsters/rock golem": "/assets/img/glossary/glossary-monsters-rock-golem.webp", "monsters/shadow ghoul": "/assets/img/glossary/glossary-monsters-shadow-ghoul.webp", "monsters/skeletal warrior": "/assets/img/glossary/glossary-monsters-skeletal-warrior.webp", "monsters/slime": "/assets/img/glossary/glossary-monsters-slime.webp", "monsters/slug beast": "/assets/img/glossary/glossary-monsters-slug-beast.webp", "monsters/tin beast": "/assets/img/glossary/glossary-monsters-tin-beast.webp", "monsters/turtle": "/assets/img/glossary/glossary-monsters-turtle.webp", "monsters/whisp candle": "/assets/img/glossary/glossary-monsters-whisp-candle.webp"};      // { "cat/id": dataURI thumbnail }
@@ -6949,7 +6971,7 @@ const GOLD_WELL_HEROES=['tick','meryln','carn'];          // Tick, Dandra, Carn
 function wishStarPool(n){ return HERO_KEYS.filter(k=>{ const t=HERO_TYPES[k];
   return t && t.locked && !t.myth && !t.source && heroStartStars(k)===n; }); }
 function pickFrom(a,fb){ return a.length?a[Math.floor(Math.random()*a.length)]:fb; }
-const WISH_GOLD_HERO_CHANCE=0.03, WISH_GOLD_FRAG_CHANCE=0.10;   // gold: 3% full hero, 10% 2-3 fragments
+const WISH_GOLD_HERO_CHANCE=0.05, WISH_GOLD_FRAG_CHANCE=0.15;   // gold: 5% full hero, 15% 2-3 fragments (Phil)
 const WISH_GEM_KONWU=0.001, WISH_GEM_FULL3=0.01, WISH_GEM_FULL2=0.08, WISH_GEM_FRAG2=0.15, WISH_GEM_FRAG3=0.10;
 const WISH_HERO_CHANCE=WISH_GEM_FULL2+WISH_GEM_FULL3;     // total chance of a FULL hero from the diamond pool (9%)
 const WISH_KONWU_CHANCE=WISH_GEM_KONWU;                   // 0.1% KonWu
@@ -7014,6 +7036,15 @@ function doGemRoll(rigged){
   if(r<0.60) return wishMat('green', 8+Math.floor(Math.random()*8));
   if(r<0.80) return wishMat('purple', 1+Math.floor(Math.random()*3));
   return wishGems(20+Math.floor(Math.random()*40)); }
+// ---- "Wish Again" — repeat the same pull straight from the result popup ----
+// Free wishes count: if a free one is ready the button says Free and costs nothing.
+function wishAgainInfo(pool,n){
+  if(pool==='gold'){ const free=(n===1)&&wishGoldFreeReady(), cost=(n===1)?WISH_GOLD_COST:wishGold10Cost();
+    return {free, cost, cur:'🪙', have:(G.gold||0), label:free?'Wish Again · Free':('Wish Again'+(n>1?' ×10':'')+' · 🪙'+cost)}; }
+  const free=(n===1)&&wishGemFreeReady(), cost=(n===1)?WISH_GEM_COST:wishGem10Cost();
+  return {free, cost, cur:'💎', have:(G.gems||0), label:free?'Wish Again · Free':('Wish Again'+(n>1?' ×10':'')+' · 💎'+cost)}; }
+function wishAgainBtnHTML(pool,n,id){ const w=wishAgainInfo(pool,n), ok=w.free||w.have>=w.cost;
+  return `<button class="btn ${ok?'':'secondary'}" id="${id}" ${ok?'':'disabled'} style="width:100%;margin-top:8px">🔁 ${w.label}</button>`; }
 function showWishResult(res,pool){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 46px #000b">
@@ -7021,10 +7052,12 @@ function showWishResult(res,pool){ const ov=document.createElement('div');
     <div style="font-size:60px;margin:8px 0;${res.big?'animation:wishbob 1.6s ease-in-out infinite':''}">${res.heroAnim?heroIdleAnimHTML(res.heroAnim):res.icon}</div>
     <div style="font-size:16px;font-weight:800;color:#e6edf3;line-height:1.4">${res.name}</div>
     ${res.extra?`<div style="font-size:12px;color:#5ee89b;margin-top:6px">${res.extra}</div>`:''}
-    <button class="btn" style="margin-top:16px;width:100%" id="_wishOk">Collect</button></div>`;
+    <button class="btn" style="margin-top:16px;width:100%" id="_wishOk">Collect</button>
+    ${wishAgainBtnHTML(pool,1,'_wishAgain')}</div>`;
   document.body.appendChild(ov); startHeroIdleAnims(ov);
   const _close=()=>{ stopHeroIdleAnims(ov); ov.remove(); };
   ov.querySelector('#_wishOk').onclick=_close;
+  { const a=ov.querySelector('#_wishAgain'); if(a) a.onclick=()=>{ _close(); (pool==='gem'?wishGemDo:wishGoldDo)(); }; }
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
 function finishWish(res,pool){ G.wishClicks=(G.wishClicks||0)+1; saveG(); updateHubChrome(); updateMailBadges(); showWishResult(res,pool); renderWishing(); }
 function wishGoldDo(){ const free=wishGoldFreeReady();
@@ -7050,12 +7083,14 @@ function showWishResults10(list,pool){ const ov=document.createElement('div');
         return `<div class="w10card" style="opacity:0;transform:scale(.5) translateY(8px);transition:opacity .26s ease-out,transform .26s ease-out;background:#0f1524;border:1px solid ${r.big?'#ffd45e':'#2a3550'};border-radius:10px;padding:7px 3px;${r.big?'box-shadow:0 0 8px rgba(255,212,94,.5)':''}">
         ${ic}<div style="font-size:8.5px;color:#cdd6e4;line-height:1.2;margin-top:3px">${r.name}</div></div>`; }).join('')}
     </div>
-    <button class="btn" style="width:100%" id="_w10Ok">Collect All</button></div>`;
+    <button class="btn" style="width:100%" id="_w10Ok">Collect All</button>
+    ${wishAgainBtnHTML(pool,10,'_w10Again')}</div>`;
   document.body.appendChild(ov); startHeroIdleAnims(ov);
   const _cards=[...ov.querySelectorAll('.w10card')];   // dominoes: reveal one at a time
   _cards.forEach((c,i)=>{ setTimeout(()=>{ c.style.opacity='1'; c.style.transform='scale(1) translateY(0)'; }, 130+i*115); });
   const _close=()=>{ stopHeroIdleAnims(ov); ov.remove(); };
   ov.querySelector('#_w10Ok').onclick=_close;
+  { const a=ov.querySelector('#_w10Again'); if(a) a.onclick=()=>{ _close(); (pool==='gem'?wishGem10:wishGold10)(); }; }
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
 function wishGold10(){ const cost=wishGold10Cost();
   if((G.gold||0)<cost){ bannerMsg('Need 🪙'+cost+' for 10 wishes.'); return; }
@@ -7079,7 +7114,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-cost">🪙 ${WISH_GOLD_COST} / wish</div>
       <div class="wp-free ${goldFree?'on':''}">${goldFree?'✨ Free wish ready':(goldLeft>0?('⏳ Next free '+fmtDur(goldNext||0)):'Daily free wishes used')}</div>
       <div class="wp-sub">Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour</div>
-      <div class="wp-sub" style="opacity:.75">3% full hero · 10% fragments</div>
+      <div class="wp-sub" style="opacity:.75">5% full hero · 15% fragments</div>
       <button class="btn ${canGold?'':'secondary'}" id="wpGold" ${canGold?'':'disabled'}>${goldFree?'Wish · Free':'Wish · 🪙'+WISH_GOLD_COST}</button>
       <button class="btn secondary ${(G.gold||0)>=wishGold10Cost()?'':'secondary'}" id="wpGold10" ${(G.gold||0)>=wishGold10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 🪙${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -8558,7 +8593,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787430000000';
+const BUILD_ID='1787436000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
