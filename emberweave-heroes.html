@@ -1007,21 +1007,21 @@ const HERO_TYPES = {
   fritz:  {name:'Fritz',     emoji:'⚡',role:'Mage', swing:1.8, stars:2,hp:320,dmg:22,apow:30,range:150,speed:60,atkSpeed:1.0, armor:60, mr:90, color:0xf2d84a,abilityName:'Thunder Shower',ability:'thundershower',locked:true,start:2},
   umbris: {name:'Umbris',    emoji:'🌑',role:'Mage',    swing:2.0, stars:3,hp:170,dmg:22,apow:32,range:210,speed:54,atkSpeed:0.85,color:0x6d4aa3,abilityName:'Umbral Cataclysm',ability:'umbralcata',locked:true,start:3},
    vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:1,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
-   oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:2,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true,start:2},
+   oakmir: {name:'Oakmir',    emoji:'🌳',role:'Mage',    swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true,start:3},
    rhukk:  {name:'Rhukk',     emoji:'🪲',role:'Bruiser', swing:2.4, stars:2,hp:430,dmg:26,range:28, speed:56,atkSpeed:0.9, color:0x7a5fb0,abilityName:'Impale Rush',ability:'charge',locked:true,start:2},
    hurne:   {name:'Hurne the Chained',emoji:'\u26D3\uFE0F',role:'Fighter',swing:2.5,stars:3,hp:520,dmg:32,range:30,speed:52,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase',wip:true},
-   meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:2,hp:200,dmg:34,range:210,speed:54,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,wip:true,start:2},
-   tallow:  {name:'Gruel',emoji:'🪙',role:'Tank',swing:2.6,stars:3,hp:560,dmg:26,range:30,speed:50,atkSpeed:0.85,color:0xb9a06a,abilityName:'The Reckoning',ability:'taunt',locked:true,wip:true,start:3},
-   astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:3,hp:180,dmg:16,apow:34,range:230,speed:54,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Event Horizon',ability:'gravcrush',locked:true,wip:true,start:3},
+   meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:3,hp:200,dmg:34,range:210,speed:54,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,wip:true,start:3},
+   tallow:  {name:'Gruel',emoji:'🪙',role:'Tank',swing:2.6,stars:2,hp:560,dmg:26,range:30,speed:50,atkSpeed:0.85,color:0xb9a06a,abilityName:'The Reckoning',ability:'taunt',locked:true,wip:true,start:2},
+   astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:2,hp:180,dmg:16,apow:34,range:230,speed:54,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Event Horizon',ability:'gravcrush',locked:true,wip:true,start:2},
    magistrant:{name:'The Magistrant',emoji:'⚖️',role:'Fighter',swing:2.2,stars:2,hp:450,dmg:28,range:28,speed:56,atkSpeed:1.0,color:0x2f2f38,abilityName:'Contempt Storm',ability:'volley',locked:true,wip:true,start:2},
-   vharn:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:3,hp:430,dmg:32,range:28,speed:58,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,wip:true,start:3},
+   vharn:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:2,hp:430,dmg:32,range:28,speed:58,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,wip:true,start:2},
    fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true,start:2},
    lumi:    {name:'Lumi',emoji:'🌼',role:'Mage',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
-   sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:2,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,wip:true,start:2},
+   sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:3,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,wip:true,start:3},
    carn:    {name:'Carn',emoji:'🩸',role:'Bruiser',swing:2.4,stars:1,hp:410,dmg:34,range:28,speed:60,atkSpeed:1.05,color:0xb03a3a,abilityName:'Crimson Reap',ability:'cleave',locked:true,wip:true},
-   vesper:  {name:'The Annotator',emoji:'📖',role:'Mage',swing:2.0,stars:1,hp:190,dmg:16,apow:32,range:215,speed:54,atkSpeed:0.85,color:0xc9a227,abilityName:'Puncture',ability:'riftpuncture',locked:true,wip:true},
-   sablewick:{name:'Tessit',emoji:'⏳',role:'Mage',swing:2.0,stars:3,hp:200,dmg:15,apow:31,range:205,speed:54,atkSpeed:0.85,color:0x4fc4a8,abilityName:'Hourglass',ability:'aoeStun',locked:true,wip:true,start:3},
+   vesper:  {name:'The Annotator',emoji:'📖',role:'Mage',swing:2.0,stars:2,hp:190,dmg:16,apow:32,range:215,speed:54,atkSpeed:0.85,color:0xc9a227,abilityName:'Puncture',ability:'riftpuncture',locked:true,wip:true,start:2},
+   sablewick:{name:'Tessit',emoji:'⏳',role:'Mage',swing:2.0,stars:2,hp:200,dmg:15,apow:31,range:205,speed:54,atkSpeed:0.85,color:0x4fc4a8,abilityName:'Hourglass',ability:'aoeStun',locked:true,wip:true,start:2},
    vex:     {name:'Vex',emoji:'🔪',role:'Assassin',swing:1.8,stars:1,hp:320,dmg:34,range:26,speed:64,atkSpeed:1.15,color:0x7a3fa0,abilityName:'Razor Tempest',ability:'triplecleave',locked:true,wip:true},
    arrears: {name:'Grimsby',emoji:'📜',role:'Mage',swing:2.2,stars:3,hp:230,dmg:20,apow:30,range:200,speed:52,atkSpeed:0.85,color:0x3a3a44,abilityName:'Foreclosure',ability:'aoedot',locked:true,wip:true,start:3},
    meryln:  {name:'Dandra',emoji:'🌸',role:'Mage',swing:2.0,stars:1,hp:200,dmg:12,apow:30,range:185,speed:56,atkSpeed:0.9,color:0x8a5fd0,abilityName:"Queen's Call",ability:'rally',healer:true,locked:true,wip:true},
@@ -8526,7 +8526,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787343000000';
+const BUILD_ID='1787344000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
