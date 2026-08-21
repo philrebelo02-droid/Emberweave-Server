@@ -2667,7 +2667,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   // ---- Hollow: he does not march in. He waits in the shadow above the field and comes down
   //      behind their back rank once both lines have committed. ----
-  if(key==='hollow'){ u._dropT=4.5; u._dropHidden=true; u._backHunter=true; u._dropHome={x:u.x,y:u.y};
+  if(key==='hollow'){ u._dropT=3.5; u._dropHidden=true; u._backHunter=true; u._dropHome={x:u.x,y:u.y};
     u.x=-9999; u.y=-9999; u._ax=u.x; u._ay=u.y; }
   if(rank>=3 && kit.purple){ const p=kit.purple.pass, pm=skillMul(u.skillLv[3]||1); u.passMul=pm;
     if(p==='power') u.dmg*=1+0.15*pm; else if(p==='fury') u.atkInterval/=(1+0.25*pm); else { u.pass={[p]:true}; if(p==='unstepped') u.immovable=true; } }
@@ -3718,7 +3718,7 @@ function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     if(u._backHunter){   // Hollow never marches — he goes back up into the dark and waits again
-      u._dropT=4.5; u._dropHidden=true; u._dropHome={x:sl.x,y:sl.y}; u._fallT=0; u._fallH=0; u._noTarget=false;
+      u._dropT=3.5; u._dropHidden=true; u._dropHome={x:sl.x,y:sl.y}; u._fallT=0; u._fallH=0; u._noTarget=false;
       u.x=-9999; u.y=-9999; u._ax=u.x; u._ay=u.y; return; }
     const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   // the wave's monsters march on too — remember where each one belongs, then park it off the top-right
@@ -8519,7 +8519,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787340000000';
+const BUILD_ID='1787341000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
