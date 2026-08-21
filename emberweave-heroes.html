@@ -1174,10 +1174,10 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=1',n:20,fw:300,fh:257,cols:6,rows:4,figH:191,feet:250,cx:142,fps:16,flip:false}
   },
   sprocket:{
-    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=1',n:24,fw:300,fh:206,cols:6,rows:4,figH:200,feet:203,cx:133,fps:8,flip:true},
-    walk:{u:'/assets/anim/sprocket/sprocket_walk.webp?v=1',n:24,fw:300,fh:229,cols:6,rows:4,figH:209,feet:221,cx:140,fps:14,flip:true},
-    attack:{u:'/assets/anim/sprocket/sprocket_attack.webp?v=1',n:24,fw:300,fh:284,cols:6,rows:4,figH:198,feet:281,cx:135,fps:18,flip:true,hold:0.9},
-    hit:{u:'/assets/anim/sprocket/sprocket_hit.webp?v=1',n:24,fw:300,fh:289,cols:6,rows:4,figH:193,feet:273,cx:139,fps:16,flip:true}
+    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=1',n:24,fw:300,fh:206,cols:6,rows:4,figH:200,feet:203,cx:133,fps:8,flip:false},
+    walk:{u:'/assets/anim/sprocket/sprocket_walk.webp?v=1',n:24,fw:300,fh:229,cols:6,rows:4,figH:209,feet:221,cx:140,fps:14,flip:false},
+    attack:{u:'/assets/anim/sprocket/sprocket_attack.webp?v=1',n:24,fw:300,fh:284,cols:6,rows:4,figH:198,feet:281,cx:135,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/sprocket/sprocket_hit.webp?v=1',n:24,fw:300,fh:289,cols:6,rows:4,figH:193,feet:273,cx:139,fps:16,flip:false}
   },
   meridian:{
     idle:{u:'/assets/anim/meridian/meridian_idle.webp?v=1',n:24,fw:174,fh:300,cols:6,rows:4,figH:293,feet:297,cx:82,fps:8,flip:true},
@@ -8444,7 +8444,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787336000000';
+const BUILD_ID='1787337000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
