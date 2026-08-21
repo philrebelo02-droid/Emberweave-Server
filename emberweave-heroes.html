@@ -2991,7 +2991,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,u.dmg*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'monkSlam':{ const ctr=(tgt&&tgt.alive)?tgt:u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to all enemies at the aimed point; a phantom Ruyi slams each
       let di=0; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||130)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); e.stunned=Math.max(e.stunned||0,o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
-        if(typeof spawnStaffFx==='function') spawnStaffFx(e, di*0.08); di++; } });
+        if(typeof spawnStaffFx==='function') spawnStaffFx(e, di*0.13); di++; } });
       burstAt(ctr.x,ctr.y,0xffcf40,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     case 'burst':{if(!tgt)break;dealDamage(u,tgt,dB*3*rm,'#ff8fb0');spawnShot(u,tgt,'#ff8fb0');break;}
     case 'blink':{ // 1s channel BEFORE teleporting — the actual blink+empowered strike runs in konwuBlinkExec
@@ -3551,33 +3551,25 @@ function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.geometry.dispos
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
-const STAFF_FX_SRC="/assets/img/miscellaneous/staff-fx-src.png", SPLASH_FX_SRC="/assets/img/miscellaneous/staff-fx-src-splash_fx_src.png";
-const STAFF_ASPECT=83/845, SPLASH_FRAMES=8, SPLASH_ASPECT=150/95;
-let _staffTex=null,_splashTexBase=null,staffFx=[];
-function staffTex(){ if(!_staffTex&&STAFF_FX_SRC.indexOf('data:')===0){ _staffTex=new TH.TextureLoader().load(STAFF_FX_SRC); _staffTex.magFilter=TH.LinearFilter; _staffTex.minFilter=TH.LinearFilter; } return _staffTex; }
-function newSplashTex(){ if(SPLASH_FX_SRC.indexOf('data:')!==0)return null; const t=new TH.TextureLoader().load(SPLASH_FX_SRC); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; t.repeat.set(1/SPLASH_FRAMES,1); return t; }
-function spawnStaffFx(e,delay){ if(!TH||!scene||STAFF_FX_SRC.indexOf('data:')!==0)return;
-  const tex=staffTex(); if(!tex)return;
-  const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
-  spr.center.set(.5,.5); spr.renderOrder=990; scene.add(spr);
-  const splash=new TH.Sprite(new TH.SpriteMaterial({map:newSplashTex(),transparent:true,depthWrite:false,depthTest:false,opacity:0})); splash.center.set(.5,.12); splash.renderOrder=991; scene.add(splash);
-  staffFx.push({spr,splash,x:wx(e.x),z:wz(e.y),fx:e.x,fy:e.y,t:-(delay||0)*HERO_FX_MUL,dm:HERO_FX_MUL,done:false,unit:e});
+let staffFx=[];   // KonWu ultimate: one entry per enemy, each driving a konwu_staff plate
+function spawnStaffFx(e,delay){
+  // The whole animation — fall, strike, burst — is baked into the plate. All this has to do is
+  // place it on the target and fire the gameplay feedback on the frame the staff actually lands.
+  const d=FX_PLATE_DEF.konwu_staff; if(!d) return;
+  staffFx.push({fx:e.x, fy:e.y, unit:e, t:-(delay||0)*HERO_FX_MUL, dm:HERO_FX_MUL, spawned:false, done:false});
 }
-function updateStaffFx(dt){ if(!staffFx.length)return; const H=2.05, tipTarget=1.55, slamY=tipTarget+H/2, hoverY=slamY+1.1;
-  for(let i=staffFx.length-1;i>=0;i--){ const f=staffFx[i]; f.t+=dt; const t=f.t/(f.dm||1); const spr=f.spr, sp=f.splash;
-    if(t<0){ continue; }
-    spr.position.x=f.x; spr.position.z=f.z;
-    let sc,y,op;
-    if(t<0.24){ const k=t/0.24; sc=0.35+0.95*k; y=hoverY; op=Math.min(1,k*2.4); }             // spawn small → grow, high above
-    else if(t<0.34){ sc=1.32; y=hoverY; op=1; }                                               // hold a beat
-    else if(t<0.44){ const k=(t-0.34)/0.10; sc=1.32-0.24*k; y=hoverY-(hoverY-slamY)*k; op=1; } // SLAM straight down, tip-first
-    else { const k=(t-0.44)/0.24; sc=1.08; y=slamY; op=Math.max(0,1-k); }                     // fade out
-    spr.material.opacity=op; spr.position.y=y; spr.scale.set(H*STAFF_ASPECT*sc, H*sc, 1);
-    if(t>=0.42&&!f.done){ f.done=true; ringBurst(f.fx,f.fy,0xffcf40,18); burstAt(f.fx,f.fy,0xffffff,14);
-      floatTexts.push({x:f.fx,y:f.fy-8,txt:'STUN',t:1.0,color:'#ffe08a',vy:1.1}); if(f.unit&&f.unit.alive)f.unit.flash=Math.max(f.unit.flash,.22); }
-    if(f.done&&sp.material.map){ const st=Math.min(1,(t-0.42)/0.5); const fr=Math.min(SPLASH_FRAMES-1,Math.floor(st*SPLASH_FRAMES));
-      sp.material.map.offset.x=fr/SPLASH_FRAMES; sp.material.opacity=st<1?1:0; const ss=1.8; sp.position.set(f.x,tipTarget-0.1,f.z); sp.scale.set(ss*SPLASH_ASPECT, ss, 1); }
-    if(t>0.74){ scene.remove(spr); spr.material.dispose(); scene.remove(sp); if(sp.material.map)sp.material.map.dispose(); sp.material.dispose(); staffFx.splice(i,1); }
+function updateStaffFx(dt){ if(!staffFx.length)return;
+  const d=FX_PLATE_DEF.konwu_staff; const HIT=(d&&d.hit!=null?d.hit:0.5)*(d?d.dur:0.8);
+  for(let i=staffFx.length-1;i>=0;i--){ const f=staffFx[i]; f.t+=dt; const t=f.t/(f.dm||1);
+    if(t<0) continue;
+    if(!f.spawned){ f.spawned=true; try{ spawnFxPlate('konwu_staff', f.fx, f.fy); }catch(_){} }
+    if(t>=HIT&&!f.done){ f.done=true;
+      ringBurst(f.fx,f.fy,0xffcf40,22); burstAt(f.fx,f.fy,0xffffff,16);
+      floatTexts.push({x:f.fx,y:f.fy-8,txt:'STUN',t:1.0,color:'#ffe08a',vy:1.1});
+      if(f.unit&&f.unit.alive) f.unit.flash=Math.max(f.unit.flash,.30);
+      try{ if(typeof screenFlash!=='undefined') screenFlash=Math.max(screenFlash,0.20); }catch(_){}
+    }
+    if(t>(d?d.dur:0.8)+0.05) staffFx.splice(i,1);
   }
 }
 /* ---- Vulmar placed effect plates (ult crush / sling collision / grasp pull) ---- */
@@ -3591,6 +3583,9 @@ MR_UI.fear='/assets/img/miscellaneous/mrstunimg-fear.png';
 const _mrFearImg=new Image(); _mrFearImg.src=MR_UI.fear;
 MR_UI.taunt='/assets/img/miscellaneous/mrfearimg-taunt.png'; const _mrTauntImg=new Image(); _mrTauntImg.src=MR_UI.taunt;
 const FX_PLATE_DEF={
+  // KonWu's phantom Ruyi. ax/ay pin the sprite on the STRIKE POINT (0.747 down the frame),
+  // so the burst lands on the target's feet no matter how the plate is scaled.
+  konwu_staff:{u:'/assets/anim/fx/konwu_staff.webp?v=1',n:20,fw:300,fh:300,cols:5,rows:4,dur:0.78,scale:6.4,ax:0.5,ay:0.2533,y:1.15,hit:0.50,fade:0.80},
   ultland:{u:'/assets/anim/vulmar/vulmar_ultland.webp?v=1',n:28,fw:191,fh:190,dur:1.2,scale:6.0},
   slingfx:{u:'/assets/anim/vulmar/vulmar_slingfx.webp?v=1',n:26,fw:200,fh:200,dur:1.1,scale:4.6},
   graspfx:{u:'/assets/anim/vulmar/vulmar_graspfx.webp?v=1',n:26,fw:200,fh:200,dur:1.1,scale:4.6},
@@ -3601,16 +3596,27 @@ const FX_PLATE_DEF={
  };
 const _fxTexCache={};
 function _fxPlateTex(key){ const d=FX_PLATE_DEF[key]; if(!d||!TH)return null; if(_fxTexCache[key])return _fxTexCache[key];
-  const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fxTexCache[key]=t; return t; }
+  // Clones taken before the bitmap arrives get a null image and never recover, so collect them
+  // and hand each one the image the moment it lands.
+  const t=new TH.TextureLoader().load(d.u, tex=>{
+    (t.__waiters||[]).forEach(c=>{ c.image=tex.image; c.needsUpdate=true; }); t.__waiters=[]; });
+  t.__waiters=[];
+  t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fxTexCache[key]=t; return t; }
 function spawnFxPlate(key,fx,fy){ if(!TH||!scene)return; const d=FX_PLATE_DEF[key]; if(!d)return; const base=_fxPlateTex(key); if(!base)return;
-  const tex=base.clone(); tex.needsUpdate=true; tex.repeat.set(1/d.n,1); tex.offset.set(0,0);
+  const _c=d.cols||d.n, _r=d.rows||1;
+  const tex=base.clone(); tex.needsUpdate=true; tex.repeat.set(1/_c,1/_r); tex.offset.set(0,1-1/_r);
+  if(!base.image){ (base.__waiters=base.__waiters||[]).push(tex); }   // still downloading — collect it
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:1}));
-  spr.center.set(.5,.12); spr.renderOrder=992; const asp=d.fw/d.fh; spr.scale.set(d.scale*asp,d.scale,1); spr.position.set(wx(fx),1.1,wz(fy)); scene.add(spr);
+  spr.center.set(d.ax!=null?d.ax:.5, d.ay!=null?d.ay:.12); spr.renderOrder=992;
+  const asp=d.fw/d.fh; spr.scale.set(d.scale*asp,d.scale,1);
+  spr.position.set(wx(fx), d.y!=null?d.y:1.1, wz(fy)); scene.add(spr);
   _fxPlates.push({spr,d,t:0,dm:HERO_FX_MUL}); }
-function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fxPlates[i]; p.t+=dt; const DUR=p.d.dur*(p.dm||1); const prog=Math.min(1,p.t/DUR); const fr=Math.min(p.d.n-1,Math.floor(prog*p.d.n)); if(p.spr.material.map){ p.spr.material.map.offset.x=fr/p.d.n; }
+function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fxPlates[i]; p.t+=dt; const DUR=p.d.dur*(p.dm||1); const prog=Math.min(1,p.t/DUR); const fr=Math.min(p.d.n-1,Math.floor(prog*p.d.n));
+    if(p.spr.material.map){ const _c=p.d.cols||p.d.n, _r=p.d.rows||1, _col=fr%_c, _row=Math.floor(fr/_c);
+      p.spr.material.map.offset.x=_col/_c; p.spr.material.map.offset.y=1-(_row+1)/_r; }
     // graceful dissolve: many FX plates end on a near-full-quad smoke/glow mass; deleting it in one frame
     // reads as a rectangular "box" popping out. Fade opacity (ease-out) + expand slightly over the last 35% so it disperses.
-    const FS=0.65; if(prog>FS){ const k=(prog-FS)/(1-FS); p.spr.material.opacity=Math.max(0,1-k*k); const gs=1+0.14*k, asp=p.d.fw/p.d.fh; p.spr.scale.set(p.d.scale*asp*gs, p.d.scale*gs, 1); }
+    const FS=(p.d.fade!=null?p.d.fade:0.65); if(prog>FS){ const k=(prog-FS)/(1-FS); p.spr.material.opacity=Math.max(0,1-k*k); const gs=1+0.14*k, asp=p.d.fw/p.d.fh; p.spr.scale.set(p.d.scale*asp*gs, p.d.scale*gs, 1); }
     if(p.t>=DUR){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _fxPlates.splice(i,1); } } }
 function think(u,dt){
   // Still in the shadow above the field — he does not move, target, or strike until he lands.
@@ -8611,7 +8617,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787356000000';
+const BUILD_ID='1787356900000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
