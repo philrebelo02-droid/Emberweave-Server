@@ -1500,12 +1500,14 @@ function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key]; return p?`<im
 const HERO_HEAD={};
 function heroHead(key,cb){
   if(HERO_HEAD[key]) return cb(HERO_HEAD[key]);
-  // Hand-framed card art is ALREADY a chest-up portrait — never let the auto-cropper touch it.
-  // The detector below guesses the background colour from the four corners; on a full-bleed
-  // illustration those corners are scenery, so everything reads as "figure", the bbox becomes the
-  // whole image, and it crops a square of the background instead of the hero (and squashes it to
-  // 150px). That is what was clipping Meridian's head and framing Lumi on the tower wall.
-  if(typeof HERO_CARD_ART!=='undefined' && HERO_CARD_ART[key]){ HERO_HEAD[key]=HERO_CARD_ART[key]; return cb(HERO_CARD_ART[key]); }
+  // EVERY hero now has authored portrait art — the batch-2 cards in /hero-cards, and the original
+  // roster's portraits in /hero-portraits, which were already framed head-and-shoulders by hand.
+  // So the auto-cropper below is bypassed for all of them. It guessed the background from the four
+  // corners, which on a full-bleed illustration makes the whole image read as "figure" — it cropped
+  // scenery instead of the hero, and squashed the result to 150x150, throwing the art away.
+  // It survives only as a fallback for a hero with no portrait at all.
+  const _art=(typeof HERO_CARD_ART!=='undefined' && HERO_CARD_ART[key]) || HERO_PORTRAITS[key];
+  if(_art && isAssetRef(_art)){ HERO_HEAD[key]=_art; return cb(_art); }
   const uri=HERO_PORTRAITS[key]; if(!uri) return cb(null);
   const img=new Image();
   img.onload=()=>{ const W=img.width,H=img.height;
@@ -8218,7 +8220,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787200000000';
+const BUILD_ID='1787201000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
