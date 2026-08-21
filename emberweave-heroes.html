@@ -4521,15 +4521,22 @@ function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)r
 // Finished hero-card art (Phil, 2026-08-21). These supersede the concept cutouts for both the
 // hero portrait and the glossary tile — the cutouts remain the ANIMATION source, not the display art.
 const HERO_CARD_ART={};
-HERO_CARD_ART.tallow='/assets/img/hero-cards/card-tallow.webp?v=4';
-HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=4';
-HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=4';
-HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=4';
-HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=4';
-HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=4';
-HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=4';
-HERO_CARD_ART.sprocket='/assets/img/hero-cards/card-sprocket.webp?v=4';
-HERO_CARD_ART.sablewick='/assets/img/hero-cards/card-sablewick.webp?v=4';
+HERO_CARD_ART.carn='/assets/img/hero-cards/card-carn.webp?v=5';
+HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=5';
+HERO_CARD_ART.arrears='/assets/img/hero-cards/card-arrears.webp?v=5';
+HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=5';
+HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=5';
+HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=5';
+HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=5';
+HERO_CARD_ART.tallow='/assets/img/hero-cards/card-tallow.webp?v=5';
+HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=5';
+HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=5';
+HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=5';
+HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=5';
+HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=5';
+HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=5';
+HERO_CARD_ART.sprocket='/assets/img/hero-cards/card-sprocket.webp?v=5';
+HERO_CARD_ART.sablewick='/assets/img/hero-cards/card-sablewick.webp?v=5';
 for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
 const MONSTER_SPRITES={}; for(const k in GLOSSARY_ART){ const i=k.indexOf('/'), cat=k.slice(0,i), id=k.slice(i+1); if(cat==='monsters'||cat==='bosses') MONSTER_SPRITES[id]=GLOSSARY_ART[k]; }
 Object.assign(HERO_SPRITES, MONSTER_SPRITES);   // monsters render as static billboards from their keyed art
@@ -8211,7 +8218,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787199000000';
+const BUILD_ID='1787200000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
