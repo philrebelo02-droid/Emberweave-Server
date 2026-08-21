@@ -1101,6 +1101,12 @@ const GROSK_CROC="https://cdn.jsdelivr.net/gh/philrebelo02-droid/Emberweave-Serv
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
 const BATTLE_ANIM = {
+  meridian:{
+    idle:{u:'/assets/anim/meridian/meridian_idle.webp?v=1',n:24,fw:174,fh:300,cols:6,rows:4,figH:293,feet:297,cx:82,fps:8,flip:false},
+    walk:{u:'/assets/anim/meridian/meridian_walk.webp?v=1',n:24,fw:156,fh:300,cols:6,rows:4,figH:281,feet:291,cx:78,fps:14,flip:false},
+    attack:{u:'/assets/anim/meridian/meridian_attack.webp?v=1',n:24,fw:300,fh:257,cols:6,rows:4,figH:226,feet:255,cx:151,fps:18,flip:false,hold:0.9},
+    hit:{u:'/assets/anim/meridian/meridian_hit.webp?v=1',n:20,fw:300,fh:248,cols:6,rows:4,figH:226,feet:240,cx:147,fps:16,flip:false}
+  },
   hurne:{
     idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=1',n:24,fw:247,fh:300,cols:6,rows:4,figH:293,feet:297,cx:106,fps:8,flip:false},
     walk:{u:'/assets/anim/hurne/hurne_walk.webp?v=1',n:24,fw:268,fh:300,cols:6,rows:4,figH:278,feet:287,cx:116,fps:14,flip:false},
@@ -1204,15 +1210,15 @@ const BATTLE_ANIM = {
   passive:{u:'/assets/anim/sylthaine/sylthaine_pass.webp?v=2',n:12,fw:127,fh:217,cols:6,rows:2,figH:200,feet:209,cx:60,fps:10,flip:false}
   },
   tick:{
-  idle:{u:'/assets/anim/tick/tick_pass.webp?v=2',n:12,fw:260,fh:210,cols:6,rows:2,figH:166,feet:176,cx:159,fps:8,flip:false},
-  walk:{u:'/assets/anim/tick/tick_walk.webp?v=2',n:12,fw:196,fh:223,cols:6,rows:2,figH:183,feet:215,cx:101,fps:14,flip:false},
-  attack:{u:'/assets/anim/tick/tick_attack.webp?v=2',n:12,fw:221,fh:219,cols:6,rows:2,figH:200,feet:212,cx:117,fps:16,flip:false,hold:0.9},
-  hit:{u:'/assets/anim/tick/tick_hit.webp?v=2',n:12,fw:197,fh:227,cols:6,rows:2,figH:180,feet:220,cx:92,fps:11,flip:false},
-  ult:{u:'/assets/anim/tick/tick_ult.webp?v=2',n:12,fw:218,fh:215,cols:6,rows:2,figH:184,feet:208,cx:117,fps:12,flip:false,hold:1.2},
-  green:{u:'/assets/anim/tick/tick_green.webp?v=2',n:12,fw:165,fh:226,cols:6,rows:2,figH:185,feet:219,cx:80,fps:12,flip:false,hold:1.0},
-  blue:{u:'/assets/anim/tick/tick_blue.webp?v=2',n:12,fw:199,fh:231,cols:6,rows:2,figH:200,feet:223,cx:96,fps:12,flip:false,hold:1.0},
-  passive:{u:'/assets/anim/tick/tick_pass.webp?v=2',n:12,fw:260,fh:210,cols:6,rows:2,figH:166,feet:176,cx:159,fps:10,flip:false},
-  fists:{u:'/assets/anim/tick/tick_blue.webp?v=2',n:12,fw:199,fh:231,cols:6,rows:2,figH:200,feet:223,cx:96,fps:12,flip:false,hold:1.0}
+  idle:{u:'/assets/anim/tick/tick_pass.webp?v=2',n:12,fw:260,fh:210,cols:6,rows:2,figH:166,feet:176,cx:159,fps:8,flip:true},
+  walk:{u:'/assets/anim/tick/tick_walk.webp?v=2',n:12,fw:196,fh:223,cols:6,rows:2,figH:183,feet:215,cx:101,fps:14,flip:true},
+  attack:{u:'/assets/anim/tick/tick_attack.webp?v=2',n:12,fw:221,fh:219,cols:6,rows:2,figH:200,feet:212,cx:117,fps:16,flip:true,hold:0.9},
+  hit:{u:'/assets/anim/tick/tick_hit.webp?v=2',n:12,fw:197,fh:227,cols:6,rows:2,figH:180,feet:220,cx:92,fps:11,flip:true},
+  ult:{u:'/assets/anim/tick/tick_ult.webp?v=2',n:12,fw:218,fh:215,cols:6,rows:2,figH:184,feet:208,cx:117,fps:12,flip:true,hold:1.2},
+  green:{u:'/assets/anim/tick/tick_green.webp?v=2',n:12,fw:165,fh:226,cols:6,rows:2,figH:185,feet:219,cx:80,fps:12,flip:true,hold:1.0},
+  blue:{u:'/assets/anim/tick/tick_blue.webp?v=2',n:12,fw:199,fh:231,cols:6,rows:2,figH:200,feet:223,cx:96,fps:12,flip:true,hold:1.0},
+  passive:{u:'/assets/anim/tick/tick_pass.webp?v=2',n:12,fw:260,fh:210,cols:6,rows:2,figH:166,feet:176,cx:159,fps:10,flip:true},
+  fists:{u:'/assets/anim/tick/tick_blue.webp?v=2',n:12,fw:199,fh:231,cols:6,rows:2,figH:200,feet:223,cx:96,fps:12,flip:true,hold:1.0}
   },
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
   "bug":{
@@ -1497,7 +1503,7 @@ const HERO_LORE = {
   oakmir:{title:'The Spring That Woke',text:"There is an oak older than the kingdom's oldest name, older than the road that curves to avoid it, and one grey morning — for no reason the trees have ever explained — it opened its eyes. Oakmir does not remember becoming. He remembers only the long green patience of being a tree: a hundred slow summers, the weight of nesting birds, the turning of the year felt through the soles of his roots. And then, all at once, he remembers the terrible speed of caring — the moment the patience broke open and became something that could no longer simply stand there while the world was being hurt.\n\nHe fights the way a forest fights: without hurry, and without end. He grows a whole season's worth of leaves with every stride and sheds them just as fast, and everything he passes mends a little in his wake — not out of mercy, exactly, but the way a root cannot help finding water. Wounds close. Fevers break. The dying discover, without quite knowing why, that they have decided to live a little longer. He asks nothing for it. A tree keeps no accounts; it grows toward the light and lets whatever needs the shade have the shade.\n\nThe speed still frightens him, on the nights he lets himself feel it. For a hundred years he loved the world at the pace of bark and stone, and to love it now at the pace of a beating heart is very nearly too much — every death a splinter, every spring a grief that it will not last. But he would not go back. Cut him down and he is already growing again, a little to the left, a little more stubborn, green fingers pushing up through the ash before the smoke has even cleared: the spring that woke, and having woken, will not be talked back into sleep."},
   rhukk:{title:'Straight Through',text:"In the deep loam beneath the Sunkfen, where the roots knot into ceilings and the light gives up entirely, there are things that never learned to be afraid — and Rhukk is the largest of them. The beetle-kin measure their elders in scars and in the length of their horns, and by both counts he stopped being measurable a long time ago. He is mostly horn and appetite: a moving wall of purple chitin that settled, at some point too far back in the dark to matter, on the single idea that has organized his entire life — that the fastest way through a thing is straight through it.\n\nHe does not circle. He does not feint. He does not, as far as anyone has ever been able to tell, plan. He lowers his head, and the world in front of him becomes the world behind him, and whatever was standing between the two learns very quickly that it should not have been. Walls are a suggestion. Shields are a noise he makes on his way past. The wise among the deep-things keep to the one rule that keeps them breathing: when the ground begins to shake in a straight line, do not be standing at the end of it.\n\nWhat little the beetle-kin call wisdom they carve onto their shells, every hard-won lesson etched in chitin for the young to read. Rhukk's shell is smooth. Unmarked. Not because he has learned nothing, but because he has never once needed to be read — he has never met the problem a running start and a lowered horn could not solve, and never lived long enough in doubt for doubt to leave a mark. There are older things in the deep than Rhukk, and cleverer ones, and a few even he steps around. But there is nothing down there that has ever made him turn."},
 };
-const HERO_SPRITES = {"hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
+const HERO_SPRITES = {"meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
 const TOWN_BG = "/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
@@ -8266,7 +8272,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787286500000';
+const BUILD_ID='1787320000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
