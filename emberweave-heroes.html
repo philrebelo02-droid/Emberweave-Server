@@ -1135,7 +1135,11 @@ const BATTLE_ANIM = {
     idle:{u:'/assets/anim/astra/astra_idle.webp?v=1',n:24,fw:229,fh:300,cols:6,rows:4,figH:284,feet:294,cx:111,fps:8,flip:false},
     walk:{u:'/assets/anim/astra/astra_walk.webp?v=1',n:24,fw:233,fh:300,cols:6,rows:4,figH:278,feet:285,cx:111,fps:14,flip:false},
     attack:{u:'/assets/anim/astra/astra_attack.webp?v=1',n:24,fw:289,fh:300,cols:6,rows:4,figH:276,feet:297,cx:104,fps:18,flip:false,hold:0.9},
-    hit:{u:'/assets/anim/astra/astra_hit.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:284,feet:297,cx:123,fps:16,flip:false}
+    hit:{u:'/assets/anim/astra/astra_hit.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:284,feet:297,cx:123,fps:16,flip:false},
+    green:{u:'/assets/anim/astra/astra_green.webp?v=1',n:20,fw:245,fh:300,cols:6,rows:4,figH:292,feet:296,cx:127,fps:14,flip:false,hold:0.8},
+    blue:{u:'/assets/anim/astra/astra_blue.webp?v=1',n:20,fw:263,fh:300,cols:6,rows:4,figH:250,feet:268,cx:95,fps:14,flip:false,hold:0.8},
+    ult:{u:'/assets/anim/astra/astra_ult.webp?v=1',n:20,fw:196,fh:300,cols:6,rows:4,figH:248,feet:297,cx:95,fps:13,flip:false},
+    passive:{u:'/assets/anim/astra/astra_passive.webp?v=1',n:12,fw:224,fh:300,cols:6,rows:2,figH:287,feet:297,cx:109,fps:14,flip:false,pingpong:true}
   },
   magistrant:{
     idle:{u:'/assets/anim/magistrant/magistrant_idle.webp?v=1',n:24,fw:240,fh:300,cols:6,rows:4,figH:292,feet:297,cx:117,fps:8,flip:false},
@@ -2940,7 +2944,12 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
   HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
   const tgt=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
   fxFor(type,u,tgt,o);   // ability visual effect
-  { const aa=ABIL_ANIM[type]; if(aa && u.anim && u.anim[aa.st]){ const A=u.anim[aa.st]; u._abilAnim=aa.st; u._abilHold=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10); } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
+  // Slot-aware clip pick. Shared ability TYPES (nova, aoedot, heal…) are reused by many heroes,
+  // so the type alone cannot name the right clip. If this cast is the hero's own green/blue and
+  // their own sheet has a matching state, that clip wins; otherwise fall back to ABIL_ANIM.
+  { const aa=ABIL_ANIM[type];
+    const st=(u._castSlot && u.anim && u.anim[u._castSlot]) ? u._castSlot : (aa?aa.st:null);
+    if(st && u.anim && u.anim[st]){ const A=u.anim[st]; u._abilAnim=st; u._abilHold=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10); } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
   switch(type){
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
@@ -3294,7 +3303,8 @@ function kitReady(u,ab){ const ty=ab.type;
   if(ty==='dmgbuff'||ty==='haste'||ty==='taunt'||ty==='rally'){return !!nearestEnemy(u);}
   return !!nearestEnemy(u);
 }
-function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct; doEffect(u,ab.type,ab); u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct); }
+function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
+  u._castSlot=slot; doEffect(u,ab.type,ab); u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct); }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a; floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
@@ -8593,7 +8603,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787436000000';
+const BUILD_ID='1787346500000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
