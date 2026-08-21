@@ -1112,12 +1112,14 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/hurne/hurne_ult.webp?v=1',n:24,fw:262,fh:300,cols:6,rows:4,figH:280,feet:287,cx:116,fps:12,flip:false}
   },
   'boar warrior':{
+    hit:{u:'/assets/anim/boarwarrior/boarwarrior_hit.webp?v=1',n:20,fw:292,fh:300,cols:6,rows:4,figH:258,feet:296,cx:170,fps:16,flip:false},
     idle:{u:'/assets/anim/boarwarrior/boarwarrior_idle.webp?v=1',n:24,fw:251,fh:300,cols:6,rows:4,figH:277,feet:296,cx:126,fps:8,flip:false},
     walk:{u:'/assets/anim/boarwarrior/boarwarrior_walk.webp?v=1',n:24,fw:237,fh:300,cols:6,rows:4,figH:256,feet:283,cx:117,fps:14,flip:false},
     attack:{u:'/assets/anim/boarwarrior/boarwarrior_attack.webp?v=1',n:24,fw:300,fh:252,cols:6,rows:4,figH:227,feet:238,cx:150,fps:20,flip:false,hold:0.9},
     rise:{u:'/assets/anim/boarwarrior/boarwarrior_rise.webp?v=1',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:352,cx:192,fps:14,flip:false}
   },
   'boar shaman':{
+    hit:{u:'/assets/anim/boarshaman/boarshaman_hit.webp?v=1',n:20,fw:300,fh:275,cols:6,rows:4,figH:221,feet:269,cx:143,fps:16,flip:false},
     cast:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=1',n:24,fw:255,fh:300,cols:6,rows:4,figH:241,feet:297,cx:127,fps:12,flip:false,hold:0.8},
     crescendo:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=1',n:24,fw:255,fh:300,cols:6,rows:4,figH:241,feet:297,cx:127,fps:12,flip:false,hold:0.8},
     attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=1',n:24,fw:300,fh:262,cols:6,rows:4,figH:245,feet:251,cx:183,fps:18,flip:false,hold:0.9},
@@ -1178,7 +1180,8 @@ const BATTLE_ANIM = {
   attack:{u:'/assets/anim/oakmir/oakmir_attack.webp?v=1',n:12,fw:153,fh:222,cols:6,rows:2,figH:207,feet:215,cx:77,fps:16,flip:false,hold:1.0},
   ult:{u:'/assets/anim/oakmir/oakmir_ult.webp?v=1',n:12,fw:153,fh:221,cols:6,rows:2,figH:208,feet:214,cx:77,fps:15,flip:false,hold:1.0},
   green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=3',n:12,fw:163,fh:226,cols:6,rows:2,figH:210,feet:219,cx:79,fps:12,flip:false,hold:1.0},
-  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=3',n:12,fw:162,fh:225,cols:6,rows:2,figH:211,feet:218,cx:83,fps:12,flip:false,hold:1.0}
+  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=3',n:12,fw:162,fh:225,cols:6,rows:2,figH:211,feet:218,cx:83,fps:12,flip:false,hold:1.0},
+  hit:{u:'/assets/anim/oakmir/oakmir_hit.webp?v=1',n:20,fw:300,fh:280,cols:6,rows:4,figH:262,feet:277,cx:125,fps:16,flip:false}
   },
   rhukk:{
   idle:{u:'/assets/anim/rhukk/rhukk_idle.webp?v=5',n:12,fw:246,fh:236,cols:6,rows:2,figH:200,feet:226,cx:130,fps:10,flip:true},
@@ -8263,7 +8266,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787285000000';
+const BUILD_ID='1787286500000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
