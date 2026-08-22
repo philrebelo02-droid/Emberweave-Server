@@ -1096,8 +1096,8 @@ function isAssetRef(u){ return !!u && (u.indexOf('data:')===0 || u.indexOf('http
 function heroHasClips(key){ const s=HERO_SKILL_CLIPS[key]; return !!(s && s[0] && isAssetRef(s[0].u)); }
 // ---- in-battle sprite animation (idle/walk/attack/hit sheets played on a hero's billboard) ----
 const CLIP_WALK="/assets/anim/konwu/konwu_walk.png?v=1", CLIP_ATK="/assets/anim/konwu/konwu_attack.png?v=1", CLIP_HIT="/assets/anim/konwu/konwu_hit.png?v=1";
-const GROSK_IDLE="/assets/anim/grosk/grosk_idle.webp?v=3", GROSK_WALK="/assets/anim/grosk/grosk_walk.webp?v=3", GROSK_ATK="/assets/anim/grosk/grosk_attack.webp?v=3", GROSK_HIT="/assets/anim/grosk/grosk_hit.webp?v=3";
-const GROSK_CROC="/assets/anim/grosk/grosk_croc.webp?v=3", GROSK_PULL="/assets/anim/grosk/grosk_pull.webp?v=3", GROSK_FISTS="/assets/anim/grosk/grosk_fists.webp?v=3";
+const GROSK_IDLE="/assets/anim/grosk/grosk_idle.webp?v=5", GROSK_WALK="/assets/anim/grosk/grosk_walk.webp?v=5", GROSK_ATK="/assets/anim/grosk/grosk_attack.webp?v=5", GROSK_HIT="/assets/anim/grosk/grosk_hit.webp?v=5";
+const GROSK_CROC="/assets/anim/grosk/grosk_croc.webp?v=5", GROSK_PULL="/assets/anim/grosk/grosk_pull.webp?v=5", GROSK_FISTS="/assets/anim/grosk/grosk_fists.webp?v=5";
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
 const BATTLE_ANIM = {
@@ -1234,14 +1234,14 @@ const BATTLE_ANIM = {
   green:{u:CLIP_CLEAVE,n:19,fw:116,fh:150,figH:143,feet:150,cx:61,fps:18,flip:true,hold:1.0},
   blue:{u:CLIP_TP,n:19,fw:116,fh:150,figH:143,feet:150,cx:61,fps:20,flip:true,hold:0.9},
 }, grosk:{
-  idle:{u:'/assets/anim/grosk/grosk_idle.webp?v=3',n:16,fw:300,fh:226,cols:6,rows:3,figH:199,feet:223,cx:153,fps:8,flip:false},
-  walk:{u:'/assets/anim/grosk/grosk_walk.webp?v=3',n:24,fw:300,fh:263,cols:6,rows:4,figH:211,feet:257,cx:154,fps:14,flip:false},
-  attack:{u:'/assets/anim/grosk/grosk_attack.webp?v=3',n:22,fw:300,fh:223,cols:6,rows:4,figH:183,feet:212,cx:155,fps:20,flip:false, hold:0.9},
-  hit:{u:'/assets/anim/grosk/grosk_hit.webp?v=3',n:16,fw:300,fh:278,cols:6,rows:3,figH:186,feet:275,cx:158,fps:16,flip:false},
-  croc:{u:'/assets/anim/grosk/grosk_croc.webp?v=3',n:24,fw:300,fh:278,cols:6,rows:4,figH:183,feet:273,cx:155,fps:16,flip:false, hold:1.15},      // ULT Croc Drop (rear + double slam)
-  pull:{u:'/assets/anim/grosk/grosk_pull.webp?v=3',n:24,fw:300,fh:264,cols:6,rows:4,figH:184,feet:259,cx:157,fps:16,flip:false, hold:1.0},      // GREEN Gravemaw Pull
-  fists:{u:'/assets/anim/grosk/grosk_fists.webp?v=3',n:18,fw:300,fh:288,cols:6,rows:3,figH:183,feet:272,cx:155,fps:18,flip:false, hold:0.95},      // BLUE Hammer Fists
-  passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=3',n:20,fw:300,fh:253,cols:6,rows:4,figH:187,feet:250,cx:152,fps:10,flip:false, pingpong:true},  // PASSIVE The Mirewall (shield raised and held)
+  idle:{u:'/assets/anim/grosk/grosk_idle.webp?v=5',n:16,fw:300,fh:225,cols:6,rows:3,figH:198,feet:222,cx:153,fps:8,flip:false},
+  walk:{u:'/assets/anim/grosk/grosk_walk.webp?v=5',n:24,fw:300,fh:260,cols:6,rows:4,figH:208,feet:254,cx:154,fps:14,flip:false},
+  attack:{u:'/assets/anim/grosk/grosk_attack.webp?v=5',n:22,fw:300,fh:223,cols:6,rows:4,figH:181,feet:210,cx:155,fps:20,flip:false, hold:0.9},
+  hit:{u:'/assets/anim/grosk/grosk_hit.webp?v=5',n:16,fw:300,fh:277,cols:6,rows:3,figH:185,feet:273,cx:158,fps:16,flip:false},
+  croc:{u:'/assets/anim/grosk/grosk_croc.webp?v=5',n:24,fw:300,fh:279,cols:6,rows:4,figH:181,feet:271,cx:155,fps:16,flip:false, hold:1.15},      // ULT Croc Drop (rear + double slam)
+  pull:{u:'/assets/anim/grosk/grosk_pull.webp?v=5',n:24,fw:300,fh:265,cols:6,rows:4,figH:183,feet:258,cx:156,fps:16,flip:false, hold:1.0},      // GREEN Gravemaw Pull
+  fists:{u:'/assets/anim/grosk/grosk_fists.webp?v=5',n:18,fw:300,fh:292,cols:6,rows:3,figH:185,feet:276,cx:158,fps:18,flip:false, hold:0.95},      // BLUE Hammer Fists
+  passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=5',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true},  // PASSIVE The Mirewall (shield raised and held)
 }, vulmar:{
   idle:{u:'/assets/anim/vulmar/vulmar_idle.webp?v=1',n:20,fw:195,fh:180,figH:154,feet:163,cx:99,fps:6,stride:0.06,flip:false},
   attack:{u:'/assets/anim/vulmar/vulmar_attack.webp?v=1',n:20,fw:208,fh:180,figH:156,feet:167,cx:112,fps:10,hold:0.5,flip:false},
@@ -1490,10 +1490,10 @@ const BATTLE_ANIM = {
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
 // 0 Croc Drop (ult), 1 Gravemaw Pull (green), 2 Hammer Fists (blue), 3 Juggernaut (passive → idle stance).
 HERO_SKILL_CLIPS.grosk = {
-  0:{u:GROSK_CROC, n:24,fw:300,fh:278,cols:6,rows:4,dur:2.4},
-  1:{u:GROSK_PULL, n:24,fw:300,fh:264,cols:6,rows:4,dur:2.4},
-  2:{u:GROSK_FISTS, n:18,fw:300,fh:288,cols:6,rows:3,dur:2.4},
-  3:{u:'/assets/anim/grosk/grosk_passive.webp?v=3',n:20,fw:300,fh:253,cols:6,rows:4,dur:2.6},
+  0:{u:GROSK_CROC, n:24,fw:300,fh:279,cols:6,rows:4,dur:2.4},
+  1:{u:GROSK_PULL, n:24,fw:300,fh:265,cols:6,rows:4,dur:2.4},
+  2:{u:GROSK_FISTS, n:18,fw:300,fh:292,cols:6,rows:3,dur:2.4},
+  3:{u:'/assets/anim/grosk/grosk_passive.webp?v=5',n:20,fw:300,fh:251,cols:6,rows:4,dur:2.6},
 };
 HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=1',n:24,fw:180,fh:180,dur:2.6}, 1:{u:'/assets/anim/vulmar/vulmar_sling.webp?v=1',n:22,fw:198,fh:180,dur:2.4}, 2:{u:'/assets/anim/vulmar/vulmar_grasp.webp?v=1',n:22,fw:178,fh:180,dur:2.4}, 3:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=1',n:24,fw:148,fh:180,dur:2.6} };
 // Vael + Oakmir skill-tab previews — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
@@ -8631,7 +8631,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787405013000';
+const BUILD_ID='1787406253000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
