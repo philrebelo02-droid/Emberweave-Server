@@ -2,6 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+/* INSTALLED-APP GUARD (Phil: "when I open the desktop version it pops up the website again
+   before the animation splash"). The PWA's start_url is /play, but a launch can still land
+   here — an app installed before start_url changed, a deep link, or the service worker's
+   offline fallback. Bounce to the game BEFORE anything paints, so the marketing page can
+   never flash in front of the splash. Runs first in <head>, above every stylesheet. */
+(function(){ try{
+  var standalone = (window.matchMedia && (matchMedia('(display-mode: standalone)').matches
+                    || matchMedia('(display-mode: fullscreen)').matches
+                    || matchMedia('(display-mode: minimal-ui)').matches))
+                || window.navigator.standalone === true;
+  if(standalone && location.pathname === '/') location.replace('/play');
+}catch(e){} })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Emberweave Heroes — a Xanthyr Games production</title>
 <meta name="theme-color" content="#0b0e14">

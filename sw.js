@@ -1,8 +1,8 @@
 /* Emberweave Heroes service worker.
    Network-first for the app so your pushed updates reach players immediately,
    with a cache fallback so the installed app still opens offline.            */
-const CACHE = 'emberweave-v192';
-const SHELL = ['/', '/play', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-512-maskable.png', '/apple-touch-icon.png'];
+const CACHE = 'emberweave-v193';
+const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-512-maskable.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
@@ -42,6 +42,6 @@ self.addEventListener('fetch', (e) => {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
       return res;
-    }).catch(() => caches.match(req).then(m => m || caches.match('/')))
+    }).catch(() => caches.match(req).then(m => m || caches.match(isDoc ? '/play' : '/')))
   );
 });
