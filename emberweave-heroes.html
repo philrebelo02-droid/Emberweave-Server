@@ -1571,9 +1571,23 @@ function roleBattleH(key){ if(HERO_BATTLE_H[key]!=null) return HERO_BATTLE_H[key
 const HERO_BATTLE_SCALE={};  // optional per-hero fine-tune multipliers (default 1); role map above sets base size
 // build per-state THREE textures once (each state gets its own texture so UV offsets don't clash)
 // skip any state whose sheet wasn't built in (its marker is still a placeholder), so idle-only heroes still load
+// One dropped request used to blank a character for the whole session: the texture object is
+// already wired into the material, so when the fetch failed nothing ever filled it and the hero
+// simply did not render until a full page reload. Retry with backoff before giving up.
+// (Phil: "they arent even loading in now ... when I reloaded it worked")
+function retryTex(s, tx, attempt){
+  if(attempt>3){ s._err=true; return; }                       // genuinely missing -> static-sprite fallback
+  setTimeout(()=>{
+    const bust=s.u+(s.u.indexOf('?')<0?'?':'&')+'r='+attempt;
+    new TH.TextureLoader().load(bust,
+      t=>{ tx.image=t.image; tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound
+      undefined,
+      ()=>retryTex(s, tx, attempt+1));
+  }, 400*Math.pow(2.5, attempt-1));                            // 0.4s, 1s, 2.5s
+}
 function loadAnimSet(key){ const set=BATTLE_ANIM[key]; if(!set||set._loaded||!heroHasAnim(key)) return set;
   for(const st in set){ if(st[0]==='_')continue; const s=set[st]; if(!isAssetRef(s.u))continue;
-    const tx=new TH.TextureLoader().load(s.u, undefined, undefined, ()=>{ s._err=true; });   // mark failed → safety-net falls back to static sprite
+    const tx=new TH.TextureLoader().load(s.u, undefined, undefined, ()=>{ retryTex(s, tx, 1); });   // retry, then fall back
     tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; const _c=s.cols||s.n,_r=s.rows||1; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; }
   // drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
   for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
@@ -8649,7 +8663,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787416935000';
+const BUILD_ID='1787418221000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
