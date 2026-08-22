@@ -4230,9 +4230,15 @@ function project(x,y,h){_v.set(wx(x),h||1.2,wz(y));_v.project(camera);return{x:(
 // unit's logical field coords, which drift from where the sprite is actually drawn: attack lunges move
 // the mesh, _airT lifts it, and the perspective camera makes screen-y depend on x/z too. Anything
 // pinned to the character has to come from the sprite's real world transform. (Phil: "still wrong")
-const _hv=TH?new TH.Vector3():null;
+const _hv=TH?new TH.Vector3():null, _hup=TH?new TH.Vector3():null;
 function headScreen(u){ const s=u&&u._sprRef; if(!s||u._headOff==null) return null;
-  s.getWorldPosition(_hv); _hv.y+=(u._headSm!=null?u._headSm:u._headOff);
+  s.getWorldPosition(_hv);
+  // A Sprite is a BILLBOARD: it always faces the camera, so its height runs along the camera's own
+  // up axis, not along world +Y. The camera here is tilted down, so a world-Y offset is foreshortened
+  // by the tilt and lands roughly 3/4 of the way up the character — which is why the bar kept sitting
+  // on the chest even though the arithmetic checked out. Offset along the camera's up vector instead.
+  _hup.set(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(u._headSm!=null?u._headSm:u._headOff);
+  _hv.add(_hup);
   _v.copy(_hv).project(camera);
   return {x:(_v.x*.5+.5)*CW, y:(-_v.y*.5+.5)*CH, vis:_v.z<1}; }
 function glowUnit(u,intensity,rgb){ if(!u||!u.alive)return; const p=project(u.x,u.y,1.0); if(!p.vis)return; const rad=(u.boss?48:30), c=rgb||'255,245,200'; const g=octx.createRadialGradient(p.x,p.y,2,p.x,p.y,rad); g.addColorStop(0,'rgba('+c+','+(0.55*intensity)+')'); g.addColorStop(0.55,'rgba('+c+','+(0.25*intensity)+')'); g.addColorStop(1,'rgba('+c+',0)'); octx.save(); octx.globalCompositeOperation='lighter'; octx.fillStyle=g; octx.beginPath(); octx.arc(p.x,p.y,rad,0,7); octx.fill(); octx.restore(); }
@@ -8726,7 +8732,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787422503000';
+const BUILD_ID='1787423103000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
