@@ -8737,7 +8737,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787423703000';
+const BUILD_ID='1787424303000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -8929,7 +8929,9 @@ function pingServer(){
     .then(r=>r.ok).catch(()=>false);
 }
 let _splashOnline=false, _splashEntered=false;
+let _glFailed=false;
 function setSplashStatus(state){ const el=document.getElementById('splashStatus'); if(!el)return;
+  if(_glFailed){ el.className='splashStatus off'; el.textContent="● This device can't run 3D (WebGL) — try another browser"; return; }
   el.className='splashStatus '+(state==='on'?'on':state==='off'?'off':'check');
   el.textContent = state==='on' ? '● Online' : state==='off' ? '● Offline — connect to play' : 'Checking…';
 }
@@ -8963,6 +8965,7 @@ function setupLandscape(){
   }
   const play=document.getElementById('splashPlay');
   const attempt=(e)=>{ if(e&&e.cancelable)e.preventDefault();
+    if(_glFailed){ setSplashStatus('off'); return; }   // no 3D context — hold them on the splash with the reason
     if(_splashOnline){ enterGame(); }
     else { refreshSplashStatus().then(ok=>{ if(ok) enterGame(); }); }   // re-check on tap; only enter if online
   };
@@ -8974,10 +8977,18 @@ function setupLandscape(){
 }
 /* boot */
 if(!TH){ document.getElementById('home').innerHTML='<h1>3D engine failed to load</h1>'; }
-else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAcc(); initThree(); updateHubChrome(); show('home');
+else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAcc();
+  // SPLASH FIRST, ENGINE SECOND. initThree() throws on any device that cannot give us a WebGL
+  // context, and everything after it on this line used to be skipped — so the splash never got its
+  // artwork, its version or its Play button and the player just saw a black screen with a broken
+  // image icon. Wire the splash before touching the engine, and catch the failure so it reads as a
+  // clear compatibility message instead of nothing at all.
+  setupLandscape();
+  try{ initThree(); }
+  catch(e){ _glFailed=true; console.error('WebGL init failed:', e); setSplashStatus('off'); }
+  updateHubChrome(); show('home');
   if('serviceWorker' in navigator && online()){ try{ navigator.serviceWorker.register('/sw.js'); }catch(e){} }
   startSessionHeartbeat();
-  setupLandscape();
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
