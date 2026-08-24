@@ -45,12 +45,34 @@ function writeDB(){ if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=nu
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
 function hashPass(pass, salt){ return crypto.pbkdf2Sync(pass, salt, 60000, 32, 'sha256').toString('hex'); }
 function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-token'}); res.end(b); }
-function body(req){ return new Promise(r=>{ let d=''; req.on('data',c=>d+=c); req.on('end',()=>{ try{r(JSON.parse(d||'{}'));}catch(e){r({});} }); }); }
+// Request bodies are byte-capped (audit: body() used to accumulate d+=c with no limit → trivial memory DoS).
+// On overflow we stop reading, destroy the socket, and reject with a BODY_TOO_LARGE error that the
+// api() dispatcher turns into a 413. Default cap is small; /api/save passes a larger one for cloud saves.
+const BODY_MAX = +(process.env.BODY_MAX || 65536);        // 64 KB default for ordinary API calls
+const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || 4*1024*1024);  // 4 MB for the whole-roster cloud save
+function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
+  let d='', len=0, done=false;
+  req.on('data',c=>{ if(done) return; len+=c.length; if(len>max){ done=true; try{req.pause();}catch(_){} const e=new Error('body too large'); e.code='BODY_TOO_LARGE'; reject(e); return; } d+=c; });
+  req.on('end',()=>{ if(done) return; done=true; try{resolve(JSON.parse(d||'{}'));}catch(e){resolve({});} });
+  req.on('error',()=>{ if(!done){ done=true; resolve({}); } });
+}); }
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
 function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'' }; }
-const DEV_NAMES=['phil','dev1'];   // usernames that unlock the dev/admin tools (add more devs here later)
-function isDev(u){ return !!(u && !u.isNpc && DEV_NAMES.includes((u.name||'').toLowerCase())); }
+// --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
+// A display name is not a permission boundary (audit crit #7): anyone who registered the name
+// 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
+// (or an explicit account id in ADMIN_IDS), stamped once at boot by migrateAdminRoles() below.
+const ADMIN_IDS = new Set((process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()).filter(Boolean));
+// One-time bootstrap: the accounts CURRENTLY holding these names get role:'admin' stamped on them
+// at startup. After that, authority is the role — renaming, or a (impossible, names are unique)
+// same-name re-register, grants nothing. Override with ADMIN_BOOTSTRAP_NAMES if you rename yourself.
+const ADMIN_BOOTSTRAP_NAMES = (process.env.ADMIN_BOOTSTRAP_NAMES||'phil,dev1').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+function migrateAdminRoles(){ let n=0;
+  for(const nm of ADMIN_BOOTSTRAP_NAMES){ const id=DB.byName[nm]; const u=id&&DB.users[id];
+    if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
+  if(n){ console.log('🔐 stamped role:admin on '+n+' account(s) from ADMIN_BOOTSTRAP_NAMES'); writeDB(); } }
+function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id))); }
 // --- security helpers: per-IP rate limiting, single-session, admin diamond edits ---
 const _hits={};
 function clientIP(req){ return ((req.headers['x-forwarded-for']||'').split(',')[0].trim()) || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
@@ -215,12 +237,10 @@ async function api(req,res,url){
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     const id=DB.byName[(b.name||'').trim().toLowerCase()];
     const u=id&&DB.users[id]; if(!u) return send(res,401,{error:'Wrong name or password'});
-    // account flagged by an admin for password recovery: the next login sets a brand-new password
-    if(u.mustReset){
-      if(b.newPass){ if((b.newPass||'').length<1) return send(res,400,{error:'Enter a new password'});
-        u.salt=crypto.randomBytes(8).toString('hex'); u.hash=hashPass(b.newPass,u.salt); u.mustReset=false;
-        dropTokens(id); const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
-      return send(res,200,{ reset:true, name:u.name }); }   // tell the client to prompt for a new password
+    // SECURITY (audit crit #1): the old `if(u.mustReset)` branch returned BEFORE the password check,
+    // so knowing an account name was enough to set a new password and get a live token — account
+    // takeover. It is deleted. Password recovery goes through the verified email flow only
+    // (/api/reset-request → /api/reset-verify), which requires a one-time code sent to the account's email.
     if(u.hash!==hashPass(b.pass||'',u.salt)) return send(res,401,{error:'Wrong name or password'});
     dropTokens(id);   // single session: signing in here kicks any other device
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -261,13 +281,16 @@ async function api(req,res,url){
     const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
       .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
     return send(res,200,{accounts, count:accounts.length}); }
-  // admin: flag an account for password recovery — its owner sets a new password on next login
+  // admin: arm-recovery is RETIRED (audit crit #1). It used to set u.mustReset, which let the next
+  // login bypass the password check — an account-takeover primitive. Recovery is now the verified
+  // email flow only. This endpoint stays wired so old admin UIs don't 404, but it no longer arms
+  // anything: it force-signs-out the account (safe) and tells the operator to use email reset.
   if(p==='/api/admin/reset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
-    u.mustReset=true;
-    for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===tid) delete DB.tokens[t]; }  // sign out any active sessions
-    writeDB(); return send(res,200,{ok:true, name:u.name}); }
+    if(u.mustReset){ u.mustReset=false; }   // clear any legacy flag left on the account
+    for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===tid) delete DB.tokens[t]; }  // sign out active sessions (safe)
+    writeDB(); return send(res,410,{error:'Arm-recovery is retired. Ask the player to use “Forgot password” (email code), or clear their email with /api/admin/email so they can bind a new one.', name:u.name}); }
   // admin: clear the recovery flag (undo)
   if(p==='/api/admin/unreset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
@@ -351,7 +374,7 @@ async function api(req,res,url){
     me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
     return send(res,200,{ ok:true, email:me.email }); }
 
-  if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
+  if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req, BODY_MAX_SAVE);
     if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall;
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
     if(b.world && typeof b.world==='object'){   // world-map presence: region + castle position + display stats
@@ -410,10 +433,17 @@ async function api(req,res,url){
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
     const b=await body(req);
-    const opp=DB.users[b.oppId]; const r=applyResult(me,opp,!!b.won); const reward=b.won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
-    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won.
+    const opp=DB.users[b.oppId];
+    // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
+    // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
+    // already uses. This is a power comparison, NOT the real battle sim; the faithful fix is the shared
+    // deterministic simulator (Phase 2). Tune ARENA_RNG if even matchups feel too swingy. -PR review
+    const ARENA_RNG=0.3;
+    const won = !!opp && (serverTeamPower(me.team)*(1-ARENA_RNG/2+Math.random()*ARENA_RNG) >= serverTeamPower(opp.team));
+    const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
+    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
-      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:!!b.won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
+      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
     writeDB();
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
@@ -644,7 +674,17 @@ async function api(req,res,url){
 
     if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'gcontrib',80,60000)) return send(res,429,{error:'Slow down.'});
-      let amt=Math.max(0,Math.min(100000, parseInt(b.exp,10)||0)); if(!amt) return send(res,200,{ guild:guildView(g) });
+      // SECURITY (audit crit #4): exp used to be an arbitrary client number (up to 100,000/call with
+      // NO resource deducted, 80 calls/min → ~8,000,000 exp/min from nothing). The server now awards a
+      // FIXED amount and caps contributions per player per day; the client no longer sets the amount.
+      // NOTE: GUILD_CONTRIB_EXP / GUILD_CONTRIB_DAILY are a balance placeholder — tune in the economy
+      // pass (real fix = deduct an owned server-side resource, Phase 2). -PR review
+      const GUILD_CONTRIB_EXP=100, GUILD_CONTRIB_DAILY=20;
+      const _dk=new Date().toISOString().slice(0,10);
+      if(!me.guildContrib || me.guildContrib.day!==_dk) me.guildContrib={day:_dk,n:0};
+      if(me.guildContrib.n>=GUILD_CONTRIB_DAILY) return send(res,200,{ capped:true, guild:guildView(g) });
+      me.guildContrib.n++;
+      const amt=GUILD_CONTRIB_EXP;
       g.exp=(g.exp||0)+amt;
       while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1;
         g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
@@ -654,7 +694,9 @@ async function api(req,res,url){
     if(p==='/api/guild/raid/assault'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'graid',30,60000)) return send(res,429,{error:'Slow down.'});
       const r=ensureRaid(g); if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
-      let power=Math.max(1,Math.min(5000000, parseInt(b.power,10)||1));
+      // SECURITY (audit crit #5): damage used to be driven by client b.power (up to 5,000,000/hit,
+      // minted from nothing). Use the player's SERVER-KNOWN team power instead. -PR review
+      let power=Math.max(1,Math.min(5000000, serverTeamPower(me.team)||1));
       const dmg=Math.max(1, Math.round(power*(1.4+Math.random()*0.8)));
       r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1;
       let killed=false, reward=null;
@@ -704,7 +746,10 @@ function serveFile(res, file, type, urlPath){ fs.readFile(path.join(__dirname,fi
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://x');
   const p=url.pathname;
-  if(p.startsWith('/api/')) return api(req,res,url);
+  if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{
+    if(res.headersSent) return;
+    if(err && err.code==='BODY_TOO_LARGE'){ send(res,413,{error:'Request too large.'}); try{req.destroy();}catch(_){} return; }
+    console.error('⚠ api error:', err && err.message); return send(res,500,{error:'server error'}); });
   if(p==='/health'){ res.writeHead(200);res.end('ok');return; }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript');
   if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});
@@ -744,6 +789,18 @@ try{
   const rooms = {};   // code -> { host, guest }
   const roomCode = ()=>{ let c; do{ c=crypto.randomBytes(3).toString('hex').toUpperCase().slice(0,5); }while(rooms[c]); return c; };
   const wsend = (ws,o)=>{ try{ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }catch(e){} };
+  // ---- WebSocket security (audit crit #8): sockets used to be fully unauthenticated — any socket
+  //      could claim any name, create rooms, and whisper as anyone. We now (a) size-cap and rate-limit
+  //      every frame, (b) bind the socket to an account when it presents a valid token and DERIVE the
+  //      chat name from that account (so it can't be spoofed), and (c) optionally REQUIRE that token.
+  //      The hard requirement is behind WS_AUTH_REQUIRED and defaults OFF so the current live client
+  //      (which doesn't send a token yet) keeps working; flip it to 'true' once the game HTML is
+  //      updated to send {token} on connect. The size/rate caps and name-from-token apply always. ----
+  const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'')==='true';
+  const WS_MSG_MAX = +(process.env.WS_MSG_MAX || 16384);   // per-frame byte cap (replay chips already capped at 8000)
+  function wsAccount(m){ const t=m&&m.token; if(!t) return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
+  function wsRateOk(ws){ const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=40; }
+  function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
   const CHAT_KEEP=100, CHAT_AGE_MS=3*3600000;
@@ -752,29 +809,37 @@ try{
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
   WSS.on('connection', ws=>{
-    ws.on('message', raw=>{ let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
-      if(m.t==='host'){ const c=roomCode(); rooms[c]={host:ws,guest:null}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
-      else if(m.t==='join'){ const c=(m.code||'').toUpperCase(); const r=rooms[c];
+    ws.on('message', raw=>{ if(raw && raw.length>WS_MSG_MAX) return; if(!wsRateOk(ws)) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
+      const _acct=wsAccount(m); if(_acct){ ws._uid=_acct.id; ws._acctName=_acct.name; }   // bind socket → account when a valid token is presented; name is then server-derived
+      if(m.t==='host'){ if(wsNeedAuth(ws)) return; const c=roomCode(); rooms[c]={host:ws,guest:null,t:Date.now()}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
+      else if(m.t==='join'){ if(wsNeedAuth(ws)) return; const c=(m.code||'').toUpperCase(); const r=rooms[c];
         if(!r){ wsend(ws,{t:'joinfail',reason:'no such room'}); return; }
         if(r.guest){ wsend(ws,{t:'joinfail',reason:'room full'}); return; }
-        r.guest=ws; ws._room=c; ws._role='guest'; wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
-      else if(m.t==='msg'){ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
-      else if(m.t==='chatjoin'){ ws._chatName=clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
-      else if(m.t==='chat'){ const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return; const msg={who:ws._chatName||'Player',txt,t:Date.now()};
+        r.guest=ws; ws._room=c; ws._role='guest'; r.t=Date.now(); wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
+      else if(m.t==='msg'){ const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
+      else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
+      else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return; const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
         if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); writeDB();
         chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
-      else if(m.t==='whisper'){ const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
-        WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:ws._chatName||'Player',txt})); }catch(e){} } }); }
+      else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
+        const fromName=ws._acctName||ws._chatName||'Player';
+        WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt})); }catch(e){} } }); }
     });
     ws.on('close', ()=>{ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
     ws.on('error', ()=>{});
   });
+  // expire idle PvP rooms (audit: rooms were only cleaned on socket close, so a half-open room could linger)
+  const _roomPrune=setInterval(()=>{ const now=Date.now();
+    for(const c of Object.keys(rooms)){ if(now-(rooms[c].t||0) > 30*60000){ wsend(rooms[c].host,{t:'peerleft'}); wsend(rooms[c].guest,{t:'peerleft'}); delete rooms[c]; } } }, 5*60000);
+  if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-readDB(); seed();
+readDB(); seed(); migrateAdminRoles();   // stamp immutable role:'admin' from ADMIN_BOOTSTRAP_NAMES (audit crit #7)
 backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
+// prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
+setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
 const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
 console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
 console.log('👤 Player accounts loaded: '+realAccts);
