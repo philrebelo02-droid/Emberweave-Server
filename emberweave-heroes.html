@@ -5185,6 +5185,19 @@ function renderTech(){
 let ACC={token:null,name:null,rank:null,coins:0,id:null};
 function loadAcc(){ try{const s=localStorage.getItem('ew_acc');if(s)ACC=JSON.parse(s);}catch(e){} }
 function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} }
+// GUEST SESSION: when there's no signed-in account, provision a persistent server-backed "level 1 guest"
+// so progress is always saved and the player appears online. Seeds the guest with the CURRENT local save,
+// so an offline player who reached e.g. level 7 without an account is NOT reset to 1. One guest per device
+// (server-deduped): relaunching resumes it. Called on boot (no token) and after logging off a real account.
+function ensureGuest(cb){
+  if((ACC&&ACC.token) || !online()){ if(cb)cb(); return; }
+  let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
+  api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
+    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true}; saveAcc();
+      try{ DEV.on=false; }catch(e){} if(typeof updateHubChrome==='function')updateHubChrome(); if(typeof renderAccount==='function')renderAccount(); }
+    if(cb)cb();
+  }).catch(()=>{ if(cb)cb(); });
+}
 function online(){ return location.protocol!=='file:'; }
 // stable-ish per-device id used to cap account creation (3 per device)
 function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
@@ -5236,13 +5249,13 @@ function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.ros
 
 function renderAccount(){ const b=document.getElementById('accountBody');
   if(!online()){ b.innerHTML='<div>🌐 Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
-  if(ACC.token){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
-    b.querySelector('#logout').onclick=()=>{ flushCloud(); ACC={token:null,coins:0};saveAcc(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); updateHubChrome(); renderAccount();}; return; }
-  b.innerHTML=`<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
+  if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
+    b.querySelector('#logout').onclick=()=>{ flushCloud(); ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); ensureGuest(()=>{ updateHubChrome(); renderAccount(); }); }; return; }
+  b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">🎮 <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
-  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id};saveAcc(); DEV.on=isDevAcct();
+  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest)};saveAcc(); DEV.on=isDevAcct();
       if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
@@ -7996,7 +8009,8 @@ function renderSettings(){
   }
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
     flushCloud();                                   // save this account's latest progress before leaving
-    ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc();
+    G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // logging off drops you to a FRESH level-1 guest (real progress is safe on the server)
+    ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc(); ensureGuest();
     pwStep='idle'; emStep='idle'; _emPending='';
     G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // clean slate so the next account loads its own save, not this one's
     updateHubChrome(); renderSettings(); };
@@ -8737,7 +8751,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787611864548';
+const BUILD_ID='1787613927483';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -8992,9 +9006,10 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
-  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';saveAcc(); DEV.on=isDevAcct();
+  if(!ACC.token && online()){ ensureGuest(); }   // no session → provision a persistent level-1 guest account
+  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;saveAcc(); DEV.on=isDevAcct();
       if(applyCloudSave(d.profile,false)){ updateHubChrome(); if(state==='home') renderHome(); } }   // pull cloud save if it's newer than local (cross-device sync)
-    else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); }   // token no longer valid → sign out
+    else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
     /* else: offline / transient error → stay signed in with local progress */ }); }
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;
     if(_pendingUpdate){ if(!(state==='battle' && !ended)) doUpdateReload(); return; }   // a real update was deferred during a fight → apply it silently now the fight is over

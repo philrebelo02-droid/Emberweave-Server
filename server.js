@@ -58,7 +58,7 @@ function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reje
 }); }
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
-function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'' }; }
+function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest }; }
 // --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
 // A display name is not a permission boundary (audit crit #7): anyone who registered the name
 // 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
@@ -221,6 +221,20 @@ async function api(req,res,url){
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
+    // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
+    // all progress — instead of spawning a new account. This is what "Create account" does for a guest.
+    const gu=authUser(req);
+    if(gu && gu.guest){
+      if(DB.byName[name.toLowerCase()] && DB.byName[name.toLowerCase()]!==gu.id) return send(res,409,{error:'That Profile name is already taken'});
+      const oldName=(gu.name||'').toLowerCase(), salt=crypto.randomBytes(8).toString('hex');
+      delete DB.byName[oldName]; gu.name=name; gu.hash=hashPass(b.pass,salt); gu.salt=salt; delete gu.guest;
+      if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
+      if(ADMIN_BOOTSTRAP_NAMES.includes(name.toLowerCase())) gu.role='admin';   // claiming a dev name (e.g. dev1) grants the dev role, once, stored immutably
+      DB.byName[name.toLowerCase()]=gu.id;
+      if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
+      dropTokens(gu.id); const tok=uid()+uid(); DB.tokens[tok]=gu.id; writeDB();
+      return send(res,200,{ token:tok, profile:profileFor(gu) });
+    }
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
     // cap account creation to 3 per device (and a softer per-network cap so clearing storage can't fully bypass it)
     const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
@@ -229,8 +243,34 @@ async function api(req,res,url){
     const id=uid(), salt=crypto.randomBytes(8).toString('hex');
     const u={ id, name, hash:hashPass(b.pass,salt), salt, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+    // a fresh account claiming a bootstrap dev name (phil/dev1) gets the dev role at creation — stored on
+    // the account, not re-derived from the name each request, so it's still role-based (audit crit #7).
+    if(ADMIN_BOOTSTRAP_NAMES.includes(name.toLowerCase())) u.role='admin';
     DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();
+    return send(res,200,{ token:tok, profile:profileFor(u) }); }
+
+  // GUEST SESSION: a player who isn't signed in still gets a real server-backed account so their
+  // progress is saved and they appear online — a "level 1 guest". One PERSISTENT guest per device:
+  // relaunching resumes the same guest (never resets progress). The client seeds it with the current
+  // local save so an existing offline player isn't wiped to level 1. Guests upgrade in place via
+  // /api/register (keeps progress) or are replaced by signing into a real account.
+  if(p==='/api/guest' && req.method==='POST'){ const b=await body(req);
+    if(rateLimited(req,'guest',20,60000)) return send(res,429,{error:'Slow down.'});
+    const deviceId=(b.deviceId||'').slice(0,64);
+    DB.guestByDevice = DB.guestByDevice || {};
+    let u = deviceId && DB.guestByDevice[deviceId] && DB.users[DB.guestByDevice[deviceId]];
+    if(u && !u.guest){ u=null; if(deviceId) delete DB.guestByDevice[deviceId]; }   // was upgraded to a real account → make a fresh guest
+    if(!u){
+      const id=uid(); let name; do{ name='Guest-'+crypto.randomBytes(2).toString('hex').toUpperCase(); }while(DB.byName[name.toLowerCase()]);
+      u={ id, name, guest:true, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
+          roster:(b.roster && typeof b.roster==='object' ? b.roster : {}), lastDaily:0,
+          cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+      DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.guestByDevice[deviceId]=id;
+    } else if(b.roster && typeof b.roster==='object' && Object.keys(b.roster).length && (!u.roster || !u.roster.__save)){
+      u.roster=b.roster;   // first-time adoption of an existing local save (offline player who never had an account)
+    }
+    dropTokens(u.id); const tok=uid()+uid(); DB.tokens[tok]=u.id; writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
@@ -543,7 +583,7 @@ async function api(req,res,url){
         members:mem, count:mem.length, youLeader,
         requests: youLeader ? (g.reqs||[]).map(r=>({id:r.id,name:nameOf(r.id),rank:rankOf(r.id),t:r.t})) : [],
         pendingReqCount:(g.reqs||[]).length,
-        log:(g.log||[]).slice(-60) };
+        log:(g.log||[]).filter(e=>e.sys||!e.t||(Date.now()-e.t)<6*3600000).slice(-60) };   // guild CHAT messages disappear after 6h (system notices kept)
     }
     // ---- reads ----
     // ---- shared Guild Raid boss helpers ----
@@ -803,7 +843,7 @@ try{
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
-  const CHAT_KEEP=100, CHAT_AGE_MS=3*3600000;
+  const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   // world/region chat messages disappear 6h after being typed
   const clip = (s,n)=> String(s==null?'':s).slice(0,n);
   function chatStore(){ if(!DB.chat)DB.chat={world:[],region:[]}; if(!Array.isArray(DB.chat.world))DB.chat.world=[]; if(!Array.isArray(DB.chat.region))DB.chat.region=[]; return DB.chat; }
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
