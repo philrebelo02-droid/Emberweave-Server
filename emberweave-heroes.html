@@ -7874,39 +7874,30 @@ function renderSettings(){
   // ---- DEV tools: shown only when signed into a developer account ----
   let dev='';
   if(DEV.on){
-    const act=(id,label)=>`<button class="btn sm secondary" data-dev="${id}" style="font-size:11px">${label}</button>`;
-    const TABS=[['cheats','🧪 Cheats'],['accounts','🛰 Accounts'],['qa','🤖 QA & Reports']];
-    const dt = (['cheats','accounts','qa'].includes(devTab)?devTab:'cheats');
-    const tabBar = `<div style="display:flex;gap:4px;margin-bottom:8px">`+TABS.map(([k,l])=>`<button class="btn xs${dt===k?'':' secondary'}" data-devtab="${k}" style="flex:1;font-size:11px">${l}</button>`).join('')+`</div>`;
+    const act=(id,ic,label)=>`<button class="dvp-cell" data-dev="${id}"><span class="ic">${ic}</span>${label}</button>`;
+    const TABS=[['cheats','\ud83e\uddea Cheats'],['accounts','\ud83d\udef0 Accounts'],['qa','\ud83e\udd16 QA & Reports']];
+    const dt=(['cheats','accounts','qa'].includes(devTab)?devTab:'cheats');
+    const tabBar=`<div class="dvp-tabs">`+TABS.map(([k,l])=>`<div class="dvp-tab${dt===k?' on':''}" data-devtab="${k}">${l}</div>`).join('')+`</div>`;
+    const _n=(v)=>{ v=Math.round(v||0); return v>=1000000?(v/1000000).toFixed(1)+'M':(v>=1000?(v/1000).toFixed(v>=100000?0:1)+'k':(''+v)); };
+    const statRow=`<div class="dvp-stats"><span class="dvp-chip">Lv ${playerLevel()}</span><span class="dvp-chip">\ud83e\ude99 ${_n(G.gold)}</span><span class="dvp-chip">\ud83d\udc8e ${_n(G.gems)}</span></div>`;
     const cheatsTab = dt!=='cheats'?'':`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;background:#0f1420;border-radius:8px">
-        <b style="font-size:12px;flex:1">⚔ God Mode <span style="color:#8b98a9;font-weight:400">(your team takes no damage)</span></b>
-        <button class="btn xs${DEV.god?'':' secondary'}" id="devGod">${DEV.god?'ON':'OFF'}</button></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        ${act('gold','🪙 +100k Gold')}${act('gems','💎 +2000 Diamonds')}${act('shards','💠 +500 each shard')}${act('pieces','🧵 +200 each piece')}
-        ${act('stam','⧗ Refill stamina')}${act('level','⬆ Player +5 levels')}${act('heroes','🦸 Unlock all heroes')}${act('maxteam','✨ Max team glyph+star')}
-        ${act('arena','🏆 Arena → #1')}${act('arenacoin','🎟 +5000 arena coins')}${act('guildcoins','🎖 +5000 guild coins')}${act('shielditem','🛡 +3 shields')}
-        ${act('konwu','🐒 Grant KonWu (maxed)')}${act('givefrags','🧩 Give 100 fragments…')}
-      </div>
-      <button class="btn sm" data-dev="update" style="width:100%;margin-top:8px;background:#3a6df0">🔄 Check for update (reload newest)</button>`;
+      <div class="dvp-god"><b>\u2694 God Mode <span class="sub">\u2014 your team takes no damage</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
+      <input class="dvp-filter" id="devFilter" placeholder="Filter cheats\u2026" autocomplete="off">
+      <div class="dvp-sec">Currency</div>
+      <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 each shard')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
+      <div class="dvp-sec">Progression</div>
+      <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
+      <div class="dvp-sec">Roster</div>
+      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('maxteam','\u2728','Max team glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
+      <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
     const accountsTab = dt!=='accounts'?'':`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <button class="btn sm secondary" data-dev="online" style="font-size:11px">👥 Players online</button>
-        <button class="btn sm secondary" data-dev="accounts" style="font-size:11px">🗂 All accounts</button>
-        <button class="btn sm secondary" data-dev="newacct" style="font-size:11px">➕ Create account</button>
-        <button class="btn sm secondary" data-dev="backup" style="font-size:11px">💾 Download backup</button>
-      </div>`;
+      <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
     const qaTab = dt!=='qa'?'':`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <button class="btn sm secondary" data-dev="reports" style="font-size:11px">🐞 Bug reports</button>
-        <button class="btn sm secondary" data-dev="bots" style="font-size:11px">🤖 Run test bots</button>
-        <button class="btn sm secondary" data-dev="refresh" style="font-size:11px">🔄 Refresh log</button>
-        <button class="btn sm secondary" data-dev="clearlog" style="font-size:11px">🧹 Clear resolved</button>
-      </div>`;
-    dev=`<div class="panel" style="margin-top:4px;border-color:#5ee89b55">
-      <div style="font-weight:800;font-size:13px;color:#5ee89b;margin-bottom:6px">🛠 Developer Panel <span style="color:#8b98a9;font-weight:400;font-size:11px">· ${escapeHTML(ACC.name||'')}</span></div>
+      <div class="dvp-grid">${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
+    dev=`<style>.dvp{border:1px solid #2b7a55;background:linear-gradient(180deg,#12211b,#141b2b 70%)}.dvp-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.dvp-badge{font-size:11px;font-weight:800;letter-spacing:.5px;color:#0a140f;background:#5ee89b;border-radius:6px;padding:2px 7px}.dvp-title{font-weight:800;font-size:14px;color:#e6edf3}.dvp-who{font-size:11px;color:#8b98a9;font-weight:600}.dvp-stats{margin-left:auto;display:flex;gap:5px}.dvp-chip{font-size:11px;font-weight:700;background:#0f1622;border:1px solid #26324a;border-radius:999px;padding:3px 9px;color:#cdd8ea;white-space:nowrap}.dvp-tabs{display:flex;gap:4px;background:#0d1320;border:1px solid #24304a;border-radius:11px;padding:3px;margin-bottom:10px}.dvp-tab{flex:1;text-align:center;font-size:11px;font-weight:700;padding:6px 4px;border-radius:8px;cursor:pointer;color:#93a1b8;user-select:none}.dvp-tab.on{background:#5ee89b;color:#0a140f}.dvp-god{display:flex;align-items:center;gap:10px;background:#0f1622;border:1px solid #26324a;border-radius:11px;padding:9px 11px;margin-bottom:10px}.dvp-god b{font-size:12px;flex:1}.dvp-god .sub{color:#8b98a9;font-weight:500}.dvp-sw{width:44px;height:24px;border-radius:999px;background:#33405e;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s}.dvp-sw.on{background:#5ee89b}.dvp-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.dvp-sw.on::after{left:22px}.dvp-filter{width:100%;box-sizing:border-box;background:#0f1622;border:1px solid #26324a;border-radius:9px;padding:8px 10px;color:#e6edf3;font-size:12px;margin-bottom:10px}.dvp-filter::placeholder{color:#63708a}.dvp-sec{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin:10px 2px 6px}.dvp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dvp-cell{display:flex;align-items:center;gap:8px;background:#1b2334;border:1px solid #2b3852;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:11.5px;font-weight:600;color:#e6edf3;text-align:left;transition:border-color .12s,background .12s}.dvp-cell:hover{background:#222c42;border-color:#3d5488}.dvp-cell:active{transform:translateY(1px)}.dvp-cell .ic{font-size:15px;flex:0 0 auto}.dvp-update{width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border:0;border-radius:11px;background:linear-gradient(90deg,#3a6df0,#5a86ff);color:#fff;font-weight:800;font-size:12px;cursor:pointer}.dvp-out{font-size:11px;color:#5ee89b;margin-top:8px;min-height:14px}</style><div class="panel dvp">
+      <div class="dvp-hd"><span class="dvp-badge">DEV</span><span class="dvp-title">Developer Panel</span><span class="dvp-who">${escapeHTML(ACC.name||'')}</span>${statRow}</div>
       ${tabBar}${cheatsTab}${accountsTab}${qaTab}
-      <div id="devDone" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div>
+      <div id="devDone" class="dvp-out"></div>
       <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:300px;overflow:auto"></div>
     </div>`;
   }
@@ -8061,7 +8052,7 @@ function renderSettings(){
     }); };
   const dGod=b.querySelector('#devGod'); if(dGod) dGod.onclick=()=>{ DEV.god=!DEV.god; renderSettings(); };
   b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); });
-  b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); });
+  b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); }); const _flt=b.querySelector('#devFilter'); if(_flt){ _flt.oninput=()=>{ const q=_flt.value.trim().toLowerCase(); b.querySelectorAll('.dvp-cell').forEach(c=>{ c.style.display=(!q||(c.textContent||'').toLowerCase().includes(q))?'':'none'; }); b.querySelectorAll('.dvp-sec').forEach(sec=>{ const nx=sec.nextElementSibling; const any=nx&&[...nx.querySelectorAll('.dvp-cell')].some(c=>c.style.display!=='none'); sec.style.display=any?'':'none'; }); }; }
 }
 function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
@@ -8071,6 +8062,7 @@ function devAction(a,b){
   else if(a==='pieces'){ if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+200); done('+200 of each equipment piece'); }
   else if(a==='stam'){ G.stamina=maxStamina(); G.staminaTS=Date.now(); done('Stamina refilled'); }
   else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); G.playerXP=TROOP_CUM[nl]; done('Now player level '+nl); }
+  else if(a==='squadlvl'){ if(!G.heroXP)G.heroXP={}; (G.team||[]).forEach(k=>{ if(!k)return; const cur=levelFromXP(G.heroXP[k]||0); const nl=Math.min(MAX_LEVEL,cur+5); G.heroXP[k]=HERO_CUM[nl]; }); done('Squad +5 levels'); }
   else if(a==='heroes'){ HERO_KEYS.forEach(k=>G.unlocked[k]=true); done('All heroes unlocked'); }
   else if(a==='konwu'){ G.unlocked.konwu=true; G.glyphRank.konwu=GMAX_RANK; G.starLevel.konwu=MAX_STARS; G.starPip.konwu=0; G.skillLevel.konwu=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; done('KonWu unlocked & maxed — put him in your team, then battle'); }
   else if(a==='maxteam'){ G.team.forEach(k=>{ G.glyphRank[k]=GMAX_RANK; G.starLevel[k]=MAX_STARS; G.starPip[k]=0; G.skillLevel[k]=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; }); done('Team maxed (glyph + stars + skills)'); }
@@ -8751,7 +8743,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787614241206';
+const BUILD_ID='1787615214887';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
