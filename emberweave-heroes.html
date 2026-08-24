@@ -4372,7 +4372,7 @@ let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, me
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
 // against its own DEV_NAMES). The client list below is only a UI hint; the server is the real gate.
 const DEV={ on:false, god:false, who:'' };   // session-only (resets each launch; never saved)
-const DEV_NAMES = ['phil'];   // must match server.js DEV_NAMES
+const DEV_NAMES = ['phil','dev1'];   // client-side UI gate for the Developer Panel (server authority is role-based)
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
 let acctMode='signin';   // 'signin' | 'create' | 'reset' | 'forgot' — which tab the account panel shows
 let pwStep='idle';       // 'idle' | 'sent' — email password-reset flow state (signed-in account panel)
@@ -8751,7 +8751,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787613927483';
+const BUILD_ID='1787614241206';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
