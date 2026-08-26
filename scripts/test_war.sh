@@ -1,7 +1,4 @@
 #!/bin/bash
-# Usage: start the server first in a SHORT shell call:
-#   env GLYPHS_V2_ENABLED=true DUNGEON_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true DB_FILE=./test-db.json PORT=8871 setsid nohup node server.js > srv.log 2>&1 < /dev/null &
-# then: bash <this file>   (fresh test-db.json per run)
 # Skyfall tournament lifecycle test (uses dev time-warp)
 B=http://localhost:8871
 PASS=0; FAIL=0
@@ -9,9 +6,12 @@ ck(){ if [[ "$3" == *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL
 jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null; }
 
 # users: dev1 (admin, for warp), u1 leader guild Alpha, u2 leader guild Beta
-DV=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dev1","pass":"pw"}'); TD=$(echo "$DV"|jv "['token']")
-U1=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"wu1","pass":"pw"}'); T1=$(echo "$U1"|jv "['token']")
-U2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"wu2","pass":"pw"}'); T2=$(echo "$U2"|jv "['token']")
+DV=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'); TD=$(echo "$DV"|jv "['token']")
+[ -z "$TD" ] && { DV=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'); TD=$(echo "$DV"|jv "['token']"); }
+U1=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"wu1","pass":"password1"}'); T1=$(echo "$U1"|jv "['token']")
+[ -z "$T1" ] && { U1=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"wu1","pass":"password1"}'); T1=$(echo "$U1"|jv "['token']"); }
+U2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"wu2","pass":"password1"}'); T2=$(echo "$U2"|jv "['token']")
+[ -z "$T2" ] && { U2=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"wu2","pass":"password1"}'); T2=$(echo "$U2"|jv "['token']"); }
 HD="x-token: $TD"; H1="x-token: $T1"; H2="x-token: $T2"
 # u1 gets a stronger save so Alpha should win fights
 python3 - << 'PY' > wsave.json
@@ -55,6 +55,16 @@ ck "Monday: bracket state" '"state":"bracket"' "$W2"
 S1=$(curl -s $B/api/guild-war/status -H "$H1")
 ck "match created in planning" '"state":"planning"' "$S1"
 ck "Alpha is seed 1" '"seed":1' "$S1"
+ck "opponent HIDDEN before Tuesday reveal" '"preReveal":true' "$S1"
+ASEARLY=$(curl -s -X POST $B/api/guild-war/assign -H "$H1" -H 'content-type: application/json' -d "{\"memberId\":\"$(echo "$U1"|jv "['profile']['id']")\",\"lane\":0}")
+ck "assign before reveal rejected" 'Planning opens' "$ASEARLY"
+
+# warp to Tuesday 01:00 ET: opponent revealed, planning open, officer roster present
+OFF2B=$((OFF+3*86400000+3600000))
+curl -s -X POST $B/api/guild-war/debug-warp -H "$HD" -H 'content-type: application/json' -d "{\"offsetMs\":$OFF2B}" >/dev/null
+S1B=$(curl -s $B/api/guild-war/status -H "$H1")
+ck "opponent revealed Tuesday" '"preReveal":false' "$S1B"
+ck "officer placement roster present" '"roster"' "$S1B"
 
 # planning: leader assigns own line to lane 0; non-leader forbidden; assault before live rejected
 AS=$(curl -s -X POST $B/api/guild-war/assign -H "$H1" -H 'content-type: application/json' -d "{\"memberId\":\"$(echo "$U1"|jv "['profile']['id']")\",\"lane\":0}")

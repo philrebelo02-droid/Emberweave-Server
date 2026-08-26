@@ -78,7 +78,7 @@ CS=$(curl -s -X POST $B/api/glyphs/craft-sub -H "$H" -H 'content-type: applicati
 ck "craft-sub insufficient frags rejected" 'Need' "$CS"
 
 # full ascend path on a fresh account: register dev-less user, craft 6 grey glyphs across families and ascend
-R2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"gtest2","pass":"pw"}')
+R2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"gtest2","pass":"password1"}')
 T2=$(echo "$R2" | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
 H2="x-token: $T2"
 S2=$(curl -s $B/api/glyphs/state -H "$H2")

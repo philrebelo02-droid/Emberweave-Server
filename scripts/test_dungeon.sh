@@ -8,7 +8,7 @@ ck(){ if [[ "$3" == *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL
 jq(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null; }
 
 # a beefy account: register, then push a save with high XP so heroes are strong
-R=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dt1","pass":"pw"}')
+R=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dt1","pass":"password1"}')
 T=$(echo "$R"|jq "['token']"); H="x-token: $T"
 python3 - << 'PY' > save1.json
 import json
@@ -86,7 +86,7 @@ SAL=$(curl -s -X POST $B/api/fragments/salvage -H "$H" -H 'content-type: applica
 ck "salvage 1 grey = 2 dust" '"dustGained":2' "$SAL"
 
 # loss keeps the floor (retry forever — beatable by practice)
-R2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dt2","pass":"pw"}')
+R2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dt2","pass":"password1"}')
 T2=$(echo "$R2"|jq "['token']"); H2="x-token: $T2"
 ST2=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H2" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"w1"}')
 A2=$(echo "$ST2"|jq "['attemptId']")

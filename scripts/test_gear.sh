@@ -6,9 +6,9 @@ ck(){ if [[ "$3" == *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL
 jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null; }
 
 # dev1 (already exists in some runs) → register fresh dev-named acct? use dev1
-D=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dev1","pass":"pw"}')
+D=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}')
 T=$(echo "$D"|jv "['token']")
-[ -z "$T" ] && { D=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"pw"}'); T=$(echo "$D"|jv "['token']"); }
+[ -z "$T" ] && { D=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'); T=$(echo "$D"|jv "['token']"); }
 H="x-token: $T"
 
 CAT=$(curl -s $B/api/gear/catalog -H "$H")
@@ -81,7 +81,7 @@ STALE=$(curl -s -X POST $B/api/gear/craft -H "$H" -H 'content-type: application/
 ck "stale revision → STALE" 'STALE' "$STALE"
 
 # non-dev grant forbidden
-U=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"gearu1","pass":"pw"}')
+U=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"gearu1","pass":"password1"}')
 TU=$(echo "$U"|jv "['token']"); HU="x-token: $TU"
 SU=$(curl -s $B/api/gear/state -H "$HU"); RVU=$(echo "$SU"|jv "['revision']")
 GRF=$(curl -s -X POST $B/api/gear/grant -H "$HU" -H 'content-type: application/json' -d "{\"expectedRevision\":$RVU,\"dust\":999999}")
