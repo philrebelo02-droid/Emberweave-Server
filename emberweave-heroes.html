@@ -5548,6 +5548,7 @@ function ensureGuest(cb){
   let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
   api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
     if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
+      _cloudReady=true;   // brand-new guest: this device's state IS the account's first cloud save
       try{ DEV.on=false; }catch(e){} if(typeof updateHubChrome==='function')updateHubChrome(); if(typeof renderAccount==='function')renderAccount(); }
     if(cb)cb();
   }).catch(()=>{ if(cb)cb(); });
@@ -5582,22 +5583,33 @@ function showKickedNotice(){
 }
 // heartbeat: poll while signed in so a device kicked by a login elsewhere finds out within ~15s (api() handles the sign-out)
 let _sessionHB=null;
-function startSessionHeartbeat(){ if(_sessionHB) return; _sessionHB=setInterval(()=>{ if(online() && ACC && ACC.token){ api('/api/profile'); if((++_pvpPollN)%4===0) pollPvpReports(); } }, 15000); }
+function startSessionHeartbeat(){ if(_sessionHB) return; _sessionHB=setInterval(()=>{ if(online() && ACC && ACC.token){
+  api('/api/profile').then(d=>{ if(d&&d.profile&&!_cloudReady){ (_cloudReady=true,applyCloudSave(d.profile,true)); updateHubChrome(); } });   // boot fetch failed earlier → adopt the cloud save on the first heartbeat that gets through, so this session can start pushing
+  if((++_pvpPollN)%4===0) pollPvpReports(); } }, 15000); }
 function rosterPayload(){ const r={}; HERO_KEYS.forEach(k=>r[k]={level:heroLevel(k),rank:heroQuality(k)}); return r; }
 function teamPayload(arr){ return arr.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
 // ---- per-account cloud save: the FULL game blob rides along in roster.__save (no server change needed) ----
 let _cloudTimer=null;
-function pushSave(){ if(!ACC.token)return; const r=rosterPayload(); r.__save=JSON.stringify(G);
+// CLOUD IS THE TRUTH: no push may happen before this session has ADOPTED the account's cloud save
+// (write-before-read race: an old device's local cache must never overwrite the cloud on boot).
+// Set true after applyCloudSave at boot/sign-in, on fresh accounts with no cloud blob, and for new guests.
+let _cloudReady=false;
+function pushSave(){ if(!ACC.token||!_cloudReady)return; const r=rosterPayload(); r.__save=JSON.stringify(G);
   const cp=(typeof myCastlePos==='function')?myCastlePos():{x:50,y:50};
   const world={ region:myRegion(), x:cp.x, y:cp.y, level:playerLevel(),
                 power:teamPower((G.wall&&G.wall.length?G.wall:G.team).filter(Boolean).map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)}))) };
   api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}); }
 function cloudSync(){ if(!ACC.token||_cloudTimer)return; _cloudTimer=setTimeout(()=>{ _cloudTimer=null; pushSave(); },1500); }
 function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=null; } if(ACC.token) pushSave(); }
-// load this account's cloud save into G. forceLoad=true on an explicit sign-in (always adopt that account);
-// on boot we only overwrite local if the cloud copy is newer, so recent offline play isn't clobbered.
+// permanence: when the tab is backgrounded or closed (phone app-switch included), flush the pending
+// debounced push immediately so the last seconds of play always reach the cloud
+try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
+     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ try{ flushCloud(); }catch(e){} } }); }catch(e){}
+// load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
+// the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
+// game paints instantly before the profile fetch returns; it is never trusted over the cloud.
 function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.roster&&profile.roster.__save; if(!blob) return false;
-    const cloud=JSON.parse(blob); if(!forceLoad && (G.mtime||0) >= (cloud.mtime||0)){ const moreCloud=((cloud.campaignCleared||0)>(G.campaignCleared||0))||((cloud.playerXP||0)>(G.playerXP||0)); if(!moreCloud) return false; }
+    const cloud=JSON.parse(blob);
     const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateG(); applyBetaUnlocks(); saveGLocalOnly(); if(granted && ACC.token) pushSave(); return true;
   }catch(e){ return false; } }
 
@@ -5610,7 +5622,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
   const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
-      if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
+      if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
     if(!tosOK()){ requireTos(()=>go(path), ()=>{ const m=b.querySelector('#acMsg'); if(m){ m.style.color='#ff8b8b'; m.textContent='You must accept the Terms to sign in.'; } }); return; }
@@ -5637,7 +5649,7 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
     api('/api/login','POST',{name, newPass:np, roster:rosterPayload()}).then(d=>{ if(d.error){ m.textContent=d.error; return; }
       if(!d.token){ m.textContent='Could not set password.'; return; }
       ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
-      if(!applyCloudSave(d.profile,true)) pushSave(); updateHubChrome(); renderAccount(); }); };
+      if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); updateHubChrome(); renderAccount(); }); };
 }
 function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">🌐 '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
   if(!ACC.token){ body.innerHTML='<div class="panel" style="text-align:center">Sign in to enter '+what+'.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return true; } return false; }
@@ -8424,7 +8436,7 @@ function renderSettings(){
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reset password.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
-        if(!applyCloudSave(d.profile,true)) pushSave();
+        if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave();
         _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
         bannerMsg('🔑 Password reset — you\'re signed in.'); }); };
     fgSubmit.onclick=doSubmit;
@@ -8444,8 +8456,8 @@ function renderSettings(){
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
         DEV.on=isDevAcct();
-        if(isCreate){ pushSave(); }                            // new account → seed the cloud with your current progress
-        else if(!applyCloudSave(d.profile,true)){ pushSave(); } // sign in → load THIS account's own cloud save
+        if(isCreate){ _cloudReady=true; pushSave(); }                            // new account → seed the cloud with your current progress
+        else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } // sign in → load THIS account's own cloud save
         acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
       }); };
     acGo.onclick=go;
@@ -8462,7 +8474,7 @@ function renderSettings(){
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
-        if(!applyCloudSave(d.profile,true)) pushSave();
+        if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave();
         _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
     acSet.onclick=doSet;
     ['#acNew','#acNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSet(); });
@@ -8514,8 +8526,13 @@ function renderSettings(){
   // ---- dev tools wiring ----
   const _exp=b.querySelector('#expBtn'); if(_exp) _exp.onclick=()=>{ b.querySelector('#saveOut').textContent=JSON.stringify(G); };
   const _rst=b.querySelector('#resetBtn'); if(_rst) _rst.onclick=()=>{
-    gameConfirm('Reset <b>your own</b> progress back to a fresh start?<br><span style="font-size:11px;color:#8b98a9">This only affects your account — no other players are touched. Your one-time name change is restored.</span>',()=>{
+    gameConfirm('Reset <b>your own</b> progress back to a fresh start?<br><span style="font-size:11px;color:#8b98a9">This wipes EVERYTHING on this account — heroes, levels, glyph boards, Forge gear, Dust and Vault floors. No other players are touched. Your one-time name change is restored.</span>',async()=>{
+      if(ACC.token){ await api('/api/account/reset-progress','POST',{}); }   // server-owned progress: glyphs / gear / dust / Vault climb
       G=JSON.parse(JSON.stringify(DEFAULT_G)); G.nameChanged=false; G.playerName='Commander';   // full local reset + give the name change back
+      // drop every cached server-state view so the UI re-syncs the freshly reset account
+      try{ RUNE2={ enabled:null, cat:(typeof RUNE2!=='undefined'&&RUNE2.cat)||null, st:null, busy:false, pick:null, view:'board' }; }catch(e){}
+      try{ FORGE.st=null; }catch(e){}
+      try{ VAULT.st=null; VAULT.result=null; }catch(e){}
       saveG(); if(ACC.token) pushSave();   // pushes ONLY your own account's save to the cloud; never touches other accounts
       const pm=document.getElementById('profileModal'); if(pm) pm.classList.remove('active');
       updateHubChrome(); show('home');
@@ -9215,7 +9232,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787760404496';
+const BUILD_ID='1787760956145';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -9472,7 +9489,8 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
   if(!ACC.token && online()){ ensureGuest(); }   // no session → provision a persistent level-1 guest account
   if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
-      if(applyCloudSave(d.profile,false)){ updateHubChrome(); if(state==='home') renderHome(); } }   // pull cloud save if it's newer than local (cross-device sync)
+      const adopted=(_cloudReady=true,applyCloudSave(d.profile,true)); _cloudReady=true;   // CLOUD IS THE TRUTH (Phil 26 Aug): adopt the cloud save FIRST, only then may this session push
+      if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); } }   // no cloud blob yet (fresh account) → seed it
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
     /* else: offline / transient error → stay signed in with local progress */ }); }
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;

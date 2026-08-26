@@ -867,6 +867,15 @@ async function api(req,res,url){
     writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/profile'){ if(!me)return send(res,401,{error:'auth'}); return send(res,200,{profile:profileFor(me)}); }
 
+  /* FULL self-reset (Phil 26 Aug: "Reset all progress" must really reset everything).
+     Wipes THIS account's server-owned progression: glyph boards/fragments/inventory (re-migrates
+     fresh with the starter pack on next /state), Forge gear, Forge Dust, and the Vault climb.
+     Only ever touches the calling account. The client wipes its local save alongside this. */
+  if(p==='/api/account/reset-progress' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    delete me.glyphs; delete me.gear; me.dust=0;
+    if(DB.dungeonProgress) delete DB.dungeonProgress[me.id];
+    writeDB(); return send(res,200,{ok:true}); }
+
   // change / link recovery email — STEP 1: request a confirmation code. Signed-in only.
   // If an email is already on file the code goes to the CURRENT email (so a hijacked session can't silently
   // redirect account recovery); if none is on file yet the code goes to the NEW email to prove ownership.
