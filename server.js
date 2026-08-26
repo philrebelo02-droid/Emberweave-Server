@@ -58,7 +58,7 @@ function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reje
 }); }
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
-function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0 }; }
+function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0, admin:isDev(u)||undefined }; }   // admin: server-confirmed role — the client's Developer Panel gates on THIS, never a name list
 // --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
 // A display name is not a permission boundary (audit crit #7): anyone who registered the name
 // 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
@@ -1408,7 +1408,7 @@ async function api(req,res,url){
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
-    let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 2, Math.min(9, 3+Math.floor((5000-me.rank)/800))); }   // arena win: 2 fragments, tier scales with rank
+    let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 4, Math.min(9, 3+Math.floor((5000-me.rank)/800))); }   // arena win: 4 fragments, tier scales with rank (raised 26 Aug with the legacy-drop removal)
     writeDB();
     return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags }); }
 
@@ -1429,7 +1429,7 @@ async function api(req,res,url){
   if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const now=Date.now();
     if(now-(me.lastDaily||0) < 20*60*60*1000) return send(res,200,{granted:0, coins:me.coins, next:(me.lastDaily+20*60*60*1000)});
     const amt=dailyAmount(me.rank); me.coins+=amt; me.lastDaily=now;
-    let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 6, 3); }   // daily: 6 fragments up to Blue
+    let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 12, 3); }   // daily: 12 fragments up to Blue (raised 26 Aug — campaign's legacy glyph drops were removed with the v214 strip)
     let gearFrags=null; if(gearEnabledFor(me)){ const q=['Grey','Green','Blue'][Math.floor(Math.random()*3)]; gearFrags=gearGrantFragments(me,q,3); }   // daily: 3 gear fragments
     writeDB(); return send(res,200,{granted:amt, coins:me.coins, glyphFrags, gearFrags}); }
 
@@ -1763,7 +1763,7 @@ try{
   //      The hard requirement is behind WS_AUTH_REQUIRED and defaults OFF so the current live client
   //      (which doesn't send a token yet) keeps working; flip it to 'true' once the game HTML is
   //      updated to send {token} on connect. The size/rate caps and name-from-token apply always. ----
-  const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'')==='true';
+  const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'true')==='true';   // ON by default since 26 Aug — the client now sends its token on every WS frame; set env false only as an emergency rollback
   const WS_MSG_MAX = +(process.env.WS_MSG_MAX || 16384);   // per-frame byte cap (replay chips already capped at 8000)
   function wsAccount(m){ const t=m&&m.token; if(!t) return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
   function wsRateOk(ws){ const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=40; }

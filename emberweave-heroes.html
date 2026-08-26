@@ -3703,8 +3703,14 @@ function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.trave
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
   voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
+// per-mode battle maps: The Vault fights on the forest-road arena; everything else keeps the default painted map
+const BATTLE_MAPS={ vault:'/assets/img/battlefields/dungeon-forest-01.webp', dungeon:'/assets/img/battlefields/dungeon-forest-01.webp' };
+function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg) return;
+  const url=(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
+  bg.style.backgroundImage='url('+url+')'; bg.style.backgroundSize='cover'; bg.style.backgroundPosition='center'; }
 function startBattle(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
+  applyBattleMap();
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
@@ -4387,10 +4393,11 @@ const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign', skClipIdx=0;
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
-// against its own DEV_NAMES). The client list below is only a UI hint; the server is the real gate.
+// against its own role stamp). The client shows dev UI only when the server's profile says admin.
 const DEV={ on:false, god:false, who:'' };   // session-only (resets each launch; never saved)
-const DEV_NAMES = ['phil','dev1'];   // client-side UI gate for the Developer Panel (server authority is role-based)
-function isDevAcct(){ return !!(ACC && ACC.token && ACC.name && DEV_NAMES.includes(ACC.name.toLowerCase())); }
+// Developer Panel gate: the SERVER's confirmed admin role (profile.admin), never a name list.
+// Every /api/admin/* route 403s for non-admins regardless — this only controls whether the UI shows.
+function isDevAcct(){ return !!(ACC && ACC.token && ACC.admin); }
 let acctMode='signin';   // 'signin' | 'create' | 'reset' | 'forgot' — which tab the account panel shows
 let pwStep='idle';       // 'idle' | 'sent' — email password-reset flow state (signed-in account panel)
 let _forgotName='', _forgotStep='name';   // signed-out "forgot password" recovery: 'name' → 'code'
@@ -5520,7 +5527,7 @@ function ensureGuest(cb){
   if((ACC&&ACC.token) || !online()){ if(cb)cb(); return; }
   let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
   api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
-    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0)}; saveAcc();
+    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
       try{ DEV.on=false; }catch(e){} if(typeof updateHubChrome==='function')updateHubChrome(); if(typeof renderAccount==='function')renderAccount(); }
     if(cb)cb();
   }).catch(()=>{ if(cb)cb(); });
@@ -5582,7 +5589,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
-  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0)};saveAcc(); DEV.on=isDevAcct();
+  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
@@ -5609,7 +5616,7 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
     if(np!==cf){ m.textContent='Passwords do not match.'; return; }
     api('/api/login','POST',{name, newPass:np, roster:rosterPayload()}).then(d=>{ if(d.error){ m.textContent=d.error; return; }
       if(!d.token){ m.textContent='Could not set password.'; return; }
-      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0)};saveAcc(); DEV.on=isDevAcct();
+      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(!applyCloudSave(d.profile,true)) pushSave(); updateHubChrome(); renderAccount(); }); };
 }
 function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">🌐 '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
@@ -7249,6 +7256,15 @@ function g2canCraft(def){ const g=RUNE2.st;
     if(i.kind==='sub'&&(g.subGlyphs[i.key]||0)<1) return false;
     if(i.kind==='finished'&&!Object.values(g.finished).some(x=>x.status==='inventory'&&x.definitionId===i.defId)) return false; }
   return true; }
+/* ---- Glyph v2 ART (270 PNGs, /assets/img/glyphs-v2/<QualityDir>/<type>-<slot>.png) ----
+   QualityDir = ladder name with ' +' removed ('Blue +1' → 'Blue1'). type ∈ fragment|sub|finished.
+   Art is keyed by BOARD SLOT; a def/fragment finds its slot through its material family. */
+function g2qdir(q){ return String(q).replace(' +',''); }
+function g2slotOfFam(fam){ const sf=(RUNE2.cat&&RUNE2.cat.slotFamilies)||{}; for(const s in sf){ if((sf[s]||[]).includes(fam)) return s; } return 'vitality'; }
+function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v2/${g2qdir(q)}/${type}-${slot}.png?v=1" style="width:${px}px;height:${px}px;object-fit:contain;${extra||'display:block;margin:0 auto'}" draggable="false" onerror="this.style.display='none'">`; }
+function g2artDef(d,px,extra){ return g2art('finished',d.quality,g2slotOfFam(d.family),px,extra); }
+function g2parseKey(k){ const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
+function g2artKey(type,k,px){ const p=g2parseKey(k); return g2art(type,p.q,g2slotOfFam(p.fam),px,'display:inline-block;vertical-align:-4px'); }
 function glyphV2Tab(key){
   if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to craft, socket and ascend glyphs.</span></div>`; }
   if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
@@ -7268,6 +7284,7 @@ function glyphV2Tab(key){
     const opts=inv.filter(([id,i])=>{ const d=g2def(i.definitionId); return d&&d.qi===idx&&fams.includes(d.family); });
     const rows=opts.length?opts.map(([id,i])=>{ const d=g2def(i.definitionId);
       return `<div class="eq-row" style="border-left:3px solid ${g2col(d.quality)};cursor:pointer" onclick="g2sockPick('${id}')">
+        ${g2artDef(d,34,'display:block;margin-right:7px;flex:none')}
         <div style="flex:1"><div style="font-size:12px"><b style="color:${g2col(d.quality)}">${d.name}</b> <span style="font-size:9px;color:#6f7d90">${d.strength}</span></div>
         <div style="font-size:10px;color:#8b98a9">${d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · ')}</div></div>
         <button class="btn xs">Socket</button></div>`; }).join('')
@@ -7279,12 +7296,14 @@ function glyphV2Tab(key){
   const cells=cat.slots.map((slotName,i)=>{ const iid=b.slots[i]; const fams=cat.slotFamilies[slotName]||[];
     if(iid){ const inst=st.finished[iid], d=inst&&g2def(inst.definitionId);
       return `<div class="gslot filled" style="border-color:${d?g2col(d.quality):'#33405e'};cursor:pointer" onclick="g2sock(${i})" title="tap to unsocket">
-        <div style="font-size:15px;height:24px;display:flex;align-items:center;justify-content:center">${G2_SLOT_ICON[slotName]||'◆'}</div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center">${d?g2artDef(d,32):(G2_SLOT_ICON[slotName]||'◆')}</div>
         <div style="font-size:8px;color:${d?g2col(d.quality):'#8b98a9'};font-weight:700">${d?d.family:'?'}</div>
         <div style="font-size:7px;color:#8b98a9">${d?d.strength:''} ✓</div></div>`; }
     const has=inv.some(([id,x])=>{ const d=g2def(x.definitionId); return d&&d.qi===idx&&fams.includes(d.family); });
     return `<div class="gslot" style="border-color:${has?'#5ee89b':'#33405e'};cursor:pointer" onclick="g2sock(${i})">
-      <div style="font-size:16px;color:${has?'#5ee89b':'#6f7d90'};height:24px;display:flex;align-items:center;justify-content:center">＋</div>
+      <div style="position:relative;height:34px;display:flex;align-items:center;justify-content:center">
+        <span style="position:absolute;inset:0;opacity:.22;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,30,'')}</span>
+        <span style="position:relative;font-size:16px;color:${has?'#5ee89b':'#6f7d90'}">＋</span></div>
       <div style="font-size:8px;color:#8b98a9;font-weight:700">${slotName}</div>
       <div style="font-size:7px;color:#6f7d90">${fams.join('/')}</div></div>`; }).join('');
   const full=b.slots.every(s=>s);
@@ -7299,22 +7318,23 @@ function glyphV2Tab(key){
     const frag=Object.entries(st.fragments).filter(([k,n])=>n>0).sort();
     const subs=Object.entries(st.subGlyphs).filter(([k,n])=>n>0).sort();
     lower=`<div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Fragments</b></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${frag.length?frag.map(([k,n])=>`<span class="pill" style="font-size:10px;border:1px solid ${g2col(k.replace(/ (Stoneheart|Ironwall|Veilward|Ravager|Starfire|Windstep|Hawkeye|Lifebloom|Shadepath|Sunder|Voidbind|Bastion|Tidecall|Bloodroot|Keenmind|Dawnshield|Worldheart|Cataclysm)$/,''))}">${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None yet — daily rewards and arena wins drop fragments.</span>'}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${frag.length?frag.map(([k,n])=>`<span class="pill" style="font-size:10px;border:1px solid ${g2col(k.replace(/ (Stoneheart|Ironwall|Veilward|Ravager|Starfire|Windstep|Hawkeye|Lifebloom|Shadepath|Sunder|Voidbind|Bastion|Tidecall|Bloodroot|Keenmind|Dawnshield|Worldheart|Cataclysm)$/,''))}">${g2artKey('fragment',k,15)} ${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None yet — daily rewards and arena wins drop fragments.</span>'}</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Sub-Glyphs</b></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${subs.length?subs.map(([k,n])=>`<span class="pill" style="font-size:10px">${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None crafted.</span>'}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${subs.length?subs.map(([k,n])=>`<span class="pill" style="font-size:10px">${g2artKey('sub',k,15)} ${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None crafted.</span>'}</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Finished glyphs</b> (${inv.length})</div>
-      ${inv.slice(0,30).map(([id,i])=>{ const d=g2def(i.definitionId); return `<div class="eq-row" style="border-left:3px solid ${d?g2col(d.quality):'#333'}"><div style="flex:1;font-size:11px"><b style="color:${d?g2col(d.quality):'#aaa'}">${d?d.name:'?'}</b> <span style="font-size:9px;color:#6f7d90">${d?d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · '):''}</span></div></div>`; }).join('')||'<div style="color:#6f7d90;font-size:11px">Empty.</div>'}`;
+      ${inv.slice(0,30).map(([id,i])=>{ const d=g2def(i.definitionId); return `<div class="eq-row" style="border-left:3px solid ${d?g2col(d.quality):'#333'}">${d?g2artDef(d,26,'display:block;margin-right:6px;flex:none'):''}<div style="flex:1;font-size:11px"><b style="color:${d?g2col(d.quality):'#aaa'}">${d?d.name:'?'}</b> <span style="font-size:9px;color:#6f7d90">${d?d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · '):''}</span></div></div>`; }).join('')||'<div style="color:#6f7d90;font-size:11px">Empty.</div>'}`;
   } else {
     const defs=cat.defs.filter(d=>d.qi===idx);
     // subs needed at this tier
     const needSubs={}; defs.forEach(d=>d.ing.forEach(i=>{ if(i.kind==='sub') needSubs[i.key]=1; }));
     const subRows=Object.keys(needSubs).map(k=>{ const sub=(cat.subs||[]).find(s=>s.key===k); if(!sub)return '';
       const can=sub.ing.every(i=>(st.fragments[i.key]||0)>=i.qty);
-      return `<div class="eq-row" style="border-left:3px solid #8b98a9"><div style="flex:1;min-width:0"><div style="font-size:11px"><b>${k}</b> <span style="font-size:9px;color:#8fe3ff">×${st.subGlyphs[k]||0}</span></div>
+      return `<div class="eq-row" style="border-left:3px solid #8b98a9">${g2artKey('sub',k,24)}<div style="flex:1;min-width:0;margin-left:6px"><div style="font-size:11px"><b>${k}</b> <span style="font-size:9px;color:#8fe3ff">×${st.subGlyphs[k]||0}</span></div>
         <div style="font-size:9px;color:#8b98a9">${sub.ing.map(i=>`<span style="color:${(st.fragments[i.key]||0)>=i.qty?'#5ee89b':'#e86a6a'}">${i.qty}× ${i.key}</span>`).join(' + ')}</div></div>
         <button class="btn xs" ${can?'':'disabled'} onclick="g2craftSub('${k}')">Craft</button></div>`; }).join('');
     lower=defs.map(d=>{ const can=g2canCraft(d); const own=inv.filter(([id,x])=>x.definitionId===d.id).length;
       return `<div class="eq-row" style="border-left:3px solid ${g2col(d.quality)}">
+        ${g2artDef(d,32,'display:block;margin-right:7px;flex:none')}
         <div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${g2col(d.quality)}">${d.name}</b> <span style="font-size:9px;color:#6f7d90">${d.strength}</span>${own?` <span style="color:#8fe3ff;font-size:10px">×${own}</span>`:''}</div>
           <div style="font-size:10px;color:#c3ccd8">${d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · ')}</div>
           <div style="font-size:9px;margin-top:2px">${g2ingLine(d)}</div></div>
@@ -8383,7 +8403,7 @@ function renderSettings(){
       api('/api/reset-verify','POST',{name:_forgotName, code, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reset password.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
         if(!applyCloudSave(d.profile,true)) pushSave();
         _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
         bannerMsg('🔑 Password reset — you\'re signed in.'); }); };
@@ -8402,7 +8422,7 @@ function renderSettings(){
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
         DEV.on=isDevAcct();
         if(isCreate){ pushSave(); }                            // new account → seed the cloud with your current progress
         else if(!applyCloudSave(d.profile,true)){ pushSave(); } // sign in → load THIS account's own cloud save
@@ -8421,7 +8441,7 @@ function renderSettings(){
       api('/api/login','POST',{name:_resetName, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
         if(!applyCloudSave(d.profile,true)) pushSave();
         _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
     acSet.onclick=doSet;
@@ -8467,7 +8487,7 @@ function renderSettings(){
       msg.style.color='#8b98a9'; msg.textContent='Changing password…';
       api('/api/reset-verify','POST',{name:ACC.name, code, newPass:np}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not change password.'; return; }
-        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc(); }
+        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); }
         pwStep='idle'; renderSettings(); bannerMsg('🔑 Password changed. Other devices have been signed out.'); }); };
     acRSubmit.onclick=doSubmit;
     ['#acRCode','#acRNew','#acRNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
@@ -8739,7 +8759,8 @@ function netConnect(cb){ const url=netURL(); if(!url){cb&&cb(false);return;} try
   NET.ws.onclose=()=>{NET.connected=false;if(OL.active)onPeerLeft('Disconnected.');};
   NET.ws.onerror=()=>{cb&&cb(false);};
 }
-function netSend(o){ if(NET.ws&&NET.ws.readyState===1)NET.ws.send(JSON.stringify(o)); }
+function netSend(o){ if(o&&!o.token&&ACC&&ACC.token)o.token=ACC.token;   // WS auth: every frame carries the account token (server binds socket→account; WS_AUTH_REQUIRED enforces it)
+  if(NET.ws&&NET.ws.readyState===1)NET.ws.send(JSON.stringify(o)); }
 function relay(d){ netSend({t:'msg',data:d}); }
 function onServer(m){
   if(m.t==='hosted'){NET.role='host';NET.code=m.code;renderOnline();}
@@ -9174,7 +9195,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787757514241';
+const BUILD_ID='1787758757118';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -9342,15 +9363,15 @@ function updateChatVisibility(){ const w=document.getElementById('chatWidget'); 
 // ---- LIVE chat over the game server (world/region broadcast + name-addressed whispers) ----
 const CHATNET={ws:null,connected:false,name:'',tries:0};
 function chatName(){ return G.playerName||(ACC&&ACC.name)||'Player'; }   // chat uses your in-game character name (what you rename)
-function chatUpdateName(){ if(typeof CHATNET==='undefined')return; CHATNET.name=chatName(); if(CHATNET.ws&&CHATNET.ws.readyState===1){ try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name})); }catch(e){} } }
+function chatUpdateName(){ if(typeof CHATNET==='undefined')return; CHATNET.name=chatName(); if(CHATNET.ws&&CHATNET.ws.readyState===1){ try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name,token:(ACC&&ACC.token)||undefined})); }catch(e){} } }
 function chatConnect(){ if(location.protocol==='file:'||!online())return; if(CHATNET.ws&&(CHATNET.ws.readyState===0||CHATNET.ws.readyState===1))return;
   const url=(location.protocol==='https:'?'wss://':'ws://')+location.host; try{ CHATNET.ws=new WebSocket(url); }catch(e){ return; }
-  CHATNET.ws.onopen=()=>{ CHATNET.connected=true; CHATNET.tries=0; CHATNET.name=chatName(); try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name})); }catch(e){} };
+  CHATNET.ws.onopen=()=>{ CHATNET.connected=true; CHATNET.tries=0; CHATNET.name=chatName(); try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name,token:(ACC&&ACC.token)||undefined})); }catch(e){} };
   CHATNET.ws.onmessage=(e)=>{ let m; try{m=JSON.parse(e.data);}catch(_){return;} onChatNet(m); };
   CHATNET.ws.onclose=()=>{ CHATNET.connected=false; CHATNET.tries++; setTimeout(chatConnect, Math.min(15000,2000*CHATNET.tries)); };
   CHATNET.ws.onerror=()=>{ try{CHATNET.ws.close();}catch(e){} };
 }
-function chatNetSend(o){ try{ if(CHATNET.ws&&CHATNET.ws.readyState===1){ CHATNET.ws.send(JSON.stringify(o)); return true; } }catch(e){} return false; }
+function chatNetSend(o){ try{ if(o&&!o.token&&ACC&&ACC.token)o.token=ACC.token; if(CHATNET.ws&&CHATNET.ws.readyState===1){ CHATNET.ws.send(JSON.stringify(o)); return true; } }catch(e){} return false; }
 function onChatNet(m){
   if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
   else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
@@ -9430,7 +9451,7 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
   if(!ACC.token && online()){ ensureGuest(); }   // no session → provision a persistent level-1 guest account
-  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;saveAcc(); DEV.on=isDevAcct();
+  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
       if(applyCloudSave(d.profile,false)){ updateHubChrome(); if(state==='home') renderHome(); } }   // pull cloud save if it's newer than local (cross-device sync)
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
     /* else: offline / transient error → stay signed in with local progress */ }); }
