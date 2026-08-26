@@ -2756,11 +2756,11 @@ function buildEnemyWave(){
   const node=CUR.node, elite=isEliteStage(node), bossStage=isBossStage(node), base=campEnemyLevel(node);
   const type=bossStage?'boss':(elite?'elite':'normal');
   let comp=(WAVE_COMP[type][waveIdx]||WAVE_COMP[type][WAVE_COMP[type].length-1]).slice();   // roles this wave
-  // EARLY-GAME ONBOARDING NERF (Phil 26 Aug: stages 1-1..1-5 too hard for the 3 starter heroes):
-  // those stages field one fewer enemy in waves 2 & 3 (3/3/4 instead of 3/4/5) …
-  if(node<=5){ const cap=(waveIdx===2)?4:3; while(comp.length>cap) comp.splice(comp.lastIndexOf('back')>=0?comp.lastIndexOf('back'):comp.length-1,1); }
-  // … and their enemies fight at reduced stats: 55% at 1-1 ramping back to 100% at 1-6
-  const ease = node<=5 ? (0.55+0.45*(node-1)/5) : 1;
+  // EARLY-GAME ONBOARDING NERF (Phil 26 Aug: chapter 1 ramps gradually — no cliff at 1-6):
+  // enemy counts grow in steps: 1-1..1-5 field 3/3/4, 1-6..1-7 field 3/4/4, 1-8+ the full 3/4/5 …
+  if(node<=7){ const cap=(node<=5)?((waveIdx===2)?4:3):((waveIdx===0)?3:4); while(comp.length>cap) comp.splice(comp.lastIndexOf('back')>=0?comp.lastIndexOf('back'):comp.length-1,1); }
+  // … and enemy stats climb one smooth line: 55% at 1-1 → ~95% at 1-10 → 100% from 2-1 on
+  const ease = node<=10 ? (0.55+0.45*(node-1)/10) : 1;
   let addHero=false, addBoss=false;
   if(bossStage && waveIdx===2){ addHero=true; addBoss=true; }
   else if(elite && waveIdx===2){ addHero=true; }
@@ -9238,7 +9238,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787761289269';
+const BUILD_ID='1787761528744';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
