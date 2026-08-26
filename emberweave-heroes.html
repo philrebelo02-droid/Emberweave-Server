@@ -1957,8 +1957,25 @@ function starMult(key){ const lv=heroStars(key), pip=starPips(key);
   if(lv<MAX_STARS){ const a=STAR_MULT[lv-1], b=STAR_MULT[lv]; return a+(b-a)*(pip/STAR_PIPS); }        // smooth across pips
   const rl=refineLevel(key); if(rl>=REFINE_MAX) return REFINE_ANCHORS[3];                              // fully Gold
   const seg=Math.floor(rl/5), within=(rl%5)/5; return REFINE_ANCHORS[seg]+(REFINE_ANCHORS[seg+1]-REFINE_ANCHORS[seg])*within; }   // smooth across refine steps
-function heroFlatAtk(key){ return (glyphSockMul(key).atk||0); }   // stars are a MULTIPLIER now (heroStat / makeUnit), not a flat add
-function heroFlatHp(key){ return (glyphSockMul(key).hp||0); }
+// AUDIT CR-3 (26 Aug): Forge gear now ACTS in battle. gearSockMul mirrors the server's gearHeroFlats
+// math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
+// sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
+function gearSockMul(key){
+  const z={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0};
+  try{
+    const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled||!st.equipped) return z;
+    const eq=st.equipped[key]; if(!eq) return z;
+    const rmul=1+0.01*(((st.resonance||{}).rank)|0);
+    for(const sl in eq){ const it=st.items&&st.items[eq[sl]]; const d=it&&forgeDef(it.d); if(!d)continue;
+      const tm=(1+0.025*((it.temper||0)))*rmul;
+      for(const k in (d.stats||{})){ if(z[k]!=null) z[k]+=d.stats[k]*tm; } }
+    for(const k in z) z[k]=Math.round(z[k]);
+  }catch(e){}
+  return z;
+}
+function sockStatTotal(key){ const g=glyphSockMul(key), f=gearSockMul(key), o={}; for(const k in g) o[k]=(g[k]||0)+(f[k]||0); return o; }
+function heroFlatAtk(key){ return (sockStatTotal(key).atk||0); }   // stars are a MULTIPLIER now (heroStat / makeUnit), not a flat add
+function heroFlatHp(key){ return (sockStatTotal(key).hp||0); }
 function starRow(cur,max){ let s=''; for(let i=1;i<=max;i++) s+=`<span style="font-size:15px;filter:${i<=cur?'none':'grayscale(1) brightness(.5)'}">⭐</span>`; return s; }
 // SVG star filled left→right by `frac` (0..1) — used to show a star filling like a gauge
 let _starUid=0;
@@ -2343,7 +2360,7 @@ function heroMuls(key){
   atk+=(P.atk||0)*r; hp+=(P.hp||0)*r; dr+=(P.dr||0)*r; crit+=(P.crit||0)*r; regen+=(P.regen||0)*r; energyReg+=(P.energy||0)*r;
   const em=equipMul(key); atk+=em.atk; hp+=em.hp; dr+=em.dr; crit+=em.crit; regen+=em.regen; energyReg+=em.energy;  // equipped gear
   // socketed glyphs are FLAT ratings: Attack/Health add post-multiplier (in makeUnit/display); rate stats convert here
-  const gf=glyphSockMul(key); dr+=((gf.armor||0)+(gf.mr||0))*0.004; crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005; regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;
+  const gf=sockStatTotal(key); dr+=((gf.armor||0)+(gf.mr||0))*0.004; crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005; regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;   // glyphs + Forge gear (CR-3)
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg};
 }
 
@@ -4757,6 +4774,46 @@ function vaultScreenHTML(){
 }
 /* ================= THE FORGE — gear client (server-authoritative, render-only) ================= */
 let FORGE={ cat:null, st:null, busy:false, tab:'craft', q:0, eqPick:null };
+/* ---- AUDIT CR-3: the one-use GEAR SKILL (tactical active). Each hero may select ONE equipped
+   item's active in the Forge; in manual battles a small button under the portrait fires it ONCE per
+   combat. Effects are slot archetypes with hero-relative magnitudes — they do NOT scale with the
+   item's tier or Temper (spec: "active does not scale"). Auto/recorded fights (arena, raids,
+   replays) exclude it — those are deterministic and the server sim doesn't model manual actives. */
+const GEAR_SKILL_FX={
+  'Weapon':{icon:'⚔️',desc:'Strike the nearest enemy for 150% ATK and stun it for 0.75s.'},
+  'Helm'  :{icon:'🛡️',desc:'Shield yourself for 30% of your max Health (8s).'},
+  'Boots' :{icon:'💨',desc:'Surge: +40% attack & move speed for 5s.'},
+  'Armor' :{icon:'🪨',desc:'Brace: take 35% less damage for 5s.'},
+  'Gloves':{icon:'🥊',desc:'Fury: +50% damage for 5s.'},
+  'Belt'  :{icon:'❤️',desc:'Second Wind: recover 25% of your max Health.'},
+  'Ring'  :{icon:'⚡',desc:'Focus: gain 35 Energy instantly.'},
+  'Amulet':{icon:'✨',desc:'Cleanse stun & fear and shield 15% of your max Health.'},
+  'Relic' :{icon:'☄️',desc:'Blast enemies near your target for 90% ATK.'}};
+function gearActiveFor(key){ try{
+  const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled)return null;
+  const id=(st.active||{})[key]; const it=id&&st.items&&st.items[id]; const d=it&&forgeDef(it.d); if(!d||!d.active)return null;
+  const eq=(st.equipped||{})[key]||{}; if(!Object.values(eq).includes(id)) return null;   // must still be equipped
+  return { name:d.active, slot:d.slot, icon:(GEAR_SKILL_FX[d.slot]||{}).icon||'🗡', desc:(GEAR_SKILL_FX[d.slot]||{}).desc||d.effect||'' };
+}catch(e){ return null; } }
+function castGearSkill(u){
+  if(!u||!u.alive||!u.gearSkill||u.gearSkill.used||ended||paused) return;
+  if(u.stunned>0||(u.fearT||0)>0) { if(u.gearSkill.slot!=='Amulet') return; }   // only the Amulet cleanse works while disabled
+  u.gearSkill.used=true;
+  const sl=u.gearSkill.slot;
+  const nearestFoe=()=>{ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} } }); return b; };
+  floatTexts.push({x:u.x,y:u.y-16,txt:u.gearSkill.name,t:.9,color:'#ffd45e',vy:1.2,sz:13});
+  if(sl==='Weapon'){ const t=nearestFoe(); if(t){ dealDamage(u,t,u.dmg*1.5,'#ffd45e'); t.stunned=Math.max(t.stunned||0,0.75); } }
+  else if(sl==='Helm'){ u.shield=(u.shield||0)+u.maxHp*0.30; u.shieldT=Math.max(u.shieldT||0,8); }
+  else if(sl==='Boots'){ u.hasteT=Math.max(u.hasteT||0,5); u.hasteMul=Math.max(u.hasteMul||1,1.4); }
+  else if(sl==='Armor'){ u.drT=Math.max(u.drT||0,5); u.drMul=Math.min(u.drMul||1,0.65); }
+  else if(sl==='Gloves'){ u.dmgBuffT=Math.max(u.dmgBuffT||0,5); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1.5); }
+  else if(sl==='Belt'){ const amt=Math.round(u.maxHp*0.25); u.hp=Math.min(u.maxHp,u.hp+amt); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:13}); }
+  else if(sl==='Ring'){ u.energy=Math.min(100,(u.energy||0)+35); }
+  else if(sl==='Amulet'){ u.stunned=0; u.fearT=0; u.shield=(u.shield||0)+u.maxHp*0.15; u.shieldT=Math.max(u.shieldT||0,6); }
+  else if(sl==='Relic'){ const t=u.target&&u.target.alive?u.target:nearestFoe();
+    if(t){ units.forEach(o=>{ if(o.alive&&o.team!==u.team&&Math.hypot(o.x-t.x,o.y-t.y)<120) dealDamage(u,o,u.dmg*0.9,'#c47bff'); }); } }
+  if(u.gearBtnEl){ u.gearBtnEl.style.opacity='0.25'; u.gearBtnEl.style.pointerEvents='none'; }
+}
 async function forgeSync(){
   if(!FORGE.cat){ const c=await api('/api/gear/catalog'); if(c&&c.items) FORGE.cat=c; }
   const s=await api('/api/gear/state'); FORGE.st=(s&&s.enabled)?s:{enabled:false}; return FORGE.st;
@@ -4862,7 +4919,40 @@ function renderForge(){
     <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — costs, results and refunds are computed on the server.</div>`;
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
-let SKY={ st:null, busy:false, assignSel:null };
+let SKY={ st:null, busy:false, assignSel:null, lane:null };   // lane = bridge view open on that citadel lane
+/* AUDIT (26 Aug): the approved BRIDGE battle presentation. Tapping a citadel row opens the skybridge
+   view — your citadel left, theirs right, defenders as chips at each end, the March order fires a
+   troop march from your live citadel toward mid-bridge; a destroyed citadel shows fallen (tilted,
+   dimmed, 💥). The roster rows stay as supporting UI, as specified. */
+const SKY_BRIDGE_BG='/assets/img/battlefields/guild-war-skybridge-01.webp';
+function skyOpenLane(i){ SKY.lane=(SKY.lane===i?null:i); renderGuild(); }
+function skyBridgeHTML(m,i){
+  const lanes=m.lanes||[], you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
+  const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
+  const canMarch=m.state==='live'&&mineHere&&foe&&!foe.destroyed&&you&&!you.destroyed;
+  const chip=(d,mine)=>`<div style="font-size:9px;background:rgba(10,16,26,.82);border:1px solid ${d.alive?(mine?'#2b7a55':'#7a2b46'):'#333'};border-radius:6px;padding:2px 5px;margin-top:2px;color:${d.alive?'#e8eef6':'#666'}">${d.alive?'🛡':'💀'} ${escapeHTML(d.name||'')}${d.alive?' '+d.hpPct+'%':''}</div>`;
+  const cit=(c,mine)=>{ const dead=c&&c.destroyed;
+    return `<div style="position:absolute;top:6%;${mine?'left:3%':'right:3%'};width:31%;text-align:${mine?'left':'right'}">
+      <div style="font-size:26px;display:inline-block;${dead?'transform:rotate('+(mine?'-14':'14')+'deg) translateY(9px);opacity:.55;filter:grayscale(.7)':''}">${dead?'💥':''}🏰</div>
+      <div style="font-size:10px;font-weight:800;color:${dead?'#ff8b8b':(mine?'#5ee89b':'#ff8b8b')};text-shadow:0 1px 3px #000">${dead?'FALLEN — ':''}${mine?'YOUR':'ENEMY'} ${escapeHTML(lanes[i]?lanes[i].name:'')}</div>
+      ${(c?c.defenders:[]).map(d=>chip(d,mine)).join('')||'<div style="font-size:9px;color:#999;text-shadow:0 1px 2px #000">— undefended —</div>'}
+    </div>`; };
+  return `<div class="panel" style="padding:0;overflow:hidden">
+    <div style="position:relative;width:100%;aspect-ratio:16/9;background:url('${SKY_BRIDGE_BG}') center/cover;border-radius:10px">
+      ${cit(you,true)}${cit(foe,false)}
+      <div id="skyMarcher" style="position:absolute;left:12%;bottom:34%;font-size:22px;opacity:0;transition:left 1.15s ease-in,opacity .2s;text-shadow:0 2px 4px #000">⚔️🏃</div>
+      <div style="position:absolute;left:0;right:0;bottom:4%;text-align:center">
+        ${canMarch?`<button class="btn" style="padding:8px 22px" onclick="skyMarchAnim(${i})">⚔ MARCH THE BRIDGE</button>`
+          :`<div style="font-size:10px;color:#cfd8e6;text-shadow:0 1px 3px #000">${m.state!=='live'?'The bridge opens when the war goes LIVE.':(you&&you.destroyed?'Your citadel has fallen.':(foe&&foe.destroyed?'The enemy citadel has fallen!':(mineHere?'':'Your line is not deployed on this bridge.')))}</div>`}
+      </div>
+      <button class="btn xs secondary" style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:9px" onclick="skyOpenLane(null)">✕ close bridge</button>
+    </div></div>`;
+}
+async function skyMarchAnim(i){ if(SKY.busy)return;
+  const mm=document.getElementById('skyMarcher');
+  if(mm){ mm.style.opacity='1'; requestAnimationFrame(()=>{ mm.style.left='46%'; }); await new Promise(r=>setTimeout(r,1150)); }
+  await skyMarch(i);
+}
 async function skyStatus(){ const r=await api('/api/guild-war/status'); SKY.st=(r&&r.enabled)?r:{enabled:false}; return SKY.st; }
 function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
 function skyLaneIcon(i){ return ['🛡️','⚡','👑','🌿','🔮'][i]||'🏰'; }
@@ -4885,9 +4975,9 @@ function skyMatchHTML(m, canOfficer){
     const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
     return `<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:6px">
       <div style="flex:1;background:${you&&you.destroyed?'#1a0f0f':'#0f1a14'};border:1px solid ${you&&you.destroyed?'#5a2b2b':'#2b7a55'};border-radius:8px;padding:5px 7px;${you&&you.destroyed?'opacity:.55':''}">${you&&you.destroyed?'💥 ':''}${defHTML(you,true)}</div>
-      <div style="width:74px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div style="width:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;${SKY.lane===i?'background:rgba(255,212,94,.08);border-radius:8px':''}" onclick="skyOpenLane(${i})">
         <div style="font-size:13px">${skyLaneIcon(i)}</div><div style="font-size:8px;color:#8b98a9;text-align:center">${lanes[i]?lanes[i].name:''}</div>
-        ${m.state==='live'&&mineHere&&foe&&!foe.destroyed&&you&&!you.destroyed?`<button class="btn xs" style="margin-top:2px" onclick="skyMarch(${i})">⚔ March</button>`:''}</div>
+        <div style="font-size:8px;color:#ffd45e">${SKY.lane===i?'▲ bridge':'▼ bridge'}</div></div>
       <div style="flex:1;background:${foe&&foe.destroyed?'#1a0f0f':'#1a0f14'};border:1px solid ${foe&&foe.destroyed?'#5a2b2b':'#7a2b46'};border-radius:8px;padding:5px 7px;${foe&&foe.destroyed?'opacity:.55':''}">${foe&&foe.destroyed?'💥 ':''}${defHTML(foe,false)}</div></div>`; };
   let planning='';
   if(m.state==='planning'&&m.preReveal){
@@ -4909,6 +4999,7 @@ function skyMatchHTML(m, canOfficer){
       <span class="pill" style="font-size:9px">${m.state==='planning'?'📋 Planning':m.state==='live'?'🔴 LIVE until '+skyWhen(m.endsAt):'🏁 '+(m.winnerGuildId===(SKY.st&&SKY.st.tournament&&null)?'':'Finished')}</span></div>
     ${m.state==='planning'?planning:''}
     ${m.state!=='planning'?`<div style="font-size:9px;color:#6f7d90;margin:3px 0">Destroy 3 enemy citadels to win. Lines march only across their own bridge.</div>`:''}
+    ${(SKY.lane!=null&&m.foe&&!m.preReveal)?skyBridgeHTML(m,SKY.lane):''}
     <div style="display:flex;justify-content:space-between;font-size:9px;color:#8b98a9;margin:4px 0 2px"><span style="color:#5ee89b">YOUR CITADELS</span><span style="color:#ff8b8b">ENEMY CITADELS</span></div>
     ${lanes.map((l,i)=>laneRow(i)).join('')}
     ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?'🏆 VICTORY':'💀 DEFEAT'}</div>`:''}
@@ -7400,7 +7491,7 @@ function glyphV2Tab(key){
     <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Socket six <b style="color:${qc}">${q}</b> glyphs — one per board family — then ascend. Ascending consumes all six and their power becomes permanent.</div>
     ${board}${viewBar}${lower}${ascLine}</div>`;
 }
-setTimeout(()=>{ glyphV2Sync(); }, 2500);   // early sync so v2 stats reach battles even before the tab is opened
+setTimeout(()=>{ glyphV2Sync(); try{forgeSync();}catch(e){} }, 2500);   // early sync so glyph AND Forge stats reach battles even before those screens are opened (CR-3)
 /* ================================== end Glyph v2 client ================================== */
 
 function renderHeroDetail(){
@@ -8940,6 +9031,17 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
     // dedicated info tap: always shows the description (even when the ult is ready)
     const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,4500); }; info.addEventListener('pointerdown',(e)=>e.stopPropagation()); info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
+    // AUDIT CR-3: one-use Gear Skill button (manual battles only — deterministic fights stay pure-auto)
+    if(side==='ally'&&!isAutoBattle()&&!u.gearSkill){ const gs=gearActiveFor(u.key); if(gs) u.gearSkill=Object.assign({used:false},gs); }
+    if(side==='ally'&&u.gearSkill){
+      const gb=document.createElement('div');
+      gb.textContent=u.gearSkill.icon; gb.title=u.gearSkill.name+' — '+u.gearSkill.desc;
+      gb.style.cssText='position:absolute;top:-7px;right:-5px;width:22px;height:22px;line-height:22px;text-align:center;font-size:12px;background:#1a2434;border:1px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.6);'+(u.gearSkill.used?'opacity:.25;pointer-events:none;':'');
+      const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); castGearSkill(u); };
+      gb.addEventListener('pointerdown',(e)=>e.stopPropagation());
+      gb.addEventListener('click',fire); gb.addEventListener('touchstart',fire,{passive:false});
+      u.gearBtnEl=gb; slot.appendChild(gb);
+    }
     u.portraitEl=el; u.hpEl=hp; u.enEl=en; u.slotEl=slot; slot.appendChild(el); slot.appendChild(hp); slot.appendChild(en); bar.appendChild(slot);});
   buildEnemyBar();
 }
@@ -9252,7 +9354,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787763030967';
+const BUILD_ID='1787764892873';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

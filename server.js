@@ -63,7 +63,7 @@ function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reje
   req.on('end',()=>{ if(done) return; done=true; try{resolve(JSON.parse(d||'{}'));}catch(e){resolve({});} });
   req.on('error',()=>{ if(!done){ done=true; resolve({}); } });
 }); }
-function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
+function authUser(req){ const id=lookupToken(req.headers['x-token']); return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
 function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0, admin:isDev(u)||undefined }; }   // admin: server-confirmed role — the client's Developer Panel gates on THIS, never a name list
 // --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
@@ -90,7 +90,26 @@ function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-supp
   return xff[xff.length-1] || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
 function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now();
   const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); arr.push(now); _hits[k]=arr; return arr.length>max; }
-function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===id) delete DB.tokens[t]; } }   // single-session / force re-login
+// AUDIT (26 Aug, high): session tokens are no longer stored in plaintext. DB.tokens is keyed by
+// sha256(rawToken) with {id, iat, exp} metadata; the raw value exists only in the client. Tokens
+// expire after TOKEN_TTL_MS (default 90 days) with sliding renewal at half-life. Legacy plaintext
+// entries are hashed once at boot — existing sessions keep working (their raw token hashes to the
+// migrated key).
+const TOKEN_TTL_MS=+(process.env.TOKEN_TTL_MS||90*86400000);
+function tokHash(t){ return crypto.createHash('sha256').update(String(t)).digest('hex'); }
+function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; return raw; }
+function lookupToken(raw){ if(!raw) return null; const e=DB.tokens[tokHash(raw)]||DB.tokens[raw];
+  if(!e) return null;
+  if(typeof e==='string') return e;                              // pre-migration straggler
+  if(e.exp && Date.now()>e.exp){ delete DB.tokens[tokHash(raw)]; writeDB(); return null; }
+  if(e.exp && e.exp-Date.now()<TOKEN_TTL_MS/2){ e.exp=Date.now()+TOKEN_TTL_MS; writeDB(); }   // sliding renewal
+  return e.id; }
+function tokOwner(v){ return typeof v==='string'?v:(v&&v.id); }
+function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(tokOwner(DB.tokens[t])===id) delete DB.tokens[t]; } }   // single-session / force re-login
+function migrateTokenHashes(){ let n=0;
+  for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
+    if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
+  if(n){ console.log('🔐 hashed '+n+' plaintext session token(s) — raw values now live only on clients'); writeDB(); } }
 function adjustGems(u, delta){ try{ if(!u.roster||typeof u.roster.__save!=='string') return null;
   const g=JSON.parse(u.roster.__save); g.gems=Math.max(0,(g.gems||0)+delta); g.mtime=Date.now();
   u.roster.__save=JSON.stringify(g); u.econ={gems:g.gems||0,gold:g.gold||0,t:Date.now()}; return g.gems; }catch(e){ return null; } }
@@ -229,7 +248,19 @@ const GLYPH_SLOT_FAMILIES={
   tempo:['Windstep','Shadepath','Tidecall'],
   mastery:['Hawkeye','Lifebloom','Bloodroot']
 };
-const GLYPH_ROLE_OVERRIDES={}; // heroRole -> {slotName:[families]} — extend from design doc rows when needed
+// AUDIT (26 Aug): role board templates SEEDED. Boards stay universal (any hero may run any slot's
+// base families — a Marksman can absolutely take a Vitality survival glyph); a role's signature slot
+// additionally accepts its natural off-slot families. STRICT SUPERSETS of the universal lists only —
+// an override must never restrict, or already-socketed boards would turn illegal retroactively.
+const GLYPH_ROLE_OVERRIDES={ // heroRole (sim HERO_BASE vocabulary) -> {slotName:[families]}
+  'Tank':     { bulwark:['Ironwall','Veilward','Bastion','Dawnshield','Stoneheart','Worldheart'] },
+  'Bruiser':  { onslaught:['Ravager','Sunder','Cataclysm','Bloodroot'] },
+  'Fighter':  { onslaught:['Ravager','Sunder','Cataclysm','Hawkeye'] },
+  'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'] },
+  'Mage':     { spirit:['Starfire','Voidbind','Keenmind','Cataclysm'] },
+  'Marksman': { mastery:['Hawkeye','Lifebloom','Bloodroot','Sunder'] },
+  'Support':  { vitality:['Stoneheart','Worldheart','Lifebloom'] }
+};
 let GLYPHS=null;
 function glyphCompile(){
   const file=path.join(__dirname,'server','glyph-source.json');
@@ -444,6 +475,36 @@ function vaultFloorScore(floor){
   return s;
 }
 function vaultTeamScore(snaps){ let s=0; for(const h of snaps){ if(!h) continue; s+= (h.maxHp||0)/8 + (h.atk||0)*3 + (h.heal||0)*2; } return s; }
+// AUDIT CR-1 (26 Aug): the client reports the battle outcome BY DESIGN (Phil: real fights, beatable by
+// practice, player-chosen backups — a pure server sim can't represent that). But a claimed win is no
+// longer taken on faith: the server re-fights the floor with the deterministic sim, granting the player
+// a generous SKILL BAND (manual ability timing, focus targeting, backup step-ins beat the auto-sim by a
+// lot — but not by anything). A win the boosted sim can't reproduce is rejected and logged. Tune with
+// VAULT_SKILL_BAND (default 1.75); set 0 to disable the gate entirely (emergency rollback).
+const VAULT_SKILL_BAND=parseFloat(process.env.VAULT_SKILL_BAND||'1.75');
+function vaultSpecToCombatUnit(m){
+  const base=VAULT_MONSTERS[m.key]||VAULT_BOSS_STATS[m.key]||{hp:200,dmg:18};
+  const sc=1+0.05*((m.lvl|0||1)-1);
+  return { key:m.key, role:(base.role==='Tank'||m.boss)?'tank':'mid', healer:false,
+    maxHp:Math.round(base.hp*sc*(m.hpMul||1)), atk:Math.round(base.dmg*sc*(m.dmgMul||1)), heal:0, speed:1 };
+}
+function vaultWinPlausible(a){
+  if(!(VAULT_SKILL_BAND>0)||!SIM) return true;
+  try{
+    const band=s=>Object.assign({},s,{maxHp:Math.round((s.maxHp||1)*VAULT_SKILL_BAND),
+      atk:Math.round((s.atk||0)*VAULT_SKILL_BAND), heal:Math.round((s.heal||0)*VAULT_SKILL_BAND)});
+    const all=(a.teamSnapshot||[]).filter(Boolean).map(band)
+      .sort((x,y)=>((y.maxHp/8+y.atk*3)-(x.maxHp/8+x.atk*3)));
+    const five=all.slice(0,5);
+    // backups are a real second wind: fold the bench's HP pool onto the line (capped ×2 total)
+    if(all.length>5){ const benchHp=all.slice(5).reduce((s,h)=>s+h.maxHp,0);
+      const lineHp=five.reduce((s,h)=>s+h.maxHp,0)||1;
+      const mul=Math.min(2, 1+benchHp/lineHp);
+      five.forEach(h=>{h.maxHp=Math.round(h.maxHp*mul);}); }
+    const waves=(a.enemyWaves||[]).map(w=>w.map(vaultSpecToCombatUnit));
+    return SIM.resolveTwoWaveBattle(five, waves, SIM.seedFrom('vaultcheck:'+a.id)).result.won;
+  }catch(e){ console.error('⚠ vault win validator error:', e&&e.message); return true; }   // never brick the Vault on a validator bug
+}
 function rollFragmentOfQuality(q, rnd){
   const fams=[...new Set(GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family))];
   const f=fams[Math.floor((rnd?rnd():Math.random())*fams.length)]||'Stoneheart';
@@ -745,7 +806,7 @@ async function api(req,res,url){
       // role stamped by migrateAdminRoles() (env-driven) or ADMIN_IDS.
       DB.byName[name.toLowerCase()]=gu.id;
       if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
-      dropTokens(gu.id); const tok=uid()+uid(); DB.tokens[tok]=gu.id; writeDB();
+      dropTokens(gu.id); const tok=issueToken(gu.id); writeDB();
       return send(res,200,{ token:tok, profile:profileFor(gu) });
     }
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
@@ -758,7 +819,7 @@ async function api(req,res,url){
       roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     // AUDIT (critical): registering a name NEVER grants a role — admin only via stored role/env.
     DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
-    const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();
+    const tok=issueToken(id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   // GUEST SESSION: a player who isn't signed in still gets a real server-backed account so their
@@ -781,7 +842,7 @@ async function api(req,res,url){
     } else if(b.roster && typeof b.roster==='object' && Object.keys(b.roster).length && (!u.roster || !u.roster.__save)){
       u.roster=b.roster;   // first-time adoption of an existing local save (offline player who never had an account)
     }
-    dropTokens(u.id); const tok=uid()+uid(); DB.tokens[tok]=u.id; writeDB();
+    dropTokens(u.id); const tok=issueToken(u.id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
@@ -795,7 +856,7 @@ async function api(req,res,url){
     if(!checkPass(u,b.pass)) return send(res,401,{error:'Wrong name or password'});
     if(!u.iters){ const c=makeCred(b.pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
     dropTokens(id);   // single session: signing in here kicks any other device
-    const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+    const tok=issueToken(id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   // email password reset — step 1: request a one-time 6-digit code sent to the account's linked email.
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
@@ -818,7 +879,7 @@ async function api(req,res,url){
     if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
     const np=(b.newPass||'').toString(); if(np.length<8) return send(res,400,{error:'New password must be at least 8 characters.'});
     const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
-    dropTokens(id); const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();   // invalidate other sessions, sign this one in
+    dropTokens(id); const tok=issueToken(id); writeDB();   // invalidate other sessions, sign this one in
     return send(res,200,{ ok:true, token:tok, profile:profileFor(u) }); }
 
   const me=authUser(req);
@@ -841,7 +902,7 @@ async function api(req,res,url){
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     if(u.mustReset){ u.mustReset=false; }   // clear any legacy flag left on the account
-    for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===tid) delete DB.tokens[t]; }  // sign out active sessions (safe)
+    dropTokens(tid);  // sign out active sessions (safe)
     writeDB(); return send(res,410,{error:'Arm-recovery is retired. Ask the player to use “Forgot password” (email code), or clear their email with /api/admin/email so they can bind a new one.', name:u.name}); }
   // admin: clear the recovery flag (undo)
   if(p==='/api/admin/unreset' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -1210,6 +1271,9 @@ async function api(req,res,url){
         if(Date.now()-a.startedAt<VAULT_MIN_BATTLE_MS){ prog.version++; writeDB(); return { ok:false, error:'That was too fast to be a real battle.' }; }
         if(vaultTeamScore(a.teamSnapshot) < vaultFloorScore(a.floor)*0.18){ prog.version++; writeDB();
           return { ok:false, error:'Your team is far below this floor — level up and try again.' }; }
+        if(!vaultWinPlausible(a)){ me.vaultSuspect=(me.vaultSuspect|0)+1; prog.version++; writeDB();
+          console.log('🚩 vault win REJECTED by sim gate: user='+me.name+' floor='+a.floor+' (count '+me.vaultSuspect+')');
+          return { ok:false, error:'The Vault did not recognize that victory — your team looks too weak to clear this floor. Strengthen up and try again.' }; }
         if(a.floor!==prog.currentFloor||prog.claimedFloors[a.floor]){ prog.version++; writeDB();
           return { ok:false, error:'Stale Vault floor.' }; }
         const reward=makeFirstClearDungeonReward(a.floor);
@@ -1327,7 +1391,8 @@ async function api(req,res,url){
       const board=glyphBoard(g,hero);
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
       if(def.qi!==board.ascensionIndex) return bad('This board needs '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
-      if(!glyphAllowed(slot,def)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
+      const heroRole=(SIM&&SIM.HERO_BASE[hero]||{}).role;   // AUDIT: socketing now passes the hero's role so the seeded role templates apply
+      if(!glyphAllowed(slot,def,heroRole)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
       if(board.slots[slot]){ const old=g.finished[board.slots[slot]]; if(old&&old.status==='socketed') old.status='inventory'; }
       inst.status='socketed'; board.slots[slot]=iid;
       glyphAudit(g,'socket',{hero,slot,inst:iid});
@@ -1395,7 +1460,7 @@ async function api(req,res,url){
     if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});
     const b=await body(req); const d=DB.users[String(b.defId||'')];
     if(!d||d.isNpc||d.id===me.id) return send(res,200,{ok:false});
-    d.pvpMail=d.pvpMail||[]; const rec={from:me.name,won:!!b.won,t:Date.now()};
+    d.pvpMail=d.pvpMail||[]; const rec={from:me.name,won:!!b.won,t:Date.now(),social:true,unverified:true};   // AUDIT: client-reported — a social notification, never a competitive record
     try{ if(b.battle&&typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) rec.battle=JSON.parse(s); } }catch(e){}
     d.pvpMail.push(rec); if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
     writeDB(); return send(res,200,{ok:true}); }
@@ -1817,7 +1882,7 @@ try{
   //      updated to send {token} on connect. The size/rate caps and name-from-token apply always. ----
   const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'true')==='true';   // ON by default since 26 Aug — the client now sends its token on every WS frame; set env false only as an emergency rollback
   const WS_MSG_MAX = +(process.env.WS_MSG_MAX || 16384);   // per-frame byte cap (replay chips already capped at 8000)
-  function wsAccount(m){ const t=m&&m.token; if(!t) return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
+  function wsAccount(m){ const id=lookupToken(m&&m.token); return id?DB.users[id]:null; }
   function wsRateOk(ws){ const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=40; }
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
@@ -1855,7 +1920,7 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-readDB(); seed(); migrateAdminRoles();   // stamp immutable role:'admin' from ADMIN_BOOTSTRAP_NAMES (audit crit #7)
+readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp immutable role:'admin' from ADMIN_BOOTSTRAP_NAMES (audit crit #7)
 backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
