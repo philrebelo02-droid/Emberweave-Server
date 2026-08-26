@@ -14,11 +14,14 @@ H="x-token: $T"
 CAT=$(curl -s $B/api/gear/catalog -H "$H")
 ck "catalog 84 items" 'Worldroot Seed' "$CAT"
 ck "temper meta present" '"extractRefund":0.8' "$CAT"
+ck "C5: Grey = 2 matching fragments" '"greyFragCost":2' "$CAT"
+ck "C5: Orange temper base 230" '"Orange":230' "$CAT"
+ck "C4: item-specific actives shipped" '"activeType"' "$CAT"
 S=$(curl -s $B/api/gear/state -H "$H"); RV=$(echo "$S"|jv "['revision']")
 ck "state ok" '"resonance"' "$S"
 
 # grant Grey fragments for Ironwall Shield (E01, frag 'Rough Ore Fragment') + dust
-G1=$(curl -s -X POST $B/api/gear/grant -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"frag\":\"E01\",\"n\":10,\"dust\":100000}")
+G1=$(curl -s -X POST $B/api/gear/grant -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"frag\":\"E01\",\"n\":6,\"dust\":100000}")
 ck "dev grant" '"ok":true' "$G1"; RV=$(echo "$G1"|jv "['revision']")
 
 # craft Grey directly from fragments (3)
@@ -29,7 +32,7 @@ RV=$(echo "$C2"|jv "['revision']"); I2=$(echo "$C2"|jv "['crafted']")
 C3=$(curl -s -X POST $B/api/gear/craft -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"gearId\":\"E01\"}")
 RV=$(echo "$C3"|jv "['revision']"); I3=$(echo "$C3"|jv "['crafted']")
 CFAIL=$(curl -s -X POST $B/api/gear/craft -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"gearId\":\"E01\"}")
-ck "4th grey blocked (out of fragments)" 'Need 3' "$CFAIL"
+ck "4th grey blocked (out of fragments)" 'Need 2' "$CFAIL"
 
 # find a Green item id from catalog + its frag; grant green fragments and craft sub + item
 GREEN=$(echo "$CAT" | python3 -c "import sys,json;d=json.load(sys.stdin);g=[i for i in d['items'] if i['quality']=='Green'][0];print(g['id'])")
@@ -56,8 +59,8 @@ ck "bound item refused as ingredient" 'fresh unbound' "$CG2"
 # temper: 1 use on the equipped grey costs 5 dust; ×12 uses crosses bar (10) → temper 1, cost rises to 6
 TP=$(curl -s -X POST $B/api/gear/temper -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\",\"uses\":12}")
 ck "temper 12 uses" '"temper":1' "$TP"
-ck "temper spent 5x10+6x2=62 dust" '"dustSpent":62' "$TP"
-ck "next cost 6 (20% growth after bar)" '"nextCost":6' "$TP"
+ck "temper spent 6x10+7x2=74 dust (C5 ladder)" '"dustSpent":74' "$TP"
+ck "next cost 7 (20% growth after bar)" '"nextCost":7' "$TP"
 RV=$(echo "$TP"|jv "['revision']")
 
 # resonance: 1 total temper level on equipped gear → below rank 1 threshold(20) → rank 0
@@ -72,7 +75,7 @@ ck "select gear active" '"active":"Shield Bash"' "$SA"; RV=$(echo "$SA"|jv "['re
 UN=$(curl -s -X POST $B/api/gear/unequip -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"heroKey\":\"vael\",\"slot\":\"Weapon\"}")
 RV=$(echo "$UN"|jv "['revision']")
 EX=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
-ck "extract refunds 80% (49 of 62)" '"refund":49' "$EX"; RV=$(echo "$EX"|jv "['revision']")
+ck "extract refunds 80% (59 of 74)" '"refund":59' "$EX"; RV=$(echo "$EX"|jv "['revision']")
 EX2=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
 ck "double extract rejected" 'Unknown item' "$EX2"
 

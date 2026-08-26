@@ -91,14 +91,14 @@ T2=$(echo "$R2"|jq "['token']"); H2="x-token: $T2"
 ST2=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H2" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"w1"}')
 A2=$(echo "$ST2"|jq "['attemptId']")
 RES4=$(curl -s -X POST $B/api/dungeon/resolve-battle -H "$H2" -H 'content-type: application/json' -d "{\"attemptId\":\"$A2\",\"requestId\":\"w2\",\"won\":false}")
-ck "loss keeps floor at 1" '"currentFloor":1' "$RES4"
+ck "AUTHORITATIVE: client-declared loss is overridden by the server sim (floor 1 winnable → advances)" '"currentFloor":2' "$RES4"
 # abandoning an attempt doesn't lock the Vault: a new start discards the old attempt
 ST3=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H2" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"w3"}')
 ck "restart after abandon works" '"attemptId"' "$ST3"
 # floor rewards are account-independent (fixed per floor)
 A3=$(echo "$ST3"|jq "['attemptId']")
 RES5=$(curl -s -X POST $B/api/dungeon/resolve-battle -H "$H2" -H 'content-type: application/json' -d "{\"attemptId\":\"$A3\",\"requestId\":\"w4\",\"won\":true}")
-FR2=$(echo "$RES5" | python3 -c "import sys,json;print(json.dumps(sorted(json.load(sys.stdin)['reward'].get('gearFragments',[]))))")
-[ "$FR1" = "$FR2" ] && { PASS=$((PASS+1)); echo "  ✓ floor rewards are fixed per floor (not RNG)"; } || { FAIL=$((FAIL+1)); echo "  ✗ floor 1 rewards differ: $FR1 vs $FR2"; }
+N2=$(echo "$RES5" | python3 -c "import sys,json;print(len(json.load(sys.stdin)['reward'].get('gearFragments',[])))" 2>/dev/null)
+[ "$N2" = "2" ] && { PASS=$((PASS+1)); echo "  ✓ reward package size fixed (2 gear frags); CONTENTS rolled server-side per transaction (audit C7)"; } || { FAIL=$((FAIL+1)); echo "  ✗ reward package wrong: $N2"; }
 
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"
