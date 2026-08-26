@@ -2272,6 +2272,8 @@ function migrateG(){
   if(G.questArena==null) G.questArena=0;
   if(!G.questClaimed || typeof G.questClaimed!=='object') G.questClaimed={};
   if(G.questChainStep==null) G.questChainStep=0;
+  if(!G.stageStars||typeof G.stageStars!=='object') G.stageStars={};
+  if(G.starMilestonesClaimed==null) G.starMilestonesClaimed=0;
   if(!G.tech)G.tech={}; if(G.tech.ap==null)G.tech.ap=0; if(G.tech.academy==null)G.tech.academy=0;   // Ability Power + Academy building
   if(!G.techLearn)G.techLearn={}; if(G.techLearn.ap==null)G.techLearn.ap=0; if(G.techLearn.academy==null)G.techLearn.academy=0;
   if(G.regionChosen&&!G.region)G.region='crystor';                 // safety: a chosen player always has a region
@@ -2367,6 +2369,10 @@ const CHAPTER_NAMES=['Emberfall Vale','The Ashen Marsh','Frostspire Reach','The 
 const ELITE_HERO_POOL=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && !HERO_TYPES[k].wip && HERO_TYPES[k].source!=='purchase');   // wip = wired but no art yet — never award one   // elite stages never award mythical/shop heroes
 function isEliteStage(g){ const s=stageInChapter(g); return s===3||s===6||s===9; }
 function isBossStage(g){ return stageInChapter(g)===STAGES_PER_CH; }   // stage 10 of every chapter is a boss
+const ELITE_BOSS_DAILY=3;   // Phil 26 Aug: elite & boss campaign stages give rewards 3x/day MAX, sweeps included
+function stageDaily(){ const d=arenaDayKey(); if(!G.stageDaily||G.stageDaily.day!==d) G.stageDaily={day:d,n:{}}; return G.stageDaily; }
+function stageRunsLeft(i){ if(!(isEliteStage(i)||isBossStage(i))) return Infinity; const sd=stageDaily(); return Math.max(0,ELITE_BOSS_DAILY-(sd.n[i]||0)); }
+function stageCountRun(i,k){ if(!(isEliteStage(i)||isBossStage(i))) return; const sd=stageDaily(); sd.n[i]=(sd.n[i]||0)+(k||1); }
 function eliteHeroFor(g){ if(!isEliteStage(g)) return null; const idx=(chapterOf(g)-1)*3 + ({3:0,6:1,9:2}[stageInChapter(g)]); return ELITE_HERO_POOL[idx%ELITE_HERO_POOL.length]; }
 const FRAG_UNLOCK=10, ELITE_FRAG_MIN=2, ELITE_FRAG_MAX=4;
 function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
@@ -3757,7 +3763,7 @@ function startBattle(){
     bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
 }
-function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.hp=u.maxHp;u.energy=Math.max(u.energy,40);u.target=null;});buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
+function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
 // ---- Wave run-on / run-off cinematic (Phil's spec) ----
 // EVERY wave: heroes RUN ONTO the screen from off the bottom-left, ALONG the invisible bottom-left → top-right
 // line, into their diagonal home slots (walk-in is 25% slower than the sprint); once all in position combat
@@ -3794,7 +3800,7 @@ function purgeTransientFx(){
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
-  allies.forEach((u,i)=>{ u.hp=u.maxHp; u.energy=Math.max(u.energy,40); u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
+  allies.forEach((u,i)=>{ /* Phil 26 Aug: HP & Energy carry between waves — only combat states clear */ u.target=null; u.attackAnim=0; u.castAnim=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     if(u._backHunter){   // Hollow never marches — he goes back up into the dark and waits again
       u._dropT=3.5; u._dropHidden=true; u._dropHome={x:sl.x,y:sl.y}; u._fallT=0; u._fallH=0; u._noTarget=false;
@@ -3862,7 +3868,7 @@ function grantRewards(){
     regenStamina(); G.stamina=Math.max(0,G.stamina-stageStamCost(node));      // spend 6 (boss: 12) for clearing the stage
     const hxp=(firstClear?STAGE_XP_FIRST:(isBossStage(node)?12:STAGE_XP_SWEEP)); grantTeamXP(hxp);   // boss sweep gives 12 XP
     const drops=rollDrops(node); for(const k in drops) G.mats[k]+=drops[k];
-    if(firstClear) G.campaignCleared=node;
+    if(firstClear) G.campaignCleared=node; else stageCountRun(node,1);
     // hero unlocks
     let unlockMsg='';
     /* heroes now unlock ONLY by collecting fragments (elite stages / market / arena shop / quests) */
@@ -3892,7 +3898,8 @@ function endBattle(won){ ended=true;
   resultWon=won;
   { const al=units.filter(u=>u.team==='ally'); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
     const total=al.length||1, alive=al.filter(u=>u.alive).length;
-    resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0; }
+    resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0;
+    if(won && CUR.mode==='campaign'){ if(!G.stageStars)G.stageStars={}; if(resultStars>(G.stageStars[CUR.node]||0)) G.stageStars[CUR.node]=resultStars; } }
   if(CUR.mode==='replay'){ const rw=CUR.replayWon;   // re-enactment of a recorded fight — no rewards, back to mail
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=rw?'BATTLE WON':'BATTLE LOST'; document.getElementById('resultTitle').className='result-big '+(rw?'win':'lose');
       document.getElementById('resultReward').innerHTML='Re-enactment of your battle vs <b>'+escapeHTML(CUR.oppName||'the enemy')+'</b>.';
@@ -4821,7 +4828,40 @@ function renderMarket(){
   });
 }
 let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
+/* ===== TOTAL CAMPAIGN STARS reward track (Phil 26 Aug: milestones every 15 stars) ===== */
+function totalCampaignStars(){ let t=0; const ss=G.stageStars||{}; for(const k in ss)t+=(ss[k]|0); return t; }
+function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
+  const tier=Math.floor(idx/4)+1, cyc=idx%4;
+  if(cyc===0) return {desc:'🪙 '+(2000*tier).toLocaleString()+' gold', give:()=>{ G.gold=(G.gold||0)+2000*tier; }};
+  if(cyc===1) return {desc:'⧗ '+(60*tier)+' stamina', give:()=>{ G.stamina=(G.stamina||0)+60*tier; }};
+  if(cyc===2) return {desc:'💎 '+(100*tier)+' diamonds', give:()=>{ G.gems=(G.gems||0)+100*tier; }};
+  return {desc:'🧩 '+(5*tier)+' random hero fragments', give:()=>{ let m=''; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); const r=giveHeroFrag(hk,1); if(r)m=r; } return m; }};
+}
+function starTrackClaimable(){ const t=totalCampaignStars(); return t>=((G.starMilestonesClaimed||0)+1)*15; }
+function claimStarMilestone(){ if(!starTrackClaimable()) return; const idx=G.starMilestonesClaimed||0; const r=starMilestoneReward(idx);
+  const extra=r.give(); G.starMilestonesClaimed=idx+1; saveG(); updateHubChrome();
+  bannerMsg('⭐ '+((idx+1)*15)+'-star reward!\n'+r.desc+(extra?'\n'+extra:'')); renderStarTrack(); }
+function renderStarTrack(){
+  const hdr=document.getElementById('cmapHdr'); if(!hdr) return;
+  let el=document.getElementById('starTrack');
+  if(!el){ el=document.createElement('div'); el.id='starTrack'; hdr.parentNode.insertBefore(el,hdr); }
+  const t=totalCampaignStars(), claimed=G.starMilestonesClaimed||0, next=(claimed+1)*15, ready=t>=next;
+  const r=starMilestoneReward(claimed), pct=Math.max(0,Math.min(100,Math.round((t-claimed*15)/15*100)));
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:10px;background:linear-gradient(165deg,rgba(42,36,18,.6),rgba(14,19,32,.75));border:1px solid #4a3e22;border-radius:11px;padding:8px 11px;margin-bottom:8px">
+    <div style="font-size:20px">⭐</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;justify-content:space-between;font-size:11px"><b style="color:#ffd45e">${t} total stars</b><span style="color:#8b98a9">next at <b>${next}</b>: ${r.desc}</span></div>
+      <div style="height:6px;background:#0d1320;border-radius:4px;margin-top:4px;overflow:hidden"><i style="display:block;height:100%;width:${ready?100:pct}%;background:linear-gradient(90deg,#c9a35e,#ffd45e)"></i></div>
+    </div>
+    <button class="btn xs${ready?'':' secondary'}" id="starClaim" ${ready?'':'disabled'}>${ready?'Claim':'Locked'}</button></div>`;
+  const b=el.querySelector('#starClaim'); if(b)b.onclick=claimStarMilestone;
+}
+(function(){ const st=document.createElement('style'); st.textContent=
+  '.cstars{display:block;text-align:center;font-size:9px;line-height:1;margin-top:1px;letter-spacing:1px}'+
+  '.cstars .on{color:#ffd45e;text-shadow:0 0 4px rgba(255,200,60,.6)}.cstars .off{color:#3a4358}';
+  document.head.appendChild(st); })();
 function renderRoadmap(){
+  renderStarTrack();
   const map=document.getElementById('cmap');
   // default the viewed chapter to the one containing your current stage (clamped to what's unlocked)
   const curStage=Math.min(G.campaignCleared+1, CAMPAIGN_PLAYABLE);
@@ -4856,7 +4896,9 @@ function renderRoadmap(){
       const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
       el.style.left=nd[0]+'%'; el.style.top=nd[1]+'%';
       const face=cleared?'✓':(boss?'👑':(elite?'★':s));
-      el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}</div>`;
+      const _sst=cleared?((G.stageStars&&G.stageStars[g])||0):null;
+      const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
+      el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
       if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
       _inner.appendChild(el);
     }
@@ -4879,7 +4921,9 @@ function renderRoadmap(){
     const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
     const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
-    el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}</div>`;
+    const _sst=cleared?((G.stageStars&&G.stageStars[g])||0):null;
+    const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
+    el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
     if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
     map.appendChild(el);
   });
@@ -4900,16 +4944,19 @@ function openStageModal(i){
   const body=document.getElementById('stageModalBody');
   regenStamina();
   const canPay=G.stamina>=stageStamCost(i);
+  const _eb=isEliteStage(i)||isBossStage(i), _left=stageRunsLeft(i), _farmable=!_eb||_left>0;
+  const _capLine=_eb?`<div style="font-size:11px;color:${_left>0?'#8fe3ff':'#ff9a9a'};margin-bottom:8px">Daily reward runs: <b>${_left}/${ELITE_BOSS_DAILY}</b>${_left>0?'':' — come back after the 09:00 reset'}</div>`:'';
   body.innerHTML=`<div style="text-align:center">
       <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
       <div style="font-weight:800;font-size:18px">${boss?'Boss Stage '+stageCode(i):(elite?'Elite Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
       <div style="font-size:12px;color:#8b98a9;margin:4px 0 10px">${cleared?'Cleared — replay or sweep for rewards.':'First clear grants <b style="color:#5ee89b">'+campaignPlayerXP(i,true)+' XP</b>.'}</div>
       ${elite?`<div style="font-size:12px;color:#c9a0ff;margin:-4px 0 10px">Drops <b>${ELITE_FRAG_MIN}–${ELITE_FRAG_MAX}</b> ${fh.emoji} <b>${fh.name}</b> fragments${fh.locked&&!G.unlocked[fragHero]?` <span style="color:#8b98a9">(${heroFrag(fragHero)}/${summonCost(fragHero)} to unlock)</span>`:''}</div>`:''}
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Cost: <b>⧗ ${stageStamCost(i)} stamina</b> · you have ${G.stamina}/${maxStamina()}</div>
+      ${_capLine}
       <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn" id="smBattle" ${canPay?'':'disabled'}>⚔️ Battle ▶ ${cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'}</button>
-        ${cleared?`<button class="btn secondary" id="smSweep" ${canPay?'':'disabled'}>💨 Sweep (instant · ${campaignPlayerXP(i,false)} XP)</button>`:''}
-        ${cleared?`<button class="btn secondary" id="smSweep10" ${canPay?'':'disabled'}>💨 Sweep ×10 (⧗ ${stageStamCost(i)*10} · ${campaignPlayerXP(i,false)*10} XP)</button>`:''}
+        <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared))?'':'disabled'}>⚔️ Battle ▶ ${cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'}</button>
+        ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable)?'':'disabled'}>💨 Sweep (instant · ${campaignPlayerXP(i,false)} XP)</button>`:''}
+        ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${canPay?'':'disabled'}>💨 Sweep ×10 (⧗ ${stageStamCost(i)*10} · ${campaignPlayerXP(i,false)*10} XP)</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
       </div>
       ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
@@ -4917,7 +4964,7 @@ function openStageModal(i){
     </div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
-  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
+  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1){ document.getElementById('smMsg').textContent='Daily limit reached for this stage.'; return; } closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i);
   const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10);
 }
@@ -4929,7 +4976,10 @@ function sweepStage(i,times){
   regenStamina();
   const cost=stageStamCost(i), afford=Math.floor(G.stamina/cost);
   if(afford<1){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
-  const runs=Math.min(times,afford);
+  const dayLeft=stageRunsLeft(i);
+  if(dayLeft<1){ document.getElementById('smMsg').textContent='Daily limit reached — elite & boss stages give rewards '+ELITE_BOSS_DAILY+'x per day.'; return; }
+  const runs=Math.min(times,afford,dayLeft);
+  stageCountRun(i,runs);
   const heroXPEach=isBossStage(i)?12:STAGE_XP_SWEEP, pxpEach=campaignPlayerXP(i,false);
   G.stamina-=cost*runs;
   const gold=(40+i*30)*runs, pxp=pxpEach*runs, hxp=heroXPEach*runs;
@@ -4938,7 +4988,7 @@ function sweepStage(i,times){
   for(let r=0;r<runs;r++){
     const d=rollDrops(i); for(const k in d){ drops[k]=(drops[k]||0)+d[k]; G.mats[k]=(G.mats[k]||0)+d[k]; }
     const gg=rollGlyphDrop(); giveGlyph(gg,1); glyphs[gg]=(glyphs[gg]||0)+1;
-    if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _um=giveHeroFrag(hk,1); if(_um)um=_um; frags++; }
+    if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); if(_um)um=_um; frags++; } else { um='⚔ '+(_t?_t.name:'This hero')+"'s fragments only drop from MANUAL battles, never sweeps."; } }   // Phil 26 Aug: mythical/exclusive rewards are not sweepable
   }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
@@ -4946,7 +4996,7 @@ function sweepStage(i,times){
   const glyphStr=Object.entries(glyphs).map(([g,c])=>
     `<br><span style="color:${glyphRarityOf(glyphParse(g).rk).col}">💠 ${glyphName(g)} glyph${c>1?' ×'+c:''}</span>`).join('');
   const eliteStr=frags?`<br><span style="color:#c9a0ff">⭐ +${frags} ${HERO_TYPES[eliteHeroFor(i)].name} fragment${frags>1?'s':''}</span>`:'';
-  const head=runs>1?`Swept ×${runs}!`+(runs<times?` <span style="color:#8b98a9">(stamina ran out)</span>`:''):'Swept!';
+  const head=(runs>1?`Swept ×${runs}!`:'Swept!')+((runs<times)?` <span style="color:#8b98a9">(${dayLeft<afford?'daily limit':'stamina ran out'})</span>`:'');
   document.getElementById('smMsg').innerHTML=`${head} 🪙 +${gold} · +${pxp} XP · +${hxp} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
   // refresh the modal's stamina line so the buttons disable when the bar is spent
   const smb=document.getElementById('smBattle'), sms=document.getElementById('smSweep'), smt=document.getElementById('smSweep10');
@@ -5182,7 +5232,7 @@ function renderTech(){
   p.insertAdjacentHTML('beforeend','<div style="font-size:11px;color:#6f7d90;margin-top:10px;text-align:center">No tech can exceed your <b>Academy</b> level — raise the Academy to unlock higher tiers. Upgrading it also speeds up all research. Research needs gold + resources (mine them from the <b>World Map</b> via the City Wall).</div>');
 }
 /* ===================== ONLINE: accounts, arena, world ===================== */
-let ACC={token:null,name:null,rank:null,coins:0,id:null};
+let ACC={token:null,name:null,rank:null,coins:0,id:null,created:0};
 function loadAcc(){ try{const s=localStorage.getItem('ew_acc');if(s)ACC=JSON.parse(s);}catch(e){} }
 function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} }
 // GUEST SESSION: when there's no signed-in account, provision a persistent server-backed "level 1 guest"
@@ -5193,7 +5243,7 @@ function ensureGuest(cb){
   if((ACC&&ACC.token) || !online()){ if(cb)cb(); return; }
   let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
   api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
-    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true}; saveAcc();
+    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0)}; saveAcc();
       try{ DEV.on=false; }catch(e){} if(typeof updateHubChrome==='function')updateHubChrome(); if(typeof renderAccount==='function')renderAccount(); }
     if(cb)cb();
   }).catch(()=>{ if(cb)cb(); });
@@ -5255,7 +5305,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
-  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest)};saveAcc(); DEV.on=isDevAcct();
+  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0)};saveAcc(); DEV.on=isDevAcct();
       if(isReg){ pushSave(); } else if(!applyCloudSave(d.profile,true)){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
@@ -5282,7 +5332,7 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
     if(np!==cf){ m.textContent='Passwords do not match.'; return; }
     api('/api/login','POST',{name, newPass:np, roster:rosterPayload()}).then(d=>{ if(d.error){ m.textContent=d.error; return; }
       if(!d.token){ m.textContent='Could not set password.'; return; }
-      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id};saveAcc(); DEV.on=isDevAcct();
+      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0)};saveAcc(); DEV.on=isDevAcct();
       if(!applyCloudSave(d.profile,true)) pushSave(); updateHubChrome(); renderAccount(); }); };
 }
 function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">🌐 '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
@@ -7138,7 +7188,7 @@ function wishGoldFreeReset(){ const d=arenaDayKey(); if(G.wishGoldDay!==d){ G.wi
 function wishGoldFreeLeft(){ wishGoldFreeReset(); return Math.max(0,WISH_GOLD_FREE_MAX-(G.wishGoldUsed||0)); }
 function wishGoldFreeReady(){ return wishGoldFreeLeft()>0 && (Date.now()-(G.wishGoldLast||0))>=WISH_GOLD_FREE_MS; }
 function wishGoldNextFreeMs(){ if(wishGoldFreeLeft()<=0) return null; return Math.max(0, WISH_GOLD_FREE_MS-(Date.now()-(G.wishGoldLast||0))); }
-function wishGemUnlockAt(){ return (G.created||Date.now())+WISH_FIRST_GEM_DELAY_MS; }
+function wishGemUnlockAt(){ return ((ACC&&ACC.created)||G.created||Date.now())+WISH_FIRST_GEM_DELAY_MS; }   // anchored to ACCOUNT creation: a dev progress-reset never restarts the 20-min countdown
 // the POOL is never fully locked — a paid wish (💎300) is always available if you have the diamonds.
 // only the FREE wish is gated: the first free wish opens 20 min after account creation, then one
 // per server-day, resetting at the 09:00 ET daily reset (same boundary as all daily rewards).
@@ -7294,10 +7344,10 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
 // Starter quest chain over the campaign:
 //   clear 1-1 → 3 Grohm frags, 1-2 → 3 Grohm frags, 1-3 → 4 Grohm frags,
 //   then every 3 stages cleared (1-6, 1-9, ...) → 20 diamonds.
-function questChainDef(){ const steps=[{node:1,frags:3},{node:2,frags:3},{node:3,frags:4}];
+function questChainDef(){ const steps=[{node:1,frags:2},{node:2,frags:2},{node:3,frags:3},{node:4,frags:3}];   // Phil 26 Aug: Vex frags 2/2/3/3 on 1-1..1-4
   for(let n=6;n<=CAMPAIGN_PLAYABLE;n+=3) steps.push({node:n,gems:20});
   return steps; }
-const QUEST_CHAIN_HERO='grosk';
+const QUEST_CHAIN_HERO='vex';
 function questChainSteps(){ return questChainDef(); }
 function questChainDone(){ return (G.questChainStep||0)>=questChainDef().length; }
 // current chain step is claimable when its stage is cleared
@@ -7953,7 +8003,7 @@ function renderSettings(){
       api('/api/reset-verify','POST',{name:_forgotName, code, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reset password.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc(); DEV.on=isDevAcct();
         if(!applyCloudSave(d.profile,true)) pushSave();
         _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
         bannerMsg('🔑 Password reset — you\'re signed in.'); }); };
@@ -7972,7 +8022,7 @@ function renderSettings(){
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc();
         DEV.on=isDevAcct();
         if(isCreate){ pushSave(); }                            // new account → seed the cloud with your current progress
         else if(!applyCloudSave(d.profile,true)){ pushSave(); } // sign in → load THIS account's own cloud save
@@ -7991,7 +8041,7 @@ function renderSettings(){
       api('/api/login','POST',{name:_resetName, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc(); DEV.on=isDevAcct();
         if(!applyCloudSave(d.profile,true)) pushSave();
         _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
     acSet.onclick=doSet;
@@ -8037,7 +8087,7 @@ function renderSettings(){
       msg.style.color='#8b98a9'; msg.textContent='Changing password…';
       api('/api/reset-verify','POST',{name:ACC.name, code, newPass:np}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not change password.'; return; }
-        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||''}; saveAcc(); }
+        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0)}; saveAcc(); }
         pwStep='idle'; renderSettings(); bannerMsg('🔑 Password changed. Other devices have been signed out.'); }); };
     acRSubmit.onclick=doSubmit;
     ['#acRCode','#acRNew','#acRNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
@@ -8743,7 +8793,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787615214887';
+const BUILD_ID='1787741505728';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

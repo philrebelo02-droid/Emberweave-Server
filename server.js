@@ -58,7 +58,7 @@ function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reje
 }); }
 function authUser(req){ const t=req.headers['x-token']; if(!t)return null; const id=DB.tokens[t]; return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
-function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest }; }
+function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0 }; }
 // --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
 // A display name is not a permission boundary (audit crit #7): anyone who registered the name
 // 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
