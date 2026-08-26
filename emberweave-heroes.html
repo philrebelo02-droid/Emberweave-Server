@@ -1887,7 +1887,7 @@ const GRANK=[
   {name:'Purple',   q:3, col:'#b98bff', cost:null},   // MAX
 ];
 const GMAX_RANK=GRANK.length-1;
-function glyphRank(key){ return Math.max(0,Math.min(GMAX_RANK, G.glyphRank[key]||0)); }
+function glyphRank(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]) return Math.max(0,Math.min(GMAX_RANK, RUNE2.st.boards[key].ascensionIndex||0)); return Math.max(0,Math.min(GMAX_RANK, G.glyphRank[key]||0)); }
 function heroQuality(key){ return GRANK[glyphRank(key)].q; }   // ability tier derived from glyph colour
 function glyphUpCostR(rank){ return GRANK[rank] && GRANK[rank].cost; }
 // per-class glyph stat leaning (per rank): dps→damage, tanks→bulk, casters/healers→energy + spell dmg
@@ -1960,7 +1960,7 @@ function qualityCostStr(rank){ const c=qualityCost(rank); return c?Object.entrie
 function glyphLockedArr(key){ if(!G.glyphLocked)G.glyphLocked={}; if(!G.glyphLocked[key])G.glyphLocked[key]=[]; return G.glyphLocked[key]; }
 function glyphCurArr(key){ if(!G.glyphCur)G.glyphCur={}; if(!G.glyphCur[key])G.glyphCur[key]=[]; return G.glyphCur[key]; }
 // every socketed glyph (locked from past tiers + the current tier) adds its flat stats — permanently
-function glyphSockMul(key){ const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0}; glyphLockedArr(key).concat(glyphCurArr(key)).forEach(gid=>{ if(!gid)return; const p=glyphParse(gid); out[p.stat]=(out[p.stat]||0)+glyphValue(gid); }); return out; }
+function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0}; glyphLockedArr(key).concat(glyphCurArr(key)).forEach(gid=>{ if(!gid)return; const p=glyphParse(gid); out[p.stat]=(out[p.stat]||0)+glyphValue(gid); }); return out; }
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // fixed-slot socketing: slot i requires the exact glyph rankRecipe(key,rank)[i]. Filling the last slot auto-promotes.
 function slotFilled(key,i){ return !!glyphCurArr(key)[i]; }
@@ -6917,6 +6917,137 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
   render(); document.body.appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
 }
+/* ================= GLYPH ASCENSION v2 — client (render-only, server-authoritative) =================
+   The server owns every craft/socket/ascend result. This code only renders server state and calls
+   endpoints; every mutation carries expectedRevision and a 409 STALE just refetches + rerenders. */
+let RUNE2={ enabled:null, cat:null, st:null, busy:false, pick:null, view:'board' };
+const G2_COL={'Grey':'#9aa2b1','Green':'#5ee89b','Green +1':'#4fd07f','Blue':'#5aa4ff','Blue +1':'#4f8fe8','Blue +2':'#3f7ad0','Purple':'#c9a2ff','Purple +1':'#b98fe8','Purple +2':'#a97cd8','Purple +3':'#9a6ac9','Gold':'#ffd45e','Gold +1':'#f2c84a','Gold +2':'#e8bc38','Gold +3':'#dcb028','Gold +4':'#d0a418','Orange':'#ff8a3c'};
+const G2_SLOT_ICON={vitality:'❤️',bulwark:'🛡️',onslaught:'⚔️',spirit:'✨',tempo:'💨',mastery:'🎯'};
+function g2col(q){ return G2_COL[q]||'#9aa2b1'; }
+async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
+  const st=await api('/api/glyphs/state'); if(st&&st.error){ RUNE2.enabled=(RUNE2.enabled===true); return; }
+  RUNE2.enabled=!!(st&&st.enabled); if(!RUNE2.enabled){ RUNE2.st=null; return; }
+  RUNE2.st=st;
+  if(!RUNE2.cat){ const c=await api('/api/glyphs/catalog'); if(c&&c.defs){ c.byId={}; c.defs.forEach(d=>c.byId[d.id]=d); RUNE2.cat=c; } } }
+function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
+function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
+// legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
+function glyphV2Mul(key){ const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0};
+  if(!RUNE2.enabled||!RUNE2.st||!RUNE2.cat) return out;
+  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'atk','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'critRes','Control Resist':'critRes','Starting Energy':'energy','HP Regen':'regen','Healing Power':'regen'};
+  const b=g2board(key); const add=(stat,val)=>{ const k=MAP[stat]; if(k) out[k]+=val; };
+  for(const st in (b.ascended||{})) add(st, b.ascended[st].val);
+  for(const iid of (b.slots||[])){ if(!iid)continue; const inst=RUNE2.st.finished[iid]; const d=inst&&g2def(inst.definitionId); if(d) d.stats.forEach(s=>add(s.stat,s.val)); }
+  out.crit=Math.min(60,out.crit); return out; }
+async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true;
+  payload=Object.assign({expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1},payload||{});
+  const r=await api(path,'POST',payload); RUNE2.busy=false;
+  if(r&&r.error==='STALE'){ await glyphV2Sync(); renderHeroDetail(); bannerMsg('Refreshed — try again.'); return null; }
+  if(r&&r.error){ bannerMsg(r.error); await glyphV2Sync(); renderHeroDetail(); return null; }
+  await glyphV2Sync(); renderHeroDetail(); return r; }
+function g2sock(slot){ const key=detailHero, b=g2board(key), pick=RUNE2.pick;
+  if(b.slots[slot]){ g2post('/api/glyphs/unsocket',{heroKey:key,slot}); return; }
+  RUNE2.pick={slot}; renderHeroDetail(); }
+function g2sockPick(instId){ const key=detailHero, slot=RUNE2.pick&&RUNE2.pick.slot; RUNE2.pick=null;
+  if(slot==null) return; g2post('/api/glyphs/socket',{heroKey:key,slot,instanceId:instId}); }
+function g2pickCancel(){ RUNE2.pick=null; renderHeroDetail(); }
+function g2ascend(){ g2post('/api/glyphs/ascend',{heroKey:detailHero}); }
+function g2craft(defId){ g2post('/api/glyphs/craft',{definitionId:defId}); }
+function g2craftSub(subKey){ g2post('/api/glyphs/craft-sub',{subKey}); }
+function g2view(v){ RUNE2.view=v; renderHeroDetail(); }
+function g2ingLine(def){ const g=RUNE2.st; // ingredient list with have/need coloring
+  return def.ing.map(i=>{
+    if(i.kind==='frag'){ const have=(g.fragments[i.key]||0), ok=have>=i.qty; return `<span style="color:${ok?'#5ee89b':'#e86a6a'}">${i.qty}× ${i.key} frag <span style="color:#6f7d90">(${have})</span></span>`; }
+    if(i.kind==='sub'){ const have=(g.subGlyphs[i.key]||0), ok=have>=1; return `<span style="color:${ok?'#5ee89b':'#e86a6a'}">${i.key} <span style="color:#6f7d90">(${have})</span></span>`; }
+    const d=g2def(i.defId); const have=Object.values(g.finished).filter(x=>x.status==='inventory'&&x.definitionId===i.defId).length;
+    return `<span style="color:${have>0?'#5ee89b':'#e86a6a'}">${d?d.name:i.defId} <span style="color:#6f7d90">(${have})</span></span>`;
+  }).join(' · '); }
+function g2canCraft(def){ const g=RUNE2.st;
+  for(const i of def.ing){ if(i.kind==='frag'&&(g.fragments[i.key]||0)<i.qty) return false;
+    if(i.kind==='sub'&&(g.subGlyphs[i.key]||0)<1) return false;
+    if(i.kind==='finished'&&!Object.values(g.finished).some(x=>x.status==='inventory'&&x.definitionId===i.defId)) return false; }
+  return true; }
+function glyphV2Tab(key){
+  if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
+    if(RUNE2.enabled===null||RUNE2.enabled===true){ glyphV2Sync().then(()=>{ if(heroTab==='glyphs') renderHeroDetail(); }); }
+    return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">Loading glyphs…</div>`; }
+  const cat=RUNE2.cat, st=RUNE2.st, b=g2board(key);
+  const idx=b.ascensionIndex, maxed=idx>=cat.ladder.length;
+  const q=maxed?'Orange':cat.ladder[idx], qc=g2col(q);
+  const inv=Object.entries(st.finished).filter(([id,i])=>i.status==='inventory');
+  // ---- ascension header ----
+  const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <b>Glyph Ascension</b>
+      <span class="pill" style="color:${qc};border:1px solid ${qc}">${maxed?'★ FULLY ASCENDED':q+' · step '+(idx+1)+'/'+cat.ladder.length}</span></div>`;
+  if(maxed) return `<div class="panel">${head}<div style="text-align:center;color:${qc};font-weight:800;padding:16px">★ This hero has completed every ascension.</div></div>`;
+  // ---- socket picker overlay ----
+  if(RUNE2.pick){ const slot=RUNE2.pick.slot, slotName=cat.slots[slot], fams=cat.slotFamilies[slotName]||[];
+    const opts=inv.filter(([id,i])=>{ const d=g2def(i.definitionId); return d&&d.qi===idx&&fams.includes(d.family); });
+    const rows=opts.length?opts.map(([id,i])=>{ const d=g2def(i.definitionId);
+      return `<div class="eq-row" style="border-left:3px solid ${g2col(d.quality)};cursor:pointer" onclick="g2sockPick('${id}')">
+        <div style="flex:1"><div style="font-size:12px"><b style="color:${g2col(d.quality)}">${d.name}</b> <span style="font-size:9px;color:#6f7d90">${d.strength}</span></div>
+        <div style="font-size:10px;color:#8b98a9">${d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · ')}</div></div>
+        <button class="btn xs">Socket</button></div>`; }).join('')
+      :`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">No ${q} ${fams.join('/')} glyphs in your inventory.<br><span style="font-size:10px;color:#6f7d90">Craft one below.</span></div>`;
+    return `<div class="panel">${head}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:12px">${G2_SLOT_ICON[slotName]||''} ${slotName} slot</b><button class="btn xs secondary" onclick="g2pickCancel()">✕ Cancel</button></div>
+      ${rows}</div>`; }
+  // ---- the six-slot board ----
+  const cells=cat.slots.map((slotName,i)=>{ const iid=b.slots[i]; const fams=cat.slotFamilies[slotName]||[];
+    if(iid){ const inst=st.finished[iid], d=inst&&g2def(inst.definitionId);
+      return `<div class="gslot filled" style="border-color:${d?g2col(d.quality):'#33405e'};cursor:pointer" onclick="g2sock(${i})" title="tap to unsocket">
+        <div style="font-size:15px;height:24px;display:flex;align-items:center;justify-content:center">${G2_SLOT_ICON[slotName]||'◆'}</div>
+        <div style="font-size:8px;color:${d?g2col(d.quality):'#8b98a9'};font-weight:700">${d?d.family:'?'}</div>
+        <div style="font-size:7px;color:#8b98a9">${d?d.strength:''} ✓</div></div>`; }
+    const has=inv.some(([id,x])=>{ const d=g2def(x.definitionId); return d&&d.qi===idx&&fams.includes(d.family); });
+    return `<div class="gslot" style="border-color:${has?'#5ee89b':'#33405e'};cursor:pointer" onclick="g2sock(${i})">
+      <div style="font-size:16px;color:${has?'#5ee89b':'#6f7d90'};height:24px;display:flex;align-items:center;justify-content:center">＋</div>
+      <div style="font-size:8px;color:#8b98a9;font-weight:700">${slotName}</div>
+      <div style="font-size:7px;color:#6f7d90">${fams.join('/')}</div></div>`; }).join('');
+  const full=b.slots.every(s=>s);
+  const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
+    <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'} — consumes all six</button>`;
+  // ---- view toggle: craft list / stock ----
+  const viewBar=`<div class="dvp-tabs" style="margin:10px 0 6px;display:flex;gap:4px">
+    <button class="btn xs ${RUNE2.view==='board'?'':'secondary'}" onclick="g2view('board')">Craft ${q}</button>
+    <button class="btn xs ${RUNE2.view==='stock'?'':'secondary'}" onclick="g2view('stock')">Inventory</button></div>`;
+  let lower='';
+  if(RUNE2.view==='stock'){
+    const frag=Object.entries(st.fragments).filter(([k,n])=>n>0).sort();
+    const subs=Object.entries(st.subGlyphs).filter(([k,n])=>n>0).sort();
+    lower=`<div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Fragments</b></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${frag.length?frag.map(([k,n])=>`<span class="pill" style="font-size:10px;border:1px solid ${g2col(k.replace(/ (Stoneheart|Ironwall|Veilward|Ravager|Starfire|Windstep|Hawkeye|Lifebloom|Shadepath|Sunder|Voidbind|Bastion|Tidecall|Bloodroot|Keenmind|Dawnshield|Worldheart|Cataclysm)$/,''))}">${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None yet — daily rewards and arena wins drop fragments.</span>'}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Sub-Glyphs</b></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${subs.length?subs.map(([k,n])=>`<span class="pill" style="font-size:10px">${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None crafted.</span>'}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Finished glyphs</b> (${inv.length})</div>
+      ${inv.slice(0,30).map(([id,i])=>{ const d=g2def(i.definitionId); return `<div class="eq-row" style="border-left:3px solid ${d?g2col(d.quality):'#333'}"><div style="flex:1;font-size:11px"><b style="color:${d?g2col(d.quality):'#aaa'}">${d?d.name:'?'}</b> <span style="font-size:9px;color:#6f7d90">${d?d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · '):''}</span></div></div>`; }).join('')||'<div style="color:#6f7d90;font-size:11px">Empty.</div>'}`;
+  } else {
+    const defs=cat.defs.filter(d=>d.qi===idx);
+    // subs needed at this tier
+    const needSubs={}; defs.forEach(d=>d.ing.forEach(i=>{ if(i.kind==='sub') needSubs[i.key]=1; }));
+    const subRows=Object.keys(needSubs).map(k=>{ const sub=(cat.subs||[]).find(s=>s.key===k); if(!sub)return '';
+      const can=sub.ing.every(i=>(st.fragments[i.key]||0)>=i.qty);
+      return `<div class="eq-row" style="border-left:3px solid #8b98a9"><div style="flex:1;min-width:0"><div style="font-size:11px"><b>${k}</b> <span style="font-size:9px;color:#8fe3ff">×${st.subGlyphs[k]||0}</span></div>
+        <div style="font-size:9px;color:#8b98a9">${sub.ing.map(i=>`<span style="color:${(st.fragments[i.key]||0)>=i.qty?'#5ee89b':'#e86a6a'}">${i.qty}× ${i.key}</span>`).join(' + ')}</div></div>
+        <button class="btn xs" ${can?'':'disabled'} onclick="g2craftSub('${k}')">Craft</button></div>`; }).join('');
+    lower=defs.map(d=>{ const can=g2canCraft(d); const own=inv.filter(([id,x])=>x.definitionId===d.id).length;
+      return `<div class="eq-row" style="border-left:3px solid ${g2col(d.quality)}">
+        <div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${g2col(d.quality)}">${d.name}</b> <span style="font-size:9px;color:#6f7d90">${d.strength}</span>${own?` <span style="color:#8fe3ff;font-size:10px">×${own}</span>`:''}</div>
+          <div style="font-size:10px;color:#c3ccd8">${d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · ')}</div>
+          <div style="font-size:9px;margin-top:2px">${g2ingLine(d)}</div></div>
+        <button class="btn xs" ${can?'':'disabled'} onclick="g2craft('${d.id}')">Craft</button></div>`; }).join('');
+    if(subRows) lower=`<div style="font-size:10px;color:#6f7d90;margin:4px 0 3px">Sub-glyphs this tier needs:</div>${subRows}<div style="font-size:10px;color:#6f7d90;margin:8px 0 3px">Finished ${q} glyphs:</div>`+lower;
+  }
+  // ascended totals
+  const asc=Object.entries(b.ascended||{});
+  const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">Ascended bonuses:</b> ${asc.map(([k,v])=>k+' +'+v.val+(v.pct?'%':'')).join(' · ')}</div>`:'';
+  return `<div class="panel">${head}
+    <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Socket six <b style="color:${qc}">${q}</b> glyphs — one per board family — then ascend. Ascending consumes all six and their power becomes permanent.</div>
+    ${board}${viewBar}${lower}${ascLine}</div>`;
+}
+setTimeout(()=>{ glyphV2Sync(); }, 2500);   // early sync so v2 stats reach battles even before the tab is opened
+/* ================================== end Glyph v2 client ================================== */
+
 function renderHeroDetail(){
   const key=detailHero,t=HERO_TYPES[key]; if(!key)return;
   const body=document.getElementById('heroDetailBody');
@@ -7004,6 +7135,8 @@ function renderHeroDetail(){
       </div>`; }).join('');
     const clipBox=hasClips?`<div class="sk-clipwrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div><div id="skClip">${skillClipHTML(key,skClipIdx)}</div><div class="sk-cliphint">${MOBILE?'Tap':'Hover'} a skill to preview its ability</div></div>`:'';
     tab=`<div class="panel">${clipBox}${rows}<div style="font-size:10px;color:#6f7d90;margin-top:8px">${hasClips?(MOBILE?'Tap':'Hover')+' a skill to watch its ability clip. ':''}<b>Double-tap</b> a skill to read its full description. Spend gold on ＋ to level it up. Raise <b>Quality</b> (Glyphs tab) to unlock more skills.</div></div>`;
+  } else if(heroTab==='glyphs' && (typeof RUNE2!=='undefined') && RUNE2.enabled!==false){
+    tab=glyphV2Tab(key);   // GLYPH v2 — server-authoritative board (falls back to legacy below when the server says disabled)
   } else if(heroTab==='glyphs'){
     // ---- QUALITY: fixed glyph recipe per rank (no choice). Each slot = a specific glyph; ＋ green if owned, grey if not. ----
     const r=gr, atMax=r>=GMAX_RANK, rec=atMax?[]:rankRecipe(key,r);
@@ -7748,7 +7881,10 @@ function updateMailBadges(){ ensureMail(); pruneWars();
   if(md){ const n=mailUnread()+incomingWars().length; md.textContent=n>9?'9+':(n||''); md.style.display=n?'inline-flex':'none'; }
   if(qd){ const n=questsAvailable(); qd.textContent=n?'!':''; qd.style.display=n?'inline-flex':'none'; }
   const sd=document.getElementById('signinDot'); if(sd){ const on=(typeof signinReadyToday==='function'&&signinReadyToday()); sd.textContent='!'; sd.style.display=on?'inline-flex':'none'; }
-  const td=document.getElementById('tutDot'); if(td){ const on=(typeof tutReady==='function'&&tutReady())&&!G.tutDone; td.textContent='!'; td.style.display=on?'inline-flex':'none'; }
+  const td=document.getElementById('tutDot'); if(td){ const on=(typeof tutReady==='function'&&tutReady())&&!G.tutDone; td.textContent='!'; td.style.display=on?'inline-flex':'none';
+    // Phil 26 Aug: once every tutorial step is done, the Getting Started entry disappears from the menu
+    // entirely (a progress restart clears G.tutDone, so it comes back for a fresh run).
+    const mi=td.closest('.mitem'); if(mi) mi.style.display=G.tutDone?'none':''; }
   if(state==='mail') renderMail();
 }
 
@@ -8793,7 +8929,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787745200000';
+const BUILD_ID='1787748000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -102,6 +102,11 @@ function sanitizeSave(u, roster){
   else if(prev.gold!=null && dGold>GOLD_SPIKE) reason='gold spike (+'+dGold+')';
   if(reason){ u.flag={ reason, t:now, gems:g.gems||0, gold:g.gold||0 }; console.log('⚠ integrity flag — '+u.name+': '+reason); }
   u.econ={ gems:g.gems||0, gold:g.gold||0, t:now };
+  // GLYPH v2 (spec §9.3): once an account is migrated, legacy glyph fields in the uploaded save are
+  // stripped and noted — the server copy is the only glyph truth from then on.
+  if(u.glyphs && u.glyphs.migratedAt){ let strip=false;
+    for(const k of ['glyphInv','glyphRank','glyphCur','glyphLocked']){ if(g[k]!==undefined){ delete g[k]; strip=true; } }
+    if(strip){ glyphAudit(u.glyphs,'stripSave',{}); } }
   roster.__save=JSON.stringify(g); return roster; }
 // rotating hourly DB backups (kept alongside the db file)
 function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
@@ -190,7 +195,120 @@ function nextJoinRank(){ const occ=new Set(Object.values(DB.users).map(u=>u.rank
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
-function serverTeamPower(team){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; } return Math.round(p); }
+function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); } return Math.round(p); }
+/* ==================== GLYPH ASCENSION v2 — server-authoritative ====================
+   The browser NEVER computes a craft result, passive value, socket result, or promotion.
+   Catalog: server/glyph-source.json (218 finished-glyph definitions). Recipes are compiled
+   from recipeText at startup — an unknown token is a STARTUP ERROR, not a runtime surprise.
+   Feature flag: GLYPHS_V2_ENABLED env var (default OFF). Dev-role accounts always see v2,
+   so it can be tested live before the public flip.
+   Optimistic concurrency: every mutation carries expectedRevision; mismatch → 409 STALE. */
+const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'false')==='true';
+const GLYPH_LADDER=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
+const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
+const GLYPH_SLOTS=['vitality','bulwark','onslaught','spirit','tempo','mastery'];
+// which material families each board slot accepts (data-driven; per-role overrides seed later)
+const GLYPH_SLOT_FAMILIES={
+  vitality:['Stoneheart','Worldheart'],
+  bulwark:['Ironwall','Veilward','Bastion','Dawnshield'],
+  onslaught:['Ravager','Sunder','Cataclysm'],
+  spirit:['Starfire','Voidbind','Keenmind'],
+  tempo:['Windstep','Shadepath','Tidecall'],
+  mastery:['Hawkeye','Lifebloom','Bloodroot']
+};
+const GLYPH_ROLE_OVERRIDES={}; // heroRole -> {slotName:[families]} — extend from design doc rows when needed
+let GLYPHS=null;
+function glyphCompile(){
+  const file=path.join(__dirname,'server','glyph-source.json');
+  let txt=null; try{ txt=fs.readFileSync(file,'utf8'); }catch(e){
+    console.error('⚠ GLYPHS DISABLED — server/glyph-source.json is missing ('+e.message+'). Deploy the catalog to enable Glyph v2.');
+    GLYPHS=null; return; }
+  const raw=JSON.parse(txt);   // present-but-corrupt STILL fails startup, by design (spec: unknown token = startup error)
+  if(!Array.isArray(raw)||raw.length!==218) throw new Error('glyph-source.json: expected 218 definitions, got '+(raw&&raw.length));
+  const byId={}, byName={};
+  for(const d of raw){ if(byId[d.id]) throw new Error('duplicate glyph id '+d.id); byId[d.id]=d; byName[d.name]=d; }
+  const FRAG=/^(\d+)\s*[×x]\s*(.+?)\s+Fragments$/;
+  for(const d of raw){
+    const m=/(\w+)\s+(Glyph|Core|Crown)$/.exec(d.name); if(!m) throw new Error('glyph name unparsable: '+d.name);
+    d.family=m[1];
+    d.qi=GLYPH_LADDER.indexOf(d.quality); if(d.qi<0) throw new Error('glyph quality unknown: '+d.quality+' ('+d.id+')');
+    d.stats=(d.passiveStats||'').split(';').map(s=>s.trim()).filter(Boolean).map(s=>{
+      const mm=/^(.+?)\s*\+([\d.]+)(%?)$/.exec(s); if(!mm) throw new Error('glyph passive unparsable: '+d.id+' "'+s+'"');
+      return { stat:mm[1], val:+mm[2], pct:mm[3]==='%' };
+    });
+    d.ing=[];
+    for(const part of d.recipeText.split(' + ').map(s=>s.trim())){
+      const fm=FRAG.exec(part);
+      if(fm){ d.ing.push({kind:'frag', key:fm[2], qty:+fm[1]}); continue; }
+      if(/Sub-Glyph$/.test(part)){ d.ing.push({kind:'sub', key:part, qty:1}); continue; }
+      const ref=byName[part]; if(!ref) throw new Error('glyph recipe token unknown: "'+part+'" in '+d.id);
+      d.ing.push({kind:'finished', defId:ref.id, qty:1});
+    }
+  }
+  // derived Sub-Glyph recipes (tunable): plain=3 / Superior=4 / Rare=5 / Mythic=6 same-(quality,family)
+  // fragments; Worldfire subs draw Orange fragments and ALSO need 2× Gold +4 fragments (the "Gold+4 history").
+  const subs={};
+  for(const d of raw){ for(const g of d.ing){ if(g.kind==='sub' && !subs[g.key]){
+    const mm=/^(?:(Rare|Superior|Mythic)\s+)?(.+?)\s+(\w+)\s+Sub-Glyph$/.exec(g.key);
+    if(!mm) throw new Error('sub-glyph name unparsable: '+g.key);
+    const prefix=mm[1]||'', qual=mm[2], fam=mm[3];
+    const fragQual = qual==='Worldfire' ? 'Orange' : qual;
+    if(qual!=='Worldfire' && GLYPH_LADDER.indexOf(qual)<0) throw new Error('sub-glyph quality unknown: '+g.key);
+    const n={'':3,'Superior':4,'Rare':5,'Mythic':6}[prefix];
+    const ing=[{kind:'frag', key:fragQual+' '+fam, qty:n}];
+    if(qual==='Worldfire') ing.push({kind:'frag', key:'Gold +4 '+fam, qty:2});
+    subs[g.key]={ key:g.key, ing };
+  } } }
+  GLYPHS={ raw, byId, byName, subs, version:1 };
+  console.log('🔮 Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
+}
+glyphCompile();
+function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
+function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
+function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
+function glyphBoard(g,hero){ if(!g.boards[hero]) g.boards[hero]={ slots:[null,null,null,null,null,null], ascensionIndex:0, ascended:{} }; return g.boards[hero]; }
+function glyphAllowed(slotIdx, def, heroRole){ const slot=GLYPH_SLOTS[slotIdx]; if(!slot) return false;
+  const ov=GLYPH_ROLE_OVERRIDES[heroRole||'']; const fams=(ov&&ov[slot])||GLYPH_SLOT_FAMILIES[slot]||[]; return fams.includes(def.family); }
+function glyphPruneConsumed(g){ // consumed instances are kept for the audit trail, but bounded
+  const con=Object.entries(g.finished).filter(([id,i])=>i.status==='consumed');
+  if(con.length>200){ con.sort((a,b)=>(a[1].consumedAt||0)-(b[1].consumedAt||0));
+    for(const [id] of con.slice(0,con.length-200)) delete g.finished[id]; } }
+// one-time migration from the legacy client-owned glyph system (spec §9)
+function glyphMigrate(u){
+  if(!GLYPHS) return;
+  const g=ensureGlyphs(u); if(g.migratedAt) return;
+  let legacy={};
+  try{ const s=u.roster&&typeof u.roster.__save==='string'&&JSON.parse(u.roster.__save); if(s&&s.glyphRank&&typeof s.glyphRank==='object') legacy=s.glyphRank; }catch(e){}
+  let steps=0;
+  for(const k of Object.keys(legacy)){ const r=Math.max(0,Math.min(15,parseInt(legacy[k],10)||0)); if(r>0){ glyphBoard(g,k).ascensionIndex=r; steps+=r; } }
+  const fams=['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom'];
+  for(const [q,n] of [['Grey',30],['Green',20],['Green +1',12],['Blue',8]]){ for(const f of fams){ g.fragments[q+' '+f]=(g.fragments[q+' '+f]||0)+n; } }
+  const bonus=Math.min(400, steps*10);
+  if(bonus>0) for(const f of fams){ g.fragments['Blue '+f]=(g.fragments['Blue '+f]||0)+Math.floor(bonus/fams.length); }
+  g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps}); g.revision++;
+}
+// server-owned fragment faucets (Vault/Campaign server drops land later; these give a real economy now)
+function glyphGrantRandomFrags(u, n, maxTier){
+  if(!GLYPHS) return null;
+  const g=ensureGlyphs(u); const fams=['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom'];
+  const got={};
+  for(let i=0;i<n;i++){ const q=GLYPH_LADDER[Math.floor(Math.random()*Math.min(maxTier+1,GLYPH_LADDER.length))];
+    const f=fams[Math.floor(Math.random()*fams.length)]; const k=q+' '+f; g.fragments[k]=(g.fragments[k]||0)+1; got[k]=(got[k]||0)+1; }
+  g.revision++; return got;
+}
+// glyph combat/power contribution — flat + % stats reduced to one scalar, added into serverTeamPower
+const GLYPH_POWER_WEIGHT=+(process.env.GLYPH_POWER_WEIGHT||0.2);
+function glyphStatScore(stats){ let p=0; for(const s of stats){ if(s.pct) p+=s.val*4; else if(/^HP$/i.test(s.stat)) p+=s.val/8; else if(/Regen/i.test(s.stat)) p+=s.val/6; else p+=s.val*1.2; } return p; }
+function glyphHeroPower(u, heroKey){
+  if(!GLYPHS) return 0;
+  const g=u&&u.glyphs; if(!g) return 0; const b=g.boards&&g.boards[heroKey]; if(!b) return 0;
+  let p=0;
+  for(const st in (b.ascended||{})){ const a=b.ascended[st]; p+= a.pct? a.val*4 : (/^HP$/i.test(st)? a.val/8 : (/Regen/i.test(st)? a.val/6 : a.val*1.2)); }
+  for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const def=inst&&GLYPHS.byId[inst.definitionId]; if(def) p+=glyphStatScore(def.stats); }
+  return p*GLYPH_POWER_WEIGHT;
+}
+/* ================== end Glyph Ascension module (routes live in api()) ================== */
+
 function pickOpponent(me){
   const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
   // prefer someone slightly ABOVE the player (lower rank number)
@@ -414,6 +532,127 @@ async function api(req,res,url){
     me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
     return send(res,200,{ ok:true, email:me.email }); }
 
+  /* ------------------------- GLYPH ASCENSION v2 routes -------------------------
+     Server-authoritative. The client sends ONLY: definitionId / subKey / heroKey /
+     slot / instance ids / expectedRevision. Any client-submitted stat, quantity,
+     output id, power or quality is ignored by construction — nothing here reads one. */
+  if(p.startsWith('/api/glyphs')){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!GLYPHS) return send(res,200,{enabled:false});
+    if(p==='/api/glyphs/catalog'){ if(!glyphsEnabledFor(me)) return send(res,404,{error:'disabled'});
+      return send(res,200,{ version:GLYPHS.version, ladder:GLYPH_LADDER, slots:GLYPH_SLOTS, slotFamilies:GLYPH_SLOT_FAMILIES,
+        defs:GLYPHS.raw.map(d=>({id:d.id,quality:d.quality,qi:d.qi,strength:d.strength,name:d.name,family:d.family,statFocus:d.statFocus,stats:d.stats,ing:d.ing,recipeText:d.recipeText})),
+        subs:Object.values(GLYPHS.subs) }); }
+    if(p==='/api/glyphs/state'){
+      if(!glyphsEnabledFor(me)) return send(res,200,{enabled:false});
+      glyphMigrate(me); const g=ensureGlyphs(me); writeDB();
+      return send(res,200,{ enabled:true, revision:g.revision, fragments:g.fragments, subGlyphs:g.subGlyphs,
+        finished:g.finished, boards:g.boards, migratedAt:g.migratedAt||0 }); }
+    if(!glyphsEnabledFor(me)) return send(res,403,{error:'disabled'});
+    if(req.method!=='POST') return send(res,404,{error:'glyphs'});
+    if(rateLimited(req,'glyphs',60,60000)) return send(res,429,{error:'Slow down.'});
+    const b=await body(req); glyphMigrate(me); const g=ensureGlyphs(me);
+    const er=parseInt(b.expectedRevision,10);
+    if(er!==g.revision) return send(res,409,{error:'STALE', revision:g.revision});
+    const ok=(extra)=>{ glyphPruneConsumed(g); g.revision++; writeDB(); return send(res,200,Object.assign({ok:true, revision:g.revision},extra||{})); };
+    const bad=(msg)=>send(res,400,{error:msg, revision:g.revision});
+
+    if(p==='/api/glyphs/craft'){
+      const def=GLYPHS.byId[String(b.definitionId||'')]; if(!def) return bad('Unknown glyph.');
+      // resolve finished-glyph ingredients: use client-picked instance ids when given, else auto-pick oldest inventory
+      const needFin=def.ing.filter(i=>i.kind==='finished');
+      const pickIds=Array.isArray(b.ingredients)?b.ingredients.map(String):[];
+      const used=new Set(); const chosen=[];
+      for(const ingr of needFin){
+        let inst=null;
+        for(const iid of pickIds){ if(used.has(iid)) continue; const c=g.finished[iid];
+          if(c && c.status==='inventory' && c.definitionId===ingr.defId){ inst=iid; break; } }
+        if(!inst){ const cands=Object.entries(g.finished).filter(([iid,c])=>!used.has(iid)&&c.status==='inventory'&&c.definitionId===ingr.defId)
+          .sort((a,bb)=>(a[1].createdAt||0)-(bb[1].createdAt||0)); if(cands.length) inst=cands[0][0]; }
+        if(!inst) return bad('Missing ingredient: '+(GLYPHS.byId[ingr.defId]||{}).name);
+        used.add(inst); chosen.push(inst);
+      }
+      for(const ingr of def.ing){ if(ingr.kind==='frag' && (g.fragments[ingr.key]||0)<ingr.qty) return bad('Need '+ingr.qty+' × '+ingr.key+' Fragments.');
+        if(ingr.kind==='sub' && (g.subGlyphs[ingr.key]||0)<ingr.qty) return bad('Need '+ingr.key+'.'); }
+      for(const ingr of def.ing){ if(ingr.kind==='frag'){ g.fragments[ingr.key]-=ingr.qty; if(g.fragments[ingr.key]<=0) delete g.fragments[ingr.key]; }
+        if(ingr.kind==='sub'){ g.subGlyphs[ingr.key]-=ingr.qty; if(g.subGlyphs[ingr.key]<=0) delete g.subGlyphs[ingr.key]; } }
+      const now=Date.now();
+      for(const iid of chosen){ g.finished[iid].status='consumed'; g.finished[iid].consumedAt=now; }
+      const nid='g'+(g.seq++); g.finished[nid]={ definitionId:def.id, status:'inventory', createdAt:now };
+      glyphAudit(g,'craft',{def:def.id, out:nid, fed:chosen});
+      return ok({ crafted:nid, definitionId:def.id });
+    }
+    if(p==='/api/glyphs/craft-sub'){
+      const sub=GLYPHS.subs[String(b.subKey||'')]; if(!sub) return bad('Unknown sub-glyph.');
+      for(const ingr of sub.ing){ if((g.fragments[ingr.key]||0)<ingr.qty) return bad('Need '+ingr.qty+' × '+ingr.key+' Fragments.'); }
+      for(const ingr of sub.ing){ g.fragments[ingr.key]-=ingr.qty; if(g.fragments[ingr.key]<=0) delete g.fragments[ingr.key]; }
+      g.subGlyphs[sub.key]=(g.subGlyphs[sub.key]||0)+1;
+      glyphAudit(g,'craftsub',{sub:sub.key});
+      return ok({ subKey:sub.key, count:g.subGlyphs[sub.key] });
+    }
+    if(p==='/api/glyphs/socket'){
+      const hero=String(b.heroKey||'').slice(0,24); const slot=parseInt(b.slot,10);
+      if(!hero || !(slot>=0&&slot<6)) return bad('Bad hero/slot.');
+      const iid=String(b.instanceId||''); const inst=g.finished[iid];
+      if(!inst || inst.status!=='inventory') return bad('That glyph is not available.');
+      const def=GLYPHS.byId[inst.definitionId]; if(!def) return bad('Corrupt instance.');
+      const board=glyphBoard(g,hero);
+      if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
+      if(def.qi!==board.ascensionIndex) return bad('This board needs '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
+      if(!glyphAllowed(slot,def)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
+      if(board.slots[slot]){ const old=g.finished[board.slots[slot]]; if(old&&old.status==='socketed') old.status='inventory'; }
+      inst.status='socketed'; board.slots[slot]=iid;
+      glyphAudit(g,'socket',{hero,slot,inst:iid});
+      return ok({ hero, slot, instanceId:iid });
+    }
+    if(p==='/api/glyphs/unsocket'){
+      const hero=String(b.heroKey||'').slice(0,24); const slot=parseInt(b.slot,10);
+      const board=g.boards[hero]; if(!board || !(slot>=0&&slot<6) || !board.slots[slot]) return bad('Nothing socketed there.');
+      const inst=g.finished[board.slots[slot]]; if(inst&&inst.status==='socketed') inst.status='inventory';
+      const iid=board.slots[slot]; board.slots[slot]=null;
+      glyphAudit(g,'unsocket',{hero,slot,inst:iid});
+      return ok({ hero, slot });
+    }
+    if(p==='/api/glyphs/ascend'){
+      const hero=String(b.heroKey||'').slice(0,24); const board=g.boards[hero];
+      if(!board) return bad('Nothing socketed on this hero.');
+      if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('Already fully ascended.');
+      if(board.slots.some(s=>!s)) return bad('All six slots must be filled to ascend.');
+      // validate every socketed instance is legal BEFORE consuming anything (atomic: reject → nothing consumed)
+      const insts=[];
+      for(let i=0;i<6;i++){ const inst=g.finished[board.slots[i]]; const def=inst&&GLYPHS.byId[inst.definitionId];
+        if(!inst || inst.status!=='socketed' || !def || def.qi!==board.ascensionIndex || !glyphAllowed(i,def)) return bad('Illegal board — re-socket slot '+(i+1)+'.');
+        insts.push([inst,def]); }
+      const now=Date.now();
+      for(const [inst,def] of insts){ inst.status='consumed'; inst.consumedAt=now;
+        for(const s of def.stats){ const cur=board.ascended[s.stat]||{val:0,pct:s.pct}; cur.val=+(cur.val+s.val).toFixed(2); cur.pct=s.pct; board.ascended[s.stat]=cur; } }
+      const fed=board.slots.slice(); board.slots=[null,null,null,null,null,null]; board.ascensionIndex++;
+      glyphAudit(g,'ascend',{hero, to:board.ascensionIndex, fed});
+      return ok({ hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended });
+    }
+    if(p==='/api/glyphs/salvage'){
+      const ids=Array.isArray(b.instanceIds)?b.instanceIds.map(String).slice(0,50):[];
+      if(!ids.length) return bad('Nothing to salvage.');
+      const refund={}; const now=Date.now(); let n=0;
+      for(const iid of ids){ const inst=g.finished[iid]; if(!inst || inst.status!=='inventory') continue;
+        const def=GLYPHS.byId[inst.definitionId]; if(!def) continue;
+        for(const ingr of def.ing){ if(ingr.kind==='frag'){ const back=Math.floor(ingr.qty/2); if(back>0){ g.fragments[ingr.key]=(g.fragments[ingr.key]||0)+back; refund[ingr.key]=(refund[ingr.key]||0)+back; } } }
+        inst.status='consumed'; inst.consumedAt=now; inst.salvaged=true; n++; }
+      if(!n) return bad('Nothing salvageable in that selection.');
+      glyphAudit(g,'salvage',{n, ids:ids.slice(0,10)});
+      return ok({ salvaged:n, refund });
+    }
+    if(p==='/api/glyphs/grant'){ // dev-only test faucet
+      if(!isDev(me)) return send(res,403,{error:'forbidden'});
+      const q=String(b.quality||'Grey'); const fam=String(b.family||'Stoneheart'); const n=Math.max(1,Math.min(500,parseInt(b.n,10)||10));
+      if(GLYPH_LADDER.indexOf(q)<0) return bad('Bad quality.');
+      g.fragments[q+' '+fam]=(g.fragments[q+' '+fam]||0)+n;
+      glyphAudit(g,'grant',{k:q+' '+fam,n});
+      return ok({ fragments:g.fragments });
+    }
+    return send(res,404,{error:'glyphs'});
+  }
+
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req, BODY_MAX_SAVE);
     if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall;
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
@@ -479,14 +718,15 @@ async function api(req,res,url){
     // already uses. This is a power comparison, NOT the real battle sim; the faithful fix is the shared
     // deterministic simulator (Phase 2). Tune ARENA_RNG if even matchups feel too swingy. -PR review
     const ARENA_RNG=0.3;
-    const won = !!opp && (serverTeamPower(me.team)*(1-ARENA_RNG/2+Math.random()*ARENA_RNG) >= serverTeamPower(opp.team));
+    const won = !!opp && (serverTeamPower(me.team, me)*(1-ARENA_RNG/2+Math.random()*ARENA_RNG) >= serverTeamPower(opp.team, opp));
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
+    let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 2, Math.min(9, 3+Math.floor((5000-me.rank)/800))); }   // arena win: 2 fragments, tier scales with rank
     writeDB();
-    return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins }); }
+    return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags }); }
 
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
     return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
@@ -497,14 +737,16 @@ async function api(req,res,url){
     let offset=parseInt(url.searchParams.get('offset')||'0',10); if(!(offset>=0))offset=0;
     let limit=parseInt(url.searchParams.get('limit')||'100',10); if(!(limit>=1))limit=100; limit=Math.min(200,limit);
     if(q){ // name search across the WHOLE server
-      const hits=[]; for(let i=0;i<all.length && hits.length<60;i++){ const u=all[i]; if((u.name||'').toLowerCase().includes(q)) hits.push({ pos:i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team), you:u.id===me.id }); }
+      const hits=[]; for(let i=0;i<all.length && hits.length<60;i++){ const u=all[i]; if((u.name||'').toLowerCase().includes(q)) hits.push({ pos:i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }); }
       return send(res,200,{ entries:hits, total, youIndex, youRank:me.rank, search:true }); }
-    const entries=all.slice(offset,offset+limit).map((u,i)=>({ pos:offset+i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team), you:u.id===me.id }));
+    const entries=all.slice(offset,offset+limit).map((u,i)=>({ pos:offset+i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }));
     return send(res,200,{ entries, total, youIndex, youRank:me.rank, offset, limit }); }
 
   if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const now=Date.now();
     if(now-(me.lastDaily||0) < 20*60*60*1000) return send(res,200,{granted:0, coins:me.coins, next:(me.lastDaily+20*60*60*1000)});
-    const amt=dailyAmount(me.rank); me.coins+=amt; me.lastDaily=now; writeDB(); return send(res,200,{granted:amt, coins:me.coins}); }
+    const amt=dailyAmount(me.rank); me.coins+=amt; me.lastDaily=now;
+    let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 6, 3); }   // daily: 6 fragments up to Blue
+    writeDB(); return send(res,200,{granted:amt, coins:me.coins, glyphFrags}); }
 
   if(p==='/api/world'){ if(!me)return send(res,401,{error:'auth'});
     const cities=Object.values(DB.users).filter(u=>u.id!==me.id).sort((a,b)=>a.rank-b.rank).slice(0,24)
@@ -603,7 +845,7 @@ async function api(req,res,url){
     const WAR_ATT=5, WAR_WEEK_MS=7*24*3600000;
     const warWeek=()=>Math.floor(Date.now()/WAR_WEEK_MS);
     const warDay=()=>new Date().toISOString().slice(0,10);
-    function guildStrength(gg){ let s=0; for(const id of (gg.members||[])){ const u=DB.users[id]; if(u) s+=serverTeamPower(u.team); } return s+((gg.level||1)-1)*400; }
+    function guildStrength(gg){ let s=0; for(const id of (gg.members||[])){ const u=DB.users[id]; if(u) s+=serverTeamPower(u.team, u); } return s+((gg.level||1)-1)*400; }
     function npcWarChamps(strength,seed){ const avg=Math.max(200,Math.round(strength/3)); const n=5,champs=[];
       for(let i=0;i<n;i++){ const x=Math.sin(seed*7.13+i*3.71)*43758.5, f=x-Math.floor(x);
         champs.push({ id:'npc_'+i, name:NPC_NAMES[Math.floor(f*NPC_NAMES.length)]+' Sworn', power:Math.max(150,Math.round(avg*(0.72+i*0.11+f*0.24))) }); }
@@ -628,14 +870,14 @@ async function api(req,res,url){
       let champs;
       if(war.npc){ champs=(war.npcChamps||[]).map(c=>({ id:c.id, name:c.name, power:c.power, online:false, npc:true })); }
       else { const foeId=iAmA?war.b:war.a, foe=DB.guilds[foeId];
-        champs=((foe&&foe.members)||[]).map(id=>{ const u=DB.users[id]; return { id, name:nameOf(id), power:serverTeamPower(u&&u.team), online:isOnline(id), npc:false }; })
+        champs=((foe&&foe.members)||[]).map(id=>{ const u=DB.users[id]; return { id, name:nameOf(id), power:serverTeamPower(u&&u.team, u), online:isOnline(id), npc:false }; })
           .sort((a,b)=>b.power-a.power); }
       const bm=war.beaten[me.id]||{}; champs=champs.map(c=>({ ...c, beaten:!!bm[c.id] }));
       const ud=war.used[me.id], usedToday=(ud&&ud.day===warDay())?ud.n:0;
       return { week:war.week, endsAt:war.endsAt, npc:war.npc,
         you:{ name:iAmA?war.aName:war.bName, pts:youPts },
         foe:{ name:iAmA?war.bName:war.aName, pts:foePts, npc:war.npc },
-        champs, attemptsLeft:Math.max(0,WAR_ATT-usedToday), yourPower:serverTeamPower(me.team),
+        champs, attemptsLeft:Math.max(0,WAR_ATT-usedToday), yourPower:serverTeamPower(me.team, me),
         winning: youPts>=foePts, log:(war.log||[]).slice(-30) }; }
     if(p==='/api/guild/mine'){ const g=myGuild(); return send(res,200,{ guild: g?guildView(g):null }); }
     if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
@@ -736,7 +978,7 @@ async function api(req,res,url){
       const r=ensureRaid(g); if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       // SECURITY (audit crit #5): damage used to be driven by client b.power (up to 5,000,000/hit,
       // minted from nothing). Use the player's SERVER-KNOWN team power instead. -PR review
-      let power=Math.max(1,Math.min(5000000, serverTeamPower(me.team)||1));
+      let power=Math.max(1,Math.min(5000000, serverTeamPower(me.team, me)||1));
       const dmg=Math.max(1, Math.round(power*(1.4+Math.random()*0.8)));
       r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1;
       let killed=false, reward=null;
@@ -756,14 +998,14 @@ async function api(req,res,url){
       let target=null;
       if(war.npc){ const c=(war.npcChamps||[]).find(c=>c.id===tid); if(c) target={ id:c.id, name:c.name, power:c.power }; }
       else { const foeId=iAmA?war.b:war.a, foe=DB.guilds[foeId];
-        if(foe && (foe.members||[]).includes(tid)){ const u=DB.users[tid]; target={ id:tid, name:nameOf(tid), power:serverTeamPower(u&&u.team) }; } }
+        if(foe && (foe.members||[]).includes(tid)){ const u=DB.users[tid]; target={ id:tid, name:nameOf(tid), power:serverTeamPower(u&&u.team, u) }; } }
       if(!target) return send(res,400,{error:'That champion is no longer in the war.'});
       war.beaten[me.id]=war.beaten[me.id]||{};
       if(war.beaten[me.id][tid]) return send(res,200,{ already:true, war:warView(g) });
       const ud=war.used[me.id], usedToday=(ud&&ud.day===warDay())?ud.n:0;
       if(usedToday>=WAR_ATT) return send(res,200,{ none:true, war:warView(g) });
       war.used[me.id]={ day:warDay(), n:usedToday+1 };
-      const mine=serverTeamPower(me.team)*(0.9+Math.random()*0.3), win= mine>=target.power;
+      const mine=serverTeamPower(me.team, me)*(0.9+Math.random()*0.3), win= mine>=target.power;
       let pts=0, coins=0;
       if(win){ war.beaten[me.id][tid]=1; pts=Math.max(1,Math.round(target.power/10)); coins=Math.max(1,Math.round(target.power/8));
         if(iAmA) war.aPts+=pts; else war.bPts+=pts;
