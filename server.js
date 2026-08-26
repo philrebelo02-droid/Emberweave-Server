@@ -383,16 +383,20 @@ function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string
 function glyphFlatStats(u,key){
   // hp/atk/heal flats (unchanged) + v225: the RATE stats the client's glyphV2Mul collects
   // (Armor/MR/Crit Chance/Tenacity/Control Resist/Starting Energy), same MAP, crit capped at 60.
-  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0,ctrlRes:0,startEnergy:0,healPow:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
   const b=g.boards&&g.boards[key]; if(!b) return out;
   const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
     else if(/Physical Attack|Ability Power/i.test(stat)) out.atk+=val; };
+  // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = control resistance (never crit resist),
+  // Starting Energy = initial energy (never energy regen), Healing Power = healer output (never
+  // HP regen), HP Regen = universal regen rate. No display label is folded into an unrelated stat.
   const addRate=(stat,val)=>{ if(/^Armor$/i.test(stat)) out.armor+=val;
     else if(/^Magic Resist$/i.test(stat)) out.mr+=val;
     else if(/^Crit Chance$/i.test(stat)) out.crit+=val;
-    else if(/^(Tenacity|Control Resist)$/i.test(stat)) out.critRes+=val;
-    else if(/^Starting Energy$/i.test(stat)) out.energy+=val;
-    else if(/Healing Power|HP Regen/i.test(stat)) out.regenRating+=val; };   // client MAP: these are the universal regen RATE, not healer output
+    else if(/^(Tenacity|Control Resist)$/i.test(stat)) out.ctrlRes+=val;
+    else if(/^Starting Energy$/i.test(stat)) out.startEnergy+=val;
+    else if(/^Healing Power$/i.test(stat)) out.healPow+=val;
+    else if(/^HP Regen$/i.test(stat)) out.regenRating+=val; };
   for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
     if(d) for(const sst of d.stats){ if(!sst.pct) add(sst.stat,sst.val); addRate(sst.stat,sst.val); } }
@@ -403,11 +407,20 @@ function glyphFlatStats(u,key){
 // server-owned hero snapshot: level from saved XP (capped by player level), stars/pips from save, glyphs from server
 function snapshotHeroFromServer(u, key, save){
   const base=SIM.HERO_BASE[key]; if(!base) return null;
-  save=save||parseSaveOf(u);
-  const pl=d_levelForXP((save.playerXP|0)||0, D_TROOP_CUM);
-  const lvl=Math.max(1,Math.min(pl, d_levelForXP(((save.heroXP||{})[key]|0)||0, D_HERO_CUM)));
-  const stars=Math.max(base.stars, Math.min(5, ((save.starLevel||{})[key]|0)||base.stars));
-  const pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
+  // AUDIT C1: once an account's ledger exists, progression comes from the SERVER-owned ledger,
+  // never from the uploaded save blob. (Un-migrated accounts fall back to the save until first touch.)
+  let lvl,stars,pips;
+  let refLvl=0;
+  if(u&&u.led&&u.led.migratedAt){ const led=u.led, h=led.hero[key]||{xp:0,stars:base.stars,pips:0};
+    lvl=ledHeroLevel(led,key);
+    stars=Math.max(base.stars,Math.min(5,h.stars|0)); pips=Math.max(0,Math.min(5,h.pips|0)); refLvl=Math.max(0,Math.min(15,h.ref|0));
+  } else {
+    save=save||parseSaveOf(u);
+    const pl=d_levelForXP((save.playerXP|0)||0, D_TROOP_CUM);
+    lvl=Math.max(1,Math.min(pl, d_levelForXP(((save.heroXP||{})[key]|0)||0, D_HERO_CUM)));
+    stars=Math.max(base.stars, Math.min(5, ((save.starLevel||{})[key]|0)||base.stars));
+    pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
+  }
   const fl=glyphFlatStats(u,key);
   let gf=null;
   if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge flats reach the sim
@@ -422,12 +435,16 @@ function snapshotHeroFromServer(u, key, save){
   const armor=(fl.armor||0)+((gf&&gf.armor)||0), mr=(fl.mr||0)+((gf&&gf.mr)||0);
   const critR=(fl.crit||0)+((gf&&gf.crit)||0), cresR=(fl.critRes||0)+((gf&&gf.critRes)||0), enR=(fl.energy||0)+((gf&&gf.energy)||0);
   const regR=(fl.regenRating||0)+((gf&&gf.regenRating)||0);
-  let gearSkillSlot=null;
+  const ctrlR=(fl.ctrlRes||0), stEn=(fl.startEnergy||0), healP=(fl.healPow||0);
+  let gearSkillSlot=null, gearSkill=null;
   if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
-    if(d&&d.active){ const eq=(u.gear.equipped||{})[key]||{}; if(Object.values(eq).includes(aid)) gearSkillSlot=d.slot; } }
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl,
+    if(d&&d.active){ const eq=(u.gear.equipped||{})[key]||{}; if(Object.values(eq).includes(aid)){ gearSkillSlot=d.slot;
+      gearSkill={ id:d.id, name:d.active, type:d.activeType||null, params:d.activeParams||null, slot:d.slot }; } } }
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, glyph:fl,
     dr:Math.min(0.6,(armor+mr)*0.004), crit:Math.min(0.6,critR*0.005), critRes:Math.min(0.75,cresR*0.005),
-    energyReg:enR*0.01, regen:regR*0.001, gearSkillSlot});
+    energyReg:enR*0.01, regen:regR*0.001,
+    ctrlRes:Math.min(0.6,ctrlR*0.005), startEnergy:Math.min(60,Math.round(stEn*0.35)), healPow:healP*0.004,
+    gearSkillSlot, gearSkill});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -451,8 +468,10 @@ function bossRuleForFloor(f){ if(!isDungeonBossFloor(f)) return null;
 // fragment→Dust salvage rates: spec anchors, intermediate qualities interpolated. Server-only.
 const FRAG_SALVAGE_DUST={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,'Blue +2':25,'Purple':50,'Purple +1':65,'Purple +2':80,'Purple +3':100,'Gold':150,'Gold +1':200,'Gold +2':260,'Gold +3':330,'Gold +4':400,'Orange':800};
 
-function dungeonServerDayKey(){ return new Date().toISOString().slice(0,10); }   // one global UTC server day
-function dungeonNextReset(){ const d=new Date(); return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1); }
+// AUDIT C7: ONE game reset clock — America/New_York, same as Guild War (was UTC).
+function dungeonServerDayKey(){ return nyDayKey(); }
+function dungeonNextReset(){ const now=Date.now(), off=etOffsetMs(now); const d=new Date(now-off);
+  return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1)+etOffsetMs(now+86400000); }
 function getDungeonProgress(id){
   DB.dungeonProgress=DB.dungeonProgress||{};
   if(!DB.dungeonProgress[id]) DB.dungeonProgress[id]={ accountId:id, currentFloor:1, highestClearedFloor:0,
@@ -545,12 +564,14 @@ function rollFragmentOfQuality(q, rnd){
   const f=fams[Math.floor((rnd?rnd():Math.random())*fams.length)]||'Stoneheart';
   return q+' '+f;
 }
-function makeStandardDungeonFloorReward(floor){
-  // rewards are floor-determined, not rolled: the same floor always pays the same fragments
-  const rnd=SIM.mulberry32(SIM.seedFrom('vaultreward:'+floor));
+function makeStandardDungeonFloorReward(floor,rnd){
+  // AUDIT C7: MONSTERS are fixed per floor; REWARD FRAGMENTS are rolled server-side per grant
+  // transaction and persisted with it (claimedFloors / the idempotency record) — a retry never
+  // rerolls, and the roll is never derivable by the client in advance.
+  rnd=rnd||Math.random;
   const r={ dust:dustForDungeonFloor(floor) };
   if(isDungeonBossFloor(floor)){ const q=dungeonQualityForFloor(floor); r.fragments=[rollFragmentOfQuality(q,rnd), rollFragmentOfQuality(q,rnd)]; }
-  if(typeof GEARCAT!=='undefined'&&GEARCAT){ const gq=dungeonQualityForFloor(floor);   // gear doc: the Vault also feeds the Forge
+  if(typeof GEARCAT!=='undefined'&&GEARCAT){ const gq=dungeonQualityForFloor(floor);
     r.gearFragments=[gearRollFragment(gq,rnd), gearRollFragment(gq,rnd)].filter(Boolean); }
   return r;
 }
@@ -590,6 +611,7 @@ const _etFmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12
   year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 function etOffsetMs(t){ const g={}; for(const p of _etFmt.formatToParts(new Date(t))) g[p.type]=p.value;
   return t-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
+function nyDayKey(t){ const off=etOffsetMs(t||Date.now()); return new Date((t||Date.now())-off).toISOString().slice(0,10); }
 const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
 const WAR_ASSAULTS_PER_LINE=3;
 const WAR_ROUND_NAMES=['R16','QF','SF','F'];
@@ -685,6 +707,11 @@ function warTiebreak(t,m){ // destroyed → surviving HP% → power at lock → 
 function warAdvance(t){ // lazy state machine, called on every /api/guild-war request
   const now=warNow(); let changed=false;
   if(t.state==='registration' && now>=t.registrationLocksAt){
+    // AUDIT C8: qualification is computed AT the Monday lock, not at signup. Registration held only
+    // {guildId, registeredAt}; here every registered guild's power pool is recomputed from CURRENT
+    // server data (current members, current ledger-backed lines), then the top 16 are seeded.
+    t.entrants=t.entrants.map(e=>{ const g=(DB.guilds||{})[e.guildId];
+      return g?Object.assign(warQualifyGuild(g),{registeredAt:e.registeredAt||0}):e; }).filter(e=>e&&e.lines);
     t.entrants.sort((a,b)=>b.powerPool-a.powerPool);
     t.entrants=t.entrants.slice(0,16);
     t.entrants.forEach((e,i)=>e.seed=i+1);
@@ -743,6 +770,136 @@ function warMatchView(t,m,meGid){
   return v;
 }
 /* ====================== end Skyfall module (routes in api()) ====================== */
+
+/* ==================== LEDGER (economy authority, audit C1 — Phase A) ====================
+   Server-owned per-account ledgers: wallet (gold/gems), player XP, hero progression (xp/stars/pips/
+   unlocked/fragments), campaign progress (cleared/stars), stamina, and a bounded transaction log —
+   every grant/debit carries a source transaction id. Seeded ONCE from the legacy client save
+   (legitimate balances kept, clamped by the same sanitize rules), after which the ledger is the only
+   authority: the client mirrors it for display and requests mutations through validated endpoints.
+   Client-resolved legacy loops (tower/gauntlet/quests/mail/market) earn ONLY through the capped,
+   logged /api/tx/earn table until they are individually moved server-side. */
+const STARTER_HEROES=['vael','sylthaine','vireo'];
+const LEDGER_TX_KEEP=300;
+function ensureLedger(u){
+  if(u.led && u.led.migratedAt) return u.led;
+  const sv=parseSaveOf(u)||{};
+  const led={ v:1, migratedAt:Date.now(), rev:1,
+    gold:Math.max(0,Math.min(100000000, (sv.gold|0)||0)),
+    gems:Math.max(0,Math.min(2000000, (sv.gems|0)||0)),
+    px:Math.max(0,Math.min(99000000,(sv.playerXP|0)||0)),
+    hero:{}, unlocked:{}, frags:{},
+    camp:{ cleared:Math.max(0,Math.min(100,(sv.campaignCleared|0)||0)), stars:{}, att:null },
+    stam:{ v:60, ts:Date.now() },
+    txs:[] };
+  const hx=sv.heroXP||{}, st=sv.starLevel||{}, sp=sv.starPip||{}, un=sv.unlocked||{}, fr=sv.heroFrag||sv.heroFrags||{}, rf=sv.starRefine||{};
+  for(const k of Object.keys(SIM.HERO_BASE)){
+    const anyx=(hx[k]|0)||0;
+    if(anyx>0||un[k]||STARTER_HEROES.includes(k)) led.unlocked[k]=true;
+    led.hero[k]={ xp:Math.max(0,Math.min(99000000,anyx)),
+      stars:Math.max(SIM.HERO_BASE[k].stars,Math.min(5,(st[k]|0)||SIM.HERO_BASE[k].stars)),
+      pips:Math.max(0,Math.min(5,(sp[k]|0)||0)), ref:Math.max(0,Math.min(15,(rf[k]|0)||0)) };
+    if((fr[k]|0)>0) led.frags[k]=Math.min(9999,fr[k]|0);
+  }
+  const ss=sv.stageStars||{}; for(const n in ss){ const v=ss[n]|0; if(v>=1&&v<=3) led.camp.stars[n]=v; }
+  led.stam.v=Math.max(0,Math.min(200,(sv.stamina|0)||60));
+  u.led=led;
+  ledTx(u,'migrate:legacy-save',{});
+  return led;
+}
+function ledTx(u,src,delta){ const led=u.led; const id=uid();
+  led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
+  led.rev++; return id; }
+function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
+function ledHeroLevel(led,k){ const h=led.hero[k]; if(!h) return 1;
+  return Math.max(1,Math.min(ledPlayerLevel(led), d_levelForXP(h.xp||0, D_HERO_CUM))); }
+const STAM_MAX_BASE=59, STAM_REGEN_MS=360000, STAM_COST_NORMAL=6, STAM_COST_BOSS=12;
+function ledStamMax(led){ return STAM_MAX_BASE+ledPlayerLevel(led); }
+function ledStamRegen(led){ const now=Date.now(); const mx=ledStamMax(led);
+  if(led.stam.v<mx){ const g=Math.floor((now-led.stam.ts)/STAM_REGEN_MS);
+    if(g>0){ led.stam.v=Math.min(mx,led.stam.v+g); led.stam.ts+=g*STAM_REGEN_MS; } }
+  else led.stam.ts=now; }
+function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
+  return { rev:led.rev, gold:led.gold, gems:led.gems, px:led.px, playerLevel:ledPlayerLevel(led),
+    hero:led.hero, unlocked:led.unlocked, frags:led.frags,
+    camp:{cleared:led.camp.cleared, stars:led.camp.stars},
+    stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
+    dust:u.dust||0 }; }
+// capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
+const EARN_RULES={
+  gold:{ tower:{max:600,day:3000}, gauntlet:{max:800,day:4000}, quest:{max:1500,day:8000},
+         mail:{max:5000,day:20000}, market:{max:8000,day:40000}, city:{max:1500,day:9000},
+         dungeon:{max:200,day:1200}, convert:{max:8000,day:40000},
+         daily:{max:2000,day:4000}, misc:{max:500,day:2000} },
+  gems:{ quest:{max:60,day:200}, mail:{max:120,day:400}, daily:{max:80,day:160}, convert:{max:40,day:120}, misc:{max:20,day:60} },
+  px:{ dungeon:{max:150,day:900}, tower:{max:120,day:600}, misc:{max:100,day:500} },
+  heroXp:{ dungeon:{max:90,day:540}, tower:{max:70,day:400}, raid:{max:50,day:300}, elite:{max:70,day:1000}, misc:{max:80,day:400} },
+  frag:{ elite:{max:3,day:60}, quest:{max:5,day:30}, market:{max:10,day:60}, arena:{max:10,day:60}, misc:{max:3,day:20} } };
+
+/* ==================== WISHING POOL (server-owned, audit Phase C) ====================
+   Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
+   idempotency — the client only animates the reveal. Odds mirror the owner's 2026-08-21 economy
+   spec exactly; the pity rule (a full hero guaranteed within 40 diamond wishes) is server-added per
+   the audit's pity requirement and shown to players. Legacy material prizes are returned for the
+   client's local (non-competitive) material bag. */
+const POOL_P2=["fritz","rhukk","tallow","astra","magistrant","vharn","fathom","lumi","vesper","sablewick"];
+const POOL_P3=["bloatus","umbris","oakmir","meridian","sprocket","arrears"];
+const POOL_GOLD_HEROES=["tick","meryln","carn"];
+const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,tallow:2,astra:2,magistrant:2,vharn:2,fathom:2,lumi:2,hollow:3,sprocket:3,carn:1,vesper:2,sablewick:2,vex:1,arrears:3,meryln:1};
+const POOL_DUPE_FRAG={1:7,2:14,3:30};
+const WISH_GOLD_COST=1000, WISH_GEM_COST=300, WISH10_MULT=9;
+const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000, WISH_FIRST_GEM_DELAY_MS=20*60000;
+const WISH_GEM_PITY=40;   // a full hero is guaranteed within this many paid diamond wishes
+function poolState(u){ const led=ensureLedger(u);
+  if(!led.pool) led.pool={ goldUsedDay:'', goldFree:0, goldLast:0, gemFreeDay:'', gemFirstDone:false, pity:0, history:[] };
+  return led.pool; }
+function poolPick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
+  if(led.unlocked[hk]){ const f=POOL_DUPE_FRAG[st]||7; led.frags[hk]=(led.frags[hk]|0)+f;
+    return {type:'dupe', hero:hk, frags:f}; }
+  led.unlocked[hk]=true; if(!led.hero[hk]) led.hero[hk]={xp:0,stars:(SIM.HERO_BASE[hk]||{}).stars||st,pips:0};
+  return {type:'hero', hero:hk, stars:st}; }
+function poolRollGold(u){ const led=u.led; const h=Math.random();
+  if(h<0.05) return poolGrantHero(u, poolPick(POOL_GOLD_HEROES));
+  if(h<0.20){ const hk=poolPick(POOL_GOLD_HEROES), n=2+Math.floor(Math.random()*2); led.frags[hk]=(led.frags[hk]|0)+n; return {type:'frags',hero:hk,frags:n}; }
+  const r=Math.random();
+  if(r<0.46) return {type:'mat', mat:'grey', n:10+Math.floor(Math.random()*16)};
+  if(r<0.72) return {type:'mat', mat:'green', n:4+Math.floor(Math.random()*6)};
+  if(r<0.94){ const g=300+Math.floor(Math.random()*500); led.gold=Math.min(100000000,led.gold+g); return {type:'gold', n:g}; }
+  const gm=5+Math.floor(Math.random()*11); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
+function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
+  if(rigged) return poolGrantHero(u, poolPick(POOL_P2));
+  if(pool.pity+1>=WISH_GEM_PITY){ pool.pity=0; return Object.assign(poolGrantHero(u, Math.random()<0.12?poolPick(POOL_P3):poolPick(POOL_P2)),{pity:true}); }
+  const h=Math.random(); let acc=0.001;
+  const hit=(fn)=>{ pool.pity=0; return fn(); };
+  if(h<acc) return hit(()=>poolGrantHero(u,'konwu'));
+  acc+=0.01;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P3)));
+  acc+=0.08;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P2)));
+  pool.pity++;
+  acc+=0.15;  if(h<acc){ const hk=poolPick(POOL_P2), n=2+Math.floor(Math.random()*2); led.frags[hk]=(led.frags[hk]|0)+n; return {type:'frags',hero:hk,frags:n}; }
+  acc+=0.10;  if(h<acc){ const hk=poolPick(POOL_P3), n=2+Math.floor(Math.random()*2); led.frags[hk]=(led.frags[hk]|0)+n; return {type:'frags',hero:hk,frags:n}; }
+  const r=Math.random();
+  if(r<0.36) return {type:'mat', mat:'blue', n:3+Math.floor(Math.random()*5)};
+  if(r<0.60) return {type:'mat', mat:'green', n:8+Math.floor(Math.random()*8)};
+  if(r<0.80) return {type:'mat', mat:'purple', n:1+Math.floor(Math.random()*3)};
+  const gm=20+Math.floor(Math.random()*40); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
+/* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
+const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
+function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
+  const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
+/* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
+let CAMP_ENC=null;
+function campCompile(){
+  try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
+    if(!Array.isArray(raw)||raw.length!==100) throw new Error('expected 100 encounters, got '+(raw&&raw.length));
+    CAMP_ENC={byNode:{}}; for(const e of raw) CAMP_ENC.byNode[e.node]=e;
+    console.log('🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG).');
+  }catch(e){ CAMP_ENC=null; console.error('⚠ CAMPAIGN ENCOUNTERS DISABLED — '+e.message+' (client keeps its local mode)'); }
+}
+const CAMPAIGN_SKILL_BAND=parseFloat(process.env.CAMPAIGN_SKILL_BAND||'1.5');   // deterministic manual-play allowance inside the authoritative resolve
+function campStageOf(node){ return CAMP_ENC&&CAMP_ENC.byNode[node|0]||null; }
+function campIsBoss(node){ return node%10===0; }
+
 /* ==================== THE FORGE (Gear/Temper v2) — server-authoritative ====================
    From Emberweave_Gear_Compendium_Rebuilt15.xlsx (26 Aug 2026): 9 passive slots (one slot per
    quality tier by design — Grey=Weapon … Orange=Relic), 84 gear types with matching fragments,
@@ -756,8 +913,13 @@ let GEARCAT=null;
   const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-catalog.json'),'utf8'));
   if(!raw.items||raw.items.length!==84) throw new Error('expected 84 gear defs, got '+(raw.items&&raw.items.length));
   raw.byId={}; raw.byName={}; raw.byQuality={};
-  for(const d of raw.items){ raw.byId[d.id]=d; raw.byName[d.name]=d; (raw.byQuality[d.quality]=raw.byQuality[d.quality]||[]).push(d); }
-  GEARCAT=raw; console.log('⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
+  // AUDIT C4: ITEM-SPECIFIC actives — each gear id carries its own {activeId,type,params}. Temper
+  // touches passives only; these definitions never scale with Temper or rarity.
+  let acts={}; try{ for(const a of JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-actives.json'),'utf8'))) acts[a.id]=a; }
+  catch(e){ console.error('⚠ gear-actives.json missing — item actives disabled: '+e.message); }
+  for(const d of raw.items){ raw.byId[d.id]=d; raw.byName[d.name]=d; (raw.byQuality[d.quality]=raw.byQuality[d.quality]||[]).push(d);
+    if(acts[d.id]){ d.activeId=acts[d.id].activeId; d.activeType=acts[d.id].type; d.activeParams=acts[d.id].params; } }
+  GEARCAT=raw; console.log('⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / '+Object.keys(acts).length+' item actives. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }catch(e){ console.error('⚠ FORGE DISABLED — server/gear-catalog.json problem: '+e.message); } })();
 function gearEnabledFor(u){ return !!GEARCAT && (GEAR_V2_ENABLED || isDev(u)); }
 function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1 }; return u.gear; }
@@ -1186,10 +1348,12 @@ async function api(req,res,url){
       if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can register.'});
       if(t.state!=='registration') return send(res,400,{error:'Registration is closed for this week.'});
       if(warEntrant(t,myGid)) return send(res,400,{error:'Already registered.'});
-      const ent=warQualifyGuild(myGuildObj);
-      if(!ent.lines.length) return send(res,400,{error:'No eligible members.'});
-      t.entrants.push(ent); t.version++; writeDB();
-      return send(res,200,{ok:true, powerPool:ent.powerPool, lines:ent.lines.length});
+      const probe=warQualifyGuild(myGuildObj);   // display-only preview; AUTHORITY is the Monday-lock recompute (audit C8)
+      if(!probe.lines.length) return send(res,400,{error:'No eligible members.'});
+      t.entrants.push({ guildId:myGid, name:myGuildObj.name, registeredAt:warNow(),
+        lines:probe.lines, powerPool:probe.powerPool, indicative:true });
+      t.version++; writeDB();
+      return send(res,200,{ok:true, powerPool:probe.powerPool, lines:probe.lines.length, note:'Qualification is recalculated for every registered guild at the Monday lock.'});
     }
     if(p==='/api/guild-war/unregister'){
       if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can do that.'});
@@ -1310,20 +1474,16 @@ async function api(req,res,url){
         const a=prog.activeAttempt;
         if(!a||a.id!==String(b.attemptId||'')) return { ok:false, error:'No matching Vault battle.' };
         prog.activeAttempt=null;
-        const won=b.won===true;
+        // AUDIT C7 (owner-approved): the result is SERVER-AUTHORITATIVE. The client's `won` is not
+        // read; the deterministic estimate — with the documented, deterministic skill band standing
+        // in for manual play/backups (vaultWinPlausible) — decides the floor.
+        const won=vaultWinPlausible(a);
         if(!won){ prog.version++; writeDB();
-          return { ok:true, result:{won:false}, progress:dungeonView(prog) }; }
-        // plausibility: the fight must have lasted at least a few seconds, and the team the
-        // server snapshotted must be strong enough that a skilled win is believable
+          return { ok:true, result:{won:false, authoritative:true}, progress:dungeonView(prog) }; }
         if(Date.now()-a.startedAt<VAULT_MIN_BATTLE_MS){ prog.version++; writeDB(); return { ok:false, error:'That was too fast to be a real battle.' }; }
-        if(vaultTeamScore(a.teamSnapshot) < vaultFloorScore(a.floor)*0.18){ prog.version++; writeDB();
-          return { ok:false, error:'Your team is far below this floor — level up and try again.' }; }
-        if(!vaultWinPlausible(a)){ me.vaultSuspect=(me.vaultSuspect|0)+1; prog.version++; writeDB();
-          console.log('🚩 vault win REJECTED by sim gate: user='+me.name+' floor='+a.floor+' (count '+me.vaultSuspect+')');
-          return { ok:false, error:'The Vault did not recognize that victory — your team looks too weak to clear this floor. Strengthen up and try again.' }; }
         if(a.floor!==prog.currentFloor||prog.claimedFloors[a.floor]){ prog.version++; writeDB();
           return { ok:false, error:'Stale Vault floor.' }; }
-        const reward=makeFirstClearDungeonReward(a.floor);
+        const reward=makeFirstClearDungeonReward(a.floor);   // rolls with server RNG; persisted below + in the idempotency record
         grantDungeonReward(me, reward);
         prog.claimedFloors[a.floor]={ claimedAt:Date.now(), dust:reward.dust, fragments:reward.fragments||[] };
         prog.highestClearedFloor=a.floor; prog.currentFloor=a.floor+1;
@@ -1339,7 +1499,7 @@ async function api(req,res,url){
         if(prog.sweep.freeUsesRemaining<=0) return { ok:false, error:'No free Sweeps remaining today.', nextResetAt:dungeonNextReset() };
         if(prog.activeAttempt) return { ok:false, error:'Finish the current Vault battle first.' };
         if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };
-        const rnd=SIM.mulberry32(SIM.seedFrom(me.id+':sweep:'+dungeonServerDayKey()+':'+prog.sweep.totalSweepsToday));
+        const rnd=Math.random;   // AUDIT C7: rolled per sweep transaction, persisted via the idempotency record
         const rewards=[]; let dust=0; const frags={}; const gfrags={};
         for(let f=1;f<=prog.highestClearedFloor;f++){ const r=makeStandardDungeonFloorReward(f,rnd);
           dust+=r.dust; (r.fragments||[]).forEach(k=>frags[k]=(frags[k]||0)+1); (r.gearFragments||[]).forEach(k=>gfrags[k]=(gfrags[k]||0)+1); rewards.push(Object.assign({floor:f},r)); }
@@ -1507,6 +1667,246 @@ async function api(req,res,url){
     writeDB(); return send(res,200,{ok:true}); }
 
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
+
+  /* ---------------- LEDGER + CAMPAIGN routes (audit C1/C2) ---------------- */
+  if(p==='/api/pool/state'){ if(!me)return send(res,401,{error:'auth'});
+    const led=ensureLedger(me), pool=poolState(me); const now=Date.now(), dk=nyDayKey();
+    if(pool.goldUsedDay!==dk){ pool.goldUsedDay=dk; pool.goldFree=0; }
+    const goldFreeReady=pool.goldFree<WISH_GOLD_FREE_MAX && (now-pool.goldLast)>=WISH_GOLD_FREE_MS;
+    const gemFreeReady=pool.gemFreeDay!==dk && (now-(me.created||0))>=WISH_FIRST_GEM_DELAY_MS;
+    writeDB();
+    return send(res,200,{ odds:{konwu:0.001,full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
+      pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
+      goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
+      gemFree:{ready:gemFreeReady}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
+  if(p==='/api/pool/wish' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':wish:'+reqId,()=>{
+      const led=ensureLedger(me), pool=poolState(me); const which=String(b.pool||''); const n=(b.n|0)===10?10:1;
+      const now=Date.now(), dk=nyDayKey();
+      if(pool.goldUsedDay!==dk){ pool.goldUsedDay=dk; pool.goldFree=0; }
+      let cost=0, cur=null, free=false, rigged=false;
+      if(which==='gold'){ cur='gold';
+        free=(n===1)&&pool.goldFree<WISH_GOLD_FREE_MAX&&(now-pool.goldLast)>=WISH_GOLD_FREE_MS;
+        cost=free?0:(n===10?WISH_GOLD_COST*WISH10_MULT:WISH_GOLD_COST);
+        if(led.gold<cost) return {ok:false,error:'Not enough gold.'};
+        led.gold-=cost; if(free){ pool.goldFree++; pool.goldLast=now; } }
+      else if(which==='gem'){ cur='gems';
+        if((now-(me.created||0))<WISH_FIRST_GEM_DELAY_MS && !pool.gemFirstDone) return {ok:false,error:'The Diamond Pool opens 20 minutes after your account is created.'};
+        free=(n===1)&&pool.gemFreeDay!==dk;
+        rigged=!pool.gemFirstDone;
+        cost=free?0:(n===10?WISH_GEM_COST*WISH10_MULT:WISH_GEM_COST);
+        if(led.gems<cost) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=cost; if(free) pool.gemFreeDay=dk; }
+      else return {ok:false,error:'Unknown pool.'};
+      const results=[];
+      for(let i=0;i<n;i++){ const r=which==='gold'?poolRollGold(me):poolRollGem(me, rigged&&i===0); results.push(r); }
+      if(which==='gem') pool.gemFirstDone=true;
+      pool.history=pool.history||[]; pool.history.push({t:now,pool:which,n,cost,results:results.map(r=>r.type+(r.hero?':'+r.hero:''))});
+      if(pool.history.length>60) pool.history=pool.history.slice(-60);
+      ledTx(me,'pool:'+which+':x'+n,{[cur]:-cost});
+      writeDB(); return {ok:true, results, cost, free, ledger:ledgerView(me), pity:{at:WISH_GEM_PITY,count:pool.pity}};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':shop:'+reqId,()=>{
+      const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
+      if(what==='food'){ if(sh.food>=SHOP_FOOD_COSTS.length) return {ok:false,error:'No more meals today.'};
+        const c=SHOP_FOOD_COSTS[sh.food]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=c; sh.food++; ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+SHOP_FOOD_STAMINA);
+        ledTx(me,'shop:food',{gems:-c,stamina:SHOP_FOOD_STAMINA});
+        writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
+      if(what==='gold'){ if(sh.gold>=SHOP_GOLD_COSTS.length) return {ok:false,error:'No more gold today.'};
+        const c=SHOP_GOLD_COSTS[sh.gold]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        const amt=1000+(ledPlayerLevel(led)-1)*100;
+        led.gems-=c; sh.gold++; led.gold=Math.min(100000000,led.gold+amt);
+        ledTx(me,'shop:gold',{gems:-c,gold:amt});
+        writeDB(); return {ok:true, gold:amt, cost:c, ledger:ledgerView(me)}; }
+      return {ok:false,error:'Unknown item.'};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/campaign/sweep' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':csweep:'+reqId,()=>{
+      const led=ensureLedger(me); const node=b.node|0; const st=campStageOf(node); if(!st) return {ok:false,error:'Unknown stage.'};
+      if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
+      let times=Math.max(1,Math.min(10,b.times|0||1));
+      const elite=(node%5===0);   // guardian/boss stages: 3 rewarded runs/day, sweeps included
+      led.camp.runs=led.camp.runs||{}; const dk=nyDayKey();
+      if(led.camp.runs.k!==dk) led.camp.runs={k:dk};
+      if(elite){ const used=led.camp.runs['n'+node]|0; const left=Math.max(0,3-used);
+        if(left<1) return {ok:false,error:'Daily limit reached (3/day for guardian & boss stages).'};
+        times=Math.min(times,left); }
+      const cost=(campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL)*times;
+      ledStamRegen(led); if(led.stam.v<cost) return {ok:false,error:'Not enough stamina.'};
+      led.stam.v-=cost;
+      if(elite) led.camp.runs['n'+node]=(led.camp.runs['n'+node]|0)+times;
+      const rw=st.rewards;
+      const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
+      led.gold=Math.min(100000000,led.gold+gold);
+      const beforeLvl=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+px);
+      if(ledPlayerLevel(led)>beforeLvl) led.stam.v=Math.max(led.stam.v,ledStamMax(led));   // level-up refill
+      const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
+      for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
+      ledTx(me,'campaign:sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
+      writeDB(); return {ok:true, times, gold, px, heroXp:hxp, ledger:ledgerView(me)};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const led=ensureLedger(me);
+    if(b.gold) led.gold=Math.min(100000000,led.gold+(b.gold|0));
+    if(b.gems) led.gems=Math.min(2000000,led.gems+(b.gems|0));
+    if(b.px) led.px=Math.min(99000000,led.px+(b.px|0));
+    if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
+    if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
+    ledTx(me,'admin:grant',{});
+    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(me)}); }
+
+  if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
+    const v=ledgerView(me); writeDB(); return send(res,200,v); }
+  if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':spend:'+reqId,()=>{
+      const led=ensureLedger(me); const what=String(b.what||''); const amt=Math.floor(+b.amount||0);
+      if(!(amt>0&&amt<=10000000)) return {ok:false,error:'Bad amount.'};
+      if(what==='gold'){ if(led.gold<amt) return {ok:false,error:'Not enough gold.'}; led.gold-=amt; }
+      else if(what==='gems'){ if(led.gems<amt) return {ok:false,error:'Not enough diamonds.'}; led.gems-=amt; }
+      else if(what==='stamina'){ ledStamRegen(led); if(led.stam.v<amt) return {ok:false,error:'Not enough stamina.'}; led.stam.v-=amt; }
+      else return {ok:false,error:'Unknown currency.'};
+      const tx=ledTx(me,'spend:'+String(b.reason||'unspecified').slice(0,40),{[what]:-amt});
+      writeDB(); return {ok:true, tx, ledger:ledgerView(me)};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/tx/earn' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    // capped earn table for LEGACY client-resolved loops only. Every grant is logged with a source tx.
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':earn:'+reqId,()=>{
+      const led=ensureLedger(me); const what=String(b.what||''); const reason=String(b.reason||'misc').slice(0,24);
+      const amt=Math.floor(+b.amount||0);
+      const rules=(EARN_RULES[what]||{})[reason]; if(!rules) return {ok:false,error:'No earn rule for '+what+'/'+reason+'.'};
+      if(!(amt>0&&amt<=rules.max)) return {ok:false,error:'Amount exceeds the '+reason+' rule.'};
+      led.earnDay=led.earnDay||{}; const dk=nyDayKey();
+      if(led.earnDay.k!==dk){ led.earnDay={k:dk}; }
+      const used=(led.earnDay[what+':'+reason]|0);
+      if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
+      led.earnDay[what+':'+reason]=used+amt;
+      if(what==='gold') led.gold=Math.min(100000000,led.gold+amt);
+      else if(what==='gems') led.gems=Math.min(2000000,led.gems+amt);
+      else if(what==='px'){ const before=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+amt);
+        if(ledPlayerLevel(led)>before){ ledStamRegen(led); led.stam.v=Math.max(led.stam.v,ledStamMax(led)); } }
+      else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?b.heroKeys.map(String).slice(0,10):[]);
+        for(const k of keys){ if(!led.unlocked[k]) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
+      else if(what==='frag'){ const k=String(b.heroKey||''); if(!SIM.HERO_BASE[k]) return {ok:false,error:'Unknown hero.'};
+        led.frags[k]=Math.min(9999,(led.frags[k]|0)+amt); }
+      else return {ok:false,error:'Unknown earn currency.'};
+      const tx=ledTx(me,'earn:'+reason,{[what]:amt});
+      writeDB(); return {ok:true, tx, ledger:ledgerView(me)};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'});
+    const node=parseInt(url.searchParams.get('node')||'0',10); const st=campStageOf(node);
+    if(!st) return send(res,400,{error:'Unknown stage.'});
+    return send(res,200,{stage:st}); }
+  if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
+    const led=ensureLedger(me);
+    const node=b.node|0; const st=campStageOf(node);
+    if(!st) return send(res,400,{error:'Unknown stage.'});
+    if(node>led.camp.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
+    const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+    if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
+    for(const k of ids){ if(!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+    ledStamRegen(led); const cost=campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL;
+    if(led.stam.v<cost) return send(res,400,{error:'Not enough stamina.'});
+    led.stam.v-=cost;
+    const snaps=ids.map(k=>snapshotHeroFromServer(me,k)); if(snaps.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
+    led.camp.att={ id:uid(), node, heroIds:ids, teamSnapshot:snaps, startedAt:Date.now(), reqId };
+    ledTx(me,'campaign:start:'+st.id,{stamina:-cost});
+    writeDB();
+    return send(res,200,{ ok:true, attemptId:led.camp.att.id, stage:st, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
+  if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':cresolve:'+reqId,()=>{
+      const led=ensureLedger(me); const a=led.camp.att;
+      if(!a||a.id!==String(b.attemptId||'')) return {ok:false,error:'No matching campaign battle.'};
+      led.camp.att=null;
+      const st=campStageOf(a.node); if(!st) return {ok:false,error:'Stage data missing.'};
+      // AUTHORITATIVE result: the deterministic estimate decides — the client's opinion is not read.
+      // CAMPAIGN_SKILL_BAND is the documented, deterministic manual-play allowance.
+      const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND)});
+      const team=a.teamSnapshot.map(band);
+      const waves=st.waves.map(w=>w.map(vaultSpecToCombatUnit));
+      const r=SIM.qualificationEstimate(team, waves, SIM.seedFrom('camp:'+a.id));
+      const won=r.result.won;
+      let stars=0, reward=null;
+      if(won){
+        const last=r.waveResults[r.waveResults.length-1].team; const total=last.length||1, alive=last.filter(x=>x.alive).length;
+        stars=alive>=total?3:(alive>=Math.ceil(total/2)?2:1);
+        const first=a.node>led.camp.cleared;
+        const rw=st.rewards;
+        reward={ gold:first?rw.firstGold:rw.repeatGold, playerXp:first?rw.playerXpFirst:rw.playerXpRepeat,
+                 heroXp:first?rw.heroXpFirst:rw.heroXpRepeat, first };
+        led.gold=Math.min(100000000,led.gold+reward.gold);
+        led.px=Math.min(99000000,led.px+reward.playerXp);
+        for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
+        if(first) led.camp.cleared=a.node;
+        if(stars>(led.camp.stars[a.node]|0)) led.camp.stars[a.node]=stars;
+        ledTx(me,'campaign:clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
+      } else ledTx(me,'campaign:loss:'+st.id,{});
+      writeDB();
+      return { ok:true, won, stars, reward, replaySeed:SIM.seedFrom('camp:'+a.id), ledger:ledgerView(me) };
+    });
+    return send(res, out.ok===false?400:200, out); }
+  /* ---- hero progression endpoints: EXACT mirrors of the game's published rules ---- */
+  if(p==='/api/hero/star-step' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':starstep:'+reqId,()=>{
+      const led=ensureLedger(me); const k=String(b.heroKey||''); const base=SIM.HERO_BASE[k]; if(!base) return {ok:false,error:'Unknown hero.'};
+      if(!led.unlocked[k]) return {ok:false,error:'Hero not unlocked.'};
+      const h=led.hero[k]||(led.hero[k]={xp:0,stars:base.stars,pips:0});
+      const STAR_COST={1:{pip:3,confirm:5},2:{pip:6,confirm:20},3:{pip:14,confirm:30},4:{pip:20,confirm:50}};
+      if(h.stars>=5) return {ok:false,error:'Already 5★ — use Refine.'};
+      const c=STAR_COST[h.stars]; const cost=(h.pips>=5)?c.confirm:c.pip;
+      if((led.frags[k]|0)<cost) return {ok:false,error:'Need '+cost+' fragments.'};
+      led.frags[k]-=cost;
+      if(h.pips>=5){ h.pips=0; h.stars++; } else h.pips++;
+      ledTx(me,'hero:starstep:'+k,{frags:-cost});
+      writeDB(); return {ok:true, hero:h, frags:led.frags[k]|0, ledger:ledgerView(me)};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/hero/refine' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':refine:'+reqId,()=>{
+      const led=ensureLedger(me); const k=String(b.heroKey||''); const base=SIM.HERO_BASE[k]; if(!base) return {ok:false,error:'Unknown hero.'};
+      const h=led.hero[k]; if(!h||h.stars<5) return {ok:false,error:'Refine opens at 5★.'};
+      const lvl=Math.max(0,Math.min(15,h.ref|0));
+      if(lvl>=15) return {ok:false,error:'Fully refined.'};
+      const tier=lvl>=10?{cost:100,chance:0.10}:lvl>=5?{cost:70,chance:0.20}:{cost:50,chance:0.30};
+      if((led.frags[k]|0)<tier.cost) return {ok:false,error:'Need '+tier.cost+' fragments.'};
+      led.frags[k]-=tier.cost;
+      const success=Math.random()<tier.chance;   // SERVER roll — persisted with the idempotency record
+      if(success) h.ref=lvl+1;
+      ledTx(me,'hero:refine:'+k+(success?':up':':miss'),{frags:-tier.cost});
+      writeDB(); return {ok:true, success, level:h.ref|0, frags:led.frags[k]|0, ledger:ledgerView(me)};
+    });
+    return send(res, out.ok===false?400:200, out); }
+  if(p==='/api/hero/summon' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':summon:'+reqId,()=>{
+      const led=ensureLedger(me); const k=String(b.heroKey||''); const base=SIM.HERO_BASE[k]; if(!base) return {ok:false,error:'Unknown hero.'};
+      if(led.unlocked[k]) return {ok:false,error:'Already summoned.'};
+      const ss=POOL_START_STARS[k]||base.stars||1;
+      const SUMMON_COST_T={1:10,2:30,3:80};
+      const need=SUMMON_COST_T[ss]||10;
+      if((led.frags[k]|0)<need) return {ok:false,error:'Need '+need+' fragments to summon.'};
+      led.frags[k]-=need; led.unlocked[k]=true;
+      if(!led.hero[k]) led.hero[k]={xp:0,stars:base.stars,pips:0};
+      ledTx(me,'hero:summon:'+k,{frags:-need});
+      writeDB(); return {ok:true, ledger:ledgerView(me)};
+    });
+    return send(res, out.ok===false?400:200, out); }
   if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});
     const b=await body(req); const d=DB.users[String(b.defId||'')];
@@ -1568,16 +1968,24 @@ async function api(req,res,url){
     // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
     // already uses. This is a power comparison, NOT the real battle sim; the faithful fix is the shared
     // deterministic simulator (Phase 2). Tune ARENA_RNG if even matchups feel too swingy. -PR review
-    const ARENA_RNG=0.3;
-    const won = !!opp && (serverTeamPower(me.team, me)*(1-ARENA_RNG/2+Math.random()*ARENA_RNG) >= serverTeamPower(opp.team, opp));
+    // AUDIT C3: the arena is resolved by the SHARED deterministic simulator over server-built
+    // snapshots of both teams — never by a raw power comparison, never by a client-declared result.
+    // The seed is returned so the fight is replayable.
+    const seed=SIM.seedFrom('arena:'+me.id+':'+String(b.oppId||'')+':'+uid());
+    let won=false, simRes=null;
+    if(opp){ const mySnaps=(me.team||[]).filter(Boolean).slice(0,5).map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+      const opSnaps=(opp.team||[]).filter(Boolean).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
+      if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won; simRes={rounds:r0.rounds}; }
+    }
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
+    let goldReward=0; if(won){ goldReward=Math.max(0,200+Math.floor((5000-me.rank)/20)); const led=ensureLedger(me); led.gold=Math.min(100000000,led.gold+goldReward); ledTx(me,'arena:win',{gold:goldReward}); }
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 4, Math.min(9, 3+Math.floor((5000-me.rank)/800))); }   // arena win: 4 fragments, tier scales with rank (raised 26 Aug with the legacy-drop removal)
     writeDB();
-    return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags }); }
+    return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, authoritative:true }); }
 
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
     return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
@@ -1741,7 +2149,9 @@ async function api(req,res,url){
       return send(res,200,{ guilds:list, mine: me.guildId||null }); }
 
     if(p==='/api/guild/raid'){ const g=myGuild(); if(!g) return send(res,400,{error:'You are not in a guild.'}); return send(res,200,{ raid:raidView(g) }); }
-    if(p==='/api/guild/war'){ const g=myGuild(); if(!g) return send(res,400,{error:'You are not in a guild.'}); return send(res,200,{ war:warView(g) }); }
+    if(p==='/api/guild/war'){ // AUDIT C9: the legacy power-comparison Guild War is RETIRED — Skyfall
+      // (five floating citadels, /api/guild-war/*) is the only competitive Guild War. Raid stays co-op.
+      return send(res,200,{ retired:true, note:'Guild War has moved to the Skyfall Tournament.' }); }
     if(req.method!=='POST') return send(res,404,{error:'not found'});
     const b=await body(req);
 
@@ -1843,7 +2253,8 @@ async function api(req,res,url){
       else { reward={ guildCoins:Math.round(dmg/50) }; }
       writeDB(); return send(res,200,{ dmg, killed, reward, raid:raidView(g) }); }
 
-    if(p==='/api/guild/war/attack'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+    if(p==='/api/guild/war/attack'){ return send(res,400,{error:'Legacy Guild War is retired — fight in the Skyfall Tournament (Guild → Skyfall).'}); }
+    if(false){ /* legacy war attack retired (audit C9) */ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'gwar',30,60000)) return send(res,429,{error:'Slow down.'});
       const war=ensureWar(g); const iAmA=war.a===g.id;
       const tid=(b.targetId||'').toString();
@@ -1990,7 +2401,7 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens
+campCompile(); readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens
 backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);

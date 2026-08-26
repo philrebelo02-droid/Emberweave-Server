@@ -1804,7 +1804,9 @@ function skillLevel(key,idx){ return skillLvArr(key)[idx]||1; }
 function skillMul(lv){ return 1+((lv||1)-1)*0.15; }               // +15% effect per level
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(1.55,(lv||1)-1)); }
-function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL_MAX||!skillUnlocked(key,idx))return false; const c=skillUpCost(idx,lv); if((G.gold||0)<c)return false; G.gold-=c; skillLvArr(key)[idx]=lv+1; return true; }
+async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL_MAX||!skillUnlocked(key,idx))return false; const c=skillUpCost(idx,lv); if((G.gold||0)<c)return false;
+  if(!(await txSpend('gold',c,'skillup'))) return false;
+  skillLvArr(key)[idx]=lv+1; return true; }
 const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
@@ -1911,12 +1913,12 @@ const GLYPH_PROFILE={
 };
 function glyphProfile(key){ return GLYPH_PROFILE[HERO_TYPES[key].role]||GLYPH_PROFILE.Warrior; }
 function canAfford(c){ if(!c)return false; for(const k in c){ if((k==='gold'?G.gold:(G.mats[k]||0))<c[k]) return false; } return true; }
-function payCost(c){ for(const k in c){ if(k==='gold')G.gold-=c[k]; else G.mats[k]-=c[k]; } }
+function payCost(c){ ledCapture('market',()=>{ for(const k in c){ if(k==='gold')G.gold-=c[k]; else G.mats[k]-=c[k]; } }); }
 function costStr(c){ return Object.entries(c||{}).map(([k,v])=>k==='gold'?('🪙'+v):((MATS.find(m=>m[0]===k)||[,'?'])[1]+v)).join(' '); }
 // ============== GLYPHS — v2 only (the legacy socketable-glyph system was stripped 26 Aug) ==============
 // Crafting, fragments, socketing and ascension all live on the SERVER (u.glyphs; /api/glyphs/*).
 // The client renders the board via the RUNE2 state and reads combat stats through the two bridges below.
-function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0}; }   // v2 only — legacy socket stats are gone
+function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
@@ -1961,7 +1963,7 @@ function starMult(key){ const lv=heroStars(key), pip=starPips(key);
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
 function gearSockMul(key){
-  const z={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0};
+  const z={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
   try{
     const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled||!st.equipped) return z;
     const eq=st.equipped[key]; if(!eq) return z;
@@ -2341,7 +2343,9 @@ function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
 // grant fragments; auto-unlock a locked hero once enough are gathered. returns a status message.
 function giveHeroFrag(key,amt){ if(!G.heroFrag)G.heroFrag={}; G.heroFrag[key]=(G.heroFrag[key]||0)+amt; return ''; }   // fragments only accumulate — summon is a MANUAL action (no auto-summon)
 function canSummon(key){ const t=HERO_TYPES[key]; return !!(t && t.locked && !G.unlocked[key] && heroFrag(key)>=summonCost(key)); }
-function doSummon(key){ if(!canSummon(key)) return false; G.heroFrag[key]-=summonCost(key); G.unlocked[key]=true;
+function doSummon(key){ if(!canSummon(key)) return false;
+  api('/api/hero/summon','POST',{heroKey:key,requestId:uid8()}).then(r=>{ if(r&&r.ok) adoptLedger(r.ledger); else { bannerMsg((r&&r.error)||'Summon failed.'); ledgerSync(); } }).catch(()=>{});
+  G.heroFrag[key]-=summonCost(key); G.unlocked[key]=true;
   if(!G.starLevel)G.starLevel={}; G.starLevel[key]=heroStartStars(key); if(!G.starPip)G.starPip={}; G.starPip[key]=0;
   saveG(); updateHubChrome(); return true; }
 
@@ -2361,7 +2365,9 @@ function heroMuls(key){
   const em=equipMul(key); atk+=em.atk; hp+=em.hp; dr+=em.dr; crit+=em.crit; regen+=em.regen; energyReg+=em.energy;  // equipped gear
   // socketed glyphs are FLAT ratings: Attack/Health add post-multiplier (in makeUnit/display); rate stats convert here
   const gf=sockStatTotal(key); dr+=((gf.armor||0)+(gf.mr||0))*0.004; crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005; regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;   // glyphs + Forge gear (CR-3)
-  return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg};
+  // AUDIT C6 — the DISTINCT stats, each with its own field and effect:
+  const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.004;
+  return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
 }
 
 /* -------------------------- logical field + 3D map ------------------------- */
@@ -2670,7 +2676,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
-    atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:35,target:null,alive:true,r:18*br,
+    atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:Math.min(95,35+((owned&&mul.startEnergy)||0)),ctrlRes:(owned&&mul.ctrlRes)||0,target:null,alive:true,r:18*br,
     flash:0,stunned:0,fearT:0,slow:0,portraitEl:null,laneX:x,homeX:x,homeY:y,melee:(t.range<60),
     // desired fighting distance by row: melee closes to touching (~1-2 m, cross-team collision stops overlap), mid-row holds 13 m, back row holds 25 m.
     // Melee hold is clamped just inside its attack range so it can actually swing; ranged holds the FULL row distance (range is widened below to reach it).
@@ -2681,7 +2687,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: owned?skillLvArr(key).slice():[1,1,1,1], passMul:1, _castSM:1, apMul: owned?abilityPowerMul():(t.ap||1),
-    apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)*((owned&&t.healer)?(1+(mul.healPow||0)):1)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   u.glyphDR = (u.glyphDR||0) + defToDR((t.armor||0)*scale*sm + (t.mr||0)*scale*sm + (owned?techTotal('armor')+techTotal('mr'):0));   // flat Armor + Magic Resist → diminishing damage reduction
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
@@ -2767,6 +2773,17 @@ function buildEnemyWave(){
       const u=makeUnit(s.key,'enemy',sl.x,sl.y,s.lvl||1,{boss:!!s.boss});
       u.maxHp=Math.round(u.maxHp*(s.hpMul||1)); u.hp=u.maxHp; u.dmg=u.dmg*(s.dmgMul||1);
       if(s.boss){ u.maxHp=Math.round(u.maxHp*1.15); u.hp=u.maxHp; }
+      units.push(u); buildFigure(u); });
+    return;
+  }
+  if(CUR.mode==='campaign'&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){
+    // AUTHORED ENCOUNTER (audit C2): every attempt at this stage spawns exactly these units.
+    const specs=CUR.cwaves[Math.min(waveIdx,CUR.cwaves.length-1)]||[];
+    const _keys=specs.map(x=>x.key);
+    specs.forEach((m,i)=>{ const sl=laneSlot('enemy',m.key,i,specs.length,_keys);
+      const u=makeUnit(m.key,'enemy',sl.x,sl.y,m.lvl||1,{boss:!!m.boss});
+      u.maxHp=Math.max(1,Math.round(u.maxHp*(m.hpMul||1))); u.hp=u.maxHp; u.dmg*=(m.dmgMul||1);
+      if(m.boss){ u.maxHp=Math.round(u.maxHp*1.15); u.hp=u.maxHp; }
       units.push(u); buildFigure(u); });
     return;
   }
@@ -3665,8 +3682,8 @@ function think(u,dt){
     if(vc){ enemiesOf(u).forEach(e=>{ if(e.alive&&e.team!==u.team&&Math.hypot(e.x-vc.cx,e.y-vc.cy)<vc.R){ dealDamage(u,e,vc.dmg,'#c9a6ff'); e._darkAuraT=vc.dur; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
       if(typeof spawnVoidZone==='function')spawnVoidZone(u,vc.cx,vc.cy,vc.R,vc.dur,vc.pd,vc.con); } } }
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
-  if(u.stunned>0){u.stunned-=dt;return;}
-  if((u.fearT||0)>0){ u.fearT-=dt; u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
+  if(u.stunned>0){u.stunned-=dt*(1+2*(u.ctrlRes||0));return;}   // Control Resist shortens stuns (AUDIT C6)
+  if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
   if(u._castT>0)u._castT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
   // The Space He Isn't In recharges on a plain 4s timer, so the miss is banked, never rolled.
   if(u.pass&&u.pass.notthere){ if(u._ntReady===undefined){ u._ntReady=true; u._ntCd=0; }
@@ -3739,7 +3756,7 @@ function startBattle(){
   applyBattleMap();
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
-  if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
+  if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
@@ -3910,7 +3927,7 @@ function grantRewards(){
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
   } else {
-    G.trophies+=12; G.gold+=80; G.mats.blue+=2; G.mats.purple+=1; grantTeamXP(60);
+    G.trophies+=12; txEarn('gold',80,'tower'); G.mats.blue+=2; G.mats.purple+=1; grantTeamXP(60); txEarn('heroXp',60,'tower',{heroKeys:(G.team||[]).filter(Boolean)});
     msg=`🏆 +12 trophies · <span class="coins">🪙 +80</span><br>Glyph shards: 🔵2 🟣1`;
   }
   saveG(); return msg;
@@ -3942,15 +3959,20 @@ function endBattle(won){ ended=true;
         _arepDef={seed:sd,mineSnap:snap,foe,atkName:(ACC.name||'A challenger')};   // sent to server so the DEFENDER gets a watchable report of this attack
       } }catch(e){}
     const oldRank=G.arenaRank; let reward=0;
-    if(won){ reward=Math.max(0,200+Math.floor((5000-G.arenaRank)/20)); G.gold+=reward; G.arenaCoins=(G.arenaCoins||0)+5; }
     saveG(); updateHubChrome();
     setTimeout(async()=>{ let newRank=oldRank;
-      if(ACC.token && CUR.oppId){ const d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef}); if(d&&typeof d.rank==='number') newRank=d.rank; }
-      else if(won && CUR.oppRank && CUR.oppRank<oldRank){ newRank=CUR.oppRank; }   // offline fallback
+      let d=null;
+      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef}); if(d&&typeof d.rank==='number') newRank=d.rank; }
+      // AUDIT C3: the SERVER's shared-simulator verdict is the arena result — the visual fight is
+      // presentation. Rewards (gold + arena coins) are granted server-side.
+      if(d&&typeof d.won==='boolean') won=d.won;
+      if(d&&d.goldReward) reward=d.goldReward;
+      if(d) ledgerSync();
+      if(!d && won && CUR.oppRank && CUR.oppRank<oldRank){ newRank=CUR.oppRank; }   // offline fallback
       let swapped=false, gemsWon=0;
       if(won && newRank<oldRank){ swapped=true; G.arenaRank=newRank;
         if(G.arenaRank < (G.bestArenaRank||5000)){ let dia=0; for(let r=G.arenaRank; r<G.bestArenaRank; r++) dia+=arenaRankGems(r);
-          G.bestArenaRank=G.arenaRank; G.gemFrac=(G.gemFrac||0)+dia; gemsWon=Math.floor(G.gemFrac); G.gemFrac-=gemsWon; if(gemsWon>0) G.gems+=gemsWon; }
+          G.bestArenaRank=G.arenaRank; G.gemFrac=(G.gemFrac||0)+dia; gemsWon=Math.floor(G.gemFrac); G.gemFrac-=gemsWon; if(gemsWon>0) txEarn('gems',gemsWon,'daily'); }
       } else { G.arenaRank=newRank; }
       ARENA.oppsRank=null;   // refresh opponent list next time the arena is opened
       saveG(); updateHubChrome();
@@ -3962,8 +3984,9 @@ function endBattle(won){ ended=true;
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
     setTimeout(async()=>{ let r=null;
-      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8(), won:!!won}); }
+      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8()}); }
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
+      if(r&&r.result&&typeof r.result.won==='boolean') won=r.result.won;   // AUDIT C7: the server's verdict IS the result
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
       document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       let msg;
@@ -3976,19 +3999,36 @@ function endBattle(won){ ended=true;
       document.getElementById('resultReward').innerHTML=msg;
       document.getElementById('resultHint').textContent=won?'The next floor is harder — spend Dust at the Forge to temper your gear.':'Backups step in when a fighter falls — bring 10 heroes.';
       gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='dungeon'){ const gold=won?200:0, drops={grey:8,green:4,blue:2}; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;G.gold+=gold;for(const k in drops)G.mats[k]+=drops[k];
+  if(CUR.mode==='dungeon'){ const gold=won?200:0, drops={grey:8,green:4,blue:2}; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;txEarn('gold',gold,'dungeon');for(const k in drops)G.mats[k]+=drops[k];
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; const bag=EQ_BASE.map(b=>b[0]); const n=3+Math.floor(playerLevel()/5); const got={};
       for(let i=0;i<n;i++){ const b=bag[Math.floor(Math.random()*bag.length)]; G.eqMats[b]=(G.eqMats[b]||0)+1; got[b]=(got[b]||0)+1; }
       dropLog=EQ_BASE.filter(b=>got[b[0]]).map(b=>b[1]+' +'+got[b[0]]).join(' ');
-      dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
+      dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);
+      txEarn('px',dxp,'dungeon'); txEarn('heroXp',hxp,'dungeon',{heroKeys:(G.team||[]).filter(Boolean)});
+      saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span class="coins">🪙 +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · Glyph shards ⚪8 🟢4 🔵2 · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='elite'){ const key=CUR.eliteKey, frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; if(won){ eliteUnlock=giveHeroFrag(key,frags); grantTeamXP(70); saveG(); updateHubChrome(); }
+  if(CUR.mode==='elite'){ const key=CUR.eliteKey, frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; if(won){ eliteUnlock=giveHeroFrag(key,frags); txEarn('frag',frags,'elite',{heroKey:key}); grantTeamXP(70); txEarn('heroXp',70,'elite',{heroKeys:(G.team||[]).filter(Boolean)}); saveG(); updateHubChrome(); }
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 +${frags} ${HERO_TYPES[key].name} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='raid'){ const gold=won?120:0; if(won){G.gold+=gold;grantTeamXP(50);saveG();updateHubChrome();}
+  if(CUR.mode==='raid'){ const gold=won?120:0; if(won){txEarn('gold',gold,'city');grantTeamXP(50);txEarn('heroXp',50,'raid',{heroKeys:(G.team||[]).filter(Boolean)});saveG();updateHubChrome();}
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'RAID WON':'RAID FAILED'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`Looted <span class="coins">🪙 +${gold}</span> from ${CUR.oppName}`:`${CUR.oppName} held their wall.`; document.getElementById('resultHint').textContent=''; show('result'); },800); return; }
+  if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
+    setTimeout(async()=>{
+      const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8()});
+      const sWon=!!(r&&r.ok&&r.won);   // AUTHORITATIVE server result
+      if(r&&r.ledger) adoptLedger(r.ledger);
+      if(sWon&&r.stars){ if(!G.stageStars)G.stageStars={}; if(r.stars>(G.stageStars[CUR.node]|0)) G.stageStars[CUR.node]=r.stars; }
+      document.getElementById('resultTitle').textContent=sWon?'VICTORY':'DEFEAT';
+      document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      document.getElementById('resultReward').innerHTML= sWon
+        ? `<span class="coins">🪙 +${(r.reward&&r.reward.gold)||0}</span> · +${(r.reward&&r.reward.playerXp)||0} XP · heroes +${(r.reward&&r.reward.heroXp)||0} XP`
+          +`<br>${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}`
+        : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.');
+      document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':'Same monsters every attempt — learn the stage.';
+      updateHubChrome(); gameSpeed=1; show('result');
+    },800); return; }
   setTimeout(()=>{
   if(won){ const msg=grantRewards();
     document.getElementById('resultTitle').textContent=CUR.mode==='pvp'?'RAID WON':'VICTORY'; document.getElementById('resultTitle').className='result-big win';
@@ -4779,39 +4819,64 @@ let FORGE={ cat:null, st:null, busy:false, tab:'craft', q:0, eqPick:null };
    combat. Effects are slot archetypes with hero-relative magnitudes — they do NOT scale with the
    item's tier or Temper (spec: "active does not scale"). Auto/recorded fights (arena, raids,
    replays) exclude it — those are deterministic and the server sim doesn't model manual actives. */
-const GEAR_SKILL_FX={
-  'Weapon':{icon:'⚔️',desc:'Strike the nearest enemy for 150% ATK and stun it for 0.75s.'},
-  'Helm'  :{icon:'🛡️',desc:'Shield yourself for 30% of your max Health (8s).'},
-  'Boots' :{icon:'💨',desc:'Surge: +40% attack & move speed for 5s.'},
-  'Armor' :{icon:'🪨',desc:'Brace: take 35% less damage for 5s.'},
-  'Gloves':{icon:'🥊',desc:'Fury: +50% damage for 5s.'},
-  'Belt'  :{icon:'❤️',desc:'Second Wind: recover 25% of your max Health.'},
-  'Ring'  :{icon:'⚡',desc:'Focus: gain 35 Energy instantly.'},
-  'Amulet':{icon:'✨',desc:'Cleanse stun & fear and shield 15% of your max Health.'},
-  'Relic' :{icon:'☄️',desc:'Blast enemies near your target for 90% ATK.'}};
+/* ---- AUDIT C4: ITEM-SPECIFIC Gear Skills. Each item's {activeType, activeParams} comes from the
+   server catalog (the same authored definitions the server simulator uses) — a Grey taunt and a Blue
+   burst are genuinely different choices, and Temper never changes an active. One use per combat. */
+const GEAR_TYPE_ICON={dmg:'⚔️',stun:'💫',silence:'🤐',slow:'🕸️',shield:'🛡️',heal:'❤️',energy:'⚡',buff:'🔥',mark:'🎯',taunt:'🗣️',cleanse:'✨',untarget:'🌫️',ward:'🕯️',next:'☄️',move:'💨'};
 function gearActiveFor(key){ try{
   const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled)return null;
   const id=(st.active||{})[key]; const it=id&&st.items&&st.items[id]; const d=it&&forgeDef(it.d); if(!d||!d.active)return null;
   const eq=(st.equipped||{})[key]||{}; if(!Object.values(eq).includes(id)) return null;   // must still be equipped
-  return { name:d.active, slot:d.slot, icon:(GEAR_SKILL_FX[d.slot]||{}).icon||'🗡', desc:(GEAR_SKILL_FX[d.slot]||{}).desc||d.effect||'' };
+  return { name:d.active, slot:d.slot, itemId:id, type:d.activeType||null, params:d.activeParams||null,
+    icon:GEAR_TYPE_ICON[d.activeType]||'🗡', desc:d.effect||'' };
 }catch(e){ return null; } }
+function _gsNearFoe(u){ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} } }); return b; }
+function _gsFarFoe(u){ let b=null,bd=-1; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d>bd){bd=d;b=o;} } }); return b; }
+function _gsLowFoe(u){ let b=null,bp=2; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const p=o.hp/o.maxHp; if(p<bp){bp=p;b=o;} } }); return b; }
+function _gsFoes(u,how,n,anchor){ const foes=units.filter(o=>o.alive&&o.team!==u.team);
+  if(how==='all') return foes;
+  if(how==='far'){ const t=_gsFarFoe(u); return t?[t]:[]; }
+  if(how==='lowest'){ const t=_gsLowFoe(u); return t?[t]:[]; }
+  if(how==='aoe'||how==='chain'||how==='line'){ const c=anchor||_gsNearFoe(u); if(!c)return[];
+    return foes.sort((x,y)=>Math.hypot(x.x-c.x,x.y-c.y)-Math.hypot(y.x-c.x,y.y-c.y)).slice(0,Math.max(1,n||3)); }
+  if(how==='random'){ const out=[]; for(let i2=0;i2<(n||2)&&foes.length;i2++) out.push(foes[Math.floor(Math.random()*foes.length)]); return out; }
+  const t=_gsNearFoe(u); return t?[t]:[]; }
+function _gsAllies(u,who){ const own=units.filter(o=>o.alive&&o.team===u.team&&HERO_TYPES[o.key]);
+  if(who==='allies'||who==='nearAllies') return own;
+  if(who==='lowest'){ let b=null,bp=2; own.forEach(o=>{ const p=o.hp/o.maxHp; if(p<bp){bp=p;b=o;} }); return b?[b]:[]; }
+  return [u]; }
 function castGearSkill(u){
   if(!u||!u.alive||!u.gearSkill||u.gearSkill.used||ended||paused) return;
-  if(u.stunned>0||(u.fearT||0)>0) { if(u.gearSkill.slot!=='Amulet') return; }   // only the Amulet cleanse works while disabled
+  const g=u.gearSkill, p=g.params||{}, ty=g.type;
+  if((u.stunned>0||(u.fearT||0)>0) && ty!=='cleanse') return;
   u.gearSkill.used=true;
-  const sl=u.gearSkill.slot;
-  const nearestFoe=()=>{ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} } }); return b; };
-  floatTexts.push({x:u.x,y:u.y-16,txt:u.gearSkill.name,t:.9,color:'#ffd45e',vy:1.2,sz:13});
-  if(sl==='Weapon'){ const t=nearestFoe(); if(t){ dealDamage(u,t,u.dmg*1.5,'#ffd45e'); t.stunned=Math.max(t.stunned||0,0.75); } }
-  else if(sl==='Helm'){ u.shield=(u.shield||0)+u.maxHp*0.30; u.shieldT=Math.max(u.shieldT||0,8); }
-  else if(sl==='Boots'){ u.hasteT=Math.max(u.hasteT||0,5); u.hasteMul=Math.max(u.hasteMul||1,1.4); }
-  else if(sl==='Armor'){ u.drT=Math.max(u.drT||0,5); u.drMul=Math.min(u.drMul||1,0.65); }
-  else if(sl==='Gloves'){ u.dmgBuffT=Math.max(u.dmgBuffT||0,5); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1.5); }
-  else if(sl==='Belt'){ const amt=Math.round(u.maxHp*0.25); u.hp=Math.min(u.maxHp,u.hp+amt); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:13}); }
-  else if(sl==='Ring'){ u.energy=Math.min(100,(u.energy||0)+35); }
-  else if(sl==='Amulet'){ u.stunned=0; u.fearT=0; u.shield=(u.shield||0)+u.maxHp*0.15; u.shieldT=Math.max(u.shieldT||0,6); }
-  else if(sl==='Relic'){ const t=u.target&&u.target.alive?u.target:nearestFoe();
-    if(t){ units.forEach(o=>{ if(o.alive&&o.team!==u.team&&Math.hypot(o.x-t.x,o.y-t.y)<120) dealDamage(u,o,u.dmg*0.9,'#c47bff'); }); } }
+  floatTexts.push({x:u.x,y:u.y-16,txt:g.name,t:.9,color:'#ffd45e',vy:1.2,sz:13});
+  const burn=(t,frac,dur)=>{ if(t&&frac) t.dots.push({dmg:u.dmg*frac/(2*(dur||3)),t:dur||3,tick:0.5,left:0.5,src:u,color:'#ff9a3c'}); };
+  switch(ty){
+    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
+    case 'stun': { const ts=_gsFoes(u,p.target==='aoe'?'aoe':(p.target==='caster'?'near':'near'),p.target==='aoe'?3:1);
+      ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,(p.dur||0.75)); }); break; }
+    case 'silence': { const t=_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,p.dur||1.25); break; }
+    case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ t.slow=Math.max(t.slow||0,p.dur||2); if((p.pct||0)>=0.9) t.stunned=Math.max(t.stunned||0,(p.dur||1.25)*0.6); }); break; }
+    case 'shield': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.ap?Math.round((u.apow||u.dmg)*(p.ap||1)):Math.round(w.maxHp*(p.pct||0.1)); w.shield=(w.shield||0)+amt; w.shieldT=Math.max(w.shieldT||0,p.dur||5); if(p.energy) w.energy=Math.min(100,w.energy+p.energy); }); break; }
+    case 'heal': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.missing?Math.round((w.maxHp-w.hp)*p.missing):Math.round(w.maxHp*(p.pct||0.1)); if(p.over){ w.hots.push({heal:amt/(2*p.over),t:p.over,tick:0.5,left:0.5}); } else { w.hp=Math.min(w.maxHp,w.hp+amt); floatTexts.push({x:w.x,y:w.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:12}); } }); break; }
+    case 'energy': u.energy=Math.min(100,(u.energy||0)+(p.n||20)); break;
+    case 'buff': { u.dmgBuffT=Math.max(u.dmgBuffT||0,p.dur||3); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,p.atk||1);
+      if(p.as||p.speed){ u.hasteT=Math.max(u.hasteT||0,p.dur||3); u.hasteMul=Math.max(u.hasteMul||1,p.as||p.speed||1.2); }
+      if(p.dr!=null){ u.drT=Math.max(u.drT||0,p.dur||3); u.drMul=Math.min(u.drMul||1,p.dr); }
+      if(p.shieldPct){ u.shield=(u.shield||0)+Math.round(u.maxHp*p.shieldPct); u.shieldT=Math.max(u.shieldT||0,p.dur||3); }
+      if(p.who==='nearAllies'){ _gsAllies(u,'allies').forEach(w=>{ if(p.as){ w.hasteT=Math.max(w.hasteT||0,p.dur||3); w.hasteMul=Math.max(w.hasteMul||1,p.as); } }); } break; }
+    case 'mark': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':(p.target==='far'?'far':'near'),5);
+      ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,p.dur||2); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
+    case 'taunt': { const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,p.dur||1.5); }); break; }
+    case 'cleanse': { _gsAllies(u,p.who||'allies').forEach(w=>{ w.stunned=0; w.fearT=0; w.slow=0; w.silencedT=0; }); break; }
+    case 'untarget': { u._noTarget=true; setTimeout(()=>{ u._noTarget=false; },Math.round((p.dur||1.5)*1000)); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); break; }
+    case 'ward': { const w=_gsAllies(u,p.who||'lowest')[0]||u; w._wardT=Math.max(w._wardT||0,p.dur||2); break; }
+    case 'next': { u.dmgBuffT=Math.max(u.dmgBuffT||0,p.dur||3); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,p.mult||1.35); if(p.kind==='crit') u.glyphCrit=Math.min(0.6,(u.glyphCrit||0)+0.5); break; }
+    case 'move': { if(p.kind==='pullAoe'){ const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ const dx=u.x-t.x,dy=u.y-t.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*60; t.y+=dy/dd*60; }); }
+      else { u.hasteT=Math.max(u.hasteT||0,2); u.hasteMul=Math.max(u.hasteMul||1,1.35); if(p.cleanseSlow) u.slow=0; } break; }
+    default: { u.shield=(u.shield||0)+Math.round(u.maxHp*0.12); u.shieldT=Math.max(u.shieldT||0,5); }
+  }
   if(u.gearBtnEl){ u.gearBtnEl.style.opacity='0.25'; u.gearBtnEl.style.pointerEvents='none'; }
 }
 async function forgeSync(){
@@ -4919,6 +4984,42 @@ function renderForge(){
     <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — costs, results and refunds are computed on the server.</div>`;
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
+
+/* ==================== LEDGER MIRROR (audit C1) ====================
+   The SERVER ledger is the only authority for gold, diamonds, player XP, hero XP/stars/pips,
+   unlocks, hero fragments, campaign progress and stamina. G.* holds a display MIRROR that is
+   overwritten by every adoptLedger(). Legacy client-resolved loops report their earns/spends
+   through the capped, logged /api/tx endpoints — a tampered client changes its own mirror only,
+   never the ledger. */
+let LED={st:null};
+function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
+  G.gold=st.gold|0; G.gems=st.gems|0; G.xp=st.px|0;
+  G.heroXP=G.heroXP||{}; G.starLevel=G.starLevel||{}; G.starPip=G.starPip||{}; G.unlocked=G.unlocked||{}; G.heroFrag=G.heroFrag||{};
+  G.starRefine=G.starRefine||{};
+  for(const k in (st.hero||{})){ G.heroXP[k]=st.hero[k].xp|0; G.starLevel[k]=st.hero[k].stars|0; G.starPip[k]=st.hero[k].pips|0; if(st.hero[k].ref!=null) G.starRefine[k]=st.hero[k].ref|0; }
+  for(const k in (st.unlocked||{})) G.unlocked[k]=true;
+  for(const k in (st.frags||{})) G.heroFrag[k]=st.frags[k]|0;
+  if(st.camp){ G.campaignCleared=Math.max(G.campaignCleared||0, st.camp.cleared|0);
+    G.stageStars=G.stageStars||{}; for(const n in (st.camp.stars||{})) if((st.camp.stars[n]|0)>(G.stageStars[n]|0)) G.stageStars[n]=st.camp.stars[n]|0; }
+  if(st.stamina){ G.stamina=st.stamina.v|0; G.staminaTS=Date.now(); }
+  saveG(); if(typeof updateHubChrome==='function') try{updateHubChrome();}catch(e){}
+}
+async function ledgerSync(){ if(!ACC.token) return null; try{ const d=await api('/api/ledger'); if(d&&!d.error){ adoptLedger(d); return d; } }catch(e){} return null; }
+async function txSpend(what,amount,reason){ if(!ACC.token){ bannerMsg('Connect to spend — this game is fully synced online.'); return false; }
+  const r=await api('/api/tx/spend','POST',{what,amount:Math.floor(amount),reason,requestId:uid8()});
+  if(r&&r.ok){ adoptLedger(r.ledger); return true; }
+  bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); return false; }
+function txEarn(what,amount,reason,extra){ if(!ACC.token||!(amount>0)) return;
+  api('/api/tx/earn','POST',Object.assign({what,amount:Math.floor(amount),reason,requestId:uid8()},extra||{}))
+    .then(r=>{ if(r&&r.ok) adoptLedger(r.ledger); }).catch(()=>{}); }
+// bridge for legacy reward closures: run fn, diff the wallet mirror, report deltas to the ledger.
+function ledCapture(reason,fn){ const g0=G.gold||0, d0=G.gems||0; const out=fn(); const dg=(G.gold||0)-g0, dd=(G.gems||0)-d0;
+  if(dg>0) txEarn('gold',dg,reason); else if(dg<0) api('/api/tx/spend','POST',{what:'gold',amount:-dg,reason,requestId:uid8()}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>{});
+  if(dd>0) txEarn('gems',dd,reason); else if(dd<0) api('/api/tx/spend','POST',{what:'gems',amount:-dd,reason,requestId:uid8()}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>{});
+  return out; }
+setTimeout(()=>{ ledgerSync(); }, 1200);   // boot adoption (after the cloud-save fetch has run)
+setInterval(()=>{ ledgerSync(); }, 45000); // periodic reconciliation
+
 let SKY={ st:null, busy:false, assignSel:null, lane:null };   // lane = bridge view open on that citadel lane
 /* AUDIT (26 Aug): the approved BRIDGE battle presentation. Tapping a citadel row opens the skybridge
    view — your citadel left, theirs right, defenders as chips at each end, the March order fires a
@@ -5068,7 +5169,10 @@ function renderTemple(){
       <button class="btn" id="prayBtn" ${(canPray||(AUDIT_MODE()&&unlocked))?'':'disabled'}>🙏 Pray → Lv ${plvl+1} · 🪙 ${cost.toLocaleString()}</button>
       <div id="prayMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div>
     </div>`;
-  const pray=b.querySelector('#prayBtn'); if(pray) pray.onclick=()=>{ if(!unlocked)return; const c=prayerCost(G.prayer||0); if(G.gold>=c){ G.gold-=c; G.prayer=(G.prayer||0)+1; saveG(); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; } else { document.getElementById('prayMsg').textContent='Not enough gold for this offering.'; } };
+  const pray=b.querySelector('#prayBtn'); if(pray) pray.onclick=async()=>{ if(!unlocked)return; const c=prayerCost(G.prayer||0);
+    if(G.gold<c){ document.getElementById('prayMsg').textContent='Not enough gold for this offering.'; return; }
+    if(!(await txSpend('gold',c,'prayer'))) return;
+    G.prayer=(G.prayer||0)+1; saveG(); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; };
 }
 function startDungeon(){
   syncActiveSquad();   // per-mode squad
@@ -5129,7 +5233,9 @@ function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!
         <div style="display:flex;gap:8px;align-items:center;min-width:0"><span style="font-size:22px">${it.icon}</span><div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
         <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('')
     +`<div style="font-size:11px;color:#6f7d90;margin-top:8px">A shady dealer's premium stock — everything here costs diamonds.</div>`;
-  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return; G.gems-=it.cost; it.give(); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); });
+  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return;
+    if(!(await txSpend('gems',it.cost,'shop'))) return;
+    ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); });
 }
 // ===== SERVER RANKINGS — your standings + live arena & guild leaderboards =====
 async function renderRankings(){ const b=document.getElementById('rankingsBody'); if(!b)return;
@@ -5230,10 +5336,10 @@ function renderMarket(){
         <div style="display:flex;gap:8px;align-items:center;min-width:0">${ic}<div style="min-width:0"><b>${nm}</b>${sub?`<div style="font-size:10px;color:#8b98a9">${sub}</div>`:''}</div></div>
         <button class="btn sm" data-i="${i}" ${o.bought||!afford?'disabled':''}>${o.bought?'Sold':c}</button></div>`;
     }).join('')+`<div style="font-size:11px;color:#6f7d90;margin-top:8px">Restocks every hour. Fragments summon a locked hero — <b>10</b>/<b>30</b>/<b>80</b> by starting rarity (1★/2★/3★). Peace Shields protect your castle on the world map.</div>`;
-  b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
-    if(o.cost.gold){ if(G.gold<o.cost.gold)return; G.gold-=o.cost.gold; } else { if(G.gems<o.cost.gems)return; G.gems-=o.cost.gems; }
+  b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=async()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
+    if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market')))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market')))return; }
     let msg='';
-    if(o.kind==='frag') msg=giveHeroFrag(o.hero,o.qty)||'';
+    if(o.kind==='frag'){ msg=giveHeroFrag(o.hero,o.qty)||''; txEarn('frag',o.qty,'market',{heroKey:o.hero}); }
     else if(o.kind==='shield') G.shieldItems=(G.shieldItems||0)+1;
     o.bought=true; saveG(); updateHubChrome(); if(msg)bannerMsg(msg); renderMarket();
   });
@@ -5383,33 +5489,22 @@ function closeStageModal(){ document.getElementById('stageModal').classList.remo
 // Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
 // can actually pay for and says how many it ran, rather than refusing the whole batch at 9/10.
 function sweepStage(i,times){
-  times=Math.max(1,times||1);
-  regenStamina();
-  const cost=stageStamCost(i), afford=Math.floor(G.stamina/cost);
-  if(afford<1){ document.getElementById('smMsg').textContent='Not enough stamina.'; return; }
-  const dayLeft=stageRunsLeft(i);
-  if(dayLeft<1){ document.getElementById('smMsg').textContent='Daily limit reached — elite & boss stages give rewards '+ELITE_BOSS_DAILY+'x per day.'; return; }
-  const runs=Math.min(times,afford,dayLeft);
-  stageCountRun(i,runs);
-  const heroXPEach=isBossStage(i)?12:STAGE_XP_SWEEP, pxpEach=campaignPlayerXP(i,false);
-  G.stamina-=cost*runs;
-  const gold=(40+i*30)*runs, pxp=pxpEach*runs, hxp=heroXPEach*runs;
-  G.gold+=gold; addPlayerXP(pxp); grantTeamXP(hxp);
-  const drops={}; let frags=0, um='';
-  for(let r=0;r<runs;r++){
-    const d=rollDrops(i); for(const k in d){ drops[k]=(drops[k]||0)+d[k]; G.mats[k]=(G.mats[k]||0)+d[k]; }
-    if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); if(_um)um=_um; frags++; } else { um='⚔ '+(_t?_t.name:'This hero')+"'s fragments only drop from MANUAL battles, never sweeps."; } }   // Phil 26 Aug: mythical/exclusive rewards are not sweepable
-  }
-  saveG(); updateHubChrome();
-  const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
-  const glyphStr='';   // legacy glyph drops stripped 26 Aug
-  const eliteStr=frags?`<br><span style="color:#c9a0ff">⭐ +${frags} ${HERO_TYPES[eliteHeroFor(i)].name} fragment${frags>1?'s':''}</span>`:'';
-  const head=(runs>1?`Swept ×${runs}!`:'Swept!')+((runs<times)?` <span style="color:#8b98a9">(${dayLeft<afford?'daily limit':'stamina ran out'})</span>`:'');
-  document.getElementById('smMsg').innerHTML=`${head} 🪙 +${gold} · +${pxp} XP · +${hxp} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
-  // refresh the modal's stamina line so the buttons disable when the bar is spent
-  const smb=document.getElementById('smBattle'), sms=document.getElementById('smSweep'), smt=document.getElementById('smSweep10');
-  [smb,sms,smt].forEach(b=>{ if(b) b.disabled = G.stamina<cost; });
+  // AUDIT C1/C2: sweeps are SERVER-authorized — stamina, gold, player XP and hero XP move on the
+  // ledger; the client only applies legacy material drops and shows the totals.
+  (async()=>{
+    const r=await api('/api/campaign/sweep','POST',{node:i, times, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
+    if(!r||!r.ok){ document.getElementById('smMsg').textContent=(r&&r.error)||'Sweep failed — check your connection.'; await ledgerSync(); return; }
+    adoptLedger(r.ledger);
+    const drops={}; let frags=0, um='';
+    for(let k2=0;k2<r.times;k2++){ const d=rollDrops(i); for(const k in d){ drops[k]=(drops[k]||0)+d[k]; G.mats[k]=(G.mats[k]||0)+d[k]; }
+      if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); txEarn('frag',1,'elite',{heroKey:hk}); if(_um)um=_um; frags++; } } }
+    stageCountRun(i,r.times);
+    const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join('  ');
+    document.getElementById('smMsg').innerHTML=`Swept ×${r.times} — 🪙 +${r.gold} · +${r.px} XP · heroes +${r.heroXp*r.times>=0?r.heroXp:0} XP${dropStr?(' · '+dropStr):''}${frags?(' · 🧩+'+frags):''}${um?('<br>'+um):''}`;
+    saveG(); updateHubChrome(); if(typeof renderCampaign==='function'&&state==='campaign')renderCampaign();
+  })();
 }
+
 /* ===== GLOSSARY (bestiary + hero codex) ===== */
 const GLOSSARY_ART={"bosses/ice beast": "/assets/img/glossary/glossary-bosses-ice-beast.webp", "bosses/monster with fireball": "/assets/img/glossary/glossary-bosses-monster-with-fireball.webp", "bosses/nashor beast": "/assets/img/glossary/glossary-bosses-nashor-beast.webp", "bosses/ogre beast": "/assets/img/glossary/glossary-bosses-ogre-beast.webp", "bosses/water monster": "/assets/img/glossary/glossary-bosses-water-monster.webp", "bosses/water serpent": "/assets/img/glossary/glossary-bosses-water-serpent.webp", "heroes/Grohm": "/assets/img/glossary/glossary-heroes-grohm.webp", "heroes/Musician": "/assets/img/glossary/glossary-heroes-musician.webp", "heroes/ancient groot": "/assets/img/glossary/glossary-heroes-ancient-groot.webp", "heroes/beetle warrior": "/assets/img/glossary/glossary-heroes-beetle-warrior.webp", "heroes/clockwork fighter": "/assets/img/glossary/glossary-heroes-clockwork-fighter.webp", "heroes/explorer archeologist": "/assets/img/glossary/glossary-heroes-explorer-archeologist.webp", "heroes/flail fat guy": "/assets/img/glossary/glossary-heroes-flail-fat-guy.webp", "heroes/frost mage": "/assets/img/glossary/glossary-heroes-frost-mage.webp", "heroes/galaxy girl": "/assets/img/glossary/glossary-heroes-galaxy-girl.webp", "heroes/gods protector": "/assets/img/glossary/glossary-heroes-gods-protector.webp", "heroes/judge ant": "/assets/img/glossary/glossary-heroes-judge-ant.webp", "heroes/king toad": "/assets/img/glossary/glossary-heroes-king-toad.webp", "heroes/lizard warrior": "/assets/img/glossary/glossary-heroes-lizard-warrior.webp", "heroes/lost soul": "/assets/img/glossary/glossary-heroes-lost-soul.webp", "heroes/lumi": "/assets/img/glossary/glossary-heroes-lumi.webp", "heroes/meryln, candy wannabe": "/assets/img/glossary/glossary.webp", "heroes/no face man": "/assets/img/glossary/glossary-heroes-no-face-man.webp", "heroes/robot": "/assets/img/glossary/glossary-heroes-robot.webp", "heroes/static shock": "/assets/img/glossary/glossary-heroes-static-shock.webp", "heroes/sword 1 arm red vein guy": "/assets/img/glossary/glossary-heroes-sword-1-arm-red-vein-guy.webp", "heroes/time slicer": "/assets/img/glossary/glossary-heroes-time-slicer.webp", "heroes/time witch": "/assets/img/glossary/glossary-heroes-time-witch.webp", "heroes/vex": "/assets/img/glossary/glossary-heroes-vex.webp", "heroes/void mage": "/assets/img/glossary/glossary-heroes-void-mage.webp", "heroes/wailing landlord": "/assets/img/glossary/glossary-heroes-wailing-landlord.webp", "heroes/ying yang": "/assets/img/glossary/glossary-heroes-ying-yang.webp", "monsters/bug": "/assets/img/glossary/glossary-monsters-bug.webp", "monsters/creep": "/assets/img/glossary/glossary-monsters-creep.webp", "monsters/dyrmen": "/assets/img/glossary/glossary-monsters-dyrmen.webp", "monsters/fire boar": "/assets/img/glossary/glossary-monsters-fire-boar.webp", "monsters/fire skeleton": "/assets/img/glossary/glossary-monsters-fire-skeleton.webp", "monsters/garbage mob": "/assets/img/glossary/glossary-monsters-garbage-mob.webp", "monsters/ghoul fiend": "/assets/img/glossary/glossary-monsters-ghoul-fiend.webp", "monsters/glitch phantom": "/assets/img/glossary/glossary-monsters-glitch-phantom.webp", "monsters/golem": "/assets/img/glossary/glossary-monsters-golem.webp", "monsters/knat": "/assets/img/glossary/glossary-monsters-knat.webp", "monsters/lost soulss": "/assets/img/glossary/glossary-monsters-lost-soulss.webp", "monsters/mimic chest": "/assets/img/glossary/glossary-monsters-mimic-chest.webp", "monsters/orc": "/assets/img/glossary/glossary-monsters-orc.webp", "monsters/raven": "/assets/img/glossary/glossary-monsters-raven.webp", "monsters/rock golem": "/assets/img/glossary/glossary-monsters-rock-golem.webp", "monsters/shadow ghoul": "/assets/img/glossary/glossary-monsters-shadow-ghoul.webp", "monsters/skeletal warrior": "/assets/img/glossary/glossary-monsters-skeletal-warrior.webp", "monsters/slime": "/assets/img/glossary/glossary-monsters-slime.webp", "monsters/slug beast": "/assets/img/glossary/glossary-monsters-slug-beast.webp", "monsters/tin beast": "/assets/img/glossary/glossary-monsters-tin-beast.webp", "monsters/turtle": "/assets/img/glossary/glossary-monsters-turtle.webp", "monsters/whisp candle": "/assets/img/glossary/glossary-monsters-whisp-candle.webp"};      // { "cat/id": dataURI thumbnail }
 const GLOSSARY_DATA={"heroes": [{"id": "summoner", "name": "Hurne the Chained"}, {"id": "konwu", "name": "KonWu"}, {"id": "grosk", "name": "Grosk"}, {"id": "vulmar", "name": "Vulmar"}, {"id": "Grohm", "name": "Grohm"}, {"id": "Musician", "name": "Musician"}, {"id": "ancient groot", "name": "Ancient Groot"}, {"id": "beetle warrior", "name": "Beetle Warrior"}, {"id": "clockwork fighter", "name": "Clockwork Fighter"}, {"id": "explorer archeologist", "name": "Explorer Archeologist"}, {"id": "flail fat guy", "name": "Flail Fat Guy"}, {"id": "frost mage", "name": "Frost Mage"}, {"id": "galaxy girl", "name": "Galaxy Girl"}, {"id": "gods protector", "name": "Gods Protector"}, {"id": "judge ant", "name": "Judge Ant"}, {"id": "king toad", "name": "King Toad"}, {"id": "lizard warrior", "name": "Lizard Warrior"}, {"id": "lost soul", "name": "Lost Soul"}, {"id": "lumi", "name": "Lumi"}, {"id": "meryln, candy wannabe", "name": "Meryln, Candy Wannabe"}, {"id": "no face man", "name": "No Face Man"}, {"id": "robot", "name": "Robot"}, {"id": "static shock", "name": "Static Shock"}, {"id": "sword 1 arm red vein guy", "name": "Sword 1 Arm Red Vein Guy"}, {"id": "time slicer", "name": "Time Slicer"}, {"id": "time witch", "name": "Time Witch"}, {"id": "vex", "name": "Vex"}, {"id": "void mage", "name": "Void Mage"}, {"id": "wailing landlord", "name": "Wailing Landlord"}], "monsters": [{"id": "boar warrior", "name": "Boar Warrior"}, {"id": "boar shaman", "name": "Boar Shaman"}, {"id": "bug", "name": "Bug"}, {"id": "creep", "name": "Creep"}, {"id": "dyrmen", "name": "Dyrmen"}, {"id": "fire boar", "name": "Fire Boar"}, {"id": "fire skeleton", "name": "Fire Skeleton"}, {"id": "garbage mob", "name": "Garbage Mob"}, {"id": "ghoul fiend", "name": "Ghoul Fiend"}, {"id": "glitch phantom", "name": "Glitch Phantom"}, {"id": "golem", "name": "Golem"}, {"id": "knat", "name": "Knat"}, {"id": "lost soulss", "name": "Lost Soulss"}, {"id": "mimic chest", "name": "Mimic Chest"}, {"id": "orc", "name": "Orc"}, {"id": "raven", "name": "Raven"}, {"id": "rock golem", "name": "Rock Golem"}, {"id": "shadow ghoul", "name": "Shadow Ghoul"}, {"id": "skeletal warrior", "name": "Mordath"}, {"id": "slime", "name": "Slime"}, {"id": "slug beast", "name": "Bilewretch"}, {"id": "tin beast", "name": "Tin Beast"}, {"id": "turtle", "name": "Turtle"}, {"id": "whisp candle", "name": "Whisp Candle"}], "bosses": [{"id": "ice beast", "name": "Ice Beast"}, {"id": "monster with fireball", "name": "Monster With Fireball"}, {"id": "nashor beast", "name": "Nashor Beast"}, {"id": "ogre beast", "name": "Ogre Beast"}, {"id": "water monster", "name": "Water Monster"}, {"id": "water serpent", "name": "Water Serpent"}]};    // { heroes:[{id,name,role?,lore?,abilities?}], monsters:[...], bosses:[...] }
@@ -5638,7 +5733,7 @@ function renderTech(){
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${maxed?'Fully upgraded.':`Learn time: ${fmtDur(learnDur(lvl))}${learning&&remain>0?` · <span style="color:#8fe3ff">in progress…</span>`:''}`}</div>
     <div style="text-align:center">${btn}</div>`;
   p.appendChild(card);
-  const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=()=>{ if(learnBusy()||lvl>=TECH_MAX||acadLocked)return; if(G.gold>=cost&&canAffordRes(rc)){ G.gold-=cost; payRes(rc); G.techLearn[k]=Date.now()+learnDur(lvl); saveG(); updateHubChrome(); renderTech(); } };
+  const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=async()=>{ if(learnBusy()||lvl>=TECH_MAX||acadLocked)return; if(G.gold>=cost&&canAffordRes(rc)){ if(!(await txSpend('gold',cost,'tech')))return; payRes(rc); G.techLearn[k]=Date.now()+learnDur(lvl); saveG(); updateHubChrome(); renderTech(); } };
   p.insertAdjacentHTML('beforeend','<div style="font-size:11px;color:#6f7d90;margin-top:10px;text-align:center">No tech can exceed your <b>Academy</b> level — raise the Academy to unlock higher tiers. Upgrading it also speeds up all research. Research needs gold + resources (mine them from the <b>World Map</b> via the City Wall).</div>');
 }
 /* ===================== ONLINE: accounts, arena, world ===================== */
@@ -5960,7 +6055,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   b.querySelector('#arenaRankings').onclick=openRankings;
   const cd=b.querySelector('#claimDaily'); if(cd&&dready) cd.onclick=()=>{
     if(!arenaDailyReady())return; const dr=arenaDailyReward(G.arenaRank);
-    G.gems+=dr.gems; G.gold+=dr.gold; G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now(); saveG(); updateHubChrome(); renderArena();
+    txEarn('gems',dr.gems,'daily'); txEarn('gold',dr.gold,'daily'); G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now(); saveG(); updateHubChrome(); renderArena();
     document.getElementById('dailyMsg').textContent=`Claimed! 💎 +${dr.gems} · 🪙 +${dr.gold.toLocaleString()} · 🎟️ +${dr.coins}`;
   };
   const el=b.querySelector('#arenaOpps'); el.innerHTML='';
@@ -6184,7 +6279,7 @@ function enterTeleMode(){ _teleMode=true; closeTelePopout(); renderWorldMap(); b
 function startTargetedTele(){
   if(teleportTotal()<=0){
     if((G.gems||0)<TELE_SCROLL_COST){ bannerMsg('Need a Teleport Scroll (💎'+TELE_SCROLL_COST+') or your free daily teleport.'); return; }
-    gameConfirm('Buy a <b>Teleport Scroll</b> for <b>💎'+TELE_SCROLL_COST+'</b>?',()=>{ G.gems-=TELE_SCROLL_COST; G.teleScrolls=(G.teleScrolls||0)+1; saveG(); updateHubChrome(); enterTeleMode(); });
+    gameConfirm('Buy a <b>Teleport Scroll</b> for <b>💎'+TELE_SCROLL_COST+'</b>?',async()=>{ if(!(await txSpend('gems',TELE_SCROLL_COST,'teleport')))return; G.teleScrolls=(G.teleScrolls||0)+1; saveG(); updateHubChrome(); enterTeleMode(); });
     return;
   }
   enterTeleMode();
@@ -6203,7 +6298,7 @@ function performWildTele(free){ const rk=myRegion(); const pos=randSpotInRegion(
 function doWildTeleport(){ const free=wildTeleFreeReady();
   if(!free && (G.wildScrolls||0)<=0){
     if((G.gems||0)<WILD_SCROLL_COST){ bannerMsg('Wild relocation on cooldown — buy a Wild Scroll (💎'+WILD_SCROLL_COST+') to jump now.'); return; }
-    gameConfirm('Buy a <b>Wild Teleport Scroll</b> for <b>💎'+WILD_SCROLL_COST+'</b> and jump now?',()=>{ G.gems-=WILD_SCROLL_COST; performWildTele(false); });
+    gameConfirm('Buy a <b>Wild Teleport Scroll</b> for <b>💎'+WILD_SCROLL_COST+'</b> and jump now?',async()=>{ if(!(await txSpend('gems',WILD_SCROLL_COST,'teleport')))return; performWildTele(false); });
     return;
   }
   performWildTele(free);
@@ -6904,7 +6999,7 @@ function rollContribs(){ const rs=RES.map(r=>r[0]); const o=[];
   o.push({kind:'dia',cost:10,exp:20}); G.guildContribs=o; }
 function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())return false;
   if(o.kind==='res'){ if((G.res[o.res]||0)<o.cost)return false; G.res[o.res]-=o.cost; }
-  else { if((G.gems||0)<o.cost)return false; G.gems-=o.cost; }
+  else { if((G.gems||0)<o.cost)return false; api('/api/tx/spend','POST',{what:'gems',amount:o.cost,reason:'shop',requestId:uid8()}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>{}); G.gems-=o.cost; }
   addGuildExp(Math.round(o.exp*embassyContribMul())); rollContribs(); saveG(); updateHubChrome(); return true; }
 // guild shop catalogue (first guildShopSlots() are unlocked by guild level)
 const GUILD_SHOP=[
@@ -7125,6 +7220,10 @@ async function renderGuildWar(el){
   // the bracket UI; otherwise the legacy weekly war below renders unchanged.
   if(SKY.st===null){ el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Scanning the skies…</div>'; await skyStatus(); }
   if(SKY.st&&SKY.st.enabled){ el.innerHTML=skyPanelHTML(); return; }
+  // AUDIT C9: the legacy weekly war is RETIRED — Skyfall is the only competitive Guild War.
+  el.innerHTML='<div class="panel" style="text-align:center;padding:26px 16px"><div style="font-size:34px">☁️</div><b style="font-size:14px">Guild War has moved to the Skyfall Tournament</b><div style="font-size:11px;color:#8b98a9;margin-top:6px">Five floating citadels · register Sat–Mon · plan Tuesday · battles 6–8 PM ET.<br>Opening for every guild soon — Guild Raid stays right here as co-op PvE.</div></div>';
+  return;
+  /* legacy weekly war UI retired (audit C9) — unreachable below */
   el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:22px">Finding your guild&#8217;s war&#8230;</div>';
   const d=await api('/api/guild/war'); if(!d||d.error||!d.war){ el.innerHTML='<div class="panel" style="text-align:center;padding:18px">'+escapeHTML((d&&d.error)||'Could not load the war — try again.')+'</div>'; return; }
   const w=d.war; const total=(w.you.pts+w.foe.pts)||1, myPct=Math.round(w.you.pts/total*100);
@@ -7336,10 +7435,14 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       ${starBlock}${refineBlock}
       <div id="spMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${pendingMsg?`<span style="color:${msgCol||'#8b98a9'}">${pendingMsg}</span>`:''}</div></div>`;
     ov.querySelector('#spX').onclick=()=>ov.remove();
-    const sp=ov.querySelector('#spStar'); if(sp) sp.onclick=()=>{ if(doStarStep(key)){ saveG(); updateHubChrome(); render(); if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); } };
-    const rf=ov.querySelector('#spRefine'); if(rf) rf.onclick=()=>{ const r=doRefine(key);
-      if(!r||r.locked) return;
-      if(r.broke){ render('Not enough fragments.','#ff8b8b'); return; }
+    const sp=ov.querySelector('#spStar'); if(sp) sp.onclick=async()=>{ if(!canStarStep(key))return;
+      const r=await api('/api/hero/star-step','POST',{heroKey:key,requestId:uid8()});
+      if(r&&r.ok){ adoptLedger(r.ledger); render(); if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); }
+      else { bannerMsg((r&&r.error)||'Star up failed.'); await ledgerSync(); render(); } };
+    const rf=ov.querySelector('#spRefine'); if(rf) rf.onclick=async()=>{ if(!canRefine(key)) return;
+      const r=await api('/api/hero/refine','POST',{heroKey:key,requestId:uid8()});   // the roll happens on the SERVER
+      if(!r||!r.ok){ render((r&&r.error)||'Refine failed.','#ff8b8b'); await ledgerSync(); return; }
+      adoptLedger(r.ledger);
       render(r.success?'✨ Refine success! +1 progress':'💥 Refine failed — fragments lost.', r.success?'#5ee89b':'#ff8b8b');
       if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); };
   }
@@ -7362,9 +7465,11 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
-function glyphV2Mul(key){ const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0};
+function glyphV2Mul(key){ const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
   if(!RUNE2.enabled||!RUNE2.st||!RUNE2.cat) return out;
-  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'atk','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'critRes','Control Resist':'critRes','Starting Energy':'energy','HP Regen':'regen','Healing Power':'regen'};
+  // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = CONTROL resist; Starting Energy = initial
+  // energy; Healing Power = healer output; HP Regen = universal regen. Never folded into lookalikes.
+  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'atk','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow'};
   const b=g2board(key); const add=(stat,val)=>{ const k=MAP[stat]; if(k) out[k]+=val; };
   for(const st in (b.ascended||{})) add(st, b.ascended[st].val);
   for(const iid of (b.slots||[])){ if(!iid)continue; const inst=RUNE2.st.finished[iid]; const d=inst&&g2def(inst.definitionId); if(d) d.stats.forEach(s=>add(s.stat,s.val)); }
@@ -7655,7 +7760,7 @@ function renderHeroDetail(){
   body.querySelectorAll('[data-equip]').forEach(el=>el.onclick=()=>{ const ti=+el.dataset.equip, id=eqId(eqGroup(key),eqSlotSel,ti); if(eqSlotUnlocked(key,eqSlotSel)&&equipItem(key,eqSlotSel,id)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
   const uneq=body.querySelector('#eqUnequip'); if(uneq) uneq.onclick=()=>{ unequipItem(key,eqSlotSel); saveG(); updateHubChrome(); renderHeroDetail(); };
   // skill leveling
-  body.querySelectorAll('[data-skillup]').forEach(el=>el.onclick=()=>{ if(skillUpgrade(key,+el.dataset.skillup)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
+  body.querySelectorAll('[data-skillup]').forEach(el=>el.onclick=async()=>{ if(await skillUpgrade(key,+el.dataset.skillup)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
   // skill ability-clip preview: hover (desktop) or tap (mobile) a skill row to play its clip
   if(heroHasClips(key)){ const setClip=(idx)=>{ if(!HERO_SKILL_CLIPS[key][idx])return; skClipIdx=+idx;
       const box=document.getElementById('skClip'), cap=document.getElementById('skClipCap');
@@ -7809,14 +7914,21 @@ function showWishResult(res,pool){ const ov=document.createElement('div');
   { const a=ov.querySelector('#_wishAgain'); if(a) a.onclick=()=>{ _close(); (pool==='gem'?wishGemDo:wishGoldDo)(); }; }
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
 function finishWish(res,pool){ G.wishClicks=(G.wishClicks||0)+1; saveG(); updateHubChrome(); updateMailBadges(); showWishResult(res,pool); renderWishing(); }
-function wishGoldDo(){ const free=wishGoldFreeReady();
-  if(!free && (G.gold||0)<WISH_GOLD_COST){ bannerMsg('Need 🪙'+WISH_GOLD_COST+' to wish.'); return; }
-  if(free){ wishGoldFreeReset(); G.wishGoldUsed=(G.wishGoldUsed||0)+1; G.wishGoldLast=Date.now(); } else G.gold-=WISH_GOLD_COST;
-  finishWish(doGoldRoll(),'gold'); }
-function wishGemDo(){ const rigged=!G.wishGemFirstDone, free=wishGemFreeReady();
-  if(!free && (G.gems||0)<WISH_GEM_COST){ bannerMsg('Need 💎'+WISH_GEM_COST+' to wish.'); return; }
-  if(free){ G.wishGemLast=Date.now(); G.wishGemDay=arenaDayKey(); } else G.gems-=WISH_GEM_COST;   // free wish consumes today's daily slot; otherwise pay diamonds
-  G.wishGemFirstDone=true; finishWish(doGemRoll(rigged),'gem'); }
+function serverWishToRes(r){
+  if(!r) return {icon:'❔',name:'…'};
+  if(r.type==='hero'){ const t=HERO_TYPES[r.hero]||{}; return {icon:t.emoji||'🦸', heroAnim:r.hero, hero:r.hero, big:true, name:'★'.repeat(r.stars||1)+' '+(t.name||r.hero)+'!', extra:'A new hero joins your roster!'}; }
+  if(r.type==='dupe'){ const t=HERO_TYPES[r.hero]||{}; return {icon:t.emoji||'🦸', hero:r.hero, name:(t.name||r.hero)+' (owned)', extra:'+'+r.frags+' fragments instead'}; }
+  if(r.type==='frags'){ const t=HERO_TYPES[r.hero]||{}; return {icon:'🧩', hero:r.hero, name:'+'+r.frags+' '+(t.name||r.hero)+' fragments'}; }
+  if(r.type==='mat'){ if(!G.mats)G.mats={}; G.mats[r.mat]=(G.mats[r.mat]||0)+r.n; const m=MATS.find(x=>x[0]===r.mat); return {icon:m?m[1]:'▪️', name:r.n+'× '+(m?m[2]:r.mat)+' Rune Shards'}; }
+  if(r.type==='gold') return {icon:'🪙', name:'+'+r.n+' gold'};
+  if(r.type==='gems') return {icon:'💎', name:'+'+r.n+' diamonds'};
+  return {icon:'❔',name:'…'}; }
+async function serverWish(pool,n){
+  const r=await api('/api/pool/wish','POST',{pool,n,requestId:uid8()});   // the SERVER rolls, debits and grants (audit: server-owned banner/odds/pity)
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'The pool is quiet…'); await ledgerSync(); renderWishing(); return null; }
+  adoptLedger(r.ledger); return r; }
+async function wishGoldDo(){ const r=await serverWish('gold',1); if(!r) return; finishWish(serverWishToRes(r.results[0]),'gold'); }
+async function wishGemDo(){ const r=await serverWish('gem',1); if(!r) return; G.wishGemFirstDone=true; finishWish(serverWishToRes(r.results[0]),'gem'); }
 // ---- 10× bulk wishes at a 10% discount (10 wishes for the price of 9) ----
 const WISH10_MULT=9;
 function wishGold10Cost(){ return WISH_GOLD_COST*WISH10_MULT; }
@@ -7841,13 +7953,11 @@ function showWishResults10(list,pool){ const ov=document.createElement('div');
   ov.querySelector('#_w10Ok').onclick=_close;
   { const a=ov.querySelector('#_w10Again'); if(a) a.onclick=()=>{ _close(); (pool==='gem'?wishGem10:wishGold10)(); }; }
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
-function wishGold10(){ const cost=wishGold10Cost();
-  if((G.gold||0)<cost){ bannerMsg('Need 🪙'+cost+' for 10 wishes.'); return; }
-  G.gold-=cost; const out=[]; for(let i=0;i<10;i++) out.push(doGoldRoll());
+async function wishGold10(){ const r=await serverWish('gold',10); if(!r) return;
+  const out=r.results.map(serverWishToRes);
   G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gold'); renderWishing(); }
-function wishGem10(){ const cost=wishGem10Cost();
-  if((G.gems||0)<cost){ bannerMsg('Need 💎'+cost+' for 10 wishes.'); return; }
-  G.gems-=cost; const out=[]; for(let i=0;i<10;i++){ const rigged=!G.wishGemFirstDone; out.push(doGemRoll(rigged)); G.wishGemFirstDone=true; }
+async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G.wishGemFirstDone=true;
+  const out=r.results.map(serverWishToRes);
   G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gem'); renderWishing(); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
@@ -7915,7 +8025,7 @@ function questDefs(){
       claim:()=>{ G.gems=(G.gems||0)+20; return '+💎 20 diamonds'; } },
   ];
 }
-function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return; const r=q.claim(); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
+function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return; const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
 function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(); const st=steps[G.questChainStep||0]; let r='';
   if(st.gems){ G.gems=(G.gems||0)+st.gems; r='+💎 '+st.gems+' diamonds'; }
   else { let m=''; for(let i=0;i<st.frags;i++){ const x=giveHeroFrag(QUEST_CHAIN_HERO,1); if(x)m=x; } r=m||('+'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'); }
@@ -8658,8 +8768,8 @@ function renderSettings(){
 }
 function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
-  if(a==='gold'){ G.gold+=100000; done('+100,000 gold'); }
-  else if(a==='gems'){ G.gems+=2000; done('+2,000 diamonds'); }
+  if(a==='gold'){ api('/api/admin/led-grant','POST',{gold:100000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+100,000 gold'); }
+  else if(a==='gems'){ api('/api/admin/led-grant','POST',{gems:2000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+2,000 diamonds'); }
   else if(a==='shards'){ ['grey','green','blue','purple'].forEach(k=>G.mats[k]=(G.mats[k]||0)+500); done('+500 of each glyph shard'); }
   else if(a==='pieces'){ if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+200); done('+200 of each equipment piece'); }
   else if(a==='stam'){ G.stamina=maxStamina(); G.staminaTS=Date.now(); done('Stamina refilled'); }
@@ -9199,12 +9309,16 @@ function foodDayReset(){ const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; 
 function goldDayReset(){ const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
 function foodNextCost(){ foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
 function goldNextCost(){ goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
-function buyFood(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at 09:00.'); return; }
+async function buyFood(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at 09:00.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
-  G.gems-=c; G.stamina=(G.stamina||0)+FOOD_STAMINA; G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
-function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at 09:00.'); return; }
+  const r=await api('/api/shop/buy','POST',{what:'food',requestId:uid8()});
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('food'); return; }
+  adoptLedger(r.ledger); G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
+async function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at 09:00.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
-  const amt=goldPerBuy(); G.gems-=c; G.gold=(G.gold||0)+amt; G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+amt+' gold!'); }
+  const r=await api('/api/shop/buy','POST',{what:'gold',requestId:uid8()});
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('gold'); return; }
+  adoptLedger(r.ledger); G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+r.gold+' gold!'); }
 function buyGemOffer(i){
   // Devs get a test popup that actually grants the reward, so packs can be verified before purchases go live.
   if(isDevAcct()){
@@ -9320,7 +9434,16 @@ document.getElementById('startBtn').onclick=async()=>{
   if(ACC.token && typeof FORGE!=='undefined' && FORGE.st===null){ try{ await forgeSync(); }catch(e){} }
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
-  if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return; } startBattle(); };
+  if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; }
+  if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return;
+    // AUDIT C2: the campaign is server-resolved from AUTHORED encounters — the server locks the
+    // exact waves for this stage and decides the result. Requires a connection (nothing is local).
+    if(ACC.token){ const r=await api('/api/campaign/start','POST',{node:CUR.node, heroIds:G.team.filter(Boolean).slice(0,5), requestId:uid8()});
+      if(!r||r.error||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
+      CUR.attemptId=r.attemptId; CUR.cwaves=(r.stage&&r.stage.waves)||null;
+      if(r.stamina) { G.stamina=r.stamina.v|0; G.staminaTS=Date.now(); }
+    } else { bannerMsg('Connect to play the campaign — this game is fully synced online.'); return; } }
+  startBattle(); };
 document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
@@ -9361,7 +9484,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787772286725';
+const BUILD_ID='1787776176312';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
