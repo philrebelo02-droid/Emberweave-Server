@@ -1923,9 +1923,11 @@ const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4
 // starting star: all MYTHICAL heroes start at 3★; otherwise per-hero `start` (1/2/3), default 1. Any hero can be given an explicit `start`.
 const MAX_START_STARS=3;   // nobody arrives above 3★ — mythicals included. Everything past that is earned.
 function heroStartStars(key){ const t=HERO_TYPES[key]; if(!t) return 1; const s=t.start || (t.myth?3:1); return Math.max(1,Math.min(MAX_START_STARS,s)); }
-// ===== BETA MODE — everyone owns EVERY hero at its starting stars. To END beta: set BETA_ALL_HEROES=false
-// (or delete this block and the two applyBetaUnlocks() calls in loadG + applyCloudSave). =====
-const BETA_ALL_HEROES = true;
+// ===== BETA MODE ENDED (Phil, 26 Aug): new players start with the normal roster (vael/sylthaine/vireo)
+// and earn the rest through fragments/summons like everyone else. Devs can still grant heroes/levels
+// through the Developer Panel. Accounts that already unlocked heroes during beta keep them (saved data
+// is never stripped). =====
+const BETA_ALL_HEROES = false;
 function applyBetaUnlocks(){ if(!BETA_ALL_HEROES || typeof G==='undefined' || !G.unlocked) return;
   if(!G.glyphRank)G.glyphRank={};
   HERO_KEYS.forEach(k=>{ G.unlocked[k]=true; const ss=heroStartStars(k);
@@ -2134,8 +2136,9 @@ const JOINABLE_GUILDS=[];   // no pre-made guilds exist yet — players create t
 const RES=[['iron','⛓️','Iron','#c9d1d9'],['crystal','💎','Crystal','#7fe3ff'],['silver','🔗','Silver','#e6e6f0'],['coal','🪨','Coal','#8b98a9']];
 function resMeta(k){ return RES.find(r=>r[0]===k); }
 const NODE_GATHER_MS=8*60*1000; // a node refills 8 min after you gather it
-// AUDIT_MODE(): lets locked buildings/stages be opened for a look — DEVS ONLY. Regular players must play the game.
-function AUDIT_MODE(){ return typeof isDevAcct==='function' && isDevAcct(); }
+// AUDIT_MODE(): lets locked buildings/stages be opened for a look — DEVS with GOD MODE ON only
+// (Phil, 26 Aug: God Mode is the switch that opens every building regardless of level).
+function AUDIT_MODE(){ try{ return typeof isDevAcct==='function' && isDevAcct() && !!DEV.god; }catch(e){ return false; } }
 // Temple prayer: unlocks at level 40, costs major gold, permanently boosts every hero's ATK & HP.
 const PRAYER_UNLOCK_LEVEL=40;
 function prayerCost(lvl){ return 50000 + lvl*30000; }
@@ -8348,7 +8351,7 @@ function renderSettings(){
     const _n=(v)=>{ v=Math.round(v||0); return v>=1000000?(v/1000000).toFixed(1)+'M':(v>=1000?(v/1000).toFixed(v>=100000?0:1)+'k':(''+v)); };
     const statRow=`<div class="dvp-stats"><span class="dvp-chip">Lv ${playerLevel()}</span><span class="dvp-chip">\ud83e\ude99 ${_n(G.gold)}</span><span class="dvp-chip">\ud83d\udc8e ${_n(G.gems)}</span></div>`;
     const cheatsTab = dt!=='cheats'?'':`
-      <div class="dvp-god"><b>\u2694 God Mode <span class="sub">\u2014 your team takes no damage</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
+      <div class="dvp-god"><b>\u2694 God Mode <span class="sub">\u2014 no damage taken + every building open regardless of level</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
       <input class="dvp-filter" id="devFilter" placeholder="Filter cheats\u2026" autocomplete="off">
       <div class="dvp-sec">Currency</div>
       <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 each shard')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
@@ -9212,7 +9215,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787759994550';
+const BUILD_ID='1787760223904';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
