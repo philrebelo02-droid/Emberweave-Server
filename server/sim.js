@@ -60,20 +60,27 @@ function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0
   const a=STAR_MULT[lv-1], b=STAR_MULT[lv]; return a+(b-a)*(p/STAR_PIPS); }
 
 /* Resolve one hero's server-owned combat stats.
-   opts: { level, stars, pips, glyph:{hp,atk,heal} } — all server-derived by the caller. */
+   opts: { level, stars, pips, glyph:{hp,atk,heal}, dr, crit, critRes, energyReg } — server-derived.
+   v225 (re-audit): units carry the client's combat fields — dr (fractional damage reduction, capped
+   0.6 at apply time), crit (extra crit CHANCE), critRes (reduces crit BONUS damage, client rule),
+   energyReg (fractional bonus to energy gain). The resolver applies them with the client's rules:
+   crit multiplier 1.6×, critRes shrinks the bonus (1+(0.6)·(1−critRes)), DR multiplies incoming
+   damage under a 0.6 cap. The sim is still a simplified line resolver, not a replay of the full
+   client battle (kits, positioning, manual timing), and is labeled as such where it gates results. */
 function heroCombatStats(key, opts){
   const b=HERO_BASE[key]; if(!b) return null;
   opts=opts||{};
   const level=Math.max(1,Math.min(200,(opts.level|0)||1));
   const stars=(opts.stars|0)||b.stars, pips=(opts.pips|0)||0;
-  const mul=(1+0.18*(level-1))*starMultFor(stars,pips);   // the client's exact heroStat() curve
+  const mul=(1+0.18*(level-1))*starMultFor(stars,pips);   // the client's heroStat() curve
   const g=opts.glyph||{};
   return {
     key, level, role:b.role, healer:b.healer,
     maxHp: Math.round(b.hp*mul)+((g.hp|0)||0),
     atk:   Math.round(Math.max(b.dmg,b.apow)*mul)+((g.atk|0)||0),
     heal:  b.healer? Math.round(Math.max(10,b.apow)*mul*0.9)+((g.heal|0)||0) : 0,
-    speed: b.atkSpeed||1
+    speed: b.atkSpeed||1,
+    dr:+(opts.dr||0)||0, crit:+(opts.crit||0)||0, critRes:+(opts.critRes||0)||0, energyReg:+(opts.energyReg||0)||0
   };
 }
 
@@ -82,6 +89,7 @@ function heroCombatStats(key, opts){
 function makeLine(snaps, carry){
   const units=snaps.filter(Boolean).slice(0,5).map((s,i)=>({
     key:s.key, role:s.role, healer:s.healer, maxHp:s.maxHp, atk:s.atk, heal:s.heal, speed:s.speed,
+    dr:s.dr||0, crit:s.crit||0, critRes:s.critRes||0, energyReg:s.energyReg||0,
     hp: carry&&carry[i]? Math.max(0,Math.min(s.maxHp,carry[i].hp|0)) : s.maxHp,
     energy: carry&&carry[i]? Math.max(0,Math.min(100,carry[i].energy|0)) : 0
   }));
@@ -104,14 +112,17 @@ function resolveLineBattle(a, b, seed){
     const swings=u.speed>=1.1?2:1;                          // fast heroes act twice per round, deterministically
     for(let s=0;s<swings;s++){
       if(!anyAlive(foe)) return;
-      u.energy=Math.min(100,u.energy+25);
+      u.energy=Math.min(100,u.energy+25*(1+(u.energyReg||0)));   // energy gear/glyphs charge ults faster (client rule)
       const ult=u.energy>=100;
       if(u.healer){ const w=weakestAlive(own);
         if(w && w.hp<w.maxHp*0.72){ const amt=Math.round(u.heal*(ult?2.2:1)*(0.85+0.3*rnd()));
           w.hp=Math.min(w.maxHp,w.hp+amt); if(ult)u.energy=0;
           if(log.length<400) log.push([round,side,u.key,'+',w.key,amt,ult?1:0]); continue; } }
       const t=firstAlive(foe); if(!t) return;
-      const crit=rnd()<0.12?1.7:1; const dmg=Math.round(u.atk*(side==='A'?fA:fB)*(ult?2.2:1)*crit*(0.85+0.3*rnd()));
+      // client crit rules: base 12% + gear/glyph crit chance; crit = ×1.6; target critRes shrinks the BONUS
+      let critMul=1; if(rnd()<(0.12+(u.crit||0))){ critMul=1.6; if(t.critRes) critMul=1+0.6*(1-Math.min(0.75,t.critRes)); }
+      let dmg=Math.round(u.atk*(side==='A'?fA:fB)*(ult?2.2:1)*critMul*(0.85+0.3*rnd()));
+      if(t.dr) dmg=Math.round(dmg*(1-Math.min(0.6,t.dr)));   // shared 60% damage-reduction cap (client rule)
       t.hp-=dmg; if(ult)u.energy=0;
       if(log.length<400) log.push([round,side,u.key,'>',t.key,dmg,ult?1:0]);
     }
