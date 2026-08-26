@@ -2373,7 +2373,16 @@ const ELITE_BOSS_DAILY=3;   // Phil 26 Aug: elite & boss campaign stages give re
 function stageDaily(){ const d=arenaDayKey(); if(!G.stageDaily||G.stageDaily.day!==d) G.stageDaily={day:d,n:{}}; return G.stageDaily; }
 function stageRunsLeft(i){ if(!(isEliteStage(i)||isBossStage(i))) return Infinity; const sd=stageDaily(); return Math.max(0,ELITE_BOSS_DAILY-(sd.n[i]||0)); }
 function stageCountRun(i,k){ if(!(isEliteStage(i)||isBossStage(i))) return; const sd=stageDaily(); sd.n[i]=(sd.n[i]||0)+(k||1); }
-function eliteHeroFor(g){ if(!isEliteStage(g)) return null; const idx=(chapterOf(g)-1)*3 + ({3:0,6:1,9:2}[stageInChapter(g)]); return ELITE_HERO_POOL[idx%ELITE_HERO_POOL.length]; }
+// Phil 26 Aug: every elite stage drops ONE SPECIFIC hero's fragments — never random, and NO REPEATS:
+// the eligible roster is laid out 1★ heroes first, then 2★, then 3★ (never Grosk, mythicals,
+// shop/arena-exclusive or wip heroes) and dealt one hero per elite stage in campaign order. Each hero
+// appears exactly once before the sequence cycles, so early chapters drop 1★ heroes and later chapters
+// climb to 3★ — and as more heroes are finished (wip removed) the unique run automatically extends.
+function eliteTierPool(stars){ return HERO_KEYS.filter(k=>{ const t=HERO_TYPES[k]; return t.locked && !t.myth && !t.wip && !t.source && t.stars===stars && k!=='grosk'; }); }
+function eliteSequence(){ const seq=[1,2,3].flatMap(st=>eliteTierPool(st)); return seq.length?seq:['vex']; }
+function eliteHeroFor(g){ if(!isEliteStage(g)) return null;
+  const idx=(chapterOf(g)-1)*3 + ({3:0,6:1,9:2}[stageInChapter(g)]);
+  const seq=eliteSequence(); return seq[idx%seq.length]; }
 const FRAG_UNLOCK=10, ELITE_FRAG_MIN=2, ELITE_FRAG_MAX=4;
 function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
 // grant fragments; auto-unlock a locked hero once enough are gathered. returns a status message.
@@ -8929,7 +8938,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787748000000';
+const BUILD_ID='1787748900000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
