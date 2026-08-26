@@ -381,15 +381,24 @@ function d_levelForXP(xp,cum){ let L=1; while(L<D_MAX_LEVEL && xp>=cum[L+1]) L++
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
 function glyphFlatStats(u,key){
-  const out={hp:0,atk:0,heal:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+  // hp/atk/heal flats (unchanged) + v225: the RATE stats the client's glyphV2Mul collects
+  // (Armor/MR/Crit Chance/Tenacity/Control Resist/Starting Energy), same MAP, crit capped at 60.
+  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
   const b=g.boards&&g.boards[key]; if(!b) return out;
   const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
     else if(/Physical Attack|Ability Power/i.test(stat)) out.atk+=val;
     else if(/Healing Power|HP Regen/i.test(stat)) out.heal+=val; };
-  for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); }
+  const addRate=(stat,val)=>{ if(/^Armor$/i.test(stat)) out.armor+=val;
+    else if(/^Magic Resist$/i.test(stat)) out.mr+=val;
+    else if(/^Crit Chance$/i.test(stat)) out.crit+=val;
+    else if(/^(Tenacity|Control Resist)$/i.test(stat)) out.critRes+=val;
+    else if(/^Starting Energy$/i.test(stat)) out.energy+=val; };
+  for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
-    if(d) for(const s of d.stats){ if(!s.pct) add(s.stat,s.val); } }
-  out.hp=Math.round(out.hp); out.atk=Math.round(out.atk); out.heal=Math.round(out.heal); return out;
+    if(d) for(const sst of d.stats){ if(!sst.pct) add(sst.stat,sst.val); addRate(sst.stat,sst.val); } }
+  out.crit=Math.min(60,out.crit);
+  for(const k in out) out[k]=Math.round(out[k]);
+  return out;
 }
 // server-owned hero snapshot: level from saved XP (capped by player level), stars/pips from save, glyphs from server
 function snapshotHeroFromServer(u, key, save){
@@ -401,22 +410,18 @@ function snapshotHeroFromServer(u, key, save){
   const pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
   const fl=glyphFlatStats(u,key);
   let gf=null;
-  if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge passives reach the sim
-  const snap=SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl});
-  // RE-AUDIT FIX (26 Aug): the sim's unit model is HP/ATK/HEAL, so the RATE gear stats (Armor, MR,
-  // Crit, Crit Resist, Energy) are folded into sim-equivalent HP/ATK using the client's exact
-  // conversion constants (armor/mr → 0.4% damage reduction per point ⇒ effective-HP; crit → 0.5%/pt
-  // at 1.7× expected value; critRes → survivability; energy → 1%/pt faster ults ⇒ throughput).
-  // Client and server now consume the same 8-stat schema — no more "works in manual battle, dead in
-  // Guild War" items.
-  if(gf&&snap){
-    const dr=Math.min(0.6,((gf.armor||0)+(gf.mr||0))*0.004);
-    const crit=Math.min(0.6,(gf.crit||0)*0.005), cres=Math.min(0.75,(gf.critRes||0)*0.005), en=(gf.energy||0)*0.01;
-    if(dr>0)   snap.maxHp=Math.round(snap.maxHp/(1-dr));
-    if(cres>0) snap.maxHp=Math.round(snap.maxHp*(1+0.5*cres));
-    if(crit>0||en>0) snap.atk=Math.round(snap.atk*(1+0.7*crit)*(1+0.10*en));
-  }
-  return snap;
+  if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge flats reach the sim
+  // v225 (re-audit round 3): NO folded approximation. Glyph + gear RATE stats become the sim's own
+  // combat fields with the client's conversion constants (armor/mr → 0.4%/pt DR, capped 0.6 at
+  // apply; crit → 0.5%/pt crit CHANCE at the client's 1.6× multiplier; critRes → 0.5%/pt crit-bonus
+  // reduction; energy → 1%/pt faster energy gain). The sim resolver applies them with the client's
+  // rules. Note honestly: the sim remains a simplified LINE resolver — it does not replay kits,
+  // positioning, or manual timing; it is used for gating/qualification, never as a claim of
+  // replaying the client battle.
+  const armor=(fl.armor||0)+((gf&&gf.armor)||0), mr=(fl.mr||0)+((gf&&gf.mr)||0);
+  const critR=(fl.crit||0)+((gf&&gf.crit)||0), cresR=(fl.critRes||0)+((gf&&gf.critRes)||0), enR=(fl.energy||0)+((gf&&gf.energy)||0);
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl,
+    dr:Math.min(0.6,(armor+mr)*0.004), crit:critR*0.005, critRes:Math.min(0.75,cresR*0.005), energyReg:enR*0.01});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -505,6 +510,7 @@ function vaultTeamScore(snaps){ let s=0; for(const h of snaps){ if(!h) continue;
 // lot — but not by anything). A win the boosted sim can't reproduce is rejected and logged. Tune with
 // VAULT_SKILL_BAND (default 1.75); set 0 to disable the gate entirely (emergency rollback).
 const VAULT_SKILL_BAND=parseFloat(process.env.VAULT_SKILL_BAND||'1.75');
+if(!(VAULT_SKILL_BAND>0)) console.warn('🚨 VAULT_SKILL_BAND<=0 — the Vault win sim gate is DISABLED. Never run production like this; wins are then accepted on the score gate alone.');
 function vaultSpecToCombatUnit(m){
   const base=VAULT_MONSTERS[m.key]||VAULT_BOSS_STATS[m.key]||{hp:200,dmg:18};
   const sc=1+0.05*((m.lvl|0||1)-1);
@@ -719,7 +725,7 @@ function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
 function warMatchView(t,m,meGid){
   const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (Tue+ 00:00 ET)
   const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
-    revealAt:m.revealAt||0, preReveal,
+    revealAt:m.revealAt||0, preReveal, lockedAt:m.lockedAt||0,
     planningEndsAt:m.planningEndsAt, startsAt:m.startsAt, endsAt:m.endsAt, winnerGuildId:m.winnerGuildId,
     you:warSideView(m,meGid), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
     lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
@@ -1940,13 +1946,19 @@ try{
       // the socket immediately instead of riding a stale ws._uid.
       const _acct=wsAccount(m);
       if(_acct){ ws._uid=_acct.id; ws._acctName=_acct.name; }
-      else { ws._uid=null; ws._acctName=null; }
+      else { ws._uid=null; ws._acctName=null;
+        // RE-AUDIT round 3: a socket whose token just failed must not keep its PvP room either —
+        // tell the peer and dissolve the room so relaying stops immediately, not at disconnect.
+        if(WS_AUTH_REQUIRED && ws._room){ const r=rooms[ws._room];
+          if(r){ const peer=(r.host===ws)?r.guest:r.host; if(peer) wsend(peer,{t:'peerleft'}); delete rooms[ws._room]; }
+          ws._room=null; ws._role=null; } }
       if(m.t==='host'){ if(wsNeedAuth(ws)) return; const c=roomCode(); rooms[c]={host:ws,guest:null,t:Date.now()}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
       else if(m.t==='join'){ if(wsNeedAuth(ws)) return; const c=(m.code||'').toUpperCase(); const r=rooms[c];
         if(!r){ wsend(ws,{t:'joinfail',reason:'no such room'}); return; }
         if(r.guest){ wsend(ws,{t:'joinfail',reason:'room full'}); return; }
         r.guest=ws; ws._room=c; ws._role='guest'; r.t=Date.now(); wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
-      else if(m.t==='msg'){ const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
+      else if(m.t==='msg'){ if(wsNeedAuth(ws)) return;   // RE-AUDIT round 3: the room relay was the one branch that skipped auth — a revoked token could keep relaying
+        const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
       else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
       else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return; const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)

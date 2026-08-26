@@ -9314,7 +9314,10 @@ setHead(document.getElementById('heroesMenuIcon'),'konwu');
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
 document.getElementById('menuBack').onclick=()=>show(menuReturn);
-document.getElementById('startBtn').onclick=()=>{
+document.getElementById('startBtn').onclick=async()=>{
+  // RE-AUDIT round 3: a fast player must not enter a fight before the Forge state has loaded —
+  // battle entry AWAITS the first forgeSync (one-time; instant once FORGE.st is cached).
+  if(ACC.token && typeof FORGE!=='undefined' && FORGE.st===null){ try{ await forgeSync(); }catch(e){} }
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return; } startBattle(); };
@@ -9358,7 +9361,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787768165024';
+const BUILD_ID='1787769704237';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
