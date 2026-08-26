@@ -109,6 +109,28 @@ if echo "$PROF" | grep -q 'glyphRank'; then FAIL=$((FAIL+1)); echo "  ✗ glyph 
 S3=$(curl -s $B/api/glyphs/state -H "$H2")
 ck "server board unaffected by save tamper" '"ascensionIndex":1' "$S3"
 
+# REGRESSION (re-audit): a Tank may socket the role-override family (Stoneheart in Bulwark, slot 1)
+# and the board must still ASCEND — the ascend revalidation must use the same role as the socket check.
+R3=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"gtank1","pass":"password1"}')
+T3=$(echo "$R3" | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))")
+[ -z "$T3" ] && { R3=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"gtank1","pass":"password1"}'); T3=$(echo "$R3" | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])"); }
+H3="x-token: $T3"
+S4=$(curl -s $B/api/glyphs/state -H "$H3"); RV3=$(echo "$S4" | python3 -c "import sys,json;print(json.load(sys.stdin)['revision'])")
+# defs: vitality R01-01 Stoneheart, ALSO Stoneheart into bulwark slot 1 via Tank override; fill rest normally
+declare -a TDEFS=(R01-01 R01-01 R01-04 R01-05 R01-06 R01-07)
+TOK3=1
+for i in 0 1 2 3 4 5; do
+  C=$(curl -s -X POST $B/api/glyphs/craft -H "$H3" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV3,\"definitionId\":\"${TDEFS[$i]}\"}")
+  RV3=$(echo "$C" | python3 -c "import sys,json;print(json.load(sys.stdin).get('revision',0))")
+  II=$(echo "$C" | python3 -c "import sys,json;print(json.load(sys.stdin).get('crafted',''))")
+  SS=$(curl -s -X POST $B/api/glyphs/socket -H "$H3" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV3,\"heroKey\":\"grosk\",\"slot\":$i,\"instanceId\":\"$II\"}")
+  RV3=$(echo "$SS" | python3 -c "import sys,json;print(json.load(sys.stdin).get('revision',0))")
+  echo "$SS" | grep -q '"ok":true' || { TOK3=0; echo "  tank socket $i failed: ${SS:0:140}"; }
+done
+[ $TOK3 -eq 1 ] && { PASS=$((PASS+1)); echo "  ✓ Tank socketed Stoneheart into BULWARK via role override"; } || { FAIL=$((FAIL+1)); echo "  ✗ tank role-override socket"; }
+A3=$(curl -s -X POST $B/api/glyphs/ascend -H "$H3" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV3,\"heroKey\":\"grosk\"}")
+ck "REGRESSION: role-override board ASCENDS" '"ascensionIndex":1' "$A3"
+
 echo ""
 echo "=============================="
 echo "PASS: $PASS   FAIL: $FAIL"
