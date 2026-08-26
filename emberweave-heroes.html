@@ -6508,6 +6508,9 @@ function pollPvpReports(){ if(!ACC.token||!online())return;
       if(r.won) addMail('war',{from:r.from,subj:'⚠ '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall. Strengthen your defense lines or raise a shield.',battle:r.battle||undefined});
       else addMail('war',{from:r.from,subj:'🛡 Wall held vs '+r.from,body:r.from+' attacked your castle'+(when?' at '+when:'')+' — your wall drove them off.',battle:r.battle||undefined}); });
     updateMailBadges(); bannerMsg('⚔ '+d.reports.length+' attack report'+(d.reports.length===1?'':'s')+' — check War mail.');
+    // RE-AUDIT: acknowledge only AFTER the mail is stored locally — a dropped response no longer loses reports
+    const ids=d.reports.map(r=>r.id).filter(Boolean);
+    if(ids.length) api('/api/pvp/reports-ack','POST',{ids}).catch(()=>{});
   }).catch(()=>{});
 }
 const STATION_HOME=3153600000000;   // ~100 years — defenders garrison "forever" until retreat
@@ -7491,7 +7494,8 @@ function glyphV2Tab(key){
     <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Socket six <b style="color:${qc}">${q}</b> glyphs — one per board family — then ascend. Ascending consumes all six and their power becomes permanent.</div>
     ${board}${viewBar}${lower}${ascLine}</div>`;
 }
-setTimeout(()=>{ glyphV2Sync(); try{forgeSync();}catch(e){} }, 2500);   // early sync so glyph AND Forge stats reach battles even before those screens are opened (CR-3)
+setTimeout(()=>{ try{forgeSync();}catch(e){} }, 400);    // RE-AUDIT: Forge state loads near-immediately so even a fast first battle carries gear stats
+setTimeout(()=>{ glyphV2Sync(); }, 2500);                // early glyph sync so v2 stats reach battles before the tab is opened
 /* ================================== end Glyph v2 client ================================== */
 
 function renderHeroDetail(){
@@ -9354,7 +9358,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787764892873';
+const BUILD_ID='1787768165024';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

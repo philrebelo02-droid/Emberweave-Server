@@ -49,9 +49,17 @@ function hashPass(pass, salt, iters){ return crypto.pbkdf2Sync(pass, salt, iters
 // (u.iters undefined → 60000) and are transparently re-hashed at the next successful login.
 const PBKDF2_ITERS=210000;
 function makeCred(pass){ const salt=crypto.randomBytes(16).toString('hex'); return { salt, iters:PBKDF2_ITERS, hash:hashPass(pass,salt,PBKDF2_ITERS) }; }
-function checkPass(u,pass){ return u.hash===hashPass(pass||'',u.salt,u.iters); }
+function checkPass(u,pass){ try{ const a=Buffer.from(u.hash||'','hex'), b=Buffer.from(hashPass(pass||'',u.salt,u.iters),'hex');
+  return a.length===b.length && crypto.timingSafeEqual(a,b); }catch(e){ return false; } }   // RE-AUDIT: constant-time compare
 const MIN_PASS_LEN=8;   // AUDIT: 1-char passwords were accepted. New/changed passwords only — existing logins unaffected.
-function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-token'}); res.end(b); }
+// RE-AUDIT (26 Aug): API CORS is no longer '*'. The game is served from the SAME origin, which
+// needs no CORS at all; cross-origin callers must be listed in CORS_ORIGINS (comma-separated).
+const CORS_ORIGINS=new Set((process.env.CORS_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean));
+let _corsReqOrigin='';   // set per-request in the server handler
+function corsHeaders(){ const h={'Content-Type':'application/json'};
+  if(_corsReqOrigin && CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; }
+  return h; }
+function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,corsHeaders()); res.end(b); }
 // Request bodies are byte-capped (audit: body() used to accumulate d+=c with no limit → trivial memory DoS).
 // On overflow we stop reading, destroy the socket, and reject with a BODY_TOO_LARGE error that the
 // api() dispatcher turns into a 413. Default cap is small; /api/save passes a larger one for cloud saves.
@@ -73,14 +81,14 @@ function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coin
 const ADMIN_IDS = new Set((process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()).filter(Boolean));
 // One-time bootstrap: the accounts CURRENTLY holding these names get role:'admin' stamped on them
 // at startup. After that, authority is the role — renaming, or a (impossible, names are unique)
-// same-name re-register, grants nothing. Override with ADMIN_BOOTSTRAP_NAMES if you rename yourself.
-// AUDIT (26 Aug, critical): no default names — role:'admin' is already stamped on the real accounts in
-// the production DB; a fresh DB gets its admin ONLY via the ADMIN_BOOTSTRAP_NAMES / ADMIN_IDS env vars.
-const ADMIN_BOOTSTRAP_NAMES = (process.env.ADMIN_BOOTSTRAP_NAMES||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+// same-name re-register, grants nothing. (Name-based bootstrap fully removed in the 26 Aug re-audit.)
+// RE-AUDIT (26 Aug): name-based bootstrap REMOVED entirely. Admin authority = the stored
+// role:'admin' (already stamped on the real accounts in prod) or an explicit account id in
+// ADMIN_IDS. migrateAdminRoles stamps roles from ADMIN_IDS so the grant survives env changes.
 function migrateAdminRoles(){ let n=0;
-  for(const nm of ADMIN_BOOTSTRAP_NAMES){ const id=DB.byName[nm]; const u=id&&DB.users[id];
+  for(const id of ADMIN_IDS){ const u=DB.users[id];
     if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
-  if(n){ console.log('🔐 stamped role:admin on '+n+' account(s) from ADMIN_BOOTSTRAP_NAMES'); writeDB(); } }
+  if(n){ console.log('🔐 stamped role:admin on '+n+' account(s) from ADMIN_IDS'); writeDB(); } }
 function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id))); }
 // --- security helpers: per-IP rate limiting, single-session, admin diamond edits ---
 const _hits={};
@@ -392,8 +400,23 @@ function snapshotHeroFromServer(u, key, save){
   const stars=Math.max(base.stars, Math.min(5, ((save.starLevel||{})[key]|0)||base.stars));
   const pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
   const fl=glyphFlatStats(u,key);
-  if(typeof gearHeroFlats==='function'&&u.gear){ const gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge passives reach the sim
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl});
+  let gf=null;
+  if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge passives reach the sim
+  const snap=SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl});
+  // RE-AUDIT FIX (26 Aug): the sim's unit model is HP/ATK/HEAL, so the RATE gear stats (Armor, MR,
+  // Crit, Crit Resist, Energy) are folded into sim-equivalent HP/ATK using the client's exact
+  // conversion constants (armor/mr → 0.4% damage reduction per point ⇒ effective-HP; crit → 0.5%/pt
+  // at 1.7× expected value; critRes → survivability; energy → 1%/pt faster ults ⇒ throughput).
+  // Client and server now consume the same 8-stat schema — no more "works in manual battle, dead in
+  // Guild War" items.
+  if(gf&&snap){
+    const dr=Math.min(0.6,((gf.armor||0)+(gf.mr||0))*0.004);
+    const crit=Math.min(0.6,(gf.crit||0)*0.005), cres=Math.min(0.75,(gf.critRes||0)*0.005), en=(gf.energy||0)*0.01;
+    if(dr>0)   snap.maxHp=Math.round(snap.maxHp/(1-dr));
+    if(cres>0) snap.maxHp=Math.round(snap.maxHp*(1+0.5*cres));
+    if(crit>0||en>0) snap.atk=Math.round(snap.atk*(1+0.7*crit)*(1+0.10*en));
+  }
+  return snap;
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -735,15 +758,19 @@ function gearResonanceRank(g){ let total=0;
 function gearItemEquippedBy(g,itemId){ for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ if(g.equipped[hero][slot]===itemId) return {hero,slot}; } } return null; }
 // stat contribution of a hero's equipped gear, reduced to sim-friendly flats + a power scalar
 function gearHeroFlats(u,heroKey){
-  const out={hp:0,atk:0,heal:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
+  // RE-AUDIT FIX (26 Aug): ALL 8 gear stat families are carried (hp/atk/regen AND armor/mr/crit/
+  // critRes/energy). Rate stats are returned raw; snapshotHeroFromServer converts them into
+  // sim-equivalent HP/ATK using the client's exact constants — one shared stat schema.
+  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
   const eq=g.equipped[heroKey]; if(!eq) return out;
   const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
   for(const slot in eq){ const it=g.items[eq[slot]]; const def=it&&GEARCAT.byId[it.d]; if(!def) continue;
     const tmul=(1+GEARCAT.meta.temper.passivePerTemper*(it.temper||0))*rmul;
     for(const st in def.stats){ const v=def.stats[st]*tmul;
       if(st==='hp') out.hp+=v; else if(st==='atk') out.atk+=v; else if(st==='regen') out.heal+=v;
+      else if(out[st]!=null) out[st]+=v;
       out.power += (st==='hp'? v/8 : v); } }
-  out.hp=Math.round(out.hp); out.atk=Math.round(out.atk); out.heal=Math.round(out.heal); out.power=Math.round(out.power);
+  for(const k in out) out[k]=Math.round(out[k]);
   return out;
 }
 const GEAR_POWER_WEIGHT=+(process.env.GEAR_POWER_WEIGHT||0.25);
@@ -788,7 +815,7 @@ function dailyAmount(rank){ if(rank<=1)return 1000; if(rank<=10)return 600; if(r
 /* --------------------------------- routes --------------------------------- */
 async function api(req,res,url){
   const p=url.pathname;
-  if(req.method==='OPTIONS'){ res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-token'}); res.end(); return; }
+  if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }
 
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
@@ -816,7 +843,8 @@ async function api(req,res,url){
     if((DB.ipAccounts[ip]||0)>=6) return send(res,429,{error:'Too many accounts from this network.'});
     const id=uid(), c=makeCred(b.pass);
     const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
-      roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+      roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+    if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);   // RE-AUDIT: imports go through the same clamps as /api/save
     // AUDIT (critical): registering a name NEVER grants a role — admin only via stored role/env.
     DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
     const tok=issueToken(id); writeDB();
@@ -836,11 +864,12 @@ async function api(req,res,url){
     if(!u){
       const id=uid(); let name; do{ name='Guest-'+crypto.randomBytes(2).toString('hex').toUpperCase(); }while(DB.byName[name.toLowerCase()]);
       u={ id, name, guest:true, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
-          roster:(b.roster && typeof b.roster==='object' ? b.roster : {}), lastDaily:0,
+          roster:{}, lastDaily:0,
           cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
       DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.guestByDevice[deviceId]=id;
+      if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);   // RE-AUDIT: guest seed goes through the clamps too
     } else if(b.roster && typeof b.roster==='object' && Object.keys(b.roster).length && (!u.roster || !u.roster.__save)){
-      u.roster=b.roster;   // first-time adoption of an existing local save (offline player who never had an account)
+      u.roster=sanitizeSave(u, b.roster);   // first-time adoption of an existing local save — clamped like every other save write (RE-AUDIT)
     }
     dropTokens(u.id); const tok=issueToken(u.id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -866,7 +895,7 @@ async function api(req,res,url){
     if(u && !u.isNpc && u.email){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
       u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
       sendResetEmail(u.email, u.name, code); }
-    return send(res,200,{ ok:true, hasEmail: !!(u && !u.isNpc && u.email) }); }
+    return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration
 
   // email password reset — step 2: verify the code and set a new password. Signs the user in on success.
   if(p==='/api/reset-verify' && req.method==='POST'){ const b=await body(req);
@@ -1412,9 +1441,13 @@ async function api(req,res,url){
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('Already fully ascended.');
       if(board.slots.some(s=>!s)) return bad('All six slots must be filled to ascend.');
       // validate every socketed instance is legal BEFORE consuming anything (atomic: reject → nothing consumed)
+      // RE-AUDIT FIX (26 Aug): ascend must revalidate with the SAME role the socket check used —
+      // without it, a legally socketed role-override family (e.g. Tank's Stoneheart in Bulwark)
+      // made the board un-ascendable.
+      const ascRole=(SIM&&SIM.HERO_BASE[hero]||{}).role;
       const insts=[];
       for(let i=0;i<6;i++){ const inst=g.finished[board.slots[i]]; const def=inst&&GLYPHS.byId[inst.definitionId];
-        if(!inst || inst.status!=='socketed' || !def || def.qi!==board.ascensionIndex || !glyphAllowed(i,def)) return bad('Illegal board — re-socket slot '+(i+1)+'.');
+        if(!inst || inst.status!=='socketed' || !def || def.qi!==board.ascensionIndex || !glyphAllowed(i,def,ascRole)) return bad('Illegal board — re-socket slot '+(i+1)+'.');
         insts.push([inst,def]); }
       const now=Date.now();
       for(const [inst,def] of insts){ inst.status='consumed'; inst.consumedAt=now;
@@ -1465,7 +1498,14 @@ async function api(req,res,url){
     d.pvpMail.push(rec); if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
     writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/pvp/reports'){ if(!me)return send(res,401,{error:'auth'});
-    const out=me.pvpMail||[]; me.pvpMail=[]; writeDB(); return send(res,200,{reports:out}); }
+    // RE-AUDIT: reads are non-destructive — a dropped response no longer loses mail. Reports carry ids
+    // and are cleared only by the explicit ack below (legacy id-less entries get ids on read).
+    me.pvpMail=(me.pvpMail||[]).map(r=>r.id?r:Object.assign({id:uid()},r));
+    writeDB(); return send(res,200,{reports:me.pvpMail}); }
+  if(p==='/api/pvp/reports-ack' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b2=await body(req); const ids=new Set(Array.isArray(b2.ids)?b2.ids.map(String):[]);
+    me.pvpMail=(me.pvpMail||[]).filter(r=>!ids.has(String(r.id)));
+    writeDB(); return send(res,200,{ok:true, remaining:(me.pvpMail||[]).length}); }
 
   // ---- WORLD MAP: every registered player's castle (real positions from their save).
   //      The client shows these as REAL cities and fills the rest of each region with NPC bots. ----
@@ -1828,6 +1868,7 @@ const server=http.createServer((req,res)=>{
   res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
   res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   res.setHeader('Content-Security-Policy',"frame-ancestors 'none'");
+  _corsReqOrigin=String(req.headers.origin||'');
   const url=new URL(req.url,'http://x');
   const p=url.pathname;
   if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{
@@ -1869,7 +1910,7 @@ const server=http.createServer((req,res)=>{
 let WSS=null;
 try{
   const WebSocketServer = require('ws').Server;
-  WSS = new WebSocketServer({ server });
+  WSS = new WebSocketServer({ server, maxPayload: +(process.env.WS_MSG_MAX||16384) });   // RE-AUDIT: cap enforced at the protocol layer, not just after parse
   const rooms = {};   // code -> { host, guest }
   const roomCode = ()=>{ let c; do{ c=crypto.randomBytes(3).toString('hex').toUpperCase().slice(0,5); }while(rooms[c]); return c; };
   const wsend = (ws,o)=>{ try{ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }catch(e){} };
@@ -1894,7 +1935,12 @@ try{
   const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
   WSS.on('connection', ws=>{
     ws.on('message', raw=>{ if(raw && raw.length>WS_MSG_MAX) return; if(!wsRateOk(ws)) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
-      const _acct=wsAccount(m); if(_acct){ ws._uid=_acct.id; ws._acctName=_acct.name; }   // bind socket → account when a valid token is presented; name is then server-derived
+      // RE-AUDIT (26 Aug): the token is REVALIDATED on every frame (the client sends it on every
+      // frame since v215). A revoked/expired token — or a frame that stops presenting one — unbinds
+      // the socket immediately instead of riding a stale ws._uid.
+      const _acct=wsAccount(m);
+      if(_acct){ ws._uid=_acct.id; ws._acctName=_acct.name; }
+      else { ws._uid=null; ws._acctName=null; }
       if(m.t==='host'){ if(wsNeedAuth(ws)) return; const c=roomCode(); rooms[c]={host:ws,guest:null,t:Date.now()}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
       else if(m.t==='join'){ if(wsNeedAuth(ws)) return; const c=(m.code||'').toUpperCase(); const r=rooms[c];
         if(!r){ wsend(ws,{t:'joinfail',reason:'no such room'}); return; }
@@ -1920,7 +1966,7 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp immutable role:'admin' from ADMIN_BOOTSTRAP_NAMES (audit crit #7)
+readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens
 backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
