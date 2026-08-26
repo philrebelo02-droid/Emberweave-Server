@@ -4,7 +4,7 @@
    The seam demanded by the Aether Vault + Skyfall specs: BOTH modes resolve
    every fight through resolveLineBattle()/resolveTwoWaveBattle() below, so
    the client can never invent an outcome. This v1 is a deterministic
-   round-based model that mirrors the client's RESOLVED STAT formulas exactly
+   round-based QUALIFICATION ESTIMATE. Stat RESOLUTION follows the client's formulas; the battle itself is a simplified line model — it is never a replay of a client battle
    (base × (1+0.18·(level−1)) × starMult + glyph bonuses) but simplifies the
    moment-to-moment combat (no positioning/FX). Swapping in the full 30 Hz
    extracted sim later means replacing ONLY the internals of
@@ -24,7 +24,7 @@ const HERO_BASE={
   aureth:{hp:460,dmg:24,apow:24,role:'Fighter',stars:3,healer:false,atkSpeed:0.9},
   bloatus:{hp:540,dmg:24,apow:28,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
   vireo:{hp:220,dmg:16,apow:30,role:'Support',stars:1,healer:true,atkSpeed:0.9},
-  fritz:{hp:320,dmg:22,apow:30,role:'Mage',stars:2,healer:false,atkSpeed:1},
+  fritz:{hp:320,dmg:22,apow:30,role:'Mage',stars:2,healer:false,atkSpeed:1,armor:60,mr:90},
   umbris:{hp:170,dmg:22,apow:32,role:'Mage',stars:3,healer:false,atkSpeed:0.85},
   vael:{hp:400,dmg:30,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:0.95},
   oakmir:{hp:230,dmg:16,apow:32,role:'Support',stars:3,healer:true,atkSpeed:0.85},
@@ -80,16 +80,25 @@ function heroCombatStats(key, opts){
     atk:   Math.round(Math.max(b.dmg,b.apow)*mul)+((g.atk|0)||0),
     heal:  b.healer? Math.round(Math.max(10,b.apow)*mul*0.9)+((g.heal|0)||0) : 0,
     speed: b.atkSpeed||1,
-    dr:+(opts.dr||0)||0, crit:+(opts.crit||0)||0, critRes:+(opts.critRes||0)||0, energyReg:+(opts.energyReg||0)||0
+    // dr = rate-derived DR (client caps that part at 0.6) + the client's diminishing base-armor curve
+    // defToDR(flat)=flat/(flat+1200) at the client's makeUnit level scale (1+0.05·(lvl−1))·starMult.
+    // Client-save technology defense is intentionally excluded (client-owned until CR-2).
+    dr: Math.min(0.6,+(opts.dr||0)||0) + defToDR(((b.armor||0)+(b.mr||0))*(1+0.05*(level-1))*starMultFor(stars,pips)),
+    crit:+(opts.crit||0)||0, critRes:+(opts.critRes||0)||0,
+    energyReg:+(opts.energyReg||0)||0,   // energy POINTS per second (client: u.energy += energyReg·dt)
+    regen:+(opts.regen||0)||0,           // fraction of maxHp per second (client: hp += maxHp·regen·dt)
+    gearSkillSlot: opts.gearSkillSlot||null
   };
 }
+function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   // the client's exact diminishing curve
 
 /* Build a battle line from resolved stats + optional carried state.
    snaps: [heroCombatStats...] (≤5) · carry: [{hp,energy}] aligned or null */
 function makeLine(snaps, carry){
   const units=snaps.filter(Boolean).slice(0,5).map((s,i)=>({
     key:s.key, role:s.role, healer:s.healer, maxHp:s.maxHp, atk:s.atk, heal:s.heal, speed:s.speed,
-    dr:s.dr||0, crit:s.crit||0, critRes:s.critRes||0, energyReg:s.energyReg||0,
+    dr:s.dr||0, crit:s.crit||0, critRes:s.critRes||0, energyReg:s.energyReg||0, regen:s.regen||0,
+    gearSkillSlot:s.gearSkillSlot||null, _gearSkillUsed:false, shieldPool:0,
     hp: carry&&carry[i]? Math.max(0,Math.min(s.maxHp,carry[i].hp|0)) : s.maxHp,
     energy: carry&&carry[i]? Math.max(0,Math.min(100,carry[i].energy|0)) : 0
   }));
@@ -112,23 +121,49 @@ function resolveLineBattle(a, b, seed){
     const swings=u.speed>=1.1?2:1;                          // fast heroes act twice per round, deterministically
     for(let s=0;s<swings;s++){
       if(!anyAlive(foe)) return;
-      u.energy=Math.min(100,u.energy+25*(1+(u.energyReg||0)));   // energy gear/glyphs charge ults faster (client rule)
+      u.energy=Math.min(100,u.energy+25);   // the sim's own per-action charge; energy regen is TIME-based below, per round
       const ult=u.energy>=100;
       if(u.healer){ const w=weakestAlive(own);
         if(w && w.hp<w.maxHp*0.72){ const amt=Math.round(u.heal*(ult?2.2:1)*(0.85+0.3*rnd()));
           w.hp=Math.min(w.maxHp,w.hp+amt); if(ult)u.energy=0;
           if(log.length<400) log.push([round,side,u.key,'+',w.key,amt,ult?1:0]); continue; } }
       const t=firstAlive(foe); if(!t) return;
-      // client crit rules: base 12% + gear/glyph crit chance; crit = ×1.6; target critRes shrinks the BONUS
-      let critMul=1; if(rnd()<(0.12+(u.crit||0))){ critMul=1.6; if(t.critRes) critMul=1+0.6*(1-Math.min(0.75,t.critRes)); }
-      let dmg=Math.round(u.atk*(side==='A'?fA:fB)*(ult?2.2:1)*critMul*(0.85+0.3*rnd()));
-      if(t.dr) dmg=Math.round(dmg*(1-Math.min(0.6,t.dr)));   // shared 60% damage-reduction cap (client rule)
+      // client crit rules: NO universal base crit — chance comes only from gear/glyph/passive ratings;
+      // a crit is ×1.6 and the target's critRes shrinks the BONUS (client dealDamage rule).
+      const critRoll=rnd();   // always consumed — deterministic stream length
+      let critMul=1; if((u.crit||0)>0 && critRoll<(u.crit||0)){ critMul=1.6; if(t.critRes) critMul=1+0.6*(1-Math.min(0.75,t.critRes)); }
+      let dmg=Math.round(u.atk*((u._buffR>0)?(u._buffMul||1):1)*(side==='A'?fA:fB)*(ult?2.2:1)*critMul*(0.85+0.3*rnd()));
+      if(t._drR>0) dmg=Math.round(dmg*0.65);   // Armor gear skill: brace, −35% for its 5 rounds
+      if(t.dr) dmg=Math.round(dmg*(1-Math.min(0.95,t.dr)));   // dr composed the client's way (rate part capped 0.6 + diminishing base curve); 0.95 is only a never-immortal guard
+      if(t.shieldPool>0){ const ab=Math.min(t.shieldPool,dmg); t.shieldPool-=ab; dmg-=ab; }   // one-use gear-skill shields absorb first
       t.hp-=dmg; if(ult)u.energy=0;
       if(log.length<400) log.push([round,side,u.key,'>',t.key,dmg,ult?1:0]);
     }
   };
+  const GEAR_SKILL_SIM={ // deterministic one-use archetypes (hero-relative, non-scaling — the client's magnitudes)
+    'Weapon':(u,own,foe)=>{ const t=firstAlive(foe); if(t){ let d=Math.round(u.atk*1.5);
+      if(t.shieldPool>0){ const ab=Math.min(t.shieldPool,d); t.shieldPool-=ab; d-=ab; } t.hp-=d; } },   // (the client's 0.75s stun has no round-model equivalent — documented omission)
+    'Helm':(u)=>{ u.shieldPool+=Math.round(u.maxHp*0.30); },
+    'Boots':(u)=>{ u._buffR=5; u._buffMul=Math.max(u._buffMul||1,1.4); },
+    'Armor':(u)=>{ u._drR=5; },
+    'Gloves':(u)=>{ u._buffR=5; u._buffMul=Math.max(u._buffMul||1,1.5); },
+    'Belt':(u)=>{ u.hp=Math.min(u.maxHp,u.hp+Math.round(u.maxHp*0.25)); },
+    'Ring':(u)=>{ u.energy=Math.min(100,u.energy+35); },
+    'Amulet':(u)=>{ u.shieldPool+=Math.round(u.maxHp*0.15); },
+    'Relic':(u,own,foe)=>{ let n=0; for(const t of foe){ if(t.hp>0&&n<3){ let d=Math.round(u.atk*0.9);
+      if(t.shieldPool>0){ const ab=Math.min(t.shieldPool,d); t.shieldPool-=ab; d-=ab; } t.hp-=d; n++; } } } };
+  const fireGearSkills=(own,foe)=>{ for(const u of own){ if(u.hp>0&&u.gearSkillSlot&&!u._gearSkillUsed){ u._gearSkillUsed=true;
+    const fx=GEAR_SKILL_SIM[u.gearSkillSlot]; if(fx) fx(u,own,foe); } } };
   while(anyAlive(a)&&anyAlive(b)&&round<300){
     round++;
+    // TIME-based per-round effects (1 round ≈ 1 s): energy regen (points/s) and universal HP regen —
+    // regen applies to EVERY alive unit, not only healers (client rule).
+    for(const u of a.concat(b)){ if(u.hp<=0) continue;
+      if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg);
+      if(u.regen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.regen);
+      if(u._buffR>0){ u._buffR--; if(u._buffR<=0) u._buffMul=1; }
+      if(u._drR>0) u._drR--; }
+    if(round===2 && !a._gsDone){ a._gsDone=true; fireGearSkills(a,b); fireGearSkills(b,a); }
     // INTERLEAVED initiative, lead alternating by round — first-strike bias cancels out
     const n=Math.max(a.length,b.length), aLeads=(round%2===1);
     for(let i=0;i<n;i++){
@@ -150,9 +185,10 @@ function resolveTwoWaveBattle(teamSnaps, enemyWaveSnaps, seed){
     waveResults.push({ wave:w+1, won:r.won, rounds:r.rounds, team:r.aState, foes:r.bState, log:r.log });
     if(!r.won) return { result:{won:false, failedWave:w+1}, waveResults };
     // carry maps back to the ORIGINAL snap order via key match (keys unique in a line)
-    carry=teamSnaps.map(s=>{ const st=r.aState.find(x=>x.key===s.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+    carry=teamSnaps.map(s2=>{ const st=r.aState.find(x=>x.key===s2.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+    teamSnaps=teamSnaps.map(s2=>Object.assign({},s2,{gearSkillSlot:null}));   // one-use per battle: spent in wave 1
   }
   return { result:{won:true}, waveResults };
 }
 
-module.exports={ HERO_BASE, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState };
+module.exports={ HERO_BASE, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
