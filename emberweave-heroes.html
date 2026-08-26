@@ -4649,16 +4649,24 @@ function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/
     <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
 function vaultPickerHTML(){
   const sq=squadFor('vault'), fight=sq.slice(0,TEAM_SIZE), back=sq.slice(TEAM_SIZE,TEAM_SIZE*2);
-  const chip=(k,cls)=>`<div style="display:flex;flex-direction:column;align-items:center;width:52px">${heroIcon(k,44)}<span style="font-size:8px;color:${cls};white-space:nowrap;overflow:hidden;max-width:52px;text-overflow:ellipsis">${(HERO_TYPES[k]||{}).name||k}</span></div>`;
-  const empty=`<div style="width:52px;height:52px;border:1px dashed #33405a;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#33405a;font-size:16px">＋</div>`;
-  const row=(arr,n,cls)=>{ let h=''; for(let i=0;i<n;i++) h+=arr[i]?chip(arr[i],cls):empty; return h; };
-  return `<div style="font-size:10px;color:#5ee89b;font-weight:800;margin:2px 0">⚔ FIGHTERS (${fight.length}/${TEAM_SIZE})</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap">${row(fight,TEAM_SIZE,'#5ee89b')}</div>
-    <div style="font-size:10px;color:#c9a2ff;font-weight:800;margin:7px 0 2px">🛡 BACKUP — steps in when a fighter falls (${back.length}/${TEAM_SIZE})</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap">${row(back,TEAM_SIZE,'#c9a2ff')}</div>
-    <div style="display:flex;gap:6px;margin-top:10px">
-      <button class="btn secondary" style="flex:1" onclick="vaultSelectHeroes()">🛡 Select Heroes</button>
-      <button class="btn" style="flex:1;${fight.length===TEAM_SIZE?'':'opacity:.45'}" ${fight.length===TEAM_SIZE?'onclick="vaultLaunch()"':'disabled'}>⚔️ BATTLE — Floor ${VAULT.st.currentFloor}</button>
+  const chip=(k,col)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:58px">
+      <div style="width:54px;height:54px;border-radius:11px;border:2px solid ${col}55;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.4)">${heroIcon(k,50)}</div>
+      <span style="font-size:9px;color:#c3ccd8;white-space:nowrap;overflow:hidden;max-width:58px;text-overflow:ellipsis;text-align:center">${(HERO_TYPES[k]||{}).name||k}</span></div>`;
+  const empty=(col)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:58px">
+      <div style="width:54px;height:54px;border:2px dashed ${col}44;border-radius:11px;display:flex;align-items:center;justify-content:center;color:${col}66;font-size:18px">＋</div>
+      <span style="font-size:9px;color:#3a4660">empty</span></div>`;
+  const row=(arr,n,col)=>{ let h=''; for(let i=0;i<n;i++) h+=arr[i]?chip(arr[i],col):empty(col); return h; };
+  const sec=(icon,txt,cnt,col)=>`<div style="display:flex;align-items:center;gap:6px;margin:0 0 6px">
+      <span style="font-size:11px;font-weight:800;color:${col};letter-spacing:.5px">${icon} ${txt}</span>
+      <span style="flex:1;height:1px;background:linear-gradient(90deg,${col}44,transparent)"></span>
+      <span style="font-size:10px;color:${col};font-weight:800">${cnt}/${TEAM_SIZE}</span></div>`;
+  return `${sec('⚔','FIGHTERS',fight.length,'#5ee89b')}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start;margin-bottom:12px">${row(fight,TEAM_SIZE,'#5ee89b')}</div>
+    ${sec('🛡','BACKUP · steps in when a fighter falls',back.length,'#c9a2ff')}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start">${row(back,TEAM_SIZE,'#c9a2ff')}</div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn secondary" style="flex:1;padding:12px 0" onclick="vaultSelectHeroes()">🛡 Select Heroes</button>
+      <button class="btn" style="flex:1.3;padding:12px 0;font-weight:900;${fight.length===TEAM_SIZE?'':'opacity:.45'}" ${fight.length===TEAM_SIZE?'onclick="vaultLaunch()"':'disabled'}>⚔️ BATTLE — Floor ${VAULT.st.currentFloor}</button>
     </div>`;
 }
 function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); }
@@ -4713,23 +4721,30 @@ function vaultSalvageHTML(){
 }
 function vaultScreenHTML(){
   const s=VAULT.st;
-  if(s.vaultStatus==='complete') return `<div class="panel" style="text-align:center;padding:22px">
-      <div style="font-size:40px">🏛️</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">AETHER VAULT — CONQUERED</div>
+  // header row leaves room for the floating ◀ Base button (top-left) and pins the floor pill right
+  const headBar=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px;padding-left:92px;min-height:34px">
+      <div style="font-weight:900;font-size:clamp(15px,2.6vw,19px);letter-spacing:.5px;white-space:nowrap">🏛️ THE VAULT</div>
+      <span class="pill" style="border:1px solid #7a5fb0;color:#c9a2ff;font-weight:800;white-space:nowrap">Floor ${s.currentFloor} / 100</span></div>`;
+  if(s.vaultStatus==='complete') return headBar+`<div class="panel" style="text-align:center;padding:26px">
+      <div style="font-size:44px">🏛️</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">AETHER VAULT — CONQUERED</div>
       <div style="font-size:12px;color:#8b98a9">All 100 floors cleared. The Vault Extension is coming soon.</div>
-      <button class="btn" style="margin-top:12px" onclick="vaultSweep()">🧹 Sweep (${s.sweep.freeUsesRemaining} free today)</button></div>`;
-  return `<div class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:14px">🏛️ Aether Vault</b>
-        <span class="pill" style="border:1px solid #7a5fb0;color:#c9a2ff">Floor ${s.currentFloor} / 100</span></div>
-      <div style="font-size:11px;color:#8b98a9;margin-top:3px">Highest cleared: <b style="color:#e6edf3">${s.highestClearedFloor}</b> · Fragment band: <b style="color:#c9a2ff">${s.band}</b> · Floor reward: <b style="color:#ffd45e">✨${s.dust} Dust</b>${s.isBoss?' + 🧩×2':''}</div>
-      ${s.isBoss?vaultBossLabel(s.bossRule):''}
-      <div style="font-size:10px;color:#6f7d90;margin-top:4px">Real battles vs monsters, campaign-style — two waves, HP &amp; Energy carry over. Every attempt at a floor faces the SAME monsters, so a floor can be learned and beaten with practice.</div></div>
-    <div class="panel" style="margin-top:8px">${vaultPickerHTML()}</div>
-    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn" style="margin-top:14px" onclick="vaultSweep()">🧹 Sweep (${s.sweep.freeUsesRemaining} free today)</button></div>`;
+  const stat=(label,val)=>`<div style="flex:1;min-width:110px;background:#111a28;border:1px solid #22304a;border-radius:10px;padding:7px 10px;text-align:center">
+      <div style="font-size:9px;color:#6f7d90;letter-spacing:.5px;text-transform:uppercase">${label}</div>
+      <div style="font-size:13px;font-weight:800;margin-top:2px">${val}</div></div>`;
+  return headBar+`
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      ${stat('Highest cleared',`<span style="color:#e6edf3">${s.highestClearedFloor}</span>`)}
+      ${stat('Fragment band',`<span style="color:#c9a2ff">${s.band}</span>`)}
+      ${stat('Floor reward',`<span style="color:#ffd45e">✨${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">+🧩×2</span>':''}`)}
+    </div>
+    ${s.isBoss?vaultBossLabel(s.bossRule):''}
+    <div class="panel">${vaultPickerHTML()}</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.freeUsesRemaining>0?'onclick="vaultSweep()"':'disabled'}>🧹 Sweep ×${s.sweep.freeUsesRemaining}</button>
       <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">♻ Salvage</button></div>
     ${VAULT.salv?vaultSalvageHTML():''}
-    <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — progress and rewards are saved to your account.</div>`;
+    <div style="font-size:10px;color:#6f7d90;text-align:center;margin-top:12px;line-height:1.5">Two waves per floor — HP &amp; Energy carry over. Every attempt faces the <b>same</b> monsters:<br>learn the floor, then beat it. Progress and rewards are saved to your account.</div>`;
 }
 /* ================= THE FORGE — gear client (server-authoritative, render-only) ================= */
 let FORGE={ cat:null, st:null, busy:false, tab:'craft', q:0, eqPick:null };
@@ -4913,7 +4928,9 @@ function renderDungeon(){
     vaultStatus().then(()=>renderDungeon()); return; }
   if(VAULT.st.enabled){ const sq=squadFor('vault');
     if(!sq.length&&(VAULT.st.lastTeamHeroIds||[]).length){ (VAULT.st.lastTeamHeroIds||[]).filter(k=>G.unlocked&&G.unlocked[k]).slice(0,TEAM_SIZE*2).forEach(k=>sq.push(k)); }
-    b.innerHTML=vaultScreenHTML(); return; }
+    b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
+      <div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">${vaultScreenHTML()}</div></div>`;
+    return; }
   const startDg=()=>{ CUR={mode:'dungeon'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); };
   if(isAssetRef(DUNGEON_BG)){
     // full splash art with an invisible clickable hotspot over the drawn "Choose squad" button
@@ -9195,7 +9212,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787758757118';
+const BUILD_ID='1787759994550';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
