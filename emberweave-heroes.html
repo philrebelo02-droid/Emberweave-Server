@@ -1314,7 +1314,7 @@ const BATTLE_ANIM = {
   passive:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,figH:205,feet:212,cx:125,fps:10,flip:true,top:7}
   },
   sylthaine:{
-  idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=5',n:12,fw:162,fh:230,cols:6,rows:2,figH:187,feet:224,cx:77,fps:8,flip:false,top:36},
+  idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=6',n:12,fw:141,fh:199,cols:6,rows:2,figH:187,feet:193,cx:62,fps:8,flip:false,top:6},
   walk:{u:'/assets/anim/sylthaine/sylthaine_walk.webp?v=5',n:12,fw:137,fh:214,cols:6,rows:2,figH:201,feet:208,cx:62,fps:12,flip:false,top:6},
   attack:{u:'/assets/anim/sylthaine/sylthaine_attack.webp?v=5',n:12,fw:145,fh:215,cols:6,rows:2,figH:199,feet:209,cx:66,fps:16,flip:false,hold:0.9,top:6},
   hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=5',n:12,fw:128,fh:215,cols:6,rows:2,figH:202,feet:209,cx:58,fps:11,flip:false,top:6},
@@ -8793,7 +8793,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787744600000';
+const BUILD_ID='1787745200000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
