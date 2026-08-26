@@ -1,7 +1,4 @@
 #!/bin/bash
-# Usage: start the server first in a SHORT shell call:
-#   env GLYPHS_V2_ENABLED=true DUNGEON_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true DB_FILE=./test-db.json PORT=8871 setsid nohup node server.js > srv.log 2>&1 < /dev/null &
-# then: bash <this file>   (fresh test-db.json per run)
 # Glyph v2 endpoint test suite — covers the spec §10 checklist
 B=http://localhost:8871
 PASS=0; FAIL=0
@@ -16,10 +13,12 @@ TOK=$(echo "$REG" | python3 -c "import sys,json;print(json.load(sys.stdin).get('
 ck "register" '"token"' "$REG"
 H="x-token: $TOK"
 
-# state → migration should run, legacy vex rank 5 → ascensionIndex 5
+# state → migration runs; legacy ranks are IGNORED (beta force-maxed them) — everyone starts the v2 ladder at Grey
 ST=$(curl -s $B/api/glyphs/state -H "$H")
 ck "state enabled" '"enabled":true' "$ST"
-ck "migration mapped vex rank" '"ascensionIndex":5' "$ST"
+NOASC=$(echo "$ST" | python3 -c "import sys,json;d=json.load(sys.stdin);print(any((b or {}).get('ascensionIndex',0)>0 for b in d.get('boards',{}).values()))")
+[ "$NOASC" = "False" ] && { PASS=$((PASS+1)); echo "  ✓ migration ignores legacy ranks (fresh Grey boards)"; } || { FAIL=$((FAIL+1)); echo "  ✗ legacy rank leaked into a board"; }
+ck "migration granted starter fragments" 'Grey Stoneheart' "$ST"
 REV=$(echo "$ST" | python3 -c "import sys,json;print(json.load(sys.stdin)['revision'])")
 
 # catalog
@@ -47,13 +46,8 @@ ck "tamper fields ignored, craft ok" '"crafted"' "$TAMP"
 ck "tamper output id not honored" '"definitionId":"R01-04"' "$TAMP"
 REV=$(echo "$TAMP" | python3 -c "import sys,json;print(json.load(sys.stdin)['revision'])")
 
-# socket the grey Stoneheart into vex... but vex board is at index 5 (Blue +2) → must REJECT grey
-SK=$(curl -s -X POST $B/api/glyphs/socket -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$REV,\"heroKey\":\"vex\",\"slot\":0,\"instanceId\":\"$IID\"}")
-ck "wrong-quality socket rejected" 'needs Blue +2' "$SK"
-REV2=$(echo "$SK" | python3 -c "import sys,json;print(json.load(sys.stdin).get('revision',$REV))")
-
-# socket into a FRESH hero (fritz, index 0=Grey) — Stoneheart fits slot 0 (vitality)
-SK2=$(curl -s -X POST $B/api/glyphs/socket -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$REV2,\"heroKey\":\"fritz\",\"slot\":0,\"instanceId\":\"$IID\"}")
+# all boards start Grey now — the grey Stoneheart fits fritz slot 0 (vitality)
+SK2=$(curl -s -X POST $B/api/glyphs/socket -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$REV,\"heroKey\":\"fritz\",\"slot\":0,\"instanceId\":\"$IID\"}")
 ck "socket grey → fritz vitality" '"ok":true' "$SK2"
 REV=$(echo "$SK2" | python3 -c "import sys,json;print(json.load(sys.stdin)['revision'])")
 
