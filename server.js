@@ -195,7 +195,7 @@ function nextJoinRank(){ const occ=new Set(Object.values(DB.users).map(u=>u.rank
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
-function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); } return Math.round(p); }
+function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); if(owner&&owner.gear) p += gearHeroPower(owner, h.key); } return Math.round(p); }
 /* ==================== GLYPH ASCENSION v2 — server-authoritative ====================
    The browser NEVER computes a craft result, passive value, socket result, or promotion.
    Catalog: server/glyph-source.json (218 finished-glyph definitions). Recipes are compiled
@@ -349,7 +349,9 @@ function snapshotHeroFromServer(u, key, save){
   const lvl=Math.max(1,Math.min(pl, d_levelForXP(((save.heroXP||{})[key]|0)||0, D_HERO_CUM)));
   const stars=Math.max(base.stars, Math.min(5, ((save.starLevel||{})[key]|0)||base.stars));
   const pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:glyphFlatStats(u,key)});
+  const fl=glyphFlatStats(u,key);
+  if(typeof gearHeroFlats==='function'&&u.gear){ const gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge passives reach the sim
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -388,46 +390,72 @@ function idem(key, fn){ DB.idem=DB.idem||{}; const now=Date.now();
   if(DB.idem[key]) return DB.idem[key].resp;
   const resp=fn(); DB.idem[key]={t:now,resp}; return resp; }
 
-// enemy wave builder — deterministic per floor+wave; vault guardians drawn from the full roster
-function buildDungeonEnemySnapshot(floor, difficulty, kind){
-  const keys=Object.keys(SIM.HERO_BASE);
-  const rnd=SIM.mulberry32(SIM.seedFrom('vaultwave:'+floor+':'+(kind.type||kind.id||'')));
-  const lvl=Math.max(1,Math.min(D_MAX_LEVEL, Math.round(1+floor*0.62)));
-  const picks=[]; const pool=keys.slice();
-  const n=(kind.id? 4 : 5);   // boss wave: 4 guards + the boss itself
-  for(let i=0;i<n;i++){ picks.push(pool.splice(Math.floor(rnd()*pool.length),1)[0]); }
-  const units=picks.map(k=>{ const s=SIM.heroCombatStats(k,{level:lvl}); s.maxHp=Math.round(s.maxHp*difficulty); s.atk=Math.round(s.atk*difficulty*0.92); s.heal=Math.round(s.heal*difficulty); return s; });
-  if(kind.id){ const bossKey=pool[Math.floor(rnd()*pool.length)]||picks[0];
-    const b=SIM.heroCombatStats(bossKey,{level:Math.min(D_MAX_LEVEL,lvl+4)});
-    b.maxHp=Math.round(b.maxHp*difficulty*3.1); b.atk=Math.round(b.atk*difficulty*1.5); b.key=bossKey; b.boss=true; b.bossRule=kind.id;
-    units.push(b); }
-  return units;
-}
+/* Monster roster mirror (client MONSTER_TYPES essentials). Vault fights are REAL client
+   battles vs monsters, campaign-style. Floors are PRE-DETERMINED: the lineup for a floor
+   is seeded by the floor number alone, so every attempt at a floor faces exactly the same
+   monsters — a floor is learnable and beatable by practice, never by reroll luck. */
+const VAULT_MONSTERS={
+  'bug':{hp:110,dmg:18,role:'Mage'}, 'creep':{hp:155,dmg:16,role:'Warrior'}, 'dyrmen':{hp:155,dmg:16,role:'Warrior'},
+  'fire boar':{hp:155,dmg:16,role:'Warrior'}, 'fire skeleton':{hp:155,dmg:16,role:'Warrior'}, 'garbage mob':{hp:250,dmg:13,role:'Tank'},
+  'ghoul fiend':{hp:155,dmg:16,role:'Warrior'}, 'glitch phantom':{hp:110,dmg:18,role:'Mage'}, 'golem':{hp:250,dmg:13,role:'Tank'},
+  'knat':{hp:110,dmg:18,role:'Mage'}, 'lost soulss':{hp:110,dmg:18,role:'Mage'}, 'mimic chest':{hp:250,dmg:13,role:'Tank'},
+  'orc':{hp:155,dmg:16,role:'Warrior'}, 'raven':{hp:110,dmg:18,role:'Mage'}, 'rock golem':{hp:250,dmg:13,role:'Tank'},
+  'shadow ghoul':{hp:155,dmg:16,role:'Warrior'}, 'skeletal warrior':{hp:155,dmg:16,role:'Warrior'}, 'slime':{hp:155,dmg:16,role:'Warrior'},
+  'slug beast':{hp:220,dmg:18,role:'Warrior'}, 'tin beast':{hp:250,dmg:13,role:'Tank'}, 'turtle':{hp:250,dmg:13,role:'Tank'},
+  'whisp candle':{hp:110,dmg:18,role:'Mage'} };
+const VAULT_BOSSES=['ice beast','monster with fireball','nashor beast','ogre beast','water monster','water serpent'];
+const VAULT_MIN_BATTLE_MS=+(process.env.VAULT_MIN_BATTLE_MS||6000);   // a real two-wave fight can't finish faster than this
+const VAULT_BOSS_STATS={'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26}};
+function vaultMonsterLevel(floor){ return Math.max(1,Math.min(D_MAX_LEVEL, Math.round(2+floor*0.6))); }
+// deterministic per floor+wave — NO per-attempt randomness anywhere in here
 function buildDungeonWaves(floor){
   const diff=difficultyForDungeonFloor(floor), rule=bossRuleForFloor(floor);
-  if(!rule) return [ buildDungeonEnemySnapshot(floor,diff*0.86,{type:'opening_formation'}),
-                     buildDungeonEnemySnapshot(floor,diff*1.00,{type:'finishing_formation'}) ];
-  return [ buildDungeonEnemySnapshot(floor,diff*0.72,{type:'boss_guard'}),
-           buildDungeonEnemySnapshot(floor,diff*1.00,rule) ];
+  const lvl=vaultMonsterLevel(floor);
+  const keys=Object.keys(VAULT_MONSTERS);
+  const wave=(wi,mul,withBoss)=>{
+    const rnd=SIM.mulberry32(SIM.seedFrom('vaultfloor:'+floor+':w'+wi));   // floor-only seed = same lineup forever
+    const pool=keys.slice(); const specs=[];
+    const n=withBoss?4:(wi===0?4:5);
+    for(let i=0;i<n;i++){ const k=pool.splice(Math.floor(rnd()*pool.length),1)[0];
+      specs.push({key:k,lvl,hpMul:+( (0.85*mul).toFixed(3) ),dmgMul:+( (0.80*mul).toFixed(3) )}); }
+    if(withBoss){ const bk=VAULT_BOSSES[(Math.floor(floor/5)-1+VAULT_BOSSES.length)%VAULT_BOSSES.length];
+      specs.push({key:bk,lvl:Math.min(D_MAX_LEVEL,lvl+3),hpMul:+((2.2*mul).toFixed(3)),dmgMul:+((1.15*mul).toFixed(3)),boss:true}); }
+    return specs;
+  };
+  if(!rule) return [ wave(0,diff*0.86,false), wave(1,diff*1.00,false) ];
+  return [ wave(0,diff*0.80,false), wave(1,diff*1.00,true) ];
 }
+// server-side plausibility score of a floor's monsters (mirrors client makeUnit scale=1+0.05*(lvl-1))
+function vaultFloorScore(floor){
+  let s=0; for(const w of buildDungeonWaves(floor)){ for(const m of w){
+    const base=VAULT_MONSTERS[m.key]||VAULT_BOSS_STATS[m.key]||{hp:200,dmg:18};
+    const sc=1+0.05*(m.lvl-1); s+= base.hp*sc*(m.hpMul||1)/8 + base.dmg*sc*(m.dmgMul||1)*3; } }
+  return s;
+}
+function vaultTeamScore(snaps){ let s=0; for(const h of snaps){ if(!h) continue; s+= (h.maxHp||0)/8 + (h.atk||0)*3 + (h.heal||0)*2; } return s; }
 function rollFragmentOfQuality(q, rnd){
   const fams=[...new Set(GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family))];
   const f=fams[Math.floor((rnd?rnd():Math.random())*fams.length)]||'Stoneheart';
   return q+' '+f;
 }
-function makeStandardDungeonFloorReward(floor, rnd){
+function makeStandardDungeonFloorReward(floor){
+  // rewards are floor-determined, not rolled: the same floor always pays the same fragments
+  const rnd=SIM.mulberry32(SIM.seedFrom('vaultreward:'+floor));
   const r={ dust:dustForDungeonFloor(floor) };
   if(isDungeonBossFloor(floor)){ const q=dungeonQualityForFloor(floor); r.fragments=[rollFragmentOfQuality(q,rnd), rollFragmentOfQuality(q,rnd)]; }
+  if(typeof GEARCAT!=='undefined'&&GEARCAT){ const gq=dungeonQualityForFloor(floor);   // gear doc: the Vault also feeds the Forge
+    r.gearFragments=[gearRollFragment(gq,rnd), gearRollFragment(gq,rnd)].filter(Boolean); }
   return r;
 }
-function makeFirstClearDungeonReward(floor, rnd){
-  const r=makeStandardDungeonFloorReward(floor,rnd);
-  if(isDungeonBossFloor(floor)){ const b=makeStandardDungeonFloorReward(floor,rnd); r.dust+=b.dust; r.fragments.push(...b.fragments); r.firstClearDoubled=true; }
+function makeFirstClearDungeonReward(floor){
+  const r=makeStandardDungeonFloorReward(floor);
+  if(isDungeonBossFloor(floor)){ r.dust*=2; if(r.fragments) r.fragments=r.fragments.concat(r.fragments); if(r.gearFragments) r.gearFragments=r.gearFragments.concat(r.gearFragments); r.firstClearDoubled=true; }
   return r;
 }
 function grantDungeonReward(u, r){
   u.dust=(u.dust||0)+r.dust;
   if(r.fragments&&r.fragments.length){ const g=ensureGlyphs(u); for(const k of r.fragments){ g.fragments[k]=(g.fragments[k]||0)+1; } g.revision++; }
+  if(r.gearFragments&&r.gearFragments.length&&typeof ensureGear==='function'&&GEARCAT){ const gg=ensureGear(u); for(const k of r.gearFragments){ gg.fragments[k]=(gg.fragments[k]||0)+1; } gg.revision++; }
 }
 function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLOOR?bossRuleForFloor(floor):null;
   return { currentFloor:p.currentFloor, highestClearedFloor:p.highestClearedFloor, vaultStatus:p.vaultStatus,
@@ -587,6 +615,58 @@ function warMatchView(t,m,meGid){
     lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
 }
 /* ====================== end Skyfall module (routes in api()) ====================== */
+/* ==================== THE FORGE (Gear/Temper v2) — server-authoritative ====================
+   From Emberweave_Gear_Compendium_Rebuilt15.xlsx (26 Aug 2026): 9 passive slots (one slot per
+   quality tier by design — Grey=Weapon … Orange=Relic), 84 gear types with matching fragments,
+   sub-components (Green+), deterministic Tempering to 30 (no failure, 20% dust growth per
+   completed bar), 80% extraction refund, Forge Resonance ranks 1–10, one Gear Active selected
+   per hero. All drops, crafting, temper progress, refunds and resonance are server-owned.
+   Flag: GEAR_V2_ENABLED (default OFF; dev accounts always see it). */
+const GEAR_V2_ENABLED = String(process.env.GEAR_V2_ENABLED||'false')==='true';
+let GEARCAT=null;
+(function(){ try{
+  const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-catalog.json'),'utf8'));
+  if(!raw.items||raw.items.length!==84) throw new Error('expected 84 gear defs, got '+(raw.items&&raw.items.length));
+  raw.byId={}; raw.byName={}; raw.byQuality={};
+  for(const d of raw.items){ raw.byId[d.id]=d; raw.byName[d.name]=d; (raw.byQuality[d.quality]=raw.byQuality[d.quality]||[]).push(d); }
+  GEARCAT=raw; console.log('⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
+}catch(e){ console.error('⚠ FORGE DISABLED — server/gear-catalog.json problem: '+e.message); } })();
+function gearEnabledFor(u){ return !!GEARCAT && (GEAR_V2_ENABLED || isDev(u)); }
+function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1 }; return u.gear; }
+function gearTemperBar(t){ return GEARCAT.meta.temper.startBar + t*GEARCAT.meta.temper.barGrowth; }
+function gearTemperCost(def,t){ return Math.round(GEARCAT.meta.temper.baseDust[def.quality]*Math.pow(1+GEARCAT.meta.temper.dustGrowth,t)); }
+function gearResonanceRank(g){ let total=0;
+  for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ const it=g.items[g.equipped[hero][slot]]; if(it) total+=it.temper||0; } }
+  const th=GEARCAT.meta.resonance.thresholds; let r=0; for(let i=0;i<th.length;i++){ if(total>=th[i]) r=i+1; }
+  return { rank:r, total, next: r<th.length?th[r]:null }; }
+function gearItemEquippedBy(g,itemId){ for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ if(g.equipped[hero][slot]===itemId) return {hero,slot}; } } return null; }
+// stat contribution of a hero's equipped gear, reduced to sim-friendly flats + a power scalar
+function gearHeroFlats(u,heroKey){
+  const out={hp:0,atk:0,heal:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
+  const eq=g.equipped[heroKey]; if(!eq) return out;
+  const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
+  for(const slot in eq){ const it=g.items[eq[slot]]; const def=it&&GEARCAT.byId[it.d]; if(!def) continue;
+    const tmul=(1+GEARCAT.meta.temper.passivePerTemper*(it.temper||0))*rmul;
+    for(const st in def.stats){ const v=def.stats[st]*tmul;
+      if(st==='hp') out.hp+=v; else if(st==='atk') out.atk+=v; else if(st==='regen') out.heal+=v;
+      out.power += (st==='hp'? v/8 : v); } }
+  out.hp=Math.round(out.hp); out.atk=Math.round(out.atk); out.heal=Math.round(out.heal); out.power=Math.round(out.power);
+  return out;
+}
+const GEAR_POWER_WEIGHT=+(process.env.GEAR_POWER_WEIGHT||0.25);
+function gearHeroPower(u,heroKey){ return gearHeroFlats(u,heroKey).power*GEAR_POWER_WEIGHT; }
+// faucet: random gear fragment of a quality (vault band qualities == gear qualities by design)
+function gearRollFragment(quality, rnd){
+  const defs=GEARCAT?GEARCAT.byQuality[quality]:null; if(!defs||!defs.length) return null;
+  return defs[Math.floor((rnd?rnd():Math.random())*defs.length)].frag;
+}
+function gearGrantFragments(u, quality, n, rnd){
+  if(!GEARCAT) return null; const g=ensureGear(u); const got={};
+  for(let i=0;i<n;i++){ const f=gearRollFragment(quality,rnd); if(!f) break; g.fragments[f]=(g.fragments[f]||0)+1; got[f]=(got[f]||0)+1; }
+  g.revision++; return got;
+}
+/* ====================== end Forge module (routes in api()) ====================== */
+
 
 
 
@@ -813,6 +893,119 @@ async function api(req,res,url){
     me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
     return send(res,200,{ ok:true, email:me.email }); }
 
+  /* ------------------------- THE FORGE (Gear v2) routes -------------------------
+     The client sends only ids + expectedRevision. Costs, outputs, temper progress,
+     refunds and resonance are computed here; client-sent stats/amounts are ignored. */
+  if(p.startsWith('/api/gear')){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!gearEnabledFor(me)) return send(res,200,{enabled:false});
+    if(rateLimited(req,'gear',80,60000)) return send(res,429,{error:'Slow down.'});
+    if(p==='/api/gear/catalog'){ return send(res,200,{ version:1, meta:GEARCAT.meta, items:GEARCAT.items }); }
+    const g=ensureGear(me);
+    if(p==='/api/gear/state'){ return send(res,200,{ enabled:true, revision:g.revision, dust:me.dust||0,
+      fragments:g.fragments, subs:g.subs, items:g.items, equipped:g.equipped, active:g.active,
+      resonance:gearResonanceRank(g) }); }
+    if(req.method!=='POST') return send(res,404,{error:'gear'});
+    const b=await body(req);
+    const er=parseInt(b.expectedRevision,10);
+    if(er!==g.revision) return send(res,409,{error:'STALE', revision:g.revision});
+    const ok=(extra)=>{ g.revision++; writeDB(); return send(res,200,Object.assign({ok:true, revision:g.revision, dust:me.dust||0},extra||{})); };
+    const bad=(msg)=>send(res,400,{error:msg, revision:g.revision});
+
+    if(p==='/api/gear/craft-sub'){
+      const def=GEARCAT.byId[String(b.gearId||'')]; if(!def) return bad('Unknown gear.');
+      if(!def.sub) return bad('Grey gear needs no sub-component.');
+      if((g.fragments[def.frag]||0)<def.subFragCost) return bad('Need '+def.subFragCost+' × '+def.frag+'.');
+      g.fragments[def.frag]-=def.subFragCost; if(g.fragments[def.frag]<=0) delete g.fragments[def.frag];
+      g.subs[def.sub]=(g.subs[def.sub]||0)+1;
+      return ok({ sub:def.sub, count:g.subs[def.sub] });
+    }
+    if(p==='/api/gear/craft'){
+      const def=GEARCAT.byId[String(b.gearId||'')]; if(!def) return bad('Unknown gear.');
+      if(def.qi===0){ // Grey: direct from its own fragments
+        const cost=GEARCAT.meta.greyFragCost;
+        if((g.fragments[def.frag]||0)<cost) return bad('Need '+cost+' × '+def.frag+'.');
+        g.fragments[def.frag]-=cost; if(g.fragments[def.frag]<=0) delete g.fragments[def.frag];
+      } else {
+        if((g.subs[def.sub]||0)<1) return bad('Need the '+def.sub+' (craft it from '+def.subFragCost+' × '+def.frag+').');
+        // 2 FRESH UNBOUND previous-tier items (the previous tier is a single slot by design)
+        const prevQ=GEARCAT.meta.qualities[def.qi-1];
+        const feed=Object.entries(g.items).filter(([id,it])=>{ const d=GEARCAT.byId[it.d];
+          return d && d.quality===prevQ && !it.bound && !gearItemEquippedBy(g,id); })
+          .sort((a,bb)=>(a[1].createdAt||0)-(bb[1].createdAt||0));
+        const pick=Array.isArray(b.ingredients)?b.ingredients.map(String):[];
+        const chosen=[];
+        for(const iid of pick){ const e=feed.find(([id])=>id===iid); if(e&&!chosen.includes(iid)) chosen.push(iid); if(chosen.length===2) break; }
+        for(const [id] of feed){ if(chosen.length>=2) break; if(!chosen.includes(id)) chosen.push(id); }
+        if(chosen.length<2) return bad('Need 2 fresh unbound '+prevQ+' items (bound gear can never be an ingredient).');
+        g.subs[def.sub]-=1; if(g.subs[def.sub]<=0) delete g.subs[def.sub];
+        for(const iid of chosen) delete g.items[iid];   // consumed
+      }
+      const nid='q'+(g.seq++); g.items[nid]={ d:def.id, temper:0, prog:0, dustSpent:0, bound:false, createdAt:Date.now() };
+      return ok({ crafted:nid, gearId:def.id, name:def.name });
+    }
+    if(p==='/api/gear/equip'){
+      const hero=String(b.heroKey||'').slice(0,24); const iid=String(b.itemId||'');
+      const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      if(!hero||!it||!def) return bad('Unknown item.');
+      const where=gearItemEquippedBy(g,iid);
+      if(where) return bad('Already equipped on '+where.hero+'.');
+      g.equipped[hero]=g.equipped[hero]||{};
+      g.equipped[hero][def.slot]=iid;   // replaces the slot's occupant (which stays bound, unequipped)
+      it.bound=true;                    // bound-item rule: once equipped, never a crafting ingredient
+      return ok({ hero, slot:def.slot, itemId:iid });
+    }
+    if(p==='/api/gear/unequip'){
+      const hero=String(b.heroKey||'').slice(0,24); const slot=String(b.slot||'');
+      if(!g.equipped[hero]||!g.equipped[hero][slot]) return bad('Nothing equipped there.');
+      const iid=g.equipped[hero][slot]; delete g.equipped[hero][slot];
+      if(g.active[hero]===iid) delete g.active[hero];
+      return ok({ hero, slot });
+    }
+    if(p==='/api/gear/temper'){
+      const iid=String(b.itemId||''); const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      if(!it||!def) return bad('Unknown item.');
+      let uses=Math.max(1,Math.min(60,parseInt(b.uses,10)||1));
+      const T=GEARCAT.meta.temper; let spent=0, gained=0, levels=0;
+      while(uses>0){
+        if((it.temper||0)>=T.max) break;
+        const cost=gearTemperCost(def, it.temper||0);
+        if((me.dust||0)<cost) break;
+        me.dust-=cost; spent+=cost; it.dustSpent=(it.dustSpent||0)+cost;
+        it.prog=(it.prog||0)+1; gained++; uses--;
+        if(it.prog>=gearTemperBar(it.temper||0)){ it.temper=(it.temper||0)+1; it.prog=0; levels++; }
+      }
+      if(!gained) return bad((it.temper>=T.max)?'Already at Temper 30.':'Not enough Forge Dust (next use: ✨'+gearTemperCost(def,it.temper||0)+').');
+      return ok({ itemId:iid, temper:it.temper, prog:it.prog, bar:gearTemperBar(it.temper), dustSpent:spent, levelsGained:levels,
+        nextCost: it.temper<T.max?gearTemperCost(def,it.temper):null });
+    }
+    if(p==='/api/gear/extract'){
+      const iid=String(b.itemId||''); const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      if(!it||!def) return bad('Unknown item.');
+      if(gearItemEquippedBy(g,iid)) return bad('Unequip it first.');
+      const refund=Math.floor((it.dustSpent||0)*GEARCAT.meta.temper.extractRefund);
+      delete g.items[iid]; me.dust=(me.dust||0)+refund;
+      return ok({ extracted:iid, name:def.name, refund });
+    }
+    if(p==='/api/gear/select-active'){
+      const hero=String(b.heroKey||'').slice(0,24); const iid=String(b.itemId||'');
+      const eq=g.equipped[hero]||{};
+      if(!Object.values(eq).includes(iid)) return bad('That item is not equipped on this hero.');
+      g.active[hero]=iid;
+      const def=GEARCAT.byId[g.items[iid].d];
+      return ok({ hero, itemId:iid, active:def.active });
+    }
+    if(p==='/api/gear/grant'){ // dev-only test faucet
+      if(!isDev(me)) return send(res,403,{error:'forbidden'});
+      if(b.dust){ me.dust=(me.dust||0)+Math.max(0,Math.min(10000000,parseInt(b.dust,10)||0)); }
+      if(b.frag){ const def=GEARCAT.byName[String(b.frag)]||GEARCAT.byId[String(b.frag)];
+        const key=def?def.frag:String(b.frag); const n=Math.max(1,Math.min(999,parseInt(b.n,10)||10));
+        g.fragments[key]=(g.fragments[key]||0)+n; }
+      return ok({ fragments:g.fragments });
+    }
+    return send(res,404,{error:'gear'});
+  }
+
   /* ------------------------- SKYFALL TOURNAMENT (Guild Wars v2) routes -------------------------
      Never accepts client power, hero stats, rosters, outcomes, tower state or reward amounts. */
   if(p.startsWith('/api/guild-war')){
@@ -947,38 +1140,42 @@ async function api(req,res,url){
     if(!reqId) return send(res,400,{error:'requestId required'});
 
     if(p==='/api/dungeon/start-battle'){
-      if(prog.activeAttempt) return send(res,400,{error:'Finish the current Vault battle first.', attemptId:prog.activeAttempt.id});
+      if(prog.activeAttempt) prog.activeAttempt=null;   // an unresolved attempt (closed the app mid-fight) is abandoned = a loss; floors only advance through a resolved win
       if(prog.vaultStatus==='complete'||prog.currentFloor>DUNGEON_MAX_FLOOR) return send(res,400,{error:'You have cleared the Aether Vault. Its extension is coming soon.'});
+      // Vault teams: 5 fighters + up to 5 backups (a backup steps in when a fighter falls)
       const ids=Array.isArray(b.heroIds)?b.heroIds.map(String):[];
-      if(ids.length!==5||new Set(ids).size!==5) return send(res,400,{error:'Pick five different heroes.'});
+      if(ids.length<5||ids.length>10||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick 5 fighters (plus up to 5 backups), no duplicates.'});
       const save=parseSaveOf(me);
       const snaps=ids.map(k=>snapshotHeroFromServer(me,k,save));
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
       const floor=prog.currentFloor;
-      const attempt={ id:uid(), floor, teamSnapshot:snaps, enemyWaves:buildDungeonWaves(floor),
-        seed:SIM.seedFrom(me.id+':'+floor+':'+prog.version+':'+uid()), startedAt:Date.now() };
+      const attempt={ id:uid(), floor, heroIds:ids, teamSnapshot:snaps, enemyWaves:buildDungeonWaves(floor), startedAt:Date.now() };
       prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDB();
       return send(res,200,{ ok:true, attemptId:attempt.id, floor, bossRule:bossRuleForFloor(floor),
-        team:attempt.teamSnapshot, waves:attempt.enemyWaves, seed:attempt.seed });   // snapshots+seed = cosmetic replay data
+        waves:attempt.enemyWaves });   // fixed monster lineup for this floor — the fight happens in the client
     }
     if(p==='/api/dungeon/resolve-battle'){
       const out=idem(me.id+':dresolve:'+reqId,()=>{
         const a=prog.activeAttempt;
         if(!a||a.id!==String(b.attemptId||'')) return { ok:false, error:'No matching Vault battle.' };
-        const resolution=SIM.resolveTwoWaveBattle(a.teamSnapshot, a.enemyWaves, a.seed);
         prog.activeAttempt=null;
-        if(!resolution.result.won){ prog.version++; writeDB();
-          return { ok:true, result:resolution.result, waveResults:resolution.waveResults, progress:dungeonView(prog) }; }
+        const won=b.won===true;
+        if(!won){ prog.version++; writeDB();
+          return { ok:true, result:{won:false}, progress:dungeonView(prog) }; }
+        // plausibility: the fight must have lasted at least a few seconds, and the team the
+        // server snapshotted must be strong enough that a skilled win is believable
+        if(Date.now()-a.startedAt<VAULT_MIN_BATTLE_MS){ prog.version++; writeDB(); return { ok:false, error:'That was too fast to be a real battle.' }; }
+        if(vaultTeamScore(a.teamSnapshot) < vaultFloorScore(a.floor)*0.18){ prog.version++; writeDB();
+          return { ok:false, error:'Your team is far below this floor — level up and try again.' }; }
         if(a.floor!==prog.currentFloor||prog.claimedFloors[a.floor]){ prog.version++; writeDB();
           return { ok:false, error:'Stale Vault floor.' }; }
-        const rnd=SIM.mulberry32((a.seed+0xABCD)>>>0);
-        const reward=makeFirstClearDungeonReward(a.floor, rnd);
+        const reward=makeFirstClearDungeonReward(a.floor);
         grantDungeonReward(me, reward);
         prog.claimedFloors[a.floor]={ claimedAt:Date.now(), dust:reward.dust, fragments:reward.fragments||[] };
         prog.highestClearedFloor=a.floor; prog.currentFloor=a.floor+1;
         if(a.floor===DUNGEON_MAX_FLOOR) prog.vaultStatus='complete';
         prog.version++; writeDB();
-        return { ok:true, result:resolution.result, waveResults:resolution.waveResults, reward, dust:me.dust||0, progress:dungeonView(prog) };
+        return { ok:true, result:{won:true}, reward, dust:me.dust||0, progress:dungeonView(prog) };
       });
       return send(res, out.ok===false?400:200, out);
     }
@@ -989,12 +1186,13 @@ async function api(req,res,url){
         if(prog.activeAttempt) return { ok:false, error:'Finish the current Vault battle first.' };
         if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };
         const rnd=SIM.mulberry32(SIM.seedFrom(me.id+':sweep:'+dungeonServerDayKey()+':'+prog.sweep.totalSweepsToday));
-        const rewards=[]; let dust=0; const frags={};
+        const rewards=[]; let dust=0; const frags={}; const gfrags={};
         for(let f=1;f<=prog.highestClearedFloor;f++){ const r=makeStandardDungeonFloorReward(f,rnd);
-          dust+=r.dust; (r.fragments||[]).forEach(k=>frags[k]=(frags[k]||0)+1); rewards.push(Object.assign({floor:f},r)); }
-        grantDungeonReward(me,{dust, fragments:Object.entries(frags).flatMap(([k,n])=>Array(n).fill(k))});
+          dust+=r.dust; (r.fragments||[]).forEach(k=>frags[k]=(frags[k]||0)+1); (r.gearFragments||[]).forEach(k=>gfrags[k]=(gfrags[k]||0)+1); rewards.push(Object.assign({floor:f},r)); }
+        grantDungeonReward(me,{dust, fragments:Object.entries(frags).flatMap(([k,n])=>Array(n).fill(k)),
+          gearFragments:Object.entries(gfrags).flatMap(([k,n])=>Array(n).fill(k))});
         prog.sweep.freeUsesRemaining--; prog.sweep.totalSweepsToday++; prog.version++; writeDB();
-        return { ok:true, totalDust:dust, fragments:frags, floors:prog.highestClearedFloor, sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset()}, dust:me.dust||0 };
+        return { ok:true, totalDust:dust, fragments:frags, gearFragments:gfrags, floors:prog.highestClearedFloor, sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset()}, dust:me.dust||0 };
       });
       return send(res, out.ok===false?400:200, out);
     }
@@ -1233,7 +1431,8 @@ async function api(req,res,url){
     if(now-(me.lastDaily||0) < 20*60*60*1000) return send(res,200,{granted:0, coins:me.coins, next:(me.lastDaily+20*60*60*1000)});
     const amt=dailyAmount(me.rank); me.coins+=amt; me.lastDaily=now;
     let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 6, 3); }   // daily: 6 fragments up to Blue
-    writeDB(); return send(res,200,{granted:amt, coins:me.coins, glyphFrags}); }
+    let gearFrags=null; if(gearEnabledFor(me)){ const q=['Grey','Green','Blue'][Math.floor(Math.random()*3)]; gearFrags=gearGrantFragments(me,q,3); }   // daily: 3 gear fragments
+    writeDB(); return send(res,200,{granted:amt, coins:me.coins, glyphFrags, gearFrags}); }
 
   if(p==='/api/world'){ if(!me)return send(res,401,{error:'auth'});
     const cities=Object.values(DB.users).filter(u=>u.id!==me.id).sort((a,b)=>a.rank-b.rank).slice(0,24)

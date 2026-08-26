@@ -757,6 +757,13 @@
     <div id="dungeonBody" style="position:absolute;inset:0;max-width:none;margin:0"></div>
   </div>
 
+  <!-- THE FORGE (gear crafting & tempering) -->
+  <div class="screen hub" id="forge">
+    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
+    <div class="titlebar"><h1>⚒️ THE FORGE</h1></div>
+    <div id="forgeBody" style="width:100%;max-width:560px"></div>
+  </div>
+
   <!-- ELITE STAGES -->
   <div class="screen hub" id="elite">
     <button class="btn secondary sm backbtn" id="eliteBack">◀</button>
@@ -2807,6 +2814,16 @@ function enemyLevelFor(g){ return Math.max(1, Math.round(1 + Math.max(g-1,0)*(45
 // (and a boss). Monsters cast their green + blue kit abilities (real cast times + cooldowns). Difficulty ramps to the per-chapter
 // clear-level target (see claude/campaign-wave-structure.md).
 function buildEnemyWave(){
+  if(CUR.mode==='vault'){   // The Vault: monsters are PRE-DETERMINED per floor by the server — same lineup every attempt, beatable by practice
+    const specs=(CUR.vwaves&&CUR.vwaves[waveIdx])||[];
+    const _keys=specs.map(s=>s.key);
+    specs.forEach((s,i)=>{ const sl=laneSlot('enemy',s.key,i,specs.length,_keys);
+      const u=makeUnit(s.key,'enemy',sl.x,sl.y,s.lvl||1,{boss:!!s.boss});
+      u.maxHp=Math.round(u.maxHp*(s.hpMul||1)); u.hp=u.maxHp; u.dmg=u.dmg*(s.dmgMul||1);
+      if(s.boss){ u.maxHp=Math.round(u.maxHp*1.15); u.hp=u.maxHp; }
+      units.push(u); buildFigure(u); });
+    return;
+  }
   const node=CUR.node, elite=isEliteStage(node), bossStage=isBossStage(node), base=campEnemyLevel(node);
   const type=bossStage?'boss':(elite?'elite':'normal');
   const comp=WAVE_COMP[type][waveIdx]||WAVE_COMP[type][WAVE_COMP[type].length-1];   // roles this wave
@@ -3766,11 +3783,24 @@ function startBattle(){
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
+  else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally'); buildEnemyWave();
+    bannerMsg('🏛️ THE VAULT — FLOOR '+CUR.floor+'\nWAVE 1'); beginWaveEnter(); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
     const _opp0=(CUR.opp||[]).filter(e=>e&&HERO_TYPES[e.key]); const _opp=_opp0.length?_opp0:[{key:'grosk',level:1,rank:0}];   // drop stale/removed hero keys from opponent teams (old NPC/arena data); never spawn an empty enemy squad
     const oppSlots=formationSlots('enemy',_opp.length); _opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
     bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
+}
+function vaultReinforce(){ if(CUR.mode!=='vault'||!CUR.backups||!CUR.backups.length) return;
+  let subbed=0;
+  for(const d of units){ if(d.team!=='ally'||d.alive||d._summon||d._vaultReplaced) continue;
+    if(!CUR.backups.length) break;
+    const k=CUR.backups.shift(); d._vaultReplaced=true;
+    const u=makeUnit(k,'ally',d.x,d.y,null,{owned:true}); units.push(u); buildFigure(u); subbed++;
+    floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
+    burstAt(u.x,u.y,0xc9a2ff,14);
+  }
+  if(subbed){ buildPortraitBar(); refreshCtrlBtns(); updateCounts(); }
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
 // ---- Wave run-on / run-off cinematic (Phil's spec) ----
@@ -3944,6 +3974,22 @@ function endBattle(won){ ended=true;
         : `Beat <b>${CUR.oppName}</b> · you hold <b style="color:#ffd45e">#${G.arenaRank}</b> · 🪙 +${reward}`;
       document.getElementById('resultReward').innerHTML=won?winMsg:`Lost to <b>${CUR.oppName}</b> — you keep rank #${G.arenaRank}.`;
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
+  if(CUR.mode==='vault'){ const att=CUR.attemptId;
+    setTimeout(async()=>{ let r=null;
+      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8(), won:!!won}); }
+      CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
+      document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
+      document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
+      let msg;
+      if(won&&r&&r.reward){ msg=`<span style="color:#ffd45e">✨ +${r.reward.dust} Forge Dust</span>`
+          +((r.reward.fragments&&r.reward.fragments.length)?`<br><span style="color:#c9a2ff">🧩 ${r.reward.fragments.join(', ')}</span>`:'')
+          +((r.reward.gearFragments&&r.reward.gearFragments.length)?`<br><span style="color:#8fe3ff">⚒️ ${r.reward.gearFragments.join(', ')}</span>`:'')
+          +(r.reward.firstClearDoubled?'<br><b style="color:#ffd45e">Boss floor — package doubled!</b>':''); }
+      else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
+      else { msg='Your squad fell. The floor is unchanged — same monsters every attempt, so learn the lineup and try again.'; }
+      document.getElementById('resultReward').innerHTML=msg;
+      document.getElementById('resultHint').textContent=won?'The next floor is harder — spend Dust at the Forge to temper your gear.':'Backups step in when a fighter falls — bring 10 heroes.';
+      gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='dungeon'){ const gold=won?200:0, drops={grey:8,green:4,blue:2}; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;G.gold+=gold;for(const k in drops)G.mats[k]+=drops[k];
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; const bag=EQ_BASE.map(b=>b[0]); const n=3+Math.floor(playerLevel()/5); const got={};
       for(let i=0;i<n;i++){ const b=bag[Math.floor(Math.random()*bag.length)]; G.eqMats[b]=(G.eqMats[b]||0)+1; got[b]=(got[b]||0)+1; }
@@ -4100,6 +4146,7 @@ function updateBattle(dt){
   units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
   units=units.filter(u=>!u._gone);
   updateCounts();
+  if(!ended) vaultReinforce();   // The Vault: a fallen fighter is replaced by the next backup hero
   if(!ended){const a=units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
     if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); } else if(a===0)endBattle(false);}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
@@ -4382,7 +4429,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 }
 
 /* =============================== HUB / UI ================================= */
-const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings','watchtower'];
+const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','forge','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings','watchtower'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign', skClipIdx=0;
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
@@ -4453,11 +4500,12 @@ function show(name){
   if(name==='watchtower') renderWatchTower();
   if(name==='wishing') renderWishing();
   if(name==='dungeon') renderDungeon();
+  if(name==='forge') renderForge();
   if(name==='elite') renderElite();
   if(name==='temple') renderTemple();
   if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
-  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'));
+  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'));
   if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); }
   if(name==='heroesPanel') renderHeroList();
   if(name==='heroDetail') renderHeroDetail();
@@ -4505,13 +4553,13 @@ function renderHome(){
     {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
     {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
     {nav:'rankings',    label:'Server Rankings', x:69, y:37, w:15, h:16, lx:69, ly:46},
-    {nav:'dungeon',     label:'Dungeon',        x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
+    {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
     {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
     {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91},
     {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(10)},
     {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},
-    {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
+    {nav:'forge',       label:'Forge',          x:24, y:40, w:19, h:17, lx:24, ly:49},
     {nav:'coming2',     label:'Coming Soon',    x:22, y:58, w:17, h:17, lx:22, ly:67, coming:true},
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
@@ -4639,22 +4687,27 @@ function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
     <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
 function vaultPickerHTML(){
-  const owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]);
-  const sel=VAULT.pick||[];
-  return `<div style="font-size:11px;color:#8b98a9;margin:6px 0 4px">Pick five heroes (${sel.length}/5):</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px">${owned.map(k=>{ const on=sel.includes(k);
-      return `<button class="btn xs ${on?'':'secondary'}" onclick="vaultToggle('${k}')" style="${on?'border:1px solid #5ee89b':''}">${HERO_TYPES[k].emoji||''} ${HERO_TYPES[k].name}</button>`; }).join('')}</div>
-    <button class="btn" style="width:100%;margin-top:10px;${sel.length===5?'':'opacity:.45'}" ${sel.length===5?'onclick="vaultFight()"':'disabled'}>⚔️ BATTLE — Floor ${VAULT.st.currentFloor}</button>`;
+  const sq=squadFor('vault'), fight=sq.slice(0,TEAM_SIZE), back=sq.slice(TEAM_SIZE,TEAM_SIZE*2);
+  const chip=(k,cls)=>`<div style="display:flex;flex-direction:column;align-items:center;width:52px">${heroIcon(k,44)}<span style="font-size:8px;color:${cls};white-space:nowrap;overflow:hidden;max-width:52px;text-overflow:ellipsis">${(HERO_TYPES[k]||{}).name||k}</span></div>`;
+  const empty=`<div style="width:52px;height:52px;border:1px dashed #33405a;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#33405a;font-size:16px">＋</div>`;
+  const row=(arr,n,cls)=>{ let h=''; for(let i=0;i<n;i++) h+=arr[i]?chip(arr[i],cls):empty; return h; };
+  return `<div style="font-size:10px;color:#5ee89b;font-weight:800;margin:2px 0">⚔ FIGHTERS (${fight.length}/${TEAM_SIZE})</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">${row(fight,TEAM_SIZE,'#5ee89b')}</div>
+    <div style="font-size:10px;color:#c9a2ff;font-weight:800;margin:7px 0 2px">🛡 BACKUP — steps in when a fighter falls (${back.length}/${TEAM_SIZE})</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">${row(back,TEAM_SIZE,'#c9a2ff')}</div>
+    <div style="display:flex;gap:6px;margin-top:10px">
+      <button class="btn secondary" style="flex:1" onclick="vaultSelectHeroes()">🛡 Select Heroes</button>
+      <button class="btn" style="flex:1;${fight.length===TEAM_SIZE?'':'opacity:.45'}" ${fight.length===TEAM_SIZE?'onclick="vaultLaunch()"':'disabled'}>⚔️ BATTLE — Floor ${VAULT.st.currentFloor}</button>
+    </div>`;
 }
-function vaultToggle(k){ VAULT.pick=VAULT.pick||[]; const i=VAULT.pick.indexOf(k);
-  if(i>=0) VAULT.pick.splice(i,1); else if(VAULT.pick.length<5) VAULT.pick.push(k); renderDungeon(); }
-async function vaultFight(){ if(VAULT.busy) return; VAULT.busy=true; VAULT.result=null;
-  const st=await api('/api/dungeon/start-battle','POST',{heroIds:VAULT.pick, requestId:uid8()});
-  if(!st||st.error){ VAULT.busy=false; bannerMsg((st&&st.error)||'Vault unavailable.'); renderDungeon(); return; }
-  const rs=await api('/api/dungeon/resolve-battle','POST',{attemptId:st.attemptId, requestId:uid8()});
+function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); }
+async function vaultLaunch(){ if(VAULT.busy) return; VAULT.busy=true;
+  const sq=squadFor('vault').slice(0,TEAM_SIZE*2);
+  const st=await api('/api/dungeon/start-battle','POST',{heroIds:sq, requestId:uid8()});
   VAULT.busy=false;
-  if(!rs||rs.error){ bannerMsg((rs&&rs.error)||'Battle failed.'); await vaultStatus(); renderDungeon(); return; }
-  VAULT.result=rs; await vaultStatus(); renderDungeon();
+  if(!st||st.error){ bannerMsg((st&&st.error)||'Vault unavailable.'); show('dungeon'); return; }
+  CUR={mode:'vault', attemptId:st.attemptId, floor:st.floor, vwaves:st.waves||[], backups:sq.slice(TEAM_SIZE)};
+  startBattle();
 }
 function uid8(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 function vaultWaveHTML(w){
@@ -4709,13 +4762,119 @@ function vaultScreenHTML(){
         <span class="pill" style="border:1px solid #7a5fb0;color:#c9a2ff">Floor ${s.currentFloor} / 100</span></div>
       <div style="font-size:11px;color:#8b98a9;margin-top:3px">Highest cleared: <b style="color:#e6edf3">${s.highestClearedFloor}</b> · Fragment band: <b style="color:#c9a2ff">${s.band}</b> · Floor reward: <b style="color:#ffd45e">✨${s.dust} Dust</b>${s.isBoss?' + 🧩×2':''}</div>
       ${s.isBoss?vaultBossLabel(s.bossRule):''}
-      <div style="font-size:10px;color:#6f7d90;margin-top:4px">Two waves per floor — HP and Energy carry into Wave 2. Lose either wave and the floor resets, no reward.</div></div>
-    ${VAULT.result?vaultResultHTML(VAULT.result):`<div class="panel" style="margin-top:8px">${vaultPickerHTML()}</div>`}
+      <div style="font-size:10px;color:#6f7d90;margin-top:4px">Real battles vs monsters, campaign-style — two waves, HP &amp; Energy carry over. Every attempt at a floor faces the SAME monsters, so a floor can be learned and beaten with practice.</div></div>
+    <div class="panel" style="margin-top:8px">${vaultPickerHTML()}</div>
     <div style="display:flex;gap:6px;margin-top:8px">
       <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.freeUsesRemaining>0?'onclick="vaultSweep()"':'disabled'}>🧹 Sweep ×${s.sweep.freeUsesRemaining}</button>
       <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">♻ Salvage</button></div>
     ${VAULT.salv?vaultSalvageHTML():''}
     <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — progress and rewards are saved to your account.</div>`;
+}
+/* ================= THE FORGE — gear client (server-authoritative, render-only) ================= */
+let FORGE={ cat:null, st:null, busy:false, tab:'craft', q:0, eqPick:null };
+async function forgeSync(){
+  if(!FORGE.cat){ const c=await api('/api/gear/catalog'); if(c&&c.items) FORGE.cat=c; }
+  const s=await api('/api/gear/state'); FORGE.st=(s&&s.enabled)?s:{enabled:false}; return FORGE.st;
+}
+function forgeDef(id){ return (FORGE.cat&&FORGE.cat.items.find(i=>i.id===id))||null; }
+async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
+  const r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload));
+  FORGE.busy=false;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); }
+  else if(msg){ try{ bannerMsg(msg(r)); }catch(e){} }
+  await forgeSync(); renderForge();
+}
+const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
+function forgeTab(t){ FORGE.tab=t; renderForge(); }
+function forgeQ(i){ FORGE.q=i; renderForge(); }
+function forgeCraftTabHTML(){
+  const st=FORGE.st, cat=FORGE.cat, quals=cat.meta.qualities;
+  const q=quals[FORGE.q], defs=cat.items.filter(i=>i.quality===q);
+  const tabs=quals.map((qq,i)=>`<button class="btn xs ${i===FORGE.q?'':'secondary'}" style="font-size:9px;padding:3px 6px;${i===FORGE.q?'border:1px solid '+(FORGE_QCOLOR[qq]||'#888'):''}" onclick="forgeQ(${i})">${qq}</button>`).join('');
+  const prevQ=FORGE.q>0?quals[FORGE.q-1]:null;
+  const freshPrev=prevQ?Object.entries(st.items).filter(([id,it])=>{ const d=forgeDef(it.d); return d&&d.quality===prevQ&&!it.bound&&!forgeEquippedBy(id); }).length:0;
+  const rows=defs.map(d=>{
+    const have=st.fragments[d.frag]||0, subs=d.sub?(st.subs[d.sub]||0):0;
+    const canGrey=d.qi===0&&have>=cat.meta.greyFragCost;
+    const canSub=d.sub&&have>=d.subFragCost;
+    const canItem=d.qi>0&&subs>=1&&freshPrev>=2;
+    return `<div style="border-bottom:1px solid #1a2233;padding:6px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b>
+        <span style="font-size:9px;color:#8b98a9">${d.slotFull||d.slot}</span></div>
+      <div style="font-size:9px;color:#6f7d90;margin:2px 0">${escapeHTML(d.passive||'')}${d.active?' · <span style="color:#8fe3ff">Active: '+escapeHTML(d.active)+'</span>':''}</div>
+      <div style="display:flex;gap:4px;align-items:center;font-size:9px;flex-wrap:wrap">
+        <span style="color:#8b98a9">🧩 ${d.frag}: <b style="color:${have?'#5ee89b':'#6f7d90'}">${have}</b></span>
+        ${d.qi===0
+          ?`<button class="btn xs ${canGrey?'':'secondary'}" ${canGrey?`onclick="forgePost('/craft',{gearId:'${d.id}'},r=>'⚒️ Forged '+r.name+'!')"`:'disabled'}>⚒ Craft (${cat.meta.greyFragCost} frags)</button>`
+          :`${d.sub?`<span style="color:#8b98a9">· ${d.sub}: <b style="color:${subs?'#5ee89b':'#6f7d90'}">${subs}</b></span>
+             <button class="btn xs ${canSub?'':'secondary'}" ${canSub?`onclick="forgePost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:'disabled'}>🔩 Sub (${d.subFragCost} frags)</button>`:''}
+             <button class="btn xs ${canItem?'':'secondary'}" ${canItem?`onclick="forgePost('/craft',{gearId:'${d.id}'},r=>'⚒️ Forged '+r.name+'!')"`:'disabled'}>⚒ Craft (sub + 2 ${prevQ})</button>`}
+      </div></div>`; }).join('');
+  return `<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">${tabs}</div>
+    ${FORGE.q>0?`<div style="font-size:9px;color:#6f7d90;margin-bottom:4px">Recipe: 1 sub-component + 2 fresh unbound ${prevQ} items (you have <b style="color:${freshPrev>=2?'#5ee89b':'#ff8b8b'}">${freshPrev}</b>). Equipped gear is <b>bound forever</b> and can never be an ingredient.</div>`:''}
+    ${rows||'<div style="color:#6f7d90;font-size:11px;padding:10px 0">Nothing here yet.</div>'}`;
+}
+function forgeEquippedBy(itemId){ const eq=FORGE.st.equipped||{};
+  for(const h in eq){ for(const s in eq[h]){ if(eq[h][s]===itemId) return {hero:h,slot:s}; } } return null; }
+function forgeItemsTabHTML(){
+  const st=FORGE.st, T=FORGE.cat.meta.temper;
+  const ids=Object.keys(st.items).sort((a,b)=>(st.items[a].createdAt||0)-(st.items[b].createdAt||0));
+  if(!ids.length) return '<div style="color:#6f7d90;font-size:11px;padding:10px 0">No gear yet — craft it from fragments, which drop from The Vault.</div>';
+  return ids.map(id=>{ const it=st.items[id], d=forgeDef(it.d); if(!d) return '';
+    const eq=forgeEquippedBy(id), bar=T.startBar+(it.temper||0)*T.barGrowth;
+    const cost=Math.round(T.baseDust[d.quality]*Math.pow(1+T.dustGrowth,it.temper||0));
+    const maxed=(it.temper||0)>=T.max;
+    const heroOpts=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]).map(k=>`<option value="${k}">${(HERO_TYPES[k]||{}).name||k}</option>`).join('');
+    const tmul=Math.round(100*T.passivePerTemper*(it.temper||0));
+    return `<div style="border:1px solid ${eq?'#2b7a55':'#1a2233'};border-radius:8px;padding:6px 8px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b>
+        <span style="font-size:9px;color:${eq?'#5ee89b':'#8b98a9'}">${eq?'🛡 '+((HERO_TYPES[eq.hero]||{}).name||eq.hero)+' · '+eq.slot:(it.bound?'🔗 bound':'✨ fresh')}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin:3px 0">
+        <span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span>
+        <div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div>
+        <span style="color:#8b98a9">${it.prog||0}/${bar}</span>
+        ${tmul?`<span style="color:#5ee89b">+${tmul}% stats</span>`:''}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;font-size:9px">
+        ${maxed?'<span style="color:#ffd45e">★ MAX TEMPER</span>':`
+        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:1},r=>'🔥 +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">🔥 ×1 (✨${cost})</button>
+        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:10},r=>'🔥 Tempered ×'+(10)+' (−'+r.dustSpent+' Dust)')">🔥 ×10</button>`}
+        ${eq?`<button class="btn xs secondary" onclick="forgePost('/unequip',{heroKey:'${eq.hero}',slot:'${eq.slot}'})">Unequip</button>
+              <button class="btn xs secondary" onclick="forgePost('/select-active',{heroKey:'${eq.hero}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`
+            :`<select id="fEq_${id}" class="btn xs secondary" style="font-size:9px;max-width:96px">${heroOpts}</select>
+              <button class="btn xs" onclick="forgePost('/equip',{itemId:'${id}',heroKey:document.getElementById('fEq_${id}').value},r=>'🛡 Equipped — '+r.slot)">Equip</button>
+              ${(it.dustSpent||0)>0?`<button class="btn xs secondary" onclick="forgePost('/extract',{itemId:'${id}'},r=>'♻ +'+r.refund+' Dust refunded')">♻ Extract ${Math.floor((it.dustSpent||0)*T.extractRefund)}</button>`:''}`}
+      </div></div>`; }).join('');
+}
+function forgeHeroesTabHTML(){
+  const eq=FORGE.st.equipped||{}, act=FORGE.st.active||{};
+  const heroes=Object.keys(eq).filter(h=>Object.keys(eq[h]||{}).length);
+  if(!heroes.length) return '<div style="color:#6f7d90;font-size:11px;padding:10px 0">No hero has gear equipped yet — equip items from the Gear tab.</div>';
+  return heroes.map(h=>{ const slots=eq[h];
+    return `<div style="border:1px solid #1a2233;border-radius:8px;padding:6px 8px;margin-bottom:6px">
+      <b style="font-size:11px">${(HERO_TYPES[h]||{}).name||h}</b>
+      ${Object.entries(slots).map(([sl,id])=>{ const it=FORGE.st.items[id], d=it&&forgeDef(it.d); if(!d)return '';
+        return `<div style="display:flex;justify-content:space-between;font-size:9px;margin-top:3px">
+          <span>${sl}: <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b> <span style="color:#ffd45e">T${it.temper||0}</span>${act[h]===id?' <span style="color:#8fe3ff">✨ active</span>':''}</span></div>`; }).join('')}
+    </div>`; }).join('');
+}
+function renderForge(){
+  const b=document.getElementById('forgeBody'); if(!b) return;
+  if(FORGE.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Stoking the Forge…</div>';
+    forgeSync().then(()=>renderForge()); return; }
+  if(!FORGE.st.enabled||!FORGE.cat){ b.innerHTML='<div class="panel" style="text-align:center;padding:22px"><div style="font-size:40px">⚒️</div><div style="font-weight:800;margin:6px 0">The Forge is being built</div><div style="font-size:11px;color:#8b98a9">Opening soon.</div></div>'; return; }
+  const st=FORGE.st, res=st.resonance||{rank:0,total:0,next:null};
+  b.innerHTML=`<div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:13px">⚒️ The Forge</b>
+        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">✨ ${st.dust||0} Forge Dust</span></div>
+      <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div>
+      <div style="font-size:9px;color:#6f7d90;margin-top:3px">Gear fragments drop in The Vault. Tempering never fails — each bar filled is a guaranteed Temper level (max 30).</div></div>
+    <div style="display:flex;gap:4px;margin:8px 0">
+      ${[['craft','⚒ Craft'],['items','🎒 Gear'],['heroes','🛡 Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
+    <div class="panel">${FORGE.tab==='craft'?forgeCraftTabHTML():FORGE.tab==='items'?forgeItemsTabHTML():forgeHeroesTabHTML()}</div>
+    <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — costs, results and refunds are computed on the server.</div>`;
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
 let SKY={ st:null, busy:false, assignSel:null };
@@ -4791,7 +4950,8 @@ function renderDungeon(){
   // this screen becomes the Vault; otherwise the legacy Challenge Dungeon below renders unchanged.
   if(VAULT.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Entering the Vault…</div>';
     vaultStatus().then(()=>renderDungeon()); return; }
-  if(VAULT.st.enabled){ if(!VAULT.pick||!VAULT.pick.length){ VAULT.pick=(VAULT.st.lastTeamHeroIds||[]).filter(k=>G.unlocked&&G.unlocked[k]).slice(0,5); }
+  if(VAULT.st.enabled){ const sq=squadFor('vault');
+    if(!sq.length&&(VAULT.st.lastTeamHeroIds||[]).length){ (VAULT.st.lastTeamHeroIds||[]).filter(k=>G.unlocked&&G.unlocked[k]).slice(0,TEAM_SIZE*2).forEach(k=>sq.push(k)); }
     b.innerHTML=vaultScreenHTML(); return; }
   const startDg=()=>{ CUR={mode:'dungeon'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); };
   if(isAssetRef(DUNGEON_BG)){
@@ -5294,7 +5454,7 @@ function closeGlossaryCard(){ const m=document.getElementById('glModal'); if(m)m
   document.querySelectorAll('.glTab').forEach(t=>t.addEventListener('click',()=>{ glTab=t.dataset.gtab; renderGlossary(); }));
   const m=document.getElementById('glModal'); if(m) m.addEventListener('click',(ev)=>{ if(ev.target.id==='glModal') closeGlossaryCard(); }); })();
 // ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
-function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
+function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
 function squadFor(k){ G.squads=G.squads||{}; if(!G.squads[k]) G.squads[k]=[]; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
 function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); }   // call right before a battle so all G.team readers use this mode's squad
 function renderRoster(){
@@ -5302,8 +5462,9 @@ function renderRoster(){
   const setDef = (isWall||teamCtx==='arena');   // defense contexts: no BATTLE button
   const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:(teamCtx==='arenaAtk'?squadFor('arenaAtk'):squadFor(squadModeKey())));
   const wallTitle = isWall?('SET WALL — LINE '+WALL_NUM[teamCtx]):'';
-  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':(CUR.mode==='campaign'?'STAGE '+stageCode(CUR.node):'CHOOSE YOUR SQUAD'))));
-  document.getElementById('menuSub').textContent = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`:`Choose up to ${TEAM_SIZE} heroes`; if(CUR.mode==='campaign'&&typeof campEnemyLevel==='function'){ try{ document.getElementById('menuSub').textContent+=' · Enemies ~Lv '+campEnemyLevel(CUR.node); }catch(_){}}
+  const isVault = !isWall && CUR.mode==='vault', pickCap = isVault?TEAM_SIZE*2:TEAM_SIZE;   // The Vault: 5 fighters + up to 5 backups
+  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':(CUR.mode==='campaign'?'STAGE '+stageCode(CUR.node):(isVault?'THE VAULT — 5 FIGHT + 5 BACKUP':'CHOOSE YOUR SQUAD')))));
+  document.getElementById('menuSub').textContent = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`:(isVault?`First ${TEAM_SIZE} fight — the rest step in when a fighter falls (up to ${TEAM_SIZE*2} total)`:`Choose up to ${TEAM_SIZE} heroes`); if(CUR.mode==='campaign'&&typeof campEnemyLevel==='function'){ try{ document.getElementById('menuSub').textContent+=' · Enemies ~Lv '+campEnemyLevel(CUR.node); }catch(_){}}
   document.getElementById('startBtn').style.display = setDef?'none':'block';
   const r=document.getElementById('roster'); r.innerHTML='';
   const marchers = setDef ? committedHeroes() : new Set();   // on defense screens, heroes away marching/mining are greyed & inactive
@@ -5318,15 +5479,16 @@ function renderRoster(){
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:'');
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp)}</span><span class="pill">⚔ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk)}</span><br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
-    if(unlocked && (inTeam || !blocked)) card.onclick=()=>{ const arr=teamArr; const idx=arr.indexOf(key); if(idx>=0)arr.splice(idx,1); else if(!blocked && arr.length<TEAM_SIZE)arr.push(key); saveG(); if(isWall&&ACC.token)pushSave(); renderRoster(); };
+    if(unlocked && (inTeam || !blocked)) card.onclick=()=>{ const arr=teamArr; const idx=arr.indexOf(key); if(idx>=0)arr.splice(idx,1); else if(!blocked && arr.length<pickCap)arr.push(key); saveG(); if(isWall&&ACC.token)pushSave(); renderRoster(); };
+    if(isVault && inTeam){ const pos=teamArr.indexOf(key); const chip=document.createElement('span'); chip.style.cssText='position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;background:'+(pos<TEAM_SIZE?'#1d3a2a;color:#5ee89b;border:1px solid #2b7a55':'#2a2338;color:#c9a2ff;border:1px solid #7a5fb0'); chip.textContent=pos<TEAM_SIZE?'⚔ FIGHT':'🛡 BACKUP'; card.style.position='relative'; card.appendChild(chip); }
     r.appendChild(card);
   });
-  const full=teamArr.length>=1;   // partial teams allowed (1..TEAM_SIZE)
+  const full=isVault?teamArr.length>=TEAM_SIZE:teamArr.length>=1;   // Vault needs 5 fighters; elsewhere partial teams allowed
   regenStamina();
   const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<stageStamCost(CUR.node);
   const ok=full&&!lowStam;
   const sb=document.getElementById('startBtn'); sb.disabled=!ok;
-  sb.textContent=!full?`PICK AT LEAST 1 HERO`:(lowStam?`NEED ${stageStamCost(CUR.node)} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${stageStamCost(CUR.node)}`:'BATTLE ▶'));
+  sb.textContent=!full?(isVault?`PICK ${TEAM_SIZE} FIGHTERS (${teamArr.length}/${TEAM_SIZE})`:`PICK AT LEAST 1 HERO`):(lowStam?`NEED ${stageStamCost(CUR.node)} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${stageStamCost(CUR.node)}`:'BATTLE ▶'));
 }
 const TECH_TRACKS=[
   ['atk','⚔','Attack Power','ATK to all heroes',3],
@@ -9060,12 +9222,13 @@ document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMe
 document.getElementById('menuBack').onclick=()=>show(menuReturn);
 document.getElementById('startBtn').onclick=()=>{
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
+  if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; } if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return; } startBattle(); };
 document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
-document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; } show(m==='arena'?'arena':m==='raid'?'wall':m==='dungeon'?'dungeon':m==='online'?'home':'campaign'); };
+document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; } show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
 // ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
@@ -9101,7 +9264,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787752000000';
+const BUILD_ID='1787755417068';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
