@@ -3962,7 +3962,7 @@ function endBattle(won){ ended=true;
     saveG(); updateHubChrome();
     setTimeout(async()=>{ let newRank=oldRank;
       let d=null;
-      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef}); if(d&&typeof d.rank==='number') newRank=d.rank; }
+      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()}); if(d&&typeof d.rank==='number') newRank=d.rank; }
       // AUDIT C3: the SERVER's shared-simulator verdict is the arena result — the visual fight is
       // presentation. Rewards (gold + arena coins) are granted server-side.
       if(d&&typeof d.won==='boolean') won=d.won;
@@ -9484,7 +9484,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787776176312';
+const BUILD_ID='1787777688487';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

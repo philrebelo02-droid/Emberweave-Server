@@ -1963,6 +1963,11 @@ async function api(req,res,url){
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
     const b=await body(req);
+    // AUDIT A5 (v228): every battle claim is idempotent. A replayed request returns the ORIGINAL
+    // verdict/reward — it never re-applies rank, coins, gold, or fragments.
+    const areqId=String(b.requestId||'').slice(0,48); if(!areqId) return send(res,400,{error:'requestId required'});
+    const akey=me.id+':arena:'+areqId;
+    DB.idem=DB.idem||{}; if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
     const opp=DB.users[b.oppId];
     // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
     // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
@@ -1978,14 +1983,20 @@ async function api(req,res,url){
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won; simRes={rounds:r0.rounds}; }
     }
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
-    let goldReward=0; if(won){ goldReward=Math.max(0,200+Math.floor((5000-me.rank)/20)); const led=ensureLedger(me); led.gold=Math.min(100000000,led.gold+goldReward); ledTx(me,'arena:win',{gold:goldReward}); }
+    let goldReward=0; if(won){ const led=ensureLedger(me);
+      // per-NY-day cap on arena gold (EARN_RULES pattern): rank still moves after the cap, gold stops.
+      led.earnDay=led.earnDay||{}; const adk=nyDayKey(); if(led.earnDay.k!==adk){ led.earnDay={k:adk}; }
+      const aused=(led.earnDay['gold:arena']|0), ACAP=8000;
+      goldReward=Math.min(Math.max(0,200+Math.floor((5000-me.rank)/20)), Math.max(0,ACAP-aused));
+      if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; led.gold=Math.min(100000000,led.gold+goldReward); ledTx(me,'arena:win',{gold:goldReward}); } }
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 4, Math.min(9, 3+Math.floor((5000-me.rank)/800))); }   // arena win: 4 fragments, tier scales with rank (raised 26 Aug with the legacy-drop removal)
-    writeDB();
-    return send(res,200,{ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, authoritative:true }); }
+    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, authoritative:true };
+    DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
+    return send(res,200,aresp); }
 
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
     return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
