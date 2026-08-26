@@ -545,7 +545,7 @@
   .glCard .glArt img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));}
   .glCard .glName{position:absolute;left:0;right:0;bottom:0;z-index:2;text-align:center;font-size:10px;font-weight:800;color:#e6edf3;background:linear-gradient(0deg,rgba(8,11,18,.96),rgba(8,11,18,0));padding:12px 3px 4px;line-height:1.1;}
   .glCard.boss{border-color:#b0444a;} .glCard.boss:hover{border-color:#ff6b6b;}
-  #glModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,10,.82);z-index:40;padding:16px;}
+  #glModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,10,.82);z-index:20000;padding:16px;}
   #glModal.open{display:flex;}
   .glCardBig{position:relative;width:min(92vw,440px);max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#1b2334,#0f1522);border:2px solid #ffd45e;border-radius:18px;padding:14px 16px 18px;box-shadow:0 12px 40px rgba(0,0,0,.7);}
   .glCardBig .glClose,.scBox .glClose{position:absolute;top:8px;right:10px;font-size:22px;line-height:1;color:#aeb9c9;cursor:pointer;background:none;border:none;}
@@ -2271,7 +2271,7 @@ function arenaDailyLeft(){ return arenaDailyReady()? 0 : arenaNextResetMs(); }
 function deepMerge(base,src){ for(const k in src){ if(src[k]&&typeof src[k]==='object'&&!Array.isArray(src[k])&&base[k]) deepMerge(base[k],src[k]); else base[k]=src[k]; } }
 // lightweight themed confirm dialog: gameConfirm(htmlMessage, onConfirm)
 function gameConfirm(msg,onYes){ const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.74);display:flex;align-items:center;justify-content:center;z-index:300;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.74);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:20px;width:100%;max-width:340px;text-align:center;box-shadow:0 10px 40px #000a">
     <div style="font-size:14px;color:#e6edf3;line-height:1.5;margin-bottom:16px">${msg}</div>
     <div style="display:flex;gap:8px"><button class="btn secondary" style="flex:1" id="_gcNo">Cancel</button><button class="btn" style="flex:1" id="_gcYes">Confirm</button></div></div>`;
@@ -5571,7 +5571,7 @@ function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=
 function showKickedNotice(){
   if(document.getElementById('kickedNotice')) return;
   const ov=document.createElement('div'); ov.id='kickedNotice';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.86);display:flex;align-items:center;justify-content:center;z-index:260;padding:18px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.86);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#2a1b1b,#160c10);border:1px solid #8f4a4a;border-radius:18px;padding:22px;width:100%;max-width:340px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">🔒</div>
     <div style="font-weight:800;font-size:17px;margin:6px 0;color:#ffb4b4">You've been logged out</div>
@@ -6041,7 +6041,7 @@ function closeTelePopout(){ const o=document.getElementById('telePopout'); if(o)
 function openTelePopout(){ closeTelePopout();
   const free=wildTeleFreeReady();
   const ov=document.createElement('div'); ov.id='telePopout';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:310;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:13px;padding:11px;width:100%;max-width:256px;box-shadow:0 10px 32px #000b">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="font-weight:800;font-size:13px">✨ Teleport</div><button class="btn xs secondary" id="tpClose" style="padding:1px 7px">✕</button></div>
     <div class="teleopt">
@@ -6200,7 +6200,7 @@ function dropCoordPin(cx,cy){ const inner=document.getElementById('wzoneInner');
   const pin=document.createElement('div'); pin.id='coordPin'; pin.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;transform:translate(-50%,-100%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)'; pin.textContent='📍'; inner.appendChild(pin);
   setTimeout(()=>{ if(pin.parentNode)pin.remove(); },6000); }
 function openCoordSearch(){ closeCityMenu(); const cur=viewCenterCoord();
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   const inp='width:66px;margin-left:5px;padding:7px;border-radius:8px;border:1px solid #33405e;background:#0e1420;color:#e6edf3;font-size:14px;text-align:center';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:18px 16px;width:100%;max-width:262px;text-align:center;box-shadow:0 12px 40px #000b">
     <div style="font-weight:800;font-size:15px;margin-bottom:3px">🔍 Go to coordinate</div>
@@ -6635,7 +6635,7 @@ function openCityMenu(c){
 }
 function showCityInfo(c){ closeCityMenu();
   const cx=cellIndex(c.x), cy=cellIndex(c.y), rank=c.rank||'—', pw=c.power!=null?c.power:null;
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:18px 16px;width:100%;max-width:262px;text-align:center;box-shadow:0 12px 40px #000b">
     <div style="font-weight:800;font-size:16px;margin-bottom:2px">${escapeHTML(c.name)}${c.ally?' <span style="color:#5ee89b;font-size:12px">· Guild</span>':''}</div>
     <div style="font-size:11px;color:#8b98a9;margin-bottom:12px">${c.real?'<span style="color:#5ee89b">● Player</span>':c.bot?'<span style="color:#6f7d90">NPC</span>':''} Stronghold info</div>
@@ -7668,7 +7668,7 @@ function wishAgainInfo(pool,n){
 function wishAgainBtnHTML(pool,n,id){ const w=wishAgainInfo(pool,n), ok=w.free||w.have>=w.cost;
   return `<button class="btn ${ok?'':'secondary'}" id="${id}" ${ok?'':'disabled'} style="width:100%;margin-top:8px">🔁 ${w.label}</button>`; }
 function showWishResult(res,pool){ const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 46px #000b">
     <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='gem'?'🔮 Diamond Wish':'⛲ Gold Wish'}</div>
     <div style="font-size:60px;margin:8px 0;${res.big?'animation:wishbob 1.6s ease-in-out infinite':''}">${res.heroAnim?heroIdleAnimHTML(res.heroAnim):res.icon}</div>
@@ -7695,7 +7695,7 @@ const WISH10_MULT=9;
 function wishGold10Cost(){ return WISH_GOLD_COST*WISH10_MULT; }
 function wishGem10Cost(){ return WISH_GEM_COST*WISH10_MULT; }
 function showWishResults10(list,pool){ const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:20px;width:100%;max-width:420px;text-align:center;box-shadow:0 12px 46px #000b">
     <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='gem'?'🔮 Diamond Wishes ×10':'⛲ Gold Wishes ×10'}</div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:14px 0">
@@ -7858,7 +7858,7 @@ function signinDayReward(y,m,day){ const dow=new Date(y,m,day).getDay();
   return SIGNIN_DAILY[(day-1)%SIGNIN_DAILY.length]; }
 function signinReadyToday(){ signinEnsure(); return !G.signinClaimed.includes(signinNow().getDate()); }
 function showSigninReward(rew,hk){ const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:320;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid ${rew.week?'#c9a24a':'#3f6fae'};border-radius:18px;padding:22px;width:100%;max-width:300px;text-align:center;box-shadow:0 12px 46px #000b">
     <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">Daily Sign-In</div>
     <div style="font-size:56px;margin:8px 0" id="_siIcon">${rew.week?'':rew.icon}</div>
@@ -7936,7 +7936,7 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
 }
 // first-run prompt for brand-new accounts
 function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutDismissed) return; if((G.campaignCleared||0)>0) return;
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px';
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">🎓</div><div style="font-weight:800;font-size:17px;margin:6px 0">Welcome, Commander!</div>
     <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">New here? Take a quick guided tour of the essentials — you’ll earn rewards for each step.</div>
@@ -9067,7 +9067,7 @@ function buyGemOffer(i){
   if(isDevAcct()){
     const o=GEM_OFFERS[i]||{};
     const ov=document.createElement('div');
-    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:320;padding:20px';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
     ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:22px 20px;width:100%;max-width:330px;text-align:center;box-shadow:0 14px 44px #000b">
       <div style="font-size:34px;line-height:1;margin-bottom:6px">🛠️</div>
       <div style="font-family:Georgia,serif;font-weight:900;font-size:19px;color:#ffd45e;text-shadow:0 1px 4px #000">Dev Pack Test</div>
@@ -9080,7 +9080,7 @@ function buyGemOffer(i){
   }
   // Normal players: "no diamond packs yet — coming soon" art popup.
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:320;padding:20px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
   ov.innerHTML=`<div style="position:relative;width:min(88vw,460px)">
     <img src="${SHOP_SOON}" draggable="false" style="width:100%;height:auto;display:block;filter:drop-shadow(0 16px 44px rgba(0,0,0,.6))">
     <button aria-label="OK" style="position:absolute;left:34%;top:77%;width:32%;height:18%;background:transparent;border:none;cursor:pointer;font-size:0">OK</button>
@@ -9215,7 +9215,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787760223904';
+const BUILD_ID='1787760404496';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
