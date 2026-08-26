@@ -383,16 +383,16 @@ function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string
 function glyphFlatStats(u,key){
   // hp/atk/heal flats (unchanged) + v225: the RATE stats the client's glyphV2Mul collects
   // (Armor/MR/Crit Chance/Tenacity/Control Resist/Starting Energy), same MAP, crit capped at 60.
-  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
   const b=g.boards&&g.boards[key]; if(!b) return out;
   const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
-    else if(/Physical Attack|Ability Power/i.test(stat)) out.atk+=val;
-    else if(/Healing Power|HP Regen/i.test(stat)) out.heal+=val; };
+    else if(/Physical Attack|Ability Power/i.test(stat)) out.atk+=val; };
   const addRate=(stat,val)=>{ if(/^Armor$/i.test(stat)) out.armor+=val;
     else if(/^Magic Resist$/i.test(stat)) out.mr+=val;
     else if(/^Crit Chance$/i.test(stat)) out.crit+=val;
     else if(/^(Tenacity|Control Resist)$/i.test(stat)) out.critRes+=val;
-    else if(/^Starting Energy$/i.test(stat)) out.energy+=val; };
+    else if(/^Starting Energy$/i.test(stat)) out.energy+=val;
+    else if(/Healing Power|HP Regen/i.test(stat)) out.regenRating+=val; };   // client MAP: these are the universal regen RATE, not healer output
   for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
     if(d) for(const sst of d.stats){ if(!sst.pct) add(sst.stat,sst.val); addRate(sst.stat,sst.val); } }
@@ -411,17 +411,23 @@ function snapshotHeroFromServer(u, key, save){
   const fl=glyphFlatStats(u,key);
   let gf=null;
   if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge flats reach the sim
-  // v225 (re-audit round 3): NO folded approximation. Glyph + gear RATE stats become the sim's own
-  // combat fields with the client's conversion constants (armor/mr → 0.4%/pt DR, capped 0.6 at
-  // apply; crit → 0.5%/pt crit CHANCE at the client's 1.6× multiplier; critRes → 0.5%/pt crit-bonus
-  // reduction; energy → 1%/pt faster energy gain). The sim resolver applies them with the client's
-  // rules. Note honestly: the sim remains a simplified LINE resolver — it does not replay kits,
-  // positioning, or manual timing; it is used for gating/qualification, never as a claim of
-  // replaying the client battle.
+  // v226 (audit round 4): the sim's combat fields carry the client's conversion constants —
+  // armor/mr 0.4%/pt (rate part capped 0.6; base armor/MR added inside heroCombatStats via the
+  // client's diminishing defToDR curve), crit 0.5%/pt CHANCE capped 0.6 (client heroMuls cap) at the
+  // client's ×1.6 multiplier with NO universal base crit, critRes 0.5%/pt bonus reduction, energy
+  // 1 point/s per 100 rating (client: u.energy += energyReg·dt), regen 0.1%-of-maxHp/s per pt for
+  // EVERY unit (client: hp += maxHp·regen·dt). The selected+equipped Gear Skill rides along for the
+  // sim's deterministic one-use policy. Client-save technology defense is excluded (client-owned,
+  // CR-2). The sim itself is a qualification ESTIMATE — never a replay of the client battle.
   const armor=(fl.armor||0)+((gf&&gf.armor)||0), mr=(fl.mr||0)+((gf&&gf.mr)||0);
   const critR=(fl.crit||0)+((gf&&gf.crit)||0), cresR=(fl.critRes||0)+((gf&&gf.critRes)||0), enR=(fl.energy||0)+((gf&&gf.energy)||0);
+  const regR=(fl.regenRating||0)+((gf&&gf.regenRating)||0);
+  let gearSkillSlot=null;
+  if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
+    if(d&&d.active){ const eq=(u.gear.equipped||{})[key]||{}; if(Object.values(eq).includes(aid)) gearSkillSlot=d.slot; } }
   return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:fl,
-    dr:Math.min(0.6,(armor+mr)*0.004), crit:critR*0.005, critRes:Math.min(0.75,cresR*0.005), energyReg:enR*0.01});
+    dr:Math.min(0.6,(armor+mr)*0.004), crit:Math.min(0.6,critR*0.005), critRes:Math.min(0.75,cresR*0.005),
+    energyReg:enR*0.01, regen:regR*0.001, gearSkillSlot});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -764,16 +770,16 @@ function gearResonanceRank(g){ let total=0;
 function gearItemEquippedBy(g,itemId){ for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ if(g.equipped[hero][slot]===itemId) return {hero,slot}; } } return null; }
 // stat contribution of a hero's equipped gear, reduced to sim-friendly flats + a power scalar
 function gearHeroFlats(u,heroKey){
-  // RE-AUDIT FIX (26 Aug): ALL 8 gear stat families are carried (hp/atk/regen AND armor/mr/crit/
-  // critRes/energy). Rate stats are returned raw; snapshotHeroFromServer converts them into
-  // sim-equivalent HP/ATK using the client's exact constants — one shared stat schema.
-  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
+  // v226: ALL 8 gear stat families carried. Flats: hp/atk. Rates returned RAW (armor/mr/crit/critRes/
+  // energy/regenRating); snapshotHeroFromServer converts them with the client's conversion constants
+  // into the sim's combat fields. The sim itself remains a qualification ESTIMATE (see sim.js header).
+  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
   const eq=g.equipped[heroKey]; if(!eq) return out;
   const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
   for(const slot in eq){ const it=g.items[eq[slot]]; const def=it&&GEARCAT.byId[it.d]; if(!def) continue;
     const tmul=(1+GEARCAT.meta.temper.passivePerTemper*(it.temper||0))*rmul;
     for(const st in def.stats){ const v=def.stats[st]*tmul;
-      if(st==='hp') out.hp+=v; else if(st==='atk') out.atk+=v; else if(st==='regen') out.heal+=v;
+      if(st==='hp') out.hp+=v; else if(st==='atk') out.atk+=v; else if(st==='regen') out.regenRating+=v;   // client: gear regen is a REGEN RATE for every unit, not healer output
       else if(out[st]!=null) out[st]+=v;
       out.power += (st==='hp'? v/8 : v); } }
   for(const k in out) out[k]=Math.round(out[k]);
@@ -920,6 +926,12 @@ async function api(req,res,url){
   const me=authUser(req);
   if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
   // ---- developer/admin endpoints (only usable while signed into a dev account) ----
+  if(p==='/api/admin/snapshot'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    // parity-harness support: the server-resolved combat snapshot for one of MY heroes, so a client
+    // harness can compare its own resolved unit stats field-by-field against the server's.
+    const hk=String(url.searchParams.get('hero')||''); const snap=snapshotHeroFromServer(me,hk);
+    if(!snap) return send(res,400,{error:'unknown hero'});
+    return send(res,200,{snapshot:snap}); }
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const cutoff=Date.now()-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
