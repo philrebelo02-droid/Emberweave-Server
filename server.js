@@ -43,7 +43,14 @@ function writeDB(){ if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=nu
 
 /* ------------------------------- helpers ---------------------------------- */
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
-function hashPass(pass, salt){ return crypto.pbkdf2Sync(pass, salt, 60000, 32, 'sha256').toString('hex'); }
+function hashPass(pass, salt, iters){ return crypto.pbkdf2Sync(pass, salt, iters||60000, 32, 'sha256').toString('hex'); }
+// AUDIT (26 Aug, high): 60k PBKDF2 is below current guidance. NEW password hashes use 210k iterations
+// with a 16-byte salt and store their iteration count on the account; old 60k hashes keep verifying
+// (u.iters undefined → 60000) and are transparently re-hashed at the next successful login.
+const PBKDF2_ITERS=210000;
+function makeCred(pass){ const salt=crypto.randomBytes(16).toString('hex'); return { salt, iters:PBKDF2_ITERS, hash:hashPass(pass,salt,PBKDF2_ITERS) }; }
+function checkPass(u,pass){ return u.hash===hashPass(pass||'',u.salt,u.iters); }
+const MIN_PASS_LEN=8;   // AUDIT: 1-char passwords were accepted. New/changed passwords only — existing logins unaffected.
 function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-token'}); res.end(b); }
 // Request bodies are byte-capped (audit: body() used to accumulate d+=c with no limit → trivial memory DoS).
 // On overflow we stop reading, destroy the socket, and reject with a BODY_TOO_LARGE error that the
@@ -67,7 +74,9 @@ const ADMIN_IDS = new Set((process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()
 // One-time bootstrap: the accounts CURRENTLY holding these names get role:'admin' stamped on them
 // at startup. After that, authority is the role — renaming, or a (impossible, names are unique)
 // same-name re-register, grants nothing. Override with ADMIN_BOOTSTRAP_NAMES if you rename yourself.
-const ADMIN_BOOTSTRAP_NAMES = (process.env.ADMIN_BOOTSTRAP_NAMES||'phil,dev1').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+// AUDIT (26 Aug, critical): no default names — role:'admin' is already stamped on the real accounts in
+// the production DB; a fresh DB gets its admin ONLY via the ADMIN_BOOTSTRAP_NAMES / ADMIN_IDS env vars.
+const ADMIN_BOOTSTRAP_NAMES = (process.env.ADMIN_BOOTSTRAP_NAMES||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
 function migrateAdminRoles(){ let n=0;
   for(const nm of ADMIN_BOOTSTRAP_NAMES){ const id=DB.byName[nm]; const u=id&&DB.users[id];
     if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
@@ -75,7 +84,10 @@ function migrateAdminRoles(){ let n=0;
 function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id))); }
 // --- security helpers: per-IP rate limiting, single-session, admin diamond edits ---
 const _hits={};
-function clientIP(req){ return ((req.headers['x-forwarded-for']||'').split(',')[0].trim()) || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
+function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-suppliable (spoofs the rate
+  // limiter). The LAST entry is the one appended by the trusted platform proxy (Railway) — use that.
+  const xff=(req.headers['x-forwarded-for']||'').split(',').map(s=>s.trim()).filter(Boolean);
+  return xff[xff.length-1] || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
 function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now();
   const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); arr.push(now); _hits[k]=arr; return arr.length>max; }
 function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(DB.tokens[t]===id) delete DB.tokens[t]; } }   // single-session / force re-login
@@ -476,23 +488,29 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
 const GUILD_WAR_V2_ENABLED = String(process.env.GUILD_WAR_V2_ENABLED||'false')==='true';
 function warEnabledFor(u){ return !!SIM && (GUILD_WAR_V2_ENABLED || isDev(u)); }
 function warNow(){ return Date.now()+((DB.warTimeOffset|0)||0); }   // dev time-warp for lifecycle tests
-const ET_OFFSET_MS=4*3600000;   // Eastern ≈ UTC-4 (DST); server-side constant, tune in winter
+// AUDIT (26 Aug, high): the old ET_OFFSET_MS=4h constant broke every winter. Exact America/New_York
+// offset at any instant via Intl (built into Node, DST-proof, no deps): positive ms behind UTC.
+const _etFmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12:false,
+  year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function etOffsetMs(t){ const g={}; for(const p of _etFmt.formatToParts(new Date(t))) g[p.type]=p.value;
+  return t-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
 const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
 const WAR_ASSAULTS_PER_LINE=3;
 const WAR_ROUND_NAMES=['R16','QF','SF','F'];
 
-function warWeekAnchor(now){ // most recent Saturday 00:00 ET
-  const et=new Date(now-ET_OFFSET_MS);
+function warWeekAnchor(now){ // most recent Saturday 00:00 ET (DST-exact)
+  const off=etOffsetMs(now);
+  const et=new Date(now-off);
   const day=et.getUTCDay();                       // 0 Sun … 6 Sat
   const back=(day-6+7)%7;
   const sat=Date.UTC(et.getUTCFullYear(),et.getUTCMonth(),et.getUTCDate()-back);
-  return sat+ET_OFFSET_MS;                        // Sat 00:00 ET as real ms
+  return sat+etOffsetMs(sat+off);                 // offset AT the anchor (handles a DST flip mid-week)
 }
 function warWeekKey(now){ const d=new Date(warWeekAnchor(now)); return d.toISOString().slice(0,10); }
 function warSchedule(anchor){ const D=86400000, H=3600000;
   return { registrationOpensAt:anchor, registrationLocksAt:anchor+2*D,           // Sat 00:00 → Mon 00:00 ET
     rounds:[0,1,2,3].map(i=>({ name:WAR_ROUND_NAMES[i],
-      planningOpensAt:anchor+(2+i)*D,                                            // Mon/Tue/Wed/Thu 00:00 ET
+      planningOpensAt:anchor+(3+i)*D,                                            // AUDIT: Tue/Wed/Thu/Fri 00:00 ET — opponents reveal at planning open, NOT when the Monday bracket is computed
       lockAt:anchor+(3+i)*D+18*H,                                                // Tue–Fri 6 PM ET
       endsAt:anchor+(3+i)*D+20*H })) };                                          // Tue–Fri 8 PM ET
 }
@@ -525,6 +543,7 @@ function warNewMatch(t, roundIndex, aEnt, bEnt){
     unplaced:(ent?ent.lines.map(l=>l.memberId):[]) });
   const m={ id:'gwm_'+uid(), tournamentId:t.id, roundIndex, state:'planning',
     aGuildId:aEnt?aEnt.guildId:null, bGuildId:bEnt?bEnt.guildId:null,
+    revealAt:t.schedule[roundIndex].planningOpensAt,   // opponent hidden + placement closed before this
     planningEndsAt:t.schedule[roundIndex].lockAt, startsAt:t.schedule[roundIndex].lockAt, endsAt:t.schedule[roundIndex].endsAt,
     winnerGuildId:null, sides:{}, assaults:{}, eventLog:[], version:0 };
   if(aEnt) m.sides[aEnt.guildId]=mkSide(aEnt);
@@ -535,7 +554,13 @@ function warNewMatch(t, roundIndex, aEnt, bEnt){
 }
 function warEntrant(t,gid){ return t.entrants.find(e=>e.guildId===gid); }
 function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unassigned members auto-spread
-  for(const gid of Object.keys(m.sides)){ const side=m.sides[gid]; const ent=warEntrant(t,gid); if(!ent) continue;
+  // AUDIT (26 Aug, CR-4): snapshots are rebuilt FRESH at lock time from server-owned data — glyph/gear/
+  // level changes made during planning count. The registration-time entrant is only the fallback if the
+  // guild object has vanished. After this, m.state='live' and every placement change is rejected.
+  m.lockedAt=warNow();
+  for(const gid of Object.keys(m.sides)){ const side=m.sides[gid];
+    const gobj=(DB.guilds||{})[gid];
+    const ent=gobj?warQualifyGuild(gobj):warEntrant(t,gid); if(!ent) continue;
     // auto-place any member the leader never assigned, round-robin across lanes
     let lane=0;
     for(const mid of (side.unplaced||[])){ side.citadels[lane%5].defenders.push({memberId:mid}); lane++; }
@@ -608,10 +633,18 @@ function warSideView(m,gid,full){ const s=m.sides[gid]; if(!s) return null;
 }
 function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
 function warMatchView(t,m,meGid){
-  return { id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
+  const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (Tue+ 00:00 ET)
+  const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
+    revealAt:m.revealAt||0, preReveal,
     planningEndsAt:m.planningEndsAt, startsAt:m.startsAt, endsAt:m.endsAt, winnerGuildId:m.winnerGuildId,
-    you:warSideView(m,meGid), foe:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
+    you:warSideView(m,meGid), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
     lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
+  if(m.state==='planning' && v.you){ // officer placement roster: every registered member + current lane
+    const ent=warEntrant(t,meGid), side=m.sides[meGid];
+    if(ent&&side){ const laneOf={}; side.citadels.forEach(c=>c.defenders.forEach(d=>{laneOf[d.memberId]=c.lane;}));
+      v.you.roster=ent.lines.map(l=>({memberId:l.memberId,name:l.name,power:l.power,
+        lane:(l.memberId in laneOf)?laneOf[l.memberId]:null})); } }
+  return v;
 }
 /* ====================== end Skyfall module (routes in api()) ====================== */
 /* ==================== THE FORGE (Gear/Temper v2) — server-authoritative ====================
@@ -699,15 +732,17 @@ async function api(req,res,url){
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
+    if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
     // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
     // all progress — instead of spawning a new account. This is what "Create account" does for a guest.
     const gu=authUser(req);
     if(gu && gu.guest){
       if(DB.byName[name.toLowerCase()] && DB.byName[name.toLowerCase()]!==gu.id) return send(res,409,{error:'That Profile name is already taken'});
-      const oldName=(gu.name||'').toLowerCase(), salt=crypto.randomBytes(8).toString('hex');
-      delete DB.byName[oldName]; gu.name=name; gu.hash=hashPass(b.pass,salt); gu.salt=salt; delete gu.guest;
+      const oldName=(gu.name||'').toLowerCase(), c=makeCred(b.pass);
+      delete DB.byName[oldName]; gu.name=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
       if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
-      if(ADMIN_BOOTSTRAP_NAMES.includes(name.toLowerCase())) gu.role='admin';   // claiming a dev name (e.g. dev1) grants the dev role, once, stored immutably
+      // AUDIT (critical): registering a name NEVER grants a role. Admin comes only from the stored
+      // role stamped by migrateAdminRoles() (env-driven) or ADMIN_IDS.
       DB.byName[name.toLowerCase()]=gu.id;
       if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
       dropTokens(gu.id); const tok=uid()+uid(); DB.tokens[tok]=gu.id; writeDB();
@@ -718,12 +753,10 @@ async function api(req,res,url){
     const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
     if((DB.ipAccounts[ip]||0)>=6) return send(res,429,{error:'Too many accounts from this network.'});
-    const id=uid(), salt=crypto.randomBytes(8).toString('hex');
-    const u={ id, name, hash:hashPass(b.pass,salt), salt, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
+    const id=uid(), c=makeCred(b.pass);
+    const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:(b.roster||{}), lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-    // a fresh account claiming a bootstrap dev name (phil/dev1) gets the dev role at creation — stored on
-    // the account, not re-derived from the name each request, so it's still role-based (audit crit #7).
-    if(ADMIN_BOOTSTRAP_NAMES.includes(name.toLowerCase())) u.role='admin';
+    // AUDIT (critical): registering a name NEVER grants a role — admin only via stored role/env.
     DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -759,7 +792,8 @@ async function api(req,res,url){
     // so knowing an account name was enough to set a new password and get a live token — account
     // takeover. It is deleted. Password recovery goes through the verified email flow only
     // (/api/reset-request → /api/reset-verify), which requires a one-time code sent to the account's email.
-    if(u.hash!==hashPass(b.pass||'',u.salt)) return send(res,401,{error:'Wrong name or password'});
+    if(!checkPass(u,b.pass)) return send(res,401,{error:'Wrong name or password'});
+    if(!u.iters){ const c=makeCred(b.pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
     dropTokens(id);   // single session: signing in here kicks any other device
     const tok=uid()+uid(); DB.tokens[tok]=id; writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
@@ -782,8 +816,8 @@ async function api(req,res,url){
     if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return send(res,400,{error:'Too many wrong codes — request a new one.'}); }
     const code=(b.code||'').toString().replace(/\D/g,'');
     if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
-    const np=(b.newPass||'').toString(); if(np.length<1) return send(res,400,{error:'Enter a new password.'});
-    u.salt=crypto.randomBytes(8).toString('hex'); u.hash=hashPass(np,u.salt); u.mustReset=false; delete u.reset;
+    const np=(b.newPass||'').toString(); if(np.length<8) return send(res,400,{error:'New password must be at least 8 characters.'});
+    const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
     dropTokens(id); const tok=uid()+uid(); DB.tokens[tok]=id; writeDB();   // invalidate other sessions, sign this one in
     return send(res,200,{ ok:true, token:tok, profile:profileFor(u) }); }
 
@@ -829,10 +863,10 @@ async function api(req,res,url){
   // admin: create an account directly
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
-    if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
+    if(name.length<2||!b.pass||String(b.pass).length<8) return send(res,400,{error:'Name (2+) and a password of 8+ characters required'});
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
-    const id=uid(), salt=crypto.randomBytes(8).toString('hex');
-    DB.users[id]={ id, name, hash:hashPass(b.pass,salt), salt, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
+    const id=uid(), c=makeCred(b.pass);
+    DB.users[id]={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     DB.byName[name.toLowerCase()]=id; writeDB(); return send(res,200,{ok:true, name}); }
   // admin: delete an account
@@ -1058,6 +1092,7 @@ async function api(req,res,url){
     if(p==='/api/guild-war/assign'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
+      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Planning opens at the round reveal — come back then.'});
       if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can arrange citadels.'});
       const side=m.sides[myGid]; const memberId=String(b.memberId||''); const lane=parseInt(b.lane,10);
       if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
@@ -1720,6 +1755,14 @@ function serveFile(res, file, type, urlPath){ fs.readFile(path.join(__dirname,fi
   remoteAsset(urlPath||('/'+file)).then(r=>{ if(!r){res.writeHead(404);res.end();return;} res.writeHead(200,{'Content-Type':type||r.ct,'Cache-Control':'no-cache'}); res.end(r.buf); }); }); }
 
 const server=http.createServer((req,res)=>{
+  // AUDIT (26 Aug, medium): baseline security headers on every response. CSP is limited to
+  // frame-ancestors — the single-file game needs inline scripts, so a script-src policy would
+  // require a full nonce refactor (deferred with the Phase-1 items).
+  res.setHeader('X-Content-Type-Options','nosniff');
+  res.setHeader('Referrer-Policy','no-referrer');
+  res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
+  res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
+  res.setHeader('Content-Security-Policy',"frame-ancestors 'none'");
   const url=new URL(req.url,'http://x');
   const p=url.pathname;
   if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{

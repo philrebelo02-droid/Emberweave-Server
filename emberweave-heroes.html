@@ -4890,13 +4890,22 @@ function skyMatchHTML(m, canOfficer){
         ${m.state==='live'&&mineHere&&foe&&!foe.destroyed&&you&&!you.destroyed?`<button class="btn xs" style="margin-top:2px" onclick="skyMarch(${i})">⚔ March</button>`:''}</div>
       <div style="flex:1;background:${foe&&foe.destroyed?'#1a0f0f':'#1a0f14'};border:1px solid ${foe&&foe.destroyed?'#5a2b2b':'#7a2b46'};border-radius:8px;padding:5px 7px;${foe&&foe.destroyed?'opacity:.55':''}">${foe&&foe.destroyed?'💥 ':''}${defHTML(foe,false)}</div></div>`; };
   let planning='';
-  if(m.state==='planning'&&canOfficer){
-    const members=(m.you?m.you.citadels.flatMap(c=>c.defenders.map(d=>d.memberId)):[]);
-    planning=`<div style="font-size:10px;color:#8b98a9;margin:4px 0">Planning until <b>${skyWhen(m.planningEndsAt)}</b> — tap a lane to place YOUR line:</div>
-      <div style="display:flex;gap:4px">${(m.lanes||[]).map((l,i)=>`<button class="btn xs secondary" style="flex:1" onclick="skyAssign('${ACC.id}',${i})">${skyLaneIcon(i)}</button>`).join('')}</div>`;
+  if(m.state==='planning'&&m.preReveal){
+    planning=`<div style="text-align:center;padding:10px 6px;color:#8b98a9;font-size:11px">🕵️ Opponent revealed at <b style="color:#ffd45e">${skyWhen(m.revealAt)}</b> — planning opens then.</div>`;
+  } else if(m.state==='planning'&&canOfficer){
+    // AUDIT (26 Aug): officers place ANY registered member, not just themselves — the server sends
+    // you.roster [{memberId,name,power,lane}] during planning; each row taps into a lane.
+    const roster=(m.you&&m.you.roster)||[];
+    planning=`<div style="font-size:10px;color:#8b98a9;margin:4px 0">Planning until <b>${skyWhen(m.planningEndsAt)}</b> — tap a citadel to place each member:</div>`+
+      roster.map(r=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;background:#0d1420;border:1px solid #223044;border-radius:8px;padding:4px 6px">
+        <div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.memberId===ACC.id?'⭐ ':''}${escapeHTML(r.name||'')}</div>
+          <div style="font-size:8px;color:#6f7d90">⚡${r.power}${r.lane==null?' · <span style="color:#ff8b8b">unplaced</span>':''}</div></div>
+        ${(m.lanes||[]).map((l,i)=>`<button class="btn xs ${r.lane===i?'':'secondary'}" style="padding:3px 6px;${r.lane===i?'box-shadow:0 0 0 1px #ffd45e':''}" onclick="skyAssign('${r.memberId}',${i})">${skyLaneIcon(i)}</button>`).join('')}</div>`).join('');
+  } else if(m.state==='planning'){
+    planning=`<div style="font-size:10px;color:#8b98a9;margin:4px 0">Planning until <b>${skyWhen(m.planningEndsAt)}</b> — your leader/officers arrange the citadels.</div>`;
   }
   return `<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">☁️ ${m.round} — ${escapeHTML((m.you||{}).name||'')} vs ${escapeHTML((m.foe||{}).name||'')}</b>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">☁️ ${m.round} — ${escapeHTML((m.you||{}).name||'')} vs ${m.preReveal?'❓ ???':escapeHTML((m.foe||{}).name||'')}</b>
       <span class="pill" style="font-size:9px">${m.state==='planning'?'📋 Planning':m.state==='live'?'🔴 LIVE until '+skyWhen(m.endsAt):'🏁 '+(m.winnerGuildId===(SKY.st&&SKY.st.tournament&&null)?'':'Finished')}</span></div>
     ${m.state==='planning'?planning:''}
     ${m.state!=='planning'?`<div style="font-size:9px;color:#6f7d90;margin:3px 0">Destroy 3 enemy citadels to win. Lines march only across their own bridge.</div>`:''}
@@ -7299,7 +7308,12 @@ function g2canCraft(def){ const g=RUNE2.st;
    Art is keyed by BOARD SLOT; a def/fragment finds its slot through its material family. */
 function g2qdir(q){ return String(q).replace(' +',''); }
 function g2slotOfFam(fam){ const sf=(RUNE2.cat&&RUNE2.cat.slotFamilies)||{}; for(const s in sf){ if((sf[s]||[]).includes(fam)) return s; } return 'vitality'; }
-function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v2/${g2qdir(q)}/${type}-${slot}.png?v=1" style="width:${px}px;height:${px}px;object-fit:contain;${extra||'display:block;margin:0 auto'}" draggable="false" onerror="this.style.display='none'">`; }
+// AUDIT (26 Aug): a failed glyph image must NOT vanish silently — swap to a visible placeholder and log
+// the missing path once so broken asset deploys are seen, not hidden.
+const G2_FALLBACK="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect x='5' y='5' width='30' height='30' rx='7' fill='%23223044' stroke='%236f7d90' stroke-width='2'/><text x='20' y='27' font-size='17' text-anchor='middle' fill='%238b98a9'>◆</text></svg>";
+const _g2missing={};
+function g2miss(img){ const src=img.getAttribute('src')||''; if(!_g2missing[src]){ _g2missing[src]=1; try{console.warn('[glyph-art MISSING]',src);}catch(e){} } img.onerror=null; img.src=G2_FALLBACK; }
+function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v2/${g2qdir(q)}/${type}-${slot}.png?v=1" style="width:${px}px;height:${px}px;object-fit:contain;${extra||'display:block;margin:0 auto'}" draggable="false" onerror="g2miss(this)">`; }
 function g2artDef(d,px,extra){ return g2art('finished',d.quality,g2slotOfFam(d.family),px,extra); }
 function g2parseKey(k){ const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
 function g2artKey(type,k,px){ const p=g2parseKey(k); return g2art(type,p.q,g2slotOfFam(p.fam),px,'display:inline-block;vertical-align:-4px'); }
@@ -9238,7 +9252,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787761528744';
+const BUILD_ID='1787763030967';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
