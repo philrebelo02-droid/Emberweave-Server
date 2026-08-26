@@ -308,6 +308,287 @@ function glyphHeroPower(u, heroKey){
   return p*GLYPH_POWER_WEIGHT;
 }
 /* ================== end Glyph Ascension module (routes live in api()) ================== */
+/* ==================== AETHER VAULT (Dungeon v2) — server-authoritative ====================
+   SPEC-dungeon-aether-vault.md. Permanent server-saved 100-floor climb, two waves per floor,
+   Dust every floor, 2 fragments every 5th, 2 free daily Sweeps, manual salvage.
+   Server owns floor, seed, enemy snapshots, outcome, and every reward roll. The client sends
+   ONLY heroIds + requestId; a resolve carries NO result payload — the shared deterministic
+   resolver (server/sim.js) decides the fight. Flag: DUNGEON_V2_ENABLED (default OFF; dev
+   accounts always see it, same pattern as Glyph v2). */
+const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'false')==='true';
+let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠ DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
+function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
+
+// ---- client-exact level curves (mirrors emberweave-heroes.html tables) ----
+const D_MAX_LEVEL=60;
+const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640];
+const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700];
+function d_runSum(inc){ const o=[]; let r=0; for(const v of inc){ r+=v; o.push(r); } return o; }
+function d_cum(steps){ const c=new Array(D_MAX_LEVEL+1); c[1]=0; for(let L=2;L<=D_MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
+const D_TROOP_CUM=d_cum(d_runSum(D_TROOP_INC)), D_HERO_CUM=d_cum(D_HERO_STEP);
+function d_levelForXP(xp,cum){ let L=1; while(L<D_MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
+
+function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
+// glyph v2 flat stat bridge for the sim (same mapping the client uses)
+function glyphFlatStats(u,key){
+  const out={hp:0,atk:0,heal:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+  const b=g.boards&&g.boards[key]; if(!b) return out;
+  const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
+    else if(/Physical Attack|Ability Power/i.test(stat)) out.atk+=val;
+    else if(/Healing Power|HP Regen/i.test(stat)) out.heal+=val; };
+  for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); }
+  for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
+    if(d) for(const s of d.stats){ if(!s.pct) add(s.stat,s.val); } }
+  out.hp=Math.round(out.hp); out.atk=Math.round(out.atk); out.heal=Math.round(out.heal); return out;
+}
+// server-owned hero snapshot: level from saved XP (capped by player level), stars/pips from save, glyphs from server
+function snapshotHeroFromServer(u, key, save){
+  const base=SIM.HERO_BASE[key]; if(!base) return null;
+  save=save||parseSaveOf(u);
+  const pl=d_levelForXP((save.playerXP|0)||0, D_TROOP_CUM);
+  const lvl=Math.max(1,Math.min(pl, d_levelForXP(((save.heroXP||{})[key]|0)||0, D_HERO_CUM)));
+  const stars=Math.max(base.stars, Math.min(5, ((save.starLevel||{})[key]|0)||base.stars));
+  const pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, glyph:glyphFlatStats(u,key)});
+}
+
+// ---- spec constants (server-only tuning) ----
+const DUNGEON_MAX_FLOOR=100;
+const DUNGEON_QUALITY_BANDS=[
+  {min:1,max:10,q:'Grey'},{min:11,max:20,q:'Green'},{min:21,max:30,q:'Blue'},{min:31,max:40,q:'Blue +2'},
+  {min:41,max:50,q:'Purple'},{min:51,max:60,q:'Purple +3'},{min:61,max:70,q:'Gold +1'},{min:71,max:80,q:'Gold +4'},
+  {min:81,max:100,q:'Orange'}];
+function dungeonQualityForFloor(f){ const b=DUNGEON_QUALITY_BANDS.find(b=>f>=b.min&&f<=b.max); return b?b.q:'Grey'; }
+function isDungeonBossFloor(f){ return f%5===0; }
+function isDungeonMilestoneFloor(f){ return f%10===0; }
+const DUNGEON_TUNE={ dustFloor1:30, dustGrowthPerFloor:0.065, bossPowerMultiplier:1.30, milestonePowerMultiplier:1.55 };
+function dustForDungeonFloor(f){ return Math.floor(DUNGEON_TUNE.dustFloor1*Math.pow(1+DUNGEON_TUNE.dustGrowthPerFloor,f-1)); }
+function difficultyForDungeonFloor(f){ const n=1+(f-1)*0.085;
+  return n*(isDungeonBossFloor(f)?DUNGEON_TUNE.bossPowerMultiplier:1)*(isDungeonMilestoneFloor(f)?DUNGEON_TUNE.milestonePowerMultiplier:1); }
+const DUNGEON_BOSS_RULES=['stoneguard_barrier','bloodfire_enrage','broodcall','riftblade_leap','blight_aura','storm_chain','ironwall_challenge','voidstep','cinderbrand','vault_warden'];
+const DUNGEON_BOSS_WARN={stoneguard_barrier:'Begins with a large shield; bring sustained damage',bloodfire_enrage:'At 40% HP, attack speed and damage rise sharply',broodcall:'Summons weak adds that distract the frontline',riftblade_leap:'Periodically jumps to the backline',blight_aura:'Reduces healing received by all enemies hit',storm_chain:'Lightning bounces between clustered heroes',ironwall_challenge:'Taunts the frontline and gains defence while taunting',voidstep:'Teleports behind the team, attacks the weakest backliner',cinderbrand:'Stacking burn; cleansing and healing matter',vault_warden:'Three phases: shield, add wave, enrage'};
+function bossRuleForFloor(f){ if(!isDungeonBossFloor(f)) return null;
+  const id=DUNGEON_BOSS_RULES[(f/5-1)%DUNGEON_BOSS_RULES.length];
+  return { id, warn:DUNGEON_BOSS_WARN[id]||'', ascended:f>=55, gatekeeper:isDungeonMilestoneFloor(f) }; }
+// fragment→Dust salvage rates: spec anchors, intermediate qualities interpolated. Server-only.
+const FRAG_SALVAGE_DUST={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,'Blue +2':25,'Purple':50,'Purple +1':65,'Purple +2':80,'Purple +3':100,'Gold':150,'Gold +1':200,'Gold +2':260,'Gold +3':330,'Gold +4':400,'Orange':800};
+
+function dungeonServerDayKey(){ return new Date().toISOString().slice(0,10); }   // one global UTC server day
+function dungeonNextReset(){ const d=new Date(); return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1); }
+function getDungeonProgress(id){
+  DB.dungeonProgress=DB.dungeonProgress||{};
+  if(!DB.dungeonProgress[id]) DB.dungeonProgress[id]={ accountId:id, currentFloor:1, highestClearedFloor:0,
+    vaultStatus:'active', claimedFloors:{}, sweep:{dateKey:dungeonServerDayKey(),freeUsesRemaining:2,totalSweepsToday:0},
+    activeAttempt:null, lastTeamHeroIds:[], version:0 };
+  return DB.dungeonProgress[id]; }
+function resetDungeonSweepIfNewDay(sw){ const k=dungeonServerDayKey(); if(sw.dateKey!==k){ sw.dateKey=k; sw.freeUsesRemaining=2; sw.totalSweepsToday=0; } }
+// bounded idempotency ledger: retried requests return the committed result instead of paying twice
+function idem(key, fn){ DB.idem=DB.idem||{}; const now=Date.now();
+  for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
+  if(DB.idem[key]) return DB.idem[key].resp;
+  const resp=fn(); DB.idem[key]={t:now,resp}; return resp; }
+
+// enemy wave builder — deterministic per floor+wave; vault guardians drawn from the full roster
+function buildDungeonEnemySnapshot(floor, difficulty, kind){
+  const keys=Object.keys(SIM.HERO_BASE);
+  const rnd=SIM.mulberry32(SIM.seedFrom('vaultwave:'+floor+':'+(kind.type||kind.id||'')));
+  const lvl=Math.max(1,Math.min(D_MAX_LEVEL, Math.round(1+floor*0.62)));
+  const picks=[]; const pool=keys.slice();
+  const n=(kind.id? 4 : 5);   // boss wave: 4 guards + the boss itself
+  for(let i=0;i<n;i++){ picks.push(pool.splice(Math.floor(rnd()*pool.length),1)[0]); }
+  const units=picks.map(k=>{ const s=SIM.heroCombatStats(k,{level:lvl}); s.maxHp=Math.round(s.maxHp*difficulty); s.atk=Math.round(s.atk*difficulty*0.92); s.heal=Math.round(s.heal*difficulty); return s; });
+  if(kind.id){ const bossKey=pool[Math.floor(rnd()*pool.length)]||picks[0];
+    const b=SIM.heroCombatStats(bossKey,{level:Math.min(D_MAX_LEVEL,lvl+4)});
+    b.maxHp=Math.round(b.maxHp*difficulty*3.1); b.atk=Math.round(b.atk*difficulty*1.5); b.key=bossKey; b.boss=true; b.bossRule=kind.id;
+    units.push(b); }
+  return units;
+}
+function buildDungeonWaves(floor){
+  const diff=difficultyForDungeonFloor(floor), rule=bossRuleForFloor(floor);
+  if(!rule) return [ buildDungeonEnemySnapshot(floor,diff*0.86,{type:'opening_formation'}),
+                     buildDungeonEnemySnapshot(floor,diff*1.00,{type:'finishing_formation'}) ];
+  return [ buildDungeonEnemySnapshot(floor,diff*0.72,{type:'boss_guard'}),
+           buildDungeonEnemySnapshot(floor,diff*1.00,rule) ];
+}
+function rollFragmentOfQuality(q, rnd){
+  const fams=[...new Set(GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family))];
+  const f=fams[Math.floor((rnd?rnd():Math.random())*fams.length)]||'Stoneheart';
+  return q+' '+f;
+}
+function makeStandardDungeonFloorReward(floor, rnd){
+  const r={ dust:dustForDungeonFloor(floor) };
+  if(isDungeonBossFloor(floor)){ const q=dungeonQualityForFloor(floor); r.fragments=[rollFragmentOfQuality(q,rnd), rollFragmentOfQuality(q,rnd)]; }
+  return r;
+}
+function makeFirstClearDungeonReward(floor, rnd){
+  const r=makeStandardDungeonFloorReward(floor,rnd);
+  if(isDungeonBossFloor(floor)){ const b=makeStandardDungeonFloorReward(floor,rnd); r.dust+=b.dust; r.fragments.push(...b.fragments); r.firstClearDoubled=true; }
+  return r;
+}
+function grantDungeonReward(u, r){
+  u.dust=(u.dust||0)+r.dust;
+  if(r.fragments&&r.fragments.length){ const g=ensureGlyphs(u); for(const k of r.fragments){ g.fragments[k]=(g.fragments[k]||0)+1; } g.revision++; }
+}
+function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLOOR?bossRuleForFloor(floor):null;
+  return { currentFloor:p.currentFloor, highestClearedFloor:p.highestClearedFloor, vaultStatus:p.vaultStatus,
+    band:dungeonQualityForFloor(Math.min(floor,DUNGEON_MAX_FLOOR)), bossRule:rule,
+    isBoss:floor<=DUNGEON_MAX_FLOOR&&isDungeonBossFloor(floor), isMilestone:floor<=DUNGEON_MAX_FLOOR&&isDungeonMilestoneFloor(floor),
+    dust:dustForDungeonFloor(Math.min(floor,DUNGEON_MAX_FLOOR)),
+    sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset() },
+    lastTeamHeroIds:p.lastTeamHeroIds||[], activeAttemptId:p.activeAttempt?p.activeAttempt.id:null, version:p.version };
+}
+/* ====================== end Aether Vault module (routes in api()) ====================== */
+/* ==================== SKYFALL TOURNAMENT (Guild Wars v2) — server-authoritative ====================
+   SPEC-guild-wars-skyfall.md. Weekly knockout: register Sat→Mon, lock+seed top 16 by Tournament
+   Power Pool, rounds Tue–Fri with planning until 6 PM ET and a 2-hour live window. Five locked
+   citadels per side; a citadel falls when its last committed defender line is defeated; first to
+   three destroyed citadels wins, else the spec's tie-breaker (never a coin flip).
+   Everything resolves through the shared deterministic resolver (server/sim.js). The client never
+   supplies power, rosters, outcomes, tower state or rewards.
+   Flag: GUILD_WAR_V2_ENABLED (default OFF; dev accounts always see it). */
+const GUILD_WAR_V2_ENABLED = String(process.env.GUILD_WAR_V2_ENABLED||'false')==='true';
+function warEnabledFor(u){ return !!SIM && (GUILD_WAR_V2_ENABLED || isDev(u)); }
+function warNow(){ return Date.now()+((DB.warTimeOffset|0)||0); }   // dev time-warp for lifecycle tests
+const ET_OFFSET_MS=4*3600000;   // Eastern ≈ UTC-4 (DST); server-side constant, tune in winter
+const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
+const WAR_ASSAULTS_PER_LINE=3;
+const WAR_ROUND_NAMES=['R16','QF','SF','F'];
+
+function warWeekAnchor(now){ // most recent Saturday 00:00 ET
+  const et=new Date(now-ET_OFFSET_MS);
+  const day=et.getUTCDay();                       // 0 Sun … 6 Sat
+  const back=(day-6+7)%7;
+  const sat=Date.UTC(et.getUTCFullYear(),et.getUTCMonth(),et.getUTCDate()-back);
+  return sat+ET_OFFSET_MS;                        // Sat 00:00 ET as real ms
+}
+function warWeekKey(now){ const d=new Date(warWeekAnchor(now)); return d.toISOString().slice(0,10); }
+function warSchedule(anchor){ const D=86400000, H=3600000;
+  return { registrationOpensAt:anchor, registrationLocksAt:anchor+2*D,           // Sat 00:00 → Mon 00:00 ET
+    rounds:[0,1,2,3].map(i=>({ name:WAR_ROUND_NAMES[i],
+      planningOpensAt:anchor+(2+i)*D,                                            // Mon/Tue/Wed/Thu 00:00 ET
+      lockAt:anchor+(3+i)*D+18*H,                                                // Tue–Fri 6 PM ET
+      endsAt:anchor+(3+i)*D+20*H })) };                                          // Tue–Fri 8 PM ET
+}
+function getTournament(){
+  DB.tournaments=DB.tournaments||{};
+  const now=warNow(), wk=warWeekKey(now);
+  if(!DB.tournaments.current || DB.tournaments.current.weekKey!==wk){
+    const anchor=warWeekAnchor(now), sch=warSchedule(anchor);
+    DB.tournaments.current={ id:'gw_'+wk, weekKey:wk, state:'registration',
+      registrationOpensAt:sch.registrationOpensAt, registrationLocksAt:sch.registrationLocksAt,
+      schedule:sch.rounds, entrants:[], rounds:[], matches:{}, rewards:{}, version:0 };
+    writeDB();
+  }
+  return DB.tournaments.current;
+}
+function buildRegisteredLine(u){ // best legal five-hero line from SERVER-owned data
+  const save=parseSaveOf(u);
+  const all=Object.keys(SIM.HERO_BASE).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
+  all.sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk));
+  const line=all.slice(0,5);
+  return { memberId:u.id, name:u.name, heroes:line, power:Math.round(line.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) };
+}
+function warQualifyGuild(g){
+  const lines=(g.members||[]).map(id=>DB.users[id]).filter(u=>u&&!u.isNpc).map(buildRegisteredLine);
+  return { guildId:g.id, name:g.name, lines, powerPool:lines.reduce((s,l)=>s+l.power,0) };
+}
+function warNewMatch(t, roundIndex, aEnt, bEnt){
+  const mkSide=ent=>({ guildId:ent?ent.guildId:null, name:ent?ent.name:'— bye —',
+    citadels:WAR_LANES.map((l,i)=>({ lane:i, key:l.key, destroyed:false, defenders:[] })),
+    unplaced:(ent?ent.lines.map(l=>l.memberId):[]) });
+  const m={ id:'gwm_'+uid(), tournamentId:t.id, roundIndex, state:'planning',
+    aGuildId:aEnt?aEnt.guildId:null, bGuildId:bEnt?bEnt.guildId:null,
+    planningEndsAt:t.schedule[roundIndex].lockAt, startsAt:t.schedule[roundIndex].lockAt, endsAt:t.schedule[roundIndex].endsAt,
+    winnerGuildId:null, sides:{}, assaults:{}, eventLog:[], version:0 };
+  if(aEnt) m.sides[aEnt.guildId]=mkSide(aEnt);
+  if(bEnt) m.sides[bEnt.guildId]=mkSide(bEnt);
+  if(aEnt&&!bEnt){ m.state='finished'; m.winnerGuildId=aEnt.guildId; m.eventLog.push({t:warNow(),e:'BYE'}); }
+  if(!aEnt&&bEnt){ m.state='finished'; m.winnerGuildId=bEnt.guildId; m.eventLog.push({t:warNow(),e:'BYE'}); }
+  t.matches[m.id]=m; return m;
+}
+function warEntrant(t,gid){ return t.entrants.find(e=>e.guildId===gid); }
+function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unassigned members auto-spread
+  for(const gid of Object.keys(m.sides)){ const side=m.sides[gid]; const ent=warEntrant(t,gid); if(!ent) continue;
+    // auto-place any member the leader never assigned, round-robin across lanes
+    let lane=0;
+    for(const mid of (side.unplaced||[])){ side.citadels[lane%5].defenders.push({memberId:mid}); lane++; }
+    side.unplaced=[];
+    for(const c of side.citadels){ c.defenders=c.defenders.map(d=>{ const line=ent.lines.find(l=>l.memberId===d.memberId);
+      return line?{ memberId:d.memberId, name:line.name, lineSnapshot:JSON.parse(JSON.stringify(line.heroes)),
+        hpState:line.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true }:null; }).filter(Boolean); } }
+  m.state='live'; m.version++; m.eventLog.push({t:warNow(),e:'WAR_LOCKED'});
+}
+function warSurvivorHpPct(side){ let hp=0,max=0;
+  for(const c of side.citadels) for(const d of c.defenders){ for(let i=0;i<d.lineSnapshot.length;i++){ max+=d.lineSnapshot[i].maxHp; if(d.alive) hp+=Math.max(0,d.hpState[i].hp); } }
+  return max?hp/max:0; }
+function warDestroyedCount(m,gid){ const opp=Object.keys(m.sides).find(x=>x!==gid); return opp?m.sides[opp].citadels.filter(c=>c.destroyed).length:0; }
+function warFinishMatch(t,m,winnerGid,why){ m.state='finished'; m.winnerGuildId=winnerGid; m.version++; m.eventLog.push({t:warNow(),e:'FINISHED',winner:winnerGid,why}); }
+function warTiebreak(t,m){ // destroyed → surviving HP% → power at lock → higher seed. No coin flip.
+  const [ga,gb]=Object.keys(m.sides);
+  const da=warDestroyedCount(m,ga), db=warDestroyedCount(m,gb);
+  if(da!==db) return warFinishMatch(t,m, da>db?ga:gb, 'citadels');
+  const ha=warSurvivorHpPct(m.sides[ga]), hb=warSurvivorHpPct(m.sides[gb]);
+  if(Math.abs(ha-hb)>1e-9) return warFinishMatch(t,m, ha>hb?ga:gb, 'hp');
+  const pa=(warEntrant(t,ga)||{}).powerPool||0, pb=(warEntrant(t,gb)||{}).powerPool||0;
+  if(pa!==pb) return warFinishMatch(t,m, pa>pb?ga:gb, 'power');
+  const sa=(warEntrant(t,ga)||{}).seed||99, sb=(warEntrant(t,gb)||{}).seed||99;
+  return warFinishMatch(t,m, sa<sb?ga:sb<sa?gb:ga, 'seed');
+}
+function warAdvance(t){ // lazy state machine, called on every /api/guild-war request
+  const now=warNow(); let changed=false;
+  if(t.state==='registration' && now>=t.registrationLocksAt){
+    t.entrants.sort((a,b)=>b.powerPool-a.powerPool);
+    t.entrants=t.entrants.slice(0,16);
+    t.entrants.forEach((e,i)=>e.seed=i+1);
+    t.state=t.entrants.length>=2?'bracket':'finished';
+    if(t.state==='bracket'){ // standard seeding on the smallest power-of-two bracket (2..16): 1 v N, 2 v N-1, …
+      const n=t.entrants.length; let size=2; while(size<n) size*=2; size=Math.min(16,size);
+      const pairs=[]; for(let i=0;i<size/2;i++){ pairs.push([t.entrants[i]||null, t.entrants[size-1-i]||null]); }
+      const round={name:'R16', matchIds:[]};
+      for(const [a,b] of pairs){ if(!a&&!b) continue; const m=warNewMatch(t,0,a,b); round.matchIds.push(m.id); }
+      t.rounds=[round]; t.roundIndex=0;
+    }
+    changed=true;
+  }
+  if(t.state==='bracket'){
+    const ri=t.roundIndex, sch=t.schedule[ri]; const round=t.rounds[ri];
+    if(round){
+      for(const mid of round.matchIds){ const m=t.matches[mid];
+        if(m.state==='planning' && now>=m.planningEndsAt){ warLockMatch(t,m); changed=true; }
+        if(m.state==='live' && now>=m.endsAt){ warTiebreak(t,m); changed=true; } }
+      const allDone=round.matchIds.every(mid=>t.matches[mid].state==='finished');
+      if(allDone){
+        const winners=round.matchIds.map(mid=>warEntrant(t,t.matches[mid].winnerGuildId)).filter(Boolean);
+        if(winners.length<=1 || ri>=3){ t.state='finished'; t.championGuildId=winners.length?winners[0].guildId:null; changed=true; }
+        else if(now>=t.schedule[ri+1].planningOpensAt){
+          const next={name:WAR_ROUND_NAMES[ri+1], matchIds:[]};
+          for(let i=0;i<winners.length;i+=2){ const m=warNewMatch(t,ri+1,winners[i]||null,winners[i+1]||null); next.matchIds.push(m.id); }
+          t.rounds.push(next); t.roundIndex=ri+1; changed=true; }
+      }
+    }
+  }
+  if(changed){ t.version++; writeDB(); }
+  return t;
+}
+function warMatchOfGuild(t,gid){ if(!t.rounds) return null;
+  for(let ri=t.rounds.length-1;ri>=0;ri--){ for(const mid of t.rounds[ri].matchIds){ const m=t.matches[mid];
+    if(m.aGuildId===gid||m.bGuildId===gid) return m; } } return null; }
+function warSideView(m,gid,full){ const s=m.sides[gid]; if(!s) return null;
+  return { guildId:gid, name:s.name, citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
+    defenders:c.defenders.map(d=>({ memberId:d.memberId, name:d.name||nameOfUser(d.memberId), alive:d.alive!==false,
+      hpPct:d.hpState?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
+      assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) })), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
+}
+function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
+function warMatchView(t,m,meGid){
+  return { id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
+    planningEndsAt:m.planningEndsAt, startsAt:m.startsAt, endsAt:m.endsAt, winnerGuildId:m.winnerGuildId,
+    you:warSideView(m,meGid), foe:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
+    lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
+}
+/* ====================== end Skyfall module (routes in api()) ====================== */
+
+
 
 function pickOpponent(me){
   const pool=Object.values(DB.users).filter(u=>u.id!==me.id);
@@ -531,6 +812,212 @@ async function api(req,res,url){
     if(hashPass(code,me.emailChange.salt)!==me.emailChange.hash){ me.emailChange.tries=(me.emailChange.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
     me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
     return send(res,200,{ ok:true, email:me.email }); }
+
+  /* ------------------------- SKYFALL TOURNAMENT (Guild Wars v2) routes -------------------------
+     Never accepts client power, hero stats, rosters, outcomes, tower state or reward amounts. */
+  if(p.startsWith('/api/guild-war')){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!warEnabledFor(me)) return send(res,200,{enabled:false});
+    if(rateLimited(req,'gwar',30,30000)) return send(res,429,{error:'Slow down.'});
+    const t=warAdvance(getTournament());
+    const myGid=me.guildId||null; const myGuildObj=myGid?(DB.guilds||{})[myGid]:null;
+    const isLeaderOrOfficer=!!(myGuildObj && (myGuildObj.leader===me.id || (myGuildObj.officers||[]).includes(me.id)));
+
+    if(p==='/api/guild-war/status'){
+      const ent=myGid?warEntrant(t,myGid):null; const m=myGid?warMatchOfGuild(t,myGid):null;
+      return send(res,200,{ enabled:true, tournament:{ id:t.id, weekKey:t.weekKey, state:t.state,
+          registrationOpensAt:t.registrationOpensAt, registrationLocksAt:t.registrationLocksAt,
+          entrants:t.entrants.map(e=>({guildId:e.guildId,name:e.name,seed:e.seed,powerPool:e.powerPool,lines:e.lines.length})),
+          roundIndex:t.roundIndex||0, championGuildId:t.championGuildId||null, now:warNow() },
+        registered:!!ent, yourPowerPool:ent?ent.powerPool:null, canRegister:isLeaderOrOfficer,
+        match:m?warMatchView(t,m,myGid):null });
+    }
+    if(p==='/api/guild-war/match'){ const m=myGid?warMatchOfGuild(t,myGid):null;
+      if(!m) return send(res,200,{match:null});
+      return send(res,200,{match:warMatchView(t,m,myGid)}); }
+    if(req.method!=='POST') return send(res,404,{error:'guild-war'});
+    const b=await body(req);
+
+    if(p==='/api/guild-war/register'){
+      if(!myGuildObj) return send(res,400,{error:'You are not in a guild.'});
+      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can register.'});
+      if(t.state!=='registration') return send(res,400,{error:'Registration is closed for this week.'});
+      if(warEntrant(t,myGid)) return send(res,400,{error:'Already registered.'});
+      const ent=warQualifyGuild(myGuildObj);
+      if(!ent.lines.length) return send(res,400,{error:'No eligible members.'});
+      t.entrants.push(ent); t.version++; writeDB();
+      return send(res,200,{ok:true, powerPool:ent.powerPool, lines:ent.lines.length});
+    }
+    if(p==='/api/guild-war/unregister'){
+      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can do that.'});
+      if(t.state!=='registration') return send(res,400,{error:'Locked — the bracket is set.'});
+      const i=t.entrants.findIndex(e=>e.guildId===myGid); if(i<0) return send(res,400,{error:'Not registered.'});
+      t.entrants.splice(i,1); t.version++; writeDB(); return send(res,200,{ok:true});
+    }
+    if(p==='/api/guild-war/assign'){
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
+      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can arrange citadels.'});
+      const side=m.sides[myGid]; const memberId=String(b.memberId||''); const lane=parseInt(b.lane,10);
+      if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
+      const ent=warEntrant(t,myGid);
+      if(!ent||!ent.lines.some(l=>l.memberId===memberId)) return send(res,400,{error:'That member has no registered line.'});
+      for(const c of side.citadels){ c.defenders=c.defenders.filter(d=>d.memberId!==memberId); }
+      side.unplaced=(side.unplaced||[]).filter(x=>x!==memberId);
+      side.citadels[lane].defenders.push({memberId});
+      m.version++; writeDB();
+      return send(res,200,{ok:true, match:warMatchView(t,m,myGid)});
+    }
+    if(p==='/api/guild-war/assault'){
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      if(!m||m.state!=='live') return send(res,400,{error:'No live match.'});
+      const now=warNow(); if(!(now>=m.startsAt&&now<m.endsAt)) return send(res,400,{error:'Outside the battle window.'});
+      const lane=parseInt(b.fromLane,10); if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
+      const expectedV=parseInt(b.expectedVersion,10);
+      if(Number.isFinite(expectedV) && expectedV!==m.version) return send(res,409,{error:'STALE', version:m.version});
+      const oppGid=Object.keys(m.sides).find(g=>g!==myGid);
+      const mine=m.sides[myGid].citadels[lane], foe=m.sides[oppGid].citadels[lane];
+      if(mine.destroyed) return send(res,400,{error:'Your '+WAR_LANES[lane].name+' has fallen — no marches from it.'});
+      if(foe.destroyed) return send(res,400,{error:'That citadel is already destroyed.'});
+      const attacker=mine.defenders.find(d=>d.memberId===me.id&&d.alive!==false);
+      if(!attacker) return send(res,400,{error:'Your line is not deployed (alive) in this citadel.'});
+      m.assaults=m.assaults||{};
+      if((m.assaults[me.id]||0)>=WAR_ASSAULTS_PER_LINE) return send(res,400,{error:'No assault orders left for your line.'});
+      const defender=foe.defenders.find(d=>d.alive!==false);
+      m.assaults[me.id]=(m.assaults[me.id]||0)+1;   // every attack spends an order, win or lose
+      if(!defender){ // undefended citadel: the march captures it without a fight (still costs an order)
+        foe.destroyed=true; m.eventLog.push({t:warNow(),e:'CITADEL_CAPTURED',lane,by:me.id});
+        let finished=false; if(warDestroyedCount(m,myGid)>=3){ warFinishMatch(t,m,myGid,'citadels'); finished=true; }
+        m.version++; writeDB();
+        return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished, match:warMatchView(t,m,myGid) }); }
+      const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
+      const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState);
+      const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState);
+      const r=SIM.resolveLineBattle(aLine,bLine,seed);
+      // persist survivor HP/energy on BOTH lines (keyed back to snapshot order)
+      const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+      attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
+      defender.hpState=mapBack(defender.lineSnapshot, r.bState);
+      if(!r.aState.some(x=>x.alive)) attacker.alive=false;
+      if(!r.bState.some(x=>x.alive)) defender.alive=false;
+      let citadelFell=false;
+      if(!foe.defenders.some(d=>d.alive!==false)){ foe.destroyed=true; citadelFell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
+      m.eventLog.push({t:warNow(),e:'ASSAULT',lane,a:me.id,d:defender.memberId,won:r.won});
+      let finished=false;
+      if(warDestroyedCount(m,myGid)>=3){ warFinishMatch(t,m,myGid,'citadels'); finished=true; }
+      m.version++; writeDB();
+      return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
+        replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
+        result:{ aState:r.aState, bState:r.bState, rounds:r.rounds },
+        match:warMatchView(t,m,myGid) });
+    }
+    if(p==='/api/guild-war/claim-reward'){
+      if(t.state!=='finished') return send(res,400,{error:'The tournament is still running.'});
+      if(!myGid||!warEntrant(t,myGid)) return send(res,400,{error:'Your guild did not take part.'});
+      t.rewards=t.rewards||{};
+      const key=myGid+':'+me.id;
+      if(t.rewards[key]) return send(res,400,{error:'Already claimed.'});
+      const champ=t.championGuildId===myGid;
+      const finalist=(t.rounds||[]).some(r=>r.name==='F'&&r.matchIds.some(mid=>{ const m=t.matches[mid]; return (m.aGuildId===myGid||m.bGuildId===myGid)&&m.winnerGuildId!==myGid; }));
+      const amt=champ?2000:finalist?1000:300;
+      me.coins=(me.coins||0)+amt; t.rewards[key]={t:warNow(),amt}; t.version++; writeDB();
+      return send(res,200,{ok:true, coins:me.coins, amount:amt, tier:champ?'champion':finalist?'finalist':'participant'});
+    }
+    if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
+      if(!isDev(me)) return send(res,403,{error:'forbidden'});
+      DB.warTimeOffset=(parseInt(b.offsetMs,10)|0)||0; writeDB();
+      const t2=warAdvance(getTournament());
+      return send(res,200,{ok:true, offset:DB.warTimeOffset, state:t2.state, now:warNow()});
+    }
+    return send(res,404,{error:'guild-war'});
+  }
+
+  /* ------------------------- AETHER VAULT (Dungeon v2) routes -------------------------
+     Never accepts: floor number, win/loss, stats, enemy power, Dust, quality, fragment or roll. */
+  if(p.startsWith('/api/dungeon')||p==='/api/fragments/salvage'){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!dungeonEnabledFor(me)) return send(res,200,{enabled:false});
+    if(rateLimited(req,'dungeon',40,60000)) return send(res,429,{error:'Slow down.'});
+    const prog=getDungeonProgress(me.id);
+    resetDungeonSweepIfNewDay(prog.sweep);
+    if(p==='/api/dungeon/status'){ return send(res,200,Object.assign({enabled:true},dungeonView(prog))); }
+    if(req.method!=='POST') return send(res,404,{error:'dungeon'});
+    const b=await body(req);
+    const reqId=String(b.requestId||'').slice(0,64);
+    if(!reqId) return send(res,400,{error:'requestId required'});
+
+    if(p==='/api/dungeon/start-battle'){
+      if(prog.activeAttempt) return send(res,400,{error:'Finish the current Vault battle first.', attemptId:prog.activeAttempt.id});
+      if(prog.vaultStatus==='complete'||prog.currentFloor>DUNGEON_MAX_FLOOR) return send(res,400,{error:'You have cleared the Aether Vault. Its extension is coming soon.'});
+      const ids=Array.isArray(b.heroIds)?b.heroIds.map(String):[];
+      if(ids.length!==5||new Set(ids).size!==5) return send(res,400,{error:'Pick five different heroes.'});
+      const save=parseSaveOf(me);
+      const snaps=ids.map(k=>snapshotHeroFromServer(me,k,save));
+      if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
+      const floor=prog.currentFloor;
+      const attempt={ id:uid(), floor, teamSnapshot:snaps, enemyWaves:buildDungeonWaves(floor),
+        seed:SIM.seedFrom(me.id+':'+floor+':'+prog.version+':'+uid()), startedAt:Date.now() };
+      prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDB();
+      return send(res,200,{ ok:true, attemptId:attempt.id, floor, bossRule:bossRuleForFloor(floor),
+        team:attempt.teamSnapshot, waves:attempt.enemyWaves, seed:attempt.seed });   // snapshots+seed = cosmetic replay data
+    }
+    if(p==='/api/dungeon/resolve-battle'){
+      const out=idem(me.id+':dresolve:'+reqId,()=>{
+        const a=prog.activeAttempt;
+        if(!a||a.id!==String(b.attemptId||'')) return { ok:false, error:'No matching Vault battle.' };
+        const resolution=SIM.resolveTwoWaveBattle(a.teamSnapshot, a.enemyWaves, a.seed);
+        prog.activeAttempt=null;
+        if(!resolution.result.won){ prog.version++; writeDB();
+          return { ok:true, result:resolution.result, waveResults:resolution.waveResults, progress:dungeonView(prog) }; }
+        if(a.floor!==prog.currentFloor||prog.claimedFloors[a.floor]){ prog.version++; writeDB();
+          return { ok:false, error:'Stale Vault floor.' }; }
+        const rnd=SIM.mulberry32((a.seed+0xABCD)>>>0);
+        const reward=makeFirstClearDungeonReward(a.floor, rnd);
+        grantDungeonReward(me, reward);
+        prog.claimedFloors[a.floor]={ claimedAt:Date.now(), dust:reward.dust, fragments:reward.fragments||[] };
+        prog.highestClearedFloor=a.floor; prog.currentFloor=a.floor+1;
+        if(a.floor===DUNGEON_MAX_FLOOR) prog.vaultStatus='complete';
+        prog.version++; writeDB();
+        return { ok:true, result:resolution.result, waveResults:resolution.waveResults, reward, dust:me.dust||0, progress:dungeonView(prog) };
+      });
+      return send(res, out.ok===false?400:200, out);
+    }
+    if(p==='/api/dungeon/sweep'){
+      const out=idem(me.id+':dsweep:'+reqId,()=>{
+        resetDungeonSweepIfNewDay(prog.sweep);
+        if(prog.sweep.freeUsesRemaining<=0) return { ok:false, error:'No free Sweeps remaining today.', nextResetAt:dungeonNextReset() };
+        if(prog.activeAttempt) return { ok:false, error:'Finish the current Vault battle first.' };
+        if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };
+        const rnd=SIM.mulberry32(SIM.seedFrom(me.id+':sweep:'+dungeonServerDayKey()+':'+prog.sweep.totalSweepsToday));
+        const rewards=[]; let dust=0; const frags={};
+        for(let f=1;f<=prog.highestClearedFloor;f++){ const r=makeStandardDungeonFloorReward(f,rnd);
+          dust+=r.dust; (r.fragments||[]).forEach(k=>frags[k]=(frags[k]||0)+1); rewards.push(Object.assign({floor:f},r)); }
+        grantDungeonReward(me,{dust, fragments:Object.entries(frags).flatMap(([k,n])=>Array(n).fill(k))});
+        prog.sweep.freeUsesRemaining--; prog.sweep.totalSweepsToday++; prog.version++; writeDB();
+        return { ok:true, totalDust:dust, fragments:frags, floors:prog.highestClearedFloor, sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset()}, dust:me.dust||0 };
+      });
+      return send(res, out.ok===false?400:200, out);
+    }
+    if(p==='/api/fragments/salvage'){
+      const out=idem(me.id+':salv:'+reqId,()=>{
+        const stacks=Array.isArray(b.stacks)?b.stacks.slice(0,64):[];
+        if(!stacks.length) return { ok:false, error:'Nothing selected.' };
+        const g=ensureGlyphs(me); const seen=new Set(); let dust=0; const spend={};
+        for(const st of stacks){ const key=String(st.key||''); const qty=Math.floor(+st.quantity);
+          if(seen.has(key)) return { ok:false, error:'Duplicate fragment stack.' }; seen.add(key);
+          if(!(qty>=1)) return { ok:false, error:'Bad quantity.' };
+          const qual=Object.keys(FRAG_SALVAGE_DUST).find(q=>key.startsWith(q+' '));
+          if(!qual) return { ok:false, error:'Unknown fragment: '+key };
+          if((g.fragments[key]||0)<qty) return { ok:false, error:'You do not own '+qty+' × '+key+'.' };
+          dust+=FRAG_SALVAGE_DUST[qual]*qty; spend[key]=qty; }
+        for(const k in spend){ g.fragments[k]-=spend[k]; if(g.fragments[k]<=0) delete g.fragments[k]; }
+        g.revision++; me.dust=(me.dust||0)+dust; writeDB();
+        return { ok:true, dustGained:dust, dust:me.dust, fragments:g.fragments };
+      });
+      return send(res, out.ok===false?400:200, out);
+    }
+    return send(res,404,{error:'dungeon'});
+  }
 
   /* ------------------------- GLYPH ASCENSION v2 routes -------------------------
      Server-authoritative. The client sends ONLY: definitionId / subKey / heroKey /

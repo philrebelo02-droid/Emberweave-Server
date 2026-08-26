@@ -4632,8 +4632,167 @@ setInterval(()=>{
   const b=document.querySelector('[data-academy-timer]'), nl=nextLearn();
   if(b&&nl){ const tip=b.querySelector('.locktip'); if(tip) tip.textContent='Research: '+fmtDur(nl-Date.now()); } else if((b&&!nl)||(!b&&nl)) renderHome();
 },1000);
+/* ================= AETHER VAULT + SKYFALL — client (server-authoritative, render-only) ================= */
+let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
+async function vaultStatus(){ const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
+function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
+    <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
+function vaultPickerHTML(){
+  const owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]);
+  const sel=VAULT.pick||[];
+  return `<div style="font-size:11px;color:#8b98a9;margin:6px 0 4px">Pick five heroes (${sel.length}/5):</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${owned.map(k=>{ const on=sel.includes(k);
+      return `<button class="btn xs ${on?'':'secondary'}" onclick="vaultToggle('${k}')" style="${on?'border:1px solid #5ee89b':''}">${HERO_TYPES[k].emoji||''} ${HERO_TYPES[k].name}</button>`; }).join('')}</div>
+    <button class="btn" style="width:100%;margin-top:10px;${sel.length===5?'':'opacity:.45'}" ${sel.length===5?'onclick="vaultFight()"':'disabled'}>⚔️ BATTLE — Floor ${VAULT.st.currentFloor}</button>`;
+}
+function vaultToggle(k){ VAULT.pick=VAULT.pick||[]; const i=VAULT.pick.indexOf(k);
+  if(i>=0) VAULT.pick.splice(i,1); else if(VAULT.pick.length<5) VAULT.pick.push(k); renderDungeon(); }
+async function vaultFight(){ if(VAULT.busy) return; VAULT.busy=true; VAULT.result=null;
+  const st=await api('/api/dungeon/start-battle','POST',{heroIds:VAULT.pick, requestId:uid8()});
+  if(!st||st.error){ VAULT.busy=false; bannerMsg((st&&st.error)||'Vault unavailable.'); renderDungeon(); return; }
+  const rs=await api('/api/dungeon/resolve-battle','POST',{attemptId:st.attemptId, requestId:uid8()});
+  VAULT.busy=false;
+  if(!rs||rs.error){ bannerMsg((rs&&rs.error)||'Battle failed.'); await vaultStatus(); renderDungeon(); return; }
+  VAULT.result=rs; await vaultStatus(); renderDungeon();
+}
+function uid8(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+function vaultWaveHTML(w){
+  const bar=(u)=>`<div style="display:flex;align-items:center;gap:6px;font-size:10px;margin:2px 0">
+    <span style="width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(HERO_TYPES[u.key]||{}).name||u.key}</span>
+    <div style="flex:1;height:7px;background:#301c1c;border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(100*u.hp/u.maxHp)}%;background:${u.alive?'#5ee89b':'#663'}"></div></div>
+    <span style="color:${u.alive?'#5ee89b':'#e86a6a'}">${u.alive?Math.round(100*u.hp/u.maxHp)+'%':'✕'}</span></div>`;
+  return `<div class="panel" style="margin-top:6px"><b style="font-size:11px">Wave ${w.wave} — ${w.won?'<span style="color:#5ee89b">cleared</span>':'<span style="color:#e86a6a">defeated</span>'}</b>
+    <div style="display:flex;gap:10px;margin-top:4px"><div style="flex:1"><div style="font-size:9px;color:#5ee89b">YOUR SQUAD</div>${w.team.map(bar).join('')}</div>
+    <div style="flex:1"><div style="font-size:9px;color:#ff8b8b">VAULT GUARD</div>${w.foes.map(bar).join('')}</div></div></div>`;
+}
+function vaultResultHTML(r){
+  const won=r.result&&r.result.won;
+  let rew='';
+  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">✨ +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>🧩 '+r.reward.fragments.join(', '):''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
+  return `<div class="panel" style="border-color:${won?'#2b7a55':'#7a2b2b'}">
+    <div style="text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?'🏆 FLOOR CLEARED':'💀 THE VAULT HOLDS'}</div>${rew}
+    ${(r.waveResults||[]).map(vaultWaveHTML).join('')}
+    <button class="btn" style="width:100%;margin-top:8px" onclick="VAULT.result=null;renderDungeon()">${won?'Continue ▶':'↻ Retry Floor'}</button></div>`;
+}
+async function vaultSweep(){ if(VAULT.busy)return; VAULT.busy=true;
+  const r=await api('/api/dungeon/sweep','POST',{requestId:uid8()}); VAULT.busy=false;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Sweep unavailable.'); }
+  else{ const fr=Object.entries(r.fragments||{}); bannerMsg('🧹 Swept '+r.floors+' floors!\n✨ +'+r.totalDust+' Forge Dust'+(fr.length?'\n🧩 '+fr.map(([k,n])=>n+'× '+k).join(', '):'')); }
+  await vaultStatus(); renderDungeon();
+}
+async function vaultSalvage(key,qty){ const q=Math.max(1,qty|0);
+  const r=await api('/api/fragments/salvage','POST',{stacks:[{key,quantity:q}],requestId:uid8()});
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Salvage failed.'); } else { bannerMsg('♻ +'+r.dustGained+' Forge Dust'); if(typeof glyphV2Sync==='function') await glyphV2Sync(); }
+  VAULT.salv=null; renderDungeon();
+}
+function vaultSalvageHTML(){
+  const st=(typeof RUNE2!=='undefined')&&RUNE2.st; const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
+  const RATE={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,'Blue +2':25,'Purple':50,'Purple +1':65,'Purple +2':80,'Purple +3':100,'Gold':150,'Gold +1':200,'Gold +2':260,'Gold +3':330,'Gold +4':400,'Orange':800};
+  const rate=k=>{ const q=Object.keys(RATE).find(q=>k.startsWith(q+' ')); return RATE[q]||0; };
+  return `<div class="panel" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">♻ Fragment Salvage</b><button class="btn xs secondary" onclick="VAULT.salv=null;renderDungeon()">✕</button></div>
+    <div style="font-size:10px;color:#6f7d90;margin:4px 0">Manual only — nothing is ever auto-destroyed. The exact Dust is shown before you confirm.</div>
+    ${frags.length?frags.map(([k,n])=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 0;border-bottom:1px solid #1a2233">
+      <span style="flex:1">${k} <span style="color:#8fe3ff">×${n}</span></span>
+      <button class="btn xs secondary" onclick="vaultSalvage('${k}',1)">1 → ✨${rate(k)}</button>
+      <button class="btn xs secondary" onclick="vaultSalvage('${k}',${n})">All → ✨${rate(k)*n}</button></div>`).join(''):'<div style="color:#6f7d90;font-size:11px;padding:8px 0">No fragments yet — clear boss floors.</div>'}</div>`;
+}
+function vaultScreenHTML(){
+  const s=VAULT.st;
+  if(s.vaultStatus==='complete') return `<div class="panel" style="text-align:center;padding:22px">
+      <div style="font-size:40px">🏛️</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">AETHER VAULT — CONQUERED</div>
+      <div style="font-size:12px;color:#8b98a9">All 100 floors cleared. The Vault Extension is coming soon.</div>
+      <button class="btn" style="margin-top:12px" onclick="vaultSweep()">🧹 Sweep (${s.sweep.freeUsesRemaining} free today)</button></div>`;
+  return `<div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:14px">🏛️ Aether Vault</b>
+        <span class="pill" style="border:1px solid #7a5fb0;color:#c9a2ff">Floor ${s.currentFloor} / 100</span></div>
+      <div style="font-size:11px;color:#8b98a9;margin-top:3px">Highest cleared: <b style="color:#e6edf3">${s.highestClearedFloor}</b> · Fragment band: <b style="color:#c9a2ff">${s.band}</b> · Floor reward: <b style="color:#ffd45e">✨${s.dust} Dust</b>${s.isBoss?' + 🧩×2':''}</div>
+      ${s.isBoss?vaultBossLabel(s.bossRule):''}
+      <div style="font-size:10px;color:#6f7d90;margin-top:4px">Two waves per floor — HP and Energy carry into Wave 2. Lose either wave and the floor resets, no reward.</div></div>
+    ${VAULT.result?vaultResultHTML(VAULT.result):`<div class="panel" style="margin-top:8px">${vaultPickerHTML()}</div>`}
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.freeUsesRemaining>0?'onclick="vaultSweep()"':'disabled'}>🧹 Sweep ×${s.sweep.freeUsesRemaining}</button>
+      <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">♻ Salvage</button></div>
+    ${VAULT.salv?vaultSalvageHTML():''}
+    <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — progress and rewards are saved to your account.</div>`;
+}
+/* -------- SKYFALL (Guild Wars v2) client -------- */
+let SKY={ st:null, busy:false, assignSel:null };
+async function skyStatus(){ const r=await api('/api/guild-war/status'); SKY.st=(r&&r.enabled)?r:{enabled:false}; return SKY.st; }
+function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
+function skyLaneIcon(i){ return ['🛡️','⚡','👑','🌿','🔮'][i]||'🏰'; }
+async function skyRegister(){ const r=await api('/api/guild-war/register','POST',{}); if(r&&r.error)bannerMsg(r.error); else bannerMsg('⚔️ Registered! Power Pool: '+(r.powerPool||0)); await skyStatus(); renderGuild(); }
+async function skyAssign(memberId,lane){ const r=await api('/api/guild-war/assign','POST',{memberId,lane}); if(r&&r.error)bannerMsg(r.error); await skyStatus(); renderGuild(); }
+async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
+  const r=await api('/api/guild-war/assault','POST',{fromLane:lane}); SKY.busy=false;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'March failed.'); }
+  else if(r.captured){ bannerMsg('🏳️ Citadel captured — no defenders!'); }
+  else bannerMsg(r.won?('🏆 Victory on the bridge!'+(r.citadelFell?'\n💥 The citadel falls!':'')) : '💀 Your line was driven back.');
+  if(r&&r.finished) bannerMsg('👑 YOUR GUILD WINS THE MATCH!');
+  await skyStatus(); renderGuild();
+}
+async function skyClaim(){ const r=await api('/api/guild-war/claim-reward','POST',{}); bannerMsg(r&&r.ok?('🎁 +'+r.amount+' coins ('+r.tier+')'):(r&&r.error)||'Claim failed.'); await skyStatus(); renderGuild(); }
+function skyMatchHTML(m, canOfficer){
+  const lanes=m.lanes||[];
+  const laneRow=(i)=>{
+    const you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
+    const defHTML=(c,mine)=>c?c.defenders.map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?'🛡':'💀'} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+d.assaultsLeft+' orders)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
+    const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
+    return `<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:6px">
+      <div style="flex:1;background:${you&&you.destroyed?'#1a0f0f':'#0f1a14'};border:1px solid ${you&&you.destroyed?'#5a2b2b':'#2b7a55'};border-radius:8px;padding:5px 7px;${you&&you.destroyed?'opacity:.55':''}">${you&&you.destroyed?'💥 ':''}${defHTML(you,true)}</div>
+      <div style="width:74px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-size:13px">${skyLaneIcon(i)}</div><div style="font-size:8px;color:#8b98a9;text-align:center">${lanes[i]?lanes[i].name:''}</div>
+        ${m.state==='live'&&mineHere&&foe&&!foe.destroyed&&you&&!you.destroyed?`<button class="btn xs" style="margin-top:2px" onclick="skyMarch(${i})">⚔ March</button>`:''}</div>
+      <div style="flex:1;background:${foe&&foe.destroyed?'#1a0f0f':'#1a0f14'};border:1px solid ${foe&&foe.destroyed?'#5a2b2b':'#7a2b46'};border-radius:8px;padding:5px 7px;${foe&&foe.destroyed?'opacity:.55':''}">${foe&&foe.destroyed?'💥 ':''}${defHTML(foe,false)}</div></div>`; };
+  let planning='';
+  if(m.state==='planning'&&canOfficer){
+    const members=(m.you?m.you.citadels.flatMap(c=>c.defenders.map(d=>d.memberId)):[]);
+    planning=`<div style="font-size:10px;color:#8b98a9;margin:4px 0">Planning until <b>${skyWhen(m.planningEndsAt)}</b> — tap a lane to place YOUR line:</div>
+      <div style="display:flex;gap:4px">${(m.lanes||[]).map((l,i)=>`<button class="btn xs secondary" style="flex:1" onclick="skyAssign('${ACC.id}',${i})">${skyLaneIcon(i)}</button>`).join('')}</div>`;
+  }
+  return `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">☁️ ${m.round} — ${escapeHTML((m.you||{}).name||'')} vs ${escapeHTML((m.foe||{}).name||'')}</b>
+      <span class="pill" style="font-size:9px">${m.state==='planning'?'📋 Planning':m.state==='live'?'🔴 LIVE until '+skyWhen(m.endsAt):'🏁 '+(m.winnerGuildId===(SKY.st&&SKY.st.tournament&&null)?'':'Finished')}</span></div>
+    ${m.state==='planning'?planning:''}
+    ${m.state!=='planning'?`<div style="font-size:9px;color:#6f7d90;margin:3px 0">Destroy 3 enemy citadels to win. Lines march only across their own bridge.</div>`:''}
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:#8b98a9;margin:4px 0 2px"><span style="color:#5ee89b">YOUR CITADELS</span><span style="color:#ff8b8b">ENEMY CITADELS</span></div>
+    ${lanes.map((l,i)=>laneRow(i)).join('')}
+    ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?'🏆 VICTORY':'💀 DEFEAT'}</div>`:''}
+  </div>`;
+}
+function skyPanelHTML(){
+  const s=SKY.st, t=s.tournament;
+  let head=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
+    <b style="font-size:14px">☁️ Skyfall Tournament</b><span class="pill" style="font-size:9px">${t.state==='registration'?'📝 Registration open':t.state==='bracket'?'⚔️ Round '+((t.roundIndex||0)+1):'🏁 Finished'}</span></div>
+    <div style="font-size:10px;color:#8b98a9;margin-top:3px">Weekly guild knockout — register Sat–Mon, fight Tue–Fri 6–8 PM ET across five citadels.</div>`;
+  if(t.state==='registration'){
+    head+=`<div style="font-size:11px;margin-top:6px">Locks at <b>${skyWhen(t.registrationLocksAt)}</b> · ${t.entrants.length} guild${t.entrants.length===1?'':'s'} registered</div>
+      ${s.registered?`<div style="color:#5ee89b;font-size:12px;margin-top:6px">✓ Your guild is registered — Power Pool <b>${s.yourPowerPool}</b></div>`
+        :(s.canRegister?`<button class="btn" style="width:100%;margin-top:8px" onclick="skyRegister()">📝 Register Guild</button>`
+        :`<div style="font-size:11px;color:#6f7d90;margin-top:6px">Ask your guild leader to register.</div>`)}`;
+  }
+  if(t.entrants&&t.entrants.length&&t.state!=='registration'){
+    head+=`<div style="font-size:10px;color:#8b98a9;margin-top:6px">${t.entrants.slice(0,8).map(e=>`#${e.seed} ${escapeHTML(e.name)} (${e.powerPool})`).join(' · ')}</div>`;
+  }
+  if(t.state==='finished'){
+    const champ=t.entrants.find(e=>e.guildId===t.championGuildId);
+    head+=`<div style="text-align:center;margin-top:8px;font-weight:800;color:#ffd45e">👑 Champion: ${escapeHTML(champ?champ.name:'—')}</div>
+      ${s.registered?`<button class="btn" style="width:100%;margin-top:6px" onclick="skyClaim()">🎁 Claim reward</button>`:''}`;
+  }
+  head+='</div>';
+  return head+(s.match?skyMatchHTML(s.match, s.canRegister):'');
+}
+/* ================= end Vault + Skyfall client ================= */
+
 function renderDungeon(){
   const b=document.getElementById('dungeonBody');
+  // AETHER VAULT (v2): server-authoritative. When the server enables it (or for dev accounts),
+  // this screen becomes the Vault; otherwise the legacy Challenge Dungeon below renders unchanged.
+  if(VAULT.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Entering the Vault…</div>';
+    vaultStatus().then(()=>renderDungeon()); return; }
+  if(VAULT.st.enabled){ if(!VAULT.pick||!VAULT.pick.length){ VAULT.pick=(VAULT.st.lastTeamHeroIds||[]).filter(k=>G.unlocked&&G.unlocked[k]).slice(0,5); }
+    b.innerHTML=vaultScreenHTML(); return; }
   const startDg=()=>{ CUR={mode:'dungeon'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); };
   if(isAssetRef(DUNGEON_BG)){
     // full splash art with an invisible clickable hotspot over the drawn "Choose squad" button
@@ -6705,6 +6864,10 @@ function warResetLabel(endsAt){ const ms=endsAt-Date.now(); if(ms<=0) return 'en
   const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000); return d>0?(d+'d '+h+'h'):(h+'h'); }
 async function renderGuildWar(el){
   if(!ACC.token){ el.innerHTML='<div class="panel" style="text-align:center;padding:20px;color:#8b98a9">Sign in to fight guild wars.</div>'; return; }
+  // SKYFALL (v2): when the server enables the tournament (or for dev accounts) the war tab becomes
+  // the bracket UI; otherwise the legacy weekly war below renders unchanged.
+  if(SKY.st===null){ el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Scanning the skies…</div>'; await skyStatus(); }
+  if(SKY.st&&SKY.st.enabled){ el.innerHTML=skyPanelHTML(); return; }
   el.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:22px">Finding your guild&#8217;s war&#8230;</div>';
   const d=await api('/api/guild/war'); if(!d||d.error||!d.war){ el.innerHTML='<div class="panel" style="text-align:center;padding:18px">'+escapeHTML((d&&d.error)||'Could not load the war — try again.')+'</div>'; return; }
   const w=d.war; const total=(w.you.pts+w.foe.pts)||1, myPct=Math.round(w.you.pts/total*100);
@@ -8938,7 +9101,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787748900000';
+const BUILD_ID='1787752000000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
