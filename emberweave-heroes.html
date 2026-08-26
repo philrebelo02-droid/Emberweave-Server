@@ -3783,7 +3783,9 @@ function startBattle(){
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
-  else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally'); buildEnemyWave();
+  else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
+    units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
+    buildEnemyWave();
     bannerMsg('🏛️ THE VAULT — FLOOR '+CUR.floor+'\nWAVE 1'); beginWaveEnter(); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
     const _opp0=(CUR.opp||[]).filter(e=>e&&HERO_TYPES[e.key]); const _opp=_opp0.length?_opp0:[{key:'grosk',level:1,rank:0}];   // drop stale/removed hero keys from opponent teams (old NPC/arena data); never spawn an empty enemy squad
@@ -3791,10 +3793,12 @@ function startBattle(){
     bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
 }
-/* The Vault: when a fighter falls, the battle pauses and YOU pick which backup steps in (Phil 26 Aug) */
+/* The Vault: when a FIGHTER falls, the battle pauses and YOU pick which backup steps in (Phil 26 Aug).
+   Only real squad heroes carry _vaultFighter — summons (Hurne's boars etc.) NEVER trigger the picker. */
 function vaultReinforce(){ if(CUR.mode!=='vault'||!CUR.backups||!CUR.backups.length) return;
+  if(waveXfer) return;   // never open (or spawn) during the run-on/run-off cinematic
   if(document.getElementById('vaultSubModal')) return;   // a choice is already on screen
-  const d=units.find(u=>u.team==='ally'&&!u.alive&&!u._summon&&!u._vaultReplaced);
+  const d=units.find(u=>u.team==='ally'&&!u.alive&&u._vaultFighter&&!u._summon&&HERO_TYPES[u.key]&&!u._vaultReplaced);
   if(d) vaultOpenSubPicker(d);
 }
 function vaultOpenSubPicker(dead){
@@ -3819,7 +3823,10 @@ function vaultOpenSubPicker(dead){
 function vaultPickSub(dead,k,ov){
   const i=CUR.backups.indexOf(k); if(i<0) return; CUR.backups.splice(i,1);
   dead._vaultReplaced=true;
-  const u=makeUnit(k,'ally',dead.x,dead.y,null,{owned:true}); units.push(u); buildFigure(u);
+  const sl=laneSlot('ally',k,0,1,[k]);   // fall back to a sane home slot if the corpse is off-field
+  const px=(isFinite(dead.x)&&dead.x>-200&&dead.x<1800)?dead.x:sl.x, py=(isFinite(dead.y)&&dead.y>-200&&dead.y<1800)?dead.y:sl.y;
+  const u=makeUnit(k,'ally',px,py,null,{owned:true}); u._vaultFighter=true; units.push(u); buildFigure(u);
+  if(u.mesh) u.mesh.visible=true;
   floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
   burstAt(u.x,u.y,0xc9a2ff,14);
   buildPortraitBar(); refreshCtrlBtns(); updateCounts();
@@ -8965,11 +8972,11 @@ function showSkillDesc(key,idx,anchorEl){ hideSkillDesc();
   setTimeout(()=>{ const h=(e)=>{ if(!pop.contains(e.target)){ hideSkillDesc(); document.removeEventListener('pointerdown',h,true); } }; document.addEventListener('pointerdown',h,true); },0);
 }
 function buildPortraitBar(side){side=side||'ally';const bar=document.getElementById('portraitBar');bar.innerHTML='';bar.dataset.mode='host';
-  units.filter(u=>u.team===side).forEach(u=>{
+  units.filter(u=>u.team===side&&HERO_TYPES[u.key]).forEach(u=>{   // heroes only — a summon (Hurne's boars) mid-battle must never crash a portrait rebuild
     const slot=document.createElement('div'); slot.className='pslot'; slot.style.backgroundImage=`url(${MR_UI.frame})`;
     const pv=HERO_PORTRAITS[u.key];
     const el=document.createElement('div');el.className='portrait';
-    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${HERO_TYPES[u.key].emoji}</div>`);   // no in-combat "?" info button — ability descriptions live in the Skill tab
+    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${(HERO_TYPES[u.key]||{}).emoji||'👤'}</div>`);   // no in-combat "?" info button — ability descriptions live in the Skill tab
     const hp=document.createElement('div'); hp.className='pHp'; hp.innerHTML='<div class="pHpFill"></div>';
     const en=document.createElement('div'); en.className='pEnergyBar'; en.innerHTML='<div class="pEnFill"></div>';
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
@@ -9287,7 +9294,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787756140746';
+const BUILD_ID='1787756560620';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
