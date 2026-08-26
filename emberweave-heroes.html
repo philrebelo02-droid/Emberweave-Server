@@ -3791,16 +3791,39 @@ function startBattle(){
     bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
 }
+/* The Vault: when a fighter falls, the battle pauses and YOU pick which backup steps in (Phil 26 Aug) */
 function vaultReinforce(){ if(CUR.mode!=='vault'||!CUR.backups||!CUR.backups.length) return;
-  let subbed=0;
-  for(const d of units){ if(d.team!=='ally'||d.alive||d._summon||d._vaultReplaced) continue;
-    if(!CUR.backups.length) break;
-    const k=CUR.backups.shift(); d._vaultReplaced=true;
-    const u=makeUnit(k,'ally',d.x,d.y,null,{owned:true}); units.push(u); buildFigure(u); subbed++;
-    floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
-    burstAt(u.x,u.y,0xc9a2ff,14);
-  }
-  if(subbed){ buildPortraitBar(); refreshCtrlBtns(); updateCounts(); }
+  if(document.getElementById('vaultSubModal')) return;   // a choice is already on screen
+  const d=units.find(u=>u.team==='ally'&&!u.alive&&!u._summon&&!u._vaultReplaced);
+  if(d) vaultOpenSubPicker(d);
+}
+function vaultOpenSubPicker(dead){
+  paused=true;
+  const app=document.getElementById('app');
+  const ov=document.createElement('div'); ov.id='vaultSubModal';
+  ov.style.cssText='position:absolute;inset:0;z-index:60;background:rgba(5,8,14,.74);display:flex;align-items:center;justify-content:center';
+  ov.innerHTML=`<div class="panel" style="max-width:430px;width:88%;text-align:center;border-color:#7a5fb0">
+    <div style="font-weight:900;font-size:14px;color:#ff8b8b">💀 ${(HERO_TYPES[dead.key]||{}).name||dead.key} has fallen!</div>
+    <div style="font-size:11px;color:#c9a2ff;margin:6px 0">Choose a backup to step in (${CUR.backups.length} left):</div>
+    <div id="vsubRow" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"></div>
+    <button class="btn secondary xs" style="margin-top:10px" id="vsubSkip">Fight on without a replacement</button></div>`;
+  app.appendChild(ov);
+  const row=ov.querySelector('#vsubRow');
+  CUR.backups.forEach(k=>{ const c=document.createElement('div');
+    c.style.cssText='cursor:pointer;display:flex;flex-direction:column;align-items:center;width:66px;padding:5px;border:1px solid #33405a;border-radius:9px;background:#111a28';
+    c.innerHTML=`${heroIcon(k,48)}<span style="font-size:9px;margin-top:3px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(HERO_TYPES[k]||{}).name||k}</span><span style="font-size:8px;color:#8b98a9">Lv ${heroLevel(k)}</span>`;
+    c.onclick=()=>vaultPickSub(dead,k,ov);
+    row.appendChild(c); });
+  ov.querySelector('#vsubSkip').onclick=()=>{ dead._vaultReplaced=true; ov.remove(); paused=false; };
+}
+function vaultPickSub(dead,k,ov){
+  const i=CUR.backups.indexOf(k); if(i<0) return; CUR.backups.splice(i,1);
+  dead._vaultReplaced=true;
+  const u=makeUnit(k,'ally',dead.x,dead.y,null,{owned:true}); units.push(u); buildFigure(u);
+  floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
+  burstAt(u.x,u.y,0xc9a2ff,14);
+  buildPortraitBar(); refreshCtrlBtns(); updateCounts();
+  ov.remove(); paused=false;
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
 // ---- Wave run-on / run-off cinematic (Phil's spec) ----
@@ -4146,8 +4169,8 @@ function updateBattle(dt){
   units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
   units=units.filter(u=>!u._gone);
   updateCounts();
-  if(!ended) vaultReinforce();   // The Vault: a fallen fighter is replaced by the next backup hero
-  if(!ended){const a=units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
+  if(!ended) vaultReinforce();   // The Vault: a fallen fighter pauses the fight so the player picks a backup
+  if(!ended && !document.getElementById('vaultSubModal')){const a=units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
     if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); } else if(a===0)endBattle(false);}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
 
@@ -4506,7 +4529,7 @@ function show(name){
   if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
   document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'));
-  if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); }
+  if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); const vm=document.getElementById('vaultSubModal'); if(vm) vm.remove(); }
   if(name==='heroesPanel') renderHeroList();
   if(name==='heroDetail') renderHeroDetail();
   if(name==='bag') renderBag();
@@ -4559,8 +4582,8 @@ function renderHome(){
     {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91},
     {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(10)},
     {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},
-    {nav:'forge',       label:'Forge',          x:24, y:40, w:19, h:17, lx:24, ly:49},
-    {nav:'coming2',     label:'Coming Soon',    x:22, y:58, w:17, h:17, lx:22, ly:67, coming:true},
+    {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
+    {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67},
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
@@ -9264,7 +9287,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787755417068';
+const BUILD_ID='1787756140746';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
