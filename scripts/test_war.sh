@@ -77,7 +77,10 @@ OFF3=$((OFF+3*86400000+3600000*18+1800000))
 W3=$(curl -s -X POST $B/api/guild-war/debug-warp -H "$HD" -H 'content-type: application/json' -d "{\"offsetMs\":$OFF3}")
 M=$(curl -s $B/api/guild-war/match -H "$H1")
 ck "match is live after 6PM lock" '"state":"live"' "$M"
+ck "lock timestamp recorded (fresh 6PM snapshot ran)" '"lockedAt":17' "$M"
 ck "Beta auto-placed unassigned line" '"wu2"' "$M"
+ASLOCK=$(curl -s -X POST $B/api/guild-war/assign -H "$H1" -H 'content-type: application/json' -d "{\"memberId\":\"$(echo "$U1"|jv "['profile']['id']")\",\"lane\":2}")
+ck "placement rejected AFTER lock" 'No match in planning' "$ASLOCK"
 
 # Alpha assaults lane 0 (Beta's only defender) — strong save should win
 A1=$(curl -s -X POST $B/api/guild-war/assault -H "$H1" -H 'content-type: application/json' -d '{"fromLane":0}')
