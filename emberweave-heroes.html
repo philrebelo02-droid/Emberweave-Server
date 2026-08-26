@@ -1894,9 +1894,11 @@ const GRANK=[
   {name:'Purple',   q:3, col:'#b98bff', cost:null},   // MAX
 ];
 const GMAX_RANK=GRANK.length-1;
-function glyphRank(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]) return Math.max(0,Math.min(GMAX_RANK, RUNE2.st.boards[key].ascensionIndex||0)); return Math.max(0,Math.min(GMAX_RANK, G.glyphRank[key]||0)); }
+// Glyph rank = the SERVER'S v2 ascension index (legacy client glyphs stripped 26 Aug).
+// While v2 state is live it is the only truth (no board = rank 0); G.glyphRank survives only as an
+// offline cache, mirrored from the server on every sync, so quality/skill/equip gates work offline.
+function glyphRank(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st){ const b=RUNE2.st.boards&&RUNE2.st.boards[key]; return Math.max(0,Math.min(GMAX_RANK,(b&&b.ascensionIndex)||0)); } return Math.max(0,Math.min(GMAX_RANK, (G.glyphRank&&G.glyphRank[key])||0)); }
 function heroQuality(key){ return GRANK[glyphRank(key)].q; }   // ability tier derived from glyph colour
-function glyphUpCostR(rank){ return GRANK[rank] && GRANK[rank].cost; }
 // per-class glyph stat leaning (per rank): dps→damage, tanks→bulk, casters/healers→energy + spell dmg
 const GLYPH_PROFILE={
   Tank:    {hp:0.042, dr:0.020, regen:0.0016},
@@ -1911,86 +1913,11 @@ function glyphProfile(key){ return GLYPH_PROFILE[HERO_TYPES[key].role]||GLYPH_PR
 function canAfford(c){ if(!c)return false; for(const k in c){ if((k==='gold'?G.gold:(G.mats[k]||0))<c[k]) return false; } return true; }
 function payCost(c){ for(const k in c){ if(k==='gold')G.gold-=c[k]; else G.mats[k]-=c[k]; } }
 function costStr(c){ return Object.entries(c||{}).map(([k,v])=>k==='gold'?('🪙'+v):((MATS.find(m=>m[0]===k)||[,'?'])[1]+v)).join(' '); }
-// ============== SOCKETABLE GLYPHS — collect stat glyphs and socket them into heroes ==============
-// 4 rarities. Grey has 6 stat types; Green / Blue / Purple have 8 each (30 glyph types total).
-const GLYPH_STATS=[
-  {key:'atk',    name:'Attack',       icon:'⚔'},   // Grey has these first 6 …
-  {key:'hp',     name:'Health',       icon:'❤'},
-  {key:'armor',  name:'Armor',        icon:'🛡'},
-  {key:'mr',     name:'Magic Resist', icon:'🔮'},
-  {key:'crit',   name:'Crit',         icon:'✦'},
-  {key:'energy', name:'Energy',       icon:'⚡'},
-  {key:'critRes',name:'Crit Resist',  icon:'✚'},   // … Green/Blue/Purple add these two
-  {key:'regen',  name:'Health Regen', icon:'♻', unit:'/s'},
-];
-const GLYPH_RARITY=[
-  {key:'grey',  name:'Grey',   col:'#9aa4b2', mul:1.0, count:6},
-  {key:'green', name:'Green',  col:'#5ee89b', mul:1.7, count:8},
-  {key:'blue',  name:'Blue',   col:'#4aa3ff', mul:2.6, count:8},
-  {key:'purple',name:'Purple', col:'#b98bff', mul:4.0, count:8},
-];
-const GLYPH_BASE={ atk:8, hp:60, armor:5, mr:5, crit:5, energy:5, critRes:5, regen:5 };  // FLAT ratings (Grey base); scaled by rarity
-// each hero class needs a FIXED, ordered set of glyph stats (no player choice) — most important first
-const CLASS_GLYPH_PRIORITY={
-  Tank:    ['armor','mr','hp','atk','energy','crit','critRes','regen'],
-  Bruiser: ['hp','armor','atk','mr','crit','energy','critRes','regen'],
-  Brute:   ['hp','armor','atk','mr','crit','energy','critRes','regen'],
-  Warrior: ['atk','crit','hp','armor','energy','mr','critRes','regen'],
-  Assassin:['atk','crit','hp','energy','armor','mr','critRes','regen'],
-  Marksman:['atk','crit','hp','energy','armor','mr','critRes','regen'],
-  Mage:    ['atk','energy','hp','crit','mr','armor','regen','critRes'],
-  Support: ['energy','regen','hp','mr','armor','atk','crit','critRes'],
-};
-// the exact ordered glyph recipe for a hero to advance FROM a rank (fixed types, no options)
-function rankRecipe(key,rank){ const cost=qualityCost(rank); if(!cost)return []; const pri=CLASS_GLYPH_PRIORITY[HERO_TYPES[key].role]||CLASS_GLYPH_PRIORITY.Warrior; const out=[];
-  ['grey','green','blue','purple'].forEach(col=>{ if(!cost[col])return; const avail=glyphStatsFor(col).map(s=>s.key), ordered=pri.filter(s=>avail.includes(s));
-    for(let i=0;i<cost[col];i++) out.push(glyphGid(col, ordered[i%ordered.length])); });
-  return out; }
-const GLYPH_SOCKETS=6;
-function glyphRarityOf(rk){ return GLYPH_RARITY.find(r=>r.key===rk); }
-function glyphStatsFor(rk){ const r=glyphRarityOf(rk); return GLYPH_STATS.slice(0, r?r.count:6); }
-function glyphStatMeta(s){ return GLYPH_STATS.find(x=>x.key===s); }
-function glyphGid(rk,stat){ return rk+':'+stat; }
-function glyphParse(gid){ const p=gid.split(':'); return {rk:p[0], stat:p[1]}; }
-function glyphName(gid){ const p=glyphParse(gid); const s=glyphStatMeta(p.stat), r=glyphRarityOf(p.rk); return (r?r.name:'')+' '+(s?s.name:''); }
-function glyphValue(gid){ const p=glyphParse(gid); return Math.round((GLYPH_BASE[p.stat]||0)*(glyphRarityOf(p.rk)?glyphRarityOf(p.rk).mul:1)); }
-function glyphValStr(gid){ const p=glyphParse(gid), s=glyphStatMeta(p.stat); return '+'+glyphValue(gid)+(s.unit==='/s'?'/s':''); }
-// each of the 30 runes has its own engraved stone icon in /assets/img/runes/
-function glyphImg(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=4" alt="" style="width:'+px+'px;height:'+px+'px;display:block;margin:0 auto">'; }
-function glyphImgInline(gid,px){ const p=glyphParse(gid); return '<img src="/assets/img/runes/rune-'+p.rk+'-'+p.stat+'.png?v=4" alt="" style="width:'+px+'px;height:'+px+'px;vertical-align:-3px;display:inline-block">'; }
-function glyphInvCount(gid){ return (G.glyphInv&&G.glyphInv[gid])||0; }
-function allGlyphIds(){ const out=[]; GLYPH_RARITY.forEach(r=>glyphStatsFor(r.key).forEach(s=>out.push(glyphGid(r.key,s.key)))); return out; }
-// ---- Quality progression: each rank needs an EXACT mix of glyphs (from the GRANK cost table). Socketed glyphs LOCK in. ----
-function qualityCost(rank){ return (GRANK[rank]&&GRANK[rank].cost)||null; }   // e.g. {grey:4} or {grey:3,green:1}
-function qualityTotalReq(rank){ const c=qualityCost(rank); return c?Object.values(c).reduce((a,b)=>a+b,0):0; }
-function qualityCostStr(rank){ const c=qualityCost(rank); return c?Object.entries(c).map(([col,n])=>n+' '+glyphRarityOf(col).name).join(' + '):''; }
-function glyphLockedArr(key){ if(!G.glyphLocked)G.glyphLocked={}; if(!G.glyphLocked[key])G.glyphLocked[key]=[]; return G.glyphLocked[key]; }
-function glyphCurArr(key){ if(!G.glyphCur)G.glyphCur={}; if(!G.glyphCur[key])G.glyphCur[key]=[]; return G.glyphCur[key]; }
-// every socketed glyph (locked from past tiers + the current tier) adds its flat stats — permanently
-function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0}; glyphLockedArr(key).concat(glyphCurArr(key)).forEach(gid=>{ if(!gid)return; const p=glyphParse(gid); out[p.stat]=(out[p.stat]||0)+glyphValue(gid); }); return out; }
+// ============== GLYPHS — v2 only (the legacy socketable-glyph system was stripped 26 Aug) ==============
+// Crafting, fragments, socketing and ascension all live on the SERVER (u.glyphs; /api/glyphs/*).
+// The client renders the board via the RUNE2 state and reads combat stats through the two bridges below.
+function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
-// fixed-slot socketing: slot i requires the exact glyph rankRecipe(key,rank)[i]. Filling the last slot auto-promotes.
-function slotFilled(key,i){ return !!glyphCurArr(key)[i]; }
-function slotGid(key,i){ const rec=rankRecipe(key,glyphRank(key)); return rec[i]; }
-function canFillSlot(key,i){ if(glyphRank(key)>=GMAX_RANK)return false; const rec=rankRecipe(key,glyphRank(key)); if(i>=rec.length||slotFilled(key,i))return false; return glyphInvCount(rec[i])>0; }
-function fillSlot(key,i){ if(!canFillSlot(key,i))return false; const rec=rankRecipe(key,glyphRank(key)), gid=rec[i]; G.glyphInv[gid]-=1; glyphCurArr(key)[i]=gid;
-  if(rec.length && rec.every((g,j)=>glyphCurArr(key)[j])){ glyphLockedArr(key).push(...glyphCurArr(key).filter(Boolean)); G.glyphCur[key]=[]; G.glyphRank[key]=glyphRank(key)+1; }   // all slots filled → promote
-  return true; }
-// rarity-weighted random glyph drop (grey common → purple rare)
-// campaign drops basic (Grey) glyphs, occasionally Green; higher tiers are CRAFTED from lower ones
-function rollGlyphDropRk(rk){ const stats=glyphStatsFor(rk); const s=stats[Math.floor(Math.random()*stats.length)]; return glyphGid(rk,s.key); }
-function rollGlyphDrop(){ return rollGlyphDropRk('grey'); }   // Chapter 1: socketable glyph drops are grey (elite stages add a green separately)
-function giveGlyph(gid,n){ if(!G.glyphInv)G.glyphInv={}; G.glyphInv[gid]=(G.glyphInv[gid]||0)+(n||1); }
-// ---- glyph crafting: a higher-rarity glyph is made from 2 of the glyph below it (+ gold). Grey glyphs drop; the rest are crafted. ----
-const GLYPH_CRAFT_GOLD={green:400, blue:1200, purple:3600};
-function glyphRecipe(gid){ const p=glyphParse(gid), ri=GLYPH_RARITY.findIndex(r=>r.key===p.rk); if(ri<=0) return null;   // Grey = base drop, no recipe
-  const lowerRk=GLYPH_RARITY[ri-1].key; let lowerStat=p.stat;
-  // the two stats that don't exist at Grey are crafted from a related Grey glyph
-  if(p.rk==='green'){ if(p.stat==='critRes')lowerStat='armor'; else if(p.stat==='regen')lowerStat='hp'; }
-  return {items:[[glyphGid(lowerRk,lowerStat),2]], gold:GLYPH_CRAFT_GOLD[p.rk]||0}; }
-function glyphCanCraft(gid){ const r=glyphRecipe(gid); if(!r)return false; if((G.gold||0)<(r.gold||0))return false; return r.items.every(([g,n])=>glyphInvCount(g)>=n); }
-function craftGlyph(gid){ if(!glyphCanCraft(gid))return false; const r=glyphRecipe(gid); r.items.forEach(([g,n])=>G.glyphInv[g]-=n); G.gold-=(r.gold||0); giveGlyph(gid,1); return true; }
-function glyphRecipeStr(gid){ const r=glyphRecipe(gid); if(!r) return 'Drops from campaign stages'; return r.items.map(([g,n])=>n+'× '+glyphName(g)).join(' + ')+(r.gold?' + 🪙'+r.gold:''); }
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
 // starting star: all MYTHICAL heroes start at 3★; otherwise per-hero `start` (1/2/3), default 1. Any hero can be given an explicit `start`.
@@ -2002,8 +1929,7 @@ const BETA_ALL_HEROES = true;
 function applyBetaUnlocks(){ if(!BETA_ALL_HEROES || typeof G==='undefined' || !G.unlocked) return;
   if(!G.glyphRank)G.glyphRank={};
   HERO_KEYS.forEach(k=>{ G.unlocked[k]=true; const ss=heroStartStars(k);
-    if((G.starLevel[k]||1) < ss){ G.starLevel[k]=ss; G.starPip[k]=0; }
-    G.glyphRank[k]=GMAX_RANK; }); }
+    if((G.starLevel[k]||1) < ss){ G.starLevel[k]=ss; G.starPip[k]=0; } }); }   // glyph rank now comes ONLY from the server's v2 boards — beta no longer maxes it
 const SUMMON_COST={1:10,2:30,3:80};                                   // hero-fragments to summon (unlock) a hero, by its starting star
 function summonCost(key){ return SUMMON_COST[heroStartStars(key)]||10; }
 function heroStars(key){ const s=heroStartStars(key); return Math.max(s,Math.min(MAX_STARS,(G.starLevel&&G.starLevel[key])||s)); }
@@ -3942,13 +3868,11 @@ function grantRewards(){
     let unlockMsg='';
     /* heroes now unlock ONLY by collecting fragments (elite stages / market / arena shop / quests) */
     const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join('  ');
-    // socketable glyph drop (1, +1 more on first clear)
-    const gg=rollGlyphDrop(); giveGlyph(gg,1); let glyphStr=`<br><span style="color:${glyphRarityOf(glyphParse(gg).rk).col}">💠 ${glyphName(gg)} glyph</span>`;
-    if(firstClear){ const gg2=rollGlyphDrop(); giveGlyph(gg2,1); glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gg2).rk).col}"> · ${glyphName(gg2)}</span>`; }
-    // Elite stages drop a GREEN socketable glyph + hero fragments
+    // (legacy glyph drops stripped 26 Aug — Glyph v2 fragments come from the Daily, Arena and The Vault, all server-side)
+    let glyphStr='';
+    // Elite stages drop hero fragments
     let eliteStr='';
-    if(isEliteStage(node)){ const gGreen=rollGlyphDropRk('green'); giveGlyph(gGreen,1);
-      glyphStr+=`<span style="color:${glyphRarityOf(glyphParse(gGreen).rk).col}"> · ${glyphName(gGreen)}</span>`;
+    if(isEliteStage(node)){
       const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=firstClear?(ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1))):1;   // first clear: full 3-4 roll; every farm run after: +1
       const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragment${amt===1?'':'s'}</span>`; if(um)unlockMsg=um; }
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
@@ -5042,15 +4966,12 @@ function startElite(key){
   CUR={mode:'elite',eliteKey:key,oppName:HERO_TYPES[key].name+"'s Guard"}; startVersus(team,true);
 }
 const MARKET_REFRESH_MS=3600000;   // market restocks every hour
-function randGlyphGid(rarKey){ const st=glyphStatsFor(rarKey); const s=st[Math.floor(Math.random()*st.length)]; return glyphGid(rarKey,s.key); }
 function randLockedHero(){ let pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked&&!HERO_TYPES[k].source&&!HERO_TYPES[k].wip&&!G.unlocked[k]); if(!pool.length)pool=HERO_KEYS.filter(k=>HERO_TYPES[k].locked&&!HERO_TYPES[k].source&&!HERO_TYPES[k].wip); return pool[Math.floor(Math.random()*pool.length)]||'grosk'; }   // exclude shop/purchase-exclusive heroes (e.g. Grosk = arena only)
 function rollMarket(){ const o=[]; const L=playerLevel();
   // prices & value scale to the player's level at restock time (gold scales more than premium gems)
   const gm=x=>Math.round(x*(1+(L-1)*0.09));   // gold: ~1× at L1 → ~4× at L40
   const em=x=>Math.round(x*(1+(L-1)*0.04));   // gems: gentler premium scaling
   const fq=n=>n+Math.floor(L/20);             // fragment stacks grow with level (+1 per 20 levels)
-  const g=randGlyphGid('green'); o.push({kind:'rune',gid:g,icon:'🟢',name:glyphName(g)+' rune',cost:{gold:gm(500)}});
-  const blRar=L>=30?'purple':'blue', bl=randGlyphGid(blRar); o.push({kind:'rune',gid:bl,icon:blRar==='purple'?'🟣':'🔵',name:glyphName(bl)+' rune',cost:{gems:em(45)}});
   o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:gm(1000)}});
   o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:gm(1400)}});
   o.push({kind:'frag',hero:randLockedHero(),qty:fq(3),cost:{gems:em(80)}});
@@ -5179,8 +5100,7 @@ function renderMarket(){
   b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
     if(o.cost.gold){ if(G.gold<o.cost.gold)return; G.gold-=o.cost.gold; } else { if(G.gems<o.cost.gems)return; G.gems-=o.cost.gems; }
     let msg='';
-    if(o.kind==='rune') giveGlyph(o.gid,1);
-    else if(o.kind==='frag') msg=giveHeroFrag(o.hero,o.qty)||'';
+    if(o.kind==='frag') msg=giveHeroFrag(o.hero,o.qty)||'';
     else if(o.kind==='shield') G.shieldItems=(G.shieldItems||0)+1;
     o.bought=true; saveG(); updateHubChrome(); if(msg)bannerMsg(msg); renderMarket();
   });
@@ -5342,17 +5262,14 @@ function sweepStage(i,times){
   G.stamina-=cost*runs;
   const gold=(40+i*30)*runs, pxp=pxpEach*runs, hxp=heroXPEach*runs;
   G.gold+=gold; addPlayerXP(pxp); grantTeamXP(hxp);
-  const drops={}, glyphs={}; let frags=0, um='';
+  const drops={}; let frags=0, um='';
   for(let r=0;r<runs;r++){
     const d=rollDrops(i); for(const k in d){ drops[k]=(drops[k]||0)+d[k]; G.mats[k]=(G.mats[k]||0)+d[k]; }
-    const gg=rollGlyphDrop(); giveGlyph(gg,1); glyphs[gg]=(glyphs[gg]||0)+1;
     if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); if(_um)um=_um; frags++; } else { um='⚔ '+(_t?_t.name:'This hero')+"'s fragments only drop from MANUAL battles, never sweeps."; } }   // Phil 26 Aug: mythical/exclusive rewards are not sweepable
   }
   saveG(); updateHubChrome();
   const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join(' ');
-  // one line per distinct glyph, with a ×N when the same one dropped more than once
-  const glyphStr=Object.entries(glyphs).map(([g,c])=>
-    `<br><span style="color:${glyphRarityOf(glyphParse(g).rk).col}">💠 ${glyphName(g)} glyph${c>1?' ×'+c:''}</span>`).join('');
+  const glyphStr='';   // legacy glyph drops stripped 26 Aug
   const eliteStr=frags?`<br><span style="color:#c9a0ff">⭐ +${frags} ${HERO_TYPES[eliteHeroFor(i)].name} fragment${frags>1?'s':''}</span>`:'';
   const head=(runs>1?`Swept ×${runs}!`:'Swept!')+((runs<times)?` <span style="color:#8b98a9">(${dayLeft<afford?'daily limit':'stamina ran out'})</span>`:'');
   document.getElementById('smMsg').innerHTML=`${head} 🪙 +${gold} · +${pxp} XP · +${hxp} hero XP<br>${dropStr}${glyphStr}${eliteStr}${um?'<br>'+um:''}`;
@@ -7292,6 +7209,7 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
   const st=await api('/api/glyphs/state'); if(st&&st.error){ RUNE2.enabled=(RUNE2.enabled===true); return; }
   RUNE2.enabled=!!(st&&st.enabled); if(!RUNE2.enabled){ RUNE2.st=null; return; }
   RUNE2.st=st;
+  try{ if(!G.glyphRank)G.glyphRank={}; HERO_KEYS.forEach(k=>{ const b=st.boards&&st.boards[k]; G.glyphRank[k]=Math.max(0,Math.min(GMAX_RANK,(b&&b.ascensionIndex)||0)); }); }catch(e){}   // offline cache of the server rank
   if(!RUNE2.cat){ const c=await api('/api/glyphs/catalog'); if(c&&c.defs){ c.byId={}; c.defs.forEach(d=>c.byId[d.id]=d); RUNE2.cat=c; } } }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
@@ -7332,8 +7250,9 @@ function g2canCraft(def){ const g=RUNE2.st;
     if(i.kind==='finished'&&!Object.values(g.finished).some(x=>x.status==='inventory'&&x.definitionId===i.defId)) return false; }
   return true; }
 function glyphV2Tab(key){
+  if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to craft, socket and ascend glyphs.</span></div>`; }
   if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
-    if(RUNE2.enabled===null||RUNE2.enabled===true){ glyphV2Sync().then(()=>{ if(heroTab==='glyphs') renderHeroDetail(); }); }
+    glyphV2Sync().then(()=>{ if(heroTab==='glyphs') renderHeroDetail(); });
     return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">Loading glyphs…</div>`; }
   const cat=RUNE2.cat, st=RUNE2.st, b=g2board(key);
   const idx=b.ascensionIndex, maxed=idx>=cat.ladder.length;
@@ -7499,30 +7418,8 @@ function renderHeroDetail(){
       </div>`; }).join('');
     const clipBox=hasClips?`<div class="sk-clipwrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div><div id="skClip">${skillClipHTML(key,skClipIdx)}</div><div class="sk-cliphint">${MOBILE?'Tap':'Hover'} a skill to preview its ability</div></div>`:'';
     tab=`<div class="panel">${clipBox}${rows}<div style="font-size:10px;color:#6f7d90;margin-top:8px">${hasClips?(MOBILE?'Tap':'Hover')+' a skill to watch its ability clip. ':''}<b>Double-tap</b> a skill to read its full description. Spend gold on ＋ to level it up. Raise <b>Quality</b> (Glyphs tab) to unlock more skills.</div></div>`;
-  } else if(heroTab==='glyphs' && (typeof RUNE2!=='undefined') && RUNE2.enabled!==false){
-    tab=glyphV2Tab(key);   // GLYPH v2 — server-authoritative board (falls back to legacy below when the server says disabled)
   } else if(heroTab==='glyphs'){
-    // ---- QUALITY: fixed glyph recipe per rank (no choice). Each slot = a specific glyph; ＋ green if owned, grey if not. ----
-    const r=gr, atMax=r>=GMAX_RANK, rec=atMax?[]:rankRecipe(key,r);
-    let socketsHtml='', note='';
-    if(atMax){ socketsHtml=`<div style="text-align:center;color:${gi.col};font-weight:800;padding:14px">★ MAX QUALITY — Purple ★</div>`; }
-    else {
-      const cells=rec.map((gid,i)=>{ const p=glyphParse(gid), rc=glyphRarityOf(p.rk).col, sm=glyphStatMeta(p.stat), filled=slotFilled(key,i), have=glyphInvCount(gid)>0;
-        const plus= have?'#5ee89b':'#6f7d90';   // ＋ green if you own the glyph, grey if not
-        return `<div class="gslot${filled?' filled':''}" ${filled?'':`data-slot="${i}"`} style="border-color:${filled?rc:(have?'#5ee89b':'#33405e')};${filled||!have?'':'cursor:pointer'}">
-          <div style="font-size:18px;color:${filled?rc:plus};height:30px;display:flex;align-items:center;justify-content:center">${filled?glyphImg(gid,30):'＋'}</div>
-          <div style="font-size:8px;color:${rc};font-weight:700">${sm.name}</div>
-          <div style="font-size:7px;color:${glyphRarityOf(p.rk).col}">${glyphRarityOf(p.rk).name}${filled?' '+glyphValStr(gid):(have?' · ready':' · need')}</div>
-        </div>`; }).join('');
-      socketsHtml=`<div class="hd-armorgrid" style="grid-template-columns:repeat(${Math.min(rec.length,4)},1fr);gap:6px">${cells}</div>`;
-      const needList=rec.filter((g,i)=>!slotFilled(key,i)).map(g=>glyphName(g));
-      note=`<div style="font-size:11px;color:#8b98a9;margin-bottom:8px">To reach <b style="color:${GRANK[r+1].col}">${GRANK[r+1].name}</b>, socket: <b style="color:#e6edf3">${rec.map(g=>glyphName(g)).join(', ')}</b>. Tap a green ＋ to socket that glyph — it's <b>permanent</b>.</div>`;
-    }
-    tab=`<div class="panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Quality</b><span class="pill" style="color:${gi.col};border:1px solid ${gi.col}">${gi.name}</span></div>
-        ${note}
-        ${socketsHtml}
-        ${atMax?'':`<div style="font-size:10px;color:#6f7d90;margin-top:10px">＋ is <span style="color:#5ee89b">green</span> when you own the glyph, grey when you don't. Collect &amp; craft glyphs in the Bag. Filling every slot promotes this hero.</div>`}</div>`;
+    tab=glyphV2Tab(key);   // GLYPH v2 — the ONLY glyph system (legacy stripped, 26 Aug)
   } else if(heroTab==='equip'){
     const s=eqSlotSel, sl=EQ_SLOTS[s], un=eqSlotUnlocked(key,s), equipped=equipArr(key)[s];
     // base materials strip
@@ -7606,10 +7503,6 @@ function renderHeroDetail(){
   body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=+r.dataset.skill;
     r.addEventListener('dblclick',(e)=>{ if(e.target.closest('[data-skillup]'))return; e.preventDefault(); showSkillDesc(key,idx,r); });
     let _lt=0; r.addEventListener('pointerup',(e)=>{ if(e.target.closest('[data-skillup]'))return; const now=Date.now(); if(now-_lt<340){ e.preventDefault(); showSkillDesc(key,idx,r); _lt=0; } else { _lt=now; } }); });
-  // glyph socketing: tap a ＋ slot → confirm → use the glyph permanently (auto-promotes when all slots filled)
-  body.querySelectorAll('[data-slot]').forEach(el=>el.onclick=()=>{ const i=+el.dataset.slot; if(!canFillSlot(key,i))return; const gid=slotGid(key,i);
-    gameConfirm(`Use your <b style="color:${glyphRarityOf(glyphParse(gid).rk).col}">${glyphName(gid)}</b> glyph on ${HERO_TYPES[key].name}?<br><span style="font-size:11px;color:#8b98a9">This is permanent — the glyph is consumed and locks in.</span>`,
-      ()=>{ if(fillSlot(key,i)){ saveG(); updateHubChrome(); renderHeroDetail(); } }); });
   if(owned){ const hdS=body.querySelector('#hdStars'), hdSL=body.querySelector('#hdStarsLink');
     if(hdS) hdS.onclick=()=>openStarsPanel(key);
     if(hdSL) hdSL.onclick=()=>openStarsPanel(key); }
@@ -7632,34 +7525,19 @@ function heroCycle(dir){
 }
 function renderBag(){
   const b=document.getElementById('bagBody');
-  // glyph collection grouped by rarity (6 Grey / 8 Green / 8 Blue / 8 Purple) — click a glyph to see how to craft it
-  const rarBlocks=GLYPH_RARITY.map(r=>{
-    const cells=glyphStatsFor(r.key).map(s=>{ const gid=glyphGid(r.key,s.key), n=glyphInvCount(gid), selc=(bagSel===gid);
-      return `<div class="glcell" data-glyph="${gid}" style="cursor:pointer;border-color:${selc?'#ffd45e':r.col+(n>0?'':'55')};box-shadow:${selc?'0 0 0 1px #ffd45e88':'none'};opacity:${n>0?1:.5}" title="${glyphName(gid)} — ${glyphValStr(gid)} ${s.name}">
-        <div style="height:30px;display:flex;align-items:center;justify-content:center">${glyphImg(gid,30)}</div><div style="font-size:8px;color:#c3ccd8">${s.name}</div>
-        <div style="font-size:10px;font-weight:800;color:${r.col}">${glyphValStr(gid)}</div>
-        <div style="font-size:8px;color:#8b98a9">×${n}</div></div>`; }).join('');
-    return `<div style="margin-bottom:10px"><div style="font-weight:700;font-size:12px;color:${r.col};margin-bottom:4px">${r.name} <span style="color:#8b98a9;font-weight:400">· ${glyphStatsFor(r.key).length} types</span></div><div class="glgrid">${cells}</div></div>`;
-  }).join('');
-  // detail / craft panel for the selected glyph
-  let detail='';
-  if(bagSel){ const p=glyphParse(bagSel), col=glyphRarityOf(p.rk).col, rec=glyphRecipe(bagSel), can=glyphCanCraft(bagSel);
-    detail=`<div class="panel" style="border-color:${col}66;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center"><b style="color:${col}">${glyphImgInline(bagSel,22)} ${glyphName(bagSel)}</b><span style="font-size:11px;color:#8b98a9">you own ${glyphInvCount(bagSel)}</span></div>
-      <div style="font-size:12px;color:#e6edf3;margin:4px 0">${glyphValStr(bagSel)} ${glyphStatMeta(p.stat).name}</div>
-      <div style="font-size:11px;color:#8b98a9">Recipe: <b style="color:#e6edf3">${glyphRecipeStr(bagSel)}</b></div>
-      ${rec?`<div style="text-align:center;margin-top:8px"><button class="btn sm" id="craftGlyph" ${can?'':'disabled'}>⚒️ Craft ${glyphName(bagSel)}</button></div>`:`<div style="font-size:10px;color:#6f7d90;margin-top:6px">Basic glyph — drops from campaign stages.</div>`}
-    </div>`;
-  }
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">💠 Glyph Collection</div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Grey glyphs drop from campaign stages; higher tiers are <b>crafted</b> from two of the tier below. Tap any glyph to see its recipe. Socket glyphs into a hero (Heroes → Glyphs) to raise Quality.</div>
-    ${detail}
-    ${rarBlocks}
+  // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
+  const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
+  const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
+  const inv=st?Object.values(st.finished||{}).filter(i=>i.status==='inventory').length:0;
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">🔮 Glyphs</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Glyphs are crafted and socketed on each hero — <b>Heroes → hero → Glyphs tab</b>. Fragments drop from the Daily, Arena wins and The Vault.</div>
+    ${st?`<div class="panel" style="margin-bottom:10px">
+      <div style="font-size:11px;margin-bottom:4px">Finished glyphs in stock: <b style="color:#8fe3ff">${inv}</b></div>
+      ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
+    </div>`:'<div class="panel" style="font-size:11px;color:#6f7d90;margin-bottom:10px">Sign in to see your glyph fragments.</div>'}
     <div style="font-weight:700;margin:14px 0 6px">🔷 Quality Shards</div>
     <div class="matline">${MATS.map(([k,ic,nm])=>`<div class="mat">${ic} ${nm}: ${G.mats[k]}</div>`).join('')}</div>
     <div style="font-size:11px;color:#6f7d90;margin-top:8px">A general resource from campaign drops.</div>`;
-  b.querySelectorAll('[data-glyph]').forEach(el=>el.onclick=()=>{ bagSel=(bagSel===el.dataset.glyph?null:el.dataset.glyph); renderBag(); });
-  const cg=b.querySelector('#craftGlyph'); if(cg) cg.onclick=()=>{ if(craftGlyph(bagSel)){ saveG(); updateHubChrome(); renderBag(); } };
 }
 const BUILD_VERSION='v0.16';
 /* ============================ WISHING POOL ============================ */
@@ -7930,7 +7808,7 @@ const SIGNIN_DAILY=[
   {icon:'🪙', label:'300 Gold',     grant:()=>{ G.gold=(G.gold||0)+300; }},
   {icon:'⧗',  label:'+60 Stamina',  grant:()=>{ G.stamina=(G.stamina||0)+60; }},
   {icon:'💎', label:'20 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+20; }},
-  {icon:'💠', label:'6 Rune Shards',grant:()=>{ wishMat('green',6); }},
+  {icon:'💠', label:'6 Quality Shards',grant:()=>{ wishMat('green',6); }},
   {icon:'🪙', label:'600 Gold',     grant:()=>{ G.gold=(G.gold||0)+600; }},
   {icon:'💎', label:'30 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+30; }},
 ];
@@ -7978,11 +7856,13 @@ function renderSignin(){ signinEnsure(); const b=document.getElementById('signin
   const btn=b.querySelector('#siClaim'); if(btn) btn.onclick=signinClaimToday; }
 
 /* ============================ TUTORIAL (getting started) ============================ */
-function anyGlyphSocketed(){ return HERO_KEYS.some(k=> glyphRank(k)>0 || ((G.glyphCur&&G.glyphCur[k])||[]).some(Boolean)); }
+function anyGlyphSocketed(){ if(HERO_KEYS.some(k=>glyphRank(k)>0)) return true;
+  const st=(typeof RUNE2!=='undefined')&&RUNE2.st; if(!st||!st.boards) return false;
+  return Object.values(st.boards).some(b=>((b&&b.slots)||[]).some(Boolean)); }
 function anySkillRaised(){ return HERO_KEYS.some(k=> ((G.skillLevel&&G.skillLevel[k])||[1,1,1,1]).some(v=>v>1)); }
 const TUTORIAL_STEPS=[
   {id:'win11', icon:'⚔️', title:'Win your first battle', desc:'Open the Campaign and clear Stage 1-1.', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
-  {id:'rune',  icon:'💠', title:'Empower a hero', desc:'Open a hero (Menu → Heroes), then socket a rune to raise their quality.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
+  {id:'rune',  icon:'💠', title:'Empower a hero', desc:'Open a hero (Menu → Heroes → Glyphs tab), then socket a crafted glyph into their board.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
   {id:'win12', icon:'🗺️', title:'Push onward', desc:'Clear Stage 1-2 in the Campaign.', go:()=>show('campaign'), reward:{frag:3}, done:()=>(G.campaignCleared||0)>=2},
   {id:'skill', icon:'✨', title:'Train a skill', desc:'On a hero, raise one of their skills a level (costs gold).', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
   {id:'name',  icon:'🪶', title:'Claim your title', desc:'Tap your portrait and set your commander name.', go:()=>{show('home'); if(typeof openProfile==='function') openProfile();}, reward:{gems:20}, done:()=>!!G.nameChanged},
@@ -8028,7 +7908,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutDismissed) retur
 
 /* ============================ FLOATING ISLE: THREE TRIALS ============================ */
 const ISLE_FEATURES=[
-  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — battle for gold and runes.', open:()=>openTrainingProvince()},
+  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — battle for gold and hero XP.', open:()=>openTrainingProvince()},
   {id:'gauntlet', ic:'🎲', name:'The Gauntlet',      lvl:25, desc:'A roguelike run — pick powerful boons and survive.', open:()=>openGauntlet()},
   {id:'tower',    ic:'🗼', name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
 ];
@@ -8062,13 +7942,13 @@ function provState(t){ if(!G.prov)G.prov={}; if(!G.prov[t])G.prov[t]={stage:0,da
 function provPlaysLeft(t){ return Math.max(0,PROV_PLAYS-provState(t).used); }
 function provReqPower(t,stage){ const base=t==='gold'?420:640; return Math.round(base*Math.pow(1.4,stage-1)); }
 function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }
-function provRuneAmt(stage){ return 1+Math.floor(stage/2); }
-function provRewardStr(t,stage){ const n=provRuneAmt(stage); return t==='gold'?('🪙 '+provGoldAmt(stage).toLocaleString()):('💠 '+n+' rune'+(n===1?'':'s')); }
-function grantProvReward(t,stage){ if(t==='gold'){ G.gold=(G.gold||0)+provGoldAmt(stage); } else { const n=provRuneAmt(stage); for(let i=0;i<n;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } } updateHubChrome(); return provRewardStr(t,stage); }
+function provXpAmt(stage){ return Math.round(70*stage*Math.pow(1.16,stage)); }   // legacy rune payouts stripped — the second ground trains hero XP now
+function provRewardStr(t,stage){ return t==='gold'?('🪙 '+provGoldAmt(stage).toLocaleString()):('📖 '+provXpAmt(stage).toLocaleString()+' hero XP'); }
+function grantProvReward(t,stage){ if(t==='gold'){ G.gold=(G.gold||0)+provGoldAmt(stage); } else { grantTeamXP(provXpAmt(stage)); } updateHubChrome(); return provRewardStr(t,stage); }
 function provChallenge(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; const next=p.stage+1; if(next>PROV_STAGES) return {maxed:true}; if(battlePow()<provReqPower(t,next)) return {weak:true}; p.used++; p.stage=next; const rw=grantProvReward(t,next); saveG(); return {win:true,stage:next,reward:rw}; }
 function provSweep(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; if(p.stage<1) return {invalid:true}; p.used++; const rw=grantProvReward(t,p.stage); saveG(); return {swept:true,stage:p.stage,reward:rw}; }
 function openTrainingProvince(){ const ov=isleOverlay();
-  const cards=[['gold','🪙','Gold Province',10,'Battle for gold'],['rune','💠','Rune Province',15,'Battle for runes']];
+  const cards=[['gold','🪙','Gold Province',10,'Battle for gold'],['rune','📖','Drill Province',15,'Battle for hero XP']];
   ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🌀 Training Province</div><button class="btn sm secondary" id="ipX">✕</button></div>
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Two training grounds, each a ladder of rising difficulty. Beat a stage to earn its reward, then sweep it later for the same haul. Two plays each per day.</div>`
     + cards.map(([t,ic,nm,rl,d])=>{ const locked=playerLevel()<rl; return `<div data-prov="${t}" style="display:flex;align-items:center;gap:12px;background:#0f1420;border:1px solid ${locked?'#242c3e':'#3a4c72'};border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;opacity:${locked?.65:1}">
@@ -8077,7 +7957,7 @@ function openTrainingProvince(){ const ov=isleOverlay();
   ov.querySelector('#ipX').onclick=()=>ov.remove();
   ov.querySelectorAll('[data-prov]').forEach(el=>el.onclick=()=>{ const t=el.dataset.prov, rl=t==='rune'?15:10; if(playerLevel()<rl){ bannerMsg('🔒 '+(t==='rune'?'Rune':'Gold')+' Province unlocks at level '+rl+'.'); return; } ov.remove(); openProvince(t); });
 }
-function openProvince(t){ const meta=t==='gold'?{ic:'🪙',nm:'Gold Province',col:'#ffd45e'}:{ic:'💠',nm:'Rune Province',col:'#8fd0ff'}; const ov=isleOverlay();
+function openProvince(t){ const meta=t==='gold'?{ic:'🪙',nm:'Gold Province',col:'#ffd45e'}:{ic:'📖',nm:'Drill Province',col:'#8fd0ff'}; const ov=isleOverlay();
   function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), next=p.stage+1, maxed=p.stage>=PROV_STAGES, req=maxed?0:provReqPower(t,next), pow=battlePow(), canGo=!maxed&&pow>=req&&left>0;
     ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${meta.ic} ${meta.nm}</div><button class="btn sm secondary" id="pvX">✕</button></div>
       <div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:10px">Cleared <b style="color:${meta.col}">Stage ${p.stage}/${PROV_STAGES}</b> · Plays today <b style="color:#ffd45e">${left}/${PROV_PLAYS}</b> · Your power ⚔ ${pow.toLocaleString()}</div>
@@ -8108,7 +7988,7 @@ const GAUNT_PERKS=[
   {id:'treasure',ic:'💰', name:'Treasure Hunter', desc:'+80% rewards for the rest of the run'},
   {id:'phantom', ic:'👻', name:'Phantom Step',    desc:'30% chance to skip a wave entirely'},
   {id:'overload',ic:'⚡', name:'Overload',        desc:'+40% power for the next 3 waves'},
-  {id:'fortune', ic:'🍀', name:"Fortune's Favor", desc:'+2 bonus runes every wave from now on'},
+  {id:'fortune', ic:'🍀', name:"Fortune's Favor", desc:'+600 bonus gold every wave from now on'},
 ];
 let _gaunt=null;
 function gauntDay(){ if(!G.gauntlet)G.gauntlet={day:'',runs:0,best:0}; const dk=arenaDayKey(); if(G.gauntlet.day!==dk){ G.gauntlet.day=dk; G.gauntlet.runs=0; } return G.gauntlet; }
@@ -8121,7 +8001,7 @@ function gauntApplyPerk(id){ const r=_gaunt; if(!r)return; r.perks.push(id);
   if(id==='banner')r.banner*=1.22; else if(id==='momentum')r.momentum+=0.06; else if(id==='wind')r.wind=true; else if(id==='slayer')r.slayer+=0.50;
   else if(id==='treasure')r.rewardMul*=1.80; else if(id==='phantom')r.phantom=Math.min(0.6,r.phantom+0.30); else if(id==='overload')r.overloadUntil=r.wave+3; else if(id==='fortune')r.fortune+=2;
   r.pendingPerk=false; }
-function gauntBank(){ const r=_gaunt; if(!r)return; if(r.wave>gauntDay().best){ gauntDay().best=r.wave; } G.gold=(G.gold||0)+r.gold; if(r.gems>0)G.gems=(G.gems||0)+r.gems; for(let i=0;i<r.runes;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } updateHubChrome(); saveG(); }
+function gauntBank(){ const r=_gaunt; if(!r)return; if(r.wave>gauntDay().best){ gauntDay().best=r.wave; } G.gold=(G.gold||0)+r.gold; if(r.gems>0)G.gems=(G.gems||0)+r.gems; if(r.runes>0)G.gold=(G.gold||0)+r.runes*300; updateHubChrome(); saveG(); }   // legacy rune payout → bonus gold (300 each)
 function gauntFight(){ const r=_gaunt; if(!r||!r.alive) return {ended:true};
   const w=r.wave+1, isBoss=(w%5===0);
   if(r.phantom && Math.random()<r.phantom){ r.wave=w; const rw=gauntWaveReward(w,isBoss); r.pendingPerk=(w%3===0); return {wave:w,skipped:true,reward:rw,isBoss,perk:r.pendingPerk}; }
@@ -8130,7 +8010,7 @@ function gauntFight(){ const r=_gaunt; if(!r||!r.alive) return {ended:true};
   if(r.wind){ r.wind=false; r.wave=w; return {wave:w,revived:true,isBoss,perk:(w%3===0)&&(r.pendingPerk=true)}; }
   r.alive=false; return {defeat:true, wave:r.wave}; }
 function gauntWaveReward(w,isBoss){ const r=_gaunt; const g=Math.round(220*w*r.rewardMul); r.gold+=g; let s='🪙 '+g;
-  const runes=(isBoss?2:0)+r.fortune; if(runes>0){ r.runes+=runes; s+=' · 💠 '+runes; }
+  const runes=(isBoss?2:0)+r.fortune; if(runes>0){ r.runes+=runes; s+=' · 💰 +'+(runes*300); }
   if(isBoss){ const gm=Math.round(4*r.rewardMul); r.gems+=gm; s+=' · 💎 '+gm; } return s; }
 function openGauntlet(){ const ov=isleOverlay();
   function render(msg,mc){
@@ -8156,7 +8036,7 @@ function openGauntlet(){ const ov=isleOverlay();
     }
     const nextW=r.wave+1, isBoss=(nextW%5===0), req=gauntWaveReq(nextW);
     ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:15px">🎲 Gauntlet · Wave ${r.wave}</div><button class="btn sm secondary" id="gaX">✕</button></div>
-      <div style="display:flex;justify-content:space-around;font-size:11px;margin-bottom:10px"><div style="text-align:center"><div style="color:#8b98a9">Banked</div><div style="font-weight:800;color:#ffd45e">🪙${r.gold.toLocaleString()}${r.gems?' 💎'+r.gems:''}${r.runes?' 💠'+r.runes:''}</div></div><div style="text-align:center"><div style="color:#8b98a9">Boons</div><div style="font-weight:800;color:#c9a2ff">${r.perks.length}</div></div></div>
+      <div style="display:flex;justify-content:space-around;font-size:11px;margin-bottom:10px"><div style="text-align:center"><div style="color:#8b98a9">Banked</div><div style="font-weight:800;color:#ffd45e">🪙${r.gold.toLocaleString()}${r.gems?' 💎'+r.gems:''}${r.runes?' 💰'+(r.runes*300):''}</div></div><div style="text-align:center"><div style="color:#8b98a9">Boons</div><div style="font-weight:800;color:#c9a2ff">${r.perks.length}</div></div></div>
       <div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
         <div style="font-weight:800;font-size:12px">${isBoss?'👹 BOSS — ':''}Wave ${nextW}</div>
         <div style="font-size:11px;color:#8b98a9;margin:3px 0 8px">Enemy power ⚔ ${req.toLocaleString()} · your effective ⚔ <b style="color:${gauntEff(nextW,isBoss)>=req?'#5ee89b':'#ff8b8b'}">${Math.round(gauntEff(nextW,isBoss)).toLocaleString()}</b></div>
@@ -8178,27 +8058,27 @@ function openGauntlet(){ const ov=isleOverlay();
 function towerState(){ if(!G.tower)G.tower={floor:0,trib:''}; return G.tower; }
 function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)); if(floor%5===0)r=Math.round(r*1.3); return r; }
 function towerFloorReward(floor){ const gold=Math.round(400*floor*Math.pow(1.08,floor)); let s='🪙 '+gold.toLocaleString(); G.gold=(G.gold||0)+gold;
-  if(floor%2===0){ const gg=rollGlyphDrop(); giveGlyph(gg,1); s+=' · 💠 1 rune'; }
+  if(floor%2===0){ const bg=200+floor*25; G.gold=(G.gold||0)+bg; s+=' · 🪙 +'+bg+' bonus'; }
   if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; s+=' · 💎 '+gm; } updateHubChrome(); return s; }
 function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next); if(battlePow()<req) return {wall:true,req}; st.floor=next; const rw=towerFloorReward(next); saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
 function towerTribReady(){ return towerState().trib!==arenaDayKey() && towerState().floor>0; }
-function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; st.trib=arenaDayKey(); const gold=Math.round(500*st.floor); G.gold=(G.gold||0)+gold; const runes=1+Math.floor(st.floor/4); for(let i=0;i<runes;i++){ const gg=rollGlyphDrop(); giveGlyph(gg,1); } updateHubChrome(); saveG(); return {gold, runes}; }
+function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; st.trib=arenaDayKey(); const bonus=250*(1+Math.floor(st.floor/4)); const gold=Math.round(500*st.floor)+bonus; G.gold=(G.gold||0)+gold; updateHubChrome(); saveG(); return {gold}; }
 function openTower(){ const ov=isleOverlay();
   function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
     ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🗼 Tower of Trials</div><button class="btn sm secondary" id="twX">✕</button></div>
       <div style="text-align:center;margin-bottom:12px"><div style="font-size:11px;color:#8b98a9">The Ascendant Spire · your record</div><div style="font-weight:800;font-size:30px;color:#ffd45e">Floor ${st.floor}</div><div style="font-size:11px;color:#8b98a9">Your power ⚔ ${pow.toLocaleString()}</div></div>
       <div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
         <div style="font-weight:800;font-size:12px">${next%5===0?'👑 Warden of Floor '+next:'Guardian of Floor '+next}</div>
-        <div style="font-size:11px;color:#8b98a9;margin:3px 0 8px">Requires power ⚔ <b style="color:${canGo?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b>${next%5===0?' <span style="color:#c9a35e">(Elite — reinforced)</span>':''} · Reward ${next%10===0?'🪙+💠+💎':'🪙+💠'}</div>
+        <div style="font-size:11px;color:#8b98a9;margin:3px 0 8px">Requires power ⚔ <b style="color:${canGo?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b>${next%5===0?' <span style="color:#c9a35e">(Elite — reinforced)</span>':''} · Reward ${next%10===0?'🪙+💎':'🪙'}</div>
         <button class="btn" id="twGo" style="width:100%" ${canGo?'':'disabled'}>${canGo?'⚔ Ascend to Floor '+next:'Squad too weak — grow stronger'}</button></div>
       <div style="background:#0f1420;border-radius:10px;padding:11px">
         <div style="font-weight:800;font-size:12px;margin-bottom:3px">🎖 Spire Tribute <span style="font-size:10px;color:#8b98a9">(once daily)</span></div>
-        <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${st.floor>0?'Claim a daily reward scaled to your record: 🪙 '+(500*st.floor).toLocaleString()+' · 💠 '+(1+Math.floor(st.floor/4))+' rune'+((1+Math.floor(st.floor/4))===1?'':'s'):'Reach Floor 1 to unlock the tribute.'}</div>
+        <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${st.floor>0?'Claim a daily reward scaled to your record: 🪙 '+(Math.round(500*st.floor)+250*(1+Math.floor(st.floor/4))).toLocaleString():'Reach Floor 1 to unlock the tribute.'}</div>
         <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?'🎖 Claim tribute':(st.floor>0?'✔ Claimed today':'Locked')}</button></div>
       <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#twX').onclick=()=>ov.remove();
     ov.querySelector('#twGo').onclick=()=>{ const r=towerAscend(); render(r.win?((r.elite?'👑 Warden felled! ':'⚔ ')+'Floor '+r.floor+' conquered! '+r.reward):'Squad too weak for this floor.', r.win?'#5ee89b':'#ff8b8b'); };
-    ov.querySelector('#twTrib').onclick=()=>{ const r=towerTribute(); render(r.none?'Already claimed today.':('🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()+' · 💠 '+r.runes+' rune'+(r.runes===1?'':'s')), r.none?'#ff8b8b':'#5ee89b'); };
+    ov.querySelector('#twTrib').onclick=()=>{ const r=towerTribute(); render(r.none?'Already claimed today.':('🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()), r.none?'#ff8b8b':'#5ee89b'); };
   }
   render();
 }
@@ -8614,8 +8494,8 @@ function devAction(a,b){
   else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); G.playerXP=TROOP_CUM[nl]; done('Now player level '+nl); }
   else if(a==='squadlvl'){ if(!G.heroXP)G.heroXP={}; (G.team||[]).forEach(k=>{ if(!k)return; const cur=levelFromXP(G.heroXP[k]||0); const nl=Math.min(MAX_LEVEL,cur+5); G.heroXP[k]=HERO_CUM[nl]; }); done('Squad +5 levels'); }
   else if(a==='heroes'){ HERO_KEYS.forEach(k=>G.unlocked[k]=true); done('All heroes unlocked'); }
-  else if(a==='konwu'){ G.unlocked.konwu=true; G.glyphRank.konwu=GMAX_RANK; G.starLevel.konwu=MAX_STARS; G.starPip.konwu=0; G.skillLevel.konwu=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; done('KonWu unlocked & maxed — put him in your team, then battle'); }
-  else if(a==='maxteam'){ G.team.forEach(k=>{ G.glyphRank[k]=GMAX_RANK; G.starLevel[k]=MAX_STARS; G.starPip[k]=0; G.skillLevel[k]=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; }); done('Team maxed (glyph + stars + skills)'); }
+  else if(a==='konwu'){ G.unlocked.konwu=true; G.starLevel.konwu=MAX_STARS; G.starPip.konwu=0; G.skillLevel.konwu=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; done('KonWu unlocked & maxed — put him in your team, then battle'); }
+  else if(a==='maxteam'){ G.team.forEach(k=>{ G.starLevel[k]=MAX_STARS; G.starPip[k]=0; G.skillLevel[k]=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; }); done('Team maxed (stars + skills — glyph ranks live on the server: /api/glyphs/grant)'); }
   else if(a==='arena'){ G.arenaRank=1; G.bestArenaRank=1; done('Arena rank set to #1'); }
   else if(a==='arenacoin'){ G.arenaCoins=(G.arenaCoins||0)+5000; done('+5,000 arena coins'); }
   else if(a==='guildcoins'){ G.guildCoins=(G.guildCoins||0)+5000; done('+5,000 guild coins'); }
@@ -9294,7 +9174,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787756560620';
+const BUILD_ID='1787757514241';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

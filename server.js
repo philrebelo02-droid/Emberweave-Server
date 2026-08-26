@@ -200,10 +200,11 @@ function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0
    The browser NEVER computes a craft result, passive value, socket result, or promotion.
    Catalog: server/glyph-source.json (218 finished-glyph definitions). Recipes are compiled
    from recipeText at startup — an unknown token is a STARTUP ERROR, not a runtime surprise.
-   Feature flag: GLYPHS_V2_ENABLED env var (default OFF). Dev-role accounts always see v2,
-   so it can be tested live before the public flip.
+   LIVE FOR EVERYONE since 26 Aug (Phil: "implement the glyph system and strip the last one") —
+   the legacy client glyph system is deleted; v2 is the only glyph system. GLYPHS_V2_ENABLED=false
+   in the env can still force it off in an emergency (default is now ON).
    Optimistic concurrency: every mutation carries expectedRevision; mismatch → 409 STALE. */
-const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'false')==='true';
+const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'true')==='true';
 const GLYPH_LADDER=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
 const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
 const GLYPH_SLOTS=['vitality','bulwark','onslaught','spirit','tempo','mastery'];
@@ -277,15 +278,13 @@ function glyphPruneConsumed(g){ // consumed instances are kept for the audit tra
 function glyphMigrate(u){
   if(!GLYPHS) return;
   const g=ensureGlyphs(u); if(g.migratedAt) return;
-  let legacy={};
-  try{ const s=u.roster&&typeof u.roster.__save==='string'&&JSON.parse(u.roster.__save); if(s&&s.glyphRank&&typeof s.glyphRank==='object') legacy=s.glyphRank; }catch(e){}
-  let steps=0;
-  for(const k of Object.keys(legacy)){ const r=Math.max(0,Math.min(15,parseInt(legacy[k],10)||0)); if(r>0){ glyphBoard(g,k).ascensionIndex=r; steps+=r; } }
+  /* 26 Aug (public flip): legacy glyphRank in saves is IGNORED — beta force-maxed it for every
+     account, so importing it would hand everyone a near-finished board and gut the new ladder.
+     Every account starts the v2 climb at Grey with a generous fragment starter pack instead.
+     (Accounts migrated during the dev-only window keep whatever boards they already have.) */
   const fams=['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom'];
   for(const [q,n] of [['Grey',30],['Green',20],['Green +1',12],['Blue',8]]){ for(const f of fams){ g.fragments[q+' '+f]=(g.fragments[q+' '+f]||0)+n; } }
-  const bonus=Math.min(400, steps*10);
-  if(bonus>0) for(const f of fams){ g.fragments['Blue '+f]=(g.fragments['Blue '+f]||0)+Math.floor(bonus/fams.length); }
-  g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps}); g.revision++;
+  g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps:0,legacyIgnored:true}); g.revision++;
 }
 // server-owned fragment faucets (Vault/Campaign server drops land later; these give a real economy now)
 function glyphGrantRandomFrags(u, n, maxTier){
