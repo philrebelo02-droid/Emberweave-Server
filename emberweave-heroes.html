@@ -7651,6 +7651,16 @@ function g2CanBuild(hero,slot){ const rv=(RUNE2.st&&RUNE2.st.revision)||0; const
     g2CanCache[k]=!!(r&&r.canBuild);
     if(g2CanCache[k]&&typeof heroTab!=='undefined'&&heroTab==='glyphs'&&detailHero===hero&&!(RUNE2.build)) try{renderHeroDetail();}catch(e){} });
   return null; }
+let g2AllCache={};
+function g2CanSlotAll(hero){ const rv=(RUNE2.st&&RUNE2.st.revision)||0; const k=hero+'|'+rv;
+  if(k in g2AllCache) return g2AllCache[k];
+  g2AllCache[k]=null;
+  const b=g2board(hero); let sl=-1; for(let i=0;i<6;i++){ if(!b.slots[i]){ sl=i; break; } }
+  if(sl<0){ g2AllCache[k]=false; return false; }
+  api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(hero)+'&slot='+sl).then(r=>{
+    g2AllCache[k]=!!(r&&r.canBuildAll);
+    if(g2AllCache[k]&&typeof heroTab!=='undefined'&&heroTab==='glyphs'&&detailHero===hero&&!(RUNE2.build)) try{renderHeroDetail();}catch(e){} });
+  return null; }
 function glyphV2Tab(key){
   if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to build and ascend glyphs.</span></div>`; }
   if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
@@ -7672,11 +7682,10 @@ function glyphV2Tab(key){
       <span style="flex:none"><span class="pill" style="color:${qc};border:1px solid ${qc}">${q} · step ${idx+1}/${cat.ladder.length}</span></span></div>`;
     if(bd.loading) return `<div class="panel">${ancHead}<div style="text-align:center;color:#8b98a9;padding:14px">Tracing the ancestry…</div></div>`;
     const D=bd.data;
-    // v242 (Phil): Quick Allocate All INSTANTLY BUILDS every slot with the parts; Build Here is
-    // just the glyph you opened. No allocation plan step.
+    // v246 (Phil): the pop-out has ONE action — "Quick Build" instantly builds the glyph you
+    // clicked (lit only when its materials are there). "Quick Slot" (all six) lives on the board.
     const actions=!D.locked?`<div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn" style="flex:1;${D.canBuildAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${D.canBuildAll?'':'disabled'} onclick="g2buildAll()">⚡ Quick Allocate All</button>
-        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':''}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">🔨 Build Here</button>
+        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">⚡ Quick Build</button>
       </div>`:'';
     setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
     return `<div class="panel">${ancHead}
@@ -7697,7 +7706,9 @@ function glyphV2Tab(key){
         <span style="position:absolute;inset:0;opacity:.30;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,120,'')}</span>
         <span style="position:relative;font-size:32px;font-weight:800;color:${pc};text-shadow:0 1px 6px #000c${can===true?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div></div>`; }).join('');
   const full=b.slots.every(s2=>s2);
+  const canAll=!full&&g2CanSlotAll(key)===true;   // v246 (Phil): "Quick Slot" slots ALL glyphs at once — lit only when affordable
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
+    ${full?'':`<button class="btn" style="width:100%;margin-top:8px;${canAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${canAll?'':'disabled'} onclick="g2buildAll()">⚡ Quick Slot — build all six</button>`}
     <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'} — consumes all six</button>`;
   // (27 Aug, Phil: the Fragments strip lives in the Bag — not on the hero card)
   const fragHtml='';
@@ -9580,7 +9591,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787839277671';
+const BUILD_ID='1787839826822';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
