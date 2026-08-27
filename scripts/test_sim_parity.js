@@ -38,23 +38,44 @@ const fz=S.heroCombatStats('fritz',{level:10,stars:2,pips:0});
 ck('fritz base armor/MR reaches dr via defToDR ('+fz.dr.toFixed(3)+')', fz.dr>0.05 && fz.dr<0.5);
 const va=S.heroCombatStats('vael',{level:10,stars:1,pips:0});
 ck('heroes without base armor have dr 0', va.dr===0);
-// ---- v241 (full-game audit): Ability Power is its own line; penetration counters DEFENSE RATING ----
-// 1) a MAGE's AP glyphs raise the ability line; a PHYSICAL hero's line is untouched by AP
-const syl0=S.heroCombatStats('sylthaine',{level:10,stars:1,pips:0});
-const sylA=S.heroCombatStats('sylthaine',{level:10,stars:1,pips:0,glyph:{apow:400}});
-ck('Mage + Ability Power raises the ability line ('+syl0.atk+' -> '+sylA.atk+')', sylA.atk>syl0.atk);
-const va0=S.heroCombatStats('vael',{level:10,stars:1,pips:0});
-const vaA=S.heroCombatStats('vael',{level:10,stars:1,pips:0,glyph:{apow:400}});
-ck('Bruiser (apow 0 base) line untouched by Ability Power ('+va0.atk+' == '+vaA.atk+')', vaA.atk===va0.atk);
-const vaP=S.heroCombatStats('vael',{level:10,stars:1,pips:0,glyph:{atk:400}});
-ck('Bruiser + Physical Attack raises his line ('+va0.atk+' -> '+vaP.atk+')', vaP.atk>va0.atk);
-// 2) penetration beats DEFENSE RATING, and does NOTHING against an unarmored target
-const penHitArm=avg(hits({pen:900},{defRating:1200,dr:S===null?0:(1200/(1200+1200))},30));
-const noPenArm=avg(hits({},{defRating:1200,dr:1200/(1200+1200)},30));
-ck('pen 900 vs def 1200 raises damage ('+(penHitArm/noPenArm).toFixed(2)+'x)', penHitArm/noPenArm>1.3);
-const penHitNaked=avg(hits({pen:900},{},30));
-ck('pen does nothing against an unarmored target ('+(penHitNaked/base).toFixed(2)+'x ~ 1)', penHitNaked/base>0.9 && penHitNaked/base<1.1);
-// 3) the snapshot carries defRating + pen for the resolver
-const fz2=S.heroCombatStats('fritz',{level:10,stars:2,pips:0,pen:250});
-ck('snapshot carries defRating ('+Math.round(fz2.defRating)+') and pen ('+fz2.pen+')', fz2.defRating>0 && fz2.pen===250);
+// ==== v242 COMBAT CORE — the audit's acceptance tests (typed damage, separate pens) ====
+const C=S.CORE, rr=C.mulberry32(7), lg=[];
+const T=o=>Object.assign({key:'t',role:'Bruiser',healer:false,maxHp:1e6,hp:1e6,energy:0,atkP:0,atkM:0,heal:0,speed:1,
+  armor:0,mr:0,armorPen:0,magicPen:0,crit:0,critDmg:0.6,critRes:0,energyReg:0,startEnergy:0,regen:0,
+  lifesteal:0,eva:0,acc:0,block:0,dmgBonus:1,dmgRed:0,haste:1,shieldStr:1,ctrlHit:0,ctrlRes:0,healPow:0,shieldPool:0},o);
+const hitK=(src,tgt,kind)=>{ const t=T(tgt); C.applyDamage(C.mulberry32(11),[],1,'A',T(src),t,10000,kind,{noCrit:true,noDodge:true}); return 1e6-t.hp; };
+// 1. Mage + Ability Power raises the ABILITY line, never a physical hero's line
+const sylA=S.heroCombatStats('sylthaine',{level:10,ratings:{apowFlat:400}});
+const syl0=S.heroCombatStats('sylthaine',{level:10});
+ck('1a Mage + AP raises the ability line ('+syl0.atkM+' -> '+sylA.atkM+')', sylA.atkM===syl0.atkM+400);
+const vaA=S.heroCombatStats('vael',{level:10,ratings:{apowFlat:400}});
+const va0b=S.heroCombatStats('vael',{level:10});
+ck('1b Bruiser gains NOTHING from AP ('+va0b.atk+' == '+vaA.atk+')', vaA.atk===va0b.atk && vaA.atkM===0);
+ck('1c Bruiser + Physical Attack raises his line', S.heroCombatStats('vael',{level:10,ratings:{atkFlat:400}}).atkP===va0b.atkP+400);
+// 2. Magic Penetration beats high MR — and does nothing against Armor
+const vsMR=hitK({},{mr:1200},'magic');
+const vsMRpen=hitK({magicPen:1200},{mr:1200},'magic');
+ck('2a magic vs MR1200 halved ('+vsMR+')', vsMR>4800&&vsMR<5200);
+ck('2b Magic Pen restores it ('+vsMRpen+')', vsMRpen===10000);
+ck('2c ARMOR Pen does NOT help vs MR', hitK({armorPen:1200},{mr:1200},'magic')===vsMR);
+ck('2d Magic Pen does NOT help vs Armor', hitK({magicPen:1200},{armor:1200},'phys')===hitK({},{armor:1200},'phys'));
+// 3. physical mirror + block is PHYSICAL-only
+const vsAR=hitK({},{armor:1200},'phys');
+ck('3a phys vs Armor1200 halved ('+vsAR+')', vsAR>4800&&vsAR<5200);
+ck('3b Armor Pen restores it', hitK({armorPen:1200},{armor:1200},'phys')===10000);
+(function(){ let blocked=0; for(let seed=1;seed<=40;seed++){ const t=T({block:0.30}); C.applyDamage(C.mulberry32(seed),[],1,'A',T({}),t,10000,'phys',{noCrit:true,noDodge:true}); if(1e6-t.hp<10000) blocked++; }
+  let blockedM=0; for(let seed=1;seed<=40;seed++){ const t=T({block:0.30}); C.applyDamage(C.mulberry32(seed),[],1,'A',T({}),t,10000,'magic',{noCrit:true,noDodge:true}); if(1e6-t.hp<10000) blockedM++; }
+  ck('3c block halves SOME physical hits ('+blocked+'/40) and NO magical hits ('+blockedM+'/40)', blocked>3 && blockedM===0); })();
+// 4. a Marksman keeps physical scaling while taking pure utility
+const mer0=S.heroCombatStats('meridian',{level:10});
+const merU=S.heroCombatStats('meridian',{level:10,ratings:{hpFlat:800,armor:100,regen:50}});
+ck('4 Marksman + HP/def utility keeps his physical line ('+mer0.atkP+')', merU.atkP===mer0.atkP && merU.maxHp===mer0.maxHp+800 && merU.armor>mer0.armor);
+// 5. deterministic event log with typed kinds — same seed, byte-identical battle
+(function(){ const mkTeam=()=>S.makeLine([S.heroCombatStats('vael',{level:12}),S.heroCombatStats('sylthaine',{level:12}),S.heroCombatStats('vireo',{level:12})]);
+  const foe=()=>S.makeLine([S.heroCombatStats('grosk',{level:12}),S.heroCombatStats('umbris',{level:12})]);
+  const r1=S.resolveLineBattle(mkTeam(),foe(),12345), r2=S.resolveLineBattle(mkTeam(),foe(),12345);
+  ck('5a same seed → byte-identical result + event log', JSON.stringify(r1)===JSON.stringify(r2));
+  const kinds=new Set(r1.log.map(e=>e[7]).filter(Boolean));
+  ck('5b event log carries typed kinds ('+[...kinds].join(',')+')', kinds.has('phys'));
+  ck('5c the log is animatable: every entry names round/side/actor/verb/target', r1.log.every(e=>e.length>=6)); })();
 console.log('PASS: '+pass+'  FAIL: '+fail); process.exit(fail?1:0);
