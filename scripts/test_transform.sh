@@ -47,11 +47,11 @@ ck "resolve is server-decided (won field ignored, result present)" '"won":' "$RS
 RS2=$(curl -s -X POST $B/api/campaign/resolve -H "$H" -H 'content-type: application/json' -d "{\"attemptId\":\"$AID\",\"requestId\":\"c2\",\"won\":true}")
 [ "$RS" == "$RS2" ] && { PASS=$((PASS+1)); echo "  ✓ duplicate resolve tx returns the SAME grant (idempotent)"; } || { FAIL=$((FAIL+1)); echo "  ✗ duplicate resolve differed"; }
 
-# EARN caps (legacy-loop bridge)
+# v250: GENERIC EARN IS RETIRED for real loops — every migrated reason must be refused outright
 E1=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":80,"reason":"tower","requestId":"e1"}')
-ck "capped earn accepted + logged" '"tx"' "$E1"
-E2=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":50000,"reason":"tower","requestId":"e2"}')
-ck "over-rule earn rejected" 'exceeds' "$E2"
+ck "RETIRED: 'tower' gold earn refused (use /api/trial/resolve)" 'No earn rule' "$E1"
+E2=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":100,"reason":"misc","requestId":"e2m"}')
+ck "misc allowance still capped-accepted" '"tx"' "$E2"
 E3=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":500,"reason":"hax","requestId":"e3"}')
 ck "unknown reason rejected" 'No earn rule' "$E3"
 SP=$(curl -s -X POST $B/api/tx/spend -H "$H" -H 'content-type: application/json' -d '{"what":"gems","amount":999999,"reason":"shop","requestId":"s1"}')
@@ -71,8 +71,10 @@ SH=$(curl -s -X POST $B/api/shop/buy -H "$H" -H 'content-type: application/json'
 ck "food meal: gems debited, stamina granted" '"stamina"' "$SH"
 
 # HERO progression endpoints (exact published rules)
-G1=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"frag","amount":3,"reason":"elite","heroKey":"fritz","requestId":"fr1"}')
-ck "elite fragment earn (capped)" '"tx"' "$G1"
+G0=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"frag","amount":3,"reason":"elite","heroKey":"fritz","requestId":"fr1"}')
+ck "RETIRED: 'elite' fragment earn refused (use /api/elite/resolve)" 'No earn rule' "$G0"
+G1=$(curl -s -X POST $B/api/market/frag -H "$H" -H 'content-type: application/json' -d '{"heroKey":"fritz","qty":1,"pay":"gold","requestId":"fr1m"}')
+ck "market fragment purchase is one atomic SERVER transaction" '"paid"' "$G1"
 SS=$(curl -s -X POST $B/api/hero/star-step -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","requestId":"ss1"}')
 ck "star step consumes fragments by the pip table" '' "$SS"
 

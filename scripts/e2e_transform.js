@@ -52,7 +52,7 @@ const { chromium } = require('playwright');
     if(u&&u.gearSkill){ castGearSkill(u); out.gearFired=u.gearSkill.used; out.stun=foe0?+(foe0.stunned||0).toFixed(2):null; out.dmgDone=foe0?Math.round(hp0-foe0.hp):null; }
     ended=true; clearBattle();
     // STAR STEP via server
-    const fr=await api('/api/tx/earn','POST',{what:'frag',amount:3,reason:'quest',heroKey:'vael',requestId:uid8()});
+    const fr=await api('/api/market/frag','POST',{heroKey:'vael',qty:3,pay:'gold',requestId:uid8()});   // v250: server-priced atomic purchase
     if(fr&&fr.ok) adoptLedger(fr.ledger);
     const before={s:G.starLevel.vael,p:G.starPip.vael,f:G.heroFrag.vael};
     const ssr=await api('/api/hero/star-step','POST',{heroKey:'vael',requestId:uid8()});
