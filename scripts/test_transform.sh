@@ -85,4 +85,36 @@ AR2=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/
 [ "$AR1" == "$AR2" ] && { PASS=$((PASS+1)); echo "  ✓ arena replay returns the identical memoized verdict"; } || { FAIL=$((FAIL+1)); echo "  ✗ arena replay differed"; }
 
 # VAULT authoritative: resolve carries no trusted won (covered fully in test_dungeon.sh)
+# ================= v249: THE CITY LOOP IS SERVER-SIDE =================
+echo "-- v249 city loop: Academy on the ledger, capped mining, VERIFIED city PvP"
+AC0=$(curl -s $B/api/academy -H "$H")
+ck "ACADEMY: server state exists (new account starts at zero)" '"academy":0' "$AC0"
+# research needs resources — mine them through the CAPPED server grant
+M1=$(curl -s -X POST $B/api/world/mine -H "$H" -H 'content-type: application/json' -d '{"res":"iron","amount":15,"requestId":"m1"}')
+ck "MINE: server grants capped resources" '"granted":15' "$M1"
+M2=$(curl -s -X POST $B/api/world/mine -H "$H" -H 'content-type: application/json' -d '{"res":"iron","amount":15,"requestId":"m2"}')
+M3=$(curl -s -X POST $B/api/world/mine -H "$H" -H 'content-type: application/json' -d '{"res":"iron","amount":15,"requestId":"m3"}')
+M4=$(curl -s -X POST $B/api/world/mine -H "$H" -H 'content-type: application/json' -d '{"res":"iron","amount":15,"requestId":"m4"}')
+M5=$(curl -s -X POST $B/api/world/mine -H "$H" -H 'content-type: application/json' -d '{"res":"iron","amount":15,"requestId":"m5"}')
+ck "MINE: the daily cap refuses the 5th claim (60/day)" 'cap' "$M5"
+M1R=$(curl -s -X POST $B/api/world/mine -H "$H" -H 'content-type: application/json' -d '{"res":"iron","amount":15,"requestId":"m1"}')
+ck "MINE: idempotent retry returns the SAME grant (no double)" '"granted":15' "$M1R"
+# research the ACADEMY track (its res cost is iron-only)
+RS=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs1"}')
+ck "ACADEMY: research starts server-side (gold + resources debited)" '"completesAt"' "$RS"
+RS2=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs2"}')
+ck "ACADEMY: a second research is refused while one runs" 'in progress' "$RS2"
+RSA=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"atk","requestId":"rs3"}')
+ck "ACADEMY: tech above the Academy level is locked" 'Academy must be upgraded' "$RSA"
+# VERIFIED city PvP: the server resolves through the combat core and caps loot
+PT=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"tfdef","pass":"password1"}')
+DID2=$(echo "$PT"|jv "['profile']['id']")
+PK=$(curl -s -X POST $B/api/pvp/attack -H "$H" -H 'content-type: application/json' -d '{"defId":"'"$DID2"'","heroIds":["vael","sylthaine","vireo"],"requestId":"pa1"}')
+ck "PVP: server resolves the attack (verified result + event log)" '"won"' "$PK"
+ck "PVP: the result carries the combat-core event log" '"log"' "$PK"
+PKR=$(curl -s -X POST $B/api/pvp/attack -H "$H" -H 'content-type: application/json' -d '{"defId":"'"$DID2"'","heroIds":["vael","sylthaine","vireo"],"requestId":"pa1"}')
+ck "PVP: idempotent retry returns the same battle" '"won"' "$PKR"
+PVFAKE=$(curl -s -X POST $B/api/pvp/attack -H "$H" -H 'content-type: application/json' -d '{"defId":"'"$DID2"'","heroIds":["konwu"],"requestId":"pa2"}')
+ck "PVP: an unowned hero is rejected" 'not unlocked' "$PVFAKE"
+
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"
