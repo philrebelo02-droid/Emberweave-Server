@@ -279,6 +279,13 @@ const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'true')==='true'
 // lock, gate and recipe tier derives from an index into this. Grey +1 / Blue +3 do not exist.
 const GLYPH_LADDER=Object.freeze(['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange']);
 const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
+/* v257 (Phil, 27 Aug): A GLYPH TIER HAS A MINIMUM HERO LEVEL. A level-15 hero can never wear Gold.
+   The 16 ladder steps are spread across the game's level cap (70), 4 levels per step up to Gold +4
+   with Orange held back to level 65, so hero
+   level and glyph quality rise together and "level 30 Grey vs level 10 Grey" stays a real, readable
+   power gap. Index matches GLYPH_LADDER exactly. */
+const GLYPH_MIN_LEVEL=Object.freeze([1,5,9,13,17,21,25,29,33,37,41,45,49,53,57,65]);
+function glyphLevelGate(i){ return GLYPH_MIN_LEVEL[Math.max(0,Math.min(GLYPH_MIN_LEVEL.length-1,i|0))]|0; }
 const GLYPH_FAMS=Object.freeze(['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom']);
 let GLYPH_TIER_FAMS={};   // filled by glyphCompile: quality -> families that exist at that tier
 function glyphTierFams(q){ return (GLYPH_TIER_FAMS&&GLYPH_TIER_FAMS[q]&&GLYPH_TIER_FAMS[q].length)?GLYPH_TIER_FAMS[q]:GLYPH_FAMS; }
@@ -448,6 +455,8 @@ function glyphBuildAllPlan(g,hero,board){
 function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprintId, locked} — internal instance ids never leave the server
   for(const h of Object.keys(g.boards||{})){ const b=g.boards[h];
     out[h]={ ascensionIndex:b.ascensionIndex, ascended:b.ascended,
+      levelRequired:glyphLevelGate(b.ascensionIndex),   // v257: this tier's minimum hero level
+      nextTierLevelRequired:glyphLevelGate(b.ascensionIndex+1),
       slots:(b.slots||[]).map(iid=>{ if(!iid) return null; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
         return d?{ blueprintId:d.id, name:d.name, family:d.family, quality:d.quality, stats:d.stats, locked:true }:null; }) }; }
   return out; }
@@ -553,9 +562,9 @@ let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
 
 // ---- client-exact level curves (mirrors emberweave-heroes.html tables) ----
-const D_MAX_LEVEL=60;
-const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640];
-const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700];
+const D_MAX_LEVEL=70;   // v257 (Phil): the cap rises to 70 so Orange glyphs sit at level 65 — the true endgame
+const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360];
+const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700];
 function d_runSum(inc){ const o=[]; let r=0; for(const v of inc){ r+=v; o.push(r); } return o; }
 function d_cum(steps){ const c=new Array(D_MAX_LEVEL+1); c[1]=0; for(let L=2;L<=D_MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const D_TROOP_CUM=d_cum(d_runSum(D_TROOP_INC)), D_HERO_CUM=d_cum(D_HERO_STEP);
@@ -1174,10 +1183,11 @@ const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
+const CAMPAIGN_NODES=110;   // v257 (Phil): chapter 11 is the Orange chapter — 11 chapters × 10 stages
 let CAMP_ENC=null;
 function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
-    if(!Array.isArray(raw)||raw.length!==100) throw new Error('expected 100 encounters, got '+(raw&&raw.length));
+    if(!Array.isArray(raw)||raw.length!==CAMPAIGN_NODES) throw new Error('expected '+CAMPAIGN_NODES+' encounters, got '+(raw&&raw.length));
     CAMP_ENC={byNode:{}, fragSources:{}}; for(const e of raw) CAMP_ENC.byNode[e.node]=e;
     // v232 (audit): the named Glyph Fragment target is AUTHORED PER-STAGE DATA in
     // campaign-encounters.json — validated here, never derived from a runtime formula. The
@@ -1189,7 +1199,7 @@ function campCompile(){
         const q=f.key.slice(0,f.key.lastIndexOf(' '));
         if(GLYPH_LADDER.indexOf(q)<0) throw new Error('stage '+e.node+' glyph target has illegal quality "'+q+'"');
         (CAMP_ENC.fragSources[f.key]=CAMP_ENC.fragSources[f.key]||[]).push(e.id||('campaign-'+e.node)); } }
-    console.log('🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.');
+    console.log('🗺  Campaign encounters compiled: '+CAMPAIGN_NODES+' authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.');
   }catch(e){ CAMP_ENC=null; console.error('⚠ CAMPAIGN ENCOUNTERS DISABLED — '+e.message+' (client keeps its local mode)'); }
 }
 const CAMPAIGN_SKILL_BAND=parseFloat(process.env.CAMPAIGN_SKILL_BAND||'1.5');   // deterministic manual-play allowance inside the authoritative resolve
@@ -1880,7 +1890,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     if(!GLYPHS) return send(res,200,{enabled:false});
     if(p==='/api/glyphs/catalog'){ if(!glyphsEnabledFor(me)) return send(res,404,{error:'disabled'});
-      return send(res,200,{ version:GLYPHS.version, ladder:GLYPH_LADDER, slots:GLYPH_SLOTS, slotFamilies:GLYPH_SLOT_FAMILIES,
+      return send(res,200,{ version:GLYPHS.version, ladder:GLYPH_LADDER, ladderMinLevel:GLYPH_MIN_LEVEL, slots:GLYPH_SLOTS, slotFamilies:GLYPH_SLOT_FAMILIES,
         defs:GLYPHS.raw.map(d=>({id:d.id,quality:d.quality,qi:d.qi,strength:d.strength,name:d.name,family:d.family,statFocus:d.statFocus,stats:d.stats,ing:d.ing,recipeText:d.recipeText})),
         subs:Object.values(GLYPHS.subs) }); }
     if(p==='/api/glyphs/state'){
@@ -1931,10 +1941,13 @@ async function api(req,res,url){
       const totals=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
         need:cost.need[k], have:(g.fragments[k]|0), sources:(CAMP_ENC&&CAMP_ENC.fragSources[k]||[]).slice(0,4) }));
       const canBuild=totals.every(t=>t.have>=t.need);
+      const lvNeed=glyphLevelGate(board.ascensionIndex), lvHave=ledHeroLevel(ensureLedger(me),hero);
+      const lvOk=lvHave>=lvNeed;
       return send(res,200,{ heroKey:hero, slot, blueprintId:pre.id, revision:g.revision, locked:false,
         quality:GLYPH_LADDER[board.ascensionIndex], ascensionIndex:board.ascensionIndex,
-        root:glyphTreeFinished(g,pre), totals, canQuickAllocate:canBuild, canBuild,
-        canBuildAll:glyphBuildAllPlan(g,hero,board).canAll }); }
+        levelRequired:lvNeed, heroLevel:lvHave, levelOk:lvOk,
+        root:glyphTreeFinished(g,pre), totals, canQuickAllocate:canBuild&&lvOk, canBuild:canBuild&&lvOk,
+        canBuildAll:lvOk&&glyphBuildAllPlan(g,hero,board).canAll }); }
     if(req.method!=='POST') return send(res,404,{error:'glyphs'});
     if(rateLimited(req,'glyphs',GLYPH_RL_PER_MIN,60000)) return send(res,429,{error:'Slow down.'});
     // Correction Spec v1: the Craft / Inventory / Socket / Unsocket loop is RETIRED.
@@ -1964,6 +1977,8 @@ async function api(req,res,url){
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
       if(board.slots[slot]) return bad('That slot is already locked.');
       if(def.qi!==board.ascensionIndex) return bad('This board builds '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
+      { const need=glyphLevelGate(board.ascensionIndex), have=ledHeroLevel(ensureLedger(me),hero);
+        if(have<need) return bad(GLYPH_LADDER[board.ascensionIndex]+' glyphs need hero level '+need+' — '+hero+' is level '+have+'.'); }
       const heroRole=(SIM.HERO_BASE[hero]||{}).role;
       if(!glyphAllowed(slot,def,heroRole)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
       // v232 (Phil): the slot builds exactly its ONE pre-chosen glyph — nothing else.
@@ -1995,6 +2010,8 @@ async function api(req,res,url){
       if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
       const board=glyphBoard(g,hero);
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
+      { const need=glyphLevelGate(board.ascensionIndex), have=ledHeroLevel(ensureLedger(me),hero);
+        if(have<need) return bad(GLYPH_LADDER[board.ascensionIndex]+' glyphs need hero level '+need+' — '+hero+' is level '+have+'.'); }
       const plan=glyphBuildAllPlan(g,hero,board);
       if(!plan.slots.length) return bad('Every slot is already built.');
       if(!plan.canAll) return bad('Not enough materials for all '+plan.slots.length+' remaining slots.');
@@ -2054,7 +2071,7 @@ async function api(req,res,url){
     if(b.world && typeof b.world==='object'){   // world-map presence: region + castle position + display stats
       const w=b.world;
       me.world={ region:String(w.region||'').slice(0,16), x:Math.max(0,Math.min(100,+w.x||0)), y:Math.max(0,Math.min(100,+w.y||0)),
-                 level:Math.max(1,Math.min(60,parseInt(w.level,10)||1)), power:Math.max(0,Math.min(99999999,parseInt(w.power,10)||0)), t:Date.now() }; }
+                 level:Math.max(1,Math.min(70,parseInt(w.level,10)||1)), power:Math.max(0,Math.min(99999999,parseInt(w.power,10)||0)), t:Date.now() }; }
     writeDB(); return send(res,200,{ok:true}); }
 
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
@@ -2215,7 +2232,18 @@ async function api(req,res,url){
   if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'});
     const node=parseInt(url.searchParams.get('node')||'0',10); const st=campStageOf(node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
-    return send(res,200,{stage:st}); }
+    /* v257: "your power" is computed HERE, from the server's own resolved snapshots, on exactly the
+       same scale as the authored recommendedPower — so the two numbers the player compares can never
+       disagree with each other or with the fight. */
+    let yourPower=0, squad=[];
+    try{
+      const led=ensureLedger(me);
+      const picked=(Array.isArray(me.team)?me.team.filter(k=>k&&led.unlocked[k]):[]).slice(0,5);
+      squad=picked.length?picked:Object.keys(led.unlocked).filter(k=>led.unlocked[k]).slice(0,5);
+      const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+      yourPower=Math.round(snaps.reduce((a,u)=>a+(u.maxHp||0)/8+Math.max(u.atkP||0,u.atkM||0)*3+(u.heal||0)*2,0));
+    }catch(e){}
+    return send(res,200,{stage:st, yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL}); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);

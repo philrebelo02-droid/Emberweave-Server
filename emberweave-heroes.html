@@ -2173,15 +2173,15 @@ const PRAYER_UNLOCK_LEVEL=40;
 function prayerCost(lvl){ return 50000 + lvl*30000; }
 function prayerBonusPct(lvl){ return lvl*2; } // +2% ATK & HP per prayer level
 // ---- progression tables (max level 60) ----
-const MAX_LEVEL=60;
+const MAX_LEVEL=70;   // v257 (Phil): the cap rises to 70 so Orange glyphs sit at level 65 — the true endgame
 // Troop XP: the table values are per-level INCREMENTS that accumulate — the XP to go from
 // level L->L+1 is the running sum of the increments (Lv1->2 = 8, 2->3 = 8+10 = 18, 3->4 = +35 = 53 …).
 // A dash in the source table means "no increment that level" (0), so the requirement holds steady.
-const TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640];
+const TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360];
 function runningSum(inc){ const out=[]; let r=0; for(let i=0;i<inc.length;i++){ r+=inc[i]; out.push(r); } return out; }
 const TROOP_STEP=runningSum(TROOP_INC);   // XP to go from level (i+1) -> (i+2)
 // Hero XP: per-level requirement straight from the table (index 0 = 1->2 … 58 = 59->60)
-const HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700];
+const HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700];
 function cumArr(steps){ const c=new Array(MAX_LEVEL+1); c[1]=0; for(let L=2;L<=MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const TROOP_CUM=cumArr(TROOP_STEP), HERO_CUM=cumArr(HERO_STEP);
 function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
@@ -2333,13 +2333,13 @@ function heroStat(key,base){ return base*(1+0.18*(heroLevel(key)-1))*starMult(ke
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
 const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=15;
 // ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). All 10 chapters playable. ----
-const STAGES_PER_CH=10, TOTAL_CHAPTERS=10, MAX_CHAPTER=10;         // all 10 chapters playable
-const CAMPAIGN_NODES=TOTAL_CHAPTERS*STAGES_PER_CH;               // 100 authored stages
-const CAMPAIGN_PLAYABLE=MAX_CHAPTER*STAGES_PER_CH;              // 100 clearable
+const STAGES_PER_CH=10, TOTAL_CHAPTERS=11, MAX_CHAPTER=11;         // v257: chapter 11 is the Orange chapter
+const CAMPAIGN_NODES=TOTAL_CHAPTERS*STAGES_PER_CH;               // 110 authored stages
+const CAMPAIGN_PLAYABLE=MAX_CHAPTER*STAGES_PER_CH;              // 110 clearable
 function chapterOf(g){ return Math.floor((g-1)/STAGES_PER_CH)+1; }
 function stageInChapter(g){ return ((g-1)%STAGES_PER_CH)+1; }
 function stageCode(g){ return chapterOf(g)+'-'+stageInChapter(g); }   // e.g. "3-7"
-const CHAPTER_NAMES=['Emberfall Vale','The Ashen Marsh','Frostspire Reach','The Sunken Bastion','Duskwood Hollows','The Molten Keep','Stormcrag Summit','The Shattered Expanse','Voidmere Depths','The World-Tree Crown'];
+const CHAPTER_NAMES=['Emberfall Vale','The Ashen Marsh','Frostspire Reach','The Sunken Bastion','Duskwood Hollows','The Molten Keep','Stormcrag Summit','The Shattered Expanse','Voidmere Depths','The World-Tree Crown','The Emberweave Heart'];
 // every 3rd stage of each chapter (3/6/9) is an ELITE stage that drops a specific hero's fragments; the hero rotates by chapter
 const ELITE_HERO_POOL=HERO_KEYS.filter(k=>HERO_TYPES[k].locked && !HERO_TYPES[k].myth && !HERO_TYPES[k].wip && HERO_TYPES[k].source!=='purchase');   // wip = wired but no art yet — never award one   // elite stages never award mythical/shop heroes
 function isEliteStage(g){ const s=stageInChapter(g); return s===3||s===6||s===9; }
@@ -5633,6 +5633,7 @@ function campaignPlayerXP(g,firstClear){ const elite=isEliteStage(g), boss=isBos
   if(firstClear){ let x=20+g*4; if(elite)x*=2; if(boss)x*=3; return Math.round(x); }
   return elite?12:6; }
 window.STAGE_CACHE=window.STAGE_CACHE||{};
+window.STAGE_POWER=window.STAGE_POWER||{};   // v257: the server's own reading of YOUR power, per stage fetch
 /* v255 (80/20 contract §2): the stage-detail panel — recommended power vs YOUR line, the authored
    waves and their named monsters, the guaranteed fragment, and the three-star condition. Everything
    the player needs to answer "can I clear this, and what exactly do I get?" before spending stamina. */
@@ -5686,8 +5687,9 @@ function preBattleLineHTML(mode){
 }
 function stageDetailHTML(stg,node){
   if(!stg) return '<div style="font-size:11px;color:#6f7d90">Loading stage details…</div>';
-  const mine=(function(){ try{ const sq=(squadFor('campaign')||[]).filter(Boolean); const arr=(sq.length?sq:(G.team||[]).filter(Boolean))
-      .map(k=>({key:k,level:(typeof heroLevel==='function'?heroLevel(k):1),rank:0})); return arr.length?teamPower(arr):0; }catch(e){ return 0; } })();
+  // v257: BOTH numbers come from the server on the same scale (see /api/campaign/stage) — the
+  // player's power and the stage's recommendation can never be measured differently.
+  const mine=(STAGE_POWER[node]|0)||0;
   const rec=stg.recommendedPower|0;
   const ok=!rec||mine>=rec;
   const waves=(stg.waves||[]);
@@ -5707,6 +5709,9 @@ function stageDetailHTML(stg,node){
       <span style="font-size:11px;color:#8b98a9">Recommended power</span>
       <span style="font-size:12px;font-weight:800;color:${ok?'#5ee89b':'#ffb37a'}">${rec?rec.toLocaleString():'—'}${mine?` <span style="font-weight:400;color:#8b98a9">· yours ${mine.toLocaleString()}</span>`:''}</span></div>
     ${rec&&!ok?`<div style="font-size:10.5px;color:#ffb37a;margin-top:2px">Below the recommendation — level heroes, ascend a glyph or temper gear first.</div>`:''}
+    ${(stg.targetLevel||stg.targetGlyph)?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px">
+      <span style="font-size:11px;color:#8b98a9">Built for</span>
+      <span style="font-size:11px;font-weight:700;color:#c9a2ff">Lv ${stg.targetLevel||'—'}${stg.targetGlyph&&stg.targetGlyph!=='None'?` · ${escapeHTML(stg.targetGlyph)} glyph board`:' · no glyphs needed'}</span></div>`:''}
     <div style="margin-top:6px">${waveRows}</div>
     ${frag?`<div style="margin-top:6px;font-size:11px"><span style="color:#8b98a9">Guaranteed:</span><br>${frag}</div>`:''}
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
@@ -5716,7 +5721,10 @@ function openStageModal(i){
   if(i>G.campaignCleared+1) return;   // locked — must clear the previous stage first
   // v232 (audit): the stage's AUTHORED named fragment target is visible BEFORE farming
   const _stg=STAGE_CACHE[i];
-  if(!_stg && ACC.token){ api('/api/campaign/stage?node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[i]=r.stage;
+  // v257: always refresh — the stage data is static but YOUR power changes every time you level,
+  // ascend a glyph or temper gear, and the panel must never show a stale reading.
+  if(ACC.token){ api('/api/campaign/stage?node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[i]=r.stage;
+    STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
     const el=document.getElementById('smFragTarget');
     if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=r.stage.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>');
     const dl=document.getElementById('smDetail');   // v255: the detail panel fills in with the authored data
@@ -8008,7 +8016,8 @@ function glyphV2Tab(key){
     const D=bd.data;
     // v246 (Phil): the pop-out has ONE action — "Quick Build" instantly builds the glyph you
     // clicked (lit only when its materials are there). "Quick Slot" (all six) lives on the board.
-    const actions=!D.locked?`<div style="display:flex;gap:8px;margin-top:10px">
+    const lvBlock=(D.levelOk===false)?`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:8px">🔒 Needs <b>hero level ${D.levelRequired}</b> — this hero is level ${D.heroLevel}.</div>`:'';
+    const actions=!D.locked?`${lvBlock}<div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">⚡ Quick Build</button>
       </div>`:'';
     setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
@@ -8020,18 +8029,26 @@ function glyphV2Tab(key){
   // ---- the six-slot board: filled cells are locked (visual only), empty cells open Build ----
   // 27 Aug (Phil): CLEAN board — no boxes, no outlines, no names. Just the rune art:
   // empty = big ghosted rune + green ＋; built = the clear rune image alone.
+  const _lvNeed=(b.levelRequired!=null)?b.levelRequired:((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1);
+  const _lvOk=((typeof heroLevel==='function')?heroLevel(key):1)>=_lvNeed;
   const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i];
     if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} 🔒">
         <div style="height:130px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),126)}</div></div>`; }
-    const can=g2CanBuild(key,i);   // 27 Aug (Phil): GREEN ＋ only when the materials are there; GREY when they're not
+    const can=_lvOk && g2CanBuild(key,i);   // 27 Aug (Phil): GREEN ＋ only when the materials are there; GREY when they're not (v257: and when the hero is high enough level)
     const pc=can===true?'#5ee89b':'#8b98a9';
     return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" onclick="g2buildOpen(${i})">
       <div style="position:relative;height:130px;display:flex;align-items:center;justify-content:center">
         <span style="position:absolute;inset:0;opacity:.30;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,120,'')}</span>
         <span style="position:relative;font-size:32px;font-weight:800;color:${pc};text-shadow:0 1px 6px #000c${can===true?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div></div>`; }).join('');
   const full=b.slots.every(s2=>s2);
-  const canAll=!full&&g2CanSlotAll(key)===true;   // v246 (Phil): "Quick Slot" slots ALL glyphs at once — lit only when affordable
-  const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
+  // v257 (Phil): A GLYPH TIER HAS A MINIMUM HERO LEVEL — a level-15 hero can never wear Gold.
+  const lvNeed=(b.levelRequired!=null)?b.levelRequired
+    :((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1);
+  const lvHave=(typeof heroLevel==='function')?heroLevel(key):1;
+  const lvOk=lvHave>=lvNeed;
+  const lvLine=lvOk?'' :`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:6px">🔒 ${q} glyphs need <b>hero level ${lvNeed}</b> — ${(HERO_TYPES[key]||{}).name||key} is level ${lvHave}. Level them up first.</div>`;
+  const canAll=!full&&lvOk&&g2CanSlotAll(key)===true;   // v246 (Phil): "Quick Slot" slots ALL glyphs at once — lit only when affordable
+  const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>${lvLine}
     ${full?'':`<button class="btn" style="width:100%;margin-top:8px;${canAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${canAll?'':'disabled'} onclick="g2buildAll()">⚡ Quick Slot — build all six</button>`}
     <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'} — consumes all six</button>`;
   // (27 Aug, Phil: the Fragments strip lives in the Bag — not on the hero card)
@@ -9944,7 +9961,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787848517047';
+const BUILD_ID='1787849714520';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
