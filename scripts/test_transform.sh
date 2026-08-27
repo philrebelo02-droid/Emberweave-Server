@@ -78,7 +78,19 @@ ck "a three-starred stage sweeps" '"ok":true' "$SWP2"
 E1=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":80,"reason":"tower","requestId":"e1"}')
 ck "RETIRED: 'tower' gold earn refused (use /api/trial/resolve)" 'No earn rule' "$E1"
 E2=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":100,"reason":"misc","requestId":"e2m"}')
-ck "misc allowance still capped-accepted" '"tx"' "$E2"
+ck "RETIRED (v267): the generic 'misc' allowance is gone — a client can no longer name its own reason" 'No earn rule' "$E2"
+E2b=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gems","amount":10,"reason":"daily","requestId":"e2d"}')
+ck "RETIRED: arena rank diamonds are no longer client-claimed" 'No earn rule' "$E2b"
+E2c=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"frag","amount":2,"reason":"arena","heroKey":"vex","requestId":"e2a"}')
+ck "the arena fragment shop rule is the ONLY earn reason left" '"tx"' "$E2c"
+
+# ===== v267 (80/20 §9): Getting Started rewards are SERVER-granted, once per step =====
+TUT1=$(curl -s -X POST $B/api/tutorial/claim -H "$H" -H 'content-type: application/json' -d '{"step":"win11"}')
+ck "a tutorial step pays from the server's own authored table" '"gold":500' "$TUT1"
+TUT2=$(curl -s -X POST $B/api/tutorial/claim -H "$H" -H 'content-type: application/json' -d '{"step":"win11"}')
+ck "the same step never pays twice" '"already":true' "$TUT2"
+TUT3=$(curl -s -X POST $B/api/tutorial/claim -H "$H" -H 'content-type: application/json' -d '{"step":"nonsense"}')
+ck "an invented step is refused" 'Unknown step' "$TUT3"
 E3=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":500,"reason":"hax","requestId":"e3"}')
 ck "unknown reason rejected" 'No earn rule' "$E3"
 SP=$(curl -s -X POST $B/api/tx/spend -H "$H" -H 'content-type: application/json' -d '{"what":"gems","amount":999999,"reason":"shop","requestId":"s1"}')
@@ -168,6 +180,8 @@ ck "MANIFEST: feature flags are published live" '"flags"' "$MF"
 ck "MANIFEST: every currency lists sources and sinks" '"sinks"' "$MF"
 ck "MANIFEST: daily caps are published" '"dailyCaps"' "$MF"
 ck "MANIFEST: the daily reset is stated in server time" '09:00 America/New_York' "$MF"
-ck "MANIFEST: glyph fragments name their authored campaign source" 'ch1 Grey' "$MF"
+ck "MANIFEST: glyph fragments name their three fixed portal sources" 'Normal Portal — 100 families' "$MF"
+ck "MANIFEST: the Elite Portal is named as a source" 'Elite Portal' "$MF"
+ck "MANIFEST: the Veteran Portal is named as the Orange source" 'Veteran Portal' "$MF"
 
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"

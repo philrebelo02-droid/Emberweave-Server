@@ -78,4 +78,72 @@ ck('4 Marksman + HP/def utility keeps his physical line ('+mer0.atkP+')', merU.a
   const kinds=new Set(r1.log.map(e=>e[7]).filter(Boolean));
   ck('5b event log carries typed kinds ('+[...kinds].join(',')+')', kinds.has('phys'));
   ck('5c the log is animatable: every entry names round/side/actor/verb/target', r1.log.every(e=>e.length>=6)); })();
+
+/* ===== release gate 2, the three named lines the suite did not yet cover =====
+   "caster/magical, melee/physical, TANKS/SUPPORTS, Gear active, GLYPH STATS, CONTROL, energy,
+    regen, crit, armor/MR and penetration" — the first two, gear, energy, regen, crit and the
+   pen/defence matrix are asserted above; these close tanks/supports, control and glyph stats. */
+const C2=S.CORE;
+// ---- 6. tanks and supports: healing power, shield strength, and HP-scaled kits ----
+(function(){
+  const healer=(r)=>S.heroCombatStats('vireo',{level:20,ratings:r||{}});
+  const h0=healer(), hP=healer({healPow:100});
+  const tgt=()=>Object.assign({},h0,{hp:1,maxHp:100000,shieldPool:0});
+  const heal0=C2.applyHeal([],1,'A',h0,tgt(),1000,false);
+  const healP=C2.applyHeal([],1,'A',hP,tgt(),1000,false);
+  ck('6a Healing Power raises healing ('+heal0+' → '+healP+')', healP>heal0);
+  ck('6b Healing Power does NOT touch the damage lines', hP.atkP===h0.atkP && hP.atkM===h0.atkM);
+  const s0=S.heroCombatStats('grosk',{level:20}), sS=S.heroCombatStats('grosk',{level:20,ratings:{shieldStr:100}});
+  const sh0=C2.grantShield([],1,'A',s0,tgt(),1000), shS=C2.grantShield([],1,'A',sS,tgt(),1000);
+  ck('6c Shield Strength raises the shield granted ('+sh0+' → '+shS+')', shS>sh0);
+  ck('6d Shield Strength does NOT touch the damage lines', sS.atkP===s0.atkP && sS.atkM===s0.atkM);
+  const t0=S.heroCombatStats('grosk',{level:20}), tHP=S.heroCombatStats('grosk',{level:20,ratings:{hpFlat:5000}});
+  ck('6e a tank\'s HP investment is real and does not become attack', tHP.maxHp===t0.maxHp+5000 && tHP.atkP===t0.atkP);
+  // a shield genuinely absorbs before HP
+  const prot=Object.assign({},t0,{hp:100000,maxHp:100000,shieldPool:0});
+  C2.grantShield([],1,'A',t0,prot,4000);
+  C2.applyDamage(C2.mulberry32(7),[],1,'A',T({}),prot,3000,'true',{noCrit:true,noDodge:true});
+  ck('6f a shield absorbs the hit before HP does', prot.hp===100000 && prot.shieldPool<4000);
+})();
+// ---- 7. control: Control Hit lands stuns, Tenacity resists them ----
+(function(){
+  const stunner=k=>Object.assign({}, S.heroCombatStats('grosk',{level:20,ratings:k||{}}), {kit:{kind:'phys',shape:'nuke',coef:2.2,stun:2}});
+  const victim=r=>S.heroCombatStats('tick',{level:20,ratings:r||{}});
+  const land=(atk,def)=>{ let n=0;
+    for(let seed=1;seed<=60;seed++){ const u=stunner(atk), t=victim(def);
+      const own=S.makeLine([u]), foe=S.makeLine([t]);
+      const r=S.resolveLineBattle(own,foe,seed);
+      if((r.log||[]).some(e=>e[3]==='stunned'||e[7]==='stun')) n++; }
+    return n; };
+  const plain=land({},{}), hi=land({ctrlHit:100},{}), res=land({},{ctrlRes:120});
+  ck('7a control lands at all ('+plain+'/60)', plain>0);
+  ck('7b Control Hit lands MORE stuns ('+plain+' → '+hi+')', hi>=plain);
+  ck('7c Tenacity resists stuns ('+plain+' → '+res+')', res<=plain);
+  ck('7d Tenacity is capped, never immunity', S.heroCombatStats('tick',{level:20,ratings:{ctrlRes:99999}}).ctrlRes<=C2.CONV.ctrlResCap);
+})();
+// ---- 8. GLYPH STATS: a real six-slot board reaches the combat model, typed ----
+(function(){
+  // glyph flats arrive as RAW TYPED RATINGS, exactly as snapshotHeroFromServer passes them
+  // these are the exact ratings keys snapshotHeroFromServer hands the core (server.js glyphFlatStats
+  // collects "HP Regen" into regenRating and passes it through as `regen`)
+  const board={hpFlat:1200, atkFlat:60, apowFlat:0, armor:150, mr:150, armorPen:80, magicPen:80,
+    crit:40, critDmg:50, regen:30, healFlat:0};
+  const bare=S.heroCombatStats('vael',{level:25});
+  const glyphed=S.heroCombatStats('vael',{level:25,ratings:board});
+  ck('8a a glyph board raises HP by exactly its flat', glyphed.maxHp===bare.maxHp+1200);
+  ck('8b a glyph board raises the PHYSICAL line on a physical hero', glyphed.atkP===bare.atkP+60);
+  ck('8c Ability Power glyphs never invent a magic line on a physical hero',
+     S.heroCombatStats('vael',{level:25,ratings:{apowFlat:400}}).atkM===0);
+  ck('8d armour and magic resist arrive as RATINGS, converted by the same curve',
+     glyphed.armor>bare.armor && glyphed.mr>bare.mr);
+  ck('8e penetration glyphs arrive typed and separate', glyphed.armorPen>0 && glyphed.magicPen>0 && glyphed.armorPen===glyphed.magicPen);
+  ck('8f crit and crit damage glyphs are fractions, not raw points',
+     glyphed.crit>bare.crit && glyphed.crit<1 && glyphed.critDmg>bare.critDmg);
+  ck('8g HP regen glyphs heal, and do not become attack', glyphed.regen>bare.regen && glyphed.atkM===bare.atkM);
+  // and the same board changes a real fight's outcome, not just a number
+  const foe=()=>S.makeLine([S.heroCombatStats('grosk',{level:25}),S.heroCombatStats('umbris',{level:25})]);
+  const rB=S.resolveLineBattle(S.makeLine([bare,S.heroCombatStats('vireo',{level:25})]),foe(),99);
+  const rG=S.resolveLineBattle(S.makeLine([glyphed,S.heroCombatStats('vireo',{level:25})]),foe(),99);
+  ck('8h the same seed, the same foes: the glyph board changes the battle', JSON.stringify(rB)!==JSON.stringify(rG));
+})();
 console.log('PASS: '+pass+'  FAIL: '+fail); process.exit(fail?1:0);

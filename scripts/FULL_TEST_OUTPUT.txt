@@ -8,9 +8,9 @@
 == phase 2: restart with ADMIN_IDS and run the endpoint suites ==
 
 == test_transform.sh ==
-  ✓ MANIFEST: glyph fragments name their authored campaign source
+  ✓ MANIFEST: the Veteran Portal is named as the Orange source
 
-PASS: 58  FAIL: 0
+PASS: 65  FAIL: 0
 
 == test_glyphs.sh ==
   ✓ stage fragment target is fixed across loads
@@ -87,7 +87,25 @@ PASS: 19  FAIL: 0
   ✓ 5a same seed → byte-identical result + event log
   ✓ 5b event log carries typed kinds (phys,heal,shield,magic,ctrl)
   ✓ 5c the log is animatable: every entry names round/side/actor/verb/target
-PASS: 24  FAIL: 0
+  ✓ 6a Healing Power raises healing (1000 → 1400)
+  ✓ 6b Healing Power does NOT touch the damage lines
+  ✓ 6c Shield Strength raises the shield granted (1000 → 1500)
+  ✓ 6d Shield Strength does NOT touch the damage lines
+  ✓ 6e a tank's HP investment is real and does not become attack
+  ✓ 6f a shield absorbs the hit before HP does
+  ✓ 7a control lands at all (45/60)
+  ✓ 7b Control Hit lands MORE stuns (45 → 60)
+  ✓ 7c Tenacity resists stuns (45 → 17)
+  ✓ 7d Tenacity is capped, never immunity
+  ✓ 8a a glyph board raises HP by exactly its flat
+  ✓ 8b a glyph board raises the PHYSICAL line on a physical hero
+  ✓ 8c Ability Power glyphs never invent a magic line on a physical hero
+  ✓ 8d armour and magic resist arrive as RATINGS, converted by the same curve
+  ✓ 8e penetration glyphs arrive typed and separate
+  ✓ 8f crit and crit damage glyphs are fractions, not raw points
+  ✓ 8g HP regen glyphs heal, and do not become attack
+  ✓ 8h the same seed, the same foes: the glyph board changes the battle
+PASS: 42  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
