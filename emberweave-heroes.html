@@ -7571,7 +7571,7 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
     ?`<div style="height:${px+6}px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 ${px>90?16:10}px ${g2col(bq)}66)">${g2NodeArt(n,px)}</div>`
     :`<div style="position:relative;height:${px+6}px;display:flex;align-items:center;justify-content:center">
       <span style="position:absolute;inset:0;opacity:.35;display:flex;align-items:center;justify-content:center">${g2NodeArt(n,px)}</span>
-      <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:#5ee89b;text-shadow:0 1px 6px #000c">＋</span></div>`;
+      <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:${g2NodeReady(n)?'#5ee89b':'#8b98a9'};text-shadow:0 1px 6px #000c">＋</span></div>`;
   const branchNode=(n,pth,parentPath,px)=>{ const bq=nQual(n); const rdy=g2NodeReady(n);
     const moreG=(n.children||[]).filter(c=>c.kind!=='fragment').length;
     return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="text-align:center;position:relative;z-index:1;cursor:pointer;max-width:150px" onclick="g2TreePush('${pth}')">
@@ -7622,6 +7622,16 @@ function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v2/${
 function g2artDef(d,px,extra){ return g2art('finished',d.quality,g2slotOfFam(d.family),px,extra); }
 function g2parseKey(k){ const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
 function g2artKey(type,k,px){ const p=g2parseKey(k); return g2art(type,p.q,g2slotOfFam(p.fam),px,'display:inline-block;vertical-align:-4px'); }
+/* 27 Aug (Phil): board ＋ affordability — server-authoritative canBuild per (hero,slot), cached by
+   glyph revision; renders grey until the answer arrives, then re-renders green when buildable. */
+let g2CanCache={};
+function g2CanBuild(hero,slot){ const rv=(RUNE2.st&&RUNE2.st.revision)||0; const k=hero+'|'+slot+'|'+rv;
+  if(k in g2CanCache) return g2CanCache[k];
+  g2CanCache[k]=null;
+  api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(hero)+'&slot='+slot).then(r=>{
+    g2CanCache[k]=!!(r&&r.canBuild);
+    if(g2CanCache[k]&&typeof heroTab!=='undefined'&&heroTab==='glyphs'&&detailHero===hero&&!(RUNE2.build)) try{renderHeroDetail();}catch(e){} });
+  return null; }
 function glyphV2Tab(key){
   if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to build and ascend glyphs.</span></div>`; }
   if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
@@ -7660,10 +7670,12 @@ function glyphV2Tab(key){
   const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i];
     if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} 🔒">
         <div style="height:130px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),126)}</div></div>`; }
+    const can=g2CanBuild(key,i);   // 27 Aug (Phil): GREEN ＋ only when the materials are there; GREY when they're not
+    const pc=can===true?'#5ee89b':'#8b98a9';
     return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" onclick="g2buildOpen(${i})">
       <div style="position:relative;height:130px;display:flex;align-items:center;justify-content:center">
         <span style="position:absolute;inset:0;opacity:.30;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,120,'')}</span>
-        <span style="position:relative;font-size:32px;font-weight:800;color:#5ee89b;text-shadow:0 1px 6px #000c">＋</span></div></div>`; }).join('');
+        <span style="position:relative;font-size:32px;font-weight:800;color:${pc};text-shadow:0 1px 6px #000c${can===true?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div></div>`; }).join('');
   const full=b.slots.every(s2=>s2);
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
     <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'} — consumes all six</button>`;
@@ -9548,7 +9560,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787838108446';
+const BUILD_ID='1787838697721';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
