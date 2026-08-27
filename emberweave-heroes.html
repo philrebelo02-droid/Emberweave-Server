@@ -825,7 +825,7 @@
   <div class="screen hub" id="wishing">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
     <div class="titlebar"><h1>⛲ WISHING POOL</h1></div>
-    <div class="sub">Toss a coin and make a wish — runes, hero fragments &amp; more</div>
+    <div class="sub">Toss a coin and make a wish — glyphs, hero fragments &amp; more</div>
     <div id="wishingBody" style="width:100%;max-width:540px"></div>
   </div>
 
@@ -7522,19 +7522,18 @@ function glyphV2Tab(key){
         <button class="btn xs" ${o.buildable?'':'disabled'} onclick="g2buildDo('${o.blueprintId}')">Build Here</button></div>`; }).join('')
       ||`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">No legal blueprint for this slot.</div>`;
     return `<div class="panel">${head}
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:12px">${G2_SLOT_ICON[slotName]||''} This ${slotName} slot forges one set glyph</b><button class="btn xs secondary" onclick="g2buildCancel()">✕ Cancel</button></div>
-      <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Built glyphs are <b>permanent</b> — they lock into this slot and can never be moved or removed.</div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn xs secondary" onclick="g2buildCancel()">✕ Cancel</button></div>
       ${bodyHtml}</div>`; }
   // ---- the six-slot board: filled cells are locked (visual only), empty cells open Build ----
   // 27 Aug (Phil): CLEAN board — no boxes, no outlines, no names. Just the rune art:
   // empty = big ghosted rune + green ＋; built = the clear rune image alone.
   const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i];
     if(so){ return `<div style="background:none;border:none;padding:2px;cursor:default;text-align:center" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} (locked)">
-        <div style="height:86px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),84)}</div></div>`; }
+        <div style="height:130px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),126)}</div></div>`; }
     return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" onclick="g2buildOpen(${i})">
-      <div style="position:relative;height:86px;display:flex;align-items:center;justify-content:center">
-        <span style="position:absolute;inset:0;opacity:.30;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,80,'')}</span>
-        <span style="position:relative;font-size:26px;font-weight:800;color:#5ee89b;text-shadow:0 1px 6px #000c">＋</span></div></div>`; }).join('');
+      <div style="position:relative;height:130px;display:flex;align-items:center;justify-content:center">
+        <span style="position:absolute;inset:0;opacity:.30;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,120,'')}</span>
+        <span style="position:relative;font-size:32px;font-weight:800;color:#5ee89b;text-shadow:0 1px 6px #000c">＋</span></div></div>`; }).join('');
   const full=b.slots.every(s2=>s2);
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
     <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'} — consumes all six</button>`;
@@ -7543,7 +7542,6 @@ function glyphV2Tab(key){
   const asc=Object.entries(b.ascended||{});
   const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">Ascended bonuses:</b> ${asc.map(([k,v])=>k+' +'+v.val+(v.pct?'%':'')).join(' · ')}</div>`:'';
   return `<div class="panel">${head}
-    <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Each slot forges <b>one set glyph</b> for this hero — tap an empty slot to build its <b style="color:${qc}">${q}</b> glyph from named fragments. Built glyphs lock forever; fill all six, then ascend.</div>
     ${board}${fragHtml}${ascLine}</div>`;
 }
 setTimeout(()=>{ try{forgeSync();}catch(e){} }, 400);    // RE-AUDIT: Forge state loads near-immediately so even a fast first battle carries gear stats
@@ -9426,7 +9424,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787824711525';
+const BUILD_ID='1787825770332';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
