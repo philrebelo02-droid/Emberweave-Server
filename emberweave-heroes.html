@@ -7485,6 +7485,16 @@ async function g2buildOpen(slot){ if(RUNE2.busy) return;
   if(!r||r.error){ RUNE2.build=null; bannerMsg((r&&r.error)||'Could not load the glyph ancestry.'); renderHeroDetail(); return; }
   RUNE2.build={slot, loading:false, data:r, stack:[], alloc:{}}; renderHeroDetail(); }
 function g2buildCancel(){ RUNE2.build=null; renderHeroDetail(); g2RenderOverlays(); }
+async function g2buildAll(){ if(RUNE2.busy) return; RUNE2.busy=true;
+  const r=await api('/api/glyphs/build-all','POST',{ heroKey:detailHero,
+    expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
+  RUNE2.busy=false;
+  if(r&&r.error==='STALE'){ await glyphV2Sync(); if(RUNE2.build) g2buildOpen(RUNE2.build.slot); return; }
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Could not build.'); await glyphV2Sync(); renderHeroDetail(); return; }
+  const n=(r.built||[]).length;
+  RUNE2.build=null; g2RenderOverlays();
+  bannerMsg(n?('🔮 Built '+n+' glyph'+(n>1?'s':'')+' into the board!'):'Not enough materials for any slot yet.');
+  await glyphV2Sync(); renderHeroDetail(); }
 /* ---- Glyph Ancestry helpers (allocation is TEMPORARY UI state — it never touches inventory) ---- */
 function g2NodeAt(path){ let n=RUNE2.build.data.root; if(path==='r') return n;
   for(const i of path.slice(2).split('.')) n=n.children[+i]; return n; }
@@ -7556,12 +7566,14 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
   const badge=D.locked?`<span class="pill" style="color:#5ee89b;border:1px solid #5ee89b">Completed</span>`
     :(ready?`<span class="pill" style="color:#5ee89b;border:1px solid #5ee89b">Ready to Build</span>`
     :`<span class="pill" style="color:#ffb454;border:1px solid #ffb454">Missing materials</span>`);
-  const leaf=(n,pth,parentPath)=>{ const alloc=!D.locked&&!!bd.alloc[pth]; const rdy=g2NodeReady(n);
+  // v242 (Phil): no allocation step — tapping a FRAGMENT jumps straight to its sweep stage
+  const leaf=(n,pth,parentPath)=>{ const rdy=g2NodeReady(n);
     const col=rdy?'#5ee89b':'#e86a6a';
+    const src0=(n.sources||[])[0];
     const srcs=!D.locked?(n.sources||[]).slice(0,2).map(x=>`<span class="pill" style="font-size:8px;cursor:pointer;border:1px solid #33405e;color:#8fb7ff" onclick="event.stopPropagation();g2SrcGo('${x}')">⚔ ${String(x).replace('campaign-','')}</span>`).join(' '):'';
-    return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="width:82px;flex:none;text-align:center;position:relative;z-index:1;cursor:${D.locked?'default':'pointer'}" ${D.locked?'':`onclick="g2AllocToggle('${pth}')"`}>
+    return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="width:82px;flex:none;text-align:center;position:relative;z-index:1;cursor:${src0?'pointer':'default'}" ${src0?`onclick="g2SrcGo('${src0}')"`:''}>
       <div style="width:72px;height:72px;margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;filter:drop-shadow(0 0 10px ${col}44)">
-        ${g2NodeArt(n,68)}${alloc?`<span style="position:absolute;top:-2px;right:0;width:18px;height:18px;border-radius:50%;background:#5ee89b;color:#04140a;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center">✓</span>`:''}</div>
+        ${g2NodeArt(n,68)}</div>
       <div style="font-size:9.5px;font-weight:700;color:${col};margin-top:4px;line-height:1.15">${fragShort(n)}</div>
       ${D.locked?'':`<div style="margin-top:3px"><span class="pill" style="font-size:9px;color:${col};border:1px solid ${col}">${n.have} / ${n.need}</span></div>`}
       ${srcs?`<div style="margin-top:2px">${srcs}</div>`:''}</div>`; };
@@ -7591,7 +7603,7 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
   return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
     <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
     <div id="${id(viewPath)}" style="text-align:center;position:relative;z-index:1;margin-bottom:30px">
-      ${glyphArt(view,112,vq)}
+      <div style="display:inline-block;border:2px solid #5ee89b;border-radius:14px;padding:6px 14px;box-shadow:0 0 12px #5ee89b44">${glyphArt(view,112,vq)}</div>
       <div style="font-size:15px;font-weight:800;color:${g2col(vq)};margin-top:2px">${nName(view)}</div>
       ${view.stats?`<div style="font-size:10px;color:#c3ccd8;margin-top:2px">${view.stats.join(' · ')}</div>`:''}
       <div style="margin-top:5px">${badge}</div></div>
@@ -7653,10 +7665,11 @@ function glyphV2Tab(key){
       <span style="flex:none"><span class="pill" style="color:${qc};border:1px solid ${qc}">${q} · step ${idx+1}/${cat.ladder.length}</span></span></div>`;
     if(bd.loading) return `<div class="panel">${ancHead}<div style="text-align:center;color:#8b98a9;padding:14px">Tracing the ancestry…</div></div>`;
     const D=bd.data;
-    const allAlloc=!D.locked&&g2AllAllocated();
+    // v242 (Phil): Quick Allocate All INSTANTLY BUILDS every slot with the parts; Build Here is
+    // just the glyph you opened. No allocation plan step.
     const actions=!D.locked?`<div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn secondary" style="flex:1" ${D.canQuickAllocate?'':'disabled'} onclick="g2QuickAllocate()">⚡ Quick Allocate All</button>
-        <button class="btn" style="flex:1;${allAlloc?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':''}" ${allAlloc?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">🔨 Build Here</button>
+        <button class="btn" style="flex:1;${D.canBuildAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${D.canBuildAll?'':'disabled'} onclick="g2buildAll()">⚡ Quick Allocate All</button>
+        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':''}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">🔨 Build Here</button>
       </div>`:'';
     setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
     return `<div class="panel">${ancHead}
@@ -9560,7 +9573,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787838697721';
+const BUILD_ID='1787838915309';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

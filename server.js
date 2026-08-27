@@ -407,6 +407,18 @@ function glyphTreeChildren(g, def){ const kids=[];
 function glyphTreeFinished(g, def){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
   quality:def.quality, family:def.family, strength:def.strength,
   stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:glyphTreeChildren(g, def) }; }
+/* v242: can EVERY empty slot on this board be built at once (combined cumulative cost)? */
+function glyphBuildAllPlan(g,hero,board){
+  const pool={}; for(const k in (g.fragments||{})) pool[k]=g.fragments[k]|0;
+  const slots=[]; let canAll=true;
+  for(let slot=0;slot<6;slot++){ if(board.slots[slot]) continue;
+    const def=glyphPreChoice(hero, slot, board.ascensionIndex);
+    if(!def){ canAll=false; continue; }
+    const cost=g2BuildCost(g,def); if(!cost){ canAll=false; continue; }
+    for(const k in cost.need){ pool[k]=(pool[k]|0)-cost.need[k]; if(pool[k]<0) canAll=false; }
+    slots.push({slot,def,cost}); }
+  return {slots, canAll: canAll&&slots.length>0};
+}
 function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprintId, locked} — internal instance ids never leave the server
   for(const h of Object.keys(g.boards||{})){ const b=g.boards[h];
     out[h]={ ascensionIndex:b.ascensionIndex, ascended:b.ascended,
@@ -1775,7 +1787,8 @@ async function api(req,res,url){
       const canBuild=totals.every(t=>t.have>=t.need);
       return send(res,200,{ heroKey:hero, slot, blueprintId:pre.id, revision:g.revision, locked:false,
         quality:GLYPH_LADDER[board.ascensionIndex], ascensionIndex:board.ascensionIndex,
-        root:glyphTreeFinished(g,pre), totals, canQuickAllocate:canBuild, canBuild }); }
+        root:glyphTreeFinished(g,pre), totals, canQuickAllocate:canBuild, canBuild,
+        canBuildAll:glyphBuildAllPlan(g,hero,board).canAll }); }
     if(req.method!=='POST') return send(res,404,{error:'glyphs'});
     if(rateLimited(req,'glyphs',GLYPH_RL_PER_MIN,60000)) return send(res,429,{error:'Slow down.'});
     // Correction Spec v1: the Craft / Inventory / Socket / Unsocket loop is RETIRED.
@@ -1785,6 +1798,8 @@ async function api(req,res,url){
     const b=await body(req); glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
     if(p==='/api/glyphs/build-in-slot'){ const rid0=String(b.requestId||'').slice(0,48);
       if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // idempotent retry beats the STALE check
+    if(p==='/api/glyphs/build-all'){ const rid0=String(b.requestId||'').slice(0,48);
+      if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // v242: same idempotency rule
     const er=parseInt(b.expectedRevision,10);
     if(er!==g.revision) return send(res,409,{error:'STALE', revision:g.revision});
     const ok=(extra)=>{ glyphPruneConsumed(g); g.revision++; writeDB(); return send(res,200,Object.assign({ok:true, revision:g.revision},extra||{})); };
@@ -1819,6 +1834,35 @@ async function api(req,res,url){
       const receipt={ ok:true, revision:g.revision, hero, slot, blueprintId:def.id, name:def.name, locked:true,
         consumed:Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, quantity:cost.need[k] })),
         board:glyphBoardsView(g)[hero] };
+      g.applied=g.applied||{}; g.applied[rid]=receipt;
+      const rids=Object.keys(g.applied); if(rids.length>60) for(const old of rids.slice(0,rids.length-60)) delete g.applied[old];
+      writeDB(); return send(res,200,receipt);
+    }
+    if(p==='/api/glyphs/build-all'){
+      // v242 (Phil): "Quick Allocate All" INSTANTLY BUILDS every empty slot's pre-chosen glyph —
+      // ALL OR NOTHING. If the account cannot afford every empty slot CUMULATIVELY (combined
+      // fragment cost), the whole call is refused and nothing is consumed.
+      const rid=String(b.requestId||'').slice(0,48); if(!rid) return bad('requestId required');
+      if(g.applied && g.applied[rid]) return send(res,200,g.applied[rid]);
+      const hero=String(b.heroKey||'').slice(0,24);
+      if(!SIM.HERO_BASE[hero]) return bad('Unknown hero.');
+      if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
+      const board=glyphBoard(g,hero);
+      if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
+      const plan=glyphBuildAllPlan(g,hero,board);
+      if(!plan.slots.length) return bad('Every slot is already built.');
+      if(!plan.canAll) return bad('Not enough materials for all '+plan.slots.length+' remaining slots.');
+      const built=[];
+      for(const st of plan.slots){ const def=st.def, cost=st.cost;
+        for(const k in cost.need){ g.fragments[k]-=cost.need[k]; if(g.fragments[k]<=0) delete g.fragments[k]; }
+        for(const sk in cost.useSubs){ g.subGlyphs[sk]-=cost.useSubs[sk]; if(g.subGlyphs[sk]<=0) delete g.subGlyphs[sk]; }
+        const nid='g'+(g.seq++); g.finished[nid]={ definitionId:def.id, status:'locked', builtAt:Date.now(), requestId:rid+':'+st.slot };
+        board.slots[st.slot]=nid;
+        glyphAudit(g,'build',{hero,slot:st.slot,def:def.id,rid});
+        built.push({slot:st.slot, blueprintId:def.id, name:def.name});
+      }
+      glyphPruneConsumed(g); g.revision++;
+      const receipt={ ok:true, revision:g.revision, hero, built, board:glyphBoardsView(g)[hero] };
       g.applied=g.applied||{}; g.applied[rid]=receipt;
       const rids=Object.keys(g.applied); if(rids.length>60) for(const old of rids.slice(0,rids.length-60)) delete g.applied[old];
       writeDB(); return send(res,200,receipt);
