@@ -7771,14 +7771,18 @@ function renderHeroList(){
   const sel=sortBar.querySelector('#heroSortSel'); sel.value=heroSort; sel.onchange=()=>{ heroSort=sel.value; renderHeroList(); };
   // owned/summoned heroes first (by the chosen sort), then locked heroes (closest-to-summon first)
   const sv=(k)=> heroSort==='level'?heroLevel(k) : heroSort==='stars'?(heroStars(k)*100+starPips(k)) : heroPower(k);
-  // 27 Aug (Phil): heroes you OWN are always the top of this list, whatever the sort is set to.
-  const owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]).sort((a,b)=>sv(b)-sv(a));
-  const locked=HERO_KEYS.filter(k=>!(G.unlocked&&G.unlocked[k])).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
-  if(owned.length) r.appendChild(Object.assign(document.createElement('div'),
-    {style:'grid-column:1/-1;font-size:9px;letter-spacing:1px;color:#8b98a9;margin:4px 2px 0',textContent:'YOUR HEROES ('+owned.length+')'}));
-  [...owned,...locked].forEach((key,ix)=>{ const t=HERO_TYPES[key],unlocked=G.unlocked&&G.unlocked[key],myth=isMythic(key);
-    if(ix===owned.length && locked.length) r.appendChild(Object.assign(document.createElement('div'),
-      {style:'grid-column:1/-1;font-size:9px;letter-spacing:1px;color:#6f7d90;margin:10px 2px 0',textContent:'NOT YET SUMMONED'}));
+  // 27 Aug (Phil): three groups, always in this order — the heroes you own, then the ones you can
+  // summon RIGHT NOW, then everyone still short of fragments (closest first).
+  const own=k=>!!(G.unlocked&&G.unlocked[k]);
+  const owned=HERO_KEYS.filter(own).sort((a,b)=>sv(b)-sv(a));
+  const ready=HERO_KEYS.filter(k=>!own(k)&&canSummon(k)).sort((a,b)=>summonCost(a)-summonCost(b));
+  const locked=HERO_KEYS.filter(k=>!own(k)&&!canSummon(k)).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
+  const hdr=(txt,col)=>r.appendChild(Object.assign(document.createElement('div'),
+    {style:'grid-column:1/-1;font-size:9px;letter-spacing:1px;color:'+col+';margin:10px 2px 0',textContent:txt}));
+  if(owned.length) hdr('YOUR HEROES ('+owned.length+')','#8b98a9');
+  [...owned,...ready,...locked].forEach((key,ix)=>{ const t=HERO_TYPES[key],unlocked=own(key),myth=isMythic(key);
+    if(ready.length && ix===owned.length) hdr('✨ READY TO SUMMON ('+ready.length+')','#5ee89b');
+    if(locked.length && ix===owned.length+ready.length) hdr('STILL COLLECTING ('+locked.length+')','#6f7d90');
     const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(myth?' mythic':'');
     const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
     // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
@@ -10045,7 +10049,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787856160919';
+const BUILD_ID='1787856486865';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
