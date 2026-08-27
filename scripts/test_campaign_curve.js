@@ -67,22 +67,24 @@ ck('player XP never goes backwards stage to stage',
   S.every((e,i)=>i===0||e.rewards.playerXpFirst>=S[i-1].rewards.playerXpFirst*0.5));
 
 // rewards
-ck('every stage names exactly one GUARANTEED glyph fragment',
-  S.every(e=>e.rewards.glyphFragments.filter(f=>f.guaranteed).length===1),
-  JSON.stringify(S.filter(e=>e.rewards.glyphFragments.filter(f=>f.guaranteed).length!==1).slice(0,3).map(e=>e.id)));
+// v266 (Farm Map v1): ONE primary family per stage — no bonus rows, no unrelated families
+ck('every stage names exactly ONE glyph fragment family',
+  S.every(e=>e.rewards.glyphFragments.length===1),
+  JSON.stringify(S.filter(e=>e.rewards.glyphFragments.length!==1).slice(0,3).map(e=>e.id)));
 ck('every reward line carries an exact name and a count (never "9 grey fragments")',
   S.every(e=>e.rewards.glyphFragments.every(f=>f.key&&f.fragmentId&&f.displayName&&f.quantity>=1)));
-ck('a stage\'s guaranteed fragment is its own band\'s quality',
-  S.every(e=>{ const g=e.rewards.glyphFragments.find(f=>f.guaranteed); return g&&g.key.startsWith(e.recommendedQuality+' '); }));
-// every (tier, family) pair reachable in the Portal
-const TIER_FAMS=(()=>{ const raw=Object.values(require('./server/glyph-source.json')), T={};
-  for(const d of raw){ const m=/(\w+)\s+(Glyph|Core|Crown)$/.exec(d.name); if(!m) continue;
-    (T[d.quality]=T[d.quality]||new Set()).add(m[1]); } return T; })();
-const covered=new Set(); S.forEach(e=>e.rewards.glyphFragments.forEach(f=>covered.add(f.key)));
-let pairs=0, miss=[];
-for(const q of LADDER) for(const fam of (TIER_FAMS[q]||new Set())){ pairs++; if(!covered.has(q+' '+fam)) miss.push(q+' '+fam); }
-ck('every (quality, family) fragment in the game is Portal-farmable', miss.length===0,
-  miss.length+' missing: '+miss.slice(0,6).join(', '));
+// the farm map deliberately offers materials a few stages BEFORE the matching level gate, so the
+// fragment quality tracks the ladder without having to equal the stage's recommended quality
+const LI=q=>LADDER.indexOf(q);
+ck('fragment quality never goes backwards across the Normal Portal',
+  S.every((e,i)=>i===0||LI(e.rewards.glyphFragments[0].key.slice(0,e.rewards.glyphFragments[0].key.lastIndexOf(' ')))
+    >=LI(S[i-1].rewards.glyphFragments[0].key.slice(0,S[i-1].rewards.glyphFragments[0].key.lastIndexOf(' ')))));
+ck('the fragment on offer is never more than one ladder step past the stage\'s own quality goal',
+  S.every(e=>{ const k=e.rewards.glyphFragments[0].key; const q=k.slice(0,k.lastIndexOf(' '));
+    return LI(q)-LI(e.recommendedQuality)<=1; }),
+  JSON.stringify(S.filter(e=>{ const k=e.rewards.glyphFragments[0].key; const q=k.slice(0,k.lastIndexOf(' '));
+    return LI(q)-LI(e.recommendedQuality)>1; }).slice(0,3).map(e=>e.id+':'+e.rewards.glyphFragments[0].key+' vs '+e.recommendedQuality)));
+// (whole-catalogue fragment coverage is proven across all three portals in test_farm_map.js)
 
 // the difficulty curve
 const normalBase=e=>e.baselineHp/((e.node%10===5?1.08:1)*(e.node%10===0?1.16:1));

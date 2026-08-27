@@ -91,6 +91,7 @@ PASS: 24  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🗺  Portals compiled: Normal 100 · Elite 100 · Veteran 18 — 218 glyph fragment families, one fixed source each.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-glyphflow.json  (persistent ✅)
 👤 Player accounts loaded: 0
@@ -117,9 +118,9 @@ PASS: 24  FAIL: 0
   ✓ Purple tree: finished root + virtual branch nodes + fragment leaves
   ✓ Gold tree: multi-level lineage (predecessors of predecessors)
   ✓ every leaf in both trees is a FARMABLE fragment (family exists at its own tier)
-  ✓ leaf sources resolve to authored stages carrying that same named fragment
+  ✓ every leaf names ONE fixed source, and that portal stage really drops it
   ✓ flattened totals equal the sum of the tree leaves
-  ✓ CAMPAIGN COVERAGE: every Grey→Gold+4 (tier,family) pair is authored on some stage (all fragments sweepable)
+  ✓ PORTAL COVERAGE: every (tier,family) pair including Orange has exactly one portal source
   ✓ every pre-choice at every tier is farmable end-to-end
   ✓ canonical ladder is frozen at 16 entries
 
@@ -127,6 +128,7 @@ PASS: 28  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🗺  Portals compiled: Normal 100 · Elite 100 · Veteran 18 — 218 glyph fragment families, one fixed source each.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-vg.json  (persistent ✅)
 👤 Player accounts loaded: 0
@@ -147,6 +149,7 @@ PASS: 13  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🗺  Portals compiled: Normal 100 · Elite 100 · Veteran 18 — 218 glyph fragment families, one fixed source each.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-wb.json  (persistent ✅)
 👤 Player accounts loaded: 0
@@ -174,10 +177,10 @@ PASS: 4  FAIL: 0
   ✓ hero XP is 10× player XP on repeats and sweeps
   ✓ Portal first-clears supply 80–85% of the whole level path
   ✓ player XP never goes backwards stage to stage
-  ✓ every stage names exactly one GUARANTEED glyph fragment
+  ✓ every stage names exactly ONE glyph fragment family
   ✓ every reward line carries an exact name and a count (never "9 grey fragments")
-  ✓ a stage's guaranteed fragment is its own band's quality
-  ✓ every (quality, family) fragment in the game is Portal-farmable
+  ✓ fragment quality never goes backwards across the Normal Portal
+  ✓ the fragment on offer is never more than one ladder step past the stage's own quality goal
   ✓ the normal-growth baseline rises every single stage
   ✓ stage 5 and stage 10 carry the blueprint elite/boss steps
   ✓ every stage records the validated correction applied to the baseline
@@ -186,6 +189,35 @@ PASS: 4  FAIL: 0
   ✓ 1-1 and 1-2 need no glyphs at all (a new account owns none)
 
 PASS: 28  FAIL: 0
+== exact glyph fragment farm map v1 ==
+  ✓ normalStages.length === 100
+  ✓ eliteStages.length === 100
+  ✓ every Normal stage names exactly ONE glyph fragment
+  ✓ every Elite stage names exactly ONE glyph fragment
+  ✓ every Veteran stage names exactly ONE glyph fragment
+  ✓ unique(normalFragmentIds).size === 100
+  ✓ unique(eliteFragmentIds).size === 100
+  ✓ intersection(normal, elite) === 0
+  ✓ veteranOrangeFragmentIds.size === 18
+  ✓ every Veteran fragment is Orange
+  ✓ the catalog defines 218 raw fragment families
+  ✓ allGlyphFragmentIds.size === 218
+  ✓ every fragment has at least one source
+  ✓ no fragment has more than ONE source
+  ✓ spec example: Normal 1-5 drops Green Stoneheart
+  ✓ spec example: Normal 1-10 drops Green Windstep
+  ✓ Normal 1-1 drops Grey Stoneheart
+  ✓ Normal 10-10 drops Gold +4 Bloodroot
+  ✓ Elite 1-1 drops Grey Windstep
+  ✓ Elite 10-10 drops Gold +4 Voidbind
+  ✓ Veteran 1-1 drops Orange Stoneheart
+  ✓ Veteran 2-8 drops Orange Cataclysm
+  ✓ a boss stage grants extra copies of ITS OWN named fragment, never a different one
+  ✓ Elite Portal is a stronger fixed version of the matching Normal stage
+  ✓ Elite never randomises: every wave keeps the Normal stage line-up
+  ✓ every stage record carries its portal mode
+
+PASS: 26  FAIL: 0
 == v2 systems ship ON by default (no Railway variable needed) ==
   ✓ the production manifest answers
   ✓ DUNGEON_V2_ENABLED defaults to true

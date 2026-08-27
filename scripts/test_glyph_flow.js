@@ -64,20 +64,25 @@ ck('Gold tree: multi-level lineage (predecessors of predecessors)',
    treeG.kind==='finishedGlyph' && (treeG.children||[]).some(c=>c.kind==='finishedGlyph' && (c.children||[]).some(cc=>cc.kind==='finishedGlyph'||cc.kind==='subGlyph')));
 ck('every leaf in both trees is a FARMABLE fragment (family exists at its own tier)',
    [...leaves(treeP,[]),...leaves(treeG,[])].every(l=>S.glyphSupplyOK({ing:[{kind:'frag',key:l.key,qty:1}]})));
-ck('leaf sources resolve to authored stages carrying that same named fragment',
-   [...leaves(treeP,[]),...leaves(treeG,[])].every(l=>(l.sources||[]).every(sid=>{
-     const m=/^(\d+)-(\d+)$/.exec(String(sid).replace('campaign-','')); if(!m) return false;
-     const st=S.campStageOf((+m[1]-1)*10 + (+m[2]));
-     return st && st.rewards.glyphFragments.some(f=>f.key===l.key); })));
+// v266 (Farm Map v1): a source is now {mode, stageId} and must resolve inside that exact portal
+ck('every leaf names ONE fixed source, and that portal stage really drops it',
+   [...leaves(treeP,[]),...leaves(treeG,[])].every(l=>{
+     const src=l.sources||[]; if(src.length!==1) return false;
+     const x=src[0]; const m=/^(\d+)-(\d+)$/.exec(String(x.stageId||'')); if(!m) return false;
+     const st=S.portalStageOf(x.mode, (+m[1]-1)*10 + (+m[2]));
+     return st && st.rewards.glyphFragments.length===1 && st.rewards.glyphFragments[0].key===l.key; }));
 ck('flattened totals equal the sum of the tree leaves',
    (()=>{ const tot=S.g2BuildCost(gg,preP).need; const acc={};
      leaves(treeP,[]).forEach(l=>acc[l.key]=(acc[l.key]||0)+l.need);
      return JSON.stringify(Object.fromEntries(Object.entries(acc).sort()))===JSON.stringify(Object.fromEntries(Object.entries(tot).sort())); })());
-ck('CAMPAIGN COVERAGE: every Grey→Gold+4 (tier,family) pair is authored on some stage (all fragments sweepable)',
+ck('PORTAL COVERAGE: every (tier,family) pair including Orange has exactly one portal source',
    (()=>{ const covered=new Set();
-     for(let n=1;n<=100;n++){ const st=S.campStageOf(n); (st.rewards.glyphFragments||[]).forEach(f=>covered.add(f.key)); }
-     const quals=S.GLYPH_LADDER.slice(0,15); // Grey..Gold+4 (Orange = chapter 11/12, Vault-only for now)
-     return quals.every(q=>{ const fams=(S.GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family));
+     for(const mode of ['normal','elite','veteran']){
+       const P=S.PORTALS[mode]; if(!P) return false;
+       for(const e of P.list){ const gf=e.rewards.glyphFragments; if(gf.length!==1) return false;
+         if(covered.has(gf[0].key)) return false;   // one fixed source, never two
+         covered.add(gf[0].key); } }
+     return S.GLYPH_LADDER.every(q=>{ const fams=(S.GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family));
        return [...new Set(fams)].every(f=>covered.has(q+' '+f)); }); })());
 ck('every pre-choice at every tier is farmable end-to-end',
    ['vael','sylthaine','grosk','meridian','vireo'].every(h=>[0,1,2,3,4,5].every(sl=>[0,3,6,10,15].every(qi=>{ const d=S.glyphPreChoice(h,sl,qi); return d&&S.glyphSupplyOK(d); }))));

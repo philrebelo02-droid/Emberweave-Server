@@ -8,7 +8,7 @@ module.exports=function(dbFile){
   const srvDir=fs.existsSync(path.join(__dirname,'server.js'))?__dirname:path.join(__dirname,'..');
   let src=fs.readFileSync(path.join(srvDir,'server.js'),'utf8');
   src=src.replace('server.listen(PORT,', '(function(){})(PORT,');
-  src+='\nmodule.exports={snapshotHeroFromServer,vaultWinPlausible,buildDungeonWaves,vaultSpecToCombatUnit,vaultTeamScore,vaultFloorScore,SIM,DB,warAdvance,getTournament,warNow,gearHeroFlats,glyphFlatStats,ensureGlyphs,glyphFlowMigrate,glyphMigrate,GLYPHS,GLYPH_LADDER,campFragFor,vaultGlyphFragsFor,makeStandardDungeonFloorReward,bossRuleForFloor,dungeonQualityForFloor,glyphPreChoice,campStageOf,glyphTreeFinished,g2BuildCost,glyphSupplyOK,GLYPH_FAMS};';
+  src+='\nmodule.exports={snapshotHeroFromServer,vaultWinPlausible,buildDungeonWaves,vaultSpecToCombatUnit,vaultTeamScore,vaultFloorScore,SIM,DB,warAdvance,getTournament,warNow,gearHeroFlats,glyphFlatStats,ensureGlyphs,glyphFlowMigrate,glyphMigrate,GLYPHS,GLYPH_LADDER,campFragFor,vaultGlyphFragsFor,makeStandardDungeonFloorReward,bossRuleForFloor,dungeonQualityForFloor,glyphPreChoice,campStageOf,glyphTreeFinished,g2BuildCost,glyphSupplyOK,GLYPH_FAMS,portalStageOf,PORTALS,FRAG_SOURCES,portalSourcesFor};';
   const p=path.join(srvDir,'_server_probe_gen.js');
   fs.writeFileSync(p,src);
   const m=require(p); try{fs.unlinkSync(p);}catch(e){}
