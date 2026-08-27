@@ -119,4 +119,19 @@ ck "PVP: idempotent retry returns the same battle" '"won"' "$PKR"
 PVFAKE=$(curl -s -X POST $B/api/pvp/attack -H "$H" -H 'content-type: application/json' -d '{"defId":"'"$DID2"'","heroIds":["konwu"],"requestId":"pa2"}')
 ck "PVP: an unowned hero is rejected" 'not unlocked' "$PVFAKE"
 
+# ================= v252: mobile perf — text compression + immutable art cache =================
+echo "-- v252 delivery: the client ships compressed; art caches immutably"
+RAW=$(curl -s -o /dev/null -w '%{size_download}' $B/play)
+BR=$(curl -s -H 'Accept-Encoding: br' -o /dev/null -w '%{size_download}' $B/play)
+GZ=$(curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' $B/play)
+[ "$BR" -lt "$((RAW/2))" ] && ck "PERF: brotli halves the client at least ($RAW -> $BR)" ok ok || ck "PERF: brotli halves the client" "smaller" "$RAW -> $BR"
+[ "$GZ" -lt "$((RAW/2))" ] && ck "PERF: gzip halves the client at least ($RAW -> $GZ)" ok ok || ck "PERF: gzip halves the client" "smaller" "$RAW -> $GZ"
+MD_SRC=$(curl -s $B/play | md5sum | cut -d' ' -f1)
+MD_BR=$(curl -s -H 'Accept-Encoding: br' --compressed $B/play | md5sum | cut -d' ' -f1)
+ck "PERF: the compressed client decodes byte-identical" "$MD_SRC" "$MD_BR"
+VH=$(curl -s -D- -H 'Accept-Encoding: br' -o /dev/null $B/play | grep -i '^vary')
+ck "PERF: Vary: Accept-Encoding is set (proxy-safe)" 'Accept-Encoding' "$VH"
+AH=$(curl -s -D- -o /dev/null $B/assets/icons/icon-192.png | grep -i '^cache-control')
+ck "PERF: art is immutably cached (no daily revalidation on phones)" 'immutable' "$AH"
+
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"
