@@ -244,8 +244,12 @@ function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0
    in the env can still force it off in an emergency (default is now ON).
    Optimistic concurrency: every mutation carries expectedRevision; mismatch → 409 STALE. */
 const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'true')==='true';
-const GLYPH_LADDER=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
+// CANONICAL 16-step ladder (Correction Spec v1): the ONLY quality model. Frozen; every label,
+// lock, gate and recipe tier derives from an index into this. Grey +1 / Blue +3 do not exist.
+const GLYPH_LADDER=Object.freeze(['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange']);
 const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
+const GLYPH_FAMS=Object.freeze(['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom']);
+const glyphFragSlug=k=>k.toLowerCase().replace(/\s*\+\s*/g,'-plus-').replace(/\s+/g,'-');
 const GLYPH_SLOTS=['vitality','bulwark','onslaught','spirit','tempo','mastery'];
 // which material families each board slot accepts (data-driven; per-role overrides seed later)
 const GLYPH_SLOT_FAMILIES={
@@ -322,6 +326,12 @@ function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
 function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
 function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
 function glyphBoard(g,hero){ if(!g.boards[hero]) g.boards[hero]={ slots:[null,null,null,null,null,null], ascensionIndex:0, ascended:{} }; return g.boards[hero]; }
+function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprintId, locked} — internal instance ids never leave the server
+  for(const h of Object.keys(g.boards||{})){ const b=g.boards[h];
+    out[h]={ ascensionIndex:b.ascensionIndex, ascended:b.ascended,
+      slots:(b.slots||[]).map(iid=>{ if(!iid) return null; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
+        return d?{ blueprintId:d.id, name:d.name, family:d.family, quality:d.quality, stats:d.stats, locked:true }:null; }) }; }
+  return out; }
 function glyphAllowed(slotIdx, def, heroRole){ const slot=GLYPH_SLOTS[slotIdx]; if(!slot) return false;
   const ov=GLYPH_ROLE_OVERRIDES[heroRole||'']; const fams=(ov&&ov[slot])||GLYPH_SLOT_FAMILIES[slot]||[]; return fams.includes(def.family); }
 function glyphPruneConsumed(g){ // consumed instances are kept for the audit trail, but bounded
@@ -340,15 +350,62 @@ function glyphMigrate(u){
   for(const [q,n] of [['Grey',30],['Green',20],['Green +1',12],['Blue',8]]){ for(const f of fams){ g.fragments[q+' '+f]=(g.fragments[q+' '+f]||0)+n; } }
   g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps:0,legacyIgnored:true}); g.revision++;
 }
-// server-owned fragment faucets (Vault/Campaign server drops land later; these give a real economy now)
-function glyphGrantRandomFrags(u, n, maxTier){
-  if(!GLYPHS) return null;
-  const g=ensureGlyphs(u); const fams=['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom'];
-  const got={};
-  for(let i=0;i<n;i++){ const q=GLYPH_LADDER[Math.floor(Math.random()*Math.min(maxTier+1,GLYPH_LADDER.length))];
-    const f=fams[Math.floor(Math.random()*fams.length)]; const k=q+' '+f; g.fragments[k]=(g.fragments[k]||0)+1; got[k]=(got[k]||0)+1; }
-  g.revision++; return got;
-}
+/* ============ Correction Spec v1: DIRECT-BUILD flow — helpers ============ */
+// Recursively expand a blueprint into exact named fragment + Sub-Glyph requirements.
+// finished-glyph ingredients (higher-tier recipes) expand into THEIR recipes — there is no
+// loose finished-Glyph inventory any more.
+function g2ExpandIngredients(def){ const frags={}, subs={};
+  const walk=d=>{ for(const ing of d.ing){
+    if(ing.kind==='frag') frags[ing.key]=(frags[ing.key]||0)+ing.qty;
+    else if(ing.kind==='sub') subs[ing.key]=(subs[ing.key]||0)+ing.qty;
+    else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId]; if(fd) walk(fd); } } };
+  walk(def); return {frags,subs}; }
+// Effective fragment cost: any required Sub-Glyph is built INLINE from its own fragment recipe
+// (sub stock from the pre-migration era is consumed first).
+function g2BuildCost(g, def){ const ex=g2ExpandIngredients(def); const need=Object.assign({},ex.frags); const useSubs={};
+  for(const sk in ex.subs){ const stock=(g.subGlyphs&&g.subGlyphs[sk])|0; const use=Math.min(stock, ex.subs[sk]);
+    if(use>0) useSubs[sk]=use;
+    const short=ex.subs[sk]-use;
+    if(short>0){ const sd=GLYPHS.subs[sk]; if(!sd) return null;
+      for(const ing of sd.ing){ need[ing.key]=(need[ing.key]||0)+ing.qty*short; } } }
+  return {need, useSubs}; }
+// ONE-TIME flow migration (audited): loose finished Glyphs refund 100% of their exact named
+// ingredients; socketed Glyphs become permanently LOCKED in their slot; loose Sub-Glyph stock
+// converts to its named fragments; ascended bonuses are untouched.
+function glyphFlowMigrate(u){ if(!GLYPHS) return; const g=ensureGlyphs(u); if(g.flow2At) return;
+  const refund={}; const addRefund=(k,n)=>{ g.fragments[k]=(g.fragments[k]||0)+n; refund[k]=(refund[k]||0)+n; };
+  for(const iid of Object.keys(g.finished||{})){ const inst=g.finished[iid];
+    if(inst.status==='inventory'){ const def=GLYPHS.byId[inst.definitionId];
+      if(def){ const ex=g2ExpandIngredients(def);
+        for(const k in ex.frags) addRefund(k, ex.frags[k]);
+        for(const sk in ex.subs){ const sd=GLYPHS.subs[sk]; if(sd) for(const ing of sd.ing) addRefund(ing.key, ing.qty*ex.subs[sk]); } }
+      inst.status='consumed'; inst.consumedAt=Date.now(); inst.flow2Refunded=true; }
+    else if(inst.status==='socketed'){ inst.status='locked'; } }
+  for(const sk of Object.keys(g.subGlyphs||{})){ const n=g.subGlyphs[sk]|0; const sd=GLYPHS.subs[sk];
+    if(n>0&&sd) for(const ing of sd.ing) addRefund(ing.key, ing.qty*n); }
+  g.subGlyphs={};
+  g.flow2At=Date.now(); glyphAudit(g,'flow2-migrate',{refund}); g.revision++; }
+// Named, deterministic fragment grants — the ONLY live reward path for Glyph materials.
+function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.length) return null;
+  const g=ensureGlyphs(u); glyphMigrate(u); glyphFlowMigrate(u);
+  const receipt=[];
+  for(const it of list){ const q=Math.max(1,it.quantity|0); g.fragments[it.key]=(g.fragments[it.key]||0)+q;
+    receipt.push({ fragmentId:glyphFragSlug(it.key), displayName:it.key+' Fragment', quantity:q }); }
+  g.revision++; return receipt; }
+// Authored named drops: campaign stages (chapter sets the quality band, family cycles by stage),
+// vault boss floors (band by floor, family by boss index), arena wins (band by rank), daily
+// (fixed rotation by NY day). Deterministic — no unseeded family roll anywhere.
+function campFragFor(node){ const ch=Math.min(10,Math.ceil(node/10)); const q=GLYPH_LADDER[ch-1];
+  const fam=GLYPH_FAMS[(node-1)%GLYPH_FAMS.length];
+  return [{ key:q+' '+fam, quantity: campIsBoss(node)?2:1 }]; }
+function vaultGlyphFragsFor(floor){ const q=dungeonQualityForFloor(floor); const bi=floor/5;
+  return [ q+' '+GLYPH_FAMS[bi%GLYPH_FAMS.length], q+' '+GLYPH_FAMS[(bi+3)%GLYPH_FAMS.length] ]; }
+function arenaGlyphFragsFor(rank){ const t=Math.min(9, 3+Math.floor((5000-rank)/800)); const out=[];
+  for(let i=0;i<4;i++) out.push({ key:GLYPH_LADDER[Math.max(0,t-i)]+' '+GLYPH_FAMS[(rank+i)%GLYPH_FAMS.length], quantity:1 });
+  return out; }
+function dailyGlyphFragsFor(dayKey){ let h=0; for(const c of String(dayKey)) h=(h*31+c.charCodeAt(0))>>>0; const out=[];
+  for(let i=0;i<12;i++) out.push({ key:GLYPH_LADDER[i%4]+' '+GLYPH_FAMS[(h+i)%GLYPH_FAMS.length], quantity:1 });
+  return out; }
 // glyph combat/power contribution — flat + % stats reduced to one scalar, added into serverTeamPower
 const GLYPH_POWER_WEIGHT=+(process.env.GLYPH_POWER_WEIGHT||0.2);
 function glyphStatScore(stats){ let p=0; for(const s of stats){ if(s.pct) p+=s.val*4; else if(/^HP$/i.test(s.stat)) p+=s.val/8; else if(/Regen/i.test(s.stat)) p+=s.val/6; else p+=s.val*1.2; } return p; }
@@ -566,19 +623,15 @@ function vaultWinPlausible(a){
     return SIM.resolveTwoWaveBattle(five, waves, SIM.seedFrom('vaultcheck:'+a.id)).result.won;
   }catch(e){ console.error('⚠ vault win validator error:', e&&e.message); return true; }   // never brick the Vault on a validator bug
 }
-function rollFragmentOfQuality(q, rnd){
-  if(!GLYPHS||!Array.isArray(GLYPHS.raw)||!GLYPHS.raw.length) return q+' Stoneheart';   // AUDIT v229: never crash a reward grant on a missing catalog
-  const fams=[...new Set(GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family))];
-  const f=fams[Math.floor((rnd?rnd():Math.random())*fams.length)]||'Stoneheart';
-  return q+' '+f;
-}
+// (rollFragmentOfQuality deleted — Correction Spec v1: no random family roll exists in any live
+//  reward path; vault/campaign/arena/daily all use named deterministic tables.)
 function makeStandardDungeonFloorReward(floor,rnd){
   // AUDIT C7: MONSTERS are fixed per floor; REWARD FRAGMENTS are rolled server-side per grant
   // transaction and persisted with it (claimedFloors / the idempotency record) — a retry never
   // rerolls, and the roll is never derivable by the client in advance.
   rnd=rnd||Math.random;
   const r={ dust:dustForDungeonFloor(floor) };
-  if(isDungeonBossFloor(floor)){ const q=dungeonQualityForFloor(floor); r.fragments=[rollFragmentOfQuality(q,rnd), rollFragmentOfQuality(q,rnd)]; }
+  if(isDungeonBossFloor(floor)){ r.fragments=vaultGlyphFragsFor(floor); }   // Correction Spec v1: NAMED, floor-fixed — never a family roll
   if(typeof GEARCAT!=='undefined'&&GEARCAT){ const gq=dungeonQualityForFloor(floor);
     r.gearFragments=[gearRollFragment(gq,rnd), gearRollFragment(gq,rnd)].filter(Boolean); }
   return r;
@@ -908,8 +961,13 @@ let CAMP_ENC=null;
 function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
     if(!Array.isArray(raw)||raw.length!==100) throw new Error('expected 100 encounters, got '+(raw&&raw.length));
-    CAMP_ENC={byNode:{}}; for(const e of raw) CAMP_ENC.byNode[e.node]=e;
-    console.log('🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG).');
+    CAMP_ENC={byNode:{}, fragSources:{}}; for(const e of raw) CAMP_ENC.byNode[e.node]=e;
+    // Correction Spec v1: every stage carries its EXACT named Glyph Fragment target, and a
+    // reverse index lets the Build sheet link straight to the stages that farm each fragment.
+    for(const e of raw){ e.rewards=e.rewards||{};
+      e.rewards.glyphFragments=campFragFor(e.node).map(f=>({ fragmentId:glyphFragSlug(f.key), key:f.key, displayName:f.key+' Fragment', quantity:f.quantity }));
+      for(const f of e.rewards.glyphFragments){ (CAMP_ENC.fragSources[f.key]=CAMP_ENC.fragSources[f.key]||[]).push(e.id||('campaign-'+e.node)); } }
+    console.log('🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + named Glyph fragment targets.');
   }catch(e){ CAMP_ENC=null; console.error('⚠ CAMPAIGN ENCOUNTERS DISABLED — '+e.message+' (client keeps its local mode)'); }
 }
 const CAMPAIGN_SKILL_BAND=parseFloat(process.env.CAMPAIGN_SKILL_BAND||'1.5');   // deterministic manual-play allowance inside the authoritative resolve
@@ -1562,74 +1620,75 @@ async function api(req,res,url){
         subs:Object.values(GLYPHS.subs) }); }
     if(p==='/api/glyphs/state'){
       if(!glyphsEnabledFor(me)) return send(res,200,{enabled:false});
-      glyphMigrate(me); const g=ensureGlyphs(me); writeDB();
-      return send(res,200,{ enabled:true, revision:g.revision, fragments:g.fragments, subGlyphs:g.subGlyphs,
-        finished:g.finished, boards:g.boards, migratedAt:g.migratedAt||0 }); }
+      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me); writeDB();
+      // Correction Spec v1: materials + locked boards + permanent bonuses ONLY — no loose
+      // finished-Glyph or Sub-Glyph inventory exists in the player model any more.
+      return send(res,200,{ enabled:true, revision:g.revision, fragments:g.fragments,
+        ladder:GLYPH_LADDER, catalogVersion:GLYPHS.version,
+        boards:glyphBoardsView(g), migratedAt:g.migratedAt||0, flowMigratedAt:g.flow2At||0 }); }
     if(!glyphsEnabledFor(me)) return send(res,403,{error:'disabled'});
+    if(p==='/api/glyphs/slot-options'){ // GET: server-derived legal blueprints for one empty slot
+      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
+      const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
+      if(!SIM.HERO_BASE[hero]) return send(res,400,{error:'Unknown hero.'});
+      if(!ensureLedger(me).unlocked[hero]) return send(res,400,{error:'You have not unlocked '+hero+'.'});
+      if(!(slot>=0&&slot<6)) return send(res,400,{error:'Bad slot.'});
+      const board=glyphBoard(g,hero);
+      if(board.ascensionIndex>=GLYPH_MAX_ASC) return send(res,400,{error:'Fully ascended.'});
+      if(board.slots[slot]){ const inst=g.finished[board.slots[slot]]; const d=inst&&GLYPHS.byId[inst.definitionId];
+        return send(res,200,{ filled:true, blueprintId:d?d.id:null, name:d?d.name:null, locked:true }); }
+      const heroRole=(SIM.HERO_BASE[hero]||{}).role;
+      const opts=GLYPHS.raw.filter(d=>d.qi===board.ascensionIndex && glyphAllowed(slot,d,heroRole)).map(d=>{
+        const cost=g2BuildCost(g,d)||{need:{},useSubs:{}};
+        const materials=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
+          need:cost.need[k], have:(g.fragments[k]|0), sources:(CAMP_ENC&&CAMP_ENC.fragSources[k]||[]).slice(0,4) }));
+        return { blueprintId:d.id, name:d.name, family:d.family, quality:d.quality, stats:d.stats,
+          materials, buildable:materials.every(m=>m.have>=m.need) }; });
+      return send(res,200,{ hero, slot, quality:GLYPH_LADDER[board.ascensionIndex], ascensionIndex:board.ascensionIndex,
+        revision:g.revision, options:opts }); }
     if(req.method!=='POST') return send(res,404,{error:'glyphs'});
     if(rateLimited(req,'glyphs',60,60000)) return send(res,429,{error:'Slow down.'});
-    const b=await body(req); glyphMigrate(me); const g=ensureGlyphs(me);
+    // Correction Spec v1: the Craft / Inventory / Socket / Unsocket loop is RETIRED.
+    if(p==='/api/glyphs/craft'||p==='/api/glyphs/craft-sub'||p==='/api/glyphs/socket'||p==='/api/glyphs/salvage')
+      return send(res,410,{error:'GLYPH_FLOW_REPLACED'});
+    if(p==='/api/glyphs/unsocket') return send(res,410,{error:'GLYPH_LOCKED'});
+    const b=await body(req); glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
+    if(p==='/api/glyphs/build-in-slot'){ const rid0=String(b.requestId||'').slice(0,48);
+      if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // idempotent retry beats the STALE check
     const er=parseInt(b.expectedRevision,10);
     if(er!==g.revision) return send(res,409,{error:'STALE', revision:g.revision});
     const ok=(extra)=>{ glyphPruneConsumed(g); g.revision++; writeDB(); return send(res,200,Object.assign({ok:true, revision:g.revision},extra||{})); };
     const bad=(msg)=>send(res,400,{error:msg, revision:g.revision});
 
-    if(p==='/api/glyphs/craft'){
-      const def=GLYPHS.byId[String(b.definitionId||'')]; if(!def) return bad('Unknown glyph.');
-      // resolve finished-glyph ingredients: use client-picked instance ids when given, else auto-pick oldest inventory
-      const needFin=def.ing.filter(i=>i.kind==='finished');
-      const pickIds=Array.isArray(b.ingredients)?b.ingredients.map(String):[];
-      const used=new Set(); const chosen=[];
-      for(const ingr of needFin){
-        let inst=null;
-        for(const iid of pickIds){ if(used.has(iid)) continue; const c=g.finished[iid];
-          if(c && c.status==='inventory' && c.definitionId===ingr.defId){ inst=iid; break; } }
-        if(!inst){ const cands=Object.entries(g.finished).filter(([iid,c])=>!used.has(iid)&&c.status==='inventory'&&c.definitionId===ingr.defId)
-          .sort((a,bb)=>(a[1].createdAt||0)-(bb[1].createdAt||0)); if(cands.length) inst=cands[0][0]; }
-        if(!inst) return bad('Missing ingredient: '+(GLYPHS.byId[ingr.defId]||{}).name);
-        used.add(inst); chosen.push(inst);
-      }
-      for(const ingr of def.ing){ if(ingr.kind==='frag' && (g.fragments[ingr.key]||0)<ingr.qty) return bad('Need '+ingr.qty+' × '+ingr.key+' Fragments.');
-        if(ingr.kind==='sub' && (g.subGlyphs[ingr.key]||0)<ingr.qty) return bad('Need '+ingr.key+'.'); }
-      for(const ingr of def.ing){ if(ingr.kind==='frag'){ g.fragments[ingr.key]-=ingr.qty; if(g.fragments[ingr.key]<=0) delete g.fragments[ingr.key]; }
-        if(ingr.kind==='sub'){ g.subGlyphs[ingr.key]-=ingr.qty; if(g.subGlyphs[ingr.key]<=0) delete g.subGlyphs[ingr.key]; } }
-      const now=Date.now();
-      for(const iid of chosen){ g.finished[iid].status='consumed'; g.finished[iid].consumedAt=now; }
-      const nid='g'+(g.seq++); g.finished[nid]={ definitionId:def.id, status:'inventory', createdAt:now };
-      glyphAudit(g,'craft',{def:def.id, out:nid, fed:chosen});
-      return ok({ crafted:nid, definitionId:def.id });
-    }
-    if(p==='/api/glyphs/craft-sub'){
-      const sub=GLYPHS.subs[String(b.subKey||'')]; if(!sub) return bad('Unknown sub-glyph.');
-      for(const ingr of sub.ing){ if((g.fragments[ingr.key]||0)<ingr.qty) return bad('Need '+ingr.qty+' × '+ingr.key+' Fragments.'); }
-      for(const ingr of sub.ing){ g.fragments[ingr.key]-=ingr.qty; if(g.fragments[ingr.key]<=0) delete g.fragments[ingr.key]; }
-      g.subGlyphs[sub.key]=(g.subGlyphs[sub.key]||0)+1;
-      glyphAudit(g,'craftsub',{sub:sub.key});
-      return ok({ subKey:sub.key, count:g.subGlyphs[sub.key] });
-    }
-    if(p==='/api/glyphs/socket'){
+    if(p==='/api/glyphs/build-in-slot'){
+      // Correction Spec v1: the ONLY way a Glyph comes to exist — verified and consumed atomically,
+      // written permanently into one chosen slot. No loose instance, no removal, no replacement.
+      const rid=String(b.requestId||'').slice(0,48); if(!rid) return bad('requestId required');
       const hero=String(b.heroKey||'').slice(0,24); const slot=parseInt(b.slot,10);
-      if(!hero || !(slot>=0&&slot<6)) return bad('Bad hero/slot.');
-      const iid=String(b.instanceId||''); const inst=g.finished[iid];
-      if(!inst || inst.status!=='inventory') return bad('That glyph is not available.');
-      const def=GLYPHS.byId[inst.definitionId]; if(!def) return bad('Corrupt instance.');
+      if(!SIM.HERO_BASE[hero]) return bad('Unknown hero.');
+      if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
+      if(!(slot>=0&&slot<6)) return bad('Bad slot.');
+      const def=GLYPHS.byId[String(b.blueprintId||'')]; if(!def) return bad('Unknown blueprint.');
       const board=glyphBoard(g,hero);
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
-      if(def.qi!==board.ascensionIndex) return bad('This board needs '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
-      const heroRole=(SIM&&SIM.HERO_BASE[hero]||{}).role;   // AUDIT: socketing now passes the hero's role so the seeded role templates apply
+      if(board.slots[slot]) return bad('That slot is already locked.');
+      if(def.qi!==board.ascensionIndex) return bad('This board builds '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
+      const heroRole=(SIM.HERO_BASE[hero]||{}).role;
       if(!glyphAllowed(slot,def,heroRole)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
-      if(board.slots[slot]){ const old=g.finished[board.slots[slot]]; if(old&&old.status==='socketed') old.status='inventory'; }
-      inst.status='socketed'; board.slots[slot]=iid;
-      glyphAudit(g,'socket',{hero,slot,inst:iid});
-      return ok({ hero, slot, instanceId:iid });
-    }
-    if(p==='/api/glyphs/unsocket'){
-      const hero=String(b.heroKey||'').slice(0,24); const slot=parseInt(b.slot,10);
-      const board=g.boards[hero]; if(!board || !(slot>=0&&slot<6) || !board.slots[slot]) return bad('Nothing socketed there.');
-      const inst=g.finished[board.slots[slot]]; if(inst&&inst.status==='socketed') inst.status='inventory';
-      const iid=board.slots[slot]; board.slots[slot]=null;
-      glyphAudit(g,'unsocket',{hero,slot,inst:iid});
-      return ok({ hero, slot });
+      const cost=g2BuildCost(g,def); if(!cost) return bad('Corrupt recipe.');
+      for(const k in cost.need) if((g.fragments[k]|0)<cost.need[k]) return bad('Need '+cost.need[k]+' × '+k+' Fragments.');
+      for(const k in cost.need){ g.fragments[k]-=cost.need[k]; if(g.fragments[k]<=0) delete g.fragments[k]; }
+      for(const sk in cost.useSubs){ g.subGlyphs[sk]-=cost.useSubs[sk]; if(g.subGlyphs[sk]<=0) delete g.subGlyphs[sk]; }
+      const nid='g'+(g.seq++); g.finished[nid]={ definitionId:def.id, status:'locked', builtAt:Date.now(), requestId:rid };
+      board.slots[slot]=nid;
+      glyphAudit(g,'build',{hero,slot,def:def.id,rid});
+      glyphPruneConsumed(g); g.revision++;
+      const receipt={ ok:true, revision:g.revision, hero, slot, blueprintId:def.id, name:def.name, locked:true,
+        consumed:Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, quantity:cost.need[k] })),
+        board:glyphBoardsView(g)[hero] };
+      g.applied=g.applied||{}; g.applied[rid]=receipt;
+      const rids=Object.keys(g.applied); if(rids.length>60) for(const old of rids.slice(0,rids.length-60)) delete g.applied[old];
+      writeDB(); return send(res,200,receipt);
     }
     if(p==='/api/glyphs/ascend'){
       const hero=String(b.heroKey||'').slice(0,24); const board=g.boards[hero];
@@ -1643,7 +1702,7 @@ async function api(req,res,url){
       const ascRole=(SIM&&SIM.HERO_BASE[hero]||{}).role;
       const insts=[];
       for(let i=0;i<6;i++){ const inst=g.finished[board.slots[i]]; const def=inst&&GLYPHS.byId[inst.definitionId];
-        if(!inst || inst.status!=='socketed' || !def || def.qi!==board.ascensionIndex || !glyphAllowed(i,def,ascRole)) return bad('Illegal board — re-socket slot '+(i+1)+'.');
+        if(!inst || !/^(locked|socketed)$/.test(inst.status) || !def || def.qi!==board.ascensionIndex || !glyphAllowed(i,def,ascRole)) return bad('Illegal board — slot '+(i+1)+' is not a valid locked build.');
         insts.push([inst,def]); }
       const now=Date.now();
       for(const [inst,def] of insts){ inst.status='consumed'; inst.consumedAt=now;
@@ -1652,23 +1711,11 @@ async function api(req,res,url){
       glyphAudit(g,'ascend',{hero, to:board.ascensionIndex, fed});
       return ok({ hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended });
     }
-    if(p==='/api/glyphs/salvage'){
-      const ids=Array.isArray(b.instanceIds)?b.instanceIds.map(String).slice(0,50):[];
-      if(!ids.length) return bad('Nothing to salvage.');
-      const refund={}; const now=Date.now(); let n=0;
-      for(const iid of ids){ const inst=g.finished[iid]; if(!inst || inst.status!=='inventory') continue;
-        const def=GLYPHS.byId[inst.definitionId]; if(!def) continue;
-        for(const ingr of def.ing){ if(ingr.kind==='frag'){ const back=Math.floor(ingr.qty/2); if(back>0){ g.fragments[ingr.key]=(g.fragments[ingr.key]||0)+back; refund[ingr.key]=(refund[ingr.key]||0)+back; } } }
-        inst.status='consumed'; inst.consumedAt=now; inst.salvaged=true; n++; }
-      if(!n) return bad('Nothing salvageable in that selection.');
-      glyphAudit(g,'salvage',{n, ids:ids.slice(0,10)});
-      return ok({ salvaged:n, refund });
-    }
     if(p==='/api/glyphs/grant'){ // dev-only test faucet
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
-      const q=String(b.quality||'Grey'); const fam=String(b.family||'Stoneheart'); const n=Math.max(1,Math.min(500,parseInt(b.n,10)||10));
+      const q=String(b.quality||'Grey'); const fam=String(b.family||'Stoneheart'); const n=Math.max(-9999,Math.min(500,parseInt(b.n,10)||10));   // negative allowed: dev-only fixture for insufficiency tests
       if(GLYPH_LADDER.indexOf(q)<0) return bad('Bad quality.');
-      g.fragments[q+' '+fam]=(g.fragments[q+' '+fam]||0)+n;
+      g.fragments[q+' '+fam]=Math.max(0,(g.fragments[q+' '+fam]||0)+n);
       glyphAudit(g,'grant',{k:q+' '+fam,n});
       return ok({ fragments:g.fragments });
     }
@@ -1768,7 +1815,8 @@ async function api(req,res,url){
       const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
       ledTx(me,'campaign:sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
-      writeDB(); return {ok:true, times, gold, px, heroXp:hxp, ledger:ledgerView(me)};
+      const glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity*times})));
+      writeDB(); return {ok:true, times, gold, px, heroXp:hxp, glyphFragments, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -1879,6 +1927,8 @@ async function api(req,res,url){
         if(first) led.camp.cleared=a.node;
         if(stars>(led.camp.stars[a.node]|0)) led.camp.stars[a.node]=stars;
         ledTx(me,'campaign:clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
+        // Correction Spec v1: the stage's EXACT named Glyph Fragment target, granted server-side
+        reward.glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity})));
       } else ledTx(me,'campaign:loss:'+st.id,{});
       writeDB();
       return { ok:true, won, stars, reward, replaySeed:SIM.seedFrom('camp:'+a.id), ledger:ledgerView(me) };
@@ -2021,7 +2071,7 @@ async function api(req,res,url){
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
-    let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 4, Math.min(9, 3+Math.floor((5000-me.rank)/800))); }   // arena win: 4 fragments, tier scales with rank (raised 26 Aug with the legacy-drop removal)
+    let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, authoritative:true };
     DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
     return send(res,200,aresp); }
@@ -2043,7 +2093,7 @@ async function api(req,res,url){
   if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const now=Date.now();
     if(now-(me.lastDaily||0) < 20*60*60*1000) return send(res,200,{granted:0, coins:me.coins, next:(me.lastDaily+20*60*60*1000)});
     const amt=dailyAmount(me.rank); me.coins+=amt; me.lastDaily=now;
-    let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantRandomFrags(me, 12, 3); }   // daily: 12 fragments up to Blue (raised 26 Aug — campaign's legacy glyph drops were removed with the v214 strip)
+    let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, dailyGlyphFragsFor(nyDayKey())); }   // Correction Spec v1: named, NY-day-deterministic rotation up to Blue
     let gearFrags=null; if(gearEnabledFor(me)){ const q=['Grey','Green','Blue'][Math.floor(Math.random()*3)]; gearFrags=gearGrantFragments(me,q,3); }   // daily: 3 gear fragments
     writeDB(); return send(res,200,{granted:amt, coins:me.coins, glyphFrags, gearFrags}); }
 

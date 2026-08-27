@@ -1883,24 +1883,18 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
 const MATS=[['grey','⚪','Grey'],['green','🟢','Green'],['blue','🔵','Blue'],['purple','🟣','Purple'],['gold','🟡','Gold']];
 const GTIER_COL=['#4a5163','#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
 // ---- GLYPH RANK LADDER (10 ranks Grey → Purple). cost = shards to upgrade FROM this rank to the next ----
-const GRANK=[
-  {name:'Grey',     q:0, col:'#9aa6bb', cost:{grey:4}},
-  {name:'Grey +1',  q:0, col:'#9aa6bb', cost:{grey:3,green:1}},
-  {name:'Green',    q:1, col:'#5ee89b', cost:{grey:4,green:1}},
-  {name:'Green +1', q:1, col:'#5ee89b', cost:{grey:3,green:2}},
-  {name:'Green +2', q:1, col:'#5ee89b', cost:{grey:1,green:3,blue:1}},
-  {name:'Blue',     q:2, col:'#4aa3ff', cost:{green:3,blue:2}},
-  {name:'Blue +1',  q:2, col:'#4aa3ff', cost:{green:2,blue:3}},
-  {name:'Blue +2',  q:2, col:'#4aa3ff', cost:{green:1,blue:4}},
-  {name:'Blue +3',  q:2, col:'#4aa3ff', cost:{blue:4,purple:1}},
-  {name:'Purple',   q:3, col:'#b98bff', cost:null},   // MAX
-];
-const GMAX_RANK=GRANK.length-1;
-// Glyph rank = the SERVER'S v2 ascension index (legacy client glyphs stripped 26 Aug).
-// While v2 state is live it is the only truth (no board = rank 0); G.glyphRank survives only as an
-// offline cache, mirrored from the server on every sync, so quality/skill/equip gates work offline.
+// CANONICAL 16-step glyph ladder (Correction Spec v1) — the ONLY quality model in the client.
+// The legacy GRANK ladder (with its illegal 'Grey +1' / 'Blue +3' labels) is DELETED; every
+// label, colour, lock and gate derives from the server board's ascensionIndex on this ladder.
+const G2_LADDER16=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
+const G2_TIER16=[0,1,1,2,2,2,3,3,3,3,3,3,3,3,3,3];   // ability/quality tier 0..3 by ascension index
+const G2_LCOL={'Grey':'#9aa6bb','Green':'#5ee89b','Green +1':'#5ee89b','Blue':'#4aa3ff','Blue +1':'#4aa3ff','Blue +2':'#4aa3ff','Purple':'#b98bff','Purple +1':'#b98bff','Purple +2':'#b98bff','Purple +3':'#b98bff','Gold':'#ffd45e','Gold +1':'#ffd45e','Gold +2':'#ffd45e','Gold +3':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff8a3c'};
+const GMAX_RANK=16;   // ascensionIndex 16 = fully ascended
+function gLadderName(i){ return i>=16?'Orange ★':G2_LADDER16[Math.max(0,Math.min(15,i|0))]; }
+function gLadderCol(i){ return G2_LCOL[G2_LADDER16[Math.max(0,Math.min(15,i|0))]]||'#9aa6bb'; }
+// Glyph rank = the SERVER board's ascensionIndex (0..16), cached offline in G.glyphRank.
 function glyphRank(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st){ const b=RUNE2.st.boards&&RUNE2.st.boards[key]; return Math.max(0,Math.min(GMAX_RANK,(b&&b.ascensionIndex)||0)); } return Math.max(0,Math.min(GMAX_RANK, (G.glyphRank&&G.glyphRank[key])||0)); }
-function heroQuality(key){ return GRANK[glyphRank(key)].q; }   // ability tier derived from glyph colour
+function heroQuality(key){ return G2_TIER16[Math.min(15,glyphRank(key))]; }   // ability tier derived from glyph ascension
 // per-class glyph stat leaning (per rank): dps→damage, tanks→bulk, casters/healers→energy + spell dmg
 const GLYPH_PROFILE={
   Tank:    {hp:0.042, dr:0.020, regen:0.0016},
@@ -3911,12 +3905,12 @@ function grantRewards(){
     G.gold+=gold; const lvlGain=addPlayerXP(xp);      // +30 stamina per level gained
     regenStamina(); G.stamina=Math.max(0,G.stamina-stageStamCost(node));      // spend 6 (boss: 12) for clearing the stage
     const hxp=(firstClear?STAGE_XP_FIRST:(isBossStage(node)?12:STAGE_XP_SWEEP)); grantTeamXP(hxp);   // boss sweep gives 12 XP
-    const drops=rollDrops(node); for(const k in drops) G.mats[k]+=drops[k];
+    // (Correction Spec v1: browser-rolled shard drops removed — glyph materials are SERVER receipts)
     if(firstClear) G.campaignCleared=node; else stageCountRun(node,1);
     // hero unlocks
     let unlockMsg='';
     /* heroes now unlock ONLY by collecting fragments (elite stages / market / arena shop / quests) */
-    const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join('  ');
+    const dropStr='';
     // (legacy glyph drops stripped 26 Aug — Glyph v2 fragments come from the Daily, Arena and The Vault, all server-side)
     let glyphStr='';
     // Elite stages drop hero fragments
@@ -3925,7 +3919,7 @@ function grantRewards(){
       const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=firstClear?(ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1))):1;   // first clear: full 3-4 roll; every farm run after: +1
       const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragment${amt===1?'':'s'}</span>`; if(um)unlockMsg=um; }
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
-    msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP<br>Quality shards: ${dropStr}${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Farmed for shards.')}`;
+    msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Stage farmed.')}`;
   } else {
     G.trophies+=12; txEarn('gold',80,'tower'); G.mats.blue+=2; G.mats.purple+=1; grantTeamXP(60); txEarn('heroXp',60,'tower',{heroKeys:(G.team||[]).filter(Boolean)});
     msg=`🏆 +12 trophies · <span class="coins">🪙 +80</span><br>Glyph shards: 🔵2 🟣1`;
@@ -3933,7 +3927,7 @@ function grantRewards(){
   saveG(); return msg;
 }
 // Chapter 1 (the first 10 stages) is a tutorial: normal stages drop only GREY shards; Elite stages add a little GREEN.
-function rollDrops(node){ const d={grey:4+node}; if(isEliteStage(node)) d.green=2; return d; }
+// rollDrops deleted (Correction Spec v1): no browser-generated Glyph reward exists.
 function endBattle(won){ ended=true;
   if(window._p2guard){ window._p2win=won; return; }   // Phase 2 headless sim: record winner, skip all UI/rewards
   // snapshot Victory-screen data before any mode-specific early return (used by renderResultExtras)
@@ -4025,6 +4019,7 @@ function endBattle(won){ ended=true;
       document.getElementById('resultReward').innerHTML= sWon
         ? `<span class="coins">🪙 +${(r.reward&&r.reward.gold)||0}</span> · +${(r.reward&&r.reward.playerXp)||0} XP · heroes +${(r.reward&&r.reward.heroXp)||0} XP`
           +`<br>${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}`
+          +((r.reward&&r.reward.glyphFragments&&r.reward.glyphFragments.length)?('<br>'+g2fragReceipt(r.reward.glyphFragments)):'')
         : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.');
       document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':'Same monsters every attempt — learn the stage.';
       updateHubChrome(); gameSpeed=1; show('result');
@@ -5488,6 +5483,9 @@ function openStageModal(i){
 function closeStageModal(){ document.getElementById('stageModal').classList.remove('active'); }
 // Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
 // can actually pay for and says how many it ran, rather than refusing the whole batch at 9/10.
+function g2fragReceipt(arr){ if(!Array.isArray(arr)||!arr.length) return '';
+  return arr.map(f=>{ const k=String(f.displayName||'').replace(/ Fragment$/,'');
+    return `<span style="color:#8fe3ff">${(typeof g2artKey==='function')?g2artKey('fragment',k,14):'◆'} ${f.displayName} ×${f.quantity}</span>`; }).join(' · '); }
 function sweepStage(i,times){
   // AUDIT C1/C2: sweeps are SERVER-authorized — stamina, gold, player XP and hero XP move on the
   // ledger; the client only applies legacy material drops and shows the totals.
@@ -5495,12 +5493,15 @@ function sweepStage(i,times){
     const r=await api('/api/campaign/sweep','POST',{node:i, times, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
     if(!r||!r.ok){ document.getElementById('smMsg').textContent=(r&&r.error)||'Sweep failed — check your connection.'; await ledgerSync(); return; }
     adoptLedger(r.ledger);
-    const drops={}; let frags=0, um='';
-    for(let k2=0;k2<r.times;k2++){ const d=rollDrops(i); for(const k in d){ drops[k]=(drops[k]||0)+d[k]; G.mats[k]=(G.mats[k]||0)+d[k]; }
+    let frags=0, um='';
+    for(let k2=0;k2<r.times;k2++){
       if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); txEarn('frag',1,'elite',{heroKey:hk}); if(_um)um=_um; frags++; } } }
     stageCountRun(i,r.times);
-    const dropStr=Object.entries(drops).map(([k,v])=>matIcon(k)+v).join('  ');
-    document.getElementById('smMsg').innerHTML=`Swept ×${r.times} — 🪙 +${r.gold} · +${r.px} XP · heroes +${r.heroXp*r.times>=0?r.heroXp:0} XP${dropStr?(' · '+dropStr):''}${frags?(' · 🧩+'+frags):''}${um?('<br>'+um):''}`;
+    // Correction Spec v1: the SERVER's named Glyph Fragment receipt is the reward display —
+    // never a generic shard counter rolled in the browser.
+    const fragStr=g2fragReceipt(r.glyphFragments);
+    document.getElementById('smMsg').innerHTML=`Swept ×${r.times} — 🪙 +${r.gold} · +${r.px} XP · heroes +${r.heroXp*r.times>=0?r.heroXp:0} XP${fragStr?(' · '+fragStr):''}${frags?(' · 🧩+'+frags):''}${um?('<br>'+um):''}`;
+    if(typeof glyphV2Sync==='function') glyphV2Sync();
     saveG(); updateHubChrome(); if(typeof renderCampaign==='function'&&state==='campaign')renderCampaign();
   })();
 }
@@ -7472,7 +7473,7 @@ function glyphV2Mul(key){ const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,en
   const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'atk','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow'};
   const b=g2board(key); const add=(stat,val)=>{ const k=MAP[stat]; if(k) out[k]+=val; };
   for(const st in (b.ascended||{})) add(st, b.ascended[st].val);
-  for(const iid of (b.slots||[])){ if(!iid)continue; const inst=RUNE2.st.finished[iid]; const d=inst&&g2def(inst.definitionId); if(d) d.stats.forEach(s=>add(s.stat,s.val)); }
+  for(const sObj of (b.slots||[])){ if(!sObj)continue; (sObj.stats||[]).forEach(s=>add(s.stat,s.val)); }
   out.crit=Math.min(60,out.crit); return out; }
 async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true;
   payload=Object.assign({expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1},payload||{});
@@ -7480,28 +7481,24 @@ async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true
   if(r&&r.error==='STALE'){ await glyphV2Sync(); renderHeroDetail(); bannerMsg('Refreshed — try again.'); return null; }
   if(r&&r.error){ bannerMsg(r.error); await glyphV2Sync(); renderHeroDetail(); return null; }
   await glyphV2Sync(); renderHeroDetail(); return r; }
-function g2sock(slot){ const key=detailHero, b=g2board(key), pick=RUNE2.pick;
-  if(b.slots[slot]){ g2post('/api/glyphs/unsocket',{heroKey:key,slot}); return; }
-  RUNE2.pick={slot}; renderHeroDetail(); }
-function g2sockPick(instId){ const key=detailHero, slot=RUNE2.pick&&RUNE2.pick.slot; RUNE2.pick=null;
-  if(slot==null) return; g2post('/api/glyphs/socket',{heroKey:key,slot,instanceId:instId}); }
-function g2pickCancel(){ RUNE2.pick=null; renderHeroDetail(); }
+/* Correction Spec v1: a Glyph is BUILT directly into a chosen slot and locked forever.
+   There is no craft tab, no finished-glyph inventory, no socket/unsocket. */
 function g2ascend(){ g2post('/api/glyphs/ascend',{heroKey:detailHero}); }
-function g2craft(defId){ g2post('/api/glyphs/craft',{definitionId:defId}); }
-function g2craftSub(subKey){ g2post('/api/glyphs/craft-sub',{subKey}); }
-function g2view(v){ RUNE2.view=v; renderHeroDetail(); }
-function g2ingLine(def){ const g=RUNE2.st; // ingredient list with have/need coloring
-  return def.ing.map(i=>{
-    if(i.kind==='frag'){ const have=(g.fragments[i.key]||0), ok=have>=i.qty; return `<span style="color:${ok?'#5ee89b':'#e86a6a'}">${i.qty}× ${i.key} frag <span style="color:#6f7d90">(${have})</span></span>`; }
-    if(i.kind==='sub'){ const have=(g.subGlyphs[i.key]||0), ok=have>=1; return `<span style="color:${ok?'#5ee89b':'#e86a6a'}">${i.key} <span style="color:#6f7d90">(${have})</span></span>`; }
-    const d=g2def(i.defId); const have=Object.values(g.finished).filter(x=>x.status==='inventory'&&x.definitionId===i.defId).length;
-    return `<span style="color:${have>0?'#5ee89b':'#e86a6a'}">${d?d.name:i.defId} <span style="color:#6f7d90">(${have})</span></span>`;
-  }).join(' · '); }
-function g2canCraft(def){ const g=RUNE2.st;
-  for(const i of def.ing){ if(i.kind==='frag'&&(g.fragments[i.key]||0)<i.qty) return false;
-    if(i.kind==='sub'&&(g.subGlyphs[i.key]||0)<1) return false;
-    if(i.kind==='finished'&&!Object.values(g.finished).some(x=>x.status==='inventory'&&x.definitionId===i.defId)) return false; }
-  return true; }
+async function g2buildOpen(slot){ if(RUNE2.busy) return;
+  RUNE2.build={slot, loading:true, data:null}; renderHeroDetail();
+  const r=await api('/api/glyphs/slot-options?heroKey='+encodeURIComponent(detailHero)+'&slot='+slot);
+  if(!RUNE2.build||RUNE2.build.slot!==slot) return;
+  if(!r||r.error){ RUNE2.build=null; bannerMsg((r&&r.error)||'Could not load blueprints.'); renderHeroDetail(); return; }
+  RUNE2.build={slot, loading:false, data:r}; renderHeroDetail(); }
+function g2buildCancel(){ RUNE2.build=null; renderHeroDetail(); }
+async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
+  const r=await api('/api/glyphs/build-in-slot','POST',{ heroKey:detailHero, slot:RUNE2.build&&RUNE2.build.slot,
+    blueprintId:bpId, expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
+  RUNE2.busy=false;
+  if(r&&r.error==='STALE'){ await glyphV2Sync(); if(RUNE2.build) g2buildOpen(RUNE2.build.slot); return; }
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Build failed.'); await glyphV2Sync(); renderHeroDetail(); return; }
+  RUNE2.build=null; bannerMsg('🔮 '+(r.name||'Glyph')+' locked into the board!');
+  await glyphV2Sync(); renderHeroDetail(); }
 /* ---- Glyph v2 ART (270 PNGs, /assets/img/glyphs-v2/<QualityDir>/<type>-<slot>.png) ----
    QualityDir = ladder name with ' +' removed ('Blue +1' → 'Blue1'). type ∈ fragment|sub|finished.
    Art is keyed by BOARD SLOT; a def/fragment finds its slot through its material family. */
@@ -7517,87 +7514,58 @@ function g2artDef(d,px,extra){ return g2art('finished',d.quality,g2slotOfFam(d.f
 function g2parseKey(k){ const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
 function g2artKey(type,k,px){ const p=g2parseKey(k); return g2art(type,p.q,g2slotOfFam(p.fam),px,'display:inline-block;vertical-align:-4px'); }
 function glyphV2Tab(key){
-  if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to craft, socket and ascend glyphs.</span></div>`; }
+  if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to build and ascend glyphs.</span></div>`; }
   if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
     glyphV2Sync().then(()=>{ if(heroTab==='glyphs') renderHeroDetail(); });
     return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">Loading glyphs…</div>`; }
   const cat=RUNE2.cat, st=RUNE2.st, b=g2board(key);
   const idx=b.ascensionIndex, maxed=idx>=cat.ladder.length;
   const q=maxed?'Orange':cat.ladder[idx], qc=g2col(q);
-  const inv=Object.entries(st.finished).filter(([id,i])=>i.status==='inventory');
-  // ---- ascension header ----
   const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <b>Glyph Ascension</b>
       <span class="pill" style="color:${qc};border:1px solid ${qc}">${maxed?'★ FULLY ASCENDED':q+' · step '+(idx+1)+'/'+cat.ladder.length}</span></div>`;
   if(maxed) return `<div class="panel">${head}<div style="text-align:center;color:${qc};font-weight:800;padding:16px">★ This hero has completed every ascension.</div></div>`;
-  // ---- socket picker overlay ----
-  if(RUNE2.pick){ const slot=RUNE2.pick.slot, slotName=cat.slots[slot], fams=cat.slotFamilies[slotName]||[];
-    const opts=inv.filter(([id,i])=>{ const d=g2def(i.definitionId); return d&&d.qi===idx&&fams.includes(d.family); });
-    const rows=opts.length?opts.map(([id,i])=>{ const d=g2def(i.definitionId);
-      return `<div class="eq-row" style="border-left:3px solid ${g2col(d.quality)};cursor:pointer" onclick="g2sockPick('${id}')">
-        ${g2artDef(d,34,'display:block;margin-right:7px;flex:none')}
-        <div style="flex:1"><div style="font-size:12px"><b style="color:${g2col(d.quality)}">${d.name}</b> <span style="font-size:9px;color:#6f7d90">${d.strength}</span></div>
-        <div style="font-size:10px;color:#8b98a9">${d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · ')}</div></div>
-        <button class="btn xs">Socket</button></div>`; }).join('')
-      :`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">No ${q} ${fams.join('/')} glyphs in your inventory.<br><span style="font-size:10px;color:#6f7d90">Craft one below.</span></div>`;
+  // ---- BUILD SHEET: the server's legal blueprints for the tapped empty slot ----
+  if(RUNE2.build){ const bd=RUNE2.build, slotName=cat.slots[bd.slot];
+    let bodyHtml;
+    if(bd.loading) bodyHtml=`<div style="text-align:center;color:#8b98a9;padding:14px">Consulting the loom…</div>`;
+    else bodyHtml=(bd.data.options||[]).map(o=>{
+      const mats=o.materials.map(m=>{ const src=(m.sources&&m.sources.length)?` <span style="color:#6f7d90">· ${m.sources.map(x=>'Stage '+String(x).replace('campaign-','')).join(', ')}</span>`:'';
+        return `<div style="font-size:10px;color:${m.have>=m.need?'#5ee89b':'#e86a6a'}">${g2artKey('fragment',m.key,14)} ${m.displayName} <b>${m.have}/${m.need}</b>${src}</div>`; }).join('');
+      return `<div class="eq-row" style="border-left:3px solid ${g2col(o.quality)};align-items:flex-start">
+        ${g2art('finished',o.quality,g2slotOfFam(o.family),34,'display:block;margin-right:7px;flex:none')}
+        <div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${g2col(o.quality)}">${o.name}</b></div>
+          <div style="font-size:10px;color:#c3ccd8">${o.stats.map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')}</div>${mats}</div>
+        <button class="btn xs" ${o.buildable?'':'disabled'} onclick="g2buildDo('${o.blueprintId}')">Build Here</button></div>`; }).join('')
+      ||`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">No legal blueprint for this slot.</div>`;
     return `<div class="panel">${head}
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:12px">${G2_SLOT_ICON[slotName]||''} ${slotName} slot</b><button class="btn xs secondary" onclick="g2pickCancel()">✕ Cancel</button></div>
-      ${rows}</div>`; }
-  // ---- the six-slot board ----
-  const cells=cat.slots.map((slotName,i)=>{ const iid=b.slots[i]; const fams=cat.slotFamilies[slotName]||[];
-    if(iid){ const inst=st.finished[iid], d=inst&&g2def(inst.definitionId);
-      return `<div class="gslot filled" style="border-color:${d?g2col(d.quality):'#33405e'};cursor:pointer" onclick="g2sock(${i})" title="tap to unsocket">
-        <div style="height:34px;display:flex;align-items:center;justify-content:center">${d?g2artDef(d,32):(G2_SLOT_ICON[slotName]||'◆')}</div>
-        <div style="font-size:8px;color:${d?g2col(d.quality):'#8b98a9'};font-weight:700">${d?d.family:'?'}</div>
-        <div style="font-size:7px;color:#8b98a9">${d?d.strength:''} ✓</div></div>`; }
-    const has=inv.some(([id,x])=>{ const d=g2def(x.definitionId); return d&&d.qi===idx&&fams.includes(d.family); });
-    return `<div class="gslot" style="border-color:${has?'#5ee89b':'#33405e'};cursor:pointer" onclick="g2sock(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:12px">${G2_SLOT_ICON[slotName]||''} Choose a Glyph for ${slotName}</b><button class="btn xs secondary" onclick="g2buildCancel()">✕ Cancel</button></div>
+      <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Built glyphs are <b>permanent</b> — they lock into this slot and can never be moved or removed.</div>
+      ${bodyHtml}</div>`; }
+  // ---- the six-slot board: filled cells are locked (visual only), empty cells open Build ----
+  const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i]; const fams=cat.slotFamilies[slotName]||[];
+    if(so){ return `<div class="gslot filled" style="border-color:${g2col(so.quality)}" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} (locked)">
+        <div style="height:34px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),32)}</div>
+        <div style="font-size:8px;color:${g2col(so.quality)};font-weight:700">${so.family}</div>
+        <div style="font-size:7px;color:#8b98a9">🔒 locked</div></div>`; }
+    return `<div class="gslot" style="border-color:#33405e;cursor:pointer" onclick="g2buildOpen(${i})">
       <div style="position:relative;height:34px;display:flex;align-items:center;justify-content:center">
         <span style="position:absolute;inset:0;opacity:.22;display:flex;align-items:center;justify-content:center">${g2art('finished',q,slotName,30,'')}</span>
-        <span style="position:relative;font-size:16px;color:${has?'#5ee89b':'#6f7d90'}">＋</span></div>
+        <span style="position:relative;font-size:16px;color:#5ee89b">＋</span></div>
       <div style="font-size:8px;color:#8b98a9;font-weight:700">${slotName}</div>
       <div style="font-size:7px;color:#6f7d90">${fams.join('/')}</div></div>`; }).join('');
-  const full=b.slots.every(s=>s);
+  const full=b.slots.every(s2=>s2);
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
     <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'} — consumes all six</button>`;
-  // ---- view toggle: craft list / stock ----
-  const viewBar=`<div class="dvp-tabs" style="margin:10px 0 6px;display:flex;gap:4px">
-    <button class="btn xs ${RUNE2.view==='board'?'':'secondary'}" onclick="g2view('board')">Craft ${q}</button>
-    <button class="btn xs ${RUNE2.view==='stock'?'':'secondary'}" onclick="g2view('stock')">Inventory</button></div>`;
-  let lower='';
-  if(RUNE2.view==='stock'){
-    const frag=Object.entries(st.fragments).filter(([k,n])=>n>0).sort();
-    const subs=Object.entries(st.subGlyphs).filter(([k,n])=>n>0).sort();
-    lower=`<div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Fragments</b></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${frag.length?frag.map(([k,n])=>`<span class="pill" style="font-size:10px;border:1px solid ${g2col(k.replace(/ (Stoneheart|Ironwall|Veilward|Ravager|Starfire|Windstep|Hawkeye|Lifebloom|Shadepath|Sunder|Voidbind|Bastion|Tidecall|Bloodroot|Keenmind|Dawnshield|Worldheart|Cataclysm)$/,''))}">${g2artKey('fragment',k,15)} ${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None yet — daily rewards and arena wins drop fragments.</span>'}</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Sub-Glyphs</b></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${subs.length?subs.map(([k,n])=>`<span class="pill" style="font-size:10px">${g2artKey('sub',k,15)} ${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None crafted.</span>'}</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:4px"><b style="color:#e6edf3">Finished glyphs</b> (${inv.length})</div>
-      ${inv.slice(0,30).map(([id,i])=>{ const d=g2def(i.definitionId); return `<div class="eq-row" style="border-left:3px solid ${d?g2col(d.quality):'#333'}">${d?g2artDef(d,26,'display:block;margin-right:6px;flex:none'):''}<div style="flex:1;font-size:11px"><b style="color:${d?g2col(d.quality):'#aaa'}">${d?d.name:'?'}</b> <span style="font-size:9px;color:#6f7d90">${d?d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · '):''}</span></div></div>`; }).join('')||'<div style="color:#6f7d90;font-size:11px">Empty.</div>'}`;
-  } else {
-    const defs=cat.defs.filter(d=>d.qi===idx);
-    // subs needed at this tier
-    const needSubs={}; defs.forEach(d=>d.ing.forEach(i=>{ if(i.kind==='sub') needSubs[i.key]=1; }));
-    const subRows=Object.keys(needSubs).map(k=>{ const sub=(cat.subs||[]).find(s=>s.key===k); if(!sub)return '';
-      const can=sub.ing.every(i=>(st.fragments[i.key]||0)>=i.qty);
-      return `<div class="eq-row" style="border-left:3px solid #8b98a9">${g2artKey('sub',k,24)}<div style="flex:1;min-width:0;margin-left:6px"><div style="font-size:11px"><b>${k}</b> <span style="font-size:9px;color:#8fe3ff">×${st.subGlyphs[k]||0}</span></div>
-        <div style="font-size:9px;color:#8b98a9">${sub.ing.map(i=>`<span style="color:${(st.fragments[i.key]||0)>=i.qty?'#5ee89b':'#e86a6a'}">${i.qty}× ${i.key}</span>`).join(' + ')}</div></div>
-        <button class="btn xs" ${can?'':'disabled'} onclick="g2craftSub('${k}')">Craft</button></div>`; }).join('');
-    lower=defs.map(d=>{ const can=g2canCraft(d); const own=inv.filter(([id,x])=>x.definitionId===d.id).length;
-      return `<div class="eq-row" style="border-left:3px solid ${g2col(d.quality)}">
-        ${g2artDef(d,32,'display:block;margin-right:7px;flex:none')}
-        <div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${g2col(d.quality)}">${d.name}</b> <span style="font-size:9px;color:#6f7d90">${d.strength}</span>${own?` <span style="color:#8fe3ff;font-size:10px">×${own}</span>`:''}</div>
-          <div style="font-size:10px;color:#c3ccd8">${d.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')).join(' · ')}</div>
-          <div style="font-size:9px;margin-top:2px">${g2ingLine(d)}</div></div>
-        <button class="btn xs" ${can?'':'disabled'} onclick="g2craft('${d.id}')">Craft</button></div>`; }).join('');
-    if(subRows) lower=`<div style="font-size:10px;color:#6f7d90;margin:4px 0 3px">Sub-glyphs this tier needs:</div>${subRows}<div style="font-size:10px;color:#6f7d90;margin:8px 0 3px">Finished ${q} glyphs:</div>`+lower;
-  }
-  // ascended totals
+  // ---- materials on hand (fragments are the ONLY inventory) ----
+  const frag=Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort();
+  const fragHtml=`<div style="font-size:11px;color:#8b98a9;margin:10px 0 4px"><b style="color:#e6edf3">Fragments</b> <span style="font-size:9px;color:#6f7d90">— farm the stages listed on each blueprint</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${frag.length?frag.map(([k,n])=>`<span class="pill" style="font-size:10px;border:1px solid ${g2col(g2parseKey(k).q)}">${g2artKey('fragment',k,15)} ${k} ×${n}</span>`).join(''):'<span style="color:#6f7d90;font-size:11px">None yet — campaign stages, the Vault, daily rewards and arena wins drop named fragments.</span>'}</div>`;
   const asc=Object.entries(b.ascended||{});
   const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">Ascended bonuses:</b> ${asc.map(([k,v])=>k+' +'+v.val+(v.pct?'%':'')).join(' · ')}</div>`:'';
   return `<div class="panel">${head}
-    <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Socket six <b style="color:${qc}">${q}</b> glyphs — one per board family — then ascend. Ascending consumes all six and their power becomes permanent.</div>
-    ${board}${viewBar}${lower}${ascLine}</div>`;
+    <div style="font-size:10px;color:#6f7d90;margin-bottom:6px">Tap an empty slot to <b>build</b> its <b style="color:${qc}">${q}</b> glyph from named fragments. Built glyphs lock forever; fill all six, then ascend.</div>
+    ${board}${fragHtml}${ascLine}</div>`;
 }
 setTimeout(()=>{ try{forgeSync();}catch(e){} }, 400);    // RE-AUDIT: Forge state loads near-immediately so even a fast first battle carries gear stats
 setTimeout(()=>{ glyphV2Sync(); }, 2500);                // early glyph sync so v2 stats reach battles before the tab is opened
@@ -7611,7 +7579,7 @@ function renderHeroDetail(){
   const xp=G.heroXP[key]||0, curBase=xpForLevel(lvl), nextBase=xpForLevel(lvl+1);
   const into=Math.max(0,xp-curBase), span=Math.max(1,nextBase-curBase), pct=Math.max(0,Math.min(100,Math.round(into/span*100)));
   const S_HP=Math.round(heroStat(key,t.hp)*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg)*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0)*abilityPowerMul());
-  const gr=glyphRank(key), gi=GRANK[gr], stars=heroStars(key); eliteCheckReset();
+  const gr=glyphRank(key), gi={name:gLadderName(gr), col:gLadderCol(gr)}, stars=heroStars(key); eliteCheckReset();
   const grp=eqGroup(key);
   const owned=!!G.unlocked[key], myth=isMythic(key);
   // mythical banner (art the user supplies per mythical hero) sits between the portrait and the stars
@@ -7627,7 +7595,7 @@ function renderHeroDetail(){
     const it=id?eqParse(id):null; const col=it?EQ_TIERS[it.t][1]:'#33405e';
     return `<div class="hd-armor${un?'':' locked'}${sel?' sel':''}" data-eq="${i}" title="${sl.name}" style="${it?'border-color:'+col:''}">
       <div class="ai">${un?sl.icon:'🔒'}</div>
-      <div class="al" style="${it?'color:'+col:''}">${un?(it?EQ_TIERS[it.t][0]:'empty'):GRANK[sl.unlock].name}</div></div>`; }).join('');
+      <div class="al" style="${it?'color:'+col:''}">${un?(it?EQ_TIERS[it.t][0]:'empty'):gLadderName(sl.unlock)}</div></div>`; }).join('');
   const st=stars;
   // star sub-line (precomputed to avoid deep template nesting)
   let starSubLine;
@@ -7701,7 +7669,7 @@ function renderHeroDetail(){
       return `<button class="eq-pick${eqSlotSel===i?' on':''}" data-eqp="${i}" title="${x.name}" style="${it?'border-color:'+col:''}">${u?x.icon:'🔒'}</button>`; }).join('');
     let slotBody='';
     if(!un){
-      slotBody=`<div class="panel" style="text-align:center;color:#8b98a9;font-size:12px">🔒 <b>${sl.name}</b> slot unlocks at glyph rank <b style="color:${GRANK[sl.unlock].col}">${GRANK[sl.unlock].name}</b>.<br><span style="font-size:10px;color:#6f7d90">Raise this hero's glyph rank to open it.</span></div>`;
+      slotBody=`<div class="panel" style="text-align:center;color:#8b98a9;font-size:12px">🔒 <b>${sl.name}</b> slot unlocks at glyph rank <b style="color:${gLadderCol(sl.unlock)}">${gLadderName(sl.unlock)}</b>.<br><span style="font-size:10px;color:#6f7d90">Raise this hero's glyph rank to open it.</span></div>`;
     } else {
       // equipped item card
       const eqCard=(()=>{ if(!equipped) return `<div style="text-align:center;color:#6f7d90;font-size:12px;padding:6px 0">No ${sl.name.toLowerCase()} equipped</div>`;
@@ -7800,11 +7768,9 @@ function renderBag(){
   // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
   const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
-  const inv=st?Object.values(st.finished||{}).filter(i=>i.status==='inventory').length:0;
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">🔮 Glyphs</div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Glyphs are crafted and socketed on each hero — <b>Heroes → hero → Glyphs tab</b>. Fragments drop from the Daily, Arena wins and The Vault.</div>
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Glyphs are built directly into a hero's board and locked forever — <b>Heroes → hero → Glyphs tab</b>. Named fragments drop from campaign stages, The Vault, the Daily and Arena wins.</div>
     ${st?`<div class="panel" style="margin-bottom:10px">
-      <div style="font-size:11px;margin-bottom:4px">Finished glyphs in stock: <b style="color:#8fe3ff">${inv}</b></div>
       ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
     </div>`:'<div class="panel" style="font-size:11px;color:#6f7d90;margin-bottom:10px">Sign in to see your glyph fragments.</div>'}
     <div style="font-weight:700;margin:14px 0 6px">🔷 Quality Shards</div>
@@ -9484,7 +9450,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787798448687';
+const BUILD_ID='1787799652696';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
