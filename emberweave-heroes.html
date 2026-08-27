@@ -1599,6 +1599,33 @@ function loadAnimSet(key){ const set=BATTLE_ANIM[key]; if(!set||set._loaded||!he
   // drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
   for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
   set._loaded=true; return set; }
+/* v255 (Phil, live): battle art used to start loading when a unit SPAWNED, so wave 2 and 3 popped
+   in mid-fight. Everything a stage/floor will ever show — the map, every hero in the squad, and the
+   monsters of EVERY authored wave — is now warmed before the fight starts. Textures are created
+   once (loadAnimSet marks the set _loaded), so spawning is instant. */
+const _artWarmed={};
+function preloadBattleArt(keys, bgUrl){
+  try{
+    if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
+    (keys||[]).filter(Boolean).forEach(k=>{
+      if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1;
+      try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k); }catch(e){}
+      try{ const sp=(typeof HERO_SPRITES!=='undefined')&&HERO_SPRITES[k]; if(sp&&isAssetRef(sp)){ const i2=new Image(); i2.decoding='async'; i2.src=sp; } }catch(e){}
+    });
+  }catch(e){}
+}
+function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
+  const keys=[];
+  try{ (squadFor('campaign')||[]).forEach(k=>keys.push(k)); (G.team||[]).forEach(k=>keys.push(k)); }catch(e){}
+  try{ ((stage&&stage.waves)||[]).forEach(w=>w.forEach(m=>keys.push(m.key))); }catch(e){}
+  preloadBattleArt(keys, (typeof BATTLE_BG!=='undefined')?BATTLE_BG:null);
+}
+function preloadVaultArt(waves){
+  const keys=[];
+  try{ (squadFor('vault')||[]).forEach(k=>keys.push(k)); }catch(e){}
+  try{ (waves||[]).forEach(w=>w.forEach(m=>keys.push(m.key))); }catch(e){}
+  preloadBattleArt(keys, (typeof BATTLE_MAPS!=='undefined'&&BATTLE_MAPS.vault)||null);
+}
 function skillClipHTML(key,idx){ const c=HERO_SKILL_CLIPS[key]&&HERO_SKILL_CLIPS[key][idx]; if(!c||!isAssetRef(c.u)) return '';
   const strip=c.fw*c.n;
   return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background:url('${c.u}');background-size:${strip}px ${c.fh}px;animation:skc-${key}-${idx} ${(c.dur/1.5).toFixed(3)}s steps(${c.n}) infinite"></div>`; }   // /1.5 → skill previews play 50% faster
@@ -3787,6 +3814,12 @@ function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg)
 function startBattle(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
   applyBattleMap();
+  // v255: warm EVERY wave's art before the first frame — no more sprites appearing on wave 2
+  try{ const _k=(G.team||[]).slice();
+    if(CUR.mode==='campaign'&&STAGE_CACHE[CUR.node]) ((STAGE_CACHE[CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
+    preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
@@ -4014,7 +4047,9 @@ function endBattle(won){ ended=true;
     saveG(); updateHubChrome();
     setTimeout(async()=>{ let newRank=oldRank;
       let d=null;
-      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()}); if(d&&typeof d.rank==='number') newRank=d.rank; }
+      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()}); if(d&&typeof d.rank==='number') newRank=d.rank;
+        if(d&&d.sim) CUR.arenaSim=d.sim;   // v255 (§7): keep the server's event log for the result recap
+        if(d&&typeof d.won==='boolean') won=d.won; }   // the SERVER decides the arena outcome
       // AUDIT C3: the SERVER's shared-simulator verdict is the arena result — the visual fight is
       // presentation. Rewards (gold + arena coins) are granted server-side.
       if(d&&typeof d.won==='boolean') won=d.won;
@@ -4029,10 +4064,14 @@ function endBattle(won){ ended=true;
       ARENA.oppsRank=null;   // refresh opponent list next time the arena is opened
       saveG(); updateHubChrome();
       document.getElementById('resultTitle').textContent=won?'ARENA WIN':'ARENA LOSS'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      const winMsg = swapped
-        ? `Took <b>${CUR.oppName}</b>'s spot — you're now <b style="color:#ffd45e">#${G.arenaRank}</b> (they drop to #${oldRank}) · 🪙 +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">💎 +${gemsWon}</span>`:''}`
-        : `Beat <b>${CUR.oppName}</b> · you hold <b style="color:#ffd45e">#${G.arenaRank}</b> · 🪙 +${reward}`;
-      document.getElementById('resultReward').innerHTML=won?winMsg:`Lost to <b>${CUR.oppName}</b> — you keep rank #${G.arenaRank}.`;
+      // v255 (§7): rank movement + a short recap built from the server's own combat-core event log
+      const _recap=(CUR.arenaSim&&CUR.arenaSim.log)?pvpRecap(CUR.arenaSim.log):'';
+      const _mv=(oldRank&&G.arenaRank&&oldRank!==G.arenaRank)?`<div style="font-size:11px;color:#8fe3ff;margin-top:3px">Rank ${oldRank} → <b style="color:#ffd45e">${G.arenaRank}</b> (${oldRank-G.arenaRank>0?'+':''}${oldRank-G.arenaRank})</div>`:`<div style="font-size:11px;color:#8b98a9;margin-top:3px">Rank unchanged — #${G.arenaRank}</div>`;
+      const _rc=_recap?`<div style="font-size:11px;color:#cdd8ea;margin-top:5px">${escapeHTML(_recap)}</div>`:'';
+      const winMsg = (swapped
+        ? `Took <b>${CUR.oppName}</b>'s spot · 🪙 +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">💎 +${gemsWon}</span>`:''}`
+        : `Beat <b>${CUR.oppName}</b> · 🪙 +${reward}`)+_mv+_rc;
+      document.getElementById('resultReward').innerHTML=won?winMsg:(`Lost to <b>${CUR.oppName}</b>.`+_mv+_rc);
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
     setTimeout(async()=>{ let r=null;
@@ -4050,7 +4089,7 @@ function endBattle(won){ ended=true;
         const ecount={}; (r.reward.gearFragments||[]).forEach(k=>{ ecount[k]=(ecount[k]||0)+1; });
         const eList=Object.keys(ecount).map(k=>k+' ×'+ecount[k]);
         msg=rewardPanel(gList,{dust:r.reward.dust},'Aether Vault — floor '+CUR.floor,eList)
-          +(r.reward.firstClearDoubled?'<div style="margin-top:6px"><b style="color:#ffd45e">Boss floor — first-clear package doubled!</b></div>':''); }
+          +(r.reward.firstClearDoubled?'<div style="margin-top:8px"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9">FIRST-CLEAR BONUS</div><b style="color:#ffd45e">Boss floor — package and Dust paid twice, once only.</b></div>':''); }
       else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
       else { msg='Your squad fell. The floor is unchanged — same monsters every attempt, so learn the lineup and try again.'; }
       document.getElementById('resultReward').innerHTML=msg;
@@ -4592,12 +4631,14 @@ function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(b
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
+  const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
   if(_popout) closePopout();   // any full navigation closes an open pop-out
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
   { const wasHome=document.getElementById('home').classList.contains('active'), wrap=document.getElementById('townWrap');
     if(wasHome && name!=='home' && wrap) _homeScroll=wrap.scrollLeft;
     if(name==='home' && !wasHome) _restoreHomeScroll=true; }
   state=name;
+  if(_leavingResult) setTimeout(flushRewardQueue,120);   // v255: queued notices appear only after the reward is dismissed
   SCREENS.forEach(s=>document.getElementById(s).classList.remove('active'));
   ['hud','topStatus','battleCtrls','battleBanner'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('active');});
   { const hm=document.getElementById('hubMenu'); hm.classList.toggle('active', name==='home'); hm.classList.remove('open'); }
@@ -4641,7 +4682,17 @@ function show(name){
   if(name==='world') renderWorldOverview();
   updateChatVisibility();
 }
-function bannerMsg(t){const b=document.getElementById('banner');b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
+/* v255 (80/20 contract §9): NOTHING may cover a battle/reward result. While the result panel is up,
+   any auto-opened notice, tutorial nudge, event card or modal is QUEUED and flushed the moment the
+   player dismisses the reward. Player-initiated taps are never queued. */
+let _rewardQueue=[], _rewardLockOn=false;
+function rewardLocked(){ try{ return state==='result'; }catch(e){ return false; } }
+function queueBehindReward(fn){ if(!rewardLocked()){ fn(); return true; }
+  if(_rewardQueue.length<8) _rewardQueue.push(fn); return false; }
+function flushRewardQueue(){ const q=_rewardQueue.slice(); _rewardQueue=[];
+  q.forEach(fn=>{ try{ fn(); }catch(e){} }); }
+function bannerMsg(t){ if(rewardLocked()){ queueBehindReward(()=>bannerMsg(t)); return; }
+  const b=document.getElementById('banner');b.innerHTML=t.replace(/\n/g,'<br>');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
 // (matIcon deleted with MATS)
 
 function updateHubChrome(){
@@ -4745,7 +4796,7 @@ function renderHome(){
 }
 let _homeScroll=null, _restoreHomeScroll=true;   // town scroll memory (first load centers)
 /* ---- player profile (name / avatar / xp) ---- */
-function openProfile(){ renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
+function openProfile(){ if(!queueBehindReward(openProfile)) return; renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
 function closeProfile(){ document.getElementById('profileModal').classList.remove('active'); }
 function renderProfileModal(){
   const body=document.getElementById('profileModalBody');
@@ -4837,6 +4888,7 @@ async function vaultLaunch(){ if(VAULT.busy) return; VAULT.busy=true;
   VAULT.busy=false;
   if(!st||st.error){ bannerMsg((st&&st.error)||'Vault unavailable.'); show('dungeon'); return; }
   CUR={mode:'vault', attemptId:st.attemptId, floor:st.floor, vwaves:st.waves||[], backups:sq.slice(TEAM_SIZE)};
+  preloadVaultArt(CUR.vwaves);   // v255: warm both waves' monsters before the floor opens
   startBattle();
 }
 function uid8(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
@@ -4899,6 +4951,13 @@ function vaultScreenHTML(){
       ${stat('Fragment band',`<span style="color:#c9a2ff">${s.band}</span>`)}
       ${stat('Floor reward',`<span style="color:#ffd45e">✨${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">+🧩×2</span>':''}`)}
     </div>
+    ${(s.targets&&((s.targets.glyphFragments||[]).length||(s.targets.gearFragments||[]).length))?`
+    <div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-bottom:10px;text-align:left">
+      <div style="font-size:10px;letter-spacing:1px;color:#8b98a9;margin-bottom:3px">THIS FLOOR DROPS</div>
+      ${(s.targets.glyphFragments||[]).map(k=>`<div style="font-size:11.5px;color:#8fe3ff">${(typeof g2artKey==='function')?g2artKey('fragment',k,14):'◆'} <b>${escapeHTML(k)} Fragment</b> <span style="color:#8b98a9">· Glyph Fragment</span></div>`).join('')}
+      ${(s.targets.gearFragments||[]).map(k=>`<div style="font-size:11.5px;color:#ffb37a">⚒ <b>${escapeHTML(k)}</b> <span style="color:#8b98a9">· Gear Fragment</span></div>`).join('')}
+      ${s.isBoss?'<div style="font-size:10.5px;color:#c9a2ff;margin-top:3px">Boss floor — first clear pays the package twice.</div>':''}
+    </div>`:''}
     ${s.isBoss?vaultBossLabel(s.bossRule):''}
     <div class="panel">${vaultPickerHTML()}</div>
     <div style="display:flex;gap:8px;margin-top:10px">
@@ -5552,13 +5611,47 @@ function campaignPlayerXP(g,firstClear){ const elite=isEliteStage(g), boss=isBos
   if(firstClear){ let x=20+g*4; if(elite)x*=2; if(boss)x*=3; return Math.round(x); }
   return elite?12:6; }
 window.STAGE_CACHE=window.STAGE_CACHE||{};
+/* v255 (80/20 contract §2): the stage-detail panel — recommended power vs YOUR line, the authored
+   waves and their named monsters, the guaranteed fragment, and the three-star condition. Everything
+   the player needs to answer "can I clear this, and what exactly do I get?" before spending stamina. */
+function stageDetailHTML(stg,node){
+  if(!stg) return '<div style="font-size:11px;color:#6f7d90">Loading stage details…</div>';
+  const mine=(function(){ try{ const sq=(squadFor('campaign')||[]).filter(Boolean); const arr=(sq.length?sq:(G.team||[]).filter(Boolean))
+      .map(k=>({key:k,level:(typeof heroLevel==='function'?heroLevel(k):1),rank:0})); return arr.length?teamPower(arr):0; }catch(e){ return 0; } })();
+  const rec=stg.recommendedPower|0;
+  const ok=!rec||mine>=rec;
+  const waves=(stg.waves||[]);
+  const nameOf=k=>{ const t=HERO_TYPES[k]; if(t&&t.name) return t.name;
+    return String(k).replace(/\b\w/g,c=>c.toUpperCase()); };
+  const waveRows=waves.map((w,wi)=>{
+    const counts={}; w.forEach(m=>{ counts[m.key]=(counts[m.key]||0)+1; });
+    const boss=w.some(m=>m.boss);
+    const list=Object.keys(counts).map(k=>nameOf(k)+(counts[k]>1?(' ×'+counts[k]):'')).join(', ');
+    return `<div style="font-size:11px;color:#c3ccd8;margin:2px 0"><b style="color:${boss?'#ffd45e':'#8fb7ff'}">Wave ${wi+1}${boss?' 👑':''}</b> · ${escapeHTML(list)}</div>`;
+  }).join('');
+  const frag=((stg.rewards&&stg.rewards.glyphFragments)||[]).map(f=>
+    `${(typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆'} <b style="color:#8fe3ff">${escapeHTML(f.displayName)} ×${f.quantity}</b>`).join('<br>');
+  return `<div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;text-align:left">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <span style="font-size:11px;color:#8b98a9">Recommended power</span>
+      <span style="font-size:12px;font-weight:800;color:${ok?'#5ee89b':'#ffb37a'}">${rec?rec.toLocaleString():'—'}${mine?` <span style="font-weight:400;color:#8b98a9">· yours ${mine.toLocaleString()}</span>`:''}</span></div>
+    ${rec&&!ok?`<div style="font-size:10.5px;color:#ffb37a;margin-top:2px">Below the recommendation — level heroes, ascend a glyph or temper gear first.</div>`:''}
+    <div style="margin-top:6px">${waveRows}</div>
+    ${frag?`<div style="margin-top:6px;font-size:11px"><span style="color:#8b98a9">Guaranteed:</span><br>${frag}</div>`:''}
+    <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
+  </div>`;
+}
 function openStageModal(i){
   if(i>G.campaignCleared+1) return;   // locked — must clear the previous stage first
   // v232 (audit): the stage's AUTHORED named fragment target is visible BEFORE farming
   const _stg=STAGE_CACHE[i];
   if(!_stg && ACC.token){ api('/api/campaign/stage?node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[i]=r.stage;
     const el=document.getElementById('smFragTarget');
-    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=r.stage.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>'); } }).catch(()=>{}); }
+    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=r.stage.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>');
+    const dl=document.getElementById('smDetail');   // v255: the detail panel fills in with the authored data
+    if(dl&&document.getElementById('stageModal').classList.contains('active')) dl.innerHTML=stageDetailHTML(r.stage,i);
+    preloadStageArt(r.stage); } }).catch(()=>{}); }
+  if(STAGE_CACHE[i]) preloadStageArt(STAGE_CACHE[i]);   // cached stage: warm the art immediately
   if(i>CAMPAIGN_PLAYABLE){ bannerMsg('🔒 Chapters '+(MAX_CHAPTER+1)+'–'+TOTAL_CHAPTERS+' are coming soon.'); return; }
   const boss=isBossStage(i), cleared=i<=G.campaignCleared, elite=isEliteStage(i);
   const fragHero=elite?eliteHeroFor(i):null, fh=fragHero?HERO_TYPES[fragHero]:null;
@@ -5574,6 +5667,7 @@ function openStageModal(i){
       ${elite?`<div style="font-size:12px;color:#c9a0ff;margin:-4px 0 10px">Drops <b>${ELITE_FRAG_MIN}–${ELITE_FRAG_MAX}</b> ${fh.emoji} <b>${fh.name}</b> fragments${fh.locked&&!G.unlocked[fragHero]?` <span style="color:#8b98a9">(${heroFrag(fragHero)}/${summonCost(fragHero)} to unlock)</span>`:''}</div>`:''}
       <div id="smFragTarget" style="font-size:12px;color:#8fe3ff;margin:-2px 0 8px">${(_stg&&_stg.rewards&&_stg.rewards.glyphFragments)?_stg.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>'):'<span style="color:#6f7d90">Loading stage rewards…</span>'}</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Cost: <b>⧗ ${stageStamCost(i)} stamina</b> · you have ${G.stamina}/${maxStamina()}</div>
+      <div id="smDetail" style="margin:0 0 10px">${stageDetailHTML(_stg,i)}</div>
       ${_capLine}
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared))?'':'disabled'}>⚔️ Battle ▶ ${cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'}</button>
@@ -9641,7 +9735,7 @@ function buyGemOffer(i){
   ov.addEventListener('click',e=>{ if(e.target===ov) close(); });     // click backdrop closes
   ov.querySelector('button').onclick=(e)=>{ e.stopPropagation(); close(); };   // OK button closes
 }
-function openHudShop(kind){ renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
+function openHudShop(kind){ if(!queueBehindReward(()=>openHudShop(kind))) return; renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
 function closeHudShop(){ document.getElementById('hudShop').classList.remove('active'); }
 function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.dataset.kind=kind; m.classList.toggle('framed', kind==='gem');
   if(kind==='food') renderFoodShop(); else if(kind==='gold') renderGoldShop(); else renderGemShop(); }
@@ -9779,7 +9873,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787845421217';
+const BUILD_ID='1787847943194';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

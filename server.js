@@ -673,17 +673,17 @@ function snapshotHeroFromServer(u, key, save){
   // rating→percentage conversion (server/combat-core.js CONV), so client and server can never
   // diverge on a formula. Gear 'atk' stays on the physical line (catalog typing refinement tracked).
   const R={
-    hpFlat:(fl.hp|0)+((gf&&gf.hp)|0), atkFlat:(fl.atk|0)+((gf&&gf.atk)|0), apowFlat:(fl.apow|0),
+    hpFlat:(fl.hp|0)+((gf&&gf.hp)|0), atkFlat:(fl.atk|0)+((gf&&gf.atk)|0), apowFlat:(fl.apow|0)+((gf&&gf.apow)|0),
     healFlat:((gf&&gf.heal)|0),
     armor:(fl.armor|0)+((gf&&gf.armor)|0), mr:(fl.mr|0)+((gf&&gf.mr)|0),
-    armorPen:fl.armorPen|0, magicPen:fl.magicPen|0,
-    crit:(fl.crit|0)+((gf&&gf.crit)|0), critDmg:fl.critDmg|0, critRes:(fl.critRes|0)+((gf&&gf.critRes)|0),
-    energy:(fl.energy|0)+((gf&&gf.energy)|0), startEnergy:fl.startEnergy|0,
+    armorPen:(fl.armorPen|0)+((gf&&gf.armorPen)|0), magicPen:(fl.magicPen|0)+((gf&&gf.magicPen)|0),
+    crit:(fl.crit|0)+((gf&&gf.crit)|0), critDmg:(fl.critDmg|0)+((gf&&gf.critDmg)|0), critRes:(fl.critRes|0)+((gf&&gf.critRes)|0),
+    energy:(fl.energy|0)+((gf&&gf.energy)|0), startEnergy:(fl.startEnergy|0)+((gf&&gf.startEnergy)|0),
     regen:(fl.regenRating|0)+((gf&&gf.regenRating)|0),
-    lifesteal:fl.lifesteal|0, atkSpd:fl.atkSpd|0, haste:fl.haste|0,
-    eva:fl.eva|0, acc:fl.acc|0, block:fl.block|0,
-    dmgBonus:fl.dmgBonus|0, dmgRed:fl.dmgRed|0, shieldStr:fl.shieldStr|0,
-    ctrlHit:fl.ctrlHit|0, ctrlRes:fl.ctrlRes|0, healPow:fl.healPow|0
+    lifesteal:(fl.lifesteal|0)+((gf&&gf.lifesteal)|0), atkSpd:(fl.atkSpd|0)+((gf&&gf.atkSpd)|0), haste:(fl.haste|0)+((gf&&gf.haste)|0),
+    eva:(fl.eva|0)+((gf&&gf.eva)|0), acc:(fl.acc|0)+((gf&&gf.acc)|0), block:(fl.block|0)+((gf&&gf.block)|0),
+    dmgBonus:(fl.dmgBonus|0)+((gf&&gf.dmgBonus)|0), dmgRed:(fl.dmgRed|0)+((gf&&gf.dmgRed)|0), shieldStr:(fl.shieldStr|0)+((gf&&gf.shieldStr)|0),
+    ctrlHit:(fl.ctrlHit|0)+((gf&&gf.ctrlHit)|0), ctrlRes:(fl.ctrlRes|0)+((gf&&gf.ctrlRes)|0), healPow:(fl.healPow|0)+((gf&&gf.healPow)|0)
   };
   let gearSkillSlot=null, gearSkill=null;
   if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
@@ -859,6 +859,10 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
     band:dungeonQualityForFloor(Math.min(floor,DUNGEON_MAX_FLOOR)), bossRule:rule,
     isBoss:floor<=DUNGEON_MAX_FLOOR&&isDungeonBossFloor(floor), isMilestone:floor<=DUNGEON_MAX_FLOOR&&isDungeonMilestoneFloor(floor),
     dust:dustForDungeonFloor(Math.min(floor,DUNGEON_MAX_FLOOR)),
+    // v255 (80/20 contract §3/§5): the player sees EXACTLY which named materials this floor drops
+    // before spending an attempt — glyph fragments on boss floors, gear fragments every floor.
+    targets:(function(){ const f=Math.min(floor,DUNGEON_MAX_FLOOR); const rec=VAULT_ENC?vaultFloorRecord(f):null;
+      return rec?{ glyphFragments:(rec.glyphFragments||[]).slice(), gearFragments:(rec.gearFragments||[]).slice() }:null; })(),
     sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset() },
     lastTeamHeroIds:p.lastTeamHeroIds||[], activeAttemptId:p.activeAttempt?p.activeAttempt.id:null, version:p.version };
 }
@@ -1226,7 +1230,11 @@ function gearHeroFlats(u,heroKey){
   // v226: ALL 8 gear stat families carried. Flats: hp/atk. Rates returned RAW (armor/mr/crit/critRes/
   // energy/regenRating); snapshotHeroFromServer converts them with the client's conversion constants
   // into the sim's combat fields. The sim itself remains a qualification ESTIMATE (see sim.js header).
-  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
+  // v255 (80/20 contract §5): gear stats are TYPED like glyphs — a caster item's damage stat is
+  // Ability Power (its own line), Haste is not Energy Regen, and every key reaches the combat core.
+  const out={hp:0,atk:0,apow:0,heal:0,armor:0,mr:0,armorPen:0,magicPen:0,crit:0,critDmg:0,critRes:0,
+    energy:0,regenRating:0,haste:0,atkSpd:0,lifesteal:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,
+    shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
   const eq=g.equipped[heroKey]; if(!eq) return out;
   const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
   for(const slot in eq){ const it=g.items[eq[slot]]; const def=it&&GEARCAT.byId[it.d]; if(!def) continue;
@@ -1282,6 +1290,32 @@ async function api(req,res,url){
   const p=url.pathname;
   if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }
 
+  /* v255 (80/20 contract §9 + release gate 5): the PRODUCTION FEATURE-FLAG MANIFEST and the
+     currency sources/sinks/caps, served from the running server so nobody has to infer live state
+     from source. Reset times are published in BOTH server time and the caller's local offset. */
+  if(p==='/api/manifest'){
+    const nyNow=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+    const nextReset=new Date(nyNow); nextReset.setHours(9,0,0,0); if(nyNow>=nextReset) nextReset.setDate(nextReset.getDate()+1);
+    return send(res,200,{
+      build:(function(){ try{ return JSON.parse(fs.readFileSync(path.join(__dirname,'version.json'),'utf8')).build; }catch(e){ return null; } })(),
+      flags:{ DUNGEON_V2_ENABLED, GEAR_V2_ENABLED:(typeof GEAR_V2_ENABLED!=='undefined'?GEAR_V2_ENABLED:null),
+        GUILD_WAR_V2_ENABLED:(typeof GUILD_WAR_V2_ENABLED!=='undefined'?GUILD_WAR_V2_ENABLED:null),
+        GLYPH_V2:!!GLYPHS, POSTGRES:!!PG, SMTP:!!process.env.SMTP_HOST },
+      tuning:{ VAULT_SKILL_BAND, CAMPAIGN_SKILL_BAND, GLYPH_RL_PER_MIN, REG_PER_MIN:(typeof REG_PER_MIN!=='undefined'?REG_PER_MIN:null) },
+      dailyResetET:'09:00 America/New_York', nextResetUTC:new Date(Date.now()+(nextReset-nyNow)).toISOString(),
+      currencies:[
+        {id:'gold', sources:['Campaign clears & sweeps','City Skirmish loot (capped)','Arena daily','Quests','Guild raid'], sinks:['Gear crafting & Temper','Academy research','Shop','Guild contribution','Wishing Pool (gold pool)'], caps:{cityPvpPerDay:8000, cityPvpPerAttack:400}},
+        {id:'gems', sources:['Quests','Arena daily','Rank milestones','Guild raid'], sinks:['Wishing Pool (diamond pool)','Shop','Market fragments'], caps:{}},
+        {id:'stamina', sources:['Regeneration (6 min/point)','Level-ups'], sinks:['Campaign battles & sweeps'], caps:{max:'59 + player level'}},
+        {id:'dust', sources:['Vault floors','Fragment salvage'], sinks:['Gear Temper'], caps:{}},
+        {id:'glyphFragments', sources:['Authored campaign stages (ch1 Grey → ch10 Gold)','Vault boss floors','Arena wins','Daily','Wishing Pool'], sinks:['Glyph builds (permanent, per slot)'], caps:{}},
+        {id:'gearFragments', sources:['Authored Vault floors (2 targeted per floor)'], sinks:['Gear crafting'], caps:{}},
+        {id:'cityResources', sources:['World-map mining (capped)'], sinks:['Academy research'], caps:{perResourcePerDay:60}},
+        {id:'guildCoins', sources:['Guild raid'], sinks:['Guild shop'], caps:{}},
+        {id:'heroFragments', sources:['Elite stages (3/day)','Market (12/day)','Quests','Wishing Pool'], sinks:['Hero summon','Star-up','Refine'], caps:{elitePerStagePerDay:3, marketPerDay:12}}
+      ],
+      dailyCaps:{ cityAttacks:20, vaultSweeps:2, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
+    }); }
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
@@ -2521,7 +2555,8 @@ async function api(req,res,url){
       const mySnaps=(me.team||[]).filter(Boolean).slice(0,5).filter(k=>myLed.unlocked[k]).map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       const opLed=opp.isNpc?null:ensureLedger(opp);
       const opSnaps=(opp.team||[]).filter(Boolean).slice(0,5).filter(k=>opp.isNpc||(opLed&&opLed.unlocked[k])).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
-      if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won; simRes={rounds:r0.rounds}; }
+      if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
+        simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
     }
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
     let goldReward=0; if(won){ const led=ensureLedger(me);
