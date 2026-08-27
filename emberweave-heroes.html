@@ -7562,17 +7562,20 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
       <span style="position:absolute;inset:0;opacity:.35;display:flex;align-items:center;justify-content:center">${g2NodeArt(n,px)}</span>
       <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:#5ee89b;text-shadow:0 1px 6px #000c">＋</span></div>`;
   const branchNode=(n,pth,parentPath,px)=>{ const bq=nQual(n); const rdy=g2NodeReady(n);
+    const moreG=(n.children||[]).filter(c=>c.kind!=='fragment').length;
     return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="text-align:center;position:relative;z-index:1;cursor:pointer;max-width:150px" onclick="g2TreePush('${pth}')">
       ${glyphArt(n,px,bq)}
       <div style="font-size:11px;font-weight:800;color:${g2col(bq)};line-height:1.2">${nName(n)}</div>
-      <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:#5ee89b;border:1px solid #5ee89b;border-radius:10px;padding:1px 9px;background:#0b1424d9">Tap to open</span></div></div>`; };
+      <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:#5ee89b;border:1px solid #5ee89b;border-radius:10px;padding:1px 9px;background:#0b1424d9">Tap to open${moreG?' · +'+moreG:''}</span></div></div>`; };
   const cols=(view.children||[]).map((n,i)=>{ const pth=viewPath+'.'+i;
     if(n.kind==='fragment') return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:86px">${leaf(n,pth,viewPath)}</div>`;
-    const kids=(n.children||[]).map((c,j)=>{ const cp=pth+'.'+j;
-      return c.kind==='fragment'?leaf(c,cp,pth):branchNode(c,cp,pth,54); }).join('');
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:30px;flex:1;min-width:120px">
+    // 27 Aug (Phil, "quite confusing"): every view is TWO levels like the mock — under each glyph
+    // node preview ONLY its direct FRAGMENTS; deeper lineage stays behind its own pop-up.
+    const kids=(n.children||[]).map((c,j)=>({c,cp:pth+'.'+j})).filter(x=>x.c.kind==='fragment')
+      .map(x=>leaf(x.c,x.cp,pth)).join('');
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:26px;flex:1;min-width:120px">
       ${branchNode(n,pth,viewPath,82)}
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${kids}</div></div>`; }).join('');
+      ${kids?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${kids}</div>`:''}</div>`; }).join('');
   const vq=nQual(view);
   return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
     <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
@@ -9534,7 +9537,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787834924189';
+const BUILD_ID='1787835401369';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
