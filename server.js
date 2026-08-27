@@ -79,6 +79,10 @@ function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coin
 // 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
 // (or an explicit account id in ADMIN_IDS), stamped once at boot by migrateAdminRoles() below.
 const ADMIN_IDS = new Set((process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()).filter(Boolean));
+// v232 (audit P0-6): the anti-abuse register caps are env-tunable so the clean-checkout test
+// runner can create its fixture accounts without weakening production (defaults unchanged).
+const REG_PER_MIN=Math.max(1,parseInt(process.env.REG_PER_MIN||'6',10));
+const REG_ACCOUNTS_PER_IP=Math.max(1,parseInt(process.env.REG_ACCOUNTS_PER_IP||'6',10));
 // One-time bootstrap: the accounts CURRENTLY holding these names get role:'admin' stamped on them
 // at startup. After that, authority is the role — renaming, or a (impossible, names are unique)
 // same-name re-register, grants nothing. (Name-based bootstrap fully removed in the 26 Aug re-audit.)
@@ -265,16 +269,17 @@ const GLYPH_SLOT_FAMILIES={
 // additionally accepts its natural off-slot families. STRICT SUPERSETS of the universal lists only —
 // an override must never restrict, or already-socketed boards would turn illegal retroactively.
 const GLYPH_ROLE_OVERRIDES={ // heroRole (sim HERO_BASE vocabulary) -> {slotName:[families]}
-  'Tank':     { bulwark:['Ironwall','Veilward','Bastion','Dawnshield','Stoneheart','Worldheart'] },
-  'Bruiser':  { onslaught:['Ravager','Sunder','Cataclysm','Bloodroot'] },
-  'Fighter':  { onslaught:['Ravager','Sunder','Cataclysm','Hawkeye'] },
-  'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'] },
+  'Tank':     { bulwark:['Ironwall','Veilward','Bastion','Dawnshield','Stoneheart','Worldheart'],
+                spirit:['Starfire','Voidbind','Keenmind','Bastion','Worldheart'] },
+  'Bruiser':  { onslaught:['Ravager','Sunder','Cataclysm','Bloodroot'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
+  'Fighter':  { onslaught:['Ravager','Sunder','Cataclysm','Hawkeye'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
+  'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
   // 27 Aug (Phil): casters/supports must never be FORCED into melee/armor-pen families — their
   // offensive slots additionally accept caster families (AP/magic pen, healing, energy). Supersets.
   'Mage':     { spirit:['Starfire','Voidbind','Keenmind','Cataclysm'],
                 onslaught:['Ravager','Sunder','Cataclysm','Starfire','Voidbind','Keenmind'],
                 mastery:['Hawkeye','Lifebloom','Bloodroot','Keenmind','Voidbind'] },
-  'Marksman': { mastery:['Hawkeye','Lifebloom','Bloodroot','Sunder'] },
+  'Marksman': { mastery:['Hawkeye','Lifebloom','Bloodroot','Sunder'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
   'Support':  { vitality:['Stoneheart','Worldheart','Lifebloom'],
                 onslaught:['Ravager','Sunder','Cataclysm','Starfire','Lifebloom','Tidecall'],
                 mastery:['Hawkeye','Lifebloom','Bloodroot','Tidecall','Keenmind'] }
@@ -332,6 +337,36 @@ function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
 function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
 function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
 function glyphBoard(g,hero){ if(!g.boards[hero]) g.boards[hero]={ slots:[null,null,null,null,null,null], ascensionIndex:0, ascended:{} }; return g.boards[hero]; }
+/* v232 (Phil): every board slot has EXACTLY ONE pre-chosen glyph per hero — no option lists.
+   The choice is deterministic from the hero's role (and healer flag), a per-slot ordered family
+   preference, and the current board quality; physical heroes get physical damage growth, casters
+   get AP/magic-pen/energy, supports/healers get healing/energy — HP/defense stay universal. */
+const GLYPH_PREF={
+  vitality:{ _:['Stoneheart','Worldheart'] },
+  bulwark:{ Tank:['Ironwall','Bastion','Dawnshield','Veilward'], Mage:['Veilward','Ironwall','Dawnshield'],
+            Support:['Veilward','Ironwall','Dawnshield'], _:['Ironwall','Veilward','Bastion','Dawnshield'] },
+  onslaught:{ Mage:['Starfire','Voidbind','Keenmind','Cataclysm'], 'Support:healer':['Lifebloom','Tidecall','Starfire'],
+              Support:['Starfire','Tidecall','Lifebloom'], _:['Ravager','Sunder','Cataclysm'] },
+  spirit:{ Mage:['Starfire','Voidbind','Keenmind'], 'Support:healer':['Tidecall','Starfire','Keenmind'],
+           Support:['Starfire','Keenmind','Voidbind'], Tank:['Bastion','Worldheart','Keenmind'],
+           _:['Sunder','Hawkeye','Keenmind','Starfire'] },
+  tempo:{ Assassin:['Shadepath','Sunder','Windstep'], Mage:['Windstep','Tidecall','Shadepath'],
+          'Support:healer':['Tidecall','Windstep','Shadepath'], Support:['Windstep','Tidecall','Shadepath'],
+          Tank:['Windstep','Tidecall','Shadepath'], _:['Shadepath','Windstep','Tidecall'] },
+  mastery:{ Mage:['Keenmind','Voidbind','Hawkeye'], 'Support:healer':['Lifebloom','Tidecall','Keenmind'],
+            Support:['Tidecall','Lifebloom','Keenmind'], Tank:['Bloodroot','Lifebloom','Hawkeye'],
+            Marksman:['Hawkeye','Sunder','Bloodroot'], _:['Hawkeye','Bloodroot','Lifebloom'] }
+};
+function glyphPreChoice(heroKey, slotIdx, qi){
+  const hb=SIM.HERO_BASE[heroKey]||{}; const role=hb.role||'Fighter'; const healer=!!hb.healer;
+  const slot=GLYPH_SLOTS[slotIdx]; const tbl=GLYPH_PREF[slot]||{};
+  const prefs=(healer&&tbl[role+':healer'])||tbl[role]||tbl._||GLYPH_SLOT_FAMILIES[slot]||[];
+  const pick=fams=>{ for(const fam of fams){
+    const cands=GLYPHS.raw.filter(d=>d.qi===qi&&d.family===fam&&glyphAllowed(slotIdx,d,role)).sort((a,b)=>a.id<b.id?-1:1);
+    if(cands.length) return cands[0]; } return null; };
+  return pick(prefs) || pick(GLYPH_SLOT_FAMILIES[slot]||[]) ||
+    GLYPHS.raw.filter(d=>d.qi===qi&&glyphAllowed(slotIdx,d,role)).sort((a,b)=>a.id<b.id?-1:1)[0] || null;
+}
 function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprintId, locked} — internal instance ids never leave the server
   for(const h of Object.keys(g.boards||{})){ const b=g.boards[h];
     out[h]={ ascensionIndex:b.ascensionIndex, ascended:b.ascended,
@@ -932,12 +967,16 @@ function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
     return {type:'dupe', hero:hk, frags:f}; }
   led.unlocked[hk]=true; if(!led.hero[hk]) led.hero[hk]={xp:0,stars:(SIM.HERO_BASE[hk]||{}).stars||st,pips:0};
   return {type:'hero', hero:hk, stars:st}; }
+function poolGlyphFrag(u,q,n){ const key=q+' '+GLYPH_FAMS[Math.floor(Math.random()*GLYPH_FAMS.length)];
+  const rec=glyphGrantNamedList(u,[{key,quantity:n}]);
+  return {type:'glyphFrag', key, displayName:key+' Fragment', n};
+}
 function poolRollGold(u){ const led=u.led; const h=Math.random();
   if(h<0.05) return poolGrantHero(u, poolPick(POOL_GOLD_HEROES));
   if(h<0.20){ const hk=poolPick(POOL_GOLD_HEROES), n=2+Math.floor(Math.random()*2); led.frags[hk]=(led.frags[hk]|0)+n; return {type:'frags',hero:hk,frags:n}; }
   const r=Math.random();
-  if(r<0.46) return {type:'mat', mat:'grey', n:10+Math.floor(Math.random()*16)};
-  if(r<0.72) return {type:'mat', mat:'green', n:4+Math.floor(Math.random()*6)};
+  if(r<0.46) return poolGlyphFrag(u,'Grey', 4+Math.floor(Math.random()*5));
+  if(r<0.72) return poolGlyphFrag(u,'Green', 2+Math.floor(Math.random()*3));
   if(r<0.94){ const g=300+Math.floor(Math.random()*500); led.gold=Math.min(100000000,led.gold+g); return {type:'gold', n:g}; }
   const gm=5+Math.floor(Math.random()*11); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
 function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
@@ -952,9 +991,9 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   acc+=0.15;  if(h<acc){ const hk=poolPick(POOL_P2), n=2+Math.floor(Math.random()*2); led.frags[hk]=(led.frags[hk]|0)+n; return {type:'frags',hero:hk,frags:n}; }
   acc+=0.10;  if(h<acc){ const hk=poolPick(POOL_P3), n=2+Math.floor(Math.random()*2); led.frags[hk]=(led.frags[hk]|0)+n; return {type:'frags',hero:hk,frags:n}; }
   const r=Math.random();
-  if(r<0.36) return {type:'mat', mat:'blue', n:3+Math.floor(Math.random()*5)};
-  if(r<0.60) return {type:'mat', mat:'green', n:8+Math.floor(Math.random()*8)};
-  if(r<0.80) return {type:'mat', mat:'purple', n:1+Math.floor(Math.random()*3)};
+  if(r<0.36) return poolGlyphFrag(u,'Blue', 2+Math.floor(Math.random()*3));
+  if(r<0.60) return poolGlyphFrag(u,'Green', 4+Math.floor(Math.random()*4));
+  if(r<0.80) return poolGlyphFrag(u,'Blue +1', 1+Math.floor(Math.random()*2));
   const gm=20+Math.floor(Math.random()*40); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
 /* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
 const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
@@ -966,12 +1005,17 @@ function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
     if(!Array.isArray(raw)||raw.length!==100) throw new Error('expected 100 encounters, got '+(raw&&raw.length));
     CAMP_ENC={byNode:{}, fragSources:{}}; for(const e of raw) CAMP_ENC.byNode[e.node]=e;
-    // Correction Spec v1: every stage carries its EXACT named Glyph Fragment target, and a
-    // reverse index lets the Build sheet link straight to the stages that farm each fragment.
-    for(const e of raw){ e.rewards=e.rewards||{};
-      e.rewards.glyphFragments=campFragFor(e.node).map(f=>({ fragmentId:glyphFragSlug(f.key), key:f.key, displayName:f.key+' Fragment', quantity:f.quantity }));
-      for(const f of e.rewards.glyphFragments){ (CAMP_ENC.fragSources[f.key]=CAMP_ENC.fragSources[f.key]||[]).push(e.id||('campaign-'+e.node)); } }
-    console.log('🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + named Glyph fragment targets.');
+    // v232 (audit): the named Glyph Fragment target is AUTHORED PER-STAGE DATA in
+    // campaign-encounters.json — validated here, never derived from a runtime formula. The
+    // reverse source index is built from those records.
+    for(const e of raw){
+      const gf=e.rewards&&e.rewards.glyphFragments;
+      if(!Array.isArray(gf)||!gf.length) throw new Error('stage '+e.node+' has no authored glyphFragments');
+      for(const f of gf){ if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error('stage '+e.node+' glyph target malformed');
+        const q=f.key.slice(0,f.key.lastIndexOf(' '));
+        if(GLYPH_LADDER.indexOf(q)<0) throw new Error('stage '+e.node+' glyph target has illegal quality "'+q+'"');
+        (CAMP_ENC.fragSources[f.key]=CAMP_ENC.fragSources[f.key]||[]).push(e.id||('campaign-'+e.node)); } }
+    console.log('🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.');
   }catch(e){ CAMP_ENC=null; console.error('⚠ CAMPAIGN ENCOUNTERS DISABLED — '+e.message+' (client keeps its local mode)'); }
 }
 const CAMPAIGN_SKILL_BAND=parseFloat(process.env.CAMPAIGN_SKILL_BAND||'1.5');   // deterministic manual-play allowance inside the authoritative resolve
@@ -1070,7 +1114,7 @@ async function api(req,res,url){
   if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }
 
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
-    if(rateLimited(req,'reg',6,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
+    if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
     // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
@@ -1092,7 +1136,7 @@ async function api(req,res,url){
     // cap account creation to 3 per device (and a softer per-network cap so clearing storage can't fully bypass it)
     const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
-    if((DB.ipAccounts[ip]||0)>=6) return send(res,429,{error:'Too many accounts from this network.'});
+    if((DB.ipAccounts[ip]||0)>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many accounts from this network.'});
     const id=uid(), c=makeCred(b.pass);
     const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -1641,8 +1685,9 @@ async function api(req,res,url){
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return send(res,400,{error:'Fully ascended.'});
       if(board.slots[slot]){ const inst=g.finished[board.slots[slot]]; const d=inst&&GLYPHS.byId[inst.definitionId];
         return send(res,200,{ filled:true, blueprintId:d?d.id:null, name:d?d.name:null, locked:true }); }
-      const heroRole=(SIM.HERO_BASE[hero]||{}).role;
-      const opts=GLYPHS.raw.filter(d=>d.qi===board.ascensionIndex && glyphAllowed(slot,d,heroRole)).map(d=>{
+      // v232 (Phil): ONE pre-chosen glyph per slot — the server returns exactly one blueprint.
+      const pre=glyphPreChoice(hero, slot, board.ascensionIndex);
+      const opts=(pre?[pre]:[]).map(d=>{
         const cost=g2BuildCost(g,d)||{need:{},useSubs:{}};
         const materials=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
           need:cost.need[k], have:(g.fragments[k]|0), sources:(CAMP_ENC&&CAMP_ENC.fragSources[k]||[]).slice(0,4) }));
@@ -1679,6 +1724,9 @@ async function api(req,res,url){
       if(def.qi!==board.ascensionIndex) return bad('This board builds '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
       const heroRole=(SIM.HERO_BASE[hero]||{}).role;
       if(!glyphAllowed(slot,def,heroRole)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
+      // v232 (Phil): the slot builds exactly its ONE pre-chosen glyph — nothing else.
+      const preDef=glyphPreChoice(hero, slot, board.ascensionIndex);
+      if(!preDef || preDef.id!==def.id) return bad('This slot forges '+(preDef?preDef.name:'nothing')+' — that is its set glyph.');
       const cost=g2BuildCost(g,def); if(!cost) return bad('Corrupt recipe.');
       for(const k in cost.need) if((g.fragments[k]|0)<cost.need[k]) return bad('Need '+cost.need[k]+' × '+k+' Fragments.');
       for(const k in cost.need){ g.fragments[k]-=cost.need[k]; if(g.fragments[k]<=0) delete g.fragments[k]; }
