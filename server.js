@@ -535,6 +535,31 @@ function d_cum(steps){ const c=new Array(D_MAX_LEVEL+1); c[1]=0; for(let L=2;L<=
 const D_TROOP_CUM=d_cum(d_runSum(D_TROOP_INC)), D_HERO_CUM=d_cum(D_HERO_STEP);
 function d_levelForXP(xp,cum){ let L=1; while(L<D_MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
 
+/* ---- v249 Academy on the ledger: mirrors of the client's research tables ---- */
+const TECH_MAX_SRV=60;
+const TECH_BASE_SRV={atk:0.7, hp:10, ap:0.5, def:0.13, armor:0.13, mr:0.13, crit:0.13, critres:0.2};
+const TECH_GROWTH_SRV=1.04;
+const ACAD_TRACKS=['academy','atk','hp','ap','def','armor','mr','crit','critres'];
+function techGainSrv(k,lvl){ return (TECH_BASE_SRV[k]!=null?TECH_BASE_SRV[k]:0.1)*Math.pow(TECH_GROWTH_SRV,lvl||0); }
+function techTotalSrv(A,k){ const lvl=(A&&A.lv&&A.lv[k])|0; let v=0; for(let i=0;i<lvl;i++) v+=techGainSrv(k,i); return v; }
+function learnDurSrv(lvl,acadLvl){ return Math.round((120+lvl*lvl*45)*1000*(1-Math.min(0.6,(acadLvl|0)*0.02))); }
+function learnResCostSrv(track,lvl){ const base={atk:{iron:6,coal:4},hp:{silver:6,crystal:3},def:{iron:5,silver:4},armor:{iron:7,coal:3},mr:{crystal:6,silver:3},crit:{crystal:5,coal:4},critres:{silver:5,coal:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+const ACADEMY_CUTOFF=1787841600000;   // v249 deploy: earlier accounts seed once from their save; new accounts start at zero
+function ensureAcad(u){ const led=ensureLedger(u);
+  if(led.acad) return led.acad;
+  const A={ lv:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0}, learn:{}, res:{iron:0,crystal:0,silver:0,coal:0}, mineDay:null };
+  if((led.migratedAt||0) && led.migratedAt<ACADEMY_CUTOFF){ const sv=parseSaveOf(u);
+    const t=sv.tech||{}; for(const k of ACAD_TRACKS){ const v=t[k]|0; if(v>0) A.lv[k]=Math.min(TECH_MAX_SRV,v); }
+    const r=sv.res||{}; for(const k of ['iron','crystal','silver','coal']){ if((r[k]|0)>0) A.res[k]=Math.min(99999,r[k]|0); } }
+  led.acad=A; led.rev++; return A; }
+function acadCollect(A){ let changed=false; const now=Date.now();
+  for(const k in A.learn){ const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(TECH_MAX_SRV,(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
+  return changed; }
+function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; const A=led.acad;
+  return { atkFlat:Math.round(techTotalSrv(A,'atk')), hpFlat:Math.round(techTotalSrv(A,'hp')),
+    armorRating:techTotalSrv(A,'armor'), mrRating:techTotalSrv(A,'mr'),
+    critFrac:techTotalSrv(A,'crit')/100, critResFrac:techTotalSrv(A,'critres')/100,
+    dmgRedFrac:techTotalSrv(A,'def')/100, apMul:1+techTotalSrv(A,'ap')/100 }; }
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
 function glyphFlatStats(u,key){
@@ -617,7 +642,11 @@ function snapshotHeroFromServer(u, key, save){
   if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
     if(d&&d.active){ const eq=(u.gear.equipped||{})[key]||{}; if(Object.values(eq).includes(aid)){ gearSkillSlot=d.slot;
       gearSkill={ id:d.id, name:d.active, type:d.activeType||null, params:d.activeParams||null, slot:d.slot }; } } }
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill});
+  // v249: Academy research is SERVER-owned and reaches combat here (flats, ratings, fractions, AP multiplier)
+  const AC=acadCombat(u);
+  if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill,
+    extra:AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:null});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -2185,11 +2214,75 @@ async function api(req,res,url){
       writeDB(); return {ok:true, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
+  /* =================== v249 (full-game audit P0): THE CITY LOOP IS SERVER-SIDE ===================
+     Academy research lives on the LEDGER (levels, timers, resource wallet, costs mirrored from the
+     client tables); world-map mining is a capped server grant; City PvP is resolved BY THE SERVER
+     through the shared combat core, and the verified result is what both mailboxes receive. */
+  if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
+    if(!me) return send(res,401,{error:'auth'});
+    const led=ensureLedger(me); const A=ensureAcad(me);
+    acadCollect(A);   // finished research applies on every touch
+    if(p==='/api/academy') return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV });
+    if(req.method!=='POST') return send(res,404,{error:'academy'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
+        const track=String(b.track||''); if(!(track in A.lv)) return {ok:false,error:'Unknown research track.'};
+        const lvl=A.lv[track]|0;
+        if(lvl>=TECH_MAX_SRV) return {ok:false,error:'Fully researched.'};
+        if(track!=='academy' && lvl>=(A.lv.academy|0)) return {ok:false,error:'The Academy must be upgraded first.'};
+        for(const k in A.learn){ if(A.learn[k]>Date.now()) return {ok:false,error:'Research already in progress.'}; }
+        const goldCost=60+lvl*70, rc=learnResCostSrv(track,lvl);
+        if((led.gold|0)<goldCost) return {ok:false,error:'Not enough gold.'};
+        for(const k in rc){ if((A.res[k]|0)<rc[k]) return {ok:false,error:'Not enough '+k+'.'}; }
+        led.gold-=goldCost; for(const k in rc) A.res[k]-=rc[k];
+        A.learn[track]=Date.now()+learnDurSrv(lvl,A.lv.academy|0);
+        ledTx(me,'academy:'+track,{gold:-goldCost});
+        writeDB(); return {ok:true, track, completesAt:A.learn[track], lv:A.lv, res:A.res, ledger:{gold:led.gold}};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/academy/collect'){ const changed=acadCollect(A,true); writeDB();
+      return send(res,200,{ ok:true, changed, lv:A.lv, learn:A.learn }); }
+    if(p==='/api/world/mine'){ const out=idem(me.id+':mine:'+reqId,()=>{
+        const rk=String(b.res||''); if(!['iron','crystal','silver','coal'].includes(rk)) return {ok:false,error:'Unknown resource.'};
+        const amt=Math.max(1,Math.min(15,Math.floor(+b.amount||0)));
+        const dk=nyDayKey(); if(!A.mineDay||A.mineDay.k!==dk) A.mineDay={k:dk};
+        const used=(A.mineDay[rk]|0); const CAP=60;
+        if(used>=CAP) return {ok:false,error:'Daily mining cap reached for '+rk+'.'};
+        const grant=Math.min(amt,CAP-used);
+        A.mineDay[rk]=used+grant; A.res[rk]=(A.res[rk]|0)+grant;
+        writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:CAP-A.mineDay[rk]};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/pvp/attack'){ const out=idem(me.id+':pvpatk:'+reqId,()=>{
+        const d=DB.users[String(b.defId||'')];
+        if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
+        const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0};
+        if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
+        const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+        if(!ids.length) return {ok:false,error:'Pick your squad.'};
+        for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'You have not unlocked '+k+'.'}; }
+        const mySnaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+        const defKeys=(Array.isArray(d.wall)&&d.wall.length?d.wall:(d.team||[])).slice(0,5).filter(k=>SIM.HERO_BASE[k]);
+        if(!mySnaps.length) return {ok:false,error:'Bad squad.'};
+        const defSnaps=defKeys.map(k=>snapshotHeroFromServer(d,k)).filter(Boolean);
+        let won=true, rounds=0, log=[];
+        if(defSnaps.length){ const r=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(defSnaps),SIM.seedFrom('citypvp:'+me.id+':'+reqId));
+          won=r.won; rounds=r.rounds; log=r.log.slice(0,200); }
+        me.pvpDay.n++;
+        let loot=null;
+        if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold));
+          if(g>0){ led.gold=Math.min(ECON_CAP.gold,led.gold+g); me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0}; }
+        d.pvpMail=d.pvpMail||[];
+        d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds});
+        if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
+        DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
+        w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
+        writeDB(); return {ok:true, won, rounds, loot, log, attacksLeft:20-me.pvpDay.n};
+      }); return send(res, out.ok===false?400:200, out); }
+  }
   if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});
     const b=await body(req); const d=DB.users[String(b.defId||'')];
     if(!d||d.isNpc||d.id===me.id) return send(res,200,{ok:false});
-    d.pvpMail=d.pvpMail||[]; const rec={from:me.name,won:!!b.won,t:Date.now(),social:true,unverified:true};   // AUDIT: client-reported — a social notification, never a competitive record
+    d.pvpMail=d.pvpMail||[]; const rec={from:me.name,won:!!b.won,t:Date.now(),social:true,unverified:true};   // DEPRECATED (v249): /api/pvp/attack is the verified route; this remains a social note only
     try{ if(b.battle&&typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) rec.battle=JSON.parse(s); } }catch(e){}
     d.pvpMail.push(rec); if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
     writeDB(); return send(res,200,{ok:true}); }
@@ -2209,7 +2302,8 @@ async function api(req,res,url){
     const cities=Object.values(DB.users)
       .filter(u=>u.id!==me.id && u.world && u.world.region)
       .slice(0,500)
-      .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:u.world.level||1, power:u.world.power||0,
+      .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:u.world.level||1,
+                 power:serverTeamPower((Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])), u)|0,   // v249: SERVER-computed power, never client-uploaded
                  region:u.world.region, x:u.world.x, y:u.world.y, guildId:u.guildId||null,
                  team:(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])).slice(0,5) }));
     return send(res,200,{ cities, myGuildId: me.guildId||null }); }

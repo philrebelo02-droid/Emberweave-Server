@@ -2169,12 +2169,22 @@ function regenStamina(){ if(!G.staminaTS)G.staminaTS=Date.now(); const now=Date.
 function staminaToNext(){ if(G.stamina>=maxStamina())return 0; if(!G.staminaTS)G.staminaTS=Date.now(); return STAM_REGEN_MS-((Date.now()-G.staminaTS)%STAM_REGEN_MS); }
 const ACADEMY_UNLOCK_LEVEL=15;
 // research/"learning" time: a few minutes early, grows gradually with the track's level
+/* v249: the Academy is SERVER-owned when signed in — levels, timers, and the resource wallet come
+   from /api/academy; research and mining go through server routes. Offline keeps the local flow. */
+let ACAD_SYNCED=false;
+async function academySync(){ if(!ACC.token) return;
+  try{ const r=await api('/api/academy'); if(r&&r.lv){ G.tech=Object.assign({},G.tech,r.lv);
+    G.techLearn={}; for(const k in (r.learn||{})) G.techLearn[k]=r.learn[k];
+    G.res=Object.assign({},G.res,r.res); ACAD_SYNCED=true; saveGLocalOnly(); } }catch(e){} }
+setTimeout(()=>{ academySync(); }, 2800);
 function academyLevel(){ return (G.tech&&G.tech.academy)||0; }
 function academySpeedup(){ return Math.min(0.6, academyLevel()*0.02); }   // Academy level cuts research time (−2%/lvl, cap −60%)
 function learnDur(lvl){ return Math.round((120 + lvl*lvl*45) * 1000 * (1-academySpeedup())); } // ms — sped up by the Academy's level
 function fmtDur(ms){ ms=Math.max(0,ms); let s=Math.ceil(ms/1000); const h=Math.floor(s/3600); s-=h*3600; const m=Math.floor(s/60); s-=m*60; const p=n=>String(n).padStart(2,'0'); return h>0?`${h}:${p(m)}:${p(s)}`:`${m}:${p(s)}`; }
 // finish any research whose timer has elapsed (applies the level, clears the timer)
-function collectLearns(){ let changed=false; for(const k in G.techLearn){ const done=G.techLearn[k]; if(done&&Date.now()>=done){ G.tech[k]=Math.min((typeof TECH_MAX!=='undefined'?TECH_MAX:60),(G.tech[k]||0)+1); G.techLearn[k]=0; changed=true; } } if(changed)saveG(); return changed; }
+function collectLearns(){ let changed=false; for(const k in G.techLearn){ const done=G.techLearn[k]; if(done&&Date.now()>=done){ G.tech[k]=Math.min((typeof TECH_MAX!=='undefined'?TECH_MAX:60),(G.tech[k]||0)+1); G.techLearn[k]=0; changed=true; } }
+  if(changed){ saveG(); if(ACC.token) api('/api/academy/collect','POST',{requestId:uid8()}).then(r=>{ if(r&&r.lv){ G.tech=Object.assign({},G.tech,r.lv); saveGLocalOnly(); } }).catch(()=>{}); }   // v249: the server applies the level too
+  return changed; }
 // soonest-completing active research, or null
 function nextLearn(){ let best=null; for(const k in G.techLearn){ const d=G.techLearn[k]; if(d&&(best===null||d<best))best=d; } return best; }
 // is any research currently running?
@@ -5761,7 +5771,12 @@ function renderTech(){
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${maxed?'Fully upgraded.':`Learn time: ${fmtDur(learnDur(lvl))}${learning&&remain>0?` · <span style="color:#8fe3ff">in progress…</span>`:''}`}</div>
     <div style="text-align:center">${btn}</div>`;
   p.appendChild(card);
-  const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=async()=>{ if(learnBusy()||lvl>=TECH_MAX||acadLocked)return; if(G.gold>=cost&&canAffordRes(rc)){ if(!(await txSpend('gold',cost,'tech')))return; payRes(rc); G.techLearn[k]=Date.now()+learnDur(lvl); saveG(); updateHubChrome(); renderTech(); } };
+  const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=async()=>{ if(learnBusy()||lvl>=TECH_MAX||acadLocked)return;
+    if(ACC.token){ const r=await api('/api/academy/research','POST',{track:k,requestId:uid8()});   // v249: SERVER debits gold + resources and owns the timer
+      if(r&&r.error){ bannerMsg(r.error); return; }
+      if(r&&r.completesAt){ G.techLearn[k]=r.completesAt; if(r.res) G.res=Object.assign({},G.res,r.res); if(r.ledger&&r.ledger.gold!=null) G.gold=r.ledger.gold; saveGLocalOnly(); updateHubChrome(); renderTech(); }
+      return; }
+    if(G.gold>=cost&&canAffordRes(rc)){ if(!(await txSpend('gold',cost,'tech')))return; payRes(rc); G.techLearn[k]=Date.now()+learnDur(lvl); saveG(); updateHubChrome(); renderTech(); } };
   p.insertAdjacentHTML('beforeend','<div style="font-size:11px;color:#6f7d90;margin-top:10px;text-align:center">No tech can exceed your <b>Academy</b> level — raise the Academy to unlock higher tiers. Upgrading it also speeds up all research. Research needs gold + resources (mine them from the <b>World Map</b> via the City Wall).</div>');
 }
 /* ===================== ONLINE: accounts, arena, world ===================== */
@@ -6600,7 +6615,10 @@ function resolveMarch(m){
     const garrison=trimTeam((m.garrison&&m.garrison.length)?m.garrison:mineGarrison({id:m.mineId,level:m.mineLevel||1,x:m.fx,y:m.fy}));
     const allySnap=snapAllySquad(m.heroes), seed=newFightSeed(), win=simFightResult(allySnap, garrison, seed);
     const rlabel=mnResName(m.res), rpt={ v:2, seed, mine:snapSquad(m.heroes), mineSnap:allySnap, foe:garrison, won:win, oppName:mineLabel({level:m.mineLevel,res:m.res}) };
-    if(win){ const amt=m.yieldAmt||0; if(!G.res)G.res={}; G.res[m.res]=(G.res[m.res]||0)+amt; updateHubChrome();
+    if(win){ const amt=m.yieldAmt||0; if(!G.res)G.res={};
+      if(ACC.token){ api('/api/world/mine','POST',{res:m.res,amount:amt,requestId:uid8()}).then(r=>{ if(r&&r.res){ G.res=Object.assign({},G.res,r.res); saveGLocalOnly(); updateHubChrome(); } else if(r&&r.error){ bannerMsg(r.error); } }).catch(()=>{}); }
+      else { G.res[m.res]=(G.res[m.res]||0)+amt; }   // v249: signed-in mining is a CAPPED SERVER GRANT
+      updateHubChrome();
       addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — '+rlabel,body:'Your squad defeated the mine\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+amt+' '+rlabel+' home.',battle:rpt});
       marchReport('⛏ Mining complete','Your miners cleared the guardians and struck '+mnResIcon(m.res)+' '+amt+' '+rlabel+'.'); }
     else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
@@ -6617,7 +6635,12 @@ function resolveMarch(m){
     marchReport('⚔ Victory at '+m.tName,'Your army broke their wall — looted 🪙 '+gold+' and 🎖 40 guild coins. Troops are marching home.'); }
   else { addMail('war',{from:m.tName,subj:'⚔ Defeat — '+m.tName,body:m.tName+'’s defenders held. Your heroes retreat and march home.',battle:rptBattle});
     marchReport('⚔ Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.'); }
-  if(m.real && m.tId && ACC.token){ api('/api/pvp/attack-report','POST',{defId:m.tId,won:win,battle:rptBattle}).catch(()=>{}); }   // REAL defender gets mail about your raid
+  if(m.real && m.tId && ACC.token){   // v249: the SERVER resolves city PvP through the combat core — verified result, capped loot, mail to both sides
+    api('/api/pvp/attack','POST',{defId:m.tId,heroIds:(G.team||[]).slice(0,5),requestId:uid8()}).then(r=>{
+      if(r&&r.ok){ if(r.loot&&r.loot.gold){ G.gold=(G.gold||0)+0; bannerMsg((r.won?'🏆 Verified victory':'⚔️ Verified result: defense held')+(r.loot.gold?' — +'+r.loot.gold+' gold':'')); ledgerSync&&ledgerSync(); }
+        else bannerMsg(r.won?'🏆 Verified victory':'⚔️ Verified result: defense held'); }
+      else if(r&&r.error) bannerMsg(r.error);
+    }).catch(()=>{ api('/api/pvp/attack-report','POST',{defId:m.tId,won:win,battle:rptBattle}).catch(()=>{}); }); }
   updateMailBadges();
 }
 // ---- incoming PvP mail: raids REAL players made on you while you were away (or online) ----
@@ -9620,7 +9643,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787840271265';
+const BUILD_ID='1787840835378';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
