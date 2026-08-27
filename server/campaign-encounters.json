@@ -16,17 +16,7 @@
      "fragmentId": "grey-stoneheart",
      "key": "Grey Stoneheart",
      "displayName": "Grey Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "grey-ironwall",
-     "key": "Grey Ironwall",
-     "displayName": "Grey Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -99,7 +89,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 0.9615,
   "baselineHp": 1,
-  "baselineDmg": 1
+  "baselineDmg": 1,
+  "portalMode": "normal",
+  "farmFragment": "grey-stoneheart"
  },
  {
   "id": "1-2",
@@ -115,20 +107,10 @@
    "playerXpRepeat": 4,
    "glyphFragments": [
     {
-     "fragmentId": "grey-veilward",
-     "key": "Grey Veilward",
-     "displayName": "Grey Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "grey-ravager",
-     "key": "Grey Ravager",
-     "displayName": "Grey Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "grey-ironwall",
+     "key": "Grey Ironwall",
+     "displayName": "Grey Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -201,7 +183,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 0.9615,
   "baselineHp": 1.045,
-  "baselineDmg": 1.035
+  "baselineDmg": 1.035,
+  "portalMode": "normal",
+  "farmFragment": "grey-ironwall"
  },
  {
   "id": "1-3",
@@ -217,20 +201,10 @@
    "playerXpRepeat": 4,
    "glyphFragments": [
     {
-     "fragmentId": "grey-starfire",
-     "key": "Grey Starfire",
-     "displayName": "Grey Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "grey-windstep",
-     "key": "Grey Windstep",
-     "displayName": "Grey Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "grey-veilward",
+     "key": "Grey Veilward",
+     "displayName": "Grey Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -303,7 +277,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 1.4802,
   "baselineHp": 1.092,
-  "baselineDmg": 1.0712
+  "baselineDmg": 1.0712,
+  "portalMode": "normal",
+  "farmFragment": "grey-veilward"
  },
  {
   "id": "1-4",
@@ -319,20 +295,10 @@
    "playerXpRepeat": 16,
    "glyphFragments": [
     {
-     "fragmentId": "grey-hawkeye",
-     "key": "Grey Hawkeye",
-     "displayName": "Grey Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "grey-lifebloom",
-     "key": "Grey Lifebloom",
-     "displayName": "Grey Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "grey-ravager",
+     "key": "Grey Ravager",
+     "displayName": "Grey Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -411,7 +377,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 2.1911,
   "baselineHp": 1.1412,
-  "baselineDmg": 1.1087
+  "baselineDmg": 1.1087,
+  "portalMode": "normal",
+  "farmFragment": "grey-ravager"
  },
  {
   "id": "1-5",
@@ -427,12 +395,10 @@
    "playerXpRepeat": 32,
    "glyphFragments": [
     {
-     "fragmentId": "grey-stoneheart",
-     "key": "Grey Stoneheart",
-     "displayName": "Grey Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "green-stoneheart",
+     "key": "Green Stoneheart",
+     "displayName": "Green Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -518,7 +484,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 1.3686,
   "baselineHp": 1.2879,
-  "baselineDmg": 1.2049
+  "baselineDmg": 1.2049,
+  "portalMode": "normal",
+  "farmFragment": "green-stoneheart"
  },
  {
   "id": "1-6",
@@ -534,20 +502,10 @@
    "playerXpRepeat": 52,
    "glyphFragments": [
     {
-     "fragmentId": "green-stoneheart",
-     "key": "Green Stoneheart",
-     "displayName": "Green Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
      "fragmentId": "green-ironwall",
      "key": "Green Ironwall",
      "displayName": "Green Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -620,7 +578,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 2.8834,
   "baselineHp": 1.2462,
-  "baselineDmg": 1.1877
+  "baselineDmg": 1.1877,
+  "portalMode": "normal",
+  "farmFragment": "green-ironwall"
  },
  {
   "id": "1-7",
@@ -639,17 +599,7 @@
      "fragmentId": "green-veilward",
      "key": "Green Veilward",
      "displayName": "Green Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-ravager",
-     "key": "Green Ravager",
-     "displayName": "Green Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -728,7 +678,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.5081,
   "baselineHp": 1.3023,
-  "baselineDmg": 1.2293
+  "baselineDmg": 1.2293,
+  "portalMode": "normal",
+  "farmFragment": "green-veilward"
  },
  {
   "id": "1-8",
@@ -744,20 +696,10 @@
    "playerXpRepeat": 98,
    "glyphFragments": [
     {
-     "fragmentId": "green-starfire",
-     "key": "Green Starfire",
-     "displayName": "Green Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-windstep",
-     "key": "Green Windstep",
-     "displayName": "Green Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-ravager",
+     "key": "Green Ravager",
+     "displayName": "Green Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -860,7 +802,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.1187,
   "baselineHp": 1.3609,
-  "baselineDmg": 1.2723
+  "baselineDmg": 1.2723,
+  "portalMode": "normal",
+  "farmFragment": "green-ravager"
  },
  {
   "id": "1-9",
@@ -876,20 +820,10 @@
    "playerXpRepeat": 124,
    "glyphFragments": [
     {
-     "fragmentId": "green-hawkeye",
-     "key": "Green Hawkeye",
-     "displayName": "Green Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-lifebloom",
-     "key": "Green Lifebloom",
-     "displayName": "Green Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-starfire",
+     "key": "Green Starfire",
+     "displayName": "Green Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -974,7 +908,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.6484,
   "baselineHp": 1.4221,
-  "baselineDmg": 1.3168
+  "baselineDmg": 1.3168,
+  "portalMode": "normal",
+  "farmFragment": "green-starfire"
  },
  {
   "id": "1-10",
@@ -990,20 +926,10 @@
    "playerXpRepeat": 154,
    "glyphFragments": [
     {
-     "fragmentId": "green-shadepath",
-     "key": "Green Shadepath",
-     "displayName": "Green Shadepath Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-sunder",
-     "key": "Green Sunder",
-     "displayName": "Green Sunder Fragment",
-     "quantity": 2,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-windstep",
+     "key": "Green Windstep",
+     "displayName": "Green Windstep Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -1113,7 +1039,9 @@
   "bossLevelGate": 10,
   "difficultyTune": 2.8834,
   "baselineHp": 1.7239,
-  "baselineDmg": 1.4992
+  "baselineDmg": 1.4992,
+  "portalMode": "normal",
+  "farmFragment": "green-windstep"
  },
  {
   "id": "2-1",
@@ -1132,17 +1060,7 @@
      "fragmentId": "green-plus-1-stoneheart",
      "key": "Green +1 Stoneheart",
      "displayName": "Green +1 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-plus-1-ironwall",
-     "key": "Green +1 Ironwall",
-     "displayName": "Green +1 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -1239,7 +1157,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.7943,
   "baselineHp": 1.553,
-  "baselineDmg": 1.4106
+  "baselineDmg": 1.4106,
+  "portalMode": "normal",
+  "farmFragment": "green-plus-1-stoneheart"
  },
  {
   "id": "2-2",
@@ -1255,20 +1175,10 @@
    "playerXpRepeat": 226,
    "glyphFragments": [
     {
-     "fragmentId": "green-plus-1-veilward",
-     "key": "Green +1 Veilward",
-     "displayName": "Green +1 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-plus-1-ravager",
-     "key": "Green +1 Ravager",
-     "displayName": "Green +1 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-plus-1-ironwall",
+     "key": "Green +1 Ironwall",
+     "displayName": "Green +1 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -1365,7 +1275,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.2681,
   "baselineHp": 1.6229,
-  "baselineDmg": 1.46
+  "baselineDmg": 1.46,
+  "portalMode": "normal",
+  "farmFragment": "green-plus-1-ironwall"
  },
  {
   "id": "2-3",
@@ -1381,20 +1293,10 @@
    "playerXpRepeat": 265,
    "glyphFragments": [
     {
-     "fragmentId": "green-plus-1-starfire",
-     "key": "Green +1 Starfire",
-     "displayName": "Green +1 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-plus-1-windstep",
-     "key": "Green +1 Windstep",
-     "displayName": "Green +1 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-plus-1-veilward",
+     "key": "Green +1 Veilward",
+     "displayName": "Green +1 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -1491,7 +1393,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.9461,
   "baselineHp": 1.6959,
-  "baselineDmg": 1.5111
+  "baselineDmg": 1.5111,
+  "portalMode": "normal",
+  "farmFragment": "green-plus-1-veilward"
  },
  {
   "id": "2-4",
@@ -1507,20 +1411,10 @@
    "playerXpRepeat": 304,
    "glyphFragments": [
     {
-     "fragmentId": "green-plus-1-hawkeye",
-     "key": "Green +1 Hawkeye",
-     "displayName": "Green +1 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-plus-1-lifebloom",
-     "key": "Green +1 Lifebloom",
-     "displayName": "Green +1 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-plus-1-ravager",
+     "key": "Green +1 Ravager",
+     "displayName": "Green +1 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -1611,7 +1505,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.9461,
   "baselineHp": 1.7722,
-  "baselineDmg": 1.564
+  "baselineDmg": 1.564,
+  "portalMode": "normal",
+  "farmFragment": "green-plus-1-ravager"
  },
  {
   "id": "2-5",
@@ -1627,20 +1523,10 @@
    "playerXpRepeat": 347,
    "glyphFragments": [
     {
-     "fragmentId": "green-plus-1-shadepath",
-     "key": "Green +1 Shadepath",
-     "displayName": "Green +1 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "green-plus-1-sunder",
-     "key": "Green +1 Sunder",
-     "displayName": "Green +1 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-plus-1-starfire",
+     "key": "Green +1 Starfire",
+     "displayName": "Green +1 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -1738,7 +1624,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 3.1187,
   "baselineHp": 2.0001,
-  "baselineDmg": 1.6996
+  "baselineDmg": 1.6996,
+  "portalMode": "normal",
+  "farmFragment": "green-plus-1-starfire"
  },
  {
   "id": "2-6",
@@ -1754,28 +1642,10 @@
    "playerXpRepeat": 390,
    "glyphFragments": [
     {
-     "fragmentId": "blue-stoneheart",
-     "key": "Blue Stoneheart",
-     "displayName": "Blue Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-ironwall",
-     "key": "Blue Ironwall",
-     "displayName": "Blue Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-veilward",
-     "key": "Blue Veilward",
-     "displayName": "Blue Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "green-plus-1-windstep",
+     "key": "Green +1 Windstep",
+     "displayName": "Green +1 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -1878,7 +1748,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.801,
   "baselineHp": 1.9353,
-  "baselineDmg": 1.6753
+  "baselineDmg": 1.6753,
+  "portalMode": "normal",
+  "farmFragment": "green-plus-1-windstep"
  },
  {
   "id": "2-7",
@@ -1894,28 +1766,10 @@
    "playerXpRepeat": 432,
    "glyphFragments": [
     {
-     "fragmentId": "blue-ravager",
-     "key": "Blue Ravager",
-     "displayName": "Blue Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-starfire",
-     "key": "Blue Starfire",
-     "displayName": "Blue Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-windstep",
-     "key": "Blue Windstep",
-     "displayName": "Blue Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-stoneheart",
+     "key": "Blue Stoneheart",
+     "displayName": "Blue Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2006,7 +1860,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.0748,
   "baselineHp": 2.0224,
-  "baselineDmg": 1.734
+  "baselineDmg": 1.734,
+  "portalMode": "normal",
+  "farmFragment": "blue-stoneheart"
  },
  {
   "id": "2-8",
@@ -2022,28 +1878,10 @@
    "playerXpRepeat": 475,
    "glyphFragments": [
     {
-     "fragmentId": "blue-hawkeye",
-     "key": "Blue Hawkeye",
-     "displayName": "Blue Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-lifebloom",
-     "key": "Blue Lifebloom",
-     "displayName": "Blue Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-shadepath",
-     "key": "Blue Shadepath",
-     "displayName": "Blue Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-ironwall",
+     "key": "Blue Ironwall",
+     "displayName": "Blue Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2128,7 +1966,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.1928,
   "baselineHp": 2.1134,
-  "baselineDmg": 1.7947
+  "baselineDmg": 1.7947,
+  "portalMode": "normal",
+  "farmFragment": "blue-ironwall"
  },
  {
   "id": "2-9",
@@ -2144,28 +1984,10 @@
    "playerXpRepeat": 518,
    "glyphFragments": [
     {
-     "fragmentId": "blue-sunder",
-     "key": "Blue Sunder",
-     "displayName": "Blue Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-voidbind",
-     "key": "Blue Voidbind",
-     "displayName": "Blue Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-bastion",
-     "key": "Blue Bastion",
-     "displayName": "Blue Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-veilward",
+     "key": "Blue Veilward",
+     "displayName": "Blue Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2256,7 +2078,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.9931,
   "baselineHp": 2.2085,
-  "baselineDmg": 1.8575
+  "baselineDmg": 1.8575,
+  "portalMode": "normal",
+  "farmFragment": "blue-veilward"
  },
  {
   "id": "2-10",
@@ -2272,12 +2096,10 @@
    "playerXpRepeat": 567,
    "glyphFragments": [
     {
-     "fragmentId": "blue-stoneheart",
-     "key": "Blue Stoneheart",
-     "displayName": "Blue Stoneheart Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "blue-ravager",
+     "key": "Blue Ravager",
+     "displayName": "Blue Ravager Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -2363,7 +2185,9 @@
   "bossLevelGate": 20,
   "difficultyTune": 3.7943,
   "baselineHp": 2.6771,
-  "baselineDmg": 2.1148
+  "baselineDmg": 2.1148,
+  "portalMode": "normal",
+  "farmFragment": "blue-ravager"
  },
  {
   "id": "3-1",
@@ -2379,28 +2203,10 @@
    "playerXpRepeat": 649,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-1-stoneheart",
-     "key": "Blue +1 Stoneheart",
-     "displayName": "Blue +1 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-1-ironwall",
-     "key": "Blue +1 Ironwall",
-     "displayName": "Blue +1 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-1-veilward",
-     "key": "Blue +1 Veilward",
-     "displayName": "Blue +1 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-starfire",
+     "key": "Blue Starfire",
+     "displayName": "Blue Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2503,7 +2309,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.6165,
   "baselineHp": 2.4117,
-  "baselineDmg": 1.9898
+  "baselineDmg": 1.9898,
+  "portalMode": "normal",
+  "farmFragment": "blue-starfire"
  },
  {
   "id": "3-2",
@@ -2519,28 +2327,10 @@
    "playerXpRepeat": 649,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-1-ravager",
-     "key": "Blue +1 Ravager",
-     "displayName": "Blue +1 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-1-starfire",
-     "key": "Blue +1 Starfire",
-     "displayName": "Blue +1 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-1-windstep",
-     "key": "Blue +1 Windstep",
-     "displayName": "Blue +1 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-windstep",
+     "key": "Blue Windstep",
+     "displayName": "Blue Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2637,7 +2427,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.6165,
   "baselineHp": 2.5202,
-  "baselineDmg": 2.0594
+  "baselineDmg": 2.0594,
+  "portalMode": "normal",
+  "farmFragment": "blue-windstep"
  },
  {
   "id": "3-3",
@@ -2653,28 +2445,10 @@
    "playerXpRepeat": 649,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-1-hawkeye",
-     "key": "Blue +1 Hawkeye",
-     "displayName": "Blue +1 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-1-lifebloom",
-     "key": "Blue +1 Lifebloom",
-     "displayName": "Blue +1 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-1-shadepath",
-     "key": "Blue +1 Shadepath",
-     "displayName": "Blue +1 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-1-stoneheart",
+     "key": "Blue +1 Stoneheart",
+     "displayName": "Blue +1 Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2765,7 +2539,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.6165,
   "baselineHp": 2.6337,
-  "baselineDmg": 2.1315
+  "baselineDmg": 2.1315,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-1-stoneheart"
  },
  {
   "id": "3-4",
@@ -2781,28 +2557,10 @@
    "playerXpRepeat": 649,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-1-sunder",
-     "key": "Blue +1 Sunder",
-     "displayName": "Blue +1 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-1-voidbind",
-     "key": "Blue +1 Voidbind",
-     "displayName": "Blue +1 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-1-bastion",
-     "key": "Blue +1 Bastion",
-     "displayName": "Blue +1 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-1-ironwall",
+     "key": "Blue +1 Ironwall",
+     "displayName": "Blue +1 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2887,7 +2645,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.0748,
   "baselineHp": 2.7522,
-  "baselineDmg": 2.2061
+  "baselineDmg": 2.2061,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-1-ironwall"
  },
  {
   "id": "3-5",
@@ -2903,12 +2663,10 @@
    "playerXpRepeat": 747,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-1-stoneheart",
-     "key": "Blue +1 Stoneheart",
-     "displayName": "Blue +1 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "blue-plus-1-veilward",
+     "key": "Blue +1 Veilward",
+     "displayName": "Blue +1 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -2994,7 +2752,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.2681,
   "baselineHp": 3.1061,
-  "baselineDmg": 2.3975
+  "baselineDmg": 2.3975,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-1-veilward"
  },
  {
   "id": "3-6",
@@ -3010,28 +2770,10 @@
    "playerXpRepeat": 856,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-stoneheart",
-     "key": "Blue +2 Stoneheart",
-     "displayName": "Blue +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-ironwall",
-     "key": "Blue +2 Ironwall",
-     "displayName": "Blue +2 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-veilward",
-     "key": "Blue +2 Veilward",
-     "displayName": "Blue +2 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-1-ravager",
+     "key": "Blue +1 Ravager",
+     "displayName": "Blue +1 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -3122,7 +2864,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.8412,
   "baselineHp": 3.0054,
-  "baselineDmg": 2.3632
+  "baselineDmg": 2.3632,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-1-ravager"
  },
  {
   "id": "3-7",
@@ -3138,28 +2882,10 @@
    "playerXpRepeat": 970,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-ravager",
-     "key": "Blue +2 Ravager",
-     "displayName": "Blue +2 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-starfire",
-     "key": "Blue +2 Starfire",
-     "displayName": "Blue +2 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-windstep",
-     "key": "Blue +2 Windstep",
-     "displayName": "Blue +2 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-1-starfire",
+     "key": "Blue +1 Starfire",
+     "displayName": "Blue +1 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -3232,7 +2958,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 3.1407,
-  "baselineDmg": 2.446
+  "baselineDmg": 2.446,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-1-starfire"
  },
  {
   "id": "3-8",
@@ -3248,28 +2976,10 @@
    "playerXpRepeat": 970,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-hawkeye",
-     "key": "Blue +2 Hawkeye",
-     "displayName": "Blue +2 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-lifebloom",
-     "key": "Blue +2 Lifebloom",
-     "displayName": "Blue +2 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-shadepath",
-     "key": "Blue +2 Shadepath",
-     "displayName": "Blue +2 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-1-windstep",
+     "key": "Blue +1 Windstep",
+     "displayName": "Blue +1 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -3366,7 +3076,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.3178,
   "baselineHp": 3.282,
-  "baselineDmg": 2.5316
+  "baselineDmg": 2.5316,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-1-windstep"
  },
  {
   "id": "3-9",
@@ -3382,28 +3094,10 @@
    "playerXpRepeat": 1092,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-sunder",
-     "key": "Blue +2 Sunder",
-     "displayName": "Blue +2 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-voidbind",
-     "key": "Blue +2 Voidbind",
-     "displayName": "Blue +2 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-bastion",
-     "key": "Blue +2 Bastion",
-     "displayName": "Blue +2 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-2-stoneheart",
+     "key": "Blue +2 Stoneheart",
+     "displayName": "Blue +2 Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -3512,7 +3206,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.0748,
   "baselineHp": 3.4297,
-  "baselineDmg": 2.6202
+  "baselineDmg": 2.6202,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-2-stoneheart"
  },
  {
   "id": "3-10",
@@ -3528,12 +3224,10 @@
    "playerXpRepeat": 1092,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-stoneheart",
-     "key": "Blue +2 Stoneheart",
-     "displayName": "Blue +2 Stoneheart Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "blue-plus-2-ironwall",
+     "key": "Blue +2 Ironwall",
+     "displayName": "Blue +2 Ironwall Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -3631,7 +3325,9 @@
   "bossLevelGate": 30,
   "difficultyTune": 6.0748,
   "baselineHp": 4.1575,
-  "baselineDmg": 2.9831
+  "baselineDmg": 2.9831,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-2-ironwall"
  },
  {
   "id": "4-1",
@@ -3647,28 +3343,10 @@
    "playerXpRepeat": 1092,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-stoneheart",
-     "key": "Blue +2 Stoneheart",
-     "displayName": "Blue +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-ironwall",
-     "key": "Blue +2 Ironwall",
-     "displayName": "Blue +2 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
      "fragmentId": "blue-plus-2-veilward",
      "key": "Blue +2 Veilward",
      "displayName": "Blue +2 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -3765,7 +3443,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.1928,
   "baselineHp": 3.7453,
-  "baselineDmg": 2.8068
+  "baselineDmg": 2.8068,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-2-veilward"
  },
  {
   "id": "4-2",
@@ -3784,25 +3464,7 @@
      "fragmentId": "blue-plus-2-ravager",
      "key": "Blue +2 Ravager",
      "displayName": "Blue +2 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-starfire",
-     "key": "Blue +2 Starfire",
-     "displayName": "Blue +2 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-windstep",
-     "key": "Blue +2 Windstep",
-     "displayName": "Blue +2 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -3899,7 +3561,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.0748,
   "baselineHp": 3.9139,
-  "baselineDmg": 2.905
+  "baselineDmg": 2.905,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-2-ravager"
  },
  {
   "id": "4-3",
@@ -3915,28 +3579,10 @@
    "playerXpRepeat": 1239,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-hawkeye",
-     "key": "Blue +2 Hawkeye",
-     "displayName": "Blue +2 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-lifebloom",
-     "key": "Blue +2 Lifebloom",
-     "displayName": "Blue +2 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-shadepath",
-     "key": "Blue +2 Shadepath",
-     "displayName": "Blue +2 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-2-starfire",
+     "key": "Blue +2 Starfire",
+     "displayName": "Blue +2 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -4033,7 +3679,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.4005,
   "baselineHp": 4.09,
-  "baselineDmg": 3.0067
+  "baselineDmg": 3.0067,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-2-starfire"
  },
  {
   "id": "4-4",
@@ -4049,28 +3697,10 @@
    "playerXpRepeat": 1239,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-sunder",
-     "key": "Blue +2 Sunder",
-     "displayName": "Blue +2 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "blue-plus-2-voidbind",
-     "key": "Blue +2 Voidbind",
-     "displayName": "Blue +2 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "blue-plus-2-bastion",
-     "key": "Blue +2 Bastion",
-     "displayName": "Blue +2 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "blue-plus-2-windstep",
+     "key": "Blue +2 Windstep",
+     "displayName": "Blue +2 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -4143,7 +3773,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.5705,
   "baselineHp": 4.274,
-  "baselineDmg": 3.1119
+  "baselineDmg": 3.1119,
+  "portalMode": "normal",
+  "farmFragment": "blue-plus-2-windstep"
  },
  {
   "id": "4-5",
@@ -4159,12 +3791,10 @@
    "playerXpRepeat": 1436,
    "glyphFragments": [
     {
-     "fragmentId": "blue-plus-2-stoneheart",
-     "key": "Blue +2 Stoneheart",
-     "displayName": "Blue +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "purple-stoneheart",
+     "key": "Purple Stoneheart",
+     "displayName": "Purple Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -4268,7 +3898,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.9931,
   "baselineHp": 4.8237,
-  "baselineDmg": 3.3819
+  "baselineDmg": 3.3819,
+  "portalMode": "normal",
+  "farmFragment": "purple-stoneheart"
  },
  {
   "id": "4-6",
@@ -4284,28 +3916,10 @@
    "playerXpRepeat": 1666,
    "glyphFragments": [
     {
-     "fragmentId": "purple-stoneheart",
-     "key": "Purple Stoneheart",
-     "displayName": "Purple Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
      "fragmentId": "purple-ironwall",
      "key": "Purple Ironwall",
      "displayName": "Purple Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-veilward",
-     "key": "Purple Veilward",
-     "displayName": "Purple Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -4384,7 +3998,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 4.6673,
-  "baselineDmg": 3.3336
+  "baselineDmg": 3.3336,
+  "portalMode": "normal",
+  "farmFragment": "purple-ironwall"
  },
  {
   "id": "4-7",
@@ -4400,28 +4016,10 @@
    "playerXpRepeat": 1928,
    "glyphFragments": [
     {
-     "fragmentId": "purple-ravager",
-     "key": "Purple Ravager",
-     "displayName": "Purple Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-starfire",
-     "key": "Purple Starfire",
-     "displayName": "Purple Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-windstep",
-     "key": "Purple Windstep",
-     "displayName": "Purple Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-veilward",
+     "key": "Purple Veilward",
+     "displayName": "Purple Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -4506,7 +4104,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.1067,
   "baselineHp": 4.8774,
-  "baselineDmg": 3.4503
+  "baselineDmg": 3.4503,
+  "portalMode": "normal",
+  "farmFragment": "purple-veilward"
  },
  {
   "id": "4-8",
@@ -4522,28 +4122,10 @@
    "playerXpRepeat": 1928,
    "glyphFragments": [
     {
-     "fragmentId": "purple-hawkeye",
-     "key": "Purple Hawkeye",
-     "displayName": "Purple Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-lifebloom",
-     "key": "Purple Lifebloom",
-     "displayName": "Purple Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-shadepath",
-     "key": "Purple Shadepath",
-     "displayName": "Purple Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-ravager",
+     "key": "Purple Ravager",
+     "displayName": "Purple Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -4628,7 +4210,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.391,
   "baselineHp": 5.0969,
-  "baselineDmg": 3.571
+  "baselineDmg": 3.571,
+  "portalMode": "normal",
+  "farmFragment": "purple-ravager"
  },
  {
   "id": "4-9",
@@ -4644,28 +4228,10 @@
    "playerXpRepeat": 1928,
    "glyphFragments": [
     {
-     "fragmentId": "purple-sunder",
-     "key": "Purple Sunder",
-     "displayName": "Purple Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-voidbind",
-     "key": "Purple Voidbind",
-     "displayName": "Purple Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-bastion",
-     "key": "Purple Bastion",
-     "displayName": "Purple Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-starfire",
+     "key": "Purple Starfire",
+     "displayName": "Purple Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -4750,7 +4316,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 5.3262,
-  "baselineDmg": 3.696
+  "baselineDmg": 3.696,
+  "portalMode": "normal",
+  "farmFragment": "purple-starfire"
  },
  {
   "id": "4-10",
@@ -4766,20 +4334,10 @@
    "playerXpRepeat": 2322,
    "glyphFragments": [
     {
-     "fragmentId": "purple-tidecall",
-     "key": "Purple Tidecall",
-     "displayName": "Purple Tidecall Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-bloodroot",
-     "key": "Purple Bloodroot",
-     "displayName": "Purple Bloodroot Fragment",
-     "quantity": 2,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-windstep",
+     "key": "Purple Windstep",
+     "displayName": "Purple Windstep Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -4889,7 +4447,9 @@
   "bossLevelGate": 40,
   "difficultyTune": 4.6164,
   "baselineHp": 6.4564,
-  "baselineDmg": 4.2079
+  "baselineDmg": 4.2079,
+  "portalMode": "normal",
+  "farmFragment": "purple-windstep"
  },
  {
   "id": "5-1",
@@ -4905,28 +4465,10 @@
    "playerXpRepeat": 2715,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-1-stoneheart",
-     "key": "Purple +1 Stoneheart",
-     "displayName": "Purple +1 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-1-ironwall",
-     "key": "Purple +1 Ironwall",
-     "displayName": "Purple +1 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-1-veilward",
-     "key": "Purple +1 Veilward",
-     "displayName": "Purple +1 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-hawkeye",
+     "key": "Purple Hawkeye",
+     "displayName": "Purple Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5017,7 +4559,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 5.8164,
-  "baselineDmg": 3.9593
+  "baselineDmg": 3.9593,
+  "portalMode": "normal",
+  "farmFragment": "purple-hawkeye"
  },
  {
   "id": "5-2",
@@ -5033,28 +4577,10 @@
    "playerXpRepeat": 3142,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-1-ravager",
-     "key": "Purple +1 Ravager",
-     "displayName": "Purple +1 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-1-starfire",
-     "key": "Purple +1 Starfire",
-     "displayName": "Purple +1 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-1-windstep",
-     "key": "Purple +1 Windstep",
-     "displayName": "Purple +1 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-stoneheart",
+     "key": "Purple +1 Stoneheart",
+     "displayName": "Purple +1 Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5151,7 +4677,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.9941,
   "baselineHp": 6.0781,
-  "baselineDmg": 4.0978
+  "baselineDmg": 4.0978,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-stoneheart"
  },
  {
   "id": "5-3",
@@ -5167,28 +4695,10 @@
    "playerXpRepeat": 3601,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-1-hawkeye",
-     "key": "Purple +1 Hawkeye",
-     "displayName": "Purple +1 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-1-lifebloom",
-     "key": "Purple +1 Lifebloom",
-     "displayName": "Purple +1 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-1-shadepath",
-     "key": "Purple +1 Shadepath",
-     "displayName": "Purple +1 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-ironwall",
+     "key": "Purple +1 Ironwall",
+     "displayName": "Purple +1 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5297,7 +4807,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.3178,
   "baselineHp": 6.3516,
-  "baselineDmg": 4.2413
+  "baselineDmg": 4.2413,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-ironwall"
  },
  {
   "id": "5-4",
@@ -5313,28 +4825,10 @@
    "playerXpRepeat": 3601,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-1-sunder",
-     "key": "Purple +1 Sunder",
-     "displayName": "Purple +1 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-1-voidbind",
-     "key": "Purple +1 Voidbind",
-     "displayName": "Purple +1 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-1-bastion",
-     "key": "Purple +1 Bastion",
-     "displayName": "Purple +1 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-veilward",
+     "key": "Purple +1 Veilward",
+     "displayName": "Purple +1 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5431,7 +4925,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.1067,
   "baselineHp": 6.6374,
-  "baselineDmg": 4.3897
+  "baselineDmg": 4.3897,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-veilward"
  },
  {
   "id": "5-5",
@@ -5447,20 +4943,10 @@
    "playerXpRepeat": 3601,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-1-tidecall",
-     "key": "Purple +1 Tidecall",
-     "displayName": "Purple +1 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-1-bloodroot",
-     "key": "Purple +1 Bloodroot",
-     "displayName": "Purple +1 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-ravager",
+     "key": "Purple +1 Ravager",
+     "displayName": "Purple +1 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5552,7 +5038,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.1039,
   "baselineHp": 7.491,
-  "baselineDmg": 4.7705
+  "baselineDmg": 4.7705,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-ravager"
  },
  {
   "id": "5-6",
@@ -5568,28 +5056,10 @@
    "playerXpRepeat": 4224,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-stoneheart",
-     "key": "Purple +2 Stoneheart",
-     "displayName": "Purple +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-ironwall",
-     "key": "Purple +2 Ironwall",
-     "displayName": "Purple +2 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-veilward",
-     "key": "Purple +2 Veilward",
-     "displayName": "Purple +2 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-starfire",
+     "key": "Purple +1 Starfire",
+     "displayName": "Purple +1 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5686,7 +5156,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.1067,
   "baselineHp": 7.2482,
-  "baselineDmg": 4.7024
+  "baselineDmg": 4.7024,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-starfire"
  },
  {
   "id": "5-7",
@@ -5702,28 +5174,10 @@
    "playerXpRepeat": 4224,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-ravager",
-     "key": "Purple +2 Ravager",
-     "displayName": "Purple +2 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-starfire",
-     "key": "Purple +2 Starfire",
-     "displayName": "Purple +2 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-windstep",
-     "key": "Purple +2 Windstep",
-     "displayName": "Purple +2 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-windstep",
+     "key": "Purple +1 Windstep",
+     "displayName": "Purple +1 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5814,7 +5268,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 7.5744,
-  "baselineDmg": 4.8669
+  "baselineDmg": 4.8669,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-windstep"
  },
  {
   "id": "5-8",
@@ -5830,28 +5286,10 @@
    "playerXpRepeat": 4224,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-hawkeye",
-     "key": "Purple +2 Hawkeye",
-     "displayName": "Purple +2 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-lifebloom",
-     "key": "Purple +2 Lifebloom",
-     "displayName": "Purple +2 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-shadepath",
-     "key": "Purple +2 Shadepath",
-     "displayName": "Purple +2 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-1-hawkeye",
+     "key": "Purple +1 Hawkeye",
+     "displayName": "Purple +1 Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -5954,7 +5392,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.8333,
   "baselineHp": 7.9153,
-  "baselineDmg": 5.0373
+  "baselineDmg": 5.0373,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-1-hawkeye"
  },
  {
   "id": "5-9",
@@ -5970,28 +5410,10 @@
    "playerXpRepeat": 4224,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-sunder",
-     "key": "Purple +2 Sunder",
-     "displayName": "Purple +2 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-voidbind",
-     "key": "Purple +2 Voidbind",
-     "displayName": "Purple +2 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-bastion",
-     "key": "Purple +2 Bastion",
-     "displayName": "Purple +2 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-2-stoneheart",
+     "key": "Purple +2 Stoneheart",
+     "displayName": "Purple +2 Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -6082,7 +5504,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 8.2715,
-  "baselineDmg": 5.2136
+  "baselineDmg": 5.2136,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-stoneheart"
  },
  {
   "id": "5-10",
@@ -6098,20 +5522,10 @@
    "playerXpRepeat": 5208,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-tidecall",
-     "key": "Purple +2 Tidecall",
-     "displayName": "Purple +2 Tidecall Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-bloodroot",
-     "key": "Purple +2 Bloodroot",
-     "displayName": "Purple +2 Bloodroot Fragment",
-     "quantity": 2,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-2-ironwall",
+     "key": "Purple +2 Ironwall",
+     "displayName": "Purple +2 Ironwall Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -6221,7 +5635,9 @@
   "bossLevelGate": 50,
   "difficultyTune": 4.9931,
   "baselineHp": 10.0267,
-  "baselineDmg": 5.9357
+  "baselineDmg": 5.9357,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-ironwall"
  },
  {
   "id": "6-1",
@@ -6237,28 +5653,10 @@
    "playerXpRepeat": 6274,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-stoneheart",
-     "key": "Purple +2 Stoneheart",
-     "displayName": "Purple +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-ironwall",
-     "key": "Purple +2 Ironwall",
-     "displayName": "Purple +2 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
      "fragmentId": "purple-plus-2-veilward",
      "key": "Purple +2 Veilward",
      "displayName": "Purple +2 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -6343,7 +5741,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.391,
   "baselineHp": 9.0326,
-  "baselineDmg": 5.5849
+  "baselineDmg": 5.5849,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-veilward"
  },
  {
   "id": "6-2",
@@ -6362,25 +5762,7 @@
      "fragmentId": "purple-plus-2-ravager",
      "key": "Purple +2 Ravager",
      "displayName": "Purple +2 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-starfire",
-     "key": "Purple +2 Starfire",
-     "displayName": "Purple +2 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-windstep",
-     "key": "Purple +2 Windstep",
-     "displayName": "Purple +2 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -6471,7 +5853,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 9.4391,
-  "baselineDmg": 5.7804
+  "baselineDmg": 5.7804,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-ravager"
  },
  {
   "id": "6-3",
@@ -6487,28 +5871,10 @@
    "playerXpRepeat": 7340,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-hawkeye",
-     "key": "Purple +2 Hawkeye",
-     "displayName": "Purple +2 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-lifebloom",
-     "key": "Purple +2 Lifebloom",
-     "displayName": "Purple +2 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-shadepath",
-     "key": "Purple +2 Shadepath",
-     "displayName": "Purple +2 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-2-starfire",
+     "key": "Purple +2 Starfire",
+     "displayName": "Purple +2 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -6617,7 +5983,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.2681,
   "baselineHp": 9.8639,
-  "baselineDmg": 5.9827
+  "baselineDmg": 5.9827,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-starfire"
  },
  {
   "id": "6-4",
@@ -6633,28 +6001,10 @@
    "playerXpRepeat": 8406,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-sunder",
-     "key": "Purple +2 Sunder",
-     "displayName": "Purple +2 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-voidbind",
-     "key": "Purple +2 Voidbind",
-     "displayName": "Purple +2 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-2-bastion",
-     "key": "Purple +2 Bastion",
-     "displayName": "Purple +2 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-2-windstep",
+     "key": "Purple +2 Windstep",
+     "displayName": "Purple +2 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -6739,7 +6089,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 10.3077,
-  "baselineDmg": 6.1921
+  "baselineDmg": 6.1921,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-windstep"
  },
  {
   "id": "6-5",
@@ -6755,20 +6107,10 @@
    "playerXpRepeat": 9472,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-2-tidecall",
-     "key": "Purple +2 Tidecall",
-     "displayName": "Purple +2 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-2-bloodroot",
-     "key": "Purple +2 Bloodroot",
-     "displayName": "Purple +2 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-2-hawkeye",
+     "key": "Purple +2 Hawkeye",
+     "displayName": "Purple +2 Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -6860,7 +6202,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.9941,
   "baselineHp": 11.6333,
-  "baselineDmg": 6.7293
+  "baselineDmg": 6.7293,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-2-hawkeye"
  },
  {
   "id": "6-6",
@@ -6879,25 +6223,7 @@
      "fragmentId": "purple-plus-3-stoneheart",
      "key": "Purple +3 Stoneheart",
      "displayName": "Purple +3 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-3-ironwall",
-     "key": "Purple +3 Ironwall",
-     "displayName": "Purple +3 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-3-veilward",
-     "key": "Purple +3 Veilward",
-     "displayName": "Purple +3 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -6988,7 +6314,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 11.2563,
-  "baselineDmg": 6.6331
+  "baselineDmg": 6.6331,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-stoneheart"
  },
  {
   "id": "6-7",
@@ -7004,28 +6332,10 @@
    "playerXpRepeat": 10587,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-3-ravager",
-     "key": "Purple +3 Ravager",
-     "displayName": "Purple +3 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-3-starfire",
-     "key": "Purple +3 Starfire",
-     "displayName": "Purple +3 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-3-windstep",
-     "key": "Purple +3 Windstep",
-     "displayName": "Purple +3 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-3-ironwall",
+     "key": "Purple +3 Ironwall",
+     "displayName": "Purple +3 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -7128,7 +6438,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.5705,
   "baselineHp": 11.7628,
-  "baselineDmg": 6.8653
+  "baselineDmg": 6.8653,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-ironwall"
  },
  {
   "id": "6-8",
@@ -7144,28 +6456,10 @@
    "playerXpRepeat": 10587,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-3-hawkeye",
-     "key": "Purple +3 Hawkeye",
-     "displayName": "Purple +3 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-3-lifebloom",
-     "key": "Purple +3 Lifebloom",
-     "displayName": "Purple +3 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-3-shadepath",
-     "key": "Purple +3 Shadepath",
-     "displayName": "Purple +3 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-3-veilward",
+     "key": "Purple +3 Veilward",
+     "displayName": "Purple +3 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -7268,7 +6562,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.391,
   "baselineHp": 12.2922,
-  "baselineDmg": 7.1056
+  "baselineDmg": 7.1056,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-veilward"
  },
  {
   "id": "6-9",
@@ -7284,28 +6580,10 @@
    "playerXpRepeat": 11742,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-3-sunder",
-     "key": "Purple +3 Sunder",
-     "displayName": "Purple +3 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-3-voidbind",
-     "key": "Purple +3 Voidbind",
-     "displayName": "Purple +3 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "purple-plus-3-bastion",
-     "key": "Purple +3 Bastion",
-     "displayName": "Purple +3 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-3-ravager",
+     "key": "Purple +3 Ravager",
+     "displayName": "Purple +3 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -7390,7 +6668,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 12.8453,
-  "baselineDmg": 7.3543
+  "baselineDmg": 7.3543,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-ravager"
  },
  {
   "id": "6-10",
@@ -7406,20 +6686,10 @@
    "playerXpRepeat": 12936,
    "glyphFragments": [
     {
-     "fragmentId": "purple-plus-3-tidecall",
-     "key": "Purple +3 Tidecall",
-     "displayName": "Purple +3 Tidecall Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "purple-plus-3-bloodroot",
-     "key": "Purple +3 Bloodroot",
-     "displayName": "Purple +3 Bloodroot Fragment",
-     "quantity": 2,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-3-starfire",
+     "key": "Purple +3 Starfire",
+     "displayName": "Purple +3 Starfire Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -7511,7 +6781,9 @@
   "bossLevelGate": 60,
   "difficultyTune": 4.9931,
   "baselineHp": 15.5711,
-  "baselineDmg": 8.3729
+  "baselineDmg": 8.3729,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-starfire"
  },
  {
   "id": "7-1",
@@ -7527,36 +6799,10 @@
    "playerXpRepeat": 12936,
    "glyphFragments": [
     {
-     "fragmentId": "gold-stoneheart",
-     "key": "Gold Stoneheart",
-     "displayName": "Gold Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-ironwall",
-     "key": "Gold Ironwall",
-     "displayName": "Gold Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-veilward",
-     "key": "Gold Veilward",
-     "displayName": "Gold Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-ravager",
-     "key": "Gold Ravager",
-     "displayName": "Gold Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-3-windstep",
+     "key": "Purple +3 Windstep",
+     "displayName": "Purple +3 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -7665,7 +6911,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.391,
   "baselineHp": 14.0274,
-  "baselineDmg": 7.8781
+  "baselineDmg": 7.8781,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-windstep"
  },
  {
   "id": "7-2",
@@ -7681,36 +6929,10 @@
    "playerXpRepeat": 14169,
    "glyphFragments": [
     {
-     "fragmentId": "gold-starfire",
-     "key": "Gold Starfire",
-     "displayName": "Gold Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-windstep",
-     "key": "Gold Windstep",
-     "displayName": "Gold Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-hawkeye",
-     "key": "Gold Hawkeye",
-     "displayName": "Gold Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-lifebloom",
-     "key": "Gold Lifebloom",
-     "displayName": "Gold Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "purple-plus-3-hawkeye",
+     "key": "Purple +3 Hawkeye",
+     "displayName": "Purple +3 Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -7801,7 +7023,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 14.6586,
-  "baselineDmg": 8.1538
+  "baselineDmg": 8.1538,
+  "portalMode": "normal",
+  "farmFragment": "purple-plus-3-hawkeye"
  },
  {
   "id": "7-3",
@@ -7817,36 +7041,10 @@
    "playerXpRepeat": 14169,
    "glyphFragments": [
     {
-     "fragmentId": "gold-shadepath",
-     "key": "Gold Shadepath",
-     "displayName": "Gold Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-sunder",
-     "key": "Gold Sunder",
-     "displayName": "Gold Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-voidbind",
-     "key": "Gold Voidbind",
-     "displayName": "Gold Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-bastion",
-     "key": "Gold Bastion",
-     "displayName": "Gold Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-stoneheart",
+     "key": "Gold Stoneheart",
+     "displayName": "Gold Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -7943,7 +7141,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 15.3183,
-  "baselineDmg": 8.4392
+  "baselineDmg": 8.4392,
+  "portalMode": "normal",
+  "farmFragment": "gold-stoneheart"
  },
  {
   "id": "7-4",
@@ -7959,36 +7159,10 @@
    "playerXpRepeat": 15442,
    "glyphFragments": [
     {
-     "fragmentId": "gold-tidecall",
-     "key": "Gold Tidecall",
-     "displayName": "Gold Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-bloodroot",
-     "key": "Gold Bloodroot",
-     "displayName": "Gold Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-keenmind",
-     "key": "Gold Keenmind",
-     "displayName": "Gold Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-dawnshield",
-     "key": "Gold Dawnshield",
-     "displayName": "Gold Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-ironwall",
+     "key": "Gold Ironwall",
+     "displayName": "Gold Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -8079,7 +7253,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 16.0076,
-  "baselineDmg": 8.7346
+  "baselineDmg": 8.7346,
+  "portalMode": "normal",
+  "farmFragment": "gold-ironwall"
  },
  {
   "id": "7-5",
@@ -8095,12 +7271,10 @@
    "playerXpRepeat": 16754,
    "glyphFragments": [
     {
-     "fragmentId": "gold-stoneheart",
-     "key": "Gold Stoneheart",
-     "displayName": "Gold Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-veilward",
+     "key": "Gold Veilward",
+     "displayName": "Gold Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -8198,7 +7372,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.9931,
   "baselineHp": 18.0662,
-  "baselineDmg": 9.4923
+  "baselineDmg": 9.4923,
+  "portalMode": "normal",
+  "farmFragment": "gold-veilward"
  },
  {
   "id": "7-6",
@@ -8214,36 +7390,10 @@
    "playerXpRepeat": 16754,
    "glyphFragments": [
     {
-     "fragmentId": "gold-stoneheart",
-     "key": "Gold Stoneheart",
-     "displayName": "Gold Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-ironwall",
-     "key": "Gold Ironwall",
-     "displayName": "Gold Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-veilward",
-     "key": "Gold Veilward",
-     "displayName": "Gold Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
      "fragmentId": "gold-ravager",
      "key": "Gold Ravager",
      "displayName": "Gold Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -8340,7 +7490,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 17.4807,
-  "baselineDmg": 9.3567
+  "baselineDmg": 9.3567,
+  "portalMode": "normal",
+  "farmFragment": "gold-ravager"
  },
  {
   "id": "7-7",
@@ -8359,33 +7511,7 @@
      "fragmentId": "gold-starfire",
      "key": "Gold Starfire",
      "displayName": "Gold Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-windstep",
-     "key": "Gold Windstep",
-     "displayName": "Gold Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-hawkeye",
-     "key": "Gold Hawkeye",
-     "displayName": "Gold Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-lifebloom",
-     "key": "Gold Lifebloom",
-     "displayName": "Gold Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -8476,7 +7602,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.9941,
   "baselineHp": 18.2673,
-  "baselineDmg": 9.6842
+  "baselineDmg": 9.6842,
+  "portalMode": "normal",
+  "farmFragment": "gold-starfire"
  },
  {
   "id": "7-8",
@@ -8492,36 +7620,10 @@
    "playerXpRepeat": 19496,
    "glyphFragments": [
     {
-     "fragmentId": "gold-shadepath",
-     "key": "Gold Shadepath",
-     "displayName": "Gold Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-sunder",
-     "key": "Gold Sunder",
-     "displayName": "Gold Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-voidbind",
-     "key": "Gold Voidbind",
-     "displayName": "Gold Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-bastion",
-     "key": "Gold Bastion",
-     "displayName": "Gold Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-windstep",
+     "key": "Gold Windstep",
+     "displayName": "Gold Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -8612,7 +7714,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 19.0894,
-  "baselineDmg": 10.0231
+  "baselineDmg": 10.0231,
+  "portalMode": "normal",
+  "farmFragment": "gold-windstep"
  },
  {
   "id": "7-9",
@@ -8628,36 +7732,10 @@
    "playerXpRepeat": 19496,
    "glyphFragments": [
     {
-     "fragmentId": "gold-tidecall",
-     "key": "Gold Tidecall",
-     "displayName": "Gold Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-bloodroot",
-     "key": "Gold Bloodroot",
-     "displayName": "Gold Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-keenmind",
-     "key": "Gold Keenmind",
-     "displayName": "Gold Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-dawnshield",
-     "key": "Gold Dawnshield",
-     "displayName": "Gold Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-hawkeye",
+     "key": "Gold Hawkeye",
+     "displayName": "Gold Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -8760,7 +7838,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.8333,
   "baselineHp": 19.9484,
-  "baselineDmg": 10.3739
+  "baselineDmg": 10.3739,
+  "portalMode": "normal",
+  "farmFragment": "gold-hawkeye"
  },
  {
   "id": "7-10",
@@ -8776,12 +7856,10 @@
    "playerXpRepeat": 20926,
    "glyphFragments": [
     {
-     "fragmentId": "gold-stoneheart",
-     "key": "Gold Stoneheart",
-     "displayName": "Gold Stoneheart Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-plus-1-stoneheart",
+     "key": "Gold +1 Stoneheart",
+     "displayName": "Gold +1 Stoneheart Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -8879,7 +7957,9 @@
   "bossLevelGate": 70,
   "difficultyTune": 3.3731,
   "baselineHp": 24.1814,
-  "baselineDmg": 11.8107
+  "baselineDmg": 11.8107,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-stoneheart"
  },
  {
   "id": "8-1",
@@ -8895,36 +7975,10 @@
    "playerXpRepeat": 20926,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-1-stoneheart",
-     "key": "Gold +1 Stoneheart",
-     "displayName": "Gold +1 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
      "fragmentId": "gold-plus-1-ironwall",
      "key": "Gold +1 Ironwall",
      "displayName": "Gold +1 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-veilward",
-     "key": "Gold +1 Veilward",
-     "displayName": "Gold +1 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-ravager",
-     "key": "Gold +1 Ravager",
-     "displayName": "Gold +1 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -9009,7 +8063,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 21.7841,
-  "baselineDmg": 11.1128
+  "baselineDmg": 11.1128,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-ironwall"
  },
  {
   "id": "8-2",
@@ -9025,36 +8081,10 @@
    "playerXpRepeat": 22395,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-1-starfire",
-     "key": "Gold +1 Starfire",
-     "displayName": "Gold +1 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-1-windstep",
-     "key": "Gold +1 Windstep",
-     "displayName": "Gold +1 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-hawkeye",
-     "key": "Gold +1 Hawkeye",
-     "displayName": "Gold +1 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-lifebloom",
-     "key": "Gold +1 Lifebloom",
-     "displayName": "Gold +1 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-1-veilward",
+     "key": "Gold +1 Veilward",
+     "displayName": "Gold +1 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9139,7 +8169,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 22.7644,
-  "baselineDmg": 11.5018
+  "baselineDmg": 11.5018,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-veilward"
  },
  {
   "id": "8-3",
@@ -9155,36 +8187,10 @@
    "playerXpRepeat": 22395,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-1-shadepath",
-     "key": "Gold +1 Shadepath",
-     "displayName": "Gold +1 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-1-sunder",
-     "key": "Gold +1 Sunder",
-     "displayName": "Gold +1 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-voidbind",
-     "key": "Gold +1 Voidbind",
-     "displayName": "Gold +1 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-bastion",
-     "key": "Gold +1 Bastion",
-     "displayName": "Gold +1 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-1-ravager",
+     "key": "Gold +1 Ravager",
+     "displayName": "Gold +1 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9281,7 +8287,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.5705,
   "baselineHp": 23.7888,
-  "baselineDmg": 11.9043
+  "baselineDmg": 11.9043,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-ravager"
  },
  {
   "id": "8-4",
@@ -9297,36 +8305,10 @@
    "playerXpRepeat": 23904,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-1-tidecall",
-     "key": "Gold +1 Tidecall",
-     "displayName": "Gold +1 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-1-bloodroot",
-     "key": "Gold +1 Bloodroot",
-     "displayName": "Gold +1 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-keenmind",
-     "key": "Gold +1 Keenmind",
-     "displayName": "Gold +1 Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-1-dawnshield",
-     "key": "Gold +1 Dawnshield",
-     "displayName": "Gold +1 Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-1-starfire",
+     "key": "Gold +1 Starfire",
+     "displayName": "Gold +1 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9423,7 +8405,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.801,
   "baselineHp": 24.8593,
-  "baselineDmg": 12.321
+  "baselineDmg": 12.321,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-starfire"
  },
  {
   "id": "8-5",
@@ -9439,12 +8423,10 @@
    "playerXpRepeat": 25452,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-1-stoneheart",
-     "key": "Gold +1 Stoneheart",
-     "displayName": "Gold +1 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-plus-1-windstep",
+     "key": "Gold +1 Windstep",
+     "displayName": "Gold +1 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9536,7 +8518,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.9931,
   "baselineHp": 28.0562,
-  "baselineDmg": 13.3898
+  "baselineDmg": 13.3898,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-windstep"
  },
  {
   "id": "8-6",
@@ -9552,36 +8536,10 @@
    "playerXpRepeat": 25452,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-stoneheart",
-     "key": "Gold +2 Stoneheart",
-     "displayName": "Gold +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-ironwall",
-     "key": "Gold +2 Ironwall",
-     "displayName": "Gold +2 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-veilward",
-     "key": "Gold +2 Veilward",
-     "displayName": "Gold +2 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-ravager",
-     "key": "Gold +2 Ravager",
-     "displayName": "Gold +2 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-1-hawkeye",
+     "key": "Gold +1 Hawkeye",
+     "displayName": "Gold +1 Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9672,7 +8630,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.391,
   "baselineHp": 27.147,
-  "baselineDmg": 13.1986
+  "baselineDmg": 13.1986,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-1-hawkeye"
  },
  {
   "id": "8-7",
@@ -9688,36 +8648,10 @@
    "playerXpRepeat": 27040,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-starfire",
-     "key": "Gold +2 Starfire",
-     "displayName": "Gold +2 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-windstep",
-     "key": "Gold +2 Windstep",
-     "displayName": "Gold +2 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-hawkeye",
-     "key": "Gold +2 Hawkeye",
-     "displayName": "Gold +2 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-lifebloom",
-     "key": "Gold +2 Lifebloom",
-     "displayName": "Gold +2 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-2-stoneheart",
+     "key": "Gold +2 Stoneheart",
+     "displayName": "Gold +2 Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9808,7 +8742,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.3138,
   "baselineHp": 28.3686,
-  "baselineDmg": 13.6605
+  "baselineDmg": 13.6605,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-stoneheart"
  },
  {
   "id": "8-8",
@@ -9824,36 +8760,10 @@
    "playerXpRepeat": 28666,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-shadepath",
-     "key": "Gold +2 Shadepath",
-     "displayName": "Gold +2 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-sunder",
-     "key": "Gold +2 Sunder",
-     "displayName": "Gold +2 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-voidbind",
-     "key": "Gold +2 Voidbind",
-     "displayName": "Gold +2 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-bastion",
-     "key": "Gold +2 Bastion",
-     "displayName": "Gold +2 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-2-ironwall",
+     "key": "Gold +2 Ironwall",
+     "displayName": "Gold +2 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -9938,7 +8848,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 29.6452,
-  "baselineDmg": 14.1386
+  "baselineDmg": 14.1386,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-ironwall"
  },
  {
   "id": "8-9",
@@ -9954,36 +8866,10 @@
    "playerXpRepeat": 28667,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-tidecall",
-     "key": "Gold +2 Tidecall",
-     "displayName": "Gold +2 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-bloodroot",
-     "key": "Gold +2 Bloodroot",
-     "displayName": "Gold +2 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-keenmind",
-     "key": "Gold +2 Keenmind",
-     "displayName": "Gold +2 Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-dawnshield",
-     "key": "Gold +2 Dawnshield",
-     "displayName": "Gold +2 Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-2-veilward",
+     "key": "Gold +2 Veilward",
+     "displayName": "Gold +2 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -10074,7 +8960,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 30.9792,
-  "baselineDmg": 14.6335
+  "baselineDmg": 14.6335,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-veilward"
  },
  {
   "id": "8-10",
@@ -10090,12 +8978,10 @@
    "playerXpRepeat": 30333,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-stoneheart",
-     "key": "Gold +2 Stoneheart",
-     "displayName": "Gold +2 Stoneheart Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-plus-2-ravager",
+     "key": "Gold +2 Ravager",
+     "displayName": "Gold +2 Ravager Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -10205,7 +9091,9 @@
   "bossLevelGate": 80,
   "difficultyTune": 5.6165,
   "baselineHp": 37.553,
-  "baselineDmg": 16.6602
+  "baselineDmg": 16.6602,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-ravager"
  },
  {
   "id": "9-1",
@@ -10221,36 +9109,10 @@
    "playerXpRepeat": 30333,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-stoneheart",
-     "key": "Gold +2 Stoneheart",
-     "displayName": "Gold +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-ironwall",
-     "key": "Gold +2 Ironwall",
-     "displayName": "Gold +2 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-veilward",
-     "key": "Gold +2 Veilward",
-     "displayName": "Gold +2 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-ravager",
-     "key": "Gold +2 Ravager",
-     "displayName": "Gold +2 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-2-starfire",
+     "key": "Gold +2 Starfire",
+     "displayName": "Gold +2 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -10353,7 +9215,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.6165,
   "baselineHp": 33.8301,
-  "baselineDmg": 15.6757
+  "baselineDmg": 15.6757,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-starfire"
  },
  {
   "id": "9-2",
@@ -10369,36 +9233,10 @@
    "playerXpRepeat": 32038,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-starfire",
-     "key": "Gold +2 Starfire",
-     "displayName": "Gold +2 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
      "fragmentId": "gold-plus-2-windstep",
      "key": "Gold +2 Windstep",
      "displayName": "Gold +2 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-hawkeye",
-     "key": "Gold +2 Hawkeye",
-     "displayName": "Gold +2 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-lifebloom",
-     "key": "Gold +2 Lifebloom",
-     "displayName": "Gold +2 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -10501,7 +9339,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.5705,
   "baselineHp": 35.3525,
-  "baselineDmg": 16.2244
+  "baselineDmg": 16.2244,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-windstep"
  },
  {
   "id": "9-3",
@@ -10517,36 +9357,10 @@
    "playerXpRepeat": 32038,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-shadepath",
-     "key": "Gold +2 Shadepath",
-     "displayName": "Gold +2 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-sunder",
-     "key": "Gold +2 Sunder",
-     "displayName": "Gold +2 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-voidbind",
-     "key": "Gold +2 Voidbind",
-     "displayName": "Gold +2 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-bastion",
-     "key": "Gold +2 Bastion",
-     "displayName": "Gold +2 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-2-hawkeye",
+     "key": "Gold +2 Hawkeye",
+     "displayName": "Gold +2 Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -10643,7 +9457,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.3178,
   "baselineHp": 36.9433,
-  "baselineDmg": 16.7922
+  "baselineDmg": 16.7922,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-2-hawkeye"
  },
  {
   "id": "9-4",
@@ -10659,36 +9475,10 @@
    "playerXpRepeat": 33784,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-tidecall",
-     "key": "Gold +2 Tidecall",
-     "displayName": "Gold +2 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-2-bloodroot",
-     "key": "Gold +2 Bloodroot",
-     "displayName": "Gold +2 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-keenmind",
-     "key": "Gold +2 Keenmind",
-     "displayName": "Gold +2 Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-2-dawnshield",
-     "key": "Gold +2 Dawnshield",
-     "displayName": "Gold +2 Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-3-stoneheart",
+     "key": "Gold +3 Stoneheart",
+     "displayName": "Gold +3 Stoneheart Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -10773,7 +9563,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.9941,
   "baselineHp": 38.6058,
-  "baselineDmg": 17.38
+  "baselineDmg": 17.38,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-stoneheart"
  },
  {
   "id": "9-5",
@@ -10789,12 +9581,10 @@
    "playerXpRepeat": 35568,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-2-stoneheart",
-     "key": "Gold +2 Stoneheart",
-     "displayName": "Gold +2 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-plus-3-ironwall",
+     "key": "Gold +3 Ironwall",
+     "displayName": "Gold +3 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -10910,7 +9700,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 4.6164,
   "baselineHp": 43.5705,
-  "baselineDmg": 18.8877
+  "baselineDmg": 18.8877,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-ironwall"
  },
  {
   "id": "9-6",
@@ -10926,36 +9718,10 @@
    "playerXpRepeat": 35568,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-stoneheart",
-     "key": "Gold +3 Stoneheart",
-     "displayName": "Gold +3 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-3-ironwall",
-     "key": "Gold +3 Ironwall",
-     "displayName": "Gold +3 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
      "fragmentId": "gold-plus-3-veilward",
      "key": "Gold +3 Veilward",
      "displayName": "Gold +3 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-ravager",
-     "key": "Gold +3 Ravager",
-     "displayName": "Gold +3 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -11058,7 +9824,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.1067,
   "baselineHp": 42.1585,
-  "baselineDmg": 18.6179
+  "baselineDmg": 18.6179,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-veilward"
  },
  {
   "id": "9-7",
@@ -11074,36 +9842,10 @@
    "playerXpRepeat": 37391,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-starfire",
-     "key": "Gold +3 Starfire",
-     "displayName": "Gold +3 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-3-windstep",
-     "key": "Gold +3 Windstep",
-     "displayName": "Gold +3 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-hawkeye",
-     "key": "Gold +3 Hawkeye",
-     "displayName": "Gold +3 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-lifebloom",
-     "key": "Gold +3 Lifebloom",
-     "displayName": "Gold +3 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-3-ravager",
+     "key": "Gold +3 Ravager",
+     "displayName": "Gold +3 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -11194,7 +9936,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 8.6464,
   "baselineHp": 44.0556,
-  "baselineDmg": 19.2695
+  "baselineDmg": 19.2695,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-ravager"
  },
  {
   "id": "9-8",
@@ -11210,36 +9954,10 @@
    "playerXpRepeat": 39254,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-shadepath",
-     "key": "Gold +3 Shadepath",
-     "displayName": "Gold +3 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-3-sunder",
-     "key": "Gold +3 Sunder",
-     "displayName": "Gold +3 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-voidbind",
-     "key": "Gold +3 Voidbind",
-     "displayName": "Gold +3 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-bastion",
-     "key": "Gold +3 Bastion",
-     "displayName": "Gold +3 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-3-starfire",
+     "key": "Gold +3 Starfire",
+     "displayName": "Gold +3 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -11342,7 +10060,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.6165,
   "baselineHp": 46.0381,
-  "baselineDmg": 19.9439
+  "baselineDmg": 19.9439,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-starfire"
  },
  {
   "id": "9-9",
@@ -11358,36 +10078,10 @@
    "playerXpRepeat": 39254,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-tidecall",
-     "key": "Gold +3 Tidecall",
-     "displayName": "Gold +3 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-3-bloodroot",
-     "key": "Gold +3 Bloodroot",
-     "displayName": "Gold +3 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-keenmind",
-     "key": "Gold +3 Keenmind",
-     "displayName": "Gold +3 Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-3-dawnshield",
-     "key": "Gold +3 Dawnshield",
-     "displayName": "Gold +3 Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-3-windstep",
+     "key": "Gold +3 Windstep",
+     "displayName": "Gold +3 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -11490,7 +10184,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.8412,
   "baselineHp": 48.1098,
-  "baselineDmg": 20.642
+  "baselineDmg": 20.642,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-windstep"
  },
  {
   "id": "9-10",
@@ -11506,12 +10202,10 @@
    "playerXpRepeat": 41157,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-3-stoneheart",
-     "key": "Gold +3 Stoneheart",
-     "displayName": "Gold +3 Stoneheart Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-plus-3-hawkeye",
+     "key": "Gold +3 Hawkeye",
+     "displayName": "Gold +3 Hawkeye Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -11609,7 +10303,9 @@
   "bossLevelGate": 90,
   "difficultyTune": 2.9987,
   "baselineHp": 58.3187,
-  "baselineDmg": 23.5009
+  "baselineDmg": 23.5009,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-3-hawkeye"
  },
  {
   "id": "10-1",
@@ -11628,33 +10324,7 @@
      "fragmentId": "gold-plus-4-stoneheart",
      "key": "Gold +4 Stoneheart",
      "displayName": "Gold +4 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-4-ironwall",
-     "key": "Gold +4 Ironwall",
-     "displayName": "Gold +4 Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-veilward",
-     "key": "Gold +4 Veilward",
-     "displayName": "Gold +4 Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-ravager",
-     "key": "Gold +4 Ravager",
-     "displayName": "Gold +4 Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "quantity": 1
     }
    ]
   },
@@ -11751,7 +10421,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.6165,
   "baselineHp": 52.5371,
-  "baselineDmg": 22.1122
+  "baselineDmg": 22.1122,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-stoneheart"
  },
  {
   "id": "10-2",
@@ -11767,36 +10439,10 @@
    "playerXpRepeat": 43099,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-4-starfire",
-     "key": "Gold +4 Starfire",
-     "displayName": "Gold +4 Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-4-windstep",
-     "key": "Gold +4 Windstep",
-     "displayName": "Gold +4 Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-hawkeye",
-     "key": "Gold +4 Hawkeye",
-     "displayName": "Gold +4 Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-lifebloom",
-     "key": "Gold +4 Lifebloom",
-     "displayName": "Gold +4 Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-ironwall",
+     "key": "Gold +4 Ironwall",
+     "displayName": "Gold +4 Ironwall Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -11899,7 +10545,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.4005,
   "baselineHp": 54.9013,
-  "baselineDmg": 22.8861
+  "baselineDmg": 22.8861,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-ironwall"
  },
  {
   "id": "10-3",
@@ -11915,36 +10563,10 @@
    "playerXpRepeat": 43098,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-4-shadepath",
-     "key": "Gold +4 Shadepath",
-     "displayName": "Gold +4 Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-4-sunder",
-     "key": "Gold +4 Sunder",
-     "displayName": "Gold +4 Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-voidbind",
-     "key": "Gold +4 Voidbind",
-     "displayName": "Gold +4 Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-bastion",
-     "key": "Gold +4 Bastion",
-     "displayName": "Gold +4 Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-veilward",
+     "key": "Gold +4 Veilward",
+     "displayName": "Gold +4 Veilward Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12047,7 +10669,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.0748,
   "baselineHp": 57.3718,
-  "baselineDmg": 23.6871
+  "baselineDmg": 23.6871,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-veilward"
  },
  {
   "id": "10-4",
@@ -12063,36 +10687,10 @@
    "playerXpRepeat": 45080,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-4-tidecall",
-     "key": "Gold +4 Tidecall",
-     "displayName": "Gold +4 Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "gold-plus-4-bloodroot",
-     "key": "Gold +4 Bloodroot",
-     "displayName": "Gold +4 Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-keenmind",
-     "key": "Gold +4 Keenmind",
-     "displayName": "Gold +4 Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "gold-plus-4-dawnshield",
-     "key": "Gold +4 Dawnshield",
-     "displayName": "Gold +4 Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-ravager",
+     "key": "Gold +4 Ravager",
+     "displayName": "Gold +4 Ravager Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12201,7 +10799,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 6.5705,
   "baselineHp": 59.9536,
-  "baselineDmg": 24.5162
+  "baselineDmg": 24.5162,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-ravager"
  },
  {
   "id": "10-5",
@@ -12217,12 +10817,10 @@
    "playerXpRepeat": 47100,
    "glyphFragments": [
     {
-     "fragmentId": "gold-plus-4-stoneheart",
-     "key": "Gold +4 Stoneheart",
-     "displayName": "Gold +4 Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
+     "fragmentId": "gold-plus-4-starfire",
+     "key": "Gold +4 Starfire",
+     "displayName": "Gold +4 Starfire Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12314,7 +10912,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.1928,
   "baselineHp": 67.6636,
-  "baselineDmg": 26.6429
+  "baselineDmg": 26.6429,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-starfire"
  },
  {
   "id": "10-6",
@@ -12330,36 +10930,10 @@
    "playerXpRepeat": 47100,
    "glyphFragments": [
     {
-     "fragmentId": "orange-stoneheart",
-     "key": "Orange Stoneheart",
-     "displayName": "Orange Stoneheart Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "orange-ironwall",
-     "key": "Orange Ironwall",
-     "displayName": "Orange Ironwall Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-veilward",
-     "key": "Orange Veilward",
-     "displayName": "Orange Veilward Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-ravager",
-     "key": "Orange Ravager",
-     "displayName": "Orange Ravager Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-windstep",
+     "key": "Gold +4 Windstep",
+     "displayName": "Gold +4 Windstep Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12444,7 +11018,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.9941,
   "baselineHp": 65.4708,
-  "baselineDmg": 26.2623
+  "baselineDmg": 26.2623,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-windstep"
  },
  {
   "id": "10-7",
@@ -12460,36 +11036,10 @@
    "playerXpRepeat": 49160,
    "glyphFragments": [
     {
-     "fragmentId": "orange-starfire",
-     "key": "Orange Starfire",
-     "displayName": "Orange Starfire Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "orange-windstep",
-     "key": "Orange Windstep",
-     "displayName": "Orange Windstep Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-hawkeye",
-     "key": "Orange Hawkeye",
-     "displayName": "Orange Hawkeye Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-lifebloom",
-     "key": "Orange Lifebloom",
-     "displayName": "Orange Lifebloom Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-hawkeye",
+     "key": "Gold +4 Hawkeye",
+     "displayName": "Gold +4 Hawkeye Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12574,7 +11124,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 9.3519,
   "baselineHp": 68.417,
-  "baselineDmg": 27.1815
+  "baselineDmg": 27.1815,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-hawkeye"
  },
  {
   "id": "10-8",
@@ -12590,36 +11142,10 @@
    "playerXpRepeat": 51259,
    "glyphFragments": [
     {
-     "fragmentId": "orange-shadepath",
-     "key": "Orange Shadepath",
-     "displayName": "Orange Shadepath Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "orange-sunder",
-     "key": "Orange Sunder",
-     "displayName": "Orange Sunder Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-voidbind",
-     "key": "Orange Voidbind",
-     "displayName": "Orange Voidbind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-bastion",
-     "key": "Orange Bastion",
-     "displayName": "Orange Bastion Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-lifebloom",
+     "key": "Gold +4 Lifebloom",
+     "displayName": "Gold +4 Lifebloom Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12722,7 +11248,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 5.8412,
   "baselineHp": 71.4957,
-  "baselineDmg": 28.1329
+  "baselineDmg": 28.1329,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-lifebloom"
  },
  {
   "id": "10-9",
@@ -12738,36 +11266,10 @@
    "playerXpRepeat": 51259,
    "glyphFragments": [
     {
-     "fragmentId": "orange-tidecall",
-     "key": "Orange Tidecall",
-     "displayName": "Orange Tidecall Fragment",
-     "quantity": 1,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "orange-bloodroot",
-     "key": "Orange Bloodroot",
-     "displayName": "Orange Bloodroot Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-keenmind",
-     "key": "Orange Keenmind",
-     "displayName": "Orange Keenmind Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
-    },
-    {
-     "fragmentId": "orange-dawnshield",
-     "key": "Orange Dawnshield",
-     "displayName": "Orange Dawnshield Fragment",
-     "quantity": 1,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-bastion",
+     "key": "Gold +4 Bastion",
+     "displayName": "Gold +4 Bastion Fragment",
+     "quantity": 1
     }
    ]
   },
@@ -12858,7 +11360,9 @@
   "bossLevelGate": 0,
   "difficultyTune": 7.6866,
   "baselineHp": 74.713,
-  "baselineDmg": 29.1175
+  "baselineDmg": 29.1175,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-bastion"
  },
  {
   "id": "10-10",
@@ -12874,20 +11378,10 @@
    "playerXpRepeat": 53398,
    "glyphFragments": [
     {
-     "fragmentId": "orange-worldheart",
-     "key": "Orange Worldheart",
-     "displayName": "Orange Worldheart Fragment",
-     "quantity": 2,
-     "guaranteed": true,
-     "bonus": false
-    },
-    {
-     "fragmentId": "orange-cataclysm",
-     "key": "Orange Cataclysm",
-     "displayName": "Orange Cataclysm Fragment",
-     "quantity": 2,
-     "guaranteed": false,
-     "bonus": true
+     "fragmentId": "gold-plus-4-bloodroot",
+     "key": "Gold +4 Bloodroot",
+     "displayName": "Gold +4 Bloodroot Fragment",
+     "quantity": 2
     }
    ]
   },
@@ -12985,6 +11479,8 @@
   "bossLevelGate": 100,
   "difficultyTune": 6.0748,
   "baselineHp": 90.5672,
-  "baselineDmg": 33.1503
+  "baselineDmg": 33.1503,
+  "portalMode": "normal",
+  "farmFragment": "gold-plus-4-bloodroot"
  }
 ]

@@ -1,0 +1,2069 @@
+[
+ {
+  "id": "1-1",
+  "node": 1,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 49739,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-stoneheart",
+  "rewards": {
+   "firstGold": 4000,
+   "repeatGold": 3600,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-stoneheart",
+     "key": "Orange Stoneheart",
+     "displayName": "Orange Stoneheart Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "garbage mob",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "orc",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 203.8301,
+     "dmgMul": 62.6922
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-2",
+  "node": 2,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 51497,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-ironwall",
+  "rewards": {
+   "firstGold": 4200,
+   "repeatGold": 3800,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-ironwall",
+     "key": "Orange Ironwall",
+     "displayName": "Orange Ironwall Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    }
+   ],
+   [
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    }
+   ],
+   [
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 209.2099,
+     "dmgMul": 63.1305
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-3",
+  "node": 3,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 53278,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-veilward",
+  "rewards": {
+   "firstGold": 4400,
+   "repeatGold": 4000,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-veilward",
+     "key": "Orange Veilward",
+     "displayName": "Orange Veilward Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    }
+   ],
+   [
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 251.0024,
+     "dmgMul": 74.3442
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-4",
+  "node": 4,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 55060,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-ravager",
+  "rewards": {
+   "firstGold": 4600,
+   "repeatGold": 4200,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-ravager",
+     "key": "Orange Ravager",
+     "displayName": "Orange Ravager Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "creep",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "slime",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 289.3409,
+     "dmgMul": 84.155
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-5",
+  "node": 5,
+  "mode": "veteran",
+  "checkpoint": "guardian",
+  "recommendedPower": 56862,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-starfire",
+  "rewards": {
+   "firstGold": 4800,
+   "repeatGold": 4400,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-starfire",
+     "key": "Orange Starfire",
+     "displayName": "Orange Starfire Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "golem",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    }
+   ],
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633
+    },
+    {
+     "key": "ice beast",
+     "lvl": 100,
+     "hpMul": 263.0193,
+     "dmgMul": 73.0633,
+     "boss": true
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-6",
+  "node": 6,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 64058,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-windstep",
+  "rewards": {
+   "firstGold": 5000,
+   "repeatGold": 4600,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-windstep",
+     "key": "Orange Windstep",
+     "displayName": "Orange Windstep Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "creep",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    }
+   ],
+   [
+    {
+     "key": "orc",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 399.018,
+     "dmgMul": 112.0409
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-7",
+  "node": 7,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 66029,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-hawkeye",
+  "rewards": {
+   "firstGold": 5200,
+   "repeatGold": 4800,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-hawkeye",
+     "key": "Orange Hawkeye",
+     "displayName": "Orange Hawkeye Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 496.4911,
+     "dmgMul": 137.0516
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-8",
+  "node": 8,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 68016,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-lifebloom",
+  "rewards": {
+   "firstGold": 5400,
+   "repeatGold": 5000,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-lifebloom",
+     "key": "Orange Lifebloom",
+     "displayName": "Orange Lifebloom Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "slime",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "golem",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    }
+   ],
+   [
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "orc",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 329.6373,
+     "dmgMul": 89.4827
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-9",
+  "node": 9,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 70000,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-shadepath",
+  "rewards": {
+   "firstGold": 5600,
+   "repeatGold": 5200,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-shadepath",
+     "key": "Orange Shadepath",
+     "displayName": "Orange Shadepath Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "slime",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    }
+   ],
+   [
+    {
+     "key": "garbage mob",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 460.8372,
+     "dmgMul": 123.059
+    }
+   ]
+  ]
+ },
+ {
+  "id": "1-10",
+  "node": 10,
+  "mode": "veteran",
+  "checkpoint": "boss",
+  "recommendedPower": 72017,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-sunder",
+  "rewards": {
+   "firstGold": 5800,
+   "repeatGold": 5400,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-sunder",
+     "key": "Orange Sunder",
+     "displayName": "Orange Sunder Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "golem",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "creep",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    }
+   ],
+   [
+    {
+     "key": "garbage mob",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773
+    },
+    {
+     "key": "monster with fireball",
+     "lvl": 100,
+     "hpMul": 448.5904,
+     "dmgMul": 111.773,
+     "boss": true
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-1",
+  "node": 11,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 65283,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-voidbind",
+  "rewards": {
+   "firstGold": 6000,
+   "repeatGold": 5600,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-voidbind",
+     "key": "Orange Voidbind",
+     "displayName": "Orange Voidbind Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "garbage mob",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "orc",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 266.5471,
+     "dmgMul": 75.8906
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-2",
+  "node": 12,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 67102,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-bastion",
+  "rewards": {
+   "firstGold": 6200,
+   "repeatGold": 5800,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-bastion",
+     "key": "Orange Bastion",
+     "displayName": "Orange Bastion Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    }
+   ],
+   [
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    }
+   ],
+   [
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 271.6606,
+     "dmgMul": 76.1471
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-3",
+  "node": 13,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 68948,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-tidecall",
+  "rewards": {
+   "firstGold": 6400,
+   "repeatGold": 6000,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-tidecall",
+     "key": "Orange Tidecall",
+     "displayName": "Orange Tidecall Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    }
+   ],
+   [
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 323.7567,
+     "dmgMul": 89.3633
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-4",
+  "node": 14,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 70792,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-bloodroot",
+  "rewards": {
+   "firstGold": 6600,
+   "repeatGold": 6200,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-bloodroot",
+     "key": "Orange Bloodroot",
+     "displayName": "Orange Bloodroot Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "creep",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "slime",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 370.8454,
+     "dmgMul": 100.8194
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-5",
+  "node": 15,
+  "mode": "veteran",
+  "checkpoint": "guardian",
+  "recommendedPower": 72657,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-keenmind",
+  "rewards": {
+   "firstGold": 6800,
+   "repeatGold": 6400,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-keenmind",
+     "key": "Orange Keenmind",
+     "displayName": "Orange Keenmind Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "golem",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    }
+   ],
+   [
+    {
+     "key": "turtle",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503
+    },
+    {
+     "key": "ice beast",
+     "lvl": 100,
+     "hpMul": 335.0794,
+     "dmgMul": 87.2503,
+     "boss": true
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-6",
+  "node": 16,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 81371,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-dawnshield",
+  "rewards": {
+   "firstGold": 7000,
+   "repeatGold": 6600,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-dawnshield",
+     "key": "Orange Dawnshield",
+     "displayName": "Orange Dawnshield Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "creep",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    }
+   ],
+   [
+    {
+     "key": "orc",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "fire boar",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "knat",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 505.4228,
+     "dmgMul": 133.382
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-7",
+  "node": 17,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 83405,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-worldheart",
+  "rewards": {
+   "firstGold": 7200,
+   "repeatGold": 6800,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-worldheart",
+     "key": "Orange Worldheart",
+     "displayName": "Orange Worldheart Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "skeletal warrior",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    }
+   ],
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "fire skeleton",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "ghoul fiend",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 625.4498,
+     "dmgMul": 162.6687
+    }
+   ]
+  ]
+ },
+ {
+  "id": "2-8",
+  "node": 18,
+  "mode": "veteran",
+  "checkpoint": "normal",
+  "recommendedPower": 85456,
+  "targetLevel": 100,
+  "recommendedQuality": "Orange",
+  "qualityMinHeroLevel": 100,
+  "bossLevelGate": 100,
+  "portalMode": "veteran",
+  "farmFragment": "orange-cataclysm",
+  "rewards": {
+   "firstGold": 7400,
+   "repeatGold": 7000,
+   "playerXpFirst": 0,
+   "playerXpRepeat": 0,
+   "heroXpFirst": 0,
+   "heroXpRepeat": 0,
+   "glyphFragments": [
+    {
+     "fragmentId": "orange-cataclysm",
+     "key": "Orange Cataclysm",
+     "displayName": "Orange Cataclysm Fragment",
+     "quantity": 1
+    }
+   ]
+  },
+  "waves": [
+   [
+    {
+     "key": "mimic chest",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "slug beast",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "slime",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "raven",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    }
+   ],
+   [
+    {
+     "key": "tin beast",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "golem",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "dyrmen",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "lost soulss",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "bug",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    }
+   ],
+   [
+    {
+     "key": "rock golem",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "orc",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "shadow ghoul",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "glitch phantom",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    },
+    {
+     "key": "whisp candle",
+     "lvl": 100,
+     "hpMul": 413.0898,
+     "dmgMul": 105.9015
+    }
+   ]
+  ]
+ }
+]
