@@ -89,7 +89,7 @@ PASS: 19  FAIL: 0
   ✓ 5c the log is animatable: every entry names round/side/actor/verb/target
 PASS: 24  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
-⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
+⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-glyphflow.json  (persistent ✅)
@@ -125,7 +125,7 @@ PASS: 24  FAIL: 0
 
 PASS: 28  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
-⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
+⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-vg.json  (persistent ✅)
@@ -145,7 +145,7 @@ PASS: 28  FAIL: 0
   ✓ floor reward = the authored targets (floor 81)
 PASS: 13  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
-⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
+⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge ENABLED
 🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-wb.json  (persistent ✅)
@@ -186,5 +186,15 @@ PASS: 4  FAIL: 0
   ✓ 1-1 and 1-2 need no glyphs at all (a new account owns none)
 
 PASS: 28  FAIL: 0
+== v2 systems ship ON by default (no Railway variable needed) ==
+  ✓ the production manifest answers
+  ✓ DUNGEON_V2_ENABLED defaults to true
+  ✓ GEAR_V2_ENABLED defaults to true
+  ✓ GUILD_WAR_V2_ENABLED defaults to true
+  ✓ a fresh normal account registers
+  ✓ a normal player reaches the Forge
+  ✓ a normal player reaches the Vault
+
+PASS: 7  FAIL: 0
 
 ALL SUITES GREEN ✅
