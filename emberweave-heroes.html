@@ -7525,8 +7525,10 @@ function g2DrawTree(){ document.querySelectorAll('.g2treeBox').forEach((box,bi)=
   let out=`<defs><filter id="g2glow${bi}" filterUnits="userSpaceOnUse" x="-20" y="-20" width="${Math.ceil(bR.width)+40}" height="${Math.ceil(bR.height)+40}"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
   box.querySelectorAll('[data-g2p]').forEach(el=>{ const par=document.getElementById(el.getAttribute('data-g2p')); if(!par) return;
     const pr=par.getBoundingClientRect(), cr=el.getBoundingClientRect();
-    const x1=pr.left+pr.width/2-bR.left, y1=pr.bottom-bR.top-2;
-    const x2=cr.left+cr.width/2-bR.left, y2=cr.top-bR.top+2;
+    // 27 Aug (Phil): clearance at both ends so connectors never touch labels or badges
+    const x1=pr.left+pr.width/2-bR.left, y1=pr.bottom-bR.top+1;
+    const x2=cr.left+cr.width/2-bR.left, y2=cr.top-bR.top-2;
+    if(y2-y1<6) return;
     const g=Math.max(12,(y2-y1)*0.55);
     const col=el.getAttribute('data-rdy')==='1'?'#5ee89b':'#3f4f72';
     out+=`<path d="M ${x1} ${y1} C ${x1} ${y1+g}, ${x2} ${y2-g}, ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="3.2" stroke-linecap="round" opacity="0.95" filter="url(#g2glow${bi})"/>`; });
@@ -7563,7 +7565,7 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
     return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="text-align:center;position:relative;z-index:1;cursor:pointer;max-width:150px" onclick="g2TreePush('${pth}')">
       ${glyphArt(n,px,bq)}
       <div style="font-size:11px;font-weight:800;color:${g2col(bq)};line-height:1.2">${nName(n)}</div>
-      <div style="font-size:9.5px;color:#5ee89b;margin-top:2px">Tap to open</div></div>`; };
+      <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:#5ee89b;border:1px solid #5ee89b;border-radius:10px;padding:1px 9px;background:#0b1424d9">Tap to open</span></div></div>`; };
   const cols=(view.children||[]).map((n,i)=>{ const pth=viewPath+'.'+i;
     if(n.kind==='fragment') return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:86px">${leaf(n,pth,viewPath)}</div>`;
     const kids=(n.children||[]).map((c,j)=>{ const cp=pth+'.'+j;
@@ -9532,7 +9534,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787833464586';
+const BUILD_ID='1787834924189';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
