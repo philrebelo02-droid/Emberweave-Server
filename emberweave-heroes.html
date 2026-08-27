@@ -424,6 +424,7 @@
          align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;border:3px solid #2a3550;box-shadow:0 4px 10px rgba(0,0,0,.4);z-index:3;}
   .cnode .clbl{font-size:8px;font-weight:700;margin-top:0;text-shadow:0 1px 2px #000;}
   .cnode.cleared{background:linear-gradient(140deg,#1f7a52,#2ea36a);border-color:#8effc0;cursor:pointer;}
+  .cnode.justplayed{box-shadow:0 0 0 2px #8fe3ff, 0 0 10px #8fe3ff88;}
   .cnode.current{background:linear-gradient(140deg,#c9922a,#ffcf5e);border-color:#fff2c2;color:#3a2a00;cursor:pointer;animation:cnpulse 1.2s infinite;}
   .cnode.locked{background:linear-gradient(140deg,#4a5163,#39404f);border-color:#5a6478;opacity:.75;}
   .cnode.boss{width:50px;height:50px;border-radius:50%;font-size:16px;}
@@ -4649,7 +4650,10 @@ function show(name){
   if(name==='result') renderResultExtras();
   if(name==='glossary') renderGlossary();
   if(name==='home') renderHome();
-  if(name==='campaign'){ campViewCh=0; renderRoadmap(); }
+  if(name==='campaign'){
+    // 27 Aug (Phil): clearing a stage returns you to THAT stage, not to your furthest one.
+    campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), TOTAL_CHAPTERS) : 0;
+    renderRoadmap(); }
   if(name==='menu') renderRoster();
   if(name==='tech') renderTech();
   if(name==='wall') renderWall();
@@ -5596,6 +5600,7 @@ function renderRoadmap(){
       const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
       el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
       if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
+      if(g===G.lastStage) el.classList.add('justplayed');
       _inner.appendChild(el);
     }
     map.appendChild(_inner);
@@ -5621,11 +5626,12 @@ function renderRoadmap(){
     const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
     el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
     if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
+    if(g===G.lastStage) el.classList.add('justplayed');
     map.appendChild(el);
   });
   
   }
-  const cur=map.querySelector('.cnode.current')||map.querySelector('.cnode.cleared'); if(cur){ requestAnimationFrame(()=>{ const scr=document.getElementById('cmapScroll'); if(scr) scr.scrollTop=Math.max(0, cur.offsetTop-scr.clientHeight*0.5); }); }
+  const cur=map.querySelector('.cnode.justplayed')||map.querySelector('.cnode.current')||map.querySelector('.cnode.cleared'); if(cur){ requestAnimationFrame(()=>{ const scr=document.getElementById('cmapScroll'); if(scr) scr.scrollTop=Math.max(0, cur.offsetTop-scr.clientHeight*0.5); }); }
 }
 const STAGE_XP_FIRST=24, STAGE_XP_SWEEP=6;
 // player (account) XP from campaign — first-clears scale up with the global stage so deeper chapters reward more.
@@ -5811,7 +5817,7 @@ function openStageModal(i){
     </div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
-  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1){ document.getElementById('smMsg').textContent='Daily limit reached for this stage.'; return; } closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
+  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1){ document.getElementById('smMsg').textContent='Daily limit reached for this stage.'; return; } G.lastStage=i; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i);
   const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10);
 }
@@ -5850,6 +5856,7 @@ function g2fragReceipt(arr){ if(!Array.isArray(arr)||!arr.length) return '';
   return arr.map(f=>{ const k=String(f.displayName||'').replace(/ Fragment$/,'');
     return `<span style="color:#8fe3ff">${(typeof g2artKey==='function')?g2artKey('fragment',k,14):'◆'} ${f.displayName} ×${f.quantity}</span>`; }).join(' · '); }
 function sweepStage(i,times){
+  G.lastStage=i;   // the roadmap comes back to the stage you actually played
   // AUDIT C1/C2: sweeps are SERVER-authorized — stamina, gold, player XP and hero XP move on the
   // ledger; the client only applies legacy material drops and shows the totals.
   (async()=>{
@@ -10027,7 +10034,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787853541657';
+const BUILD_ID='1787853943072';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
