@@ -25,11 +25,27 @@ ck('ascended bonuses untouched', g.boards['vael'].ascended.HP.val===10);
 const flowStamp=g.flow2At; S.glyphFlowMigrate(u);
 ck('migration is one-time (idempotent)', g.flow2At===flowStamp);
 
-// ---- deterministic named drop tables ----
-const c1=S.campFragFor(1), c1b=S.campFragFor(1), c15=S.campFragFor(15);
-ck('campaign stage 1 target fixed: Grey Stoneheart ×1', c1[0].key==='Grey Stoneheart' && c1[0].quantity===1 && JSON.stringify(c1)===JSON.stringify(c1b));
-ck('chapter 2 stage targets its own named Green fragment', c15[0].key.startsWith('Green ') && c15[0].key!==c1[0].key);
-ck('boss stages grant ×2', S.campFragFor(10)[0].quantity===2);
+// ---- AUTHORED per-stage named drops (read from campaign-encounters.json records) ----
+const st1=S.campStageOf(1), st15=S.campStageOf(15), st10=S.campStageOf(10);
+ck('stage 1 record authors Grey Stoneheart ×1', st1.rewards.glyphFragments[0].key==='Grey Stoneheart' && st1.rewards.glyphFragments[0].quantity===1);
+ck('chapter 2 record authors its own named Green fragment', st15.rewards.glyphFragments[0].key.startsWith('Green ') && st15.rewards.glyphFragments[0].key!==st1.rewards.glyphFragments[0].key);
+ck('boss stage records author ×2', st10.rewards.glyphFragments[0].quantity===2);
+ck('all 100 records carry a validated named target', [...Array(100)].every((_,i)=>{ const st=S.campStageOf(i+1); return st&&st.rewards.glyphFragments&&st.rewards.glyphFragments.length>=1; }));
+
+// ---- v232: ONE pre-chosen glyph per slot, matched to the hero's build identity ----
+const stats=(d)=>d?d.stats.map(x=>x.stat).join('/'):'none';
+const pre=(h,sl,qi)=>S.glyphPreChoice(h,sl,qi||0);
+ck('every hero/slot has exactly one deterministic pre-choice',
+   ['vael','sylthaine','grosk','meridian','vireo'].every(h=>[0,1,2,3,4,5].every(sl=>{ const a=pre(h,sl),b=pre(h,sl); return a&&b&&a.id===b.id; })));
+ck('melee (Bruiser vael): onslaught forges Physical Attack', /Physical Attack/.test(stats(pre('vael',2))));
+ck('caster (Mage sylthaine): onslaught forges Ability Power/Magic Pen', /Ability Power|Magic Pen/.test(stats(pre('sylthaine',2))));
+ck('healer (Support vireo): onslaught forges Healing/AP — never armor pen', /Healing|Ability Power/.test(stats(pre('vireo',2))) && !/Armor Pen/.test(stats(pre('vireo',2))));
+ck('marksman (meridian): mastery forges Crit', /Crit/.test(stats(pre('meridian',5))));
+ck('tank (grosk): bulwark forges Armor', /Armor|Block/.test(stats(pre('grosk',1))));
+ck('UNIVERSAL: every archetype gets an HP vitality glyph',
+   ['vael','sylthaine','grosk','meridian','vireo'].every(h=>/HP|Health/.test(stats(pre(h,0)))));
+ck('caster identity holds at higher tiers too (sylthaine Purple onslaught = magical)',
+   /Ability Power|Magic Pen|Control/.test(stats(pre('sylthaine',2,6))));
 const v5=S.vaultGlyphFragsFor(5), v5b=S.vaultGlyphFragsFor(5);
 ck('vault floor 5 fragments are named and fixed', Array.isArray(v5)&&v5.length===2&&JSON.stringify(v5)===JSON.stringify(v5b)&&v5.every(k=>/^Grey /.test(k)));
 const r1=S.makeStandardDungeonFloorReward(5), r2=S.makeStandardDungeonFloorReward(5);

@@ -53,6 +53,8 @@ ck "PERMANENCE: /unsocket returns GLYPH_LOCKED" 'GLYPH_LOCKED' "$RU"
 # ---- slot options: server-derived, with materials + stage sources ----
 SO=$(curl -s "$B/api/glyphs/slot-options?heroKey=vael&slot=0" -H "$H")
 ck "slot-options lists Grey blueprints" '"quality":"Grey"' "$SO"
+NOPT=$(echo "$SO"|python3 -c "import sys,json;print(len(json.load(sys.stdin)['options']))")
+[ "$NOPT" == "1" ] && { PASS=$((PASS+1)); echo "  ✓ ONE pre-chosen glyph per slot (no option lists)"; } || { FAIL=$((FAIL+1)); echo "  ✗ expected exactly 1 option, got $NOPT"; }
 ck "slot-options names exact materials with sources" '"sources"' "$SO"
 BP=$(echo "$SO"|jv "['options'][0]['blueprintId']")
 FK=$(echo "$SO"|jv "['options'][0]['materials'][0]['key']")
@@ -86,13 +88,11 @@ N5=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: appli
 ck "NEG: stale revision rejected" 'STALE' "$N5"
 # wrong family: find a Grey def whose family is NOT accepted by slot 1's options
 S1=$(curl -s "$B/api/glyphs/slot-options?heroKey=vael&slot=1" -H "$H")
-printf '%s' "$CAT" > /tmp/_gl_cat.json; printf '%s' "$S1" > /tmp/_gl_s1.json
+printf '%s' "$CAT" > /tmp/_gl_cat.json
 WF=$(python3 - <<'PY'
 import json
-cat=json.load(open('/tmp/_gl_cat.json')); s1=json.load(open('/tmp/_gl_s1.json'))
-ok={o['blueprintId'] for o in s1['options']}
-c=[x['id'] for x in cat['defs'] if x['qi']==0 and x['id'] not in ok]
-print(c[0] if c else '')
+cat=json.load(open('/tmp/_gl_cat.json'))
+print(next(x['id'] for x in cat['defs'] if x['qi']==0 and x['family']=='Starfire'))
 PY
 )
 N6=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","slot":1,"blueprintId":"'"$WF"'","expectedRevision":'"$RV"',"requestId":"n6"}')
