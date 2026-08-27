@@ -269,9 +269,15 @@ const GLYPH_ROLE_OVERRIDES={ // heroRole (sim HERO_BASE vocabulary) -> {slotName
   'Bruiser':  { onslaught:['Ravager','Sunder','Cataclysm','Bloodroot'] },
   'Fighter':  { onslaught:['Ravager','Sunder','Cataclysm','Hawkeye'] },
   'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'] },
-  'Mage':     { spirit:['Starfire','Voidbind','Keenmind','Cataclysm'] },
+  // 27 Aug (Phil): casters/supports must never be FORCED into melee/armor-pen families — their
+  // offensive slots additionally accept caster families (AP/magic pen, healing, energy). Supersets.
+  'Mage':     { spirit:['Starfire','Voidbind','Keenmind','Cataclysm'],
+                onslaught:['Ravager','Sunder','Cataclysm','Starfire','Voidbind','Keenmind'],
+                mastery:['Hawkeye','Lifebloom','Bloodroot','Keenmind','Voidbind'] },
   'Marksman': { mastery:['Hawkeye','Lifebloom','Bloodroot','Sunder'] },
-  'Support':  { vitality:['Stoneheart','Worldheart','Lifebloom'] }
+  'Support':  { vitality:['Stoneheart','Worldheart','Lifebloom'],
+                onslaught:['Ravager','Sunder','Cataclysm','Starfire','Lifebloom','Tidecall'],
+                mastery:['Hawkeye','Lifebloom','Bloodroot','Tidecall','Keenmind'] }
 };
 let GLYPHS=null;
 function glyphCompile(){
@@ -343,12 +349,10 @@ function glyphMigrate(u){
   if(!GLYPHS) return;
   const g=ensureGlyphs(u); if(g.migratedAt) return;
   /* 26 Aug (public flip): legacy glyphRank in saves is IGNORED — beta force-maxed it for every
-     account, so importing it would hand everyone a near-finished board and gut the new ladder.
-     Every account starts the v2 climb at Grey with a generous fragment starter pack instead.
-     (Accounts migrated during the dev-only window keep whatever boards they already have.) */
-  const fams=['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom'];
-  for(const [q,n] of [['Grey',30],['Green',20],['Green +1',12],['Blue',8]]){ for(const f of fams){ g.fragments[q+' '+f]=(g.fragments[q+' '+f]||0)+n; } }
-  g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps:0,legacyIgnored:true}); g.revision++;
+     account. 27 Aug (Phil): the fragment starter pack is REMOVED — accounts start with ZERO
+     fragments; the campaign's named stage drops are the only early source, so the
+     farm-the-stage → build-in-slot loop matters from the very first glyph. */
+  g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps:0,legacyIgnored:true,starterPack:false}); g.revision++;
 }
 /* ============ Correction Spec v1: DIRECT-BUILD flow — helpers ============ */
 // Recursively expand a blueprint into exact named fragment + Sub-Glyph requirements.
@@ -1711,12 +1715,15 @@ async function api(req,res,url){
       glyphAudit(g,'ascend',{hero, to:board.ascensionIndex, fed});
       return ok({ hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended });
     }
-    if(p==='/api/glyphs/grant'){ // dev-only test faucet
+    if(p==='/api/glyphs/grant'){ // dev-only test faucet (optionally targets a named account)
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
       const q=String(b.quality||'Grey'); const fam=String(b.family||'Stoneheart'); const n=Math.max(-9999,Math.min(500,parseInt(b.n,10)||10));   // negative allowed: dev-only fixture for insufficiency tests
       if(GLYPH_LADDER.indexOf(q)<0) return bad('Bad quality.');
-      g.fragments[q+' '+fam]=Math.max(0,(g.fragments[q+' '+fam]||0)+n);
-      glyphAudit(g,'grant',{k:q+' '+fam,n});
+      const tgt=(b.userId&&DB.users[String(b.userId)])||me;
+      const gt=tgt===me?g:(glyphMigrate(tgt),glyphFlowMigrate(tgt),ensureGlyphs(tgt));
+      gt.fragments[q+' '+fam]=Math.max(0,(gt.fragments[q+' '+fam]||0)+n);
+      glyphAudit(gt,'grant',{k:q+' '+fam,n,by:me.id});
+      if(tgt!==me){ gt.revision++; writeDB(); return send(res,200,{ok:true, revision:g.revision, target:tgt.id, fragments:gt.fragments}); }
       return ok({ fragments:g.fragments });
     }
     return send(res,404,{error:'glyphs'});
