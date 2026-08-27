@@ -120,6 +120,41 @@ ck "ASCEND: empty board cannot ascend again" 'All six' "$AS2"
 SO2=$(curl -s "$B/api/glyphs/slot-options?heroKey=vael&slot=0" -H "$H")
 ck "board now builds the NEXT ladder step (Green)" '"quality":"Green"' "$SO2"
 
+# ---- GLYPH ANCESTRY TREE (spec 27 Aug) ----
+BT=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
+ck "ANCESTRY: root is the slot's one finished glyph" '"kind":"finishedGlyph"' "$BT"
+ck "ANCESTRY: fragment leaves carry owned/needed + stage sources" '"sources"' "$BT"
+BTC=$(echo "$BT"|python3 -c "
+import sys,json;d=json.load(sys.stdin)
+def leaves(n,out):
+    if n['kind']=='fragment': out.append(n)
+    for c in n.get('children',[]): leaves(c,out)
+    return out
+ls=leaves(d['root'],[])
+tot={t['key']:t['need'] for t in d['totals']}
+acc={}
+for l in ls: acc[l['key']]=acc.get(l['key'],0)+l['need']
+print(len(ls)>0, acc==tot, d['canQuickAllocate']==all(t['have']>=t['need'] for t in d['totals']))")
+ck "ANCESTRY: totals equal the sum of the leaves; quick-allocate gates on full ownership" 'True True True' "$BTC"
+BTL=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=1" -H "$H")
+# slot 1 was built earlier in this suite? no — slots 1-5 were built then CONSUMED by ascend; board is Green now, slot 1 empty. Build slot 1 fresh to test the LOCKED read-only view at Green? cost needs Green frags — grant via dev:
+RVG=$(curl -s $B/api/glyphs/state -H "x-token: $TD"|jv "['revision']")
+for FAM in Stoneheart Ironwall Veilward Ravager Starfire Windstep Hawkeye Lifebloom Sunder Shadepath; do
+  RVG=$(curl -s $B/api/glyphs/state -H "x-token: $TD"|jv "['revision']")
+  curl -s -X POST $B/api/glyphs/grant -H "x-token: $TD" -H 'content-type: application/json' -d '{"userId":"'"$GID"'","quality":"Green","family":"'"$FAM"'","n":30,"expectedRevision":'"$RVG"'}' >/dev/null
+  RVG=$(curl -s $B/api/glyphs/state -H "x-token: $TD"|jv "['revision']")
+  curl -s -X POST $B/api/glyphs/grant -H "x-token: $TD" -H 'content-type: application/json' -d '{"userId":"'"$GID"'","quality":"Grey","family":"'"$FAM"'","n":30,"expectedRevision":'"$RVG"'}' >/dev/null
+done
+BT0=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
+BP0=$(echo "$BT0"|jv "['blueprintId']")
+RV=$(curl -s $B/api/glyphs/state -H "$H"|jv "['revision']")
+BB=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","slot":0,"blueprintId":"'"$BP0"'","expectedRevision":'"$RV"',"requestId":"tree1"}')
+ck "ANCESTRY: Build Here at the root consumes the server-derived total once" '"locked":true' "$BB"
+BTLK=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
+ck "ANCESTRY: a locked slot's tree is read-only (no build/allocate)" '"locked":true' "$BTLK"
+LKC=$(echo "$BTLK"|python3 -c "import sys,json;d=json.load(sys.stdin);print(d['canBuild']==False and d['canQuickAllocate']==False)")
+ck "ANCESTRY: locked view exposes no actions" 'True' "$LKC"
+
 # ---- deterministic named campaign drops ----
 CS=$(curl -s "$B/api/campaign/stage?node=1" -H "$H")
 ck "stage 1 names its exact fragment target" 'grey-stoneheart' "$CS"

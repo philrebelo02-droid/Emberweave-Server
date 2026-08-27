@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 SRV=../server.js; [ -f ./server.js ] && SRV=./server.js
 PORT=${PORT:-8871}
 DBDIR=$(mktemp -d); DB="$DBDIR/db.json"
-FLAGS="VAULT_MIN_BATTLE_MS=0 DUNGEON_V2_ENABLED=true GEAR_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true REG_PER_MIN=200 REG_ACCOUNTS_PER_IP=200"
+FLAGS="VAULT_MIN_BATTLE_MS=0 DUNGEON_V2_ENABLED=true GEAR_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true REG_PER_MIN=200 REG_ACCOUNTS_PER_IP=200 GLYPH_RL_PER_MIN=1000"
 FAILED=0; SRV_PID=""
 cleanup(){ if [ -n "$SRV_PID" ] && kill -0 "$SRV_PID" 2>/dev/null; then
   kill "$SRV_PID" 2>/dev/null
