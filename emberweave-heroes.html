@@ -4075,7 +4075,14 @@ function endBattle(won){ ended=true;
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 +${frags} ${HERO_TYPES[key].name} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='raid'){ if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
-    setTimeout(()=>{
+    setTimeout(async()=>{
+      // v253: a city fight is server-resolved from ANY entry point (map march or direct raid) —
+      // if the verified payload isn't in hand yet, fetch it before showing the result.
+      if(!CUR.pvpVerified && CUR.tId && ACC.token){
+        try{ const vr=await api('/api/pvp/attack','POST',{defId:CUR.tId,heroIds:(G.team||[]).filter(Boolean).slice(0,5),requestId:uid8()});
+          if(vr&&vr.ok){ CUR.pvpVerified=Object.assign({},vr,{recap:pvpRecap(vr.log)}); if(vr.ledger) adoptLedger(vr.ledger); else ledgerSync&&ledgerSync(); }
+        }catch(e){}
+      }
       // v253 (visual audit #6): the CITY SKIRMISH result names the opponent, marks the result
       // server-verified, shows exactly what was earned with its cap, and recaps the fight.
       const V=CUR.pvpVerified||null, sWon=V?!!V.won:won;
@@ -9445,13 +9452,19 @@ function updatePortraits(){units.filter(u=>u.team==='ally').forEach(u=>{const el
 function buildEnemyBar(){ const bar=document.getElementById('enemyBar'); if(bar){ bar.innerHTML=''; bar.classList.remove('active'); } }
 function updateEnemyBar(){ /* over-head enemy HP handled in drawOverlay */ }
 function updateCounts(){document.getElementById('allyCount').textContent=units.filter(u=>u.team==='ally'&&u.alive).length;document.getElementById('enemyCount').textContent=units.filter(u=>u.team==='enemy'&&u.alive).length;}
-function updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=document.getElementById('waveTag');
+function updateWaveTag(){ try{ _updateWaveTag(); }catch(e){ try{ const el=document.getElementById('waveTag'); if(el) el.textContent='Battle'; }catch(_){} } }
+function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=document.getElementById('waveTag'); if(!el) return;
   // v253 (visual audit #6): PvP identifies itself — mode, both sides and their SERVER-known power.
   if(CUR.mode==='pvp'||CUR.mode==='raid'||CUR.mode==='arena'){
-    const mine=Math.round(teamPower?teamPower():0)||0;
-    const theirs=Math.round(CUR.oppPower||0);
+    // v253 fix: teamPower(team) needs a real roster — build it from the live ally units (or G.team),
+    // and never let a header computation throw inside startBattle.
+    let mine=0, theirs=Math.round(CUR.oppPower||0);
+    try{ const allies=(typeof units!=='undefined'?units.filter(u=>u.team==='ally'):[]).map(u=>({key:u.key,level:u.level||1,rank:u.rank||0}));
+      const roster=allies.length?allies:(G.team||[]).filter(Boolean).map(k=>({key:k,level:(typeof heroLevel==='function'?heroLevel(k):1),rank:0}));
+      mine=roster.length?teamPower(roster):0; }catch(e){ mine=0; }
+    try{ if(!theirs&&typeof CUR.opp!=='undefined'&&Array.isArray(CUR.opp)) theirs=teamPower(CUR.opp.map(e=>({key:e.key,level:e.level||1,rank:e.rank||0}))); }catch(e){}
     const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
-    el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${mine.toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
+    el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
     return; }
   el.innerHTML=`${stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
@@ -9766,7 +9779,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787844618502';
+const BUILD_ID='1787845421217';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
