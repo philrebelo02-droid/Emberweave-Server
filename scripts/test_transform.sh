@@ -10,15 +10,23 @@ jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null
 R=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"tf1","pass":"password1","roster":{"__save":"{\"gold\":5000,\"gems\":250,\"playerXP\":40000,\"heroXP\":{\"vael\":30000,\"sylthaine\":30000,\"vireo\":30000},\"campaignCleared\":4}"}}')
 T=$(echo "$R"|jv "['token']"); H="x-token: $T"
 LG=$(curl -s $B/api/ledger -H "$H")
-ck "ledger migrated legacy balances once" '"gold":5000' "$LG"
-ck "ledger carries campaign progress" '"cleared":4' "$LG"
+# v229 P0: an account created AFTER the transformation cutoff gets the fixed STARTER ledger —
+# the forged roster in the register payload above must be completely ignored.
+ck "P0: forged roster on a NEW account -> starter gold" '"gold":1000' "$LG"
+ck "P0: forged roster cannot pre-clear campaign" '"cleared":0' "$LG"
 ck "ledger stamina present" '"stamina"' "$LG"
 
 # TAMPER (test 4): a modified save upload must not change the ledger
 curl -s -X POST $B/api/save -H "$H" -H 'content-type: application/json' -d '{"roster":{"__save":"{\"gold\":99999999,\"gems\":99999,\"playerXP\":90000000,\"heroXP\":{\"vael\":90000000},\"campaignCleared\":100}"}}' >/dev/null
 LG2=$(curl -s $B/api/ledger -H "$H")
-ck "TAMPER: save upload cannot raise ledger gold" '"gold":5000' "$LG2"
-ck "TAMPER: save upload cannot raise campaign" '"cleared":4' "$LG2"
+ck "TAMPER: save upload cannot raise ledger gold" '"gold":1000' "$LG2"
+ck "TAMPER: save upload cannot raise campaign" '"cleared":0' "$LG2"
+
+# v229 P0: ownership — a locked (never summoned) hero is rejected everywhere
+CL=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":1,"heroIds":["vael","sylthaine","fritz"],"requestId":"cl1"}')
+ck "P0: locked hero rejected from campaign" 'not unlocked' "$CL"
+VL=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"vl1"}')
+ck "P0: locked hero rejected from vault" 'not unlocked' "$VL"
 
 # CAMPAIGN determinism (test 1): stage data byte-identical across 10 loads
 S1=$(curl -s "$B/api/campaign/stage?node=7" -H "$H")
@@ -29,7 +37,7 @@ ck "stage has fixed authored waves" '"waves"' "$S1"
 ck "stage carries recommendedPower + rewards" '"recommendedPower"' "$S1"
 
 # CAMPAIGN start/resolve: server-authoritative, stamina debited, rewards once (test 3)
-ST=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":5,"heroIds":["vael","sylthaine","vireo"],"requestId":"c1"}')
+ST=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":1,"heroIds":["vael","sylthaine","vireo"],"requestId":"c1"}')
 ck "campaign start ok (stamina debited)" '"attemptId"' "$ST"
 AID=$(echo "$ST"|jv "['attemptId']")
 LOCKED=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":9,"heroIds":["vael","sylthaine","vireo"],"requestId":"c1b"}')
@@ -68,9 +76,13 @@ ck "elite fragment earn (capped)" '"tx"' "$G1"
 SS=$(curl -s -X POST $B/api/hero/star-step -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","requestId":"ss1"}')
 ck "star step consumes fragments by the pip table" '' "$SS"
 
-# ARENA is sim-resolved (no client won)
+# ARENA is sim-resolved (no client won) and, since v228, an idempotent battle claim
 AR=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true}')
-ck "arena responds authoritative (client won ignored)" '"authoritative":true' "$AR"
+ck "arena without requestId rejected (A5)" 'requestId required' "$AR"
+AR1=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true,"requestId":"ar1"}')
+ck "arena responds authoritative (client won ignored)" '"authoritative":true' "$AR1"
+AR2=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true,"requestId":"ar1"}')
+[ "$AR1" == "$AR2" ] && { PASS=$((PASS+1)); echo "  ✓ arena replay returns the identical memoized verdict"; } || { FAIL=$((FAIL+1)); echo "  ✗ arena replay differed"; }
 
 # VAULT authoritative: resolve carries no trusted won (covered fully in test_dungeon.sh)
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"

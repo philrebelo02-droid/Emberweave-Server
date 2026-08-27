@@ -18,6 +18,12 @@ save={"playerXP":900000,"heroXP":{k:xp for k in ["vael","sylthaine","vireo","tic
 print(json.dumps({"roster":{"__save":json.dumps(save)}}))
 PY
 curl -s -X POST $B/api/save -H "$H" -H 'content-type: application/json' -d @save1.json >/dev/null
+# v229 P0: new accounts get a STARTER ledger (the save above no longer feeds progression) —
+# fixtures are built the legitimate way: an ADMIN grant (runner boots dev1 as ADMIN_IDS).
+DID1=$(echo "$R"|jq "['profile']['id']")
+TD=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'|jq "['token']")
+TEN='["vael","sylthaine","vireo","tick","fritz","vex","grosk","oakmir","rhukk","lumi"]'
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TD" -H 'content-type: application/json' -d '{"userId":"'"$DID1"'","unlock":'"$TEN"',"heroKeys":'"$TEN"',"heroXp":200000,"px":900000,"stars":5}' >/dev/null
 
 S=$(curl -s $B/api/dungeon/status -H "$H")
 ck "status enabled, floor 1" '"currentFloor":1' "$S"
@@ -88,6 +94,9 @@ ck "salvage 1 grey = 2 dust" '"dustGained":2' "$SAL"
 # loss keeps the floor (retry forever — beatable by practice)
 R2=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"dt2","pass":"password1"}')
 T2=$(echo "$R2"|jq "['token']"); H2="x-token: $T2"
+DID2=$(echo "$R2"|jq "['profile']['id']")
+FIVE='["vael","sylthaine","vireo","tick","fritz"]'
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TD" -H 'content-type: application/json' -d '{"userId":"'"$DID2"'","unlock":'"$FIVE"',"heroKeys":'"$FIVE"',"heroXp":200000,"px":900000,"stars":5}' >/dev/null
 ST2=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H2" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"w1"}')
 A2=$(echo "$ST2"|jq "['attemptId']")
 RES4=$(curl -s -X POST $B/api/dungeon/resolve-battle -H "$H2" -H 'content-type: application/json' -d "{\"attemptId\":\"$A2\",\"requestId\":\"w2\",\"won\":false}")

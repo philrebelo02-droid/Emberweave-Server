@@ -97,6 +97,11 @@ save={"playerXP":900000,"heroXP":{k:150000 for k in ["vael","sylthaine","vireo",
 print(json.dumps({"roster":{"__save":json.dumps(save)}}))
 PY
 curl -s -X POST $B/api/save -H "$HU" -H 'content-type: application/json' -d @gsave.json >/dev/null
+# v229 P0: the save no longer feeds progression — unlock + level the five via the admin grant
+UIDU=$(curl -s $B/api/profile -H "$HU"|jv "['profile']['id']")
+TDG=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'|jv "['token']")
+GFIVE='["vael","sylthaine","vireo","tick","fritz"]'
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDG" -H 'content-type: application/json' -d '{"userId":"'"$UIDU"'","unlock":'"$GFIVE"',"heroKeys":'"$GFIVE"',"heroXp":150000,"px":900000,"stars":5}' >/dev/null
 SB=$(curl -s -X POST $B/api/dungeon/start-battle -H "$HU" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"g1"}')
 AID=$(echo "$SB"|jv "['attemptId']")
 RB=$(curl -s -X POST $B/api/dungeon/resolve-battle -H "$HU" -H 'content-type: application/json' -d "{\"attemptId\":\"$AID\",\"requestId\":\"g2\",\"won\":true}")

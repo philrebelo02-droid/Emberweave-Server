@@ -20,6 +20,11 @@ save={"playerXP":900000,"heroXP":{k:150000 for k in ["vael","vex","umbris","bloa
 print(json.dumps({"roster":{"__save":json.dumps(save)}}))
 PY
 curl -s -X POST $B/api/save -H "$H1" -H 'content-type: application/json' -d @wsave.json >/dev/null
+# v229 P0: the save above no longer feeds progression (starter ledger) — build wu1's strength the
+# legitimate way, through the admin ledger grant (dev1 must be ADMIN_IDS, per the runner contract).
+ID1=$(echo "$U1"|jv "['profile']['id']")
+WSIX='["vael","vex","umbris","bloatus","oakmir","fritz"]'
+curl -s -X POST $B/api/admin/led-grant -H "$HD" -H 'content-type: application/json' -d '{"userId":"'"$ID1"'","unlock":'"$WSIX"',"heroKeys":'"$WSIX"',"heroXp":150000,"px":900000,"stars":5}' >/dev/null
 curl -s -X POST $B/api/guild/create -H "$H1" -H 'content-type: application/json' -d '{"name":"Alpha"}' >/dev/null
 curl -s -X POST $B/api/guild/create -H "$H2" -H 'content-type: application/json' -d '{"name":"Beta"}' >/dev/null
 

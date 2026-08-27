@@ -3,7 +3,7 @@
 // DR: rate part capped 0.6 (+ diminishing base-armor curve inside heroCombatStats);
 // energy regen is TIME-based (points per round), decoupled from swings; HP regen heals EVERY unit;
 // the selected Gear Skill fires exactly once per battle.
-const S=require('./server/sim.js');
+const S=require(require('fs').existsSync(__dirname+'/server/sim.js')?'./server/sim.js':'../server/sim.js');   // v229: works from a flat bundle or from scripts/ in a repo checkout
 let pass=0,fail=0; const ck=(n,c)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n)); };
 const mk=(o)=>Object.assign({key:'x',role:'Bruiser',healer:false,maxHp:100000,atk:100,heal:0,speed:1,dr:0,crit:0,critRes:0,energyReg:0,regen:0,gearSkillSlot:null},o);
 function hits(att,def,n){ const out=[];
