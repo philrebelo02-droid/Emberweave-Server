@@ -5695,6 +5695,21 @@ function preBattleLineHTML(mode){
       ${rows}
       <div style="font-size:9px;color:#5a6472;margin-top:5px">Front holds, Mid trades, Flank dives the enemy back line, Back deals ranged damage and heals.</div></div></div>`;
 }
+/* 27 Aug (Phil): the stage sheet is Battle / Sweep / Sweep ×10 / Cancel — and under it, the ONE
+   thing he wants to know: what this place drops. Nothing else. */
+function stageDropsHTML(stg){
+  const gf=(stg&&stg.rewards&&stg.rewards.glyphFragments)||[];
+  if(!gf.length) return '<div style="font-size:11px;color:#6f7d90">Loading drops…</div>';
+  const art=k=>(typeof g2artKey==='function')?g2artKey('fragment',k,16):'◆';
+  const row=f=>`<div style="display:flex;align-items:center;gap:6px;justify-content:center;margin:3px 0">
+    ${art(f.key)}<b style="color:#8fe3ff;font-size:12px">${escapeHTML(f.displayName)}</b>
+    <span style="color:#8b98a9;font-size:12px">×${f.quantity}</span></div>`;
+  const g=gf.filter(f=>f.guaranteed!==false), b=gf.filter(f=>f.bonus);
+  return `<div style="border-top:1px solid #1c2434;padding-top:10px">
+    <div style="font-size:10px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">DROPS HERE</div>
+    ${(g.length?g:gf.slice(0,1)).map(row).join('')}
+    ${b.length?`<div style="font-size:10px;letter-spacing:1px;color:#6f7d90;margin:8px 0 2px">BONUS</div>${b.map(row).join('')}`:''}</div>`;
+}
 function toggleLinePanel(btn){ const d=btn.parentNode.querySelector('.lineDetail'); if(!d) return;
   const open=d.style.display!=='none'; d.style.display=open?'none':'block';
   const lbl=btn.lastElementChild; if(lbl) lbl.textContent=open?'More info ▾':'Hide ▴'; }
@@ -5746,7 +5761,7 @@ function stageDetailHTML(stg,node){
     ${fragBonus?`<div style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">Bonus:</span><br>${fragBonus}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px">
       <span style="font-size:11px;color:#8b98a9">Stamina · sweep</span>
-      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${node<=G.campaignCleared?(isEliteStage(node)||isBossStage(node)?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks on first clear'}</span></div>
+      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${((G.stageStars&&G.stageStars[node])|0)>=3?((isEliteStage(node)||isBossStage(node))?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks at ★★★'}</span></div>
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
   </div>${preBattleLineHTML('campaign')}`;
 }
@@ -5760,9 +5775,7 @@ function openStageModal(i){
     STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
     const el=document.getElementById('smFragTarget');
-    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=r.stage.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>');
-    const dl=document.getElementById('smDetail');   // v255: the detail panel fills in with the authored data
-    if(dl&&document.getElementById('stageModal').classList.contains('active')) dl.innerHTML=stageDetailHTML(r.stage,i);
+    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage);
     preloadStageArt(r.stage); } }).catch(()=>{}); }
   if(STAGE_CACHE[i]) preloadStageArt(STAGE_CACHE[i]);   // cached stage: warm the art immediately
   if(i>CAMPAIGN_PLAYABLE){ bannerMsg('🔒 Chapters '+(MAX_CHAPTER+1)+'–'+TOTAL_CHAPTERS+' are coming soon.'); return; }
@@ -5775,22 +5788,23 @@ function openStageModal(i){
   // Blueprint v1: normal stages may be attempted early; a chapter boss is a hard player-level gate.
   const _gate=(_stg&&(_stg.bossLevelGate|0))||((STAGE_GATE[i]&&STAGE_GATE[i].gate)|0);
   const _gateOK=!_gate||playerLevel()>=_gate;
+  // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
+  const _stars=(G.stageStars&&G.stageStars[i])|0, _threeStar=_stars>=3;
   const _capLine=_eb?`<div style="font-size:11px;color:${_left>0?'#8fe3ff':'#ff9a9a'};margin-bottom:8px">Daily reward runs: <b>${_left}/${ELITE_BOSS_DAILY}</b>${_left>0?'':' — come back after the 09:00 reset'}</div>`:'';
   body.innerHTML=`<div style="text-align:center">
       <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
       <div style="font-weight:800;font-size:18px">${boss?'Boss Stage '+stageCode(i):(elite?'Elite Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
       <div style="font-size:12px;color:#8b98a9;margin:4px 0 10px">${cleared?'Cleared — replay or sweep for rewards.':'First clear grants <b style="color:#5ee89b">'+campaignPlayerXP(i,true)+' XP</b>.'}</div>
       ${elite?`<div style="font-size:12px;color:#c9a0ff;margin:-4px 0 10px">Drops <b>${ELITE_FRAG_MIN}–${ELITE_FRAG_MAX}</b> ${fh.emoji} <b>${fh.name}</b> fragments${fh.locked&&!G.unlocked[fragHero]?` <span style="color:#8b98a9">(${heroFrag(fragHero)}/${summonCost(fragHero)} to unlock)</span>`:''}</div>`:''}
-      <div id="smFragTarget" style="font-size:12px;color:#8fe3ff;margin:-2px 0 8px">${(_stg&&_stg.rewards&&_stg.rewards.glyphFragments)?_stg.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>'):'<span style="color:#6f7d90">Loading stage rewards…</span>'}</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Cost: <b>⧗ ${stageStamCost(i)} stamina</b> · you have ${G.stamina}/${maxStamina()}</div>
-      <div id="smDetail" style="margin:0 0 10px">${stageDetailHTML(_stg,i)}</div>
       ${_capLine}
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
-        ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable)?'':'disabled'}>💨 Sweep (instant · ${campaignPlayerXP(i,false)} XP)</button>`:''}
-        ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${canPay?'':'disabled'}>💨 Sweep ×10 (⧗ ${stageStamCost(i)*10} · ${campaignPlayerXP(i,false)*10} XP)</button>`:''}
+        ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep (instant · '+campaignPlayerXP(i,false)+' XP)':'🔒 Sweep — needs ★★★ ('+_stars+'/3)'}</button>`:''}
+        ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10 (⧗ '+(stageStamCost(i)*10)+' · '+(campaignPlayerXP(i,false)*10)+' XP)':'🔒 Sweep ×10 — needs ★★★'}</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
       </div>
+      <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg)}</div>
       ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
       <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px"></div>
     </div>`;
@@ -9998,7 +10012,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787852506800';
+const BUILD_ID='1787852840607';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

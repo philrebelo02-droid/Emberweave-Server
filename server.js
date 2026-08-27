@@ -2151,6 +2151,8 @@ async function api(req,res,url){
     const out=idem(me.id+':csweep:'+reqId,()=>{
       const led=ensureLedger(me); const node=b.node|0; const st=campStageOf(node); if(!st) return {ok:false,error:'Unknown stage.'};
       if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
+      // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
+      if((led.camp.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(led.camp.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
       const elite=(node%5===0);   // guardian/boss stages: 3 rewarded runs/day, sweeps included
       led.camp.runs=led.camp.runs||{}; const dk=nyDayKey();
@@ -2193,6 +2195,7 @@ async function api(req,res,url){
     if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
     if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
     if(b.campCleared!=null) led.camp.cleared=Math.max(0,Math.min(CAMPAIGN_NODES,b.campCleared|0));   // dev-only fixture
+    if(b.campStars&&typeof b.campStars==='object') for(const k in b.campStars){ const v=b.campStars[k]|0; if(v>=1&&v<=3) led.camp.stars[k]=v; }   // dev-only fixture
     ledTx(tgt,'admin:grant',{});
     writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt)}); }
 
@@ -2251,8 +2254,10 @@ async function api(req,res,url){
       const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       yourPower=Math.round(snaps.reduce((a,u)=>a+(u.maxHp||0)/8+Math.max(u.atkP||0,u.atkM||0)*3+(u.heal||0)*2,0));
     }catch(e){}
+    const _led=ensureLedger(me);
     return send(res,200,{stage:st, yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
-      bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(ensureLedger(me)) }); }
+      bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(_led),
+      stars:(_led.camp.stars[node]|0), sweepUnlocked:(_led.camp.stars[node]|0)>=3 }); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
