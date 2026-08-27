@@ -556,10 +556,10 @@
   .glCardBig .glSec{background:rgba(0,0,0,.25);border:1px solid #2a3550;border-radius:10px;padding:9px 11px;margin-top:8px;font-size:12.5px;line-height:1.5;color:#cdd8ea;}
   .glCardBig .glSec b{color:#ffd45e;} .glCardBig .glPend{color:#8b98a9;font-style:italic;}
   /* the two horizontal bars in the lower slots of the frame: HP (top) then energy (bottom) */
-  .pHp{position:absolute;left:12%;top:75.5%;width:76.5%;height:6.4%;background:#0b0f18;border-radius:2px;overflow:hidden;pointer-events:none;}
+  .pHp{position:absolute;left:12%;top:74.5%;width:76.5%;height:8.4%;background:#0b0f18;border-radius:2px;overflow:hidden;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.8);}   /* v253: one mobile scale step taller */
   .pHp .pHpFill{height:100%;width:100%;background:linear-gradient(90deg,#ff8a5e,#e0483a);transition:width .12s;}
   .pHp.low .pHpFill{background:linear-gradient(90deg,#ff5a3a,#c02020);}
-  .pEnergyBar{position:absolute;left:12%;top:86%;width:76.5%;height:6.4%;background:#0a1120;border-radius:2px;overflow:hidden;pointer-events:none;}
+  .pEnergyBar{position:absolute;left:12%;top:85%;width:76.5%;height:8.4%;background:#0a1120;border-radius:2px;overflow:hidden;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.8);}   /* v253: energy fill is the manual-play cue — make it readable */
   .pEnergyBar .pEnFill{height:100%;width:0;background:linear-gradient(90deg,#4aa3ff,#8a7bff);transition:width .1s;}
   .pslot.ready .pEnergyBar .pEnFill{background:linear-gradient(90deg,#ffd45e,#ffb347);}
   /* enemy team bar removed in Magic Rush UI (enemy HP now floats over the head, drawn on the overlay canvas) */
@@ -911,7 +911,7 @@
   </div>
   <!-- Magic Rush-style top battle banner: Time (countdown) + Progress (wave/total) -->
   <div id="battleBanner">
-    <div class="bbCell"><div class="bbLabel">Time</div><div class="bbVal" id="bbTime">1:30</div></div>
+    <div class="bbCell"><div class="bbLabel">Wave Time</div><div class="bbVal" id="bbTime">1:30</div></div>
     <div class="bbDiv"></div>
     <div class="bbCell"><div class="bbLabel">Progress</div><div class="bbVal" id="bbProg">1/1</div></div>
     <div class="bbGem"></div>
@@ -2856,7 +2856,12 @@ function damage(u,a,c,noEnergy,crit){
 
   if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
   a=Math.max(0,a); u.hp-=a; u.flash=.14; if(!noEnergy)u.energy=Math.min(100,u.energy+7);
-  if(Math.round(a)>0) floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?'#ff5b3a':((c&&c!=='#fff')?c:'#ffd9a8'),vy:crit?1.5:1,crit:!!crit,sz:crit?15:9});   // don't render 0-damage popups (fully-mitigated hits)
+  // v253 (visual audit #5): restrained, TYPED damage colours — physical warm, magical cool,
+  // healing green, shields pale gold. Crits stay bigger and brighter within their own family.
+  if(Math.round(a)>0){ const _k=u._lastHitKind||'phys';
+    const _base = _k==='magic' ? '#b79bff' : (_k==='true' ? '#e8e8f0' : '#ffb37a');
+    const _crit = _k==='magic' ? '#e0c4ff' : '#ff8a4a';
+    floatTexts.push({x:u.x,y:u.y,txt:'-'+Math.round(a),t:crit?1.0:.85,color:crit?_crit:((c&&c!=='#fff'&&c!=='#ffd9a8')?c:_base),vy:crit?1.5:1,crit:!!crit,sz:crit?16:11}); }   // don't render 0-damage popups (fully-mitigated hits)
   if(u.hp<=0&&u.alive&&(u._wardT||0)>0){ u.hp=1;   // Dawnward (Lumi): they will not fall while the light holds
     floatTexts.push({x:u.x,y:u.y-12,txt:'HELD',t:1.0,color:'#ffe89a',vy:1,sz:13}); burstAt(u.x,u.y,0xffe89a,10); }
   if(u.hp<=0&&u.alive){u.alive=false;u.deathT=0;burstAt(u.x,u.y,u.t.color,20);
@@ -2915,6 +2920,7 @@ function dealDamage(src,tgt,amt,color,kind){ kind=kind||'phys';   // v247: TYPED
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(cc&&brnd()<cc){ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
+  tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   const _hpBefore=tgt.hp; damage(tgt,amt,color,false,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.2);
   if((src.lifestealStat||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*src.lifestealStat);   // v247: Lifesteal stat
@@ -3386,7 +3392,7 @@ function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   doEffect(u, ab, ULT_DEF[ab]||{}); u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
-  u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName+'!',t:1.1,color:'#ffd45e',vy:1.4});if(u.team==='ally')screenFlash=.3;
+  u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
 }
 
 // ---------------------------------------------------------------------------
@@ -3834,7 +3840,25 @@ function vaultPickSub(dead,k,ov){
   buildPortraitBar(); refreshCtrlBtns(); updateCounts();
   ov.remove(); paused=false;
 }
-function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));}
+function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();
+  if(waveIdx===chapterWaves-1) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));}
+/* v253 (visual audit #3): a real boss introduction — name, silhouette and ONE mechanic cue, held
+   ~1.6s so the player can read who they are fighting and what it does. */
+const BOSS_CUES={'ice beast':'Freezes the frontline — spread your ultimates',
+  'monster with fireball':'Hurls fire at the back row — move your caster',
+  'nashor beast':'Hits harder as it loses health',
+  'ogre beast':'Heavy cleaves — keep your Tank in front',
+  'water monster':'Drenches the field — sustained damage wins',
+  'water serpent':'Strikes the weakest hero first'};
+function bossIntro(){ const b=units.find(u=>u.team==='enemy'&&u.alive&&u.boss)||units.find(u=>u.team==='enemy'&&u.alive);
+  const nm=(b&&b.t&&b.t.name)?b.t.name:'The Guardian';
+  const cue=(b&&BOSS_CUES[b.key])||'A stage guardian — bring your ultimates ready';
+  const el=document.getElementById('banner'); if(!el){ bannerMsg('⚠ BOSS'); return; }
+  el.innerHTML='<div style="font-size:12px;letter-spacing:2px;color:#ffb37a">⚠ BOSS INCOMING</div>'
+    +'<div style="font-size:26px;font-weight:900;color:#ffd45e;line-height:1.15;margin:2px 0">👑 '+escapeHTML(nm)+'</div>'
+    +'<div style="font-size:12px;color:#cdd8ea;max-width:82vw;margin:0 auto">'+escapeHTML(cue)+'</div>';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1600); }
 // ---- Wave run-on / run-off cinematic (Phil's spec) ----
 // EVERY wave: heroes RUN ONTO the screen from off the bottom-left, ALONG the invisible bottom-left → top-right
 // line, into their diagonal home slots (walk-in is 25% slower than the sprint); once all in position combat
@@ -3925,7 +3949,7 @@ function updateWaveXfer(dt){
     if(u.x<FW+40 && u.y>-40)allOut=false; });   // off the top-right corner
   if(allOut || waveXfer.t>6){
     if(waveIdx<chapterWaves-1){ waveIdx++; buildEnemyWave(); buildEnemyBar(); updateWaveTag(); updateCounts();
-      bannerMsg((waveIdx===chapterWaves-1)?'⚠ BOSS INCOMING':'WAVE '+(waveIdx+1));
+      if(waveIdx===chapterWaves-1) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));
       beginWaveEnter(); }                       // next wave: heroes run back on from the bottom-left
     else { waveXfer=null; endBattle(true); }     // stage cleared → victory
   }
@@ -4018,10 +4042,15 @@ function endBattle(won){ ended=true;
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
       document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       let msg;
-      if(won&&r&&r.reward){ msg=`<span style="color:#ffd45e">✨ +${r.reward.dust} Forge Dust</span>`
-          +((r.reward.fragments&&r.reward.fragments.length)?`<br><span style="color:#c9a2ff">🧩 ${r.reward.fragments.join(', ')}</span>`:'')
-          +((r.reward.gearFragments&&r.reward.gearFragments.length)?`<br><span style="color:#8fe3ff">⚒️ ${r.reward.gearFragments.join(', ')}</span>`:'')
-          +(r.reward.firstClearDoubled?'<br><b style="color:#ffd45e">Boss floor — package doubled!</b>':''); }
+      // v253 (visual audit #2): ONE vocabulary — Glyph Fragments and Gear Fragments are labelled
+      // as what they are, each with its exact name and count; Forge Dust is a bonus currency.
+      if(won&&r&&r.reward){
+        const gcount={}; (r.reward.fragments||[]).forEach(k=>{ gcount[k]=(gcount[k]||0)+1; });
+        const gList=Object.keys(gcount).map(k=>({displayName:k+' Fragment', key:k, quantity:gcount[k]}));
+        const ecount={}; (r.reward.gearFragments||[]).forEach(k=>{ ecount[k]=(ecount[k]||0)+1; });
+        const eList=Object.keys(ecount).map(k=>k+' ×'+ecount[k]);
+        msg=rewardPanel(gList,{dust:r.reward.dust},'Aether Vault — floor '+CUR.floor,eList)
+          +(r.reward.firstClearDoubled?'<div style="margin-top:6px"><b style="color:#ffd45e">Boss floor — first-clear package doubled!</b></div>':''); }
       else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
       else { msg='Your squad fell. The floor is unchanged — same monsters every attempt, so learn the lineup and try again.'; }
       document.getElementById('resultReward').innerHTML=msg;
@@ -4045,9 +4074,19 @@ function endBattle(won){ ended=true;
       grantTeamXP(70); saveG(); updateHubChrome(); }
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 +${frags} ${HERO_TYPES[key].name} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='raid'){ const gold=won?120:0; if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
-    setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'RAID WON':'RAID FAILED'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      document.getElementById('resultReward').innerHTML=won?`Looted <span class="coins">🪙 +${gold}</span> from ${CUR.oppName}`:`${CUR.oppName} held their wall.`; document.getElementById('resultHint').textContent=''; show('result'); },800); return; }
+  if(CUR.mode==='raid'){ if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
+    setTimeout(()=>{
+      // v253 (visual audit #6): the CITY SKIRMISH result names the opponent, marks the result
+      // server-verified, shows exactly what was earned with its cap, and recaps the fight.
+      const V=CUR.pvpVerified||null, sWon=V?!!V.won:won;
+      document.getElementById('resultTitle').textContent=sWon?'CITY SKIRMISH WON':'DEFENCE HELD'; document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      const badge=V?'<div style="font-size:10.5px;color:#5ee89b;letter-spacing:1px;margin-bottom:4px">✔ SERVER-VERIFIED RESULT</div>':'';
+      const loot=(V&&V.loot&&V.loot.gold)?`<div><span class="coins">🪙 +${V.loot.gold}</span> <span style="font-size:10.5px;color:#8b98a9">(capped at 400 per attack · 8,000/day)</span></div>`
+        :(V?`<div style="color:#8b98a9">Daily loot cap reached — rank and reports still count.</div>`:'');
+      const recap=(V&&V.recap)?`<div style="font-size:11px;color:#cdd8ea;margin-top:6px">${escapeHTML(V.recap)}</div>`:'';
+      const atks=(V&&V.attacksLeft!=null)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">${V.attacksLeft} city attacks left today</div>`:'';
+      document.getElementById('resultReward').innerHTML=badge+`<div style="margin-bottom:4px"><b>${escapeHTML(CUR.oppName||'Rival city')}</b></div>`+(sWon?loot:`<div>${escapeHTML(CUR.oppName||'They')} held their wall.</div>`)+recap+atks;
+      document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     setTimeout(async()=>{
       const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8()});
@@ -4056,10 +4095,12 @@ function endBattle(won){ ended=true;
       if(sWon&&r.stars){ if(!G.stageStars)G.stageStars={}; if(r.stars>(G.stageStars[CUR.node]|0)) G.stageStars[CUR.node]=r.stars; }
       document.getElementById('resultTitle').textContent=sWon?'VICTORY':'DEFEAT';
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      // v253 (visual audit #1): the GUARANTEED stage reward is the headline — exact item, icon and
+      // count, with the farm source named — and gold/XP are clearly labelled as bonus.
       document.getElementById('resultReward').innerHTML= sWon
-        ? `<span class="coins">🪙 +${(r.reward&&r.reward.gold)||0}</span> · +${(r.reward&&r.reward.playerXp)||0} XP · heroes +${(r.reward&&r.reward.heroXp)||0} XP`
-          +`<br>${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}`
-          +((r.reward&&r.reward.glyphFragments&&r.reward.glyphFragments.length)?('<br>'+g2fragReceipt(r.reward.glyphFragments)):'')
+        ? rewardPanel((r.reward&&r.reward.glyphFragments)||[], {gold:(r.reward&&r.reward.gold)||0, px:(r.reward&&r.reward.playerXp)||0, heroXp:(r.reward&&r.reward.heroXp)||0},
+            'Portal '+stageCode(CUR.node)+' — repeat or sweep this stage to farm it.')
+          +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
         : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.');
       document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':'Same monsters every attempt — learn the stage.';
       updateHubChrome(); gameSpeed=1; show('result');
@@ -4401,11 +4442,16 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     const p={x:_p0.x, y:_p0.y-GAP, vis:true};
     const bw=(u.boss?70:44),x=p.x-bw/2,y=p.y;
     { // over-head health bar, team-colored — sits just above the head
-      const eb=(u.boss?66:34), ex=p.x-eb/2, ey=p.y-5, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));
-      octx.fillStyle='rgba(0,0,0,.6)'; octx.fillRect(ex-1,ey-1,eb+2,6);
-      octx.fillStyle=(u.team==='ally')?'#57e08a':(u.boss?'#ff5b6b':'#ff7a5a'); octx.fillRect(ex,ey,eb*pct,4);
-      octx.strokeStyle='rgba(0,0,0,.75)'; octx.lineWidth=1; octx.strokeRect(ex-0.5,ey-0.5,eb+1,5); }
-    if(u.boss){octx.fillStyle='#ff6b6b';octx.font='bold 11px sans-serif';octx.textAlign='center';octx.fillText('👑 BOSS',p.x,y-9);}
+      // v253 (visual audit #5): one mobile scale step up — taller bars, stronger outline; a BOSS
+      // gets a wider, gold-framed bar that cannot be mistaken for a normal enemy's.
+      const eb=(u.boss?96:44), eh=(u.boss?9:6), ex=p.x-eb/2, ey=p.y-(u.boss?9:6), pct=Math.max(0,Math.min(1,u.hp/u.maxHp));
+      octx.fillStyle='rgba(0,0,0,.72)'; octx.fillRect(ex-2,ey-2,eb+4,eh+4);
+      octx.fillStyle=(u.team==='ally')?'#57e08a':(u.boss?'#ff4757':'#ff7a5a'); octx.fillRect(ex,ey,eb*pct,eh);
+      octx.strokeStyle=u.boss?'rgba(255,212,94,.95)':'rgba(0,0,0,.85)'; octx.lineWidth=u.boss?2:1.5; octx.strokeRect(ex-1,ey-1,eb+2,eh+2); }
+    if(u.boss){ octx.textAlign='center';
+      const nm=(u.t&&u.t.name)?String(u.t.name).toUpperCase():'BOSS';
+      octx.font='900 12px sans-serif'; octx.lineWidth=3.5; octx.strokeStyle='rgba(0,0,0,.9)';
+      octx.strokeText('👑 '+nm,p.x,y-13); octx.fillStyle='#ffd45e'; octx.fillText('👑 '+nm,p.x,y-13); }
     if(u===selected){octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11);}
     // over-head status icons (~2 m above head): silence mask, then stun mask
     { const si={x:p.x, y:p.y-(u.boss?9:6)}, isz=(u.boss?32:23);   // status icons stack directly above the bar
@@ -4419,10 +4465,17 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
       _ic.forEach(img=>{ octx.drawImage(img, ix-isz/2, si.y-isz, isz, isz); ix+=isz+2; }); } });
   // Magic Rush-style juicy combat text: thick-outlined, color-coded, crits are bigger with a starburst
   octx.textAlign='center'; octx.textBaseline='middle'; octx.lineJoin='round';
-  floatTexts.forEach(f=>{const p=project(f.x,f.y,f.hz||1.8);if(!p.vis)return;
+  floatTexts.forEach(f=>{const p=project(f.x,f.y,f.hz||(f.label?3.1:1.8));if(!p.vis)return;   // v253: ability NAMES float higher, clear of the melee cluster
     const life=Math.min(1,f.t*2.2), sz=f.sz||16, col=f.color||'#fff';
     octx.globalAlpha=life;
-    // (removed the orange crit starburst — Phil: ugly. Crits still read big via sz + color.)
+    // v253 (visual audit #5): an ability NAME gets a dark plate behind it so it never competes with
+    // characters, damage numbers and FX; damage numbers keep the outlined treatment.
+    if(f.label){ octx.font='900 '+sz+'px sans-serif';
+      const w=octx.measureText(f.txt).width+14, h=sz+8;
+      octx.fillStyle='rgba(8,12,20,.82)'; octx.strokeStyle='rgba(255,212,94,.55)'; octx.lineWidth=1.5;
+      const rx=p.x-w/2, ry=p.y-h/2;
+      if(octx.roundRect){ octx.beginPath(); octx.roundRect(rx,ry,w,h,6); octx.fill(); octx.stroke(); }
+      else { octx.fillRect(rx,ry,w,h); octx.strokeRect(rx,ry,w,h); } }
     octx.font='900 '+sz+'px sans-serif';
     octx.lineWidth=Math.max(3,sz*0.24); octx.strokeStyle='rgba(0,0,0,.9)'; octx.strokeText(f.txt,p.x,p.y);
     octx.fillStyle=col; octx.fillText(f.txt,p.x,p.y); });
@@ -5533,6 +5586,34 @@ function openStageModal(i){
 function closeStageModal(){ document.getElementById('stageModal').classList.remove('active'); }
 // Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
 // can actually pay for and says how many it ran, rather than refusing the whole batch at 9/10.
+/* v253 (visual audit #1/#2): ONE reward vocabulary. Guaranteed named items on top with icon + exact
+   count and the farm source; gold/XP below, clearly labelled bonus. Glyph materials always read
+   "Glyph Fragment"; gear materials always read "Gear Fragment" — never mixed. */
+function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){
+  const gf=(glyphFrags||[]).map(f=>{ const k=String(f.displayName||f.key||'').replace(/ Fragment$/,'');
+    return `<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:3px 0">
+      ${(typeof g2artKey==='function')?g2artKey('fragment',k,26):'◆'}
+      <b style="color:#8fe3ff">${escapeHTML(f.displayName||f.key)}</b>
+      <b style="color:#fff">×${f.quantity||1}</b></div>`; }).join('');
+  const gr=(gearFrags||[]).map(n=>`<div style="margin:3px 0"><b style="color:#ffb37a">⚒ ${escapeHTML(n)}</b> <span style="color:#8b98a9">· Gear Fragment</span></div>`).join('');
+  const head=(gf||gr)?`<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">GUARANTEED REWARD</div>${gf}${gr}${sourceLine?`<div style="font-size:10.5px;color:#6f7d90;margin-top:2px">Source: ${escapeHTML(sourceLine)}</div>`:''}`:'';
+  const b=bonus||{};
+  const bits=[];
+  if(b.gold) bits.push(`<span class="coins">🪙 +${b.gold}</span>`);
+  if(b.dust) bits.push(`<span style="color:#ffb37a">🔥 +${b.dust} Forge Dust</span>`);
+  if(b.px) bits.push(`+${b.px} XP`);
+  if(b.heroXp) bits.push(`heroes +${b.heroXp} XP`);
+  const bon=bits.length?`<div style="margin-top:${head?'8px':'0'}"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">BONUS</div>${bits.join(' · ')}</div>`:'';
+  return head+bon;
+}
+/* v253: turn the server's combat-core event log into one human line for the result screen. */
+function pvpRecap(log){ if(!Array.isArray(log)||!log.length) return '';
+  const nm=k=>((HERO_TYPES[k]||{}).name)||k;
+  let best=null; for(const e of log){ if(e[3]==='>'&&e[1]==='A'&&(!best||e[5]>best[5])) best=e; }
+  const kills=new Set(); const hpGone={};
+  for(const e of log){ if(e[3]==='>'){ hpGone[e[4]]=(hpGone[e[4]]||0)+e[5]; } }
+  if(!best) return '';
+  return nm(best[2])+(best[6]?"'s ultimate":"") +' hit '+nm(best[4])+' for '+best[5]+' — '+log.length+' actions over '+(log[log.length-1][0]||1)+' rounds.'; }
 function g2fragReceipt(arr){ if(!Array.isArray(arr)||!arr.length) return '';
   return arr.map(f=>{ const k=String(f.displayName||'').replace(/ Fragment$/,'');
     return `<span style="color:#8fe3ff">${(typeof g2artKey==='function')?g2artKey('fragment',k,14):'◆'} ${f.displayName} ×${f.quantity}</span>`; }).join(' · '); }
@@ -5549,8 +5630,13 @@ function sweepStage(i,times){
     stageCountRun(i,r.times);
     // Correction Spec v1: the SERVER's named Glyph Fragment receipt is the reward display —
     // never a generic shard counter rolled in the browser.
-    const fragStr=g2fragReceipt(r.glyphFragments);
-    document.getElementById('smMsg').innerHTML=`Swept ×${r.times} — 🪙 +${r.gold} · +${r.px} XP · heroes +${r.heroXp*r.times>=0?r.heroXp:0} XP${fragStr?(' · '+fragStr):''}${frags?(' · 🧩+'+frags):''}${um?('<br>'+um):''}`;
+    // v253 (visual audit #1): a sweep reports the EXACT named item and count — "Grey Ravager
+    // Fragment ×10", never a generic shard total. The server receipt is the source.
+    const eliteLine=(r.eliteFrag&&r.eliteFrag.qty)?`<div style="margin:3px 0"><b style="color:#c9a2ff">🧩 ${escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)} Fragment</b> <b style="color:#fff">×${r.eliteFrag.qty}</b></div>`:'';
+    document.getElementById('smMsg').innerHTML=
+      `<div style="font-weight:800;margin-bottom:4px">Sweep ×${r.times} complete</div>`
+      +rewardPanel(r.glyphFragments,{gold:r.gold,px:r.px,heroXp:r.heroXp},'Portal '+stageCode(i))
+      +eliteLine+(um?('<div style="margin-top:4px;color:#ffd45e">'+um+'</div>'):'');
     if(typeof glyphV2Sync==='function') glyphV2Sync();
     saveG(); updateHubChrome(); if(typeof renderCampaign==='function'&&state==='campaign')renderCampaign();
   })();
@@ -6125,7 +6211,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     row.querySelector('button').onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); };   // choose your attacking composition first
     el.appendChild(row); });
 }
-function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id};
+function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id,oppPower:o.power||0};
   CUR.arenaSnap=snapAllySquad((G.team||[]).filter(Boolean)); CUR.arenaFoe=trimTeam(o.team||[]);   // capture both squads (resolved) for a watchable report
   startVersus(o.team,true); }
 /* Arena Reports — a sub-view INSIDE the Arena screen (Attacks = your last 10 challenges; Defenses = incoming, server-fed). */
@@ -6485,7 +6571,7 @@ function openCoordSearch(){ closeCityMenu(); const cur=viewCenterCoord();
   ov.querySelector('#csGo').onclick=go;
   ov.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{ if(e.key==='Enter')go(); }));
 }
-function raidCity(c){ CUR={mode:'raid',oppName:c.name}; startVersus(c.team,false); }
+function raidCity(c){ CUR={mode:'raid',oppName:c.name,oppPower:c.power||0,tId:c.id||null}; startVersus(c.team,false); }   // v253: the PvP header shows both sides' power
 
 /* =============================== WORLD MARCHES ============================== */
 // The world is ONE continuous map of 3×3 zones. Each zone is ZONE_CELLS×ZONE_CELLS squares (~1000 per region).
@@ -6651,8 +6737,8 @@ function resolveMarch(m){
     marchReport('⚔ Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.'); }
   if(m.real && m.tId && ACC.token){   // v249: the SERVER resolves city PvP through the combat core — verified result, capped loot, mail to both sides
     api('/api/pvp/attack','POST',{defId:m.tId,heroIds:(G.team||[]).slice(0,5),requestId:uid8()}).then(r=>{
-      if(r&&r.ok){ if(r.loot&&r.loot.gold){ G.gold=(G.gold||0)+0; bannerMsg((r.won?'🏆 Verified victory':'⚔️ Verified result: defense held')+(r.loot.gold?' — +'+r.loot.gold+' gold':'')); ledgerSync&&ledgerSync(); }
-        else bannerMsg(r.won?'🏆 Verified victory':'⚔️ Verified result: defense held'); }
+      if(r&&r.ok){ CUR.pvpVerified=Object.assign({},r,{recap:pvpRecap(r.log)});   // v253: the result screen reads the verified payload + event recap
+        if(r.loot&&r.loot.gold) ledgerSync&&ledgerSync(); }
       else if(r&&r.error) bannerMsg(r.error);
     }).catch(()=>{ api('/api/pvp/attack-report','POST',{defId:m.tId,won:win,battle:rptBattle}).catch(()=>{}); }); }
   updateMailBadges();
@@ -9359,7 +9445,15 @@ function updatePortraits(){units.filter(u=>u.team==='ally').forEach(u=>{const el
 function buildEnemyBar(){ const bar=document.getElementById('enemyBar'); if(bar){ bar.innerHTML=''; bar.classList.remove('active'); } }
 function updateEnemyBar(){ /* over-head enemy HP handled in drawOverlay */ }
 function updateCounts(){document.getElementById('allyCount').textContent=units.filter(u=>u.team==='ally'&&u.alive).length;document.getElementById('enemyCount').textContent=units.filter(u=>u.team==='enemy'&&u.alive).length;}
-function updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);document.getElementById('waveTag').innerHTML=CUR.mode==='pvp'?'⚔️ Raid':`${stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}
+function updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=document.getElementById('waveTag');
+  // v253 (visual audit #6): PvP identifies itself — mode, both sides and their SERVER-known power.
+  if(CUR.mode==='pvp'||CUR.mode==='raid'||CUR.mode==='arena'){
+    const mine=Math.round(teamPower?teamPower():0)||0;
+    const theirs=Math.round(CUR.oppPower||0);
+    const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
+    el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${mine.toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
+    return; }
+  el.innerHTML=`${stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -9672,7 +9766,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787843789785';
+const BUILD_ID='1787844618502';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
