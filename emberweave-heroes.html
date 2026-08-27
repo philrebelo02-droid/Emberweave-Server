@@ -1968,10 +1968,14 @@ function doStarStep(key){ if(!canStarStep(key))return false; if(!G.heroFrag)G.he
 // ---- STAR STAT MULTIPLIER (Magic-Rush style: TOTAL stat power vs the 1★ baseline; replaces the old flat per-star bonus) ----
 const STAR_MULT=[1.00,1.15,1.35,1.60,1.90];                    // 1★..5★ whole-star anchors
 const REFINE_ANCHORS=[1.90,2.25,2.65,2.90];                   // 5★ · Bronze-done · Silver-done · Gold-done  (5 refine steps per tier)
-function starMult(key){ const lv=heroStars(key), pip=starPips(key);
+/* v270 (PLAYER-TRUTH): the star/refine curve as a pure function of progression, so the SERVER can
+   compute a hero's multiplier from its own ledger with the client's exact formula. */
+function starMultFrom(lv,pip,rl){ lv=Math.max(1,lv|0); pip=Math.max(0,pip|0); rl=Math.max(0,rl|0);
   if(lv<MAX_STARS){ const a=STAR_MULT[lv-1], b=STAR_MULT[lv]; return a+(b-a)*(pip/STAR_PIPS); }        // smooth across pips
-  const rl=refineLevel(key); if(rl>=REFINE_MAX) return REFINE_ANCHORS[3];                              // fully Gold
+  if(rl>=REFINE_MAX) return REFINE_ANCHORS[3];                                                         // fully Gold
   const seg=Math.floor(rl/5), within=(rl%5)/5; return REFINE_ANCHORS[seg]+(REFINE_ANCHORS[seg+1]-REFINE_ANCHORS[seg])*within; }   // smooth across refine steps
+function qualityFromGlyphRank(gr){ return G2_TIER16[Math.max(0,Math.min(15,gr|0))]; }
+function starMult(key){ return starMultFrom(heroStars(key), starPips(key), refineLevel(key)); }
 // AUDIT CR-3 (26 Aug): Forge gear now ACTS in battle. gearSockMul mirrors the server's gearHeroFlats
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
@@ -2372,25 +2376,26 @@ function doSummon(key){ if(!canSummon(key)) return false;
   saveG(); updateHubChrome(); return true; }
 
 // combined stat modifiers from quality + glyphs + tech (owned heroes only)
-function heroMuls(key){
-  const T=G.tech;
-  // tech Attack/Health are now FLAT points (added in makeUnit); defensive/crit tracks add flat % here.
+/* v270 (PLAYER-TRUTH): the stat conversions, with NO access to this browser's save. heroMuls()
+   below feeds it from G; the server feeds it from the account ledger through a frozen battle spec.
+   One formula, two callers — so the fight the player plays and the fight the server replays agree
+   by construction instead of by a mapping that can drift. */
+function mulsFromTotals(gf, ex){
+  gf=gf||{}; ex=ex||{};
   let atk=1, hp=1;
-  const _ht=HERO_TYPES[key]||{}; let dr=techTotal('def')/100 + (_ht.dr||0);   // generic Defense tech → flat % reduction. Armor/Magic-Resist are FLAT ratings handled in makeUnit via defToDR().
-  let crit=techTotal('crit')/100, critRes=techTotal('critres')/100, regen=0, energyReg=0;
-  const pray=1+prayerBonusPct(G.prayer||0)/100; atk*=pray; hp*=pray;      // Temple prayer boost
-  // v232 (audit): NO hidden glyph-rank power. The old colour multiplier (1+tier*0.12) and the
-  // per-rank role profile are DELETED — only the stats of glyphs actually locked into the board
-  // (sockStatTotal below) and ascended bonuses contribute, matching the server snapshot exactly.
-  // (stars grant FLAT hp/atk — applied post-multiplier in makeUnit/display, not here)
-  const em=equipMul(key); atk+=em.atk; hp+=em.hp; dr+=em.dr; crit+=em.crit; regen+=em.regen; energyReg+=em.energy;  // equipped gear
-  // socketed glyphs are FLAT ratings: Attack/Health add post-multiplier (in makeUnit/display); rate stats convert here
-  // v247 (COMBAT CORE): Armor/MR points are TYPED DEFENSE RATINGS handled per-hit in dealDamage —
-  // they no longer pool into a flat dr. 'Damage Reduction' points are the flat reduction stat.
-  const gf=sockStatTotal(key); dr+=Math.min(0.30,(gf.dmgRed||0)*0.004); crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005; regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;   // glyphs + Forge gear (CR-3)
-  // AUDIT C6 — the DISTINCT stats, each with its own field and effect:
+  let dr=(ex.techDef||0)/100 + (ex.baseDr||0);
+  let crit=(ex.techCrit||0)/100, critRes=(ex.techCritRes||0)/100, regen=0, energyReg=0;
+  const pray=1+(ex.prayerPct||0)/100; atk*=pray; hp*=pray;
+  const em=ex.equip||{}; atk+=(em.atk||0); hp+=(em.hp||0); dr+=(em.dr||0); crit+=(em.crit||0); regen+=(em.regen||0); energyReg+=(em.energy||0);
+  dr+=Math.min(0.30,(gf.dmgRed||0)*0.004); crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005;
+  regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;
   const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.004;
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
+}
+function heroMuls(key){
+  // glyphs + Forge gear (CR-3) and the AUDIT C6 distinct stats now live in mulsFromTotals — one formula.
+  return mulsFromTotals(sockStatTotal(key), { techDef:techTotal('def'), techCrit:techTotal('crit'), techCritRes:techTotal('critres'),
+    prayerPct:prayerBonusPct(G.prayer||0), equip:equipMul(key), baseDr:(HERO_TYPES[key]||{}).dr||0 });
 }
 
 /* -------------------------- logical field + 3D map ------------------------- */
@@ -2428,6 +2433,9 @@ function queueInput(inp){
     (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
 }
 function applyInput(inp){
+  /* v270: flipping AUTO is a player action too. Recording it is what lets a fight the player put on
+     auto replay as the same fight — otherwise the server would run a battle where nobody ultimates. */
+  if(inp.k==='auto'){ autoUlt=!!inp.tid; return; }
   const u=unitByUid(inp.uid); if(!u||!u.alive) return;
   if(inp.k==='ult'){
     if(u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0) return;   // an illegal fire simply does not happen
@@ -2627,6 +2635,7 @@ function shadowTex(){ if(_shadowTex)return _shadowTex; const c=document.createEl
   x.fillStyle=gr; x.fillRect(0,0,64,64); _shadowTex=new TH.CanvasTexture(c); return _shadowTex; }
 // battlefield unit as a 2D sprite (the hero's cutout art) standing on the 3D field
 function buildFigure(u){
+  if(window._p2guard) return;   // v270: a headless fight (server replay / verification) builds no meshes
   if(!HERO_SPRITES[u.key] && !heroHasAnim(u.key)) return buildFigure3D(u);   // low-poly only when there is neither a cutout NOR a sheet
   const g=new TH.Group();
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
@@ -2742,6 +2751,42 @@ function simFightReplay(allyKeys, foeTeam, seed, inputLog, manual){
   const _m=!!manual;
   try{ return simFightResult(allyKeys, foeTeam, seed, _m); } finally{ REPLAY_IN=null; }
 }
+/* v270 (PLAYER-TRUTH) — replay a CAMPAIGN fight exactly as it was played: the authored waves the
+   server froze, the seed the server issued, and the player's own action transcript. Campaign is a
+   multi-wave fight, so this is the entry the server uses; simFightResult stays the single-wave
+   resolver used by marches and arena. Returns the win flag; window._p2digest carries the end state. */
+function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
+  const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
+  const svAuto=autoUlt;
+  window._p2guard=true;
+  REPLAY_IN=Array.isArray(inputLog)?inputLog.slice().sort((a,b)=>a[0]-b[0]):null;
+  const keep=REPLAY_IN;
+  ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null;
+  CUR={mode:'campaign', node:1, seed, cwaves:cwaves, manualReplay:!!manual, headless:true};
+  if(manual) autoUlt=false;            // the transcript fires the ultimates, not the AI
+  try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){}
+  waveXfer=null; chapterWaves=Math.max(1,(cwaves||[]).length); waveIdx=0;
+  seedBattle(seed);
+  /* Mirror startBattle()'s campaign branch EXACTLY — same spawn, same march-in. Any step the live
+     fight takes that this one skips is a step where the replay stops being the player's fight. */
+  units=[];                                 // startBattle() clears the field first — so does this
+  spawnTeamFromSnaps(allySnaps);
+  buildEnemyWave();
+  beginWaveEnter();
+  REPLAY_IN=keep; _riIdx=0;
+  for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
+  const allyAlive=units.filter(u=>u.team==='ally'&&u.alive).length, foeAlive=units.filter(u=>u.team==='enemy'&&u.alive).length;
+  const won=(window._p2win===true) || (allyAlive>0 && foeAlive===0 && waveIdx>=chapterWaves-1);
+  const allies=units.filter(u=>u.team==='ally');
+  const total=allies.length||1, alive=allies.filter(u=>u.alive).length;
+  const stars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0;
+  try{ window._p2digest=JSON.stringify({ t:+battleTime.toFixed(4), won, stars, wave:waveIdx,
+    u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) }); }catch(e){ window._p2digest=null; }
+  window._p2stars=stars; window._p2alive=alive; window._p2total=total;
+  window._p2guard=false; autoUlt=svAuto; REPLAY_IN=null;
+  ({units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx}=sv);
+  return won;
+}
 function simFightResult(allySnaps, foeTeam, seed, manualReplay){
   const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
   const svAuto=autoUlt;
@@ -2768,18 +2813,26 @@ function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   //
 function makeUnit(key,team,x,y,levelOverride,extra){
   // (uid is assigned at the end of this function — see `u.uid=_uidSeq++`)
   const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
-  const boss=extra&&extra.boss, owned=extra&&extra.owned;
+  const boss=extra&&extra.boss;
+  /* v270 (PLAYER-TRUTH): a hero can be built from a SERVER-AUTHORITATIVE spec instead of this
+     browser's own save. `extra.spec` carries the progression the server froze at battle start —
+     quality, stars, glyph/gear/Academy flats and socket ratings — so the fight the player plays and
+     the fight the server replays are built from the same numbers, and the browser's save is not a
+     source of combat power. With no spec, behaviour is exactly as before. */
+  const S=(extra&&extra.spec)||null;
+  const owned=(extra&&extra.owned)||!!S;
   const bhp=boss?2.4:1,bdmg=boss?1.8:1,br=boss?2.2:1;   // bosses ~3× a normal monster's damage (Phil's rule); HP already tanky
-  const mul=owned?heroMuls(key):{atk:1,hp:1,dr:0,regen:0,crit:0,critRes:0,energyReg:0};
-  const rank = owned ? heroQuality(key) : (boss?3 : (extra&&extra.rank!=null?extra.rank:0)); // "rank" = quality tier (glyph colour)
+  const mul=S?(S.mul||mulsFromTotals(S.tt||{}, S.ex||{}))
+            :(owned?heroMuls(key):{atk:1,hp:1,dr:0,regen:0,crit:0,critRes:0,energyReg:0});
+  const rank = S ? (S.rank!=null?(S.rank|0):qualityFromGlyphRank(S.glyphRank||0)) : (owned ? heroQuality(key) : (boss?3 : (extra&&extra.rank!=null?extra.rank:0))); // "rank" = quality tier (glyph colour)
   const kit=KITS[key]||{};   // monsters have no kit
-  const fAtk = owned?(heroFlatAtk(key)+techTotal('atk')):0, fHp = owned?(heroFlatHp(key)+techTotal('hp')):0;   // flat glyph + star + Academy tech Attack/Health
-  const sm=owned?starMult(key):1;   // stars multiply an OWNED hero's base HP/ATK (enemies keep base stats)
+  const fAtk = S?(S.fAtk||0) : (owned?(heroFlatAtk(key)+techTotal('atk')):0), fHp = S?(S.fHp||0) : (owned?(heroFlatHp(key)+techTotal('hp')):0);   // flat glyph + star + Academy tech Attack/Health
+  const sm=S?(S.sm!=null?S.sm:starMultFrom(S.stars||1,S.pips||0,S.ref||0)) : (owned?starMult(key):1);   // stars multiply an OWNED hero's base HP/ATK (enemies keep base stats)
   const uHp=t.hp*scale*bhp*mul.hp*sm + fHp, uDmg=t.dmg*scale*bdmg*mul.atk*sm + fAtk;
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
-    atkCd:0,atkInterval:swingInterval(t)/(1+(owned?glyphHaste(key):0)),energy:Math.min(95,35+((owned&&mul.startEnergy)||0)),ctrlRes:(owned&&mul.ctrlRes)||0,target:null,alive:true,r:18*br,
+    atkCd:0,atkInterval:swingInterval(t)/(1+(S?(S.glyphHaste||0):(owned?glyphHaste(key):0))),energy:Math.min(95,35+((owned&&mul.startEnergy)||0)),ctrlRes:(owned&&mul.ctrlRes)||0,target:null,alive:true,r:18*br,
     flash:0,stunned:0,fearT:0,slow:0,portraitEl:null,laneX:x,homeX:x,homeY:y,melee:(t.range<60),
     // desired fighting distance by row: melee closes to touching (~1-2 m, cross-team collision stops overlap), mid-row holds 13 m, back row holds 25 m.
     // Melee hold is clamped just inside its attack range so it can actually swing; ranged holds the FULL row distance (range is widened below to reach it).
@@ -2789,16 +2842,16 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenAb:(rank>=1&&kit.green)?kit.green:null, blueAb:(rank>=2&&kit.blue)?kit.blue:null,
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
-    skillLv: owned?skillLvArr(key).slice():[1,1,1,1], passMul:1, _castSM:1, apMul: owned?abilityPowerMul():(t.ap||1),
-    apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(owned?heroFlatApow(key):0), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
+    apow: Math.round((t.apow||0)*scale*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1))*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
   // MAGICAL hits, each through defToDR and countered only by its own penetration. Every other
   // catalog stat is live: crit damage, lifesteal, evasion/accuracy, block (phys-only), damage
   // bonus, attack speed, haste (energy), shield strength. Same conversions as the server core.
-  { const tt=owned?sockStatTotal(key):{};
-    u.armorRating=(t.armor||0)*scale*sm + (owned?techTotal('armor'):0) + ((tt.armor||0)*3);
-    u.mrRating   =(t.mr||0)*scale*sm + (owned?techTotal('mr'):0) + ((tt.mr||0)*3);
+  { const tt=S?(S.tt||{}):(owned?sockStatTotal(key):{});
+    u.armorRating=(t.armor||0)*scale*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3);
+    u.mrRating   =(t.mr||0)*scale*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3);
     u.armorPen=(tt.armorPen||0); u.magicPen=(tt.magicPen||0);
     u.critDmg=0.6+((tt.critDmg||0)*0.005);
     u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.004);
@@ -2823,6 +2876,13 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.greenCd=mk.green?mk.green.cd*0.5:0; u.blueCd=mk.blue?mk.blue.cd*0.75:0;
     if(mk.pass){ const p=mk.pass;                                   // boss passive
       if(p==='unstoppable'){ u.immovable=true; u.stunImmune=true; } else u.pass={[p]:true}; } }
+  /* v270 (DETERMINISM): a unit's SOLID BODY comes from data, never from pixels. It used to be derived
+     from the sprite's aspect ratio — which is set when the image finishes downloading — so a slow
+     connection literally changed how much space a hero took up, and therefore the fight. The visual
+     scale still follows the real artwork; the collision radius no longer does. */
+  u.sprH=(boss?3.7:roleBattleH(key))*(u.r/18)*(HERO_BATTLE_SCALE[key]||1);
+  u.sprA=0.7;
+  u._bodyR=Math.max(u.r||18, (u.sprH*0.7)*BODY_FRAC/(2*SC));
   u.uid=_uidSeq++;   // v269: a stable per-battle id, so an input log can name exactly who acted on whom
   return u;
 }
@@ -2875,6 +2935,13 @@ function summonUnit(owner,key,dur,off){
   ringBurst(px,py,0x6b5230,16); burstAt(px,py,0x4a3a22,14);
   floatTexts.push({x:px,y:py-10,txt:'RISEN',t:.9,color:'#c9a227',vy:1,sz:11});
   return u;
+}
+/* v270 (PLAYER-TRUTH): spawn the squad from the snapshots the SERVER froze when Battle was pressed.
+   The browser contributes positioning and pixels; every combat number came down the wire. */
+function spawnTeamFromSnaps(snaps){ const keys=snaps.map(s=>s.key);
+  snaps.forEach((sp,i)=>{ const sl=laneSlot('ally',sp.key,i,snaps.length,keys);
+    const u=buildUnitFromSnapshot(sp,'ally',sl.x,sl.y); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
+    units.push(u); buildFigure(u); });
 }
 function spawnTeam(keys,team){ const n=keys.length;
   keys.forEach((key,i)=>{const sl=laneSlot(team,key,i,n,keys),x=sl.x,y=sl.y;const u=makeUnit(key,team,x,y,team==='ally'?null:CUR.oppLevel,{owned:team==='ally'});units.push(u);buildFigure(u);});
@@ -3895,9 +3962,11 @@ function startBattle(){
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
-  if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0; spawnTeam(G.team,'ally'); buildEnemyWave();
+  if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
+    if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
+    buildEnemyWave();
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
@@ -4120,6 +4189,13 @@ function grantRewards(){
 // rollDrops deleted (Correction Spec v1): no browser-generated Glyph reward exists.
 function endBattle(won){ ended=true;
   if(window._p2guard){ window._p2win=won; return; }   // Phase 2 headless sim: record winner, skip all UI/rewards
+  /* v270: the end state of the fight the player just watched, in the same shape the server's replay
+     produces. Sent with the transcript as DIAGNOSTICS ONLY — it decides nothing; if it ever disagrees
+     with the server's replay, that is an engine incident to investigate, not a result to trust. */
+  try{ const _al=units.filter(u=>u.team==='ally'), _t=_al.length||1, _a=_al.filter(u=>u.alive).length;
+    window._p2lastDigest=JSON.stringify({ t:+battleTime.toFixed(4), won:!!won,
+      stars: won?(_a>=_t?3:(_a>=Math.ceil(_t/2)?2:1)):0, wave:waveIdx,
+      u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) }); }catch(e){}
   // snapshot Victory-screen data before any mode-specific early return (used by renderResultExtras)
   resultWon=won;
   { const al=units.filter(u=>u.team==='ally'); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
@@ -4237,7 +4313,10 @@ function endBattle(won){ ended=true;
       document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     setTimeout(async()=>{
-      const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8()});
+      /* v270: submit WHAT THE PLAYER DID — the tick-stamped transcript of every ultimate and gear
+         skill. The server replays it against the frozen session; `digest` is diagnostics only. */
+      const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8(),
+        inputLog:(INPUT_LOG||[]).slice(0,400), digest:(window._p2lastDigest||null)});
       const sWon=!!(r&&r.ok&&r.won);   // AUTHORITATIVE server result
       if(r&&r.ledger) adoptLedger(r.ledger);
       // v266: stars belong to the PORTAL the stage was played in
@@ -7167,6 +7246,12 @@ function genFoeTeam(power,seedName){ const pool=HERO_KEYS.slice(), n=4, t=[]; le
   for(let i=0;i<n;i++){ const key=pool[(sd+i*7)%pool.length], rank=Math.min(3,(((sd+i*5)%100)/34)|0), level=Math.max(1,Math.min(60,Math.round((per-60-rank*70)/14))); t.push({key,level,rank}); }
   return t; }
 function snapAllySquad(keys){ return (keys||[]).filter(Boolean).map(k=>snapUnitResolved(makeUnit(k,'ally',0,0,null,{owned:true}))); }
+/* v270 (PLAYER-TRUTH): build the squad from SERVER-FROZEN specs instead of this browser's save.
+   The server calls this (through sim-host) at battle start, ships the resolved snapshots down, and the
+   client fights with exactly those numbers — so the stats cannot be edited here, and the server's replay
+   and the player's fight are the same fight. */
+function snapSquadFromSpecs(specs){ return (specs||[]).filter(Boolean)
+  .map(sp=>snapUnitResolved(makeUnit(sp.key,'ally',0,0,sp.level||1,{spec:sp}))); }
 function newFightSeed(){ return ((Math.floor(Math.random()*4294967296))>>>0); }   // one-time random seed per fight; stored → the replay is deterministic
 // launch the recorded fight. v2 reports carry {seed, mineSnap[resolved], foe[{key,level,rank}]} → EXACT deterministic replay
 // (portable: rebuilt from the snapshot, never from the viewer's own account). Older reports fall back to re-enactment.
@@ -10258,6 +10343,8 @@ document.getElementById('startBtn').onclick=async()=>{
     if(ACC.token){ const r=await api('/api/campaign/start','POST',{mode:(CUR.portal||'normal'), node:CUR.node, heroIds:G.team.filter(Boolean).slice(0,5), requestId:uid8()});
       if(!r||r.error||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
       CUR.attemptId=r.attemptId; CUR.cwaves=(r.stage&&r.stage.waves)||null;
+      // v270 (PLAYER-TRUTH): the server froze the squad and issued the seed. Fight exactly that fight.
+      CUR.serverSnaps=Array.isArray(r.snaps)?r.snaps:null; CUR.seed=(r.seed!=null)?(r.seed>>>0):null; CUR.engine=r.engine||null;
       if(r.stamina) { G.stamina=r.stamina.v|0; G.staminaTS=Date.now(); }
     } else { bannerMsg('Connect to play the campaign — this game is fully synced online.'); return; } }
   startBattle(); };
@@ -10271,7 +10358,9 @@ document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.ind
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
-document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; autoUlt=!autoUlt;refreshCtrlBtns();};
+document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; autoUlt=!autoUlt;
+  if(state==='battle'&&!ended) queueInput({k:'auto', uid:-1, tid:(autoUlt?1:0)});   // v270: recorded, so the replay matches
+  refreshCtrlBtns();};
 
 /* loop */
 let last=performance.now();
@@ -10316,7 +10405,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787862934894';
+const BUILD_ID='1787865608916';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

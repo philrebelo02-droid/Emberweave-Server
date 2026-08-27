@@ -1101,6 +1101,90 @@ function ensureLedger(u){
   ledTx(u,legacy?'migrate:legacy-save':'migrate:starter',{});
   return led;
 }
+/* ===================== v270 — PLAYER-TRUTH BATTLE SPEC =====================
+   The server freezes what a hero IS at the moment Battle is pressed, in the shape the client's own
+   unit builder consumes. The browser never supplies combat power: it is handed the resolved snapshot
+   and fights with exactly the numbers the server will replay. */
+/* The server runs THE CLIENT'S OWN battle code (server/sim-host.js loads it into a VM with a stubbed
+   browser). One engine, one result: the fight the player played is the fight the server replays. */
+let _SIMHOST=null, _SIMHOST_ERR=null;
+function simHost(){
+  if(_SIMHOST||_SIMHOST_ERR) return _SIMHOST;
+  try{ const t0=Date.now(); _SIMHOST=require('./server/sim-host.js').load(GAME_FILE);
+    console.log('⚔️  sim-host ready — the client battle engine is loaded server-side ('+(Date.now()-t0)+'ms)');
+  }catch(e){ _SIMHOST_ERR=e; console.error('🚨 sim-host FAILED to load — campaign results cannot be verified:', e.message); }
+  return _SIMHOST;
+}
+function sha256hex(x){ return crypto.createHash('sha256').update(String(x)).digest('hex').slice(0,32); }
+const SKILL_MAX_SRV=10;
+function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
+  if(!Array.isArray(a)||a.length!==4){ led.skill[key]=[1,1,1,1]; }
+  return led.skill[key]; }
+/* One-time import: skill levels have only ever lived in the browser save, so an existing player would
+   otherwise lose what they bought. Imported once, clamped, and server-owned from then on. */
+function ledSkillImport(u){ const led=u.led; if(!led || led.skillImported) return;
+  led.skill=led.skill||{}; led.prayer=led.prayer|0;
+  try{ const sv=parseSaveOf(u)||{}; const sl=sv.skillLevel||{};
+    for(const k in sl){ const a=sl[k]; if(!Array.isArray(a)) continue;
+      led.skill[k]=[0,1,2,3].map(i=>Math.max(1,Math.min(SKILL_MAX_SRV,(a[i]|0)||1))); }
+    led.prayer=Math.max(0,Math.min(200,(sv.prayer|0)||0));
+  }catch(e){}
+  led.skillImported=Date.now(); }
+/* The transcript is player-supplied data, so it is normalised before it is allowed anywhere near the
+   sim: bounded length, integer ticks in range, known action kinds, integer uids, aim clamped to the
+   field. Legality (alive caster, energy, stun/silence, one gear skill) is enforced by the battle code
+   itself when the action is applied — a forged entry is ignored, never honoured. */
+const INPUT_LOG_MAX=400, SIM_TICK_MAX=14400, FIELD_W=1000, FIELD_D=1400;
+function sanitizeInputLog(raw){
+  if(!Array.isArray(raw)) return [];
+  const out=[];
+  for(const e of raw.slice(0,INPUT_LOG_MAX)){
+    if(!Array.isArray(e)||e.length<3) continue;
+    const t=e[0]|0, k=String(e[1]||''), uid=e[2]|0, tid=(e[3]==null?-1:(e[3]|0));
+    if(!(t>=0&&t<=SIM_TICK_MAX)) continue;
+    if(k!=='ult'&&k!=='gear'&&k!=='auto') continue;
+    if(k==='auto'){ out.push([t,'auto',-1,(tid?1:0),null,null]); continue; }
+    if(!(uid>=0&&uid<64)) continue;
+    const clamp=(v,hi)=>(v==null||!isFinite(v))?null:Math.max(0,Math.min(hi,+(+v).toFixed(2)));
+    out.push([t,k,uid,(tid>=0&&tid<64)?tid:-1, clamp(e[4],FIELD_W), clamp(e[5],FIELD_D)]);
+  }
+  out.sort((a,b)=>a[0]-b[0]);
+  return out;
+}
+function campaignHeroSpec(u,key){
+  const led=ensureLedger(u); ledSkillImport(u);
+  const base=SIM.HERO_BASE[key]; if(!base) return null;
+  const h=led.hero[key]||{xp:0,stars:base.stars,pips:0,ref:0};
+  const fl=glyphFlatStats(u,key);
+  const gf=(typeof gearHeroFlats==='function'&&u.gear)?gearHeroFlats(u,key):null;
+  const n=(a,b)=>((a|0)+((b&&b|0)||0));
+  const pick=(k)=>((fl[k]|0)+((gf&&gf[k]|0)||0));
+  /* socket totals in the CLIENT's own field names — this bundle is what mulsFromTotals/makeUnit read */
+  const tt={ hp:pick('hp'), atk:pick('atk'), apow:pick('apow'), pen:pick('pen'),
+    armor:pick('armor'), mr:pick('mr'), armorPen:pick('armorPen'), magicPen:pick('magicPen'),
+    crit:pick('crit'), critDmg:pick('critDmg'), critRes:pick('critRes'),
+    energy:pick('energy'), regen:((fl.regenRating|0)+((gf&&gf.regenRating|0)||0)),
+    startEnergy:pick('startEnergy'), ctrlRes:pick('ctrlRes'), ctrlHit:pick('ctrlHit'),
+    healPow:pick('healPow'), lifesteal:pick('lifesteal'), atkSpd:pick('atkSpd'), haste:pick('haste'),
+    eva:pick('eva'), acc:pick('acc'), block:pick('block'),
+    dmgBonus:pick('dmgBonus'), dmgRed:pick('dmgRed'), shieldStr:pick('shieldStr') };
+  const AC=acadCombat(u);
+  const board=(u.glyphs&&u.glyphs.boards&&u.glyphs.boards[key])||null;
+  return {
+    key, level:ledHeroLevel(led,key),
+    stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:Math.max(0,Math.min(15,h.ref|0)),
+    glyphRank:Math.max(0,Math.min(16,(board&&board.ascensionIndex)|0)),
+    tt,
+    /* Academy research is server-owned and reaches combat here. Temple prayer and the legacy client
+       equip bundle are NOT server-owned, so they contribute nothing — a browser cannot grant power. */
+    ex:{ techDef:AC?AC.dmgRedFrac*100:0, techCrit:AC?AC.critFrac*100:0, techCritRes:AC?AC.critResFrac*100:0,
+         prayerPct:0, equip:{} },
+    fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow,
+    techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0,
+    apMul:AC?AC.apMul:1,
+    skillLv:ledSkillArr(led,key).slice()
+  };
+}
 function ledTx(u,src,delta){ const led=u.led; const id=uid();
   led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
   led.rev++; return id; }
@@ -2378,10 +2462,20 @@ async function api(req,res,url){
     if(led.stam.v<cost) return send(res,400,{error:'Not enough stamina.'});
     led.stam.v-=cost;
     const snaps=ids.map(k=>snapshotHeroFromServer(me,k)); if(snaps.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
-    prog.att={ id:uid(), node, mode, heroIds:ids, teamSnapshot:snaps, startedAt:Date.now(), reqId };
+    /* v270 (PLAYER-TRUTH) — FREEZE THE SESSION. The server resolves every hero into a full combat
+       snapshot with the client's own unit builder, and issues the seed. The browser is handed those
+       numbers to fight with; it cannot pick its own stats, its own enemies or its own dice. */
+    const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
+    const host=simHost();
+    let fightSnaps=null;
+    if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed:',e.message); } }
+    const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
+    prog.att={ id:uid(), node, mode, heroIds:ids, teamSnapshot:snaps, specs, snaps:fightSnaps, seed,
+      engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId, stamPaid:cost };
     ledTx(me,mode+':start:'+st.id,{stamina:-cost});
     writeDB();
-    return send(res,200,{ ok:true, attemptId:prog.att.id, mode, stage:st, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
+    return send(res,200,{ ok:true, attemptId:prog.att.id, mode, stage:st, seed, snaps:fightSnaps,
+      engine:prog.att.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
   if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':cresolve:'+reqId,()=>{
@@ -2392,18 +2486,32 @@ async function api(req,res,url){
       if(!a) return {ok:false,error:'No matching campaign battle.'};
       prog.att=null;
       const st=portalStageOf(mode,a.node); if(!st) return {ok:false,error:'Stage data missing.'};
-      // AUTHORITATIVE result: the deterministic estimate decides — the client's opinion is not read.
-      // CAMPAIGN_SKILL_BAND is the documented, deterministic manual-play allowance.
-      const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND),
-        atkP:Math.round((x.atkP||x.atk||0)*CAMPAIGN_SKILL_BAND), atkM:Math.round((x.atkM||0)*CAMPAIGN_SKILL_BAND)});
-      const team=a.teamSnapshot.map(band);
-      const waves=st.waves.map(w=>w.map(vaultSpecToCombatUnit));
-      const r=SIM.qualificationEstimate(team, waves, SIM.seedFrom('camp:'+a.id));
-      const won=r.result.won;
+      /* v270 (PLAYER-TRUTH) — THE RESULT IS THE PLAYER'S OWN FIGHT.
+         The server replays the frozen session (its snapshots, its seed, the authored waves) driven by
+         the transcript of what the player actually did — every ultimate and gear skill, on the tick it
+         was cast. No estimate, no auto-battle, no skill allowance: CAMPAIGN_SKILL_BAND is gone from
+         this path. An illegal action in the transcript simply does not happen (see applyInput). */
+      const inputLog=sanitizeInputLog(b.inputLog);
+      const host=simHost();
+      if(!host || !Array.isArray(a.snaps) || !a.snaps.length){
+        /* We could not verify the fight — so we record NOTHING. Not a win, not a loss. The stamina
+           goes back and the incident is kept. A defect is never dressed up as a result. */
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
+        writeDB();
+        return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'};
+      }
+      let rep=null;
+      try{ rep=host.campaign(a.snaps, st.waves, a.seed>>>0, inputLog); }
+      catch(e){ console.error('sim-host replay failed:',e.message);
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
+        writeDB();
+        return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'}; }
+      const won=!!rep.won;
       let stars=0, reward=null;
       if(won){
-        const last=r.waveResults[r.waveResults.length-1].team; const total=last.length||1, alive=last.filter(x=>x.alive).length;
-        stars=alive>=total?3:(alive>=Math.ceil(total/2)?2:1);
+        stars=Math.max(1,Math.min(3,rep.stars|0));
         const first=a.node>prog.cleared;
         const rw=st.rewards;
         reward={ gold:first?rw.firstGold:rw.repeatGold, playerXp:first?rw.playerXpFirst:rw.playerXpRepeat,
@@ -2417,8 +2525,26 @@ async function api(req,res,url){
         // Correction Spec v1: the stage's EXACT named Glyph Fragment target, granted server-side
         reward.glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity})));
       } else ledTx(me,mode+':loss:'+st.id,{});
+      /* The receipt: what was frozen, what the player did, and what the replay produced. Enough to
+         re-run this exact battle later and prove the result — kept small and capped. */
+      const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:a.seed>>>0, engine:a.engine||null,
+        heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
+        digest:sha256hex(String(rep.digest||'')), transcript:inputLog,
+        clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
+      led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB();
-      return { ok:true, mode, won, stars, reward, replaySeed:SIM.seedFrom('camp:'+a.id), ledger:ledgerView(me) };
+      /* digestMatch answers one question honestly: did the fight the player watched end in exactly the
+         state the server's replay reached? It grants nothing and decides nothing — it is the tripwire
+         that tells us the two engines have drifted, before a player ever notices. */
+      const digestMatch=(typeof b.digest==='string' && b.digest.length)
+        ? (sha256hex(b.digest)===receipt.digest) : null;
+      if(digestMatch===false) console.warn('⚠️  battle digest mismatch — client and server replay disagree', {stage:st.id, engine:a.engine});
+      receipt.match=digestMatch;
+      return { ok:true, mode, won, stars, reward, verified:true, engine:a.engine||null,
+        serverDigest:receipt.digest, digestMatch,
+        // on a mismatch, hand back the end state the replay reached so the incident can be diagnosed
+        serverEnd:(digestMatch===false?String(rep.digest||''):undefined),
+        replaySeed:a.seed>>>0, ledger:ledgerView(me) };
     });
     return send(res, out.ok===false?400:200, out); }
   /* ---- hero progression endpoints: EXACT mirrors of the game's published rules ---- */
