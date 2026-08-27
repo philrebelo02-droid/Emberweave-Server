@@ -2406,6 +2406,46 @@ function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (
 /* --------------------------------- state ----------------------------------- */
 let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],chains=[];
 let selected=null,battleTime=0,ended=false,rageMul=1;
+/* v269 — YOUR TIMING IS THE INPUT.
+   The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
+   wall-clock instant. Every player action is therefore QUEUED and applied at a tick boundary, and
+   recorded as [tick, kind, casterUid, targetUid, aimFieldX, aimFieldY]. Replaying that log against
+   the same seed reproduces the fight exactly — which is what lets the server accept the result you
+   actually played instead of re-fighting it with a different model. */
+let simTick=0, _uidSeq=0;
+let INPUT_LOG=[];      // what the player did, in sim-tick time — this is what gets submitted
+let _inputQ=[];        // actions taken this frame, applied on the next tick boundary
+let REPLAY_IN=null;    // when set, the fight is driven by a recorded log instead of live input
+let _riIdx=0;
+function battleInputsReset(){ simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0; }
+function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i++) if(units[i].uid===uid) return units[i]; return null; }
+/* record + queue one player action. Aim is stored in FIELD coordinates and by target uid — never in
+   screen coordinates, which depend on the device's viewport and zoom. */
+function queueInput(inp){
+  if(REPLAY_IN) return;                       // a replay is driven by its log, not by live taps
+  inp.t=simTick; _inputQ.push(inp);
+  if(INPUT_LOG.length<400) INPUT_LOG.push([inp.t, inp.k, inp.uid, (inp.tid==null?-1:inp.tid),
+    (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
+}
+function applyInput(inp){
+  const u=unitByUid(inp.uid); if(!u||!u.alive) return;
+  if(inp.k==='ult'){
+    if(u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0) return;   // an illegal fire simply does not happen
+    const tgt=unitByUid(inp.tid); if(tgt&&tgt.alive) u.target=tgt;
+    u._aimWX=(inp.wx==null?null:inp.wx); u._aimWY=(inp.wy==null?null:inp.wy);
+    castAbility(u);
+  } else if(inp.k==='gear'){
+    if(!u.gearSkill||u.gearSkill.used) return;
+    castGearSkill(u,true);
+  }
+}
+function pumpInputs(){
+  if(REPLAY_IN){ while(_riIdx<REPLAY_IN.length && REPLAY_IN[_riIdx][0]<=simTick){ const e=REPLAY_IN[_riIdx++];
+      applyInput({t:e[0], k:e[1], uid:e[2], tid:(e[3]===-1?null:e[3]), wx:e[4], wy:e[5]}); } return; }
+  if(!_inputQ.length) return;
+  const q=_inputQ; _inputQ=[];
+  for(let i=0;i<q.length;i++) applyInput(q[i]);
+}
 const BATTLE_TIME_LIMIT=90;                 // Magic Rush-style battle countdown shown in the top banner (display)
 let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state (stars + hero cards)
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
@@ -2416,7 +2456,18 @@ const SIM_STEP=BATTLE_PACE/SIM_HZ;
 let _brng=null, _bacc=0, _alpha=1;
 function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
 function brnd(){ return _brng?_brng():Math.random(); }
-function seedBattle(sd){ let seed=(sd!=null)?(sd>>>0):(((Date.now()>>>0)^((Math.random()*4294967296)>>>0))>>>0); try{ if(CUR&&typeof CUR==='object') CUR.seed=seed; }catch(e){} _brng=mulberry32(seed); _bacc=0; return seed; };   // slightly slower overall battle tempo
+/* v269 — CLEAR EVERY LIVE BATTLE EFFECT before a fight starts.
+   A leftover void zone (or a queued damage-over-time) from the PREVIOUS fight used to survive into the
+   next one and damage a hero that nothing in this fight had touched. Two runs of the same seed then
+   produced different results — the single worst thing that can happen to a game whose battles are law. */
+function battleFxReset(){ try{ shots.length=0; particles.length=0; floatTexts.length=0; groundHazards.length=0;
+    voidZones.length=0; chains.length=0; _pendingDots.length=0;
+    if(typeof staffFx!=='undefined') staffFx.length=0;
+    if(typeof _groundFx!=='undefined') _groundFx.length=0;
+    if(typeof _projFx!=='undefined') _projFx.length=0;
+    if(typeof _beamFx!=='undefined') _beamFx.length=0;
+    if(typeof _fxPlates!=='undefined') _fxPlates.length=0; }catch(e){} }
+function seedBattle(sd){ let seed=(sd!=null)?(sd>>>0):(((Date.now()>>>0)^((Math.random()*4294967296)>>>0))>>>0); try{ if(CUR&&typeof CUR==='object') CUR.seed=seed; }catch(e){} _brng=mulberry32(seed); _bacc=0; battleInputsReset(); battleFxReset(); return seed; };   // slightly slower overall battle tempo
 // per-class attack swing interval (seconds) — lower = faster swings
 const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
 function swingInterval(t){ return (t.swing!=null? t.swing : (ROLE_SWING[t.role]||1.0)); }
@@ -2663,7 +2714,11 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.critDmg=s.critDmg||0.6; u.lifestealStat=s.lifestealStat||0; u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
   u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
   u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg;
-  u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune; u.pass=s.pass;
+  u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune;
+  /* v269: DEEP-COPY the passive block. It used to be shared by reference with the snapshot, so the first
+     fight mutated the snapshot and the SECOND fight off the same snapshot ran differently — the exact
+     leak that made a replay diverge from the fight it was replaying. */
+  u.pass=s.pass?JSON.parse(JSON.stringify(s.pass)):null;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18;   // re-apply the ranged reach gate after overriding stats
   return u;
 }
@@ -2679,13 +2734,25 @@ function setupMarchTeams(allySnaps, foeTeam, render){
   (allySnaps||[]).forEach((s,i)=>{ const sl=laneSlot('ally',s.key,i,allySnaps.length,allySnaps.map(z=>z.key)); const u=buildUnitFromSnapshot(s,'ally',sl.x,sl.y); u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
   (foeTeam||[]).forEach((f,i)=>{ const sl=laneSlot('enemy',f.key,i,foeTeam.length,foeTeam.map(z=>z.key)); const u=makeUnit(f.key,'enemy',sl.x,sl.y,f.level||1,{owned:false,rank:f.rank||0}); u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
 }
-function simFightResult(allySnaps, foeTeam, seed){
+/* v269 — replay a recorded INPUT LOG against a seed and return the same end-state digest.
+   This is the client half of "your fight is the record": the log says WHEN each ultimate fired, in
+   sim ticks, and replaying it reproduces the fight exactly. The server half runs this same code. */
+function simFightReplay(allyKeys, foeTeam, seed, inputLog, manual){
+  REPLAY_IN=Array.isArray(inputLog)?inputLog.slice().sort((a,b)=>a[0]-b[0]):null;
+  const _m=!!manual;
+  try{ return simFightResult(allyKeys, foeTeam, seed, _m); } finally{ REPLAY_IN=null; }
+}
+function simFightResult(allySnaps, foeTeam, seed, manualReplay){
   const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
+  const svAuto=autoUlt;
   window._p2guard=true;
-  ended=false; state='battle'; CUR={mode:'replay',seed}; battleTime=0; gameSpeed=1; window._p2win=null;
+  ended=false; state='battle'; CUR={mode:'replay',seed,manualReplay:!!manualReplay}; battleTime=0; gameSpeed=1; window._p2win=null;
+  if(manualReplay) autoUlt=false;   // the log fires the ultimates, not the AI
   try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){} waveXfer=null; chapterWaves=1; waveIdx=0;
+  const _keepReplay=REPLAY_IN;
+  seedBattle(seed);                       // resets tick/uid/input state
   setupMarchTeams(allySnaps, foeTeam, false);
-  seedBattle(seed);
+  REPLAY_IN=_keepReplay; _riIdx=0;        // a replay drives the fight from its recorded log
   for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
   const allyAlive=units.filter(u=>u.team==='ally'&&u.alive).length, foeAlive=units.filter(u=>u.team==='enemy'&&u.alive).length;
   const won = (window._p2win===true) || (allyAlive>0 && foeAlive===0);   // win if the sim said so, or allies stand and foes are wiped (timeout = loss)
@@ -2693,12 +2760,13 @@ function simFightResult(allySnaps, foeTeam, seed){
      same seed must produce a byte-identical digest; this is what proves the sim is replayable. */
   try{ window._p2digest=JSON.stringify({ t:+battleTime.toFixed(4), won,
     u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) }); }catch(e){ window._p2digest=null; }
-  window._p2guard=false;
+  window._p2guard=false; autoUlt=svAuto;
   ({units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx}=sv);
   return won;
 }
 function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   // flat Armor/Magic-Resist rating → diminishing damage-reduction fraction (caps well under 100%)
 function makeUnit(key,team,x,y,levelOverride,extra){
+  // (uid is assigned at the end of this function — see `u.uid=_uidSeq++`)
   const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
   const boss=extra&&extra.boss, owned=extra&&extra.owned;
   const bhp=boss?2.4:1,bdmg=boss?1.8:1,br=boss?2.2:1;   // bosses ~3× a normal monster's damage (Phil's rule); HP already tanky
@@ -2755,6 +2823,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.greenCd=mk.green?mk.green.cd*0.5:0; u.blueCd=mk.blue?mk.blue.cd*0.75:0;
     if(mk.pass){ const p=mk.pass;                                   // boss passive
       if(p==='unstoppable'){ u.immovable=true; u.stunImmune=true; } else u.pass={[p]:true}; } }
+  u.uid=_uidSeq++;   // v269: a stable per-battle id, so an input log can name exactly who acted on whom
   return u;
 }
 /* ---------------------------------------------------------------------------------------------
@@ -4208,6 +4277,8 @@ function updateBattle(dt){
   // start of this tick so the renderer can interpolate between ticks and stay perfectly smooth at any
   // frame rate — the sim's own numbers never depend on the device's frame rate again.
   for(let i=0;i<units.length;i++){ const u=units[i]; u.px=u.x; u.py=u.y; }
+  pumpInputs();   // v269: a tap is applied HERE, on a tick boundary — never mid-frame
+  simTick++;
   battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
@@ -5087,7 +5158,7 @@ function _gsAllies(u,who){ const own=units.filter(o=>o.alive&&o.team===u.team&&H
   if(who==='allies'||who==='nearAllies') return own;
   if(who==='lowest'){ let b=null,bp=2; own.forEach(o=>{ const p=o.hp/o.maxHp; if(p<bp){bp=p;b=o;} }); return b?[b]:[]; }
   return [u]; }
-function castGearSkill(u){
+function castGearSkill(u,_fromTick){
   if(!u||!u.alive||!u.gearSkill||u.gearSkill.used||ended||paused) return;
   const g=u.gearSkill, p=g.params||{}, ty=g.type;
   if((u.stunned>0||(u.fearT||0)>0) && ty!=='cleanse') return;
@@ -9876,7 +9947,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
       const gb=document.createElement('div');
       gb.textContent=u.gearSkill.icon; gb.title=u.gearSkill.name+' — '+u.gearSkill.desc;
       gb.style.cssText='position:absolute;top:-7px;right:-5px;width:22px;height:22px;line-height:22px;text-align:center;font-size:12px;background:#1a2434;border:1px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.6);'+(u.gearSkill.used?'opacity:.25;pointer-events:none;':'');
-      const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); castGearSkill(u); };
+      const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); queueInput({k:'gear', uid:u.uid}); };   // v269: tick-aligned
       gb.addEventListener('pointerdown',(e)=>e.stopPropagation());
       gb.addEventListener('click',fire); gb.addEventListener('touchstart',fire,{passive:false});
       u.gearBtnEl=gb; slot.appendChild(gb);
@@ -9929,7 +10000,11 @@ function renderResultExtras(){ const stars=document.getElementById('resultStars'
 // Fights that are resolved deterministically and recorded for playback — the arena, world-map
 // raids, elite challenges and any replay. The player never drives an ultimate in these: they
 // fire automatically, AUTO is locked on, and the portraits show the ability instead of casting.
-function isAutoBattle(){ const m=CUR&&CUR.mode; return m==='arena'||m==='raid'||m==='elite'||m==='replay'; }
+function isAutoBattle(){ const m=CUR&&CUR.mode;
+  // v269: a MANUAL replay is driven entirely by the recorded input log — the AI must not fire the
+  // ultimates the player deliberately held back, or the replay is a different fight.
+  if(CUR&&CUR.manualReplay) return false;
+  return m==='arena'||m==='raid'||m==='elite'||m==='replay'; }
 function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
   const forced=isAutoBattle();   // deterministic, recorded fights are 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
@@ -9950,7 +10025,10 @@ function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming;
   if(mode==='radius'||mode==='line'){ const w=screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point
   else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
   if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:best?best.id:-1,wx:(mode==='radius'||mode==='line')?u._aimWX:null,wy:(mode==='radius'||mode==='line')?u._aimWY:null}); }
-  else castAbility(u); }
+  // v269: the ult is QUEUED with its resolved FIELD aim + target uid, and fires on the next tick —
+  // so "when you fired" is an exact tick the server can replay, not a wall-clock instant.
+  else queueInput({k:'ult', uid:u.uid, tid:(best?best.uid:null),
+    wx:(mode==='radius'||mode==='line')?u._aimWX:null, wy:(mode==='radius'||mode==='line')?u._aimWY:null}); }
 function onDown(e){ if(state!=='battle')return; const p=evXY(e);
   if(aiming){ aimTX=p.x; aimTY=p.y; return; }              // during aim: set direction (fire on release)
   let hit=null,hd=44; units.forEach(u=>{if(!u.alive||u.team!=='ally')return;const q=project(u.x,u.y,1);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<hd){hd=d;hit=u;}}); selected=hit; }
@@ -10238,7 +10316,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787861724114';
+const BUILD_ID='1787862934894';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
