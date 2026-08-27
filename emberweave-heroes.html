@@ -7494,7 +7494,7 @@ function g2slotOfFam(fam){ const sf=(RUNE2.cat&&RUNE2.cat.slotFamilies)||{}; for
 const G2_FALLBACK="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect x='5' y='5' width='30' height='30' rx='7' fill='%23223044' stroke='%236f7d90' stroke-width='2'/><text x='20' y='27' font-size='17' text-anchor='middle' fill='%238b98a9'>◆</text></svg>";
 const _g2missing={};
 function g2miss(img){ const src=img.getAttribute('src')||''; if(!_g2missing[src]){ _g2missing[src]=1; try{console.warn('[glyph-art MISSING]',src);}catch(e){} } img.onerror=null; img.src=G2_FALLBACK; }
-function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v2/${g2qdir(q)}/${type}-${slot}.png?v=2" style="width:${px}px;height:${px}px;object-fit:contain;${extra||'display:block;margin:0 auto'}" draggable="false" onerror="g2miss(this)">`; }
+function g2art(type,q,slot,px,extra){ return `<img src="/assets/img/glyphs-v2/${g2qdir(q)}/${type}-${slot}.png?v=3" style="width:${px}px;height:${px}px;object-fit:contain;${extra||'display:block;margin:0 auto'}" draggable="false" onerror="g2miss(this)">`; }
 function g2artDef(d,px,extra){ return g2art('finished',d.quality,g2slotOfFam(d.family),px,extra); }
 function g2parseKey(k){ const lad=(RUNE2.cat&&RUNE2.cat.ladder)||[]; let q=''; for(const L of lad){ if(k.startsWith(L+' ')&&L.length>q.length) q=L; } if(!q) q=k.split(' ')[0]; const fam=k.slice(q.length+1).split(' ')[0]; return {q,fam}; }
 function g2artKey(type,k,px){ const p=g2parseKey(k); return g2art(type,p.q,g2slotOfFam(p.fam),px,'display:inline-block;vertical-align:-4px'); }
@@ -9420,7 +9420,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787825939597';
+const BUILD_ID='1787830209271';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
