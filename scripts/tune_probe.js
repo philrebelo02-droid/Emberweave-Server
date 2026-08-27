@@ -11,9 +11,9 @@ function req(method,path,body,token){ return new Promise((res,rej)=>{
     let b=''; resp.on('data',c=>b+=c); resp.on('end',()=>{ try{res(JSON.parse(b));}catch(e){res({raw:b});} }); });
   r.on('error',rej); if(data)r.write(data); r.end(); }); }
 
-const D_MAX_LEVEL=70;
-const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360];
-const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700];
+const D_MAX_LEVEL=100;
+const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360,0,4480,0,4600,4720,0,4840,4960,0,5080,0,5200,0,5320,5440,0,5560,5680,0,5800,0,5920,0,6040,6160,0,6280,6400,0,6520];
+const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700,21300,21900,22500,23100,23700,24300,24900,25500,26100,26700,27300,27900,28500,29100,29700,30300,30900,31500,32100,32700,33300,33900,34500,35100,35700,36300,36900,37500,38100,38700];
 function runSum(inc){const o=[];let r=0;for(const v of inc){r+=v;o.push(r);}return o;}
 function cum(st){const c=new Array(D_MAX_LEVEL+1);c[1]=0;for(let L=2;L<=D_MAX_LEVEL;L++)c[L]=c[L-1]+st[L-2];return c;}
 const T_CUM=cum(runSum(D_TROOP_INC)), H_CUM=cum(D_HERO_STEP);
@@ -31,7 +31,7 @@ const SQUAD=['vael','sylthaine','vireo','vex','tick'];
   await req('POST','/api/admin/led-grant',{userId:rA.profile.id,unlock:SQUAD},devTok);
   const levels={};
   let pxHave=0, hxHave=0;
-  for(let L=1;L<=70;L++){
+  for(let L=1;L<=100;L++){
     const wantPx=T_CUM[L], wantHx=H_CUM[L];
     const dpx=Math.max(0,wantPx-pxHave), dhx=Math.max(0,wantHx-hxHave);
     if(dpx||dhx){ await req('POST','/api/admin/led-grant',{userId:rA.profile.id,heroKeys:SQUAD,heroXp:dhx,px:dpx},devTok);
@@ -44,7 +44,7 @@ const SQUAD=['vael','sylthaine','vireo','vex','tick'];
 
   // ---------- B) glyph ladder at level 60 ----------
   const rB=await req('POST','/api/login',{name:'tuneB',pass:'password1'});
-  await req('POST','/api/admin/led-grant',{userId:rB.profile.id,unlock:SQUAD,heroKeys:SQUAD,heroXp:H_CUM[70],px:T_CUM[70]},devTok);
+  await req('POST','/api/admin/led-grant',{userId:rB.profile.id,unlock:SQUAD,heroKeys:SQUAD,heroXp:H_CUM[100],px:T_CUM[100]},devTok);
   const cat=await req('GET','/api/glyphs/catalog',null,rB.token);
   const ladder=cat.ladder;
   const tiers=[]; let err='';

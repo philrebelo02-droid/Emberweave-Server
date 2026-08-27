@@ -47,6 +47,22 @@ ck "resolve is server-decided (won field ignored, result present)" '"won":' "$RS
 RS2=$(curl -s -X POST $B/api/campaign/resolve -H "$H" -H 'content-type: application/json' -d "{\"attemptId\":\"$AID\",\"requestId\":\"c2\",\"won\":true}")
 [ "$RS" == "$RS2" ] && { PASS=$((PASS+1)); echo "  ✓ duplicate resolve tx returns the SAME grant (idempotent)"; } || { FAIL=$((FAIL+1)); echo "  ✗ duplicate resolve differed"; }
 
+# ===== v258 (Launch Blueprint v1): CHAPTER BOSSES ARE A HARD PLAYER-LEVEL GATE =====
+# Normal stages may be attempted early; stage N-10 requires player level N*10.
+TDB=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'|jv "['token']")
+UIDB=$(curl -s $B/api/profile -H "$H"|jv "['profile']['id']")
+# clear the way to 1-10 without granting player XP, so only the boss gate can stop us
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: application/json' -d '{"userId":"'"$UIDB"'","campCleared":9,"stamina":600}' >/dev/null
+SG=$(curl -s "$B/api/campaign/stage?node=10" -H "$H")
+ck "the stage payload publishes the chapter-boss level gate" '"bossLevelGate":10' "$SG"
+SGN=$(curl -s "$B/api/campaign/stage?node=9" -H "$H")
+ck "a normal stage publishes no level gate" '"bossLevelGate":0' "$SGN"
+BG=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":10,"heroIds":["vael","sylthaine","vireo"],"requestId":"bg1"}')
+ck "an under-levelled account is refused the chapter boss" 'reach player level 10' "$BG"
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: application/json' -d '{"userId":"'"$UIDB"'","px":40000,"stamina":600}' >/dev/null
+BG2=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":10,"heroIds":["vael","sylthaine","vireo"],"requestId":"bg2"}')
+ck "the boss opens once the account reaches the gate" '"attemptId"' "$BG2"
+
 # v250: GENERIC EARN IS RETIRED for real loops — every migrated reason must be refused outright
 E1=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":80,"reason":"tower","requestId":"e1"}')
 ck "RETIRED: 'tower' gold earn refused (use /api/trial/resolve)" 'No earn rule' "$E1"
