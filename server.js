@@ -553,9 +553,11 @@ function glyphHeroPower(u, heroKey){
    Dust every floor, 2 fragments every 5th, 2 free daily Sweeps, manual salvage.
    Server owns floor, seed, enemy snapshots, outcome, and every reward roll. The client sends
    ONLY heroIds + requestId; a resolve carries NO result payload — the shared deterministic
-   resolver (server/sim.js) decides the fight. Flag: DUNGEON_V2_ENABLED (default OFF; dev
-   accounts always see it, same pattern as Glyph v2). */
-const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'false')==='true';
+   resolver (server/sim.js) decides the fight.
+   v258: the Vault is authored (server/vault-encounters.json, boot-validated), server-resolved and
+   covered by the suite, so it ships ON BY DEFAULT — no Railway variable required. Set
+   DUNGEON_V2_ENABLED=false to force it off. */
+const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'true')!=='false';
 let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠ DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
 
@@ -882,8 +884,9 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
    three destroyed citadels wins, else the spec's tie-breaker (never a coin flip).
    Everything resolves through the shared deterministic resolver (server/sim.js). The client never
    supplies power, rosters, outcomes, tower state or rewards.
-   Flag: GUILD_WAR_V2_ENABLED (default OFF; dev accounts always see it). */
-const GUILD_WAR_V2_ENABLED = String(process.env.GUILD_WAR_V2_ENABLED||'false')==='true';
+   v258: Skyfall is server-resolved with a tested 16-guild bracket, so it ships ON BY DEFAULT — no
+   Railway variable required. Set GUILD_WAR_V2_ENABLED=false to force it off. */
+const GUILD_WAR_V2_ENABLED = String(process.env.GUILD_WAR_V2_ENABLED||'true')!=='false';
 function warEnabledFor(u){ return !!SIM && (GUILD_WAR_V2_ENABLED || isDev(u)); }
 function warNow(){ return Date.now()+((DB.warTimeOffset|0)||0); }   // dev time-warp for lifecycle tests
 // AUDIT (26 Aug, high): the old ET_OFFSET_MS=4h constant broke every winter. Exact America/New_York
@@ -1214,8 +1217,10 @@ function campIsBoss(node){ return node%10===0; }
    sub-components (Green+), deterministic Tempering to 30 (no failure, 20% dust growth per
    completed bar), 80% extraction refund, Forge Resonance ranks 1–10, one Gear Active selected
    per hero. All drops, crafting, temper progress, refunds and resonance are server-owned.
-   Flag: GEAR_V2_ENABLED (default OFF; dev accounts always see it). */
-const GEAR_V2_ENABLED = String(process.env.GEAR_V2_ENABLED||'false')==='true';
+   v258: gear stats are typed and proven to reach the shared combat core, and every fragment has a
+   named Vault source, so the Forge ships ON BY DEFAULT — no Railway variable required. Set
+   GEAR_V2_ENABLED=false to force it off. */
+const GEAR_V2_ENABLED = String(process.env.GEAR_V2_ENABLED||'true')!=='false';
 let GEARCAT=null;
 (function(){ try{
   const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-catalog.json'),'utf8'));
