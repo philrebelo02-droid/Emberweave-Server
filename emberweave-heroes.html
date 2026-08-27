@@ -1902,7 +1902,7 @@ function heroQuality(key){ return G2_TIER16[Math.min(15,glyphRank(key))]; }   //
 // ============== GLYPHS — v2 only (the legacy socketable-glyph system was stripped 26 Aug) ==============
 // Crafting, fragments, socketing and ascension all live on the SERVER (u.glyphs; /api/glyphs/*).
 // The client renders the board via the RUNE2 state and reads combat stats through the two bridges below.
-function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,pen:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0}; }   // v2 only — legacy socket stats are gone
+function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
@@ -1947,7 +1947,7 @@ function starMult(key){ const lv=heroStars(key), pip=starPips(key);
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
 function gearSockMul(key){
-  const z={atk:0,apow:0,pen:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
+  const z={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
   try{
     const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled||!st.equipped) return z;
     const eq=st.equipped[key]; if(!eq) return z;
@@ -2346,7 +2346,9 @@ function heroMuls(key){
   // (stars grant FLAT hp/atk — applied post-multiplier in makeUnit/display, not here)
   const em=equipMul(key); atk+=em.atk; hp+=em.hp; dr+=em.dr; crit+=em.crit; regen+=em.regen; energyReg+=em.energy;  // equipped gear
   // socketed glyphs are FLAT ratings: Attack/Health add post-multiplier (in makeUnit/display); rate stats convert here
-  const gf=sockStatTotal(key); dr+=((gf.armor||0)+(gf.mr||0))*0.004; crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005; regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;   // glyphs + Forge gear (CR-3)
+  // v247 (COMBAT CORE): Armor/MR points are TYPED DEFENSE RATINGS handled per-hit in dealDamage —
+  // they no longer pool into a flat dr. 'Damage Reduction' points are the flat reduction stat.
+  const gf=sockStatTotal(key); dr+=Math.min(0.30,(gf.dmgRed||0)*0.004); crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005; regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;   // glyphs + Forge gear (CR-3)
   // AUDIT C6 — the DISTINCT stats, each with its own field and effect:
   const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.004;
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
@@ -2607,13 +2609,21 @@ function laneSlot(team,key,i,n,keys){
    is deterministic), so only the OWNED side needs a snapshot. */
 function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, boss:!!u.boss,
   maxHp:u.maxHp, dmg:u.dmg, range:u.range, speed:u.speed, atkInterval:u.atkInterval, combatDist:u.combatDist, r:u.r, melee:!!u.melee,
-  apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, defRating:u.defRating||0, penRating:u.penRating||0, glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
+  apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, defRating:u.defRating||0, penRating:u.penRating||0,
+  armorRating:u.armorRating||0, mrRating:u.mrRating||0, armorPen:u.armorPen||0, magicPen:u.magicPen||0,
+  critDmg:u.critDmg||0.6, lifestealStat:u.lifestealStat||0, evaStat:u.evaStat||0, accStat:u.accStat||0, blockStat:u.blockStat||0,
+  dmgBonusMul2:u.dmgBonusMul2||1, shieldStrMul:u.shieldStrMul||1, ctrlHitF:u.ctrlHitF||0, hasteEnergyMul:u.hasteEnergyMul||1,
+  glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
   critRes:u.critRes||0, energyReg:u.energyReg||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
   immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null }; }
 function buildUnitFromSnapshot(s,team,x,y){
   const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank,boss:s.boss});   // structure + kit abilities by rank
   u.maxHp=u.hp=s.maxHp; u.dmg=s.dmg; u.range=s.range; u.speed=s.speed; u.atkInterval=s.atkInterval; u.combatDist=s.combatDist; u.r=s.r; u.melee=s.melee;
-  u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.defRating=s.defRating||0; u.penRating=s.penRating||0; u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg;
+  u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.defRating=s.defRating||0; u.penRating=s.penRating||0;
+  u.armorRating=s.armorRating||0; u.mrRating=s.mrRating||0; u.armorPen=s.armorPen||0; u.magicPen=s.magicPen||0;
+  u.critDmg=s.critDmg||0.6; u.lifestealStat=s.lifestealStat||0; u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
+  u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
+  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune; u.pass=s.pass;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18;   // re-apply the ranged reach gate after overriding stats
   return u;
@@ -2671,9 +2681,24 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     skillLv: owned?skillLvArr(key).slice():[1,1,1,1], passMul:1, _castSM:1, apMul: owned?abilityPowerMul():(t.ap||1),
     apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(owned?heroFlatApow(key):0), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
-  u.glyphDR = (u.glyphDR||0) + defToDR((t.armor||0)*scale*sm + (t.mr||0)*scale*sm + (owned?techTotal('armor')+techTotal('mr'):0));   // flat Armor + Magic Resist → diminishing damage reduction
-  u.defRating = (t.armor||0)*scale*sm + (t.mr||0)*scale*sm + (owned?techTotal('armor')+techTotal('mr'):0);   // v241: kept raw so an attacker's penetration can re-run the curve at hit time
-  u.penRating = owned?heroPenRating(key):0;   // v241: Magic/Armor Penetration glyph rating
+  // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
+  // MAGICAL hits, each through defToDR and countered only by its own penetration. Every other
+  // catalog stat is live: crit damage, lifesteal, evasion/accuracy, block (phys-only), damage
+  // bonus, attack speed, haste (energy), shield strength. Same conversions as the server core.
+  { const tt=owned?sockStatTotal(key):{};
+    u.armorRating=(t.armor||0)*scale*sm + (owned?techTotal('armor'):0) + ((tt.armor||0)*3);
+    u.mrRating   =(t.mr||0)*scale*sm + (owned?techTotal('mr'):0) + ((tt.mr||0)*3);
+    u.armorPen=(tt.armorPen||0); u.magicPen=(tt.magicPen||0);
+    u.critDmg=0.6+((tt.critDmg||0)*0.005);
+    u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.004);
+    u.evaStat=Math.min(0.30,(tt.eva||0)*0.003); u.accStat=(tt.acc||0);
+    u.blockStat=Math.min(0.30,(tt.block||0)*0.003);
+    u.dmgBonusMul2=1+((tt.dmgBonus||0)*0.004);
+    u.shieldStrMul=1+((tt.shieldStr||0)*0.005);
+    u.ctrlHitF=(tt.ctrlHit||0)*0.004;
+    u.hasteEnergyMul=1+((tt.haste||0)*0.004);
+    u.atkInterval/= (1+((tt.atkSpd||0)*0.004));
+    u.defRating=u.armorRating+u.mrRating; u.penRating=(tt.armorPen||0)+(tt.magicPen||0); }   // legacy aliases
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   // ---- Hollow: he does not march in. He waits in the shadow above the field and comes down
@@ -2728,7 +2753,7 @@ function summonUnit(owner,key,dur,off){
     u.maxHp=Math.round(owner.maxHp*sc.hp); u.hp=u.maxHp;
     u.dmg=Math.round(owner.dmg*sc.dmg);
     if(sc.apow) u.apow=Math.round((owner.dmg||20)*sc.apow);
-    u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr; u.defRating=(u.defRating||0)+sc.armor+sc.mr;
+    u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr; u.armorRating=(u.armorRating||0)+sc.armor; u.mrRating=(u.mrRating||0)+sc.mr; u.defRating=(u.defRating||0)+sc.armor+sc.mr;
   }
   // rise clip is 12 frames at 14 fps — hold them underground for exactly that long so the
   // last frame of the climb IS the first frame of idle and there is no pop.
@@ -2840,7 +2865,7 @@ function damage(u,a,c,noEnergy,crit){
   }
 }
 /* outgoing damage — applies the attacker's passives (crit / lifesteal / ignite) */
-function dealDamage(src,tgt,amt,color){
+function dealDamage(src,tgt,amt,color,kind){ kind=kind||'phys';   // v247: TYPED damage — 'phys' | 'magic' | 'true'
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
   if(src&&(src._devourT||0)>0&&src._devourBonus) amt+=src._devourBonus;   // Feed Them: the pack's strength, carried
@@ -2870,15 +2895,19 @@ function dealDamage(src,tgt,amt,color){
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
   if((tgt._frozenT||0)>0) amt*=1.25;   // Cold Snap (Sylthaine): frozen foes take +25% damage from everyone
-  // v241 (audit): PENETRATION — re-runs the diminishing defense curve with (defRating − pen) as a
-  // pure ratio against the base-def mitigation already inside glyphDR. Never adds raw damage; does
-  // nothing against an unarmored target. Same rule as the server resolver.
-  if(src&&(src.penRating||0)>0&&(tgt.defRating||0)>0){ const d0=defToDR(tgt.defRating), d1=defToDR(Math.max(0,tgt.defRating-src.penRating)); if(d0<1) amt*=(1-d1)/(1-d0); }
+  // ---- v247 TYPED COMBAT (client mirror of the server core) ----
+  amt*=(src&&src.dmgBonusMul2)||1;                                              // Damage Bonus stat
+  if(kind!=='true'&&(tgt.evaStat||0)>0&&brnd()<Math.max(0,tgt.evaStat-((src&&src.accStat||0)*0.003))){
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); return; }   // Evasion vs Accuracy
+  if(kind==='magic'){ amt*=1-defToDR(Math.max(0,(tgt.mrRating||0)-((src&&src.magicPen)||0))); }      // MR vs Magic Pen
+  else if(kind!=='true'){ amt*=1-defToDR(Math.max(0,(tgt.armorRating||0)-((src&&src.armorPen)||0))); // Armor vs Armor Pen
+    if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
-  if(cc&&brnd()<cc){ let mult=1.6; if(tgt.critRes) mult=1+(mult-1)*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }
+  if(cc&&brnd()<cc){ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   const _hpBefore=tgt.hp; damage(tgt,amt,color,false,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.2);
+  if((src.lifestealStat||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*src.lifestealStat);   // v247: Lifesteal stat
   if(src.pass&&src.pass.notthere&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.10);   // the smaller Bloodletter that survived the rework
   if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
@@ -3107,7 +3136,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     // ---- Old Maren: a wave that physically SHOVES the enemy line backwards. ----
     case 'tidalsurge':{ const R=o.radius||3.4*METER, push=o.push||1.6*METER;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
-        dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff'); e.slow=Math.max(e.slow||0,o.slow||2.5);
+        dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); e.slow=Math.max(e.slow||0,o.slow||2.5);
         if(!e.immovable){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
           e._ax=e.x; e._ay=e.y; } });
@@ -3189,7 +3218,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'OVERDUE x'+tgt._debtStk,t:1.0,color:'#8a7a3a',vy:1,sz:12}); break; }
 
     // ---- Dandra: the sting slows their hands. Sting an already-stung foe and they SLEEP. ----
-    case 'drowsy':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||0.5)*rm,'#f2d84a');
+    case 'drowsy':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||0.5)*rm,'#f2d84a','magic');
       if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; tgt.stunned=Math.max(tgt.stunned||0,sl); tgt._sleepT=sl; tgt._stungT=0;
         burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'ASLEEP',t:1.2,color:'#f2d84a',vy:1,sz:13}); }
       else { tgt._stungT=o.stung||6; tgt.hasteMul=Math.min(tgt.hasteMul||1,1-(o.slowPct||0.3)); tgt.hasteT=Math.max(tgt.hasteT||0,o.stung||6);
@@ -3285,16 +3314,16 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); }); ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Sylthaine (frost mage — AP scaling) ----
     case 'frozenorb':{ const ctr=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!ctr)break; const R=o.radius||2.6*METER;
-      if(o.gfx)spawnGroundFx(o.gfx,ctr.x,ctr.y,R,o.gdur||2.0); enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff'); e.slow=Math.max(e.slow||0,2.5); } }); ringBurst(ctr.x,ctr.y,0x9fe0ff,20); burstAt(ctr.x,ctr.y,0xcfeeff,14); break; }
+      if(o.gfx)spawnGroundFx(o.gfx,ctr.x,ctr.y,R,o.gdur||2.0); enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); e.slow=Math.max(e.slow||0,2.5); } }); ringBurst(ctr.x,ctr.y,0x9fe0ff,20); burstAt(ctr.x,ctr.y,0xcfeeff,14); break; }
     case 'freeze':{ if(!tgt)break; if(o.gfx)spawnGroundFx(o.gfx,tgt.x,tgt.y,o.radius||1.2*METER,o.gdur||2.2);
-      dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap) tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
+      dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap) tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y;
       spawnGroundFx('blizzard',ctr.x,ctr.y,o.radius||8*METER,(o.dur||4)+0.4);   // the storm itself — plate lives for the whole channel
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
-    case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a','magic'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
-    case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff'); e.stunned=Math.max(e.stunned||0,0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
+    case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff','magic'); e.stunned=Math.max(e.stunned||0,0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     // ---- King Bloatus (poison tank) — poison scales off ability power ----
     case 'toxbreath':{ const reach=15*METER, pd=apB*(o.dps||0.5), con=!!(u.pass&&u.pass.contagion);
       // aim at the FURTHEST enemy within 15m (that is Bloatus's target); everyone along the line gets hit.
@@ -3303,13 +3332,13 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       spawnBeamFx('toxbeam',u,tx,ty,1.5,0.5);                   // gas beam: mouth -> target, extend 1.5s then retract 0.5s
       const dd=Math.max(1,Math.hypot(tx-u.x,ty-u.y)), ux=(tx-u.x)/dd, uy=(ty-u.y)/dd, half=1.4*METER;
       enemiesOf(u).forEach(e=>{ let pr=(e.x-u.x)*ux+(e.y-u.y)*uy; if(pr<0)pr=0; if(pr>dd)pr=dd; const cx=u.x+ux*pr, cy=u.y+uy*pr;
-        if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; } });
+        if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; } });
       floatTexts.push({x:u.x,y:u.y-12,txt:'TOXIC BREATH',t:.9,color:'#a6e05a',vy:1,sz:12}); break; }
     case 'swamproot':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; const R=o.radius||2.4*METER;
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a'); e.stunned=Math.max(e.stunned||0,o.root||2); floatTexts.push({x:e.x,y:e.y-8,txt:'ROOTED',t:.8,color:'#8fbf3f',vy:1,sz:12}); } });
+      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); e.stunned=Math.max(e.stunned||0,o.root||2); floatTexts.push({x:e.x,y:e.y-8,txt:'ROOTED',t:.8,color:'#8fbf3f',vy:1,sz:12}); } });
       ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); break; }
     case 'plaguesov':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; } });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; } });
       ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Vireo (bard support) — heals/shields scale off ability power ----
     case 'crescendo':{ if(o.gfx)spawnGroundFx(o.gfx,u.x,u.y,o.radius||2.4*METER,o.gdur||1.8);
@@ -3321,11 +3350,11 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       floatTexts.push({x:u.x,y:u.y-12,txt:'HARMONY',t:1.0,color:'#b6e0ff',vy:1,sz:13}); ringBurst(u.x,u.y,0x9fbfff,16); break; }
     case 'symphony':{ const R=o.radius||8*METER, pp=!!(u.pass&&u.pass.perfectpitch);
       alliesOf(u).forEach(a=>{ if(dist(u,a)<R){ const h=a.maxHp*(o.healMul||0.35)+apB*2; healUnit(a,h); if(pp){ a.shield=Math.max(a.shield,h*0.4); a.shieldT=6; } } });
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.dmgMul||1.4)*rm,'#d0a6ff'); });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.dmgMul||1.4)*rm,'#d0a6ff','magic'); });
       floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     // ---- Fritz (lightning assassin) — lightning scales off ability power ----
     case 'stormsurge':{ let foes=enemiesOf(u); if(!foes.length)break; const n=Math.min(o.n||5, foes.length);
-      for(let i=0;i<n && foes.length;i++){ const k=Math.floor(brnd()*foes.length); const e=foes.splice(k,1)[0]; dealDamage(u,e,apB*(o.mul||0.85)*rm,'#f2e07a'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); }
+      for(let i=0;i<n && foes.length;i++){ const k=Math.floor(brnd()*foes.length); const e=foes.splice(k,1)[0]; dealDamage(u,e,apB*(o.mul||0.85)*rm,'#f2e07a','magic'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); }
       floatTexts.push({x:u.x,y:u.y-12,txt:'STORM SURGE',t:.9,color:'#f2e07a',vy:1,sz:12}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); break; }
     case 'chainlight':{ let cur=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!cur)break; const hit=new Set(); let dmg=apB*(o.mul||1.1)*rm; const jumps=o.jumps||4, dec=o.decay||0.8; let prev=u;
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev)spawnShot(prev,cur,'#bfe6ff'); prev=cur; dmg*=dec;
@@ -4132,7 +4161,7 @@ function updateBattle(dt){
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); } } }
     if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(battleTime*7)%foes.length]; e.stunned=Math.max(e.stunned||0,1.2); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag)
   });
-  units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*dt); }); // glyph HP & energy regen
+  units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // WoW-style status effects: DoT / HoT ticks + buff/debuff timers
   units.forEach(u=>{ if(!u.alive)return;
     for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; damage(u,d.dps,d.color,true); d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
@@ -7457,14 +7486,14 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
-function glyphV2Mul(key){ const out={atk:0,apow:0,pen:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
+function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
   if(!RUNE2.enabled||!RUNE2.st||!RUNE2.cat) return out;
   // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = CONTROL resist; Starting Energy = initial
   // energy; Healing Power = healer output; HP Regen = universal regen. Never folded into lookalikes.
   // v241 (audit): Ability Power feeds the ABILITY line (apow), never basic attack; Magic/Armor
   // Penetration are a pen rating that counters the target's defense rating in dealDamage; Energy
   // Regen is the energy rating (1 energy/s per 100, same as gear).
-  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'apow','Magic Penetration':'pen','Armor Penetration':'pen','Energy Regen':'energy','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow'};
+  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'apow','Armor Penetration':'armorPen','Magic Penetration':'magicPen','Energy Regen':'energy','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Crit Damage':'critDmg','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Control Hit':'ctrlHit','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow','Lifesteal':'lifesteal','Attack Speed':'atkSpd','Haste':'haste','Evasion':'eva','Accuracy':'acc','Block':'block','Damage Bonus':'dmgBonus','Damage Reduction':'dmgRed','Shield Strength':'shieldStr'};
   const b=g2board(key); const add=(stat,val)=>{ const k=MAP[stat]; if(k) out[k]+=val; };
   for(const st in (b.ascended||{})) add(st, b.ascended[st].val);
   for(const sObj of (b.slots||[])){ if(!sObj)continue; (sObj.stats||[]).forEach(s=>add(s.stat,s.val)); }
@@ -9591,7 +9620,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787839928554';
+const BUILD_ID='1787840271265';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
