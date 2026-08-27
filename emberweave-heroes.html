@@ -4828,7 +4828,7 @@ function renderProfileModal(){
     <div style="font-size:10px;color:#8b98a9;margin-top:4px">${rfree?'You have <b style="color:#ffd45e">1 free rename</b> available. After that: 2nd 💎50 · 3rd 💎100 · 4th+ 💎200.':`Next rename costs <b style="color:#c9b6ff">💎${rcost}</b>.${rafford?'':' <span style="color:#ff8b8b">Not enough diamonds.</span>'}`}</div>
     <div id="pfMsg" style="font-size:11px;color:#ffd45e;min-height:14px;margin-top:4px"></div>
     <div style="font-weight:700;font-size:13px;margin-top:10px">Portrait <span style="font-size:10px;color:#8b98a9">(choose an owned hero)</span></div>
-    <div class="avpick" id="pfAvs">${HERO_KEYS.map(k=>{ const own=G.unlocked[k]; return `<div class="av${k===curPortrait?' sel':''}${own?'':' locked'}" data-k="${k}" title="${HERO_TYPES[k].name}"><img class="avimg" data-k="${k}" style="width:100%;height:100%;object-fit:cover" src="${HERO_PORTRAITS[k]||''}"></div>`; }).join('')}</div>`;
+    <div class="avpick" id="pfAvs">${HERO_KEYS.slice().sort((a,b)=>((G.unlocked[b]?1:0)-(G.unlocked[a]?1:0))||(heroPower(b)-heroPower(a))).map(k=>{ const own=G.unlocked[k]; return `<div class="av${k===curPortrait?' sel':''}${own?'':' locked'}" data-k="${k}" title="${HERO_TYPES[k].name}"><img class="avimg" data-k="${k}" style="width:100%;height:100%;object-fit:cover" src="${HERO_PORTRAITS[k]||''}"></div>`; }).join('')}</div>`;
   setHead(body.querySelector('#pfHead'), curPortrait);
   body.querySelectorAll('#pfAvs .avimg').forEach(im=>setHead(im, im.dataset.k));
   const nameBtn=body.querySelector('#pfSave'); if(nameBtn) nameBtn.onclick=()=>{
@@ -6035,8 +6035,14 @@ function renderRoster(){
   const marchers = setDef ? committedHeroes() : new Set();   // on defense screens, heroes away marching/mining are greyed & inactive
   // heroes already assigned to ANOTHER wall line are exclusive — they can't be picked here
   const otherLine={}; if(isWall){ WALL_CTXS.forEach(c=>{ if(c!==teamCtx)(wallArr(c)||[]).forEach(k=>{ if(otherLine[k]==null) otherLine[k]=WALL_NUM[c]; }); }); }
-  HERO_KEYS.forEach(key=>{
-    const t=HERO_TYPES[key],unlocked=G.unlocked[key],inTeam=teamArr.includes(key),away=marchers.has(key),elsewhere=otherLine[key];
+  // 27 Aug (Phil): a squad screen lists ONLY heroes you own — nothing you cannot pick — strongest
+  // first, with anyone already in this line pinned to the top so you can see the squad at a glance.
+  const _pickable=HERO_KEYS.filter(k=>G.unlocked[k]);
+  _pickable.sort((a,b)=>{ const ta=teamArr.includes(a)?1:0, tb=teamArr.includes(b)?1:0;
+    if(ta!==tb) return tb-ta; return heroPower(b)-heroPower(a); });
+  if(!_pickable.length){ r.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:18px">No heroes yet — summon one at the Wishing Pool.</div>'; }
+  _pickable.forEach(key=>{
+    const t=HERO_TYPES[key],unlocked=true,inTeam=teamArr.includes(key),away=marchers.has(key),elsewhere=otherLine[key];
     const blocked = away || (elsewhere!=null);
     const card=document.createElement('div'); card.className='hero-card'+(inTeam?' selected':'')+(!unlocked?' locked':'');
     if(blocked && !inTeam){ card.style.opacity='.45'; }
@@ -7765,9 +7771,14 @@ function renderHeroList(){
   const sel=sortBar.querySelector('#heroSortSel'); sel.value=heroSort; sel.onchange=()=>{ heroSort=sel.value; renderHeroList(); };
   // owned/summoned heroes first (by the chosen sort), then locked heroes (closest-to-summon first)
   const sv=(k)=> heroSort==='level'?heroLevel(k) : heroSort==='stars'?(heroStars(k)*100+starPips(k)) : heroPower(k);
-  const owned=HERO_KEYS.filter(k=>G.unlocked[k]).sort((a,b)=>sv(b)-sv(a));
-  const locked=HERO_KEYS.filter(k=>!G.unlocked[k]).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
-  [...owned,...locked].forEach(key=>{ const t=HERO_TYPES[key],unlocked=G.unlocked[key],myth=isMythic(key);
+  // 27 Aug (Phil): heroes you OWN are always the top of this list, whatever the sort is set to.
+  const owned=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]).sort((a,b)=>sv(b)-sv(a));
+  const locked=HERO_KEYS.filter(k=>!(G.unlocked&&G.unlocked[k])).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
+  if(owned.length) r.appendChild(Object.assign(document.createElement('div'),
+    {style:'grid-column:1/-1;font-size:9px;letter-spacing:1px;color:#8b98a9;margin:4px 2px 0',textContent:'YOUR HEROES ('+owned.length+')'}));
+  [...owned,...locked].forEach((key,ix)=>{ const t=HERO_TYPES[key],unlocked=G.unlocked&&G.unlocked[key],myth=isMythic(key);
+    if(ix===owned.length && locked.length) r.appendChild(Object.assign(document.createElement('div'),
+      {style:'grid-column:1/-1;font-size:9px;letter-spacing:1px;color:#6f7d90;margin:10px 2px 0',textContent:'NOT YET SUMMONED'}));
     const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(myth?' mythic':'');
     const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
     // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
@@ -10034,7 +10045,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787853943072';
+const BUILD_ID='1787856160919';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
