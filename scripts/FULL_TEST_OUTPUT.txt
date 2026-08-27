@@ -62,6 +62,22 @@ PASS: 5  FAIL: 0
   ✓ server regen (board+gear) == client conversion
 PASS: 19  FAIL: 0
 
+== test_determinism.js (the real battle sim, same seed → same fight) ==
+== v268: the battle sim is deterministic ==
+  ✓ the sim produced a real end-state digest
+  ✓ same seed, run twice → byte-identical fight
+  ✓ same seed, run a third time → still identical
+  ✓ the seed installs a different random stream
+  ✓ the same seed re-installs the SAME stream
+  ✓ a different roster → a different fight (the digest is sensitive)
+  ✓ a five-a-side fight is deterministic too
+  ✓ the variable-timestep live branch is GONE
+  ✓ every mode advances on the fixed-step accumulator
+  ✓ gear-skill random targeting is seeded, not Math.random
+  ✓ no wall-clock setTimeout mutates a unit mid-fight
+
+PASS: 11  FAIL: 0
+
 == probes (no server needed) ==
   ✓ NO universal base crit: zero-crit units never crit (max/base < 1.35)
   ✓ DR 0.6 cuts damage to ~40% (0.40)

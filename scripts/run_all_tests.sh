@@ -48,6 +48,8 @@ node test_ws_revoke.js || FAILED=1
 if [ "$BROWSER_OK" = "1" ]; then
   note "test_parity_harness.js (real client/server field comparison in Chromium)"
   node test_parity_harness.js || FAILED=1
+  note "test_determinism.js (the real battle sim, same seed → same fight)"
+  node test_determinism.js || FAILED=1
 fi
 cleanup
 note "probes (no server needed)"
