@@ -63,6 +63,17 @@ curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: appl
 BG2=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":10,"heroIds":["vael","sylthaine","vireo"],"requestId":"bg2"}')
 ck "the boss opens once the account reaches the gate" '"attemptId"' "$BG2"
 
+# ===== 27 Aug (Phil): SWEEPING IS EARNED — a stage is sweepable only at three stars =====
+SWP=$(curl -s -X POST $B/api/campaign/sweep -H "$H" -H 'content-type: application/json' -d '{"node":3,"times":1,"requestId":"sws1"}')
+ck "a cleared-but-not-three-starred stage refuses the sweep" 'needs ★★★' "$SWP"
+SP=$(curl -s "$B/api/campaign/stage?node=3" -H "$H")
+ck "the stage payload publishes the sweep lock" '"sweepUnlocked":false' "$SP"
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: application/json' -d '{"userId":"'"$UIDB"'","campStars":{"3":3},"stamina":600}' >/dev/null
+SP3=$(curl -s "$B/api/campaign/stage?node=3" -H "$H")
+ck "three stars unlock the sweep on the payload" '"sweepUnlocked":true' "$SP3"
+SWP2=$(curl -s -X POST $B/api/campaign/sweep -H "$H" -H 'content-type: application/json' -d '{"node":3,"times":1,"requestId":"sws2"}')
+ck "a three-starred stage sweeps" '"ok":true' "$SWP2"
+
 # v250: GENERIC EARN IS RETIRED for real loops — every migrated reason must be refused outright
 E1=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gold","amount":80,"reason":"tower","requestId":"e1"}')
 ck "RETIRED: 'tower' gold earn refused (use /api/trial/resolve)" 'No earn rule' "$E1"

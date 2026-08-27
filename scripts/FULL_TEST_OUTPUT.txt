@@ -10,7 +10,7 @@
 == test_transform.sh ==
   ✓ MANIFEST: glyph fragments name their authored campaign source
 
-PASS: 54  FAIL: 0
+PASS: 58  FAIL: 0
 
 == test_glyphs.sh ==
   ✓ stage fragment target is fixed across loads
