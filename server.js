@@ -265,6 +265,37 @@ function nextJoinRank(){ const occ=new Set(Object.values(DB.users).map(u=>u.rank
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
+/* v272 (full-game audit): the account's REAL power, derived from the ledger alone. `me.team` is a
+   client-authored array — /api/save takes it verbatim — so anything that PAYS OUT must never read a
+   level or rank out of it. This reads the roster keys only, and takes every stat from the ledger. */
+/* A stored line-up is a list of hero keys and nothing else. No level, no rank, no stats — those are
+   the ledger's to say. Capped at five so a client cannot grow the record without bound. */
+function sanitizeRoster(arr){
+  const out=[]; const seen=new Set();
+  for(const h of (Array.isArray(arr)?arr.slice(0,10):[])){
+    const key=(h&&typeof h==='object')?String(h.key||''):String(h||'');
+    if(!key || !SIM.HERO_BASE[key] || seen.has(key)) continue;
+    seen.add(key); out.push({key});
+    if(out.length>=5) break;
+  }
+  return out;
+}
+function ledgerTeamPower(u){
+  const led=ensureLedger(u);
+  const keys=Array.isArray(u.team)?u.team.map(h=>h&&h.key).filter(k=>k&&led.unlocked[k]).slice(0,5):[];
+  const use=keys.length?keys:Object.keys(led.unlocked).slice(0,5);
+  let p=0;
+  for(const k of use){
+    const h=led.hero[k]; if(!h) continue;
+    const lvl=ledHeroLevel(led,k);
+    const base=SIM.HERO_BASE[k]||{stars:1};
+    const stars=Math.max(base.stars||1, Math.min(5, h.stars|0));
+    p += lvl*14 + stars*70 + 60;
+    if(u.glyphs) p += glyphHeroPower(u,k);
+    if(u.gear) p += gearHeroPower(u,k);
+  }
+  return Math.round(p);
+}
 function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); if(owner&&owner.gear) p += gearHeroPower(owner, h.key); } return Math.round(p); }
 /* ==================== GLYPH ASCENSION v2 — server-authoritative ====================
    The browser NEVER computes a craft result, passive value, socket result, or promotion.
@@ -2229,7 +2260,11 @@ async function api(req,res,url){
   }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req, BODY_MAX_SAVE);
-    if(Array.isArray(b.team)) me.team=b.team; if(Array.isArray(b.wall)) me.wall=b.wall;
+    /* v272 (full-game audit): `team`/`wall` are the player's chosen line-up — UI state, not power.
+       They used to be stored verbatim, unbounded, and a forged `level`/`rank` inside them reached a
+       reward formula. Store the keys only, capped, and let the ledger supply every stat. */
+    if(Array.isArray(b.team)) me.team=sanitizeRoster(b.team);
+    if(Array.isArray(b.wall)) me.wall=sanitizeRoster(b.wall);
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
     if(b.world && typeof b.world==='object'){   // world-map presence: region + castle position + display stats
       const w=b.world;
@@ -3130,9 +3165,10 @@ async function api(req,res,url){
     if(p==='/api/guild/raid/assault'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'graid',30,60000)) return send(res,429,{error:'Slow down.'});
       const r=ensureRaid(g); if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
-      // SECURITY (audit crit #5): damage used to be driven by client b.power (up to 5,000,000/hit,
-      // minted from nothing). Use the player's SERVER-KNOWN team power instead. -PR review
-      let power=Math.max(1,Math.min(5000000, serverTeamPower(me.team, me)||1));
+      /* SECURITY (audit crit #5, re-closed v272): damage was driven by client b.power, then by
+         serverTeamPower(me.team) — but me.team is CLIENT-AUTHORED (see /api/save), so a forged
+         {level:9999,rank:999} still inflated raid damage ~560×. Power now comes from the ledger. */
+      let power=Math.max(1,Math.min(5000000, ledgerTeamPower(me)||1));
       const dmg=Math.max(1, Math.round(power*(1.4+Math.random()*0.8)));
       r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1;
       let killed=false, reward=null;

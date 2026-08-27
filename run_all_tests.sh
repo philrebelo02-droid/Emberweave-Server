@@ -55,6 +55,8 @@ if [ "$BROWSER_OK" = "1" ]; then
 fi
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node test_player_truth.js || FAILED=1
+note "test_authority_hardening.js (v272: a forged line-up cannot buy power)"
+node test_authority_hardening.js || FAILED=1
 cleanup
 note "probes (no server needed)"
 node test_sim_parity.js || FAILED=1
