@@ -425,7 +425,7 @@ function glyphPreChoice(heroKey, slotIdx, qi){
    no client allocation) ever creates a loose Sub-Glyph or finished-glyph item. ---- */
 function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:glyphFragSlug(key),
   displayName:key+' Fragment', need:qty, have:(g.fragments[key]|0),
-  sources:(CAMP_ENC&&CAMP_ENC.fragSources&&CAMP_ENC.fragSources[key]||[]).slice(0,4) }; }
+  sources:portalSourcesFor(key) }; }
 function glyphTreeChildren(g, def){ const kids=[];
   for(const ing of def.ing){
     if(ing.kind==='frag') kids.push(glyphTreeLeaf(g, ing.key, ing.qty));
@@ -1115,6 +1115,8 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
   return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags,
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
+    portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
+      o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
     dust:u.dust||0 }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
@@ -1185,7 +1187,71 @@ function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:''
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=100;   // Blueprint v1: 10 chapters × 10 fixed stages. Chapters 11+ are explicitly OUT.
+/* v266 — Exact Glyph Fragment Farm Map v1. THREE fixed portals, one visible source per fragment:
+   Normal (100 families) · Elite (the other 100, stronger fixed version of the same stage) ·
+   Veteran (all 18 Orange). No random rolls, no stage showing unrelated families. */
+const PORTAL_MODES=Object.freeze(['normal','elite','veteran']);
+const PORTAL_LABEL=Object.freeze({normal:'Normal Portal', elite:'Elite Portal', veteran:'Veteran Portal'});
+const PORTAL_FILE=Object.freeze({normal:'campaign-encounters.json', elite:'elite-campaign-encounters.json', veteran:'veteran-campaign-encounters.json'});
+const PORTAL_SIZE=Object.freeze({normal:100, elite:100, veteran:18});
+/* unlock gates (spec §"Campaign mode" table) */
+const PORTAL_GATE=Object.freeze({ normal:null,
+  elite:{ afterNode:20, level:20, text:'Elite Portal opens after Normal 2-10 at player level 20.' },
+  veteran:{ afterNode:100, level:100, text:'Veteran Portal opens after Normal 10-10 at player level 100.' } });
+let PORTALS={};          // mode -> { byNode, list }
+let FRAG_SOURCES={};     // fragmentId -> [{ mode, stageId }]
 let CAMP_ENC=null;
+function portalCompile(){
+  PORTALS={}; FRAG_SOURCES={};
+  for(const mode of PORTAL_MODES){
+    const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server',PORTAL_FILE[mode]),'utf8'));
+    if(!Array.isArray(raw)||raw.length!==PORTAL_SIZE[mode])
+      throw new Error(mode+' portal: expected '+PORTAL_SIZE[mode]+' stages, got '+(raw&&raw.length));
+    const byNode={}; const seen=new Set();
+    for(const e of raw){
+      if(!e.id||!(e.node>=1)) throw new Error(mode+' portal: stage record missing id/node');
+      if(!Array.isArray(e.waves)||!e.waves.length) throw new Error(mode+' '+e.id+': no waves');
+      const gf=e.rewards&&e.rewards.glyphFragments;
+      // THE farm-map rule: exactly ONE primary fragment family per stage, never a random replacement
+      if(!Array.isArray(gf)||gf.length!==1) throw new Error(mode+' '+e.id+': must name exactly one glyph fragment');
+      const f=gf[0];
+      if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error(mode+' '+e.id+': fragment record malformed');
+      const q=f.key.slice(0,f.key.lastIndexOf(' '));
+      if(GLYPH_LADDER.indexOf(q)<0) throw new Error(mode+' '+e.id+': illegal fragment quality "'+q+'"');
+      if(seen.has(f.fragmentId)) throw new Error(mode+' portal: '+f.fragmentId+' is farmed by two stages');
+      seen.add(f.fragmentId);
+      (FRAG_SOURCES[f.fragmentId]=FRAG_SOURCES[f.fragmentId]||[]).push({mode, stageId:e.id, key:f.key});
+      byNode[e.node]=e;
+    }
+    PORTALS[mode]={ byNode, list:raw };
+  }
+  // no family may be farmed in two different portals — one fixed, visible source each
+  const dup=Object.keys(FRAG_SOURCES).filter(k=>FRAG_SOURCES[k].length>1);
+  if(dup.length) throw new Error('fragments with more than one source: '+dup.slice(0,5).join(', '));
+  console.log('🗺  Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
+    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families, one fixed source each.');
+}
+/* the one visible source of a fragment, as the ancestry tree and inventory show it:
+   "Farm: Normal Portal 1-9" — and enough data to deep-link straight to that stage. */
+function portalSourcesFor(key){ const id=glyphFragSlug(key);
+  return (FRAG_SOURCES[id]||[]).map(x=>({ mode:x.mode, stageId:x.stageId,
+    label:'Farm: '+PORTAL_LABEL[x.mode]+' '+x.stageId,
+    node:(function(){ const [c,st2]=x.stageId.split('-').map(Number); return (c-1)*10+st2; })() })); }
+function portalStageOf(mode,node){ const P=PORTALS[mode]; return (P&&P.byNode[node|0])||null; }
+function portalModeOf(v){ const m=String(v||'normal'); return PORTAL_MODES.includes(m)?m:'normal'; }
+/* per-mode progress. Normal keeps led.camp (every existing account already has it); the two new
+   portals live under led.portals so nothing about saved progress moves. */
+function portalProg(led,mode){
+  if(mode==='normal') return led.camp;
+  led.portals=led.portals||{};
+  return led.portals[mode]||(led.portals[mode]={cleared:0, stars:{}, att:null, runs:{}});
+}
+function portalLocked(led,mode){
+  const g=PORTAL_GATE[mode]; if(!g) return null;
+  if((led.camp.cleared|0) < g.afterNode) return g.text;
+  if(ledPlayerLevel(led) < g.level) return g.text;
+  return null;
+}
 function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
     if(!Array.isArray(raw)||raw.length!==CAMPAIGN_NODES) throw new Error('expected '+CAMPAIGN_NODES+' encounters, got '+(raw&&raw.length));
@@ -1924,7 +1990,7 @@ async function api(req,res,url){
       const opts=(pre?[pre]:[]).map(d=>{
         const cost=g2BuildCost(g,d)||{need:{},useSubs:{}};
         const materials=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
-          need:cost.need[k], have:(g.fragments[k]|0), sources:(CAMP_ENC&&CAMP_ENC.fragSources[k]||[]).slice(0,4) }));
+          need:cost.need[k], have:(g.fragments[k]|0), sources:portalSourcesFor(k) }));
         return { blueprintId:d.id, name:d.name, family:d.family, quality:d.quality, stats:d.stats,
           materials, buildable:materials.every(m=>m.have>=m.need) }; });
       return send(res,200,{ hero, slot, quality:GLYPH_LADDER[board.ascensionIndex], ascensionIndex:board.ascensionIndex,
@@ -1946,7 +2012,7 @@ async function api(req,res,url){
       if(!pre) return send(res,400,{error:'No blueprint for this slot.'});
       const cost=g2BuildCost(g,pre)||{need:{}};
       const totals=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
-        need:cost.need[k], have:(g.fragments[k]|0), sources:(CAMP_ENC&&CAMP_ENC.fragSources[k]||[]).slice(0,4) }));
+        need:cost.need[k], have:(g.fragments[k]|0), sources:portalSourcesFor(k) }));
       const canBuild=totals.every(t=>t.have>=t.need);
       const lvNeed=glyphLevelGate(board.ascensionIndex), lvHave=ledHeroLevel(ensureLedger(me),hero);
       const lvOk=lvHave>=lvNeed;
@@ -2149,21 +2215,23 @@ async function api(req,res,url){
   if(p==='/api/campaign/sweep' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':csweep:'+reqId,()=>{
-      const led=ensureLedger(me); const node=b.node|0; const st=campStageOf(node); if(!st) return {ok:false,error:'Unknown stage.'};
-      if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
+      const led=ensureLedger(me); const mode=portalModeOf(b.mode); const prog=portalProg(led,mode);
+      const lockMsg=portalLocked(led,mode); if(lockMsg) return {ok:false,error:lockMsg};
+      const node=b.node|0; const st=portalStageOf(mode,node); if(!st) return {ok:false,error:'Unknown stage.'};
+      if(node>prog.cleared) return {ok:false,error:'Clear the stage first.'};
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
-      if((led.camp.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(led.camp.stars[node]|0)};
+      if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(prog.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
       const elite=(node%5===0);   // guardian/boss stages: 3 rewarded runs/day, sweeps included
-      led.camp.runs=led.camp.runs||{}; const dk=nyDayKey();
-      if(led.camp.runs.k!==dk) led.camp.runs={k:dk};
-      if(elite){ const used=led.camp.runs['n'+node]|0; const left=Math.max(0,3-used);
+      prog.runs=prog.runs||{}; const dk=nyDayKey();
+      if(prog.runs.k!==dk) prog.runs={k:dk};
+      if(elite){ const used=prog.runs['n'+node]|0; const left=Math.max(0,3-used);
         if(left<1) return {ok:false,error:'Daily limit reached (3/day for guardian & boss stages).'};
         times=Math.min(times,left); }
       const cost=(campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL)*times;
       ledStamRegen(led); if(led.stam.v<cost) return {ok:false,error:'Not enough stamina.'};
       led.stam.v-=cost;
-      if(elite) led.camp.runs['n'+node]=(led.camp.runs['n'+node]|0)+times;
+      if(elite) prog.runs['n'+node]=(prog.runs['n'+node]|0)+times;
       const rw=st.rewards;
       const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
       led.gold=Math.min(100000000,led.gold+gold);
@@ -2171,13 +2239,14 @@ async function api(req,res,url){
       if(ledPlayerLevel(led)>beforeLvl) led.stam.v=Math.max(led.stam.v,ledStamMax(led));   // level-up refill
       const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
-      ledTx(me,'campaign:sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
+      ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
+      // Farm Map v1: a sweep grants the SAME named fragment the stage always drops, ×times.
       const glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity*times})));
-      // v250: ELITE stages grant their hero's fragment ON THE SERVER (1/run) — the client no longer self-reports it
+      // v250: guardian stages grant their hero's summon fragment ON THE SERVER (1/run)
       let eliteFrag=null;
-      if(isEliteStageSrv(node)){ const hk=eliteHeroForSrv(node);
+      if(mode==='normal' && isEliteStageSrv(node)){ const hk=eliteHeroForSrv(node);
         led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+times); eliteFrag={heroKey:hk, qty:times}; }
-      writeDB(); return {ok:true, times, gold, px, heroXp:hxp, glyphFragments, eliteFrag, ledger:ledgerView(me)};
+      writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -2241,7 +2310,8 @@ async function api(req,res,url){
     });
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'});
-    const node=parseInt(url.searchParams.get('node')||'0',10); const st=campStageOf(node);
+    const mode=portalModeOf(url.searchParams.get('mode'));
+    const node=parseInt(url.searchParams.get('node')||'0',10); const st=portalStageOf(mode,node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
     /* v257: "your power" is computed HERE, from the server's own resolved snapshots, on exactly the
        same scale as the authored recommendedPower — so the two numbers the player compares can never
@@ -2254,17 +2324,30 @@ async function api(req,res,url){
       const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       yourPower=Math.round(snaps.reduce((a,u)=>a+(u.maxHp||0)/8+Math.max(u.atkP||0,u.atkM||0)*3+(u.heal||0)*2,0));
     }catch(e){}
-    const _led=ensureLedger(me);
-    return send(res,200,{stage:st, yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
+    const _led=ensureLedger(me), _pr=portalProg(_led,mode);
+    return send(res,200,{stage:st, mode, portal:PORTAL_LABEL[mode], yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
       bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(_led),
-      stars:(_led.camp.stars[node]|0), sweepUnlocked:(_led.camp.stars[node]|0)>=3 }); }
+      locked:portalLocked(_led,mode), cleared:_pr.cleared|0,
+      stars:(_pr.stars[node]|0), sweepUnlocked:(_pr.stars[node]|0)>=3,
+      farm:(st.rewards.glyphFragments[0]||null) }); }
+  /* v266: the whole farm map in one call — every portal's stage list with its ONE named fragment,
+     plus the reverse index the Glyph tree deep-links from. */
+  if(p==='/api/portals'){ if(!me)return send(res,401,{error:'auth'});
+    const led=ensureLedger(me);
+    return send(res,200,{ modes:PORTAL_MODES.map(m=>{ const pr=portalProg(led,m);
+        return { mode:m, label:PORTAL_LABEL[m], stages:PORTAL_SIZE[m], locked:portalLocked(led,m),
+          cleared:pr.cleared|0, stars:pr.stars,
+          map:PORTALS[m].list.map(e=>({ node:e.node, id:e.id, fragment:e.rewards.glyphFragments[0] })) }; }),
+      fragmentSources:FRAG_SOURCES }); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
     const led=ensureLedger(me);
-    const node=b.node|0; const st=campStageOf(node);
+    const mode=portalModeOf(b.mode); const prog=portalProg(led,mode);
+    const lockMsg=portalLocked(led,mode); if(lockMsg) return send(res,400,{error:lockMsg});
+    const node=b.node|0; const st=portalStageOf(mode,node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
-    if(node>led.camp.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
+    if(node>prog.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
@@ -2274,17 +2357,20 @@ async function api(req,res,url){
     if(led.stam.v<cost) return send(res,400,{error:'Not enough stamina.'});
     led.stam.v-=cost;
     const snaps=ids.map(k=>snapshotHeroFromServer(me,k)); if(snaps.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
-    led.camp.att={ id:uid(), node, heroIds:ids, teamSnapshot:snaps, startedAt:Date.now(), reqId };
-    ledTx(me,'campaign:start:'+st.id,{stamina:-cost});
+    prog.att={ id:uid(), node, mode, heroIds:ids, teamSnapshot:snaps, startedAt:Date.now(), reqId };
+    ledTx(me,mode+':start:'+st.id,{stamina:-cost});
     writeDB();
-    return send(res,200,{ ok:true, attemptId:led.camp.att.id, stage:st, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
+    return send(res,200,{ ok:true, attemptId:prog.att.id, mode, stage:st, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
   if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':cresolve:'+reqId,()=>{
-      const led=ensureLedger(me); const a=led.camp.att;
-      if(!a||a.id!==String(b.attemptId||'')) return {ok:false,error:'No matching campaign battle.'};
-      led.camp.att=null;
-      const st=campStageOf(a.node); if(!st) return {ok:false,error:'Stage data missing.'};
+      const led=ensureLedger(me);
+      const aid=String(b.attemptId||'');
+      let mode=null, prog=null, a=null;
+      for(const m of PORTAL_MODES){ const pr=portalProg(led,m); if(pr.att && pr.att.id===aid){ mode=m; prog=pr; a=pr.att; break; } }
+      if(!a) return {ok:false,error:'No matching campaign battle.'};
+      prog.att=null;
+      const st=portalStageOf(mode,a.node); if(!st) return {ok:false,error:'Stage data missing.'};
       // AUTHORITATIVE result: the deterministic estimate decides — the client's opinion is not read.
       // CAMPAIGN_SKILL_BAND is the documented, deterministic manual-play allowance.
       const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND),
@@ -2297,21 +2383,21 @@ async function api(req,res,url){
       if(won){
         const last=r.waveResults[r.waveResults.length-1].team; const total=last.length||1, alive=last.filter(x=>x.alive).length;
         stars=alive>=total?3:(alive>=Math.ceil(total/2)?2:1);
-        const first=a.node>led.camp.cleared;
+        const first=a.node>prog.cleared;
         const rw=st.rewards;
         reward={ gold:first?rw.firstGold:rw.repeatGold, playerXp:first?rw.playerXpFirst:rw.playerXpRepeat,
                  heroXp:first?rw.heroXpFirst:rw.heroXpRepeat, first };
         led.gold=Math.min(100000000,led.gold+reward.gold);
         led.px=Math.min(99000000,led.px+reward.playerXp);
         for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
-        if(first) led.camp.cleared=a.node;
-        if(stars>(led.camp.stars[a.node]|0)) led.camp.stars[a.node]=stars;
-        ledTx(me,'campaign:clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
+        if(first) prog.cleared=a.node;
+        if(stars>(prog.stars[a.node]|0)) prog.stars[a.node]=stars;
+        ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
         // Correction Spec v1: the stage's EXACT named Glyph Fragment target, granted server-side
         reward.glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity})));
-      } else ledTx(me,'campaign:loss:'+st.id,{});
+      } else ledTx(me,mode+':loss:'+st.id,{});
       writeDB();
-      return { ok:true, won, stars, reward, replaySeed:SIM.seedFrom('camp:'+a.id), ledger:ledgerView(me) };
+      return { ok:true, mode, won, stars, reward, replaySeed:SIM.seedFrom('camp:'+a.id), ledger:ledgerView(me) };
     });
     return send(res, out.ok===false?400:200, out); }
   /* ---- hero progression endpoints: EXACT mirrors of the game's published rules ---- */
@@ -3094,7 +3180,7 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-campCompile(); vaultCompile(); readDB(); pgInit();
+campCompile(); portalCompile(); vaultCompile(); readDB(); pgInit();
 if(PG){ (async()=>{ try{ await pgSetup(); const got=await pgLoad();
   let fileM=0; try{ fileM=fs.statSync(DB_FILE).mtimeMs; }catch(e){}
   if(got && got.mtime>fileM){ DB=got.db; console.log('🐘 World state loaded from PostgreSQL (newer than the file mirror).'); seed(); migrateAdminRoles(); migrateTokenHashes(); }

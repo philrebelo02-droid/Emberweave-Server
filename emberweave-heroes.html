@@ -681,6 +681,7 @@
   <!-- CAMPAIGN ROADMAP -->
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ Base</button>
+    <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
   </div>
@@ -3817,7 +3818,7 @@ function startBattle(){
   applyBattleMap();
   // v255: warm EVERY wave's art before the first frame — no more sprites appearing on wave 2
   try{ const _k=(G.team||[]).slice();
-    if(CUR.mode==='campaign'&&STAGE_CACHE[CUR.node]) ((STAGE_CACHE[CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
@@ -4652,7 +4653,8 @@ function show(name){
   if(name==='home') renderHome();
   if(name==='campaign'){
     // 27 Aug (Phil): clearing a stage returns you to THAT stage, not to your furthest one.
-    campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), TOTAL_CHAPTERS) : 0;
+    if(G.lastPortal && PORTAL_META[G.lastPortal] && !portalLockMsg(G.lastPortal)) PORTAL=G.lastPortal;
+    campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), portalChapters(PORTAL)) : 0;
     renderRoadmap(); }
   if(name==='menu') renderRoster();
   if(name==='tech') renderTech();
@@ -5181,6 +5183,10 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
   for(const k in (st.frags||{})) G.heroFrag[k]=st.frags[k]|0;
   if(st.camp){ G.campaignCleared=Math.max(G.campaignCleared||0, st.camp.cleared|0);
     G.stageStars=G.stageStars||{}; for(const n in (st.camp.stars||{})) if((st.camp.stars[n]|0)>(G.stageStars[n]|0)) G.stageStars[n]=st.camp.stars[n]|0; }
+  if(st.portals){ G.portals=G.portals||{};   // v266: Elite + Veteran Portal progress, server-owned
+    for(const m in st.portals){ const src=st.portals[m], cur=G.portals[m]||(G.portals[m]={cleared:0,stars:{}});
+      cur.cleared=Math.max(cur.cleared|0, src.cleared|0); cur.locked=src.locked||null;
+      cur.stars=cur.stars||{}; for(const n in (src.stars||{})) if((src.stars[n]|0)>(cur.stars[n]|0)) cur.stars[n]=src.stars[n]|0; } }
   if(st.stamina){ G.stamina=st.stamina.v|0; G.staminaTS=Date.now(); }
   saveG(); if(typeof updateHubChrome==='function') try{updateHubChrome();}catch(e){}
 }
@@ -5528,6 +5534,18 @@ function renderMarket(){
   });
 }
 let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
+/* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
+   own 100/100/18 fragment sources. PORTAL is which one the roadmap is showing. */
+const PORTAL_META={ normal:{label:'Normal', stages:100, icon:'🗺️'},
+  elite:{label:'Elite', stages:100, icon:'⚔️'}, veteran:{label:'Veteran', stages:18, icon:'🔶'} };
+let PORTAL='normal';
+function portalStages(m){ return (PORTAL_META[m]||PORTAL_META.normal).stages; }
+function portalCleared(m){ return m==='normal' ? (G.campaignCleared|0) : ((G.portals&&G.portals[m]&&G.portals[m].cleared)|0); }
+function portalStars(m,node){ return m==='normal' ? ((G.stageStars&&G.stageStars[node])|0)
+  : ((G.portals&&G.portals[m]&&G.portals[m].stars&&G.portals[m].stars[node])|0); }
+function portalLockMsg(m){ return (G.portals&&G.portals[m]&&G.portals[m].locked)||null; }
+function portalChapters(m){ return Math.ceil(portalStages(m)/STAGES_PER_CH); }
+function setPortal(m){ if(!PORTAL_META[m]) return; PORTAL=m; campViewCh=0; renderRoadmap(); }
 /* ===== TOTAL CAMPAIGN STARS reward track (Phil 26 Aug: milestones every 15 stars) ===== */
 function totalCampaignStars(){ let t=0; const ss=G.stageStars||{}; for(const k in ss)t+=(ss[k]|0); return t; }
 function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
@@ -5560,26 +5578,40 @@ function renderStarTrack(){
   '.cstars{display:block;text-align:center;font-size:9px;line-height:1;margin-top:1px;letter-spacing:1px}'+
   '.cstars .on{color:#ffd45e;text-shadow:0 0 4px rgba(255,200,60,.6)}.cstars .off{color:#3a4358}';
   document.head.appendChild(st); })();
+function renderPortalTabs(){
+  const bar=document.getElementById('portalTabs'); if(!bar) return;
+  bar.innerHTML=['normal','elite','veteran'].map(m=>{ const meta=PORTAL_META[m], lock=portalLockMsg(m), on=(PORTAL===m);
+    return `<button class="btn xs ${on?'':'secondary'}" data-portal="${m}" style="flex:1;max-width:150px;font-size:11px;padding:5px 6px;${lock?'opacity:.5':''}">${lock?'🔒':meta.icon} ${meta.label}</button>`; }).join('');
+  bar.querySelectorAll('[data-portal]').forEach(btn=>btn.onclick=()=>{ const m=btn.dataset.portal, lock=portalLockMsg(m);
+    if(lock){ bannerMsg('🔒 '+lock); return; } setPortal(m); });
+}
 function renderRoadmap(){
   renderStarTrack();
+  renderPortalTabs();
   const map=document.getElementById('cmap');
+  const MODE=PORTAL, TOTAL_CH=portalChapters(MODE), MAX_CH=TOTAL_CH, PLAYABLE=portalStages(MODE);
+  const lockMsg=portalLockMsg(MODE);
+  if(lockMsg){ map.style.height='auto'; map.innerHTML=`<div class="panel" style="text-align:center;padding:26px;margin:16px">
+      <div style="font-size:40px">🔒</div><div style="font-weight:800;margin:8px 0">${PORTAL_META[MODE].label} Portal</div>
+      <div style="font-size:12px;color:#8b98a9">${escapeHTML(lockMsg)}</div></div>`;
+    const h0=document.getElementById('cmapHdr'); if(h0) h0.innerHTML=''; return; }
   // default the viewed chapter to the one containing your current stage (clamped to what's unlocked)
-  const curStage=Math.min(G.campaignCleared+1, CAMPAIGN_PLAYABLE);
-  if(!campViewCh) campViewCh=Math.min(chapterOf(curStage), MAX_CHAPTER);
-  const ch=Math.max(1,Math.min(campViewCh, TOTAL_CHAPTERS));
-  const locked = ch>MAX_CHAPTER;
+  const curStage=Math.min(portalCleared(MODE)+1, PLAYABLE);
+  if(!campViewCh) campViewCh=Math.min(chapterOf(curStage), MAX_CH);
+  const ch=Math.max(1,Math.min(campViewCh, TOTAL_CH));
+  const locked = ch>MAX_CH;
   const first=(ch-1)*STAGES_PER_CH+1, last=ch*STAGES_PER_CH;
   // chapter header + nav
   const hdr=document.getElementById('cmapHdr');
   if(hdr){ hdr.innerHTML=`<button class="btn xs secondary" id="chPrev" ${ch<=1?'disabled':''}>◀</button>
-    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">Chapter ${ch}${locked?' 🔒':''}</div><div style="font-size:11px;color:#c9a35e">${CHAPTER_NAMES[ch-1]||''}</div></div>
-    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CHAPTERS?'disabled':''}>▶</button>`;
+    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} Chapter ${ch}${locked?' 🔒':''}</div><div style="font-size:11px;color:#c9a35e">${MODE==='veteran'?'Veteran Portal — Orange':(CHAPTER_NAMES[ch-1]||'')}</div></div>
+    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>▶</button>`;
     const pv=hdr.querySelector('#chPrev'), nx=hdr.querySelector('#chNext');
     if(pv) pv.onclick=()=>{ campViewCh=ch-1; renderRoadmap(); };
     if(nx) nx.onclick=()=>{ campViewCh=ch+1; renderRoadmap(); }; }
   if(locked){ map.style.height='auto'; map.innerHTML=`<div style="text-align:center;color:#8b98a9;padding:60px 20px">
       <div style="font-size:44px">🔒</div><div style="font-weight:800;font-size:16px;margin-top:8px;color:#e6edf3">Chapter ${ch} — ${CHAPTER_NAMES[ch-1]||''}</div>
-      <div style="font-size:12px;margin-top:6px">Coming soon. Chapters ${MAX_CHAPTER+1}–${TOTAL_CHAPTERS} aren't open yet — Chapter ${MAX_CHAPTER} is the current summit.</div></div>`; return; }
+      <div style="font-size:12px;margin-top:6px">Not open yet — Chapter ${MAX_CH} is this portal's summit.</div></div>`; return; }
   const N=STAGES_PER_CH;
   const _mapUrl=(typeof CH_MAPS!=='undefined'&&CH_MAPS[ch])?CH_MAPS[ch]:'';
   const _dim=(typeof CH_MAP_DIMS!=='undefined'&&CH_MAP_DIMS[ch])?CH_MAP_DIMS[ch]:[1000,1450];
@@ -5590,24 +5622,25 @@ function renderRoadmap(){
     const _img=document.createElement('img'); _img.src=_mapUrl; _img.draggable=false;
     _img.style.cssText='display:block;width:100%;height:auto;-webkit-user-drag:none';
     _inner.appendChild(_img);
-    for(let s=1;s<=N;s++){ const g=first+s-1; const nd=_nodes[s-1]||[50,100-(s-1)*10];
-      const cleared=g<=G.campaignCleared, current=g===G.campaignCleared+1, boss=isBossStage(g), elite=isEliteStage(g);
-      const clickable=(cleared||current) && g<=CAMPAIGN_PLAYABLE;
+    for(let s=1;s<=N;s++){ const g=first+s-1; if(g>PLAYABLE) break; const nd=_nodes[s-1]||[50,100-(s-1)*10];
+      const _cl=portalCleared(MODE);
+      const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
+      const clickable=(cleared||current) && g<=PLAYABLE;
       const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
       el.style.left=nd[0]+'%'; el.style.top=nd[1]+'%';
       const face=cleared?'✓':(boss?'👑':(elite?'★':s));
-      const _sst=cleared?((G.stageStars&&G.stageStars[g])||0):null;
+      const _sst=cleared?portalStars(MODE,g):null;
       const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
       el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
-      if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
-      if(g===G.lastStage) el.classList.add('justplayed');
+      if(clickable){ el.onclick=()=>openStageModal(g,MODE); } else { el.style.cursor='default'; }
+      if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
       _inner.appendChild(el);
     }
     map.appendChild(_inner);
   } else {
   const N=STAGES_PER_CH, rowH=72, H=N*rowH+40; map.style.height=H+'px';
   const pts=[];
-  for(let s=1;s<=N;s++){ const y=H-40-(s-1)*rowH; const x=50+38*Math.sin((s-1)*1.05); pts.push({s, g:first+s-1, x, y}); }
+  for(let s=1;s<=N;s++){ const g=first+s-1; if(g>PLAYABLE) break; const y=H-40-(s-1)*rowH; const x=50+38*Math.sin((s-1)*1.05); pts.push({s, g, x, y}); }
   let dPath=`M ${pts[0].x} ${pts[0].y}`;
   for(let k=1;k<pts.length;k++){ const p0=pts[k-1],p1=pts[k],dy=p1.y-p0.y; dPath+=` C ${p0.x} ${p0.y+dy*0.42}, ${p1.x} ${p0.y+dy*0.58}, ${p1.x} ${p1.y}`; }
   const trees=['🌲','🌳','🌲','🌴','🌲','🌳'];
@@ -5617,16 +5650,17 @@ function renderRoadmap(){
       <path d="${dPath}" fill="none" stroke="#d8b878" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="${dPath}" fill="none" stroke="#fff2cf" stroke-width="1.4" stroke-dasharray="3 5" stroke-linecap="round" opacity="0.8"/>
     </svg>${treeHtml}`;
-  pts.forEach(p=>{ const g=p.g; const cleared=g<=G.campaignCleared, current=g===G.campaignCleared+1, boss=isBossStage(g), elite=isEliteStage(g);
-    const clickable=(cleared||current) && g<=CAMPAIGN_PLAYABLE;
+  pts.forEach(p=>{ const g=p.g; const _cl=portalCleared(MODE);
+    const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
+    const clickable=(cleared||current) && g<=PLAYABLE;
     const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
     const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
-    const _sst=cleared?((G.stageStars&&G.stageStars[g])||0):null;
+    const _sst=cleared?portalStars(MODE,g):null;
     const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
     el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
-    if(clickable){ el.onclick=()=>openStageModal(g); } else { el.style.cursor='default'; }
-    if(g===G.lastStage) el.classList.add('justplayed');
+    if(clickable){ el.onclick=()=>openStageModal(g,MODE); } else { el.style.cursor='default'; }
+    if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
     map.appendChild(el);
   });
   
@@ -5703,7 +5737,8 @@ function preBattleLineHTML(mode){
 }
 /* 27 Aug (Phil): the stage sheet is Battle / Sweep / Sweep ×10 / Cancel — and under it, the ONE
    thing he wants to know: what this place drops. Nothing else. */
-function stageDropsHTML(stg,node){
+function stageDropsHTML(stg,node,mode){
+  mode=mode||'normal';
   // 27 Aug (Phil): as small as it can honestly be — ONE wrapping row of drop chips and the
   // stamina/run counter on the same line. The top of the sheet stays the stage name alone.
   const gf=(stg&&stg.rewards&&stg.rewards.glyphFragments)||[];
@@ -5714,7 +5749,7 @@ function stageDropsHTML(stg,node){
   const g=gf.filter(f=>f.guaranteed!==false), b=gf.filter(f=>f.bonus);
   const chips=[];
   (g.length?g:gf.slice(0,1)).forEach(f=>chips.push(fchip(f,false)));
-  if(node!=null && isEliteStage(node)){ const hk=eliteHeroFor(node), h=hk&&HERO_TYPES[hk];
+  if(node!=null && mode==='normal' && isEliteStage(node)){ const hk=eliteHeroFor(node), h=hk&&HERO_TYPES[hk];
     if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||'🎖')+'</span>', escapeHTML(h.name), '×'+ELITE_FRAG_MIN+'–'+ELITE_FRAG_MAX, '#c9a0ff')); }
   b.forEach(f=>chips.push(fchip(f,true)));
   const _eb=(node!=null)&&(isEliteStage(node)||isBossStage(node));
@@ -5778,21 +5813,23 @@ function stageDetailHTML(stg,node){
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
   </div>${preBattleLineHTML('campaign')}`;
 }
-function openStageModal(i){
-  if(i>G.campaignCleared+1) return;   // locked — must clear the previous stage first
+function openStageModal(i,mode){
+  mode=mode||PORTAL||'normal';
+  if(i>portalCleared(mode)+1) return;   // locked — must clear the previous stage first
   // v232 (audit): the stage's AUTHORED named fragment target is visible BEFORE farming
-  const _stg=STAGE_CACHE[i];
+  const _stg=STAGE_CACHE[mode+':'+i];
   // v257: always refresh — the stage data is static but YOUR power changes every time you level,
   // ascend a glyph or temper gear, and the panel must never show a stale reading.
-  if(ACC.token){ api('/api/campaign/stage?node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[i]=r.stage;
+  if(ACC.token){ api('/api/campaign/stage?mode='+mode+'&node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[mode+':'+i]=r.stage;
     STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
+    if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
-    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage,i);
+    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage,i,mode);
     preloadStageArt(r.stage); } }).catch(()=>{}); }
-  if(STAGE_CACHE[i]) preloadStageArt(STAGE_CACHE[i]);   // cached stage: warm the art immediately
-  if(i>CAMPAIGN_PLAYABLE){ bannerMsg('🔒 Chapters '+(MAX_CHAPTER+1)+'–'+TOTAL_CHAPTERS+' are coming soon.'); return; }
-  const boss=isBossStage(i), cleared=i<=G.campaignCleared, elite=isEliteStage(i);
+  if(STAGE_CACHE[mode+':'+i]) preloadStageArt(STAGE_CACHE[mode+':'+i]);   // cached stage: warm the art immediately
+  if(i>portalStages(mode)) return;
+  const boss=isBossStage(i), cleared=i<=portalCleared(mode), elite=(mode==='normal')&&isEliteStage(i);
   const body=document.getElementById('stageModalBody');
   regenStamina();
   const canPay=G.stamina>=stageStamCost(i);
@@ -5801,25 +5838,26 @@ function openStageModal(i){
   const _gate=(_stg&&(_stg.bossLevelGate|0))||((STAGE_GATE[i]&&STAGE_GATE[i].gate)|0);
   const _gateOK=!_gate||playerLevel()>=_gate;
   // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
-  const _stars=(G.stageStars&&G.stageStars[i])|0, _threeStar=_stars>=3;
+  const _stars=portalStars(mode,i), _threeStar=_stars>=3;
   body.innerHTML=`<div style="text-align:center">
       <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
-      <div style="font-weight:800;font-size:18px;margin-bottom:12px">${boss?'Boss Stage '+stageCode(i):(elite?'Elite Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
+      <div style="font-weight:800;font-size:18px;margin-bottom:2px">${boss?'Boss Stage '+stageCode(i):(elite?'Guardian Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:12px">${PORTAL_META[mode].icon} ${PORTAL_META[mode].label} Portal</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
         ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep (instant · '+campaignPlayerXP(i,false)+' XP)':'🔒 Sweep — needs ★★★ ('+_stars+'/3)'}</button>`:''}
         ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10 (⧗ '+(stageStamCost(i)*10)+' · '+(campaignPlayerXP(i,false)*10)+' XP)':'🔒 Sweep ×10 — needs ★★★'}</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
       </div>
-      <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg,i)}</div>
+      <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg,i,mode)}</div>
       ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
       <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px"></div>
     </div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
-  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1){ document.getElementById('smMsg').textContent='Daily limit reached for this stage.'; return; } G.lastStage=i; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
-  const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i);
-  const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10);
+  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1){ document.getElementById('smMsg').textContent='Daily limit reached for this stage.'; return; } G.lastStage=i; G.lastPortal=mode; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; CUR.portal=mode; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
+  const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i,1,mode);
+  const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10,mode);
 }
 function closeStageModal(){ document.getElementById('stageModal').classList.remove('active'); }
 // Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
@@ -5855,12 +5893,13 @@ function pvpRecap(log){ if(!Array.isArray(log)||!log.length) return '';
 function g2fragReceipt(arr){ if(!Array.isArray(arr)||!arr.length) return '';
   return arr.map(f=>{ const k=String(f.displayName||'').replace(/ Fragment$/,'');
     return `<span style="color:#8fe3ff">${(typeof g2artKey==='function')?g2artKey('fragment',k,14):'◆'} ${f.displayName} ×${f.quantity}</span>`; }).join(' · '); }
-function sweepStage(i,times){
-  G.lastStage=i;   // the roadmap comes back to the stage you actually played
+function sweepStage(i,times,mode){
+  mode=mode||PORTAL||'normal';
+  G.lastStage=i; G.lastPortal=mode;   // the roadmap comes back to the stage you actually played
   // AUDIT C1/C2: sweeps are SERVER-authorized — stamina, gold, player XP and hero XP move on the
   // ledger; the client only applies legacy material drops and shows the totals.
   (async()=>{
-    const r=await api('/api/campaign/sweep','POST',{node:i, times, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
+    const r=await api('/api/campaign/sweep','POST',{mode, node:i, times, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
     if(!r||!r.ok){ document.getElementById('smMsg').textContent=(r&&r.error)||'Sweep failed — check your connection.'; await ledgerSync(); return; }
     adoptLedger(r.ledger);
     let frags=0, um='';
@@ -7949,8 +7988,12 @@ function g2RenderOverlays(){ let host=document.getElementById('g2ovlHost');
           <button class="btn xs secondary" onclick="g2buildCancel()">✕</button></div>
         ${g2TreeView(pth,'o'+i)}</div></div>`).join('');
   setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380); }
-function g2SrcGo(id){ const m=/^(\d+)-(\d+)$/.exec(String(id).replace('campaign-','')); if(!m) return;
-  const node=(+m[1]-1)*10 + (+m[2]); RUNE2.build=null; g2RenderOverlays(); show('campaign'); openStageModal(node); }
+/* v266 (Farm Map v1): "Farm: Elite Portal 5-4" opens Elite Portal 5-4 — the exact stage, in the
+   exact portal, one tap from the ancestry tree. */
+function g2SrcGo(stageId, mode){ const m=/^(\d+)-(\d+)$/.exec(String(stageId||'').replace('campaign-','')); if(!m) return;
+  const node=(+m[1]-1)*10 + (+m[2]); mode=mode||'normal';
+  const lock=portalLockMsg(mode); if(lock){ bannerMsg('🔒 '+lock); return; }
+  RUNE2.build=null; g2RenderOverlays(); PORTAL=mode; campViewCh=0; show('campaign'); openStageModal(node, mode); }
 function g2NodeArtSrc(n){ if(n.kind==='fragment'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/fragment-${g2slotOfFam(p.fam)}.png?v=3`; }
   if(n.kind==='subGlyph'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/sub-${g2slotOfFam(p.fam)}.png?v=3`; }
   return `/assets/img/glyphs-v2/${g2qdir(n.quality)}/finished-${g2slotOfFam(n.family)}.png?v=3`; }
@@ -7992,9 +8035,14 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
   // v242 (Phil): no allocation step — tapping a FRAGMENT jumps straight to its sweep stage
   const leaf=(n,pth,parentPath)=>{ const rdy=g2NodeReady(n);
     const col=rdy?'#5ee89b':'#e86a6a';
-    const src0=(n.sources||[])[0];
-    const srcs=!D.locked?(n.sources||[]).slice(0,2).map(x=>`<span class="pill" style="font-size:8px;cursor:pointer;border:1px solid #33405e;color:#8fb7ff" onclick="event.stopPropagation();g2SrcGo('${x}')">⚔ ${String(x).replace('campaign-','')}</span>`).join(' '):'';
-    return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="width:82px;flex:none;text-align:center;position:relative;z-index:1;cursor:${src0?'pointer':'default'}" ${src0?`onclick="g2SrcGo('${src0}')"`:''}>
+    const _s0=(n.sources||[])[0];
+    const src0=_s0?((typeof _s0==='string')?{mode:'normal',stageId:String(_s0).replace('campaign-','')}:{mode:_s0.mode||'normal',stageId:_s0.stageId}):null;
+    // one fixed, visible source per family — shown as "Normal 1-9" / "Elite 3-4" / "Veteran 2-8"
+    const _srcTag=x=>(typeof x==='string')?{mode:'normal',stageId:String(x).replace('campaign-',''),label:'Normal '+String(x).replace('campaign-','')}
+      :{mode:x.mode||'normal', stageId:x.stageId, label:(PORTAL_META[x.mode||'normal']||{label:'Normal'}).label+' '+x.stageId};
+    const _srcCol={normal:'#8fb7ff', elite:'#ffb37a', veteran:'#ffd45e'};
+    const srcs=!D.locked?(n.sources||[]).slice(0,2).map(_srcTag).map(x=>`<span class="pill" style="font-size:8px;cursor:pointer;border:1px solid #33405e;color:${_srcCol[x.mode]||'#8fb7ff'}" onclick="event.stopPropagation();g2SrcGo('${x.stageId}','${x.mode}')">⚔ ${escapeHTML(x.label)}</span>`).join(' '):'';
+    return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="width:82px;flex:none;text-align:center;position:relative;z-index:1;cursor:${src0?'pointer':'default'}" ${src0?`onclick="g2SrcGo('${src0.stageId}','${src0.mode}')"`:''}>
       <div style="width:72px;height:72px;margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;filter:drop-shadow(0 0 10px ${col}44)">
         ${g2NodeArt(n,68)}</div>
       <div style="font-size:9.5px;font-weight:700;color:${col};margin-top:4px;line-height:1.15">${fragShort(n)}</div>
@@ -10003,7 +10051,7 @@ document.getElementById('startBtn').onclick=async()=>{
   if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return;
     // AUDIT C2: the campaign is server-resolved from AUTHORED encounters — the server locks the
     // exact waves for this stage and decides the result. Requires a connection (nothing is local).
-    if(ACC.token){ const r=await api('/api/campaign/start','POST',{node:CUR.node, heroIds:G.team.filter(Boolean).slice(0,5), requestId:uid8()});
+    if(ACC.token){ const r=await api('/api/campaign/start','POST',{mode:(CUR.portal||'normal'), node:CUR.node, heroIds:G.team.filter(Boolean).slice(0,5), requestId:uid8()});
       if(!r||r.error||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
       CUR.attemptId=r.attemptId; CUR.cwaves=(r.stage&&r.stage.waves)||null;
       if(r.stamina) { G.stamina=r.stamina.v|0; G.staminaTS=Date.now(); }
@@ -10049,7 +10097,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787856486865';
+const BUILD_ID='1787857305898';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
