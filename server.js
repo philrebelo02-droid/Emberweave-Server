@@ -136,7 +136,10 @@ function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), no
 // migrated key).
 const TOKEN_TTL_MS=+(process.env.TOKEN_TTL_MS||90*86400000);
 function tokHash(t){ return crypto.createHash('sha256').update(String(t)).digest('hex'); }
-function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; return raw; }
+/* v273: a session that a player is holding must survive a crash — a token created seconds before a
+   restart used to disappear with the debounced write, logging them out and, for a new account,
+   losing the account itself. Issuing a token is rare; make it durable. */
+function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; writeDBNow(); return raw; }
 function lookupToken(raw){ if(!raw) return null; const e=DB.tokens[tokHash(raw)]||DB.tokens[raw];
   if(!e) return null;
   if(typeof e==='string') return e;                              // pre-migration straggler
@@ -158,6 +161,10 @@ function adjustGems(u, delta){ try{ if(!u.roster||typeof u.roster.__save!=='stri
 //      economy — that's the pre-real-money rewrite — but it stops casual console cheating cold. ----
 const ECON_CAP={ gems:5000000, gold:2000000000, stamina:100000, arenaCoins:50000000, guildCoins:50000000, playerXP:100000000, gemFrac:1000000 };
 const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
+/* Everything on this list is decided by the server ledger. None of it is stored from a client save. */
+const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
+  'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
+  'techLearn','prayer','skillLevel','arenaCoins','guildCoins','dust','starShards','eqMats','mats']);
 function clampNum(v,cap){ if(typeof v!=='number'||!isFinite(v)) return v; if(v<0) return 0; if(v>cap) return cap; return v; }
 function sanitizeSave(u, roster){
   if(!roster || typeof roster.__save!=='string') return roster;
@@ -177,6 +184,14 @@ function sanitizeSave(u, roster){
   if(u.glyphs && u.glyphs.migratedAt){ let strip=false;
     for(const k of ['glyphInv','glyphRank','glyphCur','glyphLocked']){ if(g[k]!==undefined){ delete g[k]; strip=true; } }
     if(strip){ glyphAudit(u.glyphs,'stripSave',{}); } }
+  /* v273 (audit response P0) — THE LEDGER OWNS PROGRESSION, SO THE BLOB DOES NOT KEEP IT.
+     Clamping a forged number is not authority: a forged value under the cap is still forged. Once an
+     account is on the ledger, every server-owned field is DELETED from the stored save, so there is
+     nothing left in it for the server to be fooled by and nothing for a migration to pick up later.
+     The browser may keep its own copy for offline display; this is only what we agree to store. */
+  if(u.led && u.led.migratedAt){
+    for(const k of SERVER_OWNED_SAVE_FIELDS){ if(g[k]!==undefined) delete g[k]; }
+  }
   roster.__save=JSON.stringify(g); return roster; }
 // rotating hourly DB backups (kept alongside the db file)
 function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
@@ -771,10 +786,22 @@ function getDungeonProgress(id){
   return DB.dungeonProgress[id]; }
 function resetDungeonSweepIfNewDay(sw){ const k=dungeonServerDayKey(); if(sw.dateKey!==k){ sw.dateKey=k; sw.freeUsesRemaining=2; sw.totalSweepsToday=0; } }
 // bounded idempotency ledger: retried requests return the committed result instead of paying twice
+/* v273 — A REWARD AND ITS RECEIPT ARE ONE DURABLE TRANSACTION.
+   writeDB() coalesces on a 200 ms timer, so a crash in that window used to lose the idempotency
+   record along with the reward — and the client's retry would then be paid a second time. Every
+   idem() result is now flushed to disk BEFORE the response is written. */
+function writeDBNow(){
+  try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+    const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE);
+  }catch(e){ console.error('⚠ DB durable write failed:', e.message); }
+  try{ pgSave(); }catch(e){}
+}
 function idem(key, fn){ DB.idem=DB.idem||{}; const now=Date.now();
   for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
   if(DB.idem[key]) return DB.idem[key].resp;
-  const resp=fn(); DB.idem[key]={t:now,resp}; return resp; }
+  const resp=fn(); DB.idem[key]={t:now,resp};
+  writeDBNow();                       // the receipt lands with the reward, or neither does
+  return resp; }
 
 /* Monster roster mirror (client MONSTER_TYPES essentials). Vault fights are REAL client
    battles vs monsters, campaign-style. Floors are PRE-DETERMINED: the lineup for a floor
@@ -1147,6 +1174,10 @@ function simHost(){
   return _SIMHOST;
 }
 function sha256hex(x){ return crypto.createHash('sha256').update(String(x)).digest('hex').slice(0,32); }
+/* Bumped by hand on every server change that a deployment proof needs to see. */
+const EQ_MAT_KEYS=Object.freeze(['cloth','blade','wood','ore']);   // the four equipment materials
+const SERVER_BUILD='v273-audit-response';
+const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
 const SKILL_MAX_SRV=10;
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
   if(!Array.isArray(a)||a.length!==4){ led.skill[key]=[1,1,1,1]; }
@@ -1155,6 +1186,11 @@ function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
    otherwise lose what they bought. Imported once, clamped, and server-owned from then on. */
 function ledSkillImport(u){ const led=u.led; if(!led || led.skillImported) return;
   led.skill=led.skill||{}; led.prayer=led.prayer|0;
+  /* v273 (audit response P0): ONLY an account that predates the ledger may seed from the uploaded
+     save — exactly the rule ensureLedger() uses. Importing for everyone (as v270 did) meant a
+     modified client could post skill levels and prayer and have the server adopt them once. */
+  const legacy=((u.created||0)===0) || ((u.created||0)<LEDGER_MIGRATE_CUTOFF);
+  if(!legacy){ led.skillImported=Date.now(); return; }
   try{ const sv=parseSaveOf(u)||{}; const sl=sv.skillLevel||{};
     for(const k in sl){ const a=sl[k]; if(!Array.isArray(a)) continue;
       led.skill[k]=[0,1,2,3].map(i=>Math.max(1,Math.min(SKILL_MAX_SRV,(a[i]|0)||1))); }
@@ -1216,9 +1252,14 @@ function campaignHeroSpec(u,key){
     skillLv:ledSkillArr(led,key).slice()
   };
 }
+/* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
+   ledTx is the one choke point every grant and every spend passes through, so it is where the write
+   becomes real. Before this, a crash inside the 200 ms debounce could drop a reward, a spend, or the
+   idempotency receipt that stops a retry being paid twice. The cost is one synchronous write per
+   transaction; correctness of the ledger is worth more than that. */
 function ledTx(u,src,delta){ const led=u.led; const id=uid();
   led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
-  led.rev++; return id; }
+  led.rev++; writeDBNow(); return id; }
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
 function ledHeroLevel(led,k){ const h=led.hero[k]; if(!h) return 1;
   return Math.max(1,Math.min(ledPlayerLevel(led), d_levelForXP(h.xp||0, D_HERO_CUM))); }
@@ -1230,7 +1271,8 @@ function ledStamRegen(led){ const now=Date.now(); const mx=ledStamMax(led);
   else led.stam.ts=now; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
   return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
-    hero:led.hero, unlocked:led.unlocked, frags:led.frags,
+    hero:led.hero, unlocked:led.unlocked, frags:led.frags, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
+    skill:led.skill||{},
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
@@ -1507,6 +1549,22 @@ async function api(req,res,url){
         GUILD_WAR_V2_ENABLED:(typeof GUILD_WAR_V2_ENABLED!=='undefined'?GUILD_WAR_V2_ENABLED:null),
         GLYPH_V2:!!GLYPHS, POSTGRES:!!PG, SMTP:!!process.env.SMTP_HOST },
       tuning:{ VAULT_SKILL_BAND, CAMPAIGN_SKILL_BAND, GLYPH_RL_PER_MIN, REG_PER_MIN:(typeof REG_PER_MIN!=='undefined'?REG_PER_MIN:null) },
+      /* v273 — WHAT IS ACTUALLY RUNNING. A report claiming a fix is live means nothing on its own; a
+         black-box test reads this from the deployed server and checks it against the claim. `engine`
+         is the client build the server replays, so client and server versions are both visible. */
+      serverBuild: SERVER_BUILD,
+      engine: (function(){ try{ const h=simHost(); return h?h.buildVersion:null; }catch(e){ return null; } })(),
+      authority: {
+        campaign:'player-transcript-replay',      // the player's own fight, replayed
+        campaignMismatch:'unverified-refund',     // a divergence records nothing and returns stamina
+        campaignSession:'frozen-single-use-resumable',
+        raidPower:'ledger',                       // never the client's stored line-up
+        rosterStorage:'keys-only',
+        legacySaveFields:'stripped-after-migration',
+        idempotency:'durable-write-before-response',
+        vault:(VAULT_SKILL_BAND>0?'estimate+skill-band':'estimate'),   // NOT yet converted — stated plainly
+        elite:'estimate', trials:'estimate'
+      },
       dailyResetET:'09:00 America/New_York', nextResetUTC:new Date(Date.now()+(nextReset-nyNow)).toISOString(),
       currencies:[
         {id:'gold', sources:['Campaign clears & sweeps','City Skirmish loot (capped)','Arena daily','Quests','Guild raid'], sinks:['Gear crafting & Temper','Academy research','Shop','Guild contribution','Wishing Pool (gold pool)'], caps:{cityPvpPerDay:8000, cityPvpPerAttack:400}},
@@ -2494,6 +2552,26 @@ async function api(req,res,url){
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
     for(const k of ids){ if(!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
     ledStamRegen(led); const cost=campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL;
+    /* v273 (audit response §4.5) — RECONNECT RESUMES, IT DOES NOT RE-CHARGE.
+       Closing the app mid-battle used to abandon the frozen session and take the stamina again on the
+       next attempt. Now: the same stage returns the SAME session (same seed, same snapshots — no
+       reroll); a different stage refunds the abandoned one first. */
+    { const open=prog.att;
+      if(open && (Date.now()-(open.startedAt||0) <= CAMP_SESSION_MS)){
+        if(open.node===node){
+          const st0=portalStageOf(mode,node);
+          writeDB();
+          return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:open.seed,
+            snaps:open.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
+        }
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
+        ledTx(me,mode+':abandoned:'+(open.node|0),{stamina:(open.stamPaid|0)});
+        prog.att=null;
+      } else if(open){
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
+        ledTx(me,mode+':expired:'+(open.node|0),{stamina:(open.stamPaid|0)});
+        prog.att=null;
+      } }
     if(led.stam.v<cost) return send(res,400,{error:'Not enough stamina.'});
     led.stam.v-=cost;
     const snaps=ids.map(k=>snapshotHeroFromServer(me,k)); if(snaps.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
@@ -2519,6 +2597,16 @@ async function api(req,res,url){
       let mode=null, prog=null, a=null;
       for(const m of PORTAL_MODES){ const pr=portalProg(led,m); if(pr.att && pr.att.id===aid){ mode=m; prog=pr; a=pr.att; break; } }
       if(!a) return {ok:false,error:'No matching campaign battle.'};
+      /* v273 (audit response §4.5): a session has a life. A battle left open longer than this was not
+         played to the end — the stamina goes back and the attempt is closed, rather than being
+         resolvable hours later or silently consumed. */
+      if(Date.now()-(a.startedAt||0) > CAMP_SESSION_MS){
+        prog.att=null;
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        ledTx(me,mode+':expired:'+(a.node|0),{stamina:(a.stamPaid|0)});
+        writeDB();
+        return {ok:false, expired:true, error:'That battle expired — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
+      }
       prog.att=null;
       const st=portalStageOf(mode,a.node); if(!st) return {ok:false,error:'Stage data missing.'};
       /* v270 (PLAYER-TRUTH) — THE RESULT IS THE PLAYER'S OWN FIGHT.
@@ -2543,6 +2631,28 @@ async function api(req,res,url){
         ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
         writeDB();
         return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'}; }
+      /* v273 (audit response §4.4) — A MISMATCH IS AN INCIDENT, NOT A RESULT.
+         The end state the player watched must equal the end state the replay reached. If it does not
+         — or if the client submitted no end state at all — nothing is recorded: no win, no loss, no
+         reward. The stamina goes back and the transcript is kept so the divergence can be fixed.
+         This check runs BEFORE anything is granted; it used to only print a warning afterwards. */
+      const serverEndDigest=String(rep.digest||'');
+      const clientEnd=(typeof b.digest==='string')?b.digest:'';
+      const digestMatch = clientEnd ? (sha256hex(clientEnd)===sha256hex(serverEndDigest)) : null;
+      if(digestMatch!==true){
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        const why=(digestMatch===null)?'no-client-digest':'digest-mismatch';
+        led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:st.id, mode, why,
+          engine:a.engine||null, seed:a.seed>>>0, inputs:inputLog.length,
+          server:sha256hex(serverEndDigest), client:clientEnd?sha256hex(clientEnd):null,
+          transcript:inputLog }]).slice(-20);
+        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
+        writeDB();
+        console.warn('⚠️  battle unverified ('+why+') — stage '+st.id+', engine '+(a.engine||'?'));
+        return {ok:false, unverified:true, reason:why,
+          error:'This battle could not be verified against the server — nothing was recorded and your stamina was returned.',
+          ledger:ledgerView(me)};
+      }
       const won=!!rep.won;
       let stars=0, reward=null;
       if(won){
@@ -2568,17 +2678,9 @@ async function api(req,res,url){
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB();
-      /* digestMatch answers one question honestly: did the fight the player watched end in exactly the
-         state the server's replay reached? It grants nothing and decides nothing — it is the tripwire
-         that tells us the two engines have drifted, before a player ever notices. */
-      const digestMatch=(typeof b.digest==='string' && b.digest.length)
-        ? (sha256hex(b.digest)===receipt.digest) : null;
-      if(digestMatch===false) console.warn('⚠️  battle digest mismatch — client and server replay disagree', {stage:st.id, engine:a.engine});
-      receipt.match=digestMatch;
+      receipt.match=true;   // a result only exists here because the two end states matched exactly
       return { ok:true, mode, won, stars, reward, verified:true, engine:a.engine||null,
-        serverDigest:receipt.digest, digestMatch,
-        // on a mismatch, hand back the end state the replay reached so the incident can be diagnosed
-        serverEnd:(digestMatch===false?String(rep.digest||''):undefined),
+        serverDigest:receipt.digest, digestMatch:true,
         replaySeed:a.seed>>>0, ledger:ledgerView(me) };
     });
     return send(res, out.ok===false?400:200, out); }
@@ -2686,7 +2788,21 @@ async function api(req,res,url){
           if(reward.px){ led.px=Math.min(99000000,led.px+reward.px); }
           if(reward.heroXp) for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
           ledTx(me,'trial:'+kind+':'+floor,reward); }
-        writeDB(); return {ok:true, won:true, first, best:T.best, reward, ledger:ledgerView(me)};
+        /* v273 (audit response P0) — EQUIPMENT MATERIALS ARE SERVER-OWNED.
+           The dungeon used to roll them in the browser with Math.random() and write them straight into
+           the local save, signed in or not — permanent value minted by the client. The roll happens
+           here now, on the ledger, and the browser only animates what it is told. */
+        let mats=null;
+        if(kind==='dungeon'){
+          led.eqMats=led.eqMats||{};
+          const rng=SIM.mulberry32(SIM.seedFrom('mats:'+me.id+':'+reqId));
+          const n=3+Math.floor(ledPlayerLevel(led)/5);
+          mats={};
+          for(let i=0;i<n;i++){ const k=EQ_MAT_KEYS[Math.floor(rng()*EQ_MAT_KEYS.length)];
+            led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+1); mats[k]=(mats[k]||0)+1; }
+          ledTx(me,'dungeon:mats:'+floor,mats);
+        }
+        writeDB(); return {ok:true, won:true, first, best:T.best, reward, mats, eqMats:(led.eqMats||null), ledger:ledgerView(me)};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/quest/claim'){ const out=idem(me.id+':quest:'+reqId,()=>{
         led.quests=led.quests||{claimed:{},chainStep:0};

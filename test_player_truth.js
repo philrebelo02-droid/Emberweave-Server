@@ -23,6 +23,15 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
   const reg=await req('/api/register',{name,pass:'password1'});
   const TOK=reg.token; ck('test account registered', !!TOK);
 
+  /* v273: a resolve must carry the end state the player reached, and it must match the server's
+     replay — so an honest client computes it with the same engine. This helper is that client. */
+  const host=require('./server/sim-host.js').load(__dirname+'/emberweave-heroes.html');
+  const enc=JSON.parse(require('fs').readFileSync(__dirname+'/server/campaign-encounters.json','utf8'));
+  const honestResolve=async(st, node, log)=>{
+    const r=host.campaign(st.snaps, enc[node-1].waves, st.seed>>>0, log||[]);
+    return req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),inputLog:log||[],digest:r.digest},TOK);
+  };
+
   // --- a frozen session ---
   const s1=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
   ck('start freezes a session', !!(s1.ok&&s1.attemptId));
@@ -33,20 +42,18 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
   // --- the same transcript, twice: same result (spec §8.1) ---
   const LOG=[[300,'ult',0,3,null,null],[600,'ult',1,4,null,null]];
-  const r1=await req('/api/campaign/resolve',{attemptId:s1.attemptId,requestId:rid(),inputLog:LOG},TOK);
+  const r1=await honestResolve(s1, 1, LOG);
   ck('resolve verifies the fight', r1.ok===true && r1.verified===true, JSON.stringify(r1).slice(0,120));
   ck('resolve returns the server digest', typeof r1.serverDigest==='string' && r1.serverDigest.length>=16);
 
   const s2=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
-  const r2=await req('/api/campaign/resolve',{attemptId:s2.attemptId,requestId:rid(),inputLog:LOG},TOK);
+  const r2=await honestResolve(s2, 1, LOG);
   // seeds differ per session by design, so the DIGESTS are compared within a session (below); here the
   // point is only that a second session with the same transcript verifies too.
   ck('a second session with the same transcript also verifies', r2.ok===true && r2.verified===true);
 
   // --- the player's timing decides the result (spec §8.2) ---
   // Replay the SAME frozen session twice through the sim host directly: same seed, two transcripts.
-  const host=require('./server/sim-host.js').load(__dirname+'/emberweave-heroes.html');
-  const enc=JSON.parse(require('fs').readFileSync(__dirname+'/server/campaign-encounters.json','utf8'));
   const stage=enc[19]||enc[9]||enc[0];
   const specs=['vael','sylthaine','vireo'].map(k=>({key:k,level:30,stars:3,pips:0,ref:0,glyphRank:6,
     tt:{hp:4000,atk:300,crit:60,armor:80,mr:80},ex:{},fAtk:300,fHp:4000,fApow:0,apMul:1,skillLv:[3,3,3,1]}));
@@ -81,11 +88,13 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
   // --- the browser cannot declare anything (spec §8.4) ---
   const s3=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
+  // an honest end state, with dishonest claims bolted on beside it
+  const truth3=host.campaign(s3.snaps, enc[0].waves, s3.seed>>>0, []);
   const forged=await req('/api/campaign/resolve',{attemptId:s3.attemptId,requestId:rid(),inputLog:[],
-    won:true, stars:3, reward:{gold:999999}, digest:'whatever',
+    digest:truth3.digest, won:true, stars:3, reward:{gold:999999},
     teamSnapshot:[{key:'vael',maxHp:9e9,dmg:9e9}], seed:1},TOK);
   const s3b=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
-  const clean=await req('/api/campaign/resolve',{attemptId:s3b.attemptId,requestId:rid(),inputLog:[]},TOK);
+  const clean=await honestResolve(s3b, 1, []);
   ck('a client-declared win/stars does not change the result — the replay decides',
      forged.ok===true && forged.won===clean.won && forged.stars===clean.stars,
      'claimed {won:true,stars:3} → got '+JSON.stringify({won:forged.won,stars:forged.stars})+
@@ -95,8 +104,9 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
   // --- rewards are idempotent (spec §8.6) ---
   const s4=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
   const RID='fixed-'+rid();
-  const a=await req('/api/campaign/resolve',{attemptId:s4.attemptId,requestId:RID,inputLog:[]},TOK);
-  const bx=await req('/api/campaign/resolve',{attemptId:s4.attemptId,requestId:RID,inputLog:[]},TOK);
+  const truth4=host.campaign(s4.snaps, enc[0].waves, s4.seed>>>0, []);
+  const a=await req('/api/campaign/resolve',{attemptId:s4.attemptId,requestId:RID,inputLog:[],digest:truth4.digest},TOK);
+  const bx=await req('/api/campaign/resolve',{attemptId:s4.attemptId,requestId:RID,inputLog:[],digest:truth4.digest},TOK);
   ck('replaying the resolve request returns the SAME receipt, not a second reward',
      JSON.stringify(a.reward||null)===JSON.stringify(bx.reward||null) && a.won===bx.won);
 
@@ -106,7 +116,7 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
   // --- the transcript is stored as a receipt ---
   const s5=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
-  await req('/api/campaign/resolve',{attemptId:s5.attemptId,requestId:rid(),inputLog:[[120,'ult',0,3,null,null]]},TOK);
+  await honestResolve(s5, 1, [[120,'ult',0,3,null,null]]);
   const dump=await req('/api/ledger',null,TOK);
   ck('the account keeps a battle receipt (transcript + digest)',
      !!(dump && dump.ok!==false), 'ledger unreachable');

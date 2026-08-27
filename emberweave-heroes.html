@@ -2023,14 +2023,10 @@ function refineColorTier(lvl){ return lvl>=11?'gold':lvl>=6?'silver':lvl>=1?'bro
 function refineNextTier(lvl){ return lvl>=15?null:lvl>=10?'gold':lvl>=5?'silver':'bronze'; }     // the tier the NEXT attempt works on
 function refineStepInfo(lvl){ if(lvl>=15) return {tier:null,step:5,of:5}; if(lvl>=10) return {tier:'gold',step:lvl-10,of:5}; if(lvl>=5) return {tier:'silver',step:lvl-5,of:5}; return {tier:'bronze',step:lvl,of:5}; }
 function canRefine(key){ return heroStars(key)>=MAX_STARS && refineLevel(key)<REFINE_MAX; }
-function doRefine(key){ if(!canRefine(key)) return {locked:true};
-  const lvl=refineLevel(key), tier=refineNextTier(lvl), t=REFINE_TIERS[tier];
-  if(heroFrag(key)<t.cost) return {broke:true, cost:t.cost};
-  if(!G.heroFrag)G.heroFrag={}; G.heroFrag[key]-=t.cost;              // fragments spent whether it succeeds or fails
-  const success=Math.random()<t.chance;
-  if(success){ if(!G.starRefine)G.starRefine={}; G.starRefine[key]=lvl+1; }
-  saveG(); updateHubChrome();
-  return {success, tier, cost:t.cost, newLevel:refineLevel(key)}; }
+/* v273 (audit response P0): the old client-side doRefine() — which spent fragments and decided a
+   PERMANENT power upgrade with a bare Math.random() in the browser — is DELETED. It was already
+   unreachable (the Star Path button calls /api/hero/refine), and an unreachable client gacha is a
+   loaded gun left on the table. Refine happens on the server or not at all. */
 // ---- ELITE stages: 3 attempts/day each, 12 stamina, drop star shards ----
 const ELITE_DAILY=3, ELITE_STAM=12;
 function eliteCheckReset(){ const d=arenaDayKey(); if(G.eliteResetDay!==d){ G.eliteUsed={}; G.eliteResetDay=d; G.eliteResetTS=Date.now(); } }   // align to the shared 09:00 ET day key (matches "resets daily" UI + every other daily system)
@@ -2410,6 +2406,11 @@ function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (
 
 /* --------------------------------- state ----------------------------------- */
 let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],chains=[];
+/* v273 (audit response §5.5) — THE SIMULATION DOES NOT READ THE DOM.
+   The wave-clear test used to be gated on `document.getElementById('vaultSubModal')`, so whether a
+   wave counted as won depended on a DOM query — something a headless server replay cannot answer the
+   same way. The pause is a piece of battle state now, and the modal merely reflects it. */
+let VAULT_PICK_OPEN=false;
 let selected=null,battleTime=0,ended=false,rageMul=1;
 /* v269 — YOUR TIMING IS THE INPUT.
    The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
@@ -2468,7 +2469,7 @@ function brnd(){ return _brng?_brng():Math.random(); }
    A leftover void zone (or a queued damage-over-time) from the PREVIOUS fight used to survive into the
    next one and damage a hero that nothing in this fight had touched. Two runs of the same seed then
    produced different results — the single worst thing that can happen to a game whose battles are law. */
-function battleFxReset(){ try{ shots.length=0; particles.length=0; floatTexts.length=0; groundHazards.length=0;
+function battleFxReset(){ VAULT_PICK_OPEN=false; try{ shots.length=0; particles.length=0; floatTexts.length=0; groundHazards.length=0;
     voidZones.length=0; chains.length=0; _pendingDots.length=0;
     if(typeof staffFx!=='undefined') staffFx.length=0;
     if(typeof _groundFx!=='undefined') _groundFx.length=0;
@@ -3986,13 +3987,14 @@ function startBattle(){
    Only real squad heroes carry _vaultFighter — summons (Hurne's boars etc.) NEVER trigger the picker. */
 function vaultReinforce(){ if(CUR.mode!=='vault'||!CUR.backups||!CUR.backups.length) return;
   if(waveXfer) return;   // never open (or spawn) during the run-on/run-off cinematic
-  if(document.getElementById('vaultSubModal')) return;   // a choice is already on screen
+  if(VAULT_PICK_OPEN || document.getElementById('vaultSubModal')) return;   // a choice is already on screen
   const d=units.find(u=>u.team==='ally'&&!u.alive&&u._vaultFighter&&!u._summon&&HERO_TYPES[u.key]&&!u._vaultReplaced);
   if(d) vaultOpenSubPicker(d);
 }
 function vaultOpenSubPicker(dead){
   paused=true;
   const app=document.getElementById('app');
+  VAULT_PICK_OPEN=true;   // v273: the SIM asks this flag, never the document
   const ov=document.createElement('div'); ov.id='vaultSubModal';
   ov.style.cssText='position:absolute;inset:0;z-index:60;background:rgba(5,8,14,.74);display:flex;align-items:center;justify-content:center';
   ov.innerHTML=`<div class="panel" style="max-width:430px;width:88%;text-align:center;border-color:#7a5fb0">
@@ -4007,7 +4009,7 @@ function vaultOpenSubPicker(dead){
     c.innerHTML=`${heroIcon(k,48)}<span style="font-size:9px;margin-top:3px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(HERO_TYPES[k]||{}).name||k}</span><span style="font-size:8px;color:#8b98a9">Lv ${heroLevel(k)}</span>`;
     c.onclick=()=>vaultPickSub(dead,k,ov);
     row.appendChild(c); });
-  ov.querySelector('#vsubSkip').onclick=()=>{ dead._vaultReplaced=true; ov.remove(); paused=false; };
+  ov.querySelector('#vsubSkip').onclick=()=>{ dead._vaultReplaced=true; ov.remove(); VAULT_PICK_OPEN=false; paused=false; };
 }
 function vaultPickSub(dead,k,ov){
   const i=CUR.backups.indexOf(k); if(i<0) return; CUR.backups.splice(i,1);
@@ -4019,7 +4021,7 @@ function vaultPickSub(dead,k,ov){
   floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
   burstAt(u.x,u.y,0xc9a2ff,14);
   buildPortraitBar(); refreshCtrlBtns(); updateCounts();
-  ov.remove(); paused=false;
+  ov.remove(); VAULT_PICK_OPEN=false; paused=false;
 }
 function startNextWave(){waveIdx++;units.filter(u=>u.team==='ally'&&u.alive).forEach(u=>{u.target=null;});/* Phil 26 Aug: heroes carry HP & Energy into the next wave — no recovery */buildEnemyWave();buildEnemyBar();updateWaveTag();updateCounts();
   if(waveIdx===chapterWaves-1) bossIntro(); else bannerMsg('WAVE '+(waveIdx+1));}
@@ -4278,10 +4280,14 @@ function endBattle(won){ ended=true;
       document.getElementById('resultHint').textContent=won?'The next floor is harder — spend Dust at the Forge to temper your gear.':'Backups step in when a fighter falls — bring 10 heroes.';
       gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;
-    if(ACC.token) api('/api/trial/resolve','POST',{kind:'dungeon',floor:G.dungeonBest,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: server-verified
-      if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; const bag=EQ_BASE.map(b=>b[0]); const n=3+Math.floor(playerLevel()/5); const got={};
-      for(let i=0;i<n;i++){ const b=bag[Math.floor(Math.random()*bag.length)]; G.eqMats[b]=(G.eqMats[b]||0)+1; got[b]=(got[b]||0)+1; }
-      dropLog=EQ_BASE.filter(b=>got[b[0]]).map(b=>b[1]+' +'+got[b[0]]).join(' ');
+    if(ACC.token) api('/api/trial/resolve','POST',{kind:'dungeon',floor:G.dungeonBest,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
+      if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger);
+        if(r.mats){ const txt=EQ_BASE.filter(b=>r.mats[b[0]]).map(b=>b[1]+' +'+r.mats[b[0]]).join(' ');
+          const el=document.getElementById('resultReward'); if(el&&txt) el.innerHTML+=' · <span style="color:#8fe3ff">'+txt+'</span>'; } } }).catch(()=>{});   // v250: server-verified
+      /* v273 (audit response P0): the equipment-material roll happens on the SERVER (/api/trial/resolve)
+         and arrives with the ledger. Offline play still grants nothing permanent. */
+      if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0};
+      dropLog=ACC.token?'(materials awarded by the server)':'';
       dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);
       /* v250: px/heroXp for this loop come from /api/trial/resolve */
       saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
@@ -4493,7 +4499,7 @@ function updateBattle(dt){
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended) vaultReinforce();   // The Vault: a fallen fighter pauses the fight so the player picks a backup
-  if(!ended && !document.getElementById('vaultSubModal')){const a=units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
+  if(!ended && !VAULT_PICK_OPEN){const a=units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
     if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); } else if(a===0)endBattle(false);}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
 
@@ -4871,7 +4877,7 @@ function show(name){
   if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
   document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'));
-  if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); const vm=document.getElementById('vaultSubModal'); if(vm) vm.remove(); }
+  if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); const vm=document.getElementById('vaultSubModal'); if(vm) vm.remove(); VAULT_PICK_OPEN=false; }
   if(name==='heroesPanel') renderHeroList();
   if(name==='heroDetail') renderHeroDetail();
   if(name==='bag') renderBag();
@@ -5423,6 +5429,10 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
       cur.cleared=Math.max(cur.cleared|0, src.cleared|0); cur.locked=src.locked||null;
       cur.stars=cur.stars||{}; for(const n in (src.stars||{})) if((src.stars[n]|0)>(cur.stars[n]|0)) cur.stars[n]=src.stars[n]|0; } }
   if(st.stamina){ G.stamina=st.stamina.v|0; G.staminaTS=Date.now(); }
+  /* v273: equipment materials and skill levels are SERVER-OWNED now — the browser mirrors them, it
+     does not mint them. (The dungeon used to roll materials locally with Math.random().) */
+  if(st.eqMats){ G.eqMats=G.eqMats||{}; for(const k in st.eqMats) G.eqMats[k]=st.eqMats[k]|0; }
+  if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
   saveG(); if(typeof updateHubChrome==='function') try{updateHubChrome();}catch(e){}
 }
 async function ledgerSync(){ if(!ACC.token) return null; try{ const d=await api('/api/ledger'); if(d&&!d.error){ adoptLedger(d); return d; } }catch(e){} return null; }
@@ -6259,7 +6269,11 @@ function unitType(key){ return HERO_TYPES[key]||MONSTER_TYPES[key]; }
 const MONSTER_POOL=Object.keys(MONSTER_TYPES).filter(k=>!MONSTER_TYPES[k].isboss&&!MONSTER_TYPES[k].summonOnly);   // summonOnly = Hurne's boars: they exist as units but must never spawn as a wave enemy
 const BOSS_POOL=Object.keys(MONSTER_TYPES).filter(k=>MONSTER_TYPES[k].isboss);
 const CAMP_TARGET=[1,8,14,20,27,33,40,45,49,55];   // clear-level per chapter (index 1..9; [0]=1)
-function randOf(a){ return a[Math.floor(Math.random()*a.length)]; }
+/* v273 (audit response §5.5): the wave builder picks with the BATTLE's seeded stream when a fight is
+   running, so a non-authored wave (Dungeon, Elite) is reproducible from its seed instead of being a
+   fresh roll every time. Outside a battle it stays a plain random pick (menus, cosmetics). */
+function randOf(a){ const r=(typeof _brng==='function'&&state==='battle')?brnd():Math.random();
+  return a[Math.floor(r*a.length)]; }
 // enemy "3★ hero" pool = only heroes that START at 3★ (cost 80 fragments to summon). Excludes 2★ starters like Thorne.
 function heroPool3star(){ const p=Object.keys(HERO_TYPES).filter(k=>summonCost(k)===80); return p.length?p:Object.keys(HERO_TYPES); }
 // classify any unit (monster / boss / hero) into a battle row for role-based wave building
@@ -10409,7 +10423,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787868829940';
+const BUILD_ID='1787872013219';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
