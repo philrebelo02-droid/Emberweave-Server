@@ -2780,6 +2780,10 @@ function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
   const allies=units.filter(u=>u.team==='ally');
   const total=allies.length||1, alive=allies.filter(u=>u.alive).length;
   const stars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0;
+  /* how much of the line was left standing, as a fraction — the balance signal the campaign is
+     authored against, now measured in the REAL battle rather than estimated. */
+  let _hp=0,_mx=0; allies.forEach(u=>{ _mx+=u.maxHp||0; _hp+=Math.max(0,u.alive?u.hp:0); });
+  window._p2hpf = _mx>0 ? +(_hp/_mx).toFixed(4) : 0;
   try{ window._p2digest=JSON.stringify({ t:+battleTime.toFixed(4), won, stars, wave:waveIdx,
     u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) }); }catch(e){ window._p2digest=null; }
   window._p2stars=stars; window._p2alive=alive; window._p2total=total;
@@ -10405,7 +10409,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787865608916';
+const BUILD_ID='1787868829940';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
