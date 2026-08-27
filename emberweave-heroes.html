@@ -1902,7 +1902,7 @@ function heroQuality(key){ return G2_TIER16[Math.min(15,glyphRank(key))]; }   //
 // ============== GLYPHS — v2 only (the legacy socketable-glyph system was stripped 26 Aug) ==============
 // Crafting, fragments, socketing and ascension all live on the SERVER (u.glyphs; /api/glyphs/*).
 // The client renders the board via the RUNE2 state and reads combat stats through the two bridges below.
-function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0}; }   // v2 only — legacy socket stats are gone
+function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,pen:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
@@ -1947,7 +1947,7 @@ function starMult(key){ const lv=heroStars(key), pip=starPips(key);
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
 function gearSockMul(key){
-  const z={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
+  const z={atk:0,apow:0,pen:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
   try{
     const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled||!st.equipped) return z;
     const eq=st.equipped[key]; if(!eq) return z;
@@ -1962,6 +1962,8 @@ function gearSockMul(key){
 function sockStatTotal(key){ const g=glyphSockMul(key), f=gearSockMul(key), o={}; for(const k in g) o[k]=(g[k]||0)+(f[k]||0); return o; }
 function heroFlatAtk(key){ return (sockStatTotal(key).atk||0); }   // stars are a MULTIPLIER now (heroStat / makeUnit), not a flat add
 function heroFlatHp(key){ return (sockStatTotal(key).hp||0); }
+function heroFlatApow(key){ return (sockStatTotal(key).apow||0); }   // v241: Ability Power glyphs raise the ABILITY line only
+function heroPenRating(key){ return (sockStatTotal(key).pen||0); }   // v241: Magic/Armor Penetration rating (counters defense rating)
 function starRow(cur,max){ let s=''; for(let i=1;i<=max;i++) s+=`<span style="font-size:15px;filter:${i<=cur?'none':'grayscale(1) brightness(.5)'}">⭐</span>`; return s; }
 // SVG star filled left→right by `frac` (0..1) — used to show a star filling like a gauge
 let _starUid=0;
@@ -2605,13 +2607,13 @@ function laneSlot(team,key,i,n,keys){
    is deterministic), so only the OWNED side needs a snapshot. */
 function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, boss:!!u.boss,
   maxHp:u.maxHp, dmg:u.dmg, range:u.range, speed:u.speed, atkInterval:u.atkInterval, combatDist:u.combatDist, r:u.r, melee:!!u.melee,
-  apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
+  apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, defRating:u.defRating||0, penRating:u.penRating||0, glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
   critRes:u.critRes||0, energyReg:u.energyReg||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
   immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null }; }
 function buildUnitFromSnapshot(s,team,x,y){
   const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank,boss:s.boss});   // structure + kit abilities by rank
   u.maxHp=u.hp=s.maxHp; u.dmg=s.dmg; u.range=s.range; u.speed=s.speed; u.atkInterval=s.atkInterval; u.combatDist=s.combatDist; u.r=s.r; u.melee=s.melee;
-  u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg;
+  u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.defRating=s.defRating||0; u.penRating=s.penRating||0; u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune; u.pass=s.pass;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18;   // re-apply the ranged reach gate after overriding stats
   return u;
@@ -2667,9 +2669,11 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: owned?skillLvArr(key).slice():[1,1,1,1], passMul:1, _castSM:1, apMul: owned?abilityPowerMul():(t.ap||1),
-    apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)*((owned&&t.healer)?(1+(mul.healPow||0)):1)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    apow: Math.round((t.apow||0)*scale*sm*(owned?abilityPowerMul():1)*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(owned?heroFlatApow(key):0), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   u.glyphDR = (u.glyphDR||0) + defToDR((t.armor||0)*scale*sm + (t.mr||0)*scale*sm + (owned?techTotal('armor')+techTotal('mr'):0));   // flat Armor + Magic Resist → diminishing damage reduction
+  u.defRating = (t.armor||0)*scale*sm + (t.mr||0)*scale*sm + (owned?techTotal('armor')+techTotal('mr'):0);   // v241: kept raw so an attacker's penetration can re-run the curve at hit time
+  u.penRating = owned?heroPenRating(key):0;   // v241: Magic/Armor Penetration glyph rating
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   // ---- Hollow: he does not march in. He waits in the shadow above the field and comes down
@@ -2724,7 +2728,7 @@ function summonUnit(owner,key,dur,off){
     u.maxHp=Math.round(owner.maxHp*sc.hp); u.hp=u.maxHp;
     u.dmg=Math.round(owner.dmg*sc.dmg);
     if(sc.apow) u.apow=Math.round((owner.dmg||20)*sc.apow);
-    u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr;
+    u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr; u.defRating=(u.defRating||0)+sc.armor+sc.mr;
   }
   // rise clip is 12 frames at 14 fps — hold them underground for exactly that long so the
   // last frame of the climb IS the first frame of idle and there is no pop.
@@ -2866,6 +2870,10 @@ function dealDamage(src,tgt,amt,color){
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
   if((tgt._frozenT||0)>0) amt*=1.25;   // Cold Snap (Sylthaine): frozen foes take +25% damage from everyone
+  // v241 (audit): PENETRATION — re-runs the diminishing defense curve with (defRating − pen) as a
+  // pure ratio against the base-def mitigation already inside glyphDR. Never adds raw damage; does
+  // nothing against an unarmored target. Same rule as the server resolver.
+  if(src&&(src.penRating||0)>0&&(tgt.defRating||0)>0){ const d0=defToDR(tgt.defRating), d1=defToDR(Math.max(0,tgt.defRating-src.penRating)); if(d0<1) amt*=(1-d1)/(1-d0); }
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(cc&&brnd()<cc){ let mult=1.6; if(tgt.critRes) mult=1+(mult-1)*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }
@@ -6977,7 +6985,7 @@ function guildExpNeeded(lvl){ lvl=lvl||guildLevel(); return 1000*lvl; }        /
 function guildShopSlots(){ return 4+(guildLevel()-1)*2; }
 function guildMaxed(){ return guildLevel()>=GUILD_MAX_LEVEL; }
 function addGuildExp(n){ if(!G.guild)return;
-  if(G.guild.type==='real'){ const before=(GS.guild&&GS.guild.level)||G.guild.level||1; api('/api/guild/contribute','POST',{exp:n}).then(d=>{ if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); if(GS.guild.level>before) bannerMsg('&#127881; Guild reached level '+GS.guild.level+'!'); if(state==='guild')renderGuild(); } }); return; }
+  if(G.guild.type==='real'){ const before=(GS.guild&&GS.guild.level)||G.guild.level||1; api('/api/guild/contribute','POST',{exp:n}).then(d=>{ if(d&&d.error){ bannerMsg(d.error); return; } if(d&&d.capped){ bannerMsg('Daily contributions done — come back tomorrow.'); return; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); if(GS.guild.level>before) bannerMsg('&#127881; Guild reached level '+GS.guild.level+'!'); if(state==='guild')renderGuild(); } }); return; }   // v241: contributions cost 200 server gold — surface the refusal instead of silently eating it
   if(guildMaxed())return; G.guild.exp=(G.guild.exp||0)+n;
   while(!guildMaxed() && G.guild.exp>=guildExpNeeded(G.guild.level)){ G.guild.exp-=guildExpNeeded(G.guild.level); G.guild.level=(G.guild.level||1)+1; bannerMsg('&#127881; Guild reached level '+G.guild.level+'!'); }
   if(guildMaxed())G.guild.exp=0; saveG(); }
@@ -7449,11 +7457,14 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
-function glyphV2Mul(key){ const out={atk:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
+function glyphV2Mul(key){ const out={atk:0,apow:0,pen:0,hp:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regen:0,ctrlRes:0,startEnergy:0,healPow:0};
   if(!RUNE2.enabled||!RUNE2.st||!RUNE2.cat) return out;
   // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = CONTROL resist; Starting Energy = initial
   // energy; Healing Power = healer output; HP Regen = universal regen. Never folded into lookalikes.
-  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'atk','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow'};
+  // v241 (audit): Ability Power feeds the ABILITY line (apow), never basic attack; Magic/Armor
+  // Penetration are a pen rating that counters the target's defense rating in dealDamage; Energy
+  // Regen is the energy rating (1 energy/s per 100, same as gear).
+  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'apow','Magic Penetration':'pen','Armor Penetration':'pen','Energy Regen':'energy','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow'};
   const b=g2board(key); const add=(stat,val)=>{ const k=MAP[stat]; if(k) out[k]+=val; };
   for(const st in (b.ascended||{})) add(st, b.ascended[st].val);
   for(const sObj of (b.slots||[])){ if(!sObj)continue; (sObj.stats||[]).forEach(s=>add(s.stat,s.val)); }
@@ -7674,7 +7685,7 @@ function renderHeroDetail(){
   const lvl=heroLevel(key), capped=heroCapped(key);
   const xp=G.heroXP[key]||0, curBase=xpForLevel(lvl), nextBase=xpForLevel(lvl+1);
   const into=Math.max(0,xp-curBase), span=Math.max(1,nextBase-curBase), pct=Math.max(0,Math.min(100,Math.round(into/span*100)));
-  const S_HP=Math.round(heroStat(key,t.hp)*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg)*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0)*abilityPowerMul());
+  const S_HP=Math.round(heroStat(key,t.hp)*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg)*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0)*abilityPowerMul())+heroFlatApow(key);
   const gr=glyphRank(key), gi={name:gLadderName(gr), col:gLadderCol(gr)}, stars=heroStars(key); eliteCheckReset();
   const grp=eqGroup(key);
   const owned=!!G.unlocked[key], myth=isMythic(key);
@@ -9537,7 +9548,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787835495258';
+const BUILD_ID='1787838108446';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

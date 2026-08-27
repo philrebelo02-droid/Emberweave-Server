@@ -1,6 +1,6 @@
 {
   "name": "emberweave-server",
-  "version": "232.0.0",
+  "version": "241.0.0",
   "private": true,
   "description": "Emberweave Heroes cloud server. Run tests with: bash scripts/run_all_tests.sh (from a repo checkout) after `npm ci` and `npx playwright install chromium`.",
   "scripts": {

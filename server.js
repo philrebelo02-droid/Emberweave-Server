@@ -528,10 +528,14 @@ function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string
 function glyphFlatStats(u,key){
   // hp/atk/heal flats (unchanged) + v225: the RATE stats the client's glyphV2Mul collects
   // (Armor/MR/Crit Chance/Tenacity/Control Resist/Starting Energy), same MAP, crit capped at 60.
-  const out={hp:0,atk:0,heal:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0,ctrlRes:0,startEnergy:0,healPow:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+  const out={hp:0,atk:0,apow:0,heal:0,pen:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0,ctrlRes:0,startEnergy:0,healPow:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
   const b=g.boards&&g.boards[key]; if(!b) return out;
+  // v241 (audit): Ability Power feeds the ABILITY line (apow), never generic attack; the pen ratings
+  // counter the target's defense rating behind the diminishing curve (see sim.js).
   const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
-    else if(/Physical Attack|Ability Power/i.test(stat)) out.atk+=val; };
+    else if(/^Physical Attack$/i.test(stat)) out.atk+=val;
+    else if(/^Ability Power$/i.test(stat)) out.apow+=val;
+    else if(/^(Magic|Armor) Penetration$/i.test(stat)) out.pen+=val; };
   // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = control resistance (never crit resist),
   // Starting Energy = initial energy (never energy regen), Healing Power = healer output (never
   // HP regen), HP Regen = universal regen rate. No display label is folded into an unrelated stat.
@@ -541,6 +545,7 @@ function glyphFlatStats(u,key){
     else if(/^(Tenacity|Control Resist)$/i.test(stat)) out.ctrlRes+=val;
     else if(/^Starting Energy$/i.test(stat)) out.startEnergy+=val;
     else if(/^Healing Power$/i.test(stat)) out.healPow+=val;
+    else if(/^Energy Regen$/i.test(stat)) out.energy+=val;
     else if(/^HP Regen$/i.test(stat)) out.regenRating+=val; };
   for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
@@ -585,7 +590,7 @@ function snapshotHeroFromServer(u, key, save){
   if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
     if(d&&d.active){ const eq=(u.gear.equipped||{})[key]||{}; if(Object.values(eq).includes(aid)){ gearSkillSlot=d.slot;
       gearSkill={ id:d.id, name:d.active, type:d.activeType||null, params:d.activeParams||null, slot:d.slot }; } } }
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, glyph:fl,
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, glyph:fl, pen:(fl.pen|0),
     dr:Math.min(0.6,(armor+mr)*0.004), crit:Math.min(0.6,critR*0.005), critRes:Math.min(0.75,cresR*0.005),
     energyReg:enR*0.01, regen:regR*0.001,
     ctrlRes:Math.min(0.6,ctrlR*0.005), startEnergy:Math.min(60,Math.round(stEn*0.35)), healPow:healP*0.004,
@@ -602,7 +607,7 @@ function dungeonQualityForFloor(f){ const b=DUNGEON_QUALITY_BANDS.find(b=>f>=b.m
 function isDungeonBossFloor(f){ return f%5===0; }
 function isDungeonMilestoneFloor(f){ return f%10===0; }
 const DUNGEON_TUNE={ dustFloor1:30, dustGrowthPerFloor:0.065, bossPowerMultiplier:1.30, milestonePowerMultiplier:1.55 };
-function dustForDungeonFloor(f){ return Math.floor(DUNGEON_TUNE.dustFloor1*Math.pow(1+DUNGEON_TUNE.dustGrowthPerFloor,f-1)); }
+function dustForDungeonFloor(f){ return VAULT_ENC ? vaultFloorRecord(f).dust : Math.floor(DUNGEON_TUNE.dustFloor1*Math.pow(1+DUNGEON_TUNE.dustGrowthPerFloor,f-1)); }   // v241: the authored table is the source once compiled
 function difficultyForDungeonFloor(f){ const n=1+(f-1)*0.085;
   return n*(isDungeonBossFloor(f)?DUNGEON_TUNE.bossPowerMultiplier:1)*(isDungeonMilestoneFloor(f)?DUNGEON_TUNE.milestonePowerMultiplier:1); }
 const DUNGEON_BOSS_RULES=['stoneguard_barrier','bloodfire_enrage','broodcall','riftblade_leap','blight_aura','storm_chain','ironwall_challenge','voidstep','cinderbrand','vault_warden'];
@@ -648,23 +653,32 @@ const VAULT_MIN_BATTLE_MS=+(process.env.VAULT_MIN_BATTLE_MS||6000);   // a real 
 const VAULT_BOSS_STATS={'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26}};
 function vaultMonsterLevel(floor){ return Math.max(1,Math.min(D_MAX_LEVEL, Math.round(2+floor*0.6))); }
 // deterministic per floor+wave — NO per-attempt randomness anywhere in here
-function buildDungeonWaves(floor){
-  const diff=difficultyForDungeonFloor(floor), rule=bossRuleForFloor(floor);
-  const lvl=vaultMonsterLevel(floor);
-  const keys=Object.keys(VAULT_MONSTERS);
-  const wave=(wi,mul,withBoss)=>{
-    const rnd=SIM.mulberry32(SIM.seedFrom('vaultfloor:'+floor+':w'+wi));   // floor-only seed = same lineup forever
-    const pool=keys.slice(); const specs=[];
-    const n=withBoss?4:(wi===0?4:5);
-    for(let i=0;i<n;i++){ const k=pool.splice(Math.floor(rnd()*pool.length),1)[0];
-      specs.push({key:k,lvl,hpMul:+( (0.85*mul).toFixed(3) ),dmgMul:+( (0.80*mul).toFixed(3) )}); }
-    if(withBoss){ const bk=VAULT_BOSSES[(Math.floor(floor/5)-1+VAULT_BOSSES.length)%VAULT_BOSSES.length];
-      specs.push({key:bk,lvl:Math.min(D_MAX_LEVEL,lvl+3),hpMul:+((2.2*mul).toFixed(3)),dmgMul:+((1.15*mul).toFixed(3)),boss:true}); }
-    return specs;
-  };
-  if(!rule) return [ wave(0,diff*0.86,false), wave(1,diff*1.00,false) ];
-  return [ wave(0,diff*0.80,false), wave(1,diff*1.00,true) ];
+/* v241 (full-game audit): the Vault is AUTHORED DATA, not runtime generation. server/vault-encounters.json
+   carries all 100 floors — waves, boss rule, recommended power, Dust, the boss-floor glyph fragments,
+   and the two TARGETED gear fragments each floor drops. vaultCompile validates the whole table at
+   boot (missing/corrupt file = the server refuses to start, same rule as glyph-source). */
+let VAULT_ENC=null;
+function vaultCompile(){
+  const raw=require('./server/vault-encounters.json');
+  const fl=raw&&raw.floors;
+  if(!Array.isArray(fl)||fl.length!==DUNGEON_MAX_FLOOR) throw new Error('vault-encounters: need exactly '+DUNGEON_MAX_FLOOR+' floors');
+  const gearFrags=new Set(); if(typeof GEARCAT!=='undefined'&&GEARCAT) for(const id in GEARCAT.byId){ const d=GEARCAT.byId[id]; if(d.frag) gearFrags.add(d.frag); }
+  fl.forEach((r,i)=>{ const f=i+1;
+    if(r.floor!==f) throw new Error('vault-encounters: floor '+f+' out of order');
+    if(!Array.isArray(r.waves)||r.waves.length!==2) throw new Error('vault-encounters: floor '+f+' must have exactly two waves');
+    for(const w of r.waves){ if(!Array.isArray(w)||!w.length) throw new Error('vault-encounters: floor '+f+' empty wave');
+      for(const s of w){ if(!VAULT_MONSTERS[s.key]&&!VAULT_BOSS_STATS[s.key]) throw new Error('vault-encounters: floor '+f+' unknown monster '+s.key); } }
+    const hasBoss=r.waves[1].some(s=>s.boss);
+    if((f%5===0)!==hasBoss) throw new Error('vault-encounters: floor '+f+' boss rule mismatch');
+    if(!(r.dust>0)) throw new Error('vault-encounters: floor '+f+' missing dust');
+    if(!Array.isArray(r.gearFragments)||r.gearFragments.length!==2) throw new Error('vault-encounters: floor '+f+' needs exactly 2 gear fragment targets');
+    if(gearFrags.size) for(const k of r.gearFragments){ if(!gearFrags.has(k)) throw new Error('vault-encounters: floor '+f+' unknown gear fragment '+k); }
+    if(f%5===0 && (!Array.isArray(r.glyphFragments)||!r.glyphFragments.length)) throw new Error('vault-encounters: boss floor '+f+' missing glyph fragments'); });
+  VAULT_ENC=fl;
+  console.log('🏛  Vault encounters compiled: '+fl.length+' authored floors (fixed waves, authored boss rules, targeted gear fragments).');
 }
+function vaultFloorRecord(floor){ if(!VAULT_ENC) throw new Error('vault-encounters not compiled'); return VAULT_ENC[Math.max(1,Math.min(DUNGEON_MAX_FLOOR,floor))-1]; }
+function buildDungeonWaves(floor){ return vaultFloorRecord(floor).waves; }
 // server-side plausibility score of a floor's monsters (mirrors client makeUnit scale=1+0.05*(lvl-1))
 function vaultFloorScore(floor){
   let s=0; for(const w of buildDungeonWaves(floor)){ for(const m of w){
@@ -711,14 +725,13 @@ function vaultWinPlausible(a){
 // (rollFragmentOfQuality deleted — Correction Spec v1: no random family roll exists in any live
 //  reward path; vault/campaign/arena/daily all use named deterministic tables.)
 function makeStandardDungeonFloorReward(floor,rnd){
-  // AUDIT C7: MONSTERS are fixed per floor; REWARD FRAGMENTS are rolled server-side per grant
-  // transaction and persisted with it (claimedFloors / the idempotency record) — a retry never
-  // rerolls, and the roll is never derivable by the client in advance.
-  rnd=rnd||Math.random;
-  const r={ dust:dustForDungeonFloor(floor) };
-  if(isDungeonBossFloor(floor)){ r.fragments=vaultGlyphFragsFor(floor); }   // Correction Spec v1: NAMED, floor-fixed — never a family roll
-  if(typeof GEARCAT!=='undefined'&&GEARCAT){ const gq=dungeonQualityForFloor(floor);
-    r.gearFragments=[gearRollFragment(gq,rnd), gearRollFragment(gq,rnd)].filter(Boolean); }
+  // v241 (full-game audit): every part of the floor reward is AUTHORED in vault-encounters.json —
+  // Dust, the boss-floor glyph fragments, and the two TARGETED gear fragments (no random roll, so
+  // a player can farm a specific floor for a specific item's fragments, like Campaign).
+  const rec=vaultFloorRecord(floor);
+  const r={ dust:rec.dust };
+  if(isDungeonBossFloor(floor)){ r.fragments=(rec.glyphFragments||[]).slice(); }
+  if(typeof GEARCAT!=='undefined'&&GEARCAT){ r.gearFragments=(rec.gearFragments||[]).slice(); }
   return r;
 }
 function makeFirstClearDungeonReward(floor){
@@ -974,7 +987,7 @@ function ledStamRegen(led){ const now=Date.now(); const mx=ledStamMax(led);
     if(g>0){ led.stam.v=Math.min(mx,led.stam.v+g); led.stam.ts+=g*STAM_REGEN_MS; } }
   else led.stam.ts=now; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
-  return { rev:led.rev, gold:led.gold, gems:led.gems, px:led.px, playerLevel:ledPlayerLevel(led),
+  return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags,
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
@@ -2439,6 +2452,12 @@ async function api(req,res,url){
       const _dk=new Date().toISOString().slice(0,10);
       if(!me.guildContrib || me.guildContrib.day!==_dk) me.guildContrib={day:_dk,n:0};
       if(me.guildContrib.n>=GUILD_CONTRIB_DAILY) return send(res,200,{ capped:true, guild:guildView(g) });
+      // v241 (full-game audit): a contribution SPENDS a server resource — 200 ledger gold per click.
+      // No free XP from nothing; the daily cap stays as the outer bound.
+      const GUILD_CONTRIB_GOLD=200;
+      { const led=ensureLedger(me);
+        if((led.gold|0)<GUILD_CONTRIB_GOLD) return send(res,400,{error:'Contributing costs '+GUILD_CONTRIB_GOLD+' gold.'});
+        led.gold-=GUILD_CONTRIB_GOLD; ledTx(me,'guild-contribute',{gold:-GUILD_CONTRIB_GOLD}); }
       me.guildContrib.n++;
       const amt=GUILD_CONTRIB_EXP;
       g.exp=(g.exp||0)+amt;
@@ -2463,6 +2482,14 @@ async function api(req,res,url){
         g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' landed the killing blow on '+BOSS_NAMES[(lv-1)%BOSS_NAMES.length]+' (Tier '+lv+')!',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
         reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
       else { reward={ guildCoins:Math.round(dmg/50) }; }
+      // v241 (full-game audit): the raid reward is CREDITED to the server wallet in the same
+      // transaction that reports it — never a client-side receipt. Guild Coins live on the ledger
+      // (led.guildCoins) so the guild shop can be moved onto them.
+      { const led=ensureLedger(me);
+        if(reward.gold) led.gold=Math.min(ECON_CAP.gold,(led.gold|0)+reward.gold);
+        if(reward.gems) led.gems=Math.min(ECON_CAP.gems,(led.gems|0)+reward.gems);
+        if(reward.guildCoins) led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+(reward.guildCoins|0));
+        ledTx(me,'guild-raid',reward); }
       writeDB(); return send(res,200,{ dmg, killed, reward, raid:raidView(g) }); }
 
     if(p==='/api/guild/war/attack'){ return send(res,400,{error:'Legacy Guild War is retired — fight in the Skyfall Tournament (Guild → Skyfall).'}); }
@@ -2613,7 +2640,7 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-campCompile(); readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens
+campCompile(); vaultCompile(); readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
 backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
