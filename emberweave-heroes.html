@@ -7474,6 +7474,8 @@ async function g2buildOpen(slot){ if(RUNE2.busy) return;
   if(!r||r.error){ RUNE2.build=null; bannerMsg((r&&r.error)||'Could not load blueprints.'); renderHeroDetail(); return; }
   RUNE2.build={slot, loading:false, data:r}; renderHeroDetail(); }
 function g2buildCancel(){ RUNE2.build=null; renderHeroDetail(); }
+function g2info(slot){ const bd=g2board(detailHero); const so=bd.slots[slot]; if(!so) return;
+  bannerMsg('🔒 <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')); }
 async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
   const r=await api('/api/glyphs/build-in-slot','POST',{ heroKey:detailHero, slot:RUNE2.build&&RUNE2.build.slot,
     blueprintId:bpId, expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
@@ -7528,7 +7530,7 @@ function glyphV2Tab(key){
   // 27 Aug (Phil): CLEAN board — no boxes, no outlines, no names. Just the rune art:
   // empty = big ghosted rune + green ＋; built = the clear rune image alone.
   const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i];
-    if(so){ return `<div style="background:none;border:none;padding:2px;cursor:default;text-align:center" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} (locked)">
+    if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} 🔒">
         <div style="height:130px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),126)}</div></div>`; }
     return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" onclick="g2buildOpen(${i})">
       <div style="position:relative;height:130px;display:flex;align-items:center;justify-content:center">
@@ -7568,11 +7570,7 @@ function renderHeroDetail(){
       ? `<img src="${mythBannerSrc}" alt="Mythical">`
       : `<span>✦ MYTHICAL ✦</span>`}</div>` : '';
   // ---- LEFT: portrait, stars + star-up, equipment slots, level ----
-  const eqGrid=EQ_SLOTS.map((sl,i)=>{ const un=eqSlotUnlocked(key,i), id=equipArr(key)[i], sel=eqSlotSel===i;
-    const it=id?eqParse(id):null; const col=it?EQ_TIERS[it.t][1]:'#33405e';
-    return `<div class="hd-armor${un?'':' locked'}${sel?' sel':''}" data-eq="${i}" title="${sl.name}" style="${it?'border-color:'+col:''}">
-      <div class="ai">${un?sl.icon:'🔒'}</div>
-      <div class="al" style="${it?'color:'+col:''}">${un?(it?EQ_TIERS[it.t][0]:'empty'):gLadderName(sl.unlock)}</div></div>`; }).join('');
+  // (27 Aug, Phil: the equipment slot grid lives ONLY in the Equipment tab — not on the hero card)
   const st=stars;
   // star sub-line (precomputed to avoid deep template nesting)
   let starSubLine;
@@ -7585,7 +7583,6 @@ function renderHeroDetail(){
     <div class="hd-starrow" id="hdStars" title="${owned?'Tap the stars to manage / refine':''}" style="display:flex;gap:2px;justify-content:center;align-items:center;cursor:${owned?'pointer':'default'};padding:6px 16px;border-radius:10px">${starFillRow(key,22)}</div>
     ${starSubLine?`<div style="font-size:11px;color:#8b98a9;margin:3px 0 4px">${starSubLine}</div>`:''}
     <div style="font-size:11px;color:${myth?'#ffcf40':gi.col};font-weight:700">${myth?'✦ Mythical':gi.name} · <span style="color:#8b98a9">${t.role} · ${EQ_GROUP_LABEL[grp]}</span></div>
-    <div class="hd-armorgrid">${eqGrid}</div>
     <div style="font-size:11px;color:#8b98a9;margin-top:4px">Level ${lvl}${capped?' <span style="color:#ffd45e">(cap '+playerLevel()+')</span>':''}</div>
     <div style="height:7px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${capped?100:pct}%;background:${capped?'#ffd45e':'linear-gradient(90deg,#5ee89b,#4aa3ff)'}"></div></div>
   </div>`;
@@ -7699,7 +7696,6 @@ function renderHeroDetail(){
   { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=()=>{ if(doSummon(key)){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
   // clicking an equipment slot on the left jumps to the Equipment tab focused on that slot
-  body.querySelectorAll('.hd-armor').forEach(el=>el.onclick=()=>{ eqSlotSel=+el.dataset.eq; heroTab='equip'; renderHeroDetail(); });
   body.querySelectorAll('.eq-pick').forEach(el=>el.onclick=()=>{ eqSlotSel=+el.dataset.eqp; renderHeroDetail(); });
   body.querySelectorAll('[data-craft]').forEach(el=>el.onclick=()=>{ const ti=+el.dataset.craft; if(eqCraft(eqGroup(key),eqSlotSel,ti)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
   body.querySelectorAll('[data-equip]').forEach(el=>el.onclick=()=>{ const ti=+el.dataset.equip, id=eqId(eqGroup(key),eqSlotSel,ti); if(eqSlotUnlocked(key,eqSlotSel)&&equipItem(key,eqSlotSel,id)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
@@ -9424,7 +9420,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787825770332';
+const BUILD_ID='1787825939597';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
