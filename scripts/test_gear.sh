@@ -59,8 +59,8 @@ ck "bound item refused as ingredient" 'fresh unbound' "$CG2"
 # temper: 1 use on the equipped grey costs 5 dust; ×12 uses crosses bar (10) → temper 1, cost rises to 6
 TP=$(curl -s -X POST $B/api/gear/temper -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\",\"uses\":12}")
 ck "temper 12 uses" '"temper":1' "$TP"
-ck "temper spent 6x10+7x2=74 dust (C5 ladder)" '"dustSpent":74' "$TP"
-ck "next cost 7 (20% growth after bar)" '"nextCost":7' "$TP"
+ck "temper spent 5x10+6x2=62 dust (C5 ladder, Grey base 5)" '"dustSpent":62' "$TP"
+ck "next cost 6 (20% growth after bar)" '"nextCost":6' "$TP"
 RV=$(echo "$TP"|jv "['revision']")
 
 # resonance: 1 total temper level on equipped gear → below rank 1 threshold(20) → rank 0
@@ -75,7 +75,7 @@ ck "select gear active" '"active":"Shield Bash"' "$SA"; RV=$(echo "$SA"|jv "['re
 UN=$(curl -s -X POST $B/api/gear/unequip -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"heroKey\":\"vael\",\"slot\":\"Weapon\"}")
 RV=$(echo "$UN"|jv "['revision']")
 EX=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
-ck "extract refunds 80% (59 of 74)" '"refund":59' "$EX"; RV=$(echo "$EX"|jv "['revision']")
+ck "extract refunds 80% (49 of 62)" '"refund":49' "$EX"; RV=$(echo "$EX"|jv "['revision']")
 EX2=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
 ck "double extract rejected" 'Unknown item' "$EX2"
 

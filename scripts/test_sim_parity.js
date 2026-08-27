@@ -38,4 +38,23 @@ const fz=S.heroCombatStats('fritz',{level:10,stars:2,pips:0});
 ck('fritz base armor/MR reaches dr via defToDR ('+fz.dr.toFixed(3)+')', fz.dr>0.05 && fz.dr<0.5);
 const va=S.heroCombatStats('vael',{level:10,stars:1,pips:0});
 ck('heroes without base armor have dr 0', va.dr===0);
+// ---- v241 (full-game audit): Ability Power is its own line; penetration counters DEFENSE RATING ----
+// 1) a MAGE's AP glyphs raise the ability line; a PHYSICAL hero's line is untouched by AP
+const syl0=S.heroCombatStats('sylthaine',{level:10,stars:1,pips:0});
+const sylA=S.heroCombatStats('sylthaine',{level:10,stars:1,pips:0,glyph:{apow:400}});
+ck('Mage + Ability Power raises the ability line ('+syl0.atk+' -> '+sylA.atk+')', sylA.atk>syl0.atk);
+const va0=S.heroCombatStats('vael',{level:10,stars:1,pips:0});
+const vaA=S.heroCombatStats('vael',{level:10,stars:1,pips:0,glyph:{apow:400}});
+ck('Bruiser (apow 0 base) line untouched by Ability Power ('+va0.atk+' == '+vaA.atk+')', vaA.atk===va0.atk);
+const vaP=S.heroCombatStats('vael',{level:10,stars:1,pips:0,glyph:{atk:400}});
+ck('Bruiser + Physical Attack raises his line ('+va0.atk+' -> '+vaP.atk+')', vaP.atk>va0.atk);
+// 2) penetration beats DEFENSE RATING, and does NOTHING against an unarmored target
+const penHitArm=avg(hits({pen:900},{defRating:1200,dr:S===null?0:(1200/(1200+1200))},30));
+const noPenArm=avg(hits({},{defRating:1200,dr:1200/(1200+1200)},30));
+ck('pen 900 vs def 1200 raises damage ('+(penHitArm/noPenArm).toFixed(2)+'x)', penHitArm/noPenArm>1.3);
+const penHitNaked=avg(hits({pen:900},{},30));
+ck('pen does nothing against an unarmored target ('+(penHitNaked/base).toFixed(2)+'x ~ 1)', penHitNaked/base>0.9 && penHitNaked/base<1.1);
+// 3) the snapshot carries defRating + pen for the resolver
+const fz2=S.heroCombatStats('fritz',{level:10,stars:2,pips:0,pen:250});
+ck('snapshot carries defRating ('+Math.round(fz2.defRating)+') and pen ('+fz2.pen+')', fz2.defRating>0 && fz2.pen===250);
 console.log('PASS: '+pass+'  FAIL: '+fail); process.exit(fail?1:0);

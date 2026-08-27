@@ -28,6 +28,27 @@ curl -s -X POST $B/api/admin/led-grant -H "$HD" -H 'content-type: application/js
 curl -s -X POST $B/api/guild/create -H "$H1" -H 'content-type: application/json' -d '{"name":"Alpha"}' >/dev/null
 curl -s -X POST $B/api/guild/create -H "$H2" -H 'content-type: application/json' -d '{"name":"Beta"}' >/dev/null
 
+echo "-- guild economy (v241): contributions SPEND ledger gold; raid rewards are CREDITED server-side"
+G0=$(curl -s $B/api/ledger -H "$H1" | jv "['gold']")
+CB=$(curl -s -X POST $B/api/guild/contribute -H "$H1" -H 'content-type: application/json' -d '{}')
+G1=$(curl -s $B/api/ledger -H "$H1" | jv "['gold']")
+ck "contribution debited 200 ledger gold ($G0 -> $G1)" "$((G0-200))" "$G1"
+RA=$(curl -s -X POST $B/api/guild/raid/assault -H "$H1" -H 'content-type: application/json' -d '{}')
+ck "raid assault returns a reward" '"reward"' "$RA"
+GC=$(curl -s $B/api/ledger -H "$H1" | jv "['guildCoins']")
+[ -n "$GC" ] && [ "$GC" -gt 0 ] && ck "raid guild coins CREDITED to the ledger ($GC)" ok ok || ck "raid guild coins CREDITED to the ledger" "credited" "got: $GC"
+# drain the wallet and confirm a broke account is refused (no free XP from nothing)
+python3 - "$G1" > /dev/null <<'PY'
+PY
+GD=$G1
+while [ "$GD" -ge 200 ]; do
+  R=$(curl -s -X POST $B/api/guild/contribute -H "$H1" -H 'content-type: application/json' -d '{}')
+  case "$R" in *capped*) break;; *error*) break;; esac
+  GD=$((GD-200))
+done
+BROKE=$(curl -s -X POST $B/api/guild/contribute -H "$H1" -H 'content-type: application/json' -d '{}')
+case "$BROKE" in *"costs 200 gold"*|*capped*) ck "broke/capped contribution refused (no free guild XP)" ok ok;; *) ck "broke/capped contribution refused (no free guild XP)" refused "$BROKE";; esac
+
 # compute warp offset to NEXT Saturday 01:00 ET
 OFF=$(python3 - << 'PY'
 import time, datetime
