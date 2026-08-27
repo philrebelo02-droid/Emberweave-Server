@@ -108,4 +108,29 @@ RB=$(curl -s -X POST $B/api/dungeon/resolve-battle -H "$HU" -H 'content-type: ap
 ck "vault floor drops gear fragments" 'gearFragments' "$RB"
 ck "gear fragments are Grey band" 'Fragment' "$RB"
 
+# ===== v255 (80/20 contract §1/§5): GEAR STATS ARE TYPED AND REACH THE COMBAT CORE =====
+echo "-- v255 typed gear: a caster item feeds the ABILITY line, a melee item the PHYSICAL line"
+CAT=$(curl -s $B/api/gear/catalog -H "$HU")
+ck "catalog: caster item E02 carries Ability Power (not generic attack)" '"apow"' "$CAT"
+# dev1 equips a CASTER item on a caster and a MELEE item on a melee hero, then compares snapshots
+RVD=$(curl -s $B/api/gear/state -H "x-token: $TDG"|jv "['revision']")
+# NOTE: unlock ONLY — never level dev1 here; the browser parity harness runs on this same account
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDG" -H 'content-type: application/json' -d '{"unlock":'"$GFIVE"'}' >/dev/null
+BASE_M=$(curl -s "$B/api/admin/snapshot?hero=sylthaine" -H "x-token: $TDG"|jv "['snapshot']['atkM']")
+BASE_P=$(curl -s "$B/api/admin/snapshot?hero=vael" -H "x-token: $TDG"|jv "['snapshot']['atkP']")
+RVD=$(curl -s $B/api/gear/state -H "x-token: $TDG"|jv "['revision']")
+G1=$(curl -s -X POST $B/api/gear/grant -H "x-token: $TDG" -H 'content-type: application/json' -d '{"expectedRevision":'"$RVD"',"frag":"E02","n":6,"dust":9000}'); RVD=$(echo "$G1"|jv "['revision']")
+C1=$(curl -s -X POST $B/api/gear/craft -H "x-token: $TDG" -H 'content-type: application/json' -d '{"expectedRevision":'"$RVD"',"gearId":"E02"}'); RVD=$(echo "$C1"|jv "['revision']"); IT1=$(echo "$C1"|jv "['crafted']")
+E1=$(curl -s -X POST $B/api/gear/equip -H "x-token: $TDG" -H 'content-type: application/json' -d '{"expectedRevision":'"$RVD"',"heroKey":"sylthaine","itemId":"'"$IT1"'"}'); RVD=$(echo "$E1"|jv "['revision']")
+AFT_M=$(curl -s "$B/api/admin/snapshot?hero=sylthaine" -H "x-token: $TDG"|jv "['snapshot']['atkM']")
+AFT_MP=$(curl -s "$B/api/admin/snapshot?hero=sylthaine" -H "x-token: $TDG"|jv "['snapshot']['atkP']")
+[ -n "$AFT_M" ] && [ "$AFT_M" -gt "$BASE_M" ] && ck "caster gear RAISES the ability line ($BASE_M -> $AFT_M)" ok ok || ck "caster gear raises the ability line" "higher" "$BASE_M -> $AFT_M"
+G2=$(curl -s -X POST $B/api/gear/grant -H "x-token: $TDG" -H 'content-type: application/json' -d '{"expectedRevision":'"$RVD"',"frag":"E03","n":6,"dust":9000}'); RVD=$(echo "$G2"|jv "['revision']")
+C2=$(curl -s -X POST $B/api/gear/craft -H "x-token: $TDG" -H 'content-type: application/json' -d '{"expectedRevision":'"$RVD"',"gearId":"E03"}'); RVD=$(echo "$C2"|jv "['revision']"); IT2=$(echo "$C2"|jv "['crafted']")
+E2=$(curl -s -X POST $B/api/gear/equip -H "x-token: $TDG" -H 'content-type: application/json' -d '{"expectedRevision":'"$RVD"',"heroKey":"vael","itemId":"'"$IT2"'"}')
+AFT_P=$(curl -s "$B/api/admin/snapshot?hero=vael" -H "x-token: $TDG"|jv "['snapshot']['atkP']")
+AFT_PM=$(curl -s "$B/api/admin/snapshot?hero=vael" -H "x-token: $TDG"|jv "['snapshot']['atkM']")
+[ -n "$AFT_P" ] && [ "$AFT_P" -gt "$BASE_P" ] && ck "melee gear RAISES the physical line ($BASE_P -> $AFT_P)" ok ok || ck "melee gear raises the physical line" "higher" "$BASE_P -> $AFT_P"
+ck "melee gear grants NO ability line (a physical hero can't be pumped by AP)" '0' "$AFT_PM"
+
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"

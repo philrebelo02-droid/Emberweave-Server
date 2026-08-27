@@ -134,4 +134,13 @@ ck "PERF: Vary: Accept-Encoding is set (proxy-safe)" 'Accept-Encoding' "$VH"
 AH=$(curl -s -D- -o /dev/null $B/assets/icons/icon-192.png | grep -i '^cache-control')
 ck "PERF: art is immutably cached (no daily revalidation on phones)" 'immutable' "$AH"
 
+# ===== v255 (80/20 contract §9 + release gate 5): the live manifest =====
+echo "-- v255 manifest: flags, tuning, currency sources/sinks and daily caps are SERVED, not inferred"
+MF=$(curl -s $B/api/manifest)
+ck "MANIFEST: feature flags are published live" '"flags"' "$MF"
+ck "MANIFEST: every currency lists sources and sinks" '"sinks"' "$MF"
+ck "MANIFEST: daily caps are published" '"dailyCaps"' "$MF"
+ck "MANIFEST: the daily reset is stated in server time" '09:00 America/New_York' "$MF"
+ck "MANIFEST: glyph fragments name their authored campaign source" 'ch1 Grey' "$MF"
+
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"
