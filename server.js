@@ -12,6 +12,7 @@
    SQLite, Mongo) when you go live. The seam is intentionally tiny.
    =========================================================================== */
 const http = require('http');
+const zlib = require('zlib');   // v252 (audit P2): text responses are compressed — the 1.7MB client ships ~10x smaller
 const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -2850,9 +2851,38 @@ async function api(req,res,url){
 
 /* --------------------------- static PWA files ----------------------------- */
 // serve a static asset: local file if present, otherwise proxy it from GAME_URL (so the repo can be tiny)
-function serveFile(res, file, type, urlPath){ fs.readFile(path.join(__dirname,file),(e,buf)=>{
-  if(!e){ res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-cache'}); res.end(buf); return; }
-  remoteAsset(urlPath||('/'+file)).then(r=>{ if(!r){res.writeHead(404);res.end();return;} res.writeHead(200,{'Content-Type':type||r.ct,'Cache-Control':'no-cache'}); res.end(r.buf); }); }); }
+/* ---- v252 (audit P2, mobile perf): TEXT COMPRESSION ----
+   The single-file client is ~1.7MB of HTML/JS. Brotli takes it to roughly a tenth of that, gzip to
+   about a fifth — the single biggest first-load win on a phone, with no change to how the game is
+   built or deployed. Compressed buffers are memoised per (file, size) so we compress once, not
+   once per request. Binary art (png/webp/mp4) is already compressed and is served as-is. */
+const COMPRESSIBLE=/^(text\/|application\/(json|javascript|manifest)|image\/svg)/;
+const _zcache=new Map();   // key -> {enc, buf}
+function pickEnc(req){ const a=String((req.headers&&req.headers['accept-encoding'])||'');
+  if(/\bbr\b/.test(a)) return 'br';
+  if(/\bgzip\b/.test(a)) return 'gzip';
+  return null; }
+function zbuf(key, enc, buf){
+  const ck=enc+':'+key+':'+buf.length;
+  const hit=_zcache.get(ck); if(hit) return hit;
+  let out;
+  try{ out = enc==='br'
+    ? zlib.brotliCompressSync(buf,{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:5, [zlib.constants.BROTLI_PARAM_SIZE_HINT]:buf.length}})
+    : zlib.gzipSync(buf,{level:6}); }catch(e){ return null; }
+  if(_zcache.size>40) _zcache.clear();
+  _zcache.set(ck,out); return out; }
+function sendBody(req,res,buf,type,cacheCtl,key){
+  const head={'Content-Type':type,'Cache-Control':cacheCtl};
+  const enc=(type&&COMPRESSIBLE.test(type)&&buf.length>1024)?pickEnc(req):null;
+  if(enc){ const z=zbuf(key||type, enc, buf);
+    if(z){ head['Content-Encoding']=enc; head['Vary']='Accept-Encoding'; res.writeHead(200,head); res.end(z); return; } }
+  res.writeHead(200,head); res.end(buf); }
+function serveFile(res, file, type, urlPath, req){ fs.readFile(path.join(__dirname,file),(e,buf)=>{
+  if(!e){ if(req) return sendBody(req,res,buf,type,'no-cache',file);
+    res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-cache'}); res.end(buf); return; }
+  remoteAsset(urlPath||('/'+file)).then(r=>{ if(!r){res.writeHead(404);res.end();return;}
+    if(req) return sendBody(req,res,r.buf,type||r.ct,'no-cache',file);
+    res.writeHead(200,{'Content-Type':type||r.ct,'Cache-Control':'no-cache'}); res.end(r.buf); }); }); }
 
 const server=http.createServer((req,res)=>{
   // AUDIT (26 Aug, medium): baseline security headers on every response. CSP is limited to
@@ -2880,7 +2910,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/icon-512.png') return serveFile(res,'assets/icons/icon-512.png','image/png');
   if(p==='/icon-512-maskable.png') return serveFile(res,'assets/icons/icon-512-maskable.png','image/png');
   if(p==='/apple-touch-icon.png') return serveFile(res,'assets/icons/apple-touch-icon.png','image/png');
-  if(p==='/patchnotes.json') return serveFile(res,'patchnotes.json','application/json');
+  if(p==='/patchnotes.json') return serveFile(res,'patchnotes.json','application/json',null,req);
   // static asset folder: images, icons, animation sheets. Served straight from the repo (local file first,
   // GAME_URL proxy as a fallback) so the game HTML can stay tiny — the images live here, not baked into the page.
   if(p.startsWith('/assets/')){
@@ -2889,16 +2919,20 @@ const server=http.createServer((req,res)=>{
     const ext=path.extname(rel).toLowerCase();
     const MIME={'.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.json':'application/json','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.ttf':'font/ttf'};
     const type=MIME[ext]||'application/octet-stream';
+    // v252: art is immutable per deploy (?v= cache-busters + the service worker own invalidation),
+    // so it gets a 30-day cache instead of a daily revalidation round-trip on every phone launch.
+    const CC=COMPRESSIBLE.test(type)?'public, max-age=86400':'public, max-age=2592000, immutable';
     return fs.readFile(path.join(__dirname,rel),(e,buf)=>{
-      if(!e){ res.writeHead(200,{'Content-Type':type,'Cache-Control':'public, max-age=86400'}); res.end(buf); return; }
-      remoteAsset('/'+rel).then(r=>{ if(!r){res.writeHead(404);res.end();return;} res.writeHead(200,{'Content-Type':type||r.ct,'Cache-Control':'public, max-age=86400'}); res.end(r.buf); });
+      if(!e) return sendBody(req,res,buf,type,CC,rel);
+      remoteAsset('/'+rel).then(r=>{ if(!r){res.writeHead(404);res.end();return;} sendBody(req,res,r.buf,type||r.ct,CC,rel); });
     });
   }
   // marketing site at the bare root; the game lives at /play and on deep links (/?room=..., etc.)
-  if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8');
+  if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8',null,req);
   // everything else (/play, /?room deep links, other paths) -> the game (local file if bundled, else GAME_URL).
-  fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}); res.end(buf); return; }
-    remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;} res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache, must-revalidate'}); res.end(r.buf); }); });
+  fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ return sendBody(req,res,buf,'text/html; charset=utf-8','no-cache, must-revalidate','game'); }
+    remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;}
+      sendBody(req,res,r.buf,'text/html; charset=utf-8','no-cache, must-revalidate','game'); }); });
 });
 
 /* ---------------------- live PvP: 2-player room relay ---------------------- */
