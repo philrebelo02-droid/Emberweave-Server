@@ -24,7 +24,9 @@ const { chromium } = require('playwright');
     await forgeSync(); await glyphV2Sync();
     // CLIENT-side expected fields from its own stat bundle + its own constants
     const tot=sockStatTotal('vael');
-    const exp={ dr:Math.min(0.6,((tot.armor||0)+(tot.mr||0))*0.004),
+    // v247 TYPED parity: armor/mr are DEFENSE RATINGS (glyph/gear pts ×3), pens are separate
+    const exp={ armor:(tot.armor||0)*3, mr:(tot.mr||0)*3,
+      armorPen:(tot.armorPen||0), magicPen:(tot.magicPen||0),
       crit:Math.min(0.6,(tot.crit||0)*0.005), critRes:Math.min(0.75,(tot.critRes||0)*0.005),
       energyReg:(tot.energy||0)*0.01, regen:(tot.regen||0)*0.001 };
     const snap=(await api('/api/admin/snapshot?hero=vael')).snapshot;
@@ -46,7 +48,8 @@ const { chromium } = require('playwright');
     const soN=await api('/api/glyphs/slot-options?heroKey=sylthaine&slot=2');
     const bd=g2board('vael');
     const tot2=sockStatTotal('vael');
-    const exp2={ dr:Math.min(0.6,((tot2.armor||0)+(tot2.mr||0))*0.004),
+    const exp2={ armor:(tot2.armor||0)*3, mr:(tot2.mr||0)*3,
+      armorPen:(tot2.armorPen||0), magicPen:(tot2.magicPen||0),
       crit:Math.min(0.6,(tot2.crit||0)*0.005), critRes:Math.min(0.75,(tot2.critRes||0)*0.005),
       energyReg:(tot2.energy||0)*0.01, regen:(tot2.regen||0)*0.001 };
     const snap2=(await api('/api/admin/snapshot?hero=vael')).snapshot;
@@ -60,20 +63,25 @@ const { chromium } = require('playwright');
       exp2, snap2, expHp, expAtk};
   });
   const near=(a,b,tol)=>Math.abs((a||0)-(b||0))<=(tol||0.011);
-  ck('server dr == client conversion ('+r.snap.dr.toFixed(4)+' vs '+r.exp.dr.toFixed(4)+')', near(r.snap.dr,r.exp.dr));
+  const nearAbs=(a,b,tol)=>Math.abs((a||0)-(b||0))<=(tol||1.5);
+  ck('server ARMOR rating == client conversion ('+Math.round(r.snap.armor)+' vs '+Math.round(r.exp.armor)+')', nearAbs(r.snap.armor,r.exp.armor,2));
+  ck('server MR rating == client conversion', nearAbs(r.snap.mr,r.exp.mr,2));
   ck('server crit == client conversion', near(r.snap.crit,r.exp.crit));
   ck('server critRes == client conversion', near(r.snap.critRes,r.exp.critRes));
   ck('server energyReg == client conversion', near(r.snap.energyReg,r.exp.energyReg));
   ck('server regen == client conversion', near(r.snap.regen,r.exp.regen,0.002));
   ck('server carries the selected Gear Skill slot ('+r.snap.gearSkillSlot+')', r.snap.gearSkillSlot===r.clientSkillSlot && !!r.snap.gearSkillSlot);
-  ck('vael has no base armor → dr from gear only', r.snap.dr>0);
+  ck('vael armor rating comes from gear (typed)', r.snap.armor>0);
   // v232 glyph-board parity: only locked board stats grant power, identically on both sides
   ck('six-slot board locked for parity test', r.board6);
   ck('slot-options returns ONE pre-chosen glyph', r.oneOption);
   const nearPct=(a2,b2,p)=>Math.abs((a2||0)-(b2||0))<=Math.max(1,(b2||0)*p);
   ck('server maxHp == client displayed HP ('+Math.round(r.snap2.maxHp)+' vs '+Math.round(r.expHp)+')', nearPct(r.snap2.maxHp,r.expHp,0.02));
   ck('server atk == client displayed ATK ('+Math.round(r.snap2.atk)+' vs '+Math.round(r.expAtk)+')', nearPct(r.snap2.atk,r.expAtk,0.02));
-  ck('server dr (board+gear) == client conversion', near(r.snap2.dr,r.exp2.dr));
+  ck('server ARMOR rating (board+gear) == client conversion ('+Math.round(r.snap2.armor)+' vs '+Math.round(r.exp2.armor)+')', nearAbs(r.snap2.armor,r.exp2.armor,2));
+  ck('server MR rating (board+gear) == client conversion', nearAbs(r.snap2.mr,r.exp2.mr,2));
+  ck('server ARMOR PEN == client glyph points ('+(r.snap2.armorPen||0)+' vs '+(r.exp2.armorPen||0)+')', (r.snap2.armorPen||0)===(r.exp2.armorPen||0));
+  ck('server MAGIC PEN == client glyph points', (r.snap2.magicPen||0)===(r.exp2.magicPen||0));
   ck('server crit (board+gear) == client conversion', near(r.snap2.crit,r.exp2.crit));
   ck('server energyReg (board+gear) == client conversion', near(r.snap2.energyReg,r.exp2.energyReg));
   ck('server regen (board+gear) == client conversion', near(r.snap2.regen,r.exp2.regen,0.002));
