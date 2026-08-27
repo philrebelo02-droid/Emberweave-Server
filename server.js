@@ -273,7 +273,10 @@ let GLYPHS=null;
 function glyphCompile(){
   const file=path.join(__dirname,'server','glyph-source.json');
   let txt=null; try{ txt=fs.readFileSync(file,'utf8'); }catch(e){
-    console.error('⚠ GLYPHS DISABLED — server/glyph-source.json is missing ('+e.message+'). Deploy the catalog to enable Glyph v2.');
+    // AUDIT v229 (P0): the Glyph catalog is REQUIRED — a deployment without it must FAIL, not
+    // silently ship with the feature off. ALLOW_DEGRADED=1 is for local experiments only.
+    console.error('✖ FATAL — server/glyph-source.json is missing ('+e.message+'). Deploy the catalog with the server.');
+    if(process.env.ALLOW_DEGRADED!=='1') process.exit(1);
     GLYPHS=null; return; }
   const raw=JSON.parse(txt);   // present-but-corrupt STILL fails startup, by design (spec: unknown token = startup error)
   if(!Array.isArray(raw)||raw.length!==218) throw new Error('glyph-source.json: expected 218 definitions, got '+(raw&&raw.length));
@@ -539,8 +542,12 @@ if(!(VAULT_SKILL_BAND>0)) console.warn('🚨 VAULT_SKILL_BAND<=0 — the Vault w
 function vaultSpecToCombatUnit(m){
   const base=VAULT_MONSTERS[m.key]||VAULT_BOSS_STATS[m.key]||{hp:200,dmg:18};
   const sc=1+0.05*((m.lvl|0||1)-1);
+  // AUDIT v229 (P0 stat parity): mirror the client's generic boss multipliers exactly — makeUnit
+  // applies ×2.4 HP / ×1.8 DMG to boss units and the vault/campaign spawners add a further
+  // ×1.15 HP. Without these the estimate fought far weaker bosses than the player does.
+  const bh=m.boss?2.4*1.15:1, bd=m.boss?1.8:1;
   return { key:m.key, role:(base.role==='Tank'||m.boss)?'tank':'mid', healer:false,
-    maxHp:Math.round(base.hp*sc*(m.hpMul||1)), atk:Math.round(base.dmg*sc*(m.dmgMul||1)), heal:0, speed:1 };
+    maxHp:Math.round(base.hp*sc*(m.hpMul||1)*bh), atk:Math.round(base.dmg*sc*(m.dmgMul||1)*bd), heal:0, speed:1 };
 }
 function vaultWinPlausible(a){
   if(!(VAULT_SKILL_BAND>0)||!SIM) return true;
@@ -560,6 +567,7 @@ function vaultWinPlausible(a){
   }catch(e){ console.error('⚠ vault win validator error:', e&&e.message); return true; }   // never brick the Vault on a validator bug
 }
 function rollFragmentOfQuality(q, rnd){
+  if(!GLYPHS||!Array.isArray(GLYPHS.raw)||!GLYPHS.raw.length) return q+' Stoneheart';   // AUDIT v229: never crash a reward grant on a missing catalog
   const fams=[...new Set(GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family))];
   const f=fams[Math.floor((rnd?rnd():Math.random())*fams.length)]||'Stoneheart';
   return q+' '+f;
@@ -646,7 +654,8 @@ function getTournament(){
 }
 function buildRegisteredLine(u){ // best legal five-hero line from SERVER-owned data
   const save=parseSaveOf(u);
-  const all=Object.keys(SIM.HERO_BASE).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
+  const rled=ensureLedger(u);   // AUDIT v229 (P0): only heroes this member actually OWNS count toward war power
+  const all=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
   all.sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk));
   const line=all.slice(0,5);
   return { memberId:u.id, name:u.name, heroes:line, power:Math.round(line.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) };
@@ -781,9 +790,15 @@ function warMatchView(t,m,meGid){
    logged /api/tx/earn table until they are individually moved server-side. */
 const STARTER_HEROES=['vael','sylthaine','vireo'];
 const LEDGER_TX_KEEP=300;
+const LEDGER_MIGRATE_CUTOFF=1787776176312;   // v227 transformation deploy time
 function ensureLedger(u){
   if(u.led && u.led.migratedAt) return u.led;
-  const sv=parseSaveOf(u)||{};
+  // AUDIT v229 (P0): only accounts that EXISTED before the v227 transformation may seed their
+  // ledger from the uploaded save (their real pre-ledger progress, one time). Accounts created
+  // after the cutoff get the fixed STARTER ledger — a forged client save can never become
+  // server progress on a new account.
+  const legacy=((u.created||0)===0) || ((u.created||0)<LEDGER_MIGRATE_CUTOFF);
+  const sv=legacy?(parseSaveOf(u)||{}):{};
   const led={ v:1, migratedAt:Date.now(), rev:1,
     gold:Math.max(0,Math.min(100000000, (sv.gold|0)||0)),
     gems:Math.max(0,Math.min(2000000, (sv.gems|0)||0)),
@@ -803,8 +818,9 @@ function ensureLedger(u){
   }
   const ss=sv.stageStars||{}; for(const n in ss){ const v=ss[n]|0; if(v>=1&&v<=3) led.camp.stars[n]=v; }
   led.stam.v=Math.max(0,Math.min(200,(sv.stamina|0)||60));
+  if(!legacy){ led.gold=1000; led.gems=300; }   // fixed starter wallet for post-transformation accounts
   u.led=led;
-  ledTx(u,'migrate:legacy-save',{});
+  ledTx(u,legacy?'migrate:legacy-save':'migrate:starter',{});
   return led;
 }
 function ledTx(u,src,delta){ const led=u.led; const id=uid();
@@ -1460,6 +1476,8 @@ async function api(req,res,url){
       // Vault teams: 5 fighters + up to 5 backups (a backup steps in when a fighter falls)
       const ids=Array.isArray(b.heroIds)?b.heroIds.map(String):[];
       if(ids.length<5||ids.length>10||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick 5 fighters (plus up to 5 backups), no duplicates.'});
+      const vled=ensureLedger(me);   // AUDIT v229 (P0): ownership is enforced — locked heroes never enter the Vault
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!vled.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
       const save=parseSaveOf(me);
       const snaps=ids.map(k=>snapshotHeroFromServer(me,k,save));
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
@@ -1754,14 +1772,21 @@ async function api(req,res,url){
     });
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const b=await body(req); const led=ensureLedger(me);
+    const b=await body(req);
+    const tgt=(b.userId&&DB.users[String(b.userId)])||me;   // v229: admin may grant to a named account (test fixtures, support)
+    const led=ensureLedger(tgt);
+    if(Array.isArray(b.unlock)) for(const k of b.unlock.map(String)){ if(SIM.HERO_BASE[k]){ led.unlocked[k]=true;
+      if(!led.hero[k]) led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0}; } }
+    if(b.stars&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue;
+      const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0});
+      h.stars=Math.max(SIM.HERO_BASE[k].stars,Math.min(5,b.stars|0)); }
     if(b.gold) led.gold=Math.min(100000000,led.gold+(b.gold|0));
     if(b.gems) led.gems=Math.min(2000000,led.gems+(b.gems|0));
     if(b.px) led.px=Math.min(99000000,led.px+(b.px|0));
     if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
     if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
-    ledTx(me,'admin:grant',{});
-    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(me)}); }
+    ledTx(tgt,'admin:grant',{});
+    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt)}); }
 
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     const v=ledgerView(me); writeDB(); return send(res,200,v); }
@@ -1978,8 +2003,11 @@ async function api(req,res,url){
     // The seed is returned so the fight is replayable.
     const seed=SIM.seedFrom('arena:'+me.id+':'+String(b.oppId||'')+':'+uid());
     let won=false, simRes=null;
-    if(opp){ const mySnaps=(me.team||[]).filter(Boolean).slice(0,5).map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
-      const opSnaps=(opp.team||[]).filter(Boolean).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
+    if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
+      const myLed=ensureLedger(me);
+      const mySnaps=(me.team||[]).filter(Boolean).slice(0,5).filter(k=>myLed.unlocked[k]).map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+      const opLed=opp.isNpc?null:ensureLedger(opp);
+      const opSnaps=(opp.team||[]).filter(Boolean).slice(0,5).filter(k=>opp.isNpc||(opLed&&opLed.unlocked[k])).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won; simRes={rounds:r0.rounds}; }
     }
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
