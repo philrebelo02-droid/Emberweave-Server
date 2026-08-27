@@ -540,25 +540,36 @@ function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string
 function glyphFlatStats(u,key){
   // hp/atk/heal flats (unchanged) + v225: the RATE stats the client's glyphV2Mul collects
   // (Armor/MR/Crit Chance/Tenacity/Control Resist/Starting Energy), same MAP, crit capped at 60.
-  const out={hp:0,atk:0,apow:0,heal:0,pen:0,armor:0,mr:0,crit:0,critRes:0,energy:0,regenRating:0,ctrlRes:0,startEnergy:0,healPow:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+  // v242 (COMBAT CORE): EVERY catalog stat is collected and typed — nothing is silently dropped.
+  const out={hp:0,atk:0,apow:0,heal:0,pen:0,armorPen:0,magicPen:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,
+    energy:0,regenRating:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,
+    eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
   const b=g.boards&&g.boards[key]; if(!b) return out;
-  // v241 (audit): Ability Power feeds the ABILITY line (apow), never generic attack; the pen ratings
-  // counter the target's defense rating behind the diminishing curve (see sim.js).
   const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
-    else if(/^Physical Attack$/i.test(stat)) out.atk+=val;
-    else if(/^Ability Power$/i.test(stat)) out.apow+=val;
-    else if(/^(Magic|Armor) Penetration$/i.test(stat)) out.pen+=val; };
-  // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = control resistance (never crit resist),
-  // Starting Energy = initial energy (never energy regen), Healing Power = healer output (never
-  // HP regen), HP Regen = universal regen rate. No display label is folded into an unrelated stat.
+    else if(/^Physical Attack$/i.test(stat)) out.atk+=val;                 // physical line ONLY
+    else if(/^Ability Power$/i.test(stat)) out.apow+=val;                  // spell/ability line ONLY
+    else if(/^Armor Penetration$/i.test(stat)){ out.armorPen+=val; out.pen+=val; }
+    else if(/^Magic Penetration$/i.test(stat)){ out.magicPen+=val; out.pen+=val; } };
+  // AUDIT C6: DISTINCT stats — never folded into lookalikes.
   const addRate=(stat,val)=>{ if(/^Armor$/i.test(stat)) out.armor+=val;
     else if(/^Magic Resist$/i.test(stat)) out.mr+=val;
     else if(/^Crit Chance$/i.test(stat)) out.crit+=val;
+    else if(/^Crit Damage$/i.test(stat)) out.critDmg+=val;
     else if(/^(Tenacity|Control Resist)$/i.test(stat)) out.ctrlRes+=val;
+    else if(/^Control Hit$/i.test(stat)) out.ctrlHit+=val;
     else if(/^Starting Energy$/i.test(stat)) out.startEnergy+=val;
     else if(/^Healing Power$/i.test(stat)) out.healPow+=val;
     else if(/^Energy Regen$/i.test(stat)) out.energy+=val;
-    else if(/^HP Regen$/i.test(stat)) out.regenRating+=val; };
+    else if(/^HP Regen$/i.test(stat)) out.regenRating+=val;
+    else if(/^Lifesteal$/i.test(stat)) out.lifesteal+=val;
+    else if(/^Attack Speed$/i.test(stat)) out.atkSpd+=val;
+    else if(/^Haste$/i.test(stat)) out.haste+=val;
+    else if(/^Evasion$/i.test(stat)) out.eva+=val;
+    else if(/^Accuracy$/i.test(stat)) out.acc+=val;
+    else if(/^Block$/i.test(stat)) out.block+=val;
+    else if(/^Damage Bonus$/i.test(stat)) out.dmgBonus+=val;
+    else if(/^Damage Reduction$/i.test(stat)) out.dmgRed+=val;
+    else if(/^Shield Strength$/i.test(stat)) out.shieldStr+=val; };
   for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
     if(d) for(const sst of d.stats){ if(!sst.pct) add(sst.stat,sst.val); addRate(sst.stat,sst.val); } }
@@ -585,28 +596,28 @@ function snapshotHeroFromServer(u, key, save){
   }
   const fl=glyphFlatStats(u,key);
   let gf=null;
-  if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); fl.hp+=gf.hp; fl.atk+=gf.atk; fl.heal+=gf.heal; }   // Forge flats reach the sim
-  // v226 (audit round 4): the sim's combat fields carry the client's conversion constants —
-  // armor/mr 0.4%/pt (rate part capped 0.6; base armor/MR added inside heroCombatStats via the
-  // client's diminishing defToDR curve), crit 0.5%/pt CHANCE capped 0.6 (client heroMuls cap) at the
-  // client's ×1.6 multiplier with NO universal base crit, critRes 0.5%/pt bonus reduction, energy
-  // 1 point/s per 100 rating (client: u.energy += energyReg·dt), regen 0.1%-of-maxHp/s per pt for
-  // EVERY unit (client: hp += maxHp·regen·dt). The selected+equipped Gear Skill rides along for the
-  // sim's deterministic one-use policy. Client-save technology defense is excluded (client-owned,
-  // CR-2). The sim itself is a qualification ESTIMATE — never a replay of the client battle.
-  const armor=(fl.armor||0)+((gf&&gf.armor)||0), mr=(fl.mr||0)+((gf&&gf.mr)||0);
-  const critR=(fl.crit||0)+((gf&&gf.crit)||0), cresR=(fl.critRes||0)+((gf&&gf.critRes)||0), enR=(fl.energy||0)+((gf&&gf.energy)||0);
-  const regR=(fl.regenRating||0)+((gf&&gf.regenRating)||0);
-  const ctrlR=(fl.ctrlRes||0), stEn=(fl.startEnergy||0), healP=(fl.healPow||0);
+  if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); }
+  // v242 (COMBAT CORE): the snapshot hands the core RAW TYPED RATINGS — the core owns every
+  // rating→percentage conversion (server/combat-core.js CONV), so client and server can never
+  // diverge on a formula. Gear 'atk' stays on the physical line (catalog typing refinement tracked).
+  const R={
+    hpFlat:(fl.hp|0)+((gf&&gf.hp)|0), atkFlat:(fl.atk|0)+((gf&&gf.atk)|0), apowFlat:(fl.apow|0),
+    healFlat:((gf&&gf.heal)|0),
+    armor:(fl.armor|0)+((gf&&gf.armor)|0), mr:(fl.mr|0)+((gf&&gf.mr)|0),
+    armorPen:fl.armorPen|0, magicPen:fl.magicPen|0,
+    crit:(fl.crit|0)+((gf&&gf.crit)|0), critDmg:fl.critDmg|0, critRes:(fl.critRes|0)+((gf&&gf.critRes)|0),
+    energy:(fl.energy|0)+((gf&&gf.energy)|0), startEnergy:fl.startEnergy|0,
+    regen:(fl.regenRating|0)+((gf&&gf.regenRating)|0),
+    lifesteal:fl.lifesteal|0, atkSpd:fl.atkSpd|0, haste:fl.haste|0,
+    eva:fl.eva|0, acc:fl.acc|0, block:fl.block|0,
+    dmgBonus:fl.dmgBonus|0, dmgRed:fl.dmgRed|0, shieldStr:fl.shieldStr|0,
+    ctrlHit:fl.ctrlHit|0, ctrlRes:fl.ctrlRes|0, healPow:fl.healPow|0
+  };
   let gearSkillSlot=null, gearSkill=null;
   if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
     if(d&&d.active){ const eq=(u.gear.equipped||{})[key]||{}; if(Object.values(eq).includes(aid)){ gearSkillSlot=d.slot;
       gearSkill={ id:d.id, name:d.active, type:d.activeType||null, params:d.activeParams||null, slot:d.slot }; } } }
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, glyph:fl, pen:(fl.pen|0),
-    dr:Math.min(0.6,(armor+mr)*0.004), crit:Math.min(0.6,critR*0.005), critRes:Math.min(0.75,cresR*0.005),
-    energyReg:enR*0.01, regen:regR*0.001,
-    ctrlRes:Math.min(0.6,ctrlR*0.005), startEnergy:Math.min(60,Math.round(stEn*0.35)), healPow:healP*0.004,
-    gearSkillSlot, gearSkill});
+  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -714,14 +725,25 @@ function vaultSpecToCombatUnit(m){
   // applies ×2.4 HP / ×1.8 DMG to boss units and the vault/campaign spawners add a further
   // ×1.15 HP. Without these the estimate fought far weaker bosses than the player does.
   const bh=m.boss?2.4*1.15:1, bd=m.boss?1.8:1;
-  return { key:m.key, role:(base.role==='Tank'||m.boss)?'tank':'mid', healer:false,
-    maxHp:Math.round(base.hp*sc*(m.hpMul||1)*bh), atk:Math.round(base.dmg*sc*(m.dmgMul||1)*bd), heal:0, speed:1 };
+  // v242 (COMBAT CORE): monsters are typed units too — physical attackers with real base armor/MR
+  // through the same diminishing curve; bosses fire a physical cleave kit.
+  return { key:m.key, role:(base.role==='Tank'||m.boss)?'Tank':'Bruiser', healer:false,
+    maxHp:Math.round(base.hp*sc*(m.hpMul||1)*bh), hp:0, energy:0,
+    atkP:Math.round(base.dmg*sc*(m.dmgMul||1)*bd), atkM:0, atk:Math.round(base.dmg*sc*(m.dmgMul||1)*bd),
+    heal:0, speed:1,
+    armor:(base.armor||0)*sc, mr:(base.mr||0)*sc, armorPen:0, magicPen:0,
+    crit:0, critDmg:0.6, critRes:0, energyReg:0, startEnergy:0, regen:0,
+    lifesteal:0, eva:0, acc:0, block:0, dmgBonus:1, dmgRed:0, haste:1, shieldStr:1,
+    ctrlHit:0, ctrlRes:m.boss?0.5:0, healPow:0,
+    kit:m.boss?{kind:'phys',shape:'cleave',coef:2.2,n:2}:{kind:'phys',shape:'nuke',coef:2.2},
+    gearSkillSlot:null, gearSkill:null, shieldPool:0 };
 }
 function vaultWinPlausible(a){
   if(!(VAULT_SKILL_BAND>0)||!SIM) return true;
   try{
     const band=s=>Object.assign({},s,{maxHp:Math.round((s.maxHp||1)*VAULT_SKILL_BAND),
-      atk:Math.round((s.atk||0)*VAULT_SKILL_BAND), heal:Math.round((s.heal||0)*VAULT_SKILL_BAND)});
+      atk:Math.round((s.atk||0)*VAULT_SKILL_BAND), heal:Math.round((s.heal||0)*VAULT_SKILL_BAND),
+      atkP:Math.round((s.atkP||s.atk||0)*VAULT_SKILL_BAND), atkM:Math.round((s.atkM||0)*VAULT_SKILL_BAND)});
     const all=(a.teamSnapshot||[]).filter(Boolean).map(band)
       .sort((x,y)=>((y.maxHp/8+y.atk*3)-(x.maxHp/8+x.atk*3)));
     const five=all.slice(0,5);
@@ -2088,7 +2110,8 @@ async function api(req,res,url){
       const st=campStageOf(a.node); if(!st) return {ok:false,error:'Stage data missing.'};
       // AUTHORITATIVE result: the deterministic estimate decides — the client's opinion is not read.
       // CAMPAIGN_SKILL_BAND is the documented, deterministic manual-play allowance.
-      const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND)});
+      const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND),
+        atkP:Math.round((x.atkP||x.atk||0)*CAMPAIGN_SKILL_BAND), atkM:Math.round((x.atkM||0)*CAMPAIGN_SKILL_BAND)});
       const team=a.teamSnapshot.map(band);
       const waves=st.waves.map(w=>w.map(vaultSpecToCombatUnit));
       const r=SIM.qualificationEstimate(team, waves, SIM.seedFrom('camp:'+a.id));
