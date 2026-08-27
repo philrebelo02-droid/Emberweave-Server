@@ -120,6 +120,23 @@ ck "ASCEND: empty board cannot ascend again" 'All six' "$AS2"
 SO2=$(curl -s "$B/api/glyphs/slot-options?heroKey=vael&slot=0" -H "$H")
 ck "board now builds the NEXT ladder step (Green)" '"quality":"Green"' "$SO2"
 
+# ===== v257 (Phil): A GLYPH TIER HAS A MINIMUM HERO LEVEL =====
+# The board is on Green (step 2) and vael is still level 1 — Green needs level 5.
+# NOTE: reuse $TD — a second /api/login ROTATES dev1's token and invalidates it.
+BTL=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
+ck "LEVEL GATE: the tree reports the tier's required hero level" '"levelRequired":5' "$BTL"
+ck "LEVEL GATE: an under-levelled hero is levelOk=false" '"levelOk":false' "$BTL"
+ck "LEVEL GATE: an under-levelled hero cannot Quick Build" '"canBuild":false' "$BTL"
+RVL=$(curl -s $B/api/glyphs/state -H "$H"|jv "['revision']")
+BGL=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","slot":0,"blueprintId":"R02-01","expectedRevision":'"$RVL"',"requestId":"lvgate1"}')
+ck "LEVEL GATE: build-in-slot is refused below the tier's level" 'need hero level 5' "$BGL"
+BAL=$(curl -s -X POST $B/api/glyphs/build-all -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","expectedRevision":'"$RVL"',"requestId":"lvgate2"}')
+ck "LEVEL GATE: build-all is refused below the tier's level" 'need hero level 5' "$BAL"
+# level vael past the gate — the rest of the suite proceeds exactly as before
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TD" -H 'content-type: application/json' -d '{"userId":"'"$GID"'","px":900000,"heroKeys":["vael"],"heroXp":900000}' >/dev/null
+BTL2=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
+ck "LEVEL GATE: clears once the hero reaches the level" '"levelOk":true' "$BTL2"
+
 # ---- GLYPH ANCESTRY TREE (spec 27 Aug) ----
 BT=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
 ck "ANCESTRY: root is the slot's one finished glyph" '"kind":"finishedGlyph"' "$BT"

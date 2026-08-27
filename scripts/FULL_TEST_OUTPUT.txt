@@ -15,7 +15,7 @@ PASS: 50  FAIL: 0
 == test_glyphs.sh ==
   ✓ stage fragment target is fixed across loads
 
-PASS: 46  FAIL: 0
+PASS: 52  FAIL: 0
 
 == test_dungeon.sh ==
   ✓ reward package size fixed (2 gear frags); CONTENTS rolled server-side per transaction (audit C7)
@@ -90,7 +90,7 @@ PASS: 19  FAIL: 0
 PASS: 24  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
-🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🗺  Campaign encounters compiled: 110 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-glyphflow.json  (persistent ✅)
 👤 Player accounts loaded: 0
@@ -126,7 +126,7 @@ PASS: 24  FAIL: 0
 PASS: 28  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
-🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🗺  Campaign encounters compiled: 110 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-vg.json  (persistent ✅)
 👤 Player accounts loaded: 0
@@ -146,7 +146,7 @@ PASS: 28  FAIL: 0
 PASS: 13  FAIL: 0
 🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
 ⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
-🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🗺  Campaign encounters compiled: 110 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
 🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
 📁 DB file: ./probe-db-wb.json  (persistent ✅)
 👤 Player accounts loaded: 0
@@ -155,5 +155,35 @@ PASS: 13  FAIL: 0
   ✓ seed 1 = strongest (g17)
   ✓ bracket formed
 PASS: 4  FAIL: 0
+== campaign curve (v257) ==
+  ✓ the campaign authors 11 chapters × 10 stages
+  ✓ every stage has a node, waves and an authored fragment target
+  ✓ hero XP is 10× player XP on first clear
+  ✓ hero XP is 10× player XP on repeats and sweeps
+  ✓ hero XP actually scales with the stage (it is no longer a flat 60)
+  ✓ every stage declares the level it is built for
+  ✓ every stage declares the glyph board it is built for
+  ✓ the target level never goes backwards
+  ✓ the target glyph tier never goes backwards
+  ✓ recommended power never goes backwards
+  ✓ 1-1-to-1-3 need NO glyphs (a new account owns none)
+  ✓ stage 1-10 is built for a Green board
+  ✓ stage 2-10 is built for a Green +1 board
+  ✓ stage 3-10 is built for a Blue board
+  ✓ stage 4-5 is built for a Blue +1 board
+  ✓ stage 4-10 is built for a Blue +2 board
+  ✓ stage 5-10 is built for a Purple board
+  ✓ stage 6-10 is built for a Purple +1 board
+  ✓ stage 7-10 is built for a Purple +3 board
+  ✓ stage 8-5 is built for a Gold board
+  ✓ stage 9-10 is built for a Gold +1 board
+  ✓ stage 10-10 is built for a Gold +3 board
+  ✓ stage 11-10 is built for a Orange board
+  ✓ chapter 11 makes all 18 Orange fragment families campaign-farmable
+  ✓ enemy level rises across the campaign
+  ✓ enemy scaling rises across the campaign
+  ✓ 1-4 is not a difficulty cliff (the 4th hero arrives there)
+
+PASS: 27  FAIL: 0
 
 ALL SUITES GREEN ✅
