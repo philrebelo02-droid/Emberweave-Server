@@ -7531,6 +7531,9 @@ function g2RenderOverlays(){ let host=document.getElementById('g2ovlHost');
   setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380); }
 function g2SrcGo(id){ const m=/^(\d+)-(\d+)$/.exec(String(id).replace('campaign-','')); if(!m) return;
   const node=(+m[1]-1)*10 + (+m[2]); RUNE2.build=null; g2RenderOverlays(); show('campaign'); openStageModal(node); }
+function g2NodeArtSrc(n){ if(n.kind==='fragment'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/fragment-${g2slotOfFam(p.fam)}.png?v=3`; }
+  if(n.kind==='subGlyph'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/sub-${g2slotOfFam(p.fam)}.png?v=3`; }
+  return `/assets/img/glyphs-v2/${g2qdir(n.quality)}/finished-${g2slotOfFam(n.family)}.png?v=3`; }
 function g2NodeArt(n,px){ if(n.kind==='fragment') return g2artKey('fragment',n.key,px);
   if(n.kind==='subGlyph'){ const pk=g2parseKey(n.key); return g2art('sub',pk.q,g2slotOfFam(pk.fam),px,'display:inline-block;vertical-align:middle'); }
   return g2art('finished',n.quality,g2slotOfFam(n.family),px,'display:inline-block;vertical-align:middle'); }
@@ -7603,7 +7606,11 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
   return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
     <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
     <div id="${id(viewPath)}" style="text-align:center;position:relative;z-index:1;margin-bottom:30px">
-      <div style="display:inline-block;filter:drop-shadow(0 0 2px #5ee89b) drop-shadow(0 0 5px #5ee89bcc)">${glyphArt(view,112,vq)}</div>
+      <div style="position:relative;display:inline-block">
+        <span style="position:absolute;left:50%;top:50%;width:132px;height:132px;transform:translate(-50%,-50%);background:#5ee89b;filter:blur(1.5px);opacity:.95;pointer-events:none;
+          -webkit-mask-image:url('${g2NodeArtSrc(view)}'),url('${g2NodeArtSrc(view)}');-webkit-mask-repeat:no-repeat,no-repeat;-webkit-mask-position:center,center;-webkit-mask-size:130px 130px,112px 112px;-webkit-mask-composite:xor;
+          mask-image:url('${g2NodeArtSrc(view)}'),url('${g2NodeArtSrc(view)}');mask-repeat:no-repeat;mask-position:center;mask-size:130px 130px,112px 112px;mask-composite:exclude"></span>
+        <span style="position:relative;display:inline-block">${glyphArt(view,112,vq)}</span></div>
       <div style="font-size:15px;font-weight:800;color:${g2col(vq)};margin-top:2px">${nName(view)}</div>
       ${view.stats?`<div style="font-size:10px;color:#c3ccd8;margin-top:2px">${view.stats.join(' · ')}</div>`:''}
       <div style="margin-top:5px">${badge}</div></div>
@@ -9573,7 +9580,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787839116534';
+const BUILD_ID='1787839277671';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
