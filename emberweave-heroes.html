@@ -8133,13 +8133,24 @@ async function wishGold10(){ const r=await serverWish('gold',10); if(!r) return;
 async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G.wishGemFirstDone=true;
   const out=r.results.map(serverWishToRes);
   G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gem'); renderWishing(); }
+/* v251 (audit): the pool publishes its odds/pity, and every roll is server-recorded and reviewable */
+async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg('Sign in to see the pool rules.'); return; }
+  const o=st.odds||{}, pct=v=>(v*100).toFixed(v<0.01?1:0)+'%';
+  bannerMsg('📊 <b>Diamond Pool odds</b> — KonWu '+pct(o.konwu||0)+' · full 3★ '+pct(o.full3||0)+' · full 2★ '+pct(o.full2||0)+' · 3★ frags '+pct(o.frag3||0)+' · 2★ frags '+pct(o.frag2||0)+'<br>🪙 <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>🎯 <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||90)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
+async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg('No recorded wishes yet — every roll is stored on the server.'); return; }
+  const rows=h.history.slice(0,12).map(e=>{ const d=new Date(e.t); const hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    return hh+' · '+(e.pool==='gold'?'🪙':'🔮')+'×'+e.n+' → '+(e.results||[]).join(', '); }).join('<br>');
+  bannerMsg('📜 <b>Your last wishes (server-recorded)</b><br>'+rows); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
   const gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
   const canGem = gemFree || (G.gems||0)>=WISH_GEM_COST;
   b.innerHTML=`
-  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 12px">The Gold Pool holds Tick, Dandra &amp; Carn. The Diamond Pool holds the 2★ and 3★ ladders — with a <b>0.1% shot at KonWu</b>.</div>
+  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 8px">The Gold Pool holds Tick, Dandra &amp; Carn. The Diamond Pool holds the 2★ and 3★ ladders — with a <b>0.1% shot at KonWu</b>.</div>
+  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
+    <button class="btn xs secondary" onclick="wishShowOdds()">📊 Published odds &amp; pity</button>
+    <button class="btn xs secondary" onclick="wishShowHistory()">📜 My roll history</button></div>
   <div class="wishpools">
     <div class="wishpool gold">
       <div class="wp-orb">⛲</div>
@@ -9661,7 +9672,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787843134595';
+const BUILD_ID='1787843417297';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

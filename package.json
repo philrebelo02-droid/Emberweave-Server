@@ -1,6 +1,6 @@
 {
   "name": "emberweave-server",
-  "version": "241.0.0",
+  "version": "251.0.0",
   "private": true,
   "description": "Emberweave Heroes cloud server. Run tests with: bash scripts/run_all_tests.sh (from a repo checkout) after `npm ci` and `npx playwright install chromium`.",
   "scripts": {
@@ -8,9 +8,14 @@
     "test": "bash scripts/run_all_tests.sh"
   },
   "dependencies": {
-    "ws": "^8.21.3"
+    "ws": "^8.21.3",
+    "nodemailer": "^6.9.0",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "playwright": "^1.49.0"
+  },
+  "engines": {
+    "node": ">=20 <25"
   }
 }

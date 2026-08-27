@@ -35,11 +35,36 @@ async function remoteAsset(urlPath){ const c=_rcache[urlPath]; if(c && Date.now(
 
 /* ------------------------------- storage ---------------------------------- */
 let DB = { users:{}, byName:{}, tokens:{}, seeded:false };
+/* v251 (audit P2): OPTIONAL POSTGRESQL PERSISTENCE. Set DATABASE_URL and the world state is
+   UPSERTed into a transactional Postgres row on every debounced write and loaded from there at boot
+   (newer of file vs PG wins by mtime stamp). The JSON file stays as a local mirror + dev fallback.
+   This makes accounts survive redeploys/instance moves properly; the per-entity schema migration
+   remains the pre-monetisation step (tracked). */
+let PG=null, PG_READY=false, _pgWriting=false, _pgDirty=false;
+function pgInit(){ if(!process.env.DATABASE_URL) return;
+  try{ const {Pool}=require('pg');
+    PG=new Pool({connectionString:process.env.DATABASE_URL, ssl:process.env.PGSSL==='false'?false:{rejectUnauthorized:false}, max:3});
+    console.log('🐘 PostgreSQL persistence ENABLED (DATABASE_URL set).');
+  }catch(e){ console.error('⚠ DATABASE_URL set but pg unavailable ('+e.message+') — falling back to the JSON file.'); PG=null; } }
+async function pgSetup(){ if(!PG) return;
+  await PG.query('CREATE TABLE IF NOT EXISTS emberweave_state (id TEXT PRIMARY KEY, mtime BIGINT NOT NULL, blob TEXT NOT NULL)');
+  PG_READY=true; }
+async function pgLoad(){ if(!PG) return null;
+  const r=await PG.query('SELECT mtime, blob FROM emberweave_state WHERE id=$1',['world']);
+  if(!r.rows.length) return null;
+  return { mtime:+r.rows[0].mtime, db:JSON.parse(r.rows[0].blob) }; }
+function pgSave(){ if(!PG||!PG_READY) return;
+  if(_pgWriting){ _pgDirty=true; return; }
+  _pgWriting=true; const blob=JSON.stringify(DB), mt=Date.now();
+  PG.query('INSERT INTO emberweave_state (id,mtime,blob) VALUES ($1,$2,$3) ON CONFLICT (id) DO UPDATE SET mtime=$2, blob=$3',['world',mt,blob])
+    .catch(e=>console.error('⚠ PG write failed:', e.message))
+    .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
 let saveTimer=null;
 function writeDB(){ if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   try{ const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE); }   // atomic: write temp, then rename
-  catch(e){ console.error('⚠ DB write failed:', e.message); } },200); }
+  catch(e){ console.error('⚠ DB write failed:', e.message); }
+  pgSave(); },200); }
 
 /* ------------------------------- helpers ---------------------------------- */
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
@@ -1996,6 +2021,10 @@ async function api(req,res,url){
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
       gemFree:{ready:gemFreeReady}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
+  if(p==='/api/pool/history'){ if(!me)return send(res,401,{error:'auth'});
+    // v251 (audit): the AUDITABLE roll history — every wish this account made, server-recorded
+    const pool=poolState(me);
+    return send(res,200,{ history:(pool.history||[]).slice(-60).reverse(), pity:{at:WISH_GEM_PITY,count:pool.pity} }); }
   if(p==='/api/pool/wish' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
       me.qc=me.qc||{}; me.qc.wish=(me.qc.wish|0)+1;   // v250: server-tracked quest counter
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -2938,7 +2967,13 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-campCompile(); vaultCompile(); readDB(); seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+campCompile(); vaultCompile(); readDB(); pgInit();
+if(PG){ (async()=>{ try{ await pgSetup(); const got=await pgLoad();
+  let fileM=0; try{ fileM=fs.statSync(DB_FILE).mtimeMs; }catch(e){}
+  if(got && got.mtime>fileM){ DB=got.db; console.log('🐘 World state loaded from PostgreSQL (newer than the file mirror).'); seed(); migrateAdminRoles(); migrateTokenHashes(); }
+  else if(got===null){ pgSave(); console.log('🐘 PostgreSQL seeded from the current world state.'); }
+}catch(e){ console.error('⚠ PG boot failed ('+e.message+') — continuing on the JSON file.'); } })(); }
+seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
 backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
