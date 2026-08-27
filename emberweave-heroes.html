@@ -3954,7 +3954,8 @@ function grantRewards(){
     const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Stage farmed.')}`;
   } else {
-    G.trophies+=12; txEarn('gold',80,'tower'); grantTeamXP(60); txEarn('heroXp',60,'tower',{heroKeys:(G.team||[]).filter(Boolean)});
+    G.trophies+=12; grantTeamXP(60);
+    if(ACC.token) api('/api/trial/resolve','POST',{kind:'tower',floor:(G.towerFloor||G.trophies/12)|0||1,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: the SERVER resolves + rewards the trial
     msg=`🏆 +12 trophies · <span class="coins">🪙 +80</span>`;
   }
   saveG(); return msg;
@@ -4026,19 +4027,25 @@ function endBattle(won){ ended=true;
       document.getElementById('resultReward').innerHTML=msg;
       document.getElementById('resultHint').textContent=won?'The next floor is harder — spend Dust at the Forge to temper your gear.':'Backups step in when a fighter falls — bring 10 heroes.';
       gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;txEarn('gold',gold,'dungeon');
+  if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;
+    if(ACC.token) api('/api/trial/resolve','POST',{kind:'dungeon',floor:G.dungeonBest,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: server-verified
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; const bag=EQ_BASE.map(b=>b[0]); const n=3+Math.floor(playerLevel()/5); const got={};
       for(let i=0;i<n;i++){ const b=bag[Math.floor(Math.random()*bag.length)]; G.eqMats[b]=(G.eqMats[b]||0)+1; got[b]=(got[b]||0)+1; }
       dropLog=EQ_BASE.filter(b=>got[b[0]]).map(b=>b[1]+' +'+got[b[0]]).join(' ');
       dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);
-      txEarn('px',dxp,'dungeon'); txEarn('heroXp',hxp,'dungeon',{heroKeys:(G.team||[]).filter(Boolean)});
+      /* v250: px/heroXp for this loop come from /api/trial/resolve */
       saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span class="coins">🪙 +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='elite'){ const key=CUR.eliteKey, frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; if(won){ eliteUnlock=giveHeroFrag(key,frags); txEarn('frag',frags,'elite',{heroKey:key}); grantTeamXP(70); txEarn('heroXp',70,'elite',{heroKeys:(G.team||[]).filter(Boolean)}); saveG(); updateHubChrome(); }
+  if(CUR.mode==='elite'){ const key=CUR.eliteKey; let frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; if(won){
+      if(ACC.token){ api('/api/elite/resolve','POST',{node:CUR.node,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
+          if(r&&r.ok&&r.won){ const um=giveHeroFrag(r.heroKey,r.frags); if(um)bannerMsg(um); adoptLedger(r.ledger); updateHubChrome(); }
+          else if(r&&r.error) bannerMsg(r.error); }).catch(()=>{}); eliteUnlock=''; frags=0; }   // v250: the SERVER resolves elite and owns the fragment grant
+      else { eliteUnlock=giveHeroFrag(key,frags); }
+      grantTeamXP(70); saveG(); updateHubChrome(); }
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 +${frags} ${HERO_TYPES[key].name} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='raid'){ const gold=won?120:0; if(won){txEarn('gold',gold,'city');grantTeamXP(50);txEarn('heroXp',50,'raid',{heroKeys:(G.team||[]).filter(Boolean)});saveG();updateHubChrome();}
+  if(CUR.mode==='raid'){ const gold=won?120:0; if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'RAID WON':'RAID FAILED'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`Looted <span class="coins">🪙 +${gold}</span> from ${CUR.oppName}`:`${CUR.oppName} held their wall.`; document.getElementById('resultHint').textContent=''; show('result'); },800); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
@@ -5237,9 +5244,9 @@ function rollMarket(){ const o=[]; const L=playerLevel();
   const gm=x=>Math.round(x*(1+(L-1)*0.09));   // gold: ~1× at L1 → ~4× at L40
   const em=x=>Math.round(x*(1+(L-1)*0.04));   // gems: gentler premium scaling
   const fq=n=>n+Math.floor(L/20);             // fragment stacks grow with level (+1 per 20 levels)
-  o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:gm(1000)}});
-  o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:gm(1400)}});
-  o.push({kind:'frag',hero:randLockedHero(),qty:fq(3),cost:{gems:em(80)}});
+  o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:550*fq(2)}});   // v250: SERVER prices (550g / 30💎 per fragment)
+  o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:550*fq(2)}});
+  o.push({kind:'frag',hero:randLockedHero(),qty:fq(3),cost:{gems:30*fq(3)}});
   o.push({kind:'shield',icon:'🛡️',name:'Peace Shield',cost:{gems:em(70)}});
   G.market={ts:Date.now(),offers:o,lvl:L};
 }
@@ -5362,10 +5369,16 @@ function renderMarket(){
         <button class="btn sm" data-i="${i}" ${o.bought||!afford?'disabled':''}>${o.bought?'Sold':c}</button></div>`;
     }).join('')+`<div style="font-size:11px;color:#6f7d90;margin-top:8px">Restocks every hour. Fragments summon a locked hero — <b>10</b>/<b>30</b>/<b>80</b> by starting rarity (1★/2★/3★). Peace Shields protect your castle on the world map.</div>`;
   b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=async()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
-    if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market')))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market')))return; }
     let msg='';
-    if(o.kind==='frag'){ msg=giveHeroFrag(o.hero,o.qty)||''; txEarn('frag',o.qty,'market',{heroKey:o.hero}); }
-    else if(o.kind==='shield') G.shieldItems=(G.shieldItems||0)+1;
+    if(o.kind==='frag'&&ACC.token){   // v250: ONE atomic server purchase — server debits AND grants at ITS prices
+      const r=await api('/api/market/frag','POST',{heroKey:o.hero,qty:o.qty,pay:o.cost.gems?'gems':'gold',requestId:uid8()});
+      if(!r||r.error){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
+      msg=giveHeroFrag(o.hero,o.qty)||''; adoptLedger(r.ledger);
+    } else {
+      if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market')))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market')))return; }
+      if(o.kind==='frag'){ msg=giveHeroFrag(o.hero,o.qty)||''; }
+      else if(o.kind==='shield') G.shieldItems=(G.shieldItems||0)+1;
+    }
     o.bought=true; saveG(); updateHubChrome(); if(msg)bannerMsg(msg); renderMarket();
   });
 }
@@ -5532,7 +5545,7 @@ function sweepStage(i,times){
     adoptLedger(r.ledger);
     let frags=0, um='';
     for(let k2=0;k2<r.times;k2++){
-      if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); txEarn('frag',1,'elite',{heroKey:hk}); if(_um)um=_um; frags++; } } }
+      if(isEliteStage(i)){ const hk=eliteHeroFor(i); const _t=HERO_TYPES[hk]; if(_t&&!_t.myth&&!_t.source){ const _um=giveHeroFrag(hk,1); if(_um)um=_um; frags++; } } }   // v250: signed-in sweeps get this from the SERVER receipt (eliteFrag)
     stageCountRun(i,r.times);
     // Correction Spec v1: the SERVER's named Glyph Fragment receipt is the reward display —
     // never a generic shard counter rolled in the browser.
@@ -6098,7 +6111,8 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   b.querySelector('#arenaRankings').onclick=openRankings;
   const cd=b.querySelector('#claimDaily'); if(cd&&dready) cd.onclick=()=>{
     if(!arenaDailyReady())return; const dr=arenaDailyReward(G.arenaRank);
-    txEarn('gems',dr.gems,'daily'); txEarn('gold',dr.gold,'daily'); G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now(); saveG(); updateHubChrome(); renderArena();
+    if(ACC.token){ api('/api/arena/daily-claim','POST',{requestId:uid8()}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); } else if(r&&r.error) bannerMsg(r.error); }).catch(()=>{}); }   // v250: the SERVER pays the arena daily from ITS rank table
+    G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now(); saveG(); updateHubChrome(); renderArena();
     document.getElementById('dailyMsg').textContent=`Claimed! 💎 +${dr.gems} · 🪙 +${dr.gold.toLocaleString()} · 🎟️ +${dr.coins}`;
   };
   const el=b.querySelector('#arenaOpps'); el.innerHTML='';
@@ -8185,7 +8199,11 @@ function questDefs(){
       claim:()=>{ G.gems=(G.gems||0)+20; return '+💎 20 diamonds'; } },
   ];
 }
-function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return; const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
+function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
+  if(ACC.token){ api('/api/quest/claim','POST',{id:q.id,requestId:uid8()}).then(sr=>{   // v250: the SERVER validates + pays quests
+      if(sr&&sr.ok){ const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
+      else if(sr&&sr.error){ bannerMsg(sr.error); } }).catch(()=>{}); return; }
+  const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
 function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(); const st=steps[G.questChainStep||0]; let r='';
   if(st.gems){ G.gems=(G.gems||0)+st.gems; r='+💎 '+st.gems+' diamonds'; }
   else { let m=''; for(let i=0;i<st.frags;i++){ const x=giveHeroFrag(QUEST_CHAIN_HERO,1); if(x)m=x; } r=m||('+'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'); }
@@ -9643,7 +9661,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787840835378';
+const BUILD_ID='1787843134595';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

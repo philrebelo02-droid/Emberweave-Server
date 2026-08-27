@@ -560,6 +560,27 @@ function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; con
     armorRating:techTotalSrv(A,'armor'), mrRating:techTotalSrv(A,'mr'),
     critFrac:techTotalSrv(A,'crit')/100, critResFrac:techTotalSrv(A,'critres')/100,
     dmgRedFrac:techTotalSrv(A,'def')/100, apMul:1+techTotalSrv(A,'ap')/100 }; }
+/* ---- v250: per-loop server authorities (audit P1 — generic tx/earn retired) ---- */
+const ELITE_SEQ_SRV=["tick","sylthaine","vireo","vael","fritz","rhukk","bloatus","umbris","oakmir"];
+function isEliteStageSrv(g){ const st=((g-1)%10)+1; return st===3||st===6||st===9; }
+function eliteHeroForSrv(g){ if(!isEliteStageSrv(g)) return null;
+  const ch=Math.floor((g-1)/10)+1, st=((g-1)%10)+1;
+  const idx=(ch-1)*3 + ({3:0,6:1,9:2})[st];
+  return ELITE_SEQ_SRV[idx%ELITE_SEQ_SRV.length]; }
+const ARENA_DAILY_BANDS=[[1,1,600,30000,800],[2,2,520,27000,775],[3,3,440,24000,750],[4,4,380,21000,725],[5,5,320,19000,700],[6,6,260,17000,680],[7,7,200,15000,660],[8,8,180,14000,640],[9,10,160,12500,610],[11,20,150,11000,590],[21,30,140,10000,575],[31,40,130,9000,560],[41,50,120,8000,545],[51,70,110,7500,530],[71,100,100,7000,500],[101,150,90,6500,475],[151,200,80,6000,450],[201,300,70,5500,425],[301,400,60,5000,388],[401,500,55,4500,350],[501,700,55,4000,300],[701,1000,50,3500,260],[1001,1500,50,3300,220],[1501,2000,50,3100,180],[2001,2500,50,2900,140],[2501,3500,45,2700,100],[3501,5000,45,2500,50],[5001,15000,45,2200,30]];
+function arenaDailyRewardSrv(rank){ for(const [lo,hi,g,gold,c] of ARENA_DAILY_BANDS){ if(rank>=lo&&rank<=hi) return {gems:g,gold,coins:c}; } return {gems:0,gold:0,coins:0}; }
+const QUEST_DEFS_SRV={
+  q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
+  q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
+  q_collect:{ reward:{randFrags:5}, cond:(u,led)=>Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]).length>=5 },
+  q_vex:    { reward:{hero:'vex'}, cond:(u,led)=>(led.camp.cleared|0)>=6 },
+  q_wish:   { reward:{gems:20},  cond:(u,led)=>((u.qc&&u.qc.wish)|0)>=3 }
+};
+function questChainStepsSrv(){ const steps=[{node:1,frags:2},{node:2,frags:2},{node:3,frags:3},{node:4,frags:3}];
+  for(let n=6;n<=100;n+=3) steps.push({node:n,gems:20}); return steps; }
+const TRIAL_KINDS={ tower:{mul:0.85, reward:f=>({gold:80+8*f, heroXp:60})},
+                    gauntlet:{mul:1.0, reward:f=>({gold:100+10*f, heroXp:70})},
+                    dungeon:{mul:0.9, reward:f=>({gold:200, px:100, heroXp:90})} };
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
 function glyphFlatStats(u,key){
@@ -1056,15 +1077,15 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
     dust:u.dust||0 }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
+/* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
+   server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
+   allowance (and the arena-coin fragment shop, pending its own route) remains for legacy edges. */
 const EARN_RULES={
-  gold:{ tower:{max:600,day:3000}, gauntlet:{max:800,day:4000}, quest:{max:1500,day:8000},
-         mail:{max:5000,day:20000}, market:{max:8000,day:40000}, city:{max:1500,day:9000},
-         dungeon:{max:200,day:1200}, convert:{max:8000,day:40000},
-         daily:{max:2000,day:4000}, misc:{max:500,day:2000} },
-  gems:{ quest:{max:60,day:200}, mail:{max:120,day:400}, daily:{max:80,day:160}, convert:{max:40,day:120}, misc:{max:20,day:60} },
-  px:{ dungeon:{max:150,day:900}, tower:{max:120,day:600}, misc:{max:100,day:500} },
-  heroXp:{ dungeon:{max:90,day:540}, tower:{max:70,day:400}, raid:{max:50,day:300}, elite:{max:70,day:1000}, misc:{max:80,day:400} },
-  frag:{ elite:{max:3,day:60}, quest:{max:5,day:30}, market:{max:10,day:60}, arena:{max:10,day:60}, misc:{max:3,day:20} } };
+  gold:{ misc:{max:500,day:2000} },
+  gems:{ misc:{max:20,day:60} },
+  px:{ misc:{max:100,day:500} },
+  heroXp:{ misc:{max:80,day:400} },
+  frag:{ arena:{max:10,day:60}, misc:{max:3,day:20} } };
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -1976,6 +1997,7 @@ async function api(req,res,url){
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
       gemFree:{ready:gemFreeReady}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
   if(p==='/api/pool/wish' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+      me.qc=me.qc||{}; me.qc.wish=(me.qc.wish|0)+1;   // v250: server-tracked quest counter
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':wish:'+reqId,()=>{
       const led=ensureLedger(me), pool=poolState(me); const which=String(b.pool||''); const n=(b.n|0)===10?10:1;
@@ -2047,7 +2069,11 @@ async function api(req,res,url){
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
       ledTx(me,'campaign:sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
       const glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity*times})));
-      writeDB(); return {ok:true, times, gold, px, heroXp:hxp, glyphFragments, ledger:ledgerView(me)};
+      // v250: ELITE stages grant their hero's fragment ON THE SERVER (1/run) — the client no longer self-reports it
+      let eliteFrag=null;
+      if(isEliteStageSrv(node)){ const hk=eliteHeroForSrv(node);
+        led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+times); eliteFrag={heroKey:hk, qty:times}; }
+      writeDB(); return {ok:true, times, gold, px, heroXp:hxp, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -2214,6 +2240,115 @@ async function api(req,res,url){
       writeDB(); return {ok:true, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
+  /* =================== v250 (audit P1): PER-LOOP SERVER AUTHORITIES ===================
+     Elite stages, Tower/Gauntlet/legacy-dungeon trials, quests, market fragment offers, and the
+     arena daily are each their own server-verified transaction. Generic /api/tx/earn no longer
+     accepts these reasons. */
+  if(p==='/api/elite/resolve'||p==='/api/trial/resolve'||p==='/api/quest/state'||p==='/api/quest/claim'||p==='/api/quest/chain-claim'||p==='/api/market/frag'||p==='/api/arena/daily-claim'){
+    if(!me) return send(res,401,{error:'auth'});
+    const led=ensureLedger(me);
+    if(p==='/api/quest/state'){ led.quests=led.quests||{claimed:{},chainStep:0};
+      const state={ chainStep:led.quests.chainStep|0, claimed:led.quests.claimed,
+        ready:Object.fromEntries(Object.entries(QUEST_DEFS_SRV).map(([id,q])=>[id,!!q.cond(me,led)])) };
+      return send(res,200,state); }
+    if(req.method!=='POST') return send(res,404,{error:'loop'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    if(p==='/api/elite/resolve'){ const out=idem(me.id+':elite:'+reqId,()=>{
+        const node=b.node|0; if(!isEliteStageSrv(node)) return {ok:false,error:'Not an elite stage.'};
+        if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
+        const dk=nyDayKey(); led.eliteDay=led.eliteDay&&led.eliteDay.k===dk?led.eliteDay:{k:dk};
+        if((led.eliteDay[node]|0)>=3) return {ok:false,error:'Elite rewards are limited to 3 per day.'};
+        const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+        for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'not unlocked: '+k}; }
+        const st=campStageOf(node); if(!st) return {ok:false,error:'Stage data missing.'};
+        const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+        if(!snaps.length) return {ok:false,error:'Pick your squad.'};
+        const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND),atkP:Math.round((x.atkP||0)*CAMPAIGN_SKILL_BAND),atkM:Math.round((x.atkM||0)*CAMPAIGN_SKILL_BAND)});
+        const waves=st.waves.map(w=>w.map(m=>{ const u=vaultSpecToCombatUnit(m); u.maxHp=Math.round(u.maxHp*1.2); u.atkP=Math.round(u.atkP*1.15); u.atk=u.atkP; return u; }));
+        const r=SIM.qualificationEstimate(snaps.map(band), waves, SIM.seedFrom('elite:'+me.id+':'+reqId));
+        if(!r.result.won) return {ok:true, won:false};
+        led.eliteDay[node]=(led.eliteDay[node]|0)+1;
+        const hk=eliteHeroForSrv(node);
+        const frags=2+(SIM.seedFrom('efrag:'+me.id+':'+reqId)%3);
+        led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+frags);
+        for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+70); }
+        ledTx(me,'elite:'+node,{frag:frags,hero:hk});
+        writeDB(); return {ok:true, won:true, heroKey:hk, frags, heroXp:70, ledger:ledgerView(me)};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/trial/resolve'){ const out=idem(me.id+':trial:'+reqId,()=>{
+        const kind=String(b.kind||''); const K=TRIAL_KINDS[kind]; if(!K) return {ok:false,error:'Unknown trial.'};
+        const floor=Math.max(1,Math.min(500,b.floor|0));
+        led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
+        if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
+        const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+        for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'not unlocked: '+k}; }
+        const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+        if(!snaps.length) return {ok:false,error:'Pick your squad.'};
+        const rec=vaultFloorRecord(Math.min(100,floor));
+        const waves=rec.waves.map(w=>w.map(m=>{ const u=vaultSpecToCombatUnit(m); u.maxHp=Math.round(u.maxHp*K.mul); u.atkP=Math.round(u.atkP*K.mul); u.atk=u.atkP; return u; }));
+        const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*1.6),atk:Math.round(x.atk*1.6),heal:Math.round((x.heal||0)*1.6),atkP:Math.round((x.atkP||0)*1.6),atkM:Math.round((x.atkM||0)*1.6)});
+        const r=SIM.qualificationEstimate(snaps.map(band), waves, SIM.seedFrom('trial:'+kind+':'+me.id+':'+reqId));
+        if(!r.result.won) return {ok:true, won:false, best:T.best};
+        const first=floor>T.best; if(first) T.best=floor;
+        let reward=null;
+        if(first){ reward=K.reward(floor);
+          if(reward.gold) led.gold=Math.min(ECON_CAP.gold,led.gold+reward.gold);
+          if(reward.px){ led.px=Math.min(99000000,led.px+reward.px); }
+          if(reward.heroXp) for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
+          ledTx(me,'trial:'+kind+':'+floor,reward); }
+        writeDB(); return {ok:true, won:true, first, best:T.best, reward, ledger:ledgerView(me)};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/quest/claim'){ const out=idem(me.id+':quest:'+reqId,()=>{
+        led.quests=led.quests||{claimed:{},chainStep:0};
+        const id=String(b.id||''); const q=QUEST_DEFS_SRV[id]; if(!q) return {ok:false,error:'Unknown quest.'};
+        if(led.quests.claimed[id]) return {ok:false,error:'Already claimed.'};
+        if(!q.cond(me,led)) return {ok:false,error:'Quest not complete.'};
+        led.quests.claimed[id]=Date.now();
+        const rw=q.reward, got={};
+        if(rw.gold){ led.gold=Math.min(ECON_CAP.gold,led.gold+rw.gold); got.gold=rw.gold; }
+        if(rw.gems){ led.gems=Math.min(ECON_CAP.gems,led.gems+rw.gems); got.gems=rw.gems; }
+        if(rw.hero){ led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; }
+        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!led.unlocked[k]); const n=rw.randFrags;
+          for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+1); } got.frags=n; }
+        ledTx(me,'quest:'+id,got);
+        writeDB(); return {ok:true, id, got, ledger:ledgerView(me)};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/quest/chain-claim'){ const out=idem(me.id+':qchain:'+reqId,()=>{
+        led.quests=led.quests||{claimed:{},chainStep:0};
+        const steps=questChainStepsSrv(); const st=steps[led.quests.chainStep|0];
+        if(!st) return {ok:false,error:'Chain complete.'};
+        if((led.camp.cleared|0)<st.node) return {ok:false,error:'Clear stage '+st.node+' first.'};
+        led.quests.chainStep=(led.quests.chainStep|0)+1;
+        const got={};
+        if(st.frags){ led.frags.vex=Math.min(9999,(led.frags.vex|0)+st.frags); got.vexFrags=st.frags; }
+        if(st.gems){ led.gems=Math.min(ECON_CAP.gems,led.gems+st.gems); got.gems=st.gems; }
+        ledTx(me,'quest-chain:'+st.node,got);
+        writeDB(); return {ok:true, step:led.quests.chainStep, got, ledger:ledgerView(me)};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/market/frag'){ const out=idem(me.id+':mfrag:'+reqId,()=>{
+        const hk=String(b.heroKey||''); if(!SIM.HERO_BASE[hk]) return {ok:false,error:'Unknown hero.'};
+        const qty=Math.max(1,Math.min(4,b.qty|0));
+        const pay=b.pay==='gems'?'gems':'gold';
+        const price=pay==='gems'? 30*qty : 550*qty;                       // SERVER prices — the client displays these
+        const dk=nyDayKey(); led.marketDay=led.marketDay&&led.marketDay.k===dk?led.marketDay:{k:dk,frags:0};
+        if(led.marketDay.frags+qty>12) return {ok:false,error:'Daily market fragment limit reached.'};
+        if(pay==='gold'){ if(led.gold<price) return {ok:false,error:'Not enough gold.'}; led.gold-=price; }
+        else { if(led.gems<price) return {ok:false,error:'Not enough gems.'}; led.gems-=price; }
+        led.marketDay.frags+=qty; led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+qty);
+        ledTx(me,'market-frag:'+hk,{[pay]:-price,frag:qty});
+        writeDB(); return {ok:true, heroKey:hk, qty, paid:{[pay]:price}, ledger:ledgerView(me)};
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/arena/daily-claim'){ const out=idem(me.id+':adaily:'+reqId,()=>{
+        const dk=nyDayKey(); me.arenaDaily=me.arenaDaily||{};
+        if(me.arenaDaily.k===dk) return {ok:false,error:'Already claimed today.'};
+        me.arenaDaily={k:dk};
+        const rw=arenaDailyRewardSrv(Math.max(1,me.rank|0||15000));
+        led.gold=Math.min(ECON_CAP.gold,led.gold+rw.gold);
+        led.gems=Math.min(ECON_CAP.gems,led.gems+rw.gems);
+        ledTx(me,'arena-daily',rw);
+        writeDB(); return {ok:true, reward:rw, ledger:ledgerView(me)};
+      }); return send(res, out.ok===false?400:200, out); }
+  }
   /* =================== v249 (full-game audit P0): THE CITY LOOP IS SERVER-SIDE ===================
      Academy research lives on the LEDGER (levels, timers, resource wallet, costs mirrored from the
      client tables); world-map mining is a capped server grant; City PvP is resolved BY THE SERVER
@@ -2269,7 +2404,8 @@ async function api(req,res,url){
         me.pvpDay.n++;
         let loot=null;
         if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold));
-          if(g>0){ led.gold=Math.min(ECON_CAP.gold,led.gold+g); me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0}; }
+          if(g>0){ led.gold=Math.min(ECON_CAP.gold,led.gold+g); me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0};
+          for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         d.pvpMail=d.pvpMail||[];
         d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds});
         if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
@@ -2368,6 +2504,7 @@ async function api(req,res,url){
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
+    me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, authoritative:true };
     DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
