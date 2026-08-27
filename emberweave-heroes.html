@@ -2173,15 +2173,15 @@ const PRAYER_UNLOCK_LEVEL=40;
 function prayerCost(lvl){ return 50000 + lvl*30000; }
 function prayerBonusPct(lvl){ return lvl*2; } // +2% ATK & HP per prayer level
 // ---- progression tables (max level 60) ----
-const MAX_LEVEL=70;   // v257 (Phil): the cap rises to 70 so Orange glyphs sit at level 65 — the true endgame
+const MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sits at level 100.
 // Troop XP: the table values are per-level INCREMENTS that accumulate — the XP to go from
 // level L->L+1 is the running sum of the increments (Lv1->2 = 8, 2->3 = 8+10 = 18, 3->4 = +35 = 53 …).
 // A dash in the source table means "no increment that level" (0), so the requirement holds steady.
-const TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360];
+const TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360,0,4480,0,4600,4720,0,4840,4960,0,5080,0,5200,0,5320,5440,0,5560,5680,0,5800,0,5920,0,6040,6160,0,6280,6400,0,6520];
 function runningSum(inc){ const out=[]; let r=0; for(let i=0;i<inc.length;i++){ r+=inc[i]; out.push(r); } return out; }
 const TROOP_STEP=runningSum(TROOP_INC);   // XP to go from level (i+1) -> (i+2)
 // Hero XP: per-level requirement straight from the table (index 0 = 1->2 … 58 = 59->60)
-const HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700];
+const HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700,21300,21900,22500,23100,23700,24300,24900,25500,26100,26700,27300,27900,28500,29100,29700,30300,30900,31500,32100,32700,33300,33900,34500,35100,35700,36300,36900,37500,38100,38700];
 function cumArr(steps){ const c=new Array(MAX_LEVEL+1); c[1]=0; for(let L=2;L<=MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const TROOP_CUM=cumArr(TROOP_STEP), HERO_CUM=cumArr(HERO_STEP);
 function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
@@ -2194,7 +2194,7 @@ function regenStamina(){ if(!G.staminaTS)G.staminaTS=Date.now(); const now=Date.
     if(gained>0){ G.stamina=Math.min(mx,G.stamina+gained); G.staminaTS+=gained*STAM_REGEN_MS; if(G.stamina>=mx)G.staminaTS=now; saveG(); } }
   else { G.staminaTS=now; } }
 function staminaToNext(){ if(G.stamina>=maxStamina())return 0; if(!G.staminaTS)G.staminaTS=Date.now(); return STAM_REGEN_MS-((Date.now()-G.staminaTS)%STAM_REGEN_MS); }
-const ACADEMY_UNLOCK_LEVEL=15;
+const ACADEMY_UNLOCK_LEVEL=20;   // Blueprint v1 §"System unlock rhythm"
 // research/"learning" time: a few minutes early, grows gradually with the track's level
 /* v249: the Academy is SERVER-owned when signed in — levels, timers, and the resource wallet come
    from /api/academy; research and mining go through server routes. Offline keeps the local flow. */
@@ -2331,7 +2331,7 @@ function heroLevel(key){ return Math.max(1, Math.min(playerLevel(), levelFromXP(
 function heroCapped(key){ return levelFromXP(G.heroXP[key]||0) >= playerLevel(); } // xp level hit the account cap
 function heroStat(key,base){ return base*(1+0.18*(heroLevel(key)-1))*starMult(key); }   // stars multiply base HP/ATK (Magic-Rush style)
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
-const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=15;
+const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=20;   // City Wall opens with the Watch Tower city loop (Blueprint v1)
 // ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). All 10 chapters playable. ----
 const STAGES_PER_CH=10, TOTAL_CHAPTERS=11, MAX_CHAPTER=11;         // v257: chapter 11 is the Orange chapter
 const CAMPAIGN_NODES=TOTAL_CHAPTERS*STAGES_PER_CH;               // 110 authored stages
@@ -4726,14 +4726,14 @@ function renderHome(){
     {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
     {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
     {nav:'rankings',    label:'Bulletin Board', x:69, y:37, w:15, h:16, lx:69, ly:46},   // v256 (80/20 §7): rankings live on the physical Bulletin Board — there is no top-nav duplicate
-    {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
+    {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(17)},
     {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
-    {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91},
-    {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(10)},
-    {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},
+    {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, ...lk(20)},
+    {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(13)},
+    {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(30)},
     {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
-    {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67},
+    {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67, ...lk(25)},
   ];
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
@@ -5634,6 +5634,7 @@ function campaignPlayerXP(g,firstClear){ const elite=isEliteStage(g), boss=isBos
   return elite?12:6; }
 window.STAGE_CACHE=window.STAGE_CACHE||{};
 window.STAGE_POWER=window.STAGE_POWER||{};   // v257: the server's own reading of YOUR power, per stage fetch
+window.STAGE_GATE=window.STAGE_GATE||{};    // v258: the chapter-boss player-level gate, from the server
 /* v255 (80/20 contract §2): the stage-detail panel — recommended power vs YOUR line, the authored
    waves and their named monsters, the guaranteed fragment, and the three-star condition. Everything
    the player needs to answer "can I clear this, and what exactly do I get?" before spending stamina. */
@@ -5702,18 +5703,38 @@ function stageDetailHTML(stg,node){
       return `<span style="white-space:nowrap">${escapeHTML(nameOf(k))}${counts[k]>1?(' ×'+counts[k]):''} ${roleTag(t.role,true)}</span>`; }).join(' ');
     return `<div style="font-size:11px;color:#c3ccd8;margin:3px 0;line-height:1.8"><b style="color:${boss?'#ffd45e':'#8fb7ff'}">Wave ${wi+1}${boss?' 👑':''}</b> · ${list}</div>`;
   }).join('');
-  const frag=((stg.rewards&&stg.rewards.glyphFragments)||[]).map(f=>
-    `${(typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆'} <b style="color:#8fe3ff">${escapeHTML(f.displayName)} ×${f.quantity}</b>`).join('<br>');
+  // Blueprint v1: a chapter boss is a HARD player-level graduation gate; Stage 5/10 show a hint.
+  const gate=(stg.bossLevelGate|0), myLv=(typeof playerLevel==='function')?playerLevel():1;
+  const gateLine=gate?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:2px">
+      <span style="font-size:11px;color:#8b98a9">Chapter boss — required level</span>
+      <span style="font-size:11px;font-weight:800;color:${myLv>=gate?'#5ee89b':'#ff9a9a'}">Lv ${gate}${myLv>=gate?' ✓':' — you are '+myLv}</span></div>`:'';
+  const bossKey=(function(){ for(const w of waves){ const m=w.find(x=>x.boss); if(m) return m.key; } return null; })();
+  const cue=bossKey&&(typeof BOSS_CUES!=='undefined')?BOSS_CUES[bossKey]:null;
+  const cueLine=(stg.checkpoint==='boss'||stg.checkpoint==='guardian')
+    ?`<div style="font-size:10.5px;color:#ffb37a;margin-top:4px">${stg.checkpoint==='boss'?'👑':'⭐'} ${escapeHTML(cue||'A stage guardian — bring your ultimates ready')}</div>`:'';
+  const _gf=((stg.rewards&&stg.rewards.glyphFragments)||[]);
+  const _line=f=>`${(typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆'} <b style="color:#8fe3ff">${escapeHTML(f.displayName)} ×${f.quantity}</b>`;
+  const frag=_gf.filter(f=>f.guaranteed!==false).map(_line).join('<br>') || _gf.slice(0,1).map(_line).join('');
+  const fragBonus=_gf.filter(f=>f.bonus).map(_line).join('<br>');
   return `<div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;text-align:left">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
       <span style="font-size:11px;color:#8b98a9">Recommended power</span>
       <span style="font-size:12px;font-weight:800;color:${ok?'#5ee89b':'#ffb37a'}">${rec?rec.toLocaleString():'—'}${mine?` <span style="font-weight:400;color:#8b98a9">· yours ${mine.toLocaleString()}</span>`:''}</span></div>
     ${rec&&!ok?`<div style="font-size:10.5px;color:#ffb37a;margin-top:2px">Below the recommendation — level heroes, ascend a glyph or temper gear first.</div>`:''}
-    ${(stg.targetLevel||stg.targetGlyph)?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px">
-      <span style="font-size:11px;color:#8b98a9">Built for</span>
-      <span style="font-size:11px;font-weight:700;color:#c9a2ff">Lv ${stg.targetLevel||'—'}${stg.targetGlyph&&stg.targetGlyph!=='None'?` · ${escapeHTML(stg.targetGlyph)} glyph board`:' · no glyphs needed'}</span></div>`:''}
+    ${stg.targetLevel?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px">
+      <span style="font-size:11px;color:#8b98a9">Recommended player level</span>
+      <span style="font-size:11px;font-weight:700;color:${(typeof playerLevel==='function'&&playerLevel()>=stg.targetLevel)?'#5ee89b':'#ffb37a'}">Lv ${stg.targetLevel}</span></div>`:''}
+    ${stg.recommendedQuality?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:2px">
+      <span style="font-size:11px;color:#8b98a9">Recommended glyph quality</span>
+      <span style="font-size:11px;font-weight:700;color:#c9a2ff">${stg.targetGlyph==='None'?'None needed yet':escapeHTML(stg.recommendedQuality)+(stg.qualityMinHeroLevel?` <span style="font-weight:400;color:#8b98a9">(hero Lv ${stg.qualityMinHeroLevel}+)</span>`:'')}</span></div>`:''}
+    ${gateLine}
+    ${cueLine}
     <div style="margin-top:6px">${waveRows}</div>
     ${frag?`<div style="margin-top:6px;font-size:11px"><span style="color:#8b98a9">Guaranteed:</span><br>${frag}</div>`:''}
+    ${fragBonus?`<div style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">Bonus:</span><br>${fragBonus}</div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px">
+      <span style="font-size:11px;color:#8b98a9">Stamina · sweep</span>
+      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${node<=G.campaignCleared?(isEliteStage(node)||isBossStage(node)?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks on first clear'}</span></div>
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
   </div>${preBattleLineHTML('campaign')}`;
 }
@@ -5725,6 +5746,7 @@ function openStageModal(i){
   // ascend a glyph or temper gear, and the panel must never show a stale reading.
   if(ACC.token){ api('/api/campaign/stage?node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[i]=r.stage;
     STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
+    STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
     const el=document.getElementById('smFragTarget');
     if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=r.stage.rewards.glyphFragments.map(f=>((typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆')+' Drops <b>'+f.displayName+' ×'+f.quantity+'</b>').join('<br>');
     const dl=document.getElementById('smDetail');   // v255: the detail panel fills in with the authored data
@@ -5738,6 +5760,9 @@ function openStageModal(i){
   regenStamina();
   const canPay=G.stamina>=stageStamCost(i);
   const _eb=isEliteStage(i)||isBossStage(i), _left=stageRunsLeft(i), _farmable=!_eb||_left>0;
+  // Blueprint v1: normal stages may be attempted early; a chapter boss is a hard player-level gate.
+  const _gate=(_stg&&(_stg.bossLevelGate|0))||((STAGE_GATE[i]&&STAGE_GATE[i].gate)|0);
+  const _gateOK=!_gate||playerLevel()>=_gate;
   const _capLine=_eb?`<div style="font-size:11px;color:${_left>0?'#8fe3ff':'#ff9a9a'};margin-bottom:8px">Daily reward runs: <b>${_left}/${ELITE_BOSS_DAILY}</b>${_left>0?'':' — come back after the 09:00 reset'}</div>`:'';
   body.innerHTML=`<div style="text-align:center">
       <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
@@ -5749,7 +5774,7 @@ function openStageModal(i){
       <div id="smDetail" style="margin:0 0 10px">${stageDetailHTML(_stg,i)}</div>
       ${_capLine}
       <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared))?'':'disabled'}>⚔️ Battle ▶ ${cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'}</button>
+        <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
         ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable)?'':'disabled'}>💨 Sweep (instant · ${campaignPlayerXP(i,false)} XP)</button>`:''}
         ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${canPay?'':'disabled'}>💨 Sweep ×10 (⧗ ${stageStamCost(i)*10} · ${campaignPlayerXP(i,false)*10} XP)</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
@@ -9961,7 +9986,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787849714520';
+const BUILD_ID='1787851527060';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -279,12 +279,10 @@ const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'true')==='true'
 // lock, gate and recipe tier derives from an index into this. Grey +1 / Blue +3 do not exist.
 const GLYPH_LADDER=Object.freeze(['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange']);
 const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
-/* v257 (Phil, 27 Aug): A GLYPH TIER HAS A MINIMUM HERO LEVEL. A level-15 hero can never wear Gold.
-   The 16 ladder steps are spread across the game's level cap (70), 4 levels per step up to Gold +4
-   with Orange held back to level 65, so hero
-   level and glyph quality rise together and "level 30 Grey vs level 10 Grey" stays a real, readable
-   power gap. Index matches GLYPH_LADDER exactly. */
-const GLYPH_MIN_LEVEL=Object.freeze([1,5,9,13,17,21,25,29,33,37,41,45,49,53,57,65]);
+/* v258 — Launch Progression Blueprint v1 §"Exact Glyph ascension path and level gates".
+   A GLYPH TIER HAS A MINIMUM HERO LEVEL; a level-15 hero can never wear Gold. Player Level unlocks
+   the hero-level ceiling, it never grants a quality for free. Index matches GLYPH_LADDER exactly. */
+const GLYPH_MIN_LEVEL=Object.freeze([1,7,13,18,24,30,36,43,50,57,65,72,79,86,93,100]);
 function glyphLevelGate(i){ return GLYPH_MIN_LEVEL[Math.max(0,Math.min(GLYPH_MIN_LEVEL.length-1,i|0))]|0; }
 const GLYPH_FAMS=Object.freeze(['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom']);
 let GLYPH_TIER_FAMS={};   // filled by glyphCompile: quality -> families that exist at that tier
@@ -562,9 +560,9 @@ let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
 
 // ---- client-exact level curves (mirrors emberweave-heroes.html tables) ----
-const D_MAX_LEVEL=70;   // v257 (Phil): the cap rises to 70 so Orange glyphs sit at level 65 — the true endgame
-const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360];
-const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700];
+const D_MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sits at level 100.
+const D_TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360,0,4480,0,4600,4720,0,4840,4960,0,5080,0,5200,0,5320,5440,0,5560,5680,0,5800,0,5920,0,6040,6160,0,6280,6400,0,6520];
+const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700,21300,21900,22500,23100,23700,24300,24900,25500,26100,26700,27300,27900,28500,29100,29700,30300,30900,31500,32100,32700,33300,33900,34500,35100,35700,36300,36900,37500,38100,38700];
 function d_runSum(inc){ const o=[]; let r=0; for(const v of inc){ r+=v; o.push(r); } return o; }
 function d_cum(steps){ const c=new Array(D_MAX_LEVEL+1); c[1]=0; for(let L=2;L<=D_MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const D_TROOP_CUM=d_cum(d_runSum(D_TROOP_INC)), D_HERO_CUM=d_cum(D_HERO_STEP);
@@ -1183,7 +1181,7 @@ const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
-const CAMPAIGN_NODES=110;   // v257 (Phil): chapter 11 is the Orange chapter — 11 chapters × 10 stages
+const CAMPAIGN_NODES=100;   // Blueprint v1: 10 chapters × 10 fixed stages. Chapters 11+ are explicitly OUT.
 let CAMP_ENC=null;
 function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
@@ -1204,6 +1202,10 @@ function campCompile(){
 }
 const CAMPAIGN_SKILL_BAND=parseFloat(process.env.CAMPAIGN_SKILL_BAND||'1.5');   // deterministic manual-play allowance inside the authoritative resolve
 function campStageOf(node){ return CAMP_ENC&&CAMP_ENC.byNode[node|0]||null; }
+/* Blueprint v1 §"Chapter graduation bosses": normal stages may be attempted early, but each
+   Stage 10 boss is a HARD graduation gate on Player Level (1-10 → 10 … 10-10 → 100). Never a
+   star or evolution threshold. */
+function campBossLevelGate(node){ return (node%10===0) ? Math.min(100, Math.round(node/10)*10) : 0; }
 function campIsBoss(node){ return node%10===0; }
 
 /* ==================== THE FORGE (Gear/Temper v2) — server-authoritative ====================
@@ -2071,7 +2073,7 @@ async function api(req,res,url){
     if(b.world && typeof b.world==='object'){   // world-map presence: region + castle position + display stats
       const w=b.world;
       me.world={ region:String(w.region||'').slice(0,16), x:Math.max(0,Math.min(100,+w.x||0)), y:Math.max(0,Math.min(100,+w.y||0)),
-                 level:Math.max(1,Math.min(70,parseInt(w.level,10)||1)), power:Math.max(0,Math.min(99999999,parseInt(w.power,10)||0)), t:Date.now() }; }
+                 level:Math.max(1,Math.min(100,parseInt(w.level,10)||1)), power:Math.max(0,Math.min(99999999,parseInt(w.power,10)||0)), t:Date.now() }; }
     writeDB(); return send(res,200,{ok:true}); }
 
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
@@ -2185,6 +2187,7 @@ async function api(req,res,url){
     if(b.px) led.px=Math.min(99000000,led.px+(b.px|0));
     if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
     if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
+    if(b.campCleared!=null) led.camp.cleared=Math.max(0,Math.min(CAMPAIGN_NODES,b.campCleared|0));   // dev-only fixture
     ledTx(tgt,'admin:grant',{});
     writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt)}); }
 
@@ -2243,7 +2246,8 @@ async function api(req,res,url){
       const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       yourPower=Math.round(snaps.reduce((a,u)=>a+(u.maxHp||0)/8+Math.max(u.atkP||0,u.atkM||0)*3+(u.heal||0)*2,0));
     }catch(e){}
-    return send(res,200,{stage:st, yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL}); }
+    return send(res,200,{stage:st, yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
+      bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(ensureLedger(me)) }); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
@@ -2251,6 +2255,8 @@ async function api(req,res,url){
     const node=b.node|0; const st=campStageOf(node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
     if(node>led.camp.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
+    { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
+      if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
     for(const k of ids){ if(!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
