@@ -88,11 +88,11 @@ const DEFAULT_KIT={kind:'phys',shape:'nuke',coef:2.2};
    BASE armor/mr like the client (1+0.05·(lvl−1))·starMult. ---- */
 function buildUnit(key, base, mul, defScale, r, extra){
   r=r||{}; extra=extra||{};
-  const armor=(base.armor||0)*defScale + (r.armor||0)*CONV.defPtMul;
-  const mr=(base.mr||0)*defScale + (r.mr||0)*CONV.defPtMul;
+  const armor=(base.armor||0)*defScale + (r.armor||0)*CONV.defPtMul + (extra.armorRating||0);
+  const mr=(base.mr||0)*defScale + (r.mr||0)*CONV.defPtMul + (extra.mrRating||0);
   const atkP=Math.round((base.dmg||0)*mul)+(r.atkFlat|0);
   // AP flats never create an ability line where none exists — a pure physical hero gains NOTHING from AP
-  const atkM=(base.apow||0)>0 ? Math.round(base.apow*mul)+(r.apowFlat|0) : 0;
+  const atkM=Math.round(((base.apow||0)>0 ? Math.round(base.apow*mul)+(r.apowFlat|0) : 0)*(extra.apMul||1));   // Academy AP research scales spells only
   return {
     key, role:base.role||'Bruiser', healer:!!base.healer,
     maxHp:Math.round((base.hp||100)*mul)+(r.hpFlat|0),
@@ -104,7 +104,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
     armorPen:Math.max(0,r.armorPen|0), magicPen:Math.max(0,r.magicPen|0),
     crit:Math.min(CONV.critCap,(r.crit||0)*CONV.critPerPt + (extra.critFrac||0)),
     critDmg:0.6+(r.critDmg||0)*CONV.critDmgPerPt,
-    critRes:Math.min(CONV.critResCap,(r.critRes||0)*CONV.critResPerPt),
+    critRes:Math.min(CONV.critResCap,(r.critRes||0)*CONV.critResPerPt+(extra.critResFrac||0)),
     energyReg:(r.energy||0)*CONV.energyPer100/100 + (extra.energyRegFlat||0),
     startEnergy:Math.max(0,Math.min(60,Math.round((r.startEnergy||0)*0.35))),
     regen:(r.regen||0)*0.001,
@@ -112,7 +112,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
     eva:Math.min(CONV.evaCap,(r.eva||0)*CONV.evaPerPt), acc:(r.acc||0),
     block:Math.min(CONV.blockCap,(r.block||0)*CONV.blockPerPt),
     dmgBonus:1+(r.dmgBonus||0)*CONV.dmgBonusPerPt,
-    dmgRed:Math.min(CONV.dmgRedCap,(r.dmgRed||0)*CONV.dmgRedPerPt),
+    dmgRed:Math.min(0.6,Math.min(CONV.dmgRedCap,(r.dmgRed||0)*CONV.dmgRedPerPt)+(extra.dmgRedFrac||0)),   // Academy Defense research adds flat reduction
     haste:1+(r.haste||0)*CONV.hastePerPt,
     shieldStr:1+(r.shieldStr||0)*CONV.shieldStrPerPt,
     ctrlHit:(r.ctrlHit||0)*CONV.ctrlHitPerPt,

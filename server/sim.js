@@ -81,7 +81,7 @@ function heroCombatStats(key, opts){
   // v242: RAW TYPED RATINGS in (snapshotHeroFromServer), typed core unit out. Legacy callers that
   // still pass {glyph:{hp,atk,apow,heal}} get those as flats with no ratings.
   const R=opts.ratings || (opts.glyph?{hpFlat:opts.glyph.hp|0,atkFlat:opts.glyph.atk|0,apowFlat:opts.glyph.apow|0,healFlat:opts.glyph.heal|0}:{});
-  const u=CORE.buildUnit(key, b, mul, defScale, R, {gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null});
+  const u=CORE.buildUnit(key, b, mul, defScale, R, Object.assign({gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null}, opts.extra||{}));
   u.level=level;
   // legacy aliases: scores (vaultTeamScore), plausibility gates, and views read these
   u.atk=Math.max(u.atkP,u.atkM);
