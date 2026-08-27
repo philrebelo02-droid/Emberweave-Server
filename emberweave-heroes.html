@@ -5697,18 +5697,25 @@ function preBattleLineHTML(mode){
 }
 /* 27 Aug (Phil): the stage sheet is Battle / Sweep / Sweep ×10 / Cancel — and under it, the ONE
    thing he wants to know: what this place drops. Nothing else. */
-function stageDropsHTML(stg){
+function stageDropsHTML(stg,node){
+  // 27 Aug (Phil): as small as it can honestly be — ONE wrapping row of drop chips and the
+  // stamina/run counter on the same line. The top of the sheet stays the stage name alone.
   const gf=(stg&&stg.rewards&&stg.rewards.glyphFragments)||[];
-  if(!gf.length) return '<div style="font-size:11px;color:#6f7d90">Loading drops…</div>';
-  const art=k=>(typeof g2artKey==='function')?g2artKey('fragment',k,16):'◆';
-  const row=f=>`<div style="display:flex;align-items:center;gap:6px;justify-content:center;margin:3px 0">
-    ${art(f.key)}<b style="color:#8fe3ff;font-size:12px">${escapeHTML(f.displayName)}</b>
-    <span style="color:#8b98a9;font-size:12px">×${f.quantity}</span></div>`;
+  const art=k=>(typeof g2artKey==='function')?g2artKey('fragment',k,13):'◆';
+  const chip=(icon,name,qty,col)=>`<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
+    ${icon}<span style="color:${col||'#8fe3ff'};font-size:10.5px;font-weight:700">${name}</span><span style="color:#8b98a9;font-size:10.5px">${qty}</span></span>`;
+  const fchip=(f,dim)=>chip(art(f.key), escapeHTML((f.displayName||f.key).replace(/ Fragment$/,'')), '×'+f.quantity, dim?'#6f8fa5':'#8fe3ff');
   const g=gf.filter(f=>f.guaranteed!==false), b=gf.filter(f=>f.bonus);
-  return `<div style="border-top:1px solid #1c2434;padding-top:10px">
-    <div style="font-size:10px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">DROPS HERE</div>
-    ${(g.length?g:gf.slice(0,1)).map(row).join('')}
-    ${b.length?`<div style="font-size:10px;letter-spacing:1px;color:#6f7d90;margin:8px 0 2px">BONUS</div>${b.map(row).join('')}`:''}</div>`;
+  const chips=[];
+  (g.length?g:gf.slice(0,1)).forEach(f=>chips.push(fchip(f,false)));
+  if(node!=null && isEliteStage(node)){ const hk=eliteHeroFor(node), h=hk&&HERO_TYPES[hk];
+    if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||'🎖')+'</span>', escapeHTML(h.name), '×'+ELITE_FRAG_MIN+'–'+ELITE_FRAG_MAX, '#c9a0ff')); }
+  b.forEach(f=>chips.push(fchip(f,true)));
+  const _eb=(node!=null)&&(isEliteStage(node)||isBossStage(node));
+  const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap">⧗ ${stageStamCost(node)}${_eb?' · runs <span style="color:'+(stageRunsLeft(node)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;
+  return `<div style="border-top:1px solid #1c2434;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
+    <span style="font-size:9px;letter-spacing:1px;color:#6f7d90">DROPS</span>
+    ${chips.length?chips.join(''):'<span style="font-size:10.5px;color:#6f7d90">loading…</span>'}${foot}</div>`;
 }
 function toggleLinePanel(btn){ const d=btn.parentNode.querySelector('.lineDetail'); if(!d) return;
   const open=d.style.display!=='none'; d.style.display=open?'none':'block';
@@ -5775,12 +5782,11 @@ function openStageModal(i){
     STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
     const el=document.getElementById('smFragTarget');
-    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage);
+    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage,i);
     preloadStageArt(r.stage); } }).catch(()=>{}); }
   if(STAGE_CACHE[i]) preloadStageArt(STAGE_CACHE[i]);   // cached stage: warm the art immediately
   if(i>CAMPAIGN_PLAYABLE){ bannerMsg('🔒 Chapters '+(MAX_CHAPTER+1)+'–'+TOTAL_CHAPTERS+' are coming soon.'); return; }
   const boss=isBossStage(i), cleared=i<=G.campaignCleared, elite=isEliteStage(i);
-  const fragHero=elite?eliteHeroFor(i):null, fh=fragHero?HERO_TYPES[fragHero]:null;
   const body=document.getElementById('stageModalBody');
   regenStamina();
   const canPay=G.stamina>=stageStamCost(i);
@@ -5790,21 +5796,16 @@ function openStageModal(i){
   const _gateOK=!_gate||playerLevel()>=_gate;
   // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
   const _stars=(G.stageStars&&G.stageStars[i])|0, _threeStar=_stars>=3;
-  const _capLine=_eb?`<div style="font-size:11px;color:${_left>0?'#8fe3ff':'#ff9a9a'};margin-bottom:8px">Daily reward runs: <b>${_left}/${ELITE_BOSS_DAILY}</b>${_left>0?'':' — come back after the 09:00 reset'}</div>`:'';
   body.innerHTML=`<div style="text-align:center">
       <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
-      <div style="font-weight:800;font-size:18px">${boss?'Boss Stage '+stageCode(i):(elite?'Elite Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
-      <div style="font-size:12px;color:#8b98a9;margin:4px 0 10px">${cleared?'Cleared — replay or sweep for rewards.':'First clear grants <b style="color:#5ee89b">'+campaignPlayerXP(i,true)+' XP</b>.'}</div>
-      ${elite?`<div style="font-size:12px;color:#c9a0ff;margin:-4px 0 10px">Drops <b>${ELITE_FRAG_MIN}–${ELITE_FRAG_MAX}</b> ${fh.emoji} <b>${fh.name}</b> fragments${fh.locked&&!G.unlocked[fragHero]?` <span style="color:#8b98a9">(${heroFrag(fragHero)}/${summonCost(fragHero)} to unlock)</span>`:''}</div>`:''}
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Cost: <b>⧗ ${stageStamCost(i)} stamina</b> · you have ${G.stamina}/${maxStamina()}</div>
-      ${_capLine}
+      <div style="font-weight:800;font-size:18px;margin-bottom:12px">${boss?'Boss Stage '+stageCode(i):(elite?'Elite Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
         ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep (instant · '+campaignPlayerXP(i,false)+' XP)':'🔒 Sweep — needs ★★★ ('+_stars+'/3)'}</button>`:''}
         ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10 (⧗ '+(stageStamCost(i)*10)+' · '+(campaignPlayerXP(i,false)*10)+' XP)':'🔒 Sweep ×10 — needs ★★★'}</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
       </div>
-      <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg)}</div>
+      <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg,i)}</div>
       ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
       <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px"></div>
     </div>`;
@@ -5863,11 +5864,25 @@ function sweepStage(i,times){
     // never a generic shard counter rolled in the browser.
     // v253 (visual audit #1): a sweep reports the EXACT named item and count — "Grey Ravager
     // Fragment ×10", never a generic shard total. The server receipt is the source.
-    const eliteLine=(r.eliteFrag&&r.eliteFrag.qty)?`<div style="margin:3px 0"><b style="color:#c9a2ff">🧩 ${escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)} Fragment</b> <b style="color:#fff">×${r.eliteFrag.qty}</b></div>`:'';
-    document.getElementById('smMsg').innerHTML=
-      `<div style="font-weight:800;margin-bottom:4px">Sweep ×${r.times} complete</div>`
-      +rewardPanel(r.glyphFragments,{gold:r.gold,px:r.px,heroXp:r.heroXp},'Portal '+stageCode(i))
-      +eliteLine+(um?('<div style="margin-top:4px;color:#ffd45e">'+um+'</div>'):'');
+    // 27 Aug (Phil): a sweep has to SAY it happened. The bottom block turns into a YOU EARNED
+    // receipt listing the exact named items — the same place the stage's drops were listed.
+    const art=k=>(typeof g2artKey==='function')?g2artKey('fragment',k,13):'◆';
+    const line=(icon,name,qty,col)=>`<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
+      ${icon}<span style="color:${col||'#8fe3ff'};font-size:10.5px;font-weight:700">${name}</span>
+      <span style="color:#fff;font-size:10.5px;font-weight:800">${qty}</span></span>`;
+    const items=(r.glyphFragments||[]).map(f=>line(art(f.key||f.displayName), escapeHTML((f.displayName||f.key||'').replace(/ Fragment$/,'')), '×'+f.quantity)).join('');
+    const eliteLine=(r.eliteFrag&&r.eliteFrag.qty)
+      ? line('<span style="font-size:13px;line-height:1">'+((HERO_TYPES[r.eliteFrag.heroKey]||{}).emoji||'🧩')+'</span>',
+             escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)+' Fragment', '×'+r.eliteFrag.qty, '#c9a0ff') : '';
+    const spoils=[ r.gold?`<span style="color:#ffd45e">+${r.gold.toLocaleString()}g</span>`:'',
+      r.px?`<span style="color:#5ee89b">+${r.px.toLocaleString()} XP</span>`:'' ].filter(Boolean)
+      .map(x=>`<span style="font-size:10.5px">${x}</span>`).join('');
+    const tgt=document.getElementById('smFragTarget');
+    if(tgt) tgt.innerHTML=`<div style="border-top:1px solid #2b7a55;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
+      <span style="font-size:9px;letter-spacing:1px;color:#5ee89b;font-weight:800">✅ SWEPT ×${r.times} — EARNED</span>
+      ${items||'<span style="font-size:10.5px;color:#6f7d90">no fragments</span>'}${eliteLine}${spoils}
+      ${um?`<span style="color:#ffd45e;font-size:10.5px">${um}</span>`:''}</div>`;
+    document.getElementById('smMsg').textContent='';
     if(typeof glyphV2Sync==='function') glyphV2Sync();
     saveG(); updateHubChrome(); if(typeof renderCampaign==='function'&&state==='campaign')renderCampaign();
   })();
@@ -10012,7 +10027,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787852840607';
+const BUILD_ID='1787853541657';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
