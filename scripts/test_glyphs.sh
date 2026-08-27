@@ -11,6 +11,19 @@ jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null
 R=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"gl1","pass":"password1"}')
 T=$(echo "$R"|jv "['token']"); H="x-token: $T"
 ck "register" '"token"' "$R"
+GID=$(echo "$R"|jv "['profile']['id']")
+
+# ---- 27 Aug (Phil): NO starter fragment pack — a fresh account owns ZERO fragments ----
+ST0=$(curl -s $B/api/glyphs/state -H "$H")
+NF=$(echo "$ST0"|python3 -c "import sys,json;print(sum(json.load(sys.stdin).get('fragments',{}).values()))")
+[ "$NF" == "0" ] && { PASS=$((PASS+1)); echo "  ✓ fresh account starts with ZERO fragments (no starter pack)"; } || { FAIL=$((FAIL+1)); echo "  ✗ fresh account has $NF fragments"; }
+
+# fixture: dev grants gl1 a working pool of named fragments (the legitimate faucet)
+TDF=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'|jv "['token']")
+for FAM in Stoneheart Ironwall Veilward Ravager Starfire Windstep Hawkeye Lifebloom; do
+  RVF=$(curl -s $B/api/glyphs/state -H "x-token: $TDF"|jv "['revision']")
+  curl -s -X POST $B/api/glyphs/grant -H "x-token: $TDF" -H 'content-type: application/json' -d '{"userId":"'"$GID"'","quality":"Grey","family":"'"$FAM"'","n":30,"expectedRevision":'"$RVF"'}' >/dev/null
+done
 
 # ---- canonical ladder + slim state ----
 ST=$(curl -s $B/api/glyphs/state -H "$H")
