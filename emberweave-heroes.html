@@ -3885,9 +3885,28 @@ const BOSS_CUES={'ice beast':'Freezes the frontline — spread your ultimates',
   'ogre beast':'Heavy cleaves — keep your Tank in front',
   'water monster':'Drenches the field — sustained damage wins',
   'water serpent':'Strikes the weakest hero first'};
+/* v267: every chapter boss names its OWN mechanic. Six monster models carry the ten chapter bosses,
+   so the cue is authored per chapter — not reused three times across the campaign. */
+const CHAPTER_BOSS_CUE=['Slow, heavy swings — punish the wind-up',
+  'Splits your line apart — keep the tank between them and your caster',
+  'Freezes whoever stands closest — spread your ultimates',
+  'Hits harder the longer the fight runs — end it fast',
+  'Drenches the field — sustained damage and healing win it',
+  'Cleaves everything in front — only the tank should be there',
+  'Strikes the weakest hero first — top your backline up before it lands',
+  'Grows stronger as it loses health — save a burst for the finish',
+  'Hurls fire at the back row — move your caster the moment it winds up',
+  'Every mechanic at once — bring control, sustain and burst'];
+function bossCueFor(u){
+  try{
+    if(CUR.mode==='vault' && VAULT && VAULT.st && VAULT.st.bossRule && VAULT.st.bossRule.warn) return VAULT.st.bossRule.warn;
+    if(CUR.mode==='campaign' && isBossStage(CUR.node)) return CHAPTER_BOSS_CUE[chapterOf(CUR.node)-1]||null;
+  }catch(e){}
+  return (u&&BOSS_CUES[u.key])||null;
+}
 function bossIntro(){ const b=units.find(u=>u.team==='enemy'&&u.alive&&u.boss)||units.find(u=>u.team==='enemy'&&u.alive);
   const nm=(b&&b.t&&b.t.name)?b.t.name:'The Guardian';
-  const cue=(b&&BOSS_CUES[b.key])||'A stage guardian — bring your ultimates ready';
+  const cue=bossCueFor(b)||'A stage guardian — bring your ultimates ready';
   const el=document.getElementById('banner'); if(!el){ bannerMsg('⚠ BOSS'); return; }
   el.innerHTML='<div style="font-size:12px;letter-spacing:2px;color:#ffb37a">⚠ BOSS INCOMING</div>'
     +'<div style="font-size:26px;font-weight:900;color:#ffd45e;line-height:1.15;margin:2px 0">👑 '+escapeHTML(nm)+'</div>'
@@ -3990,6 +4009,10 @@ function updateWaveXfer(dt){
   }
 }
 function grantRewards(){
+  // v267 (80/20 §9): NO local reward fallback while signed in. Every server-owned loop grants through
+  // its own verified route and returns a ledger; this local path exists only for offline play.
+  if(ACC.token){ ledgerSync&&ledgerSync();
+    return 'Rewards are banked to your account by the server.'; }
   const node=CUR.node, firstClear=(CUR.mode==='campaign'&&node>G.campaignCleared);
   let msg='';
   if(CUR.mode==='campaign'){
@@ -3998,7 +4021,8 @@ function grantRewards(){
     regenStamina(); G.stamina=Math.max(0,G.stamina-stageStamCost(node));      // spend 6 (boss: 12) for clearing the stage
     const hxp=(firstClear?STAGE_XP_FIRST:(isBossStage(node)?12:STAGE_XP_SWEEP)); grantTeamXP(hxp);   // boss sweep gives 12 XP
     // (Correction Spec v1: browser-rolled shard drops removed — glyph materials are SERVER receipts)
-    if(firstClear) G.campaignCleared=node; else stageCountRun(node,1);
+    // v266: the offline path only ever advances NORMAL progress — Elite and Veteran are server-gated
+    if(firstClear){ if((CUR.portal||'normal')==='normal') G.campaignCleared=node; } else stageCountRun(node,1);
     // hero unlocks
     let unlockMsg='';
     /* heroes now unlock ONLY by collecting fragments (elite stages / market / arena shop / quests) */
@@ -4028,7 +4052,7 @@ function endBattle(won){ ended=true;
   { const al=units.filter(u=>u.team==='ally'); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
     const total=al.length||1, alive=al.filter(u=>u.alive).length;
     resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0;
-    if(won && CUR.mode==='campaign'){ if(!G.stageStars)G.stageStars={}; if(resultStars>(G.stageStars[CUR.node]||0)) G.stageStars[CUR.node]=resultStars; } }
+    if(won && CUR.mode==='campaign' && (CUR.portal||'normal')==='normal'){ if(!G.stageStars)G.stageStars={}; if(resultStars>(G.stageStars[CUR.node]||0)) G.stageStars[CUR.node]=resultStars; } }
   if(CUR.mode==='replay'){ const rw=CUR.replayWon;   // re-enactment of a recorded fight — no rewards, back to mail
     setTimeout(()=>{ document.getElementById('resultTitle').textContent=rw?'BATTLE WON':'BATTLE LOST'; document.getElementById('resultTitle').className='result-big '+(rw?'win':'lose');
       document.getElementById('resultReward').innerHTML='Re-enactment of your battle vs <b>'+escapeHTML(CUR.oppName||'the enemy')+'</b>.';
@@ -4060,8 +4084,11 @@ function endBattle(won){ ended=true;
       if(!d && won && CUR.oppRank && CUR.oppRank<oldRank){ newRank=CUR.oppRank; }   // offline fallback
       let swapped=false, gemsWon=0;
       if(won && newRank<oldRank){ swapped=true; G.arenaRank=newRank;
-        if(G.arenaRank < (G.bestArenaRank||5000)){ let dia=0; for(let r=G.arenaRank; r<G.bestArenaRank; r++) dia+=arenaRankGems(r);
-          G.bestArenaRank=G.arenaRank; G.gemFrac=(G.gemFrac||0)+dia; gemsWon=Math.floor(G.gemFrac); G.gemFrac-=gemsWon; if(gemsWon>0) txEarn('gems',gemsWon,'daily'); }
+        // v267 (80/20 §9): rank-milestone diamonds are PAID BY THE SERVER (/api/arena/result) — the
+        // client only mirrors what came back. Signed out, the local milestone still runs.
+        if(d){ gemsWon=d.milestoneGems|0; if(d.bestRank!=null) G.bestArenaRank=d.bestRank; if(d.ledger) adoptLedger(d.ledger); }
+        else if(G.arenaRank < (G.bestArenaRank||5000)){ let dia=0; for(let r=G.arenaRank; r<G.bestArenaRank; r++) dia+=arenaRankGems(r);
+          G.bestArenaRank=G.arenaRank; G.gemFrac=(G.gemFrac||0)+dia; gemsWon=Math.floor(G.gemFrac); G.gemFrac-=gemsWon; G.gems=(G.gems||0)+gemsWon; }
       } else { G.arenaRank=newRank; }
       ARENA.oppsRank=null;   // refresh opponent list next time the arena is opened
       saveG(); updateHubChrome();
@@ -4140,7 +4167,12 @@ function endBattle(won){ ended=true;
       const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8()});
       const sWon=!!(r&&r.ok&&r.won);   // AUTHORITATIVE server result
       if(r&&r.ledger) adoptLedger(r.ledger);
-      if(sWon&&r.stars){ if(!G.stageStars)G.stageStars={}; if(r.stars>(G.stageStars[CUR.node]|0)) G.stageStars[CUR.node]=r.stars; }
+      // v266: stars belong to the PORTAL the stage was played in
+      if(sWon&&r.stars){ const _pm=r.mode||CUR.portal||'normal';
+        if(_pm==='normal'){ if(!G.stageStars)G.stageStars={}; if(r.stars>(G.stageStars[CUR.node]|0)) G.stageStars[CUR.node]=r.stars; }
+        else { G.portals=G.portals||{}; const c=G.portals[_pm]||(G.portals[_pm]={cleared:0,stars:{}});
+          c.stars=c.stars||{}; if(r.stars>(c.stars[CUR.node]|0)) c.stars[CUR.node]=r.stars;
+          if(CUR.node>(c.cleared|0)) c.cleared=CUR.node; } }
       document.getElementById('resultTitle').textContent=sWon?'VICTORY':'DEFEAT';
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       // v253 (visual audit #1): the GUARANTEED stage reward is the headline — exact item, icon and
@@ -4803,6 +4835,44 @@ function renderHome(){
 let _homeScroll=null, _restoreHomeScroll=true;   // town scroll memory (first load centers)
 /* ---- player profile (name / avatar / xp) ---- */
 function openProfile(){ if(!queueBehindReward(openProfile)) return; renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
+/* v267 (80/20 §9): every currency's SOURCES, SINKS and CAPS, and the daily reset in BOTH server
+   time and the player's own local time — read live from /api/manifest, never hard-coded here. */
+const CURRENCY_META={ gold:['🪙','Gold'], gems:['💎','Diamonds'], stamina:['⧗','Stamina'],
+  dust:['✨','Forge Dust'], glyphFragments:['◆','Glyph Fragments'], gearFragments:['⚒','Gear Fragments'],
+  cityResources:['🌾','City Resources'], guildCoins:['🛡','Guild Coins'], heroFragments:['🧩','Hero Fragments'] };
+async function openEconomy(){
+  const sh=modalShell();
+  sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">💰 Economy</div><div style="color:#8b98a9;font-size:12px">Loading the live currency manifest…</div>';
+  let m=null; try{ m=await api('/api/manifest'); }catch(e){}
+  if(!m||!m.currencies){ sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">💰 Economy</div><div style="color:#ff9a9a;font-size:12px">Could not reach the server manifest. Sign in and try again.</div>'; return; }
+  // the reset in the player's OWN clock, alongside the server's
+  let localLine='';
+  try{ const d=new Date(m.nextResetUTC);
+    const when=d.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'});
+    const mins=Math.max(0,Math.round((d-Date.now())/60000)), hh=Math.floor(mins/60), mm=mins%60;
+    localLine=`<div style="font-size:11px;color:#c3ccd8;margin-top:2px">Your time: <b>${escapeHTML(when)}</b> <span style="color:#8b98a9">(in ${hh}h ${mm}m)</span></div>`;
+  }catch(e){}
+  const caps=Object.entries(m.dailyCaps||{}).map(([k,v])=>
+    `<span class="pill" style="border:1px solid #2b3d5c;color:#8fe3ff;font-size:10px">${escapeHTML(k.replace(/([A-Z])/g,' $1').toLowerCase())}: <b>${v}</b></span>`).join(' ');
+  const rows=(m.currencies||[]).map(c=>{ const meta=CURRENCY_META[c.id]||['•',c.id];
+    const capTxt=Object.entries(c.caps||{}).map(([k,v])=>k.replace(/([A-Z])/g,' $1').toLowerCase()+' '+v).join(' · ');
+    return `<div style="border-top:1px solid #1c2434;padding:8px 0">
+      <div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">${meta[0]}</span><b style="font-size:12px">${escapeHTML(meta[1])}</b>
+        ${capTxt?`<span style="font-size:10px;color:#ffb37a;margin-left:auto">cap · ${escapeHTML(capTxt)}</span>`:''}</div>
+      <div style="font-size:10.5px;color:#5ee89b;margin-top:3px">Earn: <span style="color:#c3ccd8">${(c.sources||[]).map(escapeHTML).join(' · ')}</span></div>
+      <div style="font-size:10.5px;color:#ff9a8b;margin-top:1px">Spend: <span style="color:#c3ccd8">${(c.sinks||[]).map(escapeHTML).join(' · ')}</span></div>
+    </div>`; }).join('');
+  sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:2px">💰 Economy</div>
+    <div style="font-size:11px;color:#8b98a9">Where every currency comes from, what it is for, and what is capped. Served live by the server.</div>
+    <div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-top:8px">
+      <div style="font-size:10px;letter-spacing:1px;color:#8b98a9">DAILY RESET</div>
+      <div style="font-size:12px;font-weight:700;color:#ffd45e">${escapeHTML(m.dailyResetET||'09:00 America/New_York')} <span style="font-size:10px;color:#8b98a9;font-weight:400">server time</span></div>
+      ${localLine}
+      ${caps?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px">${caps}</div>`:''}
+    </div>
+    <div style="margin-top:6px">${rows}</div>
+    <div style="font-size:9.5px;color:#5a6472;margin-top:8px;text-align:center">Every figure above is the server's own — build ${escapeHTML(String(m.build||'—'))}.</div>`;
+}
 function closeProfile(){ document.getElementById('profileModal').classList.remove('active'); }
 function renderProfileModal(){
   const body=document.getElementById('profileModalBody');
@@ -4829,6 +4899,7 @@ function renderProfileModal(){
     </div>
     <div style="font-size:10px;color:#8b98a9;margin-top:4px">${rfree?'You have <b style="color:#ffd45e">1 free rename</b> available. After that: 2nd 💎50 · 3rd 💎100 · 4th+ 💎200.':`Next rename costs <b style="color:#c9b6ff">💎${rcost}</b>.${rafford?'':' <span style="color:#ff8b8b">Not enough diamonds.</span>'}`}</div>
     <div id="pfMsg" style="font-size:11px;color:#ffd45e;min-height:14px;margin-top:4px"></div>
+    <button class="btn xs secondary" style="width:100%;margin-top:10px;font-size:11px" onclick="openEconomy()">💰 Economy — sources, sinks &amp; daily resets</button>
     <div style="font-weight:700;font-size:13px;margin-top:10px">Portrait <span style="font-size:10px;color:#8b98a9">(choose an owned hero)</span></div>
     <div class="avpick" id="pfAvs">${HERO_KEYS.slice().sort((a,b)=>((G.unlocked[b]?1:0)-(G.unlocked[a]?1:0))||(heroPower(b)-heroPower(a))).map(k=>{ const own=G.unlocked[k]; return `<div class="av${k===curPortrait?' sel':''}${own?'':' locked'}" data-k="${k}" title="${HERO_TYPES[k].name}"><img class="avimg" data-k="${k}" style="width:100%;height:100%;object-fit:cover" src="${HERO_PORTRAITS[k]||''}"></div>`; }).join('')}</div>`;
   setHead(body.querySelector('#pfHead'), curPortrait);
@@ -5195,7 +5266,10 @@ async function txSpend(what,amount,reason){ if(!ACC.token){ bannerMsg('Connect t
   const r=await api('/api/tx/spend','POST',{what,amount:Math.floor(amount),reason,requestId:uid8()});
   if(r&&r.ok){ adoptLedger(r.ledger); return true; }
   bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); return false; }
+/* v267 (80/20 §9): the generic earn endpoint now accepts ONLY the arena fragment rule server-side.
+   Nothing else in the client may call this; every other loop has its own verified route. */
 function txEarn(what,amount,reason,extra){ if(!ACC.token||!(amount>0)) return;
+  if(!(what==='frag'&&reason==='arena')){ ledgerSync&&ledgerSync(); return; }
   api('/api/tx/earn','POST',Object.assign({what,amount:Math.floor(amount),reason,requestId:uid8()},extra||{}))
     .then(r=>{ if(r&&r.ok) adoptLedger(r.ledger); }).catch(()=>{}); }
 // bridge for legacy reward closures: run fn, diff the wallet mirror, report deltas to the ledger.
@@ -5254,6 +5328,33 @@ async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
   await skyStatus(); renderGuild();
 }
 async function skyClaim(){ const r=await api('/api/guild-war/claim-reward','POST',{}); bannerMsg(r&&r.ok?('🎁 +'+r.amount+' coins ('+r.tier+')'):(r&&r.error)||'Claim failed.'); await skyStatus(); renderGuild(); }
+/* v267 (80/20 §8): "an understandable post-war summary" — the server keeps a full event log per
+   match; this turns it into a readable account of how the war was actually won. */
+function skyWarSummaryHTML(m){
+  const log=(m.eventLog||[]); if(!log.length) return '';
+  const mine=((m.you)||{}).guildId, iWon=m.winnerGuildId===mine;
+  const lanes=m.lanes||[];
+  const fell=log.filter(e=>e.e==='CITADEL_FELL'||e.e==='CITADEL_CAPTURED');
+  const assaults=log.filter(e=>e.e==='ASSAULT');
+  const wonA=assaults.filter(e=>e.won).length;
+  const nameOf=id=>{ try{ const all=[].concat((m.you&&m.you.citadels)||[],(m.foe&&m.foe.citadels)||[]);
+    for(const c of all){ for(const d of (c.defenders||[])){ if(d.memberId===id) return d.name||'a defender'; } } }catch(e){}
+    return 'a commander'; };
+  const line=e=>{ const lane=lanes[e.lane]||('Lane '+((e.lane|0)+1));
+    if(e.e==='CITADEL_FELL') return `🏰 <b>${escapeHTML(String(lane))}</b> fell to ${escapeHTML(nameOf(e.by))}`;
+    if(e.e==='CITADEL_CAPTURED') return `🏰 <b>${escapeHTML(String(lane))}</b> was captured undefended`;
+    return ''; };
+  const rows=fell.slice(-6).map(line).filter(Boolean).map(t=>`<div style="font-size:10.5px;color:#c3ccd8;line-height:1.6">${t}</div>`).join('');
+  const clock=(()=>{ if(!fell.length) return ''; const first=fell[0].t, last=fell[fell.length-1].t;
+    const mins=Math.max(1,Math.round((last-first)/60000)); return `<span style="color:#8b98a9"> · decided over ${mins} min</span>`; })();
+  return `<div style="border-top:1px solid #1c2434;margin-top:8px;padding-top:8px;text-align:left">
+    <div style="font-size:9px;letter-spacing:1px;color:#8b98a9;margin-bottom:3px">HOW THE WAR WAS ${iWon?'WON':'LOST'}</div>
+    <div style="font-size:10.5px;color:#c3ccd8;margin-bottom:4px">
+      <b style="color:#ffd45e">${fell.length}</b> citadel${fell.length===1?'':'s'} destroyed ·
+      <b style="color:#8fe3ff">${wonA}</b>/${assaults.length} assaults won${clock}</div>
+    ${rows||'<div style="font-size:10.5px;color:#6f7d90">No citadel fell — the war was decided on the tie-break.</div>'}
+  </div>`;
+}
 function skyMatchHTML(m, canOfficer){
   const lanes=m.lanes||[];
   const laneRow=(i)=>{
@@ -5289,7 +5390,7 @@ function skyMatchHTML(m, canOfficer){
     ${(SKY.lane!=null&&m.foe&&!m.preReveal)?skyBridgeHTML(m,SKY.lane):''}
     <div style="display:flex;justify-content:space-between;font-size:9px;color:#8b98a9;margin:4px 0 2px"><span style="color:#5ee89b">YOUR CITADELS</span><span style="color:#ff8b8b">ENEMY CITADELS</span></div>
     ${lanes.map((l,i)=>laneRow(i)).join('')}
-    ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?'🏆 VICTORY':'💀 DEFEAT'}</div>`:''}
+    ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?'🏆 VICTORY':'💀 DEFEAT'}</div>${skyWarSummaryHTML(m)}`:''}
   </div>`;
 }
 function skyPanelHTML(){
@@ -5784,7 +5885,9 @@ function stageDetailHTML(stg,node){
       <span style="font-size:11px;color:#8b98a9">Chapter boss — required level</span>
       <span style="font-size:11px;font-weight:800;color:${myLv>=gate?'#5ee89b':'#ff9a9a'}">Lv ${gate}${myLv>=gate?' ✓':' — you are '+myLv}</span></div>`:'';
   const bossKey=(function(){ for(const w of waves){ const m=w.find(x=>x.boss); if(m) return m.key; } return null; })();
-  const cue=bossKey&&(typeof BOSS_CUES!=='undefined')?BOSS_CUES[bossKey]:null;
+  const cue=(stg.checkpoint==='boss'&&(typeof CHAPTER_BOSS_CUE!=='undefined'))
+    ? (CHAPTER_BOSS_CUE[Math.ceil(node/10)-1]||null)
+    : (bossKey&&(typeof BOSS_CUES!=='undefined')?BOSS_CUES[bossKey]:null);
   const cueLine=(stg.checkpoint==='boss'||stg.checkpoint==='guardian')
     ?`<div style="font-size:10.5px;color:#ffb37a;margin-top:4px">${stg.checkpoint==='boss'?'👑':'⭐'} ${escapeHTML(cue||'A stage guardian — bring your ultimates ready')}</div>`:'';
   const _gf=((stg.rewards&&stg.rewards.glyphFragments)||[]);
@@ -8746,13 +8849,26 @@ const TUTORIAL_STEPS=[
   {id:'signin',icon:'📅', title:'Grab a daily reward', desc:'Open Daily Sign-In and claim today’s reward.', go:()=>show('signin'), reward:{stam:60}, done:()=>((G.signinClaimed||[]).length>0)},
   {id:'wish',  icon:'🔮', title:'Make a wish', desc:'Visit the Wishing Pool and toss a coin.', go:()=>show('wishing'), reward:{gems:40}, done:()=>((G.wishClicks||0)>0)},
 ];
-function grantTutReward(r){ let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push('🪙 '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push('💎 '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
+/* v267 (80/20 §9): Getting Started rewards are granted BY THE SERVER, once per step, from its own
+   authored table (`/api/tutorial/claim`). Signed out, the local grant remains as the offline path. */
+function grantTutReward(r, stepId){
+  if(ACC.token && stepId){
+    api('/api/tutorial/claim','POST',{step:stepId}).then(res=>{
+      if(res&&res.ok){ if(res.ledger) adoptLedger(res.ledger);
+        const g=res.reward||{}; if(g.frag&&g.frag.qty) giveHeroFrag(g.frag.heroKey,g.frag.qty);
+        saveG(); updateHubChrome(); }
+      else ledgerSync&&ledgerSync();
+    }).catch(()=>{});
+    const p=[]; if(r.gold)p.push('🪙 '+r.gold); if(r.gems)p.push('💎 '+r.gems); if(r.stam)p.push('⧗ '+r.stam); if(r.frag)p.push('⭐ '+r.frag+' hero frags');
+    return p.join(' · ');
+  }
+  let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push('🪙 '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push('💎 '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
   if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } return s.join(' · '); }
 function tutComplete(){ return TUTORIAL_STEPS.every(s=>s.done()); }
 function tutReady(){ if(G.tutDone) return false; return TUTORIAL_STEPS.some(s=>s.done() && !(G.tutRewarded&&G.tutRewarded[s.id])); }
 // grant rewards for any steps newly completed; called after actions via updateHubChrome
 function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded={}; let changed=false;
-  TUTORIAL_STEPS.forEach(s=>{ if(s.done() && !G.tutRewarded[s.id]){ const str=grantTutReward(s.reward); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); } });
+  TUTORIAL_STEPS.forEach(s=>{ if(s.done() && !G.tutRewarded[s.id]){ const str=grantTutReward(s.reward, s.id); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); } });
   if(!G.tutDone && tutComplete()){ G.tutDone=true; changed=true; G.gems=(G.gems||0)+100; if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds'); }
   if(changed){ saveG(); if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); } }
 function renderTutorial(){ checkTutorial(); const b=document.getElementById('tutorialBody'); if(!b)return;
@@ -10097,7 +10213,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787857305898';
+const BUILD_ID='1787859281289';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -661,8 +661,10 @@ function glyphFlatStats(u,key){
 // server-owned hero snapshot: level from saved XP (capped by player level), stars/pips from save, glyphs from server
 function snapshotHeroFromServer(u, key, save){
   const base=SIM.HERO_BASE[key]; if(!base) return null;
-  // AUDIT C1: once an account's ledger exists, progression comes from the SERVER-owned ledger,
-  // never from the uploaded save blob. (Un-migrated accounts fall back to the save until first touch.)
+  // AUDIT C1: progression comes from the SERVER-owned ledger, never from the uploaded save blob.
+  // v267 (release gate 1): migrate FIRST, so the legacy save-blob branch below can never be the
+  // source of a live snapshot — it survives only as an unreachable safety net.
+  try{ if(u && !(u.led && u.led.migratedAt)) ensureLedger(u); }catch(e){}
   let lvl,stars,pips;
   let refLvl=0;
   if(u&&u.led&&u.led.migratedAt){ const led=u.led, h=led.hero[key]||{xp:0,stars:base.stars,pips:0};
@@ -1123,12 +1125,16 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
 /* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
    server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
    allowance (and the arena-coin fragment shop, pending its own route) remains for legacy edges. */
+/* v267 (80/20 §9): the generic client-selected earning endpoint is RETIRED. The only reason left is
+   the arena fragment shop, which has its own capped rule; every other loop grants through its own
+   verified route. `misc` is gone — a client can no longer name its own reason and be paid for it. */
 const EARN_RULES={
-  gold:{ misc:{max:500,day:2000} },
-  gems:{ misc:{max:20,day:60} },
-  px:{ misc:{max:100,day:500} },
-  heroXp:{ misc:{max:80,day:400} },
-  frag:{ arena:{max:10,day:60}, misc:{max:3,day:20} } };
+  frag:{ arena:{max:10,day:60} } };
+/* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
+   used to add them to its own wallet. */
+const TUTORIAL_REWARDS=Object.freeze({
+  win11:{gold:500}, rune:{gems:30}, win12:{frag:3}, skill:{gold:800},
+  name:{gems:20}, signin:{stam:60}, wish:{gems:40} });
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -1392,11 +1398,11 @@ async function api(req,res,url){
         {id:'gems', sources:['Quests','Arena daily','Rank milestones','Guild raid'], sinks:['Wishing Pool (diamond pool)','Shop','Market fragments'], caps:{}},
         {id:'stamina', sources:['Regeneration (6 min/point)','Level-ups'], sinks:['Campaign battles & sweeps'], caps:{max:'59 + player level'}},
         {id:'dust', sources:['Vault floors','Fragment salvage'], sinks:['Gear Temper'], caps:{}},
-        {id:'glyphFragments', sources:['Authored campaign stages (ch1 Grey → ch10 Gold)','Vault boss floors','Arena wins','Daily','Wishing Pool'], sinks:['Glyph builds (permanent, per slot)'], caps:{}},
+        {id:'glyphFragments', sources:['Normal Portal — 100 families, one fixed stage each','Elite Portal — the other 100 families','Veteran Portal — all 18 Orange families','Vault boss floors','Arena wins','Daily','Wishing Pool'], sinks:['Glyph builds (permanent, per slot)'], caps:{}},
         {id:'gearFragments', sources:['Authored Vault floors (2 targeted per floor)'], sinks:['Gear crafting'], caps:{}},
         {id:'cityResources', sources:['World-map mining (capped)'], sinks:['Academy research'], caps:{perResourcePerDay:60}},
         {id:'guildCoins', sources:['Guild raid'], sinks:['Guild shop'], caps:{}},
-        {id:'heroFragments', sources:['Elite stages (3/day)','Market (12/day)','Quests','Wishing Pool'], sinks:['Hero summon','Star-up','Refine'], caps:{elitePerStagePerDay:3, marketPerDay:12}}
+        {id:'heroFragments', sources:['Guardian stages, every 5th (3/day)','Market (12/day)','Quests','Wishing Pool'], sinks:['Hero summon','Star-up','Refine'], caps:{guardianPerStagePerDay:3, marketPerDay:12}}
       ],
       dailyCaps:{ cityAttacks:20, vaultSweeps:2, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
     }); }
@@ -2212,6 +2218,21 @@ async function api(req,res,url){
       return {ok:false,error:'Unknown item.'};
     });
     return send(res, out.ok===false?400:200, out); }
+  /* v267: Getting Started rewards are server-granted, once each, from the authored table above. */
+  if(p==='/api/tutorial/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const step=String(b.step||'').slice(0,16);
+    const rw=TUTORIAL_REWARDS[step]; if(!rw) return send(res,400,{error:'Unknown step.'});
+    const led=ensureLedger(me); led.tut=led.tut||{};
+    if(led.tut[step]) return send(res,200,{ok:true, already:true, ledger:ledgerView(me)});
+    led.tut[step]=Date.now();
+    const out={gold:0,gems:0,stam:0,frag:null};
+    if(rw.gold){ led.gold=Math.min(100000000,led.gold+rw.gold); out.gold=rw.gold; }
+    if(rw.gems){ led.gems=Math.min(9999999,led.gems+rw.gems); out.gems=rw.gems; }
+    if(rw.stam){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+rw.stam); out.stam=rw.stam; }
+    if(rw.frag){ // a fixed, named starter hero — never a random pick made by the browser
+      const hk='vex'; led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+rw.frag); out.frag={heroKey:hk, qty:rw.frag}; }
+    ledTx(me,'tutorial:'+step,{gold:out.gold,gems:out.gems,stamina:out.stam});
+    writeDB(); return send(res,200,{ok:true, step, reward:out, ledger:ledgerView(me)}); }
   if(p==='/api/campaign/sweep' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':csweep:'+reqId,()=>{
@@ -2714,8 +2735,15 @@ async function api(req,res,url){
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
     me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
+    /* v267 (80/20 §9): rank-milestone diamonds are paid HERE, from the server's own rank record —
+       the client used to award them itself through the generic earn endpoint. */
+    let milestoneGems=0;
+    { const led=ensureLedger(me); const best=(me.bestRank!=null)?me.bestRank:5000;
+      if(me.rank<best){ let d=0; for(let rr=me.rank; rr<best; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1)));
+        me.bestRank=me.rank; me._gemFrac=(me._gemFrac||0)+d; milestoneGems=Math.floor(me._gemFrac); me._gemFrac-=milestoneGems;
+        if(milestoneGems>0){ led.gems=Math.min(9999999,led.gems+milestoneGems); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
-    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, authoritative:true };
+    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me) };
     DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
     return send(res,200,aresp); }
 
