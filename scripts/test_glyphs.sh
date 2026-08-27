@@ -155,6 +155,26 @@ ck "ANCESTRY: a locked slot's tree is read-only (no build/allocate)" '"locked":t
 LKC=$(echo "$BTLK"|python3 -c "import sys,json;d=json.load(sys.stdin);print(d['canBuild']==False and d['canQuickAllocate']==False)")
 ck "ANCESTRY: locked view exposes no actions" 'True' "$LKC"
 
+# ---- v242 (Phil): Quick Allocate All = build EVERY remaining slot at once, ALL-OR-NOTHING ----
+BT1=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=1" -H "$H")
+ck "BUILD-ALL: build-tree exposes canBuildAll=true when every remaining slot is affordable" '"canBuildAll":true' "$BT1"
+RV=$(curl -s $B/api/glyphs/state -H "$H"|jv "['revision']")
+BA=$(curl -s -X POST $B/api/glyphs/build-all -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","expectedRevision":'"$RV"',"requestId":"ba1"}')
+NBA=$(echo "$BA"|python3 -c "import sys,json;print(len(json.load(sys.stdin).get('built',[])))" 2>/dev/null)
+ck "BUILD-ALL: one atomic call built the 5 remaining slots" '5' "$NBA"
+BA2=$(curl -s -X POST $B/api/glyphs/build-all -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","expectedRevision":0,"requestId":"ba1"}')
+ck "BUILD-ALL: idempotent retry returns the same receipt (beats STALE)" '"built"' "$BA2"
+RV=$(curl -s $B/api/glyphs/state -H "$H"|jv "['revision']")
+BA3=$(curl -s -X POST $B/api/glyphs/build-all -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","expectedRevision":'"$RV"',"requestId":"ba3"}')
+ck "BUILD-ALL: a full board is refused" 'already built' "$BA3"
+UQ=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"qba","pass":"password1"}')
+TQ=$(echo "$UQ"|jv "['token']")
+RVQ=$(curl -s $B/api/glyphs/state -H "x-token: $TQ"|jv "['revision']")
+BAQ=$(curl -s -X POST $B/api/glyphs/build-all -H "x-token: $TQ" -H 'content-type: application/json' -d '{"heroKey":"vael","expectedRevision":'"$RVQ"',"requestId":"baq"}')
+ck "BUILD-ALL: refused outright when the account cannot afford ALL slots (nothing consumed)" 'Not enough materials' "$BAQ"
+BTQ=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "x-token: $TQ")
+ck "BUILD-ALL: canBuildAll=false for the broke account (button stays dim)" '"canBuildAll":false' "$BTQ"
+
 # ---- deterministic named campaign drops ----
 CS=$(curl -s "$B/api/campaign/stage?node=1" -H "$H")
 ck "stage 1 names its exact fragment target" 'grey-stoneheart' "$CS"
