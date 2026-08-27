@@ -81,13 +81,20 @@ function heroCombatStats(key, opts){
   return {
     key, level, role:b.role, healer:b.healer,
     maxHp: Math.round(b.hp*mul)+((g.hp|0)||0),
-    atk:   Math.round(Math.max(b.dmg,b.apow)*mul)+((g.atk|0)||0),
-    heal:  b.healer? Math.round(Math.max(10,b.apow)*mul*0.9)+((g.heal|0)||0) : 0,
+    // v241 (audit): Ability Power is its OWN scaling line — a caster's AP glyphs raise the ability
+    // line, a physical hero's line is untouched by AP. The line model takes the better of the two.
+    atk:   Math.max( Math.round(b.dmg*mul)+((g.atk|0)||0), (b.apow||0)>0 ? Math.round(b.apow*mul)+((g.apow|0)||0) : 0 ),
+    heal:  b.healer? Math.round(Math.max(10,b.apow)*mul*0.9)+Math.round(((g.apow|0)||0)*0.9)+((g.heal|0)||0) : 0,
     speed: b.atkSpeed||1,
     // dr = rate-derived DR (client caps that part at 0.6) + the client's diminishing base-armor curve
     // defToDR(flat)=flat/(flat+1200) at the client's makeUnit level scale (1+0.05·(lvl−1))·starMult.
     // Client-save technology defense is intentionally excluded (client-owned until CR-2).
     dr: Math.min(0.6,+(opts.dr||0)||0) + defToDR(((b.armor||0)+(b.mr||0))*(1+0.05*(level-1))*starMultFor(stars,pips)),
+    // v241 (audit): penetration counters the DEFENSE RATING behind the diminishing curve — it never
+    // adds raw damage and does nothing against an unarmored target. defRating is kept separately so
+    // the resolver can re-run the curve with (def − pen) at hit time; the composed dr stays for display.
+    defRating: ((b.armor||0)+(b.mr||0))*(1+0.05*(level-1))*starMultFor(stars,pips),
+    pen: Math.max(0, opts.pen|0),
     crit:+(opts.crit||0)||0, critRes:+(opts.critRes||0)||0,
     energyReg:+(opts.energyReg||0)||0,   // energy POINTS per second (client: u.energy += energyReg·dt)
     regen:+(opts.regen||0)||0,           // fraction of maxHp per second (client: hp += maxHp·regen·dt)
@@ -106,7 +113,7 @@ function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   //
 function makeLine(snaps, carry){
   const units=snaps.filter(Boolean).slice(0,5).map((s,i)=>({
     key:s.key, role:s.role, healer:s.healer, maxHp:s.maxHp, atk:s.atk, heal:s.heal, speed:s.speed,
-    dr:s.dr||0, crit:s.crit||0, critRes:s.critRes||0, energyReg:s.energyReg||0, regen:s.regen||0,
+    dr:s.dr||0, defRating:s.defRating||0, pen:s.pen||0, crit:s.crit||0, critRes:s.critRes||0, energyReg:s.energyReg||0, regen:s.regen||0,
     startEnergy:s.startEnergy||0, ctrlRes:s.ctrlRes||0, healPow:s.healPow||0,
     gearSkillSlot:s.gearSkillSlot||null, gearSkill:s.gearSkill||null, _gearSkillUsed:false, shieldPool:0,
     hp: carry&&carry[i]? Math.max(0,Math.min(s.maxHp,carry[i].hp|0)) : s.maxHp,
@@ -147,6 +154,9 @@ function resolveLineBattle(a, b, seed){
       let dmg=Math.round(u.atk*((u._buffR>0)?(u._buffMul||1):1)*(side==='A'?fA:fB)*(ult?2.2:1)*critMul*(0.85+0.3*rnd()));
       if(t._drR>0) dmg=Math.round(dmg*0.65);   // Armor gear skill: brace, −35% for its 5 rounds
       if(t.dr) dmg=Math.round(dmg*(1-Math.min(0.95,t.dr)));   // dr composed the client's way (rate part capped 0.6 + diminishing base curve); 0.95 is only a never-immortal guard
+      // v241 (audit): penetration re-runs the diminishing curve with (defRating − pen) — a pure
+      // ratio against the already-applied base-def mitigation. No pen → ratio 1. No def → no effect.
+      if((u.pen||0)>0&&(t.defRating||0)>0){ const d0=defToDR(t.defRating), d1=defToDR(Math.max(0,t.defRating-u.pen)); if(d0<1) dmg=Math.round(dmg*(1-d1)/(1-d0)); }
       if(t.shieldPool>0){ const ab=Math.min(t.shieldPool,dmg); t.shieldPool-=ab; dmg-=ab; }   // one-use gear-skill shields absorb first
       t.hp-=dmg; if(ult)u.energy=0;
       if(log.length<400) log.push([round,side,u.key,'>',t.key,dmg,ult?1:0]);
