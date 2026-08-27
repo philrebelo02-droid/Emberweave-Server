@@ -2411,7 +2411,7 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
 const BATTLE_PACE=0.82;
 /* --- Phase 1: deterministic battle core --- */
-const SIM_HZ=30;   // fixed tick used ONLY by the instant-resolve skip loop + seeded determinism scaffolding. The LIVE battle loop runs a VARIABLE timestep (once per render frame) for smooth, lag/jitter-free motion — fixed-timestep+interpolation was tried and reverted (it stepped anim timers → jitter, or lagged at 60 Hz). Phase 2 replay will need to re-solve this properly with a way to verify feel on-device.
+const SIM_HZ=30;   // v268: THE fixed tick for EVERY mode — live play, replay, skip and the headless resolver all advance in exact SIM_STEP steps off a real-time accumulator, so the same seed and inputs give the same fight on any device. Smoothness comes from RENDER INTERPOLATION between ticks (u.px/py → u.rx/ry), not from a variable timestep; the animation timers still run on render time in syncMesh, which is what the earlier attempt got wrong.
 const SIM_STEP=BATTLE_PACE/SIM_HZ;
 let _brng=null, _bacc=0, _alpha=1;
 function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
@@ -2689,6 +2689,10 @@ function simFightResult(allySnaps, foeTeam, seed){
   for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
   const allyAlive=units.filter(u=>u.team==='ally'&&u.alive).length, foeAlive=units.filter(u=>u.team==='enemy'&&u.alive).length;
   const won = (window._p2win===true) || (allyAlive>0 && foeAlive===0);   // win if the sim said so, or allies stand and foes are wiped (timeout = loss)
+  /* v268: the DETERMINISM DIGEST — the full end state of the fight, not just who won. Two runs of the
+     same seed must produce a byte-identical digest; this is what proves the sim is replayable. */
+  try{ window._p2digest=JSON.stringify({ t:+battleTime.toFixed(4), won,
+    u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) }); }catch(e){ window._p2digest=null; }
   window._p2guard=false;
   ({units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx}=sv);
   return won;
@@ -3649,7 +3653,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
     const tex=fx2NewTex(key); fx2SetFrame(tex,d,0); const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=993; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
-  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.tex,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.x),0.35,wz(u.y)); }); }
+  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.tex,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.geometry.dispose();if(o.m.material.map)o.m.material.map.dispose();o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);if(p.spr.material.map)p.spr.material.map.dispose();p.spr.material.dispose();}); _projFx.length=0;
   _beamFx.forEach(o=>{scene.remove(o.spr);if(o.spr.material.map)o.spr.material.map.dispose();o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
@@ -4200,9 +4204,15 @@ function endBattle(won){ ended=true;
 
 function updateBattle(dt){
   if(waveXfer){ updateWaveXfer(dt); return; }   // wave-transition cinematic: heroes run off top-right, next wave re-enters — normal combat paused
+  // v268 (DETERMINISM): the sim now advances in FIXED steps. Remember where every unit stood at the
+  // start of this tick so the renderer can interpolate between ticks and stay perfectly smooth at any
+  // frame rate — the sim's own numbers never depend on the device's frame rate again.
+  for(let i=0;i<units.length;i++){ const u=units[i]; u.px=u.x; u.py=u.y; }
   battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
-  units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);think(u,dt);if(u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
+  units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
+    if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
+    think(u,dt);if(u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
   // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
@@ -4288,16 +4298,16 @@ function updateBattle(dt){
     if(u.pass.scriptorium){ const pm=(u.passMul||1); units.forEach(o=>{ if(o.alive&&o.team===u.team) o.energy=Math.min(100,o.energy+1*pm*dt); }); }
     // Hush (Lumi): every 5s the quietest hour takes one enemy's voice for a second
     if(u.pass.hush){ u._hushT=(u._hushT||0)+dt; if(u._hushT>=5){ u._hushT-=5; const foes=enemiesOf(u).filter(e=>e.alive);
-      if(foes.length){ const e=foes[Math.floor(battleTime*11)%foes.length]; e.silencedT=Math.max(e.silencedT||0,1*(u.passMul||1));
+      if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.silencedT=Math.max(e.silencedT||0,1*(u.passMul||1));   // v268: seeded, not frame-count-derived
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; if(u._uwT>=5){ u._uwT-=5;
       const hurt=alliesOf(u).filter(a=>a.alive&&((a.dots&&a.dots.length)||a.stunned>0||a.slow>0||a.silencedT>0||a.mortalT>0));
-      if(hurt.length){ const a=hurt[Math.floor(battleTime*13)%hurt.length];
+      if(hurt.length){ const a=hurt[Math.floor(brnd()*hurt.length)%hurt.length];   // v268: seeded, not frame-count-derived
         if(a.dots&&a.dots.length)a.dots.pop(); else if(a.stunned>0)a.stunned=0; else if(a.silencedT>0)a.silencedT=0;
         else if(a.slow>0)a.slow=0; else a.mortalT=0;
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); } } }
-    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(battleTime*7)%foes.length]; e.stunned=Math.max(e.stunned||0,1.2); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag)
+    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,1.2); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
   });
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // WoW-style status effects: DoT / HoT ticks + buff/debuff timers
@@ -4336,7 +4346,7 @@ function updateBattle(dt){
 /* ------------------------------- 3D sync ----------------------------------- */
 function syncMesh(u,dt){const g=u.mesh;if(!g)return;
   if(u.sprite){ // 2D billboard sprite unit
-    g.position.set(wx(u.x),0,wz(u.y)); const spr=u.sprite;
+    g.position.set(wx(u.rx==null?u.x:u.rx),0,wz(u.ry==null?u.y:u.ry)); const spr=u.sprite;   // v268: interpolated between sim ticks
     const foe=(u.target&&u.target.alive)?u.target:null;
     if(u.alive){ u.bob+=dt*4; const bob=Math.abs(Math.sin(u.bob))*.06;
       const pdx=u.x-(u._ax==null?u.x:u._ax), pdy=u.y-(u._ay==null?u.y:u._ay); const moved=Math.abs(pdx)+Math.abs(pdy); u._ax=u.x; u._ay=u.y;
@@ -4457,7 +4467,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       spr.scale.y=Math.max(.01,u.sprH*(1-k*0.45));   // death: wither downward as it fades
       if(u.ring)u.ring.material.opacity=Math.max(0,.85*(1-k)); if(u.shadow)u.shadow.material.opacity=Math.max(0,.5*(1-k)); }
     return; }
-  g.position.x=wx(u.x);g.position.z=wz(u.y);g.rotation.y=(u.team==='ally')?Math.PI:0;
+  g.position.x=wx(u.rx==null?u.x:u.rx);g.position.z=wz(u.ry==null?u.y:u.ry);g.rotation.y=(u.team==='ally')?Math.PI:0;   // v268: interpolated
   if(u.alive){u.bob+=dt*6;const bobY=Math.sin(u.bob)*.05;g.position.y=Math.max(0,bobY);
     if(u.legs){const sw=Math.sin(u.bob)*.5;u.legs[0].rotation.x=sw;u.legs[1].rotation.x=-sw;}
     if(u.attackAnim>0&&u.target){const dx=Math.sign(wx(u.target.x)-g.position.x)||0,dz=Math.sign(wz(u.target.y)-g.position.z)||0,k=u.attackAnim/.18,arc=Math.sin(k*Math.PI);
@@ -4494,7 +4504,7 @@ function headScreen(u){ const s=u&&u._sprRef; if(!s) return null;
   _hv.add(_hup);
   _v.copy(_hv).project(camera);
   return {x:(_v.x*.5+.5)*CW, y:(-_v.y*.5+.5)*CH, vis:_v.z<1}; }
-function glowUnit(u,intensity,rgb){ if(!u||!u.alive)return; const p=project(u.x,u.y,1.0); if(!p.vis)return; const rad=(u.boss?48:30), c=rgb||'255,245,200'; const g=octx.createRadialGradient(p.x,p.y,2,p.x,p.y,rad); g.addColorStop(0,'rgba('+c+','+(0.55*intensity)+')'); g.addColorStop(0.55,'rgba('+c+','+(0.25*intensity)+')'); g.addColorStop(1,'rgba('+c+',0)'); octx.save(); octx.globalCompositeOperation='lighter'; octx.fillStyle=g; octx.beginPath(); octx.arc(p.x,p.y,rad,0,7); octx.fill(); octx.restore(); }
+function glowUnit(u,intensity,rgb){ if(!u||!u.alive)return; const p=project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,1.0); if(!p.vis)return; const rad=(u.boss?48:30), c=rgb||'255,245,200'; const g=octx.createRadialGradient(p.x,p.y,2,p.x,p.y,rad); g.addColorStop(0,'rgba('+c+','+(0.55*intensity)+')'); g.addColorStop(0.55,'rgba('+c+','+(0.25*intensity)+')'); g.addColorStop(1,'rgba('+c+',0)'); octx.save(); octx.globalCompositeOperation='lighter'; octx.fillStyle=g; octx.beginPath(); octx.arc(p.x,p.y,rad,0,7); octx.fill(); octx.restore(); }
 let _olPrev=0, _olDt=0;
 function drawOverlay(){octx.clearRect(0,0,CW,CH);
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
@@ -4514,7 +4524,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     // artwork (baked into every clip). For the raven that is ~1.05x sprH; using sprH alone put the
     // bar through his body. Always measured off the IDLE clip so the bar never jumps when he
     // attacks or casts (those cells include effects far above his head).
-    const _p0=headScreen(u)||project(u.x,u.y,(u.sprH!=null?u.sprH:(u.boss?3.2:2.0)*(u.r/18)));
+    const _p0=headScreen(u)||project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,(u.sprH!=null?u.sprH:(u.boss?3.2:2.0)*(u.r/18)));
     if(!_p0.vis)return;
     // the gap is set in SCREEN pixels, not world units, so it reads the same on a big boss and a
     // small monster and at any zoom: the bar sits a few px clear of the top of the head.
@@ -5071,7 +5081,7 @@ function _gsFoes(u,how,n,anchor){ const foes=units.filter(o=>o.alive&&o.team!==u
   if(how==='lowest'){ const t=_gsLowFoe(u); return t?[t]:[]; }
   if(how==='aoe'||how==='chain'||how==='line'){ const c=anchor||_gsNearFoe(u); if(!c)return[];
     return foes.sort((x,y)=>Math.hypot(x.x-c.x,x.y-c.y)-Math.hypot(y.x-c.x,y.y-c.y)).slice(0,Math.max(1,n||3)); }
-  if(how==='random'){ const out=[]; for(let i2=0;i2<(n||2)&&foes.length;i2++) out.push(foes[Math.floor(Math.random()*foes.length)]); return out; }
+  if(how==='random'){ const out=[]; for(let i2=0;i2<(n||2)&&foes.length;i2++) out.push(foes[Math.floor(brnd()*foes.length)]); return out; }   // v268: SEEDED — a real damage target may never come off Math.random
   const t=_gsNearFoe(u); return t?[t]:[]; }
 function _gsAllies(u,who){ const own=units.filter(o=>o.alive&&o.team===u.team&&HERO_TYPES[o.key]);
   if(who==='allies'||who==='nearAllies') return own;
@@ -5102,7 +5112,7 @@ function castGearSkill(u){
       ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,p.dur||2); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
     case 'taunt': { const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,p.dur||1.5); }); break; }
     case 'cleanse': { _gsAllies(u,p.who||'allies').forEach(w=>{ w.stunned=0; w.fearT=0; w.slow=0; w.silencedT=0; }); break; }
-    case 'untarget': { u._noTarget=true; setTimeout(()=>{ u._noTarget=false; },Math.round((p.dur||1.5)*1000)); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); break; }
+    case 'untarget': { u._noTarget=true; u._noTargetT=(p.dur||1.5); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); break; }   // v268: SIM-TIME countdown (was a wall-clock setTimeout that ignored pause, speed and the skip loop)
     case 'ward': { const w=_gsAllies(u,p.who||'lowest')[0]||u; w._wardT=Math.max(w._wardT||0,p.dur||2); break; }
     case 'next': { u.dmgBuffT=Math.max(u.dmgBuffT||0,p.dur||3); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,p.mult||1.35); if(p.kind==='crit') u.glyphCrit=Math.min(0.6,(u.glyphCrit||0)+0.5); break; }
     case 'move': { if(p.kind==='pullAoe'){ const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ const dx=u.x-t.x,dy=u.y-t.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*60; t.y+=dy/dd*60; }); }
@@ -10194,11 +10204,26 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
     if(OL.active&&!OL.host){ /* guest renders from host snapshots, no local sim */ }
-    else if(CUR.mode==='replay' && !freeze){ _bacc+=dt*SIM_HZ*(gameSpeed||1); let n=Math.floor(_bacc); if(n>8)n=8; _bacc-=n; for(let i=0;i<n&&!ended;i++)updateBattle(SIM_STEP); }   // REPLAY: fixed SIM_STEP via a real-time ACCUMULATOR → advances 30×speed steps/sec = the SAME wall-clock speed as live combat (bug fix: was 1 step/frame = 2× fast at 60fps). Cap-before-subtract keeps leftover steps so a frame hitch never drops steps (determinism). Live play stays variable-timestep below.
-    else if(!freeze){ const spd=(CUR.mode==='online')?1:gameSpeed; const _steps=spd>=1?Math.round(spd):1, _sdt=(spd>=1?dt:dt*spd)*BATTLE_PACE; for(let i=0;i<_steps&&!ended;i++)updateBattle(_sdt);   // variable timestep: sim advances once per RENDER frame, so positions + all anim timers update every frame → smooth, no lag, no jitter (fixed-timestep+interpolation was reverted — it stepped anim timers and jittered)
+    /* v268 — ONE fixed-timestep sim for every mode. The battle no longer advances by however long
+       the last frame happened to take: it advances in exact SIM_STEP ticks off a real-time
+       accumulator, so the same seed and the same inputs produce the same fight on every device and
+       on the server. Smoothness is preserved by INTERPOLATING the render between ticks (the earlier
+       attempt failed because it stepped the animation timers too — those still run on render time,
+       in syncMesh, below). */
+    else if(!freeze){ const spd=(CUR.mode==='online')?1:(gameSpeed||1);
+      _bacc += dt * SIM_HZ * spd * ((CUR.mode==='replay')?1:BATTLE_PACE);
+      let n=Math.floor(_bacc); if(n>8)n=8;   // cap-before-subtract: a frame hitch never drops steps
+      _bacc-=n;
+      for(let i=0;i<n&&!ended;i++) updateBattle(SIM_STEP);
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
+  // v268: the sim ticks at SIM_HZ; the picture is drawn every frame, interpolated between the last
+  // two ticks. `_bacc` is exactly how far we are into the next tick.
+  { const alpha=Math.max(0,Math.min(1,_bacc));
+    for(let i=0;i<units.length;i++){ const u=units[i];
+      u.rx=(u.px==null)?u.x:(u.px+(u.x-u.px)*alpha);
+      u.ry=(u.py==null)?u.y:(u.py+(u.y-u.py)*alpha); } }
   if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);
     let yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):1;
     if(s.arc) yy=1+Math.sin(k*Math.PI)*s.arc;                                  // heavy rounds lob, darts fly flat
@@ -10213,7 +10238,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787859281289';
+const BUILD_ID='1787861724114';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
