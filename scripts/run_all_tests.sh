@@ -45,6 +45,7 @@ if node -e "require('playwright')" 2>/dev/null; then node test_parity_harness.js
 cleanup
 note "probes (no server needed)"
 node test_sim_parity.js || FAILED=1
+node test_glyph_flow.js || FAILED=1
 node test_vault_gate.js || FAILED=1
 node test_war_bracket.js || FAILED=1
 rm -f probe-db-*.json
