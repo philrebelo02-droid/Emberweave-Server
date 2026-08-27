@@ -7530,7 +7530,7 @@ function g2DrawTree(){ document.querySelectorAll('.g2treeBox').forEach((box,bi)=
     const x2=cr.left+cr.width/2-bR.left, y2=cr.top-bR.top-2;
     if(y2-y1<6) return;
     const g=Math.max(12,(y2-y1)*0.55);
-    const col=el.getAttribute('data-rdy')==='1'?'#5ee89b':'#3f4f72';
+    const col='#3f4f72';   // 27 Aug (Phil): the light grey/blue line for ALL connectors — no green
     out+=`<path d="M ${x1} ${y1} C ${x1} ${y1+g}, ${x2} ${y2-g}, ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="3.2" stroke-linecap="round" opacity="0.95" filter="url(#g2glow${bi})"/>`; });
   svg.innerHTML=out; }); }
 /* One ancestry tree view (root card + connectors + child columns). pfx keeps DOM ids unique
@@ -9537,7 +9537,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787835401369';
+const BUILD_ID='1787835495258';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
