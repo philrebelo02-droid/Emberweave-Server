@@ -32,87 +32,89 @@
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "garbage mob",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "orc",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 203.8301,
-     "dmgMul": 62.6922
+     "hpMul": 29.7293,
+     "dmgMul": 16.2913
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.1459,
+  "realEngineTuned": true
  },
  {
   "id": "1-2",
@@ -147,93 +149,95 @@
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     }
    ],
    [
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     }
    ],
    [
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 209.2099,
-     "dmgMul": 63.1305
+     "hpMul": 28.0896,
+     "dmgMul": 15.4815
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.1343,
+  "realEngineTuned": true
  },
  {
   "id": "1-3",
@@ -268,93 +272,95 @@
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     }
    ],
    [
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 251.0024,
-     "dmgMul": 74.3442
+     "hpMul": 23.2193,
+     "dmgMul": 14.0465
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0925,
+  "realEngineTuned": true
  },
  {
   "id": "1-4",
@@ -389,99 +395,101 @@
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "creep",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "slime",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 289.3409,
-     "dmgMul": 84.155
+     "hpMul": 26.3536,
+     "dmgMul": 15.7283
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0911,
+  "realEngineTuned": true
  },
  {
   "id": "1-5",
@@ -516,82 +524,84 @@
     {
      "key": "golem",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     }
    ],
    [
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318
     },
     {
      "key": "ice beast",
      "lvl": 100,
-     "hpMul": 263.0193,
-     "dmgMul": 73.0633,
+     "hpMul": 19.7567,
+     "dmgMul": 11.9318,
      "boss": true
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0751,
+  "realEngineTuned": true
  },
  {
   "id": "1-6",
@@ -626,75 +636,77 @@
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "creep",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     }
    ],
    [
     {
      "key": "orc",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 399.018,
-     "dmgMul": 112.0409
+     "hpMul": 25.4315,
+     "dmgMul": 16.3096
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0637,
+  "realEngineTuned": true
  },
  {
   "id": "1-7",
@@ -729,75 +741,77 @@
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 496.4911,
-     "dmgMul": 137.0516
+     "hpMul": 25.7281,
+     "dmgMul": 17.2596
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0518,
+  "realEngineTuned": true
  },
  {
   "id": "1-8",
@@ -832,93 +846,95 @@
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "slime",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "golem",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     }
    ],
    [
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "orc",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 329.6373,
-     "dmgMul": 89.4827
+     "hpMul": 24.9536,
+     "dmgMul": 14.6929
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0757,
+  "realEngineTuned": true
  },
  {
   "id": "1-9",
@@ -953,81 +969,83 @@
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "slime",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     }
    ],
    [
     {
      "key": "garbage mob",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 460.8372,
-     "dmgMul": 123.059
+     "hpMul": 25.6746,
+     "dmgMul": 16.3036
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0557,
+  "realEngineTuned": true
  },
  {
   "id": "1-10",
@@ -1062,88 +1080,90 @@
     {
      "key": "golem",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "creep",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     }
    ],
    [
     {
      "key": "garbage mob",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299
     },
     {
      "key": "monster with fireball",
      "lvl": 100,
-     "hpMul": 448.5904,
-     "dmgMul": 111.773,
+     "hpMul": 18.1337,
+     "dmgMul": 11.8299,
      "boss": true
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0404,
+  "realEngineTuned": true
  },
  {
   "id": "2-1",
@@ -1178,87 +1198,89 @@
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "garbage mob",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "orc",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 266.5471,
-     "dmgMul": 75.8906
+     "hpMul": 29.725,
+     "dmgMul": 16.343
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.1115,
+  "realEngineTuned": true
  },
  {
   "id": "2-2",
@@ -1293,93 +1315,95 @@
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     }
    ],
    [
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     }
    ],
    [
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 271.6606,
-     "dmgMul": 76.1471
+     "hpMul": 28.749,
+     "dmgMul": 15.8078
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.1058,
+  "realEngineTuned": true
  },
  {
   "id": "2-3",
@@ -1414,93 +1438,95 @@
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     }
    ],
    [
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 323.7567,
-     "dmgMul": 89.3633
+     "hpMul": 22.4157,
+     "dmgMul": 13.7846
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0692,
+  "realEngineTuned": true
  },
  {
   "id": "2-4",
@@ -1535,99 +1561,101 @@
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "creep",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "slime",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 370.8454,
-     "dmgMul": 100.8194
+     "hpMul": 26.1452,
+     "dmgMul": 15.7501
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0705,
+  "realEngineTuned": true
  },
  {
   "id": "2-5",
@@ -1662,82 +1690,84 @@
     {
      "key": "golem",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     }
    ],
    [
     {
      "key": "turtle",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888
     },
     {
      "key": "ice beast",
      "lvl": 100,
-     "hpMul": 335.0794,
-     "dmgMul": 87.2503,
+     "hpMul": 17.1406,
+     "dmgMul": 10.8888,
      "boss": true
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0512,
+  "realEngineTuned": true
  },
  {
   "id": "2-6",
@@ -1772,75 +1802,77 @@
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "creep",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     }
    ],
    [
     {
      "key": "orc",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "fire boar",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "knat",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 505.4228,
-     "dmgMul": 133.382
+     "hpMul": 28.3596,
+     "dmgMul": 17.7594
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0561,
+  "realEngineTuned": true
  },
  {
   "id": "2-7",
@@ -1875,75 +1907,77 @@
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "skeletal warrior",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     }
    ],
    [
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "fire skeleton",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "ghoul fiend",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 625.4498,
-     "dmgMul": 162.6687
+     "hpMul": 24.2578,
+     "dmgMul": 16.725
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.0388,
+  "realEngineTuned": true
  },
  {
   "id": "2-8",
@@ -1978,92 +2012,94 @@
     {
      "key": "mimic chest",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "slug beast",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "slime",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "raven",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     }
    ],
    [
     {
      "key": "tin beast",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "golem",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "dyrmen",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "lost soulss",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "bug",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     }
    ],
    [
     {
      "key": "rock golem",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "orc",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "shadow ghoul",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "glitch phantom",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     },
     {
      "key": "whisp candle",
      "lvl": 100,
-     "hpMul": 413.0898,
-     "dmgMul": 105.9015
+     "hpMul": 26.4308,
+     "dmgMul": 15.4578
     }
    ]
-  ]
+  ],
+  "difficultyTune": 0.064,
+  "realEngineTuned": true
  }
 ]

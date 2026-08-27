@@ -129,7 +129,8 @@ function load(htmlPath){
     /* THE campaign entry: the authored waves, the server's seed, and the player's own transcript. */
     campaign(allySnaps, cwaves, seed, inputLog){
       const won=sandbox.simCampaignReplay(allySnaps, cwaves, seed>>>0, inputLog||[], true);
-      return { won:!!won, stars:sandbox._p2stars|0, alive:sandbox._p2alive|0, total:sandbox._p2total|0, digest:sandbox._p2digest||null };
+      return { won:!!won, stars:sandbox._p2stars|0, alive:sandbox._p2alive|0, total:sandbox._p2total|0,
+        hpFrac:+(sandbox._p2hpf||0), digest:sandbox._p2digest||null };
     },
     auto(allySnaps, foeTeam, seed){
       const won=sandbox.simFightResult(allySnaps, foeTeam, seed>>>0);
