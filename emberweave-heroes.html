@@ -7468,12 +7468,120 @@ async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true
    There is no craft tab, no finished-glyph inventory, no socket/unsocket. */
 function g2ascend(){ g2post('/api/glyphs/ascend',{heroKey:detailHero}); }
 async function g2buildOpen(slot){ if(RUNE2.busy) return;
-  RUNE2.build={slot, loading:true, data:null}; renderHeroDetail();
-  const r=await api('/api/glyphs/slot-options?heroKey='+encodeURIComponent(detailHero)+'&slot='+slot);
+  RUNE2.build={slot, loading:true, data:null, stack:[], alloc:{}}; renderHeroDetail();
+  const r=await api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(detailHero)+'&slot='+slot);
   if(!RUNE2.build||RUNE2.build.slot!==slot) return;
-  if(!r||r.error){ RUNE2.build=null; bannerMsg((r&&r.error)||'Could not load blueprints.'); renderHeroDetail(); return; }
-  RUNE2.build={slot, loading:false, data:r}; renderHeroDetail(); }
-function g2buildCancel(){ RUNE2.build=null; renderHeroDetail(); }
+  if(!r||r.error){ RUNE2.build=null; bannerMsg((r&&r.error)||'Could not load the glyph ancestry.'); renderHeroDetail(); return; }
+  RUNE2.build={slot, loading:false, data:r, stack:[], alloc:{}}; renderHeroDetail(); }
+function g2buildCancel(){ RUNE2.build=null; renderHeroDetail(); g2RenderOverlays(); }
+/* ---- Glyph Ancestry helpers (allocation is TEMPORARY UI state — it never touches inventory) ---- */
+function g2NodeAt(path){ let n=RUNE2.build.data.root; if(path==='r') return n;
+  for(const i of path.slice(2).split('.')) n=n.children[+i]; return n; }
+function g2NodeReady(n){ if(n.kind==='fragment') return (n.have|0)>=(n.need|0);
+  return (n.children||[]).every(g2NodeReady); }
+function g2WalkPaths(n, path, out){ out.push(path);
+  (n.children||[]).forEach((c,i)=>g2WalkPaths(c, path+(path==='r'?'.':'.')+i, out)); return out; }
+function g2LeafPaths(n,path,out){ if(n.kind==='fragment'){ out.push(path); return out; }
+  (n.children||[]).forEach((c,i)=>g2LeafPaths(c,path+'.'+i,out)); return out; }
+function g2AllAllocated(){ return g2LeafPaths(RUNE2.build.data.root,'r',[]).every(pth=>RUNE2.build.alloc[pth]); }
+function g2AllocToggle(path){ const n=g2NodeAt(path); if(!g2NodeReady(n)) return;
+  const on=!RUNE2.build.alloc[path];
+  g2WalkPaths(n, path, []).forEach(pth=>{ if(on) RUNE2.build.alloc[pth]=1; else delete RUNE2.build.alloc[pth]; });
+  renderHeroDetail(); g2RenderOverlays(); }
+function g2QuickAllocate(){ if(!RUNE2.build.data.canQuickAllocate) return;
+  g2WalkPaths(RUNE2.build.data.root,'r',[]).forEach(pth=>RUNE2.build.alloc[pth]=1);
+  renderHeroDetail(); g2RenderOverlays(); }
+/* 27 Aug (Phil): tapping a glyph node opens ANOTHER pop-up on top (its sub-components + where to
+   sweep) — a stacked overlay modal, not an in-place view swap. */
+function g2TreePush(path){ const n=g2NodeAt(path); if(!n.children||!n.children.length) return;
+  RUNE2.build.stack.push(path); g2RenderOverlays(); }
+function g2TreeBack(){ RUNE2.build.stack.pop(); g2RenderOverlays(); }
+function g2TreeCloseTo(i){ RUNE2.build.stack.length=i; g2RenderOverlays(); }
+function g2RenderOverlays(){ let host=document.getElementById('g2ovlHost');
+  if(!host){ host=document.createElement('div'); host.id='g2ovlHost'; document.body.appendChild(host); }
+  const bd=RUNE2.build;
+  if(!bd||bd.loading||!bd.data||!bd.stack.length){ host.innerHTML=''; return; }
+  host.innerHTML=bd.stack.map((pth,i)=>`<div style="position:fixed;inset:0;z-index:${21000+i};background:rgba(3,8,18,.74);display:flex;align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)g2TreeCloseTo(${i})">
+      <div style="background:#0f1a2e;border:1px solid #24314e;border-radius:14px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;padding:12px 12px 14px;position:relative">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <button class="btn xs secondary" onclick="g2TreeCloseTo(${i})">‹ Back</button>
+          <button class="btn xs secondary" onclick="g2buildCancel()">✕</button></div>
+        ${g2TreeView(pth,'o'+i)}</div></div>`).join('');
+  setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380); }
+function g2SrcGo(id){ const m=/^(\d+)-(\d+)$/.exec(String(id).replace('campaign-','')); if(!m) return;
+  const node=(+m[1]-1)*10 + (+m[2]); RUNE2.build=null; g2RenderOverlays(); show('campaign'); openStageModal(node); }
+function g2NodeArt(n,px){ if(n.kind==='fragment') return g2artKey('fragment',n.key,px);
+  if(n.kind==='subGlyph'){ const pk=g2parseKey(n.key); return g2art('sub',pk.q,g2slotOfFam(pk.fam),px,'display:inline-block;vertical-align:middle'); }
+  return g2art('finished',n.quality,g2slotOfFam(n.family),px,'display:inline-block;vertical-align:middle'); }
+/* Draws the glowing curved connectors of the Glyph Ancestry tree onto its SVG underlay.
+   Every node div carries data-g2p = the DOM id of its parent node; lines run parent-bottom →
+   child-top as cubic curves, green when that subtree is ready, dim slate when materials are missing. */
+function g2DrawTree(){ document.querySelectorAll('.g2treeBox').forEach((box,bi)=>{
+  const svg=box.querySelector('svg.g2svg'); if(!svg) return;
+  const bR=box.getBoundingClientRect(); if(bR.width<10) return;
+  svg.setAttribute('viewBox','0 0 '+bR.width+' '+bR.height);
+  // filterUnits=userSpaceOnUse: a perfectly vertical connector has a ZERO-WIDTH bbox, and a
+  // percentage (objectBoundingBox) filter region collapses to nothing — the line vanishes.
+  let out=`<defs><filter id="g2glow${bi}" filterUnits="userSpaceOnUse" x="-20" y="-20" width="${Math.ceil(bR.width)+40}" height="${Math.ceil(bR.height)+40}"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  box.querySelectorAll('[data-g2p]').forEach(el=>{ const par=document.getElementById(el.getAttribute('data-g2p')); if(!par) return;
+    const pr=par.getBoundingClientRect(), cr=el.getBoundingClientRect();
+    const x1=pr.left+pr.width/2-bR.left, y1=pr.bottom-bR.top-2;
+    const x2=cr.left+cr.width/2-bR.left, y2=cr.top-bR.top+2;
+    const g=Math.max(12,(y2-y1)*0.55);
+    const col=el.getAttribute('data-rdy')==='1'?'#5ee89b':'#3f4f72';
+    out+=`<path d="M ${x1} ${y1} C ${x1} ${y1+g}, ${x2} ${y2-g}, ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="3.2" stroke-linecap="round" opacity="0.95" filter="url(#g2glow${bi})"/>`; });
+  svg.innerHTML=out; }); }
+/* One ancestry tree view (root card + connectors + child columns). pfx keeps DOM ids unique
+   between the in-panel tree ('m') and each stacked overlay ('o0','o1',…). */
+function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
+  const id=s=>'g2n_'+pfx+'_'+s;
+  const nName=n=>n.kind==='subGlyph'?n.key:n.name;
+  const nQual=n=>n.kind==='subGlyph'?g2parseKey(n.key).q:n.quality;
+  const fragShort=n=>String(n.displayName||n.key).replace(/ Fragment$/,'');
+  const view=g2NodeAt(viewPath);
+  const ready=g2NodeReady(view);
+  const badge=D.locked?`<span class="pill" style="color:#5ee89b;border:1px solid #5ee89b">Completed</span>`
+    :(ready?`<span class="pill" style="color:#5ee89b;border:1px solid #5ee89b">Ready to Build</span>`
+    :`<span class="pill" style="color:#ffb454;border:1px solid #ffb454">Missing materials</span>`);
+  const leaf=(n,pth,parentPath)=>{ const alloc=!D.locked&&!!bd.alloc[pth]; const rdy=g2NodeReady(n);
+    const col=rdy?'#5ee89b':'#e86a6a';
+    const srcs=!D.locked?(n.sources||[]).slice(0,2).map(x=>`<span class="pill" style="font-size:8px;cursor:pointer;border:1px solid #33405e;color:#8fb7ff" onclick="event.stopPropagation();g2SrcGo('${x}')">⚔ ${String(x).replace('campaign-','')}</span>`).join(' '):'';
+    return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="width:82px;flex:none;text-align:center;position:relative;z-index:1;cursor:${D.locked?'default':'pointer'}" ${D.locked?'':`onclick="g2AllocToggle('${pth}')"`}>
+      <div style="width:72px;height:72px;margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;filter:drop-shadow(0 0 10px ${col}44)">
+        ${g2NodeArt(n,68)}${alloc?`<span style="position:absolute;top:-2px;right:0;width:18px;height:18px;border-radius:50%;background:#5ee89b;color:#04140a;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center">✓</span>`:''}</div>
+      <div style="font-size:9.5px;font-weight:700;color:${col};margin-top:4px;line-height:1.15">${fragShort(n)}</div>
+      ${D.locked?'':`<div style="margin-top:3px"><span class="pill" style="font-size:9px;color:${col};border:1px solid ${col}">${n.have} / ${n.need}</span></div>`}
+      ${srcs?`<div style="margin-top:2px">${srcs}</div>`:''}</div>`; };
+  // 27 Aug (Phil): unbuilt glyphs are FADED with a green ＋ (just like empty board slots); only a
+  // locked/completed tree shows its glyph art solid and opaque.
+  const glyphArt=(n,px,bq)=>D.locked
+    ?`<div style="height:${px+6}px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 ${px>90?16:10}px ${g2col(bq)}66)">${g2NodeArt(n,px)}</div>`
+    :`<div style="position:relative;height:${px+6}px;display:flex;align-items:center;justify-content:center">
+      <span style="position:absolute;inset:0;opacity:.35;display:flex;align-items:center;justify-content:center">${g2NodeArt(n,px)}</span>
+      <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:#5ee89b;text-shadow:0 1px 6px #000c">＋</span></div>`;
+  const branchNode=(n,pth,parentPath,px)=>{ const bq=nQual(n); const rdy=g2NodeReady(n);
+    return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="text-align:center;position:relative;z-index:1;cursor:pointer;max-width:150px" onclick="g2TreePush('${pth}')">
+      ${glyphArt(n,px,bq)}
+      <div style="font-size:11px;font-weight:800;color:${g2col(bq)};line-height:1.2">${nName(n)}</div>
+      <div style="font-size:9.5px;color:#5ee89b;margin-top:2px">Tap to open</div></div>`; };
+  const cols=(view.children||[]).map((n,i)=>{ const pth=viewPath+'.'+i;
+    if(n.kind==='fragment') return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:86px">${leaf(n,pth,viewPath)}</div>`;
+    const kids=(n.children||[]).map((c,j)=>{ const cp=pth+'.'+j;
+      return c.kind==='fragment'?leaf(c,cp,pth):branchNode(c,cp,pth,54); }).join('');
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:30px;flex:1;min-width:120px">
+      ${branchNode(n,pth,viewPath,82)}
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${kids}</div></div>`; }).join('');
+  const vq=nQual(view);
+  return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
+    <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
+    <div id="${id(viewPath)}" style="text-align:center;position:relative;z-index:1;margin-bottom:30px">
+      ${glyphArt(view,112,vq)}
+      <div style="font-size:15px;font-weight:800;color:${g2col(vq)};margin-top:2px">${nName(view)}</div>
+      ${view.stats?`<div style="font-size:10px;color:#c3ccd8;margin-top:2px">${view.stats.join(' · ')}</div>`:''}
+      <div style="margin-top:5px">${badge}</div></div>
+    <div style="display:flex;justify-content:center;align-items:flex-start;gap:6px;flex-wrap:wrap">${cols}</div>
+    ${!(view.children||[]).length?'<div style="font-size:11px;color:#6f7d90;text-align:center;padding:6px">No components — built directly.</div>':''}</div>`; }
+if(!window._g2rsz){ window._g2rsz=1; window.addEventListener('resize',()=>{ try{ if(RUNE2.build&&!RUNE2.build.loading) g2DrawTree(); }catch(e){} }); }
 function g2info(slot){ const bd=g2board(detailHero); const so=bd.slots[slot]; if(!so) return;
   bannerMsg('🔒 <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')); }
 async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
@@ -7482,7 +7590,7 @@ async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
   RUNE2.busy=false;
   if(r&&r.error==='STALE'){ await glyphV2Sync(); if(RUNE2.build) g2buildOpen(RUNE2.build.slot); return; }
   if(!r||r.error){ bannerMsg((r&&r.error)||'Build failed.'); await glyphV2Sync(); renderHeroDetail(); return; }
-  RUNE2.build=null; bannerMsg('🔮 '+(r.name||'Glyph')+' locked into the board!');
+  RUNE2.build=null; g2RenderOverlays(); bannerMsg('🔮 '+(r.name||'Glyph')+' locked into the board!');
   await glyphV2Sync(); renderHeroDetail(); }
 /* ---- Glyph v2 ART (270 PNGs, /assets/img/glyphs-v2/<QualityDir>/<type>-<slot>.png) ----
    QualityDir = ladder name with ' +' removed ('Blue +1' → 'Blue1'). type ∈ fragment|sub|finished.
@@ -7510,22 +7618,26 @@ function glyphV2Tab(key){
       <b>Glyph Ascension</b>
       <span class="pill" style="color:${qc};border:1px solid ${qc}">${maxed?'★ FULLY ASCENDED':q+' · step '+(idx+1)+'/'+cat.ladder.length}</span></div>`;
   if(maxed) return `<div class="panel">${head}<div style="text-align:center;color:${qc};font-weight:800;padding:16px">★ This hero has completed every ascension.</div></div>`;
-  // ---- BUILD SHEET: the server's legal blueprints for the tapped empty slot ----
-  if(RUNE2.build){ const bd=RUNE2.build, slotName=cat.slots[bd.slot];
-    let bodyHtml;
-    if(bd.loading) bodyHtml=`<div style="text-align:center;color:#8b98a9;padding:14px">Consulting the loom…</div>`;
-    else bodyHtml=(bd.data.options||[]).map(o=>{
-      const mats=o.materials.map(m=>{ const src=(m.sources&&m.sources.length)?` <span style="color:#6f7d90">· ${m.sources.map(x=>'Stage '+String(x).replace('campaign-','')).join(', ')}</span>`:'';
-        return `<div style="font-size:10px;color:${m.have>=m.need?'#5ee89b':'#e86a6a'}">${g2artKey('fragment',m.key,14)} ${m.displayName} <b>${m.have}/${m.need}</b>${src}</div>`; }).join('');
-      return `<div class="eq-row" style="border-left:3px solid ${g2col(o.quality)};align-items:flex-start">
-        ${g2art('finished',o.quality,g2slotOfFam(o.family),34,'display:block;margin-right:7px;flex:none')}
-        <div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${g2col(o.quality)}">${o.name}</b></div>
-          <div style="font-size:10px;color:#c3ccd8">${o.stats.map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')}</div>${mats}</div>
-        <button class="btn xs" ${o.buildable?'':'disabled'} onclick="g2buildDo('${o.blueprintId}')">Build Here</button></div>`; }).join('')
-      ||`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">No legal blueprint for this slot.</div>`;
-    return `<div class="panel">${head}
-      <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn xs secondary" onclick="g2buildCancel()">✕ Cancel</button></div>
-      ${bodyHtml}</div>`; }
+  // ---- GLYPH ANCESTRY pop-out (27 Aug, Phil's mock): a REAL tree — the finished glyph's art on
+  //      top, glowing curved connectors, predecessor glyphs as tappable nodes, fragments as
+  //      circular leaves with have/need pills. Allocation is a UI-only plan. ----
+  if(RUNE2.build){ const bd=RUNE2.build;
+    const ancHead=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px">
+      <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔮 <b>Glyph Ascension</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Glyph Ancestry</b></div>
+      <span style="flex:none"><span class="pill" style="color:${qc};border:1px solid ${qc}">${q} · step ${idx+1}/${cat.ladder.length}</span></span></div>`;
+    if(bd.loading) return `<div class="panel">${ancHead}<div style="text-align:center;color:#8b98a9;padding:14px">Tracing the ancestry…</div></div>`;
+    const D=bd.data;
+    const allAlloc=!D.locked&&g2AllAllocated();
+    const actions=!D.locked?`<div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn secondary" style="flex:1" ${D.canQuickAllocate?'':'disabled'} onclick="g2QuickAllocate()">⚡ Quick Allocate All</button>
+        <button class="btn" style="flex:1;${allAlloc?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':''}" ${allAlloc?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">🔨 Build Here</button>
+      </div>`:'';
+    setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
+    return `<div class="panel">${ancHead}
+      <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:2px">
+        <button class="btn xs secondary" onclick="g2buildCancel()">‹ Back</button>
+        <button class="btn xs secondary" onclick="g2buildCancel()">✕</button></div>
+      ${g2TreeView('r','m')}${actions}</div>`; }
   // ---- the six-slot board: filled cells are locked (visual only), empty cells open Build ----
   // 27 Aug (Phil): CLEAN board — no boxes, no outlines, no names. Just the rune art:
   // empty = big ghosted rune + green ＋; built = the clear rune image alone.
@@ -9420,7 +9532,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787830209271';
+const BUILD_ID='1787833464586';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

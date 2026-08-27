@@ -83,6 +83,7 @@ const ADMIN_IDS = new Set((process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()
 // runner can create its fixture accounts without weakening production (defaults unchanged).
 const REG_PER_MIN=Math.max(1,parseInt(process.env.REG_PER_MIN||'6',10));
 const REG_ACCOUNTS_PER_IP=Math.max(1,parseInt(process.env.REG_ACCOUNTS_PER_IP||'6',10));
+const GLYPH_RL_PER_MIN=Math.max(1,parseInt(process.env.GLYPH_RL_PER_MIN||'60',10));
 // One-time bootstrap: the accounts CURRENTLY holding these names get role:'admin' stamped on them
 // at startup. After that, authority is the role — renaming, or a (impossible, names are unique)
 // same-name re-register, grants nothing. (Name-based bootstrap fully removed in the 26 Aug re-audit.)
@@ -253,6 +254,8 @@ const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'true')==='true'
 const GLYPH_LADDER=Object.freeze(['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange']);
 const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
 const GLYPH_FAMS=Object.freeze(['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom']);
+let GLYPH_TIER_FAMS={};   // filled by glyphCompile: quality -> families that exist at that tier
+function glyphTierFams(q){ return (GLYPH_TIER_FAMS&&GLYPH_TIER_FAMS[q]&&GLYPH_TIER_FAMS[q].length)?GLYPH_TIER_FAMS[q]:GLYPH_FAMS; }
 const glyphFragSlug=k=>k.toLowerCase().replace(/\s*\+\s*/g,'-plus-').replace(/\s+/g,'-');
 const GLYPH_SLOTS=['vitality','bulwark','onslaught','spirit','tempo','mastery'];
 // which material families each board slot accepts (data-driven; per-role overrides seed later)
@@ -297,6 +300,7 @@ function glyphCompile(){
   if(!Array.isArray(raw)||raw.length!==218) throw new Error('glyph-source.json: expected 218 definitions, got '+(raw&&raw.length));
   const byId={}, byName={};
   for(const d of raw){ if(byId[d.id]) throw new Error('duplicate glyph id '+d.id); byId[d.id]=d; byName[d.name]=d; }
+  GLYPH_TIER_FAMS={};   // quality -> the families that EXIST at that tier (drives every drop rotation)
   const FRAG=/^(\d+)\s*[×x]\s*(.+?)\s+Fragments$/;
   for(const d of raw){
     const m=/(\w+)\s+(Glyph|Core|Crown)$/.exec(d.name); if(!m) throw new Error('glyph name unparsable: '+d.name);
@@ -329,6 +333,11 @@ function glyphCompile(){
     if(qual==='Worldfire') ing.push({kind:'frag', key:'Gold +4 '+fam, qty:2});
     subs[g.key]={ key:g.key, ing };
   } } }
+  for(const d of raw){ const l=(GLYPH_TIER_FAMS[d.quality]=GLYPH_TIER_FAMS[d.quality]||[]); if(!l.includes(d.family)) l.push(d.family); }
+  // canonical order: the 8 base families first (Stoneheart leads — stage 1-1 stays Stoneheart),
+  // then the tier's extended families alphabetically
+  for(const q in GLYPH_TIER_FAMS){ const l=GLYPH_TIER_FAMS[q];
+    GLYPH_TIER_FAMS[q]=[...GLYPH_FAMS.filter(f=>l.includes(f)), ...l.filter(f=>!GLYPH_FAMS.includes(f)).sort()]; }
   GLYPHS={ raw, byId, byName, subs, version:1 };
   console.log('🔮 Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }
@@ -357,16 +366,47 @@ const GLYPH_PREF={
             Support:['Tidecall','Lifebloom','Keenmind'], Tank:['Bloodroot','Lifebloom','Hawkeye'],
             Marksman:['Hawkeye','Sunder','Bloodroot'], _:['Hawkeye','Bloodroot','Lifebloom'] }
 };
+// A pre-choice must be FARMABLE all the way down: every fragment its full expanded lineage needs
+// (including every Sub-Glyph's ingredients) must belong to a family the game actually drops
+// (campaign/vault/arena/daily/pool all draw from GLYPH_FAMS). Otherwise a slot could demand a
+// fragment no stage awards — a dead end. (Ancestry-tree work, 27 Aug.)
+function glyphSupplyOK(def){ try{
+  const ex=g2ExpandIngredients(def);
+  const keys=Object.keys(ex.frags);
+  for(const sk in ex.subs){ const sd=GLYPHS.subs[sk]; if(!sd) return false; for(const i of sd.ing) keys.push(i.key); }
+  return keys.every(k=>{ const q=k.slice(0,k.lastIndexOf(' ')), f=k.slice(k.lastIndexOf(' ')+1);
+    return glyphTierFams(q).includes(f); });
+}catch(e){ return false; } }
 function glyphPreChoice(heroKey, slotIdx, qi){
   const hb=SIM.HERO_BASE[heroKey]||{}; const role=hb.role||'Fighter'; const healer=!!hb.healer;
   const slot=GLYPH_SLOTS[slotIdx]; const tbl=GLYPH_PREF[slot]||{};
   const prefs=(healer&&tbl[role+':healer'])||tbl[role]||tbl._||GLYPH_SLOT_FAMILIES[slot]||[];
   const pick=fams=>{ for(const fam of fams){
-    const cands=GLYPHS.raw.filter(d=>d.qi===qi&&d.family===fam&&glyphAllowed(slotIdx,d,role)).sort((a,b)=>a.id<b.id?-1:1);
+    const cands=GLYPHS.raw.filter(d=>d.qi===qi&&d.family===fam&&glyphAllowed(slotIdx,d,role)&&glyphSupplyOK(d)).sort((a,b)=>a.id<b.id?-1:1);
     if(cands.length) return cands[0]; } return null; };
   return pick(prefs) || pick(GLYPH_SLOT_FAMILIES[slot]||[]) ||
+    GLYPHS.raw.filter(d=>d.qi===qi&&glyphAllowed(slotIdx,d,role)&&glyphSupplyOK(d)).sort((a,b)=>a.id<b.id?-1:1)[0] ||
     GLYPHS.raw.filter(d=>d.qi===qi&&glyphAllowed(slotIdx,d,role)).sort((a,b)=>a.id<b.id?-1:1)[0] || null;
 }
+/* ---- Glyph Ancestry Tree (spec 27 Aug): the server derives the FULL canonical build lineage
+   of a slot's one pre-chosen glyph — finished glyph at the root, virtual predecessor glyphs and
+   Sub-Glyphs as branches, named fragments as the leaves. Purely a read model: nothing here (and
+   no client allocation) ever creates a loose Sub-Glyph or finished-glyph item. ---- */
+function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:glyphFragSlug(key),
+  displayName:key+' Fragment', need:qty, have:(g.fragments[key]|0),
+  sources:(CAMP_ENC&&CAMP_ENC.fragSources&&CAMP_ENC.fragSources[key]||[]).slice(0,4) }; }
+function glyphTreeChildren(g, def){ const kids=[];
+  for(const ing of def.ing){
+    if(ing.kind==='frag') kids.push(glyphTreeLeaf(g, ing.key, ing.qty));
+    else if(ing.kind==='sub'){ const sd=GLYPHS.subs[ing.key];
+      kids.push({ kind:'subGlyph', key:ing.key, qty:ing.qty, virtual:true,
+        children: sd?sd.ing.map(si=>glyphTreeLeaf(g, si.key, si.qty*ing.qty)):[] }); }
+    else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId];
+      if(fd) kids.push(Object.assign(glyphTreeFinished(g, fd), {virtual:true})); } }
+  return kids; }
+function glyphTreeFinished(g, def){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
+  quality:def.quality, family:def.family, strength:def.strength,
+  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:glyphTreeChildren(g, def) }; }
 function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprintId, locked} — internal instance ids never leave the server
   for(const h of Object.keys(g.boards||{})){ const b=g.boards[h];
     out[h]={ ascensionIndex:b.ascensionIndex, ascended:b.ascended,
@@ -434,16 +474,22 @@ function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.l
 // Authored named drops: campaign stages (chapter sets the quality band, family cycles by stage),
 // vault boss floors (band by floor, family by boss index), arena wins (band by rank), daily
 // (fixed rotation by NY day). Deterministic — no unseeded family roll anywhere.
-function campFragFor(node){ const ch=Math.min(10,Math.ceil(node/10)); const q=GLYPH_LADDER[ch-1];
-  const fam=GLYPH_FAMS[(node-1)%GLYPH_FAMS.length];
-  return [{ key:q+' '+fam, quantity: campIsBoss(node)?2:1 }]; }
-function vaultGlyphFragsFor(floor){ const q=dungeonQualityForFloor(floor); const bi=floor/5;
-  return [ q+' '+GLYPH_FAMS[bi%GLYPH_FAMS.length], q+' '+GLYPH_FAMS[(bi+3)%GLYPH_FAMS.length] ]; }
+// Phil's banding (27 Aug): ch1 Grey · ch2 Green tiers · ch3-4 Blue tiers · ch5-7 Purple tiers ·
+// ch8-10 Gold tiers — EVERY (tier, family) pair is authored onto some stage, so every fragment
+// in the game is farmable and sweepable. (Orange arrives with chapter 11/12; until then Orange
+// fragments drop from Vault floors 81-100.) The DATA in campaign-encounters.json is the truth;
+// this helper just reads it.
+function campFragFor(node){ const st=campStageOf(node);
+  return st&&st.rewards&&st.rewards.glyphFragments?st.rewards.glyphFragments.map(f=>({key:f.key,quantity:f.quantity})):[]; }
+function vaultGlyphFragsFor(floor){ const q=dungeonQualityForFloor(floor); const bi=floor/5; const fams=glyphTierFams(q);
+  return [ q+' '+fams[bi%fams.length], q+' '+fams[(bi+3)%fams.length] ]; }
 function arenaGlyphFragsFor(rank){ const t=Math.min(9, 3+Math.floor((5000-rank)/800)); const out=[];
-  for(let i=0;i<4;i++) out.push({ key:GLYPH_LADDER[Math.max(0,t-i)]+' '+GLYPH_FAMS[(rank+i)%GLYPH_FAMS.length], quantity:1 });
+  for(let i=0;i<4;i++){ const q=GLYPH_LADDER[Math.max(0,t-i)]; const fams=glyphTierFams(q);
+    out.push({ key:q+' '+fams[(rank+i)%fams.length], quantity:1 }); }
   return out; }
 function dailyGlyphFragsFor(dayKey){ let h=0; for(const c of String(dayKey)) h=(h*31+c.charCodeAt(0))>>>0; const out=[];
-  for(let i=0;i<12;i++) out.push({ key:GLYPH_LADDER[i%4]+' '+GLYPH_FAMS[(h+i)%GLYPH_FAMS.length], quantity:1 });
+  for(let i=0;i<12;i++){ const q=GLYPH_LADDER[i%4]; const fams=glyphTierFams(q);
+    out.push({ key:q+' '+fams[(h+i)%fams.length], quantity:1 }); }
   return out; }
 // glyph combat/power contribution — flat + % stats reduced to one scalar, added into serverTeamPower
 const GLYPH_POWER_WEIGHT=+(process.env.GLYPH_POWER_WEIGHT||0.2);
@@ -967,7 +1013,7 @@ function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
     return {type:'dupe', hero:hk, frags:f}; }
   led.unlocked[hk]=true; if(!led.hero[hk]) led.hero[hk]={xp:0,stars:(SIM.HERO_BASE[hk]||{}).stars||st,pips:0};
   return {type:'hero', hero:hk, stars:st}; }
-function poolGlyphFrag(u,q,n){ const key=q+' '+GLYPH_FAMS[Math.floor(Math.random()*GLYPH_FAMS.length)];
+function poolGlyphFrag(u,q,n){ const fams=glyphTierFams(q); const key=q+' '+fams[Math.floor(Math.random()*fams.length)];
   const rec=glyphGrantNamedList(u,[{key,quantity:n}]);
   return {type:'glyphFrag', key, displayName:key+' Fragment', n};
 }
@@ -1695,8 +1741,30 @@ async function api(req,res,url){
           materials, buildable:materials.every(m=>m.have>=m.need) }; });
       return send(res,200,{ hero, slot, quality:GLYPH_LADDER[board.ascensionIndex], ascensionIndex:board.ascensionIndex,
         revision:g.revision, options:opts }); }
+    if(p==='/api/glyphs/build-tree'){ // GET: the slot's one glyph as a full canonical ancestry tree
+      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
+      const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
+      if(!SIM.HERO_BASE[hero]) return send(res,400,{error:'Unknown hero.'});
+      if(!ensureLedger(me).unlocked[hero]) return send(res,400,{error:'You have not unlocked '+hero+'.'});
+      if(!(slot>=0&&slot<6)) return send(res,400,{error:'Bad slot.'});
+      const board=glyphBoard(g,hero);
+      if(board.slots[slot]){ // locked slot: read-only ancestry, no actions ever
+        const inst=g.finished[board.slots[slot]]; const d=inst&&GLYPHS.byId[inst.definitionId];
+        if(!d) return send(res,400,{error:'Corrupt slot.'});
+        return send(res,200,{ heroKey:hero, slot, blueprintId:d.id, revision:g.revision, locked:true,
+          root:glyphTreeFinished(g,d), totals:[], canQuickAllocate:false, canBuild:false }); }
+      if(board.ascensionIndex>=GLYPH_MAX_ASC) return send(res,400,{error:'Fully ascended.'});
+      const pre=glyphPreChoice(hero, slot, board.ascensionIndex);
+      if(!pre) return send(res,400,{error:'No blueprint for this slot.'});
+      const cost=g2BuildCost(g,pre)||{need:{}};
+      const totals=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
+        need:cost.need[k], have:(g.fragments[k]|0), sources:(CAMP_ENC&&CAMP_ENC.fragSources[k]||[]).slice(0,4) }));
+      const canBuild=totals.every(t=>t.have>=t.need);
+      return send(res,200,{ heroKey:hero, slot, blueprintId:pre.id, revision:g.revision, locked:false,
+        quality:GLYPH_LADDER[board.ascensionIndex], ascensionIndex:board.ascensionIndex,
+        root:glyphTreeFinished(g,pre), totals, canQuickAllocate:canBuild, canBuild }); }
     if(req.method!=='POST') return send(res,404,{error:'glyphs'});
-    if(rateLimited(req,'glyphs',60,60000)) return send(res,429,{error:'Slow down.'});
+    if(rateLimited(req,'glyphs',GLYPH_RL_PER_MIN,60000)) return send(res,429,{error:'Slow down.'});
     // Correction Spec v1: the Craft / Inventory / Socket / Unsocket loop is RETIRED.
     if(p==='/api/glyphs/craft'||p==='/api/glyphs/craft-sub'||p==='/api/glyphs/socket'||p==='/api/glyphs/salvage')
       return send(res,410,{error:'GLYPH_FLOW_REPLACED'});
