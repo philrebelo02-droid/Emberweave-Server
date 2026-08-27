@@ -1,0 +1,159 @@
+
+== dependency check (npm ci covers these) ==
+  ws ✓
+  playwright chromium ✓
+
+== phase 1: boot + create admin account ==
+
+== phase 2: restart with ADMIN_IDS and run the endpoint suites ==
+
+== test_transform.sh ==
+  ✓ MANIFEST: glyph fragments name their authored campaign source
+
+PASS: 50  FAIL: 0
+
+== test_glyphs.sh ==
+  ✓ stage fragment target is fixed across loads
+
+PASS: 46  FAIL: 0
+
+== test_dungeon.sh ==
+  ✓ reward package size fixed (2 gear frags); CONTENTS rolled server-side per transaction (audit C7)
+
+PASS: 26  FAIL: 0
+
+== test_gear.sh ==
+  ✓ a Grey-band fragment points at authored vault floors
+
+PASS: 34  FAIL: 0
+
+== test_war.sh ==
+  ✓ other guild claims their tier
+
+PASS: 32  FAIL: 0
+
+== test_ws_revoke.js ==
+  ✓ room hosted with valid token
+  ✓ peer joined
+  ✓ relay works pre-revocation
+  ✓ REVOKED token frame NOT relayed
+  ✓ peer told the host left (room dissolved)
+PASS: 5  FAIL: 0
+
+== test_parity_harness.js (real client/server field comparison in Chromium) ==
+  ✓ server ARMOR rating == client conversion (42 vs 42)
+  ✓ server MR rating == client conversion
+  ✓ server crit == client conversion
+  ✓ server critRes == client conversion
+  ✓ server energyReg == client conversion
+  ✓ server regen == client conversion
+  ✓ server carries the selected Gear Skill slot (Weapon)
+  ✓ vael armor rating comes from gear (typed)
+  ✓ six-slot board locked for parity test
+  ✓ slot-options returns ONE pre-chosen glyph
+  ✓ server maxHp == client displayed HP (642 vs 642)
+  ✓ server atk == client displayed ATK (47 vs 47)
+  ✓ server ARMOR rating (board+gear) == client conversion (60 vs 59)
+  ✓ server MR rating (board+gear) == client conversion
+  ✓ server ARMOR PEN == client glyph points (0 vs 0)
+  ✓ server MAGIC PEN == client glyph points
+  ✓ server crit (board+gear) == client conversion
+  ✓ server energyReg (board+gear) == client conversion
+  ✓ server regen (board+gear) == client conversion
+PASS: 19  FAIL: 0
+
+== probes (no server needed) ==
+  ✓ NO universal base crit: zero-crit units never crit (max/base < 1.35)
+  ✓ DR 0.6 cuts damage to ~40% (0.40)
+  ✓ guaranteed crit ≈ 1.6× (1.60)
+  ✓ critRes 0.5 halves the crit bonus (~1.3×, got 1.30)
+  ✓ energyReg (25 pts/s) charges the ult sooner (2 < 4)
+  ✓ energy regen decoupled from attack speed (fast unit same reg rounds)
+  ✓ HP regen heals a NON-healer (32 > 20 rounds survived)
+  ✓ Helm gear skill absorbs damage (22 > 20 rounds)
+  ✓ fritz base armor/MR reaches dr via defToDR (0.094)
+  ✓ heroes without base armor have dr 0
+  ✓ 1a Mage + AP raises the ability line (84 -> 484)
+  ✓ 1b Bruiser gains NOTHING from AP (79 == 79)
+  ✓ 1c Bruiser + Physical Attack raises his line
+  ✓ 2a magic vs MR1200 halved (5000)
+  ✓ 2b Magic Pen restores it (10000)
+  ✓ 2c ARMOR Pen does NOT help vs MR
+  ✓ 2d Magic Pen does NOT help vs Armor
+  ✓ 3a phys vs Armor1200 halved (5000)
+  ✓ 3b Armor Pen restores it
+  ✓ 3c block halves SOME physical hits (15/40) and NO magical hits (0/40)
+  ✓ 4 Marksman + HP/def utility keeps his physical line (120)
+  ✓ 5a same seed → byte-identical result + event log
+  ✓ 5b event log carries typed kinds (phys,heal,shield,magic,ctrl)
+  ✓ 5c the log is animatable: every entry names round/side/actor/verb/target
+PASS: 24  FAIL: 0
+🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
+⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
+🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
+📁 DB file: ./probe-db-glyphflow.json  (persistent ✅)
+👤 Player accounts loaded: 0
+  ✓ flow migration stamps once
+  ✓ loose finished glyph refunded at 100% named ingredients
+  ✓ loose instance consumed (no inventory remains)
+  ✓ socketed glyph became a permanent locked build in place
+  ✓ ascended bonuses untouched
+  ✓ migration is one-time (idempotent)
+  ✓ stage 1 record authors Grey Stoneheart ×1
+  ✓ chapter 2 record authors its own named Green fragment
+  ✓ boss stage records author ×2
+  ✓ all 100 records carry a validated named target
+  ✓ every hero/slot has exactly one deterministic pre-choice
+  ✓ melee (Bruiser vael): onslaught forges Physical Attack
+  ✓ caster (Mage sylthaine): onslaught forges Ability Power/Magic Pen
+  ✓ healer (Support vireo): onslaught forges Healing/AP — never armor pen
+  ✓ marksman (meridian): mastery forges Crit
+  ✓ tank (grosk): bulwark forges Armor
+  ✓ UNIVERSAL: every archetype gets an HP vitality glyph
+  ✓ caster identity holds at higher tiers too (sylthaine Purple onslaught = magical)
+  ✓ vault floor 5 fragments are named and fixed
+  ✓ floor reward glyph fragments identical across grants
+  ✓ Purple tree: finished root + virtual branch nodes + fragment leaves
+  ✓ Gold tree: multi-level lineage (predecessors of predecessors)
+  ✓ every leaf in both trees is a FARMABLE fragment (family exists at its own tier)
+  ✓ leaf sources resolve to authored stages carrying that same named fragment
+  ✓ flattened totals equal the sum of the tree leaves
+  ✓ CAMPAIGN COVERAGE: every Grey→Gold+4 (tier,family) pair is authored on some stage (all fragments sweepable)
+  ✓ every pre-choice at every tier is farmable end-to-end
+  ✓ canonical ladder is frozen at 16 entries
+
+PASS: 28  FAIL: 0
+🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
+⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
+🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
+📁 DB file: ./probe-db-vg.json  (persistent ✅)
+👤 Player accounts loaded: 0
+  ✓ snapshots build (lvl 20)
+  ✓ snapshot carries combat fields
+  ✓ weak team CAN claim a low floor (5)
+  ✓ weak team REJECTED at floor 50
+  ✓ weak team REJECTED at floor 70
+  ✓ vault-encounters.json authors exactly 100 floors
+  ✓ every floor: exactly two waves
+  ✓ boss on every 5th floor, never elsewhere
+  ✓ every floor authors exactly 2 TARGETED gear fragments
+  ✓ every authored gear fragment exists in the gear catalog
+  ✓ boss floors author named glyph fragments
+  ✓ server serves the AUTHORED waves (floor 7 matches the file)
+  ✓ floor reward = the authored targets (floor 81)
+PASS: 13  FAIL: 0
+🔮 Glyph catalog compiled: 218 definitions, 169 sub-glyph recipes. v2 ENABLED
+⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / 84 item actives. Forge off (dev-only)
+🗺  Campaign encounters compiled: 100 authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.
+🏛  Vault encounters compiled: 100 authored floors (fixed waves, authored boss rules, targeted gear fragments).
+📁 DB file: ./probe-db-wb.json  (persistent ✅)
+👤 Player accounts loaded: 0
+  ✓ 17 registered -> 16 kept
+  ✓ weakest (g1, pool 1001) excluded
+  ✓ seed 1 = strongest (g17)
+  ✓ bracket formed
+PASS: 4  FAIL: 0
+
+ALL SUITES GREEN ✅

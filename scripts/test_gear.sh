@@ -133,4 +133,16 @@ AFT_PM=$(curl -s "$B/api/admin/snapshot?hero=vael" -H "x-token: $TDG"|jv "['snap
 [ -n "$AFT_P" ] && [ "$AFT_P" -gt "$BASE_P" ] && ck "melee gear RAISES the physical line ($BASE_P -> $AFT_P)" ok ok || ck "melee gear raises the physical line" "higher" "$BASE_P -> $AFT_P"
 ck "melee gear grants NO ability line (a physical hero can't be pumped by AP)" '0' "$AFT_PM"
 
+# ===== v256 (80/20 contract §5): EVERY GEAR FRAGMENT HAS A NAMED, AUTHORED SOURCE =====
+echo "-- v256 fragment sources: no gear material is an unexplained random drop"
+SRC=$(curl -s $B/api/gear/sources -H "$HU")
+ck "sources route answers" '"sources"' "$SRC"
+COVN=$(echo "$SRC" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d['sources']))")
+ck "all 84 gear fragments have a source entry" '84' "$COVN"
+NOFL=$(echo "$SRC" | python3 -c "import sys,json; d=json.load(sys.stdin); print(sum(1 for v in d['sources'].values() if not v['floors']))")
+ck "no fragment has an empty floor list" '0' "$NOFL"
+NOIT=$(echo "$SRC" | python3 -c "import sys,json; d=json.load(sys.stdin); print(sum(1 for v in d['sources'].values() if not v['items']))")
+ck "every fragment names the items it crafts" '0' "$NOIT"
+ck "a Grey-band fragment points at authored vault floors" '"Rough Ore Fragment"' "$SRC"
+
 echo ""; echo "PASS: $PASS  FAIL: $FAIL"
