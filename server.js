@@ -757,6 +757,7 @@ function vaultMonsterLevel(floor){ return Math.max(1,Math.min(D_MAX_LEVEL, Math.
    and the two TARGETED gear fragments each floor drops. vaultCompile validates the whole table at
    boot (missing/corrupt file = the server refuses to start, same rule as glyph-source). */
 let VAULT_ENC=null;
+let GEAR_SOURCES=null;   // v256: memoised gear-fragment → vault-floor source map (80/20 §5)
 function vaultCompile(){
   const raw=require('./server/vault-encounters.json');
   const fl=raw&&raw.floors;
@@ -1538,6 +1539,19 @@ async function api(req,res,url){
     if(!gearEnabledFor(me)) return send(res,200,{enabled:false});
     if(rateLimited(req,'gear',80,60000)) return send(res,429,{error:'Slow down.'});
     if(p==='/api/gear/catalog'){ return send(res,200,{ version:1, meta:GEARCAT.meta, items:GEARCAT.items }); }
+    /* v256 (80/20 §5): every gear fragment's EXACT farm source, computed from the authored
+       vault table — never "random drops". Memoised: the table is frozen at boot. */
+    if(p==='/api/gear/sources'){
+      if(!GEAR_SOURCES){
+        const m={};
+        if(VAULT_ENC){ VAULT_ENC.forEach(rec=>{ (rec.gearFragments||[]).forEach(fr=>{
+          (m[fr]||(m[fr]={frag:fr,quality:rec.quality,floors:[],items:[]})).floors.push(rec.floor); }); }); }
+        GEARCAT.items.forEach(it=>{ if(m[it.frag] && m[it.frag].items.indexOf(it.name)<0) m[it.frag].items.push(it.name); });
+        GEAR_SOURCES=m;
+      }
+      return send(res,200,{ version:1, sources:GEAR_SOURCES,
+        note:'Gear fragments come only from the authored Aether Vault floors listed here. Sweeping a floor grants the same two fragments it lists.' });
+    }
     const g=ensureGear(me);
     if(p==='/api/gear/state'){ return send(res,200,{ enabled:true, revision:g.revision, dust:me.dust||0,
       fragments:g.fragments, subs:g.subs, items:g.items, equipped:g.equipped, active:g.active,

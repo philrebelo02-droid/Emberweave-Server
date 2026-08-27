@@ -816,8 +816,8 @@
   <!-- SERVER RANKINGS -->
   <div class="screen hub" id="rankings">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>📊 SERVER RANKINGS</h1></div>
-    <div class="sub">Arena, guilds & your standings across the server</div>
+    <div class="titlebar"><h1>📋 BULLETIN BOARD</h1></div>
+    <div class="sub">Server rankings — arena, guilds & your standings</div>
     <div id="rankingsBody" style="width:100%;max-width:520px"></div>
   </div>
 
@@ -4725,7 +4725,7 @@ function renderHome(){
     {nav:'temple',      label:'Temple',         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(40)},
     {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
     {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
-    {nav:'rankings',    label:'Server Rankings', x:69, y:37, w:15, h:16, lx:69, ly:46},
+    {nav:'rankings',    label:'Bulletin Board', x:69, y:37, w:15, h:16, lx:69, ly:46},   // v256 (80/20 §7): rankings live on the physical Bulletin Board — there is no top-nav duplicate
     {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},
     {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
@@ -4960,6 +4960,7 @@ function vaultScreenHTML(){
     </div>`:''}
     ${s.isBoss?vaultBossLabel(s.bossRule):''}
     <div class="panel">${vaultPickerHTML()}</div>
+    ${(typeof preBattleLineHTML==='function')?preBattleLineHTML('vault'):''}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.freeUsesRemaining>0?'onclick="vaultSweep()"':'disabled'}>🧹 Sweep ×${s.sweep.freeUsesRemaining}</button>
       <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">♻ Salvage</button></div>
@@ -5035,6 +5036,8 @@ function castGearSkill(u){
 }
 async function forgeSync(){
   if(!FORGE.cat){ const c=await api('/api/gear/catalog'); if(c&&c.items) FORGE.cat=c; }
+  // v256 (80/20 §5): the exact farm source of every gear fragment, from the authored vault table
+  if(!FORGE.src){ try{ const sc=await api('/api/gear/sources'); if(sc&&sc.sources) FORGE.src=sc.sources; }catch(e){} }
   const s=await api('/api/gear/state'); FORGE.st=(s&&s.enabled)?s:{enabled:false}; return FORGE.st;
 }
 function forgeDef(id){ return (FORGE.cat&&FORGE.cat.items.find(i=>i.id===id))||null; }
@@ -5048,6 +5051,24 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
 function forgeTab(t){ FORGE.tab=t; renderForge(); }
 function forgeQ(i){ FORGE.q=i; renderForge(); }
+/* v256 (80/20 §5): "where does this fragment come from" — answered on the crafting screen itself
+   from the authored vault table, so no material in the game is an unexplained random drop. */
+function fragSourceLine(frag){
+  const src=FORGE.src&&FORGE.src[frag];
+  if(!src||!src.floors||!src.floors.length) return '';
+  const f=src.floors.slice().sort((a,b)=>a-b);
+  const shown=f.slice(0,6).map(n=>'Floor '+n).join(' · ')+(f.length>6?' +'+(f.length-6)+' more':'');
+  return `<div style="font-size:9px;color:#8fe3ff;margin:2px 0;cursor:pointer" onclick="openFragSource('${frag.replace(/'/g,"\\'")}')">📍 Farm in The Vault — ${shown} <span style="color:#6f7d90">(tap for all)</span></div>`;
+}
+function openFragSource(frag){
+  const src=FORGE.src&&FORGE.src[frag]; if(!src) return;
+  const f=(src.floors||[]).slice().sort((a,b)=>a-b);
+  const body=`<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${escapeHTML(src.quality||'')} band · used to craft: <b style="color:#e6edf3">${(src.items||[]).map(escapeHTML).join(', ')||'—'}</b></div>
+    <div style="font-size:11px;color:#6f7d90;margin-bottom:6px">Every clear <b>or sweep</b> of these Aether Vault floors grants this fragment. The floors are fixed and authored — the same floor always gives the same two gear fragments.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${f.map(n=>`<span class="pill" style="border:1px solid #2b3d5c;color:#8fe3ff;font-size:10px">Vault ${n}</span>`).join('')}</div>`;
+  const sh=modalShell();
+  sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:6px">🧩 ${escapeHTML(frag)}</div>`+body;
+}
 function forgeCraftTabHTML(){
   const st=FORGE.st, cat=FORGE.cat, quals=cat.meta.qualities;
   const q=quals[FORGE.q], defs=cat.items.filter(i=>i.quality===q);
@@ -5064,6 +5085,7 @@ function forgeCraftTabHTML(){
         <b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b>
         <span style="font-size:9px;color:#8b98a9">${d.slotFull||d.slot}</span></div>
       <div style="font-size:9px;color:#6f7d90;margin:2px 0">${escapeHTML(d.passive||'')}${d.active?' · <span style="color:#8fe3ff">Active: '+escapeHTML(d.active)+'</span>':''}</div>
+      ${fragSourceLine(d.frag)}
       <div style="display:flex;gap:4px;align-items:center;font-size:9px;flex-wrap:wrap">
         <span style="color:#8b98a9">🧩 ${d.frag}: <b style="color:${have?'#5ee89b':'#6f7d90'}">${have}</b></span>
         ${d.qi===0
@@ -5614,6 +5636,54 @@ window.STAGE_CACHE=window.STAGE_CACHE||{};
 /* v255 (80/20 contract §2): the stage-detail panel — recommended power vs YOUR line, the authored
    waves and their named monsters, the guaranteed fragment, and the three-star condition. Everything
    the player needs to answer "can I clear this, and what exactly do I get?" before spending stamina. */
+/* v256 (80/20 §6): READABLE STRATEGY BEFORE THE FIGHT — every unit carries a role marker that
+   states where it stands and what it does, and every hero carries a one-line ability tooltip. */
+const ROLE_META={
+  Tank:      {row:'Front', color:'#8fb7ff', blurb:'Holds the front line and soaks damage'},
+  Fighter:   {row:'Front', color:'#9fd0ff', blurb:'Front-line melee, trades hits'},
+  Bruiser:   {row:'Mid',   color:'#ffb37a', blurb:'Melee damage with real health'},
+  Warrior:   {row:'Mid',   color:'#ffb37a', blurb:'Melee damage with real health'},
+  Brute:     {row:'Mid',   color:'#ffb37a', blurb:'Melee damage with real health'},
+  Assassin:  {row:'Flank', color:'#ff9aa2', blurb:'Dives the enemy back line'},
+  Marksman:  {row:'Back',  color:'#ffd45e', blurb:'Ranged physical damage from the back'},
+  Mage:      {row:'Back',  color:'#c9a2ff', blurb:'Ranged magical burst from the back'},
+  Support:   {row:'Back',  color:'#5ee89b', blurb:'Heals and sustains the team'},
+  Control:   {row:'Back',  color:'#8fe3ff', blurb:'Stuns, slows and locks down'}
+};
+function roleMeta(role){ return ROLE_META[role]||{row:'Mid',color:'#8b98a9',blurb:''}; }
+function roleTag(role,small){ const m=roleMeta(role);
+  return `<span class="pill" style="border:1px solid ${m.color}55;color:${m.color};font-size:${small?'9px':'10px'};padding:1px 5px;white-space:nowrap">${m.row} · ${escapeHTML(role||'—')}</span>`; }
+function abilityBrief(key){ const t=HERO_TYPES[key]; if(!t) return '';
+  const full=(typeof ULT_DESC!=='undefined'&&ULT_DESC[t.ability])||'';
+  let txt=full.replace(/^(Player-aimed ultimate|Ultimate)\s*[—-]\s*/,'');
+  const cut=txt.indexOf('. '); if(cut>0&&cut<150) txt=txt.slice(0,cut+1);
+  if(txt.length>150) txt=txt.slice(0,147)+'…';
+  return txt; }
+/* Your line, spelled out: portrait, role marker, level and the ultimate it will fire. */
+function preBattleLineHTML(mode){
+  let keys=[]; try{ keys=(squadFor(mode||'campaign')||[]).filter(Boolean); }catch(e){}
+  if(!keys.length) keys=(G.team||[]).filter(Boolean);
+  keys=keys.filter(k=>HERO_TYPES[k]);
+  if(!keys.length) return '';
+  const order=k=>{ const m=roleMeta((HERO_TYPES[k]||{}).role); return {Front:0,Mid:1,Flank:2,Back:3}[m.row]; };
+  const rows=keys.slice().sort((a,b)=>order(a)-order(b)).map(k=>{ const t=HERO_TYPES[k];
+    const lv=(typeof heroLevel==='function')?heroLevel(k):1;
+    return `<div style="display:flex;gap:6px;align-items:flex-start;padding:4px 0;border-top:1px solid #1a2233">
+      <span style="font-size:15px;line-height:1.1">${t.emoji||'🎖'}</span>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+          <b style="font-size:11px">${escapeHTML(t.name||k)}</b>
+          <span style="font-size:9px;color:#8b98a9">Lv ${lv}</span>
+          ${roleTag(t.role,true)}
+          <span style="font-size:9px;color:${(t.apow|0)>0?'#c9a2ff':'#ffb37a'}">${(t.apow|0)>0?'✦ Magical':'⚔ Physical'}</span></div>
+        <div style="font-size:9.5px;color:#8fe3ff;margin-top:1px">⚡ ${escapeHTML(t.abilityName||'Ultimate')}</div>
+        <div style="font-size:9px;color:#6f7d90;line-height:1.35">${escapeHTML(abilityBrief(k))}</div>
+      </div></div>`; }).join('');
+  return `<div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-top:8px;text-align:left">
+    <div style="font-size:10px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">YOUR LINE — WHO STANDS WHERE</div>
+    ${rows}
+    <div style="font-size:9px;color:#5a6472;margin-top:5px">Front holds, Mid trades, Flank dives the enemy back line, Back deals ranged damage and heals.</div></div>`;
+}
 function stageDetailHTML(stg,node){
   if(!stg) return '<div style="font-size:11px;color:#6f7d90">Loading stage details…</div>';
   const mine=(function(){ try{ const sq=(squadFor('campaign')||[]).filter(Boolean); const arr=(sq.length?sq:(G.team||[]).filter(Boolean))
@@ -5626,8 +5696,9 @@ function stageDetailHTML(stg,node){
   const waveRows=waves.map((w,wi)=>{
     const counts={}; w.forEach(m=>{ counts[m.key]=(counts[m.key]||0)+1; });
     const boss=w.some(m=>m.boss);
-    const list=Object.keys(counts).map(k=>nameOf(k)+(counts[k]>1?(' ×'+counts[k]):'')).join(', ');
-    return `<div style="font-size:11px;color:#c3ccd8;margin:2px 0"><b style="color:${boss?'#ffd45e':'#8fb7ff'}">Wave ${wi+1}${boss?' 👑':''}</b> · ${escapeHTML(list)}</div>`;
+    const list=Object.keys(counts).map(k=>{ const t=HERO_TYPES[k]||MONSTER_TYPES[k]||{};
+      return `<span style="white-space:nowrap">${escapeHTML(nameOf(k))}${counts[k]>1?(' ×'+counts[k]):''} ${roleTag(t.role,true)}</span>`; }).join(' ');
+    return `<div style="font-size:11px;color:#c3ccd8;margin:3px 0;line-height:1.8"><b style="color:${boss?'#ffd45e':'#8fb7ff'}">Wave ${wi+1}${boss?' 👑':''}</b> · ${list}</div>`;
   }).join('');
   const frag=((stg.rewards&&stg.rewards.glyphFragments)||[]).map(f=>
     `${(typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆'} <b style="color:#8fe3ff">${escapeHTML(f.displayName)} ×${f.quantity}</b>`).join('<br>');
@@ -5639,7 +5710,7 @@ function stageDetailHTML(stg,node){
     <div style="margin-top:6px">${waveRows}</div>
     ${frag?`<div style="margin-top:6px;font-size:11px"><span style="color:#8b98a9">Guaranteed:</span><br>${frag}</div>`:''}
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
-  </div>`;
+  </div>${preBattleLineHTML('campaign')}`;
 }
 function openStageModal(i){
   if(i>G.campaignCleared+1) return;   // locked — must clear the previous stage first
@@ -9873,7 +9944,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787847943194';
+const BUILD_ID='1787848517047';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
