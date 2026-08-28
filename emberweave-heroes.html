@@ -10652,6 +10652,15 @@ document.getElementById('startBtn').onclick=async()=>{
   // RE-AUDIT round 3: a fast player must not enter a fight before the Forge state has loaded —
   // battle entry AWAITS the first forgeSync (one-time; instant once FORGE.st is cached).
   if(ACC.token && typeof FORGE!=='undefined' && FORGE.st===null){ try{ await forgeSync(); }catch(e){} }
+  /* 28 Aug (Phil: "the game does not register the hero picks i make. it just chooses an old line up").
+     The squad screen edits squadFor(mode) — but everything below reads G.team, and G.team was only
+     refreshed by syncActiveSquad() INSIDE startBattle(), which runs AFTER the server has already been
+     handed heroIds and frozen the squad. So the server locked the PREVIOUS line-up, and since v270
+     the server's frozen snapshot is the fight you actually play: your picks were read one battle too
+     late. (It also made `if(!G.team.length) return` refuse to start at all when G.team had never been
+     synced, so BATTLE did nothing on a fresh account.) Sync FIRST, then everything reads the picks
+     you just made. startBattle() still calls it too; it is idempotent. */
+  syncActiveSquad();
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; }
@@ -10749,7 +10758,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787935126073';
+const BUILD_ID='1787936311099';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
