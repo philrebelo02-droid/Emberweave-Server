@@ -5591,7 +5591,13 @@ function renderForge(){
    never the ledger. */
 let LED={st:null};
 function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
-  G.gold=st.gold|0; G.gems=st.gems|0; G.xp=st.px|0;
+  /* 28 Aug — THE LEVEL-1 BUG. This read the ledger's player XP into `G.xp`, a field NOTHING else in
+     the game reads: playerLevel() reads G.playerXP. And playerXP is on the server's
+     SERVER_OWNED_SAVE_FIELDS list, so it is deleted out of every save the browser uploads. So for a
+     signed-in player the server's player XP had no route into the client at all — the ledger counted
+     it correctly, the level just never showed it. That is why Phil read as level 1 with his real
+     roster intact. It was never the dev cheat and never an anti-cheat. */
+  G.gold=st.gold|0; G.gems=st.gems|0; G.playerXP=st.px|0; G.xp=G.playerXP;
   G.heroXP=G.heroXP||{}; G.starLevel=G.starLevel||{}; G.starPip=G.starPip||{}; G.unlocked=G.unlocked||{}; G.heroFrag=G.heroFrag||{};
   G.starRefine=G.starRefine||{};
   for(const k in (st.hero||{})){ G.heroXP[k]=st.hero[k].xp|0; G.starLevel[k]=st.hero[k].stars|0; G.starPip[k]=st.hero[k].pips|0; if(st.hero[k].ref!=null) G.starRefine[k]=st.hero[k].ref|0; }
@@ -9738,7 +9744,7 @@ function renderSettings(){
       <div class="dvp-sec">Currency</div>
       <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 each shard')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
       <div class="dvp-sec">Progression</div>
-      <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
+      <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('campstage','\ud83d\uddfa','Campaign +5 stages')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
       <div class="dvp-sec">Roster</div>
       <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('maxteam','\u2728','Max team glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
       <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
@@ -9916,15 +9922,39 @@ function devAction(a,b){
   if(a==='gold'){ api('/api/admin/led-grant','POST',{gold:100000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+100,000 gold'); }
   else if(a==='gems'){ api('/api/admin/led-grant','POST',{gems:2000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+2,000 diamonds'); }
   else if(a==='pieces'){ if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+200); done('+200 of each equipment piece'); }
-  else if(a==='stam'){ G.stamina=maxStamina(); G.staminaTS=Date.now(); done('Stamina refilled'); }
-  else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); G.playerXP=TROOP_CUM[nl]; done('Now player level '+nl); }
-  else if(a==='squadlvl'){ if(!G.heroXP)G.heroXP={}; (G.team||[]).forEach(k=>{ if(!k)return; const cur=levelFromXP(G.heroXP[k]||0); const nl=Math.min(MAX_LEVEL,cur+5); G.heroXP[k]=HERO_CUM[nl]; }); done('Squad +5 levels'); }
-  else if(a==='heroes'){ HERO_KEYS.forEach(k=>G.unlocked[k]=true); done('All heroes unlocked'); }
+  /* 28 Aug (Phil: "I did force level myself in dev panel ... did it detect my jump and catch me?").
+     No — nothing caught him, and nothing punished him. These buttons were simply LYING. Levels, hero
+     XP, unlocks, stamina and campaign progress are all on SERVER_OWNED_SAVE_FIELDS, which the server
+     DELETES out of any save a browser uploads (v273: "the ledger owns progression"). So writing them
+     into G only changed this browser's copy; the next sign-in showed the ledger's real numbers and
+     the levels evaporated. Gold and diamonds already went through the ledger endpoint — progression
+     never got migrated with them. It does now, so a dev cheat is real progress or an honest error. */
+  else if(a==='stam'){ done('Refilling stamina…');
+    api('/api/admin/led-grant','POST',{stamina:999}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Stamina refilled'); } else done('✖ server refused — not applied'); }); return; }
+  else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); const need=Math.max(0,(TROOP_CUM[nl]||0)-(G.playerXP||0));
+    done('Levelling…');
+    api('/api/admin/led-grant','POST',{px:need}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('Now player level '+playerLevel()); } else done('✖ server refused — not applied'); }); return; }
+  else if(a==='squadlvl'){ const team=(G.team||[]).filter(Boolean); if(!team.length){ done('No squad selected'); return; }
+    done('Levelling squad…');
+    Promise.all(team.map(k=>{ const cur=levelFromXP((G.heroXP&&G.heroXP[k])||0), nl=Math.min(MAX_LEVEL,cur+5);
+      const need=Math.max(0,(HERO_CUM[nl]||0)-((G.heroXP&&G.heroXP[k])||0));
+      return api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}); }))
+      .then(rs=>{ const last=rs[rs.length-1]; if(last&&last.ok){ adoptLedger(last.ledger); done('Squad +5 levels'); } else done('✖ server refused — not applied'); }); return; }
+  else if(a==='heroes'){ done('Unlocking…');
+    api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else done('✖ server refused — not applied'); }); return; }
+  else if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+5); done('Advancing campaign…');
+    api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else done('✖ server refused — not applied'); }); return; }
   else if(a==='konwu'){ G.unlocked.konwu=true; G.starLevel.konwu=MAX_STARS; G.starPip.konwu=0; G.skillLevel.konwu=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; done('KonWu unlocked & maxed — put him in your team, then battle'); }
-  else if(a==='maxteam'){ G.team.forEach(k=>{ G.starLevel[k]=MAX_STARS; G.starPip[k]=0; G.skillLevel[k]=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; }); done('Team maxed (stars + skills — glyph ranks live on the server: /api/glyphs/grant)'); }
+  else if(a==='maxteam'){ const team=(G.team||[]).filter(Boolean); if(!team.length){ done('No squad selected'); return; }
+    done('Maxing team…');
+    api('/api/admin/led-grant','POST',{heroKeys:team,stars:MAX_STARS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
+        done('Team stars maxed. (Skill levels have no ledger endpoint yet, so they are NOT applied — glyph ranks: /api/glyphs/grant)'); }
+      else done('✖ server refused — not applied'); }); return; }
   else if(a==='arena'){ G.arenaRank=1; G.bestArenaRank=1; done('Arena rank set to #1'); }
-  else if(a==='arenacoin'){ G.arenaCoins=(G.arenaCoins||0)+5000; done('+5,000 arena coins'); }
-  else if(a==='guildcoins'){ G.guildCoins=(G.guildCoins||0)+5000; done('+5,000 guild coins'); }
+  // arena/guild coins are server-owned too and have no ledger endpoint yet: the number moves on screen
+  // but the server drops it from the stored save, so it is gone at the next sign-in. Say so.
+  else if(a==='arenacoin'){ G.arenaCoins=(G.arenaCoins||0)+5000; done('+5,000 arena coins — LOCAL ONLY, resets at next sign-in'); }
+  else if(a==='guildcoins'){ G.guildCoins=(G.guildCoins||0)+5000; done('+5,000 guild coins — LOCAL ONLY, resets at next sign-in'); }
   else if(a==='shielditem'){ G.shieldItems=(G.shieldItems||0)+3; done('+3 protection shields'); }
   else if(a==='givefrags'){ openDevFragGranter(b); return; }
   else if(a==='update'){ devForceUpdate(); return; }
@@ -10670,7 +10700,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787932795775';
+const BUILD_ID='1787933299672';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
