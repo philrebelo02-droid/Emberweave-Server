@@ -4768,7 +4768,21 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
     g.position.set(wx(u.rx==null?u.x:u.rx),0,wz(u.ry==null?u.y:u.ry)); const spr=u.sprite;   // v268: interpolated between sim ticks
     const foe=(u.target&&u.target.alive)?u.target:null;
     if(u.alive){ u.bob+=dt*4; const bob=Math.abs(Math.sin(u.bob))*.06;
-      const pdx=u.x-(u._ax==null?u.x:u._ax), pdy=u.y-(u._ay==null?u.y:u._ay); const moved=Math.abs(pdx)+Math.abs(pdy); u._ax=u.x; u._ay=u.y;
+      const pdx=u.x-(u._ax==null?u.x:u._ax), pdy=u.y-(u._ay==null?u.y:u._ay); u._ax=u.x; u._ay=u.y;
+      /* 28 Aug — WHY HALF THE ROSTER "GLIDES IN PLACE" (Phil).
+         `moved` was the change in u.x/u.y since the last RENDER frame — but u.x only changes on a SIM
+         tick, and the sim runs at SIM_HZ=30 while the screen renders at 60. So on every other frame
+         the unit had "not moved", `walking` went false, the state flipped walk->idle, and the line
+         `if(u._animSt!==st){u._animSt=st;u._animAcc=0;}` ZEROED the animation accumulator. The walk
+         clip was restarted at frame 0 sixty times a second and never got past its first cell: the
+         hero slid across the field holding one pose. Fixed two ways: movement is now measured from
+         the INTERPOLATED render position (u.rx/u.ry), which does change every frame, as a real
+         velocity; and the walk state is held briefly after the last step so a single quiet frame can
+         never drop it. */
+      const _rx=(u.rx==null?u.x:u.rx), _ry=(u.ry==null?u.y:u.ry);
+      const moved=Math.abs(_rx-(u._rax==null?_rx:u._rax))+Math.abs(_ry-(u._ray==null?_ry:u._ray));
+      u._rax=_rx; u._ray=_ry;
+      const _speed=moved/Math.max(dt,1e-4);                       // field units per second, frame-rate independent
       { const LU=(u.anim&&u.anim.attack&&u.anim.attack.lunge)||0;
         if(LU>0 && u._atkHold>0 && u.target){ const _ah2=((u.anim.attack.hold)||0.42); const p=Math.min(1,Math.max(0,1-(u._atkHold/_ah2))); const arc=Math.sin(p*Math.PI); const dx=Math.sign(wx(u.target.x)-wx(u.x))||0, dz=Math.sign(wz(u.target.y)-wz(u.y))||0; g.position.x+=dx*LU*arc; g.position.z+=dz*LU*arc; }
         else if(u.attackAnim>0&&u.target){const k=u.attackAnim/.18;g.position.x+=(Math.sign(wx(u.target.x)-wx(u.x))||0)*.28*k;g.position.z+=(Math.sign(wz(u.target.y)-wz(u.y))||0)*.28*k;} }
@@ -4789,7 +4803,10 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(u.attackAnim>0)u._atkHold=_ah; else if(u._atkHold>0)u._atkHold-=dt;
         if(u._critHit&&!(u._atkHold>0))u._hitHold=0.28; else if(u._hitHold>0)u._hitHold-=dt; u._critHit=false;
         if(u._abilHold>0)u._abilHold-=dt;
-        const walking=moved>0.05;   // any real repositioning counts as walking (even a short 2 m step) — no idle-sliding
+        // hold the walk state for a moment after the last real step, so the 30Hz sim under a 60Hz
+        // render (or any frame hitch) can never flicker walk->idle and restart the clip
+        if(_speed>1.5) u._moveT=0.20; else u._moveT=Math.max(0,(u._moveT||0)-dt);
+        const walking=(u._moveT||0)>0;
         const abilActive=(u._abilHold>0 && u._abilAnim && u.anim[u._abilAnim]);   // ability clip overrides everything while it plays
         let st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
@@ -4807,7 +4824,10 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           if('naturalWidth' in im) return im.complete&&im.naturalWidth>0;   // HTMLImageElement
           return (im.width|0)>0; };                                        // ImageBitmap / canvas
         if(!_rdyC(A)){ if(_rdyC(u.anim.idle)){ A=u.anim.idle; st='idle'; } }
-        if(u._animSt!==st){u._animSt=st;u._animAcc=0;}
+        // walk<->idle share a leg cadence; carrying the accumulator across that swap stops a visible
+        // snap back to frame 0 every time a hero pauses for an instant mid-approach
+        if(u._animSt!==st){ const _soft=(u._animSt==='walk'&&st==='idle')||(u._animSt==='idle'&&st==='walk');
+          u._animSt=st; if(!_soft) u._animAcc=0; }
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12);   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8)); }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else u._animAcc=(u._animAcc||0)+dt*(A.fps||10);
@@ -10895,7 +10915,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787949702308';
+const BUILD_ID='1787951824588';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
