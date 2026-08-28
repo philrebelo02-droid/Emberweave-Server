@@ -1689,13 +1689,23 @@ async function api(req,res,url){
     // cap account creation to 3 per device (and a softer per-network cap so clearing storage can't fully bypass it)
     const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
-    if((DB.ipAccounts[ip]||0)>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many accounts from this network.'});
+    /* v274 — THE NETWORK CAP IS A WINDOW, NOT A LIFE SENTENCE.
+       It used to be a counter that only ever went up, so a household, an office, a school or anyone
+       behind carrier-grade NAT was permanently locked out once six accounts had ever been made from
+       that address — including a family sharing a router. It is now a rolling 24-hour window, which
+       stops bulk creation just as well without banning a whole network forever. */
+    { const now=Date.now(), WINDOW=24*3600000;
+      const rec=DB.ipAccounts[ip];
+      const times=Array.isArray(rec)?rec.filter(t=>now-t<WINDOW):[];
+      if(times.length>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many new accounts from this network today — try again tomorrow.'});
+      DB.ipAccounts[ip]=times; }
     const id=uid(), c=makeCred(b.pass);
     const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);   // RE-AUDIT: imports go through the same clamps as /api/save
     // AUDIT (critical): registering a name NEVER grants a role — admin only via stored role/env.
-    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; DB.ipAccounts[ip]=(DB.ipAccounts[ip]||0)+1;
+    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;
+    DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50);
     const tok=issueToken(id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
