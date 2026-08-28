@@ -164,7 +164,11 @@ const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
 /* Everything on this list is decided by the server ledger. None of it is stored from a client save. */
 const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
   'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
-  'techLearn','prayer','skillLevel','arenaCoins','guildCoins','dust','starShards','eqMats','mats']);
+  'techLearn','prayer','skillLevel','arenaCoins','guildCoins','dust','starShards','eqMats','mats',
+  /* v274 (hardening directive §2.4): gear and equipment too. The Forge (u.gear) is server-owned and
+     the legacy equip bundle no longer reaches combat, so there is no reason to keep either in a blob
+     the client writes. */
+  'equip','eqInv','gear','gearFrag','temper','equipped','active']);
 function clampNum(v,cap){ if(typeof v!=='number'||!isFinite(v)) return v; if(v<0) return 0; if(v>cap) return cap; return v; }
 function sanitizeSave(u, roster){
   if(!roster || typeof roster.__save!=='string') return roster;
@@ -717,11 +721,13 @@ function snapshotHeroFromServer(u, key, save){
     lvl=ledHeroLevel(led,key);
     stars=Math.max(base.stars,Math.min(5,h.stars|0)); pips=Math.max(0,Math.min(5,h.pips|0)); refLvl=Math.max(0,Math.min(15,h.ref|0));
   } else {
-    save=save||parseSaveOf(u);
-    const pl=d_levelForXP((save.playerXP|0)||0, D_TROOP_CUM);
-    lvl=Math.max(1,Math.min(pl, d_levelForXP(((save.heroXP||{})[key]|0)||0, D_HERO_CUM)));
-    stars=Math.max(base.stars, Math.min(5, ((save.starLevel||{})[key]|0)||base.stars));
-    pips=Math.max(0,Math.min(5, ((save.starPip||{})[key]|0)||0));
+    /* v274 (hardening directive §2.5) — THE FALLBACK IS DELETED, NOT LEFT UNREACHABLE.
+       This branch used to rebuild a hero from the uploaded browser save. It was unreachable in
+       practice (ensureLedger runs first, immediately above), but "unreachable" is not a security
+       boundary — it is a line of code waiting for a refactor to reach it. A snapshot now comes from
+       the ledger or it does not exist. */
+    console.error('🚨 snapshotHeroFromServer: no ledger for account '+((u&&u.id)||'?')+' — refusing to build a snapshot from a client save');
+    return null;
   }
   const fl=glyphFlatStats(u,key);
   let gf=null;
@@ -1173,10 +1179,72 @@ function simHost(){
   }catch(e){ _SIMHOST_ERR=e; console.error('🚨 sim-host FAILED to load — campaign results cannot be verified:', e.message); }
   return _SIMHOST;
 }
+/* v274 (hardening directive §4) — VALUABLE ROLLS COME FROM A SERVER SECRET.
+   Several rewards were seeded from `SIM.seedFrom(... + requestId)`, and requestId is chosen by the
+   client — so a player could grind request ids locally until one produced a win or a bigger fragment
+   drop, without ever touching the game. Rolls are now HMAC(server secret, domain | account | index),
+   which the client cannot search, and the secret never leaves the server. */
+function serverSecret(){
+  if(process.env.SERVER_SECRET) return process.env.SERVER_SECRET;
+  DB.meta=DB.meta||{};
+  if(!DB.meta.rollSecret){ DB.meta.rollSecret=crypto.randomBytes(32).toString('hex'); writeDBNow(); }
+  return DB.meta.rollSecret;
+}
+function srvSeed(domain, ...parts){
+  const h=crypto.createHmac('sha256', serverSecret()).update([domain,...parts].join('|')).digest();
+  return h.readUInt32BE(0)>>>0;
+}
+/* The live action channel's server half. Kept next to the other authority helpers, not inside the
+   websocket block, so the campaign routes can read the accepted list without reaching into it. */
+const ACT_KINDS=Object.freeze(['ult','gear','auto']);
+const ACT_MAX=400;                     // the same cap the transcript has always had
+const ACT_TICK_SLACK=90;               // 3 s of tolerance for frame stalls and clock skew
+const ACT_MAX_SPEED=2;                 // the fastest the player can legitimately run the battle
+function findOpenSession(u, sid){
+  const led=u.led; if(!led) return null;
+  for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
+    if(pr && pr.att && pr.att.id===sid) return {mode:m, prog:pr, att:pr.att}; }
+  return null;
+}
+function streamAction(u, m){
+  const sid=String(m.sessionId||'').slice(0,48);
+  const found=findOpenSession(u, sid);
+  if(!found) return {ok:false, reason:'no-session'};
+  const a=found.att;
+  if(Date.now()-(a.startedAt||0) > CAMP_SESSION_MS) return {ok:false, reason:'expired'};
+  a.stream=a.stream||{ seq:0, acts:[], chain:'' };
+  const st=a.stream;
+  if(st.closed) return {ok:false, reason:'session-ended'};
+  const seq=m.seq|0;
+  if(seq!==st.seq+1) return {ok:false, reason:'out-of-order', expected:st.seq+1};
+  if(st.acts.length>=ACT_MAX) return {ok:false, reason:'too-many-actions'};
+  const kind=String(m.kind||'');
+  if(ACT_KINDS.indexOf(kind)<0) return {ok:false, reason:'bad-kind'};
+  const tick=m.tick|0;
+  if(tick<0 || tick>SIM_TICK_MAX) return {ok:false, reason:'bad-tick'};
+  const last=st.acts.length?st.acts[st.acts.length-1][0]:-1;
+  if(tick<last) return {ok:false, reason:'tick-went-backwards'};
+  /* THE ANTI-POST-HOC CHECK: an action cannot claim a sim tick further into the battle than the wall
+     clock allows, even at the fastest speed the player can select. You cannot send the whole fight's
+     worth of actions in the last second, and you cannot send them after it ended. */
+  const elapsedTicks=Math.floor(((Date.now()-(a.startedAt||0))/1000)*30*ACT_MAX_SPEED)+ACT_TICK_SLACK;
+  if(tick>elapsedTicks) return {ok:false, reason:'tick-ahead-of-clock', limit:elapsedTicks};
+  const uid=m.casterUid|0, tid=(m.targetUid==null?-1:(m.targetUid|0));
+  if(kind!=='auto' && !(uid>=0&&uid<64)) return {ok:false, reason:'bad-caster'};
+  const clamp=(v,hi)=>(v==null||!isFinite(v))?null:Math.max(0,Math.min(hi,+(+v).toFixed(2)));
+  const entry=[tick, kind, (kind==='auto'?-1:uid), (kind==='auto'?((m.value?1:0)) : ((tid>=0&&tid<64)?tid:-1)),
+    clamp(m.wx,FIELD_W), clamp(m.wy,FIELD_D)];
+  st.acts.push(entry);
+  st.seq=seq;
+  st.chain=sha256hex(st.chain+'|'+entry.join(','));
+  st.lastAt=Date.now();
+  return {ok:true, tick, accepted:st.seq, chain:st.chain.slice(0,16)};
+}
+function srvRoll(domain, ...parts){ return srvSeed(domain,...parts)/4294967296; }
 function sha256hex(x){ return crypto.createHash('sha256').update(String(x)).digest('hex').slice(0,32); }
 /* Bumped by hand on every server change that a deployment proof needs to see. */
 const EQ_MAT_KEYS=Object.freeze(['cloth','blade','wood','ore']);   // the four equipment materials
-const SERVER_BUILD='v273-audit-response';
+const SERVER_BUILD='v274-hardening';
 const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
 const SKILL_MAX_SRV=10;
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
@@ -1533,8 +1601,20 @@ function applyResult(me, opp, won){
 function dailyAmount(rank){ if(rank<=1)return 1000; if(rank<=10)return 600; if(rank<=100)return 350; if(rank<=1000)return 180; return 60; }
 
 /* --------------------------------- routes --------------------------------- */
+/* v274 (hardening directive §4) — A BLANKET LIMIT ON MUTATIONS.
+   Individual routes were limited historically; the rest relied on economic bounds alone, which stops
+   value being minted but not a client hammering write paths (and every ledger write is now a durable
+   fsync, so unbounded writes are a real cost). This is per ACCOUNT as well as per IP, so one token
+   cannot spread its load across addresses. */
+const MUT_PER_MIN=+(process.env.MUT_PER_MIN||240);
+function mutationLimited(req){
+  const who=(req.headers['x-token']?tokHash(String(req.headers['x-token'])).slice(0,16):('ip:'+clientIP(req)));
+  return rateLimited(req,'mut|'+who, MUT_PER_MIN, 60000);
+}
 async function api(req,res,url){
   const p=url.pathname;
+  if(req.method==='POST' && !/^\/api\/(register|login|guest|reset)/.test(p) && mutationLimited(req))
+    return send(res,429,{error:'Slow down — too many requests.'});
   if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }
 
   /* v255 (80/20 contract §9 + release gate 5): the PRODUCTION FEATURE-FLAG MANIFEST and the
@@ -1548,7 +1628,13 @@ async function api(req,res,url){
       flags:{ DUNGEON_V2_ENABLED, GEAR_V2_ENABLED:(typeof GEAR_V2_ENABLED!=='undefined'?GEAR_V2_ENABLED:null),
         GUILD_WAR_V2_ENABLED:(typeof GUILD_WAR_V2_ENABLED!=='undefined'?GUILD_WAR_V2_ENABLED:null),
         GLYPH_V2:!!GLYPHS, POSTGRES:!!PG, SMTP:!!process.env.SMTP_HOST },
-      tuning:{ VAULT_SKILL_BAND, CAMPAIGN_SKILL_BAND, GLYPH_RL_PER_MIN, REG_PER_MIN:(typeof REG_PER_MIN!=='undefined'?REG_PER_MIN:null) },
+      /* v274 (§4): tuning numbers and limits are OPERATIONAL detail — an attacker reading them learns
+         exactly how hard to push. Public callers get the labels they need to verify a release; the
+         numbers require an admin token. */
+      tuning:(function(){ try{ const who=authUser(req); if(who&&isDev(who))
+          return { VAULT_SKILL_BAND, CAMPAIGN_SKILL_BAND, GLYPH_RL_PER_MIN, MUT_PER_MIN,
+                   REG_PER_MIN:(typeof REG_PER_MIN!=='undefined'?REG_PER_MIN:null) };
+        }catch(e){} return { restricted:true }; })(),
       /* v273 — WHAT IS ACTUALLY RUNNING. A report claiming a fix is live means nothing on its own; a
          black-box test reads this from the deployed server and checks it against the claim. `engine`
          is the client build the server replays, so client and server versions are both visible. */
@@ -1556,6 +1642,7 @@ async function api(req,res,url){
       engine: (function(){ try{ const h=simHost(); return h?h.buildVersion:null; }catch(e){ return null; } })(),
       authority: {
         campaign:'player-transcript-replay',      // the player's own fight, replayed
+        campaignActions:'live-receipts-preferred',// streamed while the fight runs; the server owns the sequence and stamps the tick
         campaignMismatch:'unverified-refund',     // a divergence records nothing and returns stamina
         campaignSession:'frozen-single-use-resumable',
         raidPower:'ledger',                       // never the client's stored line-up
@@ -2392,6 +2479,13 @@ async function api(req,res,url){
         led.gems-=c; sh.gold++; led.gold=Math.min(100000000,led.gold+amt);
         ledTx(me,'shop:gold',{gems:-c,gold:amt});
         writeDB(); return {ok:true, gold:amt, cost:c, ledger:ledgerView(me)}; }
+      /* v274: equipment materials became ledger-owned, so the diamond bundle that used to be granted
+         in the browser is granted here — one price, one write, one receipt. */
+      if(what==='pieces'){ const c=450; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=c; led.eqMats=led.eqMats||{};
+        const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }
+        ledTx(me,'shop:pieces',{gems:-c, mats:got});
+        writeDB(); return {ok:true, mats:got, cost:c, ledger:ledgerView(me)}; }
       return {ok:false,error:'Unknown item.'};
     });
     return send(res, out.ok===false?400:200, out); }
@@ -2614,7 +2708,15 @@ async function api(req,res,url){
          the transcript of what the player actually did — every ultimate and gear skill, on the tick it
          was cast. No estimate, no auto-battle, no skill allowance: CAMPAIGN_SKILL_BAND is gone from
          this path. An illegal action in the transcript simply does not happen (see applyInput). */
-      const inputLog=sanitizeInputLog(b.inputLog);
+      /* v274 (§3) — THE SERVER'S OWN RECEIPTS ARE THE TRANSCRIPT.
+         If the session streamed its actions live, the body's transcript is not read at all: the fight
+         is replayed from what the server accepted, action by action, as it arrived. A client that
+         streamed nothing still resolves from its submitted log (offline-ish path), and the response
+         says which of the two happened so it is never ambiguous in a report. */
+      const streamed=(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length>0);
+      if(a.stream) a.stream.closed=true;
+      const inputLog = streamed ? a.stream.acts.slice(0, INPUT_LOG_MAX) : sanitizeInputLog(b.inputLog);
+      const transcriptSource = streamed ? 'streamed-receipts' : 'submitted-log';
       const host=simHost();
       if(!host || !Array.isArray(a.snaps) || !a.snaps.length){
         /* We could not verify the fight — so we record NOTHING. Not a win, not a loss. The stamina
@@ -2643,6 +2745,7 @@ async function api(req,res,url){
         led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
         const why=(digestMatch===null)?'no-client-digest':'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:st.id, mode, why,
+          source:transcriptSource,
           engine:a.engine||null, seed:a.seed>>>0, inputs:inputLog.length,
           server:sha256hex(serverEndDigest), client:clientEnd?sha256hex(clientEnd):null,
           transcript:inputLog }]).slice(-20);
@@ -2673,6 +2776,7 @@ async function api(req,res,url){
       /* The receipt: what was frozen, what the player did, and what the replay produced. Enough to
          re-run this exact battle later and prove the result — kept small and capped. */
       const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:a.seed>>>0, engine:a.engine||null,
+        source:transcriptSource, chain:(a.stream&&a.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
         digest:sha256hex(String(rep.digest||'')), transcript:inputLog,
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
@@ -2680,7 +2784,8 @@ async function api(req,res,url){
       writeDB();
       receipt.match=true;   // a result only exists here because the two end states matched exactly
       return { ok:true, mode, won, stars, reward, verified:true, engine:a.engine||null,
-        serverDigest:receipt.digest, digestMatch:true,
+        serverDigest:receipt.digest, digestMatch:true, transcript:transcriptSource,
+        actions:inputLog.length, chain:(a.stream&&a.stream.chain)?a.stream.chain.slice(0,16):null,
         replaySeed:a.seed>>>0, ledger:ledgerView(me) };
     });
     return send(res, out.ok===false?400:200, out); }
@@ -2757,11 +2862,11 @@ async function api(req,res,url){
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
         const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*CAMPAIGN_SKILL_BAND),atk:Math.round(x.atk*CAMPAIGN_SKILL_BAND),heal:Math.round((x.heal||0)*CAMPAIGN_SKILL_BAND),atkP:Math.round((x.atkP||0)*CAMPAIGN_SKILL_BAND),atkM:Math.round((x.atkM||0)*CAMPAIGN_SKILL_BAND)});
         const waves=st.waves.map(w=>w.map(m=>{ const u=vaultSpecToCombatUnit(m); u.maxHp=Math.round(u.maxHp*1.2); u.atkP=Math.round(u.atkP*1.15); u.atk=u.atkP; return u; }));
-        const r=SIM.qualificationEstimate(snaps.map(band), waves, SIM.seedFrom('elite:'+me.id+':'+reqId));
+        const r=SIM.qualificationEstimate(snaps.map(band), waves, srvSeed('elite', me.id, node, reqId));
         if(!r.result.won) return {ok:true, won:false};
         led.eliteDay[node]=(led.eliteDay[node]|0)+1;
         const hk=eliteHeroForSrv(node);
-        const frags=2+(SIM.seedFrom('efrag:'+me.id+':'+reqId)%3);
+        const frags=2+(srvSeed('efrag', me.id, node, reqId)%3);
         led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+frags);
         for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+70); }
         ledTx(me,'elite:'+node,{frag:frags,hero:hk});
@@ -2779,7 +2884,7 @@ async function api(req,res,url){
         const rec=vaultFloorRecord(Math.min(100,floor));
         const waves=rec.waves.map(w=>w.map(m=>{ const u=vaultSpecToCombatUnit(m); u.maxHp=Math.round(u.maxHp*K.mul); u.atkP=Math.round(u.atkP*K.mul); u.atk=u.atkP; return u; }));
         const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*1.6),atk:Math.round(x.atk*1.6),heal:Math.round((x.heal||0)*1.6),atkP:Math.round((x.atkP||0)*1.6),atkM:Math.round((x.atkM||0)*1.6)});
-        const r=SIM.qualificationEstimate(snaps.map(band), waves, SIM.seedFrom('trial:'+kind+':'+me.id+':'+reqId));
+        const r=SIM.qualificationEstimate(snaps.map(band), waves, srvSeed('trial', kind, me.id, floor, reqId));
         if(!r.result.won) return {ok:true, won:false, best:T.best};
         const first=floor>T.best; if(first) T.best=floor;
         let reward=null;
@@ -2795,7 +2900,7 @@ async function api(req,res,url){
         let mats=null;
         if(kind==='dungeon'){
           led.eqMats=led.eqMats||{};
-          const rng=SIM.mulberry32(SIM.seedFrom('mats:'+me.id+':'+reqId));
+          const rng=SIM.mulberry32(srvSeed('mats', me.id, floor, reqId));
           const n=3+Math.floor(ledPlayerLevel(led)/5);
           mats={};
           for(let i=0;i<n;i++){ const k=EQ_MAT_KEYS[Math.floor(rng()*EQ_MAT_KEYS.length)];
@@ -3460,6 +3565,23 @@ try{
         if(WS_AUTH_REQUIRED && ws._room){ const r=rooms[ws._room];
           if(r){ const peer=(r.host===ws)?r.guest:r.host; if(peer) wsend(peer,{t:'peerleft'}); delete rooms[ws._room]; }
           ws._room=null; ws._role=null; } }
+      /* ================= v274 — LIVE ACTION RECEIPTS (hardening directive §3) =================
+         A transcript posted after the battle proves nothing: a modified client can watch the fight,
+         then compose the perfect legal log. So each action is sent AS IT HAPPENS and the server
+         receipts it. The server owns the sequence, stamps its own arrival time, checks the claimed
+         sim tick is physically possible for the time elapsed, and extends a hash chain. At resolve,
+         a session that streamed is replayed from the SERVER'S accepted list — the body's transcript
+         is ignored. A late action, a repeat, a gap in the sequence or an impossible tick is refused
+         with a reason, and the player's client is told.
+         What this does NOT prove: that a human pressed the button rather than a real-time bot. That
+         is honest and stated — the transcripts are kept for review, not scored by a skill ceiling. */
+      if(m.t==='act'){
+        if(wsNeedAuth(ws)) return;
+        const u=DB.users[ws._uid]; if(!u) return;
+        const r=streamAction(u, m);
+        wsend(ws, Object.assign({t:'actack', seq:(m.seq|0)}, r));
+        return;
+      }
       if(m.t==='host'){ if(wsNeedAuth(ws)) return; const c=roomCode(); rooms[c]={host:ws,guest:null,t:Date.now()}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
       else if(m.t==='join'){ if(wsNeedAuth(ws)) return; const c=(m.code||'').toUpperCase(); const r=rooms[c];
         if(!r){ wsend(ws,{t:'joinfail',reason:'no such room'}); return; }

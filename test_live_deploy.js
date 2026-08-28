@@ -29,7 +29,7 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
   const man=(await J('/api/manifest',null,T)).body||{};
   console.log('   server build: '+man.serverBuild+'   engine: '+man.engine);
   ck('the deployed server reports a build id', typeof man.serverBuild==='string'&&man.serverBuild.length>0);
-  ck('the deployed server carries the v273 audit-response build', man.serverBuild==='v273-audit-response', String(man.serverBuild));
+  ck('the deployed server carries the v274 hardening build', man.serverBuild==='v274-hardening', String(man.serverBuild));
   ck('the deployed campaign authority is transcript replay', man.authority&&man.authority.campaign==='player-transcript-replay');
   ck('the deployed server refunds on mismatch', man.authority&&man.authority.campaignMismatch==='unverified-refund');
   ck('the deployed raid power is ledger-derived', man.authority&&man.authority.raidPower==='ledger');

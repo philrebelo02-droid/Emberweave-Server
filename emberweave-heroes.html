@@ -2107,7 +2107,14 @@ const EQ_SLOT_STAT=[
   {atk:0.03,dr:0.01},                // Boots
   {energy:0.35,regen:0.001,hp:0.02}, // Relic
 ];
-function equipMul(key){ const out={atk:0,hp:0,dr:0,crit:0,regen:0,energy:0}; equipArr(key).forEach((id,s)=>{ if(!id)return; const f=eqParse(id).t+1, base=EQ_SLOT_STAT[s]; for(const k in base) out[k]+=base[k]*f; }); return out; }
+/* v274 (hardening directive §2) — THE LEGACY EQUIP BUNDLE NO LONGER GRANTS COMBAT POWER.
+   `G.equip` lives in this browser's own storage, so anything it added to a fight was power the server
+   could not verify. The Forge (server-owned `u.gear`) is the gear system; for a signed-in player this
+   returns nothing, so a tampered local inventory cannot change the fight on screen either — which is
+   what made the on-screen fight and the server's replay disagree in the first place. */
+function equipMul(key){ const out={atk:0,hp:0,dr:0,crit:0,regen:0,energy:0};
+  if(ACC && ACC.token) return out;                       // signed in: the server owns gear, full stop
+  equipArr(key).forEach((id,s)=>{ if(!id)return; const f=eqParse(id).t+1, base=EQ_SLOT_STAT[s]; for(const k in base) out[k]+=base[k]*f; }); return out; }
 function equipTierSum(key){ return equipArr(key).reduce((s,id)=>s+(id?eqParse(id).t+1:0),0); }
 function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skillLevel(key,i)||1)-1); return s*20; }   // leveling skills raises power
 function heroPower(key){ const m=heroMuls(key),t=HERO_TYPES[key]; const hp=heroStat(key,t.hp)*m.hp+heroFlatHp(key), atk=heroStat(key,t.dmg)*m.atk+heroFlatAtk(key);
@@ -2423,15 +2430,33 @@ let INPUT_LOG=[];      // what the player did, in sim-tick time — this is what
 let _inputQ=[];        // actions taken this frame, applied on the next tick boundary
 let REPLAY_IN=null;    // when set, the fight is driven by a recorded log instead of live input
 let _riIdx=0;
-function battleInputsReset(){ simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0; }
+function battleInputsReset(){ simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0; _actSeq=0; _actRejects=[]; }
 function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i++) if(units[i].uid===uid) return units[i]; return null; }
 /* record + queue one player action. Aim is stored in FIELD coordinates and by target uid — never in
    screen coordinates, which depend on the device's viewport and zoom. */
+/* v274 (hardening directive §3) — SEND EACH ACTION AS IT HAPPENS.
+   The end-of-battle transcript still goes up, but for a live campaign session the server keeps its own
+   receipted copy and replays THAT — so a modified client cannot watch the fight and then compose a
+   better log. The socket is the one already open for chat; the server authenticates every frame. */
+let _actSeq=0, _actRejects=[];
+function streamAct(inp){
+  try{
+    if(!(ACC&&ACC.token)) return;
+    if(!(CUR&&CUR.mode==='campaign'&&CUR.attemptId)) return;
+    if(typeof chatNetSend!=='function') return;
+    _actSeq++;
+    chatNetSend({ t:'act', sessionId:CUR.attemptId, seq:_actSeq, tick:simTick,
+      kind:(inp.k==='auto'?'auto':inp.k), casterUid:(inp.uid==null?-1:inp.uid),
+      targetUid:(inp.tid==null?-1:inp.tid), value:(inp.k==='auto'?(inp.tid?1:0):0),
+      wx:(inp.wx==null?null:inp.wx), wy:(inp.wy==null?null:inp.wy) });
+  }catch(e){}
+}
 function queueInput(inp){
   if(REPLAY_IN) return;                       // a replay is driven by its log, not by live taps
   inp.t=simTick; _inputQ.push(inp);
   if(INPUT_LOG.length<400) INPUT_LOG.push([inp.t, inp.k, inp.uid, (inp.tid==null?-1:inp.tid),
     (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
+  streamAct(inp);                             // v274: receipt it with the server AS IT HAPPENS
 }
 function applyInput(inp){
   /* v270: flipping AUTO is a player action too. Recording it is what lets a fight the player put on
@@ -5692,6 +5717,10 @@ function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!
         <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('')
     +`<div style="font-size:11px;color:#6f7d90;margin-top:8px">A shady dealer's premium stock — everything here costs diamonds.</div>`;
   b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return;
+    if(it.server){   // v274: a server-owned bundle — the server takes the diamonds and grants the goods
+      const r=await api('/api/shop/buy','POST',{what:it.server, requestId:uid8()});
+      if(!r||!r.ok){ bannerMsg((r&&r.error)||'The dealer had nothing to sell.'); return; }
+      adoptLedger(r.ledger); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
     if(!(await txSpend('gems',it.cost,'shop'))) return;
     ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); });
 }
@@ -7741,7 +7770,9 @@ const GUILD_SHOP=[
   {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,give:()=>{G.gems=(G.gems||0)+50;}},
   {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{G.stamina=Math.max(G.stamina,maxStamina());G.staminaTS=Date.now();}},
   {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,give:()=>{G.arenaCoins=(G.arenaCoins||0)+2000;}},
-  {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,give:()=>{if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0};EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+100);}},
+  /* v274: materials are ledger-owned, so this purchase is a SERVER purchase (/api/shop/buy 'pieces').
+     Granting them locally would have shown the player goods their next sync erased. */
+  {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,server:'pieces',give:()=>{}},
   {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,give:()=>{G.gold=(G.gold||0)+15000;}},
   {name:'Resource Crate',desc:'+100 of each map resource',cost:350,give:()=>{RES.forEach(([k])=>G.res[k]=(G.res[k]||0)+100);}},
   {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,give:()=>{G.gems=(G.gems||0)+150;}},
@@ -10423,7 +10454,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787872013219';
+const BUILD_ID='1787890522179';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -10601,6 +10632,11 @@ function chatConnect(){ if(location.protocol==='file:'||!online())return; if(CHA
 }
 function chatNetSend(o){ try{ if(o&&!o.token&&ACC&&ACC.token)o.token=ACC.token; if(CHATNET.ws&&CHATNET.ws.readyState===1){ CHATNET.ws.send(JSON.stringify(o)); return true; } }catch(e){} return false; }
 function onChatNet(m){
+  /* v274: the server's receipt for a streamed battle action. Rejections are kept for diagnostics —
+     they are how we find out that a legitimate player's actions are being refused, rather than
+     discovering it from a player whose clear did not count. */
+  if(m.t==='actack'){ if(m.ok===false){ _actRejects.push({seq:m.seq, reason:m.reason, t:Date.now()});
+      if(_actRejects.length>20) _actRejects.shift(); } return; }
   if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
   else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
   else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }

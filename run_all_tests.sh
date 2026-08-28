@@ -59,6 +59,10 @@ note "test_authority_hardening.js (v272: a forged line-up cannot buy power)"
 node test_authority_hardening.js || FAILED=1
 note "test_audit_response.js (v273: unverified-on-mismatch, resume, server-owned grants, blob stripped)"
 node test_audit_response.js || FAILED=1
+note "test_action_stream.js (v274: live action receipts — the server owns the sequence and the tick)"
+node test_action_stream.js || FAILED=1
+note "test_forged_state.js (v274: forged local gear/wallet/progression cannot reach a battle)"
+node test_forged_state.js || FAILED=1
 cleanup
 note "test_crash_idempotency.sh (v273: a reward cannot be paid twice across a crash)"
 bash test_crash_idempotency.sh || FAILED=1
