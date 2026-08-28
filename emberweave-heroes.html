@@ -1149,7 +1149,7 @@ const BATTLE_ANIM = {
   },
   tallow:{
     idle:{u:'/assets/anim/tallow/tallow_idle.webp?v=3',n:24,fw:253,fh:300,cols:6,rows:4,figH:295,feet:297,cx:133,fps:8,flip:false,top:2},
-    walk:{u:'/assets/anim/tallow/tallow_walk.webp?v=3',n:24,fw:276,fh:300,cols:6,rows:4,figH:253,feet:295,cx:148,fps:14,flip:false,top:3},
+    walk:{u:'/assets/anim/tallow/tallow_walk.webp?v=3',n:24,fw:276,fh:300,cols:6,rows:4,figH:253,feet:295,cx:148,fps:9,flip:false,top:3},
     attack:{u:'/assets/anim/tallow/tallow_attack.webp?v=3',n:24,fw:300,fh:274,cols:6,rows:4,figH:258,feet:272,cx:146,fps:18,flip:false,hold:0.9,top:2},
     hit:{u:'/assets/anim/tallow/tallow_hit.webp?v=3',n:20,fw:272,fh:300,cols:6,rows:4,figH:267,feet:292,cx:135,fps:16,flip:false,top:3},
     green:{u:'/assets/anim/tallow/tallow_green.webp?v=1',n:20,fw:300,fh:263,cols:6,rows:4,figH:235,feet:258,cx:145,fps:14,flip:false,top:23,hold:0.8},
@@ -1168,7 +1168,13 @@ const BATTLE_ANIM = {
   },
   magistrant:{
     idle:{u:'/assets/anim/magistrant/magistrant_idle.webp?v=5',n:24,fw:240,fh:300,cols:6,rows:4,figH:292,feet:297,cx:117,fps:8,flip:false,top:3},
-    walk:{u:'/assets/anim/magistrant/magistrant_walk.webp?v=5',n:24,fw:248,fh:300,cols:6,rows:4,figH:278,feet:297,cx:113,fps:14,flip:false,top:3},
+    /* 28 Aug (Phil: "magistrat swings his arms way too much during walk"). Measured across all 29
+       walk sheets, magistrant's is the most frantic in the set: 36.2 units of upper-body movement per
+       frame vs a typical 17-20, and more than double his OWN attack clip (15.8). The source clip
+       itself flails - there is no calmer window in it to trim to - so the only lever without new art
+       is the play rate. 14 -> 9 fps cuts the arm motion 36%% and suits a towering judge's gait.
+       tallow (35.7) is the same outlier and got the same treatment. Proper fix is a regenerated clip. */
+    walk:{u:'/assets/anim/magistrant/magistrant_walk.webp?v=5',n:24,fw:248,fh:300,cols:6,rows:4,figH:278,feet:297,cx:113,fps:9,flip:false,top:3},
     attack:{u:'/assets/anim/magistrant/magistrant_attack.webp?v=5',n:24,fw:231,fh:300,cols:6,rows:4,figH:265,feet:298,cx:114,fps:18,flip:false,hold:0.9,top:3},
     hit:{u:'/assets/anim/magistrant/magistrant_hit.webp?v=5',n:20,fw:300,fh:274,cols:6,rows:4,figH:227,feet:272,cx:143,fps:16,flip:false,top:2},
     green:{u:'/assets/anim/magistrant/magistrant_green.webp?v=1',n:20,fw:297,fh:300,cols:6,rows:4,figH:256,feet:297,cx:142,fps:14,flip:false,top:40,hold:0.8},
@@ -4793,7 +4799,13 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         else if(!abilActive && ((u._blizzT||0)>0 || (u._stormT||0)>0) && u.anim.channel) st='channel';
         let A=u.anim[st]||u.anim.idle;
         // NEVER go invisible: if this clip's sheet hasn't finished downloading (or failed), show idle instead of a blank frame.
-        const _rdyC=(c)=>c&&c.tex&&!c._err&&c.tex.image&&c.tex.image.complete&&c.tex.image.naturalWidth>0;
+        /* 28 Aug — this readiness test was written for an <img>, and v286 started decoding sheets to
+           an ImageBitmap, which has NEITHER `complete` NOR `naturalWidth`. So from v286 it returned
+           false for every clip on every hero: the "sheet not downloaded yet, show idle instead"
+           safety net was permanently armed. Accept either kind of source. */
+        const _rdyC=(c)=>{ const im=c&&c.tex&&!c._err&&c.tex.image; if(!im) return false;
+          if('naturalWidth' in im) return im.complete&&im.naturalWidth>0;   // HTMLImageElement
+          return (im.width|0)>0; };                                        // ImageBitmap / canvas
         if(!_rdyC(A)){ if(_rdyC(u.anim.idle)){ A=u.anim.idle; st='idle'; } }
         if(u._animSt!==st){u._animSt=st;u._animAcc=0;}
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12);   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
@@ -10883,7 +10895,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787942257041';
+const BUILD_ID='1787949702308';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
