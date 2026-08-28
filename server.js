@@ -1184,67 +1184,160 @@ function simHost(){
    client — so a player could grind request ids locally until one produced a win or a bigger fragment
    drop, without ever touching the game. Rolls are now HMAC(server secret, domain | account | index),
    which the client cannot search, and the secret never leaves the server. */
+/* v275 (§2 P0) — the roll secret is deployment-managed, or durably persisted and SAID OUT LOUD.
+   A secret that lives only in memory would change on every restart, which would change the audited
+   result of an in-flight transaction and break replay of anything derived from it. Preference order:
+   the deployment's own secret; otherwise one generated ONCE and written durably before it is used. */
+let _secretWarned=false;
 function serverSecret(){
   if(process.env.SERVER_SECRET) return process.env.SERVER_SECRET;
   DB.meta=DB.meta||{};
-  if(!DB.meta.rollSecret){ DB.meta.rollSecret=crypto.randomBytes(32).toString('hex'); writeDBNow(); }
+  if(!DB.meta.rollSecret){
+    DB.meta.rollSecret=crypto.randomBytes(32).toString('hex');
+    writeDBNow();                                   // durable BEFORE any roll can use it
+  }
+  if(!_secretWarned){ _secretWarned=true;
+    console.warn('⚠️  SERVER_SECRET is not set — using the durably stored fallback secret. Set SERVER_SECRET in deployment secrets.'); }
   return DB.meta.rollSecret;
 }
+function secretSource(){ return process.env.SERVER_SECRET?'deployment-env':'persisted-fallback'; }
 function srvSeed(domain, ...parts){
   const h=crypto.createHmac('sha256', serverSecret()).update([domain,...parts].join('|')).digest();
   return h.readUInt32BE(0)>>>0;
 }
 /* The live action channel's server half. Kept next to the other authority helpers, not inside the
    websocket block, so the campaign routes can read the accepted list without reaching into it. */
-const ACT_KINDS=Object.freeze(['ult','gear','auto']);
+/* v275 (§2 P0) — THE ACTION CHANNEL HAS ITS OWN BUDGET.
+   MUT_PER_MIN covers POST routes; a socket bypasses it entirely. A session may send only so many
+   actions, only so fast, and may only be wrong so many times before the socket is closed. Nothing
+   here punishes a legitimate player: a real battle produces a handful of actions a second at most. */
+const ACT_KINDS=Object.freeze(['ult','gear','auto','speed','begin','abandon']);
+const ACT_PER_SEC=8;                   // ceiling on accepted actions per second, per session
+const ACT_INVALID_BUDGET=25;           // refusals a session may accumulate before the socket closes
+const ACT_BYTES_MAX=512;               // one action frame is tiny; anything larger is not an action
 const ACT_MAX=400;                     // the same cap the transcript has always had
-const ACT_TICK_SLACK=90;               // 3 s of tolerance for frame stalls and clock skew
-const ACT_MAX_SPEED=2;                 // the fastest the player can legitimately run the battle
 function findOpenSession(u, sid){
   const led=u.led; if(!led) return null;
   for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
     if(pr && pr.att && pr.att.id===sid) return {mode:m, prog:pr, att:pr.att}; }
   return null;
 }
-function streamAction(u, m){
+/* v275 (§2 P0) — THE SERVER ASSIGNS THE TICK.
+   v274 let the browser name the tick and only refused one that was too far ahead. That still allowed
+   a modified client to place an action at a chosen earlier-but-monotonic moment after watching how
+   the fight developed. Now the server runs its own clock for the session — anchored by a `begin`
+   receipt, integrated across the player's own `speed` changes, at the client's exact tick rate — and
+   the accepted tick is computed HERE. The tick the client sends is recorded as diagnostics only and
+   never decides where the action lands.
+
+   The client cannot apply an action before it knows the accepted tick, so the tick is placed
+   ACT_INPUT_DELAY ticks in the future: enough for the receipt to come back over a normal connection.
+   If the round trip is slower than that, the client holds the simulation rather than guessing — a
+   brief hitch on a bad network, never a fight that disagrees with its own record. */
+const ACT_INPUT_DELAY=9;               // ≈300 ms of headroom at the client's real tick rate
+const SIM_HZ_SRV=30, BATTLE_PACE_SRV=0.82;   // must match the client's constants exactly
+function sessionClock(a){
+  a.clock=a.clock||{ beginAt:0, speed:1, tick:0, at:0 };
+  return a.clock;
+}
+function clockAdvance(a, now){
+  const c=sessionClock(a);
+  if(!c.beginAt) return c;                       // the battle has not started yet
+  const dt=Math.max(0,(now-(c.at||c.beginAt))/1000);
+  c.tick += dt*SIM_HZ_SRV*BATTLE_PACE_SRV*(c.speed||1);
+  c.at=now;
+  return c;
+}
+function findOpenSession(u, sid){
+  const led=u.led; if(!led) return null;
+  for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
+    if(pr && pr.att && pr.att.id===sid) return {mode:m, prog:pr, att:pr.att}; }
+  return null;
+}
+function streamAction(u, m, ws){
   const sid=String(m.sessionId||'').slice(0,48);
   const found=findOpenSession(u, sid);
   if(!found) return {ok:false, reason:'no-session'};
   const a=found.att;
-  if(Date.now()-(a.startedAt||0) > CAMP_SESSION_MS) return {ok:false, reason:'expired'};
-  a.stream=a.stream||{ seq:0, acts:[], chain:'' };
+  const now=Date.now();
+  if(now-(a.startedAt||0) > CAMP_SESSION_MS) return {ok:false, reason:'expired'};
+  a.stream=a.stream||{ seq:0, acts:[], chain:'', invalid:0, sec:{t:0,n:0} };
   const st=a.stream;
   if(st.closed) return {ok:false, reason:'session-ended'};
+
+  const bad=(reason,extra)=>{ st.invalid=(st.invalid|0)+1;
+    if(st.invalid>ACT_INVALID_BUDGET && ws){ try{ ws.close(); }catch(e){} }
+    return Object.assign({ok:false, reason, strikes:st.invalid}, extra||{}); };
+
   const seq=m.seq|0;
-  if(seq!==st.seq+1) return {ok:false, reason:'out-of-order', expected:st.seq+1};
-  if(st.acts.length>=ACT_MAX) return {ok:false, reason:'too-many-actions'};
+  if(seq!==st.seq+1) return bad('out-of-order',{expected:st.seq+1});
+  if(st.acts.length>=ACT_MAX) return bad('too-many-actions');
+
+  /* a per-second ceiling on ACCEPTED actions, per session */
+  const sec=Math.floor(now/1000);
+  if(st.sec.t!==sec){ st.sec={t:sec,n:0}; }
+  if(st.sec.n>=ACT_PER_SEC) return bad('too-fast');
+
   const kind=String(m.kind||'');
-  if(ACT_KINDS.indexOf(kind)<0) return {ok:false, reason:'bad-kind'};
-  const tick=m.tick|0;
-  if(tick<0 || tick>SIM_TICK_MAX) return {ok:false, reason:'bad-tick'};
-  const last=st.acts.length?st.acts[st.acts.length-1][0]:-1;
-  if(tick<last) return {ok:false, reason:'tick-went-backwards'};
-  /* THE ANTI-POST-HOC CHECK: an action cannot claim a sim tick further into the battle than the wall
-     clock allows, even at the fastest speed the player can select. You cannot send the whole fight's
-     worth of actions in the last second, and you cannot send them after it ended. */
-  const elapsedTicks=Math.floor(((Date.now()-(a.startedAt||0))/1000)*30*ACT_MAX_SPEED)+ACT_TICK_SLACK;
-  if(tick>elapsedTicks) return {ok:false, reason:'tick-ahead-of-clock', limit:elapsedTicks};
+  if(ACT_KINDS.indexOf(kind)<0) return bad('bad-kind');
+
+  /* v275 — WHEN THE CHANNEL DIES MID-FIGHT.
+     A receipt that never arrives would otherwise hold the player's battle forever. The client gives
+     up after a few seconds and says so; the server then drops its partial list, because half a
+     transcript would replay as a different fight than the one being played. The session falls back to
+     the submitted log and the RESULT SAYS SO — `submitted-log-after-stream-loss` — so a lost stream
+     is visible in the receipt rather than looking like a clean live session. */
+  if(kind==='abandon'){
+    st.acts=[]; st.broken=true; st.seq=seq;
+    return {ok:true, abandoned:true, accepted:st.seq};
+  }
+
+  /* `begin` anchors the server's clock to the moment the battle actually started running. */
+  if(kind==='begin'){
+    const c=sessionClock(a);
+    if(c.beginAt) return bad('already-begun');
+    c.beginAt=now; c.at=now; c.tick=0; c.speed=1;
+    st.seq=seq; st.sec.n++;
+    return {ok:true, tick:0, accepted:st.seq, chain:st.chain.slice(0,16), begun:true};
+  }
+  const c=clockAdvance(a, now);
+  if(!c.beginAt) return bad('not-begun');
+
+  /* THE ACCEPTED TICK — computed here, from this clock, never taken from the message. */
+  const lastTick=st.acts.length?st.acts[st.acts.length-1][0]:-1;
+  let acceptedTick=Math.ceil(c.tick)+ACT_INPUT_DELAY;
+  if(acceptedTick<=lastTick) acceptedTick=lastTick+1;
+  if(acceptedTick>SIM_TICK_MAX) return bad('past-the-end');
+
+  if(kind==='speed'){
+    const v=+m.value; const sp=(v===0.5||v===1||v===2)?v:null;
+    if(sp===null) return bad('bad-speed');
+    c.speed=sp;                                   // integrated from here on
+    st.seq=seq; st.sec.n++;
+    st.acts.push([acceptedTick,'speed',-1,Math.round(sp*100),null,null]);
+    st.chain=sha256hex(st.chain+'|'+acceptedTick+',speed,'+sp);
+    return {ok:true, tick:acceptedTick, accepted:st.seq, chain:st.chain.slice(0,16)};
+  }
+
   const uid=m.casterUid|0, tid=(m.targetUid==null?-1:(m.targetUid|0));
-  if(kind!=='auto' && !(uid>=0&&uid<64)) return {ok:false, reason:'bad-caster'};
+  if(kind!=='auto' && !(uid>=0&&uid<64)) return bad('bad-caster');
   const clamp=(v,hi)=>(v==null||!isFinite(v))?null:Math.max(0,Math.min(hi,+(+v).toFixed(2)));
-  const entry=[tick, kind, (kind==='auto'?-1:uid), (kind==='auto'?((m.value?1:0)) : ((tid>=0&&tid<64)?tid:-1)),
+  const entry=[acceptedTick, kind, (kind==='auto'?-1:uid),
+    (kind==='auto'?((m.value?1:0)) : ((tid>=0&&tid<64)?tid:-1)),
     clamp(m.wx,FIELD_W), clamp(m.wy,FIELD_D)];
   st.acts.push(entry);
-  st.seq=seq;
+  st.seq=seq; st.sec.n++;
   st.chain=sha256hex(st.chain+'|'+entry.join(','));
-  st.lastAt=Date.now();
-  return {ok:true, tick, accepted:st.seq, chain:st.chain.slice(0,16)};
+  st.lastAt=now;
+  /* clientTick is kept ONLY to measure drift between the two clocks; it decides nothing. */
+  st.drift=(m.tick|0)-acceptedTick;
+  return {ok:true, tick:acceptedTick, accepted:st.seq, chain:st.chain.slice(0,16), clientTick:(m.tick|0)};
 }
 function srvRoll(domain, ...parts){ return srvSeed(domain,...parts)/4294967296; }
 function sha256hex(x){ return crypto.createHash('sha256').update(String(x)).digest('hex').slice(0,32); }
 /* Bumped by hand on every server change that a deployment proof needs to see. */
 const EQ_MAT_KEYS=Object.freeze(['cloth','blade','wood','ore']);   // the four equipment materials
-const SERVER_BUILD='v274-hardening';
+const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
 const SKILL_MAX_SRV=10;
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
@@ -1642,7 +1735,8 @@ async function api(req,res,url){
       engine: (function(){ try{ const h=simHost(); return h?h.buildVersion:null; }catch(e){ return null; } })(),
       authority: {
         campaign:'player-transcript-replay',      // the player's own fight, replayed
-        campaignActions:'live-receipts-preferred',// streamed while the fight runs; the server owns the sequence and stamps the tick
+        campaignActions:'server-assigned-ticks',  // the server's own session clock decides where an action lands
+        rollSecret:secretSource(),
         campaignMismatch:'unverified-refund',     // a divergence records nothing and returns stamina
         campaignSession:'frozen-single-use-resumable',
         raidPower:'ledger',                       // never the client's stored line-up
@@ -2726,7 +2820,8 @@ async function api(req,res,url){
       const streamed=(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length>0);
       if(a.stream) a.stream.closed=true;
       const inputLog = streamed ? a.stream.acts.slice(0, INPUT_LOG_MAX) : sanitizeInputLog(b.inputLog);
-      const transcriptSource = streamed ? 'streamed-receipts' : 'submitted-log';
+      const transcriptSource = streamed ? 'streamed-receipts'
+        : ((a.stream&&a.stream.broken) ? 'submitted-log-after-stream-loss' : 'submitted-log');
       const host=simHost();
       if(!host || !Array.isArray(a.snaps) || !a.snaps.length){
         /* We could not verify the fight — so we record NOTHING. Not a win, not a loss. The stamina
@@ -3587,8 +3682,9 @@ try{
          is honest and stated — the transcripts are kept for review, not scored by a skill ceiling. */
       if(m.t==='act'){
         if(wsNeedAuth(ws)) return;
+        if(raw && raw.length>ACT_BYTES_MAX){ wsend(ws,{t:'actack', seq:(m.seq|0), ok:false, reason:'too-large'}); return; }
         const u=DB.users[ws._uid]; if(!u) return;
-        const r=streamAction(u, m);
+        const r=streamAction(u, m, ws);
         wsend(ws, Object.assign({t:'actack', seq:(m.seq|0)}, r));
         return;
       }

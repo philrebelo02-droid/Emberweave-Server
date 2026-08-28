@@ -2430,33 +2430,91 @@ let INPUT_LOG=[];      // what the player did, in sim-tick time — this is what
 let _inputQ=[];        // actions taken this frame, applied on the next tick boundary
 let REPLAY_IN=null;    // when set, the fight is driven by a recorded log instead of live input
 let _riIdx=0;
-function battleInputsReset(){ simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0; _actSeq=0; _actRejects=[]; }
+function battleInputsReset(){ simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0;
+  _actSeq=0; _actRejects=[]; _actSched={}; _actSent={}; _actWait=0; _actWaitFrom=0; _actWaitAt=0; _actStreamOn=false; }
 function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i++) if(units[i].uid===uid) return units[i]; return null; }
 /* record + queue one player action. Aim is stored in FIELD coordinates and by target uid — never in
    screen coordinates, which depend on the device's viewport and zoom. */
-/* v274 (hardening directive §3) — SEND EACH ACTION AS IT HAPPENS.
-   The end-of-battle transcript still goes up, but for a live campaign session the server keeps its own
-   receipted copy and replays THAT — so a modified client cannot watch the fight and then compose a
-   better log. The socket is the one already open for chat; the server authenticates every frame. */
-let _actSeq=0, _actRejects=[];
-function streamAct(inp){
-  try{
-    if(!(ACC&&ACC.token)) return;
-    if(!(CUR&&CUR.mode==='campaign'&&CUR.attemptId)) return;
-    if(typeof chatNetSend!=='function') return;
-    _actSeq++;
-    chatNetSend({ t:'act', sessionId:CUR.attemptId, seq:_actSeq, tick:simTick,
-      kind:(inp.k==='auto'?'auto':inp.k), casterUid:(inp.uid==null?-1:inp.uid),
-      targetUid:(inp.tid==null?-1:inp.tid), value:(inp.k==='auto'?(inp.tid?1:0):0),
-      wx:(inp.wx==null?null:inp.wx), wy:(inp.wy==null?null:inp.wy) });
-  }catch(e){}
+/* v275 — THE SERVER DECIDES WHEN YOUR ACTION LANDS.
+   v274 sent each action live, but the browser still named the tick. Now the browser sends the INTENT
+   and waits: the server runs its own clock for the session and replies with the tick the action will
+   land on, a little ahead of now. We apply it exactly there, so the fight on screen and the fight the
+   server replays are the same fight by construction rather than by agreement.
+
+   If the reply is slower than that headroom, the simulation HOLDS rather than guessing — a brief
+   hitch on a bad connection, never a battle that disagrees with its own record. With no socket at
+   all we fall back to applying locally and submitting the log, and the server says so in the result
+   (`transcript: submitted-log`), so a report can never blur the two. */
+let _actSeq=0, _actRejects=[], _actSched={}, _actSent={}, _actWait=0, _actWaitFrom=0, _actWaitAt=0, _actStreamOn=false, _actDrift=0;
+function actStreamLive(){ return _actStreamOn && (ACC&&ACC.token) && typeof chatNetSend==='function'
+  && typeof CHATNET!=='undefined' && CHATNET.ws && CHATNET.ws.readyState===1; }
+function actSend(o){ try{ return chatNetSend(Object.assign({t:'act', sessionId:CUR.attemptId}, o)); }catch(e){ return false; } }
+function actBegin(){
+  _actStreamOn=false; _actSched={}; _actWait=0; _actSeq=0; _actRejects=[];
+  if(!(ACC&&ACC.token)) return;
+  if(!(CUR&&CUR.mode==='campaign'&&CUR.attemptId)) return;
+  if(!(typeof CHATNET!=='undefined' && CHATNET.ws && CHATNET.ws.readyState===1)) return;
+  _actStreamOn=true; _actSeq++;
+  actSend({seq:_actSeq, kind:'begin'});           // anchors the server's clock to this moment
 }
+/* Send an action as an intent. Returns true when the server owns it from here. */
+function streamAct(inp){
+  if(!actStreamLive()) return false;
+  _actSeq++;
+  const ok=actSend({ seq:_actSeq, tick:simTick,   // tick is diagnostics; the server assigns the real one
+    kind:(inp.k==='auto'?'auto':inp.k), casterUid:(inp.uid==null?-1:inp.uid),
+    targetUid:(inp.tid==null?-1:inp.tid), value:(inp.k==='auto'?(inp.tid?1:0):0),
+    wx:(inp.wx==null?null:inp.wx), wy:(inp.wy==null?null:inp.wy) });
+  if(!ok) return false;
+  _actSent[_actSeq]=inp;
+  _actWait++; if(_actWait===1){ _actWaitFrom=simTick; _actWaitAt=Date.now(); }
+  return true;
+}
+function streamSpeed(v){ if(!actStreamLive()) return; _actSeq++; actSend({seq:_actSeq, kind:'speed', value:v, tick:simTick}); }
+/* The receipt: schedule the action on the tick the SERVER chose. */
+function onActAck(m){
+  if(m.ok===false){ _actRejects.push({seq:m.seq, reason:m.reason, t:Date.now()});
+    if(_actRejects.length>20) _actRejects.shift();
+    if(_actWait>0) _actWait--;
+    if(m.reason==='no-session'||m.reason==='session-ended'||m.reason==='expired') _actStreamOn=false;
+    return; }
+  if(m.begun) return;
+  const inp=_actSent[m.seq]; delete _actSent[m.seq];
+  if(inp){ const t=m.tick|0; (_actSched[t]=_actSched[t]||[]).push(inp);
+    if(INPUT_LOG.length<400) INPUT_LOG.push([t, inp.k, (inp.uid==null?-1:inp.uid), (inp.tid==null?-1:inp.tid),
+      (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
+    if(_actWait>0) _actWait--; if(_actWait===0) _actWaitAt=0; return; }
+  if(_actWait>0) _actWait--; if(_actWait===0) _actWaitAt=0;
+  if(m.clientTick!=null) _actDrift=(m.clientTick|0)-(m.tick|0);
+}
+/* The sim may not run past the point where an unacknowledged action could still land. */
+/* The sim may not run past the point where an unacknowledged action could still land — but it may not
+   hang either. If the receipt does not come back in time the client stops streaming for this battle,
+   applies what it was holding, and tells the server to drop its partial list. */
+const ACT_ACK_TIMEOUT_MS=3000;
+function actHold(){
+  if(_actWait<=0) return false;
+  if(_actWaitAt && (Date.now()-_actWaitAt)>ACT_ACK_TIMEOUT_MS){ actGiveUp(); return false; }
+  return simTick>=_actWaitFrom+ACT_INPUT_DELAY_CLIENT;
+}
+function actGiveUp(){
+  _actStreamOn=false; _actWait=0; _actWaitAt=0;
+  try{ _actSeq++; actSend({seq:_actSeq, kind:'abandon'}); }catch(e){}
+  const pend=Object.keys(_actSent).map(k=>_actSent[k]); _actSent={};
+  for(const inp of pend){ inp.t=simTick; _inputQ.push(inp);
+    if(INPUT_LOG.length<400) INPUT_LOG.push([inp.t, inp.k, (inp.uid==null?-1:inp.uid), (inp.tid==null?-1:inp.tid),
+      (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]); }
+  bannerMsg('⚠ Connection slow — this battle is being recorded locally.');
+}
+const ACT_INPUT_DELAY_CLIENT=9;   // must match the server's ACT_INPUT_DELAY
 function queueInput(inp){
   if(REPLAY_IN) return;                       // a replay is driven by its log, not by live taps
+  /* v275: with a live session the SERVER decides the tick — send the intent and wait for the receipt.
+     The action is applied by pumpInputs() on exactly the tick that comes back. */
+  if(streamAct(inp)) return;
   inp.t=simTick; _inputQ.push(inp);
   if(INPUT_LOG.length<400) INPUT_LOG.push([inp.t, inp.k, inp.uid, (inp.tid==null?-1:inp.tid),
     (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
-  streamAct(inp);                             // v274: receipt it with the server AS IT HAPPENS
 }
 function applyInput(inp){
   /* v270: flipping AUTO is a player action too. Recording it is what lets a fight the player put on
@@ -2474,6 +2532,9 @@ function applyInput(inp){
   }
 }
 function pumpInputs(){
+  /* v275: actions the server placed on this tick */
+  if(!REPLAY_IN){ const due=_actSched[simTick];
+    if(due){ delete _actSched[simTick]; for(let i=0;i<due.length;i++) applyInput(due[i]); } }
   if(REPLAY_IN){ while(_riIdx<REPLAY_IN.length && REPLAY_IN[_riIdx][0]<=simTick){ const e=REPLAY_IN[_riIdx++];
       applyInput({t:e[0], k:e[1], uid:e[2], tid:(e[3]===-1?null:e[3]), wx:e[4], wy:e[5]}); } return; }
   if(!_inputQ.length) return;
@@ -3997,6 +4058,7 @@ function startBattle(){
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
     buildEnemyWave();
+    actBegin();   // v275: tell the server the battle is running, so its clock starts with ours
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
@@ -10402,7 +10464,9 @@ document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getEle
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
 document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; } show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign'); };
-document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];refreshCtrlBtns();};
+document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
+  streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
+  refreshCtrlBtns();};
 // ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
@@ -10426,7 +10490,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
        on the server. Smoothness is preserved by INTERPOLATING the render between ticks (the earlier
        attempt failed because it stepped the animation timers too — those still run on render time,
        in syncMesh, below). */
-    else if(!freeze){ const spd=(CUR.mode==='online')?1:(gameSpeed||1);
+    else if(!freeze && !actHold()){ const spd=(CUR.mode==='online')?1:(gameSpeed||1);
       _bacc += dt * SIM_HZ * spd * ((CUR.mode==='replay')?1:BATTLE_PACE);
       let n=Math.floor(_bacc); if(n>8)n=8;   // cap-before-subtract: a frame hitch never drops steps
       _bacc-=n;
@@ -10454,7 +10518,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787890522179';
+const BUILD_ID='1787911107616';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -10635,8 +10699,7 @@ function onChatNet(m){
   /* v274: the server's receipt for a streamed battle action. Rejections are kept for diagnostics —
      they are how we find out that a legitimate player's actions are being refused, rather than
      discovering it from a player whose clear did not count. */
-  if(m.t==='actack'){ if(m.ok===false){ _actRejects.push({seq:m.seq, reason:m.reason, t:Date.now()});
-      if(_actRejects.length>20) _actRejects.shift(); } return; }
+  if(m.t==='actack'){ onActAck(m); return; }
   if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
   else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
   else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }

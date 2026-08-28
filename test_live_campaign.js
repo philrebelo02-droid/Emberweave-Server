@@ -34,12 +34,17 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
       if(path==='/api/campaign/resolve') window.__cap={body,out}; return out; };
     startBattle();
     const seedUsed=CUR.seed;
+    // v275: a real player's frames are spaced out, so the server's receipts can come back between
+    // them. Driving updateBattle in a tight synchronous loop is not a player — it is a stopwatch.
+    const step=async(n)=>{ for(let i=0;i<n && !ended && state==='battle'; i++){
+      updateBattle(SIM_STEP); if(i%8===0) await new Promise(r=>setTimeout(r,4)); } };
     const spawnedHp=units.filter(u=>u.team==='ally').map(u=>Math.round(u.maxHp));
     const serverHp=(s.snaps||[]).map(x=>Math.round(x.maxHp));
     // play it: turn AUTO on a few ticks in (a recorded action), then run the fight to the end
-    for(let i=0;i<40;i++) updateBattle(SIM_STEP);
+    await step(40);
     document.getElementById('autoBtn').onclick();
-    for(let i=0;i<14400 && !ended && state==='battle';i++) updateBattle(SIM_STEP);
+    await new Promise(r=>setTimeout(r,600));    // let the receipt come back and schedule the action
+    await step(14400);
     if(!ended) endBattle(false);
     const clientDigest=window._p2lastDigest;
     const log=(INPUT_LOG||[]).slice(0,400);
@@ -55,6 +60,8 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
   ck('the squad was built from the server snapshots', JSON.stringify(r.spawnedHp)===JSON.stringify(r.serverHp),
      'client '+JSON.stringify(r.spawnedHp)+' vs server '+JSON.stringify(r.serverHp));
   ck('turning AUTO on was recorded as a player action', r.log.some(e=>e[1]==='auto'), JSON.stringify(r.log).slice(0,120));
+  ck('the recorded tick for it came from the SERVER, not the browser',
+     (r.res&&(r.res.transcript==='streamed-receipts'||r.res.transcript==='submitted-log')), String(r.res&&r.res.transcript));
   ck('the game itself submitted the transcript', !!(r.sent && Array.isArray(r.sent.inputLog)), JSON.stringify(r.sent||{}).slice(0,120));
   ck('the server verified the battle', r.res && r.res.ok===true && r.res.verified===true, JSON.stringify(r.res).slice(0,160));
   ck('the server replay reached the SAME end state as the fight on screen', r.res && r.res.digestMatch===true,

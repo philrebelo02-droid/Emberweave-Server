@@ -32,49 +32,71 @@ const ackFor=(acks,seq)=>acks.filter(a=>a.seq===seq).pop();   // the LATEST rece
   const st=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:SQUAD,requestId:rid()},T);
   ck('session started', st.ok===true);
 
-  // --- a well-formed live action is accepted --------------------------------
-  S.send({t:'act', sessionId:st.attemptId, seq:1, tick:30, kind:'auto', casterUid:-1, targetUid:-1, value:1});
+  // --- an action before the battle has begun has nowhere to land -------------
+  S.send({t:'act', sessionId:st.attemptId, seq:1, tick:5, kind:'ult', casterUid:0, targetUid:3});
   await wait(180);
-  const a1=ackFor(S.acks,1);
+  ck('an action before the battle begins is refused', (ackFor(S.acks,1)||{}).reason==='not-begun', JSON.stringify(ackFor(S.acks,1)));
+
+  // --- begin anchors the server's clock -------------------------------------
+  S.send({t:'act', sessionId:st.attemptId, seq:1, kind:'begin'});
+  await wait(180);
+  ck('the battle start is receipted and anchors the server clock', (ackFor(S.acks,1)||{}).begun===true);
+
+  // --- a well-formed live action is accepted, and the SERVER picks the tick --
+  S.send({t:'act', sessionId:st.attemptId, seq:2, tick:9999, kind:'auto', casterUid:-1, targetUid:-1, value:1});
+  await wait(180);
+  const a1=ackFor(S.acks,2);
   ck('a live action is accepted and receipted', a1 && a1.ok===true, JSON.stringify(a1));
-  ck('the receipt carries the accepted tick and a hash chain', a1 && a1.tick===30 && typeof a1.chain==='string' && a1.chain.length>0);
+  ck('the SERVER assigns the tick — the client\'s 9999 is ignored', a1 && a1.tick>0 && a1.tick<200, 'assigned '+(a1&&a1.tick));
+  ck('the receipt carries the hash chain', a1 && typeof a1.chain==='string' && a1.chain.length>0);
+  ck('the client tick is recorded only as drift', a1 && a1.clientTick===9999);
 
   // --- the server owns the sequence ----------------------------------------
-  S.send({t:'act', sessionId:st.attemptId, seq:1, tick:40, kind:'ult', casterUid:0, targetUid:3});
+  S.send({t:'act', sessionId:st.attemptId, seq:2, kind:'ult', casterUid:0, targetUid:3});
   await wait(150);
-  ck('a repeated sequence number is refused', (S.acks.filter(a=>a.seq===1).pop()||{}).reason==='out-of-order',
-     JSON.stringify(S.acks.filter(a=>a.seq===1).pop()));
-  S.send({t:'act', sessionId:st.attemptId, seq:5, tick:50, kind:'ult', casterUid:0, targetUid:3});
+  ck('a repeated sequence number is refused', (ackFor(S.acks,2)||{}).reason==='out-of-order');
+  S.send({t:'act', sessionId:st.attemptId, seq:9, kind:'ult', casterUid:0, targetUid:3});
   await wait(150);
-  ck('a gap in the sequence is refused', (ackFor(S.acks,5)||{}).ok===false && (ackFor(S.acks,5)||{}).reason==='out-of-order');
+  ck('a gap in the sequence is refused', (ackFor(S.acks,9)||{}).reason==='out-of-order');
 
-  // --- an action cannot claim a moment the clock has not reached ------------
-  S.send({t:'act', sessionId:st.attemptId, seq:2, tick:9000, kind:'ult', casterUid:0, targetUid:3});
-  await wait(150);
-  const ahead=ackFor(S.acks,2);
-  ck('an action ahead of the wall clock is refused (no composing the fight in one burst)',
-     ahead && ahead.ok===false && ahead.reason==='tick-ahead-of-clock', JSON.stringify(ahead));
+  // --- a backdated action cannot pick an earlier moment ---------------------
+  await wait(1200);                                   // let the server's clock run on
+  S.send({t:'act', sessionId:st.attemptId, seq:3, tick:1, kind:'ult', casterUid:0, targetUid:3});
+  await wait(180);
+  const back=ackFor(S.acks,3);
+  ck('a backdated but monotonic client tick cannot move the action earlier',
+     back && back.ok===true && back.tick>(a1.tick+20), 'client asked for 1, server gave '+(back&&back.tick));
+  ck('the assigned tick tracks the server clock, not the message', back && back.tick>=Math.floor(1.2*30*0.82));
 
-  // --- ticks may not go backwards ------------------------------------------
-  S.send({t:'act', sessionId:st.attemptId, seq:2, tick:60, kind:'ult', casterUid:0, targetUid:3});
+  // --- bad kinds, casters and sessions --------------------------------------
+  S.send({t:'act', sessionId:st.attemptId, seq:4, kind:'teleport', casterUid:0, targetUid:3});
   await wait(150);
-  ck('a legal second action is accepted', (ackFor(S.acks,2)||{}).ok===true);
-  S.send({t:'act', sessionId:st.attemptId, seq:3, tick:10, kind:'ult', casterUid:1, targetUid:3});
+  ck('an unknown action kind is refused', (ackFor(S.acks,4)||{}).reason==='bad-kind');
+  S.send({t:'act', sessionId:st.attemptId, seq:4, kind:'ult', casterUid:999, targetUid:3});
   await wait(150);
-  ck('an action whose tick goes backwards is refused', (ackFor(S.acks,3)||{}).reason==='tick-went-backwards');
-
-  // --- a bad kind / caster / session ----------------------------------------
-  S.send({t:'act', sessionId:st.attemptId, seq:3, tick:70, kind:'teleport', casterUid:0, targetUid:3});
-  await wait(150);
-  ck('an unknown action kind is refused', (ackFor(S.acks,3)||{}).reason==='bad-kind');
-  S.send({t:'act', sessionId:'not-a-session', seq:1, tick:70, kind:'ult', casterUid:0, targetUid:3});
+  ck('an out-of-range caster is refused', (ackFor(S.acks,4)||{}).reason==='bad-caster');
+  S.send({t:'act', sessionId:'not-a-session', seq:1, kind:'ult', casterUid:0, targetUid:3});
   await wait(150);
   ck('an action for a session that is not yours is refused', S.acks.some(a=>a.reason==='no-session'));
+
+  // --- the channel has a budget --------------------------------------------
+  const before=S.acks.length;
+  for(let i=0;i<14;i++) S.send({t:'act', sessionId:st.attemptId, seq:4+i, kind:'ult', casterUid:0, targetUid:3});
+  await wait(400);
+  ck('a flood of actions hits the per-second ceiling', S.acks.slice(before).some(a=>a.reason==='too-fast'),
+     JSON.stringify(S.acks.slice(before).map(a=>a.reason).filter(Boolean)).slice(0,120));
+  ck('refusals are counted against the session', S.acks.some(a=>typeof a.strikes==='number'));
 
   // --- the resolve replays THE SERVER'S list, not the body's ----------------
   const host=require('./server/sim-host.js').load(__dirname+'/emberweave-heroes.html');
   const enc=JSON.parse(require('fs').readFileSync(__dirname+'/server/campaign-encounters.json','utf8'));
-  const accepted=[[30,'auto',-1,1,null,null],[60,'ult',0,3,null,null]];
+  /* the transcript the SERVER built from its own receipts — read it back and replay exactly that */
+  const acceptedTicks=S.acks.filter(a=>a.ok===true&&!a.begun).map(a=>a.tick);
+  const accepted=await (async()=>{
+    // rebuild it the way the server holds it: [tick, kind, uid, tid, wx, wy]
+    return [[acceptedTicks[0],'auto',-1,1,null,null]].concat(
+      acceptedTicks.slice(1).map(t=>[t,'ult',0,3,null,null]));
+  })();
   const truth=host.campaign(st.snaps, enc[0].waves, st.seed>>>0, accepted);
   const out=await req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),
     inputLog:[[1,'ult',0,3,null,null],[2,'ult',1,3,null,null],[3,'ult',2,3,null,null]],   // a DIFFERENT log
@@ -89,6 +111,21 @@ const ackFor=(acks,seq)=>acks.filter(a=>a.seq===seq).pop();   // the LATEST rece
   S.send({t:'act', sessionId:st.attemptId, seq:4, tick:120, kind:'ult', casterUid:0, targetUid:3});
   await wait(150);
   ck('an action arriving after the battle resolved is refused', S.acks.some(a=>a.reason==='session-ended'||a.reason==='no-session'));
+
+  /* --- a dropped channel falls back honestly, and the receipt says so ------- */
+  const st2=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:SQUAD,requestId:rid()},T);
+  const S2=await sock(T);
+  S2.send({t:'act', sessionId:st2.attemptId, seq:1, kind:'begin'}); await wait(150);
+  S2.send({t:'act', sessionId:st2.attemptId, seq:2, kind:'ult', casterUid:0, targetUid:3}); await wait(150);
+  S2.send({t:'act', sessionId:st2.attemptId, seq:3, kind:'abandon'}); await wait(200);
+  ck('a client that loses the channel can abandon the partial stream', S2.acks.some(a=>a.abandoned===true));
+  const local=[[45,'ult',0,3,null,null]];
+  const t2=host.campaign(st2.snaps, enc[0].waves, st2.seed>>>0, local);
+  const o2=await req('/api/campaign/resolve',{attemptId:st2.attemptId,requestId:rid(),inputLog:local,digest:t2.digest},T);
+  ck('the fallback still verifies the player\'s own fight', o2.ok===true && o2.verified===true);
+  ck('and the receipt says the stream was lost, not that it was clean',
+     o2.transcript==='submitted-log-after-stream-loss', String(o2.transcript));
+  S2.ws.close();
 
   S.ws.close();
   console.log(''); console.log('PASS: '+pass+'  FAIL: '+fail);
