@@ -6523,6 +6523,27 @@ function squadFor(k){ G.squads=G.squads||{}; if(!G.squads[k]) G.squads[k]=[]; re
 function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); }   // call right before a battle so all G.team readers use this mode's squad
 // Re-render the squad list WITHOUT losing your place: the list order is fixed (by power), so a pick
 // only repaints the highlight. Preserving scrollTop stops the list jumping under your thumb.
+/* Tap handling for the squad list, attached ONCE to the persistent #roster container.
+   A pick runs from whichever of pointerup / click arrives first; the other is ignored for a moment
+   so a hero is never toggled twice by one tap. The pointer path exists because a click inside a
+   scrolling container is cancelled by the browser if the finger drifts, which is why the cards could
+   feel completely dead on a phone while ordinary buttons still worked. */
+function wireRosterTaps(r){
+  if(!r || r._tapWired) return; r._tapWired=1;
+  let down=null, last=0;
+  const fire=(card)=>{ if(!card||typeof card._pick!=='function')return;
+    const now=Date.now(); if(now-last<400) return; last=now;      // one toggle per tap
+    try{ card._pick(); }catch(e){ try{ reRenderRoster(); }catch(_){} } };
+  r.addEventListener('pointerdown',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card');
+    down = c ? {c, x:e.clientX, y:e.clientY, t:Date.now()} : null; }, {passive:true});
+  r.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
+    const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c!==d.c)return;
+    if(Math.abs(e.clientX-d.x)>16 || Math.abs(e.clientY-d.y)>16) return;   // that was a scroll, not a tap
+    if(Date.now()-d.t>900) return;                                        // that was a long press
+    fire(d.c); }, {passive:true});
+  r.addEventListener('pointercancel',()=>{ down=null; }, {passive:true});
+  r.addEventListener('click',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c) fire(c); });
+}
 function reRenderRoster(){
   // Record EVERY scrollable ancestor, not just the immediate parent — on a phone the scroller is
   // usually the screen, so restoring only #roster still snapped the list back to the top on each
@@ -6549,6 +6570,7 @@ function renderRoster(){
     _sub.textContent=_txt; _sub.style.display=_txt?'':'none'; }
   document.getElementById('startBtn').style.display = setDef?'none':'block';
   const r=document.getElementById('roster'); r.innerHTML='';
+  wireRosterTaps(r);
   const marchers = setDef ? committedHeroes() : new Set();   // on defense screens, heroes away marching/mining are greyed & inactive
   // heroes already assigned to ANOTHER wall line are exclusive — they can't be picked here
   const otherLine={}; if(isWall){ WALL_CTXS.forEach(c=>{ if(c!==teamCtx)(wallArr(c)||[]).forEach(k=>{ if(otherLine[k]==null) otherLine[k]=WALL_NUM[c]; }); }); }
@@ -6568,12 +6590,17 @@ function renderRoster(){
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:'');
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp)}</span><span class="pill">⚔ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk)}</span><br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
-    /* 28 Aug (Phil: "I cannot click any heroes"). Picking used to rebuild the WHOLE list, so any
-       throw anywhere in that rebuild — or in saveG/pushSave before it — swallowed the tap and the
-       card never lit up, which is indistinguishable from a dead button. A pick now only toggles the
-       highlight on the card you touched; nothing else is redrawn, so there is nothing left to fail.
-       (The Vault still rebuilds — its cards carry FIGHT/BACKUP order chips that shift when you pick.) */
-    if(unlocked && (inTeam || !blocked)) card.onclick=()=>{
+    /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
+       Two separate things were wrong with picking a hero:
+       (a) it rebuilt the WHOLE list, so any throw in saveG/pushSave/re-render swallowed the tap and
+           the card never lit up — indistinguishable from a dead button. A pick now only toggles the
+           highlight on the card you touched, and every side effect is guarded on its own.
+       (b) the cards live in a scrolling panel. On a phone, a tap whose finger drifts a few pixels
+           inside a scroller is treated as the start of a scroll and Chrome CANCELS the click — so
+           <button>s elsewhere on the screen kept working while the hero cards felt dead. The pick is
+           therefore driven off pointerup with a movement tolerance, not off click alone.
+       The two paths are de-duplicated: whichever fires first wins and the other is ignored. */
+    if(unlocked && (inTeam || !blocked)) card._pick=()=>{
       const arr=teamArr, idx=arr.indexOf(key);
       if(idx>=0) arr.splice(idx,1);
       else if(!blocked && arr.length<pickCap) arr.push(key);
@@ -10643,7 +10670,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787932245983';
+const BUILD_ID='1787932795775';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
