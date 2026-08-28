@@ -1884,7 +1884,15 @@ function skillLevel(key,idx){ return skillLvArr(key)[idx]||1; }
 function skillMul(lv){ return 1+((lv||1)-1)*0.15; }               // +15% effect per level
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(1.55,(lv||1)-1)); }
+/* 28 Aug — SKILL UPGRADES WERE BEING REFUNDED TO NOBODY. This spent the gold through the verified
+   ledger path and then raised the level with a LOCAL write. Nothing on the server ever wrote
+   led.skill again after the one-time import, and adoptLedger (which runs at boot and on the 45s
+   ledgerSync timer) copies st.skill back over G.skillLevel — so the level you just paid for was
+   stomped within a minute and the gold was gone. The server owns the upgrade now. */
 async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL_MAX||!skillUnlocked(key,idx))return false; const c=skillUpCost(idx,lv); if((G.gold||0)<c)return false;
+  if(ACC.token){ const r=await api('/api/skill/upgrade','POST',{key,idx,requestId:uid8()});
+    if(!r||r.error||!r.ok){ if(r&&r.error) bannerMsg(r.error); return false; }
+    adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
 const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
@@ -4355,7 +4363,7 @@ function grantRewards(){
     msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Stage farmed.')}`;
   } else {
     G.trophies+=12; grantTeamXP(60);
-    if(ACC.token) api('/api/trial/resolve','POST',{kind:'tower',floor:(G.towerFloor||G.trophies/12)|0||1,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: the SERVER resolves + rewards the trial
+    if(ACC.token) api('/api/trial/resolve','POST',{kind:'tower',floor:(function(){ try{ return Math.max(1,towerState().floor|0); }catch(e){ return 1; } })(),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: the SERVER resolves + rewards the trial
     msg=`🏆 +12 trophies · <span class="coins">🪙 +80</span>`;
   }
   saveG(); return msg;
@@ -4777,7 +4785,10 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           spr._uv=[_rx,_ry,_ox,_oy];
           // apply immediately too, so a single-sprite frame is correct even before onBeforeRender runs
           T.repeat.set(_rx,_ry); T.offset.set(_ox,_oy);
-          if(spr.material.map!==T){spr.material.map=T;spr.material.needsUpdate=true;} }
+          // material.needsUpdate forces a SHADER RECOMPILE. Swapping one texture for another needs
+          // no recompile (three re-reads material.map every frame); only going from no-map to a map
+          // changes the shader's defines. This used to fire on every idle->walk->attack->hit change.
+          if(spr.material.map!==T){ const _had=!!spr.material.map; spr.material.map=T; if(!_had) spr.material.needsUpdate=true; } }
         if(A.figH){ // character-normalized clip: the frame may include effects bigger than the hero.
           // scale so the CHARACTER (figH px of the fh-tall frame) is exactly sprH tall — identical size in EVERY action —
           // and anchor at the character's feet/center so effects extend freely without moving him.
@@ -5616,6 +5627,9 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
      it correctly, the level just never showed it. That is why Phil read as level 1 with his real
      roster intact. It was never the dev cheat and never an anti-cheat. */
   G.gold=st.gold|0; G.gems=st.gems|0; G.playerXP=st.px|0; G.xp=G.playerXP;
+  // 28 Aug: the server credits guild coins on the ledger (guild raids) but adoptLedger never read
+  // them back, so the reward was invisible and the local number was stripped from the save anyway.
+  if(st.guildCoins!=null) G.guildCoins=st.guildCoins|0;
   G.heroXP=G.heroXP||{}; G.starLevel=G.starLevel||{}; G.starPip=G.starPip||{}; G.unlocked=G.unlocked||{}; G.heroFrag=G.heroFrag||{};
   G.starRefine=G.starRefine||{};
   for(const k in (st.hero||{})){ G.heroXP[k]=st.hero[k].xp|0; G.starLevel[k]=st.hero[k].stars|0; G.starPip[k]=st.hero[k].pips|0; if(st.hero[k].ref!=null) G.starRefine[k]=st.hero[k].ref|0; }
@@ -6379,6 +6393,7 @@ function sweepStage(i,times,mode){
   // AUDIT C1/C2: sweeps are SERVER-authorized — stamina, gold, player XP and hero XP move on the
   // ledger; the client only applies legacy material drops and shows the totals.
   (async()=>{
+    syncActiveSquad();   // 28 Aug: Sweep never went through the BATTLE button, so it still swept with the PREVIOUS line-up
     const r=await api('/api/campaign/sweep','POST',{mode, node:i, times, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
     if(!r||!r.ok){ document.getElementById('smMsg').textContent=(r&&r.error)||'Sweep failed — check your connection.'; await ledgerSync(); return; }
     adoptLedger(r.ledger);
@@ -10358,18 +10373,32 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     u.portraitEl=el; u.hpEl=hp; u.enEl=en; u.slotEl=slot; slot.appendChild(el); slot.appendChild(hp); slot.appendChild(en); bar.appendChild(slot);});
   buildEnemyBar();
 }
-function updatePortraits(){units.filter(u=>u.team==='ally').forEach(u=>{const el=u.portraitEl;if(!el)return;
+/* 28 Aug: this ran EVERY frame and, per ally, did two querySelector subtree searches plus three DOM
+   writes whether or not anything had changed. The fill elements are cached on the unit now, and each
+   write is skipped unless the value it would set actually moved. */
+function updatePortraits(){ for(let i=0;i<units.length;i++){ const u=units[i]; if(u.team!=='ally')continue;
+    if(!u.portraitEl) continue;
     const pct=Math.max(0,u.hp/u.maxHp*100), ready=u.alive&&u.energy>=100;
-    if(u.hpEl){ const f=u.hpEl.querySelector('.pHpFill'); if(f)f.style.width=(u.alive?pct:0)+'%'; u.hpEl.classList.toggle('low',u.alive&&pct<30); }
-    if(u.enEl){ const ef=u.enEl.querySelector('.pEnFill'); if(ef)ef.style.width=(u.alive?Math.min(100,u.energy):0)+'%'; }
-    if(u.slotEl) u.slotEl.className='pslot'+(!u.alive?' dead':(ready?' ready':''));});
+    if(u.hpEl){ if(u._hpFill===undefined) u._hpFill=u.hpEl.querySelector('.pHpFill');
+      const w=(u.alive?pct:0); if(u._hpFill && u._hpW!==w){ u._hpW=w; u._hpFill.style.width=w+'%'; }
+      const low=u.alive&&pct<30; if(u._hpLow!==low){ u._hpLow=low; u.hpEl.classList.toggle('low',low); } }
+    if(u.enEl){ if(u._enFill===undefined) u._enFill=u.enEl.querySelector('.pEnFill');
+      const w=(u.alive?Math.min(100,u.energy):0); if(u._enFill && u._enW!==w){ u._enW=w; u._enFill.style.width=w+'%'; } }
+    if(u.slotEl){ const cn='pslot'+(!u.alive?' dead':(ready?' ready':'')); if(u._slotCN!==cn){ u._slotCN=cn; u.slotEl.className=cn; } } }
   updateEnemyBar();
 }
 // Magic Rush UI: enemies have NO bottom/top HUD — their health floats over the head (drawn on the overlay canvas).
 // These remain as harmless no-ops so the many call sites don't need touching.
 function buildEnemyBar(){ const bar=document.getElementById('enemyBar'); if(bar){ bar.innerHTML=''; bar.classList.remove('active'); } }
 function updateEnemyBar(){ /* over-head enemy HP handled in drawOverlay */ }
-function updateCounts(){document.getElementById('allyCount').textContent=units.filter(u=>u.team==='ally'&&u.alive).length;document.getElementById('enemyCount').textContent=units.filter(u=>u.team==='enemy'&&u.alive).length;}
+/* 28 Aug: this ran every sim tick (30/s) doing two getElementById lookups, two array allocations
+   and two DOM writes — even though the numbers only change when something DIES. Now it counts in one
+   pass with no allocation and only touches the DOM when a number actually changed. */
+let _cntA=-1,_cntE=-1,_cntAEl=null,_cntEEl=null;
+function updateCounts(){ let a=0,e=0;
+  for(let i=0;i<units.length;i++){ const u=units[i]; if(!u.alive)continue; if(u.team==='ally')a++; else e++; }
+  if(a!==_cntA){ _cntA=a; if(!_cntAEl)_cntAEl=document.getElementById('allyCount'); if(_cntAEl)_cntAEl.textContent=a; }
+  if(e!==_cntE){ _cntE=e; if(!_cntEEl)_cntEEl=document.getElementById('enemyCount'); if(_cntEEl)_cntEEl.textContent=e; } }
 function updateWaveTag(){ try{ _updateWaveTag(); }catch(e){ try{ const el=document.getElementById('waveTag'); if(el) el.textContent='Battle'; }catch(_){} } }
 function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=document.getElementById('waveTag'); if(!el) return;
   // v253 (visual audit #6): PvP identifies itself — mode, both sides and their SERVER-known power.
@@ -10713,12 +10742,15 @@ function perfVRAM(){ let px=0; try{ for(const k in BATTLE_ANIM){ const set=BATTL
     for(const st in set){ if(st[0]==='_')continue; const t=set[st]&&set[st].tex; if(t&&t.image&&t.image.width) px+=t.image.width*t.image.height; } } }catch(e){}
   return Math.round(px*4/1e6); }
 /* loop */
-let last=performance.now();
+let last=performance.now(), _szChk=0;
 function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
   if(PERF.on){ const _f=(now-(PERF._last||now)); PERF._last=now; PERF.fr+=_f; PERF.n++; if(_f>PERF.worst)PERF.worst=_f;
     if(now-PERF.shown>500){ PERF.shown=now; perfHUD(); } }
   if(document.body.classList.contains('gated')){ requestAnimationFrame(loop); return; }   // splash still up → don't render the 3D scene/overlay yet (prevents a half-loaded frame from flashing)
-  if(renderer){ const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }  // auto-correct WIDTH drift only (ignore height — the mobile keyboard changes height and must NOT trigger a per-frame realloc)
+  // Reading clientWidth forces the browser to recompute layout. Doing it every frame, right after
+  // the previous frame wrote to the DOM, is layout thrashing — one of the most expensive lines in
+  // the loop on a phone. Four times a second is plenty to catch a width change.
+  if(renderer && (now-_szChk)>250){ _szChk=now; const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }
   if(aiming&&!aiming.alive)cancelAim();
   const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
   if(state==='battle'&&!ended){
@@ -10758,7 +10790,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787936311099';
+const BUILD_ID='1787938815931';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

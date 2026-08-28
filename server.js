@@ -164,7 +164,14 @@ const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
 /* Everything on this list is decided by the server ledger. None of it is stored from a client save. */
 const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
   'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
-  'techLearn','prayer','skillLevel','arenaCoins','guildCoins','dust','starShards','eqMats','mats',
+  'techLearn','skillLevel','dust','starShards','eqMats','mats',
+  /* 28 Aug — 'prayer' and 'arenaCoins' were REMOVED from this list. Deleting a field only makes
+     sense when the ledger holds the real value. The server has no led.arenaCoins at all, and never
+     writes led.prayer after the one-time import, so stripping them from the save destroyed progress
+     the player had legitimately paid for and handed back nothing. They stay in the save (still
+     clamped by ECON_CAP) until they are properly server-owned. 'guildCoins' DOES live on the ledger
+     and is now read back by the client, so it stays stripped. */
+  'guildCoins',
   /* v274 (hardening directive §2.4): gear and equipment too. The Forge (u.gear) is server-owned and
      the legacy equip bundle no longer reaches combat, so there is no reason to keep either in a blob
      the client writes. */
@@ -1340,6 +1347,7 @@ const EQ_MAT_KEYS=Object.freeze(['cloth','blade','wood','ore']);   // the four e
 const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
 const SKILL_MAX_SRV=10;
+const SKILL_UP_BASE_SRV=[300,220,260,400];   // mirrors the client's SKILL_UP_BASE (ult / green / blue / passive)
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
   if(!Array.isArray(a)||a.length!==4){ led.skill[key]=[1,1,1,1]; }
   return led.skill[key]; }
@@ -2561,7 +2569,10 @@ async function api(req,res,url){
     const pool=poolState(me);
     return send(res,200,{ history:(pool.history||[]).slice(-60).reverse(), pity:{at:WISH_GEM_PITY,count:pool.pity} }); }
   if(p==='/api/pool/wish' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-      me.qc=me.qc||{}; me.qc.wish=(me.qc.wish|0)+1;   // v250: server-tracked quest counter
+    /* 28 Aug: the wish quest counter used to be incremented HERE — before the pool was validated,
+       before the cost was checked, and OUTSIDE the idempotency wrapper. So a refused wish ("Not
+       enough gold", "Unknown pool", the Diamond Pool cooldown) still counted toward "wish N times",
+       and a retried request counted twice. It now increments only on a roll that actually happened. */
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':wish:'+reqId,()=>{
       const led=ensureLedger(me), pool=poolState(me); const which=String(b.pool||''); const n=(b.n|0)===10?10:1;
@@ -2587,6 +2598,7 @@ async function api(req,res,url){
       pool.history=pool.history||[]; pool.history.push({t:now,pool:which,n,cost,results:results.map(r=>r.type+(r.hero?':'+r.hero:''))});
       if(pool.history.length>60) pool.history=pool.history.slice(-60);
       ledTx(me,'pool:'+which+':x'+n,{[cur]:-cost});
+      me.qc=me.qc||{}; me.qc.wish=(me.qc.wish|0)+n;   // counted once per roll that actually resolved
       writeDB(); return {ok:true, results, cost, free, ledger:ledgerView(me), pity:{at:WISH_GEM_PITY,count:pool.pity}};
     });
     return send(res, out.ok===false?400:200, out); }
@@ -2686,6 +2698,27 @@ async function api(req,res,url){
     ledTx(tgt,'admin:grant',{});
     writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt)}); }
 
+  /* 28 Aug — skill upgrades are server-owned. They used to be a local write that the next ledger
+     sync overwrote, so the gold was spent and the level came back. The server now holds led.skill,
+     charges the same curve the client shows, and returns the ledger. */
+  if(p==='/api/skill/upgrade' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':skillup:'+reqId,()=>{
+      const led=ensureLedger(me);
+      const key=String(b.key||''); const idx=b.idx|0;
+      if(!SIM.HERO_BASE[key]) return {ok:false,error:'Unknown hero.'};
+      if(idx<0||idx>3) return {ok:false,error:'Unknown skill.'};
+      if(!led.unlocked[key]) return {ok:false,error:'You have not unlocked that hero.'};
+      const arr=ledSkillArr(led,key); const lv=Math.max(1,arr[idx]|0);
+      if(lv>=SKILL_MAX_SRV) return {ok:false,error:'That skill is already at max.'};
+      const cost=Math.round((SKILL_UP_BASE_SRV[idx]||300)*Math.pow(1.55,lv-1));
+      if((led.gold|0)<cost) return {ok:false,error:'Not enough gold.'};
+      led.gold-=cost; arr[idx]=lv+1; led.rev++;
+      ledTx(me,'skillup:'+key+':'+idx,{gold:-cost});
+      writeDB();
+      return {ok:true, level:arr[idx], cost, ledger:ledgerView(me)};
+    });
+    return send(res, out&&out.ok?200:400, out); }
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     const v=ledgerView(me); writeDB(); return send(res,200,v); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
