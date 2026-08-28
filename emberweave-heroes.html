@@ -1189,9 +1189,7 @@ const BATTLE_ANIM = {
     walk:{u:'/assets/anim/fathom/fathom_walk.webp?v=3',n:24,fw:246,fh:300,cols:6,rows:4,figH:276,feet:297,cx:121,fps:14,flip:false,top:3},
     attack:{u:'/assets/anim/fathom/fathom_attack.webp?v=3',n:24,fw:300,fh:263,cols:6,rows:4,figH:227,feet:261,cx:149,fps:18,flip:false,hold:0.9,top:2},
     hit:{u:'/assets/anim/fathom/fathom_hit.webp?v=3',n:20,fw:294,fh:300,cols:6,rows:4,figH:255,feet:286,cx:149,fps:16,flip:false,top:2},
-    green:{u:'/assets/anim/fathom/fathom_green.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:286,feet:297,cx:125,fps:14,flip:false,top:10,hold:0.8},
-    ult:{u:'/assets/anim/fathom/fathom_ult.webp?v=1',n:20,fw:300,fh:259,cols:6,rows:4,figH:201,feet:232,cx:164,fps:16,flip:false,top:31}
-  },
+    green:{u:'/assets/anim/fathom/fathom_green.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:286,feet:297,cx:125,fps:14,flip:false,top:10,hold:0.8}  },
   lumi:{
     idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=5',n:24,fw:183,fh:300,cols:6,rows:4,figH:293,feet:297,cx:91,fps:8,flip:false,top:3},
     walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=5',n:24,fw:191,fh:300,cols:6,rows:4,figH:284,feet:296,cx:96,fps:14,flip:false,top:3},
@@ -1611,15 +1609,43 @@ function retryTex(s, tx, attempt){
   setTimeout(()=>{
     const bust=s.u+(s.u.indexOf('?')<0?'?':'&')+'r='+attempt;
     new TH.TextureLoader().load(bust,
-      t=>{ tx.image=t.image; tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound
+      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1]; tx.image=capSheet(t.image,g[0],g[1]); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
       undefined,
       ()=>retryTex(s, tx, attempt+1));
   }, 400*Math.pow(2.5, attempt-1));                            // 0.4s, 1s, 2.5s
 }
+/* 28 Aug — THE LAG (Phil: "everything seems broken, huge lag ... very baggy").
+   Every animation sheet was uploaded to the GPU at its authoring size: 6x4 cells of ~300px = about
+   1800x1200 per state, and a texture costs width*height*4 bytes of VIDEO memory no matter how small
+   it is drawn. A five-hero squad plus three waves of monsters was asking a PHONE for ~400 MB of
+   texture memory. Phones do not have it, so the driver thrashes (the fight ran at roughly a quarter
+   speed in Phil's recording: 4 seconds of wave clock in 16 seconds of real time) and eventually the
+   browser drops the WebGL context entirely, which is the "I cannot even enter campaign battles".
+   A hero is drawn about 185 device pixels tall (DPR is capped at 2), so a 300px source cell was
+   never buying any detail. Cells are capped at CELL_CAP px on load: a quarter of the video memory,
+   no visible change, and no re-uploading of a hundred megabytes of art.
+   This is a CAP, not a fixed ratio — it is a no-op on sheets that are already small, so re-exporting
+   the art smaller later is safe and makes this free. */
+const CELL_CAP=150;
+function capSheet(img, cols, rows){
+  try{
+    const w=img.width|0, h=img.height|0; if(!w||!h) return img;
+    const cw=w/cols, ch=h/rows, k=Math.min(1, CELL_CAP/Math.max(cw,ch));
+    if(k>=0.999) return img;                                   // already small enough — leave it alone
+    const nw=Math.max(1,Math.round(cw*k))*cols, nh=Math.max(1,Math.round(ch*k))*rows;
+    const cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
+    const cx=cv.getContext('2d'); if(!cx) return img;
+    cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
+    cx.drawImage(img,0,0,nw,nh);
+    return cv;
+  }catch(e){ return img; }
+}
+function _fitTex(t, cols, rows){ try{ const im=capSheet(t.image, cols, rows); if(im!==t.image){ t.image=im; t.needsUpdate=true; } }catch(e){} }
 function loadAnimSet(key){ const set=BATTLE_ANIM[key]; if(!set||set._loaded||!heroHasAnim(key)) return set;
   for(const st in set){ if(st[0]==='_')continue; const s=set[st]; if(!isAssetRef(s.u))continue;
-    const tx=new TH.TextureLoader().load(s.u, undefined, undefined, ()=>{ retryTex(s, tx, 1); });   // retry, then fall back
-    tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; const _c=s.cols||s.n,_r=s.rows||1; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; }
+    const _c=s.cols||s.n,_r=s.rows||1;
+    const tx=new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r); }, undefined, ()=>{ retryTex(s, tx, 1); });   // shrink to the cap, retry, then fall back
+    tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
   // drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
   for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
   set._loaded=true; return set; }
@@ -2617,6 +2643,24 @@ function initThree(){
   SPH=new TH.SphereGeometry(0.1,6,6);
   renderer=new TH.WebGLRenderer({antialias:true,alpha:true});
   renderer.setClearColor(0x000000,0); three.appendChild(renderer.domElement);   // transparent → painted battle map shows behind the units
+  /* 28 Aug (Phil: "you destroyed the game ... I cannot even enter campaign battles anymore").
+     A phone that runs out of GPU memory does not crash the tab — Chrome silently DROPS the WebGL
+     context. Nothing here listened for that, so every later frame drew into a dead context: the
+     battlefield stayed blank forever and no reload prompt ever appeared, which reads exactly like
+     "battles won't start". Two things now happen:
+       - preventDefault() on contextlost, which is what makes the context ELIGIBLE to be restored
+         (without it the browser will never give it back);
+       - on restore, drop every cached texture and reload, because the campaign session is server-side
+         and resumable (v273) — the stamina and the stage come straight back. */
+  { const _cv=renderer.domElement; let _lost=false;
+    _cv.addEventListener('webglcontextlost',(e)=>{ e.preventDefault(); _lost=true;
+      try{ bannerMsg('⚠ Graphics restarting — your battle is saved.'); }catch(_){}
+      try{ console.warn('[gl] context lost'); }catch(_){}
+      setTimeout(()=>{ if(_lost){ try{ location.reload(); }catch(_){} } }, 4000); },false);   // never came back → reload
+    _cv.addEventListener('webglcontextrestored',()=>{ _lost=false;
+      try{ for(const k in _texCache) delete _texCache[k]; }catch(_){}
+      try{ for(const k in BATTLE_ANIM){ const st=BATTLE_ANIM[k]; if(st) st._loaded=false; } }catch(_){}
+      try{ location.reload(); }catch(_){} },false); }
   // battle zoom input: mouse-wheel steps through levels; two-finger pinch scales then snaps to the nearest
   { const dom=window; let pd=0, pz=1;    // window so a UI overlay canvas can't swallow the gesture
     const pdist=(e)=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
@@ -6477,6 +6521,12 @@ function closeGlossaryCard(){ const m=document.getElementById('glModal'); if(m)m
 function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
 function squadFor(k){ G.squads=G.squads||{}; if(!G.squads[k]) G.squads[k]=[]; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
 function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); }   // call right before a battle so all G.team readers use this mode's squad
+// Re-render the squad list WITHOUT losing your place: the list order is fixed (by power), so a pick
+// only repaints the highlight. Preserving scrollTop stops the list jumping under your thumb.
+function reRenderRoster(){ const r=document.getElementById('roster'); const sc=r&&r.parentElement;
+  const a=r?r.scrollTop:0, b=sc?sc.scrollTop:0;
+  renderRoster();
+  const r2=document.getElementById('roster'); if(r2)r2.scrollTop=a; const sc2=r2&&r2.parentElement; if(sc2)sc2.scrollTop=b; }
 function renderRoster(){
   const isWall = isWallCtx(teamCtx);
   const setDef = (isWall||teamCtx==='arena');   // defense contexts: no BATTLE button
@@ -6490,11 +6540,12 @@ function renderRoster(){
   const marchers = setDef ? committedHeroes() : new Set();   // on defense screens, heroes away marching/mining are greyed & inactive
   // heroes already assigned to ANOTHER wall line are exclusive — they can't be picked here
   const otherLine={}; if(isWall){ WALL_CTXS.forEach(c=>{ if(c!==teamCtx)(wallArr(c)||[]).forEach(k=>{ if(otherLine[k]==null) otherLine[k]=WALL_NUM[c]; }); }); }
-  // 27 Aug (Phil): a squad screen lists ONLY heroes you own — nothing you cannot pick — strongest
-  // first, with anyone already in this line pinned to the top so you can see the squad at a glance.
+  // 28 Aug (Phil): a squad screen lists ONLY heroes you own — nothing you cannot pick — sorted by
+  // POWER, strongest first, and that order NEVER changes while you pick. Selecting a hero highlights
+  // the card where it stands; it does not jump to the top. ("i didnt ask for an auto sort when
+  // selecting heroes ... they should just be highlighted not auto sorted. the sort should be by power")
   const _pickable=HERO_KEYS.filter(k=>G.unlocked[k]);
-  _pickable.sort((a,b)=>{ const ta=teamArr.includes(a)?1:0, tb=teamArr.includes(b)?1:0;
-    if(ta!==tb) return tb-ta; return heroPower(b)-heroPower(a); });
+  _pickable.sort((a,b)=>heroPower(b)-heroPower(a));
   if(!_pickable.length){ r.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:18px">No heroes yet — summon one at the Wishing Pool.</div>'; }
   _pickable.forEach(key=>{
     const t=HERO_TYPES[key],unlocked=true,inTeam=teamArr.includes(key),away=marchers.has(key),elsewhere=otherLine[key];
@@ -6505,7 +6556,7 @@ function renderRoster(){
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:'');
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp)}</span><span class="pill">⚔ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk)}</span><br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
-    if(unlocked && (inTeam || !blocked)) card.onclick=()=>{ const arr=teamArr; const idx=arr.indexOf(key); if(idx>=0)arr.splice(idx,1); else if(!blocked && arr.length<pickCap)arr.push(key); saveG(); if(isWall&&ACC.token)pushSave(); renderRoster(); };
+    if(unlocked && (inTeam || !blocked)) card.onclick=()=>{ const arr=teamArr; const idx=arr.indexOf(key); if(idx>=0)arr.splice(idx,1); else if(!blocked && arr.length<pickCap)arr.push(key); saveG(); if(isWall&&ACC.token)pushSave(); reRenderRoster(); };
     if(isVault && inTeam){ const pos=teamArr.indexOf(key); const chip=document.createElement('span'); chip.style.cssText='position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;background:'+(pos<TEAM_SIZE?'#1d3a2a;color:#5ee89b;border:1px solid #2b7a55':'#2a2338;color:#c9a2ff;border:1px solid #7a5fb0'); chip.textContent=pos<TEAM_SIZE?'⚔ FIGHT':'🛡 BACKUP'; card.style.position='relative'; card.appendChild(chip); }
     r.appendChild(card);
   });
@@ -10562,7 +10613,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787926646375';
+const BUILD_ID='1787930578683';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
