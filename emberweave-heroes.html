@@ -9745,6 +9745,8 @@ function renderSettings(){
       <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 each shard')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
       <div class="dvp-sec">Progression</div>
       <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('campstage','\ud83d\uddfa','Campaign +5 stages')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
+      <div class="dvp-sec">Diagnostics</div>
+      <div class="dvp-grid">${act('perf','\ud83d\udcc9','Performance HUD on/off')}</div>
       <div class="dvp-sec">Roster</div>
       <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('maxteam','\u2728','Max team glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
       <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
@@ -9903,8 +9905,12 @@ function renderSettings(){
   const _exp=b.querySelector('#expBtn'); if(_exp) _exp.onclick=()=>{ b.querySelector('#saveOut').textContent=JSON.stringify(G); };
   const _rst=b.querySelector('#resetBtn'); if(_rst) _rst.onclick=()=>{
     gameConfirm('Reset <b>your own</b> progress back to a fresh start?<br><span style="font-size:11px;color:#8b98a9">This wipes EVERYTHING on this account — heroes, levels, glyph boards, Forge gear, Dust and Vault floors. No other players are touched. Your one-time name change is restored.</span>',async()=>{
-      if(ACC.token){ await api('/api/account/reset-progress','POST',{}); }   // server-owned progress: glyphs / gear / dust / Vault climb
+      // 28 Aug: the server now resets the LEDGER too (campaign clears, stars, levels, unlocks) and
+      // hands back the fresh one — adopt it, or the next sync pulls the old progress straight back in.
+      let _fresh=null;
+      if(ACC.token){ const _r=await api('/api/account/reset-progress','POST',{}); _fresh=(_r&&_r.ledger)||null; }
       G=JSON.parse(JSON.stringify(DEFAULT_G)); G.nameChanged=false; G.playerName='Commander';   // full local reset + give the name change back
+      try{ if(_fresh) adoptLedger(_fresh); }catch(e){}
       // drop every cached server-state view so the UI re-syncs the freshly reset account
       try{ RUNE2={ enabled:null, cat:(typeof RUNE2!=='undefined'&&RUNE2.cat)||null, st:null, busy:false, pick:null, view:'board' }; }catch(e){}
       try{ FORGE.st=null; }catch(e){}
@@ -9957,6 +9963,7 @@ function devAction(a,b){
   else if(a==='guildcoins'){ G.guildCoins=(G.guildCoins||0)+5000; done('+5,000 guild coins — LOCAL ONLY, resets at next sign-in'); }
   else if(a==='shielditem'){ G.shieldItems=(G.shieldItems||0)+3; done('+3 protection shields'); }
   else if(a==='givefrags'){ openDevFragGranter(b); return; }
+  else if(a==='perf'){ PERF.on=!PERF.on; perfHUD(); done('Performance HUD '+(PERF.on?'ON — open a battle and screenshot it':'off')); return; }
   else if(a==='update'){ devForceUpdate(); return; }
   else if(a==='online'||a==='accounts'){ devAdminList(a,b); return; }
   else if(a==='newacct'){ openDevCreateAccount(b); return; }
@@ -10657,9 +10664,32 @@ document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; autoU
   if(state==='battle'&&!ended) queueInput({k:'auto', uid:-1, tid:(autoUlt?1:0)});   // v270: recorded, so the replay matches
   refreshCtrlBtns();};
 
+/* 28 Aug — a real measurement instead of another guess about why the game is slow on a phone.
+   Dev-only, off by default, and costs nothing while off. Reports the true frame rate plus where the
+   frame actually goes: the fixed-timestep sim, the WebGL draw, and the 2D overlay. */
+const PERF={on:false,fr:0,sim:0,ren:0,ovl:0,n:0,worst:0,shown:0,el:null};
+function perfMark(){ return PERF.on?performance.now():0; }
+function perfHUD(){
+  if(!PERF.on){ if(PERF.el){ PERF.el.remove(); PERF.el=null; } return; }
+  if(!PERF.el){ PERF.el=document.createElement('div');
+    PERF.el.style.cssText='position:fixed;left:6px;top:6px;z-index:99999;background:#000c;color:#5ee89b;font:11px/1.45 ui-monospace,Menlo,monospace;padding:6px 8px;border-radius:8px;pointer-events:none;white-space:pre';
+    document.body.appendChild(PERF.el); }
+  const n=Math.max(1,PERF.n);
+  PERF.el.textContent =
+    'FPS '+(1000/(PERF.fr/n)).toFixed(0)+'   frame '+(PERF.fr/n).toFixed(1)+'ms  worst '+PERF.worst.toFixed(0)+'ms\n'+
+    'sim '+(PERF.sim/n).toFixed(1)+'  draw '+(PERF.ren/n).toFixed(1)+'  overlay '+(PERF.ovl/n).toFixed(1)+'ms\n'+
+    'units '+(typeof units!=='undefined'?units.length:0)+'  shots '+(typeof shots!=='undefined'?shots.length:0)+'  parts '+(typeof particles!=='undefined'?particles.length:0)+'\n'+
+    (renderer&&renderer.info?('calls '+renderer.info.render.calls+'  tex '+renderer.info.memory.textures+'  vram '+perfVRAM()+'MB'):'');
+  PERF.fr=PERF.sim=PERF.ren=PERF.ovl=0; PERF.n=0; PERF.worst=0;
+}
+function perfVRAM(){ let px=0; try{ for(const k in BATTLE_ANIM){ const set=BATTLE_ANIM[k]; if(!set||!set._loaded)continue;
+    for(const st in set){ if(st[0]==='_')continue; const t=set[st]&&set[st].tex; if(t&&t.image&&t.image.width) px+=t.image.width*t.image.height; } } }catch(e){}
+  return Math.round(px*4/1e6); }
 /* loop */
 let last=performance.now();
 function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
+  if(PERF.on){ const _f=(now-(PERF._last||now)); PERF._last=now; PERF.fr+=_f; PERF.n++; if(_f>PERF.worst)PERF.worst=_f;
+    if(now-PERF.shown>500){ PERF.shown=now; perfHUD(); } }
   if(document.body.classList.contains('gated')){ requestAnimationFrame(loop); return; }   // splash still up → don't render the 3D scene/overlay yet (prevents a half-loaded frame from flashing)
   if(renderer){ const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }  // auto-correct WIDTH drift only (ignore height — the mobile keyboard changes height and must NOT trigger a per-frame realloc)
   if(aiming&&!aiming.alive)cancelAim();
@@ -10676,7 +10706,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
       _bacc += dt * SIM_HZ * spd * ((CUR.mode==='replay')?1:BATTLE_PACE);
       let n=Math.floor(_bacc); if(n>8)n=8;   // cap-before-subtract: a frame hitch never drops steps
       _bacc-=n;
-      for(let i=0;i<n&&!ended;i++) updateBattle(SIM_STEP);
+      { const _t0=perfMark(); for(let i=0;i<n&&!ended;i++) updateBattle(SIM_STEP); if(PERF.on)PERF.sim+=performance.now()-_t0; }
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
@@ -10694,13 +10724,14 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
     if(s.spin){ s.mesh.rotation.z+=s.spin*dt; s.mesh.rotation.x+=s.spin*.45*dt; }   // the wrench tumbles end over end
     if(s.trailC!==undefined){ s._tacc=(s._tacc||0)+dt; if(s._tacc>=.022){ s._tacc=0;
       try{ fxParticle(s.mesh.position.x,s.mesh.position.y,s.mesh.position.z,(Math.random()-.5)*.3,.35,(Math.random()-.5)*.3,s.trailC,.34,.34); }catch(e){} } }
-  });renderer.render(scene,camera);}
-  drawOverlay(); requestAnimationFrame(loop);
+  });{ const _t0=perfMark(); renderer.render(scene,camera); if(PERF.on)PERF.ren+=performance.now()-_t0; }}
+  { const _t0=perfMark(); drawOverlay(); if(PERF.on)PERF.ovl+=performance.now()-_t0; }
+  requestAnimationFrame(loop);
 }
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787933299672';
+const BUILD_ID='1787934318321';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

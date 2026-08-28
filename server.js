@@ -1954,10 +1954,32 @@ async function api(req,res,url){
      Wipes THIS account's server-owned progression: glyph boards/fragments/inventory (re-migrates
      fresh with the starter pack on next /state), Forge gear, Forge Dust, and the Vault climb.
      Only ever touches the calling account. The client wipes its local save alongside this. */
+  /* 28 Aug (Phil: "I reset all progress but the game kept my campaign history").
+     This wiped glyphs, gear, dust and the dungeon — and left the LEDGER completely untouched. Since
+     v273 the ledger owns campaign clears, stars, player XP, hero XP, unlocks, gold, gems and stamina,
+     so "Reset all progress" cleared the browser's copy and the server handed every bit of it straight
+     back: 32 stars and a cleared Chapter 1 on a fresh save. A reset now resets what the server owns
+     too, and returns the fresh ledger so the client adopts it instead of guessing. */
   if(p==='/api/account/reset-progress' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     delete me.glyphs; delete me.gear; me.dust=0;
     if(DB.dungeonProgress) delete DB.dungeonProgress[me.id];
-    writeDB(); return send(res,200,{ok:true}); }
+    // rebuild the ledger at its starter state — the same shape a brand-new account is given
+    const led={ v:1, migratedAt:Date.now(), rev:1, gold:0, gems:0, px:0,
+      hero:{}, unlocked:{}, frags:{},
+      camp:{ cleared:0, stars:{}, att:null },
+      stam:{ v:60, ts:Date.now() },
+      txs:[] };
+    for(const k of Object.keys(SIM.HERO_BASE)){
+      if(STARTER_HEROES.includes(k)) led.unlocked[k]=true;
+      led.hero[k]={ xp:0, stars:SIM.HERO_BASE[k].stars, pips:0, ref:0 };
+    }
+    if(led.portals!==undefined) delete led.portals;
+    me.led=led; me.econ=null; delete me.flag;
+    try{ if(me.roster && typeof me.roster.__save==='string'){ const g=JSON.parse(me.roster.__save);
+      for(const k of SERVER_OWNED_SAVE_FIELDS) delete g[k];
+      me.roster.__save=JSON.stringify(g); } }catch(e){}
+    ledTx(me,'account:reset',{});
+    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(me)}); }
 
   // change / link recovery email — STEP 1: request a confirmation code. Signed-in only.
   // If an email is already on file the code goes to the CURRENT email (so a hijacked session can't silently
