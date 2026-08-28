@@ -4738,10 +4738,24 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           // single shared per-state texture would force EVERY same-key unit to the LAST-synced unit's frame +
           // facing (same-type monsters lockstep; mirror matchups face the wrong way). One clone per sprite,
           // image swapped on state change, disposed in clearBattle.
-          let ut=spr._utex;
-          if(!ut && A.tex.image){ ut=A.tex.clone(); ut.needsUpdate=true; spr._utex=ut; spr._utexImg=A.tex.image; }
-          else if(ut && A.tex.image && spr._utexImg!==A.tex.image){ ut.image=A.tex.image; ut.needsUpdate=true; spr._utexImg=A.tex.image; }
-          const T=ut||A.tex;
+          /* 28 Aug — THE ACTUAL LAG (Phil: "I need less or no lag, it needs to be seamless").
+             This used to give every unit its own CLONE of the sheet texture, because offset/repeat
+             live on the Texture and a shared one would lock same-key units to the same frame. But a
+             three.js clone does NOT share the GPU copy — each clone is uploaded separately — and,
+             worse, the line below swapped the clone's `image` and set needsUpdate on EVERY animation
+             state change. Each of those is a full multi-megabyte re-upload of an entire sheet. A hero
+             cycles idle→walk→attack→hit constantly, so the game was re-uploading sheets to the GPU
+             several times a second, per unit, forever. That is why stage 1-1 with three heroes still
+             stuttered on ~59MB of art, why no amount of shrinking textures fixed it, and why the walk
+             cycle looked frozen — the frames were arriving slower than the animation needed them.
+             Now: ONE texture per sheet, shared by every unit, uploaded exactly once. The per-unit UV
+             window is applied in onBeforeRender, which three calls immediately before drawing THAT
+             sprite, so each unit still gets its own frame and its own facing — as a uniform update,
+             costing nothing, instead of a texture upload. */
+          const T=A.tex;
+          if(!spr._uvHook){ spr._uvHook=true;
+            spr.onBeforeRender=function(){ const m=this.material&&this.material.map, v=this._uv;
+              if(m&&v){ m.repeat.set(v[0],v[1]); m.offset.set(v[2],v[3]); m.updateMatrix(); } }; }
           // HALF-TEXEL INSET: sampling a cell at its exact boundary lets bilinear filtering blend in the
           // NEIGHBOURING frame's edge pixels — that showed up as a thin box outline / sliver of the next
           // frame flickering around the sprite. Pull the UV window in by half a texel on every side.
@@ -4755,10 +4769,14 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           const _iw=Math.max(1,_c*A.fw), _ih=Math.max(1,_r*A.fh);
           const _ex=1.5/_iw, _ey=1.5/_ih;
           const _uw=Math.max(1e-6,(1/_c)-2*_ex);
-          if(mirror){ T.repeat.x=-_uw; T.offset.x=(_col+1)/_c-_ex; }
-          else      { T.repeat.x= _uw; T.offset.x=_col/_c+_ex; }
-          if(_r>1){ const _vh=Math.max(1e-6,(1/_r)-2*_ey); T.repeat.y=_vh; T.offset.y=1-(_row+1)/_r+_ey; }
-          else    { T.repeat.y=1-2*_ey; T.offset.y=_ey; }
+          const _rx = mirror? -_uw : _uw;
+          const _ox = mirror? ((_col+1)/_c-_ex) : (_col/_c+_ex);
+          let _ry,_oy;
+          if(_r>1){ _ry=Math.max(1e-6,(1/_r)-2*_ey); _oy=1-(_row+1)/_r+_ey; }
+          else    { _ry=1-2*_ey; _oy=_ey; }
+          spr._uv=[_rx,_ry,_ox,_oy];
+          // apply immediately too, so a single-sprite frame is correct even before onBeforeRender runs
+          T.repeat.set(_rx,_ry); T.offset.set(_ox,_oy);
           if(spr.material.map!==T){spr.material.map=T;spr.material.needsUpdate=true;} }
         if(A.figH){ // character-normalized clip: the frame may include effects bigger than the hero.
           // scale so the CHARACTER (figH px of the fh-tall frame) is exactly sprH tall — identical size in EVERY action —
@@ -10731,7 +10749,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787934318321';
+const BUILD_ID='1787935126073';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
