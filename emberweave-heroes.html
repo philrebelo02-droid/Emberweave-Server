@@ -1213,18 +1213,19 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=6',n:20,fw:300,fh:300,cols:6,rows:4,figH:199,feet:255,cx:152,fps:12,flip:false,top:56}
   },
   meryln:{
-    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=5',n:24,fw:285,fh:300,cols:6,rows:4,figH:293,feet:297,cx:143,fps:8,flip:false,top:3},
-    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=5',n:24,fw:259,fh:300,cols:6,rows:4,figH:265,feet:289,cx:118,fps:14,flip:false,top:3},
-    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=5',n:24,fw:300,fh:246,cols:6,rows:4,figH:230,feet:243,cx:145,fps:18,flip:false,hold:0.9,top:2},
-    green:{u:'/assets/anim/meryln/meryln_green.webp?v=1',n:20,fw:216,fh:300,cols:6,rows:4,figH:252,feet:297,cx:101,fps:14,flip:false,top:44,hold:0.8},
-    blue:{u:'/assets/anim/meryln/meryln_blue.webp?v=1',n:20,fw:259,fh:300,cols:6,rows:4,figH:291,feet:295,cx:124,fps:14,flip:false,top:4,hold:0.8},
-    ult:{u:'/assets/anim/meryln/meryln_ult.webp?v=1',n:20,fw:300,fh:260,cols:6,rows:4,figH:247,feet:257,cx:160,fps:16,flip:false,top:10}
+    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=6',n:24,fw:214,fh:300,cols:6,rows:4,figH:293,feet:296,cx:130,fps:8,flip:false,top:3},
+    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=6',n:24,fw:233,fh:300,cols:6,rows:4,figH:289,feet:295,cx:112,fps:12,flip:false,top:6},
+    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=6',n:24,fw:300,fh:270,cols:6,rows:4,figH:254,feet:266,cx:111,fps:18,flip:false,hold:0.9,top:12},
+    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=6',n:20,fw:300,fh:242,cols:6,rows:4,figH:199,feet:235,cx:151,fps:16,flip:false,top:36},
+    green:{u:'/assets/anim/meryln/meryln_green.webp?v=6',n:20,fw:143,fh:300,cols:6,rows:4,figH:239,feet:297,cx:72,fps:12,flip:false,top:57,hold:0.8},
+    blue:{u:'/assets/anim/meryln/meryln_blue.webp?v=6',n:20,fw:300,fh:293,cols:6,rows:4,figH:286,feet:290,cx:98,fps:12,flip:false,top:3,hold:0.8},
+    ult:{u:'/assets/anim/meryln/meryln_ult.webp?v=6',n:20,fw:300,fh:286,cols:6,rows:4,figH:239,feet:251,cx:168,fps:12,flip:false,top:11}
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=4',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
     walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=3',n:24,fw:232,fh:300,cols:6,rows:4,figH:273,feet:297,cx:136,fps:14,flip:false,top:3},
     attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=3',n:24,fw:300,fh:272,cols:6,rows:4,figH:267,feet:270,cx:144,fps:18,flip:false,hold:0.9,top:2},
-    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=5',n:20,fw:295,fh:300,cols:6,rows:4,figH:249,feet:297,cx:149,fps:16,flip:false,top:2},
+    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=6',n:20,fw:295,fh:300,cols:6,rows:4,figH:249,feet:297,cx:149,fps:16,flip:false,top:2},
     green:{u:'/assets/anim/hollow/hollow_green.webp?v=3',n:24,fw:270,fh:300,cols:6,rows:4,figH:248,feet:296,cx:182,fps:12,flip:false,hold:0.8,top:2},
     blue:{u:'/assets/anim/hollow/hollow_blue.webp?v=3',n:24,fw:276,fh:300,cols:6,rows:4,figH:231,feet:276,cx:140,fps:14,flip:false,hold:0.8,top:2},
     ult:{u:'/assets/anim/hollow/hollow_ult.webp?v=3',n:24,fw:300,fh:298,cols:6,rows:4,figH:274,feet:284,cx:158,fps:12,flip:false,top:3},
@@ -10920,7 +10921,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787958682324';
+const BUILD_ID='1787961191116';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
