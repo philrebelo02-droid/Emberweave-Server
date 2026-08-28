@@ -1641,10 +1641,38 @@ function capSheet(img, cols, rows){
   }catch(e){ return img; }
 }
 function _fitTex(t, cols, rows){ try{ const im=capSheet(t.image, cols, rows); if(im!==t.image){ t.image=im; t.needsUpdate=true; } }catch(e){} }
+/* 28 Aug (v286 §1.2) — DECODE THE SHEET STRAIGHT TO ITS FINAL SIZE.
+   capSheet() below shrinks an over-large sheet to CELL_CAP, but it did so by letting the browser
+   decode the full ~1800x1200 image on the main thread and then re-drawing it into a canvas. Warming
+   a stage means ~100 sheets, so that was ~100 full-size decodes plus ~100 canvas draws in a burst
+   right as the fight starts — felt as the hitch on entering a battle. createImageBitmap can decode
+   DIRECTLY at a target size, off the main thread, so the full-size bitmap never exists at all.
+   Falls back to the old path wherever it is unsupported or fails. */
+function bitmapLoad(url, cols, rows, onTex, onErr){
+  if(typeof createImageBitmap!=='function' || typeof fetch!=='function') return false;
+  /* three r128 does NOT apply texture.flipY to an ImageBitmap, so the bitmap has to be created
+     already flipped (imageOrientation:'flipY') and the texture told not to flip again — otherwise
+     every sprite renders upside down. */
+  fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
+    .then(bl=>createImageBitmap(bl,{imageOrientation:'flipY'}).then(probe=>{
+      const cw=probe.width/cols, ch=probe.height/rows;
+      const k=Math.min(1, CELL_CAP/Math.max(cw,ch));
+      if(k>=0.999){ onTex(probe); return; }
+      const nw=Math.max(1,Math.round(cw*k))*cols, nh=Math.max(1,Math.round(ch*k))*rows;
+      return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'})
+        .then(sm=>{ try{ probe.close&&probe.close(); }catch(e){} onTex(sm); });
+    }))
+    .catch(()=>{ onErr&&onErr(); });
+  return true;
+}
 function loadAnimSet(key){ const set=BATTLE_ANIM[key]; if(!set||set._loaded||!heroHasAnim(key)) return set;
   for(const st in set){ if(st[0]==='_')continue; const s=set[st]; if(!isAssetRef(s.u))continue;
     const _c=s.cols||s.n,_r=s.rows||1;
-    const tx=new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r); }, undefined, ()=>{ retryTex(s, tx, 1); });   // shrink to the cap, retry, then fall back
+    const tx=new TH.Texture();
+    if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; },
+                   ()=>{ const t2=new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); })){
+      new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
+    }
     tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
   // drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
   for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
@@ -2700,7 +2728,32 @@ function initThree(){
   groundGroup.visible=false;   // the painted battle map (#battleBg) is the ground now
   resize3D();
 }
-function resize3D(){ if(!renderer)return; DPR=Math.min(window.devicePixelRatio||1,2); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
+/* 28 Aug (v286 §1.5) — RENDER RESOLUTION IS THE BIGGEST GPU COST ON A PHONE, and it was pinned at
+   2.0. A 3x phone rendered at 2x means FOUR TIMES the pixels of 1x, every frame, for a picture whose
+   sprites are ~150px of source art. The renderer now starts at a safe mobile resolution and EARNS its
+   way up: QUAL.dpr rises only after a sustained window of comfortable frames and drops immediately on
+   sustained slow ones. It never touches the simulation — only how many pixels are shaded. */
+const QUAL={ dpr:1, max:2, min:0.75, good:0, bad:0, last:0, locked:false };
+function qualityInit(){
+  const dpr=window.devicePixelRatio||1;
+  const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
+  const cores=navigator.hardwareConcurrency||4;
+  const mem=navigator.deviceMemory||4;
+  QUAL.max=Math.min(dpr,2);
+  QUAL.dpr=mobile ? Math.min(dpr,(cores<=4||mem<=4)?1.0:1.25) : Math.min(dpr,2);
+  try{ const saved=parseFloat(localStorage.getItem('ew_dpr')||''); if(saved>=0.75&&saved<=2) QUAL.dpr=Math.min(saved,QUAL.max); }catch(e){}
+}
+function qualityTick(frameMs){
+  if(QUAL.locked || state!=='battle') return;
+  if(frameMs>26){ QUAL.bad++; QUAL.good=0; } else if(frameMs<15){ QUAL.good++; QUAL.bad=0; } else { return; }
+  if(QUAL.bad>=25 && QUAL.dpr>QUAL.min){                       // ~0.4s of slow frames -> shed pixels now
+    QUAL.dpr=Math.max(QUAL.min, +(QUAL.dpr-0.25).toFixed(2)); QUAL.bad=0; qualityApply(); }
+  else if(QUAL.good>=360 && QUAL.dpr<QUAL.max){                // ~6s of healthy frames -> earn some back
+    QUAL.dpr=Math.min(QUAL.max, +(QUAL.dpr+0.25).toFixed(2)); QUAL.good=0; qualityApply(); }
+}
+function qualityApply(){ try{ localStorage.setItem('ew_dpr',String(QUAL.dpr)); }catch(e){}
+  CW=0; resize3D(); }                                          // force a real resize at the new resolution
+function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
   renderer.setPixelRatio(DPR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
   renderer.domElement.style.width='100%'; renderer.domElement.style.height='100%';   // always fill #app (buffer aspect already matches)
   overlay.width=CW*DPR; overlay.height=CH*DPR; overlay.style.width=CW+'px'; overlay.style.height=CH+'px'; octx.setTransform(DPR,0,0,DPR,0,0); }
@@ -3887,51 +3940,73 @@ const FX2_DEF={
 const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
   const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t; return t; }
-// fresh per-instance texture — self-updates when the image loads (a clone made before load stays blank in three r128)
-function fx2NewTex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; return t; }
-function fx2SetFrame(tex,d,fr){ fr=((fr%d.n)+d.n)%d.n; const c=fr%d.cols, r=Math.floor(fr/d.cols);
+/* 28 Aug — EFFECT TEXTURE CHURN (v286 §1.3). Every ground zone, projectile, beam and status effect
+   used to call fx2NewTex(), which builds a WHOLE NEW three.js Texture and uploads the entire effect
+   sheet to the GPU — then disposed it when the effect ended. So every cast paid a full texture
+   upload and every expiry paid a delete. The HTTP cache does not make that free: the cost is the GPU
+   upload, not the download. This is the same fault the battle sprites had (per-unit clones), and it
+   has the same fix: ONE shared texture per sheet, uploaded once, with each instance's frame applied
+   in onBeforeRender — which three calls immediately before drawing that object, so two effects on
+   the same sheet can sit on different frames. Nothing is created or destroyed during a fight. */
+function fx2NewTex(key){ return fx2Tex(key); }        // kept as a name; now returns the shared texture
+function fx2Hook(obj){ if(obj._fx2Hooked) return obj; obj._fx2Hooked=true;
+  obj.onBeforeRender=function(){ const m=this.material&&this.material.map, v=this._uv;
+    if(m&&v){ m.repeat.set(v[0],v[1]); m.offset.set(v[2],v[3]); m.updateMatrix(); } };
+  return obj; }
+/* Writes the frame into the OBJECT's own uv window (and applies it immediately, so a lone effect is
+   correct even before the first onBeforeRender). Accepts either an Object3D or a raw texture, so the
+   older call sites keep working. */
+function fx2SetFrame(target,d,fr){ fr=((fr%d.n)+d.n)%d.n; const c=fr%d.cols, r=Math.floor(fr/d.cols);
   const ex=1.5/Math.max(1,d.cols*d.fw), ey=1.5/Math.max(1,d.rows*d.fh);           // same half-texel guard as the battle sprites
-  tex.repeat.set(Math.max(1e-6,1/d.cols-2*ex), Math.max(1e-6,1/d.rows-2*ey));
-  tex.offset.set(c/d.cols+ex, 1-(r+1)/d.rows+ey); }                                // sheet cell -> texture UV (row 0 = top)
+  const rx=Math.max(1e-6,1/d.cols-2*ex), ry=Math.max(1e-6,1/d.rows-2*ey);
+  const ox=c/d.cols+ex, oy=1-(r+1)/d.rows+ey;                                      // sheet cell -> texture UV (row 0 = top)
+  if(target&&target.isObject3D){ target._uv=[rx,ry,ox,oy]; const m=target.material&&target.material.map;
+    if(m){ m.repeat.set(rx,ry); m.offset.set(ox,oy); } return; }
+  if(target&&target.repeat){ target.repeat.set(rx,ry); target.offset.set(ox,oy); } }
+const _FX2_PLANE=(typeof TH!=='undefined'&&TH)?new TH.PlaneGeometry(1,1):null;     // one shared quad; zones scale it
 // Ground zone: a flat animated quad laid on the battlefield, sized to the ability RADIUS, looping for `life` seconds.
 const _groundFx=[];
 function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
-  const tex=fx2NewTex(key); fx2SetFrame(tex,d,0);
+  const tex=base;
   const R3=radius*SC, w=R3*2*1.12, h=w*(d.fh/d.fw);
-  const m=new TH.Mesh(new TH.PlaneGeometry(w,h), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:TH.DoubleSide,opacity:0}));
+  const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:TH.DoubleSide,opacity:0}));
+  m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
+  fx2Hook(m); fx2SetFrame(m,d,0);
   m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)); m.renderOrder=5; scene.add(m);
   const o={m,d,tex,t:0,life}; _groundFx.push(o); return o; }
 function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
-  fx2SetFrame(o.tex,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                          // loop the cycle
+  fx2SetFrame(o.m,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                            // loop the cycle
   o.m.material.opacity=Math.min(1,o.t/0.12)*Math.min(1,o.life/0.18);              // snappy fade in / out (so brief 0.5s curse telegraphs still reach full opacity)
-  if(o.life<=0){ scene.remove(o.m); o.m.geometry.dispose(); if(o.m.material.map)o.m.material.map.dispose(); o.m.material.dispose(); _groundFx.splice(i,1); } } }
+  if(o.life<=0){ scene.remove(o.m); o.m.material.dispose(); _groundFx.splice(i,1); } } }   // geometry + texture are shared: never disposed
 // Traveling projectile: a billboard that flies from->to, its sheet looping (rubberband is baked in), rotated so the
 // orb FRONT (baked pointing +x) faces the direction of travel. onHit fires on arrival.
 const _projFx=[];
 function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit){ const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
-  const tex=fx2NewTex(key); fx2SetFrame(tex,d,0);
+  const tex=base;
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
+  fx2Hook(spr); fx2SetFrame(spr,d,0);
   spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;
   let rot=0; try{ const a=new TH.Vector3(wx(fromx),1.2,wz(fromy)).project(camera), b=new TH.Vector3(wx(tox),1.2,wz(toy)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
   spr.material.rotation=rot;                                                      // front(+x) -> travel direction on screen
   spr.position.set(wx(fromx),1.2,wz(fromy)); scene.add(spr);
   _projFx.push({spr,d,tex,sx:fromx,sy:fromy,tx:tox,ty:toy,t:0,dur:Math.max(.1,dur||.3),onHit}); }
 function updateProjFx(dt){ for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
-  fx2SetFrame(p.tex,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
+  fx2SetFrame(p.spr,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
   p.spr.position.set(wx(p.sx+(p.tx-p.sx)*k),1.2,wz(p.sy+(p.ty-p.sy)*k));
-  if(k>=1){ if(p.onHit)p.onHit(); scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _projFx.splice(i,1); } } }
+  if(k>=1){ if(p.onHit)p.onHit(); scene.remove(p.spr); p.spr.material.dispose(); _projFx.splice(i,1); } } }
 // King Bloatus Toxic Breath — a stretched gas BEAM. The gas apex (tail) is pinned to his mouth; the whole plume
 // rotates toward the target and scales so its LEAD tip reaches the target. Extends over `extend`s to full length,
 // then rubberbands back into his mouth over `retract`s. Anchored at the apex so it never detaches from his lips.
 const _beamFx=[]; const BEAM_K=1.0;
 function spawnBeamFx(key,u,tx,ty,extend,retract){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
-  const tex=fx2NewTex(key); fx2SetFrame(tex,d,0);
+  const tex=base;
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
+  fx2Hook(spr); fx2SetFrame(spr,d,0);
   spr.center.set(d.apex[0]/d.fw, 1-d.apex[1]/d.fh);           // anchor at the gas apex -> pins to the mouth
   spr.renderOrder=994; scene.add(spr);
   const o={spr,d,tex,u,tx,ty,t:0,extend:extend||1.5,retract:retract||0.5}; _beamFx.push(o); return o; }
 function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx[i]; o.t+=dt; const u=o.u, d=o.d, total=o.extend+o.retract;
-  if(!u||!u.alive||o.t>=total){ scene.remove(o.spr); if(o.spr.material.map)o.spr.material.map.dispose(); o.spr.material.dispose(); _beamFx.splice(i,1); continue; }
+  if(!u||!u.alive||o.t>=total){ scene.remove(o.spr); o.spr.material.dispose(); _beamFx.splice(i,1); continue; }
   let grow; if(o.t<=o.extend){ grow=Math.pow(o.t/o.extend,0.85); } else { grow=1-(o.t-o.extend)/o.retract; } grow=Math.max(0.04,grow);
   const dd=Math.max(1,Math.hypot(o.tx-u.x,o.ty-u.y)), dirx=(o.tx-u.x)/dd, diry=(o.ty-u.y)/dd;
   const mx=u.x+dirx*14, my=u.y+diry*14;                        // mouth = a touch forward of the caster
@@ -3961,19 +4036,20 @@ function dotKind(color){ if(!color)return null; const h=color.replace('#',''); i
   return null; }
 function unitDotKind(u){ if(!u.dots||!u.dots.length)return null; for(let i=u.dots.length-1;i>=0;i--){ const k=dotKind(u.dots[i].color); if(k)return k; } return null; }
 const STATUSFX_KEY={poison:'poison',bleed:'bleed',burn:'firepatch'};   // burn is rendered as a tiny fire patch
-function _killStatusFx(u){ if(u._statusFx){ scene.remove(u._statusFx.spr); if(u._statusFx.spr.material.map)u._statusFx.spr.material.map.dispose(); u._statusFx.spr.material.dispose(); u._statusFx=null; } }
+function _killStatusFx(u){ if(u._statusFx){ scene.remove(u._statusFx.spr); u._statusFx.spr.material.dispose(); u._statusFx=null; } }
 function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
   const kind=u.alive?unitDotKind(u):null;
   if(!kind || (u._statusFx&&u._statusFx.kind!==kind)) _killStatusFx(u);
   if(!kind) return;
   if(!u._statusFx){ const key=STATUSFX_KEY[kind], d=FX2_DEF[key], base=fx2Tex(key); if(!base)return;
-    const tex=fx2NewTex(key); fx2SetFrame(tex,d,0); const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
+    const tex=base; const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
+    fx2Hook(spr); fx2SetFrame(spr,d,0);
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=993; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
-  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.tex,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
-function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.geometry.dispose();if(o.m.material.map)o.m.material.map.dispose();o.m.material.dispose();}); _groundFx.length=0;
-  _projFx.forEach(p=>{scene.remove(p.spr);if(p.spr.material.map)p.spr.material.map.dispose();p.spr.material.dispose();}); _projFx.length=0;
-  _beamFx.forEach(o=>{scene.remove(o.spr);if(o.spr.material.map)o.spr.material.map.dispose();o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
+  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
+function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
+  _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0;
+  _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   if(typeof units!=='undefined') units.forEach(u=>_killStatusFx(u)); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
@@ -10742,8 +10818,11 @@ function perfVRAM(){ let px=0; try{ for(const k in BATTLE_ANIM){ const set=BATTL
     for(const st in set){ if(st[0]==='_')continue; const t=set[st]&&set[st].tex; if(t&&t.image&&t.image.width) px+=t.image.width*t.image.height; } } }catch(e){}
   return Math.round(px*4/1e6); }
 /* loop */
-let last=performance.now(), _szChk=0;
-function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
+let last=performance.now(), _szChk=0, _wasLive=false;
+function loop(now){let dt=(now-last)/1000;last=now;
+  if(QUAL.last) qualityTick(now-QUAL.last);
+  QUAL.last=now;
+  if(dt>.05)dt=.05;
   if(PERF.on){ const _f=(now-(PERF._last||now)); PERF._last=now; PERF.fr+=_f; PERF.n++; if(_f>PERF.worst)PERF.worst=_f;
     if(now-PERF.shown>500){ PERF.shown=now; perfHUD(); } }
   if(document.body.classList.contains('gated')){ requestAnimationFrame(loop); return; }   // splash still up → don't render the 3D scene/overlay yet (prevents a half-loaded frame from flashing)
@@ -10775,6 +10854,20 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
     for(let i=0;i<units.length;i++){ const u=units[i];
       u.rx=(u.px==null)?u.x:(u.px+(u.x-u.px)*alpha);
       u.ry=(u.py==null)?u.y:(u.py+(u.y-u.py)*alpha); } }
+  /* 28 Aug (v286 §1.6) — the 3D scene and the 2D overlay were redrawn EVERY animation frame for the
+     whole session, including while sitting on the Home screen, the Forge, the roster or any menu,
+     where the battle canvas is not even visible. That is a full GPU pass and a full-canvas 2D
+     repaint, 60 times a second, for a picture nobody can see: it drains the battery, heats the phone
+     (which then throttles, which is felt as lag in the next fight) and competes with the menu's own
+     DOM work. The battlefield now draws only when a battle is actually on screen. */
+  const _live=(state==='battle'||state==='result'||(typeof OL!=='undefined'&&OL.active));
+  if(!_live){
+    if(_wasLive){ _wasLive=false;                                  // leaving the battlefield: wipe it once
+      try{ if(octx&&overlay) octx.clearRect(0,0,overlay.width,overlay.height); }catch(e){}
+      try{ if(renderer&&scene&&camera) renderer.render(scene,camera); }catch(e){}   // one last clean frame
+    }
+    requestAnimationFrame(loop); return; }
+  if(!_wasLive){ _wasLive=true; CW=0; }                            // re-entering: force one resize//rebuild
   if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);
     let yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):1;
     if(s.arc) yy=1+Math.sin(k*Math.PI)*s.arc;                                  // heavy rounds lob, darts fly flat
@@ -10790,7 +10883,7 @@ function loop(now){let dt=(now-last)/1000;last=now;if(dt>.05)dt=.05;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787938815931';
+const BUILD_ID='1787942257041';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

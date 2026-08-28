@@ -2810,7 +2810,23 @@ async function api(req,res,url){
        next attempt. Now: the same stage returns the SAME session (same seed, same snapshots — no
        reroll); a different stage refunds the abandoned one first. */
     { const open=prog.att;
-      if(open && (Date.now()-(open.startedAt||0) <= CAMP_SESSION_MS)){
+      /* 28 Aug — RESUMING MUST NOT OVERRIDE A DELIBERATE SQUAD CHANGE.
+         The resume path returned the open session's ORIGINAL frozen snapshot whenever the stage
+         matched, without looking at who the player had just picked. So changing your squad and
+         pressing BATTLE on the same stage silently gave you the previous line-up — the client sent
+         the right heroes and the server handed back the old ones. That is the other half of "it just
+         chooses an old line up pick", and it survived the client-side fix. A reconnect (same stage,
+         same squad) still resumes free; a genuinely different squad refunds the abandoned attempt
+         and starts a fresh one. */
+      const sameSquad = open && Array.isArray(open.heroIds) && open.heroIds.length===ids.length
+        && open.heroIds.every((k,i)=>k===ids[i]);
+      if(open && !sameSquad && (Date.now()-(open.startedAt||0) <= CAMP_SESSION_MS) && open.node===node){
+        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
+        ledTx(me,mode+':resquad:'+(open.node|0),{stamina:(open.stamPaid|0)});
+        prog.att=null;
+      }
+      if(prog.att && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS)){
+        const open=prog.att;
         if(open.node===node){
           const st0=portalStageOf(mode,node);
           writeDB();
@@ -2820,7 +2836,7 @@ async function api(req,res,url){
         led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
         ledTx(me,mode+':abandoned:'+(open.node|0),{stamina:(open.stamPaid|0)});
         prog.att=null;
-      } else if(open){
+      } else if(prog.att){ const open=prog.att;
         led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
         ledTx(me,mode+':expired:'+(open.node|0),{stamina:(open.stamPaid|0)});
         prog.att=null;
