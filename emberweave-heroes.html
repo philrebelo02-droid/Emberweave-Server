@@ -2645,6 +2645,7 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
 const BATTLE_PACE=0.82;
 /* --- Phase 1: deterministic battle core --- */
+const TELEPORT_SQ=300*300;   // squared world distance above which a per-tick move is a teleport, not motion — never interpolate across it
 const SIM_HZ=30;   // v268: THE fixed tick for EVERY mode — live play, replay, skip and the headless resolver all advance in exact SIM_STEP steps off a real-time accumulator, so the same seed and inputs give the same fight on any device. Smoothness comes from RENDER INTERPOLATION between ticks (u.px/py → u.rx/ry), not from a variable timestep; the animation timers still run on render time in syncMesh, which is what the earlier attempt got wrong.
 const SIM_STEP=BATTLE_PACE/SIM_HZ;
 let _brng=null, _bacc=0, _alpha=1;
@@ -4372,6 +4373,7 @@ function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   units.filter(u=>u.team==='enemy'&&u.alive).forEach(u=>{ u.target=null; u.attackAnim=0; u.castAnim=0;
     u.homeX=u.x; u.homeY=u.y;
     const st=monsterOffscreenStart(u.x,u.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
+  units.forEach(u=>{ u.px=u.x; u.py=u.y; });   // everyone was just teleported to a spawn — no interpolation across that jump
   waveXfer={phase:'enter',t:0};
 }
 function beginWaveExit(){ purgeDead(); purgeTransientFx(); bringBackHiddenAllies(); waveXfer={phase:'exit',t:0}; bannerMsg('WAVE CLEARED'); }
@@ -4406,7 +4408,7 @@ function updateWaveXfer(dt){
     marching.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
-    if(allIn || waveXfer.t>6){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; }); waveXfer=null; }   // everyone in position → resume 1x combat
+    if(allIn || waveXfer.t>6){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; u.px=u.x; u.py=u.y; }); waveXfer=null; }   // everyone in position → resume 1x combat
     return;
   }
   // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
@@ -4626,11 +4628,17 @@ function endBattle(won){ ended=true;
 },800); }
 
 function updateBattle(dt){
+  /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
+     return, so for the whole wave transition px/py stayed frozen at the last combat position while
+     updateWaveXfer kept moving x/y. The renderer interpolates rx = px + (x-px)*alpha with alpha
+     sweeping 0..1 every tick, so every frame it swung across a gap that grew each tick — read as
+     violent jitter, and as a full-map slingshot on the teleport into the off-screen spawn. The
+     snapshot now happens for EVERY tick, transition included. */
+  for(let i=0;i<units.length;i++){ const u=units[i]; u.px=u.x; u.py=u.y; }
   if(waveXfer){ updateWaveXfer(dt); return; }   // wave-transition cinematic: heroes run off top-right, next wave re-enters — normal combat paused
   // v268 (DETERMINISM): the sim now advances in FIXED steps. Remember where every unit stood at the
   // start of this tick so the renderer can interpolate between ticks and stay perfectly smooth at any
   // frame rate — the sim's own numbers never depend on the device's frame rate again.
-  for(let i=0;i<units.length;i++){ const u=units[i]; u.px=u.x; u.py=u.y; }
   pumpInputs();   // v269: a tap is applied HERE, on a tick boundary — never mid-frame
   simTick++;
   battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
@@ -10890,8 +10898,11 @@ function loop(now){let dt=(now-last)/1000;last=now;
   // two ticks. `_bacc` is exactly how far we are into the next tick.
   { const alpha=Math.max(0,Math.min(1,_bacc));
     for(let i=0;i<units.length;i++){ const u=units[i];
-      u.rx=(u.px==null)?u.x:(u.px+(u.x-u.px)*alpha);
-      u.ry=(u.py==null)?u.y:(u.py+(u.y-u.py)*alpha); } }
+      // A deliberate teleport (wave spawn, Hollow's -9999 park, a blink) must never be interpolated:
+      // sliding across it is the slingshot. Anything past a stride is a jump, not movement.
+      const _dx=(u.px==null?0:u.x-u.px), _dy=(u.py==null?0:u.y-u.py);
+      if(u.px==null || (_dx*_dx+_dy*_dy)>TELEPORT_SQ){ u.rx=u.x; u.ry=u.y; }
+      else { u.rx=u.px+_dx*alpha; u.ry=u.py+_dy*alpha; } } }
   /* 28 Aug (v286 §1.6) — the 3D scene and the 2D overlay were redrawn EVERY animation frame for the
      whole session, including while sitting on the Home screen, the Forge, the roster or any menu,
      where the battle canvas is not even visible. That is a full GPU pass and a full-canvas 2D
@@ -10921,7 +10932,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1787963527573';
+const BUILD_ID='1788005529005';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
