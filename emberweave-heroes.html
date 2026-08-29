@@ -1082,7 +1082,7 @@ const HERO_SKILL_CLIPS = { konwu:{
 rhukk:{
   0:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=8',n:12,fw:226,fh:240,cols:6,rows:2,dur:1.2},
   1:{u:'/assets/anim/rhukk/rhukk_green.webp?v=8',n:12,fw:243,fh:238,cols:6,rows:2,dur:1.2},
-  2:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=8',n:12,fw:252,fh:254,cols:6,rows:2,dur:1.2},
+  2:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=9',n:12,fw:252,fh:255,cols:6,rows:2,dur:1.2},
   3:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,dur:1.2},
 },
 lumi:{
@@ -1129,24 +1129,25 @@ const GROSK_CROC="/assets/anim/grosk/grosk_croc.webp?v=7", GROSK_PULL="/assets/a
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
 const BATTLE_ANIM = {
   vesper:{
-    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=5',n:24,fw:241,fh:300,cols:6,rows:4,figH:294,feet:297,cx:123,fps:8,flip:true,top:3},
-    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=5',n:24,fw:232,fh:300,cols:6,rows:4,figH:294,feet:297,cx:122,fps:14,flip:true,top:3},
+    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=6',n:72,fw:241,fh:300,cols:6,rows:12,figH:294,feet:297,cx:123,fps:30,flip:true,top:3},
+    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=6',n:51,fw:232,fh:300,cols:6,rows:9,figH:294,feet:297,cx:122,fps:30,flip:true,top:3},
     attack:{u:'/assets/anim/vesper/vesper_attack.webp?v=5',n:24,fw:300,fh:295,cols:6,rows:4,figH:288,feet:291,cx:116,fps:20,flip:true,hold:1.2,top:3},
     hit:{u:'/assets/anim/vesper/vesper_hit.webp?v=5',n:24,fw:294,fh:300,cols:6,rows:4,figH:256,feet:285,cx:155,fps:16,flip:true,top:3},
     green:{u:'/assets/anim/vesper/vesper_green.webp?v=1',n:20,fw:248,fh:300,cols:6,rows:4,figH:294,feet:297,cx:141,fps:14,flip:true,top:3,hold:0.8},
-    ult:{u:'/assets/anim/vesper/vesper_ult.webp?v=1',n:20,fw:222,fh:300,cols:6,rows:4,figH:294,feet:297,cx:116,fps:16,flip:true,top:3}
+    ult:{u:'/assets/anim/vesper/vesper_ult.webp?v=2',n:38,fw:222,fh:300,cols:6,rows:7,figH:294,feet:297,cx:116,fps:30,flip:true,top:3},
+    blue:{u:'/assets/anim/vesper/vesper_blue.webp?v=1',n:72,fw:257,fh:300,cols:6,rows:12,figH:248,feet:297,cx:98,fps:30,flip:true,top:49,hold:0.8}   /* Pagestorm - was falling back to the attack clip */
   },
   sablewick:{
-    idle:{u:'/assets/anim/sablewick/sablewick_idle.webp?v=3',n:24,fw:212,fh:300,cols:6,rows:4,figH:273,feet:288,cx:112,fps:8,flip:true,top:3},
+    idle:{u:'/assets/anim/sablewick/sablewick_idle.webp?v=4',n:72,fw:212,fh:300,cols:6,rows:12,figH:273,feet:288,cx:112,fps:30,flip:true,top:3},
     walk:{u:'/assets/anim/sablewick/sablewick_walk.webp?v=3',n:24,fw:234,fh:300,cols:6,rows:4,figH:281,feet:286,cx:114,fps:14,flip:true,top:3},
     attack:{u:'/assets/anim/sablewick/sablewick_attack.webp?v=3',n:24,fw:300,fh:284,cols:6,rows:4,figH:278,feet:281,cx:188,fps:20,flip:true,hold:1.2,top:3},
     hit:{u:'/assets/anim/sablewick/sablewick_hit.webp?v=3',n:24,fw:263,fh:300,cols:6,rows:4,figH:254,feet:282,cx:125,fps:16,flip:true,top:2},
-    green:{u:'/assets/anim/sablewick/sablewick_green.webp?v=1',n:20,fw:210,fh:300,cols:6,rows:4,figH:293,feet:296,cx:104,fps:14,flip:true,top:3,hold:0.8},
-    blue:{u:'/assets/anim/sablewick/sablewick_blue.webp?v=1',n:20,fw:226,fh:300,cols:6,rows:4,figH:292,feet:297,cx:120,fps:14,flip:true,top:4,hold:0.8},
-    ult:{u:'/assets/anim/sablewick/sablewick_ult.webp?v=1',n:20,fw:211,fh:300,cols:6,rows:4,figH:293,feet:296,cx:105,fps:16,flip:true,top:3}
+    green:{u:'/assets/anim/sablewick/sablewick_green.webp?v=2',n:43,fw:210,fh:300,cols:6,rows:8,figH:293,feet:296,cx:104,fps:30,flip:true,top:3,hold:0.8},
+    blue:{u:'/assets/anim/sablewick/sablewick_blue.webp?v=2',n:43,fw:226,fh:300,cols:6,rows:8,figH:292,feet:297,cx:120,fps:30,flip:true,top:4,hold:0.8},
+    ult:{u:'/assets/anim/sablewick/sablewick_ult.webp?v=2',n:38,fw:211,fh:300,cols:6,rows:7,figH:293,feet:296,cx:105,fps:30,flip:true,top:3}
   },
   vex:{
-    idle:{u:'/assets/anim/vex/vex_idle.webp?v=5',n:24,fw:210,fh:300,cols:6,rows:4,figH:292,feet:297,cx:105,fps:8,flip:false,top:3},
+    idle:{u:'/assets/anim/vex/vex_idle.webp?v=6',n:72,fw:210,fh:300,cols:6,rows:12,figH:292,feet:297,cx:105,fps:30,flip:false,top:3},
     walk:{u:'/assets/anim/vex/vex_walk.webp?v=5',n:24,fw:216,fh:300,cols:6,rows:4,figH:287,feet:294,cx:98,fps:14,flip:false,top:3},
     attack:{u:'/assets/anim/vex/vex_attack.webp?v=5',n:24,fw:243,fh:300,cols:6,rows:4,figH:247,feet:295,cx:114,fps:20,flip:false,hold:1.2,top:2},
     hit:{u:'/assets/anim/vex/vex_hit.webp?v=5',n:24,fw:263,fh:300,cols:6,rows:4,figH:253,feet:296,cx:141,fps:16,flip:false,top:2},
@@ -1156,14 +1157,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/vex/vex_passive.webp?v=5',n:12,fw:221,fh:300,cols:6,rows:2,figH:290,feet:297,cx:98,fps:14,flip:false,pingpong:true,top:3}
   },
   arrears:{
-    idle:{u:'/assets/anim/arrears/arrears_idle.webp?v=3',n:24,fw:241,fh:300,cols:6,rows:4,figH:292,feet:297,cx:120,fps:8,flip:false,top:3},
+    idle:{u:'/assets/anim/arrears/arrears_idle.webp?v=4',n:72,fw:241,fh:300,cols:6,rows:12,figH:292,feet:297,cx:120,fps:30,flip:false,top:3},
     walk:{u:'/assets/anim/arrears/arrears_walk.webp?v=3',n:24,fw:240,fh:300,cols:6,rows:4,figH:265,feet:287,cx:120,fps:14,flip:false,top:2},
     attack:{u:'/assets/anim/arrears/arrears_attack.webp?v=3',n:24,fw:300,fh:300,cols:6,rows:4,figH:258,feet:297,cx:123,fps:20,flip:false,hold:1.2,top:2},
     hit:{u:'/assets/anim/arrears/arrears_hit.webp?v=4',n:24,fw:300,fh:298,cols:6,rows:4,figH:246,feet:294,cx:156,fps:16,flip:false,top:2},
     ult:{u:'/assets/anim/arrears/arrears_ult.webp?v=4',n:24,fw:300,fh:293,cols:6,rows:4,figH:240,feet:264,cx:144,fps:16,flip:false,top:3},
     green:{u:'/assets/anim/arrears/arrears_green.webp?v=4',n:24,fw:226,fh:300,cols:6,rows:4,figH:240,feet:270,cx:124,fps:14,flip:false,hold:0.8,top:2},
     blue:{u:'/assets/anim/arrears/arrears_blue.webp?v=4',n:22,fw:192,fh:300,cols:6,rows:4,figH:264,feet:297,cx:90,fps:16,flip:false,hold:0.8,top:2},
-    passive:{u:'/assets/anim/arrears/arrears_passive.webp?v=4',n:22,fw:253,fh:300,cols:6,rows:4,figH:281,feet:296,cx:96,fps:10,flip:false,top:3}
+    passive:{u:'/assets/anim/arrears/arrears_passive.webp?v=5',n:66,fw:253,fh:300,cols:6,rows:11,figH:281,feet:296,cx:96,fps:30,flip:false,top:3}
   },
   tallow:{
     idle:{u:'/assets/anim/tallow/tallow_idle.webp?v=3',n:24,fw:253,fh:300,cols:6,rows:4,figH:295,feet:297,cx:133,fps:8,flip:false,top:2},
@@ -1187,13 +1188,13 @@ const BATTLE_ANIM = {
     walk:{u:'/assets/anim/astra/astra_walk.webp?v=5',n:24,fw:233,fh:300,cols:6,rows:4,figH:278,feet:285,cx:111,fps:14,flip:false,top:3},
     attack:{u:'/assets/anim/astra/astra_attack.webp?v=5',n:24,fw:289,fh:300,cols:6,rows:4,figH:276,feet:297,cx:104,fps:18,flip:false,hold:1.33,top:15},
     hit:{u:'/assets/anim/tallow/tallow_hit.webp?v=3',n:20,fw:272,fh:300,cols:6,rows:4,figH:267,feet:292,cx:135,fps:16,flip:false,top:3},
-    green:{u:'/assets/anim/astra/astra_green.webp?v=5',n:20,fw:245,fh:300,cols:6,rows:4,figH:292,feet:296,cx:127,fps:14,flip:false,hold:0.8,top:3},
+    green:{u:'/assets/anim/astra/astra_green.webp?v=6',n:43,fw:245,fh:300,cols:6,rows:8,figH:292,feet:296,cx:127,fps:30,flip:false,hold:0.8,top:3},
     blue:{u:'/assets/anim/astra/astra_blue.webp?v=5',n:20,fw:263,fh:300,cols:6,rows:4,figH:250,feet:268,cx:95,fps:14,flip:false,hold:0.8,top:5},
     ult:{u:'/assets/anim/astra/astra_ult.webp?v=5',n:20,fw:196,fh:300,cols:6,rows:4,figH:248,feet:297,cx:95,fps:13,flip:false,top:3},
-    passive:{u:'/assets/anim/astra/astra_passive.webp?v=5',n:12,fw:224,fh:300,cols:6,rows:2,figH:287,feet:297,cx:109,fps:14,flip:false,pingpong:true,top:3}
+    passive:{u:'/assets/anim/astra/astra_passive.webp?v=6',n:30,fw:224,fh:300,cols:6,rows:5,figH:287,feet:297,cx:109,fps:30,flip:false,pingpong:true,top:3}
   },
   magistrant:{
-    idle:{u:'/assets/anim/magistrant/magistrant_idle.webp?v=5',n:24,fw:240,fh:300,cols:6,rows:4,figH:292,feet:297,cx:117,fps:8,flip:false,top:3},
+    idle:{u:'/assets/anim/magistrant/magistrant_idle.webp?v=6',n:72,fw:240,fh:300,cols:6,rows:12,figH:292,feet:297,cx:117,fps:30,flip:false,top:3},
     /* 28 Aug (Phil: "magistrat swings his arms way too much during walk"). Measured across all 29
        walk sheets, magistrant's is the most frantic in the set: 36.2 units of upper-body movement per
        frame vs a typical 17-20, and more than double his OWN attack clip (15.8). The source clip
@@ -1204,11 +1205,11 @@ const BATTLE_ANIM = {
     attack:{u:'/assets/anim/magistrant/magistrant_attack.webp?v=5',n:24,fw:231,fh:300,cols:6,rows:4,figH:265,feet:298,cx:114,fps:18,flip:false,hold:1.33,top:3},
     hit:{u:'/assets/anim/astra/astra_hit.webp?v=5',n:20,fw:299,fh:300,cols:6,rows:4,figH:284,feet:297,cx:123,fps:16,flip:false,top:3},
     green:{u:'/assets/anim/magistrant/magistrant_green.webp?v=1',n:20,fw:297,fh:300,cols:6,rows:4,figH:256,feet:297,cx:142,fps:14,flip:false,top:40,hold:0.8},
-    blue:{u:'/assets/anim/magistrant/magistrant_blue.webp?v=1',n:20,fw:236,fh:300,cols:6,rows:4,figH:291,feet:295,cx:112,fps:14,flip:false,top:4,hold:0.8},
+    blue:{u:'/assets/anim/magistrant/magistrant_blue.webp?v=2',n:43,fw:236,fh:300,cols:6,rows:8,figH:291,feet:295,cx:112,fps:30,flip:false,top:4,hold:0.8},
     ult:{u:'/assets/anim/magistrant/magistrant_ult.webp?v=1',n:20,fw:300,fh:285,cols:6,rows:4,figH:245,feet:282,cx:143,fps:16,flip:false,top:36}
   },
   vharn:{
-    idle:{u:'/assets/anim/vharn/vharn_idle.webp?v=4',n:24,fw:300,fh:270,cols:6,rows:4,figH:265,feet:268,cx:143,fps:8,flip:false,top:3},
+    idle:{u:'/assets/anim/vharn/vharn_idle.webp?v=5',n:72,fw:300,fh:270,cols:6,rows:12,figH:265,feet:268,cx:143,fps:30,flip:false,top:3},
     walk:{u:'/assets/anim/vharn/vharn_walk.webp?v=4',n:24,fw:300,fh:283,cols:6,rows:4,figH:242,feet:258,cx:152,fps:14,flip:false,top:3},
     attack:{u:'/assets/anim/vharn/vharn_attack.webp?v=4',n:24,fw:300,fh:274,cols:6,rows:4,figH:227,feet:272,cx:143,fps:18,flip:false,hold:1.33,top:2},
     hit:{u:'/assets/anim/magistrant/magistrant_hit.webp?v=5',n:20,fw:300,fh:274,cols:6,rows:4,figH:227,feet:272,cx:143,fps:16,flip:false,top:2},
@@ -1217,10 +1218,13 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/vharn/vharn_ult.webp?v=1',n:20,fw:225,fh:300,cols:6,rows:4,figH:200,feet:297,cx:107,fps:16,flip:false,top:96}
   },
   fathom:{
-    idle:{u:'/assets/anim/fathom/fathom_idle.webp?v=3',n:24,fw:281,fh:300,cols:6,rows:4,figH:289,feet:295,cx:142,fps:8,flip:false,top:3},
-    walk:{u:'/assets/anim/fathom/fathom_walk.webp?v=3',n:24,fw:246,fh:300,cols:6,rows:4,figH:276,feet:297,cx:121,fps:14,flip:false,top:3},
-    attack:{u:'/assets/anim/fathom/fathom_attack.webp?v=3',n:24,fw:300,fh:263,cols:6,rows:4,figH:227,feet:261,cx:149,fps:18,flip:false,hold:1.33,top:2},
-    green:{u:'/assets/anim/fathom/fathom_green.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:286,feet:297,cx:125,fps:14,flip:false,top:10,hold:0.8}  },
+    idle:{u:'/assets/anim/fathom/fathom_idle.webp?v=4',n:72,fw:281,fh:300,cols:6,rows:12,figH:289,feet:295,cx:142,fps:30,flip:false,top:3},
+    walk:{u:'/assets/anim/fathom/fathom_walk.webp?v=4',n:51,fw:246,fh:300,cols:6,rows:9,figH:276,feet:297,cx:121,fps:30,flip:false,top:3},
+    attack:{u:'/assets/anim/fathom/fathom_attack.webp?v=4',n:40,fw:300,fh:263,cols:6,rows:7,figH:227,feet:261,cx:149,fps:30,flip:false,hold:1.33,top:2},
+    green:{u:'/assets/anim/fathom/fathom_green.webp?v=2',n:43,fw:299,fh:300,cols:6,rows:8,figH:286,feet:297,cx:125,fps:30,flip:false,top:10,hold:0.8},
+    blue:{u:'/assets/anim/fathom/fathom_blue.webp?v=1',n:72,fw:276,fh:300,cols:6,rows:12,figH:232,feet:282,cx:108,fps:30,flip:false,top:49,hold:0.8},   /* Tsunami - was falling back to the attack clip */
+    ult:{u:'/assets/anim/fathom/fathom_ult.webp?v=1',n:72,fw:300,fh:245,cols:6,rows:12,figH:203,feet:211,cx:147,fps:30,flip:false,top:8}   /* Maelstrom - was falling back to the attack clip */
+  },
   lumi:{
     idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=10',n:72,fw:123,fh:300,cols:6,rows:12,figH:293,feet:296,cx:64,fps:30,flip:true,top:3},
     walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=10',n:72,fw:174,fh:300,cols:6,rows:12,figH:282,feet:286,cx:102,fps:30,flip:true,top:4},
@@ -1243,17 +1247,17 @@ const BATTLE_ANIM = {
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=4',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
-    walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=3',n:24,fw:232,fh:300,cols:6,rows:4,figH:273,feet:297,cx:136,fps:14,flip:false,top:3},
+    walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=4',n:51,fw:232,fh:300,cols:6,rows:9,figH:273,feet:297,cx:136,fps:30,flip:false,top:3},
     attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=3',n:24,fw:300,fh:272,cols:6,rows:4,figH:267,feet:270,cx:144,fps:18,flip:false,hold:1.33,top:2},
     hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=6',n:20,fw:295,fh:300,cols:6,rows:4,figH:249,feet:297,cx:149,fps:16,flip:false,top:2},
     green:{u:'/assets/anim/hollow/hollow_green.webp?v=3',n:24,fw:270,fh:300,cols:6,rows:4,figH:248,feet:296,cx:182,fps:12,flip:false,hold:0.8,top:2},
     blue:{u:'/assets/anim/hollow/hollow_blue.webp?v=3',n:24,fw:276,fh:300,cols:6,rows:4,figH:231,feet:276,cx:140,fps:14,flip:false,hold:0.8,top:2},
     ult:{u:'/assets/anim/hollow/hollow_ult.webp?v=3',n:24,fw:300,fh:298,cols:6,rows:4,figH:274,feet:284,cx:158,fps:12,flip:false,top:3},
-    passive:{u:'/assets/anim/hollow/hollow_passive.webp?v=3',n:24,fw:300,fh:293,cols:6,rows:4,figH:286,feet:290,cx:145,fps:16,flip:false,top:3},
+    passive:{u:'/assets/anim/hollow/hollow_passive.webp?v=4',n:45,fw:300,fh:293,cols:6,rows:8,figH:286,feet:290,cx:145,fps:30,flip:false,top:3},
     drop:{u:'/assets/anim/hollow/hollow_drop.webp?v=3',n:24,fw:218,fh:300,cols:6,rows:4,figH:254,feet:298,cx:129,fps:14,flip:false,top:4}
   },
   sprocket:{
-    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=5',n:24,fw:300,fh:206,cols:6,rows:4,figH:202,feet:204,cx:132,fps:8,flip:false,top:3},
+    idle:{u:'/assets/anim/sprocket/sprocket_idle.webp?v=6',n:72,fw:300,fh:206,cols:6,rows:12,figH:202,feet:204,cx:132,fps:30,flip:false,top:3},
     walk:{u:'/assets/anim/sprocket/sprocket_walk.webp?v=5',n:24,fw:300,fh:229,cols:6,rows:4,figH:213,feet:223,cx:142,fps:14,flip:false,top:3},
     attack:{u:'/assets/anim/sprocket/sprocket_attack.webp?v=5',n:24,fw:300,fh:284,cols:6,rows:4,figH:199,feet:282,cx:134,fps:18,flip:false,hold:1.33,top:2},
     hit:{u:'/assets/anim/sprocket/sprocket_hit.webp?v=5',n:24,fw:300,fh:289,cols:6,rows:4,figH:193,feet:273,cx:139,fps:16,flip:false,top:2},
@@ -1268,7 +1272,7 @@ const BATTLE_ANIM = {
     attack:{u:'/assets/anim/meridian/meridian_attack.webp?v=5',n:24,fw:300,fh:257,cols:6,rows:4,figH:227,feet:255,cx:151,fps:18,flip:true,hold:1.33,top:3},
     ult:{u:'/assets/anim/meridian/meridian_ult.webp?v=6',n:24,fw:279,fh:300,cols:6,rows:4,figH:286,feet:297,cx:132,fps:16,flip:true,top:3},
     green:{u:'/assets/anim/meridian/meridian_green.webp?v=6',n:20,fw:300,fh:264,cols:6,rows:4,figH:256,feet:261,cx:161,fps:18,flip:true,hold:0.8,top:3},
-    blue:{u:'/assets/anim/meridian/meridian_blue.webp?v=6',n:22,fw:149,fh:300,cols:6,rows:4,figH:265,feet:267,cx:78,fps:14,flip:true,hold:0.8,top:2},
+    blue:{u:'/assets/anim/meridian/meridian_blue.webp?v=7',n:47,fw:149,fh:300,cols:6,rows:8,figH:265,feet:267,cx:78,fps:30,flip:true,hold:0.8,top:2},
     passive:{u:'/assets/anim/meridian/meridian_passive.webp?v=6',n:22,fw:212,fh:300,cols:6,rows:4,figH:293,feet:296,cx:109,fps:12,flip:true,top:3}
   },
   hurne:{
@@ -1307,7 +1311,7 @@ const BATTLE_ANIM = {
   green:{u:CLIP_CLEAVE,n:19,fw:116,fh:150,figH:143,feet:150,cx:61,fps:18,flip:true,hold:1.0},
   blue:{u:CLIP_TP,n:19,fw:116,fh:150,figH:143,feet:150,cx:61,fps:20,flip:true,hold:0.9},
 }, grosk:{
-  idle:{u:'/assets/anim/grosk/grosk_idle.webp?v=7',n:16,fw:300,fh:225,cols:6,rows:3,figH:198,feet:222,cx:153,fps:8,flip:false,top:3},
+  idle:{u:'/assets/anim/grosk/grosk_idle.webp?v=8',n:60,fw:300,fh:225,cols:6,rows:10,figH:198,feet:222,cx:153,fps:30,flip:false,top:3},
   walk:{u:'/assets/anim/grosk/grosk_walk.webp?v=7',n:24,fw:300,fh:260,cols:6,rows:4,figH:208,feet:254,cx:154,fps:14,flip:false,top:2},
   attack:{u:'/assets/anim/grosk/grosk_attack.webp?v=7',n:22,fw:300,fh:223,cols:6,rows:4,figH:181,feet:210,cx:155,fps:20,flip:false, hold:1.1,top:3},
   hit:{u:'/assets/anim/grosk/grosk_hit.webp?v=7',n:16,fw:300,fh:277,cols:6,rows:3,figH:185,feet:273,cx:158,fps:16,flip:false,top:2},
@@ -1317,7 +1321,7 @@ const BATTLE_ANIM = {
   passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true,top:2},  // PASSIVE The Mirewall (shield raised and held)
 }, vulmar:{
   idle:{u:'/assets/anim/vulmar/vulmar_idle.webp?v=5',n:20,fw:195,fh:180,figH:154,feet:163,cx:99,fps:6,stride:0.06,flip:false,top:10},
-  attack:{u:'/assets/anim/vulmar/vulmar_attack.webp?v=5',n:20,fw:208,fh:180,figH:156,feet:167,cx:112,fps:10,hold:1.7,flip:false,top:9},
+  attack:{u:'/assets/anim/vulmar/vulmar_attack.webp?v=5',n:20,fw:208,fh:180,figH:156,feet:167,cx:112,fps:12,hold:1.667,flip:false,top:9},
   hit:{u:'/assets/anim/vulmar/vulmar_hit.webp?v=5',n:16,fw:195,fh:180,figH:137,feet:157,cx:96,fps:14,flip:false,top:10},
   ult:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=5',n:24,fw:180,fh:180,figH:121,feet:150,cx:92,fps:14,flip:false,top:7},
   sling:{u:'/assets/anim/vulmar/vulmar_sling.webp?v=5',n:22,fw:198,fh:180,figH:134,feet:165,cx:102,fps:16,flip:false,top:8},
@@ -1325,7 +1329,7 @@ const BATTLE_ANIM = {
   passive:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=5',n:24,fw:148,fh:180,figH:146,feet:158,cx:75,fps:8,flip:false,top:7},
   walk:{u:'/assets/anim/vulmar/vulmar_walk.webp?v=5',n:20,fw:191,fh:180,figH:151,feet:168,cx:89,fps:12,flip:false,top:8}
   },
-  fritz:{ idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=3',n:24,fw:343,fh:423,cols:5,rows:5,figH:305,feet:378,cx:165,fps:8,flip:false,top:28}, walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=3',n:24,fw:605,fh:454,cols:5,rows:5,figH:305,feet:402,cx:320,fps:8,flip:false,top:12}, attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=4',n:30,fw:695,fh:459,cols:6,rows:5,figH:304,feet:371,cx:184,fps:16,flip:false,hold:1.53,top:0}, hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=3',n:30,fw:481,fh:438,cols:6,rows:5,figH:305,feet:397,cx:285,fps:14,flip:false,top:34}, ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=3',n:27,fw:793,fh:820,cols:6,rows:5,figH:304,feet:668,cx:384,fps:9,flip:false,top:36}, chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=3',n:27,fw:614,fh:394,cols:6,rows:5,figH:304,feet:352,cx:174,fps:14,flip:false,top:9}, surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=3',n:27,fw:679,fh:614,cols:6,rows:5,figH:304,feet:570,cx:237,fps:14,flip:false,top:21} },
+  fritz:{ idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=3',n:24,fw:343,fh:423,cols:5,rows:5,figH:305,feet:378,cx:165,fps:8,flip:false,top:28}, walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=3',n:24,fw:605,fh:454,cols:5,rows:5,figH:305,feet:402,cx:320,fps:8,flip:false,top:12}, attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=4',n:30,fw:695,fh:459,cols:6,rows:5,figH:304,feet:371,cx:184,fps:20,flip:false,hold:1.5,top:0}, hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=3',n:30,fw:481,fh:438,cols:6,rows:5,figH:305,feet:397,cx:285,fps:14,flip:false,top:34}, ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=3',n:27,fw:793,fh:820,cols:6,rows:5,figH:304,feet:668,cx:384,fps:9,flip:false,top:36}, chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=3',n:27,fw:614,fh:394,cols:6,rows:5,figH:304,feet:352,cx:174,fps:14,flip:false,top:9}, surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=3',n:27,fw:679,fh:614,cols:6,rows:5,figH:304,feet:570,cx:237,fps:14,flip:false,top:21} },
   aureth:{
     idle:{u:'/assets/anim/aureth/aureth_idle.webp?v=5',n:24,fw:352,fh:385,cols:5,rows:5,figH:332,feet:349,cx:178,fps:8,flip:false,top:0},
     walk:{u:'/assets/anim/aureth/aureth_walk.webp?v=6',n:24,fw:238,fh:300,cols:6,rows:4,figH:269,feet:277,cx:122,fps:14,flip:false,top:4},
@@ -1335,19 +1339,19 @@ const BATTLE_ANIM = {
     duallight:{u:'/assets/anim/aureth/aureth_duallight.webp?v=6',n:24,fw:300,fh:269,cols:6,rows:4,figH:221,feet:266,cx:152,fps:16,flip:false,top:2},
     sunburst:{u:'/assets/anim/aureth/aureth_sunburst.webp?v=6',n:22,fw:276,fh:300,cols:6,rows:4,figH:247,feet:297,cx:112,fps:16,flip:false,top:2}
   },
-  vireo:{ idle:{u:'/assets/anim/vireo/vireo_idle.webp?v=6',n:24,fw:176,fh:300,cols:6,rows:4,figH:290,feet:297,cx:61,fps:8,flip:false,top:6}, walk:{u:'/assets/anim/vireo/vireo_walk.webp?v=6',n:24,fw:195,fh:300,cols:6,rows:4,figH:287,feet:293,cx:93,fps:14,flip:false,top:5}, attack:{u:'/assets/anim/vireo/vireo_attack.webp?v=6',n:24,fw:260,fh:300,cols:6,rows:4,figH:268,feet:297,cx:130,fps:20,flip:false,hold:1.2,top:29}, hit:{u:'/assets/anim/vireo/vireo_hit.webp?v=6',n:24,fw:172,fh:300,cols:6,rows:4,figH:288,feet:296,cx:79,fps:16,flip:false,top:7}, ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=6',n:24,fw:300,fh:267,cols:6,rows:4,figH:177,feet:265,cx:156,fps:12,flip:false,top:87}, crescendo:{u:'/assets/anim/vireo/vireo_crescendo.webp?v=6',n:24,fw:150,fh:300,cols:6,rows:4,figH:290,feet:294,cx:58,fps:14,flip:false,hold:0.8,top:4}, harmony:{u:'/assets/anim/vireo/vireo_harmony.webp?v=6',n:24,fw:228,fh:300,cols:6,rows:4,figH:225,feet:297,cx:117,fps:12,flip:false,hold:0.8,top:72}, pitch:{u:'/assets/anim/vireo/vireo_pitch.webp?v=6',n:24,fw:162,fh:300,cols:6,rows:4,figH:294,feet:297,cx:62,fps:14,flip:false,top:2} },
+  vireo:{ idle:{u:'/assets/anim/vireo/vireo_idle.webp?v=6',n:24,fw:176,fh:300,cols:6,rows:4,figH:290,feet:297,cx:61,fps:8,flip:false,top:6}, walk:{u:'/assets/anim/vireo/vireo_walk.webp?v=6',n:24,fw:195,fh:300,cols:6,rows:4,figH:287,feet:293,cx:93,fps:14,flip:false,top:5}, attack:{u:'/assets/anim/vireo/vireo_attack.webp?v=6',n:24,fw:260,fh:300,cols:6,rows:4,figH:268,feet:297,cx:130,fps:20,flip:false,hold:1.2,top:29}, hit:{u:'/assets/anim/vireo/vireo_hit.webp?v=6',n:24,fw:172,fh:300,cols:6,rows:4,figH:288,feet:296,cx:79,fps:16,flip:false,top:7}, ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=6',n:24,fw:300,fh:267,cols:6,rows:4,figH:177,feet:265,cx:156,fps:12,flip:false,top:87}, crescendo:{u:'/assets/anim/vireo/vireo_crescendo.webp?v=6',n:24,fw:150,fh:300,cols:6,rows:4,figH:290,feet:294,cx:58,fps:14,flip:false,hold:0.8,top:4}, harmony:{u:'/assets/anim/vireo/vireo_harmony.webp?v=6',n:24,fw:228,fh:300,cols:6,rows:4,figH:225,feet:297,cx:117,fps:12,flip:false,hold:0.8,top:72}, pitch:{u:'/assets/anim/vireo/vireo_pitch.webp?v=7',n:51,fw:162,fh:300,cols:6,rows:9,figH:294,feet:297,cx:62,fps:30,flip:false,top:2} },
   bloatus:{ idle:{u:'/assets/anim/bloatus/bloatus_idle.webp?v=5',n:24,fw:284,fh:379,cols:6,rows:4,figH:343,feet:373,cx:152,fps:8,flip:false,top:11}, walk:{u:'/assets/anim/bloatus/bloatus_walk.webp?v=7',n:22,fw:429,fh:471,cols:6,rows:4,figH:342,feet:448,cx:215,fps:8,flip:false,top:9}, attack:{u:'/assets/anim/bloatus/bloatus_attack.webp?v=14',n:47,fw:300,fh:201,cols:6,rows:8,figH:157,feet:182,cx:134,fps:28,flip:false,hold:1.7,lunge:0.5,top:14}, hit:{u:'/assets/anim/bloatus/bloatus_hit.webp?v=5',n:20,fw:600,fh:520,cols:5,rows:4,figH:343,feet:502,cx:311,fps:14,flip:false,top:6}, ult:{u:'/assets/anim/bloatus/bloatus_ult.webp?v=5',n:21,fw:568,fh:612,cols:6,rows:4,figH:342,feet:596,cx:294,fps:8.4,flip:false,hold:1.1,pingpong:true,top:45}, toxbreath:{u:'/assets/anim/bloatus/bloatus_breath.webp?v=5',n:8,fw:304,fh:231,cols:6,rows:2,figH:191,feet:224,cx:86,fps:10,flip:false,hold:1.0,top:8}, swamp:{u:'/assets/anim/bloatus/bloatus_swamp.webp?v=5',n:24,fw:312,fh:389,cols:6,rows:4,figH:343,feet:383,cx:166,fps:14,flip:false,hold:1.0,top:6} },
   umbris:{
-  idle:{u:'/assets/anim/umbris/umbris_idle.webp?v=f2',n:46,fw:210,fh:210,cols:12,rows:4,figH:191,feet:204,cx:102,fps:8,flip:true,top:6},
-  walk:{u:'/assets/anim/umbris/umbris_walk.webp?v=f2',n:46,fw:210,fh:208,cols:12,rows:4,figH:176,feet:195,cx:99,fps:8,flip:true,top:5},
+  idle:{u:'/assets/anim/umbris/umbris_idle.webp?v=f2',n:72,fw:210,fh:210,cols:6,rows:12,figH:191,feet:204,cx:102,fps:30,flip:true,top:6},
+  walk:{u:'/assets/anim/umbris/umbris_walk.webp?v=f2',n:72,fw:210,fh:208,cols:6,rows:12,figH:176,feet:195,cx:99,fps:30,flip:true,top:5},
   attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b7',n:41,fw:402,fh:336,cols:10,rows:5,figH:301,feet:313,cx:182,fps:30,flip:true,hold:1.4,relFrac:0.5,handfx:0.861,handfy:0.476,top:12},
   hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=f2',n:29,fw:210,fh:181,cols:12,rows:3,figH:147,feet:175,cx:106,fps:8,flip:true,top:5},
-  ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:36,fw:206,fh:210,cols:12,rows:3,figH:155,feet:187,cx:107,fps:9.6,flip:true,relFrac:0.95,top:5},
+  ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:72,fw:206,fh:210,cols:6,rows:12,figH:155,feet:187,cx:107,fps:30.6,flip:true,relFrac:0.95,top:5},
   green:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:33,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6},
   blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:33,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6}
   },
   vael:{
-  idle:{u:'/assets/anim/vael/vael_idle.webp?v=5',n:16,fw:93,fh:133,cols:6,rows:3,figH:120,feet:126,cx:52,fps:8,flip:false,top:6},
+  idle:{u:'/assets/anim/vael/vael_idle.webp?v=6',n:60,fw:93,fh:133,cols:6,rows:10,figH:120,feet:126,cx:52,fps:30,flip:false,top:6},
   walk:{u:'/assets/anim/vael/vael_walk.webp?v=7',n:12,fw:161,fh:221,cols:6,rows:2,figH:201,feet:211,cx:91,fps:14,flip:false,top:6},
   attack:{u:'/assets/anim/vael/vael_attack.webp?v=6',n:12,fw:188,fh:260,cols:6,rows:2,figH:208,feet:254,cx:103,fps:16,flip:false,hold:0.9,top:6},
   hit:{u:'/assets/anim/vael/vael_hit.webp?v=6',n:12,fw:155,fh:223,cols:6,rows:2,figH:210,feet:217,cx:85,fps:11,flip:false,top:6},
@@ -1358,20 +1362,20 @@ const BATTLE_ANIM = {
   oakmir:{
   idle:{u:'/assets/anim/oakmir/oakmir_idle.webp?v=4',n:12,fw:185,fh:262,cols:6,rows:2,figH:249,feet:255,cx:92,fps:10,flip:false,top:7},
   walk:{u:'/assets/anim/oakmir/oakmir_walk.webp?v=4',n:12,fw:156,fh:222,cols:6,rows:2,figH:209,feet:216,cx:81,fps:14,flip:false,top:7},
-  attack:{u:'/assets/anim/oakmir/oakmir_attack.webp?v=4',n:12,fw:153,fh:222,cols:6,rows:2,figH:208,feet:216,cx:77,fps:16,flip:false,hold:1.0,top:7},
-  ult:{u:'/assets/anim/oakmir/oakmir_ult.webp?v=4',n:12,fw:153,fh:221,cols:6,rows:2,figH:209,feet:215,cx:77,fps:15,flip:false,hold:1.0,top:7},
-  green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=6',n:12,fw:163,fh:226,cols:6,rows:2,figH:205,feet:220,cx:78,fps:12,flip:false,hold:1.0,top:7},
-  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=6',n:12,fw:162,fh:225,cols:6,rows:2,figH:213,feet:219,cx:83,fps:12,flip:false,hold:1.0,top:6},
+  attack:{u:'/assets/anim/oakmir/oakmir_attack.webp?v=5',n:30,fw:153,fh:222,cols:6,rows:5,figH:208,feet:216,cx:77,fps:30,flip:false,hold:1.0,top:7},
+  ult:{u:'/assets/anim/oakmir/oakmir_ult.webp?v=5',n:30,fw:153,fh:221,cols:6,rows:5,figH:209,feet:215,cx:77,fps:30,flip:false,hold:1.0,top:7},
+  green:{u:'/assets/anim/oakmir/oakmir_green.webp?v=7',n:30,fw:163,fh:226,cols:6,rows:5,figH:205,feet:220,cx:78,fps:30,flip:false,hold:1.0,top:7},
+  blue:{u:'/assets/anim/oakmir/oakmir_blue.webp?v=7',n:30,fw:162,fh:225,cols:6,rows:5,figH:213,feet:219,cx:83,fps:30,flip:false,hold:1.0,top:6},
   hit:{u:'/assets/anim/oakmir/oakmir_hit.webp?v=4',n:20,fw:300,fh:280,cols:6,rows:4,figH:263,feet:278,cx:125,fps:16,flip:false,top:5}
   },
   rhukk:{
   idle:{u:'/assets/anim/rhukk/rhukk_idle.webp?v=8',n:12,fw:246,fh:236,cols:6,rows:2,figH:200,feet:230,cx:129,fps:10,flip:true,top:6},
-  walk:{u:'/assets/anim/rhukk/rhukk_walk.webp?v=8',n:12,fw:231,fh:209,cols:6,rows:2,figH:195,feet:201,cx:121,fps:14,flip:true,top:6},
+  walk:{u:'/assets/anim/rhukk/rhukk_walk.webp?v=9',n:30,fw:231,fh:209,cols:6,rows:5,figH:195,feet:201,cx:121,fps:30,flip:true,top:6},
   attack:{u:'/assets/anim/rhukk/rhukk_attack.webp?v=8',n:12,fw:251,fh:216,cols:6,rows:2,figH:204,feet:210,cx:131,fps:16,flip:true,hold:0.9,lunge:0.5,top:7},
-  hit:{u:'/assets/anim/rhukk/rhukk_hit.webp?v=8',n:12,fw:221,fh:224,cols:6,rows:2,figH:162,feet:218,cx:115,fps:11,flip:true,top:7},
+  hit:{u:'/assets/anim/rhukk/rhukk_hit.webp?v=9',n:12,fw:221,fh:225,cols:6,rows:2,figH:162,feet:218,cx:115,fps:11,flip:true,top:7},
   ult:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=8',n:12,fw:226,fh:240,cols:6,rows:2,figH:199,feet:234,cx:119,fps:12,flip:true,hold:1.2,top:6},
   green:{u:'/assets/anim/rhukk/rhukk_green.webp?v=8',n:12,fw:243,fh:238,cols:6,rows:2,figH:192,feet:232,cx:126,fps:12,flip:true,hold:1.0,top:6},
-  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=8',n:12,fw:252,fh:254,cols:6,rows:2,figH:205,feet:249,cx:132,fps:12,flip:true,hold:1.0,top:7},
+  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=9',n:12,fw:252,fh:255,cols:6,rows:2,figH:205,feet:249,cx:132,fps:12,flip:true,hold:1.0,top:7},
   passive:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,figH:205,feet:212,cx:125,fps:10,flip:true,top:7}
   },
   carn:{
@@ -10999,7 +11003,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788036901451';
+const BUILD_ID='1788039883228';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
