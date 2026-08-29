@@ -5802,7 +5802,13 @@ function ledCapture(reason,fn){ const g0=G.gold||0, d0=G.gems||0; const out=fn()
   if(dg>0) txEarn('gold',dg,reason); else if(dg<0) api('/api/tx/spend','POST',{what:'gold',amount:-dg,reason,requestId:uid8()}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>{});
   if(dd>0) txEarn('gems',dd,reason); else if(dd<0) api('/api/tx/spend','POST',{what:'gems',amount:-dd,reason,requestId:uid8()}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>{});
   return out; }
-setTimeout(()=>{ ledgerSync(); }, 1200);   // boot adoption (after the cloud-save fetch has run)
+/* 29 Aug — THE LOADING SCREEN NOW WAITS FOR THE LEDGER. This was fire-and-forget, so the splash
+   lifted, the town drew from stale local state, and a second later the real ledger landed and the
+   player watched buildings flip from locked to unlocked and their level count up from 1 to 41.
+   The fetch is unchanged and still runs after the cloud-save fetch; we just keep the promise so
+   enterGame() can hold the splash over it. */
+let _ledgerBoot=null;
+setTimeout(()=>{ _ledgerBoot = ledgerSync(); }, 1200);   // boot adoption (after the cloud-save fetch has run)
 setInterval(()=>{ ledgerSync(); }, 45000); // periodic reconciliation
 
 let SKY={ st:null, busy:false, assignSel:null, lane:null };   // lane = bridge view open on that citadel lane
@@ -10948,7 +10954,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788012903789';
+const BUILD_ID='1788013483893';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -11148,7 +11154,7 @@ let _glFailed=false;
 function setSplashStatus(state){ const el=document.getElementById('splashStatus'); if(!el)return;
   if(_glFailed){ el.className='splashStatus off'; el.textContent="● This device can't run 3D (WebGL) — try another browser"; return; }
   el.className='splashStatus '+(state==='on'?'on':state==='off'?'off':'check');
-  el.textContent = state==='on' ? '● Online' : state==='off' ? '● Offline — connect to play' : 'Checking…';
+  el.textContent = state==='on' ? '● Online' : state==='off' ? '● Offline — connect to play' : state==='sync' ? 'Syncing your account…' : 'Checking…';
 }
 function refreshSplashStatus(){ setSplashStatus('check');
   return pingServer().then(ok=>{ _splashOnline=ok; if(!_splashEntered) setSplashStatus(ok?'on':'off'); return ok; }); }
@@ -11160,10 +11166,20 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
   if(isMobile) goLandscape();          // force fullscreen landscape using this tap gesture (phones only)
   checkForUpdate();                    // if the server has a newer build, download & refresh instantly
   ensureChatWidget(); updateChatVisibility(); chatConnect(); setTimeout(pollPvpReports,3000);   // raids that happened while you were away
-  // lift the splash only after a few clean frames have rendered behind it → no distorted first-frame flash
-  let _f=0; const _lift=()=>{ if(++_f<4){ resize3D(); requestAnimationFrame(_lift); } else if(gate) gate.style.display='none'; };
-  requestAnimationFrame(_lift);
-  setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
+  /* Hold the splash until the server ledger has actually landed. Campaign progress, player XP and
+     every building unlock are server-owned and arrive asynchronously; lifting before they do is what
+     made the town visibly re-render under the player. Signed-out players wait for nothing. The race
+     against a 5 s cap means a slow or dead server delays entry, it never blocks it — and the v294
+     repaint still catches a ledger that arrives after that cap. */
+  const _boot = ACC.token ? Promise.resolve(_ledgerBoot).then(v=>v||(_ledgerBoot=ledgerSync())) : Promise.resolve(null);
+  if(ACC.token) setSplashStatus('sync');
+  const _capped = Promise.race([ _boot.catch(()=>null), new Promise(r=>setTimeout(r,5000)) ]);
+  _capped.then(()=>{
+    // lift only after a few clean frames have rendered behind it → no distorted first-frame flash
+    let _f=0; const _lift=()=>{ if(++_f<4){ resize3D(); requestAnimationFrame(_lift); } else if(gate) gate.style.display='none'; };
+    requestAnimationFrame(_lift);
+    setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
+  });
 }
 function setupLandscape(){
   const img=document.getElementById('splashImg'); if(img&&SPLASH_BG) img.src=SPLASH_BG;
