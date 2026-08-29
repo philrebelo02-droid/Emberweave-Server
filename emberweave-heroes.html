@@ -4732,6 +4732,10 @@ function updateBattle(dt){
     // Hush (Lumi): every 5s the quietest hour takes one enemy's voice for a second
     if(u.pass.hush){ u._hushT=(u._hushT||0)+dt; if(u._hushT>=5){ u._hushT-=5; const foes=enemiesOf(u).filter(e=>e.alive);
       if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.silencedT=Math.max(e.silencedT||0,1*(u.passMul||1));   // v268: seeded, not frame-count-derived
+        /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
+           did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
+           play it, the same way they do. */
+        if(u.anim&&u.anim.passive){ u._abilAnim='passive'; u._abilHold=(u.anim.passive.n/(u.anim.passive.fps||12)); }
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; if(u._uwT>=5){ u._uwT-=5;
@@ -5769,6 +5773,18 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
   if(st.eqMats){ G.eqMats=G.eqMats||{}; for(const k in st.eqMats) G.eqMats[k]=st.eqMats[k]|0; }
   if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
   saveG(); if(typeof updateHubChrome==='function') try{updateHubChrome();}catch(e){}
+  /* 29 Aug — THE OTHER HALF OF "CAMPAIGN OPENS ON 1-1", and of the player level reading wrong. The
+     ledger is what owns campaign progress and player XP, and it arrives asynchronously. If you opened
+     Campaign (or Home) before it landed, the screen painted from stale local G and was never painted
+     again — backing out and re-entering was the only way to see the truth. Repaint whatever
+     ledger-derived screen is currently open, the moment the real numbers arrive. */
+  try{ if(typeof state!=='undefined'){
+    if(state==='campaign' && typeof renderRoadmap==='function'){
+      const _seed=G.lastStage||Math.max(1,(G.campaignCleared|0)+1);
+      if(typeof campViewCh!=='undefined') campViewCh=Math.min(chapterOf(_seed), portalChapters(PORTAL));
+      renderRoadmap();
+    } else if(state==='home' && typeof renderHome==='function') renderHome();
+  } }catch(e){}
 }
 async function ledgerSync(){ if(!ACC.token) return null; try{ const d=await api('/api/ledger'); if(d&&!d.error){ adoptLedger(d); return d; } }catch(e){} return null; }
 async function txSpend(what,amount,reason){ if(!ACC.token){ bannerMsg('Connect to spend — this game is fully synced online.'); return false; }
@@ -10932,7 +10948,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788005529005';
+const BUILD_ID='1788012903789';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
