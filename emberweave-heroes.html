@@ -1085,6 +1085,18 @@ rhukk:{
   2:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=8',n:12,fw:252,fh:254,cols:6,rows:2,dur:1.2},
   3:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,dur:1.2},
 },
+lumi:{
+  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=8',n:72,fw:300,fh:300,cols:6,rows:12,dur:2.4},   // Ultimate
+  1:{u:'/assets/anim/lumi/lumi_green.webp?v=8',n:72,fw:240,fh:300,cols:6,rows:12,dur:2.4},   // Green ability
+  2:{u:'/assets/anim/lumi/lumi_blue.webp?v=8',n:72,fw:280,fh:300,cols:6,rows:12,dur:2.4},   // Blue ability
+  3:{u:'/assets/anim/lumi/lumi_passive.webp?v=8',n:72,fw:207,fh:300,cols:6,rows:12,dur:2.4},   // Passive
+},
+meryln:{
+  0:{u:'/assets/anim/meryln/meryln_ult.webp?v=8',n:72,fw:300,fh:298,cols:6,rows:12,dur:2.4},   // Queen's Call (ultimate)
+  1:{u:'/assets/anim/meryln/meryln_green.webp?v=8',n:72,fw:161,fh:300,cols:6,rows:12,dur:2.4},   // Seedlight
+  2:{u:'/assets/anim/meryln/meryln_blue.webp?v=8',n:72,fw:300,fh:280,cols:6,rows:12,dur:2.4},   // Drowsy Sting
+  3:{u:'/assets/anim/meryln/meryln_passive.webp?v=8',n:72,fw:300,fh:280,cols:6,rows:12,dur:2.4},   // The Swarm Moves On (passive)
+},
 sylthaine:{
   0:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=7',n:20,fw:300,fh:297,cols:6,rows:4,dur:1.6},
   1:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=7',n:20,fw:224,fh:300,cols:6,rows:4,dur:1.6},
@@ -1204,22 +1216,24 @@ const BATTLE_ANIM = {
     attack:{u:'/assets/anim/fathom/fathom_attack.webp?v=3',n:24,fw:300,fh:263,cols:6,rows:4,figH:227,feet:261,cx:149,fps:18,flip:false,hold:0.9,top:2},
     green:{u:'/assets/anim/fathom/fathom_green.webp?v=1',n:20,fw:299,fh:300,cols:6,rows:4,figH:286,feet:297,cx:125,fps:14,flip:false,top:10,hold:0.8}  },
   lumi:{
-    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=6',n:24,fw:162,fh:300,cols:6,rows:4,figH:293,feet:296,cx:80,fps:8,flip:false,top:3},
-    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=6',n:24,fw:164,fh:300,cols:6,rows:4,figH:292,feet:296,cx:61,fps:12,flip:false,top:3},
-    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=6',n:24,fw:300,fh:298,cols:6,rows:4,figH:235,feet:295,cx:125,fps:18,flip:false,hold:0.9,top:59},
-    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=6',n:20,fw:300,fh:269,cols:6,rows:4,figH:243,feet:265,cx:185,fps:16,flip:false,top:22},
-    green:{u:'/assets/anim/lumi/lumi_green.webp?v=6',n:20,fw:239,fh:300,cols:6,rows:4,figH:283,feet:296,cx:96,fps:12,flip:false,top:13,hold:0.8},
-    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=6',n:20,fw:300,fh:267,cols:6,rows:4,figH:200,feet:251,cx:152,fps:12,flip:false,top:51,hold:0.8},
-    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=6',n:20,fw:300,fh:300,cols:6,rows:4,figH:199,feet:255,cx:152,fps:12,flip:false,top:56}
+    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=8',n:72,fw:123,fh:300,cols:6,rows:12,figH:293,feet:296,cx:64,fps:30,flip:true,top:3},
+    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=8',n:72,fw:173,fh:300,cols:6,rows:12,figH:282,feet:286,cx:101,fps:30,flip:true,top:4},
+    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=8',n:72,fw:300,fh:271,cols:6,rows:12,figH:261,feet:267,cx:184,fps:30,flip:true,top:6,hold:0.9},
+    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=8',n:72,fw:300,fh:286,cols:6,rows:12,figH:261,feet:274,cx:112,fps:30,flip:true,top:13},
+    green:{u:'/assets/anim/lumi/lumi_green.webp?v=8',n:72,fw:240,fh:300,cols:6,rows:12,figH:293,feet:296,cx:162,fps:30,flip:true,top:3,hold:0.8},
+    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=8',n:72,fw:280,fh:300,cols:6,rows:12,figH:280,feet:296,cx:195,fps:30,flip:true,top:16,hold:0.8},
+    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=8',n:72,fw:300,fh:300,cols:6,rows:12,figH:231,feet:290,cx:158,fps:30,flip:true,top:58},
+    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=8',n:72,fw:207,fh:300,cols:6,rows:12,figH:274,feet:297,cx:117,fps:30,flip:true,top:22}
   },
   meryln:{
-    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=6',n:24,fw:214,fh:300,cols:6,rows:4,figH:293,feet:296,cx:130,fps:8,flip:false,top:3},
-    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=6',n:24,fw:233,fh:300,cols:6,rows:4,figH:289,feet:295,cx:112,fps:12,flip:false,top:6},
-    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=6',n:24,fw:300,fh:270,cols:6,rows:4,figH:254,feet:266,cx:111,fps:18,flip:false,hold:0.9,top:12},
-    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=6',n:20,fw:300,fh:242,cols:6,rows:4,figH:199,feet:235,cx:151,fps:16,flip:false,top:36},
-    green:{u:'/assets/anim/meryln/meryln_green.webp?v=6',n:20,fw:143,fh:300,cols:6,rows:4,figH:239,feet:297,cx:72,fps:12,flip:false,top:57,hold:0.8},
-    blue:{u:'/assets/anim/meryln/meryln_blue.webp?v=6',n:20,fw:300,fh:293,cols:6,rows:4,figH:286,feet:290,cx:98,fps:12,flip:false,top:3,hold:0.8},
-    ult:{u:'/assets/anim/meryln/meryln_ult.webp?v=6',n:20,fw:300,fh:286,cols:6,rows:4,figH:239,feet:251,cx:168,fps:12,flip:false,top:11}
+    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=8',n:72,fw:230,fh:300,cols:6,rows:12,figH:293,feet:296,cx:121,fps:30,flip:true,top:3},
+    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=8',n:72,fw:267,fh:300,cols:6,rows:12,figH:281,feet:292,cx:129,fps:30,flip:true,top:11},
+    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=8',n:72,fw:300,fh:266,cols:6,rows:12,figH:208,feet:262,cx:149,fps:30,flip:true,top:53,hold:0.9},
+    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=8',n:72,fw:300,fh:274,cols:6,rows:12,figH:257,feet:270,cx:175,fps:30,flip:true,top:12},
+    green:{u:'/assets/anim/meryln/meryln_green.webp?v=8',n:72,fw:161,fh:300,cols:6,rows:12,figH:231,feet:296,cx:86,fps:30,flip:true,top:64,hold:0.8},
+    blue:{u:'/assets/anim/meryln/meryln_blue.webp?v=8',n:72,fw:300,fh:280,cols:6,rows:12,figH:273,feet:276,cx:212,fps:30,flip:true,top:3,hold:0.8},
+    ult:{u:'/assets/anim/meryln/meryln_ult.webp?v=8',n:72,fw:300,fh:298,cols:6,rows:12,figH:208,feet:265,cx:158,fps:30,flip:true,top:56},
+    passive:{u:'/assets/anim/meryln/meryln_passive.webp?v=8',n:72,fw:300,fh:280,cols:6,rows:12,figH:273,feet:276,cx:204,fps:30,flip:true,top:3}
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=4',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
@@ -1717,12 +1731,23 @@ function preloadVaultArt(waves){
   preloadBattleArt(keys, (typeof BATTLE_MAPS!=='undefined'&&BATTLE_MAPS.vault)||null);
 }
 function skillClipHTML(key,idx){ const c=HERO_SKILL_CLIPS[key]&&HERO_SKILL_CLIPS[key][idx]; if(!c||!isAssetRef(c.u)) return '';
+  const d=(c.dur/1.5).toFixed(3);   // /1.5 → skill previews play 50% faster
+  /* 29 Aug — GRID SHEETS. This used to assume every preview sheet was ONE horizontal strip
+     (background-size fw*n) and pan it with a single steps(n) animation. The newer sheets are grids
+     — Lumi and Dandra are 6 wide by 8 tall — and a strip pan on a grid shows a 6x-too-wide slice of
+     row 0, which is why sylthaine's cols/rows entry never previewed correctly either.
+     A grid needs two animations: step across the columns once per row, and step down the rows once
+     per cycle. background-position-x and -y animate independently, so they compose cleanly. */
+  if(c.cols && c.rows && c.rows>1){ const W=c.fw*c.cols, H=c.fh*c.rows;
+    return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background-image:url('${c.u}');background-size:${W}px ${H}px;animation:skcx-${key}-${idx} ${(c.dur/1.5/c.rows).toFixed(3)}s steps(${c.cols}) infinite, skcy-${key}-${idx} ${d}s steps(${c.rows}) infinite"></div>`; }
   const strip=c.fw*c.n;
-  return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background:url('${c.u}');background-size:${strip}px ${c.fh}px;animation:skc-${key}-${idx} ${(c.dur/1.5).toFixed(3)}s steps(${c.n}) infinite"></div>`; }   // /1.5 → skill previews play 50% faster
+  return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background:url('${c.u}');background-size:${strip}px ${c.fh}px;animation:skc-${key}-${idx} ${d}s steps(${c.n}) infinite"></div>`; }
 // inject one keyframe per built-in clip (per-clip guard, so any hero with clips gets its previews)
 (function(){ let css='';
   for(const hk in HERO_SKILL_CLIPS){ const set=HERO_SKILL_CLIPS[hk];
-    for(const i in set){ const c=set[i]; if(!isAssetRef(c.u))continue; css+=`@keyframes skc-${hk}-${i}{from{background-position:0 0}to{background-position:-${c.fw*c.n}px 0}}`; } }
+    for(const i in set){ const c=set[i]; if(!isAssetRef(c.u))continue;
+      if(c.cols && c.rows && c.rows>1){ css+=`@keyframes skcx-${hk}-${i}{from{background-position-x:0}to{background-position-x:-${c.fw*c.cols}px}}@keyframes skcy-${hk}-${i}{from{background-position-y:0}to{background-position-y:-${c.fh*c.rows}px}}`; }
+      else css+=`@keyframes skc-${hk}-${i}{from{background-position:0 0}to{background-position:-${c.fw*c.n}px 0}}`; } }
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); })();
 // ---- HERO LORE: a title + backstory for every hero, shown on the Lore tab of the hero screen ----
 const HERO_LORE = {
@@ -10954,7 +10979,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788013483893';
+const BUILD_ID='1788023207828';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
