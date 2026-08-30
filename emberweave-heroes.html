@@ -5289,6 +5289,80 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 /* =============================== HUB / UI ================================= */
 const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','forge','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings','watchtower'];
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign', skClipIdx=0;
+/* ==================== INTEGRITY DESK (dev only) ====================
+   Phil's rule, 30 Aug: report, never roll back. A spike files a report; a human reads a week of the
+   account's diamond history and either clears it or bans for 1, 7 or 30 days. Nothing on this
+   screen removes currency from a player — being suspected is not being guilty. */
+let INTEG={ reports:[], showAll:false, open:null, audit:null, busy:false };
+async function loadIntegrity(){
+  const host=document.getElementById('devIntegrity'); if(!host) return;
+  INTEG.busy=true; host.innerHTML='<div style="color:#8b98a9;font-size:11px">Loading reports…</div>';
+  const r=await api('/api/dev/reports'+(INTEG.showAll?'?all=1':'')).catch(()=>null);
+  INTEG.busy=false;
+  if(!r||r.error){ host.innerHTML='<div style="color:#ff8b8b;font-size:11px">'+escapeHTML((r&&r.error)||'Could not load reports.')+'</div>'; return; }
+  INTEG.reports=r.reports||[]; renderIntegrity();
+}
+function _intAgo(t){ const s=Math.max(0,Math.round((Date.now()-t)/1000));
+  if(s<60)return s+'s ago'; if(s<3600)return Math.round(s/60)+'m ago'; if(s<86400)return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'; }
+function renderIntegrity(){
+  const host=document.getElementById('devIntegrity'); if(!host) return;
+  if(INTEG.open){ host.innerHTML=_intAuditHTML(); _wireIntegrity(host); return; }
+  if(!INTEG.reports.length){ host.innerHTML='<div style="color:#5ee89b;font-size:11.5px;padding:10px 2px">No open reports. Nothing has tripped the 2,000-in-a-minute threshold.</div>'; _wireIntegrity(host); return; }
+  host.innerHTML=INTEG.reports.map(r=>{
+    const ban=r.banned?`<span style="font-size:9.5px;color:#ff9a9a;border:1px solid #7a3a3a;border-radius:6px;padding:1px 5px">banned ${r.banned.daysLeft}d left</span>`:'';
+    const res=r.resolved?`<span style="font-size:9.5px;color:#8b98a9">${escapeHTML(r.action||'resolved')}</span>`:'';
+    return `<div style="border:1px solid #2a3550;background:#0f1524;border-radius:10px;padding:9px 10px;margin-bottom:7px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="font-weight:800;font-size:12.5px;color:#ffd45e">${escapeHTML(r.name)}</div>
+        <div style="font-size:10px;color:#8b98a9">${_intAgo(r.t)} ${ban} ${res}</div></div>
+      <div style="font-size:11px;color:#cdd6e4;margin-top:3px">${escapeHTML(r.detail)}</div>
+      <button class="btn sm" style="margin-top:7px;width:100%" data-intopen="${r.userId}" data-intrep="${r.id}">Audit this account</button>
+    </div>`; }).join('');
+  _wireIntegrity(host);
+}
+function _intAuditHTML(){
+  const a=INTEG.audit;
+  if(!a) return '<div style="color:#8b98a9;font-size:11px">Loading a week of diamonds…</div>';
+  const rows=Object.entries(a.byReason||{}).sort((x,y)=>y[1]-x[1]);
+  const ban=a.banned?`<div style="color:#ff9a9a;font-size:11px;margin-top:4px">Currently suspended — ${a.banned.daysLeft} day(s) left.</div>`:'';
+  return `<div style="border:1px solid #3a4a6a;background:#0f1524;border-radius:10px;padding:11px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:14px;color:#ffd45e">${escapeHTML(a.name)}</div>
+      <button class="btn sm secondary" data-intback="1">← Back</button></div>
+    <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">💎 ${a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
+    <div style="font-size:11px;font-weight:800;margin:9px 0 4px">Where they came from</div>
+    ${rows.length?rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:#cdd6e4;padding:2px 0;border-bottom:1px solid #1b2438"><span>${escapeHTML(k)}</span><b>+${v}</b></div>`).join(''):'<div style="font-size:11px;color:#8b98a9">No recorded gains in this window.</div>'}
+    <div style="font-size:11px;font-weight:800;margin:10px 0 4px">Most recent</div>
+    <div style="max-height:150px;overflow:auto">${(a.gains||[]).slice(-40).reverse().map(g=>`<div style="font-size:10.5px;color:#9fb0c4;padding:1px 0">${_intAgo(g.t)} · +${g.n} · ${escapeHTML(g.r)}</div>`).join('')||'<div style="font-size:10.5px;color:#8b98a9">—</div>'}</div>
+    <div style="font-size:11px;color:#8b98a9;margin:11px 0 5px">Nothing here has been taken from them. If they are guilty, suspend the account:</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn sm" style="flex:1;background:#c0563f" data-intban="1">Ban 1 day</button>
+      <button class="btn sm" style="flex:1;background:#b0402c" data-intban="7">Ban 7 days</button>
+      <button class="btn sm" style="flex:1;background:#8f2f1e" data-intban="30">Ban 30 days</button></div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="btn sm secondary" style="flex:1" data-intclear="1">Clear report — not guilty</button>
+      ${a.banned?'<button class="btn sm secondary" style="flex:1" data-intlift="1">Lift ban</button>':''}</div>
+    <div id="intMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>`;
+}
+function _wireIntegrity(host){
+  host.querySelectorAll('[data-intopen]').forEach(el=>el.onclick=async()=>{
+    INTEG.open={ id:el.dataset.intopen, reportId:el.dataset.intrep }; INTEG.audit=null; renderIntegrity();
+    const a=await api('/api/dev/gem-audit?days=7&id='+encodeURIComponent(INTEG.open.id)).catch(()=>null);
+    INTEG.audit=(a&&!a.error)?a:null; renderIntegrity(); });
+  const back=host.querySelector('[data-intback]'); if(back) back.onclick=()=>{ INTEG.open=null; INTEG.audit=null; renderIntegrity(); };
+  host.querySelectorAll('[data-intban]').forEach(el=>el.onclick=async()=>{
+    const days=parseInt(el.dataset.intban,10); const m=host.querySelector('#intMsg');
+    if(m){ m.style.color='#8b98a9'; m.textContent='Suspending…'; }
+    const r=await api('/api/dev/ban','POST',{id:INTEG.open.id,days,reportId:INTEG.open.reportId,reason:'diamond spike'}).catch(()=>null);
+    if(r&&r.ok){ if(m){ m.style.color='#5ee89b'; m.textContent=escapeHTML(r.name||'Account')+' suspended for '+days+' day(s). Nothing was removed from the account.'; }
+      INTEG.open=null; INTEG.audit=null; loadIntegrity(); }
+    else if(m){ m.style.color='#ff8b8b'; m.textContent=(r&&r.error)||'Could not apply the suspension.'; } });
+  const lift=host.querySelector('[data-intlift]'); if(lift) lift.onclick=async()=>{
+    const r=await api('/api/dev/ban','POST',{id:INTEG.open.id,lift:true}).catch(()=>null);
+    if(r&&r.ok){ INTEG.open=null; INTEG.audit=null; loadIntegrity(); } };
+  const clr=host.querySelector('[data-intclear]'); if(clr) clr.onclick=async()=>{
+    await api('/api/dev/report-clear','POST',{id:INTEG.open.reportId}).catch(()=>null);
+    INTEG.open=null; INTEG.audit=null; loadIntegrity(); };
+}
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
 // against its own role stamp). The client shows dev UI only when the server's profile says admin.
@@ -5957,10 +6031,17 @@ async function txSpend(what,amount,reason){ if(!ACC.token){ bannerMsg('Connect t
   bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); return false; }
 /* v267 (80/20 §9): the generic earn endpoint now accepts ONLY the arena fragment rule server-side.
    Nothing else in the client may call this; every other loop has its own verified route. */
+/* 30 Aug (Phil) — THIS FUNCTION USED TO DELETE THE REWARD IT WAS ASKED TO RECORD.
+   The old second line refused every reason except frag/arena and called ledgerSync() on its way
+   out — which overwrites the wallet with the server's number, erasing the grant the caller had
+   just made. Sign-in, the tower, the gauntlet, star milestones, the guild shop and the city
+   landing all showed the player a reward and took it back within 45 seconds. The server now has
+   earn rules for these reasons (EARN_RULES), so the transaction is actually sent; if the server
+   declines it we resync, because the server is still the authority on what the balance is. */
 function txEarn(what,amount,reason,extra){ if(!ACC.token||!(amount>0)) return;
-  if(!(what==='frag'&&reason==='arena')){ ledgerSync&&ledgerSync(); return; }
   api('/api/tx/earn','POST',Object.assign({what,amount:Math.floor(amount),reason,requestId:uid8()},extra||{}))
-    .then(r=>{ if(r&&r.ok) adoptLedger(r.ledger); }).catch(()=>{}); }
+    .then(r=>{ if(r&&r.ok) adoptLedger(r.ledger); else ledgerSync&&ledgerSync(); })
+    .catch(()=>{ ledgerSync&&ledgerSync(); }); }
 // bridge for legacy reward closures: run fn, diff the wallet mirror, report deltas to the ledger.
 function ledCapture(reason,fn){ const g0=G.gold||0, d0=G.gems||0; const out=fn(); const dg=(G.gold||0)-g0, dd=(G.gems||0)-d0;
   if(dg>0) txEarn('gold',dg,reason); else if(dg<0) api('/api/tx/spend','POST',{what:'gold',amount:-dg,reason,requestId:uid8()}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>{});
@@ -6352,7 +6433,7 @@ function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
   const tier=Math.floor(idx/4)+1, cyc=idx%4;
   if(cyc===0) return {desc:'🪙 '+(2000*tier).toLocaleString()+' gold', give:()=>{ G.gold=(G.gold||0)+2000*tier; }};
   if(cyc===1) return {desc:'⧗ '+(60*tier)+' stamina', give:()=>{ G.stamina=(G.stamina||0)+60*tier; }};
-  if(cyc===2) return {desc:'💎 '+(100*tier)+' diamonds', give:()=>{ G.gems=(G.gems||0)+100*tier; }};
+  if(cyc===2) return {desc:'💎 '+(100*tier)+' diamonds', give:()=>{ G.gems=(G.gems||0)+100*tier; txEarn('gems',100*tier,'stars'); }};
   return {desc:'🧩 '+(5*tier)+' random hero fragments', give:()=>{ let m=''; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); const r=giveHeroFrag(hk,1); if(r)m=r; } return m; }};
 }
 function starTrackClaimable(){ const t=totalCampaignStars(); return t>=((G.starMilestonesClaimed||0)+1)*15; }
@@ -8359,7 +8440,7 @@ function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())
 const GUILD_SHOP=[
   {name:'Protection Shield',desc:'12h attack immunity',cost:800,give:()=>{G.shieldItems=(G.shieldItems||0)+1;}},
   {name:'Gold Cache',desc:'+5,000 gold',cost:300,give:()=>{G.gold=(G.gold||0)+5000;}},
-  {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,give:()=>{G.gems=(G.gems||0)+50;}},
+  {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,give:()=>{G.gems=(G.gems||0)+50; txEarn('gems',50,'guildshop');}},
   {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{G.stamina=Math.max(G.stamina,maxStamina());G.staminaTS=Date.now();}},
   {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,give:()=>{G.arenaCoins=(G.arenaCoins||0)+2000;}},
   /* v274: materials are ledger-owned, so this purchase is a SERVER purchase (/api/shop/buy 'pieces').
@@ -8367,7 +8448,7 @@ const GUILD_SHOP=[
   {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,server:'pieces',give:()=>{}},
   {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,give:()=>{G.gold=(G.gold||0)+15000;}},
   {name:'Resource Crate',desc:'+100 of each map resource',cost:350,give:()=>{RES.forEach(([k])=>G.res[k]=(G.res[k]||0)+100);}},
-  {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,give:()=>{G.gems=(G.gems||0)+150;}},
+  {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,give:()=>{G.gems=(G.gems||0)+150; txEarn('gems',150,'guildshop');}},
   {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,give:()=>{G.shieldItems=(G.shieldItems||0)+3;}},
   {name:'Arena Coins ×6000',desc:'+6,000 arena coins',cost:1200,give:()=>{G.arenaCoins=(G.arenaCoins||0)+6000;}},
   {name:'Treasure Vault',desc:'+50,000 gold',cost:2500,give:()=>{G.gold=(G.gold||0)+50000;}},
@@ -8410,7 +8491,7 @@ function guildBossName(gb){ return GUILD_BOSS_NAMES[((gb.level||1)-1)%GUILD_BOSS
 function guildBossAttemptsLeft(){ const gb=guildBossEnsure(); return gb?Math.max(0,GUILD_RAID_ATTEMPTS-(gb.used||0)):0; }
 function guildBossKillReward(gb, playerLanded){ const lv=gb.level;
   const cCoins=300*lv, cExp=250; G.guildCoins=(G.guildCoins||0)+cCoins; addGuildExp(cExp);
-  let extra=''; if(playerLanded){ const cGold=800*lv, cGems=15+lv*3; G.gold=(G.gold||0)+cGold; G.gems=(G.gems||0)+cGems; extra=` · 🪙 ${cGold} · 💎 ${cGems}`; }
+  let extra=''; if(playerLanded){ const cGold=800*lv, cGems=15+lv*3; G.gold=(G.gold||0)+cGold; G.gems=(G.gems||0)+cGems; txEarn('gold',cGold,'city'); txEarn('gems',cGems,'city'); extra=` · 🪙 ${cGold} · 💎 ${cGems}`; }
   gb.level=lv+1; gb.max=guildBossMax(gb.level); gb.hp=gb.max; gb.dmg=0; gb.guildDmg=0; gb.kills=(gb.kills||0)+1; gb.lastTick=Date.now();
   return `🎖 ${cCoins} · +${cExp} guild exp${extra}`; }
 // passive: guildmates chip the boss down between your visits (catches up on elapsed time)
@@ -9371,7 +9452,7 @@ function startHeroIdleAnims(root){ (root||document).querySelectorAll('.heroIdleA
 function stopHeroIdleAnims(root){ (root||document).querySelectorAll('.heroIdleAnim[data-hk]').forEach(el=>{ if(el._animIv){clearInterval(el._animIv); el._animIv=null;} }); }
 function wishFrags(n){ const hk=randLockedHero(), t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n); return {icon:heroBigIcon(hk), hero:hk, name:n+'× '+t.name+' fragments', extra:msg||''}; }
 function wishGold(n){ G.gold=(G.gold||0)+n; return {icon:'🪙', name:'+'+n+' gold'}; }
-function wishGems(n){ G.gems=(G.gems||0)+n; return {icon:'💎', name:'+'+n+' diamonds'}; }
+function wishGems(n){ G.gems=(G.gems||0)+n; if(!ACC.token) saveG(); return {icon:'💎', name:'+'+n+' diamonds'}; }   // signed in, the SERVER pool already credited this and adoptLedger carries it
 function wishHeroPool(){ return pickFrom(wishStarPool(2).concat(wishStarPool(3)),'tick'); }
 // fragments of one named hero (2-3 at a time)
 function wishHeroFrags(hk,n){ const t=HERO_TYPES[hk], msg=giveHeroFrag(hk,n);
@@ -9571,7 +9652,7 @@ function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
       else if(sr&&sr.error){ bannerMsg(sr.error); } }).catch(()=>{}); return; }
   const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
 function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(); const st=steps[G.questChainStep||0]; let r='';
-  if(st.gems){ G.gems=(G.gems||0)+st.gems; r='+💎 '+st.gems+' diamonds'; }
+  if(st.gems){ G.gems=(G.gems||0)+st.gems; txEarn('gems',st.gems,'quest'); r='+💎 '+st.gems+' diamonds'; }
   else { let m=''; for(let i=0;i<st.frags;i++){ const x=giveHeroFrag(QUEST_CHAIN_HERO,1); if(x)m=x; } r=m||('+'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'); }
   G.questChainStep=(G.questChainStep||0)+1; saveG(); updateHubChrome(); updateMailBadges();
   bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); }
@@ -9628,10 +9709,10 @@ function isLastSaturday(y,m,day){ return day+7 > new Date(y,m+1,0).getDate(); }
 const SIGNIN_DAILY=[
   {icon:'🪙', label:'300 Gold',     grant:()=>{ G.gold=(G.gold||0)+300; }},
   {icon:'⧗',  label:'+60 Stamina',  grant:()=>{ G.stamina=(G.stamina||0)+60; }},
-  {icon:'💎', label:'20 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+20; }},
+  {icon:'💎', label:'20 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+20; txEarn('gems',20,'signin'); }},
   {icon:'🪙', label:'400 Gold',grant:()=>{ G.gold=(G.gold||0)+400; }},
   {icon:'🪙', label:'600 Gold',     grant:()=>{ G.gold=(G.gold||0)+600; }},
-  {icon:'💎', label:'30 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+30; }},
+  {icon:'💎', label:'30 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+30; txEarn('gems',30,'signin'); }},
 ];
 function signinDayReward(y,m,day){ const dow=new Date(y,m,day).getDay();
   if(dow===6){ const big=isLastSaturday(y,m,day), n=big?15:5, hk=monthlyHeroKey();   // Saturday = end of week
@@ -9710,7 +9791,7 @@ function tutReady(){ if(G.tutDone) return false; return TUTORIAL_STEPS.some(s=>s
 // grant rewards for any steps newly completed; called after actions via updateHubChrome
 function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded={}; let changed=false;
   TUTORIAL_STEPS.forEach(s=>{ if(s.done() && !G.tutRewarded[s.id]){ const str=grantTutReward(s.reward, s.id); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); } });
-  if(!G.tutDone && tutComplete()){ G.tutDone=true; changed=true; G.gems=(G.gems||0)+100; if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds'); }
+  if(!G.tutDone && tutComplete()){ G.tutDone=true; changed=true; G.gems=(G.gems||0)+100; txEarn('gems',100,'quest'); if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds'); }
   if(changed){ saveG(); if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); } }
 function renderTutorial(){ checkTutorial(); const b=document.getElementById('tutorialBody'); if(!b)return;
   const doneCount=TUTORIAL_STEPS.filter(s=>s.done()).length; const cur=TUTORIAL_STEPS.find(s=>!s.done());
@@ -9835,7 +9916,7 @@ function gauntApplyPerk(id){ const r=_gaunt; if(!r)return; r.perks.push(id);
   if(id==='banner')r.banner*=1.22; else if(id==='momentum')r.momentum+=0.06; else if(id==='wind')r.wind=true; else if(id==='slayer')r.slayer+=0.50;
   else if(id==='treasure')r.rewardMul*=1.80; else if(id==='phantom')r.phantom=Math.min(0.6,r.phantom+0.30); else if(id==='overload')r.overloadUntil=r.wave+3; else if(id==='fortune')r.fortune+=2;
   r.pendingPerk=false; }
-function gauntBank(){ const r=_gaunt; if(!r)return; if(r.wave>gauntDay().best){ gauntDay().best=r.wave; } G.gold=(G.gold||0)+r.gold; if(r.gems>0)G.gems=(G.gems||0)+r.gems; if(r.runes>0)G.gold=(G.gold||0)+r.runes*300; updateHubChrome(); saveG(); }   // legacy rune payout → bonus gold (300 each)
+function gauntBank(){ const r=_gaunt; if(!r)return; if(r.wave>gauntDay().best){ gauntDay().best=r.wave; } const _rg=r.gold+(r.runes>0?r.runes*300:0); G.gold=(G.gold||0)+_rg; if(r.gems>0){ G.gems=(G.gems||0)+r.gems; txEarn('gems',r.gems,'gauntlet'); } if(_rg>0) txEarn('gold',_rg,'gauntlet'); updateHubChrome(); saveG(); }   // legacy rune payout → bonus gold (300 each)
 function gauntFight(){ const r=_gaunt; if(!r||!r.alive) return {ended:true};
   const w=r.wave+1, isBoss=(w%5===0);
   if(r.phantom && Math.random()<r.phantom){ r.wave=w; const rw=gauntWaveReward(w,isBoss); r.pendingPerk=(w%3===0); return {wave:w,skipped:true,reward:rw,isBoss,perk:r.pendingPerk}; }
@@ -9893,7 +9974,7 @@ function towerState(){ if(!G.tower)G.tower={floor:0,trib:''}; return G.tower; }
 function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)); if(floor%5===0)r=Math.round(r*1.3); return r; }
 function towerFloorReward(floor){ const gold=Math.round(400*floor*Math.pow(1.08,floor)); let s='🪙 '+gold.toLocaleString(); G.gold=(G.gold||0)+gold;
   if(floor%2===0){ const bg=200+floor*25; G.gold=(G.gold||0)+bg; s+=' · 🪙 +'+bg+' bonus'; }
-  if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; s+=' · 💎 '+gm; } updateHubChrome(); return s; }
+  if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; txEarn('gems',gm,'tower'); s+=' · 💎 '+gm; } updateHubChrome(); return s; }
 function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next); if(battlePow()<req) return {wall:true,req}; st.floor=next; const rw=towerFloorReward(next); saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
 function towerTribReady(){ return towerState().trib!==arenaDayKey() && towerState().floor>0; }
 function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; st.trib=arenaDayKey(); const bonus=250*(1+Math.floor(st.floor/4)); const gold=Math.round(500*st.floor)+bonus; G.gold=(G.gold||0)+gold; updateHubChrome(); saveG(); return {gold}; }
@@ -10139,8 +10220,8 @@ function renderSettings(){
   let dev='';
   if(DEV.on){
     const act=(id,ic,label)=>`<button class="dvp-cell" data-dev="${id}"><span class="ic">${ic}</span>${label}</button>`;
-    const TABS=[['cheats','\ud83e\uddea Cheats'],['accounts','\ud83d\udef0 Accounts'],['qa','\ud83e\udd16 QA & Reports']];
-    const dt=(['cheats','accounts','qa'].includes(devTab)?devTab:'cheats');
+    const TABS=[['cheats','\ud83e\uddea Cheats'],['accounts','\ud83d\udef0 Accounts'],['qa','\ud83e\udd16 QA & Reports'],['integrity','\ud83d\udea9 Integrity']];
+    const dt=(['cheats','accounts','qa','integrity'].includes(devTab)?devTab:'cheats');
     const tabBar=`<div class="dvp-tabs">`+TABS.map(([k,l])=>`<div class="dvp-tab${dt===k?' on':''}" data-devtab="${k}">${l}</div>`).join('')+`</div>`;
     const _n=(v)=>{ v=Math.round(v||0); return v>=1000000?(v/1000000).toFixed(1)+'M':(v>=1000?(v/1000).toFixed(v>=100000?0:1)+'k':(''+v)); };
     const statRow=`<div class="dvp-stats"><span class="dvp-chip">Lv ${playerLevel()}</span><span class="dvp-chip">\ud83e\ude99 ${_n(G.gold)}</span><span class="dvp-chip">\ud83d\udc8e ${_n(G.gems)}</span></div>`;
@@ -10160,9 +10241,17 @@ function renderSettings(){
       <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
     const qaTab = dt!=='qa'?'':`
       <div class="dvp-grid">${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
+    /* 30 Aug (Phil) — THE INTEGRITY DESK.
+       "no roll backs just the option to ban the player for 1, 7 or 30 days if they are found guilty."
+       So this screen only ever reads and bans. There is deliberately no button here that takes
+       diamonds off anyone: a detector's guess must never cost a legitimate player their progress. */
+    const integrityTab = dt!=='integrity'?'':`
+      <div style="font-size:11px;color:#8b98a9;margin:2px 0 8px;line-height:1.45">Accounts that gained more than <b>2,000 diamonds in under a minute</b> are reported here. Nothing has been taken from them &mdash; open one to read a week of where their diamonds came from, then clear it or ban.</div>
+      <div class="dvp-grid">${act('intrefresh','\ud83d\udd04','Refresh reports')}${act('intall','\ud83d\uddc2','Show resolved too')}</div>
+      <div id="devIntegrity" style="margin-top:8px"></div>`;
     dev=`<style>.dvp{border:1px solid #2b7a55;background:linear-gradient(180deg,#12211b,#141b2b 70%)}.dvp-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.dvp-badge{font-size:11px;font-weight:800;letter-spacing:.5px;color:#0a140f;background:#5ee89b;border-radius:6px;padding:2px 7px}.dvp-title{font-weight:800;font-size:14px;color:#e6edf3}.dvp-who{font-size:11px;color:#8b98a9;font-weight:600}.dvp-stats{margin-left:auto;display:flex;gap:5px}.dvp-chip{font-size:11px;font-weight:700;background:#0f1622;border:1px solid #26324a;border-radius:999px;padding:3px 9px;color:#cdd8ea;white-space:nowrap}.dvp-tabs{display:flex;gap:4px;background:#0d1320;border:1px solid #24304a;border-radius:11px;padding:3px;margin-bottom:10px}.dvp-tab{flex:1;text-align:center;font-size:11px;font-weight:700;padding:6px 4px;border-radius:8px;cursor:pointer;color:#93a1b8;user-select:none}.dvp-tab.on{background:#5ee89b;color:#0a140f}.dvp-god{display:flex;align-items:center;gap:10px;background:#0f1622;border:1px solid #26324a;border-radius:11px;padding:9px 11px;margin-bottom:10px}.dvp-god b{font-size:12px;flex:1}.dvp-god .sub{color:#8b98a9;font-weight:500}.dvp-sw{width:44px;height:24px;border-radius:999px;background:#33405e;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s}.dvp-sw.on{background:#5ee89b}.dvp-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.dvp-sw.on::after{left:22px}.dvp-filter{width:100%;box-sizing:border-box;background:#0f1622;border:1px solid #26324a;border-radius:9px;padding:8px 10px;color:#e6edf3;font-size:12px;margin-bottom:10px}.dvp-filter::placeholder{color:#63708a}.dvp-sec{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin:10px 2px 6px}.dvp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dvp-cell{display:flex;align-items:center;gap:8px;background:#1b2334;border:1px solid #2b3852;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:11.5px;font-weight:600;color:#e6edf3;text-align:left;transition:border-color .12s,background .12s}.dvp-cell:hover{background:#222c42;border-color:#3d5488}.dvp-cell:active{transform:translateY(1px)}.dvp-cell .ic{font-size:15px;flex:0 0 auto}.dvp-update{width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border:0;border-radius:11px;background:linear-gradient(90deg,#3a6df0,#5a86ff);color:#fff;font-weight:800;font-size:12px;cursor:pointer}.dvp-out{font-size:11px;color:#5ee89b;margin-top:8px;min-height:14px}</style><div class="panel dvp">
       <div class="dvp-hd"><span class="dvp-badge">DEV</span><span class="dvp-title">Developer Panel</span><span class="dvp-who">${escapeHTML(ACC.name||'')}</span>${statRow}</div>
-      ${tabBar}${cheatsTab}${accountsTab}${qaTab}
+      ${tabBar}${cheatsTab}${accountsTab}${qaTab}${integrityTab}
       <div id="devDone" class="dvp-out"></div>
       <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:300px;overflow:auto"></div>
     </div>`;
@@ -10326,11 +10415,13 @@ function renderSettings(){
       updateHubChrome(); show('home');
     }); };
   const dGod=b.querySelector('#devGod'); if(dGod) dGod.onclick=()=>{ DEV.god=!DEV.god; renderSettings(); };
-  b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); });
+  b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); if(devTab==='integrity') loadIntegrity(); });
   b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); }); const _flt=b.querySelector('#devFilter'); if(_flt){ _flt.oninput=()=>{ const q=_flt.value.trim().toLowerCase(); b.querySelectorAll('.dvp-cell').forEach(c=>{ c.style.display=(!q||(c.textContent||'').toLowerCase().includes(q))?'':'none'; }); b.querySelectorAll('.dvp-sec').forEach(sec=>{ const nx=sec.nextElementSibling; const any=nx&&[...nx.querySelectorAll('.dvp-cell')].some(c=>c.style.display!=='none'); sec.style.display=any?'':'none'; }); }; }
 }
 function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
+  if(a==='intrefresh'){ loadIntegrity(); done('Refreshing reports…'); return; }
+  if(a==='intall'){ INTEG.showAll=!INTEG.showAll; loadIntegrity(); done(INTEG.showAll?'Showing resolved reports too':'Showing open reports only'); return; }
   if(a==='gold'){ api('/api/admin/led-grant','POST',{gold:100000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+100,000 gold'); }
   else if(a==='gems'){ api('/api/admin/led-grant','POST',{gems:2000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+2,000 diamonds'); }
   else if(a==='pieces'){ if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+200); done('+200 of each equipment piece'); }
@@ -10956,8 +11047,15 @@ const GEM_OFFERS=[
 ];
 // grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
 // drop a claimable entry at the top of the Quest log that pays out once per day until its days run out.
+/* 30 Aug — PURCHASES DO NOT GO THROUGH THE EARN TABLE.
+   A diamond pack is real money, so it needs a receipt-verified server route; letting the client
+   claim one through /api/tx/earn would be a free-diamond button. Until that route exists this
+   credits the mirror only for the DEV test popup (the only caller), and says so out loud rather
+   than looking like a real purchase that then evaporates on the next ledger sync. */
 function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.reward) return; const rw=o.reward;
-  if(rw.kind==='gems'){ G.gems=(G.gems||0)+rw.amount; bannerMsg('💎 +'+rw.amount+' diamonds!'); }
+  if(rw.kind==='gems'){ G.gems=(G.gems||0)+rw.amount;
+    bannerMsg(ACC.token ? ('💎 +'+rw.amount+' (dev test — not banked: purchases need a verified receipt route)')
+                        : ('💎 +'+rw.amount+' diamonds!')); }
   else if(rw.kind==='dailyGems'||rw.kind==='dailyStamina'){
     G.dailyPacks=G.dailyPacks||[]; consolidateDailyPacks();
     const type=(rw.kind==='dailyGems'?'gems':'stamina'), key=type+'_'+rw.amount;
@@ -11240,7 +11338,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788131207839';
+const BUILD_ID='1788133334451';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

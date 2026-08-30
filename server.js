@@ -1140,14 +1140,105 @@ function warMatchView(t,m,meGid){
 const STARTER_HEROES=['vael','sylthaine','vireo'];
 const LEDGER_TX_KEEP=300;
 const LEDGER_MIGRATE_CUTOFF=1787776176312;   // v227 transformation deploy time
+/* ==================== INTEGRITY REPORTS + BANS (Phil, 30 Aug) ====================
+   The ruling: DO NOT ROLL BACK. A rollback punishes a legitimate player for a detector's guess, and
+   the detector is guessing. Instead every suspicious gain is recorded, surfaced in the dev panel,
+   and left in the player's account until a human looks at it. If they are guilty the account is
+   banned for 1, 7 or 30 days; if they are not, nothing was taken from them in the meantime.
+
+   The trigger is Phil's: more than SPIKE_GEMS diamonds gained inside SPIKE_MS. */
+const SPIKE_GEMS = 2000;            // diamonds…
+const SPIKE_MS   = 60000;           // …inside one minute → report it
+const SEED_REPORT_GEMS = 20000;     // an account whose FIRST ledger is seeded above this is reported
+const REPORTS_KEEP = 500;
+const GEM_LOG_KEEP = 400;           // per-account gem-gain history the weekly audit reads
+const BAN_DAYS_ALLOWED = [1, 7, 30];
+
+function devReport(u, kind, amount, detail){
+  DB.reports = Array.isArray(DB.reports) ? DB.reports : [];
+  const r = { id: uid(), t: Date.now(), userId: u.id, name: u.name || u.id,
+              kind, amount: amount|0, detail: String(detail||'').slice(0,300),
+              resolved: false, action: null };
+  DB.reports.push(r);
+  if(DB.reports.length > REPORTS_KEEP) DB.reports = DB.reports.slice(-REPORTS_KEEP);
+  console.log('🚩 integrity report — ' + (u.name||u.id) + ': ' + r.detail);
+  writeDB();
+  return r;
+}
+
+/* Every diamond GAIN goes through here. It records the gain, watches the rolling window, and files
+   a report when the window is exceeded. It never blocks and never reverses — the caller's grant
+   stands either way. */
+function gemGain(u, amount, reason){
+  amount = Math.floor(+amount || 0);
+  if(!(amount > 0)) return amount;
+  const now = Date.now();
+  u.gemLog = Array.isArray(u.gemLog) ? u.gemLog : [];
+  u.gemLog.push({ t: now, n: amount, r: String(reason||'misc').slice(0,32) });
+  if(u.gemLog.length > GEM_LOG_KEEP) u.gemLog = u.gemLog.slice(-GEM_LOG_KEEP);
+  let win = 0;
+  for(let i = u.gemLog.length - 1; i >= 0; i--){
+    if(now - u.gemLog[i].t > SPIKE_MS) break;
+    win += u.gemLog[i].n;
+  }
+  if(win > SPIKE_GEMS){
+    // one report per window, not one per grant, or a burst files fifty of them
+    const last = (DB.reports||[]).filter(r => r.userId === u.id && r.kind === 'gem-spike').pop();
+    if(!last || now - last.t > SPIKE_MS){
+      devReport(u, 'gem-spike', win, '+' + win + ' diamonds in under ' +
+        Math.round(SPIKE_MS/1000) + 's (latest: ' + amount + ' from ' + reason + ')');
+    }
+  }
+  return amount;
+}
+
+/* A player's diamond history for the dev panel's weekly audit. */
+function gemAudit(u, days){
+  const since = Date.now() - (days||7)*86400000;
+  const gains = (u.gemLog||[]).filter(e => e.t >= since);
+  const led = u.led;
+  const txs = (led && Array.isArray(led.txs) ? led.txs : [])
+    .filter(t => t.t >= since && t.d && typeof t.d.gems === 'number');
+  const byReason = {};
+  for(const g of gains) byReason[g.r] = (byReason[g.r]||0) + g.n;
+  return {
+    userId: u.id, name: u.name || u.id, days: days||7,
+    balance: led ? (led.gems|0) : null,
+    totalGained: gains.reduce((a,g) => a + g.n, 0),
+    byReason,
+    gains: gains.slice(-200),
+    ledgerTxs: txs.slice(-200),
+    banned: banInfo(u),
+  };
+}
+
+function banInfo(u){
+  const until = u.bannedUntil || 0;
+  return until > Date.now() ? { until, daysLeft: Math.ceil((until - Date.now())/86400000), reason: u.banReason || '' } : null;
+}
+function isBanned(u){ return !!(u && (u.bannedUntil||0) > Date.now()); }
+
 function ensureLedger(u){
+
   if(u.led && u.led.migratedAt) return u.led;
   // AUDIT v229 (P0): only accounts that EXISTED before the v227 transformation may seed their
   // ledger from the uploaded save (their real pre-ledger progress, one time). Accounts created
   // after the cutoff get the fixed STARTER ledger — a forged client save can never become
   // server progress on a new account.
+  /* 30 Aug (Phil) — A NEW ACCOUNT NO LONGER THROWS THE PLAYER'S WALLET AWAY.
+     This used to seed from the uploaded save ONLY for accounts that existed before the v227
+     transformation; everyone else got `led.gold=1000; led.gems=300` and whatever they had actually
+     earned was discarded. Because 'gems' is on SERVER_OWNED_SAVE_FIELDS it was then deleted out of
+     the stored save, so the number was gone for good. A guest who played for a week and then made
+     an account watched their diamonds reset to 300, permanently. That was the missing diamonds.
+     The cutoff existed to stop a forged client save becoming server progress on a fresh account.
+     Phil's ruling (30 Aug) is that we do not punish on suspicion: seed the real balance, clamp the
+     impossible, and REPORT anything implausible to the dev panel for a human to judge — never a
+     silent rollback. So every account is now seeded from its own save, clamped by ECON_CAP exactly
+     as sanitizeSave clamps it, and a large seed files a report. */
   const legacy=((u.created||0)===0) || ((u.created||0)<LEDGER_MIGRATE_CUTOFF);
-  const sv=legacy?(parseSaveOf(u)||{}):{};
+  const sv=parseSaveOf(u)||{};
+  const hasSave = (typeof sv.gems==='number') || (typeof sv.gold==='number') || ((sv.campaignCleared|0)>0);
   const led={ v:1, migratedAt:Date.now(), rev:1,
     gold:Math.max(0,Math.min(100000000, (sv.gold|0)||0)),
     gems:Math.max(0,Math.min(2000000, (sv.gems|0)||0)),
@@ -1167,9 +1258,15 @@ function ensureLedger(u){
   }
   const ss=sv.stageStars||{}; for(const n in ss){ const v=ss[n]|0; if(v>=1&&v<=3) led.camp.stars[n]=v; }
   led.stam.v=Math.max(0,Math.min(200,(sv.stamina|0)||60));
-  if(!legacy){ led.gold=1000; led.gems=300; }   // fixed starter wallet for post-transformation accounts
+  // a genuinely new player — nothing played yet — starts on the fixed starter wallet
+  if(!hasSave){ led.gold=1000; led.gems=300; }
   u.led=led;
-  ledTx(u,legacy?'migrate:legacy-save':'migrate:starter',{});
+  ledTx(u,legacy?'migrate:legacy-save':(hasSave?'migrate:from-save':'migrate:starter'),
+        hasSave?{gold:led.gold,gems:led.gems}:{});
+  // an implausible opening balance is REPORTED, not reversed — a human decides
+  if(hasSave && led.gems>SEED_REPORT_GEMS){
+    devReport(u,'seed', led.gems, 'account seeded with '+led.gems+' diamonds from its uploaded save');
+  }
   return led;
 }
 /* ===================== v270 — PLAYER-TRUTH BATTLE SPEC =====================
@@ -1454,8 +1551,24 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
 /* v267 (80/20 §9): the generic client-selected earning endpoint is RETIRED. The only reason left is
    the arena fragment shop, which has its own capped rule; every other loop grants through its own
    verified route. `misc` is gone — a client can no longer name its own reason and be paid for it. */
+/* 30 Aug (Phil) — DIAMONDS CAN ACTUALLY BE EARNED AGAIN.
+   txEarn() refused every reason but frag/arena and called ledgerSync() on the way out, which
+   overwrote the client's wallet with the server's number and DELETED the grant on the spot. So
+   sign-in, the tower, the gauntlet, star milestones, the guild shop and the city landing all showed
+   a reward and then took it back within 45 seconds.
+   These numbers are SANITY bounds, not balance caps. Phil's ruling is that we do not block or roll
+   back a player mid-play on a detector's guess: a grant is paid, and anything implausible is
+   reported to the dev panel (see gemGain) for a human to judge. `day` is a high backstop against a
+   runaway loop, not a design limit. */
 const EARN_RULES={
-  frag:{ arena:{max:10,day:60} } };
+  frag:{ arena:{max:10,day:60} },
+  gems:{ signin:{max:200,day:2000}, tower:{max:500,day:5000}, gauntlet:{max:500,day:5000},
+         stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
+         wish:{max:500,day:8000}, quest:{max:500,day:4000}, convert:{max:1000,day:6000},
+         pack:{max:20000,day:60000}, misc:{max:200,day:2000} },
+  gold:{ signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
+         stars:{max:200000,day:2000000}, city:{max:100000,day:1000000}, wish:{max:100000,day:1000000},
+         quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000}, misc:{max:50000,day:500000} } };
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
@@ -1496,7 +1609,7 @@ function poolRollGold(u){ const led=u.led; const h=Math.random();
   if(r<0.46) return poolGlyphFrag(u,'Grey', 4+Math.floor(Math.random()*5));
   if(r<0.72) return poolGlyphFrag(u,'Green', 2+Math.floor(Math.random()*3));
   if(r<0.94){ const g=300+Math.floor(Math.random()*500); led.gold=Math.min(100000000,led.gold+g); return {type:'gold', n:g}; }
-  const gm=5+Math.floor(Math.random()*11); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
+  const gm=5+Math.floor(Math.random()*11); gemGain(u,gm,'wish'); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
 function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   if(rigged) return poolGrantHero(u, poolPick(POOL_P2));
   if(pool.pity+1>=WISH_GEM_PITY){ pool.pity=0; return Object.assign(poolGrantHero(u, Math.random()<0.12?poolPick(POOL_P3):poolPick(POOL_P2)),{pity:true}); }
@@ -1512,7 +1625,7 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   if(r<0.36) return poolGlyphFrag(u,'Blue', 2+Math.floor(Math.random()*3));
   if(r<0.60) return poolGlyphFrag(u,'Green', 4+Math.floor(Math.random()*4));
   if(r<0.80) return poolGlyphFrag(u,'Blue +1', 1+Math.floor(Math.random()*2));
-  const gm=20+Math.floor(Math.random()*40); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
+  const gm=20+Math.floor(Math.random()*40); gemGain(u,gm,'wish'); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
 /* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
 const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
@@ -1874,6 +1987,55 @@ async function api(req,res,url){
 
   const me=authUser(req);
   if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
+
+  /* 30 Aug (Phil) — A BAN LOCKS THE ACCOUNT OUT, IT DOES NOT TAKE ANYTHING FROM IT.
+     Nothing is rolled back and nothing is deleted: the account simply cannot act until the ban
+     expires, and it expires on its own. Reading who you are is still allowed so the client can show
+     the player why they are locked out and until when. */
+  if(me && isBanned(me) && !/^\/api\/(me|logout|login|ledger)$/.test(p)){
+    const b=banInfo(me);
+    return send(res,403,{ error:'This account is suspended for '+b.daysLeft+' more day'+(b.daysLeft===1?'':'s')+'.',
+                          banned:true, until:b.until, reason:b.reason });
+  }
+
+  /* ---- INTEGRITY DESK (dev only): reports in, a week of a player's diamonds to read, ban out.
+     There is deliberately no "reverse this" action anywhere here — see the note on devReport. ---- */
+  if(p==='/api/dev/reports'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const all=Array.isArray(DB.reports)?DB.reports:[];
+    const show=(url.searchParams.get('all')==='1')?all:all.filter(r=>!r.resolved);
+    return send(res,200,{ reports: show.slice(-200).reverse().map(r=>Object.assign({},r,{
+      banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
+
+  if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
+    if(!u) return send(res,404,{error:'no such account'});
+    const days=Math.max(1,Math.min(30,parseInt(url.searchParams.get('days')||'7',10)));
+    return send(res,200, gemAudit(u,days)); }
+
+  if(p==='/api/dev/ban' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const u=DB.users[String(b.id||'')];
+    if(!u) return send(res,404,{error:'no such account'});
+    if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+    const days=parseInt(b.days,10);
+    if(b.lift){ u.bannedUntil=0; u.banReason=''; writeDB();
+      return send(res,200,{ok:true, banned:null, name:u.name}); }
+    if(BAN_DAYS_ALLOWED.indexOf(days)<0) return send(res,400,{error:'Ban length must be 1, 7 or 30 days.'});
+    u.bannedUntil=Date.now()+days*86400000;
+    u.banReason=String(b.reason||'').slice(0,200);
+    u.banLog=Array.isArray(u.banLog)?u.banLog:[];
+    u.banLog.push({t:Date.now(),days,by:me.name||me.id,reason:u.banReason});
+    dropTokens(u.id);                       // sign them out of every device immediately
+    if(b.reportId){ const r=(DB.reports||[]).find(x=>x.id===b.reportId); if(r){ r.resolved=true; r.action='ban:'+days+'d'; } }
+    writeDB();
+    console.log('⛔ '+(me.name||me.id)+' banned '+(u.name||u.id)+' for '+days+' day(s)');
+    return send(res,200,{ok:true, banned:banInfo(u), name:u.name}); }
+
+  if(p==='/api/dev/report-clear' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const r=(DB.reports||[]).find(x=>x.id===String(b.id||''));
+    if(!r) return send(res,404,{error:'no such report'});
+    r.resolved=true; r.action='cleared'; writeDB();
+    return send(res,200,{ok:true}); }
+
   // ---- developer/admin endpoints (only usable while signed into a dev account) ----
   if(p==='/api/admin/snapshot'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     // parity-harness support: the server-resolved combat snapshot for one of MY heroes, so a client
@@ -2748,7 +2910,7 @@ async function api(req,res,url){
       if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
       led.earnDay[what+':'+reason]=used+amt;
       if(what==='gold') led.gold=Math.min(100000000,led.gold+amt);
-      else if(what==='gems') led.gems=Math.min(2000000,led.gems+amt);
+      else if(what==='gems'){ gemGain(me,amt,reason); led.gems=Math.min(2000000,led.gems+amt); }
       else if(what==='px'){ const before=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+amt);
         if(ledPlayerLevel(led)>before){ ledStamRegen(led); led.stam.v=Math.max(led.stam.v,ledStamMax(led)); } }
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?b.heroKeys.map(String).slice(0,10):[]);
@@ -3299,7 +3461,7 @@ async function api(req,res,url){
     { const led=ensureLedger(me); const best=(me.bestRank!=null)?me.bestRank:5000;
       if(me.rank<best){ let d=0; for(let rr=me.rank; rr<best; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1)));
         me.bestRank=me.rank; me._gemFrac=(me._gemFrac||0)+d; milestoneGems=Math.floor(me._gemFrac); me._gemFrac-=milestoneGems;
-        if(milestoneGems>0){ led.gems=Math.min(9999999,led.gems+milestoneGems); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
+        if(milestoneGems>0){ gemGain(me,milestoneGems,'arena'); led.gems=Math.min(9999999,led.gems+milestoneGems); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me) };
     DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
