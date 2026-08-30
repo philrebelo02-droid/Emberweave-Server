@@ -1409,174 +1409,173 @@ const BATTLE_ANIM = {
   passive:{u:'/assets/anim/tick/tick_passive.webp?v=6',n:48,fw:255,fh:300,cols:6,rows:8,figH:293,feet:296,cx:122,fps:30,flip:true,top:3},
   fists:{u:'/assets/anim/tick/tick_blue.webp?v=6',n:48,fw:281,fh:300,cols:6,rows:8,figH:266,feet:293,cx:88,fps:30,flip:true,top:19,hold:0.95}
   },
-  // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
+  // ---- MONSTERS (regenerated 30 Aug at hero resolution; idle = pingpong slice of walk, no hit clip) ----
   "bug":{
-   idle:{u:'/assets/anim/mon/bug_walk_t.webp?v=1',n:6,fw:92,fh:98,cols:6,rows:3,figH:74,feet:95,cx:44,fps:6,flip:false,pingpong:true,top:3},
-   walk:{u:'/assets/anim/mon/bug_walk_t.webp?v=1',n:16,fw:92,fh:98,cols:6,rows:3,figH:74,feet:95,cx:44,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/bug_attack_t.webp?v=1',n:16,fw:91,fh:106,cols:6,rows:3,figH:74,feet:103,cx:44,fps:16,flip:false,hold:1.0,top:2},
-   cast:{u:'/assets/anim/mon/bug_cast_t.webp?v=1',n:16,fw:70,fh:96,cols:6,rows:3,figH:75,feet:89,cx:38,fps:10,flip:false,hold:0.8,top:3}
+   idle:{u:'/assets/anim/mon/bug_walk_hd.webp?v=1',n:6,fw:220,fh:300,cols:6,rows:2,figH:222,feet:279,cx:69,fps:6,flip:false,pingpong:true,top:57},
+   walk:{u:'/assets/anim/mon/bug_walk_hd.webp?v=1',n:12,fw:220,fh:300,cols:6,rows:2,figH:222,feet:279,cx:69,fps:10,flip:false,top:57},
+   attack:{u:'/assets/anim/mon/bug_attack_hd.webp?v=1',n:12,fw:300,fh:249,cols:6,rows:2,figH:189,feet:197,cx:79,fps:12,flip:false,hold:0.9,top:8},
+   cast:{u:'/assets/anim/mon/bug_cast_hd.webp?v=1',n:12,fw:252,fh:300,cols:6,rows:2,figH:271,feet:296,cx:92,fps:10,flip:false,hold:0.8,top:25}
   },
   "dyrmen":{
-   idle:{u:'/assets/anim/mon/dyrmen_walk_t.webp?v=1',n:6,fw:93,fh:120,cols:6,rows:2,figH:101,feet:116,cx:56,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/dyrmen_walk_t.webp?v=1',n:12,fw:93,fh:120,cols:6,rows:2,figH:101,feet:116,cx:56,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/dyrmen_attack_t.webp?v=1',n:12,fw:164,fh:130,cols:6,rows:2,figH:114,feet:126,cx:68,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/dyrmen_cast_t.webp?v=1',n:12,fw:156,fh:176,cols:6,rows:2,figH:122,feet:173,cx:78,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/dyrmen_walk_hd.webp?v=1',n:6,fw:225,fh:300,cols:6,rows:2,figH:278,feet:294,cx:104,fps:6,flip:false,pingpong:true,top:16},
+   walk:{u:'/assets/anim/mon/dyrmen_walk_hd.webp?v=1',n:12,fw:225,fh:300,cols:6,rows:2,figH:278,feet:294,cx:104,fps:10,flip:false,top:16},
+   attack:{u:'/assets/anim/mon/dyrmen_attack_hd.webp?v=1',n:12,fw:285,fh:300,cols:6,rows:2,figH:280,feet:294,cx:111,fps:12,flip:false,hold:0.9,top:14},
+   cast:{u:'/assets/anim/mon/dyrmen_cast_hd.webp?v=1',n:12,fw:246,fh:300,cols:6,rows:2,figH:245,feet:295,cx:65,fps:10,flip:false,hold:0.8,top:50}
   },
   "fire boar":{
-   idle:{u:'/assets/anim/mon/fireboar_walk_t.webp?v=1',n:6,fw:173,fh:108,cols:6,rows:2,figH:102,feet:105,cx:84,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/fireboar_walk_t.webp?v=1',n:12,fw:173,fh:108,cols:6,rows:2,figH:102,feet:105,cx:84,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/fireboar_attack_t.webp?v=1',n:12,fw:169,fh:148,cols:6,rows:2,figH:111,feet:143,cx:80,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/fireboar_cast_t.webp?v=1',n:12,fw:165,fh:201,cols:6,rows:2,figH:190,feet:197,cx:69,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/fireboar_walk_hd.webp?v=1',n:6,fw:300,fh:253,cols:6,rows:2,figH:191,feet:207,cx:144,fps:6,flip:false,pingpong:true,top:16},
+   walk:{u:'/assets/anim/mon/fireboar_walk_hd.webp?v=1',n:12,fw:300,fh:253,cols:6,rows:2,figH:191,feet:207,cx:144,fps:10,flip:false,top:16},
+   attack:{u:'/assets/anim/mon/fireboar_attack_hd.webp?v=1',n:12,fw:300,fh:250,cols:6,rows:2,figH:178,feet:228,cx:137,fps:12,flip:false,hold:0.9,top:50},
+   cast:{u:'/assets/anim/mon/fireboar_cast_hd.webp?v=1',n:12,fw:300,fh:278,cols:6,rows:2,figH:229,feet:254,cx:136,fps:10,flip:false,hold:0.8,top:25}
   },
   "fire skeleton":{
-   idle:{u:'/assets/anim/mon/fireskeleton_walk_t.webp?v=1',n:6,fw:61,fh:110,cols:6,rows:2,figH:86,feet:102,cx:24,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/fireskeleton_walk_t.webp?v=1',n:12,fw:61,fh:110,cols:6,rows:2,figH:86,feet:102,cx:24,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/fireskeleton_attack_t.webp?v=1',n:12,fw:153,fh:115,cols:6,rows:2,figH:107,feet:109,cx:61,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/fireskeleton_cast_t.webp?v=1',n:12,fw:104,fh:170,cols:6,rows:2,figH:130,feet:168,cx:36,fps:10,flip:true,hold:0.8,top:4}
+   idle:{u:'/assets/anim/mon/fireskeleton_walk_hd.webp?v=1',n:6,fw:197,fh:300,cols:6,rows:2,figH:279,feet:290,cx:65,fps:6,flip:false,pingpong:true,top:11},
+   walk:{u:'/assets/anim/mon/fireskeleton_walk_hd.webp?v=1',n:12,fw:197,fh:300,cols:6,rows:2,figH:279,feet:290,cx:65,fps:10,flip:false,top:11},
+   attack:{u:'/assets/anim/mon/fireskeleton_attack_hd.webp?v=1',n:12,fw:242,fh:300,cols:6,rows:2,figH:250,feet:289,cx:111,fps:12,flip:false,hold:0.9,top:39}
   },
   "rock golem":{
-   idle:{u:'/assets/anim/mon/rockgolem_walk_t.webp?v=1',n:6,fw:95,fh:120,cols:6,rows:2,figH:112,feet:116,cx:40,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/rockgolem_walk_t.webp?v=1',n:12,fw:95,fh:120,cols:6,rows:2,figH:112,feet:116,cx:40,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/rockgolem_attack_t.webp?v=1',n:12,fw:210,fh:180,cols:6,rows:2,figH:80,feet:148,cx:105,fps:16,flip:false,hold:0.9,top:18},
-   cast:{u:'/assets/anim/mon/rockgolem_cast_t.webp?v=1',n:12,fw:210,fh:180,cols:6,rows:2,figH:103,feet:155,cx:104,fps:10,flip:false,hold:0.8,top:25}
+   idle:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:6,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:6,flip:false,pingpong:true,top:25},
+   walk:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:10,flip:false,top:25},
+   attack:{u:'/assets/anim/mon/rockgolem_attack_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:259,feet:267,cx:176,fps:12,flip:false,hold:0.9,top:8},
+   cast:{u:'/assets/anim/mon/rockgolem_cast_hd.webp?v=1',n:12,fw:224,fh:300,cols:6,rows:2,figH:246,feet:278,cx:95,fps:10,flip:false,hold:0.8,top:32}
   },
   "mimic chest":{
-   idle:{u:'/assets/anim/mon/mimicchest_walk_t.webp?v=1',n:6,fw:155,fh:123,cols:6,rows:2,figH:109,feet:112,cx:58,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/mimicchest_walk_t.webp?v=1',n:12,fw:155,fh:123,cols:6,rows:2,figH:109,feet:112,cx:58,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/mimicchest_attack_t.webp?v=1',n:12,fw:200,fh:194,cols:6,rows:2,figH:128,feet:168,cx:100,fps:16,flip:false,hold:0.9,top:40},
-   cast:{u:'/assets/anim/mon/mimicchest_cast_t.webp?v=1',n:12,fw:200,fh:194,cols:6,rows:2,figH:104,feet:165,cx:98,fps:10,flip:false,hold:0.8,top:19}
+   idle:{u:'/assets/anim/mon/mimicchest_walk_hd.webp?v=1',n:6,fw:290,fh:300,cols:6,rows:2,figH:271,feet:282,cx:151,fps:6,flip:false,pingpong:true,top:11},
+   walk:{u:'/assets/anim/mon/mimicchest_walk_hd.webp?v=1',n:12,fw:290,fh:300,cols:6,rows:2,figH:271,feet:282,cx:151,fps:10,flip:false,top:11},
+   attack:{u:'/assets/anim/mon/mimicchest_attack_hd.webp?v=1',n:12,fw:300,fh:276,cols:6,rows:2,figH:251,feet:257,cx:139,fps:12,flip:false,hold:0.9,top:6},
+   cast:{u:'/assets/anim/mon/mimicchest_cast_hd.webp?v=1',n:12,fw:286,fh:300,cols:6,rows:2,figH:286,feet:289,cx:134,fps:10,flip:false,hold:0.8,top:3}
   },
   "ghoul fiend":{
-   idle:{u:'/assets/anim/mon/ghoulfiend_walk_t.webp?v=1',n:6,fw:80,fh:115,cols:6,rows:2,figH:110,feet:112,cx:36,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/ghoulfiend_walk_t.webp?v=1',n:12,fw:80,fh:115,cols:6,rows:2,figH:110,feet:112,cx:36,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/ghoulfiend_attack_t.webp?v=1',n:12,fw:136,fh:132,cols:6,rows:2,figH:99,feet:115,cx:50,fps:16,flip:false,hold:0.9,top:3},
-   cast:{u:'/assets/anim/mon/ghoulfiend_cast_t.webp?v=1',n:12,fw:136,fh:167,cols:6,rows:2,figH:95,feet:149,cx:47,fps:10,flip:false,hold:0.8,top:3}
+   idle:{u:'/assets/anim/mon/ghoulfiend_walk_hd.webp?v=1',n:6,fw:300,fh:260,cols:6,rows:2,figH:212,feet:241,cx:115,fps:6,flip:false,pingpong:true,top:29},
+   walk:{u:'/assets/anim/mon/ghoulfiend_walk_hd.webp?v=1',n:12,fw:300,fh:260,cols:6,rows:2,figH:212,feet:241,cx:115,fps:10,flip:false,top:29},
+   attack:{u:'/assets/anim/mon/ghoulfiend_attack_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:247,feet:294,cx:134,fps:12,flip:false,hold:0.9,top:47},
+   cast:{u:'/assets/anim/mon/ghoulfiend_cast_hd.webp?v=1',n:12,fw:282,fh:300,cols:6,rows:2,figH:289,feet:293,cx:123,fps:10,flip:false,hold:0.8,top:4}
   },
   "garbage mob":{
-   idle:{u:'/assets/anim/mon/garbagemob_walk_t.webp?v=1',n:6,fw:131,fh:118,cols:6,rows:2,figH:108,feet:115,cx:61,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/garbagemob_walk_t.webp?v=1',n:12,fw:131,fh:118,cols:6,rows:2,figH:108,feet:115,cx:61,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/garbagemob_attack_t.webp?v=1',n:12,fw:212,fh:206,cols:6,rows:2,figH:103,feet:188,cx:106,fps:16,flip:false,hold:0.9,top:54},
-   cast:{u:'/assets/anim/mon/garbagemob_cast_t.webp?v=1',n:12,fw:212,fh:206,cols:6,rows:2,figH:99,feet:189,cx:106,fps:10,flip:false,hold:0.8,top:88}
+   idle:{u:'/assets/anim/mon/garbagemob_walk_hd.webp?v=1',n:6,fw:300,fh:259,cols:6,rows:2,figH:241,feet:249,cx:158,fps:6,flip:false,pingpong:true,top:8},
+   walk:{u:'/assets/anim/mon/garbagemob_walk_hd.webp?v=1',n:12,fw:300,fh:259,cols:6,rows:2,figH:241,feet:249,cx:158,fps:10,flip:false,top:8},
+   attack:{u:'/assets/anim/mon/garbagemob_attack_hd.webp?v=1',n:12,fw:300,fh:249,cols:6,rows:2,figH:237,feet:244,cx:102,fps:12,flip:false,hold:0.9,top:7},
+   cast:{u:'/assets/anim/mon/garbagemob_cast_hd.webp?v=1',n:12,fw:300,fh:276,cols:6,rows:2,figH:231,feet:264,cx:103,fps:10,flip:false,hold:0.8,top:33}
   },
   "knat":{
-   idle:{u:'/assets/anim/mon/knat_walk_t.webp?v=1',n:6,fw:111,fh:109,cols:6,rows:2,figH:104,feet:106,cx:55,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/knat_walk_t.webp?v=1',n:12,fw:111,fh:109,cols:6,rows:2,figH:104,feet:106,cx:55,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/knat_attack_t.webp?v=1',n:12,fw:172,fh:173,cols:6,rows:2,figH:92,feet:156,cx:86,fps:16,flip:false,hold:0.9,top:18},
-   cast:{u:'/assets/anim/mon/knat_cast_t.webp?v=1',n:12,fw:172,fh:173,cols:6,rows:2,figH:66,feet:154,cx:85,fps:10,flip:false,hold:0.8,top:62}
+   idle:{u:'/assets/anim/mon/knat_walk_hd.webp?v=1',n:6,fw:259,fh:300,cols:6,rows:2,figH:239,feet:273,cx:132,fps:6,flip:false,pingpong:true,top:34},
+   walk:{u:'/assets/anim/mon/knat_walk_hd.webp?v=1',n:12,fw:259,fh:300,cols:6,rows:2,figH:239,feet:273,cx:132,fps:10,flip:false,top:34},
+   attack:{u:'/assets/anim/mon/knat_attack_hd.webp?v=1',n:12,fw:300,fh:272,cols:6,rows:2,figH:257,feet:267,cx:118,fps:12,flip:false,hold:0.9,top:10},
+   cast:{u:'/assets/anim/mon/knat_cast_hd.webp?v=1',n:12,fw:277,fh:300,cols:6,rows:2,figH:289,feet:295,cx:124,fps:10,flip:false,hold:0.8,top:6}
   },
   "glitch phantom":{
-   idle:{u:'/assets/anim/mon/glitchphantom_walk_t.webp?v=1',n:6,fw:95,fh:115,cols:6,rows:2,figH:111,feet:113,cx:48,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/glitchphantom_walk_t.webp?v=1',n:12,fw:95,fh:115,cols:6,rows:2,figH:111,feet:113,cx:48,fps:14,flip:false,top:2},
-   attack:{u:'/assets/anim/mon/glitchphantom_attack_t.webp?v=1',n:12,fw:241,fh:221,cols:6,rows:2,figH:201,feet:219,cx:127,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/glitchphantom_cast_t.webp?v=1',n:12,fw:191,fh:219,cols:6,rows:2,figH:194,feet:216,cx:96,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/glitchphantom_walk_hd.webp?v=1',n:6,fw:240,fh:300,cols:6,rows:2,figH:271,feet:284,cx:136,fps:6,flip:false,pingpong:true,top:13},
+   walk:{u:'/assets/anim/mon/glitchphantom_walk_hd.webp?v=1',n:12,fw:240,fh:300,cols:6,rows:2,figH:271,feet:284,cx:136,fps:10,flip:false,top:13},
+   attack:{u:'/assets/anim/mon/glitchphantom_attack_hd.webp?v=1',n:12,fw:300,fh:266,cols:6,rows:2,figH:248,feet:258,cx:72,fps:12,flip:false,hold:0.9,top:10},
+   cast:{u:'/assets/anim/mon/glitchphantom_cast_hd.webp?v=1',n:12,fw:300,fh:268,cols:6,rows:2,figH:244,feet:259,cx:89,fps:10,flip:false,hold:0.8,top:15}
   },
   "lost soulss":{
-   idle:{u:'/assets/anim/mon/lostsoulss_walk_t.webp?v=1',n:6,fw:62,fh:88,cols:6,rows:2,figH:83,feet:85,cx:29,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/lostsoulss_walk_t.webp?v=1',n:12,fw:62,fh:88,cols:6,rows:2,figH:83,feet:85,cx:29,fps:14,flip:false,top:1},
-   attack:{u:'/assets/anim/mon/lostsoulss_attack_t.webp?v=1',n:12,fw:228,fh:189,cols:6,rows:2,figH:65,feet:145,cx:113,fps:16,flip:false,hold:0.9,top:78},
-   cast:{u:'/assets/anim/mon/lostsoulss_cast_t.webp?v=1',n:12,fw:228,fh:189,cols:6,rows:2,figH:81,feet:159,cx:113,fps:10,flip:false,hold:0.8,top:21}
+   idle:{u:'/assets/anim/mon/lostsoulss_walk_hd.webp?v=1',n:6,fw:252,fh:300,cols:6,rows:2,figH:248,feet:262,cx:120,fps:6,flip:false,pingpong:true,top:14},
+   walk:{u:'/assets/anim/mon/lostsoulss_walk_hd.webp?v=1',n:12,fw:252,fh:300,cols:6,rows:2,figH:248,feet:262,cx:120,fps:10,flip:false,top:14},
+   attack:{u:'/assets/anim/mon/lostsoulss_attack_hd.webp?v=1',n:12,fw:228,fh:300,cols:6,rows:2,figH:226,feet:282,cx:105,fps:12,flip:false,hold:0.9,top:56},
+   cast:{u:'/assets/anim/mon/lostsoulss_cast_hd.webp?v=1',n:12,fw:215,fh:300,cols:6,rows:2,figH:262,feet:278,cx:97,fps:10,flip:false,hold:0.8,top:16}
   },
   "raven":{
-   idle:{u:'/assets/anim/mon/raven_walk_t.webp?v=1',n:6,fw:114,fh:97,cols:6,rows:2,figH:87,feet:91,cx:60,fps:6,flip:true,pingpong:true,top:3},
-   walk:{u:'/assets/anim/mon/raven_walk_t.webp?v=1',n:12,fw:114,fh:97,cols:6,rows:2,figH:87,feet:91,cx:60,fps:14,flip:true,top:3},
-   attack:{u:'/assets/anim/mon/raven_attack_t.webp?v=1',n:12,fw:170,fh:138,cols:6,rows:2,figH:62,feet:117,cx:85,fps:16,flip:true,hold:0.9,top:34},
-   cast:{u:'/assets/anim/mon/raven_cast_t.webp?v=1',n:12,fw:170,fh:138,cols:6,rows:2,figH:66,feet:115,cx:85,fps:10,flip:true,hold:0.8,top:24}
+   idle:{u:'/assets/anim/mon/raven_walk_hd.webp?v=1',n:6,fw:278,fh:300,cols:6,rows:2,figH:221,feet:252,cx:134,fps:6,flip:false,pingpong:true,top:31},
+   walk:{u:'/assets/anim/mon/raven_walk_hd.webp?v=1',n:12,fw:278,fh:300,cols:6,rows:2,figH:221,feet:252,cx:134,fps:10,flip:false,top:31},
+   attack:{u:'/assets/anim/mon/raven_attack_hd.webp?v=1',n:12,fw:224,fh:300,cols:6,rows:2,figH:281,feet:284,cx:121,fps:12,flip:false,hold:0.9,top:3},
+   cast:{u:'/assets/anim/mon/raven_cast_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:263,feet:290,cx:142,fps:10,flip:false,hold:0.8,top:27}
   },
   "shadow ghoul":{
-   idle:{u:'/assets/anim/mon/shadowghoul_walk_t.webp?v=1',n:6,fw:85,fh:105,cols:6,rows:2,figH:96,feet:102,cx:47,fps:6,flip:false,pingpong:true,top:4},
-   walk:{u:'/assets/anim/mon/shadowghoul_walk_t.webp?v=1',n:12,fw:85,fh:105,cols:6,rows:2,figH:96,feet:102,cx:47,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/shadowghoul_attack_t.webp?v=1',n:12,fw:224,fh:188,cols:6,rows:2,figH:99,feet:171,cx:110,fps:16,flip:false,hold:0.9,top:56},
-   cast:{u:'/assets/anim/mon/shadowghoul_cast_t.webp?v=1',n:12,fw:224,fh:188,cols:6,rows:2,figH:88,feet:171,cx:110,fps:10,flip:false,hold:0.8,top:26}
+   idle:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:6,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:6,flip:false,pingpong:true,top:8},
+   walk:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:12,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:10,flip:false,top:8},
+   attack:{u:'/assets/anim/mon/shadowghoul_attack_hd.webp?v=1',n:12,fw:239,fh:300,cols:6,rows:2,figH:273,feet:279,cx:148,fps:12,flip:false,hold:0.9,top:6},
+   cast:{u:'/assets/anim/mon/shadowghoul_cast_hd.webp?v=1',n:12,fw:254,fh:300,cols:6,rows:2,figH:262,feet:295,cx:170,fps:10,flip:false,hold:0.8,top:33}
   },
   "skeletal warrior":{
-   idle:{u:'/assets/anim/mon/skeletalwarrior_walk_t.webp?v=1',n:6,fw:68,fh:121,cols:6,rows:2,figH:102,feet:119,cx:38,fps:6,flip:false,pingpong:true,top:3},
-   walk:{u:'/assets/anim/mon/skeletalwarrior_walk_t.webp?v=1',n:12,fw:68,fh:121,cols:6,rows:2,figH:102,feet:119,cx:38,fps:14,flip:false,top:3},
-   attack:{u:'/assets/anim/mon/skeletalwarrior_attack_t.webp?v=1',n:12,fw:158,fh:213,cols:6,rows:2,figH:90,feet:195,cx:50,fps:16,flip:false,hold:0.9,top:77},
-   cast:{u:'/assets/anim/mon/skeletalwarrior_cast_t.webp?v=1',n:12,fw:188,fh:213,cols:6,rows:2,figH:107,feet:196,cx:80,fps:10,flip:false,hold:0.8,top:22}
+   idle:{u:'/assets/anim/mon/skeletalwarrior_walk_hd.webp?v=1',n:6,fw:222,fh:300,cols:6,rows:2,figH:271,feet:295,cx:112,fps:6,flip:false,pingpong:true,top:24},
+   walk:{u:'/assets/anim/mon/skeletalwarrior_walk_hd.webp?v=1',n:12,fw:222,fh:300,cols:6,rows:2,figH:271,feet:295,cx:112,fps:10,flip:false,top:24},
+   attack:{u:'/assets/anim/mon/skeletalwarrior_attack_hd.webp?v=1',n:12,fw:252,fh:300,cols:6,rows:2,figH:229,feet:295,cx:99,fps:12,flip:false,hold:0.9,top:66},
+   cast:{u:'/assets/anim/mon/skeletalwarrior_cast_hd.webp?v=1',n:12,fw:286,fh:300,cols:6,rows:2,figH:242,feet:295,cx:140,fps:10,flip:false,hold:0.8,top:53}
   },
   "slime":{
-   idle:{u:'/assets/anim/mon/slime_walk_t.webp?v=1',n:6,fw:130,fh:97,cols:6,rows:2,figH:88,feet:94,cx:65,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/slime_walk_t.webp?v=1',n:12,fw:130,fh:97,cols:6,rows:2,figH:88,feet:94,cx:65,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/slime_attack_t.webp?v=1',n:12,fw:188,fh:184,cols:6,rows:2,figH:130,feet:166,cx:93,fps:16,flip:false,hold:0.9,top:33},
-   cast:{u:'/assets/anim/mon/slime_cast_t.webp?v=1',n:12,fw:188,fh:184,cols:6,rows:2,figH:90,feet:166,cx:93,fps:10,flip:false,hold:0.8,top:21}
+   idle:{u:'/assets/anim/mon/slime_walk_hd.webp?v=1',n:6,fw:300,fh:242,cols:6,rows:2,figH:224,feet:237,cx:135,fps:6,flip:false,pingpong:true,top:13},
+   walk:{u:'/assets/anim/mon/slime_walk_hd.webp?v=1',n:12,fw:300,fh:242,cols:6,rows:2,figH:224,feet:237,cx:135,fps:10,flip:false,top:13},
+   attack:{u:'/assets/anim/mon/slime_attack_hd.webp?v=1',n:12,fw:300,fh:282,cols:6,rows:2,figH:203,feet:274,cx:146,fps:12,flip:false,hold:0.9,top:71},
+   cast:{u:'/assets/anim/mon/slime_cast_hd.webp?v=1',n:12,fw:300,fh:245,cols:6,rows:2,figH:229,feet:240,cx:152,fps:10,flip:false,hold:0.8,top:11}
   },
   "slug beast":{
-   idle:{u:'/assets/anim/mon/slugbeast_walk_t.webp?v=1',n:6,fw:102,fh:108,cols:6,rows:2,figH:103,feet:105,cx:57,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/slugbeast_walk_t.webp?v=1',n:12,fw:102,fh:108,cols:6,rows:2,figH:103,feet:105,cx:57,fps:14,flip:false,top:1},
-   attack:{u:'/assets/anim/mon/slugbeast_attack_t.webp?v=1',n:12,fw:147,fh:133,cols:6,rows:2,figH:95,feet:130,cx:85,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/slugbeast_cast_t.webp?v=1',n:12,fw:154,fh:163,cols:6,rows:2,figH:116,feet:159,cx:75,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/slugbeast_walk_hd.webp?v=1',n:6,fw:287,fh:300,cols:6,rows:2,figH:270,feet:293,cx:132,fps:6,flip:false,pingpong:true,top:23},
+   walk:{u:'/assets/anim/mon/slugbeast_walk_hd.webp?v=1',n:12,fw:287,fh:300,cols:6,rows:2,figH:270,feet:293,cx:132,fps:10,flip:false,top:23},
+   attack:{u:'/assets/anim/mon/slugbeast_attack_hd.webp?v=1',n:12,fw:300,fh:252,cols:6,rows:2,figH:243,feet:247,cx:138,fps:12,flip:false,hold:0.9,top:4},
+   cast:{u:'/assets/anim/mon/slugbeast_cast_hd.webp?v=1',n:12,fw:293,fh:300,cols:6,rows:2,figH:259,feet:295,cx:142,fps:10,flip:false,hold:0.8,top:36}
   },
   "tin beast":{
-   idle:{u:'/assets/anim/mon/tinbeast_walk_t.webp?v=1',n:6,fw:153,fh:117,cols:6,rows:2,figH:103,feet:115,cx:68,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/tinbeast_walk_t.webp?v=1',n:12,fw:153,fh:117,cols:6,rows:2,figH:103,feet:115,cx:68,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/tinbeast_attack_t.webp?v=1',n:12,fw:126,fh:162,cols:6,rows:2,figH:135,feet:160,cx:61,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/tinbeast_cast_t.webp?v=1',n:12,fw:143,fh:137,cols:6,rows:2,figH:97,feet:135,cx:77,fps:10,flip:false,hold:0.8,top:3}
+   idle:{u:'/assets/anim/mon/tinbeast_walk_hd.webp?v=1',n:6,fw:300,fh:275,cols:6,rows:2,figH:266,feet:271,cx:132,fps:6,flip:false,pingpong:true,top:5},
+   walk:{u:'/assets/anim/mon/tinbeast_walk_hd.webp?v=1',n:12,fw:300,fh:275,cols:6,rows:2,figH:266,feet:271,cx:132,fps:10,flip:false,top:5},
+   attack:{u:'/assets/anim/mon/tinbeast_attack_hd.webp?v=1',n:12,fw:300,fh:272,cols:6,rows:2,figH:244,feet:268,cx:155,fps:12,flip:false,hold:0.9,top:24},
+   cast:{u:'/assets/anim/mon/tinbeast_cast_hd.webp?v=1',n:12,fw:300,fh:260,cols:6,rows:2,figH:252,feet:256,cx:144,fps:10,flip:false,hold:0.8,top:4}
   },
   "creep":{
-   idle:{u:'/assets/anim/mon/creep_walk_t.webp?v=1',n:6,fw:92,fh:107,cols:6,rows:3,figH:96,feet:104,cx:36,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/creep_walk_t.webp?v=1',n:16,fw:92,fh:107,cols:6,rows:3,figH:96,feet:104,cx:36,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/creep_attack_t.webp?v=1',n:16,fw:131,fh:114,cols:6,rows:3,figH:97,feet:112,cx:69,fps:16,flip:false,hold:1.0,top:2},
-   cast:{u:'/assets/anim/mon/creep_cast_t.webp?v=1',n:16,fw:99,fh:102,cols:6,rows:3,figH:96,feet:99,cx:36,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/creep_walk_hd.webp?v=1',n:6,fw:251,fh:300,cols:6,rows:2,figH:286,feet:293,cx:103,fps:6,flip:false,pingpong:true,top:7},
+   walk:{u:'/assets/anim/mon/creep_walk_hd.webp?v=1',n:12,fw:251,fh:300,cols:6,rows:2,figH:286,feet:293,cx:103,fps:10,flip:false,top:7},
+   attack:{u:'/assets/anim/mon/creep_attack_hd.webp?v=1',n:12,fw:252,fh:300,cols:6,rows:2,figH:260,feet:296,cx:88,fps:12,flip:false,hold:0.9,top:36},
+   cast:{u:'/assets/anim/mon/creep_cast_hd.webp?v=1',n:12,fw:300,fh:270,cols:6,rows:2,figH:259,feet:266,cx:119,fps:10,flip:false,hold:0.8,top:7}
   },
   "orc":{
-   idle:{u:'/assets/anim/mon/orc_walk_t.webp?v=1',n:6,fw:89,fh:97,cols:6,rows:3,figH:92,feet:94,cx:48,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/orc_walk_t.webp?v=1',n:16,fw:89,fh:97,cols:6,rows:3,figH:92,feet:94,cx:48,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/orc_attack_t.webp?v=1',n:16,fw:99,fh:103,cols:6,rows:3,figH:92,feet:101,cx:47,fps:16,flip:false,hold:1.0,top:2},
-   cast:{u:'/assets/anim/mon/orc_cast_t.webp?v=1',n:16,fw:83,fh:98,cols:6,rows:3,figH:91,feet:95,cx:32,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/orc_walk_hd.webp?v=1',n:6,fw:212,fh:300,cols:6,rows:2,figH:282,feet:288,cx:96,fps:6,flip:false,pingpong:true,top:6},
+   walk:{u:'/assets/anim/mon/orc_walk_hd.webp?v=1',n:12,fw:212,fh:300,cols:6,rows:2,figH:282,feet:288,cx:96,fps:10,flip:false,top:6},
+   attack:{u:'/assets/anim/mon/orc_attack_hd.webp?v=1',n:12,fw:300,fh:297,cols:6,rows:2,figH:282,feet:291,cx:165,fps:12,flip:false,hold:0.9,top:9},
+   cast:{u:'/assets/anim/mon/orc_cast_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:241,feet:285,cx:143,fps:10,flip:false,hold:0.8,top:44}
   },
   "golem":{
-   idle:{u:'/assets/anim/mon/golem_walk_t.webp?v=1',n:6,fw:67,fh:98,cols:6,rows:3,figH:86,feet:96,cx:34,fps:6,flip:false,pingpong:true,top:4},
-   walk:{u:'/assets/anim/mon/golem_walk_t.webp?v=1',n:16,fw:67,fh:98,cols:6,rows:3,figH:86,feet:96,cx:34,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/golem_attack_t.webp?v=1',n:16,fw:107,fh:131,cols:6,rows:3,figH:86,feet:129,cx:33,fps:16,flip:false,hold:1.0,top:2},
-   cast:{u:'/assets/anim/mon/golem_cast_t.webp?v=1',n:16,fw:134,fh:112,cols:6,rows:3,figH:86,feet:110,cx:59,fps:10,flip:false,hold:0.8,top:3}
+   idle:{u:'/assets/anim/mon/golem_walk_hd.webp?v=1',n:6,fw:300,fh:299,cols:6,rows:2,figH:280,feet:290,cx:127,fps:6,flip:false,pingpong:true,top:10},
+   walk:{u:'/assets/anim/mon/golem_walk_hd.webp?v=1',n:12,fw:300,fh:299,cols:6,rows:2,figH:280,feet:290,cx:127,fps:10,flip:false,top:10},
+   attack:{u:'/assets/anim/mon/golem_attack_hd.webp?v=1',n:12,fw:254,fh:300,cols:6,rows:2,figH:246,feet:295,cx:127,fps:12,flip:false,hold:0.9,top:49},
+   cast:{u:'/assets/anim/mon/golem_cast_hd.webp?v=1',n:12,fw:293,fh:300,cols:6,rows:2,figH:266,feet:295,cx:155,fps:10,flip:false,hold:0.8,top:29}
   },
   "turtle":{
-   idle:{u:'/assets/anim/mon/turtle_walk_t.webp?v=1',n:6,fw:147,fh:130,cols:6,rows:2,figH:122,feet:128,cx:72,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/turtle_walk_t.webp?v=1',n:12,fw:147,fh:130,cols:6,rows:2,figH:122,feet:128,cx:72,fps:14,flip:false,top:1},
-   attack:{u:'/assets/anim/mon/turtle_attack_t.webp?v=1',n:12,fw:199,fh:140,cols:6,rows:2,figH:126,feet:137,cx:93,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/turtle_cast_t.webp?v=1',n:12,fw:153,fh:129,cols:6,rows:2,figH:119,feet:127,cx:77,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/turtle_walk_hd.webp?v=1',n:6,fw:300,fh:250,cols:6,rows:2,figH:241,feet:244,cx:156,fps:6,flip:false,pingpong:true,top:3},
+   walk:{u:'/assets/anim/mon/turtle_walk_hd.webp?v=1',n:12,fw:300,fh:250,cols:6,rows:2,figH:241,feet:244,cx:156,fps:10,flip:false,top:3},
+   attack:{u:'/assets/anim/mon/turtle_attack_hd.webp?v=1',n:12,fw:300,fh:251,cols:6,rows:2,figH:238,feet:247,cx:149,fps:12,flip:false,hold:0.9,top:9},
+   cast:{u:'/assets/anim/mon/turtle_cast_hd.webp?v=1',n:12,fw:300,fh:272,cols:6,rows:2,figH:233,feet:268,cx:146,fps:10,flip:false,hold:0.8,top:35}
   },
   "whisp candle":{
-   idle:{u:'/assets/anim/mon/whispcandle_walk_t.webp?v=1',n:6,fw:102,fh:141,cols:6,rows:2,figH:126,feet:135,cx:53,fps:6,flip:false,pingpong:true,top:4},
-   walk:{u:'/assets/anim/mon/whispcandle_walk_t.webp?v=1',n:12,fw:102,fh:141,cols:6,rows:2,figH:126,feet:135,cx:53,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/whispcandle_attack_t.webp?v=1',n:12,fw:159,fh:172,cols:6,rows:2,figH:120,feet:169,cx:73,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/whispcandle_cast_t.webp?v=1',n:12,fw:118,fh:150,cols:6,rows:2,figH:109,feet:147,cx:59,fps:10,flip:false,hold:0.8,top:3}
+   idle:{u:'/assets/anim/mon/whispcandle_walk_hd.webp?v=1',n:6,fw:229,fh:300,cols:6,rows:2,figH:265,feet:281,cx:103,fps:6,flip:false,pingpong:true,top:16},
+   walk:{u:'/assets/anim/mon/whispcandle_walk_hd.webp?v=1',n:12,fw:229,fh:300,cols:6,rows:2,figH:265,feet:281,cx:103,fps:10,flip:false,top:16},
+   attack:{u:'/assets/anim/mon/whispcandle_attack_hd.webp?v=1',n:12,fw:300,fh:297,cols:6,rows:2,figH:184,feet:217,cx:127,fps:12,flip:false,hold:0.9,top:33},
+   cast:{u:'/assets/anim/mon/whispcandle_cast_hd.webp?v=1',n:12,fw:208,fh:300,cols:6,rows:2,figH:257,feet:289,cx:91,fps:10,flip:false,hold:0.8,top:32}
   },
   "ice beast":{
-   idle:{u:'/assets/anim/mon/icebeast_walk_t.webp?v=1',n:6,fw:160,fh:140,cols:6,rows:2,figH:128,feet:137,cx:70,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/icebeast_walk_t.webp?v=1',n:12,fw:160,fh:140,cols:6,rows:2,figH:128,feet:137,cx:70,fps:14,flip:false,top:1},
-   attack:{u:'/assets/anim/mon/icebeast_attack_t.webp?v=1',n:12,fw:222,fh:211,cols:6,rows:2,figH:130,feet:208,cx:105,fps:16,flip:false,hold:0.9,top:3},
-   cast:{u:'/assets/anim/mon/icebeast_cast_t.webp?v=1',n:12,fw:157,fh:172,cols:6,rows:2,figH:133,feet:169,cx:77,fps:10,flip:false,hold:0.8,top:7}
+   idle:{u:'/assets/anim/mon/icebeast_walk_hd.webp?v=1',n:6,fw:300,fh:296,cols:6,rows:2,figH:278,feet:284,cx:105,fps:6,flip:false,pingpong:true,top:6},
+   walk:{u:'/assets/anim/mon/icebeast_walk_hd.webp?v=1',n:12,fw:300,fh:296,cols:6,rows:2,figH:278,feet:284,cx:105,fps:10,flip:false,top:6},
+   attack:{u:'/assets/anim/mon/icebeast_attack_hd.webp?v=1',n:12,fw:300,fh:297,cols:6,rows:2,figH:238,feet:291,cx:136,fps:12,flip:false,hold:0.9,top:53},
+   cast:{u:'/assets/anim/mon/icebeast_cast_hd.webp?v=1',n:12,fw:300,fh:293,cols:6,rows:2,figH:221,feet:286,cx:139,fps:10,flip:false,hold:0.8,top:65}
   },
   "monster with fireball":{
-   idle:{u:'/assets/anim/mon/monsterwithfireball_walk_t.webp?v=1',n:6,fw:184,fh:147,cols:6,rows:2,figH:138,feet:145,cx:89,fps:6,flip:false,pingpong:true,top:5},
-   walk:{u:'/assets/anim/mon/monsterwithfireball_walk_t.webp?v=1',n:12,fw:184,fh:147,cols:6,rows:2,figH:138,feet:145,cx:89,fps:14,flip:false,top:5},
-   attack:{u:'/assets/anim/mon/monsterwithfireball_attack_t.webp?v=1',n:12,fw:252,fh:163,cols:6,rows:2,figH:119,feet:160,cx:119,fps:16,flip:false,hold:0.9,top:3},
-   cast:{u:'/assets/anim/mon/monsterwithfireball_cast_t.webp?v=1',n:12,fw:193,fh:204,cols:6,rows:2,figH:123,feet:201,cx:94,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/monsterwithfireball_walk_hd.webp?v=1',n:6,fw:300,fh:282,cols:6,rows:2,figH:269,feet:272,cx:160,fps:6,flip:false,pingpong:true,top:3},
+   walk:{u:'/assets/anim/mon/monsterwithfireball_walk_hd.webp?v=1',n:12,fw:300,fh:282,cols:6,rows:2,figH:269,feet:272,cx:160,fps:10,flip:false,top:3},
+   attack:{u:'/assets/anim/mon/monsterwithfireball_attack_hd.webp?v=1',n:12,fw:300,fh:272,cols:6,rows:2,figH:239,feet:262,cx:147,fps:12,flip:false,hold:0.9,top:23},
+   cast:{u:'/assets/anim/mon/monsterwithfireball_cast_hd.webp?v=1',n:12,fw:300,fh:282,cols:6,rows:2,figH:225,feet:277,cx:141,fps:10,flip:false,hold:0.8,top:52}
   },
   "nashor beast":{
-   idle:{u:'/assets/anim/mon/nashorbeast_walk_t.webp?v=1',n:6,fw:119,fh:157,cols:6,rows:2,figH:114,feet:154,cx:61,fps:6,flip:false,pingpong:true,top:3},
-   walk:{u:'/assets/anim/mon/nashorbeast_walk_t.webp?v=1',n:12,fw:119,fh:157,cols:6,rows:2,figH:114,feet:154,cx:61,fps:14,flip:false,top:3},
-   attack:{u:'/assets/anim/mon/nashorbeast_attack_t.webp?v=1',n:12,fw:163,fh:143,cols:6,rows:2,figH:108,feet:140,cx:82,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/nashorbeast_cast_t.webp?v=1',n:12,fw:184,fh:166,cols:6,rows:2,figH:103,feet:163,cx:82,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/nashorbeast_walk_hd.webp?v=1',n:6,fw:253,fh:300,cols:6,rows:2,figH:289,feet:296,cx:129,fps:6,flip:false,pingpong:true,top:7},
+   walk:{u:'/assets/anim/mon/nashorbeast_walk_hd.webp?v=1',n:12,fw:253,fh:300,cols:6,rows:2,figH:289,feet:296,cx:129,fps:10,flip:false,top:7},
+   attack:{u:'/assets/anim/mon/nashorbeast_attack_hd.webp?v=1',n:12,fw:300,fh:298,cols:6,rows:2,figH:288,feet:293,cx:152,fps:12,flip:false,hold:0.9,top:5},
+   cast:{u:'/assets/anim/mon/nashorbeast_cast_hd.webp?v=1',n:12,fw:282,fh:300,cols:6,rows:2,figH:253,feet:296,cx:128,fps:10,flip:false,hold:0.8,top:43}
   },
   "ogre beast":{
-   idle:{u:'/assets/anim/mon/ogrebeast_walk_t.webp?v=1',n:6,fw:209,fh:140,cols:6,rows:2,figH:130,feet:138,cx:92,fps:6,flip:false,pingpong:true,top:3},
-   walk:{u:'/assets/anim/mon/ogrebeast_walk_t.webp?v=1',n:12,fw:209,fh:140,cols:6,rows:2,figH:130,feet:138,cx:92,fps:14,flip:false,top:3},
-   attack:{u:'/assets/anim/mon/ogrebeast_attack_t.webp?v=1',n:12,fw:213,fh:194,cols:6,rows:2,figH:118,feet:192,cx:93,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/ogrebeast_cast_t.webp?v=1',n:12,fw:218,fh:173,cols:6,rows:2,figH:149,feet:170,cx:99,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/ogrebeast_walk_hd.webp?v=1',n:6,fw:300,fh:242,cols:6,rows:2,figH:218,feet:236,cx:194,fps:6,flip:false,pingpong:true,top:18},
+   walk:{u:'/assets/anim/mon/ogrebeast_walk_hd.webp?v=1',n:12,fw:300,fh:242,cols:6,rows:2,figH:218,feet:236,cx:194,fps:10,flip:false,top:18},
+   attack:{u:'/assets/anim/mon/ogrebeast_attack_hd.webp?v=1',n:12,fw:300,fh:282,cols:6,rows:2,figH:274,feet:277,cx:119,fps:12,flip:false,hold:0.9,top:3},
+   cast:{u:'/assets/anim/mon/ogrebeast_cast_hd.webp?v=1',n:12,fw:300,fh:284,cols:6,rows:2,figH:272,feet:279,cx:152,fps:10,flip:false,hold:0.8,top:7}
   },
   "water monster":{
-   idle:{u:'/assets/anim/mon/watermonster_walk_t.webp?v=1',n:6,fw:113,fh:146,cols:6,rows:2,figH:119,feet:144,cx:59,fps:6,flip:false,pingpong:true,top:3},
-   walk:{u:'/assets/anim/mon/watermonster_walk_t.webp?v=1',n:12,fw:113,fh:146,cols:6,rows:2,figH:119,feet:144,cx:59,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/watermonster_attack_t.webp?v=1',n:12,fw:164,fh:151,cols:6,rows:2,figH:114,feet:149,cx:90,fps:16,flip:false,hold:0.9,top:3},
-   cast:{u:'/assets/anim/mon/watermonster_cast_t.webp?v=1',n:12,fw:223,fh:172,cols:6,rows:2,figH:120,feet:170,cx:110,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/watermonster_walk_hd.webp?v=1',n:6,fw:284,fh:300,cols:6,rows:2,figH:268,feet:296,cx:134,fps:6,flip:false,pingpong:true,top:28},
+   walk:{u:'/assets/anim/mon/watermonster_walk_hd.webp?v=1',n:12,fw:284,fh:300,cols:6,rows:2,figH:268,feet:296,cx:134,fps:10,flip:false,top:28},
+   attack:{u:'/assets/anim/mon/watermonster_attack_hd.webp?v=1',n:12,fw:300,fh:266,cols:6,rows:2,figH:258,feet:262,cx:135,fps:12,flip:false,hold:0.9,top:4},
+   cast:{u:'/assets/anim/mon/watermonster_cast_hd.webp?v=1',n:12,fw:253,fh:300,cols:6,rows:2,figH:245,feet:296,cx:127,fps:10,flip:false,hold:0.8,top:51}
   },
   "water serpent":{
-   idle:{u:'/assets/anim/mon/waterserpent_walk_t.webp?v=1',n:6,fw:107,fh:124,cols:6,rows:2,figH:119,feet:121,cx:54,fps:6,flip:false,pingpong:true,top:2},
-   walk:{u:'/assets/anim/mon/waterserpent_walk_t.webp?v=1',n:12,fw:107,fh:124,cols:6,rows:2,figH:119,feet:121,cx:54,fps:14,flip:false,top:0},
-   attack:{u:'/assets/anim/mon/waterserpent_attack_t.webp?v=1',n:12,fw:170,fh:160,cols:6,rows:2,figH:152,feet:154,cx:85,fps:16,flip:false,hold:0.9,top:2},
-   cast:{u:'/assets/anim/mon/waterserpent_cast_t.webp?v=1',n:12,fw:166,fh:180,cols:6,rows:2,figH:113,feet:175,cx:80,fps:10,flip:false,hold:0.8,top:2}
+   idle:{u:'/assets/anim/mon/waterserpent_walk_hd.webp?v=1',n:6,fw:230,fh:300,cols:6,rows:2,figH:281,feet:295,cx:76,fps:6,flip:false,pingpong:true,top:14},
+   walk:{u:'/assets/anim/mon/waterserpent_walk_hd.webp?v=1',n:12,fw:230,fh:300,cols:6,rows:2,figH:281,feet:295,cx:76,fps:10,flip:false,top:14},
+   attack:{u:'/assets/anim/mon/waterserpent_attack_hd.webp?v=1',n:12,fw:267,fh:300,cols:6,rows:2,figH:235,feet:275,cx:128,fps:12,flip:false,hold:0.9,top:40},
+   cast:{u:'/assets/anim/mon/waterserpent_cast_hd.webp?v=1',n:12,fw:210,fh:300,cols:6,rows:2,figH:241,feet:285,cx:92,fps:10,flip:false,hold:0.8,top:44}
   }
  };
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
@@ -11107,7 +11106,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788115449569';
+const BUILD_ID='1788124547864';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
