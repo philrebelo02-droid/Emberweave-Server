@@ -4080,7 +4080,12 @@ const FX2_DEF={
      front = +x and rotates the sprite to the travel direction. */
   rockthrow:   {u:'/assets/anim/fx/rockthrow.webp?v=1',   n:18, fw:210, fh:139, cols:6, rows:3, dur:1.5},
   pickaxethrow:{u:'/assets/anim/fx/pickaxethrow.webp?v=1',n:18, fw:210, fh:150, cols:6, rows:3, dur:1.5},
-  crystalshard:{u:'/assets/anim/fx/crystalshard.webp?v=1',n:18, fw:210, fh:133, cols:6, rows:3, dur:1.5}
+  crystalshard:{u:'/assets/anim/fx/crystalshard.webp?v=1',n:18, fw:210, fh:133, cols:6, rows:3, dur:1.5},
+  prismbolt:   {u:'/assets/anim/fx/prismbolt.webp?v=1',   n:18, fw:210, fh:60,  cols:6, rows:3, dur:1.5},
+  featherbolt: {u:'/assets/anim/fx/featherbolt.webp?v=1', n:18, fw:210, fh:119, cols:6, rows:3, dur:1.5},
+  /* Ground plates are drawn TOP-DOWN: spawnGroundFx lays the quad flat with rotation.x = -PI/2. */
+  featherstorm:{u:'/assets/anim/fx/featherstorm.webp?v=1',n:18, fw:210, fh:208, cols:6, rows:3, dur:1.8},
+  needlespray: {u:'/assets/anim/fx/needlespray.webp?v=1', n:18, fw:210, fh:202, cols:6, rows:3, dur:1.6}
 };
 const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
@@ -11235,7 +11240,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788128992728';
+const BUILD_ID='1788131207839';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
