@@ -1304,7 +1304,7 @@ const BATTLE_ANIM = {
   },
   konwu:{
   idle:{u:'/assets/anim/konwu/konwu_idle.webp?v=1',n:72,fw:300,fh:298,cols:6,rows:12,figH:291,feet:294,cx:137,fps:30,flip:true,top:3},
-  walk:{u:'/assets/anim/konwu/konwu_walk.webp?v=1',n:72,fw:282,fh:300,cols:6,rows:12,figH:286,feet:296,cx:154,fps:30,flip:true,top:10},
+  walk:{u:'/assets/anim/konwu/konwu_walk.png?v=4',n:15,fw:122,fh:150,figH:150,feet:150,cx:64,fps:15,flip:true},   // v307: the 72-frame sheet has him STANDING STILL twirling the staff - no gait at all. Back to the original run cycle.
   attack:{u:'/assets/anim/konwu/konwu_attack.webp?v=1',n:36,fw:300,fh:220,cols:6,rows:6,figH:214,feet:217,cx:155,fps:30,flip:true,top:3,hold:1.1},
   hit:{u:'/assets/anim/konwu/konwu_hit.webp?v=1',n:24,fw:300,fh:264,cols:6,rows:4,figH:257,feet:261,cx:147,fps:30,flip:true,top:3},
   ult:{u:'/assets/anim/konwu/konwu_ult.webp?v=2',n:48,fw:267,fh:300,cols:6,rows:8,figH:238,feet:297,cx:172,fps:30,flip:true,top:58,hold:1.5},
@@ -1400,7 +1400,7 @@ const BATTLE_ANIM = {
   },
   tick:{
   idle:{u:'/assets/anim/tick/tick_idle.webp?v=6',n:72,fw:246,fh:300,cols:6,rows:12,figH:287,feet:295,cx:127,fps:30,flip:true,top:8},
-  walk:{u:'/assets/anim/tick/tick_walk.webp?v=6',n:72,fw:231,fh:300,cols:6,rows:12,figH:279,feet:297,cx:116,fps:30,flip:true,top:18},
+  walk:{u:'/assets/anim/tick/tick_walk_run.webp?v=1',n:12,fw:196,fh:223,cols:6,rows:2,figH:183,feet:216,cx:104,fps:14,flip:true,top:6},   // v307: the 72-frame sheet only swings his arms on the spot. Back to the original run cycle.
   attack:{u:'/assets/anim/tick/tick_attack.webp?v=6',n:36,fw:300,fh:286,cols:6,rows:6,figH:269,feet:282,cx:170,fps:30,flip:true,top:13,hold:1.1},
   hit:{u:'/assets/anim/tick/tick_hit.webp?v=6',n:24,fw:300,fh:274,cols:6,rows:4,figH:248,feet:267,cx:165,fps:30,flip:true,top:18},
   ult:{u:'/assets/anim/tick/tick_ult.webp?v=6',n:48,fw:300,fh:244,cols:6,rows:8,figH:230,feet:241,cx:139,fps:30,flip:true,top:10,hold:1.5},
@@ -4432,10 +4432,6 @@ function purgeTransientFx(){
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
   if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
 }
-const WALK_ART_WAIT=2.5;   // seconds the off-screen march will wait for walk sheets to decode before starting anyway
-function walkArtReady(u){ const c=u&&u.anim&&u.anim.walk; if(!c) return true;   // no walk clip at all → nothing to wait for
-  const im=c.tex&&!c._err&&c.tex.image; if(!im) return false;
-  return ('naturalWidth' in im) ? (im.complete&&im.naturalWidth>0) : ((im.width|0)>0); }
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
@@ -4481,14 +4477,9 @@ function updateWaveXfer(dt){
   if(waveXfer.phase==='enter'){   // BOTH sides walk the line into their slots, then combat resumes
     let allIn=true;
     const marching=units.filter(u=>u.alive && u.homeX!=null && !u._dropHidden && (u.team==='ally'||u.team==='enemy'));
-    /* 30 Aug (v306) — DON'T START THE MARCH BEFORE THE LEGS EXIST. The walk-on is about three
-       seconds long and begins the instant the battle does; a squad's walk sheets need roughly one to
-       two of those seconds to decode even on a fast connection, and syncMesh substitutes idle for any
-       clip that isn't ready yet. So the heroes slid on in their idle pose — read, correctly, as "the
-       heroes aren't doing their run animation". Everyone is still parked off-screen at this point, so
-       waiting for the sheets costs nothing visible: hold at the spawn until every marcher's walk clip
-       is usable, for at most WALK_ART_WAIT seconds, then go regardless. */
-    if(waveXfer.t < WALK_ART_WAIT && !marching.every(walkArtReady)) return;
+    /* 30 Aug (v307) — the v306 hold is GONE. It waited off-screen for every marcher's walk sheet to
+       decode: invisible on a fast connection, and on a slow one just a stall in front of the same
+       problem. The tiered loader gets the walk sheets in first; that is the fix on its own. */
     marching.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
@@ -11100,7 +11091,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788107164459';
+const BUILD_ID='1788108693631';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
