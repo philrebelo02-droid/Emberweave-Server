@@ -692,7 +692,10 @@
     <div class="titlebar"><h1 id="menuTitle">SELECT SQUAD</h1></div>
     <div class="sub" id="menuSub" style="display:none"></div>
     <button class="btn secondary sm" id="glossaryBtn" style="position:absolute;top:12px;right:12px;z-index:3">📖 Glossary</button>
-    <button class="btn wide" id="startBtn" style="margin:0 auto 10px">BATTLE ▶</button>
+    <div id="startRow" style="width:100%;max-width:560px;margin:0 auto 10px;display:flex;gap:8px;align-items:stretch">
+      <button class="btn" id="startBtn" style="flex:0 0 78%;max-width:78%">BATTLE ▶</button>
+      <button class="btn secondary" id="resetCompBtn" style="flex:1 1 auto;padding:12px 6px;font-size:12px;white-space:nowrap" title="Clear the selected heroes">↺ RESET</button>
+    </div>
     <div class="panel"><div class="row" id="roster"></div></div>
   </div>
 
@@ -1431,7 +1434,8 @@ const BATTLE_ANIM = {
   "fire skeleton":{
    idle:{u:'/assets/anim/mon/fireskeleton_walk_hd.webp?v=1',n:6,fw:197,fh:300,cols:6,rows:2,figH:279,feet:290,cx:65,fps:6,flip:false,pingpong:true,top:11},
    walk:{u:'/assets/anim/mon/fireskeleton_walk_hd.webp?v=1',n:12,fw:197,fh:300,cols:6,rows:2,figH:279,feet:290,cx:65,fps:10,flip:false,top:11},
-   attack:{u:'/assets/anim/mon/fireskeleton_attack_hd.webp?v=1',n:12,fw:242,fh:300,cols:6,rows:2,figH:250,feet:289,cx:111,fps:12,flip:false,hold:0.9,top:39}
+   attack:{u:'/assets/anim/mon/fireskeleton_attack_hd.webp?v=1',n:12,fw:242,fh:300,cols:6,rows:2,figH:250,feet:289,cx:111,fps:12,flip:false,hold:0.9,top:39},
+   cast:{u:'/assets/anim/mon/fireskeleton_cast_hd.webp?v=1',n:12,fw:212,fh:300,cols:6,rows:2,figH:294,feet:297,cx:75,fps:10,flip:false,hold:0.8,top:2}
   },
   "rock golem":{
    idle:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:6,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:6,flip:false,pingpong:true,top:25},
@@ -1947,39 +1951,52 @@ const KITS={
 // ---- MONSTER kits (Batch 1) — each monster auto-casts its two chosen abilities on cooldown (no ults). ----
 // Stronger ability goes on the longer cooldown, per the balance rule in claude/monster-picks.md.
 const MONSTER_KITS={
+  /* v313 — EVERY ability slot now names its own art.
+     Before this, 56 of these 58 slots drew nothing but a coloured particle burst: the ability
+     engine only honoured a declared gfx for 'aoedot' and 'crescendo'. Each slot below now carries
+       gfx  — a ground plate from FX2_DEF (gfxAt:'self' centres it on the caster; default is the victim)
+       pfx  — a projectile sprite flown caster -> victim
+     Seven effects that no existing plate could honestly stand in for were drawn new for this pass:
+     rockthrow, pickaxethrow (Granith), crystalshard, prismbolt (Volthex), featherstorm, featherbolt
+     (Blackquill) and needlespray (Vexmite). Slots left without art are pure self-buffs and utility —
+     armour, haste, lifesteal, taunt, blink — where a plate on the ground would be a lie about what
+     happened; those keep their particle tell. Numbers below are untouched. */
+
   'boar shaman': {green:{name:'Bone Chant',type:'crescendo',dur:4,cd:6,gfx:'bonechant',radius:2.6*METER},blue:{name:'Pyre Grunt',type:'aoedot',mul:0.5,dps:0.45,dur:4,radius:2.6*METER,cd:8,gfx:'pyregrunt',gdur:2.4}},
 
-  'bug':          {green:{name:'Frenzied Wings',type:'haste',mul:1.6,dur:4,self:true,cd:8},           blue:{name:'Hive Vigor',type:'lifestealbuff',pct:0.25,dur:5,cd:11}},                 // Skarrn
-  'creep':        {green:{name:'Grasping Reach',type:'tendrilpull',dur:1.4,cd:8},                     blue:{name:'Rockskin Slam',type:'stun',mul:1.3,stun:1.2,cd:10}},                      // Skulk
-  'dyrmen':       {green:{name:'Shard Volley',type:'volley',mul:0.85,n:3,color:'#8fd0ff',cd:7},       blue:{name:'Prism Beam',type:'strike',mul:2.3,color:'#b98bff',cd:10}},               // Volthex
-  'fire boar':    {green:{name:'Cinder Breath',type:'cleavecone',mul:1.0,radius:3.2*METER,angle:60,burn:true,burnDps:0.35,burnDur:3,cd:8}, blue:{name:'Eruption',type:'aoeStun',mul:1.1,stun:1.2,radius:2.6*METER,cd:11}}, // Cindertusk
-  'fire skeleton':{green:{name:'Ignite',type:'dot',mul:0.4,dps:0.55,dur:4,color:'#ff6a3a',cd:6},      blue:{name:'Ashfall',type:'ashfall',dps:0.5,dur:3,radius:3*METER,cd:11}},             // Ashen
-  'garbage mob':  {green:{name:'Trash Armor',type:'defensive',mul:0.6,dur:5,cd:8},                    blue:{name:'Devour',type:'devour',mul:1.6,heal:0.6,cd:10}},                           // Sludgemaw
+  'bug':          {green:{name:'Frenzied Wings',type:'haste',mul:1.6,dur:4,self:true,cd:8},           blue:{name:'Hive Vigor',type:'lifestealbuff',pct:0.25,dur:5,cd:11}},                 // Skarrn — both self-buffs, no plate
+  'creep':        {green:{name:'Grasping Reach',type:'tendrilpull',dur:1.4,cd:8},                     blue:{name:'Rockskin Slam',type:'stun',mul:1.3,stun:1.2,cd:10,gfx:'groundslam',gfxR:1.6*METER,gdur:1.3}},   // Skulk
+  'dyrmen':       {green:{name:'Shard Volley',type:'volley',mul:0.85,n:3,color:'#8fd0ff',cd:7,pfx:'crystalshard',pscale:2.2,pdur:0.26},  blue:{name:'Prism Beam',type:'strike',mul:2.3,color:'#b98bff',cd:10,pfx:'prismbolt',pscale:2.8,pdur:0.22}},   // Volthex
+  'fire boar':    {green:{name:'Cinder Breath',type:'cleavecone',mul:1.0,radius:3.2*METER,angle:60,burn:true,burnDps:0.35,burnDur:3,cd:8,gfx:'firepatch',gfxR:2.4*METER,gdur:2.0}, blue:{name:'Eruption',type:'aoeStun',mul:1.1,stun:1.2,radius:2.6*METER,cd:11,gfx:'groundslam',gdur:1.5}}, // Cindertusk
+  'fire skeleton':{green:{name:'Ignite',type:'dot',mul:0.4,dps:0.55,dur:4,color:'#ff6a3a',cd:6,gfx:'firepatch',gfxR:1.1*METER,gdur:1.6},      blue:{name:'Ashfall',type:'ashfall',dps:0.5,dur:3,radius:3*METER,cd:11,gfx:'firepatch',gfxR:3*METER,gdur:3.0}},   // Ashen
+  'garbage mob':  {green:{name:'Trash Armor',type:'defensive',mul:0.6,dur:5,cd:8},                    blue:{name:'Devour',type:'devour',mul:1.6,heal:0.6,cd:10}},                           // Sludgemaw — armour + a bite, both particle tells
   // ---- Final-8 monsters (Phil's picks 2026-08-07) ----
-  'orc':          {green:{name:'Cleave',type:'cleave',mul:1.1,radius:2.2*METER,cd:7},                         blue:{name:'War Stomp',type:'aoeStun',mul:1.0,stun:1.2,radius:2.4*METER,cd:10}},       // Grushak
-  'ghoul fiend':  {green:{name:'Rend',type:'dot',mul:0.5,dps:0.5,dur:4,color:'#c0392b',cd:6},                 blue:{name:'Infectious Bite',type:'mortal',mul:1.2,cd:9}},                             // Gnashul
-  'shadow ghoul': {green:{name:'Shadow Bolt',type:'strike',mul:1.4,color:'#9b7fd0',cd:6},                     blue:{name:'Shade Nova',type:'nova',mul:0.7,radius:15*METER,cd:10}},                   // Nightgloom (custom AoE bolt)
-  'slime':        {green:{name:'Acid Splash',type:'cleavecone',mul:0.9,radius:3*METER,angle:70,burn:true,burnDps:0.35,burnDur:3,cd:7}, blue:{name:'Divide',type:'selfheal',mul:0.25,cd:10}},        // Ooznik
-  'golem':        {green:{name:'Seismic Stomp',type:'nova',mul:0.9,radius:2.6*METER,slow:true,cd:8},          blue:{name:'Taunt',type:'taunt',dur:3,cd:9}},                                         // Grundle
-  'turtle':       {green:{name:'Shell Spin',type:'nova',mul:1.0,radius:2.4*METER,cd:7},                       blue:{name:'Retreat Shell',type:'defensive',mul:0.25,dur:3,cd:11}},                   // Shellwark
-  'tin beast':    {green:{name:'Magnetize',type:'tendrilpull',nearest:true,dur:1.2,cd:8},                     blue:{name:'Overclock',type:'haste',self:true,mul:1.5,dur:5,cd:10}},                  // Rustclank
-  'mimic chest':  {green:{name:'Chomp',type:'stun',mul:1.5,stun:1.2,cd:8},                                    blue:{name:'Greed',type:'lifestealbuff',pct:0.3,dur:6,cd:10}},                        // Trapjaw
+  'orc':          {green:{name:'Cleave',type:'cleave',mul:1.1,radius:2.2*METER,cd:7,gfx:'cleave',gfxR:2.2*METER,gdur:1.2},   blue:{name:'War Stomp',type:'aoeStun',mul:1.0,stun:1.2,radius:2.4*METER,cd:10,gfx:'groundslam',gdur:1.5}},       // Grushak
+  'ghoul fiend':  {green:{name:'Rend',type:'dot',mul:0.5,dps:0.5,dur:4,color:'#c0392b',cd:6,gfx:'bleed',gfxR:1.0*METER,gdur:1.8},  blue:{name:'Infectious Bite',type:'mortal',mul:1.2,cd:9,gfx:'bleed',gfxR:1.1*METER,gdur:2.0}},   // Gnashul
+  'shadow ghoul': {green:{name:'Shadow Bolt',type:'strike',mul:1.4,color:'#9b7fd0',cd:6,pfx:'shadowball',pscale:2.8,pdur:0.28},  blue:{name:'Shade Nova',type:'nova',mul:0.7,radius:15*METER,cd:10,gfx:'voidzone',gfxAt:'self',gfxR:3.2*METER,gdur:1.8}},   // Nightgloom
+  'slime':        {green:{name:'Acid Splash',type:'cleavecone',mul:0.9,radius:3*METER,angle:70,burn:true,burnDps:0.35,burnDur:3,cd:7,gfx:'poison',gfxR:2.2*METER,gdur:2.0}, blue:{name:'Divide',type:'selfheal',mul:0.25,cd:10}},        // Ooznik
+  'golem':        {green:{name:'Seismic Stomp',type:'nova',mul:0.9,radius:2.6*METER,slow:true,cd:8,gfx:'groundslam',gfxAt:'self',gfxR:2.6*METER,gdur:1.5},  blue:{name:'Taunt',type:'taunt',dur:3,cd:9}},   // Grundle
+  'turtle':       {green:{name:'Shell Spin',type:'nova',mul:1.0,radius:2.4*METER,cd:7,gfx:'cleave',gfxAt:'self',gfxR:2.4*METER,gdur:1.2},  blue:{name:'Retreat Shell',type:'defensive',mul:0.25,dur:3,cd:11}},   // Shellwark
+  'tin beast':    {green:{name:'Magnetize',type:'tendrilpull',nearest:true,dur:1.2,cd:8},                     blue:{name:'Overclock',type:'haste',self:true,mul:1.5,dur:5,cd:10}},                  // Rustclank — a pull and a self-buff
+  'mimic chest':  {green:{name:'Chomp',type:'stun',mul:1.5,stun:1.2,cd:8,gfx:'bleed',gfxR:1.0*METER,gdur:1.6},   blue:{name:'Greed',type:'lifestealbuff',pct:0.3,dur:6,cd:10}},   // Trapjaw
   // ---- Batch 3 monsters (Phil's picks 2026-08-07) ----
-  'glitch phantom':{green:{name:'Corruption',type:'dot',mul:0.4,dps:0.5,dur:4,color:'#b06bff',cd:6},          blue:{name:'Blink Shift',type:'blink',mul:1.8,range:20*METER,cd:10}},                   // Bitwraith
-  'knat':         {green:{name:'Swarm Sting',type:'punchflurry',hits:4,mul:0.4,tauntChance:0,cd:7},          blue:{name:'Poison Prick',type:'dot',mul:0.3,dps:0.6,dur:5,color:'#7fd06b',cd:8}},      // Vexmite
-  'lost soulss':  {green:{name:'Soul Bolt',type:'strike',mul:1.4,color:'#c9b6ff',cd:6},                      blue:{name:'Possession',type:'stun',mul:0.8,stun:1.4,cd:10}},                           // Lost Soul
-  'raven':        {green:{name:'Feather Storm',type:'cleavecone',mul:0.9,radius:3*METER,angle:70,cd:7},       blue:{name:'Murder',type:'multiShot',mul:1.0,n:4,cd:9}},                                // Blackquill
-  'whisp candle': {green:{name:'Wisp Fire',type:'dot',mul:0.4,dps:0.55,dur:4,color:'#ff6a3a',cd:6},          blue:{name:'Will-o-Wisp',type:'ashfall',dps:0.45,dur:3,radius:2.8*METER,cd:11}},        // Whisp Candle
-  'rock golem':   {green:{name:'Hurl Debris',type:'multiShot',mul:0.9,n:3,cd:8},                             blue:{name:'Pickaxe Throw',type:'piercethrow',mul:1.6,width:34,cd:10}},                 // Granith
-  // ---- BOSSES (2 abilities + 1 passive; ~3× normal stats). Phil's picks 2026-08-07. ----
-  'ice beast':          {green:{name:'Frost Nova',type:'nova',mul:1.0,radius:2.8*METER,slow:true,cd:8},                     blue:{name:'Blizzard',type:'ashfall',dps:0.45,dur:4,radius:3.2*METER,slow:2,color:'#9fe0ff',cd:12},          pass:'deepfreeze'},   // Wintercrag
-  'monster with fireball':{green:{name:'Fireball',type:'fireball',mul:1.6,radius:2.4*METER,cd:8},                          blue:{name:'Ignite All',type:'aoedot',mul:0,dps:0.5,dur:4,radius:99999,cd:12},                              pass:'immolate'},    // Magmourn
-  'nashor beast':       {green:{name:'Ground Pound',type:'aoeStun',mul:1.0,stun:1.3,radius:2.6*METER,cd:9},                blue:{name:'Charge',type:'charge',mul:1.6,radius:2.4*METER,stun:0.8,cd:11},                                 pass:'lifesteal'},   // Voraxis
-  'ogre beast':         {green:{name:'Club Smash',type:'stun',mul:1.6,stun:1.4,cd:8},                                      blue:{name:'Bellow',type:'warcry',mul:1.4,dur:6,stun:0.9,fear:2,radius:2.6*METER,cd:11},                          pass:'unstoppable'}, // Grommash
-  'water monster':      {green:{name:'Tidal Wave',type:'cleave',mul:1.2,radius:2.8*METER,cd:8},                            blue:{name:'Geyser',type:'stun',mul:2.0,stun:1.2,cd:10},                                                    pass:'wrath'},       // Leviath
-  'water serpent':      {green:{name:'Tail Lash',type:'cleavecone',mul:1.1,radius:3*METER,angle:60,stun:1.0,cd:8},         blue:{name:'Tsunami',type:'nova',mul:1.4,radius:3.2*METER,slow:true,cd:11},                                 pass:'selfregen'},   // Sylphice
-  'skeletal warrior':  {green:{name:'Soul Harvest',type:'lifestealbuff',pct:0.3,dur:5,cd:8},                          blue:{name:'Reaping Cleave',type:'cleavecone',mul:1.35,radius:2.8*METER,angle:90,cd:10}},   // Mordath
-  'slug beast':        {green:{name:'Acid Spit',type:'dot',mul:0.4,dps:0.6,dur:5,color:'#8fd648',cd:7},                blue:{name:'Slime Burst',type:'nova',mul:1.1,radius:2.6*METER,slow:true,cd:11}},          // Bilewretch
+  'glitch phantom':{green:{name:'Corruption',type:'dot',mul:0.4,dps:0.5,dur:4,color:'#b06bff',cd:6,gfx:'voidzone',gfxR:1.1*METER,gdur:1.8},   blue:{name:'Blink Shift',type:'blink',mul:1.8,range:20*METER,cd:10}},   // Bitwraith
+  'knat':         {green:{name:'Swarm Sting',type:'punchflurry',hits:4,mul:0.4,tauntChance:0,cd:7,gfx:'needlespray',gfxR:1.6*METER,gdur:1.6},  blue:{name:'Poison Prick',type:'dot',mul:0.3,dps:0.6,dur:5,color:'#7fd06b',cd:8,gfx:'poison',gfxR:1.0*METER,gdur:1.8}},   // Vexmite
+  'lost soulss':  {green:{name:'Soul Bolt',type:'strike',mul:1.4,color:'#c9b6ff',cd:6,pfx:'shadowball',pscale:2.6,pdur:0.28},   blue:{name:'Possession',type:'stun',mul:0.8,stun:1.4,cd:10,gfx:'voidzone',gfxR:1.2*METER,gdur:1.8}},   // Lost Soul
+  'raven':        {green:{name:'Feather Storm',type:'cleavecone',mul:0.9,radius:3*METER,angle:70,cd:7,gfx:'featherstorm',gfxR:2.6*METER,gdur:1.8},   blue:{name:'Murder',type:'multiShot',mul:1.0,n:4,cd:9,pfx:'featherbolt',pscale:2.4,pdur:0.26}},   // Blackquill
+  'whisp candle': {green:{name:'Wisp Fire',type:'dot',mul:0.4,dps:0.55,dur:4,color:'#ff6a3a',cd:6,gfx:'firepatch',gfxR:1.0*METER,gdur:1.6},   blue:{name:'Will-o-Wisp',type:'ashfall',dps:0.45,dur:3,radius:2.8*METER,cd:11,gfx:'firepatch',gfxR:2.8*METER,gdur:3.0}},   // Whisp Candle
+  /* Granith throws twice, and the throw is the same body animation both times — only what leaves his
+     hand differs: a boulder for Hurl Debris, the giant pickaxe for Pickaxe Throw. (Phil, 30 Aug.) */
+  'rock golem':   {green:{name:'Hurl Debris',type:'multiShot',mul:0.9,n:3,cd:8,pfx:'rockthrow',pscale:2.6,pdur:0.34},   blue:{name:'Pickaxe Throw',type:'piercethrow',mul:1.6,width:34,cd:10,pfx:'pickaxethrow',pscale:3.4,pdur:0.30}},   // Granith
+  // ---- BOSSES (2 abilities + 1 passive; ~3x normal stats). Phil's picks 2026-08-07. ----
+  'ice beast':          {green:{name:'Frost Nova',type:'nova',mul:1.0,radius:2.8*METER,slow:true,cd:8,gfx:'frostnova',gfxAt:'self',gfxR:2.8*METER,gdur:1.3},   blue:{name:'Blizzard',type:'ashfall',dps:0.45,dur:4,radius:3.2*METER,slow:2,color:'#9fe0ff',cd:12,gfx:'blizzard',gfxR:3.2*METER,gdur:4.0},   pass:'deepfreeze'},   // Wintercrag
+  'monster with fireball':{green:{name:'Fireball',type:'fireball',mul:1.6,radius:2.4*METER,cd:8,gfx:'firepatch',gfxR:2.4*METER,gdur:2.0},   blue:{name:'Ignite All',type:'aoedot',mul:0,dps:0.5,dur:4,radius:99999,cd:12,gfx:'firepatch',gfxAt:'self',gfxR:4*METER,gdur:3.0},   pass:'immolate'},   // Magmourn
+  'nashor beast':       {green:{name:'Ground Pound',type:'aoeStun',mul:1.0,stun:1.3,radius:2.6*METER,cd:9,gfx:'groundslam',gdur:1.6},   blue:{name:'Charge',type:'charge',mul:1.6,radius:2.4*METER,stun:0.8,cd:11,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},   pass:'lifesteal'},   // Voraxis
+  'ogre beast':         {green:{name:'Club Smash',type:'stun',mul:1.6,stun:1.4,cd:8,gfx:'groundslam',gfxR:1.8*METER,gdur:1.4},   blue:{name:'Bellow',type:'warcry',mul:1.4,dur:6,stun:0.9,fear:2,radius:2.6*METER,cd:11,gfx:'bonechant',gfxAt:'self',gfxR:2.6*METER,gdur:2.0},   pass:'unstoppable'},   // Grommash
+  'water monster':      {green:{name:'Tidal Wave',type:'cleave',mul:1.2,radius:2.8*METER,cd:8,gfx:'tidalwave',gfxR:2.8*METER,gdur:2.2},   blue:{name:'Geyser',type:'stun',mul:2.0,stun:1.2,cd:10,gfx:'tsunami',gfxR:2.0*METER,gdur:2.4},   pass:'wrath'},   // Leviath
+  'water serpent':      {green:{name:'Tail Lash',type:'cleavecone',mul:1.1,radius:3*METER,angle:60,stun:1.0,cd:8,gfx:'tidalwave',gfxR:2.6*METER,gdur:2.0},   blue:{name:'Tsunami',type:'nova',mul:1.4,radius:3.2*METER,slow:true,cd:11,gfx:'tsunami',gfxAt:'self',gfxR:3.2*METER,gdur:2.6},   pass:'selfregen'},   // Sylphice
+  'skeletal warrior':  {green:{name:'Soul Harvest',type:'lifestealbuff',pct:0.3,dur:5,cd:8,gfx:'bonechant',gfxAt:'self',gfxR:2.0*METER,gdur:2.0},   blue:{name:'Reaping Cleave',type:'cleavecone',mul:1.35,radius:2.8*METER,angle:90,cd:10,gfx:'cleave',gfxR:2.6*METER,gdur:1.2}},   // Mordath
+  'slug beast':        {green:{name:'Acid Spit',type:'dot',mul:0.4,dps:0.6,dur:5,color:'#8fd648',cd:7,gfx:'poison',gfxR:1.1*METER,gdur:2.0},   blue:{name:'Slime Burst',type:'nova',mul:1.1,radius:2.6*METER,slow:true,cd:11,gfx:'poison',gfxAt:'self',gfxR:2.6*METER,gdur:2.0}},   // Bilewretch
 };
 // per-ability cast times for the batch-1 monsters (quick utility ~0.4s, heavier hits ~0.8–1s)
 const ABILITY_CAST_MON={
@@ -2597,6 +2614,12 @@ let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],c
    same way. The pause is a piece of battle state now, and the modal merely reflects it. */
 let VAULT_PICK_OPEN=false;
 let selected=null,battleTime=0,ended=false,rageMul=1;
+/* At most ONE pending result screen. A queued result belongs to the fight that scheduled it;
+   if another fight starts first, that result is stale and must never reach the screen. */
+let _resultTimer=null;
+function resultLater(fn,ms){ if(_resultTimer)clearTimeout(_resultTimer);
+  _resultTimer=setTimeout(()=>{ _resultTimer=null; try{ fn(); }catch(e){ console&&console.error&&console.error(e); } }, ms); return _resultTimer; }
+function cancelResult(){ if(_resultTimer){ clearTimeout(_resultTimer); _resultTimer=null; } }
 /* v269 — YOUR TIMING IS THE INPUT.
    The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
    wall-clock instant. Every player action is therefore QUEUED and applied at a tick boundary, and
@@ -3070,7 +3093,7 @@ function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
   window._p2guard=true;
   REPLAY_IN=Array.isArray(inputLog)?inputLog.slice().sort((a,b)=>a[0]-b[0]):null;
   const keep=REPLAY_IN;
-  ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null;
+  ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
   CUR={mode:'campaign', node:1, seed, cwaves:cwaves, manualReplay:!!manual, headless:true};
   if(manual) autoUlt=false;            // the transcript fires the ultimates, not the AI
   try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){}
@@ -3500,6 +3523,26 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
   floatTexts.push({x:u.x,y:u.y-8,txt:'+20%',t:.8,color:'#c9b6ff',vy:1});
   u.target=tg; u._blinkO=null; HERO_FX_MUL=1; }
 let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while one of the 3 built heroes casts, so their FX (particles, plates, staff) last twice as long; 1 for everyone else. Cast times are untouched.
+/* v313 — GENERIC ABILITY ART.
+   Until now only 'aoedot' and 'crescendo' honoured a declared gfx, so 56 of the 58 monster
+   ability slots rendered as coloured particle bursts and nothing more. Any kit entry may now declare:
+     gfx   — a ground plate (FX2_DEF key);  gfxAt:'self'|'target';  gfxR (radius);  gdur (seconds)
+     pfx   — a projectile sprite flown caster -> victim;  pscale;  pdur
+   Damage, timing and targeting are untouched — this is purely what the player sees. */
+function abilArt(u,o,tgt,aimCtr){
+  if(!o||!u||typeof spawnGroundFx!=='function') return;
+  if(!o.gfx || !FX2_DEF[o.gfx]) return;
+  const c = (o.gfxAt==='self') ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
+  try{ spawnGroundFx(o.gfx, c.x, c.y, o.gfxR||o.radius||2.4*METER, o.gdur||1.6); }catch(e){}
+}
+/* A shot that prefers the ability's own projectile art, falling back to the plain coloured tracer. */
+function abilShot(u,o,e,color,onHit){
+  if(o && o.pfx && FX2_DEF[o.pfx] && typeof spawnProjFx==='function'){
+    try{ spawnProjFx(o.pfx,u.x,u.y,e.x,e.y,o.pscale||2.6,o.pdur||0.30,onHit); return true; }catch(err){}
+  }
+  try{ spawnShot(u,e,color); }catch(err){}
+  if(onHit)onHit(); return false;
+}
 function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
   // Monster/boss abilities scale off POWER: Mage-role casters deal +30% ability damage; brutes/warriors/tanks unchanged.
   // (apMul carries a boss's magic multiplier, e.g. Magmourn 1.6.) Basic auto-attacks are unaffected — they never route through doEffect.
@@ -3508,6 +3551,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
   HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
   const tgt=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
   fxFor(type,u,tgt,o);   // ability visual effect
+  abilArt(u,o,tgt,aimCtr);   // v313 — sprite plate for any ability that declares one
   // Slot-aware clip pick. Shared ability TYPES (nova, aoedot, heal…) are reused by many heroes,
   // so the type alone cannot name the right clip. If this cast is the hero's own green/blue and
   // their own sheet has a matching state, that clip wins; otherwise fall back to ABIL_ANIM.
@@ -3521,6 +3565,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
        of the ability and marked so the render can sell it as a cast (a brief rise, a flash) rather
        than a plain swing. It is a stand-in for missing art, and it is honest about being one. */
     u._abilFallback=false;
+    /* v313 — monsters now own a real cast clip (regenerated 30 Aug). An ability should read as a
+       cast, not as a recoloured swing, so cast wins over the attack stand-in for every monster. */
+    if(!st && u.t && u.t.monster && u.anim && u.anim.cast) st='cast';
     if(!st && u.anim && u.anim.attack){ st='attack'; u._abilFallback=true; }
     if(st && u.anim && u.anim[st]){ const A=u.anim[st]; u._abilAnim=st;
       const once=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10);
@@ -3528,9 +3575,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
   switch(type){
-    case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
+    case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(o.pfx||u.range>60)abilShot(u,o,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
-    case 'volley':{enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||3).forEach(e=>{dealDamage(u,e,dB*(o.mul||.9)*rm,'#5ee89b');spawnShot(u,e,u.t.color);});break;}
+    case 'volley':{enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||3).forEach(e=>{dealDamage(u,e,dB*(o.mul||.9)*rm,'#5ee89b');abilShot(u,o,e,u.t.color);});break;}
     case 'nova':{enemiesOf(u).forEach(e=>{if(dist(u,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)e.slow=Math.max(e.slow||0,2);}});burstAt(u.x,u.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,u.dmg*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a'); if(o.stun)e.stunned=Math.max(e.stunned||0,o.stun); } } });
@@ -3555,7 +3602,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
         dealDamage(u,prime,u.dmg*0.40*pm,'#ffe08a');
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
-      enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');spawnShot(u,e,'#5ee89b');});break;}
+      enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');abilShot(u,o,e,'#5ee89b');});break;}
     case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);}});burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
     case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,u.dmg*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'monkSlam':{ const ctr=u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to EVERY enemy within 15 m of KonWu himself (Phil); a phantom Ruyi slams each
@@ -3778,7 +3825,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       const ddx=tg2.x-u.x, ddy=tg2.y-u.y, len=Math.hypot(ddx,ddy)||1, ux=ddx/len, uy=ddy/len, W=o.width||34;
       foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>len+24)return;
         if(Math.abs(rx*uy-ry*ux)<=W) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#cbb58f'); });
-      spawnShot(u,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
+      abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
     case 'warcry':{ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=o.dur||6;   // self attack buff + a brief fear (short stun) on nearby heroes
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
       const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
@@ -4027,7 +4074,13 @@ const FX2_DEF={
   glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   bonechant: {u:'/assets/anim/fx/bonechant.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   pyregrunt: {u:'/assets/anim/fx/pyregrunt.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
-  toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=3', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]}
+  toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=3', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]},
+  /* v313 — drawn for monster abilities that no existing plate could honestly stand in for.
+     Projectile plates are side-on with the effect pointing SCREEN-RIGHT, because spawnProjFx bakes
+     front = +x and rotates the sprite to the travel direction. */
+  rockthrow:   {u:'/assets/anim/fx/rockthrow.webp?v=1',   n:18, fw:210, fh:139, cols:6, rows:3, dur:1.5},
+  pickaxethrow:{u:'/assets/anim/fx/pickaxethrow.webp?v=1',n:18, fw:210, fh:150, cols:6, rows:3, dur:1.5},
+  crystalshard:{u:'/assets/anim/fx/crystalshard.webp?v=1',n:18, fw:210, fh:133, cols:6, rows:3, dur:1.5}
 };
 const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
@@ -4311,7 +4364,7 @@ function startBattle(){
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
@@ -4542,7 +4595,18 @@ function grantRewards(){
 }
 // Chapter 1 (the first 10 stages) is a tutorial: normal stages drop only GREY shards; Elite stages add a little GREEN.
 // rollDrops deleted (Correction Spec v1): no browser-generated Glyph reward exists.
-function endBattle(won){ ended=true;
+function endBattle(won){
+  /* 30 Aug (Phil): "I see that I won an arena, then after the arena it said stage cleared. then defeat."
+     Two defects produced that, and both are fixed here.
+     (1) endBattle was RE-ENTRANT. It set `ended` but never checked it, and three of its six callers
+         (the wave-transition paths) do not check it either — so one fight could resolve twice, the
+         second time with the other outcome.
+     (2) Every result path scheduled an uncancelled setTimeout that writes the SHARED result screen
+         and calls show('result'). A fight that ended could therefore paint its verdict over a screen
+         belonging to a LATER fight, which is exactly the arena win followed by a stray DEFEAT.
+     resultLater() keeps at most one pending result, and starting any battle cancels it. */
+  if(ended) return;
+  ended=true;
   if(window._p2guard){ window._p2win=won; return; }   // Phase 2 headless sim: record winner, skip all UI/rewards
   /* v270: the end state of the fight the player just watched, in the same shape the server's replay
      produces. Sent with the transcript as DIAGNOSTICS ONLY — it decides nothing; if it ever disagrees
@@ -4558,10 +4622,10 @@ function endBattle(won){ ended=true;
     resultStars = won ? (alive>=total?3:(alive>=Math.ceil(total/2)?2:1)) : 0;
     if(won && CUR.mode==='campaign' && (CUR.portal||'normal')==='normal'){ if(!G.stageStars)G.stageStars={}; if(resultStars>(G.stageStars[CUR.node]||0)) G.stageStars[CUR.node]=resultStars; } }
   if(CUR.mode==='replay'){ const rw=CUR.replayWon;   // re-enactment of a recorded fight — no rewards, back to mail
-    setTimeout(()=>{ document.getElementById('resultTitle').textContent=rw?'BATTLE WON':'BATTLE LOST'; document.getElementById('resultTitle').className='result-big '+(rw?'win':'lose');
+    resultLater(()=>{ document.getElementById('resultTitle').textContent=rw?'BATTLE WON':'BATTLE LOST'; document.getElementById('resultTitle').className='result-big '+(rw?'win':'lose');
       document.getElementById('resultReward').innerHTML='Re-enactment of your battle vs <b>'+escapeHTML(CUR.oppName||'the enemy')+'</b>.';
       document.getElementById('resultHint').textContent='A replay of the recorded fight — no rewards are given.'; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); setTimeout(()=>onlineResult(won),800); return; }
+  if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); resultLater(()=>onlineResult(won),800); return; }
   if(CUR.mode==='arena'){ if(won)grantTeamXP(70); let _arepDef=null;
     // record a watchable arena-attack report. The live arena fight is variable-timestep (non-deterministic), so we
     // seed-SEARCH for a fixed-step seed whose deterministic sim ends in the SAME result → the replay is exact AND matches
@@ -4575,7 +4639,7 @@ function endBattle(won){ ended=true;
       } }catch(e){}
     const oldRank=G.arenaRank; let reward=0;
     saveG(); updateHubChrome();
-    setTimeout(async()=>{ let newRank=oldRank;
+    resultLater(async()=>{ let newRank=oldRank;
       let d=null;
       if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()}); if(d&&typeof d.rank==='number') newRank=d.rank;
         if(d&&d.sim) CUR.arenaSim=d.sim;   // v255 (§7): keep the server's event log for the result recap
@@ -4607,7 +4671,7 @@ function endBattle(won){ ended=true;
       document.getElementById('resultReward').innerHTML=won?winMsg:(`Lost to <b>${CUR.oppName}</b>.`+_mv+_rc);
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
-    setTimeout(async()=>{ let r=null;
+    resultLater(async()=>{ let r=null;
       if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8()}); }
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       if(r&&r.result&&typeof r.result.won==='boolean') won=r.result.won;   // AUDIT C7: the server's verdict IS the result
@@ -4640,7 +4704,7 @@ function endBattle(won){ ended=true;
       dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);
       /* v250: px/heroXp for this loop come from /api/trial/resolve */
       saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
-    setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
+    resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span class="coins">🪙 +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='elite'){ const key=CUR.eliteKey; let frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; if(won){
       if(ACC.token){ api('/api/elite/resolve','POST',{node:CUR.node,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
@@ -4648,10 +4712,10 @@ function endBattle(won){ ended=true;
           else if(r&&r.error) bannerMsg(r.error); }).catch(()=>{}); eliteUnlock=''; frags=0; }   // v250: the SERVER resolves elite and owns the fragment grant
       else { eliteUnlock=giveHeroFrag(key,frags); }
       grantTeamXP(70); saveG(); updateHubChrome(); }
-    setTimeout(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
+    resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 +${frags} ${HERO_TYPES[key].name} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='raid'){ if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
-    setTimeout(async()=>{
+    resultLater(async()=>{
       // v253: a city fight is server-resolved from ANY entry point (map march or direct raid) —
       // if the verified payload isn't in hand yet, fetch it before showing the result.
       if(!CUR.pvpVerified && CUR.tId && ACC.token){
@@ -4671,7 +4735,7 @@ function endBattle(won){ ended=true;
       document.getElementById('resultReward').innerHTML=badge+`<div style="margin-bottom:4px"><b>${escapeHTML(CUR.oppName||'Rival city')}</b></div>`+(sWon?loot:`<div>${escapeHTML(CUR.oppName||'They')} held their wall.</div>`)+recap+atks;
       document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
-    setTimeout(async()=>{
+    resultLater(async()=>{
       /* v270: submit WHAT THE PLAYER DID — the tick-stamped transcript of every ultimate and gear
          skill. The server replays it against the frozen session; `digest` is diagnostics only. */
       const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8(),
@@ -4696,7 +4760,7 @@ function endBattle(won){ ended=true;
       document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':'Same monsters every attempt — learn the stage.';
       updateHubChrome(); gameSpeed=1; show('result');
     },800); return; }
-  setTimeout(()=>{
+  resultLater(()=>{
   if(won){ const msg=grantRewards();
     document.getElementById('resultTitle').textContent=CUR.mode==='pvp'?'RAID WON':'VICTORY'; document.getElementById('resultTitle').className='result-big win';
     document.getElementById('resultReward').innerHTML=msg;
@@ -6806,6 +6870,24 @@ function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); 
    so a hero is never toggled twice by one tap. The pointer path exists because a click inside a
    scrolling container is cancelled by the browser if the finger drifts, which is why the cards could
    feel completely dead on a phone while ordinary buttons still worked. */
+/* 30 Aug (Phil): "I cannot click my profile picture in the top right to change my name and picture."
+   The handler was wired and correct — the TAP never arrived. This is the same defect the hero cards
+   hit in the 28 Aug pass: on a phone, a tap whose finger drifts a few pixels inside a scrolling
+   ancestor is treated as the start of a scroll and Chrome CANCELS the click, so a plain onclick on
+   an element inside the hub simply never fires. Drive it off pointerup with a movement tolerance,
+   de-duplicated against the click that may or may not follow. */
+function wireTap(el, fn){
+  if(!el || el._tapWired) return; el._tapWired=1;
+  let down=null, last=0;
+  const fire=()=>{ const now=Date.now(); if(now-last<400) return; last=now; try{ fn(); }catch(e){ console&&console.error&&console.error(e); } };
+  el.addEventListener('pointerdown',(e)=>{ down={x:e.clientX,y:e.clientY,t:Date.now()}; },{passive:true});
+  el.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
+    if(Math.abs(e.clientX-d.x)>16 || Math.abs(e.clientY-d.y)>16) return;   // that was a scroll, not a tap
+    if(Date.now()-d.t>900) return;                                         // that was a long press
+    fire(); },{passive:true});
+  el.addEventListener('pointercancel',()=>{ down=null; },{passive:true});
+  el.addEventListener('click',()=>fire());
+}
 function wireRosterTaps(r){
   if(!r || r._tapWired) return; r._tapWired=1;
   let down=null, last=0;
@@ -6847,6 +6929,7 @@ function renderRoster(){
       :(isVault?`First ${TEAM_SIZE} fight — the rest step in when a fighter falls (up to ${TEAM_SIZE*2} total)`:'');
     _sub.textContent=_txt; _sub.style.display=_txt?'':'none'; }
   document.getElementById('startBtn').style.display = setDef?'none':'block';
+  { const _row=document.getElementById('startRow'); if(_row) _row.style.display = setDef?'none':'flex'; }
   const r=document.getElementById('roster'); r.innerHTML='';
   wireRosterTaps(r);
   const marchers = setDef ? committedHeroes() : new Set();   // on defense screens, heroes away marching/mining are greyed & inactive
@@ -6901,6 +6984,18 @@ function renderRoster(){
     sb.textContent=!full?(isVault?`PICK ${TEAM_SIZE} FIGHTERS (${teamArr.length}/${TEAM_SIZE})`:`PICK AT LEAST 1 HERO`):(lowStam?`NEED ${stageStamCost(CUR.node)} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${stageStamCost(CUR.node)}`:'BATTLE ▶'));
   }
   syncStart();
+  /* 30 Aug (Phil) — RESET COMP. Clears the picked heroes instantly so a fresh squad can be chosen,
+     rather than tapping every selected card off one at a time. Same side effects as a manual
+     deselect, each guarded on its own so a throw in one cannot swallow the reset. */
+  { const _rc=document.getElementById('resetCompBtn');
+    if(_rc){ _rc.disabled = !teamArr.length;
+      _rc.onclick=()=>{ if(!teamArr.length) return;
+        teamArr.length=0;
+        try{ reRenderRoster(); }catch(e){}
+        try{ syncStart(); }catch(e){}
+        try{ saveG(); }catch(e){}
+        try{ if(isWallCtx(teamCtx)&&ACC.token)pushSave(); }catch(e){}
+      }; } }
 }
 const TECH_TRACKS=[
   ['atk','⚔','Attack Power','ATK to all heroes',3],
@@ -8594,7 +8689,7 @@ function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 
 /* generic PvE-style versus battle used by Arena (auto) and Raid (manual) */
 function startVersus(enemyTeam,auto,allyKeys){
-  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
+  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
   if(CUR&&CUR.replayAlly&&CUR.replayAlly.length){   // v2 exact replay: build BOTH teams from data exactly as the headless resolver did (laneSlot), so the replay == the recorded fight
     setupMarchTeams(CUR.replayAlly, enemyTeam, true);
   } else {
@@ -9227,15 +9322,37 @@ const WISH_KONWU_CHANCE=WISH_GEM_KONWU;                   // 0.1% KonWu
 const DUPE_FRAG={1:7,2:14,3:30};                          // fragments refunded when a FULL-hero wish duplicates one you already own, by starting star
 // ---- free-wish availability ----
 function wishGoldFreeReset(){ const d=arenaDayKey(); if(G.wishGoldDay!==d){ G.wishGoldDay=d; G.wishGoldUsed=0; } }
-function wishGoldFreeLeft(){ wishGoldFreeReset(); return Math.max(0,WISH_GOLD_FREE_MAX-(G.wishGoldUsed||0)); }
-function wishGoldFreeReady(){ return wishGoldFreeLeft()>0 && (Date.now()-(G.wishGoldLast||0))>=WISH_GOLD_FREE_MS; }
-function wishGoldNextFreeMs(){ if(wishGoldFreeLeft()<=0) return null; return Math.max(0, WISH_GOLD_FREE_MS-(Date.now()-(G.wishGoldLast||0))); }
+function wishGoldFreeLeft(){ if(POOLSRV&&POOLSRV.goldFree) return Math.max(0,(POOLSRV.goldFree.max||WISH_GOLD_FREE_MAX)-(POOLSRV.goldFree.usedToday|0));
+  wishGoldFreeReset(); return Math.max(0,WISH_GOLD_FREE_MAX-(G.wishGoldUsed||0)); }
+function wishGoldFreeReady(){ if(POOLSRV&&POOLSRV.goldFree) return !!POOLSRV.goldFree.ready;
+  return wishGoldFreeLeft()>0 && (Date.now()-(G.wishGoldLast||0))>=WISH_GOLD_FREE_MS; }
+function wishGoldNextFreeMs(){ if(POOLSRV&&POOLSRV.goldFree) return POOLSRV.goldFree.ready?0:Math.max(0,POOLSRV.goldFree.nextMs|0);
+  if(wishGoldFreeLeft()<=0) return null; return Math.max(0, WISH_GOLD_FREE_MS-(Date.now()-(G.wishGoldLast||0))); }
 function wishGemUnlockAt(){ return ((ACC&&ACC.created)||G.created||Date.now())+WISH_FIRST_GEM_DELAY_MS; }   // anchored to ACCOUNT creation: a dev progress-reset never restarts the 20-min countdown
 // the POOL is never fully locked — a paid wish (💎300) is always available if you have the diamonds.
 // only the FREE wish is gated: the first free wish opens 20 min after account creation, then one
 // per server-day, resetting at the 09:00 ET daily reset (same boundary as all daily rewards).
-function wishGemFreeReady(){ if(!G.wishGemLast){ return Date.now()>=wishGemUnlockAt(); } return G.wishGemDay!==arenaDayKey(); }
-function wishGemNextFreeMs(){ if(!G.wishGemLast){ return Math.max(0, wishGemUnlockAt()-Date.now()); } return G.wishGemDay!==arenaDayKey()?0:arenaNextResetMs(); }
+/* 30 Aug (Phil): "people having infinite free wishes in pool", and separately "diamonds disappear".
+   ONE bug, both symptoms. G.wishGemLast, G.wishGemDay, G.wishGoldLast and G.wishGoldUsed were only
+   ever READ — nothing in the client ever wrote them after a wish. So wishGoldFreeLeft() was always 3,
+   G.wishGoldLast was always 0, and every free-wish check passed forever: the button read
+   "Wish Again · Free" permanently.
+   The pool has been server-owned since v251, and the SERVER charges correctly once its own
+   one-free-per-day is spent. So the player was being DEBITED DIAMONDS while the button said Free —
+   which is exactly what "my diamonds disappeared" looks like from the outside.
+   The fix is to stop guessing. /api/pool/state already publishes goldFree{ready,usedToday,nextMs}
+   and gemFree{ready}; POOLSRV caches that answer and the predicates below prefer it. The local
+   counters remain as the signed-out fallback, and are now actually written when a free wish is
+   consumed, so even that path stops lying. */
+let POOLSRV=null;
+async function poolStateSync(){ if(!ACC.token){ POOLSRV=null; return null; }
+  try{ const st=await api('/api/pool/state');
+    if(st&&!st.error){ POOLSRV=st; if(st.ledger)adoptLedger(st.ledger); if(st.firstDone!=null)G.wishGemFirstDone=!!st.firstDone; return st; } }catch(e){}
+  return null; }
+function wishGemFreeReady(){ if(POOLSRV&&POOLSRV.gemFree) return !!POOLSRV.gemFree.ready;
+  if(!G.wishGemLast){ return Date.now()>=wishGemUnlockAt(); } return G.wishGemDay!==arenaDayKey(); }
+function wishGemNextFreeMs(){ if(POOLSRV&&POOLSRV.gemFree) return POOLSRV.gemFree.ready?0:arenaNextResetMs();
+  if(!G.wishGemLast){ return Math.max(0, wishGemUnlockAt()-Date.now()); } return G.wishGemDay!==arenaDayKey()?0:arenaNextResetMs(); }
 // ---- reward grants (return {icon,name,extra?,big?}) ----
 // (wishMat deleted — v232 audit: no generic Rune/Glyph Shard currency exists; the pool grants NAMED fragments server-side)
 function heroBigIcon(hk){ const t=HERO_TYPES[hk]; return HERO_PORTRAITS[hk]?('<img src="'+HERO_PORTRAITS[hk]+'" style="width:92px;height:92px;border-radius:14px;object-fit:cover;box-shadow:0 3px 12px #000a">'):t.emoji; }
@@ -9320,8 +9437,17 @@ function serverWishToRes(r){
   return {icon:'❔',name:'…'}; }
 async function serverWish(pool,n){
   const r=await api('/api/pool/wish','POST',{pool,n,requestId:uid8()});   // the SERVER rolls, debits and grants (audit: server-owned banner/odds/pity)
-  if(!r||!r.ok){ bannerMsg((r&&r.error)||'The pool is quiet…'); await ledgerSync(); renderWishing(); return null; }
-  adoptLedger(r.ledger); return r; }
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'The pool is quiet…'); await ledgerSync(); await poolStateSync(); renderWishing(); return null; }
+  adoptLedger(r.ledger);
+  /* Record that the free wish was SPENT. The server told us whether this roll was free; without
+     writing it down the button offers the same free wish again and the next one silently costs
+     diamonds. Local markers are kept in step for the signed-out path, then the authoritative
+     state is refetched. */
+  if(r.free){ if(pool==='gold'){ wishGoldFreeReset(); G.wishGoldUsed=(G.wishGoldUsed||0)+1; G.wishGoldLast=Date.now(); }
+              else { G.wishGemLast=Date.now(); G.wishGemDay=arenaDayKey(); }
+              try{ saveG(); }catch(e){} }
+  poolStateSync().then(()=>{ try{ renderWishing(); }catch(e){} });
+  return r; }
 async function wishGoldDo(){ const r=await serverWish('gold',1); if(!r) return; finishWish(serverWishToRes(r.results[0]),'gold'); }
 async function wishGemDo(){ const r=await serverWish('gem',1); if(!r) return; G.wishGemFirstDone=true; finishWish(serverWishToRes(r.results[0]),'gem'); }
 // ---- 10× bulk wishes at a 10% discount (10 wishes for the price of 9) ----
@@ -9363,6 +9489,9 @@ async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h|
     return hh+' · '+(e.pool==='gold'?'🪙':'🔮')+'×'+e.n+' → '+(e.results||[]).join(', '); }).join('<br>');
   bannerMsg('📜 <b>Your last wishes (server-recorded)</b><br>'+rows); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
+  // first paint of a visit asks the server what is actually free, then repaints with the truth
+  if(ACC.token && !POOLSRV && !renderWishing._pending){ renderWishing._pending=1;
+    poolStateSync().then(()=>{ renderWishing._pending=0; try{ renderWishing(); }catch(e){} }); }
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
   const gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
@@ -10513,7 +10642,7 @@ function renderOnline(){
 }
 function hostStartMatch(){
   OL.active=true;OL.host=true;OL.byId={};CUR={mode:'online',host:true,node:0};waveXfer=null;
-  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0;
+  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult();
   spawnTeam(G.team,'ally');
   const slots=formationSlots('enemy',OL.guestRoster.length);
   OL.guestRoster.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
@@ -10523,7 +10652,7 @@ function hostStartMatch(){
 }
 function guestStartMatch(){
   OL.active=true;OL.host=false;OL.byId={};CUR={mode:'online',host:false,node:0};
-  clearBattle();units=[];selected=null;aiming=null;ended=false;show('battle');
+  clearBattle();units=[];selected=null;aiming=null;ended=false; cancelResult();show('battle');
   document.getElementById('portraitBar').dataset.mode='';document.getElementById('waveTag').textContent='🌐 LIVE PvP';
   document.getElementById('ultHint').textContent='You are RED (top). Tap a glowing hero, then a blue enemy to strike.';
 }
@@ -10802,7 +10931,7 @@ function attachUltPress(el,u,relayMode){
 /* nav wiring */
 function bindNav(root){ (root||document).querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=> el.hasAttribute('data-pop') ? popoutScreen(el.dataset.nav) : show(el.dataset.nav); }); }
 bindNav(document);
-document.getElementById('profileBtn').onclick=openProfile;
+wireTap(document.getElementById('profileBtn'), openProfile);
 document.getElementById('profClose').onclick=closeProfile;
 document.getElementById('profileModal').addEventListener('click',(e)=>{ if(e.target.id==='profileModal') closeProfile(); });
 document.getElementById('stageModal').addEventListener('click',(e)=>{ if(e.target.id==='stageModal') closeStageModal(); });
@@ -11106,7 +11235,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788124547864';
+const BUILD_ID='1788128992728';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
