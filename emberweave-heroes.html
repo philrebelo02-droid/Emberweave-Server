@@ -1407,7 +1407,7 @@ const BATTLE_ANIM = {
   green:{u:'/assets/anim/tick/tick_green.webp?v=6',n:48,fw:200,fh:300,cols:6,rows:8,figH:239,feet:297,cx:100,fps:30,flip:true,top:57,hold:1.0},
   blue:{u:'/assets/anim/tick/tick_blue.webp?v=6',n:48,fw:281,fh:300,cols:6,rows:8,figH:266,feet:285,cx:119,fps:30,flip:true,top:19,hold:0.9},
   passive:{u:'/assets/anim/tick/tick_passive.webp?v=6',n:48,fw:255,fh:300,cols:6,rows:8,figH:293,feet:296,cx:122,fps:30,flip:true,top:3},
-  fists:{u:'/assets/anim/tick/tick_blue.webp?v=1',n:48,fw:281,fh:300,cols:6,rows:8,figH:266,feet:285,cx:119,fps:30,flip:true,top:19,hold:0.95}
+  fists:{u:'/assets/anim/tick/tick_blue.webp?v=6',n:48,fw:281,fh:300,cols:6,rows:8,figH:266,feet:285,cx:119,fps:30,flip:true,top:19,hold:0.95}
   },
   // ---- MONSTERS (Hailuo-generated walk/attack/cast; idle = pingpong slice of walk) ----
   "bug":{
@@ -1693,35 +1693,61 @@ function _fitTex(t, cols, rows){ try{ const im=capSheet(t.image, cols, rows); if
    right as the fight starts — felt as the hitch on entering a battle. createImageBitmap can decode
    DIRECTLY at a target size, off the main thread, so the full-size bitmap never exists at all.
    Falls back to the old path wherever it is unsupported or fails. */
-function bitmapLoad(url, cols, rows, onTex, onErr){
+/* 30 Aug (v306) — HALF THE DECODE COST. This used to decode every sheet TWICE: once at full size
+   just to read its dimensions, then again at the capped size. A 6x12 sheet is ~1800x3600px, so the
+   throwaway probe decode was the single most expensive thing the loader did — and it is pure waste,
+   because the clip entry already declares fw/fh/cols/rows and an audit confirms every sheet on the
+   roster matches its declaration exactly. Decode ONCE, straight to the final size. Sheets whose
+   declaration is somehow wrong still land correctly: the resize is proportional to the real image,
+   so a mis-declared sheet is at worst slightly off the cap, never broken. */
+function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh){
   if(typeof createImageBitmap!=='function' || typeof fetch!=='function') return false;
   /* three r128 does NOT apply texture.flipY to an ImageBitmap, so the bitmap has to be created
      already flipped (imageOrientation:'flipY') and the texture told not to flip again — otherwise
      every sprite renders upside down. */
   fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
-    .then(bl=>createImageBitmap(bl,{imageOrientation:'flipY'}).then(probe=>{
-      const cw=probe.width/cols, ch=probe.height/rows;
-      const k=Math.min(1, CELL_CAP/Math.max(cw,ch));
-      if(k>=0.999){ onTex(probe); return; }
-      const nw=Math.max(1,Math.round(cw*k))*cols, nh=Math.max(1,Math.round(ch*k))*rows;
-      return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'})
-        .then(sm=>{ try{ probe.close&&probe.close(); }catch(e){} onTex(sm); });
-    }))
+    .then(bl=>{
+      const k=(fw&&fh)?Math.min(1, CELL_CAP/Math.max(fw,fh)):0;
+      if(k>0){
+        if(k>=0.999) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(onTex);
+        const nw=Math.max(1,Math.round(fw*k))*cols, nh=Math.max(1,Math.round(fh*k))*rows;
+        return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'}).then(onTex);
+      }
+      return createImageBitmap(bl,{imageOrientation:'flipY'}).then(probe=>{   // no declared geometry: old two-pass path
+        const cw=probe.width/cols, ch=probe.height/rows;
+        const k2=Math.min(1, CELL_CAP/Math.max(cw,ch));
+        if(k2>=0.999){ onTex(probe); return; }
+        const nw=Math.max(1,Math.round(cw*k2))*cols, nh=Math.max(1,Math.round(ch*k2))*rows;
+        return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'})
+          .then(sm=>{ try{ probe.close&&probe.close(); }catch(e){} onTex(sm); });
+      });
+    })
     .catch(()=>{ onErr&&onErr(); });
   return true;
 }
-function loadAnimSet(key){ const set=BATTLE_ANIM[key]; if(!set||set._loaded||!heroHasAnim(key)) return set;
-  for(const st in set){ if(st[0]==='_')continue; const s=set[st]; if(!isAssetRef(s.u))continue;
-    const _c=s.cols||s.n,_r=s.rows||1;
-    const tx=new TH.Texture();
-    if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; },
-                   ()=>{ const t2=new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); })){
-      new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
-    }
-    tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
-  // drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
-  for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
-  set._loaded=true; return set; }
+function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
+  const _c=s.cols||s.n,_r=s.rows||1;
+  const tx=new TH.Texture();
+  if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; },
+                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); }, s.fw, s.fh)){
+    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
+  }
+  tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
+/* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
+   burst, in declaration order, hero after hero: all seven of hero #1's sheets (including his ult and
+   his passive, which nobody will see for thirty seconds) queued ahead of hero #5's WALK. Measured on
+   a five-hero squad over localhost, walk sheets became usable between 0.2s and 6.4s after the battle
+   started — and the march-on lasts about three seconds. syncMesh's "sheet not ready → show idle
+   instead" safety net then quietly substituted idle, which is exactly what a missing walk animation
+   looks like. Nothing was wrong with the art. Load in TIERS instead: every marching unit's idle and
+   walk first, then the combat pair, then the abilities. */
+const ANIM_TIERS=[['idle','walk'],['attack','hit'],null];
+function loadAnimSet(key, states){ const set=BATTLE_ANIM[key]; if(!set||!heroHasAnim(key)) return set;
+  for(const st in set){ if(st[0]==='_')continue; if(states && states.indexOf(st)<0) continue; _loadClip(set[st]); }
+  if(!states){   // full pass: drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
+    for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
+    set._loaded=true; }
+  return set; }
 /* v255 (Phil, live): battle art used to start loading when a unit SPAWNED, so wave 2 and 3 popped
    in mid-fight. Everything a stage/floor will ever show — the map, every hero in the squad, and the
    monsters of EVERY authored wave — is now warmed before the fight starts. Textures are created
@@ -1730,9 +1756,11 @@ const _artWarmed={};
 function preloadBattleArt(keys, bgUrl){
   try{
     if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
-    (keys||[]).filter(Boolean).forEach(k=>{
-      if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1;
-      try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k); }catch(e){}
+    const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
+    // v306: TIERED. Pass 1 gets every unit standing and walking; only then do the abilities queue.
+    ANIM_TIERS.forEach(tier=>{ _ks.forEach(k=>{
+      try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k, tier); }catch(e){} }); });
+    _ks.forEach(k=>{
       try{ const sp=(typeof HERO_SPRITES!=='undefined')&&HERO_SPRITES[k]; if(sp&&isAssetRef(sp)){ const i2=new Image(); i2.decoding='async'; i2.src=sp; } }catch(e){}
     });
   }catch(e){}
@@ -4404,6 +4432,10 @@ function purgeTransientFx(){
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
   if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
 }
+const WALK_ART_WAIT=2.5;   // seconds the off-screen march will wait for walk sheets to decode before starting anyway
+function walkArtReady(u){ const c=u&&u.anim&&u.anim.walk; if(!c) return true;   // no walk clip at all → nothing to wait for
+  const im=c.tex&&!c._err&&c.tex.image; if(!im) return false;
+  return ('naturalWidth' in im) ? (im.complete&&im.naturalWidth>0) : ((im.width|0)>0); }
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
@@ -4449,6 +4481,14 @@ function updateWaveXfer(dt){
   if(waveXfer.phase==='enter'){   // BOTH sides walk the line into their slots, then combat resumes
     let allIn=true;
     const marching=units.filter(u=>u.alive && u.homeX!=null && !u._dropHidden && (u.team==='ally'||u.team==='enemy'));
+    /* 30 Aug (v306) — DON'T START THE MARCH BEFORE THE LEGS EXIST. The walk-on is about three
+       seconds long and begins the instant the battle does; a squad's walk sheets need roughly one to
+       two of those seconds to decode even on a fast connection, and syncMesh substitutes idle for any
+       clip that isn't ready yet. So the heroes slid on in their idle pose — read, correctly, as "the
+       heroes aren't doing their run animation". Everyone is still parked off-screen at this point, so
+       waiting for the sheets costs nothing visible: hold at the spawn until every marcher's walk clip
+       is usable, for at most WALK_ART_WAIT seconds, then go regardless. */
+    if(waveXfer.t < WALK_ART_WAIT && !marching.every(walkArtReady)) return;
     marching.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null;
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       if(d>10){ allIn=false; const mv=Math.min(d, XFER_IN_SPD*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; } });
@@ -11060,7 +11100,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788103650036';
+const BUILD_ID='1788107164459';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
