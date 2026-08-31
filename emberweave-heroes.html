@@ -4697,8 +4697,19 @@ function endBattle(won){
       document.getElementById('resultReward').innerHTML=msg;
       document.getElementById('resultHint').textContent=won?'The next floor is harder — spend Dust at the Forge to temper your gear.':'Backups step in when a fighter falls — bring 10 heroes.';
       gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){G.dungeonBest=(G.dungeonBest||0)+1;
-    if(ACC.token) api('/api/trial/resolve','POST',{kind:'dungeon',floor:G.dungeonBest,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
+  /* 30 Aug — A SINGLE REJECTED DUNGEON CLEAR BROKE THE DUNGEON FOREVER.
+     G.dungeonBest was incremented from the CLIENT's own verdict before the server had answered.
+     /api/trial/resolve refuses any floor above its own best+1 ("Clear the previous floor first"), so
+     the moment one call was rejected or simply failed to arrive, the client's floor ran one ahead of
+     the server's — and every future clear was refused, permanently, with the gap widening each time.
+     The attempted floor is now derived without mutating anything, and G.dungeonBest is set from the
+     SERVER's `best`, which it returns on a win, a loss and a rejection alike. */
+  if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){
+    const _try=(G.dungeonBest||0)+1;
+    if(!ACC.token) G.dungeonBest=_try;                       // offline: nothing server-side to disagree with
+    if(ACC.token) api('/api/trial/resolve','POST',{kind:'dungeon',floor:_try,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
+      if(r&&typeof r.best==='number') G.dungeonBest=r.best;  // the server's floor is the floor
+      else if(r&&r.error){ bannerMsg(r.error); ledgerSync(); }
       if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger);
         if(r.mats){ const txt=EQ_BASE.filter(b=>r.mats[b[0]]).map(b=>b[1]+' +'+r.mats[b[0]]).join(' ');
           const el=document.getElementById('resultReward'); if(el&&txt) el.innerHTML+=' · <span style="color:#8fe3ff">'+txt+'</span>'; } } }).catch(()=>{});   // v250: server-verified
@@ -9731,8 +9742,24 @@ function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
       if(sr&&sr.ok){ const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
       else if(sr&&sr.error){ bannerMsg(sr.error); } }).catch(()=>{}); return; }
   const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
-function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(); const st=steps[G.questChainStep||0]; let r='';
-  if(st.gems){ G.gems=(G.gems||0)+st.gems; txEarn('gems',st.gems,'quest'); r='+💎 '+st.gems+' diamonds'; }
+/* 30 Aug — THE STAGE-QUEST CHAIN BURNED THE STEP AND PAID NOTHING.
+   /api/quest/chain-claim exists, is idempotent, validates the stage requirement and grants both the
+   diamonds and the Vex fragments — the client simply never called it. It granted locally instead, so
+   ledgerSync erased the reward, and it advanced G.questChainStep unconditionally, so the step could
+   never be claimed again. The server is now the one that pays, and the local step only advances when
+   it says the claim succeeded. Signed out, the old local behaviour is kept. */
+async function claimChain(){ if(!questChainReady()) return; const steps=questChainDef(); const st=steps[G.questChainStep||0]; if(!st) return;
+  if(ACC.token){
+    const res=await api('/api/quest/chain-claim','POST',{requestId:uid8()}).catch(()=>null);
+    if(!res||!res.ok){ bannerMsg((res&&res.error)||'That quest could not be claimed yet.'); ledgerSync(); renderQuests(); return; }
+    if(res.ledger) adoptLedger(res.ledger);
+    if(res.step!=null) G.questChainStep=res.step;                      // the SERVER's step, not a local guess
+    const g=res.got||{};
+    const r=g.gems?('+💎 '+g.gems+' diamonds'):(g.vexFrags?('+'+g.vexFrags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'):'Reward banked');
+    saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); return;
+  }
+  let r='';
+  if(st.gems){ G.gems=(G.gems||0)+st.gems; r='+💎 '+st.gems+' diamonds'; }
   else { let m=''; for(let i=0;i<st.frags;i++){ const x=giveHeroFrag(QUEST_CHAIN_HERO,1); if(x)m=x; } r=m||('+'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'); }
   G.questChainStep=(G.questChainStep||0)+1; saveG(); updateHubChrome(); updateMailBadges();
   bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); }
@@ -11433,7 +11460,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788136414701';
+const BUILD_ID='1788137098640';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
