@@ -7229,7 +7229,17 @@ function ensureGuest(cb){
   let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
   api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
     if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
-      _cloudReady=true;   // brand-new guest: this device's state IS the account's first cloud save
+      /* 30 Aug — RESUMING A GUEST WAS DESTROYING THAT GUEST'S SAVE.
+         This comment was only ever true for a BRAND-NEW guest. /api/guest also RESUMES an existing
+         guest by device id — and in that case the browser's G is whatever it currently holds, which
+         after a launch or a sign-out is DEFAULT_G. Setting _cloudReady=true without adopting the
+         cloud save first meant the next pushSave() wrote that blank G straight over the guest's real
+         progress. Measured: a guest with 17 stages cleared came back with 0, and the cloud copy was
+         overwritten. Signing out of a real account triggered exactly this, because logout blanks G
+         and then calls ensureGuest().
+         Same idiom the signed-in path uses: adopt the cloud save, and only seed FROM this device
+         when the account genuinely has no save yet. */
+      if(!(_cloudReady=true, applyCloudSave(d.profile, true))) pushSave();
       try{ DEV.on=false; }catch(e){} if(typeof updateHubChrome==='function')updateHubChrome(); if(typeof renderAccount==='function')renderAccount(); }
     if(cb)cb();
   }).catch(()=>{ if(cb)cb(); });
@@ -11478,7 +11488,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788138145452';
+const BUILD_ID='1788138703406';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
