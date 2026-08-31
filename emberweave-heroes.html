@@ -7173,6 +7173,22 @@ function renderTech(){
 }
 /* ===================== ONLINE: accounts, arena, world ===================== */
 let ACC={token:null,name:null,rank:null,coins:0,id:null,created:0};
+/* 30 Aug — SIGNING OUT LEFT THE PREVIOUS ACCOUNT'S SERVER STATE ON SCREEN.
+   FORGE.st, VAULT.st, RUNE2.st and POOLSRV are caches of the SIGNED-IN account's server state. The
+   reset-progress flow already drops all of them (it knows they go stale when the server's copy
+   changes) but sign-out and sign-in did not — so after switching accounts the Forge, the Vault, the
+   glyph board and the wishing pool showed the PREVIOUS player's data until something happened to
+   refetch it. Every account transition now goes through this. */
+function clearServerCaches(){
+  try{ if(typeof FORGE!=='undefined'){ FORGE.st=null; FORGE.cat=null; FORGE.eqPick=null; } }catch(e){}
+  try{ if(typeof VAULT!=='undefined'){ VAULT.st=null; VAULT.result=null; VAULT.pick=null; VAULT.salv=null; } }catch(e){}
+  try{ if(typeof RUNE2!=='undefined'){ RUNE2.st=null; RUNE2.enabled=null; RUNE2.pick=null; } }catch(e){}
+  try{ if(typeof POOLSRV!=='undefined'){ POOLSRV=null; } }catch(e){}
+  try{ if(typeof INTEG!=='undefined'){ INTEG.reports=[]; INTEG.open=null; INTEG.audit=null; } }catch(e){}
+  try{ if(typeof LED!=='undefined'){ LED.st=null; } }catch(e){}
+  try{ if(typeof ARENA!=='undefined'){ ARENA.oppsRank=null; } }catch(e){}
+  try{ _worldCitiesCache=null; }catch(e){}
+}
 function loadAcc(){ try{const s=localStorage.getItem('ew_acc');if(s)ACC=JSON.parse(s);}catch(e){} }
 function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} }
 // GUEST SESSION: when there's no signed-in account, provision a persistent server-backed "level 1 guest"
@@ -7199,7 +7215,7 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
   return j; }catch(e){ return {error:'offline'}; } }
 let _kickedNotified=false;
 function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
-  try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); }catch(e){}
+  try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); clearServerCaches(); }catch(e){}
   if(typeof updateHubChrome==='function') updateHubChrome();
   showKickedNotice();
   setTimeout(()=>{ _kickedNotified=false; }, 4000);
@@ -7252,12 +7268,12 @@ function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.ros
 function renderAccount(){ const b=document.getElementById('accountBody');
   if(!online()){ b.innerHTML='<div>🌐 Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
   if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
-    b.querySelector('#logout').onclick=()=>{ flushCloud(); ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); ensureGuest(()=>{ updateHubChrome(); renderAccount(); }); }; return; }
+    b.querySelector('#logout').onclick=()=>{ flushCloud(); ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); clearServerCaches(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); ensureGuest(()=>{ updateHubChrome(); renderAccount(); }); }; return; }
   b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">🎮 <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
-  const finishAuth=(d,isReg)=>{ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
+  const finishAuth=(d,isReg)=>{ clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
@@ -11051,7 +11067,15 @@ function attachUltPress(el,u,relayMode){
       if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; }
       if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; u._autoAimUse=false; } else { u._autoAimUse=true; }   // tap fires the solved optimum, drag fires where you pointed
       fireAimed(); }
-    else if(pending){ pending=false; if(u.alive&&u.energy>=100){ const ab=u.abilityOverride||u.t.ability; if(!ULT_AIMED.includes(ab)){ if(relayMode) relay({k:'ult',id:u.id,tid:-1}); else castAbility(u); } } hideAbilityTip(); }
+    /* 30 Aug — A NON-AIMED ULTIMATE WAS INVISIBLE TO THE SERVER.
+       This called castAbility(u) DIRECTLY, so unlike the aimed path (fireAimed → queueInput) it was
+       never written to INPUT_LOG and never given a tick. INPUT_LOG is what /api/campaign/resolve
+       replays to verify the result, so the server replayed a fight in which the player never fired
+       their ultimate — and could return a DEFEAT for a stage they watched themselves win. It also
+       fired on a wall-clock instant instead of an exact tick, which breaks determinism on its own.
+       Routed through queueInput exactly as the aimed path is; applyInput() re-checks legality
+       (energy, stun, fear, silence) before it casts, so nothing illegal slips through. */
+    else if(pending){ pending=false; if(u.alive&&u.energy>=100){ const ab=u.abilityOverride||u.t.ability; if(!ULT_AIMED.includes(ab)){ if(relayMode) relay({k:'ult',id:u.id,tid:-1}); else queueInput({k:'ult', uid:u.uid, tid:((u.target&&u.target.alive)?u.target.uid:null), wx:null, wy:null}); } } hideAbilityTip(); }
   };
   el.addEventListener('pointerup',finish);
   el.addEventListener('pointercancel',()=>{ if(holdAim){ holdAim=false; cancelAim(); } pending=false; });
@@ -11374,7 +11398,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788134536652';
+const BUILD_ID='1788135137539';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
