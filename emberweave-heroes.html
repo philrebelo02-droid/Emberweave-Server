@@ -7545,9 +7545,18 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   b.querySelector('#arenaRankings').onclick=openRankings;
   const cd=b.querySelector('#claimDaily'); if(cd&&dready) cd.onclick=()=>{
     if(!arenaDailyReady())return; const dr=arenaDailyReward(G.arenaRank);
-    if(ACC.token){ api('/api/arena/daily-claim','POST',{requestId:uid8()}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); } else if(r&&r.error) bannerMsg(r.error); }).catch(()=>{}); }   // v250: the SERVER pays the arena daily from ITS rank table
-    G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now(); saveG(); updateHubChrome(); renderArena();
-    document.getElementById('dailyMsg').textContent=`Claimed! 💎 +${dr.gems} · 🪙 +${dr.gold.toLocaleString()} · 🎟️ +${dr.coins}`;
+    /* 30 Aug — the day was burned locally BEFORE the server answered, and stayed burned even when the
+       server refused or the request never arrived. One dropped request cost the player that day's
+       diamonds, gold and coins with nothing to show for it. The day is now only marked claimed once
+       the server has actually paid. */
+    const _finish=()=>{ G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();
+      saveG(); updateHubChrome(); renderArena();
+      const dm=document.getElementById('dailyMsg'); if(dm) dm.textContent=`Claimed! 💎 +${dr.gems} · 🪙 +${dr.gold.toLocaleString()} · 🎟️ +${dr.coins}`; };
+    if(ACC.token){ api('/api/arena/daily-claim','POST',{requestId:uid8()}).then(r=>{
+        if(r&&r.ok){ adoptLedger(r.ledger); _finish(); }
+        else { bannerMsg((r&&r.error)||'The daily could not be claimed — try again in a moment.'); ledgerSync(); } })
+      .catch(()=>{ bannerMsg('Connection lost — the daily is still yours to claim.'); }); }
+    else _finish();
   };
   const el=b.querySelector('#arenaOpps'); el.innerHTML='';
   if(!opps.length){ el.innerHTML=`<div style="text-align:center;padding:14px 8px;color:#ffd45e;font-weight:700">👑 You're Rank #1 — no one left to challenge!</div><div style="text-align:center;font-size:11px;color:#8b98a9">Defend your throne and claim the daily reward.</div>`; }
@@ -10495,10 +10504,11 @@ function renderSettings(){
   }
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
     flushCloud();                                   // save this account's latest progress before leaving
-    G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // logging off drops you to a FRESH level-1 guest (real progress is safe on the server)
-    ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc(); ensureGuest();
+    ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc();
+    clearServerCaches();                            // 30 Aug: or the next account sees this one's Forge, Vault, glyphs and pool state
     pwStep='idle'; emStep='idle'; _emPending='';
-    G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // clean slate so the next account loads its own save, not this one's
+    G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // blank ONCE; ensureGuest then loads the device guest's own save over it
+    ensureGuest(()=>{ updateHubChrome(); renderSettings(); });
     updateHubChrome(); renderSettings(); };
   // ---- recovery email: add / change requires an emailed code (to the CURRENT email if one exists) ----
   const acEdit=b.querySelector('#acEditEmail'); if(acEdit) acEdit.onclick=(e)=>{ e.preventDefault(); const f=b.querySelector('#acEmailForm'); if(f){ f.style.display='block'; const i=b.querySelector('#acEmailIn'); if(i)i.focus(); } };
@@ -11488,7 +11498,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788138703406';
+const BUILD_ID='1788139203125';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
