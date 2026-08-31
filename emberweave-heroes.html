@@ -5572,7 +5572,14 @@ function renderHome(){
 }
 let _homeScroll=null, _restoreHomeScroll=true;   // town scroll memory (first load centers)
 /* ---- player profile (name / avatar / xp) ---- */
-function openProfile(){ if(!queueBehindReward(openProfile)) return; renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
+/* 30 Aug — THE PROFILE BUTTON THREW EVERY TIME IT WAS PRESSED.
+   queueBehindReward(fn) CALLS fn() immediately when nothing is reward-locked — which is the normal
+   case — so passing openProfile to it made openProfile call itself forever. Every tap on the
+   portrait ended in RangeError: Maximum call stack size exceeded and the modal never opened. It was
+   not the tap that was broken, it was the handler. bannerMsg() next to it has the correct shape:
+   test rewardLocked() first, and only queue when something IS locked. */
+function openProfile(){ if(rewardLocked()){ queueBehindReward(openProfile); return; }
+  renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
 /* v267 (80/20 §9): every currency's SOURCES, SINKS and CAPS, and the daily reset in BOTH server
    time and the player's own local time — read live from /api/manifest, never hard-coded here. */
 const CURRENCY_META={ gold:['🪙','Gold'], gems:['💎','Diamonds'], stamina:['⧗','Stamina'],
@@ -5647,7 +5654,12 @@ function renderProfileModal(){
     if(v.length<2){ msg.textContent='Name needs at least 2 characters.'; return; }
     if(v===(G.playerName||'')){ msg.textContent='That is already your name.'; return; }
     const cost=renameCost();
-    const doRename=()=>{ if(cost>0)G.gems=(G.gems||0)-cost; G.playerName=v; G.renames=(G.renames||0)+1; G.nameChanged=true; saveG(); updateHubChrome(); chatUpdateName(); renderProfileModal(); };
+    /* 30 Aug — every rename after the first free one was also free: the cost only ever came off the
+       client mirror and ledgerSync put it back within 45 seconds. */
+    const doRename=()=>{ if(cost>0){ G.gems=(G.gems||0)-cost;
+        if(ACC.token) api('/api/tx/spend','POST',{what:'gems',amount:cost,reason:'rename',requestId:uid8()})
+          .then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>ledgerSync()); }
+      G.playerName=v; G.renames=(G.renames||0)+1; G.nameChanged=true; saveG(); updateHubChrome(); chatUpdateName(); renderProfileModal(); };
     if(cost<=0){ doRename(); return; }                                   // first rename is free
     if((G.gems||0)<cost){ msg.textContent='You need 💎'+cost+' diamonds for this rename.'; return; }
     gameConfirm(`Rename to <b>${escapeHTML(v)}</b> for <b style="color:#c9b6ff">💎${cost}</b> diamonds?`, doRename);
@@ -7576,7 +7588,13 @@ function renderWall(){
 function doTransfer(rk){ if(rk===myRegion())return;
   const free=transferFree();
   if(!free && (G.gems||0)<TRANSFER_COST){ const m=document.getElementById('xferMsg'); if(m)m.textContent='Need 💎'+TRANSFER_COST+' — your free monthly transfer is used.'; return; }
-  const apply=()=>{ if(!free)G.gems=(G.gems||0)-TRANSFER_COST; G.region=rk; G.zone=rk; G.lastTransfer=Date.now(); _worldCitiesCache=null; saveG(); updateHubChrome(); bannerMsg('🏰 Region moved to '+ZONES[rk].name); renderWall(); };
+  /* 30 Aug — THE TRANSFER WAS FREE. The 1,000-diamond cost was subtracted from the client mirror
+     only; the server never saw the spend, so the next ledgerSync (45s) handed the diamonds straight
+     back. Route it through /api/tx/spend like every other real cost. */
+  const apply=()=>{ if(!free){ G.gems=(G.gems||0)-TRANSFER_COST;
+      if(ACC.token) api('/api/tx/spend','POST',{what:'gems',amount:TRANSFER_COST,reason:'transfer',requestId:uid8()})
+        .then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>ledgerSync()); }
+    G.region=rk; G.zone=rk; G.lastTransfer=Date.now(); _worldCitiesCache=null; saveG(); updateHubChrome(); bannerMsg('🏰 Region moved to '+ZONES[rk].name); renderWall(); };
   const freeAfter=0;   // transferring consumes/blocks the monthly free window
   gameConfirm('Are you sure you want to transfer regions to <b>'+ZONES[rk].name+'</b>?<br><span style="font-size:11px;color:#8b98a9">After this region transfer you will have <b>'+freeAfter+'</b> free region transfers.'+(free?'':'<br>This transfer costs <b>💎'+TRANSFER_COST+'</b> (monthly free already used).')+'</span>', apply);
 }
@@ -8045,7 +8063,23 @@ function pollPvpReports(){ if(!ACC.token||!online())return;
 }
 const STATION_HOME=3153600000000;   // ~100 years — defenders garrison "forever" until retreat
 // global tick: resolves arrivals (even off the map) and frees troops once they're home
-function marchTick(){ const now=Date.now(); let changed=false;
+/* 30 Aug — A MARCH LANDING MID-FIGHT CORRUPTED THE FIGHT.
+   resolveMarch() runs simFightResult(), the headless resolver. That saves and restores
+   {units,state,ended,CUR,battleTime,…} but it does NOT restore the battle RNG — seedBattle() reseeds
+   _brng and resets the tick/uid/input state — and it CLEARS groundHazards/shots/particles/floatTexts
+   outright. Its own comment says "Safe: only runs off-battle (marchTick)", but marchTick is a plain
+   1s setInterval with no battle guard, so a march arriving during a fight reseeded the live battle's
+   RNG, deleted its ground hazards and, worst of all, EMPTIED INPUT_LOG.
+   INPUT_LOG is what /api/campaign/resolve replays to verify the result. Losing it means the server
+   replays a fight in which the player never cast their ultimates — and can hand back a DEFEAT for a
+   fight the player watched themselves win. That is a second, independent cause of the arena/stage
+   "won then defeat" report, alongside the endBattle re-entrancy fixed earlier.
+   Measured before this guard: RNG stream moved, hazards 1 -> 0, INPUT_LOG 1 -> 0.
+   Marches are resolved on arrival TIME, so deferring them until the fight ends loses nothing — the
+   update poller two lines below already defers itself the same way for the same reason. */
+function marchTick(){
+  if(state==='battle' && !ended && !window._p2guard) return;   // never run the headless sim over a live fight
+  const now=Date.now(); let changed=false;
   activeMarches().forEach(m=>{ if(!m.resolved && now>=m.arrive){ resolveMarch(m); m.resolved=true;
       if(m.dir==='out' && m.ctype==='defend' && !m.retreated){ m.stationed=true; m.home=now+STATION_HOME; }  // defenders stay until recalled
       changed=true; } });
@@ -11123,7 +11157,9 @@ function buyGemOffer(i){
   ov.addEventListener('click',e=>{ if(e.target===ov) close(); });     // click backdrop closes
   ov.querySelector('button').onclick=(e)=>{ e.stopPropagation(); close(); };   // OK button closes
 }
-function openHudShop(kind){ if(!queueBehindReward(()=>openHudShop(kind))) return; renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
+// same defect as openProfile above — the HUD shop's + button threw on every press
+function openHudShop(kind){ if(rewardLocked()){ queueBehindReward(()=>openHudShop(kind)); return; }
+  renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
 function closeHudShop(){ document.getElementById('hudShop').classList.remove('active'); }
 function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.dataset.kind=kind; m.classList.toggle('framed', kind==='gem');
   if(kind==='food') renderFoodShop(); else if(kind==='gold') renderGoldShop(); else renderGemShop(); }
@@ -11338,7 +11374,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788133334451';
+const BUILD_ID='1788134536652';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
