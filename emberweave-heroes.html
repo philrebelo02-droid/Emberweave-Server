@@ -7102,6 +7102,7 @@ function renderRoster(){
     r.appendChild(card);
   });
   function syncStart(){
+    { const _rc=document.getElementById('resetCompBtn'); if(_rc) _rc.disabled=!teamArr.length; }   // 30 Aug: this was set once at render, so RESET stayed dead after the first pick
     const full=isVault?teamArr.length>=TEAM_SIZE:teamArr.length>=1;   // Vault needs 5 fighters; elsewhere partial teams allowed
     regenStamina();
     const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<stageStamCost(CUR.node);
@@ -11477,7 +11478,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788137659496';
+const BUILD_ID='1788138145452';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

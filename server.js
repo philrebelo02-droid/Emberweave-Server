@@ -673,6 +673,13 @@ function questChainStepsSrv(){ const steps=[{node:1,frags:2},{node:2,frags:2},{n
 const TRIAL_KINDS={ tower:{mul:0.85, reward:f=>({gold:80+8*f, heroXp:60})},
                     gauntlet:{mul:1.0, reward:f=>({gold:100+10*f, heroXp:70})},
                     dungeon:{mul:0.9, reward:f=>({gold:200, px:100, heroXp:90})} };
+/* 30 Aug — PROTOTYPE POLLUTION VIA heroKey.
+   /api/gear/equip did `g.equipped[hero] = g.equipped[hero] || {}` with `hero` taken straight from
+   the request body. Sent as "__proto__" that reads and then WRITES Object.prototype — a single
+   request could add a property to every object in the server process. The gear and glyph routes had
+   no whitelist at all; the ledger routes had one, but `SIM.HERO_BASE['__proto__']` is itself truthy,
+   so `if(!SIM.HERO_BASE[k])` did not stop it either. hasOwnProperty is the check that does. */
+function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
 function glyphFlatStats(u,key){
@@ -2245,8 +2252,9 @@ async function api(req,res,url){
       return ok({ crafted:nid, gearId:def.id, name:def.name });
     }
     if(p==='/api/gear/equip'){
-      const hero=String(b.heroKey||'').slice(0,24); const iid=String(b.itemId||'');
+      const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');
       const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      if(!validHero(hero)) return bad('Unknown hero.');
       if(!hero||!it||!def) return bad('Unknown item.');
       const where=gearItemEquippedBy(g,iid);
       if(where) return bad('Already equipped on '+where.hero+'.');
@@ -2256,7 +2264,7 @@ async function api(req,res,url){
       return ok({ hero, slot:def.slot, itemId:iid });
     }
     if(p==='/api/gear/unequip'){
-      const hero=String(b.heroKey||'').slice(0,24); const slot=String(b.slot||'');
+      const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const slot=String(b.slot||'');
       if(!g.equipped[hero]||!g.equipped[hero][slot]) return bad('Nothing equipped there.');
       const iid=g.equipped[hero][slot]; delete g.equipped[hero][slot];
       if(g.active[hero]===iid) delete g.active[hero];
@@ -2288,7 +2296,7 @@ async function api(req,res,url){
       return ok({ extracted:iid, name:def.name, refund });
     }
     if(p==='/api/gear/select-active'){
-      const hero=String(b.heroKey||'').slice(0,24); const iid=String(b.itemId||'');
+      const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');
       const eq=g.equipped[hero]||{};
       if(!Object.values(eq).includes(iid)) return bad('That item is not equipped on this hero.');
       g.active[hero]=iid;
@@ -2607,7 +2615,7 @@ async function api(req,res,url){
       // Correction Spec v1: the ONLY way a Glyph comes to exist — verified and consumed atomically,
       // written permanently into one chosen slot. No loose instance, no removal, no replacement.
       const rid=String(b.requestId||'').slice(0,48); if(!rid) return bad('requestId required');
-      const hero=String(b.heroKey||'').slice(0,24); const slot=parseInt(b.slot,10);
+      const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const slot=parseInt(b.slot,10);
       if(!SIM.HERO_BASE[hero]) return bad('Unknown hero.');
       if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
       if(!(slot>=0&&slot<6)) return bad('Bad slot.');
@@ -2644,7 +2652,7 @@ async function api(req,res,url){
       // fragment cost), the whole call is refused and nothing is consumed.
       const rid=String(b.requestId||'').slice(0,48); if(!rid) return bad('requestId required');
       if(g.applied && g.applied[rid]) return send(res,200,g.applied[rid]);
-      const hero=String(b.heroKey||'').slice(0,24);
+      const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.');
       if(!SIM.HERO_BASE[hero]) return bad('Unknown hero.');
       if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
       const board=glyphBoard(g,hero);
@@ -2670,7 +2678,7 @@ async function api(req,res,url){
       writeDB(); return send(res,200,receipt);
     }
     if(p==='/api/glyphs/ascend'){
-      const hero=String(b.heroKey||'').slice(0,24); const board=g.boards[hero];
+      const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const board=g.boards[hero];
       if(!board) return bad('Nothing socketed on this hero.');
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('Already fully ascended.');
       if(board.slots.some(s=>!s)) return bad('All six slots must be filled to ascend.');
@@ -2925,7 +2933,7 @@ async function api(req,res,url){
         if(ledPlayerLevel(led)>before){ ledStamRegen(led); led.stam.v=Math.max(led.stam.v,ledStamMax(led)); } }
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?b.heroKeys.map(String).slice(0,10):[]);
         for(const k of keys){ if(!led.unlocked[k]) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
-      else if(what==='frag'){ const k=String(b.heroKey||''); if(!SIM.HERO_BASE[k]) return {ok:false,error:'Unknown hero.'};
+      else if(what==='frag'){ const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'};
         led.frags[k]=Math.min(9999,(led.frags[k]|0)+amt); }
       else return {ok:false,error:'Unknown earn currency.'};
       const tx=ledTx(me,'earn:'+reason,{[what]:amt});
@@ -3141,7 +3149,7 @@ async function api(req,res,url){
   if(p==='/api/hero/star-step' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':starstep:'+reqId,()=>{
-      const led=ensureLedger(me); const k=String(b.heroKey||''); const base=SIM.HERO_BASE[k]; if(!base) return {ok:false,error:'Unknown hero.'};
+      const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
       if(!led.unlocked[k]) return {ok:false,error:'Hero not unlocked.'};
       const h=led.hero[k]||(led.hero[k]={xp:0,stars:base.stars,pips:0});
       const STAR_COST={1:{pip:3,confirm:5},2:{pip:6,confirm:20},3:{pip:14,confirm:30},4:{pip:20,confirm:50}};
@@ -3157,7 +3165,7 @@ async function api(req,res,url){
   if(p==='/api/hero/refine' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':refine:'+reqId,()=>{
-      const led=ensureLedger(me); const k=String(b.heroKey||''); const base=SIM.HERO_BASE[k]; if(!base) return {ok:false,error:'Unknown hero.'};
+      const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
       const h=led.hero[k]; if(!h||h.stars<5) return {ok:false,error:'Refine opens at 5★.'};
       const lvl=Math.max(0,Math.min(15,h.ref|0));
       if(lvl>=15) return {ok:false,error:'Fully refined.'};
@@ -3173,7 +3181,7 @@ async function api(req,res,url){
   if(p==='/api/hero/summon' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':summon:'+reqId,()=>{
-      const led=ensureLedger(me); const k=String(b.heroKey||''); const base=SIM.HERO_BASE[k]; if(!base) return {ok:false,error:'Unknown hero.'};
+      const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
       if(led.unlocked[k]) return {ok:false,error:'Already summoned.'};
       const ss=POOL_START_STARS[k]||base.stars||1;
       const SUMMON_COST_T={1:10,2:30,3:80};
@@ -3285,7 +3293,7 @@ async function api(req,res,url){
         writeDB(); return {ok:true, step:led.quests.chainStep, got, ledger:ledgerView(me)};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/market/frag'){ const out=idem(me.id+':mfrag:'+reqId,()=>{
-        const hk=String(b.heroKey||''); if(!SIM.HERO_BASE[hk]) return {ok:false,error:'Unknown hero.'};
+        const hk=String(b.heroKey||''); if(!validHero(hk)) return {ok:false,error:'Unknown hero.'};
         const qty=Math.max(1,Math.min(4,b.qty|0));
         const pay=b.pay==='gems'?'gems':'gold';
         const price=pay==='gems'? 30*qty : 550*qty;                       // SERVER prices — the client displays these
