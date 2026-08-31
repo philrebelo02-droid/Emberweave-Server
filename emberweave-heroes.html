@@ -11058,7 +11058,16 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
 
 /* input */
 const AIM_HINT='';   // persistent ult hint removed (redundant, Phil); the brief drag instruction still shows while actively aiming
-function evXY(e){const r=overlay.getBoundingClientRect();return {x:(e.clientX)-r.left,y:(e.clientY)-r.top};}
+/* 30 Aug — AIMING AN ULTIMATE WHILE ZOOMED HIT THE WRONG PLACE.
+   applyBattleView() CSS-transforms #overlay with translate(...) scale(battleZoom). getBoundingClientRect()
+   returns the transformed box, so (clientX - r.left) is a distance in SCREEN pixels — but project(),
+   nearestToScreen() and screenToField() all work in the overlay's own untransformed layout space.
+   At 1.5x zoom every aim landed 1.5x too far from the transform origin, and at 0.5x half as far.
+   Dividing by the zoom converts back to layout space, and it holds for any transform-origin because
+   r.left already moves with the transform. */
+function evXY(e){ const r=overlay.getBoundingClientRect();
+  const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1;
+  return {x:((e.clientX)-r.left)/z, y:((e.clientY)-r.top)/z}; }
 function aimTargetTeam(){ return (OL.active&&!OL.host)?'ally':'enemy'; }
 function nearestToScreen(sx,sy,team){ let best=null,bd=1e9; units.forEach(o=>{if(!o.alive||o.team!==team)return;const p=project(o.x,o.y,1);if(!p.vis)return;const d=Math.hypot(p.x-sx,p.y-sy);if(d<bd){bd=d;best=o;}}); return best; }
 /* OPTIMAL AUTO-AIM (Phil: "click and let go it automatically ults in an optimal direction;
@@ -11498,7 +11507,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788139203125';
+const BUILD_ID='1788139632369';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

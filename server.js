@@ -1541,6 +1541,12 @@ function ledHeroLevel(led,k){ const h=led.hero[k]; if(!h) return 1;
   return Math.max(1,Math.min(ledPlayerLevel(led), d_levelForXP(h.xp||0, D_HERO_CUM))); }
 const STAM_MAX_BASE=59, STAM_REGEN_MS=360000, STAM_COST_NORMAL=6, STAM_COST_BOSS=12;
 function ledStamMax(led){ return STAM_MAX_BASE+ledPlayerLevel(led); }
+/* 30 Aug — A REFUND MUST NOT TAKE STAMINA AWAY.
+   These clamped to ledStamMax (59 + player level), but stamina can legitimately sit ABOVE that: the
+   sign-in calendar, the guild shop's Stamina Refill and the diamond packs all push past it, and
+   ledStamRegen deliberately never touches a balance already over the cap. So refunding 6 stamina to
+   a player holding 200 clamped them to ~100 and destroyed the rest — stamina they had paid for. The
+   cap governs REGENERATION, not how much you may hold. */
 function ledStamRegen(led){ const now=Date.now(); const mx=ledStamMax(led);
   if(led.stam.v<mx){ const g=Math.floor((now-led.stam.ts)/STAM_REGEN_MS);
     if(g>0){ led.stam.v=Math.min(mx,led.stam.v+g); led.stam.ts+=g*STAM_REGEN_MS; } }
@@ -3001,7 +3007,7 @@ async function api(req,res,url){
       const sameSquad = open && Array.isArray(open.heroIds) && open.heroIds.length===ids.length
         && open.heroIds.every((k,i)=>k===ids[i]);
       if(open && !sameSquad && (Date.now()-(open.startedAt||0) <= CAMP_SESSION_MS) && open.node===node){
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':resquad:'+(open.node|0),{stamina:(open.stamPaid|0)});
         prog.att=null;
       }
@@ -3013,11 +3019,11 @@ async function api(req,res,url){
           return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:open.seed,
             snaps:open.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
         }
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':abandoned:'+(open.node|0),{stamina:(open.stamPaid|0)});
         prog.att=null;
       } else if(prog.att){ const open=prog.att;
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(open.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(open.node|0),{stamina:(open.stamPaid|0)});
         prog.att=null;
       } }
@@ -3051,7 +3057,7 @@ async function api(req,res,url){
          resolvable hours later or silently consumed. */
       if(Date.now()-(a.startedAt||0) > CAMP_SESSION_MS){
         prog.att=null;
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(a.node|0),{stamina:(a.stamPaid|0)});
         writeDB();
         return {ok:false, expired:true, error:'That battle expired — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
@@ -3077,7 +3083,7 @@ async function api(req,res,url){
       if(!host || !Array.isArray(a.snaps) || !a.snaps.length){
         /* We could not verify the fight — so we record NOTHING. Not a win, not a loss. The stamina
            goes back and the incident is kept. A defect is never dressed up as a result. */
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
         writeDB();
         return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'};
@@ -3085,7 +3091,7 @@ async function api(req,res,url){
       let rep=null;
       try{ rep=host.campaign(a.snaps, st.waves, a.seed>>>0, inputLog); }
       catch(e){ console.error('sim-host replay failed:',e.message);
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
         writeDB();
         return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'}; }
@@ -3098,7 +3104,7 @@ async function api(req,res,url){
       const clientEnd=(typeof b.digest==='string')?b.digest:'';
       const digestMatch = clientEnd ? (sha256hex(clientEnd)===sha256hex(serverEndDigest)) : null;
       if(digestMatch!==true){
-        led.stam.v=Math.min(ledStamMax(led), led.stam.v+(a.stamPaid|0));
+        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         const why=(digestMatch===null)?'no-client-digest':'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:st.id, mode, why,
           source:transcriptSource,
