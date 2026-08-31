@@ -1565,12 +1565,12 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
    runaway loop, not a design limit. */
 const EARN_RULES={
   frag:{ arena:{max:10,day:60}, signin:{max:20,day:40} },
-  stamina:{ signin:{max:120,day:240} },
+  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000} },
   gems:{ signin:{max:200,day:2000}, tower:{max:500,day:5000}, gauntlet:{max:500,day:5000},
          stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
          wish:{max:500,day:8000}, quest:{max:500,day:4000}, convert:{max:1000,day:6000},
          pack:{max:20000,day:60000}, misc:{max:200,day:2000} },
-  gold:{ signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
+  gold:{ guildshop:{max:20000,day:120000}, signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
          stars:{max:200000,day:2000000}, city:{max:100000,day:1000000}, wish:{max:100000,day:1000000},
          quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000}, misc:{max:50000,day:500000} } };
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
@@ -2895,6 +2895,11 @@ async function api(req,res,url){
       if(what==='gold'){ if(led.gold<amt) return {ok:false,error:'Not enough gold.'}; led.gold-=amt; }
       else if(what==='gems'){ if(led.gems<amt) return {ok:false,error:'Not enough diamonds.'}; led.gems-=amt; }
       else if(what==='stamina'){ ledStamRegen(led); if(led.stam.v<amt) return {ok:false,error:'Not enough stamina.'}; led.stam.v-=amt; }
+      /* 30 Aug — guildCoins live on the ledger (and are stripped from the save) but spend never
+         accepted them, so every guild-shop purchase was refunded by the next sync: unlimited
+         shields, unlimited gold caches. The v274 note at the guild-raid reward even said the shop
+         still had to be moved onto the ledger; this is that. */
+      else if(what==='guildCoins'){ if((led.guildCoins|0)<amt) return {ok:false,error:'Not enough guild coins.'}; led.guildCoins=(led.guildCoins|0)-amt; }
       else return {ok:false,error:'Unknown currency.'};
       const tx=ledTx(me,'spend:'+String(b.reason||'unspecified').slice(0,40),{[what]:-amt});
       writeDB(); return {ok:true, tx, ledger:ledgerView(me)};

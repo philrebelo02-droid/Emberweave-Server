@@ -8489,14 +8489,14 @@ function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())
 // guild shop catalogue (first guildShopSlots() are unlocked by guild level)
 const GUILD_SHOP=[
   {name:'Protection Shield',desc:'12h attack immunity',cost:800,give:()=>{G.shieldItems=(G.shieldItems||0)+1;}},
-  {name:'Gold Cache',desc:'+5,000 gold',cost:300,give:()=>{G.gold=(G.gold||0)+5000;}},
+  {name:'Gold Cache',desc:'+5,000 gold',cost:300,give:()=>{G.gold=(G.gold||0)+5000; txEarn('gold',5000,'guildshop');}},
   {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,give:()=>{G.gems=(G.gems||0)+50; txEarn('gems',50,'guildshop');}},
-  {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{G.stamina=Math.max(G.stamina,maxStamina());G.staminaTS=Date.now();}},
+  {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{const _need=Math.max(0,maxStamina()-(G.stamina||0)); G.stamina=Math.max(G.stamina,maxStamina());G.staminaTS=Date.now(); if(_need>0)txEarn('stamina',_need,'guildshop');}},
   {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,give:()=>{G.arenaCoins=(G.arenaCoins||0)+2000;}},
   /* v274: materials are ledger-owned, so this purchase is a SERVER purchase (/api/shop/buy 'pieces').
      Granting them locally would have shown the player goods their next sync erased. */
   {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,server:'pieces',give:()=>{}},
-  {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,give:()=>{G.gold=(G.gold||0)+15000;}},
+  {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,give:()=>{G.gold=(G.gold||0)+15000; txEarn('gold',15000,'guildshop');}},
   {name:'Resource Crate',desc:'+100 of each map resource',cost:350,give:()=>{RES.forEach(([k])=>G.res[k]=(G.res[k]||0)+100);}},
   {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,give:()=>{G.gems=(G.gems||0)+150; txEarn('gems',150,'guildshop');}},
   {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,give:()=>{G.shieldItems=(G.shieldItems||0)+3;}},
@@ -8510,7 +8510,27 @@ function renderGuildShopInto(el){
     GUILD_SHOP.slice(0,slots).map((it,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px">
       <div><b>${it.name}</b><div style="font-size:11px;color:#8b98a9">${it.desc}</div></div>
       <button class="btn sm" data-buy="${i}" ${coins>=it.cost?'':'disabled'}>🎖 ${it.cost}</button></div>`).join('');
-  el.querySelectorAll('[data-buy]').forEach(btn=>btn.onclick=()=>{ const it=GUILD_SHOP[+btn.dataset.buy]; if((G.guildCoins||0)<it.cost)return; G.guildCoins-=it.cost; it.give(); saveG(); updateHubChrome(); renderGuildShopInto(el); });
+  /* 30 Aug — THE GUILD SHOP CHARGED NOTHING AND SOMETIMES GAVE NOTHING.
+     guildCoins are ledger-owned and stripped from the save, but the cost was only ever deducted
+     from the client mirror — so the next ledgerSync handed the coins straight back. Protection
+     shields, gold caches and diamond chests were all free and repeatable. Separately, the
+     "Equipment Pieces" entry carries server:'pieces' and an empty give(), but nothing here ever
+     read `it.server`, so it charged 450 coins and delivered nothing at all.
+     The spend now goes to the server FIRST and the goods are only handed over once it succeeds. */
+  el.querySelectorAll('[data-buy]').forEach(btn=>btn.onclick=async()=>{
+    const it=GUILD_SHOP[+btn.dataset.buy]; if(!it || (G.guildCoins||0)<it.cost) return;
+    if(btn.disabled) return; btn.disabled=true;
+    try{
+      if(ACC.token){
+        const r=await api('/api/tx/spend','POST',{what:'guildCoins',amount:it.cost,reason:'guildshop',requestId:uid8()});
+        if(!r||!r.ok){ bannerMsg((r&&r.error)||'The guild quartermaster refused that.'); ledgerSync(); return; }
+        adoptLedger(r.ledger);
+        if(it.server){ const b2=await api('/api/shop/buy','POST',{what:it.server,requestId:uid8()});
+          if(b2&&b2.ok&&b2.ledger) adoptLedger(b2.ledger); }
+      } else { G.guildCoins-=it.cost; }
+      it.give(); saveG(); updateHubChrome(); renderGuildShopInto(el);
+    } finally { btn.disabled=false; }
+  });
 }
 // ---- EMBASSY: guild-wide perks that scale with guild level (only while you're in a guild) ----
 function embassyMineMul(){ return G.guild ? 1+guildLevel()*0.03 : 1; }      // +3% world-mine yield per guild level
@@ -11413,7 +11433,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788135963283';
+const BUILD_ID='1788136414701';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
