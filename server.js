@@ -2522,7 +2522,12 @@ async function api(req,res,url){
         for(const st of stacks){ const key=String(st.key||''); const qty=Math.floor(+st.quantity);
           if(seen.has(key)) return { ok:false, error:'Duplicate fragment stack.' }; seen.add(key);
           if(!(qty>=1)) return { ok:false, error:'Bad quantity.' };
-          const qual=Object.keys(FRAG_SALVAGE_DUST).find(q=>key.startsWith(q+' '));
+          /* 30 Aug — EVERY GRADED FRAGMENT PAID THE BASE RATE.
+             find() returns the FIRST match in insertion order, and 'Blue' is listed before 'Blue +2',
+             so "Blue +2 Worldheart" resolved to 'Blue' — 12 dust instead of 25. The whole graded half
+             of FRAG_SALVAGE_DUST was dead: Purple +3 paid 50 instead of 100, Gold +1 paid 150 instead
+             of 200. Longest match wins, so the grade is respected. */
+          const qual=Object.keys(FRAG_SALVAGE_DUST).filter(q=>key.startsWith(q+' ')).sort((a,b)=>b.length-a.length)[0];
           if(!qual) return { ok:false, error:'Unknown fragment: '+key };
           if((g.fragments[key]||0)<qty) return { ok:false, error:'You do not own '+qty+' × '+key+'.' };
           dust+=FRAG_SALVAGE_DUST[qual]*qty; spend[key]=qty; }

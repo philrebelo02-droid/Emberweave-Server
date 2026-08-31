@@ -5779,7 +5779,7 @@ async function vaultSalvage(key,qty){ const q=Math.max(1,qty|0);
 function vaultSalvageHTML(){
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st; const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
   const RATE={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,'Blue +2':25,'Purple':50,'Purple +1':65,'Purple +2':80,'Purple +3':100,'Gold':150,'Gold +1':200,'Gold +2':260,'Gold +3':330,'Gold +4':400,'Orange':800};
-  const rate=k=>{ const q=Object.keys(RATE).find(q=>k.startsWith(q+' ')); return RATE[q]||0; };
+  const rate=k=>{ const q=Object.keys(RATE).filter(q=>k.startsWith(q+' ')).sort((a,b)=>b.length-a.length)[0]; return RATE[q]||0; };   // 30 Aug: longest match, or 'Blue +2' resolved to 'Blue' and quoted half the dust
   return `<div class="panel" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">♻ Fragment Salvage</b><button class="btn xs secondary" onclick="VAULT.salv=null;renderDungeon()">✕</button></div>
     <div style="font-size:10px;color:#6f7d90;margin:4px 0">Manual only — nothing is ever auto-destroyed. The exact Dust is shown before you confirm.</div>
     ${frags.length?frags.map(([k,n])=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 0;border-bottom:1px solid #1a2233">
@@ -11507,7 +11507,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788139632369';
+const BUILD_ID='1788140161548';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
