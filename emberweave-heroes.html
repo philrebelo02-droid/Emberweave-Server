@@ -9481,9 +9481,10 @@ function wishGemUnlockAt(){ return ((ACC&&ACC.created)||G.created||Date.now())+W
    counters remain as the signed-out fallback, and are now actually written when a free wish is
    consumed, so even that path stops lying. */
 let POOLSRV=null;
-async function poolStateSync(){ if(!ACC.token){ POOLSRV=null; return null; }
+let _poolAt=0;
+async function poolStateSync(){ if(!ACC.token){ POOLSRV=null; _poolAt=0; return null; }
   try{ const st=await api('/api/pool/state');
-    if(st&&!st.error){ POOLSRV=st; if(st.ledger)adoptLedger(st.ledger); if(st.firstDone!=null)G.wishGemFirstDone=!!st.firstDone; return st; } }catch(e){}
+    if(st&&!st.error){ POOLSRV=st; _poolAt=Date.now(); if(st.ledger)adoptLedger(st.ledger); if(st.firstDone!=null)G.wishGemFirstDone=!!st.firstDone; return st; } }catch(e){}
   return null; }
 function wishGemFreeReady(){ if(POOLSRV&&POOLSRV.gemFree) return !!POOLSRV.gemFree.ready;
   if(!G.wishGemLast){ return Date.now()>=wishGemUnlockAt(); } return G.wishGemDay!==arenaDayKey(); }
@@ -9581,6 +9582,12 @@ async function serverWish(pool,n){
      state is refetched. */
   if(r.free){ if(pool==='gold'){ wishGoldFreeReset(); G.wishGoldUsed=(G.wishGoldUsed||0)+1; G.wishGoldLast=Date.now(); }
               else { G.wishGemLast=Date.now(); G.wishGemDay=arenaDayKey(); }
+              /* Mark the SERVER cache spent synchronously too. The result popup renders immediately,
+                 before poolStateSync() can return, and its "Wish Again" button reads POOLSRV — so a
+                 stale cache made it say "Free" for a free wish that had just been used, and the next
+                 tap quietly charged full price. */
+              try{ if(POOLSRV){ if(pool==='gold'){ const gf=POOLSRV.goldFree||{}; POOLSRV.goldFree={ready:false,usedToday:(gf.usedToday|0)+1,max:gf.max,nextMs:gf.nextMs}; }
+                                else POOLSRV.gemFree={ready:false}; } }catch(e){}
               try{ saveG(); }catch(e){} }
   poolStateSync().then(()=>{ try{ renderWishing(); }catch(e){} });
   return r; }
@@ -9626,7 +9633,10 @@ async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h|
   bannerMsg('📜 <b>Your last wishes (server-recorded)</b><br>'+rows); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   // first paint of a visit asks the server what is actually free, then repaints with the truth
-  if(ACC.token && !POOLSRV && !renderWishing._pending){ renderWishing._pending=1;
+  /* Refetch when the cache is missing OR stale. The gold pool's free wish returns on a timer
+     (1/hour, 3/day); a cache fetched once and never again froze that timer and the free wish never
+     came back. */
+  if(ACC.token && !renderWishing._pending && (!POOLSRV || Date.now()-_poolAt > 30000)){ renderWishing._pending=1;
     poolStateSync().then(()=>{ renderWishing._pending=0; try{ renderWishing(); }catch(e){} }); }
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
   const gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
@@ -9756,17 +9766,22 @@ function signinEnsure(){ const d=signinNow(), mk=signinMonthKey(d);
 function monthlyHeroKey(){ const d=signinNow(); const pool=HERO_KEYS.filter(k=>!HERO_TYPES[k].myth && !HERO_TYPES[k].source);   // never a mythical or an exclusive-source hero (e.g. Grosk = arena only)
   return pool[(d.getFullYear()*12+d.getMonth())%pool.length]||HERO_KEYS[0]; }
 function isLastSaturday(y,m,day){ return day+7 > new Date(y,m+1,0).getDate(); }
+/* 30 Aug — THE DAILY SIGN-IN PAID A SIGNED-IN PLAYER NOTHING, AND BURNED THE DAY ANYWAY.
+   Every reward here was a client-mirror write with no server transaction, so ledgerSync erased it
+   within 45 seconds — while signinClaimToday() had already pushed the date into G.signinClaimed, so
+   the day could never be claimed again. Every grant now reports; the day is only marked claimed
+   after the grant has been made. */
 const SIGNIN_DAILY=[
-  {icon:'🪙', label:'300 Gold',     grant:()=>{ G.gold=(G.gold||0)+300; }},
-  {icon:'⧗',  label:'+60 Stamina',  grant:()=>{ G.stamina=(G.stamina||0)+60; }},
+  {icon:'🪙', label:'300 Gold',     grant:()=>{ G.gold=(G.gold||0)+300; txEarn('gold',300,'signin'); }},
+  {icon:'⧗',  label:'+60 Stamina',  grant:()=>{ G.stamina=(G.stamina||0)+60; txEarn('stamina',60,'signin'); }},
   {icon:'💎', label:'20 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+20; txEarn('gems',20,'signin'); }},
-  {icon:'🪙', label:'400 Gold',grant:()=>{ G.gold=(G.gold||0)+400; }},
-  {icon:'🪙', label:'600 Gold',     grant:()=>{ G.gold=(G.gold||0)+600; }},
+  {icon:'🪙', label:'400 Gold',     grant:()=>{ G.gold=(G.gold||0)+400; txEarn('gold',400,'signin'); }},
+  {icon:'🪙', label:'600 Gold',     grant:()=>{ G.gold=(G.gold||0)+600; txEarn('gold',600,'signin'); }},
   {icon:'💎', label:'30 Diamonds',  grant:()=>{ G.gems=(G.gems||0)+30; txEarn('gems',30,'signin'); }},
 ];
 function signinDayReward(y,m,day){ const dow=new Date(y,m,day).getDay();
   if(dow===6){ const big=isLastSaturday(y,m,day), n=big?15:5, hk=monthlyHeroKey();   // Saturday = end of week
-    return {week:true, big, hero:hk, frag:n, label:n+'× '+HERO_TYPES[hk].name+' frags', grant:()=>{ giveHeroFrag(hk,n); }}; }
+    return {week:true, big, hero:hk, frag:n, label:n+'× '+HERO_TYPES[hk].name+' frags', grant:()=>{ giveHeroFrag(hk,n); txEarn('frag',n,'signin',{heroKey:hk}); }}; }
   return SIGNIN_DAILY[(day-1)%SIGNIN_DAILY.length]; }
 function signinReadyToday(){ signinEnsure(); return !G.signinClaimed.includes(signinNow().getDate()); }
 function showSigninReward(rew,hk){ const ov=document.createElement('div');
@@ -11398,7 +11413,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788135137539';
+const BUILD_ID='1788135963283';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

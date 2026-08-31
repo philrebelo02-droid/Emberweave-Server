@@ -1238,7 +1238,12 @@ function ensureLedger(u){
      as sanitizeSave clamps it, and a large seed files a report. */
   const legacy=((u.created||0)===0) || ((u.created||0)<LEDGER_MIGRATE_CUTOFF);
   const sv=parseSaveOf(u)||{};
-  const hasSave = (typeof sv.gems==='number') || (typeof sv.gold==='number') || ((sv.campaignCleared|0)>0);
+  /* "Has this player actually played?" cannot be answered by asking whether the save HAS a gold
+     field — a brand-new client's DEFAULT_G already carries gold:200, gems:0, so that test seeded
+     every new account with 200/0 instead of the 1,000/300 starter. Take the LARGER of the save and
+     the starter instead: a fresh player gets the starter, a guest who earned keeps their earnings,
+     and a guest who spent down is topped back up (harmless, and in the player's favour). */
+  const STARTER_GOLD=1000, STARTER_GEMS=300;
   const led={ v:1, migratedAt:Date.now(), rev:1,
     gold:Math.max(0,Math.min(100000000, (sv.gold|0)||0)),
     gems:Math.max(0,Math.min(2000000, (sv.gems|0)||0)),
@@ -1258,13 +1263,11 @@ function ensureLedger(u){
   }
   const ss=sv.stageStars||{}; for(const n in ss){ const v=ss[n]|0; if(v>=1&&v<=3) led.camp.stars[n]=v; }
   led.stam.v=Math.max(0,Math.min(200,(sv.stamina|0)||60));
-  // a genuinely new player — nothing played yet — starts on the fixed starter wallet
-  if(!hasSave){ led.gold=1000; led.gems=300; }
+  if(!legacy){ led.gold=Math.max(led.gold, STARTER_GOLD); led.gems=Math.max(led.gems, STARTER_GEMS); }
   u.led=led;
-  ledTx(u,legacy?'migrate:legacy-save':(hasSave?'migrate:from-save':'migrate:starter'),
-        hasSave?{gold:led.gold,gems:led.gems}:{});
+  ledTx(u, legacy?'migrate:legacy-save':'migrate:from-save', {gold:led.gold, gems:led.gems});
   // an implausible opening balance is REPORTED, not reversed — a human decides
-  if(hasSave && led.gems>SEED_REPORT_GEMS){
+  if(led.gems>SEED_REPORT_GEMS){
     devReport(u,'seed', led.gems, 'account seeded with '+led.gems+' diamonds from its uploaded save');
   }
   return led;
@@ -1561,7 +1564,8 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
    reported to the dev panel (see gemGain) for a human to judge. `day` is a high backstop against a
    runaway loop, not a design limit. */
 const EARN_RULES={
-  frag:{ arena:{max:10,day:60} },
+  frag:{ arena:{max:10,day:60}, signin:{max:20,day:40} },
+  stamina:{ signin:{max:120,day:240} },
   gems:{ signin:{max:200,day:2000}, tower:{max:500,day:5000}, gauntlet:{max:500,day:5000},
          stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
          wish:{max:500,day:8000}, quest:{max:500,day:4000}, convert:{max:1000,day:6000},
@@ -2911,6 +2915,7 @@ async function api(req,res,url){
       led.earnDay[what+':'+reason]=used+amt;
       if(what==='gold') led.gold=Math.min(100000000,led.gold+amt);
       else if(what==='gems'){ gemGain(me,amt,reason); led.gems=Math.min(2000000,led.gems+amt); }
+      else if(what==='stamina'){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+amt); }
       else if(what==='px'){ const before=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+amt);
         if(ledPlayerLevel(led)>before){ ledStamRegen(led); led.stam.v=Math.max(led.stam.v,ledStamMax(led)); } }
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?b.heroKeys.map(String).slice(0,10):[]);
