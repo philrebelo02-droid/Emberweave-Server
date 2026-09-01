@@ -42,6 +42,7 @@ let DB = { users:{}, byName:{}, tokens:{}, seeded:false };
    This makes accounts survive redeploys/instance moves properly; the per-entity schema migration
    remains the pre-monetisation step (tracked). */
 let PG=null, PG_READY=false, _pgWriting=false, _pgDirty=false;
+let PG_BOOT_PENDING=false, _bootDirty=false, _booted=false;   // v327: nothing persists until the PG restore decision has landed
 function pgInit(){ if(!process.env.DATABASE_URL) return;
   try{ const {Pool}=require('pg');
     PG=new Pool({connectionString:process.env.DATABASE_URL, ssl:process.env.PGSSL==='false'?false:{rejectUnauthorized:false}, max:3});
@@ -54,7 +55,8 @@ async function pgLoad(){ if(!PG) return null;
   const r=await PG.query('SELECT mtime, blob FROM emberweave_state WHERE id=$1',['world']);
   if(!r.rows.length) return null;
   return { mtime:+r.rows[0].mtime, db:JSON.parse(r.rows[0].blob) }; }
-function pgSave(){ if(!PG||!PG_READY) return;
+function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-restore (freshly seeded) DB over the saved world
+  if(!PG||!PG_READY) return;
   if(_pgWriting){ _pgDirty=true; return; }
   _pgWriting=true; const blob=JSON.stringify(DB), mt=Date.now();
   PG.query('INSERT INTO emberweave_state (id,mtime,blob) VALUES ($1,$2,$3) ON CONFLICT (id) DO UPDATE SET mtime=$2, blob=$3',['world',mt,blob])
@@ -62,7 +64,8 @@ function pgSave(){ if(!PG||!PG_READY) return;
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
 let saveTimer=null;
-function writeDB(){ if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
+function writeDB(){ if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
+  if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   try{ const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE); }   // atomic: write temp, then rename
   catch(e){ console.error('⚠ DB write failed:', e.message); }
   pgSave(); },200); }
@@ -152,7 +155,18 @@ function migrateTokenHashes(){ let n=0;
   for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
     if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
   if(n){ console.log('🔐 hashed '+n+' plaintext session token(s) — raw values now live only on clients'); writeDB(); } }
-function adjustGems(u, delta){ try{ if(!u.roster||typeof u.roster.__save!=='string') return null;
+function adjustGems(u, delta){ try{
+  /* THE LEDGER IS THE BALANCE. Editing the save blob was a silent no-op for every migrated account:
+     sanitizeSave deletes 'gems' (SERVER_OWNED_SAVE_FIELDS) out of the stored save on the player's next
+     /api/save, and ensureLedger returns early for a migrated account so the poked number is never read
+     back. The dev saw a confirmed new balance the player never received. Move led.gems instead, through
+     ledTx so it is audited, rev-bumped and written synchronously. The blob path below is kept for
+     accounts that are genuinely not on the ledger yet — for those it is still the real balance. */
+  if(u && u.led && u.led.migratedAt){ const led=ensureLedger(u); const before=led.gems|0;
+    led.gems=Math.max(0,Math.min(ECON_CAP.gems, before+delta));
+    ledTx(u, delta>=0?'admin:grant':'admin:take', {gems:led.gems-before});
+    u.econ={gems:led.gems, gold:led.gold|0, t:Date.now()}; return led.gems; }
+  if(!u.roster||typeof u.roster.__save!=='string') return null;
   const g=JSON.parse(u.roster.__save); g.gems=Math.max(0,(g.gems||0)+delta); g.mtime=Date.now();
   u.roster.__save=JSON.stringify(g); u.econ={gems:g.gems||0,gold:g.gold||0,t:Date.now()}; return g.gems; }catch(e){ return null; } }
 // ---- anti-tamper: the economy is client-side, so the server can't fully trust a save. It CAN reject the impossible:
@@ -175,14 +189,20 @@ const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP',
   /* v274 (hardening directive §2.4): gear and equipment too. The Forge (u.gear) is server-owned and
      the legacy equip bundle no longer reaches combat, so there is no reason to keep either in a blob
      the client writes. */
-  'equip','eqInv','gear','gearFrag','temper','equipped','active']);
+  /* 31 Aug — 'equip' and 'eqInv' are BACK OFF this list. Stripping a field only makes sense when the
+     ledger holds the real value, and it never did: ledgerView returns no equip/eqInv and adoptLedger
+     reads none, so every crafted piece was deleted on the next load. Since /api/eq/craft now debits
+     real ledger materials for a Tier-0 craft, the player was PAYING for items the server then threw
+     away. equipMul() returns zeros for any signed-in account, so a forged local inventory still buys
+     no combat power — the blob is display/inventory storage only, and eqInv is MAP_CAP-clamped below. */
+  'gear','gearFrag','temper','equipped','active']);
 function clampNum(v,cap){ if(typeof v!=='number'||!isFinite(v)) return v; if(v<0) return 0; if(v>cap) return cap; return v; }
 function sanitizeSave(u, roster){
   if(!roster || typeof roster.__save!=='string') return roster;
   let g; try{ g=JSON.parse(roster.__save); }catch(e){ return roster; }   // unparseable → store as-is, nothing to validate
   let clamped=false;
   for(const k in ECON_CAP){ if(typeof g[k]==='number'){ const nv=clampNum(g[k],ECON_CAP[k]); if(nv!==g[k]){ g[k]=nv; clamped=true; } } }
-  for(const map of ['mats','eqMats','starShards','heroFrag','glyphRank']){ const o=g[map]; if(o&&typeof o==='object'){ for(const k in o){ if(typeof o[k]==='number'){ const nv=clampNum(o[k],MAP_CAP); if(nv!==o[k]){ o[k]=nv; clamped=true; } } } } }
+  for(const map of ['mats','eqMats','starShards','heroFrag','glyphRank','eqInv']){ const o=g[map]; if(o&&typeof o==='object'){ for(const k in o){ if(typeof o[k]==='number'){ const nv=clampNum(o[k],MAP_CAP); if(nv!==o[k]){ o[k]=nv; clamped=true; } } } } }
   const prev=u.econ||{}, now=Date.now(); const dGems=(g.gems||0)-(prev.gems||0), dGold=(g.gold||0)-(prev.gold||0);
   let reason=null;
   if(clamped) reason='impossible value clamped';
@@ -296,6 +316,30 @@ function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.r
    level or rank out of it. This reads the roster keys only, and takes every stat from the ledger. */
 /* A stored line-up is a list of hero keys and nothing else. No level, no rank, no stats — those are
    the ledger's to say. Capped at five so a client cannot grow the record without bound. */
+/* v327 — A STORED ROSTER LINE IS AN OBJECT, NOT A KEY. defaultTeam():259, sanitizeRoster() below
+   and randTeam():262 all write {key,...}, so anything that indexes led.unlocked / SIM.HERO_BASE with
+   a roster entry silently reads undefined. Every such call site goes through here. */
+function rosterKeys(arr){
+  const out=[], seen={}; const src=Array.isArray(arr)?arr:[];
+  for(let i=0;i<src.length;i++){ const h=src[i];
+    const key=(h&&typeof h==='object')?String(h.key||''):String(h||'');
+    if(!key || !SIM.HERO_BASE[key] || seen[key]) continue;
+    seen[key]=1; out.push(key); }
+  return out;
+}
+/* A ladder bot has NO ledger and must never be given one: snapshotHeroFromServer() calls
+   ensureLedger(), which would write a ledger onto all 5,000 seeded NPCs and resolve every one of
+   their heroes at level 1 — turning "arena is unwinnable" into "arena is a free win at every rank".
+   A bot's strength lives on its seeded roster entry ({key,level,rank}), so read it from there. */
+function snapshotNpcHero(entry){
+  try{
+    const key=(entry&&typeof entry==='object')?String(entry.key||''):String(entry||'');
+    const base=SIM.HERO_BASE[key]; if(!base) return null;
+    const lvl=Math.max(1,Math.min(200,((entry&&entry.level)|0)||1));
+    const pips=Math.max(0,Math.min(5,((entry&&entry.rank)|0)||0));
+    return SIM.heroCombatStats(key,{level:lvl, stars:base.stars, pips:pips});
+  }catch(e){ return null; }
+}
 function sanitizeRoster(arr){
   const out=[]; const seen=new Set();
   for(const h of (Array.isArray(arr)?arr.slice(0,10):[])){
@@ -322,7 +366,25 @@ function ledgerTeamPower(u){
   }
   return Math.round(p);
 }
-function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); if(owner&&owner.gear) p += gearHeroPower(owner, h.key); } return Math.round(p); }
+/* v328 — A STORED ROSTER LINE HAS NO LEVEL AND NO RANK. sanitizeRoster():337 writes bare {key}, so
+   every `h.level`/`h.rank` read off a REAL player's team is undefined and their power collapses to a
+   flat 370 (5 x 60) — leaderboards, world-map cities, guild strength and, worst, the guild-war duel
+   roll at 3921. Rehydrate from the ledger, the same source ledgerTeamPower():347 already trusts.
+   Untouched: NPC bots (their seeded roster really does carry {key,level,rank}) and any account with
+   no ledger yet — never call ensureLedger() from here, this runs on read paths (up to 500 users per
+   /api/world/cities) and ensureLedger CREATES and persists a ledger. */
+function hydrateRoster(u, arr){
+  const src=Array.isArray(arr)?arr:[];
+  if(!u || u.isNpc || !u.led || !u.led.hero) return src;
+  const led=u.led, unl=led.unlocked||{};
+  let use=rosterKeys(src).filter(function(k){ return !!unl[k]; }).slice(0,5);
+  if(!use.length) use=Object.keys(unl).filter(function(k){ return unl[k] && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE,k); }).slice(0,5);
+  const out=[];
+  for(let i=0;i<use.length;i++){ const k=use[i], h=led.hero[k]||{}, base=SIM.HERO_BASE[k]||{stars:1};
+    out.push({ key:k, level:ledHeroLevel(led,k)||1, rank:Math.max(base.stars||1, Math.min(5, h.stars|0)) }); }
+  return out;
+}
+function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; team=hydrateRoster(owner, team); let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); if(owner&&owner.gear) p += gearHeroPower(owner, h.key); } return Math.round(p); }
 /* ==================== GLYPH ASCENSION v2 — server-authoritative ====================
    The browser NEVER computes a craft result, passive value, socket result, or promotion.
    Catalog: server/glyph-source.json (218 finished-glyph definitions). Recipes are compiled
@@ -409,6 +471,9 @@ function glyphCompile(){
   }
   // derived Sub-Glyph recipes (tunable): plain=3 / Superior=4 / Rare=5 / Mythic=6 same-(quality,family)
   // fragments; Worldfire subs draw Orange fragments and ALSO need 2× Gold +4 fragments (the "Gold+4 history").
+  // Census the Gold +4 families BEFORE deriving sub recipes: GLYPH_TIER_FAMS is not built until
+  // after this loop, so the loop cannot otherwise tell that a family is absent at that tier.
+  const goldPlus4Fams={}; for(const d of raw){ if(d.quality==='Gold +4') goldPlus4Fams[d.family]=1; }
   const subs={};
   for(const d of raw){ for(const g of d.ing){ if(g.kind==='sub' && !subs[g.key]){
     const mm=/^(?:(Rare|Superior|Mythic)\s+)?(.+?)\s+(\w+)\s+Sub-Glyph$/.exec(g.key);
@@ -418,7 +483,8 @@ function glyphCompile(){
     if(qual!=='Worldfire' && GLYPH_LADDER.indexOf(qual)<0) throw new Error('sub-glyph quality unknown: '+g.key);
     const n={'':3,'Superior':4,'Rare':5,'Mythic':6}[prefix];
     const ing=[{kind:'frag', key:fragQual+' '+fam, qty:n}];
-    if(qual==='Worldfire') ing.push({kind:'frag', key:'Gold +4 '+fam, qty:2});
+    if(qual==='Worldfire'){ if(goldPlus4Fams[fam]) ing.push({kind:'frag', key:'Gold +4 '+fam, qty:2});
+      else ing[0].qty+=2; }   // Orange-only family (Worldheart/Cataclysm) has no Gold +4 tier — charge the shortfall in Orange
     subs[g.key]={ key:g.key, ing };
   } } }
   for(const d of raw){ const l=(GLYPH_TIER_FAMS[d.quality]=GLYPH_TIER_FAMS[d.quality]||[]); if(!l.includes(d.family)) l.push(d.family); }
@@ -430,6 +496,9 @@ function glyphCompile(){
   console.log('🔮 Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }
 glyphCompile();
+// A definition whose expanded lineage needs a fragment key no tier can drop is unforgeable —
+// glyphPreChoice silently filters it out and its drops become dead loot. Surface it at boot.
+try{ if(GLYPHS){ const dead=GLYPHS.raw.filter(d=>!glyphSupplyOK(d)); if(dead.length) console.error('✖ unfarmable glyph definitions: '+dead.map(d=>d.id+' '+d.name).join(', ')); } }catch(e){}
 function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
 function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
 function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
@@ -483,18 +552,35 @@ function glyphPreChoice(heroKey, slotIdx, qi){
 function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:glyphFragSlug(key),
   displayName:key+' Fragment', need:qty, have:(g.fragments[key]|0),
   sources:portalSourcesFor(key) }; }
-function glyphTreeChildren(g, def){ const kids=[];
-  for(const ing of def.ing){
-    if(ing.kind==='frag') kids.push(glyphTreeLeaf(g, ing.key, ing.qty));
-    else if(ing.kind==='sub'){ const sd=GLYPHS.subs[ing.key];
-      kids.push({ kind:'subGlyph', key:ing.key, qty:ing.qty, virtual:true,
-        children: sd?sd.ing.map(si=>glyphTreeLeaf(g, si.key, si.qty*ing.qty)):[] }); }
-    else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId];
-      if(fd) kids.push(Object.assign(glyphTreeFinished(g, fd), {virtual:true})); } }
-  return kids; }
-function glyphTreeFinished(g, def){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
+/* AUDIT (glyph-tree-cost): every `finished` ingredient used to be re-expanded IN FULL wherever it
+   appeared. Measured on the live catalog the worst root (R16-18 Worldfire Cataclysm Crown) reaches
+   6,514 nodes at depth 10 — roughly 1 MB of JSON per slot tap, and the client fetches this once per
+   empty slot. The walk is now bounded by a depth limit AND a node budget; anything past the bound is
+   emitted as a normal-shaped childless node with truncated:true, so an OLD CACHED CLIENT renders it
+   as a plain leaf glyph rather than breaking. 190 of 218 roots are unchanged; the worst drops to ~912
+   nodes. The BUILD COST is untouched: `totals` / `canBuild` come from g2BuildCost(), which still
+   expands the whole lineage. The depth cap also makes a cyclic recipe terminate. */
+const GLYPH_TREE_MAX_DEPTH=6, GLYPH_TREE_MAX_NODES=900;
+function glyphTreeStub(def){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
   quality:def.quality, family:def.family, strength:def.strength,
-  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:glyphTreeChildren(g, def) }; }
+  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], truncated:true }; }
+function glyphTreeChildren(g, def, ctx){ const kids=[];
+  for(const ing of def.ing){
+    if(ing.kind==='frag'){ ctx.nodes++; kids.push(glyphTreeLeaf(g, ing.key, ing.qty)); }
+    else if(ing.kind==='sub'){ const sd=GLYPHS.subs[ing.key]; ctx.nodes++;
+      kids.push({ kind:'subGlyph', key:ing.key, qty:ing.qty, virtual:true,
+        children: sd?sd.ing.map(si=>{ ctx.nodes++; return glyphTreeLeaf(g, si.key, si.qty*ing.qty); }):[] }); }
+    else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId]; if(!fd) continue;
+      if(ctx.depth<GLYPH_TREE_MAX_DEPTH && ctx.nodes<GLYPH_TREE_MAX_NODES)
+        kids.push(Object.assign(glyphTreeFinished(g, fd, ctx), {virtual:true}));
+      else { ctx.nodes++; kids.push(Object.assign(glyphTreeStub(fd), {virtual:true})); } } }
+  return kids; }
+function glyphTreeFinished(g, def, ctx){ ctx=ctx||{depth:0,nodes:0}; ctx.nodes++;
+  const node={ kind:'finishedGlyph', blueprintId:def.id, name:def.name,
+    quality:def.quality, family:def.family, strength:def.strength,
+    stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[] };
+  ctx.depth++; node.children=glyphTreeChildren(g, def, ctx); ctx.depth--;
+  return node; }
 /* v242: can EVERY empty slot on this board be built at once (combined cumulative cost)? */
 function glyphBuildAllPlan(g,hero,board){
   const pool={}; for(const k in (g.fragments||{})) pool[k]=g.fragments[k]|0;
@@ -811,6 +897,7 @@ function resetDungeonSweepIfNewDay(sw){ const k=dungeonServerDayKey(); if(sw.dat
    record along with the reward — and the client's retry would then be paid a second time. Every
    idem() result is now flushed to disk BEFORE the response is written. */
 function writeDBNow(){
+  if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: boot restore window — see bootFinish()
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
     const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE);
   }catch(e){ console.error('⚠ DB durable write failed:', e.message); }
@@ -996,10 +1083,41 @@ function warSchedule(anchor){ const D=86400000, H=3600000;
       lockAt:anchor+(3+i)*D+18*H,                                                // Tue–Fri 6 PM ET
       endsAt:anchor+(3+i)*D+20*H })) };                                          // Tue–Fri 8 PM ET
 }
+function warTierOfGuild(t,gid){
+  if(!gid) return 'participant';
+  if(t.championGuildId===gid) return 'champion';
+  const fin=(t.rounds||[]).some(r=>r.name==='F'&&r.matchIds.some(mid=>{ const m=t.matches[mid]; return m&&(m.aGuildId===gid||m.bGuildId===gid)&&m.winnerGuildId!==gid; }));
+  return fin?'finalist':'participant';
+}
+function warTierAmount(tier){ return tier==='champion'?2000:tier==='finalist'?1000:300; }
+function warEscrowRewards(t){   // AUDIT: pay into a per-USER pending list the moment the bracket ends, so
+  if(!t||t.escrowedAt) return;  // nothing is lost when the week rolls over and `current` is replaced.
+  t.escrowedAt=warNow(); let changed=false;
+  for(const e of (t.entrants||[])){
+    const tier=warTierOfGuild(t,e.guildId), amt=warTierAmount(tier);
+    for(const l of (e.lines||[])){
+      const u=DB.users[l.memberId]; if(!u) continue;
+      if((t.rewards||{})[e.guildId+':'+l.memberId]) continue;   // already paid under the old live-claim route
+      u.pendingWarRewards=u.pendingWarRewards||[];
+      if(u.pendingWarRewards.some(x=>x&&x.tid===t.id)) continue;
+      u.pendingWarRewards.push({tid:t.id, weekKey:t.weekKey, gid:e.guildId, tier, amt});
+      changed=true;
+    }
+  }
+  if(changed) writeDB();
+}
 function getTournament(){
   DB.tournaments=DB.tournaments||{};
   const now=warNow(), wk=warWeekKey(now);
   if(!DB.tournaments.current || DB.tournaments.current.weekKey!==wk){
+    const prev=DB.tournaments.current;
+    if(prev){   // AUDIT: settle and archive the outgoing week instead of dropping it on the floor
+      try{ for(let i=0;i<8 && prev.state!=='finished';i++){ const v=prev.version; warAdvance(prev); if(prev.version===v) break; } }catch(err){}
+      try{ if(prev.state==='finished') warEscrowRewards(prev); }catch(err){}
+      DB.tournaments.archive=DB.tournaments.archive||{};
+      DB.tournaments.archive[prev.weekKey]=prev;
+      const ak=Object.keys(DB.tournaments.archive).sort(); while(ak.length>8) delete DB.tournaments.archive[ak.shift()];
+    }
     const anchor=warWeekAnchor(now), sch=warSchedule(anchor);
     DB.tournaments.current={ id:'gw_'+wk, weekKey:wk, state:'registration',
       registrationOpensAt:sch.registrationOpensAt, registrationLocksAt:sch.registrationLocksAt,
@@ -1084,7 +1202,13 @@ function warAdvance(t){ // lazy state machine, called on every /api/guild-war re
     if(t.state==='bracket'){ // standard seeding on the smallest power-of-two bracket (2..16): 1 v N, 2 v N-1, …
       const n=t.entrants.length; let size=2; while(size<n) size*=2; size=Math.min(16,size);
       const pairs=[]; for(let i=0;i<size/2;i++){ pairs.push([t.entrants[i]||null, t.entrants[size-1-i]||null]); }
-      const round={name:'R16', matchIds:[]};
+      /* v327 — NAME THE ROUNDS FOR THE BRACKET THAT ACTUALLY EXISTS. Every bracket used to start at
+         'R16', so a 4- or 8-guild tournament never produced a round named 'F': the runner-up check
+         at warRewardFor() found no final, and the losing finalist was paid the participant reward.
+         base is chosen so the LAST round is always 'F' (16->0, 8->1, 4->2, 2->3). */
+      const base=WAR_ROUND_NAMES.length-Math.round(Math.log2(size));
+      t.roundBase=base;
+      const round={name:WAR_ROUND_NAMES[base]||'R16', matchIds:[]};
       for(const [a,b] of pairs){ if(!a&&!b) continue; const m=warNewMatch(t,0,a,b); round.matchIds.push(m.id); }
       t.rounds=[round]; t.roundIndex=0;
     }
@@ -1099,9 +1223,10 @@ function warAdvance(t){ // lazy state machine, called on every /api/guild-war re
       const allDone=round.matchIds.every(mid=>t.matches[mid].state==='finished');
       if(allDone){
         const winners=round.matchIds.map(mid=>warEntrant(t,t.matches[mid].winnerGuildId)).filter(Boolean);
-        if(winners.length<=1 || ri>=3){ t.state='finished'; t.championGuildId=winners.length?winners[0].guildId:null; changed=true; }
+        const _rb=(t.roundBase|0);
+        if(winners.length<=1 || (_rb+ri)>=3){ t.state='finished'; t.championGuildId=winners.length?winners[0].guildId:null; warEscrowRewards(t); changed=true; }
         else if(now>=t.schedule[ri+1].planningOpensAt){
-          const next={name:WAR_ROUND_NAMES[ri+1], matchIds:[]};
+          const next={name:WAR_ROUND_NAMES[_rb+ri+1]||'F', matchIds:[]};
           for(let i=0;i<winners.length;i+=2){ const m=warNewMatch(t,ri+1,winners[i]||null,winners[i+1]||null); next.matchIds.push(m.id); }
           t.rounds.push(next); t.roundIndex=ri+1; changed=true; }
       }
@@ -1348,16 +1473,20 @@ function findOpenSession(u, sid){
    ACT_INPUT_DELAY ticks in the future: enough for the receipt to come back over a normal connection.
    If the round trip is slower than that, the client holds the simulation rather than guessing — a
    brief hitch on a bad network, never a fight that disagrees with its own record. */
+const STALL_BUDGET_MS=300*1000;        // total wall time a session may hold its clock frozen
 const ACT_INPUT_DELAY=9;               // ≈300 ms of headroom at the client's real tick rate
 const SIM_HZ_SRV=30, BATTLE_PACE_SRV=0.82;   // must match the client's constants exactly
 function sessionClock(a){
-  a.clock=a.clock||{ beginAt:0, speed:1, tick:0, at:0 };
+  a.clock=a.clock||{ beginAt:0, speed:1, tick:0, at:0, stalled:false, stallMs:0 };
   return a.clock;
 }
 function clockAdvance(a, now){
   const c=sessionClock(a);
   if(!c.beginAt) return c;                       // the battle has not started yet
   const dt=Math.max(0,(now-(c.at||c.beginAt))/1000);
+  /* v327: the browser's sim is stopped (pause, aim, wave cinematic) — do not invent ticks it did
+     not run. The frozen time is spent against a budget instead. */
+  if(c.stalled){ c.stallMs=(c.stallMs||0)+dt*1000; c.at=now; return c; }
   c.tick += dt*SIM_HZ_SRV*BATTLE_PACE_SRV*(c.speed||1);
   c.at=now;
   return c;
@@ -1378,10 +1507,41 @@ function streamAction(u, m, ws){
   a.stream=a.stream||{ seq:0, acts:[], chain:'', invalid:0, sec:{t:0,n:0} };
   const st=a.stream;
   if(st.closed) return {ok:false, reason:'session-ended'};
+  /* A battle RESTARTED (or resumed) on the same attempt starts its stream over: the client resets its
+     sequence and re-sends `begin` at seq 1. Without this the first fight's stream refuses every message
+     of the second one ('out-of-order', and 'already-begun' on the anchored clock), the client silently
+     drops those actions, and the attempt resolves from the ABANDONED fight's transcript. Rebuild the
+     stream and the clock, but carry the refusal count over so restarting cannot launder strikes. */
+  if(String(m.kind||'')==='begin' && (m.seq|0)===1 && ((st.seq|0)>0 || (a.clock && a.clock.beginAt))){
+    const rs=(st.restarts|0)+1;
+    if(rs>12) return {ok:false, reason:'too-many-restarts', strikes:(st.invalid|0)};
+    a.stream={ seq:0, acts:[], chain:'', invalid:(st.invalid|0), sec:{t:0,n:0}, restarts:rs };
+    a.clock={ beginAt:0, speed:1, tick:0, at:0 };
+    return streamAction(u, m, ws);          // re-enter against the fresh stream: normal `begin` path
+  }
 
   const bad=(reason,extra)=>{ st.invalid=(st.invalid|0)+1;
     if(st.invalid>ACT_INVALID_BUDGET && ws){ try{ ws.close(); }catch(e){} }
     return Object.assign({ok:false, reason, strikes:st.invalid}, extra||{}); };
+
+  /* v327 — WHEN THE CLIENT'S SIM STOPS, THIS CLOCK MUST STOP WITH IT.
+     A pause, an aim-drag and the wave-transition cinematic all hold the browser's tick while this
+     clock kept integrating wall time, so every later action was scheduled further into the future —
+     ultimates landing seconds late, then past the end of the fight and never firing at all. A
+     `stall` frame is handled OUT OF BAND: it carries no sequence number, adds nothing to the
+     transcript or the chain, cannot desync the action channel, and the time it buys is bounded. */
+  if(String(m.kind||'')==='stall'){
+    const cs=sessionClock(a);
+    if(!cs.beginAt) return {ok:false, reason:'not-begun', stall:true};
+    const ssec=Math.floor(now/1000);
+    if(cs.sn!==ssec){ cs.sn=ssec; cs.snN=0; }
+    cs.snN=(cs.snN|0)+1;
+    if(cs.snN>16) return {ok:true, stall:true, ignored:true};   // spam is dropped, not punished
+    clockAdvance(a, now);
+    cs.stalled = m.value ? ((cs.stallMs||0) < STALL_BUDGET_MS) : false;
+    cs.at=now;
+    return {ok:true, stall:true, stalled:!!cs.stalled};
+  }
 
   const seq=m.seq|0;
   if(seq!==st.seq+1) return bad('out-of-order',{expected:st.seq+1});
@@ -1451,6 +1611,10 @@ function srvRoll(domain, ...parts){ return srvSeed(domain,...parts)/4294967296; 
 function sha256hex(x){ return crypto.createHash('sha256').update(String(x)).digest('hex').slice(0,32); }
 /* Bumped by hand on every server change that a deployment proof needs to see. */
 const EQ_MAT_KEYS=Object.freeze(['cloth','blade','wood','ore']);   // the four equipment materials
+/* Which base material a Grey (Tier-0) piece of each slot is crafted from, per group — the exact
+   table the client draws its recipes from (EQ_SLOT_BASE), indexing into EQ_MAT_KEYS. */
+const EQ_SLOT_BASE_SRV=Object.freeze({ plate:[1,0,3,0,3,2], ranged:[2,0,0,2,2,3], caster:[2,0,0,0,0,3] });
+const EQ_CRAFT_MAT_COST=2;   // a Grey piece costs 2 of its base material
 const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
 const SKILL_MAX_SRV=10;
@@ -1577,15 +1741,18 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
    reported to the dev panel (see gemGain) for a human to judge. `day` is a high backstop against a
    runaway loop, not a design limit. */
 const EARN_RULES={
-  frag:{ arena:{max:10,day:60}, signin:{max:20,day:40} },
-  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000} },
+  frag:{ arena:{max:10,day:60}, signin:{max:20,day:40}, stars:{max:200,day:600} },
+  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, stars:{max:1500,day:6000}, pack:{max:200,day:600} },
   gems:{ signin:{max:200,day:2000}, tower:{max:500,day:5000}, gauntlet:{max:500,day:5000},
          stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
          wish:{max:500,day:8000}, quest:{max:500,day:4000}, convert:{max:1000,day:6000},
-         pack:{max:20000,day:60000}, misc:{max:200,day:2000} },
-  gold:{ guildshop:{max:20000,day:120000}, signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
+         pack:{max:20000,day:60000}, misc:{max:200,day:2000}, arenashop:{max:40,day:800} },
+  gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
          stars:{max:200000,day:2000000}, city:{max:100000,day:1000000}, wish:{max:100000,day:1000000},
-         quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000}, misc:{max:50000,day:500000} } };
+         quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000}, misc:{max:50000,day:500000},
+         march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
+  heroXp:{ province:{max:20000,day:120000} },
+  guildCoins:{ march:{max:40,day:400} } };
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
@@ -1610,6 +1777,8 @@ function poolState(u){ const led=ensureLedger(u);
   if(!led.pool) led.pool={ goldUsedDay:'', goldFree:0, goldLast:0, gemFreeDay:'', gemFirstDone:false, pity:0, history:[] };
   return led.pool; }
 function poolPick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function poolPickUnowned(led,a){ const un=(a||[]).filter(function(k){ return !(led.unlocked&&led.unlocked[k]); });
+  return un.length?un[Math.floor(Math.random()*un.length)]:null; }
 function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
   if(led.unlocked[hk]){ const f=POOL_DUPE_FRAG[st]||7; led.frags[hk]=(led.frags[hk]|0)+f;
     return {type:'dupe', hero:hk, frags:f}; }
@@ -1629,9 +1798,12 @@ function poolRollGold(u){ const led=u.led; const h=Math.random();
   const gm=5+Math.floor(Math.random()*11); gemGain(u,gm,'wish'); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
 function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   if(rigged) return poolGrantHero(u, poolPick(POOL_P2));
-  if(pool.pity+1>=WISH_GEM_PITY){ pool.pity=0; return Object.assign(poolGrantHero(u, Math.random()<0.12?poolPick(POOL_P3):poolPick(POOL_P2)),{pity:true}); }
+  if(pool.pity+1>=WISH_GEM_PITY){ pool.pity=0;
+    const phk=(Math.random()<0.12?poolPickUnowned(led,POOL_P3):null)||poolPickUnowned(led,POOL_P2)||poolPickUnowned(led,POOL_P3);
+    if(phk) return Object.assign(poolGrantHero(u,phk),{pity:true});
+    return Object.assign(poolGrantHero(u, poolPick(POOL_P2)),{pity:true,exhausted:true}); }
   const h=Math.random(); let acc=0.001;
-  const hit=(fn)=>{ pool.pity=0; return fn(); };
+  const hit=(fn)=>{ const r=fn(); if(r&&r.type==='hero') pool.pity=0; else pool.pity++; return r; };
   if(h<acc) return hit(()=>poolGrantHero(u,'konwu'));
   acc+=0.01;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P3)));
   acc+=0.08;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P2)));
@@ -2118,7 +2290,8 @@ async function api(req,res,url){
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     const ng=adjustGems(u, p==='/api/admin/grant'?2000:-2000);
     if(ng==null) return send(res,400,{error:'That player has no cloud save yet — they must open the game once first.'});
-    dropTokens(tid); writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng}); }
+    if(!(u.led&&u.led.migratedAt)) dropTokens(tid);   // ledger accounts pick it up on the next ledgerSync (<=45s); kicking a live player mid-battle is worse than waiting
+    writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng, live:!!(u.led&&u.led.migratedAt)}); }
   // admin: download the whole DB as a backup
   if(p==='/api/admin/backup'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'}); backupDB(); return send(res,200, DB); }
   // bug / balance reports: any signed-in player (or a dev's balance bots) can file one
@@ -2245,7 +2418,7 @@ async function api(req,res,url){
         const prevQ=GEARCAT.meta.qualities[def.qi-1];
         const feed=Object.entries(g.items).filter(([id,it])=>{ const d=GEARCAT.byId[it.d];
           return d && d.quality===prevQ && !it.bound && !gearItemEquippedBy(g,id); })
-          .sort((a,bb)=>(a[1].createdAt||0)-(bb[1].createdAt||0));
+          .sort((a,bb)=>((a[1].temper||0)-(bb[1].temper||0))||((a[1].dustSpent||0)-(bb[1].dustSpent||0))||((a[1].createdAt||0)-(bb[1].createdAt||0)));   // auto-fill fallback consumes the LEAST-invested items (was oldest-first, which ate heavily tempered gear)
         const pick=Array.isArray(b.ingredients)?b.ingredients.map(String):[];
         const chosen=[];
         for(const iid of pick){ const e=feed.find(([id])=>id===iid); if(e&&!chosen.includes(iid)) chosen.push(iid); if(chosen.length===2) break; }
@@ -2337,6 +2510,7 @@ async function api(req,res,url){
           entrants:t.entrants.map(e=>({guildId:e.guildId,name:e.name,seed:e.seed,powerPool:e.powerPool,lines:e.lines.length})),
           roundIndex:t.roundIndex||0, championGuildId:t.championGuildId||null, now:warNow() },
         registered:!!ent, yourPowerPool:ent?ent.powerPool:null, canRegister:isLeaderOrOfficer,
+        pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
         match:m?warMatchView(t,m,myGid):null });
     }
     if(p==='/api/guild-war/match'){ const m=myGid?warMatchOfGuild(t,myGid):null;
@@ -2422,16 +2596,15 @@ async function api(req,res,url){
         match:warMatchView(t,m,myGid) });
     }
     if(p==='/api/guild-war/claim-reward'){
-      if(t.state!=='finished') return send(res,400,{error:'The tournament is still running.'});
-      if(!myGid||!warEntrant(t,myGid)) return send(res,400,{error:'Your guild did not take part.'});
-      t.rewards=t.rewards||{};
-      const key=myGid+':'+me.id;
-      if(t.rewards[key]) return send(res,400,{error:'Already claimed.'});
-      const champ=t.championGuildId===myGid;
-      const finalist=(t.rounds||[]).some(r=>r.name==='F'&&r.matchIds.some(mid=>{ const m=t.matches[mid]; return (m.aGuildId===myGid||m.bGuildId===myGid)&&m.winnerGuildId!==myGid; }));
-      const amt=champ?2000:finalist?1000:300;
-      me.coins=(me.coins||0)+amt; t.rewards[key]={t:warNow(),amt}; t.version++; writeDB();
-      return send(res,200,{ok:true, coins:me.coins, amount:amt, tier:champ?'champion':finalist?'finalist':'participant'});
+      if(t.state==='finished') warEscrowRewards(t);   // idempotent; also settles a bracket that finished before this build
+      const pend=(me.pendingWarRewards||[]).filter(x=>x&&(x.amt|0)>0);
+      if(!pend.length) return send(res,400,{error:t.state==='finished'?'You did not take part in this tournament.':'Nothing to claim.'});
+      const total=pend.reduce((s,x)=>s+(x.amt|0),0), last=pend[pend.length-1];
+      me.coins=(me.coins||0)+total; me.pendingWarRewards=[];
+      const tt=(last.tid===t.id)?t:(((DB.tournaments||{}).archive)||{})[last.weekKey];
+      if(tt&&tt.id===last.tid){ tt.rewards=tt.rewards||{}; tt.rewards[(last.gid||'-')+':'+me.id]={t:warNow(),amt:total,tid:last.tid}; if(tt===t) t.version++; }
+      writeDB();
+      return send(res,200,{ok:true, coins:me.coins, amount:total, tier:last.tier});
     }
     if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -2560,6 +2733,10 @@ async function api(req,res,url){
         ladder:GLYPH_LADDER, catalogVersion:GLYPHS.version,
         boards:glyphBoardsView(g), migratedAt:g.migratedAt||0, flowMigratedAt:g.flow2At||0 }); }
     if(!glyphsEnabledFor(me)) return send(res,403,{error:'disabled'});
+    // AUDIT (glyph-tree-cost): the two GET read models below (slot-options, build-tree) return BEFORE
+    // the POST-only limiter further down, so they were completely unthrottled. Own bucket, own budget:
+    // g2CanBuild() legitimately fires one build-tree GET per empty slot per glyph revision.
+    if(rateLimited(req,'glyphsRead',GLYPH_RL_PER_MIN*4,60000)) return send(res,429,{error:'Slow down.'});
     if(p==='/api/glyphs/slot-options'){ // GET: server-derived legal blueprints for one empty slot
       glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
       const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
@@ -2809,6 +2986,15 @@ async function api(req,res,url){
         const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }
         ledTx(me,'shop:pieces',{gems:-c, mats:got});
         writeDB(); return {ok:true, mats:got, cost:c, ledger:ledgerView(me)}; }
+      /* 31 Aug — the GUILD shop's copy of the same bundle. It is priced in guild coins, not
+         diamonds, and the debit happens HERE so the coins and the materials move in one write:
+         the client used to spend the coins via /api/tx/spend and then land on the branch above,
+         paying 450 diamonds as well (or losing the coins outright when it had none). */
+      if(what==='pieces_guild'){ const c=450; if((led.guildCoins|0)<c) return {ok:false,error:'Not enough guild coins.'};
+        led.guildCoins=(led.guildCoins|0)-c; led.eqMats=led.eqMats||{};
+        const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }
+        ledTx(me,'guildshop:pieces',{guildCoins:-c, mats:got});
+        writeDB(); return {ok:true, mats:got, cost:c, ledger:ledgerView(me)}; }
       return {ok:false,error:'Unknown item.'};
     });
     return send(res, out.ok===false?400:200, out); }
@@ -2904,6 +3090,29 @@ async function api(req,res,url){
       return {ok:true, level:arr[idx], cost, ledger:ledgerView(me)};
     });
     return send(res, out&&out.ok?200:400, out); }
+  /* 30 Aug — EQUIPMENT CRAFTING SPENT NOTHING. A Grey craft decremented G.eqMats in the BROWSER only,
+     but eqMats is ledger-owned: adoptLedger (boot + the 45s ledgerSync) handed the materials straight
+     back while the crafted piece stayed in the local inventory, so anyone could mint unlimited Tier-0
+     pieces and combine them upward into top-tier gear. The material spend is a server transaction now.
+     Higher tiers consume already-crafted pieces, so bounding Tier-0 bounds the whole tree. */
+  if(p==='/api/eq/craft' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':eqcraft:'+reqId,()=>{
+      const led=ensureLedger(me);
+      const grp=String(b.group||''); const slot=b.slot|0;
+      const base=EQ_SLOT_BASE_SRV[grp];
+      if(!base) return {ok:false,error:'Unknown equipment group.'};
+      if(slot<0||slot>=base.length) return {ok:false,error:'Unknown slot.'};
+      const mk=EQ_MAT_KEYS[base[slot]];
+      if(!mk) return {ok:false,error:'Unknown material.'};
+      led.eqMats=led.eqMats||{};
+      if((led.eqMats[mk]|0)<EQ_CRAFT_MAT_COST) return {ok:false,error:'Not enough materials.'};
+      led.eqMats[mk]=(led.eqMats[mk]|0)-EQ_CRAFT_MAT_COST; led.rev++;
+      ledTx(me,'eqcraft:'+grp+':'+slot,{});
+      writeDB();
+      return {ok:true, spent:{key:mk, n:EQ_CRAFT_MAT_COST}, ledger:ledgerView(me)};
+    });
+    return send(res, out&&out.ok?200:400, out); }
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     const v=ledgerView(me); writeDB(); return send(res,200,v); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -2938,6 +3147,7 @@ async function api(req,res,url){
       if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
       led.earnDay[what+':'+reason]=used+amt;
       if(what==='gold') led.gold=Math.min(100000000,led.gold+amt);
+      else if(what==='guildCoins') led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+amt);
       else if(what==='gems'){ gemGain(me,amt,reason); led.gems=Math.min(2000000,led.gems+amt); }
       else if(what==='stamina'){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+amt); }
       else if(what==='px'){ const before=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+amt);
@@ -2961,7 +3171,7 @@ async function api(req,res,url){
     let yourPower=0, squad=[];
     try{
       const led=ensureLedger(me);
-      const picked=(Array.isArray(me.team)?me.team.filter(k=>k&&led.unlocked[k]):[]).slice(0,5);
+      const picked=rosterKeys(me.team).filter(k=>led.unlocked[k]).slice(0,5);
       squad=picked.length?picked:Object.keys(led.unlocked).filter(k=>led.unlocked[k]).slice(0,5);
       const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       yourPower=Math.round(snaps.reduce((a,u)=>a+(u.maxHp||0)/8+Math.max(u.atkP||0,u.atkM||0)*3+(u.heal||0)*2,0));
@@ -3020,6 +3230,9 @@ async function api(req,res,url){
         const open=prog.att;
         if(open.node===node){
           const st0=portalStageOf(mode,node);
+          /* A resumed session plays a NEW fight on the same attempt — the interrupted fight's action
+             transcript and clock must not survive to be replayed as this result. */
+          open.stream=null; open.clock=null;
           writeDB();
           return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:open.seed,
             snaps:open.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
@@ -3139,6 +3352,25 @@ async function api(req,res,url){
         ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
         // Correction Spec v1: the stage's EXACT named Glyph Fragment target, granted server-side
         reward.glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity})));
+        /* GUARDIAN STAGES PAY THEIR FRAGMENT ON THIS ROUTE TOO. The DROPS panel promises x2-4 hero
+           fragments on a normal-portal elite stage, and the sweep route + /api/elite/resolve both
+           grant them — but manual play resolved HERE granted none, so a signed-in player got nothing,
+           first clear included (and a first clear can never be swept: sweep needs three stars).
+           Capped on the SAME 3-rewarded-runs-per-day budget the sweep route enforces, so this is not
+           a new uncapped farm; the amount is what every other path already pays. */
+        if(mode==='normal' && isEliteStageSrv(a.node)){
+          prog.runs=prog.runs||{}; const _dk=nyDayKey(); if(prog.runs.k!==_dk) prog.runs={k:_dk};
+          const _used=prog.runs['n'+a.node]|0;
+          if(_used<3){
+            const _hk=eliteHeroForSrv(a.node);
+            const _amt=first?(2+(srvSeed('efrag', me.id, a.node, reqId)%3)):1;   // first clear: the advertised 2-4 roll; farm runs: +1, same as a sweep run
+            prog.runs['n'+a.node]=_used+1;
+            led.frags=led.frags||{};
+            led.frags[_hk]=Math.min(9999,(led.frags[_hk]|0)+_amt);
+            reward.eliteFrag={heroKey:_hk, qty:_amt};
+            ledTx(me,mode+':elitefrag:'+a.node,{frag:_amt,hero:_hk});
+          }
+        }
       } else ledTx(me,mode+':loss:'+st.id,{});
       /* The receipt: what was frozen, what the player did, and what the replay produced. Enough to
          re-run this exact battle later and prove the result — kept small and capped. */
@@ -3367,22 +3599,30 @@ async function api(req,res,url){
     if(p==='/api/pvp/attack'){ const out=idem(me.id+':pvpatk:'+reqId,()=>{
         const d=DB.users[String(b.defId||'')];
         if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
-        const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0};
+        const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0,coins:0};
         if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
         const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
         for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'You have not unlocked '+k+'.'}; }
         const mySnaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
-        const defKeys=(Array.isArray(d.wall)&&d.wall.length?d.wall:(d.team||[])).slice(0,5).filter(k=>SIM.HERO_BASE[k]);
+        const defRoster=(Array.isArray(d.wall)&&d.wall.length?d.wall:(Array.isArray(d.team)?d.team:[])).filter(Boolean).slice(0,5);
         if(!mySnaps.length) return {ok:false,error:'Bad squad.'};
-        const defSnaps=defKeys.map(k=>snapshotHeroFromServer(d,k)).filter(Boolean);
-        let won=true, rounds=0, log=[];
+        const defSnaps=(d.isNpc?defRoster.map(function(e){ return snapshotNpcHero(e); }):rosterKeys(defRoster).map(function(k){ return snapshotHeroFromServer(d,k); })).filter(Boolean);
+        // v328: an unresolvable defence must FAIL CLOSED. This used to leave won=true when the
+        // wall produced no snapshots (empty roster via sanitizeRoster, or any future shape change),
+        // handing the attacker capped gold + guild coins + hero XP with no battle ever simulated.
+        // Returned before me.pvpDay.n++ so a phantom fight costs the attacker no daily attack.
+        if(!defSnaps.length) return {ok:false,error:'That city has no defenders.'};
+        let won=false, rounds=0, log=[];
         if(defSnaps.length){ const r=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(defSnaps),SIM.seedFrom('citypvp:'+me.id+':'+reqId));
           won=r.won; rounds=r.rounds; log=r.log.slice(0,200); }
         me.pvpDay.n++;
         let loot=null;
         if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold));
           if(g>0){ led.gold=Math.min(ECON_CAP.gold,led.gold+g); me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0};
+          const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)));
+          if(c>0){ led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+c); me.pvpDay.coins=(me.pvpDay.coins|0)+c; ledTx(me,'city-pvp',{guildCoins:c}); }
+          loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         d.pvpMail=d.pvpMail||[];
         d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds});
@@ -3419,11 +3659,11 @@ async function api(req,res,url){
       .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:u.world.level||1,
                  power:serverTeamPower((Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])), u)|0,   // v249: SERVER-computed power, never client-uploaded
                  region:u.world.region, x:u.world.x, y:u.world.y, guildId:u.guildId||null,
-                 team:(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])).slice(0,5) }));
+                 team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));
     return send(res,200,{ cities, myGuildId: me.guildId||null }); }
 
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
-    return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:o.team, isNpc:!!o.isNpc } }); }
+    return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc } }); }
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'});
     // SPREAD opponents across %-better rank bands (mirrors client arenaTargetRanks) so you can see JUMP targets,
@@ -3443,7 +3683,12 @@ async function api(req,res,url){
     for(const tr of targets){ let best=null,bd=1e9; for(const u of pool){ if(chosen.has(u.id))continue; const d=Math.abs(u.rank-tr); if(d<bd){bd=d;best=u;} } if(best){ chosen.add(best.id); opps.push(best); } }
     for(let k=pool.length-1; k>=0 && opps.length<5; k--){ const u=pool[k]; if(!chosen.has(u.id)){ chosen.add(u.id); opps.push(u); } }   // fill remaining with the NEAREST ranks above you (pool is ascending → never the very top)
     opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
-    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:u.team||[] }));
+    // v327: preview the rank-milestone diamonds THIS player would ACTUALLY be paid for each opponent —
+    // same step table, same loop and same fractional settle as /api/arena/result — so the client's
+    // "💎 +N" row can never promise more than the server pays.
+    const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
+    function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
+    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,u.team||[]), gems:prevGems(u.rank) }));
     return send(res,200,{ rank:me.rank, opponents:out }); }
 
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -3466,9 +3711,14 @@ async function api(req,res,url){
     let won=false, simRes=null;
     if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
       const myLed=ensureLedger(me);
-      const mySnaps=(me.team||[]).filter(Boolean).slice(0,5).filter(k=>myLed.unlocked[k]).map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
+      let myKeys=rosterKeys(me.team).filter(k=>myLed.unlocked[k]).slice(0,5);
+      if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>myLed.unlocked[k]&&SIM.HERO_BASE[k]).slice(0,5);   // v327: a player who never pressed save still fields a squad (ledgerTeamPower:312 does the same)
+      const mySnaps=myKeys.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       const opLed=opp.isNpc?null:ensureLedger(opp);
-      const opSnaps=(opp.team||[]).filter(Boolean).slice(0,5).filter(k=>opp.isNpc||(opLed&&opLed.unlocked[k])).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
+      let opSnaps;
+      if(opp.isNpc){ opSnaps=(Array.isArray(opp.team)?opp.team:[]).filter(Boolean).slice(0,5).map(function(e){ return snapshotNpcHero(e); }).filter(Boolean); }
+      else { opSnaps=rosterKeys(opp.team).filter(k=>opLed&&opLed.unlocked[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
+        if(!opSnaps.length&&opLed) opSnaps=Object.keys(opLed.unlocked||{}).filter(k=>opLed.unlocked[k]&&SIM.HERO_BASE[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean); }
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
         simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
     }
@@ -3580,7 +3830,8 @@ async function api(req,res,url){
     const GBASE=30,GPER=5,GMAXCAP=60,GMAXLVL=7;
     const gCap = g => Math.min(GMAXCAP, GBASE+((g.level||1)-1)*GPER);
     const gExpNeed = lvl => 1000*lvl;
-    const myGuild = () => me.guildId ? DB.guilds[me.guildId] : null;
+    const findGuild = id => (typeof id==='string' && Object.prototype.hasOwnProperty.call(DB.guilds, id)) ? DB.guilds[id] : null;
+    const myGuild = () => me.guildId ? findGuild(me.guildId) : null;
     const nameOf = id => { const u=DB.users[id]; return u?u.name:'—'; };
     const rankOf = id => { const u=DB.users[id]; return u?u.rank:99999; };
     const isOnline = id => { const u=DB.users[id]; return !!(u && (Date.now()-(u.lastSeen||0) < 5*60000)); };
@@ -3676,13 +3927,13 @@ async function api(req,res,url){
 
     if(p==='/api/guild/request'){
       if(myGuild()) return send(res,400,{error:'Leave your current guild first.'});
-      const g=DB.guilds[b.guildId]; if(!g) return send(res,404,{error:'Guild not found.'});
+      const g=findGuild(b.guildId); if(!g) return send(res,404,{error:'Guild not found.'});
       if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'That guild is full.'});
       g.reqs=g.reqs||[]; if(g.reqs.some(r=>r.id===me.id)) return send(res,200,{ ok:true, already:true });
       if(g.reqs.length>=80) return send(res,400,{error:'That guild has too many pending requests right now.'});
       g.reqs.push({id:me.id,t:Date.now()}); writeDB(); return send(res,200,{ ok:true }); }
 
-    if(p==='/api/guild/cancelRequest'){ const g=DB.guilds[b.guildId]; if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB(); } return send(res,200,{ok:true}); }
+    if(p==='/api/guild/cancelRequest'){ const g=findGuild(b.guildId); if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB(); } return send(res,200,{ok:true}); }
 
     const g=myGuild();
     if(['/api/guild/approve','/api/guild/deny','/api/guild/kick','/api/guild/transfer','/api/guild/disband','/api/guild/motd'].includes(p)){
@@ -3977,16 +4228,28 @@ try{
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
 campCompile(); portalCompile(); vaultCompile(); readDB(); pgInit();
-if(PG){ (async()=>{ try{ await pgSetup(); const got=await pgLoad();
-  let fileM=0; try{ fileM=fs.statSync(DB_FILE).mtimeMs; }catch(e){}
-  if(got && got.mtime>fileM){ DB=got.db; console.log('🐘 World state loaded from PostgreSQL (newer than the file mirror).'); seed(); migrateAdminRoles(); migrateTokenHashes(); }
-  else if(got===null){ pgSave(); console.log('🐘 PostgreSQL seeded from the current world state.'); }
-}catch(e){ console.error('⚠ PG boot failed ('+e.message+') — continuing on the JSON file.'); } })(); }
-seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
-backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
+const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(e){ return 0; } })();   // v327: sampled BEFORE seed()/migrations can refresh the file's mtime
+/* v327 (critical): boot used to seed + writeDB() synchronously while the PG restore was still awaiting
+   two network round-trips, so `fileM` was re-sampled AFTER the debounced boot write had already touched
+   DB_FILE — got.mtime>fileM was never true, and that same write UPSERTed the empty seed over the saved
+   world. Everything that persists is now suppressed until the restore decision lands, the mtime is
+   sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
+function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
+  seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
+  backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
+  const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
+  console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
+  console.log('👤 Player accounts loaded: '+realAccts);
+  server.listen(PORT,()=>{ console.log('🔥 Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
+}
+if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port stays closed, until this resolves
+  (async()=>{ try{ await pgSetup(); const got=await pgLoad();
+    if(got && got.mtime>BOOT_FILE_M){ DB=got.db; console.log('🐘 World state loaded from PostgreSQL (newer than the file mirror).'); }
+    else { _bootDirty=true; console.log(got===null?'🐘 PostgreSQL seeded from the current world state.':'🐘 File mirror is newer than PostgreSQL — keeping the file and re-publishing it.'); }
+  }catch(e){ console.error('⚠ PG boot failed ('+e.message+') — continuing on the JSON file.'); }
+    bootFinish(); })();
+  setTimeout(function(){ if(!_booted) console.error('⚠ PG boot timed out after 15s — continuing on the JSON file.'); bootFinish(); }, 15000);
+} else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
-const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
-console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
-console.log('👤 Player accounts loaded: '+realAccts);
-server.listen(PORT,()=>{ console.log('🔥 Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
