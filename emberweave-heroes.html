@@ -7436,13 +7436,27 @@ function clearServerCaches(){
   try{ _worldCitiesCache=null; }catch(e){}
 }
 function loadAcc(){ try{const s=localStorage.getItem('ew_acc');if(s)ACC=JSON.parse(s);}catch(e){} }
+/* Sign out and STAY signed out. Saves the leaving account's progress, drops every cached server
+   view, blanks the local save, and marks the device as deliberately signed out so no boot path or
+   heartbeat quietly provisions a guest. Nothing is signed in until the player chooses. */
+function signOutFully(){
+  try{ flushCloud(); }catch(e){}
+  ACC={token:null,name:null,rank:null,coins:0,id:null,email:'',signedOut:true}; try{ DEV.on=false; DEV.god=false; }catch(e){} saveAcc();
+  try{ clearServerCaches(); }catch(e){}
+  G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();
+  try{ updateHubChrome(); }catch(e){} }
+function playAsGuest(cb){ if(ACC) delete ACC.signedOut; saveAcc(); ensureGuest(()=>{ try{ updateHubChrome(); }catch(e){} if(cb)cb(); }); }
 function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} }
 // GUEST SESSION: when there's no signed-in account, provision a persistent server-backed "level 1 guest"
 // so progress is always saved and the player appears online. Seeds the guest with the CURRENT local save,
 // so an offline player who reached e.g. level 7 without an account is NOT reset to 1. One guest per device
 // (server-deduped): relaunching resumes it. Called on boot (no token) and after logging off a real account.
+/* 2 Sep (Phil: "when I log out it forces me back on as a guest — I shouldn't be signed on to a guest").
+   There was no signed-out state: every path that found no token immediately provisioned a device
+   guest, including Log out itself. A deliberate sign-out now sets ACC.signedOut and STAYS signed
+   out until the player logs in, registers, or taps "Play as guest". */
 function ensureGuest(cb){
-  if((ACC&&ACC.token) || !online()){ if(cb)cb(); return; }
+  if((ACC&&ACC.token) || (ACC&&ACC.signedOut) || !online()){ if(cb)cb(); return; }
   let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
   api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
     if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); clearServerCaches();   // 31 Aug: a pre-token /api/gear/state 401 may already have cached "Forge disabled" — drop it now that we have a token
@@ -7526,11 +7540,13 @@ function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.ros
 function renderAccount(){ const b=document.getElementById('accountBody');
   if(!online()){ b.innerHTML='<div>🌐 Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
   if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
-    b.querySelector('#logout').onclick=()=>{ flushCloud(); ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); clearServerCaches(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); ensureGuest(()=>{ updateHubChrome(); renderAccount(); }); }; return; }
+    b.querySelector('#logout').onclick=()=>{ signOutFully(); renderAccount(); }; return; }
   b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">🎮 <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
+    ${(ACC&&ACC.signedOut)?`<button class="btn xs secondary" id="guestBtn" style="width:100%;margin-top:8px">🎮 Play as a guest instead</button>`:''}
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
+  { const gb=b.querySelector('#guestBtn'); if(gb) gb.onclick=()=>{ gb.disabled=true; playAsGuest(()=>{ renderAccount(); show('home'); }); }; }
   const finishAuth=(d,isReg)=>{ clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); }
       updateHubChrome(); renderAccount(); };
@@ -10849,13 +10865,8 @@ function renderSettings(){
     const backB=b.querySelector('#acResetBack'); if(backB) backB.onclick=()=>{ _resetName=''; acctMode='signin'; renderSettings(); };
   }
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
-    flushCloud();                                   // save this account's latest progress before leaving
-    ACC={token:null,name:null,rank:null,coins:0,id:null,email:''}; DEV.on=false; DEV.god=false; saveAcc();
-    clearServerCaches();                            // 30 Aug: or the next account sees this one's Forge, Vault, glyphs and pool state
     pwStep='idle'; emStep='idle'; _emPending='';
-    G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();   // blank ONCE; ensureGuest then loads the device guest's own save over it
-    ensureGuest(()=>{ updateHubChrome(); renderSettings(); });
-    updateHubChrome(); renderSettings(); };
+    signOutFully(); show('account'); };
   // ---- recovery email: add / change requires an emailed code (to the CURRENT email if one exists) ----
   const acEdit=b.querySelector('#acEditEmail'); if(acEdit) acEdit.onclick=(e)=>{ e.preventDefault(); const f=b.querySelector('#acEmailForm'); if(f){ f.style.display='block'; const i=b.querySelector('#acEmailIn'); if(i)i.focus(); } };
   const acEmCancel=b.querySelector('#acEmailCancel'); if(acEmCancel) acEmCancel.onclick=()=>{ emStep='idle'; _emPending=''; renderSettings(); };
@@ -11902,7 +11913,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788344350288';
+const BUILD_ID='1788344591481';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -12127,6 +12138,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
     let _f=0; const _lift=()=>{ if(++_f<4){ resize3D(); requestAnimationFrame(_lift); } else if(gate) gate.style.display='none'; };
     requestAnimationFrame(_lift);
     setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
+    if(ACC&&ACC.signedOut&&!ACC.token){ try{ show('account'); }catch(e){} }   // 2 Sep: a deliberate sign-out opens on the sign-in screen, never on a guest's town
   });
 }
 function setupLandscape(){
