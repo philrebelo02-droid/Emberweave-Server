@@ -1045,6 +1045,20 @@ const HERO_TYPES = {
    arrears: {name:'Grimsby',emoji:'📜',role:'Bruiser',swing:2.2,stars:3,hp:360,dmg:28,range:200,speed:52,atkSpeed:0.85,color:0x3a3a44,abilityName:'Foreclosure',ability:'aoedot',locked:true,wip:true,start:3},
    meryln:  {name:'Dandra',emoji:'🌸',role:'Support',swing:2.0,stars:1,hp:200,dmg:12,apow:30,range:185,speed:56,atkSpeed:0.9,color:0x8a5fd0,abilityName:"Queen's Call",ability:'rally',healer:true,locked:true,wip:true},
 };
+/* v332 — the 11 new heroes (Phil, 1-2 Sep). Stats/kits in the hero block after the roster. */
+Object.assign(HERO_TYPES, {
+  pyroclast:{name:"Pyroclast",emoji:'🔥',role:'Mage',swing:2.0,stars:2,hp:185,dmg:16,apow:34,range:215,speed:54,atkSpeed:0.85,color:0xff6a2a,abilityName:"Crownfire",ability:'fireball',locked:true,wip:true,start:2},
+  stormwarden:{name:"Stormwarden",emoji:'⚡',role:'Fighter',swing:2.3,stars:2,hp:440,dmg:30,range:30,speed:56,atkSpeed:1.0,color:0x5aa8ff,abilityName:"Skybreak",ability:'aoeStun',locked:true,wip:true,start:2},
+  verdantshade:{name:"Verdant Shade",emoji:'🏹',role:'Marksman',swing:2.0,stars:2,hp:210,dmg:32,range:220,speed:56,atkSpeed:1.0,color:0x4fae5a,abilityName:"Emerald Volley",ability:'volley',locked:true,wip:true,start:2},
+  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Event Horizon",ability:'gravcrush',locked:true,wip:true,start:3},
+  dawnbringer:{name:"Dawnbringer",emoji:'🔨',role:'Tank',swing:2.5,stars:3,hp:580,dmg:24,apow:20,range:30,speed:52,atkSpeed:0.9,color:0xf0d070,abilityName:"Daybreak Judgment",ability:'sunburst',locked:true,wip:true,start:3},
+  cathedral:{name:"The Walking Cathedral",emoji:'⛪',role:'Tank',swing:2.6,stars:3,hp:620,dmg:20,apow:26,range:30,speed:48,atkSpeed:0.85,color:0xc8b890,abilityName:"Divine Mass",ability:'sunburst',locked:true,wip:true,start:3},
+  lastfurnace:{name:"The Last Furnace",emoji:'🔩',role:'Bruiser',swing:2.4,stars:3,hp:470,dmg:34,range:30,speed:54,atkSpeed:0.95,color:0xe06a2a,abilityName:"Living Forge",ability:'ashfall',locked:true,wip:true,start:3},
+  beekeeper:{name:"The Beekeeper King",emoji:'🐝',role:'Support',swing:2.0,stars:2,hp:230,dmg:14,apow:32,range:195,speed:54,atkSpeed:0.9,color:0xf0b830,abilityName:"Hive Mind",ability:'symphony',healer:true,locked:true,wip:true,start:2},
+  librarian:{name:"The Librarian of Monsters",emoji:'📚',role:'Mage',swing:2.1,stars:3,hp:200,dmg:16,apow:34,range:210,speed:52,atkSpeed:0.85,color:0x2c2c3c,abilityName:"Final Volume",ability:'summonshaman',locked:true,wip:true,start:3},
+  corsair:{name:"The Corsair Duelist",emoji:'🏴‍☠️',role:'Marksman',swing:2.0,stars:2,hp:220,dmg:33,range:200,speed:58,atkSpeed:1.05,color:0xb84a3a,abilityName:"Dead Man's Fortune",ability:'multiShot',locked:true,wip:true,start:2},
+  waxenduchess:{name:"Waxen Duchess",emoji:'🕯️',role:'Mage',swing:2.0,stars:3,hp:190,dmg:17,apow:35,range:215,speed:54,atkSpeed:0.85,color:0xe8d8b0,abilityName:"Court of the Final Candle",ability:'swamproot',locked:true,wip:true,start:3},
+});
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
 function isMythic(key){ return !!(HERO_TYPES[key] && HERO_TYPES[key].myth); }
@@ -3910,11 +3924,11 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     // ---- Hurne: three undead boar warriors haul themselves up out of the floor ----
     case 'summonwarriors':{ const n=o.n||3, dur=o.dur||18;
       for(let i=0;i<n;i++){ const a=(-0.6+1.2*(i/(n-1||1))) + (u.team==='ally'?0:Math.PI);
-        summonUnit(u,'boar warrior',dur,{a:a,r:(o.radius||1.7*METER)}); }
+        summonUnit(u,o.key||'boar warrior',dur,{a:a,r:(o.radius||1.7*METER)}); }
       ringBurst(u.x,u.y,0x6b5230,22);
-      floatTexts.push({x:u.x,y:u.y-14,txt:'UP, THE LOT OF YOU',t:1.2,color:'#c9a227',vy:1,sz:13}); break; }
+      if(!o.key) floatTexts.push({x:u.x,y:u.y-14,txt:'UP, THE LOT OF YOU',t:1.2,color:'#c9a227',vy:1,sz:13}); break; }
     // ---- Hurne: one boar shaman — mends the pack, and burns whatever stands near it ----
-    case 'summonshaman':{ const sh=summonUnit(u,'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER)});
+    case 'summonshaman':{ const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER)});
       if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:'BONE CHANT',t:1.1,color:'#8fbf3f',vy:1,sz:12}); }
       break; }
     // ---- Hurne ULT: he tears the whole pack apart and takes it into himself ----
@@ -4058,7 +4072,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a; floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
-  u._castSlot='ult'; doEffect(u, ab, ULT_DEF[ab]||{}); u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
+  u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
   u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
 }
 
@@ -7150,6 +7164,652 @@ HERO_CARD_ART.sablewick='/assets/img/hero-cards/card-sablewick.webp?v=7';
 for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
 const MONSTER_SPRITES={}; for(const k in GLOSSARY_ART){ const i=k.indexOf('/'), cat=k.slice(0,i), id=k.slice(i+1); if(cat==='monsters'||cat==='bosses') MONSTER_SPRITES[id]=GLOSSARY_ART[k]; }
 Object.assign(HERO_SPRITES, MONSTER_SPRITES);   // monsters render as static billboards from their keyed art
+
+/* ==================== 2 Sep — THE NEW ROSTER: 28 monsters + 14 bosses ====================
+   Art and clips by Phil (Emberweave Ideas/Monsters, 1-2 Sep). Sliced with cs10.py at hero
+   resolution (magenta key 249,1,245). Kits mapped onto the EXISTING ability types by the
+   design pack's descriptions; see /root/ew_new/work/monster_design.json for the mapping notes.
+   Nothing spawns them yet — encounters are authored separately. */
+Object.assign(MONSTER_TYPES,{
+  'cinder skulk':{name:'Cinder Skulk',stars:2,swing:1.9,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:14242603},
+  'furnace gnawer':{name:'Furnace Gnawer',stars:2,swing:1.8,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:12075039},
+  'sootwing imp':{name:'Sootwing Imp',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:7027242,fly:true},
+  'basalt mauler':{name:'Basalt Mauler',stars:2,swing:2.5,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:4864566},
+  'magma hound':{name:'Magma Hound',stars:2,swing:2.0,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:14701866},
+  'crucible acolyte':{name:'Crucible Acolyte',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:13126186,fly:true},
+  'reef prowler':{name:'Reef Prowler',stars:2,swing:1.9,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:3116938},
+  'kelp hexer':{name:'Kelp Hexer',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:4161370,fly:true},
+  'shellguard sentinel':{name:'Shellguard Sentinel',stars:2,swing:2.6,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:6983592},
+  'mudsnap crab':{name:'Mudsnap Crab',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:44,speed:56,color:8022586,fly:true},
+  'storm eel':{name:'Storm Eel',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:5222655,fly:true},
+  'saltglass siren':{name:'Saltglass Siren',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:10475728,fly:true},
+  'graveclaw ghoul':{name:'Graveclaw Ghoul',stars:2,swing:1.9,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:7307098},
+  'wispweaver shade':{name:'Wispweaver Shade',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:240,speed:56,color:9072592,fly:true},
+  'bonepike guard':{name:'Bonepike Guard',stars:2,swing:2.5,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:14209208},
+  'rotbloom ooze':{name:'Rotbloom Ooze',stars:2,swing:2.2,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:9426504},
+  'nightcap mimic':{name:'Nightcap Mimic',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:44,speed:56,color:9064360,fly:true},
+  'mourn moth':{name:'Mourn Moth',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:12101848,fly:true},
+  'riftling spider':{name:'Riftling Spider',stars:2,swing:1.8,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:5914511},
+  'crystalhorn grazer':{name:'Crystalhorn Grazer',stars:2,swing:2.0,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:9425151},
+  'skyroot dryad':{name:'Skyroot Dryad',stars:2,swing:1.8,monster:true,role:'Warrior',hp:155,dmg:16,range:205,speed:54,color:6269024},
+  'luminant orb':{name:'Luminant Orb',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:240,speed:56,color:16773288,fly:true},
+  'zephyr harrier':{name:'Zephyr Harrier',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:12577023,fly:true},
+  'runic automaton':{name:'Runic Automaton',stars:2,swing:2.5,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:9412808},
+  'ironjaw raider':{name:'Ironjaw Raider',stars:2,swing:2.0,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:10119738},
+  'vineback boar':{name:'Vineback Boar',stars:2,swing:2.2,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:6262586},
+  'frostjaw troll':{name:'Frostjaw Troll',stars:2,swing:2.6,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:10477823},
+  'clockwork lantern':{name:'Clockwork Lantern',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:16762976,fly:true},
+  'vharok':{name:'Vharok, Kiln-Heart Tyrant',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16734762,fly:true,isboss:true},
+  'nerissa':{name:'Nerissa, Crown of the Drowned',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:4169672,fly:true,isboss:true,ap:1.6},
+  'barrowmaw':{name:'Barrowmaw, Ossuary Devourer',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:8359786,isboss:true},
+  'asterion':{name:'Asterion, Mirror Warden',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:150,speed:44,color:13162736,isboss:true},
+  'maelvara':{name:'Maelvara, Stormnest Matriarch',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7319807,fly:true,isboss:true},
+  'brukk':{name:'Brukk, Master of the Black Kiln',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:5917258,isboss:true},
+  'nymira':{name:'Nymira, the Sunken Bloom',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:7325872,isboss:true,ap:1.6},
+  'irix':{name:'Irix, the Sky-Shard Roc',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16765567,fly:true,isboss:true},
+  'kharos':{name:'Kharos, Hourglass Sentinel',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:14202986,isboss:true},
+  'miregor':{name:'Miregor, King of the Briar March',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7311162,fly:true,isboss:true},
+  'sable vesper':{name:'Sable Vesper, Choir of Crows',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:3813194,fly:true,isboss:true,ap:1.6},
+  'orryx':{name:'Orryx, the Glass Minotaur',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:12159999,fly:true,isboss:true},
+  'thorneveil':{name:'Thorneveil, Warden of the Ash Grove',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:9394730,isboss:true,ap:1.6},
+  'nameless admiral':{name:'The Nameless Admiral',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:150,speed:44,color:6258591,isboss:true}
+});
+Object.assign(MONSTER_KITS,{
+  'cinder skulk':{green:{name:'Coal Pounce',type:'charge',mul:1.1,radius:1.6*METER,stun:0.6,cd:8,gfx:'firepatch',gfxR:1.6*METER,gdur:1.6},blue:{name:'Cauterizing Bite',type:'dot',mul:0.5,dps:0.5,dur:3,color:'#ff6a3a',cd:7,gfx:'firepatch',gfxR:1.1*METER,gdur:1.6}},
+  'furnace gnawer':{green:{name:'Scoria Snap',type:'dot',mul:0.6,dps:0.45,dur:4,color:'#ff7a3a',cd:6,gfx:'firepatch',gfxR:1.1*METER,gdur:1.6},blue:{name:'Cinder Scamper',type:'cleavecone',mul:0.9,radius:2.6*METER,angle:60,burn:true,burnDps:0.35,burnDur:3,cd:9,gfx:'firepatch',gfxR:2.2*METER,gdur:2.0}},
+  'sootwing imp':{green:{name:'Ember Needle',type:'strike',mul:1.3,color:'#ff8a3a',cd:6,pfx:'fireball',pscale:2.2,pdur:0.32},blue:{name:'Smoke Veil',type:'defensive',mul:0.5,dur:4,cd:10,gfx:'voidzone',gfxAt:'self',gfxR:1.6*METER,gdur:2.0}},
+  'basalt mauler':{green:{name:'Kiln Fist',type:'cleavecone',mul:1.1,radius:2.8*METER,angle:70,cd:8,gfx:'groundslam',gfxR:2.4*METER,gdur:1.6},blue:{name:'Molten Guard',type:'defensive',mul:0.5,dur:4,cd:11,gfx:'firepatch',gfxAt:'self',gfxR:2.0*METER,gdur:2.0}},
+  'magma hound':{green:{name:'Blaze Run',type:'charge',mul:1.3,radius:2.0*METER,stun:0.5,cd:9,gfx:'firepatch',gfxR:2.0*METER,gdur:2.0},blue:{name:'Pack Howl',type:'haste',mul:1.4,dur:4,self:true,cd:10,gfx:'rallyroots',gfxAt:'self',gfxR:2.0*METER,gdur:1.6}},
+  'crucible acolyte':{green:{name:'Pouring Flame',type:'aoedot',mul:0.5,dps:0.45,dur:4,radius:2.4*METER,cd:8,gfx:'firepatch',gdur:2.4},blue:{name:'Heat Ward',type:'defensive',mul:0.5,dur:4,cd:11,gfx:'bonechant',gfxAt:'self',gfxR:2.0*METER,gdur:2.0}},
+  'reef prowler':{green:{name:'Riptide Lunge',type:'charge',mul:1.2,radius:1.8*METER,stun:0.4,cd:8,gfx:'bleed',gfxR:1.4*METER,gdur:1.8},blue:{name:'Undertow Retreat',type:'tendrilpull',dur:1.2,cd:10}},
+  'kelp hexer':{green:{name:'Brine Snare',type:'stun',mul:0.8,stun:1.4,cd:9,gfx:'tsunami',gfxR:1.2*METER,gdur:2.0},blue:{name:'Tidal Orb',type:'strike',mul:1.5,color:'#5fb8ff',cd:7,pfx:'frostball',pscale:2.6,pdur:0.34}},
+  'shellguard sentinel':{green:{name:'Shell Bash',type:'cleavecone',mul:1.0,radius:2.4*METER,angle:70,stun:1.0,cd:8,gfx:'groundslam',gfxR:2.2*METER,gdur:1.4},blue:{name:'Pearl Bulwark',type:'defensive',mul:0.5,dur:4,cd:11,gfx:'bonechant',gfxAt:'self',gfxR:2.0*METER,gdur:2.0}},
+  'mudsnap crab':{green:{name:'Tidal Clamp',type:'tendrilpull',nearest:true,dur:1.2,cd:8},blue:{name:'Bog Burst',type:'ashfall',dps:0.3,dur:3,radius:2.4*METER,slow:2,color:'#6b8f3a',cd:10,gfx:'poison',gfxR:2.4*METER,gdur:3.0}},
+  'storm eel':{green:{name:'Arc Lash',type:'volley',mul:0.8,n:3,color:'#9fe0ff',cd:7,pfx:'prismbolt',pscale:2.6,pdur:0.22},blue:{name:'Surge Coil',type:'charge',mul:1.4,radius:1.8*METER,stun:0.5,cd:10,gfx:'tidalwave',gfxR:2.0*METER,gdur:2.0}},
+  'saltglass siren':{green:{name:'Shatter Song',type:'cleavecone',mul:0.9,radius:3.0*METER,angle:60,stun:0.8,cd:8,gfx:'frostnova',gfxR:2.6*METER,gdur:1.3},blue:{name:'Mirage Current',type:'blink',mul:1.0,range:16*METER,cd:10}},
+  'graveclaw ghoul':{green:{name:'Tomb Rake',type:'punchflurry',hits:3,mul:0.5,tauntChance:0,cd:7,gfx:'bleed',gfxR:1.2*METER,gdur:1.6},blue:{name:'Carrion Mend',type:'devour',mul:1.2,heal:0.5,cd:10,gfx:'bleed',gfxR:1.1*METER,gdur:1.8}},
+  'wispweaver shade':{green:{name:'Mute Thread',type:'stun',mul:0.7,stun:1.3,cd:9,gfx:'voidzone',gfxR:1.2*METER,gdur:1.8},blue:{name:'Gloam Step',type:'blink',mul:1.6,range:20*METER,cd:10}},
+  'bonepike guard':{green:{name:'Hooked Thrust',type:'tendrilpull',dur:1.4,cd:8},blue:{name:'Ribwall',type:'taunt',dur:3,cd:10,gfx:'bonechant',gfxAt:'self',gfxR:2.2*METER,gdur:2.2}},
+  'rotbloom ooze':{green:{name:'Caustic Spit',type:'dot',mul:0.4,dps:0.6,dur:5,color:'#8fd648',cd:7,gfx:'poison',gfxR:1.2*METER,gdur:2.0},blue:{name:'Grave Flood',type:'mortal',mul:1.1,cd:10,gfx:'poison',gfxR:1.4*METER,gdur:2.0}},
+  'nightcap mimic':{green:{name:'False Treasure',type:'stun',mul:1.5,stun:1.2,cd:8,gfx:'bleed',gfxR:1.0*METER,gdur:1.6},blue:{name:'Drowse Spores',type:'ashfall',dps:0.3,dur:3,radius:2.6*METER,slow:2,color:'#b48cff',cd:10,gfx:'poison',gfxR:2.6*METER,gdur:3.0}},
+  'mourn moth':{green:{name:'Ashen Dust',type:'ashfall',dps:0.3,dur:3,radius:2.8*METER,slow:2,color:'#c9b6ff',cd:10,gfx:'featherstorm',gfxR:2.8*METER,gdur:3.0},blue:{name:'Lament Dive',type:'charge',mul:1.5,radius:1.2*METER,stun:0.3,cd:9,gfx:'featherstorm',gfxR:1.4*METER,gdur:1.8}},
+  'riftling spider':{green:{name:'Phase Web',type:'stun',mul:0.6,stun:1.5,cd:9,gfx:'voidzone',gfxR:1.4*METER,gdur:1.8},blue:{name:'Rift Bite',type:'blink',mul:1.8,range:20*METER,cd:10}},
+  'crystalhorn grazer':{green:{name:'Shard Volley',type:'volley',mul:0.85,n:3,color:'#8fd0ff',cd:7,pfx:'crystalshard',pscale:2.2,pdur:0.26},blue:{name:'Prism Charge',type:'charge',mul:1.3,radius:2.0*METER,stun:0.6,cd:10,gfx:'frostnova',gfxR:2.0*METER,gdur:1.3}},
+  'skyroot dryad':{green:{name:'Thorn Lash',type:'strike',mul:1.4,color:'#7fd06b',cd:6,gfx:'rallyroots',gfxR:1.2*METER,gdur:1.6},blue:{name:'Sap Renewal',type:'heal',mul:0.3,cd:9,gfx:'mendbloom',gfxAt:'self',gfxR:2.0*METER,gdur:2.2}},
+  'luminant orb':{green:{name:'Radiant Beam',type:'piercethrow',mul:1.5,width:30,cd:9,pfx:'prismbolt',pscale:3.0,pdur:0.3},blue:{name:'Flash Pulse',type:'aoeStun',mul:0.6,stun:0.8,radius:2.4*METER,cd:10,gfx:'firstspring',gfxAt:'self',gdur:1.6}},
+  'zephyr harrier':{green:{name:'Gale Dart',type:'multiShot',mul:0.9,n:2,cd:7,pfx:'featherbolt',pscale:2.4,pdur:0.26},blue:{name:'Windstep',type:'nova',mul:0.7,radius:2.6*METER,cd:10,gfx:'featherstorm',gfxAt:'self',gfxR:2.6*METER,gdur:1.8}},
+  'runic automaton':{green:{name:'Arc Bolt',type:'fireball',mul:1.4,radius:2.0*METER,cd:8,gfx:'voidzone',gfxR:2.0*METER,gdur:1.8},blue:{name:'Ward Field',type:'defensive',mul:0.5,dur:5,cd:11,gfx:'bonechant',gfxAt:'self',gfxR:2.2*METER,gdur:2.2}},
+  'ironjaw raider':{green:{name:'Riveter Cleave',type:'cleavecone',mul:1.1,radius:2.6*METER,angle:90,cd:7,gfx:'cleave',gfxR:2.4*METER,gdur:1.2},blue:{name:'War Drum Kick',type:'haste',mul:1.4,dur:5,self:true,cd:10,gfx:'rallyroots',gfxAt:'self',gfxR:2.0*METER,gdur:1.6}},
+  'vineback boar':{green:{name:'Briar Charge',type:'charge',mul:1.3,radius:2.0*METER,stun:0.6,cd:9,gfx:'rallyroots',gfxR:2.0*METER,gdur:1.6},blue:{name:'Root Toss',type:'aoeStun',mul:0.6,stun:1.4,radius:2.2*METER,cd:11,gfx:'rallyroots',gdur:1.6}},
+  'frostjaw troll':{green:{name:'Glacier Hurl',type:'fireball',mul:1.3,radius:2.2*METER,cd:8,gfx:'frostnova',gfxR:2.2*METER,gdur:1.3},blue:{name:'Freezing Stomp',type:'aoeStun',mul:0.8,stun:1.2,radius:2.6*METER,cd:11,gfx:'frostnova',gfxAt:'self',gdur:1.3}},
+  'clockwork lantern':{green:{name:'Sunbeam Sweep',type:'cleavecone',mul:1.0,radius:3.2*METER,angle:30,cd:8,gfx:'firstspring',gfxR:2.4*METER,gdur:2.0},blue:{name:'Overload Vent',type:'nova',mul:1.0,radius:2.4*METER,cd:10,gfx:'firepatch',gfxAt:'self',gfxR:2.4*METER,gdur:2.0}},
+  'vharok':{green:{name:'Forgebreaker',type:'cleave',mul:1.8,radius:2.8*METER,cd:8,gfx:'groundslam',gfxR:2.8*METER,gdur:1.6},blue:{name:'Cinder Prison',type:'aoeStun',mul:1.2,stun:1.3,radius:2.6*METER,cd:11,gfx:'firepatch',gdur:2.0},pass:'immolate'},
+  'nerissa':{green:{name:'Royal Undertow',type:'cleave',mul:1.4,radius:2.8*METER,cd:8,gfx:'tidalwave',gfxR:2.8*METER,gdur:2.2},blue:{name:'Pearl Sentence',type:'stun',mul:1.8,stun:1.3,cd:10,gfx:'tsunami',gfxR:2.0*METER,gdur:2.4},pass:'tidereserve'},
+  'barrowmaw':{green:{name:'Gravebreath',type:'cleavecone',mul:1.2,radius:3.2*METER,angle:60,burn:true,burnDps:0.4,burnDur:3,cd:8,gfx:'poison',gfxR:2.6*METER,gdur:2.0},blue:{name:'Bone Rush',type:'charge',mul:1.7,radius:2.4*METER,stun:0.8,cd:11,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},pass:'momentum'},
+  'asterion':{green:{name:'Reflected Lance',type:'piercethrow',mul:1.8,width:34,cd:9,pfx:'prismbolt',pscale:3.4,pdur:0.3},blue:{name:'Shard Reversal',type:'defensive',mul:0.4,dur:4,cd:11,gfx:'frostnova',gfxAt:'self',gfxR:2.2*METER,gdur:1.3},pass:'notthere'},
+  'maelvara':{green:{name:'Thunder Talons',type:'punchflurry',hits:3,mul:0.7,tauntChance:0,cd:8,gfx:'groundslam',gfxR:2.0*METER,gdur:1.6},blue:{name:'Cyclone Choir',type:'ashfall',dps:0.5,dur:4,radius:3.2*METER,slow:2,color:'#bfe8ff',cd:12,gfx:'featherstorm',gfxR:3.2*METER,gdur:4.0},pass:'fury'},
+  'brukk':{green:{name:'Anvil Drop',type:'stun',mul:2.0,stun:1.4,cd:8,gfx:'groundslam',gfxR:2.0*METER,gdur:1.4},blue:{name:'Quench Chain',type:'tendrilpull',dur:1.4,cd:10},pass:'bulwark'},
+  'nymira':{green:{name:'Abyssal Pollen',type:'ashfall',dps:0.45,dur:4,radius:3.0*METER,slow:2,color:'#9fd6c8',cd:11,gfx:'poison',gfxR:3.0*METER,gdur:4.0},blue:{name:'Tendril Verdict',type:'cleave',mul:1.3,radius:2.6*METER,cd:8,gfx:'rallyroots',gfxR:2.6*METER,gdur:1.6},pass:'selfregen'},
+  'irix':{green:{name:'Meteor Pinions',type:'volley',mul:1.0,n:4,color:'#ffd27f',cd:8,pfx:'featherbolt',pscale:2.6,pdur:0.26},blue:{name:'Talon Eclipse',type:'stun',mul:1.8,stun:1.2,cd:10,gfx:'featherstorm',gfxR:1.6*METER,gdur:1.8},pass:'stardust'},
+  'kharos':{green:{name:'Secondhand Cleave',type:'cleavecone',mul:1.5,radius:2.8*METER,angle:180,cd:9,gfx:'cleave',gfxR:2.6*METER,gdur:1.2},blue:{name:'Time Lock',type:'stun',mul:0.8,stun:2.0,cd:11,gfx:'glacialprison',gfxR:1.4*METER,gdur:2.2},pass:'unwind'},
+  'miregor':{green:{name:'Thornstampede',type:'charge',mul:1.7,radius:2.4*METER,stun:0.8,cd:10,gfx:'rallyroots',gfxR:2.4*METER,gdur:1.6},blue:{name:'King\'s Goring',type:'punchflurry',hits:3,mul:0.7,tauntChance:0,cd:8,gfx:'bleed',gfxR:1.2*METER,gdur:1.6},pass:'mirewall'},
+  'sable vesper':{green:{name:'Dirge Crescendo',type:'crescendo',dur:4,cd:9,gfx:'voidzone',radius:2.8*METER},blue:{name:'Murder of One',type:'multiShot',mul:1.1,n:5,cd:9,pfx:'featherbolt',pscale:2.4,pdur:0.26},pass:'hush'},
+  'orryx':{green:{name:'Labyrinth Charge',type:'charge',mul:1.8,radius:2.4*METER,stun:0.9,cd:10,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},blue:{name:'Prismatic Axe',type:'volley',mul:0.9,n:3,color:'#b98bff',cd:8,pfx:'crystalshard',pscale:2.4,pdur:0.26},pass:'unstepped'},
+  'thorneveil':{green:{name:'Wildfire Roots',type:'aoedot',mul:0.6,dps:0.5,dur:4,radius:2.6*METER,cd:9,gfx:'firepatch',gdur:2.4},blue:{name:'Verdant Collapse',type:'aoeStun',mul:1.3,stun:1.2,radius:2.6*METER,cd:11,gfx:'rallyroots',gdur:1.6},pass:'regen'},
+  'nameless admiral':{green:{name:'Broadside of Souls',type:'piercethrow',mul:1.7,width:40,cd:9,pfx:'shadowball',pscale:3.2,pdur:0.3},blue:{name:'Anchor the Living',type:'tendrilpull',dur:1.6,cd:10},pass:'packstats'}
+});
+Object.assign(ABILITY_CAST_MON,{
+  'cinder skulk':{green:0.5,blue:0.5},
+  'furnace gnawer':{green:0.4,blue:0.6},
+  'sootwing imp':{green:0.5,blue:0.6},
+  'basalt mauler':{green:0.7,blue:0.6},
+  'magma hound':{green:0.6,blue:0.5},
+  'crucible acolyte':{green:0.7,blue:0.6},
+  'reef prowler':{green:0.5,blue:0.6},
+  'kelp hexer':{green:0.6,blue:0.8},
+  'shellguard sentinel':{green:0.6,blue:0.5},
+  'mudsnap crab':{green:0.5,blue:0.7},
+  'storm eel':{green:0.5,blue:0.9},
+  'saltglass siren':{green:0.6,blue:0.5},
+  'graveclaw ghoul':{green:0.5,blue:0.7},
+  'wispweaver shade':{green:0.5,blue:0.5},
+  'bonepike guard':{green:0.6,blue:0.6},
+  'rotbloom ooze':{green:0.5,blue:0.8},
+  'nightcap mimic':{green:0.6,blue:0.7},
+  'mourn moth':{green:0.6,blue:0.5},
+  'riftling spider':{green:0.5,blue:0.5},
+  'crystalhorn grazer':{green:0.5,blue:0.7},
+  'skyroot dryad':{green:0.5,blue:0.8},
+  'luminant orb':{green:0.9,blue:0.5},
+  'zephyr harrier':{green:0.5,blue:0.5},
+  'runic automaton':{green:0.7,blue:0.6},
+  'ironjaw raider':{green:0.6,blue:0.5},
+  'vineback boar':{green:0.6,blue:0.8},
+  'frostjaw troll':{green:0.8,blue:0.7},
+  'clockwork lantern':{green:0.7,blue:0.6},
+  'vharok':{green:0.7,blue:0.9},
+  'nerissa':{green:0.7,blue:1.0},
+  'barrowmaw':{green:0.7,blue:0.9},
+  'asterion':{green:1.0,blue:0.5},
+  'maelvara':{green:0.6,blue:0.9},
+  'brukk':{green:0.9,blue:0.7},
+  'nymira':{green:0.8,blue:0.6},
+  'irix':{green:0.6,blue:0.8},
+  'kharos':{green:0.9,blue:0.7},
+  'miregor':{green:0.8,blue:0.6},
+  'sable vesper':{green:0.8,blue:0.6},
+  'orryx':{green:0.9,blue:0.7},
+  'thorneveil':{green:0.7,blue:1.0},
+  'nameless admiral':{green:0.9,blue:0.7}
+});
+Object.assign(BATTLE_ANIM,{
+  'cinder skulk':{
+   idle:{u:'/assets/anim/mon/cinderskulk_walk_hd.webp?v=1',n:6,fw:300,fh:248,cols:6,rows:2,figH:198,feet:240,cx:175,fps:6,flip:false,pingpong:true,top:41},
+   walk:{u:'/assets/anim/mon/cinderskulk_walk_hd.webp?v=1',n:12,fw:300,fh:248,cols:6,rows:2,figH:198,feet:240,cx:175,fps:10,flip:false,top:41},
+   attack:{u:'/assets/anim/mon/cinderskulk_attack_hd.webp?v=1',n:12,fw:300,fh:243,cols:6,rows:2,figH:170,feet:240,cx:171,fps:12,flip:false,hold:0.9,top:70},
+   cast:{u:'/assets/anim/mon/cinderskulk_cast_hd.webp?v=1',n:12,fw:300,fh:274,cols:6,rows:2,figH:265,feet:269,cx:158,fps:10,flip:false,hold:0.8,top:4}
+  },
+  'furnace gnawer':{
+   idle:{u:'/assets/anim/mon/furnacegnawer_walk_hd.webp?v=1',n:6,fw:300,fh:256,cols:6,rows:2,figH:217,feet:249,cx:162,fps:6,flip:false,pingpong:true,top:31},
+   walk:{u:'/assets/anim/mon/furnacegnawer_walk_hd.webp?v=1',n:12,fw:300,fh:256,cols:6,rows:2,figH:217,feet:249,cx:162,fps:10,flip:false,top:31},
+   attack:{u:'/assets/anim/mon/furnacegnawer_attack_hd.webp?v=1',n:12,fw:267,fh:300,cols:6,rows:2,figH:257,feet:295,cx:132,fps:12,flip:false,hold:0.9,top:37},
+   cast:{u:'/assets/anim/mon/furnacegnawer_cast_hd.webp?v=1',n:12,fw:298,fh:300,cols:6,rows:2,figH:279,feet:287,cx:141,fps:10,flip:false,hold:0.8,top:7}
+  },
+  'sootwing imp':{
+   idle:{u:'/assets/anim/mon/sootwingimp_walk_hd.webp?v=1',n:6,fw:257,fh:300,cols:6,rows:2,figH:248,feet:256,cx:134,fps:6,flip:false,pingpong:true,top:7},
+   walk:{u:'/assets/anim/mon/sootwingimp_walk_hd.webp?v=1',n:12,fw:257,fh:300,cols:6,rows:2,figH:248,feet:256,cx:134,fps:10,flip:false,top:7},
+   attack:{u:'/assets/anim/mon/sootwingimp_attack_hd.webp?v=1',n:12,fw:273,fh:300,cols:6,rows:2,figH:210,feet:261,cx:124,fps:12,flip:false,hold:0.9,top:51},
+   cast:{u:'/assets/anim/mon/sootwingimp_cast_hd.webp?v=1',n:12,fw:266,fh:300,cols:6,rows:2,figH:265,feet:295,cx:136,fps:10,flip:false,hold:0.8,top:30}
+  },
+  'basalt mauler':{
+   idle:{u:'/assets/anim/mon/basaltmauler_walk_hd.webp?v=1',n:6,fw:300,fh:294,cols:6,rows:2,figH:253,feet:276,cx:149,fps:6,flip:false,pingpong:true,top:22},
+   walk:{u:'/assets/anim/mon/basaltmauler_walk_hd.webp?v=1',n:12,fw:300,fh:294,cols:6,rows:2,figH:253,feet:276,cx:149,fps:10,flip:false,top:22},
+   attack:{u:'/assets/anim/mon/basaltmauler_attack_hd.webp?v=1',n:12,fw:300,fh:280,cols:6,rows:2,figH:204,feet:276,cx:164,fps:12,flip:false,hold:0.9,top:71},
+   cast:{u:'/assets/anim/mon/basaltmauler_cast_hd.webp?v=1',n:12,fw:300,fh:193,cols:6,rows:2,figH:184,feet:190,cx:145,fps:10,flip:false,hold:0.8,top:5}
+  },
+  'magma hound':{
+   idle:{u:'/assets/anim/mon/magmahound_walk_hd.webp?v=1',n:6,fw:300,fh:206,cols:6,rows:2,figH:181,feet:193,cx:170,fps:6,flip:false,pingpong:true,top:12},
+   walk:{u:'/assets/anim/mon/magmahound_walk_hd.webp?v=1',n:12,fw:300,fh:206,cols:6,rows:2,figH:181,feet:193,cx:170,fps:10,flip:false,top:12},
+   attack:{u:'/assets/anim/mon/magmahound_attack_hd.webp?v=1',n:12,fw:300,fh:180,cols:6,rows:2,figH:139,feet:167,cx:155,fps:12,flip:false,hold:0.9,top:28},
+   cast:{u:'/assets/anim/mon/magmahound_cast_hd.webp?v=1',n:12,fw:300,fh:262,cols:6,rows:2,figH:181,feet:258,cx:178,fps:10,flip:false,hold:0.8,top:76}
+  },
+  'crucible acolyte':{
+   idle:{u:'/assets/anim/mon/crucibleacolyte_walk_hd.webp?v=1',n:6,fw:176,fh:300,cols:6,rows:2,figH:290,feet:294,cx:85,fps:6,flip:false,pingpong:true,top:4},
+   walk:{u:'/assets/anim/mon/crucibleacolyte_walk_hd.webp?v=1',n:12,fw:176,fh:300,cols:6,rows:2,figH:290,feet:294,cx:85,fps:10,flip:false,top:4},
+   attack:{u:'/assets/anim/mon/crucibleacolyte_attack_hd.webp?v=1',n:12,fw:179,fh:300,cols:6,rows:2,figH:264,feet:296,cx:79,fps:12,flip:false,hold:0.9,top:31},
+   cast:{u:'/assets/anim/mon/crucibleacolyte_cast_hd.webp?v=1',n:12,fw:198,fh:300,cols:6,rows:2,figH:272,feet:296,cx:100,fps:10,flip:false,hold:0.8,top:23}
+  },
+  'reef prowler':{
+   idle:{u:'/assets/anim/mon/reefprowler_walk_hd.webp?v=1',n:6,fw:300,fh:218,cols:6,rows:2,figH:164,feet:215,cx:138,fps:6,flip:false,pingpong:true,top:50},
+   walk:{u:'/assets/anim/mon/reefprowler_walk_hd.webp?v=1',n:12,fw:300,fh:218,cols:6,rows:2,figH:164,feet:215,cx:138,fps:10,flip:false,top:50},
+   attack:{u:'/assets/anim/mon/reefprowler_attack_hd.webp?v=1',n:12,fw:300,fh:231,cols:6,rows:2,figH:175,feet:225,cx:158,fps:12,flip:false,hold:0.9,top:50},
+   cast:{u:'/assets/anim/mon/reefprowler_cast_hd.webp?v=1',n:12,fw:300,fh:247,cols:6,rows:2,figH:212,feet:243,cx:194,fps:10,flip:false,hold:0.8,top:31}
+  },
+  'kelp hexer':{
+   idle:{u:'/assets/anim/mon/kelphexer_walk_hd.webp?v=1',n:6,fw:205,fh:300,cols:6,rows:2,figH:252,feet:292,cx:86,fps:6,flip:false,pingpong:true,top:40},
+   walk:{u:'/assets/anim/mon/kelphexer_walk_hd.webp?v=1',n:12,fw:205,fh:300,cols:6,rows:2,figH:252,feet:292,cx:86,fps:10,flip:false,top:40},
+   attack:{u:'/assets/anim/mon/kelphexer_attack_hd.webp?v=1',n:12,fw:195,fh:300,cols:6,rows:2,figH:285,feet:292,cx:101,fps:12,flip:false,hold:0.9,top:6},
+   cast:{u:'/assets/anim/mon/kelphexer_cast_hd.webp?v=1',n:12,fw:180,fh:300,cols:6,rows:2,figH:264,feet:284,cx:98,fps:10,flip:false,hold:0.8,top:19}
+  },
+  'shellguard sentinel':{
+   idle:{u:'/assets/anim/mon/shellguardsentinel_walk_hd.webp?v=1',n:6,fw:241,fh:300,cols:6,rows:2,figH:250,feet:293,cx:122,fps:6,flip:false,pingpong:true,top:42},
+   walk:{u:'/assets/anim/mon/shellguardsentinel_walk_hd.webp?v=1',n:12,fw:241,fh:300,cols:6,rows:2,figH:250,feet:293,cx:122,fps:10,flip:false,top:42},
+   attack:{u:'/assets/anim/mon/shellguardsentinel_attack_hd.webp?v=1',n:12,fw:300,fh:289,cols:6,rows:2,figH:244,feet:277,cx:133,fps:12,flip:false,hold:0.9,top:32},
+   cast:{u:'/assets/anim/mon/shellguardsentinel_cast_hd.webp?v=1',n:12,fw:274,fh:300,cols:6,rows:2,figH:241,feet:296,cx:152,fps:10,flip:false,hold:0.8,top:54}
+  },
+  'mudsnap crab':{
+   idle:{u:'/assets/anim/mon/mudsnapcrab_walk_hd.webp?v=1',n:6,fw:300,fh:156,cols:6,rows:2,figH:141,feet:152,cx:135,fps:6,flip:false,pingpong:true,top:11},
+   walk:{u:'/assets/anim/mon/mudsnapcrab_walk_hd.webp?v=1',n:12,fw:300,fh:156,cols:6,rows:2,figH:141,feet:152,cx:135,fps:10,flip:false,top:11},
+   attack:{u:'/assets/anim/mon/mudsnapcrab_attack_hd.webp?v=1',n:12,fw:300,fh:232,cols:6,rows:2,figH:203,feet:227,cx:144,fps:12,flip:false,hold:0.9,top:24},
+   cast:{u:'/assets/anim/mon/mudsnapcrab_cast_hd.webp?v=1',n:12,fw:300,fh:241,cols:6,rows:2,figH:182,feet:235,cx:133,fps:10,flip:false,hold:0.8,top:52}
+  },
+  'storm eel':{
+   idle:{u:'/assets/anim/mon/stormeel_walk_hd.webp?v=1',n:6,fw:267,fh:300,cols:6,rows:2,figH:264,feet:285,cx:143,fps:6,flip:true,pingpong:true,top:21},
+   walk:{u:'/assets/anim/mon/stormeel_walk_hd.webp?v=1',n:12,fw:267,fh:300,cols:6,rows:2,figH:264,feet:285,cx:143,fps:10,flip:true,top:21},
+   attack:{u:'/assets/anim/mon/stormeel_attack_hd.webp?v=1',n:12,fw:231,fh:300,cols:6,rows:2,figH:225,feet:271,cx:92,fps:12,flip:true,hold:0.9,top:45},
+   cast:{u:'/assets/anim/mon/stormeel_cast_hd.webp?v=1',n:12,fw:300,fh:292,cols:6,rows:2,figH:216,feet:247,cx:170,fps:10,flip:true,hold:0.8,top:30}
+  },
+  'saltglass siren':{
+   idle:{u:'/assets/anim/mon/saltglasssiren_walk_hd.webp?v=1',n:6,fw:191,fh:300,cols:6,rows:2,figH:192,feet:233,cx:96,fps:6,flip:true,pingpong:true,top:40},
+   walk:{u:'/assets/anim/mon/saltglasssiren_walk_hd.webp?v=1',n:12,fw:191,fh:300,cols:6,rows:2,figH:192,feet:233,cx:96,fps:10,flip:true,top:40},
+   attack:{u:'/assets/anim/mon/saltglasssiren_attack_hd.webp?v=1',n:12,fw:232,fh:300,cols:6,rows:2,figH:193,feet:244,cx:116,fps:12,flip:true,hold:0.9,top:51},
+   cast:{u:'/assets/anim/mon/saltglasssiren_cast_hd.webp?v=1',n:12,fw:278,fh:300,cols:6,rows:2,figH:265,feet:269,cx:125,fps:10,flip:true,hold:0.8,top:4}
+  },
+  'graveclaw ghoul':{
+   idle:{u:'/assets/anim/mon/graveclawghoul_walk_hd.webp?v=1',n:6,fw:300,fh:292,cols:6,rows:2,figH:263,feet:284,cx:156,fps:6,flip:false,pingpong:true,top:20},
+   walk:{u:'/assets/anim/mon/graveclawghoul_walk_hd.webp?v=1',n:12,fw:300,fh:292,cols:6,rows:2,figH:263,feet:284,cx:156,fps:10,flip:false,top:20},
+   attack:{u:'/assets/anim/mon/graveclawghoul_attack_hd.webp?v=1',n:12,fw:300,fh:231,cols:6,rows:2,figH:179,feet:227,cx:121,fps:12,flip:false,hold:0.9,top:48},
+   cast:{u:'/assets/anim/mon/graveclawghoul_cast_hd.webp?v=1',n:12,fw:300,fh:296,cols:6,rows:2,figH:264,feet:292,cx:109,fps:10,flip:false,hold:0.8,top:27}
+  },
+  'wispweaver shade':{
+   idle:{u:'/assets/anim/mon/wispweavershade_walk_hd.webp?v=1',n:6,fw:210,fh:300,cols:6,rows:2,figH:258,feet:262,cx:108,fps:6,flip:false,pingpong:true,top:3},
+   walk:{u:'/assets/anim/mon/wispweavershade_walk_hd.webp?v=1',n:12,fw:210,fh:300,cols:6,rows:2,figH:258,feet:262,cx:108,fps:10,flip:false,top:3},
+   attack:{u:'/assets/anim/mon/wispweavershade_attack_hd.webp?v=1',n:12,fw:247,fh:300,cols:6,rows:2,figH:260,feet:268,cx:108,fps:12,flip:false,hold:0.9,top:8},
+   cast:{u:'/assets/anim/mon/wispweavershade_cast_hd.webp?v=1',n:12,fw:215,fh:300,cols:6,rows:2,figH:278,feet:285,cx:102,fps:10,flip:false,hold:0.8,top:6}
+  },
+  'bonepike guard':{
+   idle:{u:'/assets/anim/mon/bonespikeguard_walk_hd.webp?v=1',n:6,fw:286,fh:300,cols:6,rows:2,figH:280,feet:284,cx:104,fps:6,flip:true,pingpong:true,top:4},
+   walk:{u:'/assets/anim/mon/bonespikeguard_walk_hd.webp?v=1',n:12,fw:286,fh:300,cols:6,rows:2,figH:280,feet:284,cx:104,fps:10,flip:true,top:4},
+   attack:{u:'/assets/anim/mon/bonespikeguard_attack_hd.webp?v=1',n:12,fw:300,fh:232,cols:6,rows:2,figH:183,feet:229,cx:126,fps:12,flip:true,hold:0.9,top:46},
+   cast:{u:'/assets/anim/mon/bonespikeguard_cast_hd.webp?v=1',n:12,fw:235,fh:300,cols:6,rows:2,figH:239,feet:296,cx:105,fps:10,flip:true,hold:0.8,top:57}
+  },
+  'rotbloom ooze':{
+   idle:{u:'/assets/anim/mon/rotbloomooze_walk_hd.webp?v=1',n:6,fw:300,fh:197,cols:6,rows:2,figH:180,feet:188,cx:156,fps:6,flip:false,pingpong:true,top:8},
+   walk:{u:'/assets/anim/mon/rotbloomooze_walk_hd.webp?v=1',n:12,fw:300,fh:197,cols:6,rows:2,figH:180,feet:188,cx:156,fps:10,flip:false,top:8},
+   attack:{u:'/assets/anim/mon/rotbloomooze_attack_hd.webp?v=1',n:12,fw:300,fh:168,cols:6,rows:2,figH:162,feet:165,cx:116,fps:12,flip:false,hold:0.9,top:2},
+   cast:{u:'/assets/anim/mon/rotbloomooze_cast_hd.webp?v=1',n:12,fw:300,fh:263,cols:6,rows:2,figH:227,feet:258,cx:156,fps:10,flip:false,hold:0.8,top:31}
+  },
+  'nightcap mimic':{
+   idle:{u:'/assets/anim/mon/nightcapmimic_walk_hd.webp?v=1',n:6,fw:300,fh:274,cols:6,rows:2,figH:250,feet:270,cx:156,fps:6,flip:false,pingpong:true,top:20},
+   walk:{u:'/assets/anim/mon/nightcapmimic_walk_hd.webp?v=1',n:12,fw:300,fh:274,cols:6,rows:2,figH:250,feet:270,cx:156,fps:10,flip:false,top:20},
+   attack:{u:'/assets/anim/mon/nightcapmimic_attack_hd.webp?v=1',n:12,fw:291,fh:300,cols:6,rows:2,figH:278,feet:295,cx:121,fps:12,flip:false,hold:0.9,top:17},
+   cast:{u:'/assets/anim/mon/nightcapmimic_cast_hd.webp?v=1',n:12,fw:300,fh:290,cols:6,rows:2,figH:227,feet:286,cx:110,fps:10,flip:false,hold:0.8,top:58}
+  },
+  'mourn moth':{
+   idle:{u:'/assets/anim/mon/mournmoth_walk_hd.webp?v=1',n:6,fw:252,fh:300,cols:6,rows:2,figH:251,feet:290,cx:121,fps:6,flip:true,pingpong:true,top:39},
+   walk:{u:'/assets/anim/mon/mournmoth_walk_hd.webp?v=1',n:12,fw:252,fh:300,cols:6,rows:2,figH:251,feet:290,cx:121,fps:10,flip:true,top:39},
+   attack:{u:'/assets/anim/mon/mournmoth_attack_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:221,feet:296,cx:113,fps:12,flip:true,hold:0.9,top:75},
+   cast:{u:'/assets/anim/mon/mournmoth_cast_hd.webp?v=1',n:12,fw:286,fh:300,cols:6,rows:2,figH:221,feet:296,cx:104,fps:10,flip:true,hold:0.8,top:75}
+  },
+  'riftling spider':{
+   idle:{u:'/assets/anim/mon/riflingspider_walk_hd.webp?v=1',n:6,fw:300,fh:244,cols:6,rows:2,figH:206,feet:221,cx:128,fps:6,flip:true,pingpong:true,top:14},
+   walk:{u:'/assets/anim/mon/riflingspider_walk_hd.webp?v=1',n:12,fw:300,fh:244,cols:6,rows:2,figH:206,feet:221,cx:128,fps:10,flip:true,top:14},
+   attack:{u:'/assets/anim/mon/riflingspider_attack_hd.webp?v=1',n:12,fw:300,fh:179,cols:6,rows:2,figH:157,feet:173,cx:130,fps:12,flip:true,hold:0.9,top:15},
+   cast:{u:'/assets/anim/mon/riflingspider_cast_hd.webp?v=1',n:12,fw:300,fh:243,cols:6,rows:2,figH:217,feet:239,cx:123,fps:10,flip:true,hold:0.8,top:22}
+  },
+  'crystalhorn grazer':{
+   idle:{u:'/assets/anim/mon/crystalhorngrazer_walk_hd.webp?v=1',n:6,fw:300,fh:255,cols:6,rows:2,figH:229,feet:252,cx:100,fps:6,flip:true,pingpong:true,top:22},
+   walk:{u:'/assets/anim/mon/crystalhorngrazer_walk_hd.webp?v=1',n:12,fw:300,fh:255,cols:6,rows:2,figH:229,feet:252,cx:100,fps:10,flip:true,top:22},
+   attack:{u:'/assets/anim/mon/crystalhorngrazer_attack_hd.webp?v=1',n:12,fw:266,fh:300,cols:6,rows:2,figH:268,feet:296,cx:117,fps:12,flip:true,hold:0.9,top:27},
+   cast:{u:'/assets/anim/mon/crystalhorngrazer_cast_hd.webp?v=1',n:12,fw:228,fh:300,cols:6,rows:2,figH:278,feet:293,cx:121,fps:10,flip:true,hold:0.8,top:15}
+  },
+  'skyroot dryad':{
+   idle:{u:'/assets/anim/mon/skyrootdryad_walk_hd.webp?v=1',n:6,fw:251,fh:300,cols:6,rows:2,figH:264,feet:296,cx:119,fps:6,flip:false,pingpong:true,top:31},
+   walk:{u:'/assets/anim/mon/skyrootdryad_walk_hd.webp?v=1',n:12,fw:251,fh:300,cols:6,rows:2,figH:264,feet:296,cx:119,fps:10,flip:false,top:31},
+   attack:{u:'/assets/anim/mon/skyrootdryad_attack_hd.webp?v=1',n:12,fw:229,fh:300,cols:6,rows:2,figH:258,feet:296,cx:117,fps:12,flip:false,hold:0.9,top:37},
+   cast:{u:'/assets/anim/mon/skyrootdryad_cast_hd.webp?v=1',n:12,fw:269,fh:300,cols:6,rows:2,figH:291,feet:295,cx:129,fps:10,flip:false,hold:0.8,top:4}
+  },
+  'luminant orb':{
+   idle:{u:'/assets/anim/mon/luminantorb_walk_hd.webp?v=1',n:6,fw:272,fh:300,cols:6,rows:2,figH:242,feet:295,cx:152,fps:6,flip:false,pingpong:true,top:53},
+   walk:{u:'/assets/anim/mon/luminantorb_walk_hd.webp?v=1',n:12,fw:272,fh:300,cols:6,rows:2,figH:242,feet:295,cx:152,fps:10,flip:false,top:53},
+   attack:{u:'/assets/anim/mon/luminantorb_attack_hd.webp?v=1',n:12,fw:300,fh:271,cols:6,rows:2,figH:244,feet:265,cx:163,fps:12,flip:false,hold:0.9,top:20},
+   cast:{u:'/assets/anim/mon/luminantorb_cast_hd.webp?v=1',n:12,fw:292,fh:300,cols:6,rows:2,figH:275,feet:294,cx:144,fps:10,flip:false,hold:0.8,top:19}
+  },
+  'zephyr harrier':{
+   idle:{u:'/assets/anim/mon/zephyrharrier_walk_hd.webp?v=1',n:6,fw:264,fh:300,cols:6,rows:2,figH:271,feet:286,cx:132,fps:6,flip:false,pingpong:true,top:15},
+   walk:{u:'/assets/anim/mon/zephyrharrier_walk_hd.webp?v=1',n:12,fw:264,fh:300,cols:6,rows:2,figH:271,feet:286,cx:132,fps:10,flip:false,top:15},
+   attack:{u:'/assets/anim/mon/zephyrharrier_attack_hd.webp?v=1',n:12,fw:300,fh:252,cols:6,rows:2,figH:197,feet:248,cx:147,fps:12,flip:false,hold:0.9,top:50},
+   cast:{u:'/assets/anim/mon/zephyrharrier_cast_hd.webp?v=1',n:12,fw:300,fh:210,cols:6,rows:2,figH:184,feet:206,cx:152,fps:10,flip:false,hold:0.8,top:21}
+  },
+  'runic automaton':{
+   idle:{u:'/assets/anim/mon/runicautomaton_walk_hd.webp?v=1',n:6,fw:300,fh:203,cols:6,rows:2,figH:187,feet:200,cx:146,fps:6,flip:false,pingpong:true,top:13},
+   walk:{u:'/assets/anim/mon/runicautomaton_walk_hd.webp?v=1',n:12,fw:300,fh:203,cols:6,rows:2,figH:187,feet:200,cx:146,fps:10,flip:false,top:13},
+   attack:{u:'/assets/anim/mon/runicautomaton_attack_hd.webp?v=1',n:12,fw:300,fh:231,cols:6,rows:2,figH:170,feet:228,cx:142,fps:12,flip:false,hold:0.9,top:58},
+   cast:{u:'/assets/anim/mon/runicautomaton_cast_hd.webp?v=1',n:12,fw:290,fh:300,cols:6,rows:2,figH:202,feet:286,cx:177,fps:10,flip:false,hold:0.8,top:83}
+  },
+  'ironjaw raider':{
+   idle:{u:'/assets/anim/mon/ironjawraider_walk_hd.webp?v=1',n:6,fw:300,fh:297,cols:6,rows:2,figH:277,feet:290,cx:149,fps:6,flip:true,pingpong:true,top:12},
+   walk:{u:'/assets/anim/mon/ironjawraider_walk_hd.webp?v=1',n:12,fw:300,fh:297,cols:6,rows:2,figH:277,feet:290,cx:149,fps:10,flip:true,top:12},
+   attack:{u:'/assets/anim/mon/ironjawraider_attack_hd.webp?v=1',n:12,fw:300,fh:271,cols:6,rows:2,figH:219,feet:268,cx:148,fps:12,flip:true,hold:0.9,top:48},
+   cast:{u:'/assets/anim/mon/ironjawraider_cast_hd.webp?v=1',n:12,fw:291,fh:300,cols:6,rows:2,figH:209,feet:296,cx:159,fps:10,flip:true,hold:0.8,top:87}
+  },
+  'vineback boar':{
+   idle:{u:'/assets/anim/mon/vinebackboar_walk_hd.webp?v=1',n:6,fw:300,fh:248,cols:6,rows:2,figH:203,feet:242,cx:166,fps:6,flip:true,pingpong:true,top:38},
+   walk:{u:'/assets/anim/mon/vinebackboar_walk_hd.webp?v=1',n:12,fw:300,fh:248,cols:6,rows:2,figH:203,feet:242,cx:166,fps:10,flip:true,top:38},
+   attack:{u:'/assets/anim/mon/vinebackboar_attack_hd.webp?v=1',n:12,fw:300,fh:213,cols:6,rows:2,figH:159,feet:209,cx:152,fps:12,flip:true,hold:0.9,top:50},
+   cast:{u:'/assets/anim/mon/vinebackboar_cast_hd.webp?v=1',n:12,fw:300,fh:262,cols:6,rows:2,figH:178,feet:258,cx:154,fps:10,flip:true,hold:0.8,top:79}
+  },
+  'frostjaw troll':{
+   idle:{u:'/assets/anim/mon/frostjawtroll_walk_hd.webp?v=1',n:6,fw:266,fh:300,cols:6,rows:2,figH:265,feet:295,cx:128,fps:6,flip:true,pingpong:true,top:29},
+   walk:{u:'/assets/anim/mon/frostjawtroll_walk_hd.webp?v=1',n:12,fw:266,fh:300,cols:6,rows:2,figH:265,feet:295,cx:128,fps:10,flip:true,top:29},
+   attack:{u:'/assets/anim/mon/frostjawtroll_attack_hd.webp?v=1',n:12,fw:300,fh:294,cols:6,rows:2,figH:221,feet:288,cx:143,fps:12,flip:true,hold:0.9,top:66},
+   cast:{u:'/assets/anim/mon/frostjawtroll_cast_hd.webp?v=1',n:12,fw:300,fh:275,cols:6,rows:2,figH:222,feet:271,cx:150,fps:10,flip:true,hold:0.8,top:49}
+  },
+  'clockwork lantern':{
+   idle:{u:'/assets/anim/mon/clockworklatern_walk_hd.webp?v=1',n:6,fw:173,fh:300,cols:6,rows:2,figH:247,feet:285,cx:83,fps:6,flip:false,pingpong:true,top:38},
+   walk:{u:'/assets/anim/mon/clockworklatern_walk_hd.webp?v=1',n:12,fw:173,fh:300,cols:6,rows:2,figH:247,feet:285,cx:83,fps:10,flip:false,top:38},
+   attack:{u:'/assets/anim/mon/clockworklatern_attack_hd.webp?v=1',n:12,fw:236,fh:300,cols:6,rows:2,figH:263,feet:296,cx:90,fps:12,flip:false,hold:0.9,top:33},
+   cast:{u:'/assets/anim/mon/clockworklatern_cast_hd.webp?v=1',n:12,fw:299,fh:300,cols:6,rows:2,figH:269,feet:281,cx:152,fps:10,flip:false,hold:0.8,top:12}
+  },
+  'vharok':{
+   idle:{u:'/assets/anim/mon/vharokkilnhearttyrant_walk_hd.webp?v=1',n:6,fw:300,fh:261,cols:6,rows:2,figH:249,feet:255,cx:104,fps:6,flip:false,pingpong:true,top:5},
+   walk:{u:'/assets/anim/mon/vharokkilnhearttyrant_walk_hd.webp?v=1',n:12,fw:300,fh:261,cols:6,rows:2,figH:249,feet:255,cx:104,fps:10,flip:false,top:5},
+   attack:{u:'/assets/anim/mon/vharokkilnhearttyrant_attack_hd.webp?v=1',n:12,fw:300,fh:284,cols:6,rows:2,figH:194,feet:264,cx:143,fps:12,flip:false,hold:0.9,top:69},
+   cast:{u:'/assets/anim/mon/vharokkilnhearttyrant_cast_hd.webp?v=1',n:12,fw:296,fh:300,cols:6,rows:2,figH:214,feet:295,cx:158,fps:10,flip:false,hold:0.8,top:80}
+  },
+  'nerissa':{
+   idle:{u:'/assets/anim/mon/nerissacrownofthedrowned_walk_hd.webp?v=1',n:6,fw:243,fh:300,cols:6,rows:2,figH:284,feet:288,cx:126,fps:6,flip:false,pingpong:true,top:3},
+   walk:{u:'/assets/anim/mon/nerissacrownofthedrowned_walk_hd.webp?v=1',n:12,fw:243,fh:300,cols:6,rows:2,figH:284,feet:288,cx:126,fps:10,flip:false,top:3},
+   attack:{u:'/assets/anim/mon/nerissacrownofthedrowned_attack_hd.webp?v=1',n:12,fw:269,fh:300,cols:6,rows:2,figH:270,feet:294,cx:119,fps:12,flip:false,hold:0.9,top:24},
+   cast:{u:'/assets/anim/mon/nerissacrownofthedrowned_cast_hd.webp?v=1',n:12,fw:221,fh:300,cols:6,rows:2,figH:232,feet:296,cx:100,fps:10,flip:false,hold:0.8,top:64}
+  },
+  'barrowmaw':{
+   idle:{u:'/assets/anim/mon/barrowmawossuarydevourer_walk_hd.webp?v=1',n:6,fw:300,fh:279,cols:6,rows:2,figH:269,feet:273,cx:174,fps:6,flip:true,pingpong:true,top:3},
+   walk:{u:'/assets/anim/mon/barrowmawossuarydevourer_walk_hd.webp?v=1',n:12,fw:300,fh:279,cols:6,rows:2,figH:269,feet:273,cx:174,fps:10,flip:true,top:3},
+   attack:{u:'/assets/anim/mon/barrowmawossuarydevourer_attack_hd.webp?v=1',n:12,fw:300,fh:242,cols:6,rows:2,figH:232,feet:238,cx:130,fps:12,flip:true,hold:0.9,top:6},
+   cast:{u:'/assets/anim/mon/barrowmawossuarydevourer_cast_hd.webp?v=1',n:12,fw:300,fh:213,cols:6,rows:2,figH:198,feet:210,cx:137,fps:10,flip:true,hold:0.8,top:12}
+  },
+  'asterion':{
+   idle:{u:'/assets/anim/mon/asterionmirrorwarden_walk_hd.webp?v=1',n:6,fw:243,fh:300,cols:6,rows:2,figH:272,feet:280,cx:136,fps:6,flip:false,pingpong:true,top:7},
+   walk:{u:'/assets/anim/mon/asterionmirrorwarden_walk_hd.webp?v=1',n:12,fw:243,fh:300,cols:6,rows:2,figH:272,feet:280,cx:136,fps:10,flip:false,top:7},
+   attack:{u:'/assets/anim/mon/asterionmirrorwarden_attack_hd.webp?v=1',n:12,fw:300,fh:271,cols:6,rows:2,figH:249,feet:267,cx:171,fps:12,flip:false,hold:0.9,top:17},
+   cast:{u:'/assets/anim/mon/asterionmirrorwarden_cast_hd.webp?v=1',n:12,fw:269,fh:300,cols:6,rows:2,figH:264,feet:276,cx:143,fps:10,flip:false,hold:0.8,top:12}
+  },
+  'maelvara':{
+   idle:{u:'/assets/anim/mon/maelvarastormnestmatriarch_walk_hd.webp?v=1',n:6,fw:280,fh:300,cols:6,rows:2,figH:273,feet:296,cx:137,fps:6,flip:false,pingpong:true,top:22},
+   walk:{u:'/assets/anim/mon/maelvarastormnestmatriarch_walk_hd.webp?v=1',n:12,fw:280,fh:300,cols:6,rows:2,figH:273,feet:296,cx:137,fps:10,flip:false,top:22},
+   attack:{u:'/assets/anim/mon/maelvarastormnestmatriarch_attack_hd.webp?v=1',n:12,fw:300,fh:229,cols:6,rows:2,figH:192,feet:226,cx:148,fps:12,flip:false,hold:0.9,top:34},
+   cast:{u:'/assets/anim/mon/maelvarastormnestmatriarch_cast_hd.webp?v=1',n:12,fw:300,fh:238,cols:6,rows:2,figH:169,feet:214,cx:145,fps:10,flip:false,hold:0.8,top:45}
+  },
+  'brukk':{
+   idle:{u:'/assets/anim/mon/brukkblackkiln_walk_hd.webp?v=1',n:6,fw:259,fh:300,cols:6,rows:2,figH:276,feet:292,cx:102,fps:6,flip:false,pingpong:true,top:16},
+   walk:{u:'/assets/anim/mon/brukkblackkiln_walk_hd.webp?v=1',n:12,fw:259,fh:300,cols:6,rows:2,figH:276,feet:292,cx:102,fps:10,flip:false,top:16},
+   attack:{u:'/assets/anim/mon/brukkblackkiln_attack_hd.webp?v=1',n:12,fw:238,fh:300,cols:6,rows:2,figH:234,feet:294,cx:85,fps:12,flip:false,hold:0.9,top:60},
+   cast:{u:'/assets/anim/mon/brukkblackkiln_cast_hd.webp?v=1',n:12,fw:264,fh:300,cols:6,rows:2,figH:279,feet:294,cx:99,fps:10,flip:false,hold:0.8,top:15}
+  },
+  'nymira':{
+   idle:{u:'/assets/anim/mon/nymirasunkenbloom_walk_hd.webp?v=1',n:6,fw:246,fh:300,cols:6,rows:2,figH:285,feet:290,cx:124,fps:6,flip:false,pingpong:true,top:4},
+   walk:{u:'/assets/anim/mon/nymirasunkenbloom_walk_hd.webp?v=1',n:12,fw:246,fh:300,cols:6,rows:2,figH:285,feet:290,cx:124,fps:10,flip:false,top:4},
+   attack:{u:'/assets/anim/mon/nymirasunkenbloom_attack_hd.webp?v=1',n:12,fw:300,fh:265,cols:6,rows:2,figH:250,feet:259,cx:125,fps:12,flip:false,hold:0.9,top:8},
+   cast:{u:'/assets/anim/mon/nymirasunkenbloom_cast_hd.webp?v=1',n:12,fw:229,fh:300,cols:6,rows:2,figH:290,feet:295,cx:110,fps:10,flip:false,hold:0.8,top:4}
+  },
+  'irix':{
+   idle:{u:'/assets/anim/mon/irixskyshardroc_walk_hd.webp?v=1',n:6,fw:282,fh:300,cols:6,rows:2,figH:265,feet:292,cx:135,fps:6,flip:true,pingpong:true,top:26},
+   walk:{u:'/assets/anim/mon/irixskyshardroc_walk_hd.webp?v=1',n:12,fw:282,fh:300,cols:6,rows:2,figH:265,feet:292,cx:135,fps:10,flip:true,top:26},
+   attack:{u:'/assets/anim/mon/irixskyshardroc_attack_hd.webp?v=1',n:12,fw:300,fh:211,cols:6,rows:2,figH:205,feet:208,cx:131,fps:12,flip:true,hold:0.9,top:3},
+   cast:{u:'/assets/anim/mon/irixskyshardroc_cast_hd.webp?v=1',n:12,fw:300,fh:222,cols:6,rows:2,figH:210,feet:215,cx:122,fps:10,flip:true,hold:0.8,top:5}
+  },
+  'kharos':{
+   idle:{u:'/assets/anim/mon/kharoshourglasssentinel_walk_hd.webp?v=1',n:6,fw:228,fh:300,cols:6,rows:2,figH:252,feet:294,cx:111,fps:6,flip:false,pingpong:true,top:41},
+   walk:{u:'/assets/anim/mon/kharoshourglasssentinel_walk_hd.webp?v=1',n:12,fw:228,fh:300,cols:6,rows:2,figH:252,feet:294,cx:111,fps:10,flip:false,top:41},
+   attack:{u:'/assets/anim/mon/kharoshourglasssentinel_attack_hd.webp?v=1',n:12,fw:300,fh:224,cols:6,rows:2,figH:206,feet:218,cx:136,fps:12,flip:false,hold:0.9,top:11},
+   cast:{u:'/assets/anim/mon/kharoshourglasssentinel_cast_hd.webp?v=1',n:12,fw:191,fh:300,cols:6,rows:2,figH:235,feet:295,cx:85,fps:10,flip:false,hold:0.8,top:60}
+  },
+  'miregor':{
+   idle:{u:'/assets/anim/mon/miregorbriarmarch_walk_hd.webp?v=1',n:6,fw:278,fh:300,cols:6,rows:2,figH:272,feet:275,cx:136,fps:6,flip:true,pingpong:true,top:3},
+   walk:{u:'/assets/anim/mon/miregorbriarmarch_walk_hd.webp?v=1',n:12,fw:278,fh:300,cols:6,rows:2,figH:272,feet:275,cx:136,fps:10,flip:true,top:3},
+   attack:{u:'/assets/anim/mon/miregorbriarmarch_attack_hd.webp?v=1',n:12,fw:300,fh:250,cols:6,rows:2,figH:199,feet:236,cx:174,fps:12,flip:true,hold:0.9,top:37},
+   cast:{u:'/assets/anim/mon/miregorbriarmarch_cast_hd.webp?v=1',n:12,fw:288,fh:300,cols:6,rows:2,figH:275,feet:294,cx:144,fps:10,flip:true,hold:0.8,top:19}
+  },
+  'sable vesper':{
+   idle:{u:'/assets/anim/mon/sablevesper_walk_hd.webp?v=1',n:6,fw:221,fh:300,cols:6,rows:2,figH:280,feet:292,cx:114,fps:6,flip:false,pingpong:true,top:12},
+   walk:{u:'/assets/anim/mon/sablevesper_walk_hd.webp?v=1',n:12,fw:221,fh:300,cols:6,rows:2,figH:280,feet:292,cx:114,fps:10,flip:false,top:12},
+   attack:{u:'/assets/anim/mon/sablevesper_attack_hd.webp?v=1',n:12,fw:222,fh:300,cols:6,rows:2,figH:265,feet:296,cx:116,fps:12,flip:false,hold:0.9,top:30},
+   cast:{u:'/assets/anim/mon/sablevesper_cast_hd.webp?v=1',n:12,fw:235,fh:300,cols:6,rows:2,figH:266,feet:296,cx:114,fps:10,flip:false,hold:0.8,top:29}
+  },
+  'orryx':{
+   idle:{u:'/assets/anim/mon/orryxglassminotaur_walk_hd.webp?v=1',n:6,fw:248,fh:300,cols:6,rows:2,figH:257,feet:294,cx:145,fps:6,flip:false,pingpong:true,top:36},
+   walk:{u:'/assets/anim/mon/orryxglassminotaur_walk_hd.webp?v=1',n:12,fw:248,fh:300,cols:6,rows:2,figH:257,feet:294,cx:145,fps:10,flip:false,top:36},
+   attack:{u:'/assets/anim/mon/orryxglassminotaur_attack_hd.webp?v=1',n:12,fw:300,fh:297,cols:6,rows:2,figH:223,feet:286,cx:123,fps:12,flip:false,hold:0.9,top:63},
+   cast:{u:'/assets/anim/mon/orryxglassminotaur_cast_hd.webp?v=1',n:12,fw:277,fh:300,cols:6,rows:2,figH:263,feet:292,cx:163,fps:10,flip:false,hold:0.8,top:28}
+  },
+  'thorneveil':{
+   idle:{u:'/assets/anim/mon/thorneveilashgrove_walk_hd.webp?v=1',n:6,fw:250,fh:300,cols:6,rows:2,figH:209,feet:297,cx:116,fps:6,flip:false,pingpong:true,top:87},
+   walk:{u:'/assets/anim/mon/thorneveilashgrove_walk_hd.webp?v=1',n:12,fw:250,fh:300,cols:6,rows:2,figH:209,feet:297,cx:116,fps:10,flip:false,top:87},
+   attack:{u:'/assets/anim/mon/thorneveilashgrove_attack_hd.webp?v=1',n:12,fw:300,fh:267,cols:6,rows:2,figH:217,feet:263,cx:147,fps:12,flip:false,hold:0.9,top:45},
+   cast:{u:'/assets/anim/mon/thorneveilashgrove_cast_hd.webp?v=1',n:12,fw:257,fh:300,cols:6,rows:2,figH:288,feet:293,cx:130,fps:10,flip:false,hold:0.8,top:5}
+  },
+  'nameless admiral':{
+   idle:{u:'/assets/anim/mon/namelessadmiral_walk_hd.webp?v=1',n:6,fw:237,fh:300,cols:6,rows:2,figH:285,feet:294,cx:107,fps:6,flip:false,pingpong:true,top:9},
+   walk:{u:'/assets/anim/mon/namelessadmiral_walk_hd.webp?v=1',n:12,fw:237,fh:300,cols:6,rows:2,figH:285,feet:294,cx:107,fps:10,flip:false,top:9},
+   attack:{u:'/assets/anim/mon/namelessadmiral_attack_hd.webp?v=1',n:12,fw:300,fh:273,cols:6,rows:2,figH:201,feet:269,cx:121,fps:12,flip:false,hold:0.9,top:67},
+   cast:{u:'/assets/anim/mon/namelessadmiral_cast_hd.webp?v=1',n:12,fw:300,fh:273,cols:6,rows:2,figH:223,feet:270,cx:165,fps:10,flip:false,hold:0.8,top:46}
+  }
+});
+GLOSSARY_ART['monsters/cinder skulk']='/assets/img/glossary/glossary-monsters-cinder-skulk.webp?v=1';
+GLOSSARY_ART['monsters/furnace gnawer']='/assets/img/glossary/glossary-monsters-furnace-gnawer.webp?v=1';
+GLOSSARY_ART['monsters/sootwing imp']='/assets/img/glossary/glossary-monsters-sootwing-imp.webp?v=1';
+GLOSSARY_ART['monsters/basalt mauler']='/assets/img/glossary/glossary-monsters-basalt-mauler.webp?v=1';
+GLOSSARY_ART['monsters/magma hound']='/assets/img/glossary/glossary-monsters-magma-hound.webp?v=1';
+GLOSSARY_ART['monsters/crucible acolyte']='/assets/img/glossary/glossary-monsters-crucible-acolyte.webp?v=1';
+GLOSSARY_ART['monsters/reef prowler']='/assets/img/glossary/glossary-monsters-reef-prowler.webp?v=1';
+GLOSSARY_ART['monsters/kelp hexer']='/assets/img/glossary/glossary-monsters-kelp-hexer.webp?v=1';
+GLOSSARY_ART['monsters/shellguard sentinel']='/assets/img/glossary/glossary-monsters-shellguard-sentinel.webp?v=1';
+GLOSSARY_ART['monsters/mudsnap crab']='/assets/img/glossary/glossary-monsters-mudsnap-crab.webp?v=1';
+GLOSSARY_ART['monsters/storm eel']='/assets/img/glossary/glossary-monsters-storm-eel.webp?v=1';
+GLOSSARY_ART['monsters/saltglass siren']='/assets/img/glossary/glossary-monsters-saltglass-siren.webp?v=1';
+GLOSSARY_ART['monsters/graveclaw ghoul']='/assets/img/glossary/glossary-monsters-graveclaw-ghoul.webp?v=1';
+GLOSSARY_ART['monsters/wispweaver shade']='/assets/img/glossary/glossary-monsters-wispweaver-shade.webp?v=1';
+GLOSSARY_ART['monsters/bonepike guard']='/assets/img/glossary/glossary-monsters-bonepike-guard.webp?v=1';
+GLOSSARY_ART['monsters/rotbloom ooze']='/assets/img/glossary/glossary-monsters-rotbloom-ooze.webp?v=1';
+GLOSSARY_ART['monsters/nightcap mimic']='/assets/img/glossary/glossary-monsters-nightcap-mimic.webp?v=1';
+GLOSSARY_ART['monsters/mourn moth']='/assets/img/glossary/glossary-monsters-mourn-moth.webp?v=1';
+GLOSSARY_ART['monsters/riftling spider']='/assets/img/glossary/glossary-monsters-riftling-spider.webp?v=1';
+GLOSSARY_ART['monsters/crystalhorn grazer']='/assets/img/glossary/glossary-monsters-crystalhorn-grazer.webp?v=1';
+GLOSSARY_ART['monsters/skyroot dryad']='/assets/img/glossary/glossary-monsters-skyroot-dryad.webp?v=1';
+GLOSSARY_ART['monsters/luminant orb']='/assets/img/glossary/glossary-monsters-luminant-orb.webp?v=1';
+GLOSSARY_ART['monsters/zephyr harrier']='/assets/img/glossary/glossary-monsters-zephyr-harrier.webp?v=1';
+GLOSSARY_ART['monsters/runic automaton']='/assets/img/glossary/glossary-monsters-runic-automaton.webp?v=1';
+GLOSSARY_ART['monsters/ironjaw raider']='/assets/img/glossary/glossary-monsters-ironjaw-raider.webp?v=1';
+GLOSSARY_ART['monsters/vineback boar']='/assets/img/glossary/glossary-monsters-vineback-boar.webp?v=1';
+GLOSSARY_ART['monsters/frostjaw troll']='/assets/img/glossary/glossary-monsters-frostjaw-troll.webp?v=1';
+GLOSSARY_ART['monsters/clockwork lantern']='/assets/img/glossary/glossary-monsters-clockwork-lantern.webp?v=1';
+GLOSSARY_ART['bosses/vharok']='/assets/img/glossary/glossary-bosses-vharok.webp?v=1';
+GLOSSARY_ART['bosses/nerissa']='/assets/img/glossary/glossary-bosses-nerissa.webp?v=1';
+GLOSSARY_ART['bosses/barrowmaw']='/assets/img/glossary/glossary-bosses-barrowmaw.webp?v=1';
+GLOSSARY_ART['bosses/asterion']='/assets/img/glossary/glossary-bosses-asterion.webp?v=1';
+GLOSSARY_ART['bosses/maelvara']='/assets/img/glossary/glossary-bosses-maelvara.webp?v=1';
+GLOSSARY_ART['bosses/brukk']='/assets/img/glossary/glossary-bosses-brukk.webp?v=1';
+GLOSSARY_ART['bosses/nymira']='/assets/img/glossary/glossary-bosses-nymira.webp?v=1';
+GLOSSARY_ART['bosses/irix']='/assets/img/glossary/glossary-bosses-irix.webp?v=1';
+GLOSSARY_ART['bosses/kharos']='/assets/img/glossary/glossary-bosses-kharos.webp?v=1';
+GLOSSARY_ART['bosses/miregor']='/assets/img/glossary/glossary-bosses-miregor.webp?v=1';
+GLOSSARY_ART['bosses/sable vesper']='/assets/img/glossary/glossary-bosses-sable-vesper.webp?v=1';
+GLOSSARY_ART['bosses/orryx']='/assets/img/glossary/glossary-bosses-orryx.webp?v=1';
+GLOSSARY_ART['bosses/thorneveil']='/assets/img/glossary/glossary-bosses-thorneveil.webp?v=1';
+GLOSSARY_ART['bosses/nameless admiral']='/assets/img/glossary/glossary-bosses-nameless-admiral.webp?v=1';
+/* ==================== end new roster ==================== */
+/* ===== v332 — NEW HEROES (11): sliced from Phil's Hailuo packs 1-2 Sep 2026. Generated by gen_heroes.py. ===== */
+Object.assign(MONSTER_TYPES, {
+  'ink spirit':{name:'Lesser Ink Spirit',stars:2,swing:1.8,monster:true,role:'Warrior',hp:120,dmg:16,range:28,speed:62,atkSpeed:1.1,color:0x1c1c2a,summonOnly:true},
+  'ink horror':{name:'Elder Ink Horror',stars:3,swing:2.2,monster:true,role:'Mage',hp:260,dmg:20,apow:24,range:30,speed:50,atkSpeed:0.9,color:0x101018,summonOnly:true}
+});
+MONSTER_KITS['ink horror']={green:{name:'Ink Spin',type:'nova',mul:1.0,radius:2.4*METER,cd:6,gfx:'voidzone',gfxAt:'self',gfxR:2.4*METER,gdur:1.4}};
+ABILITY_CAST_MON['ink horror']={green:0.6};
+HERO_BATTLE_H['ink spirit']=2.3; HERO_BATTLE_H['ink horror']=3.3;   // the wolf is long, not tall; the horror is a mage-sized mass
+SUMMON_CAPS['ink spirit']=3; SUMMON_CAPS['ink horror']=1;
+SUMMON_SCALE['ink spirit']={hp:0.55,dmg:0.55,armor:80,mr:80}; SUMMON_SCALE['ink horror']={hp:1.2,dmg:0.8,armor:120,mr:120};
+Object.assign(BATTLE_ANIM, {
+  'ink spirit':{
+    attack:{u:'/assets/anim/librarian_inkspirit/librarian_inkspirit_attack.webp?v=1',n:12,fw:300,fh:257,cols:6,rows:2,figH:151,feet:250,cx:114,fps:12,flip:true,top:99,hold:0.9},
+    walk:{u:'/assets/anim/librarian_inkspirit/librarian_inkspirit_walk.webp?v=1',n:12,fw:300,fh:208,cols:6,rows:2,figH:168,feet:203,cx:138,fps:10,flip:true,top:35},
+    idle:{u:'/assets/anim/librarian_inkspirit/librarian_inkspirit_walk.webp?v=1',n:12,fw:300,fh:208,cols:6,rows:2,figH:168,feet:203,cx:138,fps:10,flip:true,top:35}
+  },
+  'ink horror':{
+    attack:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_attack.webp?v=1',n:12,fw:300,fh:185,cols:6,rows:2,figH:138,feet:182,cx:140,fps:12,flip:false,top:43,hold:0.9},
+    walk:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:false,top:3},
+    cast:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_cast.webp?v=1',n:12,fw:300,fh:256,cols:6,rows:2,figH:176,feet:252,cx:162,fps:10,flip:false,top:75,hold:0.8},
+    idle:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:false,top:3}
+  },
+  pyroclast:{
+    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=1',n:36,fw:212,fh:300,cols:6,rows:6,figH:292,feet:296,cx:108,fps:15,flip:false,top:3},
+    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=1',n:36,fw:214,fh:300,cols:6,rows:6,figH:288,feet:296,cx:108,fps:15,flip:false,top:7},
+    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:276,feet:296,cx:102,fps:16,flip:false,top:19,hold:0.9},
+    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=1',n:20,fw:188,fh:300,cols:6,rows:4,figH:228,feet:296,cx:90,fps:16,flip:false,top:68},
+    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=1',n:36,fw:267,fh:300,cols:6,rows:6,figH:232,feet:292,cx:167,fps:15,flip:false,top:60,hold:0.8},
+    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=1',n:36,fw:254,fh:300,cols:6,rows:6,figH:268,feet:296,cx:117,fps:15,flip:false,top:27,hold:0.8},
+    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=1',n:48,fw:229,fh:300,cols:6,rows:8,figH:226,feet:296,cx:106,fps:15,flip:false,top:70},
+    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=1',n:36,fw:194,fh:300,cols:6,rows:6,figH:224,feet:296,cx:93,fps:15,flip:false,top:72}
+  },
+  stormwarden:{
+    idle:{u:'/assets/anim/stormwarden/stormwarden_idle.webp?v=1',n:36,fw:219,fh:300,cols:6,rows:6,figH:292,feet:296,cx:109,fps:15,flip:false,top:3},
+    walk:{u:'/assets/anim/stormwarden/stormwarden_walk.webp?v=1',n:36,fw:235,fh:300,cols:6,rows:6,figH:281,feet:294,cx:118,fps:15,flip:false,top:13},
+    attack:{u:'/assets/anim/stormwarden/stormwarden_attack.webp?v=1',n:24,fw:300,fh:274,cols:6,rows:4,figH:201,feet:269,cx:164,fps:16,flip:false,top:68,hold:0.9},
+    green:{u:'/assets/anim/stormwarden/stormwarden_green.webp?v=1',n:36,fw:271,fh:300,cols:6,rows:6,figH:216,feet:297,cx:149,fps:15,flip:false,top:80,hold:0.8},
+    blue:{u:'/assets/anim/stormwarden/stormwarden_blue.webp?v=1',n:36,fw:257,fh:300,cols:6,rows:6,figH:214,feet:273,cx:139,fps:15,flip:false,top:58,hold:0.8},
+    ult:{u:'/assets/anim/stormwarden/stormwarden_ult.webp?v=1',n:48,fw:261,fh:300,cols:6,rows:8,figH:208,feet:265,cx:165,fps:15,flip:false,top:57},
+    passive:{u:'/assets/anim/stormwarden/stormwarden_passive.webp?v=1',n:36,fw:289,fh:300,cols:6,rows:6,figH:223,feet:295,cx:186,fps:15,flip:false,top:71}
+  },
+  verdantshade:{
+    idle:{u:'/assets/anim/verdantshade/verdantshade_idle.webp?v=1',n:36,fw:207,fh:300,cols:6,rows:6,figH:292,feet:296,cx:104,fps:15,flip:false,top:3},
+    walk:{u:'/assets/anim/verdantshade/verdantshade_walk.webp?v=1',n:36,fw:200,fh:300,cols:6,rows:6,figH:287,feet:294,cx:105,fps:15,flip:false,top:6},
+    attack:{u:'/assets/anim/verdantshade/verdantshade_attack.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:237,feet:296,cx:89,fps:16,flip:false,top:58,hold:0.9},
+    hit:{u:'/assets/anim/verdantshade/verdantshade_hit.webp?v=1',n:20,fw:229,fh:300,cols:6,rows:4,figH:276,feet:296,cx:122,fps:16,flip:false,top:19},
+    green:{u:'/assets/anim/verdantshade/verdantshade_green.webp?v=1',n:36,fw:253,fh:300,cols:6,rows:6,figH:221,feet:297,cx:85,fps:15,flip:false,top:75,hold:0.8},
+    blue:{u:'/assets/anim/verdantshade/verdantshade_blue.webp?v=1',n:36,fw:300,fh:255,cols:6,rows:6,figH:226,feet:248,cx:156,fps:15,flip:false,top:21,hold:0.8},
+    ult:{u:'/assets/anim/verdantshade/verdantshade_ult.webp?v=1',n:48,fw:300,fh:282,cols:6,rows:8,figH:217,feet:278,cx:112,fps:15,flip:false,top:61},
+    passive:{u:'/assets/anim/verdantshade/verdantshade_passive.webp?v=1',n:36,fw:239,fh:300,cols:6,rows:6,figH:275,feet:296,cx:113,fps:15,flip:false,top:21}
+  },
+  voidweaver:{
+    idle:{u:'/assets/anim/voidweaver/voidweaver_idle.webp?v=1',n:36,fw:200,fh:300,cols:6,rows:6,figH:288,feet:296,cx:98,fps:15,flip:false,top:7},
+    walk:{u:'/assets/anim/voidweaver/voidweaver_walk.webp?v=1',n:36,fw:300,fh:293,cols:6,rows:6,figH:252,feet:284,cx:122,fps:15,flip:false,top:32},
+    attack:{u:'/assets/anim/voidweaver/voidweaver_attack.webp?v=1',n:24,fw:300,fh:261,cols:6,rows:4,figH:221,feet:258,cx:136,fps:16,flip:false,top:36,hold:0.9},
+    hit:{u:'/assets/anim/voidweaver/voidweaver_hit.webp?v=1',n:20,fw:291,fh:300,cols:6,rows:4,figH:218,feet:297,cx:184,fps:16,flip:false,top:78},
+    green:{u:'/assets/anim/voidweaver/voidweaver_green.webp?v=1',n:36,fw:236,fh:300,cols:6,rows:6,figH:236,feet:296,cx:89,fps:15,flip:false,top:59,hold:0.8},
+    blue:{u:'/assets/anim/voidweaver/voidweaver_blue.webp?v=1',n:36,fw:177,fh:300,cols:6,rows:6,figH:243,feet:296,cx:89,fps:15,flip:false,top:53,hold:0.8},
+    ult:{u:'/assets/anim/voidweaver/voidweaver_ult.webp?v=1',n:48,fw:218,fh:300,cols:6,rows:8,figH:287,feet:293,cx:103,fps:15,flip:false,top:5},
+    passive:{u:'/assets/anim/voidweaver/voidweaver_passive.webp?v=1',n:36,fw:200,fh:300,cols:6,rows:6,figH:276,feet:291,cx:98,fps:15,flip:false,top:14}
+  },
+  dawnbringer:{
+    idle:{u:'/assets/anim/dawnbringer/dawnbringer_idle.webp?v=1',n:36,fw:249,fh:300,cols:6,rows:6,figH:290,feet:296,cx:132,fps:15,flip:false,top:5},
+    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=1',n:36,fw:272,fh:300,cols:6,rows:6,figH:292,feet:296,cx:148,fps:15,flip:false,top:3},
+    attack:{u:'/assets/anim/dawnbringer/dawnbringer_attack.webp?v=1',n:24,fw:275,fh:300,cols:6,rows:4,figH:241,feet:296,cx:153,fps:16,flip:false,top:55,hold:0.9},
+    hit:{u:'/assets/anim/dawnbringer/dawnbringer_hit.webp?v=1',n:20,fw:300,fh:284,cols:6,rows:4,figH:273,feet:280,cx:156,fps:16,flip:false,top:6},
+    green:{u:'/assets/anim/dawnbringer/dawnbringer_green.webp?v=1',n:36,fw:288,fh:300,cols:6,rows:6,figH:233,feet:296,cx:159,fps:15,flip:false,top:62,hold:0.8},
+    blue:{u:'/assets/anim/dawnbringer/dawnbringer_blue.webp?v=1',n:36,fw:259,fh:300,cols:6,rows:6,figH:268,feet:296,cx:164,fps:15,flip:false,top:27,hold:0.8},
+    ult:{u:'/assets/anim/dawnbringer/dawnbringer_ult.webp?v=1',n:48,fw:260,fh:300,cols:6,rows:8,figH:223,feet:295,cx:156,fps:15,flip:false,top:71},
+    passive:{u:'/assets/anim/dawnbringer/dawnbringer_passive.webp?v=1',n:36,fw:278,fh:300,cols:6,rows:6,figH:272,feet:283,cx:155,fps:15,flip:false,top:11}
+  },
+  cathedral:{
+    idle:{u:'/assets/anim/cathedral/cathedral_idle.webp?v=1',n:36,fw:257,fh:300,cols:6,rows:6,figH:289,feet:296,cx:150,fps:15,flip:false,top:6},
+    walk:{u:'/assets/anim/cathedral/cathedral_walk.webp?v=1',n:36,fw:293,fh:300,cols:6,rows:6,figH:258,feet:294,cx:150,fps:15,flip:false,top:36},
+    attack:{u:'/assets/anim/cathedral/cathedral_attack.webp?v=1',n:24,fw:298,fh:300,cols:6,rows:4,figH:239,feet:296,cx:181,fps:16,flip:false,top:57,hold:0.9},
+    hit:{u:'/assets/anim/cathedral/cathedral_hit.webp?v=1',n:20,fw:280,fh:300,cols:6,rows:4,figH:238,feet:293,cx:161,fps:16,flip:false,top:55},
+    green:{u:'/assets/anim/cathedral/cathedral_green.webp?v=1',n:36,fw:255,fh:300,cols:6,rows:6,figH:236,feet:296,cx:109,fps:15,flip:false,top:60,hold:0.8},
+    blue:{u:'/assets/anim/cathedral/cathedral_blue.webp?v=1',n:36,fw:283,fh:300,cols:6,rows:6,figH:291,feet:295,cx:161,fps:15,flip:false,top:3,hold:0.8},
+    ult:{u:'/assets/anim/cathedral/cathedral_ult.webp?v=1',n:48,fw:300,fh:259,cols:6,rows:8,figH:186,feet:256,cx:156,fps:15,flip:false,top:70},
+    passive:{u:'/assets/anim/cathedral/cathedral_passive.webp?v=1',n:36,fw:300,fh:252,cols:6,rows:6,figH:241,feet:249,cx:151,fps:15,flip:false,top:7}
+  },
+  lastfurnace:{
+    idle:{u:'/assets/anim/lastfurnace/lastfurnace_idle.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:288,feet:296,cx:139,fps:15,flip:false,top:8},
+    walk:{u:'/assets/anim/lastfurnace/lastfurnace_walk.webp?v=1',n:36,fw:300,fh:249,cols:6,rows:6,figH:241,feet:245,cx:160,fps:15,flip:false,top:3},
+    attack:{u:'/assets/anim/lastfurnace/lastfurnace_attack.webp?v=1',n:24,fw:247,fh:300,cols:6,rows:4,figH:226,feet:296,cx:114,fps:16,flip:false,top:70,hold:0.9},
+    hit:{u:'/assets/anim/lastfurnace/lastfurnace_hit.webp?v=1',n:20,fw:300,fh:242,cols:6,rows:4,figH:213,feet:238,cx:166,fps:16,flip:false,top:25},
+    green:{u:'/assets/anim/lastfurnace/lastfurnace_green.webp?v=1',n:36,fw:255,fh:300,cols:6,rows:6,figH:228,feet:296,cx:153,fps:15,flip:false,top:68,hold:0.8},
+    blue:{u:'/assets/anim/lastfurnace/lastfurnace_blue.webp?v=1',n:36,fw:242,fh:300,cols:6,rows:6,figH:229,feet:296,cx:118,fps:15,flip:false,top:67,hold:0.8},
+    ult:{u:'/assets/anim/lastfurnace/lastfurnace_ult.webp?v=1',n:48,fw:236,fh:300,cols:6,rows:8,figH:240,feet:296,cx:112,fps:15,flip:false,top:55},
+    passive:{u:'/assets/anim/lastfurnace/lastfurnace_passive.webp?v=1',n:36,fw:283,fh:300,cols:6,rows:6,figH:238,feet:294,cx:149,fps:15,flip:false,top:55}
+  },
+  beekeeper:{
+    idle:{u:'/assets/anim/beekeeper/beekeeper_idle.webp?v=1',n:36,fw:201,fh:300,cols:6,rows:6,figH:257,feet:296,cx:102,fps:15,flip:false,top:39},
+    walk:{u:'/assets/anim/beekeeper/beekeeper_walk.webp?v=1',n:36,fw:213,fh:300,cols:6,rows:6,figH:257,feet:294,cx:102,fps:15,flip:false,top:36},
+    attack:{u:'/assets/anim/beekeeper/beekeeper_attack.webp?v=1',n:24,fw:262,fh:300,cols:6,rows:4,figH:244,feet:296,cx:100,fps:16,flip:false,top:52,hold:0.9},
+    hit:{u:'/assets/anim/beekeeper/beekeeper_hit.webp?v=1',n:20,fw:300,fh:255,cols:6,rows:4,figH:226,feet:252,cx:149,fps:16,flip:false,top:25},
+    green:{u:'/assets/anim/beekeeper/beekeeper_green.webp?v=1',n:36,fw:292,fh:300,cols:6,rows:6,figH:289,feet:296,cx:125,fps:15,flip:false,top:6,hold:0.8},
+    blue:{u:'/assets/anim/beekeeper/beekeeper_blue.webp?v=1',n:36,fw:270,fh:300,cols:6,rows:6,figH:290,feet:296,cx:135,fps:15,flip:false,top:5,hold:0.8},
+    ult:{u:'/assets/anim/beekeeper/beekeeper_ult.webp?v=1',n:48,fw:291,fh:300,cols:6,rows:8,figH:230,feet:296,cx:157,fps:15,flip:false,top:66}
+  },
+  librarian:{
+    idle:{u:'/assets/anim/librarian/librarian_idle.webp?v=1',n:36,fw:259,fh:300,cols:6,rows:6,figH:291,feet:295,cx:127,fps:15,flip:false,top:3},
+    walk:{u:'/assets/anim/librarian/librarian_walk.webp?v=1',n:36,fw:265,fh:300,cols:6,rows:6,figH:278,feet:295,cx:135,fps:15,flip:false,top:16},
+    attack:{u:'/assets/anim/librarian/librarian_attack.webp?v=1',n:24,fw:268,fh:300,cols:6,rows:4,figH:269,feet:295,cx:142,fps:16,flip:false,top:26,hold:0.9},
+    hit:{u:'/assets/anim/librarian/librarian_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:282,feet:291,cx:151,fps:16,flip:false,top:8},
+    green:{u:'/assets/anim/librarian/librarian_green.webp?v=1',n:36,fw:254,fh:300,cols:6,rows:6,figH:255,feet:294,cx:129,fps:15,flip:false,top:39,hold:0.8},
+    blue:{u:'/assets/anim/librarian/librarian_blue.webp?v=1',n:36,fw:238,fh:300,cols:6,rows:6,figH:265,feet:295,cx:117,fps:15,flip:false,top:30,hold:0.8},
+    ult:{u:'/assets/anim/librarian/librarian_ult.webp?v=1',n:48,fw:300,fh:260,cols:6,rows:8,figH:221,feet:256,cx:144,fps:15,flip:false,top:35},
+    passive:{u:'/assets/anim/librarian/librarian_passive.webp?v=1',n:36,fw:259,fh:300,cols:6,rows:6,figH:289,feet:295,cx:126,fps:15,flip:false,top:6}
+  },
+  corsair:{
+    idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=1',n:36,fw:221,fh:300,cols:6,rows:6,figH:287,feet:295,cx:116,fps:15,flip:false,top:7},
+    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=1',n:36,fw:231,fh:300,cols:6,rows:6,figH:271,feet:283,cx:125,fps:15,flip:false,top:12},
+    attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=1',n:24,fw:300,fh:231,cols:6,rows:4,figH:186,feet:228,cx:164,fps:16,flip:false,top:41,hold:0.9},
+    hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:false,top:25},
+    green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:false,top:3,hold:0.8},
+    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=1',n:36,fw:300,fh:235,cols:6,rows:6,figH:171,feet:232,cx:153,fps:15,flip:false,top:60,hold:0.8},
+    ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=1',n:48,fw:289,fh:300,cols:6,rows:8,figH:232,feet:296,cx:204,fps:15,flip:false,top:64},
+    passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=1',n:36,fw:231,fh:300,cols:6,rows:6,figH:248,feet:296,cx:136,fps:15,flip:false,top:47}
+  },
+  waxenduchess:{
+    idle:{u:'/assets/anim/waxenduchess/waxenduchess_idle.webp?v=1',n:36,fw:242,fh:300,cols:6,rows:6,figH:284,feet:287,cx:151,fps:15,flip:true,top:3},
+    walk:{u:'/assets/anim/waxenduchess/waxenduchess_walk.webp?v=1',n:36,fw:254,fh:300,cols:6,rows:6,figH:284,feet:289,cx:143,fps:15,flip:true,top:5},
+    attack:{u:'/assets/anim/waxenduchess/waxenduchess_attack.webp?v=1',n:24,fw:300,fh:276,cols:6,rows:4,figH:222,feet:270,cx:169,fps:16,flip:true,top:47,hold:0.9},
+    hit:{u:'/assets/anim/waxenduchess/waxenduchess_hit.webp?v=1',n:20,fw:243,fh:300,cols:6,rows:4,figH:290,feet:294,cx:143,fps:16,flip:true,top:3},
+    green:{u:'/assets/anim/waxenduchess/waxenduchess_green.webp?v=1',n:36,fw:267,fh:300,cols:6,rows:6,figH:285,feet:295,cx:170,fps:15,flip:true,top:10,hold:0.8},
+    blue:{u:'/assets/anim/waxenduchess/waxenduchess_blue.webp?v=1',n:36,fw:241,fh:300,cols:6,rows:6,figH:223,feet:297,cx:151,fps:15,flip:true,top:74,hold:0.8},
+    ult:{u:'/assets/anim/waxenduchess/waxenduchess_ult.webp?v=1',n:48,fw:300,fh:298,cols:6,rows:8,figH:223,feet:284,cx:158,fps:15,flip:true,top:60},
+    passive:{u:'/assets/anim/waxenduchess/waxenduchess_passive.webp?v=1',n:36,fw:262,fh:300,cols:6,rows:6,figH:287,feet:295,cx:166,fps:15,flip:true,top:7}
+  },
+});
+Object.assign(KITS, {
+  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:0.9,dps:0.45,dur:4,color:'#ff7a2a',cd:6,pfx:'pyroclast_green_fx',pscale:2.4},blue:{name:'Blazing Orbit',type:'nova',mul:1.1,radius:2.6*METER,cd:8,gfx:'pyroclast_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:1.6},purple:{name:'Rising Heat',pass:'power'}},
+  stormwarden:{green:{name:'Volt Pike',type:'piercethrow',mul:1.4,width:34,cd:7,pfx:'stormwarden_green_fx',pscale:2.6},blue:{name:'Thunder Guard',type:'defensive',mul:0.55,dur:4,cd:9,gfx:'stormwarden_blue_fx',gfxAt:'self',gfxR:2.2*METER,gdur:1.4},purple:{name:'Static Charge',pass:'fury'}},
+  verdantshade:{green:{name:'Thornshot',type:'strike',mul:1.5,cd:6,pfx:'verdantshade_green_fx',pscale:2.4},blue:{name:'Vine Snare',type:'swamproot',mul:0.8,root:2,radius:2.2*METER,cd:10,gfx:'verdantshade_blue_fx',gfxR:2.2*METER,gdur:1.8},purple:{name:"Hunter's Patience",pass:'power'}},
+  voidweaver:{green:{name:'Abyssal Needle',type:'strike',mul:1.6,cd:6,pfx:'voidweaver_green_fx',pscale:2.2},blue:{name:'Gravity Knot',type:'pullsilence',radius:4*METER,dur:1.5,cd:10,gfx:'voidweaver_blue_fx',gfxR:2.8*METER,gdur:1.8},purple:{name:'Dark Convergence',pass:'stardust'}},
+  dawnbringer:{green:{name:'Radiant Hammer',type:'stun',mul:1.4,stun:1.0,cd:8,gfx:'dawnbringer_green_fx',gfxAt:'target',gfxR:1.8*METER,gdur:1.2},blue:{name:'Sanctuary Guard',type:'harmonyshield',mul:2.0,radius:3*METER,dur:5,cd:10,gfx:'dawnbringer_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:1.6},purple:{name:'Unbroken Dawn',pass:'bulwark'}},
+  cathedral:{green:{name:'Cathedral Gates',type:'aoeStun',mul:1.0,stun:1.2,radius:2.6*METER,cd:10,gfx:'cathedral_green_fx',gfxAt:'self',gfxR:2.8*METER,gdur:1.6},blue:{name:'Incense of Penance',type:'hot',hps:0.05,dur:5,cd:9,gfx:'cathedral_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:2.0},purple:{name:'Sacred Bells',pass:'warden'}},
+  lastfurnace:{green:{name:'Forge Strike',type:'cleave',mul:1.7,radius:3*METER,cd:7,gfx:'lastfurnace_green_fx',gfxAt:'target',gfxR:2.2*METER,gdur:1.4},blue:{name:'Chain Quench',type:'pullsilence',radius:4*METER,dur:1.5,cd:10,gfx:'lastfurnace_blue_fx',gfxAt:'self',gfxR:3.0*METER,gdur:1.8},purple:{name:'Tempered Steel',pass:'juggernaut'}},
+  beekeeper:{green:{name:'Hornet Cloud',type:'aoedot',mul:0.5,dps:0.4,dur:4,radius:2.8*METER,cd:7,gfx:'beekeeper_green_fx',gfxAt:'target',gfxR:2.8*METER,gdur:2.0},blue:{name:'Royal Nectar',type:'crescendo',heal:0.14,hot:0.04,dur:5,cd:8,gfx:'beekeeper_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:1.8},purple:{name:'Worker Swarm',pass:'regen'}},
+  librarian:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,dur:15,radius:1.6*METER,cd:11},blue:{name:'Chapter Rewrite',type:'weighdebt',mul:1.0,pct:0.3,dur:5,cd:9,gfx:'librarian_blue_fx',gfxAt:'target',gfxR:2.0*METER,gdur:1.6},purple:{name:'Living Pages',pass:'scriptorium'}},
+  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.8,n:3,cd:6,pfx:'corsair_green_fx',pscale:2.2},blue:{name:'Grappling Hook',type:'stun',mul:1.2,stun:1.0,cd:9,pfx:'corsair_blue_fx',pscale:2.4},purple:{name:"Pirate's Instinct",pass:'power'}},
+  waxenduchess:{green:{name:'Waxen Effigy',type:'stun',mul:1.3,stun:0.8,cd:7},blue:{name:'Mourning Bell',type:'nova',mul:0.9,radius:8*METER,cd:9},purple:{name:'Living Tallow',pass:'hush'}},
+});
+Object.assign(ABILITY_CAST, {pyroclast:{ult:1.0,green:0.5,blue:0.6}, stormwarden:{ult:1.0,green:0.5,blue:0.6}, verdantshade:{ult:1.0,green:0.5,blue:0.6}, voidweaver:{ult:1.0,green:0.5,blue:0.6}, dawnbringer:{ult:1.0,green:0.5,blue:0.6}, cathedral:{ult:1.0,green:0.5,blue:0.6}, lastfurnace:{ult:1.0,green:0.5,blue:0.6}, beekeeper:{ult:1.0,green:0.5,blue:0.6}, librarian:{ult:1.0,green:0.5,blue:0.6}, corsair:{ult:1.0,green:0.5,blue:0.6}, waxenduchess:{ult:1.0,green:0.5,blue:0.6}});
+Object.assign(FX2_DEF, {
+  pyroclast_green_fx:{u:'/assets/anim/fx/pyroclast_green_fx.webp?v=1',n:18,fw:210,fh:116,cols:6,rows:3,dur:1.5},
+  pyroclast_blue_fx:{u:'/assets/anim/fx/pyroclast_blue_fx.webp?v=1',n:18,fw:210,fh:205,cols:6,rows:3,dur:1.5},
+  pyroclast_ult_fx:{u:'/assets/anim/fx/pyroclast_ult_fx.webp?v=1',n:18,fw:210,fh:189,cols:6,rows:3,dur:1.5},
+  stormwarden_green_fx:{u:'/assets/anim/fx/stormwarden_green_fx.webp?v=1',n:18,fw:210,fh:66,cols:6,rows:3,dur:1.5},
+  stormwarden_blue_fx:{u:'/assets/anim/fx/stormwarden_blue_fx.webp?v=1',n:18,fw:210,fh:139,cols:6,rows:3,dur:1.5},
+  stormwarden_ult_fx:{u:'/assets/anim/fx/stormwarden_ult_fx.webp?v=1',n:18,fw:210,fh:185,cols:6,rows:3,dur:1.5},
+  verdantshade_green_fx:{u:'/assets/anim/fx/verdantshade_green_fx.webp?v=1',n:18,fw:210,fh:145,cols:6,rows:3,dur:1.5},
+  verdantshade_blue_fx:{u:'/assets/anim/fx/verdantshade_blue_fx.webp?v=1',n:18,fw:210,fh:187,cols:6,rows:3,dur:1.5},
+  voidweaver_green_fx:{u:'/assets/anim/fx/voidweaver_green_fx.webp?v=1',n:18,fw:210,fh:36,cols:6,rows:3,dur:1.5},
+  voidweaver_blue_fx:{u:'/assets/anim/fx/voidweaver_blue_fx.webp?v=1',n:18,fw:202,fh:210,cols:6,rows:3,dur:1.5},
+  voidweaver_ult_fx:{u:'/assets/anim/fx/voidweaver_ult_fx.webp?v=1',n:18,fw:210,fh:191,cols:6,rows:3,dur:1.5},
+  dawnbringer_blue_fx:{u:'/assets/anim/fx/dawnbringer_blue_fx.webp?v=1',n:18,fw:210,fh:143,cols:6,rows:3,dur:1.5},
+  dawnbringer_ult_fx:{u:'/assets/anim/fx/dawnbringer_ult_fx.webp?v=1',n:18,fw:210,fh:189,cols:6,rows:3,dur:1.5},
+  dawnbringer_green_fx:{u:'/assets/anim/fx/dawnbringer_green_fx.webp?v=1',n:18,fw:210,fh:171,cols:6,rows:3,dur:1.5},
+  cathedral_ult_fx:{u:'/assets/anim/fx/cathedral_ult_fx.webp?v=1',n:18,fw:140,fh:210,cols:6,rows:3,dur:1.5},
+  cathedral_green_fx:{u:'/assets/anim/fx/cathedral_green_fx.webp?v=1',n:18,fw:210,fh:206,cols:6,rows:3,dur:1.5},
+  cathedral_blue_fx:{u:'/assets/anim/fx/cathedral_blue_fx.webp?v=1',n:18,fw:210,fh:135,cols:6,rows:3,dur:1.5},
+  lastfurnace_ult_fx:{u:'/assets/anim/fx/lastfurnace_ult_fx.webp?v=1',n:18,fw:210,fh:189,cols:6,rows:3,dur:1.5},
+  lastfurnace_green_fx:{u:'/assets/anim/fx/lastfurnace_green_fx.webp?v=1',n:18,fw:210,fh:164,cols:6,rows:3,dur:1.5},
+  lastfurnace_blue_fx:{u:'/assets/anim/fx/lastfurnace_blue_fx.webp?v=1',n:18,fw:210,fh:155,cols:6,rows:3,dur:1.5},
+  beekeeper_green_fx:{u:'/assets/anim/fx/beekeeper_green_fx.webp?v=1',n:18,fw:210,fh:152,cols:6,rows:3,dur:1.5},
+  beekeeper_ult_fx:{u:'/assets/anim/fx/beekeeper_ult_fx.webp?v=1',n:18,fw:210,fh:186,cols:6,rows:3,dur:1.5},
+  beekeeper_blue_fx:{u:'/assets/anim/fx/beekeeper_blue_fx.webp?v=1',n:18,fw:210,fh:174,cols:6,rows:3,dur:1.5},
+  librarian_blue_fx:{u:'/assets/anim/fx/librarian_blue_fx.webp?v=1',n:18,fw:210,fh:161,cols:6,rows:3,dur:1.5},
+  corsair_green_fx:{u:'/assets/anim/fx/corsair_green_fx.webp?v=1',n:18,fw:210,fh:84,cols:6,rows:3,dur:1.5},
+  corsair_ult_fx:{u:'/assets/anim/fx/corsair_ult_fx.webp?v=1',n:18,fw:210,fh:173,cols:6,rows:3,dur:1.5},
+  corsair_blue_fx:{u:'/assets/anim/fx/corsair_blue_fx.webp?v=1',n:18,fw:210,fh:123,cols:6,rows:3,dur:1.5},
+  waxenduchess_ult_fx:{u:'/assets/anim/fx/waxenduchess_ult_fx.webp?v=1',n:18,fw:210,fh:171,cols:6,rows:3,dur:1.5},
+});
+/* Per-hero ultimate plates: ULT_DEF is keyed by the shared ability TYPE, so the hero's own art is merged in at cast time (see castUlt). */
+const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
+Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
+Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
+Object.assign(ULT_DESC, {summonshaman:'Ultimate \u2014 the Librarian reads the final chapter aloud: an Elder Ink Horror steps off the page beside him for 22 seconds, striking enemies and spinning ink around itself.'});
+Object.assign(HERO_LORE, {
+  pyroclast:{title:"Where the Ground Was Glass",text:"She was born on the slope the year the mountain opened, and her mother's village went under a river of stone in the time it takes to say a name. Pyroclast is what the survivors called the thing that took the village. She took the name back. It is not grief, she will tell you; it is a debt, and the mountain is going to be paid in kind."},
+  stormwarden:{title:"The Man Who Stands on Towers",text:"Every high place in the Emberweave has one \u2014 a warden whose job it is to be the tallest thing when the storm comes, so that the storm has somewhere to go that is not the town. He has been struck eleven times. He says the twelfth is owed to somebody else, and he means to hand it over personally."},
+  verdantshade:{title:"Nobody's Ranger",text:"The forest does not employ her and she does not answer to it. She simply noticed, at some point, that everything that crossed the treeline with a torch came out the other side without one, and decided that whatever was doing that could use a second pair of hands."},
+  voidweaver:{title:"The Loom With No Thread",text:"She weaves absence. Not darkness \u2014 darkness is a thing, and can be lit. What she pulls between her fingers is the gap where a thing was supposed to be, and she has found that if you knot enough of those gaps together, the world around them falls in to fill the hole."},
+  dawnbringer:{title:"The First Hour of the Siege",text:"He was the one they sent to hold the gate until morning. Morning came and he was still there, and so was the gate, and so \u2014 to everyone's surprise, including his \u2014 was he. The hammer was a gift from the town afterwards. He carries it the way other men carry a promise."},
+  cathedral:{title:"A Building That Would Not Be Left",text:"When the valley was abandoned the cathedral was the last thing standing, and it seems to have taken that personally. It followed the congregation out. It has been following ever since \u2014 slowly, patiently, ringing the hours \u2014 and anyone who stands in its nave is, whether they like it or not, under its protection."},
+  lastfurnace:{title:"What the Foundry Kept Burning",text:"The foundries of the Iron Reach went cold one by one when the ore ran out, and the last of them refused. It walked out of its own housing with the fire still in it, and it has been looking for something worth making ever since. Mostly, so far, that has been examples."},
+  beekeeper:{title:"A Crown of Small Subjects",text:"He was never crowned by anyone with hands. The hives chose him, one summer, for reasons the hives have not explained, and he has ruled them gently and been ruled by them in turn. His court is forty thousand strong and every one of them would die for him, and does, and is replaced by morning."},
+  librarian:{title:"The Restricted Section",text:"Every monster in the Emberweave is in his book, and the book is not a catalogue. When he reads an entry aloud the thing described steps out of the page in ink, and does what it was written to do, and goes back when the chapter ends. He is very careful about which chapters he reads. He has not always been."},
+  corsair:{title:"Two Pistols and a Grudge",text:"She lost the ship in a card game she is fairly sure was rigged, and has spent the years since collecting from everyone who was at the table. The list is shorter now. The saber is for the ones who argue; the pistols are for the ones who run."},
+  waxenduchess:{title:"The Court That Never Adjourns",text:"Her guests are all still at the table. They have been for a hundred years, seated exactly as they were the night the candles were lit, and the wax has been very kind to them. She takes new guests rarely and is a gracious host, and nobody who has attended one of her dinners has ever complained afterwards."},
+});
+HERO_PORTRAITS.pyroclast='/assets/img/glossary/glossary-heroes-pyroclast.webp?v=1'; HERO_SPRITES.pyroclast=HERO_PORTRAITS.pyroclast; GLOSSARY_ART['heroes/pyroclast']=HERO_PORTRAITS.pyroclast;
+HERO_PORTRAITS.stormwarden='/assets/img/glossary/glossary-heroes-stormwarden.webp?v=1'; HERO_SPRITES.stormwarden=HERO_PORTRAITS.stormwarden; GLOSSARY_ART['heroes/stormwarden']=HERO_PORTRAITS.stormwarden;
+HERO_PORTRAITS.verdantshade='/assets/img/glossary/glossary-heroes-verdantshade.webp?v=1'; HERO_SPRITES.verdantshade=HERO_PORTRAITS.verdantshade; GLOSSARY_ART['heroes/verdantshade']=HERO_PORTRAITS.verdantshade;
+HERO_PORTRAITS.voidweaver='/assets/img/glossary/glossary-heroes-voidweaver.webp?v=1'; HERO_SPRITES.voidweaver=HERO_PORTRAITS.voidweaver; GLOSSARY_ART['heroes/voidweaver']=HERO_PORTRAITS.voidweaver;
+HERO_PORTRAITS.dawnbringer='/assets/img/glossary/glossary-heroes-dawnbringer.webp?v=1'; HERO_SPRITES.dawnbringer=HERO_PORTRAITS.dawnbringer; GLOSSARY_ART['heroes/dawnbringer']=HERO_PORTRAITS.dawnbringer;
+HERO_PORTRAITS.cathedral='/assets/img/glossary/glossary-heroes-cathedral.webp?v=1'; HERO_SPRITES.cathedral=HERO_PORTRAITS.cathedral; GLOSSARY_ART['heroes/cathedral']=HERO_PORTRAITS.cathedral;
+HERO_PORTRAITS.lastfurnace='/assets/img/glossary/glossary-heroes-lastfurnace.webp?v=1'; HERO_SPRITES.lastfurnace=HERO_PORTRAITS.lastfurnace; GLOSSARY_ART['heroes/lastfurnace']=HERO_PORTRAITS.lastfurnace;
+HERO_PORTRAITS.beekeeper='/assets/img/glossary/glossary-heroes-beekeeper.webp?v=1'; HERO_SPRITES.beekeeper=HERO_PORTRAITS.beekeeper; GLOSSARY_ART['heroes/beekeeper']=HERO_PORTRAITS.beekeeper;
+HERO_PORTRAITS.librarian='/assets/img/glossary/glossary-heroes-librarian.webp?v=1'; HERO_SPRITES.librarian=HERO_PORTRAITS.librarian; GLOSSARY_ART['heroes/librarian']=HERO_PORTRAITS.librarian;
+HERO_PORTRAITS.corsair='/assets/img/glossary/glossary-heroes-corsair.webp?v=1'; HERO_SPRITES.corsair=HERO_PORTRAITS.corsair; GLOSSARY_ART['heroes/corsair']=HERO_PORTRAITS.corsair;
+HERO_PORTRAITS.waxenduchess='/assets/img/glossary/glossary-heroes-waxenduchess.webp?v=1'; HERO_SPRITES.waxenduchess=HERO_PORTRAITS.waxenduchess; GLOSSARY_ART['heroes/waxenduchess']=HERO_PORTRAITS.waxenduchess;
+GLOSSARY_DATA.heroes.push({"id":"pyroclast","name":"Pyroclast"}, {"id":"stormwarden","name":"Stormwarden"}, {"id":"verdantshade","name":"Verdant Shade"}, {"id":"voidweaver","name":"Void Weaver"}, {"id":"dawnbringer","name":"Dawnbringer"}, {"id":"cathedral","name":"The Walking Cathedral"}, {"id":"lastfurnace","name":"The Last Furnace"}, {"id":"beekeeper","name":"The Beekeeper King"}, {"id":"librarian","name":"The Librarian of Monsters"}, {"id":"corsair","name":"The Corsair Duelist"}, {"id":"waxenduchess","name":"Waxen Duchess"});
+HERO_PORTRAITS['ink spirit']=GLOSSARY_ART['monsters/ink-spirit']='/assets/img/glossary/glossary-monsters-ink-spirit.webp?v=1'; HERO_PORTRAITS['ink horror']=GLOSSARY_ART['monsters/ink-horror']='/assets/img/glossary/glossary-monsters-ink-horror.webp?v=1'; HERO_SPRITES['ink spirit']=MONSTER_SPRITES['ink spirit']=HERO_PORTRAITS['ink spirit']; HERO_SPRITES['ink horror']=MONSTER_SPRITES['ink horror']=HERO_PORTRAITS['ink horror'];
+/* ===== end v332 heroes ===== */
+
+
+for(const k in GLOSSARY_ART){ const i=k.indexOf('/'), cat=k.slice(0,i), id=k.slice(i+1); if((cat==='monsters'||cat==='bosses')&&!MONSTER_SPRITES[id]){ MONSTER_SPRITES[id]=GLOSSARY_ART[k]; HERO_SPRITES[id]=GLOSSARY_ART[k]; } }
+
 function unitType(key){ return HERO_TYPES[key]||MONSTER_TYPES[key]; }
 const MONSTER_POOL=Object.keys(MONSTER_TYPES).filter(k=>!MONSTER_TYPES[k].isboss&&!MONSTER_TYPES[k].summonOnly);   // summonOnly = Hurne's boars: they exist as units but must never spawn as a wave enemy
 const BOSS_POOL=Object.keys(MONSTER_TYPES).filter(k=>MONSTER_TYPES[k].isboss);
@@ -11949,7 +12609,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788361487506';
+const BUILD_ID='1788367479967';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
