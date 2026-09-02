@@ -4206,7 +4206,8 @@ const FX2_DEF={
   shadowball:{u:'/assets/anim/fx/shadowball.webp?v=3',n:18, fw:200, fh:200, cols:8, rows:3, dur:2.0},
   fireball:  {u:'/assets/anim/fx/fireball.webp?v=3',  n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
   frostball: {u:'/assets/anim/fx/frostball.webp?v=3', n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
-  natureball:{u:'/assets/anim/fx/natureball.webp?v=1',n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},   // v339: fireball sheet hue-shifted to green (nature casters' auto attack)
+  natureball:{u:'/assets/anim/fx/natureball.webp?v=1',n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
+  fritz_zap: {u:'/assets/anim/fx/fritz_zap.webp?v=1', n:12, fw:420, fh:300, cols:6, rows:2, dur:0.5},   // v340: a short bolt cut from Fritz's own chain-lightning clip, tinted his yellow   // v339: fireball sheet hue-shifted to green (nature casters' auto attack)
   bleed:     {u:'/assets/anim/fx/bleed.webp?v=3',     n:16, fw:130, fh:210, cols:4, rows:4, dur:2.2},
   poison:    {u:'/assets/anim/fx/poison.webp?v=3',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
   firepatch: {u:'/assets/anim/fx/firepatch.webp?v=3', n:20, fw:210, fh:200, cols:5, rows:4, dur:2.5},
@@ -4503,7 +4504,7 @@ function think(u,dt){
         dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close) spawnShot(u,t,0xffd27a);
       } else {
         dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff');
-        if(u.range>60){ const el=CASTER_BALL[u.key]; if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t.x,t.y,el.scale||1.5,.22*HERO_FX_MUL,null); else spawnShot(u,t,u.t.color); }
+        if(u.range>60){ const el=CASTER_BALL[u.key]; if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null); else spawnShot(u,t,u.t.color); }
       } } };
   /* v337 — ASSASSINS FIGHT BEHIND THE TANKS, NOT BESIDE THEM (Phil: "Vex sometimes goes ahead of
      tanks; they should start behind fighters and move in after them"). While the line is still
@@ -7778,7 +7779,7 @@ Object.assign(BATTLE_ANIM, {
   },
 });
 Object.assign(KITS, {
-  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:0.9,dps:0.45,dur:4,color:'#ff7a2a',cd:6,pfx:'pyroclast_green_fx',pscale:2.4},blue:{name:'Blazing Orbit',type:'nova',mul:1.1,radius:2.6*METER,cd:8,gfx:'pyroclast_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:1.6},purple:{name:'Rising Heat',pass:'power'}},
+  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:0.9,dps:0.45,dur:4,color:'#ff7a2a',cd:6,pfx:'pyroclast_green_fx',pscale:2.4},blue:{name:'Blazing Orbit',type:'fireball',mul:1.1,radius:2.6*METER,cd:8,gfx:'pyroclast_blue_fx',gfxAt:'target',gfxR:2.6*METER,gdur:1.6}   /* v340 (Phil): fire lands ON the enemy, not under her feet */,purple:{name:'Rising Heat',pass:'power'}},
   stormwarden:{green:{name:'Volt Pike',type:'piercethrow',mul:1.4,width:34,cd:7,pfx:'stormwarden_green_fx',pscale:2.6},blue:{name:'Thunder Guard',type:'defensive',mul:0.55,dur:4,cd:9,gfx:'stormwarden_blue_fx',gfxAt:'self',gfxR:2.2*METER,gdur:1.4},purple:{name:'Static Charge',pass:'fury'}},
   verdantshade:{green:{name:'Thornshot',type:'strike',mul:1.5,cd:6,pfx:'verdantshade_green_fx',pscale:2.4},blue:{name:'Vine Snare',type:'swamproot',mul:0.8,root:2,radius:2.2*METER,cd:10,gfx:'verdantshade_blue_fx',gfxR:2.2*METER,gdur:1.8},purple:{name:"Hunter's Patience",pass:'power'}},
   voidweaver:{green:{name:'Abyssal Needle',type:'strike',mul:1.6,cd:6,pfx:'voidweaver_green_fx',pscale:2.2},blue:{name:'Gravity Knot',type:'pullsilence',radius:4*METER,dur:1.5,cd:10,gfx:'voidweaver_blue_fx',gfxR:2.8*METER,gdur:1.8},purple:{name:'Dark Convergence',pass:'stardust'}},
@@ -7825,12 +7826,14 @@ Object.assign(FX2_DEF, {
 /* v339 (Phil): caster auto-attacks are the COLOUR OF THEIR ABILITIES — a small elemental ball instead of the
    generic sphere. Black/purple casters throw a shrunken Shadow Ball, fire casters a fireball, ice casters a
    frost ball, green casters a nature ball. Casters whose element is none of those (Fritz, Lumi, Tessit, Beekeeper,
-   The Annotator) keep the plain sphere in their own colour; Umbris keeps his hand-thrown orb. */
-const CASTER_BALL={
+   The Annotator) kept the plain sphere in v339; v340 (Phil) moved them onto balls too. Umbris keeps his hand-thrown orb. */
+const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Tessit shadow, Fritz a short lightning zap
   vulmar:{fx:'shadowball',scale:1.5}, voidweaver:{fx:'shadowball',scale:1.5}, librarian:{fx:'shadowball',scale:1.5}, meryln:{fx:'shadowball',scale:1.4}, vireo:{fx:'shadowball',scale:1.3}, astra:{fx:'shadowball',scale:1.5},
+  vesper:{fx:'shadowball',scale:1.4}, sablewick:{fx:'shadowball',scale:1.4},
   pyroclast:{fx:'fireball',scale:1.6}, waxenduchess:{fx:'fireball',scale:1.4},
   sylthaine:{fx:'frostball',scale:1.6}, fathom:{fx:'frostball',scale:1.6},
-  oakmir:{fx:'natureball',scale:1.5}
+  oakmir:{fx:'natureball',scale:1.5}, lumi:{fx:'natureball',scale:1.4}, beekeeper:{fx:'natureball',scale:1.4},
+  fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
 const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
@@ -12689,7 +12692,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788388236924';
+const BUILD_ID='1788389158053';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
