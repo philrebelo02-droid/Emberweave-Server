@@ -44,7 +44,19 @@ const HERO_BASE={
   sablewick:{hp:200,dmg:15,apow:31,role:'Support',stars:2,healer:false,atkSpeed:0.85},
   vex:{hp:320,dmg:34,apow:0,role:'Assassin',stars:1,healer:false,atkSpeed:1.15},
   arrears:{hp:360,dmg:28,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.85},
-  meryln:{hp:200,dmg:12,apow:30,role:'Support',stars:1,healer:true,atkSpeed:0.9}
+  meryln:{hp:200,dmg:12,apow:30,role:'Support',stars:1,healer:true,atkSpeed:0.9},
+  /* v332 — new heroes */
+  pyroclast:{hp:185,dmg:16,apow:34,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
+  stormwarden:{hp:440,dmg:30,apow:0,role:'Fighter',stars:2,healer:false,atkSpeed:1.0},
+  verdantshade:{hp:210,dmg:32,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.0},
+  voidweaver:{hp:175,dmg:18,apow:36,role:'Mage',stars:3,healer:false,atkSpeed:0.85},
+  dawnbringer:{hp:580,dmg:24,apow:20,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
+  cathedral:{hp:620,dmg:20,apow:26,role:'Tank',stars:3,healer:false,atkSpeed:0.85},
+  lastfurnace:{hp:470,dmg:34,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.95},
+  beekeeper:{hp:230,dmg:14,apow:32,role:'Support',stars:2,healer:true,atkSpeed:0.9},
+  librarian:{hp:200,dmg:16,apow:34,role:'Mage',stars:3,healer:false,atkSpeed:0.85},
+  corsair:{hp:220,dmg:33,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.05},
+  waxenduchess:{hp:190,dmg:17,apow:35,role:'Mage',stars:3,healer:false,atkSpeed:0.85}
 };
 const STAR_MULT=[1,1.15,1.35,1.6,1.9], STAR_PIPS=5, MAX_STARS=5;
 const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Fighter:2,Assassin:3,Marksman:4,Mage:5,Support:6,Control:6};
