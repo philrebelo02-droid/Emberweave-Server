@@ -1810,6 +1810,20 @@ function skillClipHTML(key,idx){ const c=HERO_SKILL_CLIPS[key]&&HERO_SKILL_CLIPS
       if(c.cols && c.rows && c.rows>1){ css+=`@keyframes skcx-${hk}-${i}{from{background-position-x:0}to{background-position-x:-${c.fw*c.cols}px}}@keyframes skcy-${hk}-${i}{from{background-position-y:0}to{background-position-y:-${c.fh*c.rows}px}}`; }
       else css+=`@keyframes skc-${hk}-${i}{from{background-position:0 0}to{background-position:-${c.fw*c.n}px 0}}`; } }
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); })();
+/* 2 Sep — 13 heroes had battle clips for every ability but no Skills-tab preview entry, so their
+   skill page showed nothing. Derive the preview from the same battle sheet the fight uses, through
+   the same ability→clip mapping, the first time that hero's card is opened (KITS/ABIL_ANIM are
+   defined later in the file than the table above, so this cannot run at load). */
+function ensureSkillPreview(hk){ try{
+  const have=HERO_SKILL_CLIPS[hk]||{}; if(have._derived) return; const an=BATTLE_ANIM[hk]; if(!an||!HERO_TYPES[hk]) return;
+  const kit=KITS[hk]||{}; const pick=(slot,type)=>{ let st=an[slot]?slot:null; if(!st&&type&&an[type]) st=type; if(!st&&type&&ABIL_ANIM[type]&&an[ABIL_ANIM[type].st]) st=ABIL_ANIM[type].st; return st?an[st]:null; };
+  const src={0:pick('ult',HERO_TYPES[hk].ability),1:pick('green',kit.green&&kit.green.type),2:pick('blue',kit.blue&&kit.blue.type),3:an.passive||null};
+  const set={}; let css=''; for(const i in src){ if(have[i]&&isAssetRef(have[i].u)){ set[i]=have[i]; continue; } const c=src[i]; if(!c||!c.u) continue; const cols=c.cols||c.n, rows=Math.ceil(c.n/cols);
+    set[i]={u:c.u,n:c.n,fw:c.fw,fh:c.fh,cols,rows,dur:+(c.n/(c.fps||12)).toFixed(2),flip:!!c.flip};
+    if(rows>1) css+=`@keyframes skcx-${hk}-${i}{from{background-position-x:0}to{background-position-x:-${c.fw*cols}px}}@keyframes skcy-${hk}-${i}{from{background-position-y:0}to{background-position-y:-${c.fh*rows}px}}`;
+    else css+=`@keyframes skc-${hk}-${i}{from{background-position:0 0}to{background-position:-${c.fw*c.n}px 0}}`; }
+  if(!set[0]) return; Object.defineProperty(set,'_derived',{value:1,enumerable:false}); HERO_SKILL_CLIPS[hk]=set; if(css){ const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); }
+}catch(e){} }
 // ---- HERO LORE: a title + backstory for every hero, shown on the Lore tab of the hero screen ----
 const HERO_LORE = {
   hurne:{title:"The Chain and the Herd",text:"Nobody made Hurne a warlord. He was a swineherd, in a valley whose name is not on any map because the valley is not there any more, and he was good at it in the way that men are good at work nobody else wants: quietly, for forty years, without ever once being asked how it was going.\n\nThe army that came through did not stop. That is the part he returns to. They were going somewhere else and the valley was simply in the way, and it took them most of an afternoon, and the herd went with everything else \u2014 not eaten, not taken, just killed, because killing was faster than walking around. He was in the high pasture. He watched all of it from a distance at which he could do nothing, which is a specific kind of ruin that does not heal over.\n\nWhat he dug up afterward, he dug up by hand. What he swore over the hole is not recorded and he has never repeated it. But something in the ground took the oath seriously, and when he stood up he was wearing more than he had lain down in, and the chains were already on his arms, and the herd came back up out of the soil behind him \u2014 wrong, and armoured, and willing.\n\nThey have never left. He calls and they claw their way up wherever he happens to be standing, still carrying the shields he was buried with them, and the old sow who used to lead them comes up last and tends the others exactly as she always did. He does not think of them as summons. He is quite insistent on this. They are his herd, they were always his herd, and the only thing that has changed is that now he is standing between them and the road.\n\nWhen it goes badly he takes them back into himself, which costs him something he cannot name, and he does it anyway, and afterward he calls them again."},
@@ -9697,6 +9711,7 @@ function renderHeroDetail(){
       {idx:2,name:kit.blue.name,tier:'Blue',col:RANK_COLOR[2]},
       {idx:3,name:kit.purple.name,tier:'Purple',col:RANK_COLOR[3]},
     ];
+    ensureSkillPreview(key);
     const hasClips=heroHasClips(key);
     if(hasClips && !HERO_SKILL_CLIPS[key][skClipIdx]) skClipIdx=0;
     const rows=skills.map(s=>{ const on=skillUnlocked(key,s.idx), lv=skillLevel(key,s.idx), atMax=lv>=SKILL_MAX, cost=skillUpCost(s.idx,lv), can=on&&!atMax&&(G.gold||0)>=cost;
@@ -11921,7 +11936,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788350717570';
+const BUILD_ID='1788351491651';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
