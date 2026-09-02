@@ -941,7 +941,7 @@
     <div style="font-size:20px;font-weight:900;margin-bottom:14px">Paused</div>
     <button class="btn wide" id="resumeBtn">▶ Resume</button>
     <button class="btn wide secondary" id="restartBtn" style="margin-top:10px">↻ Restart Stage</button>
-    <button class="btn wide secondary" id="exitBtn" style="margin-top:10px">Exit to Base</button>
+    <button class="btn wide secondary" id="exitBtn" style="margin-top:10px">Quit</button>
   </div></div>
   <div id="hud"><div id="abilityTip"></div><div id="ultHint"></div><div id="portraitBar"></div></div>
 </div>
@@ -12521,7 +12521,15 @@ document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getEl
   try{ if(_actStreamOn){ _actSeq++; actSend({seq:_actSeq, kind:'abandon'}); } }catch(e){}
   _actStreamOn=false;
   startBattle(); };   // restart the current stage from wave 1 (heroes run back on)
-document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active'); clearBattle(); show('home'); };
+document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; document.getElementById('pauseModal').classList.remove('active');
+  /* v336 (Phil): the button is QUIT, and quitting a campaign fight lands back on the map at the stage
+     you were on, not at the base. The server is told the stream is over (same as Restart) so the
+     abandoned fight's partial transcript can never be replayed as a result. */
+  try{ if(_actStreamOn){ _actSeq++; actSend({seq:_actSeq, kind:'abandon'}); } }catch(e){}
+  _actStreamOn=false;
+  const _wasCamp=(CUR&&CUR.mode==='campaign'), _portal=(CUR&&CUR.portal)||'normal';
+  clearBattle();
+  if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; } show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
@@ -12627,7 +12635,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788372596359';
+const BUILD_ID='1788373117114';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
