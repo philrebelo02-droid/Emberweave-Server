@@ -1050,7 +1050,7 @@ Object.assign(HERO_TYPES, {
   pyroclast:{name:"Pyroclast",emoji:'🔥',role:'Mage',swing:2.0,stars:2,hp:185,dmg:16,apow:34,range:215,speed:54,atkSpeed:0.85,color:0xff6a2a,abilityName:"Crownfire",ability:'fireball',locked:true,wip:true,start:2},
   stormwarden:{name:"Stormwarden",emoji:'⚡',role:'Fighter',swing:2.3,stars:2,hp:440,dmg:30,range:30,speed:56,atkSpeed:1.0,color:0x5aa8ff,abilityName:"Skybreak",ability:'aoeStun',locked:true,wip:true,start:2},
   verdantshade:{name:"Verdant Shade",emoji:'🏹',role:'Marksman',swing:2.0,stars:2,hp:210,dmg:32,range:220,speed:56,atkSpeed:1.0,color:0x4fae5a,abilityName:"Emerald Volley",ability:'volley',locked:true,wip:true,start:2},
-  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Event Horizon",ability:'gravcrush',locked:true,wip:true,start:3},
+  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Event Horizon",ability:'eventhorizon',locked:true,wip:true,start:3},
   dawnbringer:{name:"Dawnbringer",emoji:'🔨',role:'Tank',swing:2.5,stars:3,hp:580,dmg:24,apow:20,range:30,speed:52,atkSpeed:0.9,color:0xf0d070,abilityName:"Daybreak Judgment",ability:'sunburst',locked:true,wip:true,start:3},
   cathedral:{name:"The Walking Cathedral",emoji:'⛪',role:'Tank',swing:2.6,stars:3,hp:620,dmg:20,apow:26,range:30,speed:48,atkSpeed:0.85,color:0xc8b890,abilityName:"Divine Mass",ability:'sunburst',locked:true,wip:true,start:3},
   lastfurnace:{name:"The Last Furnace",emoji:'🔩',role:'Bruiser',swing:2.4,stars:3,hp:470,dmg:34,range:30,speed:54,atkSpeed:0.95,color:0xe06a2a,abilityName:"Living Forge",ability:'ashfall',locked:true,wip:true,start:3},
@@ -1944,7 +1944,7 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 
 /* ---- ability RANK kit: Grey=Ultimate only, Green/Blue=auto actives, Purple=passive ---- */
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
-const ULT_RADIUS=['aoeStun','fireball','gravcrush','blizzard','thundershower','umbralcata','swamproot'];   // drag a ground circle sized to the spell radius
+const ULT_RADIUS=['aoeStun','fireball','gravcrush','eventhorizon','blizzard','thundershower','umbralcata','swamproot'];   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave','triplecleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_LINE=[];                                      // single straight-line directional ult (reserved: line+arrow)
 const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony'];       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
@@ -2069,14 +2069,14 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
+const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
-const ULT_DESC={vanishpoint:'Ultimate \u2014 Hollow steps off the field entirely, then comes down behind their back rank: the deepest enemy, not the nearest. The strike scales up as they weaken and finishes anything left under a fifth of its health outright \u2014 and if it kills, he is gone again before the body lands, up to three times.',devourpack:'Ultimate — Hurne tears apart every beast he has on the field and takes it into himself: he heals for their remaining health, gains a shield, carries their strength in every blow for a few seconds, and the rupture damages everything near him.',finalsurvey:'Ultimate — Meridian marks the whole enemy line: they bleed for 3 seconds and cannot be properly healed for 3 seconds, and while the marks hold he drains life from everything he has charted.',taunt:'Ultimate — slams the scales down: every nearby enemy is forced to attack him while he takes half damage.',volley:'Ultimate — a barrage delivered down the enemy line, striking the nearest several foes.',ashfall:'Ultimate — brings the blade down like a meteor and leaves the ground burning.',swamproot:'Player-aimed ultimate — the water closes over a wide area, damaging and rooting everything caught in it.',sunburst:'Ultimate — a detonation of daylight that sears every nearby enemy and heals the team in the same instant.',aoedot:'Ultimate — every enemy on the field is served, and bleeds for it.',riftpuncture:'Ultimate — tears through parallel space: every enemy freezes for 1 second, then comes out of the freeze silenced for 1 second.',triplecleave:'Player-aimed ultimate — three sweeping cuts with both daggers, back to back.',aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — the whole team is healed, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.',monkSlam:'Ultimate — spins the staff overhead then slams it down where he stands, dealing 100% ATK and stunning every enemy within 15 metres of him for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Ultimate — Oakmir calls the first bloom of spring, instantly healing the whole team and wrapping them in a lingering regrowth.',charge:'Ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.',hipposlam:'Ultimate — leaps onto the densest enemy cluster, dealing a share of his own max HP and briefly stunning them, then plants: for 5 seconds every ally takes 30% less damage while Grosk still stands.',gravcrush:'Player-aimed ultimate — crushes a wide area with gravity, damaging and stunning every enemy dragged into the center.'};
+const ULT_DESC={vanishpoint:'Ultimate \u2014 Hollow steps off the field entirely, then comes down behind their back rank: the deepest enemy, not the nearest. The strike scales up as they weaken and finishes anything left under a fifth of its health outright \u2014 and if it kills, he is gone again before the body lands, up to three times.',devourpack:'Ultimate — Hurne tears apart every beast he has on the field and takes it into himself: he heals for their remaining health, gains a shield, carries their strength in every blow for a few seconds, and the rupture damages everything near him.',finalsurvey:'Ultimate — Meridian marks the whole enemy line: they bleed for 3 seconds and cannot be properly healed for 3 seconds, and while the marks hold he drains life from everything he has charted.',taunt:'Ultimate — slams the scales down: every nearby enemy is forced to attack him while he takes half damage.',volley:'Ultimate — a barrage delivered down the enemy line, striking the nearest several foes.',ashfall:'Ultimate — brings the blade down like a meteor and leaves the ground burning.',swamproot:'Player-aimed ultimate — the water closes over a wide area, damaging and rooting everything caught in it.',sunburst:'Ultimate — a detonation of daylight that sears every nearby enemy and heals the team in the same instant.',aoedot:'Ultimate — every enemy on the field is served, and bleeds for it.',riftpuncture:'Ultimate — tears through parallel space: every enemy freezes for 1 second, then comes out of the freeze silenced for 1 second.',triplecleave:'Player-aimed ultimate — three sweeping cuts with both daggers, back to back.',aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — the whole team is healed, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.',monkSlam:'Ultimate — spins the staff overhead then slams it down where he stands, dealing 100% ATK and stunning every enemy within 15 metres of him for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that heals the whole team and damages every foe.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Ultimate — Oakmir calls the first bloom of spring, instantly healing the whole team and wrapping them in a lingering regrowth.',charge:'Ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.',hipposlam:'Ultimate — leaps onto the densest enemy cluster, dealing a share of his own max HP and briefly stunning them, then plants: for 5 seconds every ally takes 30% less damage while Grosk still stands.',gravcrush:'Player-aimed ultimate — crushes a wide area with gravity, damaging and stunning every enemy dragged into the center.',eventhorizon:'Player-aimed ultimate — Void Weaver knots a singularity where you aim: for 1.2 seconds everything nearby is dragged toward it, then it collapses, dealing heavy ability damage and silencing every enemy it swallowed.'};
 // ability scaling labels (what stat an ability scales with) — shown in the (…) tag and used for balance
-const ULT_SCALE={vanishpoint:'Attack',flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—',umbralcata:'Ability Power',laststand:'—',firstspring:'Health',charge:'Attack',devourpack:'\u2014',finalsurvey:'Attack',taunt:'—',volley:'Attack',ashfall:'Attack',swamproot:'Ability Power',sunburst:'Ability Power',aoedot:'Attack',riftpuncture:'—',triplecleave:'Attack'};
+const ULT_SCALE={vanishpoint:'Attack',flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',eventhorizon:'Ability Power',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—',umbralcata:'Ability Power',laststand:'—',firstspring:'Health',charge:'Attack',devourpack:'\u2014',finalsurvey:'Attack',taunt:'—',volley:'Attack',ashfall:'Attack',swamproot:'Ability Power',sunburst:'Ability Power',aoedot:'Attack',riftpuncture:'—',triplecleave:'Attack'};
 const KIT_SCALE={summonwarriors:'\u2014',summonshaman:'\u2014',plumbline:'Attack',weighdebt:'Attack',tidalsurge:'Ability Power',dawnward:'—',bladefan:'Attack',bleedstack:'Attack',spread:'Attack',reckless:'Attack',bloodnova:'Attack',erratafield:'Attack',pagestorm:'Attack',hookline:'Attack',debtmark:'Attack',drowsy:'Ability Power',piercethrow:'Attack',charge:'Attack',cleave:'Attack',aoeStun:'Attack',ashfall:'Attack',selfheal:'Health',mendburst:'Health',spdsteal:'—',haste:'—',dmgbuff:'—',rally:'—',punchflurry:'Attack',frozenorb:'Ability Power',freeze:'Ability Power',sunburst:'Ability Power',duality:'Health',toxbreath:'Ability Power',swamproot:'Ability Power',crescendo:'Ability Power',harmonyshield:'Ability Power',stormsurge:'Ability Power',chainlight:'Ability Power',strike:'Attack',double:'Attack',volley:'Attack',nova:'Attack',cleavecone:'Attack',blink:'Attack',dot:'Attack',aoedot:'Attack',fireorb:'Ability Power',stun:'Attack',slow:'Attack',mortal:'Attack',hot:'Health',shield:'Health',taunt:'Health',shadeburst:'Ability Power',creeprot:'Ability Power',warcry:'—',lifestealbuff:'—',defensive:'—',pullsilence:'—',gravsling:'Attack',tendrilpull:'—',heal:'Health'};
 // build the "(CD Xs · Y m · scales Z)" tag from the ability's own data
 // Standard meta line for every ability: Scales (AP/ATK/HP) · Range · Cast · Lasts (dot/hot) · CD.
@@ -3115,7 +3115,8 @@ const ROW_OVERRIDE={// combat-row depth override (0 front .. 2 mid .. 3.4 back).
   'bug':1, 'monster with fireball':1,                                              // → FRONT (melee)
   'glitch phantom':2, 'knat':2, 'raven':2, 'ice beast':2, 'water monster':2, 'dyrmen':2,   // → MID (ranged, 13 m)
   'fire skeleton':3.4, 'shadow ghoul':3.4,                                         // → BACK (ranged, 25 m)
-  hurne:0, vireo:2, fritz:2, sablewick:2,   // Support is a ROLE, not a row (Phil): Vireo and Tessit are mid-row supports;
+  hurne:0, vireo:2, fritz:2, sablewick:2, corsair:2, librarian:2,   // v339 (Phil): Corsair and the Librarian are MID row.
+                                          // Support is a ROLE, not a row (Phil): Vireo and Tessit are mid-row supports;
                                           // Oakmir, Dandra and Lumi hold the true backline.
                                                               // bloatus REMOVED 2026-08-20: he is a FRONT-row magical tank (Phil), and this override
                                                                                   // was beating roleDepth('Tank')=0 and pinning him to the mid row.
@@ -3602,7 +3603,7 @@ function alliesOf(u){ return units.filter(o=>o.alive&&o.team===u.team&&!o._dropH
 /* unified effect resolver used by both ultimates and Green/Blue kit abilities */
 // map an ability effect type → the billboard clip to play while it fires (only heroes with those clips react)
 const ABIL_ANIM={ triplecleave:{st:'ult',hold:1.1}, vanishpoint:{st:'ult',hold:0.9}, devourpack:{st:'ult',hold:1.4}, summonwarriors:{st:'green',hold:1.0}, summonshaman:{st:'blue',hold:1.0}, aoedot:{st:'ult',hold:1.2}, finalsurvey:{st:'ult',hold:1.1}, multiShot:{st:'ult',hold:1.0},
-  monkSlam:{st:'ult',hold:1.3}, cleavecone:{st:'attack'}, blink:{st:'attack'}, hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'},
+  monkSlam:{st:'ult',hold:1.3}, cleavecone:{st:'attack'}, blink:{st:'attack'}, hipposlam:{st:'croc',hold:1.15}, pullsilence:{st:'pull',hold:0.95}, punchflurry:{st:'fists',hold:0.95}, gravcrush:{st:'ult',hold:1.5}, eventhorizon:{st:'ult',hold:1.5}, gravsling:{st:'sling',hold:1.5}, tendrilpull:{st:'grasp',hold:1.8}, stormsurge:{st:'surge'}, chainlight:{st:'chain'}, thundershower:{st:'ult'}, sunburst:{st:'sunburst'}, duality:{st:'duallight'}, eclipse:{st:'ult'}, crescendo:{st:'crescendo'}, harmonyshield:{st:'harmony'}, symphony:{st:'ult'}, plaguesov:{st:'ult'}, toxbreath:{st:'toxbreath'}, swamproot:{st:'swamp'}, umbralcata:{st:'ult'}, shadeburst:{st:'green'}, creeprot:{st:'blue'}, laststand:{st:'ult'}, warcry:{st:'green'}, lifestealbuff:{st:'blue'}, firstspring:{st:'ult'}, hot:{st:'green'}, heal:{st:'blue'}, charge:{st:'ult'}, defensive:{st:'green'}, taunt:{st:'blue'},
   blizzard:{st:'ult',hold:1.2}, frozenorb:{st:'green'}, freeze:{st:'blue'},           // Sylthaine (clips pending wiring)
   flywheel:{st:'ult',hold:1.0}, haste:{st:'green'} };                                  // Tick (blue Mainspring reuses punchflurry→'fists'; his sheet maps 'fists'→blue clip at wiring time)
 // KonWu Phantom Step: after a 1s channel, vanish → reappear behind the lowest-HP foe → EMPOWERED first strike (+20%).
@@ -3992,6 +3993,14 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
         if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); tg.silencedT=Math.max(tg.silencedT||0,o.tauntDur||2); } }
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
     // ---- Vulmar (gravity) ----
+    case 'eventhorizon':{ /* v339 (Phil): Void Weaver's OWN ult — was sharing Vulmar's gravcrush. A singularity at the
+         aimed point drags every enemy in for `pull` seconds, then collapses: AP damage + silence (no stun — that is Vulmar's). */
+      const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||7*METER, pullT=o.pull||1.2;
+      const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y)); const caught=[];
+      enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(!e.immovable){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
+      const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
+      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil};
+      ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
       enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18); if(typeof spawnFxPlate==='function')spawnFxPlate('ultland',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
@@ -4197,6 +4206,7 @@ const FX2_DEF={
   shadowball:{u:'/assets/anim/fx/shadowball.webp?v=3',n:18, fw:200, fh:200, cols:8, rows:3, dur:2.0},
   fireball:  {u:'/assets/anim/fx/fireball.webp?v=3',  n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
   frostball: {u:'/assets/anim/fx/frostball.webp?v=3', n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
+  natureball:{u:'/assets/anim/fx/natureball.webp?v=1',n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},   // v339: fireball sheet hue-shifted to green (nature casters' auto attack)
   bleed:     {u:'/assets/anim/fx/bleed.webp?v=3',     n:16, fw:130, fh:210, cols:4, rows:4, dur:2.2},
   poison:    {u:'/assets/anim/fx/poison.webp?v=3',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
   firepatch: {u:'/assets/anim/fx/firepatch.webp?v=3', n:20, fw:210, fh:200, cols:5, rows:4, dur:2.5},
@@ -4426,6 +4436,10 @@ function think(u,dt){
     if(tg&&tg.alive){ dealDamage(u,tg,u._boltDmg||u.dmg,'#c9a6ff'); if(typeof spawnUmbrisBolt==='function')spawnUmbrisBolt(u,tg); } } }
   // Umbral Cataclysm: at release the orb leaves his hand (fly); on land it spawns the void zone + slam.
   if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; } } }
+  if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */
+      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,'#9b5cff'); e.silencedT=Math.max(e.silencedT||0,H.sil); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
+      ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20); if(typeof spawnFxPlate==='function')spawnFxPlate('ultland',H.cx,H.cy); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
+      u._horizon=null; } }
   if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null;
     if(vc){ enemiesOf(u).forEach(e=>{ if(e.alive&&e.team!==u.team&&Math.hypot(e.x-vc.cx,e.y-vc.cy)<vc.R){ dealDamage(u,e,vc.dmg,'#c9a6ff'); e._darkAuraT=vc.dur; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
       if(typeof spawnVoidZone==='function')spawnVoidZone(u,vc.cx,vc.cy,vc.R,vc.dur,vc.pd,vc.con); } } }
@@ -4480,8 +4494,16 @@ function think(u,dt){
         // hand). Until then the ball is drawn as part of his sprite. Fuse = relFrac × clipDur × BATTLE_PACE.
         const A=u.anim&&u.anim.attack; const rel=(A&&A.relFrac!=null)?A.relFrac:0.857; const cd2=(A?A.n/A.fps:1.2);
         u._boltT=rel*cd2*BATTLE_PACE; u._boltTgt=t; u._boltDmg=dmg;
+      } else if(u.key==='corsair'){
+        /* v339 (Phil): "shooting to slicing based on how close his target is — within 2 m he does sword
+           attacks, further he's ranged." The attack sheet is the saber cut; the Pistol Barrage sheet is the
+           pistol firing, so it doubles as the shooting clip. Saber hits harder (it is the close-quarters answer). */
+        const close = d <= 2.5*METER;   // target's centre within ~2 m of his (bodies are ~1 m wide)
+        u._atkClip = close ? 'attack' : 'green';
+        dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close) spawnShot(u,t,0xffd27a);
       } else {
-        dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); if(u.range>60)spawnShot(u,t,u.t.color);
+        dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff');
+        if(u.range>60){ const el=CASTER_BALL[u.key]; if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t.x,t.y,el.scale||1.5,.22*HERO_FX_MUL,null); else spawnShot(u,t,u.t.color); }
       } } };
   /* v337 — ASSASSINS FIGHT BEHIND THE TANKS, NOT BESIDE THEM (Phil: "Vex sometimes goes ahead of
      tanks; they should start behind fighters and move in after them"). While the line is still
@@ -4641,7 +4663,7 @@ function monsterOffscreenStart(hx,hy){ return {x:hx + XFER_DIR.x*XFER_OFFSCREEN,
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
-  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null;
+  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
     // clear lingering damage-over-time as well. On a STAGE win the heroes idle for 2s before the victory
     // screen, and updateStatusFx keeps re-spawning the burning/poison plate under their feet from a DoT that
     // outlived the last enemy. (Phil: "fire debuff under feet stays between waves if the stage ends before
@@ -5180,7 +5202,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(_speed>1.5) u._moveT=0.20; else u._moveT=Math.max(0,(u._moveT||0)-dt);
         const walking=(u._moveT||0)>0;
         const abilActive=(u._abilHold>0 && u._abilAnim && u.anim[u._abilAnim]);   // ability clip overrides everything while it plays
-        let st=abilActive?u._abilAnim:((u._atkHold>0)?'attack':((u._hitHold>0)?'hit':(walking?'walk':'idle')));
+        let st=abilActive?u._abilAnim:((u._atkHold>0)?((u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'):((u._hitHold>0)?'hit':(walking?'walk':'idle')));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
         if(rising) st='rise';
         // Channelled ultimates (Blizzard / Thunder Shower): once the cast clip has finished
@@ -7647,14 +7669,14 @@ Object.assign(BATTLE_ANIM, {
     idle:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:false,top:3}
   },
   pyroclast:{
-    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=2',n:36,fw:283,fh:400,cols:6,rows:6,figH:389,feet:394,cx:144,fps:15,flip:false,top:5},
-    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=2',n:36,fw:286,fh:400,cols:6,rows:6,figH:384,feet:394,cx:144,fps:15,flip:false,top:10},
-    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=2',n:24,fw:351,fh:400,cols:6,rows:4,figH:368,feet:395,cx:136,fps:16,flip:false,top:26,hold:0.9},
-    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=2',n:20,fw:250,fh:400,cols:6,rows:4,figH:304,feet:395,cx:120,fps:16,flip:false,top:91},
-    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=2',n:36,fw:356,fh:400,cols:6,rows:6,figH:309,feet:389,cx:223,fps:15,flip:false,top:80,hold:0.8},
-    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=2',n:36,fw:339,fh:400,cols:6,rows:6,figH:358,feet:395,cx:156,fps:15,flip:false,top:36,hold:0.8},
-    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=2',n:48,fw:306,fh:400,cols:6,rows:8,figH:301,feet:395,cx:142,fps:15,flip:false,top:94},
-    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=2',n:36,fw:259,fh:400,cols:6,rows:6,figH:299,feet:395,cx:124,fps:15,flip:false,top:96}
+    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=2',n:36,fw:283,fh:400,cols:6,rows:6,figH:389,feet:394,cx:144,fps:15,flip:true,top:5},
+    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=2',n:36,fw:286,fh:400,cols:6,rows:6,figH:384,feet:394,cx:144,fps:15,flip:true,top:10},
+    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=2',n:24,fw:351,fh:400,cols:6,rows:4,figH:368,feet:395,cx:136,fps:16,flip:true,top:26,hold:0.9},
+    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=2',n:20,fw:250,fh:400,cols:6,rows:4,figH:304,feet:395,cx:120,fps:16,flip:true,top:91},
+    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=2',n:36,fw:356,fh:400,cols:6,rows:6,figH:309,feet:389,cx:223,fps:15,flip:true,top:80,hold:0.8},
+    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=2',n:36,fw:339,fh:400,cols:6,rows:6,figH:358,feet:395,cx:156,fps:15,flip:true,top:36,hold:0.8},
+    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=2',n:48,fw:306,fh:400,cols:6,rows:8,figH:301,feet:395,cx:142,fps:15,flip:true,top:94},
+    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=2',n:36,fw:259,fh:400,cols:6,rows:6,figH:299,feet:395,cx:124,fps:15,flip:true,top:96}
   },
   stormwarden:{
     idle:{u:'/assets/anim/stormwarden/stormwarden_idle.webp?v=1',n:36,fw:219,fh:300,cols:6,rows:6,figH:292,feet:296,cx:109,fps:15,flip:false,top:3},
@@ -7800,6 +7822,16 @@ Object.assign(FX2_DEF, {
   waxenduchess_ult_fx:{u:'/assets/anim/fx/waxenduchess_ult_fx.webp?v=1',n:18,fw:210,fh:171,cols:6,rows:3,dur:1.5},
 });
 /* Per-hero ultimate plates: ULT_DEF is keyed by the shared ability TYPE, so the hero's own art is merged in at cast time (see castUlt). */
+/* v339 (Phil): caster auto-attacks are the COLOUR OF THEIR ABILITIES — a small elemental ball instead of the
+   generic sphere. Black/purple casters throw a shrunken Shadow Ball, fire casters a fireball, ice casters a
+   frost ball, green casters a nature ball. Casters whose element is none of those (Fritz, Lumi, Tessit, Beekeeper,
+   The Annotator) keep the plain sphere in their own colour; Umbris keeps his hand-thrown orb. */
+const CASTER_BALL={
+  vulmar:{fx:'shadowball',scale:1.5}, voidweaver:{fx:'shadowball',scale:1.5}, librarian:{fx:'shadowball',scale:1.5}, meryln:{fx:'shadowball',scale:1.4}, vireo:{fx:'shadowball',scale:1.3}, astra:{fx:'shadowball',scale:1.5},
+  pyroclast:{fx:'fireball',scale:1.6}, waxenduchess:{fx:'fireball',scale:1.4},
+  sylthaine:{fx:'frostball',scale:1.6}, fathom:{fx:'frostball',scale:1.6},
+  oakmir:{fx:'natureball',scale:1.5}
+};
 const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -11472,7 +11504,7 @@ function renderSettings(){
       <div class="dvp-sec">Diagnostics</div>
       <div class="dvp-grid">${act('perf','\ud83d\udcc9','Performance HUD on/off')}</div>
       <div class="dvp-sec">Roster</div>
-      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('maxteam','\u2728','Max team glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
+      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('maxteam','\u2728','Max ALL heroes glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
       <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
     const accountsTab = dt!=='accounts'?'':`
       <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
@@ -11684,10 +11716,12 @@ function devAction(a,b){
   else if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+5); done('Advancing campaign…');
     api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else done('✖ server refused — not applied'); }); return; }
   else if(a==='konwu'){ G.unlocked.konwu=true; G.starLevel.konwu=MAX_STARS; G.starPip.konwu=0; G.skillLevel.konwu=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; done('KonWu unlocked & maxed — put him in your team, then battle'); }
-  else if(a==='maxteam'){ const team=(G.team||[]).filter(Boolean); if(!team.length){ done('No squad selected'); return; }
-    done('Maxing team…');
-    api('/api/admin/led-grant','POST',{heroKeys:team,stars:MAX_STARS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
-        done('Team stars maxed. (Skill levels have no ledger endpoint yet, so they are NOT applied — glyph ranks: /api/glyphs/grant)'); }
+  else if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs (server walks each board to Orange). */
+    const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
+    done('Maxing '+keys.length+' heroes…');
+    api('/api/admin/led-grant','POST',{heroKeys:keys,stars:MAX_STARS,maxGlyphs:true}).then(async r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
+        try{ if(typeof glyphV2Sync==='function') await glyphV2Sync(); }catch(e){}
+        done('All '+keys.length+' heroes: stars maxed, glyph boards ascended to Orange ('+(r.glyphsMaxed|0)+' boards). Reopen a hero to see it.'); }
       else done('✖ server refused — not applied'); }); return; }
   else if(a==='arena'){ G.arenaRank=1; G.bestArenaRank=1; done('Arena rank set to #1'); }
   // arena/guild coins are server-owned too and have no ledger endpoint yet: the number moves on screen
@@ -12655,7 +12689,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788380837330';
+const BUILD_ID='1788388236924';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
