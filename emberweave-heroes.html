@@ -8226,7 +8226,15 @@ function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=n
 // permanence: when the tab is backgrounded or closed (phone app-switch included), flush the pending
 // debounced push immediately so the last seconds of play always reach the cloud
 try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
-     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ try{ flushCloud(); }catch(e){} } }); }catch(e){}
+     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ try{ flushCloud(); }catch(e){}
+         /* v335 (Phil: "would it be better if every time you tab out of the game it pauses?") — a solo
+            fight drops into the pause screen the moment the app goes to the background, and stays there
+            until Resume is tapped. The server's session clock is told to hold RIGHT NOW (the frame loop
+            normally sends that, and it stops running while hidden). Live PvP rooms are left alone —
+            the other player is still fighting. */
+         try{ if(state==='battle' && !ended && !paused && CUR.mode!=='online' && !(typeof OL!=='undefined'&&OL.active)
+                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena')){
+           paused=true; document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
 // load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
 // the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
 // game paints instantly before the profile fetch returns; it is never trusted over the cloud.
@@ -12619,7 +12627,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788371869479';
+const BUILD_ID='1788372596359';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
