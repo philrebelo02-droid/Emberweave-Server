@@ -1130,24 +1130,27 @@ const GROSK_IDLE="/assets/anim/grosk/grosk_idle.webp?v=7", GROSK_WALK="/assets/a
 const GROSK_CROC="/assets/anim/grosk/grosk_croc.webp?v=7", GROSK_PULL="/assets/anim/grosk/grosk_pull.webp?v=7", GROSK_FISTS="/assets/anim/grosk/grosk_fists.webp?v=7";
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
+/* 2 Sep (Phil: "the Annotator, Tessit, Sylthaine, Dandra face the wrong way"): their side-profile art
+   (v290-292 / v296) faces RIGHT in the sheet, but the flip:true from their old front-facing sheets was
+   never cleared — so the game mirrored them and they fought with their backs to the enemy. */
 const BATTLE_ANIM = {
   vesper:{
-    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=6',n:72,fw:241,fh:300,cols:6,rows:12,figH:294,feet:297,cx:123,fps:30,flip:true,top:3},
-    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=6',n:51,fw:232,fh:300,cols:6,rows:9,figH:294,feet:297,cx:122,fps:30,flip:true,top:3},
-    attack:{u:'/assets/anim/vesper/vesper_attack.webp?v=5',n:24,fw:300,fh:295,cols:6,rows:4,figH:288,feet:291,cx:116,fps:20,flip:true,hold:1.2,top:3},
-    hit:{u:'/assets/anim/vesper/vesper_hit.webp?v=5',n:24,fw:294,fh:300,cols:6,rows:4,figH:256,feet:285,cx:155,fps:16,flip:true,top:3},
-    green:{u:'/assets/anim/vesper/vesper_green.webp?v=2',n:72,fw:239,fh:300,cols:6,rows:12,figH:264,feet:297,cx:137,fps:30,flip:true,top:33,hold:0.8},
-    ult:{u:'/assets/anim/vesper/vesper_ult.webp?v=3',n:72,fw:224,fh:300,cols:6,rows:12,figH:294,feet:297,cx:119,fps:30,flip:true,top:3},
-    blue:{u:'/assets/anim/vesper/vesper_blue.webp?v=1',n:72,fw:257,fh:300,cols:6,rows:12,figH:248,feet:297,cx:98,fps:30,flip:true,top:49,hold:0.8}   /* Pagestorm - was falling back to the attack clip */
+    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=6',n:72,fw:241,fh:300,cols:6,rows:12,figH:294,feet:297,cx:123,fps:30,flip:false,top:3},
+    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=6',n:51,fw:232,fh:300,cols:6,rows:9,figH:294,feet:297,cx:122,fps:30,flip:false,top:3},
+    attack:{u:'/assets/anim/vesper/vesper_attack.webp?v=5',n:24,fw:300,fh:295,cols:6,rows:4,figH:288,feet:291,cx:116,fps:20,flip:false,hold:1.2,top:3},
+    hit:{u:'/assets/anim/vesper/vesper_hit.webp?v=5',n:24,fw:294,fh:300,cols:6,rows:4,figH:256,feet:285,cx:155,fps:16,flip:false,top:3},
+    green:{u:'/assets/anim/vesper/vesper_green.webp?v=2',n:72,fw:239,fh:300,cols:6,rows:12,figH:264,feet:297,cx:137,fps:30,flip:false,top:33,hold:0.8},
+    ult:{u:'/assets/anim/vesper/vesper_ult.webp?v=3',n:72,fw:224,fh:300,cols:6,rows:12,figH:294,feet:297,cx:119,fps:30,flip:false,top:3},
+    blue:{u:'/assets/anim/vesper/vesper_blue.webp?v=1',n:72,fw:257,fh:300,cols:6,rows:12,figH:248,feet:297,cx:98,fps:30,flip:false,top:49,hold:0.8}   /* Pagestorm - was falling back to the attack clip */
   },
   sablewick:{
-    idle:{u:'/assets/anim/sablewick/sablewick_idle.webp?v=5',n:72,fw:212,fh:300,cols:6,rows:12,figH:273,feet:288,cx:112,fps:30,flip:true,top:3},
-    walk:{u:'/assets/anim/sablewick/sablewick_walk.webp?v=4',n:24,fw:234,fh:300,cols:6,rows:4,figH:281,feet:286,cx:114,fps:14,flip:true,top:3},
-    attack:{u:'/assets/anim/sablewick/sablewick_attack.webp?v=4',n:24,fw:300,fh:284,cols:6,rows:4,figH:278,feet:281,cx:195,fps:20,flip:true,hold:1.2,top:3},
-    hit:{u:'/assets/anim/sablewick/sablewick_hit.webp?v=4',n:24,fw:263,fh:300,cols:6,rows:4,figH:254,feet:282,cx:134,fps:16,flip:true,top:2},
-    green:{u:'/assets/anim/sablewick/sablewick_green.webp?v=4',n:72,fw:210,fh:300,cols:6,rows:12,figH:293,feet:296,cx:112,fps:30,flip:true,top:3,hold:0.8},
-    blue:{u:'/assets/anim/sablewick/sablewick_blue.webp?v=4',n:72,fw:273,fh:300,cols:6,rows:12,figH:292,feet:297,cx:129,fps:30,flip:true,top:4,hold:0.8},
-    ult:{u:'/assets/anim/sablewick/sablewick_ult.webp?v=4',n:72,fw:212,fh:300,cols:6,rows:12,figH:293,feet:296,cx:113,fps:30,flip:true,top:3}
+    idle:{u:'/assets/anim/sablewick/sablewick_idle.webp?v=5',n:72,fw:212,fh:300,cols:6,rows:12,figH:273,feet:288,cx:112,fps:30,flip:false,top:3},
+    walk:{u:'/assets/anim/sablewick/sablewick_walk.webp?v=4',n:24,fw:234,fh:300,cols:6,rows:4,figH:281,feet:286,cx:114,fps:14,flip:false,top:3},
+    attack:{u:'/assets/anim/sablewick/sablewick_attack.webp?v=4',n:24,fw:300,fh:284,cols:6,rows:4,figH:278,feet:281,cx:195,fps:20,flip:false,hold:1.2,top:3},
+    hit:{u:'/assets/anim/sablewick/sablewick_hit.webp?v=4',n:24,fw:263,fh:300,cols:6,rows:4,figH:254,feet:282,cx:134,fps:16,flip:false,top:2},
+    green:{u:'/assets/anim/sablewick/sablewick_green.webp?v=4',n:72,fw:210,fh:300,cols:6,rows:12,figH:293,feet:296,cx:112,fps:30,flip:false,top:3,hold:0.8},
+    blue:{u:'/assets/anim/sablewick/sablewick_blue.webp?v=4',n:72,fw:273,fh:300,cols:6,rows:12,figH:292,feet:297,cx:129,fps:30,flip:false,top:4,hold:0.8},
+    ult:{u:'/assets/anim/sablewick/sablewick_ult.webp?v=4',n:72,fw:212,fh:300,cols:6,rows:12,figH:293,feet:296,cx:113,fps:30,flip:false,top:3}
   },
   vex:{
     idle:{u:'/assets/anim/vex/vex_idle.webp?v=7',n:72,fw:210,fh:300,cols:6,rows:12,figH:292,feet:297,cx:105,fps:30,flip:false,top:3},
@@ -1240,14 +1243,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=10',n:72,fw:223,fh:300,cols:6,rows:12,figH:263,feet:297,cx:134,fps:30,flip:true,top:33}
   },
   meryln:{
-    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=11',n:72,fw:230,fh:300,cols:6,rows:12,figH:293,feet:296,cx:121,fps:30,flip:true,top:3},
-    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=11',n:72,fw:267,fh:300,cols:6,rows:12,figH:281,feet:292,cx:129,fps:30,flip:true,top:11},
-    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=11',n:36,fw:300,fh:273,cols:6,rows:6,figH:222,feet:269,cx:154,fps:30,flip:true,top:46,hold:1.2},
-    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=11',n:72,fw:300,fh:273,cols:6,rows:12,figH:257,feet:269,cx:175,fps:30,flip:true,top:11},
-    green:{u:'/assets/anim/meryln/meryln_green.webp?v=11',n:72,fw:161,fh:300,cols:6,rows:12,figH:231,feet:296,cx:86,fps:30,flip:true,top:64,hold:0.8},
-    blue:{u:'/assets/anim/meryln/meryln_blue.webp?v=11',n:72,fw:300,fh:291,cols:6,rows:12,figH:273,feet:287,cx:213,fps:30,flip:true,top:14,hold:0.8},
-    ult:{u:'/assets/anim/meryln/meryln_ult.webp?v=11',n:72,fw:300,fh:299,cols:6,rows:12,figH:209,feet:266,cx:148,fps:30,flip:true,top:57},
-    passive:{u:'/assets/anim/meryln/meryln_passive.webp?v=11',n:72,fw:300,fh:279,cols:6,rows:12,figH:272,feet:275,cx:203,fps:30,flip:true,top:3}
+    idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=11',n:72,fw:230,fh:300,cols:6,rows:12,figH:293,feet:296,cx:121,fps:30,flip:false,top:3},
+    walk:{u:'/assets/anim/meryln/meryln_walk.webp?v=11',n:72,fw:267,fh:300,cols:6,rows:12,figH:281,feet:292,cx:129,fps:30,flip:false,top:11},
+    attack:{u:'/assets/anim/meryln/meryln_attack.webp?v=11',n:36,fw:300,fh:273,cols:6,rows:6,figH:222,feet:269,cx:154,fps:30,flip:false,top:46,hold:1.2},
+    hit:{u:'/assets/anim/meryln/meryln_hit.webp?v=11',n:72,fw:300,fh:273,cols:6,rows:12,figH:257,feet:269,cx:175,fps:30,flip:false,top:11},
+    green:{u:'/assets/anim/meryln/meryln_green.webp?v=11',n:72,fw:161,fh:300,cols:6,rows:12,figH:231,feet:296,cx:86,fps:30,flip:false,top:64,hold:0.8},
+    blue:{u:'/assets/anim/meryln/meryln_blue.webp?v=11',n:72,fw:300,fh:291,cols:6,rows:12,figH:273,feet:287,cx:213,fps:30,flip:false,top:14,hold:0.8},
+    ult:{u:'/assets/anim/meryln/meryln_ult.webp?v=11',n:72,fw:300,fh:299,cols:6,rows:12,figH:209,feet:266,cx:148,fps:30,flip:false,top:57},
+    passive:{u:'/assets/anim/meryln/meryln_passive.webp?v=11',n:72,fw:300,fh:279,cols:6,rows:12,figH:272,feet:275,cx:203,fps:30,flip:false,top:3}
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=5',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
@@ -1392,14 +1395,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/carn/carn_passive.webp?v=3',n:72,fw:267,fh:300,cols:6,rows:12,figH:237,feet:294,cx:87,fps:30,flip:true,top:56}
   },
   sylthaine:{
-    idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=10',n:72,fw:188,fh:300,cols:6,rows:12,figH:293,feet:296,cx:104,fps:30,flip:true,top:3},
-    walk:{u:'/assets/anim/sylthaine/sylthaine_walk.webp?v=10',n:72,fw:187,fh:300,cols:6,rows:12,figH:291,feet:296,cx:96,fps:30,flip:true,top:5},
-    attack:{u:'/assets/anim/sylthaine/sylthaine_attack.webp?v=10',n:36,fw:279,fh:300,cols:6,rows:6,figH:237,feet:296,cx:148,fps:30,flip:true,top:59,hold:1.2},
-    hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=10',n:72,fw:300,fh:223,cols:6,rows:12,figH:213,feet:218,cx:149,fps:30,flip:true,top:5},
-    green:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=10',n:72,fw:169,fh:300,cols:6,rows:12,figH:286,feet:296,cx:65,fps:30,flip:true,top:10,hold:0.8},
-    blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=10',n:72,fw:205,fh:300,cols:6,rows:12,figH:238,feet:297,cx:126,fps:30,flip:true,top:58,hold:0.8},
-    ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=10',n:72,fw:265,fh:300,cols:6,rows:12,figH:238,feet:297,cx:132,fps:30,flip:true,top:59},
-    passive:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=10',n:72,fw:137,fh:300,cols:6,rows:12,figH:290,feet:296,cx:66,fps:30,flip:true,top:6}
+    idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=10',n:72,fw:188,fh:300,cols:6,rows:12,figH:293,feet:296,cx:104,fps:30,flip:false,top:3},
+    walk:{u:'/assets/anim/sylthaine/sylthaine_walk.webp?v=10',n:72,fw:187,fh:300,cols:6,rows:12,figH:291,feet:296,cx:96,fps:30,flip:false,top:5},
+    attack:{u:'/assets/anim/sylthaine/sylthaine_attack.webp?v=10',n:36,fw:279,fh:300,cols:6,rows:6,figH:237,feet:296,cx:148,fps:30,flip:false,top:59,hold:1.2},
+    hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=10',n:72,fw:300,fh:223,cols:6,rows:12,figH:213,feet:218,cx:149,fps:30,flip:false,top:5},
+    green:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=10',n:72,fw:169,fh:300,cols:6,rows:12,figH:286,feet:296,cx:65,fps:30,flip:false,top:10,hold:0.8},
+    blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=10',n:72,fw:205,fh:300,cols:6,rows:12,figH:238,feet:297,cx:126,fps:30,flip:false,top:58,hold:0.8},
+    ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=10',n:72,fw:265,fh:300,cols:6,rows:12,figH:238,feet:297,cx:132,fps:30,flip:false,top:59},
+    passive:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=10',n:72,fw:137,fh:300,cols:6,rows:12,figH:290,feet:296,cx:66,fps:30,flip:false,top:6}
   },
   tick:{
   idle:{u:'/assets/anim/tick/tick_idle.webp?v=6',n:72,fw:246,fh:300,cols:6,rows:12,figH:287,feet:295,cx:127,fps:30,flip:true,top:8},
@@ -11918,7 +11921,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788348696187';
+const BUILD_ID='1788350717570';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
