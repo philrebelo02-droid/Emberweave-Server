@@ -7718,11 +7718,11 @@ Object.assign(BATTLE_ANIM, {
   beekeeper:{
     idle:{u:'/assets/anim/beekeeper/beekeeper_idle.webp?v=1',n:36,fw:201,fh:300,cols:6,rows:6,figH:257,feet:296,cx:102,fps:15,flip:false,top:39},
     walk:{u:'/assets/anim/beekeeper/beekeeper_walk.webp?v=1',n:36,fw:213,fh:300,cols:6,rows:6,figH:257,feet:294,cx:102,fps:15,flip:false,top:36},
-    attack:{u:'/assets/anim/beekeeper/beekeeper_attack.webp?v=1',n:24,fw:262,fh:300,cols:6,rows:4,figH:244,feet:296,cx:100,fps:16,flip:false,top:52,hold:0.9},
-    hit:{u:'/assets/anim/beekeeper/beekeeper_hit.webp?v=1',n:20,fw:300,fh:255,cols:6,rows:4,figH:226,feet:252,cx:149,fps:16,flip:false,top:25},
-    green:{u:'/assets/anim/beekeeper/beekeeper_green.webp?v=1',n:36,fw:292,fh:300,cols:6,rows:6,figH:289,feet:296,cx:125,fps:15,flip:false,top:6,hold:0.8},
+    attack:{u:'/assets/anim/beekeeper/beekeeper_attack.webp?v=2',n:24,fw:300,fh:270,cols:6,rows:4,figH:231,feet:263,cx:143,fps:16,flip:false,top:32,hold:1.2},
+    green:{u:'/assets/anim/beekeeper/beekeeper_green.webp?v=2',n:36,fw:245,fh:300,cols:6,rows:6,figH:229,feet:296,cx:94,fps:15,flip:false,top:67,hold:0.8},
     blue:{u:'/assets/anim/beekeeper/beekeeper_blue.webp?v=1',n:36,fw:270,fh:300,cols:6,rows:6,figH:290,feet:296,cx:135,fps:15,flip:false,top:5,hold:0.8},
-    ult:{u:'/assets/anim/beekeeper/beekeeper_ult.webp?v=1',n:48,fw:291,fh:300,cols:6,rows:8,figH:230,feet:296,cx:157,fps:15,flip:false,top:66}
+    ult:{u:'/assets/anim/beekeeper/beekeeper_ult.webp?v=1',n:48,fw:291,fh:300,cols:6,rows:8,figH:230,feet:296,cx:157,fps:15,flip:false,top:66},
+    passive:{u:'/assets/anim/beekeeper/beekeeper_passive.webp?v=2',n:36,fw:292,fh:300,cols:6,rows:6,figH:289,feet:296,cx:125,fps:15,flip:false,top:6}
   },
   librarian:{
     idle:{u:'/assets/anim/librarian/librarian_idle.webp?v=1',n:36,fw:259,fh:300,cols:6,rows:6,figH:291,feet:295,cx:127,fps:15,flip:false,top:3},
@@ -12655,7 +12655,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788379283465';
+const BUILD_ID='1788380837330';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
