@@ -7685,8 +7685,8 @@ Object.assign(BATTLE_ANIM, {
     walk:{u:'/assets/anim/lastfurnace/lastfurnace_walk.webp?v=1',n:36,fw:300,fh:249,cols:6,rows:6,figH:241,feet:245,cx:160,fps:15,flip:false,top:3},
     attack:{u:'/assets/anim/lastfurnace/lastfurnace_attack.webp?v=1',n:24,fw:247,fh:300,cols:6,rows:4,figH:226,feet:296,cx:114,fps:16,flip:false,top:70,hold:0.9},
     hit:{u:'/assets/anim/lastfurnace/lastfurnace_hit.webp?v=1',n:20,fw:300,fh:242,cols:6,rows:4,figH:213,feet:238,cx:166,fps:16,flip:false,top:25},
-    green:{u:'/assets/anim/lastfurnace/lastfurnace_green.webp?v=1',n:36,fw:255,fh:300,cols:6,rows:6,figH:228,feet:296,cx:153,fps:15,flip:false,top:68,hold:0.8},
-    blue:{u:'/assets/anim/lastfurnace/lastfurnace_blue.webp?v=1',n:36,fw:242,fh:300,cols:6,rows:6,figH:229,feet:296,cx:118,fps:15,flip:false,top:67,hold:0.8},
+    green:{u:'/assets/anim/lastfurnace/lastfurnace_green.webp?v=1',n:36,fw:255,fh:300,cols:6,rows:6,figH:228,feet:296,cx:153,fps:15,flip:false,top:68,hold:0.8,pingpong:true},
+    blue:{u:'/assets/anim/lastfurnace/lastfurnace_blue.webp?v=1',n:36,fw:242,fh:300,cols:6,rows:6,figH:229,feet:296,cx:118,fps:15,flip:false,top:67,hold:0.8,pingpong:true},
     ult:{u:'/assets/anim/lastfurnace/lastfurnace_ult.webp?v=1',n:48,fw:236,fh:300,cols:6,rows:8,figH:240,feet:296,cx:112,fps:15,flip:false,top:55},
     passive:{u:'/assets/anim/lastfurnace/lastfurnace_passive.webp?v=1',n:36,fw:283,fh:300,cols:6,rows:6,figH:238,feet:294,cx:149,fps:15,flip:false,top:55}
   },
@@ -7716,7 +7716,7 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:false,top:25},
     green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:false,top:3,hold:0.8},
     blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=1',n:36,fw:300,fh:235,cols:6,rows:6,figH:171,feet:232,cx:153,fps:15,flip:false,top:60,hold:0.8},
-    ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=1',n:48,fw:289,fh:300,cols:6,rows:8,figH:232,feet:296,cx:204,fps:15,flip:false,top:64},
+    ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=1',n:48,fw:289,fh:300,cols:6,rows:8,figH:232,feet:296,cx:204,fps:15,flip:false,top:64,pingpong:true},
     passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=1',n:36,fw:231,fh:300,cols:6,rows:6,figH:248,feet:296,cx:136,fps:15,flip:false,top:47}
   },
   waxenduchess:{
@@ -12609,7 +12609,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788367479967';
+const BUILD_ID='1788369248296';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
