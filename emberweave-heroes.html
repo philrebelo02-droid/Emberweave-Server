@@ -4214,6 +4214,7 @@ const FX2_DEF={
   fireball:  {u:'/assets/anim/fx/fireball.webp?v=3',  n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
   frostball: {u:'/assets/anim/fx/frostball.webp?v=3', n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
   natureball:{u:'/assets/anim/fx/natureball.webp?v=1',n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
+  bullet:    {u:'/assets/anim/fx/bullet.webp?v=1', n:1, fw:64, fh:24, cols:1, rows:1, dur:1},   // v341: Corsair's pistol slug (cropped from his own barrage plate) — autos, Pistol Barrage and the ult
   fritz_zap: {u:'/assets/anim/fx/fritz_zap.webp?v=1', n:12, fw:420, fh:300, cols:6, rows:2, dur:0.5},   // v340: a short bolt cut from Fritz's own chain-lightning clip, tinted his yellow   // v339: fireball sheet hue-shifted to green (nature casters' auto attack)
   bleed:     {u:'/assets/anim/fx/bleed.webp?v=3',     n:16, fw:130, fh:210, cols:4, rows:4, dur:2.2},
   poison:    {u:'/assets/anim/fx/poison.webp?v=3',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
@@ -4508,7 +4509,7 @@ function think(u,dt){
            pistol firing, so it doubles as the shooting clip. Saber hits harder (it is the close-quarters answer). */
         const close = d <= 2.5*METER;   // target's centre within ~2 m of his (bodies are ~1 m wide)
         u._atkClip = close ? 'attack' : 'green';
-        dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close) spawnShot(u,t,0xffd27a);
+        dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close){ if(typeof spawnProjFx==='function') spawnProjFx('bullet',u.x,u.y,t.x,t.y,1.1,.12*HERO_FX_MUL,null); else spawnShot(u,t,0xffd27a); }
       } else {
         dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff');
         /* v341 (Phil): Void Weaver's passive was a borrowed Astra burn (cyan) and her passive clip never played.
@@ -7802,7 +7803,7 @@ Object.assign(KITS, {
   lastfurnace:{green:{name:'Forge Strike',type:'cleave',mul:1.7,radius:3*METER,cd:7,gfx:'lastfurnace_green_fx',gfxAt:'target',gfxR:2.2*METER,gdur:1.4},blue:{name:'Chain Quench',type:'pullsilence',radius:4*METER,dur:1.5,cd:10,gfx:'lastfurnace_blue_fx',gfxAt:'self',gfxR:3.0*METER,gdur:1.8},purple:{name:'Tempered Steel',pass:'juggernaut'}},
   beekeeper:{green:{name:'Hornet Cloud',type:'aoedot',mul:0.5,dps:0.4,dur:4,radius:2.8*METER,cd:7,gfx:'beekeeper_green_fx',gfxAt:'target',gfxR:2.8*METER,gdur:2.0},blue:{name:'Royal Nectar',type:'crescendo',heal:0.14,hot:0.04,dur:5,cd:8,gfx:'beekeeper_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:1.8},purple:{name:'Worker Swarm',pass:'regen'}},
   librarian:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,dur:15,radius:1.6*METER,cd:11},blue:{name:'Chapter Rewrite',type:'weighdebt',mul:1.0,pct:0.3,dur:5,cd:9,gfx:'librarian_blue_fx',gfxAt:'target',gfxR:2.0*METER,gdur:1.6},purple:{name:'Living Pages',pass:'scriptorium'}},
-  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.8,n:3,cd:6,pfx:'corsair_green_fx',pscale:2.2},blue:{name:'Grappling Hook',type:'stun',mul:1.2,stun:1.0,cd:9,pfx:'corsair_blue_fx',pscale:2.4},purple:{name:"Pirate's Instinct",pass:'power'}},
+  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.8,n:3,cd:6,pfx:'bullet',pscale:1.1,pdur:0.14},blue:{name:'Grappling Hook',type:'stun',mul:1.2,stun:1.0,cd:9,pfx:'corsair_blue_fx',pscale:2.4},purple:{name:"Pirate's Instinct",pass:'power'}},
   waxenduchess:{green:{name:'Waxen Effigy',type:'stun',mul:1.3,stun:0.8,cd:7},blue:{name:'Mourning Bell',type:'nova',mul:0.9,radius:8*METER,cd:9},purple:{name:'Living Tallow',pass:'hush'}},
 });
 Object.assign(ABILITY_CAST, {pyroclast:{ult:1.0,green:0.5,blue:0.6}, stormwarden:{ult:1.0,green:0.5,blue:0.6}, verdantshade:{ult:1.0,green:0.5,blue:0.6}, voidweaver:{ult:1.0,green:0.5,blue:0.6}, dawnbringer:{ult:1.0,green:0.5,blue:0.6}, cathedral:{ult:1.0,green:0.5,blue:0.6}, lastfurnace:{ult:1.0,green:0.5,blue:0.6}, beekeeper:{ult:1.0,green:0.5,blue:0.6}, librarian:{ult:1.0,green:0.5,blue:0.6}, corsair:{ult:1.0,green:0.5,blue:0.6}, waxenduchess:{ult:1.0,green:0.5,blue:0.6}});
@@ -7849,7 +7850,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   oakmir:{fx:'natureball',scale:1.5}, lumi:{fx:'natureball',scale:1.4}, beekeeper:{fx:'natureball',scale:1.4},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
+const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0,pfx:'bullet',pscale:1.1,pdur:0.14}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
 Object.assign(ULT_DESC, {summonshaman:'Ultimate \u2014 the Librarian reads the final chapter aloud: an Elder Ink Horror steps off the page beside him for 22 seconds, striking enemies and spinning ink around itself.'});
@@ -12706,7 +12707,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788389758936';
+const BUILD_ID='1788389924351';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
