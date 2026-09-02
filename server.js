@@ -3311,11 +3311,25 @@ async function api(req,res,url){
          is replayed from what the server accepted, action by action, as it arrived. A client that
          streamed nothing still resolves from its submitted log (offline-ish path), and the response
          says which of the two happened so it is never ambiguous in a report. */
-      const streamed=(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length>0);
+      let streamed=(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length>0);
       if(a.stream) a.stream.closed=true;
-      const inputLog = streamed ? a.stream.acts.slice(0, INPUT_LOG_MAX) : sanitizeInputLog(b.inputLog);
-      const transcriptSource = streamed ? 'streamed-receipts'
+      let inputLog = streamed ? a.stream.acts.slice(0, INPUT_LOG_MAX) : sanitizeInputLog(b.inputLog);
+      let transcriptSource = streamed ? 'streamed-receipts'
         : ((a.stream&&a.stream.broken) ? 'submitted-log-after-stream-loss' : 'submitted-log');
+      /* v334 (Phil: "I just won 1-1 and it said defeat — it happened when I tabbed out then back in").
+         A phone in the background drops the socket. The client's give-up frame ('abandon') dies with
+         it, so the server keeps a PARTIAL list of receipts — everything the player did before the
+         drop and nothing after — and that half-transcript out-ranked the player's complete log at
+         resolve: the replay was a different fight, the digest missed, and a won stage came back
+         "unverified". The complete log is trusted ONLY when it extends the server's own receipts
+         exactly — every accepted action, in order, on the tick the server stamped it — so a client
+         cannot rewrite what the server already saw; it can only append what the server never got.
+         (A client that never streamed at all was always resolved from its log; this is no wider.) */
+      if(streamed){ const sub=sanitizeInputLog(b.inputLog); const acts=a.stream.acts;
+        const same=(x,y)=>x&&y&&(x[0]|0)===(y[0]|0)&&String(x[1])===String(y[1])&&(x[2]|0)===(y[2]|0)&&(x[3]|0)===(y[3]|0);
+        if(process.env.DEBUG_RESOLVE) console.log('RESOLVE acts',JSON.stringify(acts),'sub',JSON.stringify(sub));
+        if(sub.length>acts.length && acts.every((x,i)=>same(x,sub[i]))){
+          inputLog=sub.slice(0, INPUT_LOG_MAX); transcriptSource='submitted-log-extends-receipts'; a.stream.extended=sub.length-acts.length; } }
       const host=simHost();
       if(!host || !Array.isArray(a.snaps) || !a.snaps.length){
         /* We could not verify the fight — so we record NOTHING. Not a win, not a loss. The stamina

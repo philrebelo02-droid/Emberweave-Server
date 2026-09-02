@@ -1510,10 +1510,10 @@ const BATTLE_ANIM = {
    cast:{u:'/assets/anim/mon/raven_cast_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:263,feet:290,cx:142,fps:10,flip:true,hold:0.8,top:27}
   },
   "shadow ghoul":{
-   idle:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:6,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:6,flip:false,pingpong:true,top:8},
-   walk:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:12,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:10,flip:false,top:8},
-   attack:{u:'/assets/anim/mon/shadowghoul_attack_hd.webp?v=1',n:12,fw:239,fh:300,cols:6,rows:2,figH:273,feet:279,cx:148,fps:12,flip:false,hold:0.9,top:6},
-   cast:{u:'/assets/anim/mon/shadowghoul_cast_hd.webp?v=1',n:12,fw:254,fh:300,cols:6,rows:2,figH:262,feet:295,cx:170,fps:10,flip:false,hold:0.8,top:33}
+   idle:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:6,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:6,flip:true,pingpong:true,top:8},
+   walk:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:12,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:10,flip:true,top:8},
+   attack:{u:'/assets/anim/mon/shadowghoul_attack_hd.webp?v=1',n:12,fw:239,fh:300,cols:6,rows:2,figH:273,feet:279,cx:148,fps:12,flip:true,hold:0.9,top:6},
+   cast:{u:'/assets/anim/mon/shadowghoul_cast_hd.webp?v=1',n:12,fw:254,fh:300,cols:6,rows:2,figH:262,feet:295,cx:170,fps:10,flip:true,hold:0.8,top:33}
   },
   "skeletal warrior":{
    idle:{u:'/assets/anim/mon/skeletalwarrior_walk_hd.webp?v=1',n:6,fw:222,fh:300,cols:6,rows:2,figH:271,feet:295,cx:112,fps:6,flip:false,pingpong:true,top:24},
@@ -4924,7 +4924,11 @@ function endBattle(won){
       // the receipt, so an old server (no eliteFrag) leaves the counter exactly as it was.
       if(sWon && r && r.reward && (r.reward.eliteFrag || r.reward.runCounted)) try{ stageCountRun(CUR.node,1); }catch(e){}
       if(sWon && r && r.reward && r.reward.dailyCapped) try{ stageCountRun(CUR.node,ELITE_BOSS_DAILY); }catch(e){}
-      document.getElementById('resultTitle').textContent=sWon?'VICTORY':'DEFEAT';
+      /* v334 (Phil: "I just won a stage 1-1 and it said defeat and I lost") — an UNVERIFIED fight is
+         not a defeat. The server recorded nothing and returned the stamina, so the screen must say
+         that, not DEFEAT. Same for an attempt the server no longer knows (expired / restarted). */
+      const _unv=!!(r && !r.ok && (r.unverified || r.expired || /verified|expired|stamina/i.test(r.error||'')));
+      document.getElementById('resultTitle').textContent=sWon?'VICTORY':(_unv?'NOT COUNTED':'DEFEAT');
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       // v253 (visual audit #1): the GUARANTEED stage reward is the headline — exact item, icon and
       // count, with the farm source named — and gold/XP are clearly labelled as bonus.
@@ -4934,8 +4938,9 @@ function endBattle(won){
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">🧩 +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
           +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
-        : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.');
-      document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':'Same monsters every attempt — learn the stage.';
+        : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — but the server could not verify it, so nothing was recorded and your stamina is back.</div><span style="color:#ff8b8b">'+escapeHTML(r.error||'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
+          : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.'));
+      document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':(_unv?'Play the stage again — it will count.':'Same monsters every attempt — learn the stage.');
       updateHubChrome(); gameSpeed=1; show('result');
     },800); return; }
   resultLater(()=>{
@@ -7176,18 +7181,18 @@ Object.assign(MONSTER_TYPES,{
   'sootwing imp':{name:'Sootwing Imp',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:7027242,fly:true},
   'basalt mauler':{name:'Basalt Mauler',stars:2,swing:2.5,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:4864566},
   'magma hound':{name:'Magma Hound',stars:2,swing:2.0,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:14701866},
-  'crucible acolyte':{name:'Crucible Acolyte',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:13126186,fly:true},
+  'crucible acolyte':{name:'Crucible Acolyte',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:13126186},
   'reef prowler':{name:'Reef Prowler',stars:2,swing:1.9,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:3116938},
   'kelp hexer':{name:'Kelp Hexer',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:4161370,fly:true},
   'shellguard sentinel':{name:'Shellguard Sentinel',stars:2,swing:2.6,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:6983592},
-  'mudsnap crab':{name:'Mudsnap Crab',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:44,speed:56,color:8022586,fly:true},
+  'mudsnap crab':{name:'Mudsnap Crab',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:44,speed:56,color:8022586},
   'storm eel':{name:'Storm Eel',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:5222655,fly:true},
   'saltglass siren':{name:'Saltglass Siren',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:10475728,fly:true},
   'graveclaw ghoul':{name:'Graveclaw Ghoul',stars:2,swing:1.9,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:7307098},
   'wispweaver shade':{name:'Wispweaver Shade',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:240,speed:56,color:9072592,fly:true},
   'bonepike guard':{name:'Bonepike Guard',stars:2,swing:2.5,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:14209208},
   'rotbloom ooze':{name:'Rotbloom Ooze',stars:2,swing:2.2,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:9426504},
-  'nightcap mimic':{name:'Nightcap Mimic',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:44,speed:56,color:9064360,fly:true},
+  'nightcap mimic':{name:'Nightcap Mimic',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:44,speed:56,color:9064360},
   'mourn moth':{name:'Mourn Moth',stars:2,swing:1.4,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:12101848,fly:true},
   'riftling spider':{name:'Riftling Spider',stars:2,swing:1.8,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:5914511},
   'crystalhorn grazer':{name:'Crystalhorn Grazer',stars:2,swing:2.0,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:9425151},
@@ -7199,7 +7204,7 @@ Object.assign(MONSTER_TYPES,{
   'vineback boar':{name:'Vineback Boar',stars:2,swing:2.2,monster:true,role:'Warrior',hp:155,dmg:16,range:44,speed:54,color:6262586},
   'frostjaw troll':{name:'Frostjaw Troll',stars:2,swing:2.6,monster:true,role:'Tank',hp:250,dmg:13,range:40,speed:46,color:10477823},
   'clockwork lantern':{name:'Clockwork Lantern',stars:2,swing:1.5,monster:true,role:'Mage',hp:110,dmg:18,range:205,speed:56,color:16762976,fly:true},
-  'vharok':{name:'Vharok, Kiln-Heart Tyrant',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16734762,fly:true,isboss:true},
+  'vharok':{name:'Vharok, Kiln-Heart Tyrant',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16734762,isboss:true},
   'nerissa':{name:'Nerissa, Crown of the Drowned',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:4169672,fly:true,isboss:true,ap:1.6},
   'barrowmaw':{name:'Barrowmaw, Ossuary Devourer',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:8359786,isboss:true},
   'asterion':{name:'Asterion, Mirror Warden',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:150,speed:44,color:13162736,isboss:true},
@@ -7208,9 +7213,9 @@ Object.assign(MONSTER_TYPES,{
   'nymira':{name:'Nymira, the Sunken Bloom',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:7325872,isboss:true,ap:1.6},
   'irix':{name:'Irix, the Sky-Shard Roc',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16765567,fly:true,isboss:true},
   'kharos':{name:'Kharos, Hourglass Sentinel',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:14202986,isboss:true},
-  'miregor':{name:'Miregor, King of the Briar March',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7311162,fly:true,isboss:true},
+  'miregor':{name:'Miregor, King of the Briar March',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7311162,isboss:true},
   'sable vesper':{name:'Sable Vesper, Choir of Crows',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:3813194,fly:true,isboss:true,ap:1.6},
-  'orryx':{name:'Orryx, the Glass Minotaur',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:12159999,fly:true,isboss:true},
+  'orryx':{name:'Orryx, the Glass Minotaur',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:12159999,isboss:true},
   'thorneveil':{name:'Thorneveil, Warden of the Ash Grove',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:9394730,isboss:true,ap:1.6},
   'nameless admiral':{name:'The Nameless Admiral',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:150,speed:44,color:6258591,isboss:true}
 });
@@ -12485,6 +12490,11 @@ async function _startBtnGo(_ctx){
   if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node)) return;
     // AUDIT C2: the campaign is server-resolved from AUTHORED encounters — the server locks the
     // exact waves for this stage and decides the result. Requires a connection (nothing is local).
+    /* v334 — never start a fight on a stale build: if version.json says the server moved on, the
+       update reloads the page here (no stamina spent yet) instead of the replay diverging later. */
+    if(ACC.token && online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const t=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
+        fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(t); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(t); if(!d){d=true;res(true);} }); });
+      if(!_fresh){ bannerMsg('The game just updated — restarting…'); applyUpdate(); return; } }
     if(ACC.token){ const r=await api('/api/campaign/start','POST',{mode:(CUR.portal||'normal'), node:CUR.node, heroIds:G.team.filter(Boolean).slice(0,5), requestId:uid8()});
       if(!r||r.error||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
       CUR.attemptId=r.attemptId; CUR.cwaves=(r.stage&&r.stage.waves)||null;
@@ -12609,7 +12619,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788369248296';
+const BUILD_ID='1788371869479';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
