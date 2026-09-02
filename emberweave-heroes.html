@@ -7184,6 +7184,16 @@ function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); 
    ancestor is treated as the start of a scroll and Chrome CANCELS the click, so a plain onclick on
    an element inside the hub simply never fires. Drive it off pointerup with a movement tolerance,
    de-duplicated against the click that may or may not follow. */
+/* 2 Sep (Phil: "I still can't click a lot of stuff") — THE TAP OPENED IT AND THE SAME TAP CLOSED IT.
+   On a phone the browser synthesises `click` AFTER pointerup, and delivers it to whatever is under
+   the finger AT THAT MOMENT. wireTap acts on pointerup — it opens the profile, the hero detail, the
+   stage modal — so the trailing click landed on the newly opened modal's backdrop (or a button
+   inside it) and shut it again. A mouse fires click on the element it pressed, which is why every
+   desktop harness passed while every phone was dead. Fix: for a short window after a pointer-driven
+   tap, swallow the one stray click at the document level before it can reach anything. */
+let _tapSwallowUntil=0;
+document.addEventListener('click',(e)=>{ if(_tapSwallowUntil && Date.now()<_tapSwallowUntil){ _tapSwallowUntil=0; e.stopPropagation(); e.preventDefault(); } },true);
+function swallowNextClick(){ _tapSwallowUntil=Date.now()+600; }
 function wireTap(el, fn){
   if(!el || el._tapWired) return; el._tapWired=1;
   let down=null, last=0;
@@ -7192,7 +7202,7 @@ function wireTap(el, fn){
   el.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
     if(Math.abs(e.clientX-d.x)>16 || Math.abs(e.clientY-d.y)>16) return;   // that was a scroll, not a tap
     if(Date.now()-d.t>900) return;                                         // that was a long press
-    fire(); },{passive:true});
+    swallowNextClick(); fire(); },{passive:true});
   el.addEventListener('pointercancel',()=>{ down=null; },{passive:true});
   el.addEventListener('click',()=>fire());
 }
@@ -7208,7 +7218,7 @@ function wireRosterTaps(r){
     const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c!==d.c)return;
     if(Math.abs(e.clientX-d.x)>16 || Math.abs(e.clientY-d.y)>16) return;   // that was a scroll, not a tap
     if(Date.now()-d.t>900) return;                                        // that was a long press
-    fire(d.c); }, {passive:true});
+    swallowNextClick(); fire(d.c); }, {passive:true});
   r.addEventListener('pointercancel',()=>{ down=null; }, {passive:true});
   r.addEventListener('click',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c) fire(c); });
 }
@@ -10240,13 +10250,14 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
 }
 // first-run prompt for brand-new accounts
 function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutDismissed) return; if((G.campaignCleared||0)>0) return;
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
+  if(document.getElementById('tutOffer')) return;   // 2 Sep: renderHome runs more than once at boot — each call stacked another full-screen overlay, and every extra layer swallowed a tap
+  const ov=document.createElement('div'); ov.id='tutOffer'; ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">🎓</div><div style="font-weight:800;font-size:17px;margin:6px 0">Welcome, Commander!</div>
     <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">New here? Take a quick guided tour of the essentials — you’ll earn rewards for each step.</div>
     <button class="btn" style="width:100%;margin-bottom:6px" id="tutStart">Start the tour</button>
     <button class="btn xs secondary" style="width:100%" id="tutLater">Maybe later</button></div>`;
-  document.body.appendChild(ov); const close=()=>ov.remove();
+  document.body.appendChild(ov); const close=()=>{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); };
   ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); };
   ov.querySelector('#tutLater').onclick=()=>{ G.tutDismissed=true; saveG(); close(); }; }
 
@@ -11843,7 +11854,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788288619418';
+const BUILD_ID='1788343716265';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
