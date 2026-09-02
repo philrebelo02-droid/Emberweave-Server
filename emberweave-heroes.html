@@ -1676,6 +1676,7 @@ const WALK_STRIDE=0.12;                      // walk-cycle frames advanced per f
 const ROLE_BATTLE_H={ Tank:4.5, Bruiser:3.9, Fighter:3.9, Assassin:3.6, Mage:3.5, Marksman:3.5, Support:3.5 };
 const HERO_BATTLE_H={ vireo:3.6, 'boar warrior':3.1, 'boar shaman':3.1 };  // per-hero ROW override (absolute world height) — e.g. Vireo is mid-row support, not backline
 const ROLE_BATTLE_DEFAULT=3.6;
+const BOSS_BATTLE_H=3.15;   // v346 (Phil): bosses 15% smaller than the old 3.7 so the 768-px source is not stretched as far
 function roleBattleH(key){ if(HERO_BATTLE_H[key]!=null) return HERO_BATTLE_H[key]; const t=HERO_TYPES[key]; return (t&&ROLE_BATTLE_H[t.role])||ROLE_BATTLE_DEFAULT; }
 const HERO_BATTLE_SCALE={};  // optional per-hero fine-tune multipliers (default 1); role map above sets base size
 // build per-state THREE textures once (each state gets its own texture so UV offsets don't clash)
@@ -3080,7 +3081,7 @@ function buildFigure(u){
   const g=new TH.Group();
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
   shadow.rotation.x=-Math.PI/2; shadow.position.y=.02; shadow.scale.setScalar((u.r/18)*(u.boss?1.5:1)); g.add(shadow); u.shadow=shadow;
-  const h=(u.boss?3.7:roleBattleH(u.key))*(u.r/18)*(HERO_BATTLE_SCALE[u.key]||1); u.sprH=h; u.sprA=0.7;
+  const h=(u.boss?BOSS_BATTLE_H:roleBattleH(u.key))*(u.r/18)*(HERO_BATTLE_SCALE[u.key]||1); u.sprH=h; u.sprA=0.7;
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:(HERO_SPRITES[u.key]?spriteTex(u.key):null),transparent:true,depthWrite:false}));
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
   if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
@@ -3332,7 +3333,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
      from the sprite's aspect ratio — which is set when the image finishes downloading — so a slow
      connection literally changed how much space a hero took up, and therefore the fight. The visual
      scale still follows the real artwork; the collision radius no longer does. */
-  u.sprH=(boss?3.7:roleBattleH(key))*(u.r/18)*(HERO_BATTLE_SCALE[key]||1);
+  u.sprH=(boss?BOSS_BATTLE_H:roleBattleH(key))*(u.r/18)*(HERO_BATTLE_SCALE[key]||1);
   u.sprA=0.7;
   u._bodyR=Math.max(u.r||18, (u.sprH*0.7)*BODY_FRAC/(2*SC));
   u.uid=_uidSeq++;   // v269: a stable per-battle id, so an input log can name exactly who acted on whom
@@ -12710,7 +12711,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788392618565';
+const BUILD_ID='1788393122650';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
