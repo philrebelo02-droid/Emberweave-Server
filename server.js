@@ -3113,8 +3113,23 @@ async function api(req,res,url){
     if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
     if(b.campCleared!=null) led.camp.cleared=Math.max(0,Math.min(CAMPAIGN_NODES,b.campCleared|0));   // dev-only fixture
     if(b.campStars&&typeof b.campStars==='object') for(const k in b.campStars){ const v=b.campStars[k]|0; if(v>=1&&v<=3) led.camp.stars[k]=v; }   // dev-only fixture
+    /* v339 (Phil): the dev "Max glyph+star" button never touched glyphs — there was no endpoint for it.
+       maxGlyphs:true walks every named hero's board from its current ascension to Orange, feeding each
+       tier's six pre-chosen glyphs exactly as /api/glyphs/ascend would (stats accumulate into
+       board.ascended), skipping the fragment cost and the hero-level gate. Dev-only. */
+    let glyphsMaxed=0;
+    if(b.maxGlyphs&&Array.isArray(b.heroKeys)){ const gg=(glyphMigrate(tgt),glyphFlowMigrate(tgt),ensureGlyphs(tgt));
+      for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue; led.unlocked[k]=led.unlocked[k]||true;
+        const board=glyphBoard(gg,k); if(board.ascensionIndex>=GLYPH_MAX_ASC) continue;
+        for(const sid of board.slots){ const inst=sid&&gg.finished[sid]; if(inst){ inst.status='consumed'; inst.consumedAt=Date.now(); } }
+        while(board.ascensionIndex<GLYPH_MAX_ASC){ const qi=board.ascensionIndex;
+          for(let i=0;i<6;i++){ const def=glyphPreChoice(k,i,qi); if(!def) continue;
+            for(const st of def.stats){ const cur=board.ascended[st.stat]||{val:0,pct:st.pct}; cur.val=+(cur.val+st.val).toFixed(2); cur.pct=st.pct; board.ascended[st.stat]=cur; } }
+          board.slots=[null,null,null,null,null,null]; board.ascensionIndex++; }
+        glyphAudit(gg,'ascend',{hero:k,to:board.ascensionIndex,fed:'dev-max'}); glyphsMaxed++; }
+      glyphPruneConsumed(gg); gg.revision++; }
     ledTx(tgt,'admin:grant',{});
-    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt)}); }
+    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt), glyphsMaxed}); }
 
   /* 28 Aug — skill upgrades are server-owned. They used to be a local write that the next ledger
      sync overwrote, so the gold was spent and the level came back. The server now holds led.skill,
