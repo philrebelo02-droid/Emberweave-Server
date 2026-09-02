@@ -3266,7 +3266,7 @@ async function api(req,res,url){
        resolve route will not pay. An open, still-valid session for this node is left alone so a
        reconnect can resume the fight it already paid for. */
     if(node%5===0 && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
-      const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }
+      const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3 && !isDev(me)) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }   // v343: dev accounts exempt (Phil testing 1-5)
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];

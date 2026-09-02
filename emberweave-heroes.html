@@ -7090,7 +7090,7 @@ function openStageModal(i,mode){
     </div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
-  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1){ document.getElementById('smMsg').textContent='Daily limit reached for this stage.'; return; } G.lastStage=i; G.lastPortal=mode; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; CUR.portal=mode; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
+  body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i))return; if(i<=G.campaignCleared && stageRunsLeft(i)<1 && !(typeof DEV!=='undefined'&&DEV.on)){ document.getElementById('smMsg').textContent='Daily limit reached for this stage (3 runs/day on guardian & boss stages).'; return; }   /* v343: dev accounts are exempt so Phil can test a stage as often as he likes */ G.lastStage=i; G.lastPortal=mode; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; CUR.portal=mode; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i,1,mode);
   const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10,mode);
 }
@@ -7778,7 +7778,7 @@ Object.assign(BATTLE_ANIM, {
     attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=1',n:24,fw:300,fh:231,cols:6,rows:4,figH:186,feet:228,cx:164,fps:16,flip:true,top:41,hold:0.9},
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:true,top:25},
     green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:true,top:3,hold:0.8},
-    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=1',n:36,fw:300,fh:235,cols:6,rows:6,figH:171,feet:232,cx:153,fps:15,flip:true,top:60,hold:0.8},
+    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=1',n:36,fw:300,fh:235,cols:6,rows:6,figH:171,feet:232,cx:153,fps:15,flip:false,top:60,hold:0.8},
     ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=1',n:48,fw:289,fh:300,cols:6,rows:8,figH:232,feet:296,cx:204,fps:15,flip:true,top:64,pingpong:true},
     passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=1',n:36,fw:231,fh:300,cols:6,rows:6,figH:248,feet:296,cx:136,fps:15,flip:true,top:47}
   },
@@ -12707,7 +12707,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788389924351';
+const BUILD_ID='1788390428108';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
