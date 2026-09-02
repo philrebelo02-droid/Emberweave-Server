@@ -3109,7 +3109,7 @@ function teamXOff(team){ return team==='ally' ? -DIAG_X : DIAG_X; }
 function formationSlots(team,n){const s=[];const backY=team==='ally'?1150:250,frontY=team==='ally'?950:450;const ox=teamXOff(team);const lx=i=>ox+320+360*(n<=1?0.5:(i/(n-1)));for(let i=0;i<n;i++)s.push({x:lx(i),backY,frontY});return s;}
 // role-based depth: Tank leads at the front, melee just behind, ranged & healers ~3.4 character-distances back
 const CHAR_DIST=52;
-function roleDepth(role){ if(role==='Tank')return 0; if(role==='Fighter')return 0.4; if(role==='Warrior'||role==='Bruiser'||role==='Brute'||role==='Assassin')return 1; return 3.4; }   // Mage, Marksman and Support all hold the back row   // Fighter ≈ 2 m behind the tank line
+function roleDepth(role){ if(role==='Tank')return 0; if(role==='Fighter')return 0.4; if(role==='Warrior'||role==='Bruiser'||role==='Brute')return 1; if(role==='Assassin')return 1.7; return 3.4; }   /* v337: assassins muster BEHIND the bruisers (Phil) */   // Mage, Marksman and Support all hold the back row   // Fighter ≈ 2 m behind the tank line
 function roleLaneY(team,role){ const d=roleDepth(role)*CHAR_DIST; return team==='ally' ? 900+d : 500-d; }
 const ROW_OVERRIDE={// combat-row depth override (0 front .. 2 mid .. 3.4 back). Front=melee, mid/back=ranged.
   'bug':1, 'monster with fireball':1,                                              // → FRONT (melee)
@@ -4483,6 +4483,24 @@ function think(u,dt){
       } else {
         dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); if(u.range>60)spawnShot(u,t,u.t.color);
       } } };
+  /* v337 — ASSASSINS FIGHT BEHIND THE TANKS, NOT BESIDE THEM (Phil: "Vex sometimes goes ahead of
+     tanks; they should start behind fighters and move in after them"). While the line is still
+     marching — no front-liner (Tank/Fighter/Bruiser/Warrior/Brute) of this team has closed to fighting
+     distance yet — an assassin holds a character-length behind the FRONTMOST front-liner, measured
+     along the direction of the enemy, and never overtakes it. The moment any front-liner is engaged
+     the assassin is released and dives exactly as before. Hollow's drop from above is untouched. */
+  if(u.t.role==='Assassin' && !u._backHunter && dn>cd){
+    const fronts=units.filter(o=>o.alive&&o.team===u.team&&o!==u&&o.t&&/^(Tank|Fighter|Bruiser|Warrior|Brute)$/.test(o.t.role||''));
+    if(fronts.length){
+      const engaged=fronts.some(o=>{ const e=(o.target&&o.target.alive)?o.target:nearestEnemy(o); if(!e) return false;
+        return dist(o,e) <= (o.melee ? bodyR(o)+bodyR(e)+14 : (o.combatDist||o.range)+2); });
+      if(!engaged){
+        const ax=(t.x-u.x)/d, ay=(t.y-u.y)/d;
+        let leadAdv=-1e9; for(const o of fronts){ const a=(o.x-u.x)*ax+(o.y-u.y)*ay; if(a>leadAdv) leadAdv=a; }
+        const hold=CHAR_DIST*1.2;
+        if(leadAdv < hold){                      // the line is not far enough ahead of me: wait behind it
+          if(leadAdv < hold*0.5){ u.x-=ax*spd*0.6*dt; u.y-=ay*spd*0.6*dt; }   // I am level with or ahead of it: drop back
+          return; } } } }
   if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
   else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
@@ -4577,16 +4595,18 @@ const BOSS_CUES={'ice beast':'Freezes the frontline — spread your ultimates',
   'water serpent':'Strikes the weakest hero first'};
 /* v267: every chapter boss names its OWN mechanic. Six monster models carry the ten chapter bosses,
    so the cue is authored per chapter — not reused three times across the campaign. */
-const CHAPTER_BOSS_CUE=['Slow, heavy swings — punish the wind-up',
-  'Splits your line apart — keep the tank between them and your caster',
-  'Freezes whoever stands closest — spread your ultimates',
-  'Hits harder the longer the fight runs — end it fast',
-  'Drenches the field — sustained damage and healing win it',
-  'Cleaves everything in front — only the tank should be there',
-  'Strikes the weakest hero first — top your backline up before it lands',
-  'Grows stronger as it loses health — save a burst for the finish',
-  'Hurls fire at the back row — move your caster the moment it winds up',
-  'Every mechanic at once — bring control, sustain and burst'];
+const CHAPTER_BOSS_CUE=[   /* v337: one boss per chapter, each its own monster — cue written from its actual kit */
+  'Brukk drops the anvil on your tank and chains a hero back to him — stun-break, then burst',        // 1  Brukk, Master of the Black Kiln
+  'Miregor charges through the line and gores whoever he lands on — keep the tank square in front',     // 2  Miregor, King of the Briar March
+  'Freezes whoever stands closest — spread your ultimates',                                             // 3  Ice Beast
+  'Nerissa\'s undertow hits everyone near the front and her sentence stuns one — sustain and cleanse',   // 4  Nerissa, Crown of the Drowned
+  'Sable Vesper hushes your casters and fires five shots at once — kill her before the second volley',   // 5  Sable Vesper, Choir of Crows
+  'Vharok burns everything beside him and locks your line in cinder — only the tank in reach',           // 6  Vharok, Kiln-Heart Tyrant
+  'Maelvara claws in threes and drops a cyclone that slows the field — do not stand still in it',        // 7  Maelvara, Stormnest Matriarch
+  'Orryx charges and hurls three glass axes down the line — spread out, he cannot be moved',             // 8  Orryx, the Glass Minotaur
+  'The Admiral\'s broadside pierces the whole line and his anchor drags a hero in — burst him early',    // 9  The Nameless Admiral
+  'Irix rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish'];    // 10 Irix, the Sky-Shard Roc
+
 function bossCueFor(u){
   try{
     if(CUR.mode==='vault' && VAULT && VAULT.st && VAULT.st.bossRule && VAULT.st.bossRule.warn) return VAULT.st.bossRule.warn;
@@ -7627,14 +7647,14 @@ Object.assign(BATTLE_ANIM, {
     idle:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:false,top:3}
   },
   pyroclast:{
-    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=1',n:36,fw:212,fh:300,cols:6,rows:6,figH:292,feet:296,cx:108,fps:15,flip:false,top:3},
-    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=1',n:36,fw:214,fh:300,cols:6,rows:6,figH:288,feet:296,cx:108,fps:15,flip:false,top:7},
-    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:276,feet:296,cx:102,fps:16,flip:false,top:19,hold:0.9},
-    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=1',n:20,fw:188,fh:300,cols:6,rows:4,figH:228,feet:296,cx:90,fps:16,flip:false,top:68},
-    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=1',n:36,fw:267,fh:300,cols:6,rows:6,figH:232,feet:292,cx:167,fps:15,flip:false,top:60,hold:0.8},
-    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=1',n:36,fw:254,fh:300,cols:6,rows:6,figH:268,feet:296,cx:117,fps:15,flip:false,top:27,hold:0.8},
-    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=1',n:48,fw:229,fh:300,cols:6,rows:8,figH:226,feet:296,cx:106,fps:15,flip:false,top:70},
-    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=1',n:36,fw:194,fh:300,cols:6,rows:6,figH:224,feet:296,cx:93,fps:15,flip:false,top:72}
+    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=2',n:36,fw:283,fh:400,cols:6,rows:6,figH:389,feet:394,cx:144,fps:15,flip:false,top:5},
+    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=2',n:36,fw:286,fh:400,cols:6,rows:6,figH:384,feet:394,cx:144,fps:15,flip:false,top:10},
+    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=2',n:24,fw:351,fh:400,cols:6,rows:4,figH:368,feet:395,cx:136,fps:16,flip:false,top:26,hold:0.9},
+    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=2',n:20,fw:250,fh:400,cols:6,rows:4,figH:304,feet:395,cx:120,fps:16,flip:false,top:91},
+    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=2',n:36,fw:356,fh:400,cols:6,rows:6,figH:309,feet:389,cx:223,fps:15,flip:false,top:80,hold:0.8},
+    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=2',n:36,fw:339,fh:400,cols:6,rows:6,figH:358,feet:395,cx:156,fps:15,flip:false,top:36,hold:0.8},
+    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=2',n:48,fw:306,fh:400,cols:6,rows:8,figH:301,feet:395,cx:142,fps:15,flip:false,top:94},
+    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=2',n:36,fw:259,fh:400,cols:6,rows:6,figH:299,feet:395,cx:124,fps:15,flip:false,top:96}
   },
   stormwarden:{
     idle:{u:'/assets/anim/stormwarden/stormwarden_idle.webp?v=1',n:36,fw:219,fh:300,cols:6,rows:6,figH:292,feet:296,cx:109,fps:15,flip:false,top:3},
@@ -7646,24 +7666,24 @@ Object.assign(BATTLE_ANIM, {
     passive:{u:'/assets/anim/stormwarden/stormwarden_passive.webp?v=1',n:36,fw:289,fh:300,cols:6,rows:6,figH:223,feet:295,cx:186,fps:15,flip:false,top:71}
   },
   verdantshade:{
-    idle:{u:'/assets/anim/verdantshade/verdantshade_idle.webp?v=1',n:36,fw:207,fh:300,cols:6,rows:6,figH:292,feet:296,cx:104,fps:15,flip:false,top:3},
-    walk:{u:'/assets/anim/verdantshade/verdantshade_walk.webp?v=1',n:36,fw:200,fh:300,cols:6,rows:6,figH:287,feet:294,cx:105,fps:15,flip:false,top:6},
-    attack:{u:'/assets/anim/verdantshade/verdantshade_attack.webp?v=1',n:24,fw:263,fh:300,cols:6,rows:4,figH:237,feet:296,cx:89,fps:16,flip:false,top:58,hold:0.9},
-    hit:{u:'/assets/anim/verdantshade/verdantshade_hit.webp?v=1',n:20,fw:229,fh:300,cols:6,rows:4,figH:276,feet:296,cx:122,fps:16,flip:false,top:19},
-    green:{u:'/assets/anim/verdantshade/verdantshade_green.webp?v=1',n:36,fw:253,fh:300,cols:6,rows:6,figH:221,feet:297,cx:85,fps:15,flip:false,top:75,hold:0.8},
-    blue:{u:'/assets/anim/verdantshade/verdantshade_blue.webp?v=1',n:36,fw:300,fh:255,cols:6,rows:6,figH:226,feet:248,cx:156,fps:15,flip:false,top:21,hold:0.8},
-    ult:{u:'/assets/anim/verdantshade/verdantshade_ult.webp?v=1',n:48,fw:300,fh:282,cols:6,rows:8,figH:217,feet:278,cx:112,fps:15,flip:false,top:61},
-    passive:{u:'/assets/anim/verdantshade/verdantshade_passive.webp?v=1',n:36,fw:239,fh:300,cols:6,rows:6,figH:275,feet:296,cx:113,fps:15,flip:false,top:21}
+    idle:{u:'/assets/anim/verdantshade/verdantshade_idle.webp?v=2',n:36,fw:276,fh:400,cols:6,rows:6,figH:389,feet:394,cx:139,fps:15,flip:false,top:5},
+    walk:{u:'/assets/anim/verdantshade/verdantshade_walk.webp?v=2',n:36,fw:266,fh:400,cols:6,rows:6,figH:383,feet:392,cx:140,fps:15,flip:false,top:8},
+    attack:{u:'/assets/anim/verdantshade/verdantshade_attack.webp?v=2',n:24,fw:351,fh:400,cols:6,rows:4,figH:317,feet:395,cx:119,fps:16,flip:false,top:78,hold:0.9},
+    hit:{u:'/assets/anim/verdantshade/verdantshade_hit.webp?v=2',n:20,fw:305,fh:400,cols:6,rows:4,figH:368,feet:395,cx:162,fps:16,flip:false,top:26},
+    green:{u:'/assets/anim/verdantshade/verdantshade_green.webp?v=2',n:36,fw:338,fh:400,cols:6,rows:6,figH:295,feet:396,cx:114,fps:15,flip:false,top:100,hold:0.8},
+    blue:{u:'/assets/anim/verdantshade/verdantshade_blue.webp?v=2',n:36,fw:400,fh:339,cols:6,rows:6,figH:302,feet:331,cx:209,fps:15,flip:false,top:28,hold:0.8},
+    ult:{u:'/assets/anim/verdantshade/verdantshade_ult.webp?v=2',n:48,fw:400,fh:376,cols:6,rows:8,figH:290,feet:371,cx:150,fps:15,flip:false,top:81},
+    passive:{u:'/assets/anim/verdantshade/verdantshade_passive.webp?v=2',n:36,fw:319,fh:400,cols:6,rows:6,figH:366,feet:395,cx:150,fps:15,flip:false,top:28}
   },
   voidweaver:{
-    idle:{u:'/assets/anim/voidweaver/voidweaver_idle.webp?v=1',n:36,fw:200,fh:300,cols:6,rows:6,figH:288,feet:296,cx:98,fps:15,flip:false,top:7},
-    walk:{u:'/assets/anim/voidweaver/voidweaver_walk.webp?v=1',n:36,fw:300,fh:293,cols:6,rows:6,figH:252,feet:284,cx:122,fps:15,flip:false,top:32},
-    attack:{u:'/assets/anim/voidweaver/voidweaver_attack.webp?v=1',n:24,fw:300,fh:261,cols:6,rows:4,figH:221,feet:258,cx:136,fps:16,flip:false,top:36,hold:0.9},
-    hit:{u:'/assets/anim/voidweaver/voidweaver_hit.webp?v=1',n:20,fw:291,fh:300,cols:6,rows:4,figH:218,feet:297,cx:184,fps:16,flip:false,top:78},
-    green:{u:'/assets/anim/voidweaver/voidweaver_green.webp?v=1',n:36,fw:236,fh:300,cols:6,rows:6,figH:236,feet:296,cx:89,fps:15,flip:false,top:59,hold:0.8},
-    blue:{u:'/assets/anim/voidweaver/voidweaver_blue.webp?v=1',n:36,fw:177,fh:300,cols:6,rows:6,figH:243,feet:296,cx:89,fps:15,flip:false,top:53,hold:0.8},
-    ult:{u:'/assets/anim/voidweaver/voidweaver_ult.webp?v=1',n:48,fw:218,fh:300,cols:6,rows:8,figH:287,feet:293,cx:103,fps:15,flip:false,top:5},
-    passive:{u:'/assets/anim/voidweaver/voidweaver_passive.webp?v=1',n:36,fw:200,fh:300,cols:6,rows:6,figH:276,feet:291,cx:98,fps:15,flip:false,top:14}
+    idle:{u:'/assets/anim/voidweaver/voidweaver_idle.webp?v=2',n:36,fw:267,fh:400,cols:6,rows:6,figH:384,feet:394,cx:130,fps:15,flip:false,top:10},
+    walk:{u:'/assets/anim/voidweaver/voidweaver_walk.webp?v=2',n:36,fw:400,fh:391,cols:6,rows:6,figH:336,feet:378,cx:163,fps:15,flip:false,top:42},
+    attack:{u:'/assets/anim/voidweaver/voidweaver_attack.webp?v=2',n:24,fw:400,fh:348,cols:6,rows:4,figH:295,feet:344,cx:181,fps:16,flip:false,top:48,hold:0.9},
+    hit:{u:'/assets/anim/voidweaver/voidweaver_hit.webp?v=2',n:20,fw:388,fh:400,cols:6,rows:4,figH:291,feet:396,cx:246,fps:16,flip:false,top:104},
+    green:{u:'/assets/anim/voidweaver/voidweaver_green.webp?v=2',n:36,fw:315,fh:400,cols:6,rows:6,figH:315,feet:395,cx:118,fps:15,flip:false,top:79,hold:0.8},
+    blue:{u:'/assets/anim/voidweaver/voidweaver_blue.webp?v=2',n:36,fw:237,fh:400,cols:6,rows:6,figH:324,feet:395,cx:119,fps:15,flip:false,top:71,hold:0.8},
+    ult:{u:'/assets/anim/voidweaver/voidweaver_ult.webp?v=2',n:48,fw:291,fh:400,cols:6,rows:8,figH:383,feet:391,cx:138,fps:15,flip:false,top:7},
+    passive:{u:'/assets/anim/voidweaver/voidweaver_passive.webp?v=2',n:36,fw:266,fh:400,cols:6,rows:6,figH:368,feet:388,cx:131,fps:15,flip:false,top:19}
   },
   dawnbringer:{
     idle:{u:'/assets/anim/dawnbringer/dawnbringer_idle.webp?v=1',n:36,fw:249,fh:300,cols:6,rows:6,figH:290,feet:296,cx:132,fps:15,flip:false,top:5},
@@ -7725,14 +7745,14 @@ Object.assign(BATTLE_ANIM, {
     passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=1',n:36,fw:231,fh:300,cols:6,rows:6,figH:248,feet:296,cx:136,fps:15,flip:false,top:47}
   },
   waxenduchess:{
-    idle:{u:'/assets/anim/waxenduchess/waxenduchess_idle.webp?v=1',n:36,fw:242,fh:300,cols:6,rows:6,figH:284,feet:287,cx:151,fps:15,flip:true,top:3},
-    walk:{u:'/assets/anim/waxenduchess/waxenduchess_walk.webp?v=1',n:36,fw:254,fh:300,cols:6,rows:6,figH:284,feet:289,cx:143,fps:15,flip:true,top:5},
-    attack:{u:'/assets/anim/waxenduchess/waxenduchess_attack.webp?v=1',n:24,fw:300,fh:276,cols:6,rows:4,figH:222,feet:270,cx:169,fps:16,flip:true,top:47,hold:0.9},
-    hit:{u:'/assets/anim/waxenduchess/waxenduchess_hit.webp?v=1',n:20,fw:243,fh:300,cols:6,rows:4,figH:290,feet:294,cx:143,fps:16,flip:true,top:3},
-    green:{u:'/assets/anim/waxenduchess/waxenduchess_green.webp?v=1',n:36,fw:267,fh:300,cols:6,rows:6,figH:285,feet:295,cx:170,fps:15,flip:true,top:10,hold:0.8},
-    blue:{u:'/assets/anim/waxenduchess/waxenduchess_blue.webp?v=1',n:36,fw:241,fh:300,cols:6,rows:6,figH:223,feet:297,cx:151,fps:15,flip:true,top:74,hold:0.8},
-    ult:{u:'/assets/anim/waxenduchess/waxenduchess_ult.webp?v=1',n:48,fw:300,fh:298,cols:6,rows:8,figH:223,feet:284,cx:158,fps:15,flip:true,top:60},
-    passive:{u:'/assets/anim/waxenduchess/waxenduchess_passive.webp?v=1',n:36,fw:262,fh:300,cols:6,rows:6,figH:287,feet:295,cx:166,fps:15,flip:true,top:7}
+    idle:{u:'/assets/anim/waxenduchess/waxenduchess_idle.webp?v=2',n:36,fw:323,fh:400,cols:6,rows:6,figH:378,feet:383,cx:201,fps:15,flip:true,top:5},
+    walk:{u:'/assets/anim/waxenduchess/waxenduchess_walk.webp?v=2',n:36,fw:338,fh:400,cols:6,rows:6,figH:379,feet:386,cx:190,fps:15,flip:true,top:6},
+    attack:{u:'/assets/anim/waxenduchess/waxenduchess_attack.webp?v=2',n:24,fw:400,fh:368,cols:6,rows:4,figH:296,feet:360,cx:226,fps:16,flip:true,top:63,hold:0.9},
+    hit:{u:'/assets/anim/waxenduchess/waxenduchess_hit.webp?v=2',n:20,fw:323,fh:400,cols:6,rows:4,figH:387,feet:393,cx:191,fps:16,flip:true,top:5},
+    green:{u:'/assets/anim/waxenduchess/waxenduchess_green.webp?v=2',n:36,fw:355,fh:400,cols:6,rows:6,figH:380,feet:394,cx:227,fps:15,flip:true,top:13,hold:0.8},
+    blue:{u:'/assets/anim/waxenduchess/waxenduchess_blue.webp?v=2',n:36,fw:321,fh:400,cols:6,rows:6,figH:297,feet:396,cx:201,fps:15,flip:true,top:98,hold:0.8},
+    ult:{u:'/assets/anim/waxenduchess/waxenduchess_ult.webp?v=2',n:48,fw:400,fh:398,cols:6,rows:8,figH:298,feet:379,cx:211,fps:15,flip:true,top:80},
+    passive:{u:'/assets/anim/waxenduchess/waxenduchess_passive.webp?v=2',n:36,fw:349,fh:400,cols:6,rows:6,figH:383,feet:393,cx:222,fps:15,flip:true,top:10}
   },
 });
 Object.assign(KITS, {
@@ -7794,7 +7814,7 @@ Object.assign(HERO_LORE, {
   lastfurnace:{title:"What the Foundry Kept Burning",text:"The foundries of the Iron Reach went cold one by one when the ore ran out, and the last of them refused. It walked out of its own housing with the fire still in it, and it has been looking for something worth making ever since. Mostly, so far, that has been examples."},
   beekeeper:{title:"A Crown of Small Subjects",text:"He was never crowned by anyone with hands. The hives chose him, one summer, for reasons the hives have not explained, and he has ruled them gently and been ruled by them in turn. His court is forty thousand strong and every one of them would die for him, and does, and is replaced by morning."},
   librarian:{title:"The Restricted Section",text:"Every monster in the Emberweave is in his book, and the book is not a catalogue. When he reads an entry aloud the thing described steps out of the page in ink, and does what it was written to do, and goes back when the chapter ends. He is very careful about which chapters he reads. He has not always been."},
-  corsair:{title:"Two Pistols and a Grudge",text:"She lost the ship in a card game she is fairly sure was rigged, and has spent the years since collecting from everyone who was at the table. The list is shorter now. The saber is for the ones who argue; the pistols are for the ones who run."},
+  corsair:{title:"Two Pistols and a Grudge",text:"He lost the ship in a card game he is fairly sure was rigged, and has spent the years since collecting from everyone who was at the table. The list is shorter now. The saber is for the ones who argue; the pistols are for the ones who run."},
   waxenduchess:{title:"The Court That Never Adjourns",text:"Her guests are all still at the table. They have been for a hundred years, seated exactly as they were the night the candles were lit, and the wax has been very kind to them. She takes new guests rarely and is a gracious host, and nobody who has attended one of her dinners has ever complained afterwards."},
 });
 HERO_PORTRAITS.pyroclast='/assets/img/glossary/glossary-heroes-pyroclast.webp?v=1'; HERO_SPRITES.pyroclast=HERO_PORTRAITS.pyroclast; GLOSSARY_ART['heroes/pyroclast']=HERO_PORTRAITS.pyroclast;
@@ -12635,7 +12655,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788373117114';
+const BUILD_ID='1788379283465';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

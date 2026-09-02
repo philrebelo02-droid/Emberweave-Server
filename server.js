@@ -923,10 +923,43 @@ const VAULT_MONSTERS={
   'orc':{hp:155,dmg:16,role:'Warrior'}, 'raven':{hp:110,dmg:18,role:'Mage'}, 'rock golem':{hp:250,dmg:13,role:'Tank'},
   'shadow ghoul':{hp:155,dmg:16,role:'Warrior'}, 'skeletal warrior':{hp:155,dmg:16,role:'Warrior'}, 'slime':{hp:155,dmg:16,role:'Warrior'},
   'slug beast':{hp:220,dmg:18,role:'Warrior'}, 'tin beast':{hp:250,dmg:13,role:'Tank'}, 'turtle':{hp:250,dmg:13,role:'Tank'},
-  'whisp candle':{hp:110,dmg:18,role:'Mage'} };
+  'whisp candle':{hp:110,dmg:18,role:'Mage'} ,
+  /* v337 — the 28 new monsters (v331 roster) */
+  'cinder skulk':{hp:155,dmg:16,role:'Warrior'},
+  'furnace gnawer':{hp:155,dmg:16,role:'Warrior'},
+  'sootwing imp':{hp:110,dmg:18,role:'Mage'},
+  'basalt mauler':{hp:250,dmg:13,role:'Tank'},
+  'magma hound':{hp:155,dmg:16,role:'Warrior'},
+  'crucible acolyte':{hp:110,dmg:18,role:'Mage'},
+  'reef prowler':{hp:155,dmg:16,role:'Warrior'},
+  'kelp hexer':{hp:110,dmg:18,role:'Mage'},
+  'shellguard sentinel':{hp:250,dmg:13,role:'Tank'},
+  'mudsnap crab':{hp:110,dmg:18,role:'Mage'},
+  'storm eel':{hp:110,dmg:18,role:'Mage'},
+  'saltglass siren':{hp:110,dmg:18,role:'Mage'},
+  'graveclaw ghoul':{hp:155,dmg:16,role:'Warrior'},
+  'wispweaver shade':{hp:110,dmg:18,role:'Mage'},
+  'bonepike guard':{hp:250,dmg:13,role:'Tank'},
+  'rotbloom ooze':{hp:155,dmg:16,role:'Warrior'},
+  'nightcap mimic':{hp:110,dmg:18,role:'Mage'},
+  'mourn moth':{hp:110,dmg:18,role:'Mage'},
+  'riftling spider':{hp:155,dmg:16,role:'Warrior'},
+  'crystalhorn grazer':{hp:155,dmg:16,role:'Warrior'},
+  'skyroot dryad':{hp:155,dmg:16,role:'Warrior'},
+  'luminant orb':{hp:110,dmg:18,role:'Mage'},
+  'zephyr harrier':{hp:110,dmg:18,role:'Mage'},
+  'runic automaton':{hp:250,dmg:13,role:'Tank'},
+  'ironjaw raider':{hp:155,dmg:16,role:'Warrior'},
+  'vineback boar':{hp:155,dmg:16,role:'Warrior'},
+  'frostjaw troll':{hp:250,dmg:13,role:'Tank'},
+  'clockwork lantern':{hp:110,dmg:18,role:'Mage'}
+};
 const VAULT_BOSSES=['ice beast','monster with fireball','nashor beast','ogre beast','water monster','water serpent'];
 const VAULT_MIN_BATTLE_MS=+(process.env.VAULT_MIN_BATTLE_MS||6000);   // a real two-wave fight can't finish faster than this
-const VAULT_BOSS_STATS={'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26}};
+const VAULT_BOSS_STATS={'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26},
+  /* v337 — the 14 new bosses: Brutes 300/26, Mages 450/26 (same archetypes as the originals) */
+  'vharok':{hp:300,dmg:26},'barrowmaw':{hp:300,dmg:26},'asterion':{hp:300,dmg:26},'maelvara':{hp:300,dmg:26},'brukk':{hp:300,dmg:26},'irix':{hp:300,dmg:26},'kharos':{hp:300,dmg:26},'miregor':{hp:300,dmg:26},'orryx':{hp:300,dmg:26},'nameless admiral':{hp:300,dmg:26},
+  'nerissa':{hp:450,dmg:26},'nymira':{hp:450,dmg:26},'sable vesper':{hp:450,dmg:26},'thorneveil':{hp:450,dmg:26}};
 function vaultMonsterLevel(floor){ return Math.max(1,Math.min(D_MAX_LEVEL, Math.round(2+floor*0.6))); }
 // deterministic per floor+wave — NO per-attempt randomness anywhere in here
 /* v241 (full-game audit): the Vault is AUTHORED DATA, not runtime generation. server/vault-encounters.json
