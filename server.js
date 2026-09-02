@@ -759,6 +759,7 @@ function questChainStepsSrv(){ const steps=[{node:1,frags:2},{node:2,frags:2},{n
 const TRIAL_KINDS={ tower:{mul:0.85, reward:f=>({gold:80+8*f, heroXp:60})},
                     gauntlet:{mul:1.0, reward:f=>({gold:100+10*f, heroXp:70})},
                     dungeon:{mul:0.9, reward:f=>({gold:200, px:100, heroXp:90})} };
+const DUNGEON_MATS_PER_DAY=10;   // v328: winning dungeon resolves that roll equipment materials, per ET day (anti-farm; the floor/gold/px are unaffected)
 /* 30 Aug — PROTOTYPE POLLUTION VIA heroKey.
    /api/gear/equip did `g.equipped[hero] = g.equipped[hero] || {}` with `hero` taken straight from
    the request body. Sent as "__proto__" that reads and then WRITES Object.prototype — a single
@@ -1507,6 +1508,13 @@ function streamAction(u, m, ws){
   a.stream=a.stream||{ seq:0, acts:[], chain:'', invalid:0, sec:{t:0,n:0} };
   const st=a.stream;
   if(st.closed) return {ok:false, reason:'session-ended'};
+  /* v328: the give-up frame must tear down the partial list REGARDLESS of sequence — after a
+     dropped frame the client is one ahead, and an abandon refused 'out-of-order' left a truncated
+     server transcript that then out-ranked the client's complete log at resolve. */
+  if(String(m.kind||'')==='abandon'){
+    st.acts=[]; st.broken=true; st.seq=Math.max(st.seq|0, m.seq|0);
+    return {ok:true, abandoned:true, accepted:st.seq};
+  }
   /* A battle RESTARTED (or resumed) on the same attempt starts its stream over: the client resets its
      sequence and re-sends `begin` at seq 1. Without this the first fight's stream refuses every message
      of the second one ('out-of-order', and 'already-begun' on the anchored clock), the client silently
@@ -1561,10 +1569,7 @@ function streamAction(u, m, ws){
      transcript would replay as a different fight than the one being played. The session falls back to
      the submitted log and the RESULT SAYS SO — `submitted-log-after-stream-loss` — so a lost stream
      is visible in the receipt rather than looking like a clean live session. */
-  if(kind==='abandon'){
-    st.acts=[]; st.broken=true; st.seq=seq;
-    return {ok:true, abandoned:true, accepted:st.seq};
-  }
+  /* (abandon is handled above the sequence check — see the v328 note near the top of this function) */
 
   /* `begin` anchors the server's clock to the moment the battle actually started running. */
   if(kind==='begin'){
@@ -1723,7 +1728,12 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
-    dust:u.dust||0 }; }
+    dust:u.dust||0,
+    // day-boundary: HUD shop counters are server-owned (ET-midnight day via shopState); the client
+    // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
+    shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
+      foodCost:((sh.food|0)<SHOP_FOOD_COSTS.length?SHOP_FOOD_COSTS[sh.food|0]:null),
+      goldCost:((sh.gold|0)<SHOP_GOLD_COSTS.length?SHOP_GOLD_COSTS[sh.gold|0]:null) }; }catch(e){ return null; } })() }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
 /* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
    server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
@@ -2074,23 +2084,8 @@ async function api(req,res,url){
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
-    // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
-    // all progress — instead of spawning a new account. This is what "Create account" does for a guest.
-    const gu=authUser(req);
-    if(gu && gu.guest){
-      if(DB.byName[name.toLowerCase()] && DB.byName[name.toLowerCase()]!==gu.id) return send(res,409,{error:'That Profile name is already taken'});
-      const oldName=(gu.name||'').toLowerCase(), c=makeCred(b.pass);
-      delete DB.byName[oldName]; gu.name=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
-      if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
-      // AUDIT (critical): registering a name NEVER grants a role. Admin comes only from the stored
-      // role stamped by migrateAdminRoles() (env-driven) or ADMIN_IDS.
-      DB.byName[name.toLowerCase()]=gu.id;
-      if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
-      dropTokens(gu.id); const tok=issueToken(gu.id); writeDB();
-      return send(res,200,{ token:tok, profile:profileFor(gu) });
-    }
-    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
-    // cap account creation to 3 per device (and a softer per-network cap so clearing storage can't fully bypass it)
+    // v328 — caps run BEFORE the guest-upgrade branch. The live client always registers as a signed-in guest,
+    // so the device/network caps below were dead code and guest→upgrade→logout→new guest looped forever.
     const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
     /* v274 — THE NETWORK CAP IS A WINDOW, NOT A LIFE SENTENCE.
@@ -2103,6 +2098,25 @@ async function api(req,res,url){
       const times=Array.isArray(rec)?rec.filter(t=>now-t<WINDOW):[];
       if(times.length>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many new accounts from this network today — try again tomorrow.'});
       DB.ipAccounts[ip]=times; }
+    // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
+    // all progress — instead of spawning a new account. This is what "Create account" does for a guest.
+    const gu=authUser(req);
+    if(gu && gu.guest){
+      if(DB.byName[name.toLowerCase()] && DB.byName[name.toLowerCase()]!==gu.id) return send(res,409,{error:'That Profile name is already taken'});
+      const oldName=(gu.name||'').toLowerCase(), c=makeCred(b.pass);
+      delete DB.byName[oldName]; gu.name=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
+      if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
+      // AUDIT (critical): registering a name NEVER grants a role. Admin comes only from the stored
+      // role stamped by migrateAdminRoles() (env-driven) or ADMIN_IDS.
+      DB.byName[name.toLowerCase()]=gu.id;
+      if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
+      if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;   // v328 — an upgrade IS an account creation for cap purposes
+      DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50);
+      dropTokens(gu.id); const tok=issueToken(gu.id); writeDB();
+      return send(res,200,{ token:tok, profile:profileFor(gu) });
+    }
+    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
+    // (v328: device / network caps now run above, before the guest-upgrade branch)
     const id=uid(), c=makeCred(b.pass);
     const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -3023,7 +3037,7 @@ async function api(req,res,url){
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
       if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(prog.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
-      const elite=(node%5===0);   // guardian/boss stages: 3 rewarded runs/day, sweeps included
+      const elite=(mode==='normal' && isEliteStageSrv(node)) || campIsBoss(node);   // guardian (3/6/9, normal portal — the stages that pay a hero fragment) & boss (10) stages: 3 rewarded runs/day, sweeps included. Was node%5===0, which capped 5/15/25 and never a guardian.
       prog.runs=prog.runs||{}; const dk=nyDayKey();
       if(prog.runs.k!==dk) prog.runs={k:dk};
       if(elite){ const used=prog.runs['n'+node]|0; const left=Math.max(0,3-used);
@@ -3200,6 +3214,11 @@ async function api(req,res,url){
     const node=b.node|0; const st=portalStageOf(mode,node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
     if(node>prog.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
+    /* Daily run cap (guardian & boss, node%5===0): refuse up front so stamina is not spent on a run the
+       resolve route will not pay. An open, still-valid session for this node is left alone so a
+       reconnect can resume the fight it already paid for. */
+    if(node%5===0 && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
+      const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
@@ -3341,9 +3360,20 @@ async function api(req,res,url){
       if(won){
         stars=Math.max(1,Math.min(3,rep.stars|0));
         const first=a.node>prog.cleared;
+        /* DAILY RUN CAP — the SAME 3-rewarded-runs/day budget /api/campaign/sweep enforces for guardian
+           & boss stages (node%5===0), on the SAME prog.runs counter, so manual runs and sweeps share
+           one budget. A first clear always pays and never spends the budget. A capped repeat win still
+           records stars / cleared / the receipt, but pays nothing and says so (reward.dailyCapped). */
+        const capStage=(a.node%5===0);
+        let rewarded=true;
+        if(capStage && !first){
+          prog.runs=prog.runs||{}; const _rdk=nyDayKey(); if(prog.runs.k!==_rdk) prog.runs={k:_rdk};
+          const _rused=prog.runs['n'+a.node]|0;
+          if(_rused>=3) rewarded=false; else prog.runs['n'+a.node]=_rused+1;
+        }
         const rw=st.rewards;
-        reward={ gold:first?rw.firstGold:rw.repeatGold, playerXp:first?rw.playerXpFirst:rw.playerXpRepeat,
-                 heroXp:first?rw.heroXpFirst:rw.heroXpRepeat, first };
+        reward={ gold:rewarded?(first?rw.firstGold:rw.repeatGold):0, playerXp:rewarded?(first?rw.playerXpFirst:rw.playerXpRepeat):0,
+                 heroXp:rewarded?(first?rw.heroXpFirst:rw.heroXpRepeat):0, first, dailyCapped:!rewarded, runCounted:(capStage&&!first&&rewarded) };
         led.gold=Math.min(100000000,led.gold+reward.gold);
         led.px=Math.min(99000000,led.px+reward.playerXp);
         for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
@@ -3351,7 +3381,7 @@ async function api(req,res,url){
         if(stars>(prog.stars[a.node]|0)) prog.stars[a.node]=stars;
         ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
         // Correction Spec v1: the stage's EXACT named Glyph Fragment target, granted server-side
-        reward.glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity})));
+        reward.glyphFragments=rewarded?glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity}))):[];
         /* GUARDIAN STAGES PAY THEIR FRAGMENT ON THIS ROUTE TOO. The DROPS panel promises x2-4 hero
            fragments on a normal-portal elite stage, and the sweep route + /api/elite/resolve both
            grant them — but manual play resolved HERE granted none, so a signed-in player got nothing,
@@ -3496,8 +3526,14 @@ async function api(req,res,url){
            The dungeon used to roll them in the browser with Math.random() and write them straight into
            the local save, signed in or not — permanent value minted by the client. The roll happens
            here now, on the ledger, and the browser only animates what it is told. */
-        let mats=null;
+        let mats=null, matsCapped=false, matsLeft=null;
         if(kind==='dungeon'){
+          /* v328 (audit 88/106) — the material roll paid EVERY winning resolve with no cap, and a fresh
+             requestId on an already-cleared floor re-minted it forever. Day-keyed counter, same shape as
+             led.eliteDay; a capped win still records the floor and pays the first-clear reward. */
+          const dk=nyDayKey(); led.dungeonDay=led.dungeonDay&&led.dungeonDay.k===dk?led.dungeonDay:{k:dk,mats:0};
+          if((led.dungeonDay.mats|0)>=DUNGEON_MATS_PER_DAY){ matsCapped=true; matsLeft=0; }
+          else { led.dungeonDay.mats=(led.dungeonDay.mats|0)+1; matsLeft=Math.max(0,DUNGEON_MATS_PER_DAY-(led.dungeonDay.mats|0));
           led.eqMats=led.eqMats||{};
           const rng=SIM.mulberry32(srvSeed('mats', me.id, floor, reqId));
           const n=3+Math.floor(ledPlayerLevel(led)/5);
@@ -3505,8 +3541,8 @@ async function api(req,res,url){
           for(let i=0;i<n;i++){ const k=EQ_MAT_KEYS[Math.floor(rng()*EQ_MAT_KEYS.length)];
             led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+1); mats[k]=(mats[k]||0)+1; }
           ledTx(me,'dungeon:mats:'+floor,mats);
-        }
-        writeDB(); return {ok:true, won:true, first, best:T.best, reward, mats, eqMats:(led.eqMats||null), ledger:ledgerView(me)};
+        } }
+        writeDB(); return {ok:true, won:true, first, best:T.best, reward, mats, matsCapped, matsLeft, matsCap:DUNGEON_MATS_PER_DAY, eqMats:(led.eqMats||null), ledger:ledgerView(me)};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/quest/claim'){ const out=idem(me.id+':quest:'+reqId,()=>{
         led.quests=led.quests||{claimed:{},chainStep:0};
@@ -4161,7 +4197,7 @@ try{
   const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'true')==='true';   // ON by default since 26 Aug — the client now sends its token on every WS frame; set env false only as an emergency rollback
   const WS_MSG_MAX = +(process.env.WS_MSG_MAX || 16384);   // per-frame byte cap (replay chips already capped at 8000)
   function wsAccount(m){ const id=lookupToken(m&&m.token); return id?DB.users[id]:null; }
-  function wsRateOk(ws){ const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=40; }
+  function wsRateOk(ws, isAct){ if(isAct===2) return true; const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=(isAct?160:40); }   // act frames: 16/s (> ACT_PER_SEC=8 + speed/stall); abandon is never dropped
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
@@ -4171,7 +4207,9 @@ try{
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
   WSS.on('connection', ws=>{
-    ws.on('message', raw=>{ if(raw && raw.length>WS_MSG_MAX) return; if(!wsRateOk(ws)) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
+    ws.on('message', raw=>{ if(raw && raw.length>WS_MSG_MAX) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
+      const _isAct=(m && m.t==='act') ? (String(m.kind||'')==='abandon' ? 2 : 1) : 0;
+      if(!wsRateOk(ws, _isAct)){ if(_isAct) wsend(ws,{t:'actack', seq:(m.seq|0), ok:false, reason:'rate'}); return; }
       // RE-AUDIT (26 Aug): the token is REVALIDATED on every frame (the client sends it on every
       // frame since v215). A revoked/expired token — or a frame that stops presenting one — unbinds
       // the socket immediately instead of riding a stale ws._uid.

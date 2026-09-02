@@ -1335,8 +1335,8 @@ const BATTLE_ANIM = {
   fritz:{ idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=3',n:24,fw:343,fh:423,cols:5,rows:5,figH:305,feet:378,cx:165,fps:8,flip:false,top:28}, walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=3',n:24,fw:605,fh:454,cols:5,rows:5,figH:305,feet:394,cx:371,fps:8,flip:false,top:12}, attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=4',n:30,fw:695,fh:459,cols:6,rows:5,figH:304,feet:395,cx:167,fps:20,flip:false,hold:1.5,top:0}, hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=3',n:30,fw:481,fh:438,cols:6,rows:5,figH:305,feet:415,cx:265,fps:14,flip:false,top:34}, ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=3',n:27,fw:793,fh:820,cols:6,rows:5,figH:304,feet:682,cx:384,fps:9,flip:false,top:36}, chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=3',n:27,fw:614,fh:394,cols:6,rows:5,figH:304,feet:371,cx:161,fps:14,flip:false,top:9}, surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=3',n:27,fw:679,fh:614,cols:6,rows:5,figH:304,feet:590,cx:237,fps:14,flip:false,top:21} },
   aureth:{
     idle:{u:'/assets/anim/aureth/aureth_idle.webp?v=6',n:24,fw:352,fh:385,cols:5,rows:5,figH:332,feet:349,cx:178,fps:8,flip:false,top:0},
-    walk:{u:'/assets/anim/aureth/aureth_walk.webp?v=7',n:24,fw:238,fh:300,cols:6,rows:4,figH:269,feet:276,cx:201,fps:14,flip:false,top:4},
-    attack:{u:'/assets/anim/aureth/aureth_attack.webp?v=7',n:22,fw:300,fh:295,cols:6,rows:4,figH:242,feet:282,cx:267,fps:20,flip:false,hold:1.1,top:2},
+    walk:{u:'/assets/anim/aureth/aureth_walk.webp?v=7',n:24,fw:238,fh:300,cols:6,rows:4,figH:269,feet:284,cx:118,fps:14,flip:false,top:4},
+    attack:{u:'/assets/anim/aureth/aureth_attack.webp?v=7',n:22,fw:300,fh:295,cols:6,rows:4,figH:242,feet:291,cx:161,fps:20,flip:false,hold:1.1,top:2},
     hit:{u:'/assets/anim/aureth/aureth_hit.webp?v=7',n:16,fw:280,fh:300,cols:6,rows:3,figH:286,feet:300,cx:127,fps:16,flip:false,top:5},
     ult:{u:'/assets/anim/aureth/aureth_ult.webp?v=7',n:24,fw:300,fh:269,cols:6,rows:4,figH:221,feet:263,cx:228,fps:14,flip:false,top:2},
     duallight:{u:'/assets/anim/aureth/aureth_duallight.webp?v=7',n:24,fw:300,fh:269,cols:6,rows:4,figH:221,feet:241,cx:249,fps:16,flip:false,top:2},
@@ -1868,7 +1868,7 @@ const GHOST_CASTLE = "/assets/img/world-map/ghost-castle.webp";   // square-padd
 const CASTLE_TIERS = [1,15,30,45,60];       // kingdom-level thresholds for castles 1..5
 function castleTier(level){ let t=1; for(let i=0;i<CASTLE_TIERS.length;i++){ if(level>=CASTLE_TIERS[i]) t=i+1; } return t; }
 function playerCastleImg(){ return CASTLE_IMGS['castle'+castleTier(playerLevel())] || CASTLE_IMGS.castle1 || ''; }
-function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key]; return p?`<img src="${p}" style="width:${px}px;height:${px}px;border-radius:9px;object-fit:cover;display:block;box-shadow:0 2px 7px rgba(0,0,0,.45)">`:`<span style="font-size:${Math.round(px*0.72)}px">${HERO_TYPES[key].emoji}</span>`; }
+function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{}; return p?`<img src="${p}" style="width:${px}px;height:${px}px;border-radius:9px;object-fit:cover;display:block;box-shadow:0 2px 7px rgba(0,0,0,.45)">`:`<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`; }
 // symmetric head-shot crop of a portrait (auto-detects the figure and frames head+shoulders centered)
 const HERO_HEAD={};
 function heroHead(key,cb){
@@ -2447,6 +2447,10 @@ function migrateG(){
     D.forEach(k=>{ if(HERO_TYPES[k]){ if(!G.unlocked)G.unlocked={}; G.unlocked[k]=true; } });
     const fx=a=>{ const f=Array.isArray(a)?a.filter(vh):[]; return f.length?f:D.slice(); };
     G.team=fx(G.team); G.wall=fx(G.wall); G.arenaDef=fx(G.arenaDef);
+    // wall lines 2/3 and per-mode squads may legitimately be empty — filter dead keys, no default backfill
+    const fx2=a=>Array.isArray(a)?a.filter(k=>typeof k==='string'&&vh(k)):[];
+    G.wall2=fx2(G.wall2); G.wall3=fx2(G.wall3);
+    if(G.squads&&typeof G.squads==='object'){ Object.keys(G.squads).forEach(k=>{ G.squads[k]=fx2(G.squads[k]); }); } else G.squads={};
     if(!vh(G.avatarHero))G.avatarHero='vael'; }
   // migrate old glyph/quality system → new glyph rank ladder
   if(!G.glyphRank) G.glyphRank={};
@@ -2541,7 +2545,8 @@ function xpForLevel(l){ l=Math.max(1,Math.min(MAX_LEVEL,l)); return HERO_CUM[l];
 function levelFromXP(xp){ return levelForXP(xp, HERO_CUM); }
 function heroLevel(key){ return Math.max(1, Math.min(playerLevel(), levelFromXP(G.heroXP[key]||0))); }
 function heroCapped(key){ return levelFromXP(G.heroXP[key]||0) >= playerLevel(); } // xp level hit the account cap
-function heroStat(key,base){ return base*(1+0.18*(heroLevel(key)-1))*starMult(key); }   // stars multiply base HP/ATK (Magic-Rush style)
+function lvlScale(lvl){ return 1+0.05*(lvl-1); }   // THE per-level stat curve. Shared by makeUnit (combat), statAtLevel (codex), heroStat (cards) and the power estimators so display can never drift from the unit that actually fights (server mirrors 0.05 too).
+function heroStat(key,base){ return base*lvlScale(heroLevel(key))*starMult(key); }   // stars multiply base HP/ATK (Magic-Rush style)
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
 const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=20;   // City Wall opens with the Watch Tower city loop (Blueprint v1)
 // ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). All 10 chapters playable. ----
@@ -2629,14 +2634,17 @@ let selected=null,battleTime=0,ended=false,rageMul=1;
    if another fight starts first, that result is stale and must never reach the screen. */
 let _resultTimer=null;
 let _resultBusy=false, _resultBusyUntil=0;   /* v327: a result is queued, or its /resolve POST is still in flight. An auto-update reload in this window eats the whole stage attempt (attemptId + INPUT_LOG are memory-only), so updates must wait it out. */
-function resultLater(fn,ms){ if(_resultTimer)clearTimeout(_resultTimer);
+let _resultEpoch=0;   /* v328: every scheduled result gets an epoch; cancelResult()/resultLater() bump it, so an async continuation that resumes after a NEW fight started sees itself stale */
+function resultStale(ep){ return ep!==_resultEpoch; }
+function resultLater(fn,ms){ if(_resultTimer)clearTimeout(_resultTimer); var ep=++_resultEpoch;
   _resultBusy=true; _resultBusyUntil=Date.now()+(ms||0)+20000;   // hard ceiling: a hung request must never block updates forever
   _resultTimer=setTimeout(function(){ _resultTimer=null;
-    var p=null; try{ p=fn(); }catch(e){ console&&console.error&&console.error(e); }
+    if(ep!==_resultEpoch) return;   // v328: superseded before it fired
+    var p=null; try{ p=fn(ep); }catch(e){ console&&console.error&&console.error(e); }
     if(p&&typeof p.then==='function'){ p.then(function(){ _resultBusy=false; },function(e){ console&&console.error&&console.error(e); _resultBusy=false; }); }   // async result paths stay "busy" until their POST settles
     else { _resultBusy=false; }
   }, ms); return _resultTimer; }
-function cancelResult(){ if(_resultTimer){ clearTimeout(_resultTimer); _resultTimer=null; } _resultBusy=false; }
+function cancelResult(){ _resultEpoch++; if(_resultTimer){ clearTimeout(_resultTimer); _resultTimer=null; } _resultBusy=false; }
 function updateUnsafe(){ return (state==='battle' && !ended) || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil); }   // v327: live fight OR a result/resolve still in flight — reloading now loses the attempt
 /* v269 — YOUR TIMING IS THE INPUT.
    The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
@@ -3217,7 +3225,7 @@ function simFightResult(allySnaps, foeTeam, seed, manualReplay){
 function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   // flat Armor/Magic-Resist rating → diminishing damage-reduction fraction (caps well under 100%)
 function makeUnit(key,team,x,y,levelOverride,extra){
   // (uid is assigned at the end of this function — see `u.uid=_uidSeq++`)
-  const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=1+0.05*(lvl-1);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
+  const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=lvlScale(lvl);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
   const boss=extra&&extra.boss;
   /* v270 (PLAYER-TRUTH): a hero can be built from a SERVER-AUTHORITATIVE spec instead of this
      browser's own save. `extra.spec` carries the progression the server froze at battle start —
@@ -4740,9 +4748,11 @@ function endBattle(won){
       } }catch(e){}
     const oldRank=G.arenaRank; let reward=0;
     saveG(); updateHubChrome();
-    resultLater(async()=>{ let newRank=oldRank;
+    resultLater(async(ep)=>{ let newRank=oldRank;
       let d=null;
-      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()}); if(d&&typeof d.rank==='number') newRank=d.rank;
+      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()});
+        if(resultStale(ep)){ if(d) ledgerSync(); return; }   // v328: a new fight started during the round-trip — the server already paid; do not paint over the live battle
+        if(d&&typeof d.rank==='number') newRank=d.rank;
         if(d&&d.sim) CUR.arenaSim=d.sim;   // v255 (§7): keep the server's event log for the result recap
         if(d&&typeof d.won==='boolean') won=d.won; }   // the SERVER decides the arena outcome
       // AUDIT C3: the SERVER's shared-simulator verdict is the arena result — the visual fight is
@@ -4773,8 +4783,8 @@ function endBattle(won){
       document.getElementById('resultReward').innerHTML=won?winMsg:(`Lost to <b>${CUR.oppName}</b>.`+_mv+_rc);
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
-    resultLater(async()=>{ let r=null;
-      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8()}); }
+    resultLater(async(ep)=>{ let r=null;
+      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8()}); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       if(r&&r.result&&typeof r.result.won==='boolean') won=r.result.won;   // AUDIT C7: the server's verdict IS the result
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
@@ -4810,7 +4820,8 @@ function endBattle(won){
       else if(r&&r.error){ bannerMsg(r.error); ledgerSync(); }
       if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger);
         if(r.mats){ const txt=EQ_BASE.filter(b=>r.mats[b[0]]).map(b=>b[1]+' +'+r.mats[b[0]]).join(' ');
-          const el=document.getElementById('resultReward'); if(el&&txt) el.innerHTML+=' · <span style="color:#8fe3ff">'+txt+'</span>'; } } }).catch(()=>{});   // v250: server-verified
+          const el=document.getElementById('resultReward'); if(el&&txt) el.innerHTML+=' · <span style="color:#8fe3ff">'+txt+(typeof r.matsLeft==='number'?' <span style="color:#8b98a9">('+r.matsLeft+' material drops left today)</span>':'')+'</span>'; }
+        else if(r.matsCapped){ const el=document.getElementById('resultReward'); if(el) el.innerHTML+=' · <span style="color:#ff9a9a">Material drops are limited to '+((r.matsCap|0)||10)+' per day — none this run.</span>'; bannerMsg('Dungeon materials: daily limit of '+((r.matsCap|0)||10)+' reached.'); } } }).catch(()=>{});   // v250: server-verified
       /* v273 (audit response P0): the equipment-material roll happens on the SERVER (/api/trial/resolve)
          and arrives with the ledger. Offline play still grants nothing permanent. */
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0};
@@ -4832,7 +4843,7 @@ function endBattle(won){
     resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 ${_srv?('+'+(_srv.n|0)+' '+((HERO_TYPES[_srv.hk]||{}).name||_srv.hk)):(ACC.token?'tallying':('+'+frags+' '+HERO_TYPES[key].name))} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='raid'){ if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
-    resultLater(async()=>{
+    resultLater(async(ep)=>{
       // v253: a city fight is server-resolved from ANY entry point (map march or direct raid) —
       // if the verified payload isn't in hand yet, fetch it before showing the result.
       if(!CUR.pvpVerified && CUR.tId && ACC.token){
@@ -4840,6 +4851,7 @@ function endBattle(won){
           if(vr&&vr.ok){ CUR.pvpVerified=Object.assign({},vr,{recap:pvpRecap(vr.log)}); if(vr.ledger) adoptLedger(vr.ledger); else ledgerSync&&ledgerSync(); }
         }catch(e){}
       }
+      if(resultStale(ep)) return;   // v328: a new fight started while /api/pvp/attack was in flight (ledger already adopted above)
       // v253 (visual audit #6): the CITY SKIRMISH result names the opponent, marks the result
       // server-verified, shows exactly what was earned with its cap, and recaps the fight.
       const V=CUR.pvpVerified||null, sWon=V?!!V.won:won;
@@ -4854,11 +4866,12 @@ function endBattle(won){
       document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null);   // snapshot the transcript NOW: anything that runs during the 800ms delay must not be able to blank it
-    resultLater(async()=>{
+    resultLater(async(ep)=>{
       /* v270: submit WHAT THE PLAYER DID — the tick-stamped transcript of every ultimate and gear
          skill. The server replays it against the frozen session; `digest` is diagnostics only. */
       const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8(),
         inputLog:_log, digest:_dg});
+      if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // AUTHORITATIVE server result
       setResultVerdict(sWon, (r&&r.stars)||null);   // AUDIT #20: golden row = the SERVER's star count
       if(r&&r.ledger) adoptLedger(r.ledger);
@@ -4871,7 +4884,8 @@ function endBattle(won){
       // The server now spends one of the stage's 3 rewarded runs per day when it pays the fragment —
       // mirror that locally so the stage card's "rewarded runs left today" tells the truth. Keyed off
       // the receipt, so an old server (no eliteFrag) leaves the counter exactly as it was.
-      if(sWon && r && r.reward && r.reward.eliteFrag) try{ stageCountRun(CUR.node,1); }catch(e){}
+      if(sWon && r && r.reward && (r.reward.eliteFrag || r.reward.runCounted)) try{ stageCountRun(CUR.node,1); }catch(e){}
+      if(sWon && r && r.reward && r.reward.dailyCapped) try{ stageCountRun(CUR.node,ELITE_BOSS_DAILY); }catch(e){}
       document.getElementById('resultTitle').textContent=sWon?'VICTORY':'DEFEAT';
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       // v253 (visual audit #1): the GUARANTEED stage reward is the headline — exact item, icon and
@@ -4880,6 +4894,7 @@ function endBattle(won){
         ? rewardPanel((r.reward&&r.reward.glyphFragments)||[], {gold:(r.reward&&r.reward.gold)||0, px:(r.reward&&r.reward.playerXp)||0, heroXp:(r.reward&&r.reward.heroXp)||0},
             'Portal '+stageCode(CUR.node)+' — repeat or sweep this stage to farm it.')
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">🧩 +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
+          +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
           +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
         : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.');
       document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':'Same monsters every attempt — learn the stage.';
@@ -6183,6 +6198,9 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
      don't merge — server truth, no more and no less. Guard kept so a response without eqMats is a no-op. */
   if(st.eqMats){ const _m={}; for(const _k in (G.eqMats||{})) _m[_k]=0; for(const _k in st.eqMats) _m[_k]=st.eqMats[_k]|0; G.eqMats=_m; }
   if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
+  // day-boundary: HUD shop counters are server-owned (ET-midnight day). Mirror them when the server reports them;
+  // an old server without `shop` leaves the local fallback untouched.
+  if(st.shop&&typeof st.shop==='object'){ G.foodBuys=st.shop.food|0; G.goldBuys=st.shop.gold|0; }
   saveG(); if(typeof updateHubChrome==='function') try{updateHubChrome();}catch(e){}
   /* 29 Aug — THE OTHER HALF OF "CAMPAIGN OPENS ON 1-1", and of the player level reading wrong. The
      ledger is what owns campaign progress and player XP, and it arrives asynchronously. If you opened
@@ -6249,7 +6267,8 @@ function ledCapture(reason,fn){ const g0=G.gold||0, d0=G.gems||0; const out=fn()
    The fetch is unchanged and still runs after the cloud-save fetch; we just keep the promise so
    enterGame() can hold the splash over it. */
 let _ledgerBoot=null;
-setTimeout(()=>{ _ledgerBoot = ledgerSync(); }, 1200);   // boot adoption (after the cloud-save fetch has run)
+let _profileBoot=null;   // v328: the boot /api/profile promise — the ledger adoption is chained after it, so a slow profile can never land on top of an already-adopted ledger and wipe it to DEFAULT_G
+setTimeout(()=>{ _ledgerBoot = Promise.resolve(_profileBoot).catch(()=>null).then(()=>ledgerSync()); }, 1200);   // boot adoption — strictly AFTER the cloud-save fetch has resolved (not a 1200 ms guess)
 setInterval(()=>{ ledgerSync(); }, 45000); // periodic reconciliation
 
 let SKY={ st:null, busy:false, assignSel:null, lane:null };   // lane = bridge view open on that citadel lane
@@ -6773,6 +6792,7 @@ function campaignPlayerXP(g,firstClear){ const elite=isEliteStage(g), boss=isBos
   if(firstClear){ let x=20+g*4; if(elite)x*=2; if(boss)x*=3; return Math.round(x); }
   return elite?12:6; }
 window.STAGE_CACHE=window.STAGE_CACHE||{};
+window.SM_KEY=window.SM_KEY||null;   // v328: identity of the stage currently shown in #stageModal (mode:node), null when closed
 window.STAGE_POWER=window.STAGE_POWER||{};   // v257: the server's own reading of YOUR power, per stage fetch
 window.STAGE_GATE=window.STAGE_GATE||{};    // v258: the chapter-boss player-level gate, from the server
 /* v255 (80/20 contract §2): the stage-detail panel — recommended power vs YOUR line, the authored
@@ -6917,7 +6937,8 @@ function stageDetailHTML(stg,node){
 }
 function openStageModal(i,mode){
   mode=mode||PORTAL||'normal';
-  if(i>portalCleared(mode)+1) return;   // locked — must clear the previous stage first
+  if(i>portalCleared(mode)+1) return;   // locked
+  const _smKey=mode+':'+i; window.SM_KEY=_smKey;   // v328: stamp the stage this modal instance is for — must clear the previous stage first
   // v232 (audit): the stage's AUTHORED named fragment target is visible BEFORE farming
   const _stg=STAGE_CACHE[mode+':'+i];
   // v257: always refresh — the stage data is static but YOUR power changes every time you level,
@@ -6927,7 +6948,7 @@ function openStageModal(i,mode){
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
-    if(el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage,i,mode);
+    if(window.SM_KEY===_smKey&&el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage,i,mode);
     preloadStageArt(r.stage); } }).catch(()=>{}); }
   if(STAGE_CACHE[mode+':'+i]) preloadStageArt(STAGE_CACHE[mode+':'+i]);   // cached stage: warm the art immediately
   if(i>portalStages(mode)) return;
@@ -6961,7 +6982,7 @@ function openStageModal(i,mode){
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i,1,mode);
   const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10,mode);
 }
-function closeStageModal(){ document.getElementById('stageModal').classList.remove('active'); }
+function closeStageModal(){ window.SM_KEY=null; document.getElementById('stageModal').classList.remove('active'); }
 // Sweep a cleared stage `times` times (default 1). A ×10 sweep runs as many as the stamina bar
 // can actually pay for and says how many it ran, rather than refusing the whole batch at 9/10.
 /* v253 (visual audit #1/#2): ONE reward vocabulary. Guaranteed named items on top with icon + exact
@@ -7120,7 +7141,7 @@ let glTab='heroes';
 const GLOSSARY_INFO={"bug": {"name": "Skarrn", "lore": "Skarrn are bred, not born. Deep beneath the Shardwood the hives hang in resonant galleries where the rock itself rings at a single unchanging note, and the drones are grown inside that note until their wings answer it. A Skarrn does not tire the way living things tire. It winds up. The first exchange is almost sluggish; by the fourth its wings have found the hive-note and it is striking faster than the eye follows, and the crystal stinger takes a sip of something vital back with every hit.\n\nThat is the part the survivors describe wrongly. They say it got faster because it smelled blood. It did not. It got faster because nothing had yet made it stop, and a Skarrn left alone simply continues accelerating until the fight ends or it does. Veteran companies kill the drone that looks least dangerous first, on the understanding that in ninety seconds it will be the only one that matters. Those who do not learn this lose whole squads to a single insect that was, at the opening of the engagement, the slowest thing on the field."}, "creep": {"name": "Skulk", "lore": "Skulk are patient in a way that reads as intelligence and probably is not. They live in the rubble of the collapsed roads — the old imperial routes that dropped into their own foundations during the Sundering — and they do not hunt so much as wait beside the places where a path narrows and a column has to string out single file.\n\nThey take the last one. Always the last one. A long stone-knuckled arm comes out of the dark and whatever it closes on is gone before the sound of it reaches the head of the line, and by the time anyone turns there is only a slightly disturbed patch of gravel and a gap in the marching order. What the Skulk does next is unhurried, because it has already won: one heavy blow to leave its catch dazed and unable to call out, and then the long drag back into the stone.\n\nCaravan masters count heads at every narrowing. It is not superstition. It is the only defence that has ever worked."}, "dyrmen": {"name": "Volthex", "lore": "A Volthex has no parent and no childhood. Where raw mana pools in a low place and sits long enough, it begins to order itself — first into crusts, then into lattices, then into something that turns to face you. Nobody has satisfactorily explained the last step. The scholars who study them are careful to say *grown* rather than *born*, and careful not to say *thinks*.\n\nIn a fight a Volthex works like the light it is made of. It scatters first, throwing razor shards in glittering volleys that seem almost decorative until the third one opens a throat, and this is not random — it is thinning, the way you thin a crowd before you need a clear line. Then every facet turns inward at once, the whole body dimming as the light is gathered, and a single prism-beam goes through plate armour as though the armour had been a suggestion.\n\nThey cannot be reasoned with, bribed, or frightened. They can be shattered, and that is the entire tactical literature on the subject."}, "fire boar": {"name": "Cindertusk", "lore": "The ash barrens were farmland once. Cindertusk are what the fire left behind when it had finished with the topsoil and moved on to the things living on it — wild furnace-beasts with hides cracked open in a lattice of living magma, each fissure breathing when the animal breathes. They are not undead and not summoned. They are simply pigs that the barrens kept.\n\nA Cindertusk opens by gouting burning breath across whatever stands in front of it, which is less an attack than a way of finding out where everyone is. Then it rears and comes down, and the ground it lands on erupts — a blast of cinder and shock that lifts an entire front rank off their feet and fills the air with enough ash that the second charge arrives unseen.\n\nHerds are worse than individuals by an order nobody expects, because they cook the field between them. Whole companies have been broken without a single Cindertusk closing to horn range, simply by being made to stand in air that had stopped being breathable."}, "fire skeleton": {"name": "Ashen", "lore": "Every Ashen was a pyromancer who found the ceiling of their talent and went through it anyway. The fire that kills a fire-mage does not always let go. What walks afterward is the skeleton and the habit — no memory, no name, no particular malice, just the muscle-knowledge of a discipline practised so long that the bones kept it after everything else burned away.\n\nThey fight like teachers. A pointed finger, and a foe is alight; a sweep of the arm, and a rain of embers falls in a wide arc, laying down a smouldering patch that eats anyone who stands in it. These are first-year forms. An Ashen performs them with the terrible clean precision of someone who has done the exercise ten thousand times and no longer needs to think.\n\nTemples that once trained pyromancers now keep a standing bounty on them, quietly, and do not discuss why the descriptions in the bounty notices are so specific about the posture."}, "garbage mob": {"name": "Sludgemaw", "lore": "A midden is not dangerous. Twenty middens layered over four hundred years, in a city that never once carted its refuse beyond the walls, eventually is. Sludgemaw is what rot becomes when enough of it accumulates in one place and begins, slowly, to want.\n\nIt dresses itself. That is the detail that unsettles people who have only heard about them: a Sludgemaw scavenges plate from whatever it has previously eaten and works it into its own bulk until blows land with a dull sound and barely mark it. Beneath the salvaged armour there is no body to speak of, only a maw of broken teeth — cutlery, blade-fragments, the jawbones of earlier meals — and a lunge that is far quicker than the shambling gait suggests.\n\nEvery bite mends it. This is the whole problem with Sludgemaw. A prolonged fight against one is a fight in which your side is being converted, piece by piece, into the reason you are losing."}, "glitch phantom": {"name": "Bitwraith", "lore": "There are machines in the deep vaults that were never meant to hold a soul, and a period in the last age when several people found out what happens when you put one in anyway. Bitwraith is the residue. Not a ghost — ghosts are continuous. A Bitwraith flickers between frames, present and absent and present again, and the gap is where it does its work.\n\nIts touch is pure static, and it rots from the inside: the wound is nowhere, the pain is everywhere, and healers report the deeply unpleasant experience of mending tissue that is fine and watching the patient continue to fail. When pressed it simply stops being where it was and resumes somewhere worse — always behind, always among the ones who were relying on not being reached.\n\nThe vaults are sealed now. This is thought to be a formality. Bitwraiths do not appear to require the machines any more, which raises a question nobody in the Emberweave has been willing to write down."}, "knat": {"name": "Vexmite", "lore": "Calling a Vexmite *it* is a convenience. A Vexmite is a seething knot of stingers and wings that moves and reacts as one spiteful animal, and if you divide the cloud in half you have two smaller Vexmites and a worse afternoon. Where the cohesion comes from is not known. It survives being scattered, drowned, and set on fire.\n\nIt picks one target and falls on them in a blur, and the individual stings barely register — a prickling, a heat, an itch. That is by design, insofar as anything about a Vexmite is. Each sting leaves a fraction of venom, and the arithmetic does the rest, so that a soldier who walked away irritated is on the ground an hour later while the cloud is four valleys distant and entirely uninterested.\n\nField medics rank Vexmite wounds as low-priority on sight and have lost more patients to that judgement than to any monster in the bestiary."}, "lost soulss": {"name": "Lost Soul", "lore": "Lost Souls are the lanterns of people who died somewhere nobody came back for. Drowned crews, sealed miners, the garrisons of forts that were relieved a week too late. They drift in the place it happened and they do not remember it — grief is all that survived the crossing, and grief without its story is just a light in the dark going slowly nowhere.\n\nThey fling bolts of cold soul-light, which is the closest thing they have to speech. It is when one draws close that the trouble starts. A Lost Soul does not attack so much as *enter*, and the hero it finds is abruptly holding somebody else's last ten minutes — the water coming up, the roof coming down, the certainty that the relief column is on its way. They stand frozen through all of it. From outside it lasts a moment.\n\nPriests will tell you the kindest thing is to end them. Priests are also the ones who ask, afterward, whether anyone caught a name."}, "raven": {"name": "Blackquill", "lore": "Blackquill was an ordinary bird for the first part of a very long life. Battlefields changed that. Something in the Emberweave rewards a scavenger that keeps returning to the same kind of ground, and Blackquill returned to it for three centuries and grew fat, then large, then clever, and then something for which *bird* is a courtesy.\n\nIt opens by lashing the front line with a storm of razor feathers — a shrieking, blinding thing that does less damage than it appears to and is not meant to do damage at all. It is meant to make a company look up. The murder comes down while they are looking, an unkindness of black shapes falling on the whole formation at once from an angle nobody was watching.\n\nSoldiers who have survived it describe the same detail unprompted: that the bird itself did not join in, and stayed above, and seemed to be counting."}, "whisp candle": {"name": "Whisp", "lore": "A Whisp remembers being alive and has never forgiven the arrangement. It is a small flame, patient, and it burns at roughly the brightness of a lamp carried by someone about a hundred paces ahead of you on a dark road — which is not an accident and is the entire strategy.\n\nFollow it and it lights you: a clinging fire that will not be smothered or beaten out, that goes where you go. Then it drops guttering embers behind itself, and the embers take, and the patch of ground behind you becomes as impassable as the dark in front. A Whisp does not need to be strong. It only needs you to keep choosing the light.\n\nHedge-wisdom in the border villages is very old and very short on this point: *if the lamp ahead never gets closer, it is not a lamp.* Every generation there are people who work this out too late, and every generation the Whisps are a little further down the road."}, "rock golem": {"name": "Granith", "lore": "Granith was made to dig, and it outlived the company that made it by a hundred and forty years. Nobody switched it off, because switching it off was a task on somebody's list and the somebody died. It kept the shafts clear for a while after that. Then the shafts collapsed, and it kept the tools.\n\nIt heaves broken rubble across a field with the indifference of a machine moving spoil, and this is survivable. What is not survivable is the pickaxe. Granith has held on to it through everything — worn to a shine at the haft, the head chipped and rehardened by a century of striking stone — and when a fight has run long enough Granith throws it, unerringly, at whoever is standing farthest back. It goes through everyone in the line on the way.\n\nMining charters in the region still carry a clause about recovering company property. The clause is older than the Emberweave, and no one has ever tried to enforce it."}, "orc": {"name": "Grushak", "lore": "Grushak is not a leader of a warband. Grushak is a warband, in the sense that engaging him requires the same number of people, the same preparation, and produces the same casualties. He came south during the third migration and simply never left, and the settlements that were there when he arrived are marked on current maps as terrain features.\n\nHe fights like a landslide, which is to say without any interest in your formation. One swing goes through a whole cluster because he does not distinguish between the man he is aiming at and the two standing near him. When a line holds, he stomps, and the ground buckles, and everyone on it goes down together — after which the swinging resumes on people who are already lying on their backs.\n\nThree separate armies have claimed to have killed him. All three claims are considered plausible. None of them has stopped him being reported again the following spring."}, "ghoul fiend": {"name": "Gnashul", "lore": "Gnashul is what happens when hunger outlasts the body that had it. The claws are the least of it — they leave wounds that will not close, ragged things that go on bleeding hours after the fight, which is unpleasant but survivable with a competent surgeon and enough thread.\n\nIt is the bite that ends people. Gnashul's bite rots the *magic* meant to mend it. A healer laying hands on the wound feels the working go in and simply drain away, and the more they pour in the less comes back, until they are spending themselves for nothing on a soldier who is dying at exactly the rate they cannot slow. The longer Gnashul stays attached to someone, the less any healer can do.\n\nCompanies that fight ghoul fiends regularly adopt an ugly doctrine: kill the Gnashul before treating anyone it has bitten. It is correct, and it is not a thing anyone volunteers to explain to the wounded."}, "shadow ghoul": {"name": "Nightgloom", "lore": "Nightgloom throws bolts of pure absence — not darkness, which is only the lack of light, but a hole in the place where a thing was, that closes afterward slightly wrong. Anyone struck describes the same sensation: not pain, but a brief and total conviction that they have forgotten something they cannot afford to have forgotten.\n\nCornered, it stops throwing and simply exhales. The dark comes out in a soft spreading pulse, and it finds everyone — behind cover, behind a shield wall, behind the assumption that being at the back of the formation is the same as being safe. There is no line of sight to break, because Nightgloom is not looking.\n\nIt appears where light has recently and violently failed: burned-out watchfires, cities that went dark in one night, the lower levels of the vaults. Whether it causes the failure or arrives afterward is an open argument, and the people best placed to settle it were present for the failure."}, "slime": {"name": "Ooznik", "lore": "Ooznik does not fight. Fighting implies an opponent. Ooznik digests, and everything in front of it is at some stage of that process.\n\nIt opens by spraying a searing acid across the front rank, which is efficient rather than cruel — armour is simply the first course. Wound it and you will not find that useful either: an Ooznik under pressure divides, folds a piece of itself away, and reincorporates it a moment later with the damage no longer present. There is no organ to strike, no centre to break, and no observable point at which it decides it has had enough.\n\nThe only reliable method is heat, applied continuously, faster than it can shed the damaged portion. This is well documented. It is also expensive, slow, and requires standing close to an Ooznik for a sustained period, which is why the well-documented method is so rarely the one anybody uses."}, "golem": {"name": "Grundle", "lore": "Grundle plants itself where the line needs to hold and dares the world to move it. It was built for exactly this and nothing else — no reach, no speed, no cleverness, just an enormous tolerance for being hit and a stomp that sends a slowing tremor out through the ground and turns a charge into a wade.\n\nThe danger is not Grundle. Everyone understands this and nobody manages to act on it. A Grundle occupies attention the way a fire in the room occupies attention: every eye and every blade drifts toward it, and while they drift, whatever is standing behind it works unmolested. Commanders shout themselves hoarse ordering their people past it. Their people go around it and then, without deciding to, come back.\n\nThe makers are long gone. What survives of their doctrine is a single line, recovered from a foundry wall: *the wall is not the weapon.*"}, "turtle": {"name": "Shellwark", "lore": "Shellwark is two animals depending on the minute. For most of a fight it is barely an animal at all — tucked in, plates locked, an object that weapons happen to. Attacking it during this phase is not dangerous. It is simply pointless, and Shellwark can wait longer than a company can swing.\n\nThen it comes out spinning. The shell that was a wall becomes a fortress in motion, edged plate carving in a wide circle, and everyone who spent the last minute closing to hit something that would not break is now standing exactly where they should not be. It does not chase. It does not need to. It has already been given the position it wanted by people who came to it.\n\nOld campaigners give the same advice and are ignored for the same reason every time: back off and let it open. Nobody likes standing in a field doing nothing while a monster ignores them."}, "tin beast": {"name": "Rustclank", "lore": "Rustclank hums. That is how you know it is close before you see it — a low electrical note in the fillings and the buckles, scavenged current running through a frame that was assembled out of at least four other machines by something with no understanding of any of them.\n\nIt opens by yanking the nearest fighter off their feet with a magnetic pull, straight into the grinding gearwork of its chest, which does to armour what armour is not designed to survive. Then it overclocks — gears spinning past every tolerance they were built for, blows landing faster and faster, the whole thing shrieking as it goes — until either the target gives way or Rustclank does.\n\nIt usually does. That is not comfort. A Rustclank tearing itself apart at full speed is still striking twice a second, and it has never once been observed to slow down in order to survive."}, "mimic chest": {"name": "Trapjaw", "lore": "Trapjaw is an argument about greed that keeps being won. It sits in the places where a chest ought to be, and it is always the right chest — the one at the end, the one that justifies the dungeon, the one you can see from the doorway.\n\nThe bite is what people expect and it is worse than they expect: bone-crunching, disorienting, a blow that leaves an armoured man sitting down and trying to work out which way the room went. What they do not expect is that it feeds. Every hit mends the splintered lid, tightens the ruined hinge, and closes the cracks that the last party opened, so the Trapjaw that a fresh company finds is always in better repair than the one that killed the last.\n\nThere is no way to tell them from real chests. There is a way to be certain, which is to open none of them, and in four hundred years of recorded delving no party has ever adopted it."}, "skeletal warrior": {"name": "Mordath", "lore": "Mordath was a knight, and by the accounts that survive, a good one. What is also recorded is the bargain: at the end, offered the choice between dying well and continuing, he chose to continue, and the thing that offered him the choice was scrupulous about honouring the letter of it.\n\nHe continues. The bone-winged husk wades into the front rank and carves everything in front of it in a single reaping arc, and with every wound it opens a thread of stolen life crawls back up the soul-forged blade into the hollow where a heart used to beat. The longer the melee runs, the stronger he gets, feeding on the very ranks he is cutting down.\n\nThe cruelty of the bargain is in the wording. He was granted the ability to keep swinging, and nothing else — not rest, not an ending, not the capacity to decide he has had enough. Somewhere under the helm is a man who has been fighting continuously for six hundred years and cannot stop of his own accord, and everyone who faces him is, in a sense he can no longer articulate, doing him a favour they will not survive."}, "slug beast": {"name": "Bilewretch", "lore": "A marsh can be poisoned for a long time before anything comes of it. Then the rot reaches some threshold, and what crawls out is Bilewretch — armour-plated across the skull, endlessly oozing everywhere else, moving with the unbothered slowness of a thing that has never in its life needed to hurry.\n\nIt hawks globs of hissing acid that keep eating long after they land, so a company fighting one is always fighting the last thirty seconds as well as the current ones. Press in close to end it quickly and it swells and ruptures, flinging a wave of clinging slime that leaves everyone caught in it burning and bogged down and precisely as slow as Bilewretch is.\n\nThat is the whole design, if a marsh can be said to design. You do not out-trade a Bilewretch. You either kill it from range at enormous expense, or you close, and it makes you into something that moves at its speed, and then the pace of the fight is entirely its own."}, "ice beast": {"name": "Wintercrag", "lore": "Wintercrag is a glacier that learned to hate, and the learning is documented — three centuries of survey markers showing an ice field advancing down a valley it had no business entering, against the prevailing thaw, in a straight line toward a town.\n\nIt breathes a nova of splintering frost that takes a front rank off its feet, then calls down a howling blizzard that creeps outward across the field and drags everything living to a standstill. Neither is the thing to be afraid of. Every so often the cold simply reaches out — no gesture, no tell, no warning — and stops a heart mid-beat, and a hero standing in reserve at the back of the formation is abruptly a statue that has not yet worked out it should fall.\n\nThe town is still there. It pays a levy every year to a company that maintains a line of fire-pits across the valley mouth, and the company's own records make clear that the pits do not stop Wintercrag. They slow it. The levy has been paid, without interruption, for two hundred and eleven years."}, "monster with fireball": {"name": "Magmourn", "lore": "Magmourn burns from the inside out — a furnace that was given a mind and was given nothing else, no body worth the name, no purpose, no way to put itself out. Whether that was punishment or an accident depends on which fragment of the record you trust, and both fragments were written by people with reasons to lie.\n\nIt hurls fireballs that burst like small falling suns, and when cornered it stops aiming and sets the entire field alight at once, which is less a tactic than an admission. The real danger is simply proximity: the air around Magmourn is hot enough to be its own slow death, and companies have lost their rear ranks to a monster none of them ever came within forty paces of.\n\nIt does not pursue. It has never been observed to pursue anything. It goes where it is going, and it is always going somewhere, and the maps of where it has been are kept by an order whose entire purpose is making sure the line does not intersect a settlement twice."}, "nashor beast": {"name": "Voraxis", "lore": "Voraxis is a horror of tentacle and tooth that eats while it fights, and the two activities are not separable. It does not kill a company and then feed. It feeds in order to keep killing, and the fight lasts exactly as long as the food does.\n\nIt opens by pounding the earth hard enough to stagger a line, which is a herding move — a staggered formation compresses, and a compressed formation is easier to reach in one movement. Then it hurls its own bulk clear across the field to crash down among the backline, and everything it carves open feeds it, knitting its ruined flesh closed with life that was in someone else a moment earlier.\n\nKilling it is a race against arithmetic. Every hero it wounds is subtracted from your side and added to its, and a company that fights Voraxis carefully and conservatively will lose, slowly, having done everything correctly. The ones that survive are the ones that spend everything in the first minute."}, "ogre beast": {"name": "Grommash", "lore": "Grommash is a mountain of muscle and scar tissue that has never once been made to kneel, and the list of things that have tried is long, well-attested, and includes two gods.\n\nIts club turns armour to paste. Its warbellow scatters the brave — not the cowardly, who have usually already gone; the brave, who were standing their ground when the sound arrived and who afterward cannot explain what happened to them. And nothing holds it. No chain, no binding spell, no frost, no root, no working of any school has ever kept Grommash in a place it had decided to leave. Scholars have made careers out of the question. The prevailing answer is unsatisfying: it is not that Grommash resists these things. It is that they appear to be applied to something that is not quite where Grommash is.\n\nIt comes when it wants. It leaves when it wants. In six hundred years of records there is no instance of anything at all altering either decision."}, "water monster": {"name": "Leviath", "lore": "Leviath is the drowned deep given shape and spite — not a creature of the sea so much as an argument the sea has been having with the shore, made large enough to walk.\n\nIt rolls a wall of water across the front rank and erupts geysers beneath the ones who thought they had found a gap, and for the opening minutes it is a hard fight rather than an impossible one. That is the trap, and it has taken better companies than yours. The longer Leviath is left standing, the more the ocean's fury builds behind every blow — not faster, not cleverer, simply *heavier* — until a fight that was being won is one that cannot be survived, and the change happens somewhere nobody can point to afterward.\n\nEvery account of a successful hunt describes the same thing: a decision, early, that felt like panic at the time. Every account of a failure describes a company that was doing well and saw no reason to change what was working."}, "water serpent": {"name": "Sylphice", "lore": "Sylphice coils through the tide like a living current, and the first thing anyone notices is that it is beautiful, which is not a detail the bestiaries enjoy including but is in every eyewitness account.\n\nIt strikes with a tail that cracks like a breaking wave, and calls tsunamis that take a whole line at once. Neither is what makes it a boss. Sylphice *mends* — wound it and the scales draw closed over the cut, unhurriedly, the way water closes over a thrown stone, and the damage of the last thirty seconds is simply no longer part of the conversation.\n\nTo kill it you must break it faster than the sea can put it back together, which is a specific and unforgiving requirement: not more total damage, but more damage in a shorter window than any single company can usually bring. Half the hunts that fail against Sylphice do so having landed more than enough blows to kill it three times over, spread across an afternoon it spent quietly undoing them."}, "boar warrior": {"name": "Boar Warrior", "lore": "Forty years he kept them and they never once had to think about it. The grass was where he said the grass was; the danger was whatever he put himself between. Then an army came through the valley on its way somewhere else, and the herd was in the road, and that was the whole of it.\n\nWhat comes up out of the floor now is not quite what went into it. They are bigger, and they are armoured in plate nobody remembers forging, and each of them carries a short sword and a round shield they were certainly never buried with. They do not speak. They form a line in front of Hurne without being told, every time, in the same order — the way animals that have shared a field for a long time know exactly where they stand relative to one another.\n\nThey will hold that line until it kills them, and then he will call, and they will come up again."}, "boar shaman": {"name": "Boar Shaman", "lore": "She led the herd before Hurne did, in the sense that mattered: the others watched her, and where she settled the rest settled. He would tell you she ran the valley and he only carried the water.\n\nWhatever she is now, it kept that. She comes up out of the ground last, always, after the others are already standing, and the first thing she does is walk the line and put the sick ones right. The chant is not a language anyone has identified and the bone-staff was not made by hands; the effect is simply that wounds close near her, and that anyone who crowds her herd begins, without being touched, to burn.\n\nHurne does not give her orders. It has been observed, more than once, that when the two of them are on a field together it is not entirely clear which one is being followed."}};
 function abilW(ab){ if(!ab)return ''; const M={tendrilpull:'Drags a hero in close',stun:'Strike that stuns',cleavecone:'Cleaves a wide arc in front',aoeStun:'Slams an area, stunning all caught',cleave:'Wide hit to nearby foes',nova:'Bursts damage to everyone nearby',taunt:'Forces foes to attack it + cuts damage taken',dot:'Poison/bleed/burn over time',aoedot:'A burning ground zone',mortal:'Wound that cuts the target’s healing',selfheal:'Heals itself',defensive:'Braces — takes far less damage briefly',haste:'Speeds up its own attacks',lifestealbuff:'Heals itself on every hit for a while',blink:'Teleports in and strikes',punchflurry:'A flurry of rapid hits',multiShot:'Strikes several foes at once',strike:'Heavy ranged strike',piercethrow:'Skewers everyone in a line to the farthest hero',charge:'Dashes to the farthest hero and slams',warcry:'Roars — buffs itself, fears nearby heroes',ashfall:'Drops a burning/icy patch on the ground',fireball:'Hurls a fireball that bursts on impact',volley:'Rapid shots at the nearest foes'}; return M[ab.type]||ab.name; }
 function monKitHtml(id){ const k=MONSTER_KITS[id]; if(!k)return ''; let h=''; if(k.green)h+='<div class="glAb"><b>'+k.green.name+'</b> — '+abilW(k.green)+'</div>'; if(k.blue)h+='<div class="glAb"><b>'+k.blue.name+'</b> — '+abilW(k.blue)+'</div>'; if(k.pass)h+='<div class="glAb glPass"><b>Passive · '+String(k.pass).replace(/(^|_)([a-z])/g,function(m,a,b){return b.toUpperCase();})+'</b></div>'; return h; }
-function statAtLevel(id,cat,lvl){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return null; const boss=(cat==='bosses'); const sc=1+0.05*(lvl-1); return { hp:Math.round(t.hp*sc*(boss?2.4:1)), dmg:Math.round(t.dmg*sc*(boss?1.8:1)) }; }
+function statAtLevel(id,cat,lvl){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return null; const boss=(cat==='bosses'); const sc=lvlScale(lvl); return { hp:Math.round(t.hp*sc*(boss?2.4:1)), dmg:Math.round(t.dmg*sc*(boss?1.8:1)) }; }
 function glStatsHtml(id,cat){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return ''; const s1=statAtLevel(id,cat,1); const row=(t.range<60)?'Front line':'Back line'; return '<div class="glSec"><b>📊 Stats</b><div class="glStats"><div class="gsRow"><span>❤️ HP</span><b>'+s1.hp+'</b></div><div class="gsRow"><span>⚔️ Damage</span><b>'+s1.dmg+'</b></div><div class="gsRow"><span>⏱️ Atk speed</span><b>'+t.swing+'s</b></div><div class="gsRow"><span>🎯 Range</span><b>'+(t.range<60?'Melee':t.range)+'</b></div><div class="gsRow"><span>🧭 Position</span><b>'+(t.role||'—')+' · '+row+'</b></div></div><div class="gsNote">Shown at Lv 1 · grows +5% per level</div><button class="gsBtn" onclick="openStatChart(\''+cat+'\',\''+id.replace(/\x27/g,"")+'\')">📈 View stats by level (1–60)</button></div>'; }
 function openStatChart(cat,id){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return; const gi=GLOSSARY_INFO[id]; let rows=''; for(let L=1;L<=60;L++){ const s=statAtLevel(id,cat,L); rows+='<tr'+(L%10===0?' class="mile"':'')+'><td>'+L+'</td><td>'+s.hp+'</td><td>'+s.dmg+'</td></tr>'; } let m=document.getElementById('statChartModal'); if(!m){ m=document.createElement('div'); m.id='statChartModal'; document.body.appendChild(m); m.addEventListener('click',function(e){ if(e.target.id==='statChartModal') m.classList.remove('open'); }); } m.innerHTML='<div class="scBox"><button class="glClose" onclick="document.getElementById(\'statChartModal\').classList.remove(\'open\')">✕</button><h3>'+((gi&&gi.name)||t.name)+' — stats by level</h3><div class="scSub">'+(cat==='bosses'?'boss scaling · ×2.4 HP / ×1.8 DMG, +5%/level':'grows +5% per level')+'</div><div class="scScroll"><table class="scTbl"><thead><tr><th>Lv</th><th>❤️ HP</th><th>⚔️ DMG</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'; m.classList.add('open'); }
 
@@ -7169,7 +7190,7 @@ function closeGlossaryCard(){ const m=document.getElementById('glModal'); if(m)m
   const m=document.getElementById('glModal'); if(m) m.addEventListener('click',(ev)=>{ if(ev.target.id==='glModal') closeGlossaryCard(); }); })();
 // ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
 function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
-function squadFor(k){ G.squads=G.squads||{}; if(!G.squads[k]) G.squads[k]=[]; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
+function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?G.squads[k]:[]; const f=a.filter(x=>typeof x==='string'&&!!HERO_TYPES[x]); if(f.length!==a.length||G.squads[k]!==a) G.squads[k]=f; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
 function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); }   // call right before a battle so all G.team readers use this mode's squad
 // Re-render the squad list WITHOUT losing your place: the list order is fixed (by power), so a pick
 // only repaints the highlight. Preserving scrollTop stops the list jumping under your thumb.
@@ -7471,7 +7492,7 @@ function showKickedNotice(){
 // heartbeat: poll while signed in so a device kicked by a login elsewhere finds out within ~15s (api() handles the sign-out)
 let _sessionHB=null;
 function startSessionHeartbeat(){ if(_sessionHB) return; _sessionHB=setInterval(()=>{ if(online() && ACC && ACC.token){
-  api('/api/profile').then(d=>{ if(d&&d.profile&&!_cloudReady){ (_cloudReady=true,applyCloudSave(d.profile,true)); updateHubChrome(); } });   // boot fetch failed earlier → adopt the cloud save on the first heartbeat that gets through, so this session can start pushing
+  api('/api/profile').then(d=>{ if(d&&d.profile&&!_cloudReady){ (_cloudReady=true,applyCloudSave(d.profile,true)); try{ ledgerSync(); }catch(e){} updateHubChrome(); } });   // boot fetch failed earlier → adopt the cloud save on the first heartbeat that gets through, so this session can start pushing
   if((++_pvpPollN)%4===0) pollPvpReports(); } }, 15000); }
 function rosterPayload(){ const r={}; HERO_KEYS.forEach(k=>r[k]={level:heroLevel(k),rank:heroQuality(k)}); return r; }
 function teamPayload(arr){ return arr.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
@@ -7497,7 +7518,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
 // game paints instantly before the profile fetch returns; it is never trusted over the cloud.
 function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.roster&&profile.roster.__save; if(!blob) return false;
     const cloud=JSON.parse(blob);
-    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateG(); applyBetaUnlocks(); saveGLocalOnly(); if(granted && ACC.token) pushSave();
+    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateG(); applyBetaUnlocks(); try{ if(typeof LED!=='undefined'&&LED&&LED.st) adoptLedger(LED.st); }catch(e){} saveGLocalOnly(); if(granted && ACC.token) pushSave();
     ACAD_SYNCED=false; if(ACC.token){ try{ academySync().then(function(){ try{ updateHubChrome(); if(state==='tech') renderTech(); }catch(e){} }); }catch(e){} }   // v327: the cloud save has tech/techLearn/res stripped by the server — re-pull them or the Academy paints Lv 0
     return true;
   }catch(e){ return false; } }
@@ -7546,7 +7567,7 @@ function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel"
 /* ---- local opponents / cities (no sign-in needed; NPCs fill the pool) ---- */
 const NPC_NAMES=['Kael','Mira','Doran','Wren','Sable','Corin','Vesh','Lio','Nyra','Bram','Tarn','Isolde','Fenn','Ashe','Garrick','Petra','Odo','Selene','Marcus','Elowen'];
 function seededTeam(seed){ const arr=[]; const lv=Math.max(1,playerLevel()); for(let i=0;i<5;i++){ const key=HERO_KEYS[(seed*3+i*7)%HERO_KEYS.length]; const dl=((seed+i)%5)-2; arr.push({key,level:Math.max(1,lv+dl),rank:Math.min(3,Math.floor(lv/6)+((seed+i)%2))}); } return arr; }
-function teamPower(team){ let p=0; team.forEach(e=>{ const t=HERO_TYPES[e.key]; const s=1+0.18*((e.level||1)-1), qm=1+(e.rank||0)*0.12; p+=(t.hp+t.dmg*4)*s*qm; }); return Math.round(p); }
+function teamPower(team){ let p=0; (team||[]).forEach(e=>{ const t=e&&HERO_TYPES[e.key]; if(!t) return; const s=lvlScale(e.level||1), qm=1+(e.rank||0)*0.12; p+=(t.hp+t.dmg*4)*s*qm; }); return Math.round(p); }
 // arena spread: 4 opponents at %-better rank bands so you jump ranks instead of climbing 1 at a time.
 // the spread widens as you climb (per the tier rules), and the top 10 all reach toward rank 1.
 function arenaBandBonus(me){ let b=0;
@@ -7620,6 +7641,7 @@ function openRankings(){
 const BOTS_PER_REGION=100;
 function worldPlayersJoined(){ return Math.max(0, G.worldPlayers||0); }   // real accounts in your region (server-fed); each drops the weakest bot
 let _botCache={};
+let _lastPin=null;   // last coord-search pin {cx,cy,until} so a keepView rebuild can re-drop it
 function regionBotRoster(regionKey){
   const realN = (typeof REAL_CITIES!=='undefined'&&REAL_CITIES) ? realCitiesIn(regionKey).length : worldPlayersJoined();
   const cacheKey=regionKey+'|'+playerLevel()+'|'+(!!G.guild)+'|'+realN+'|'+Math.round((G.castleX||0))+'|'+Math.round((G.castleY||0));
@@ -7665,7 +7687,7 @@ function fetchRealCities(force){
                  ally: !!(_rcMyGuild && c.guildId && c.guildId===_rcMyGuild) };  // guildmate = green ally castle
       });
       _botCache={};                                                              // bot fill depends on real counts
-      if(document.getElementById('wzone')) renderWorldMap();
+      if(document.getElementById('wzone')) renderWorldMap(true);
     }
     return REAL_CITIES;
   }).catch(()=>null);
@@ -8044,9 +8066,12 @@ function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner');
   const old=inner.querySelector('#telePin'); if(old)old.remove();
   const pin=document.createElement('div'); pin.id='telePin'; pin.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)';
   pin.textContent=ok?'📍':'⛔'; inner.appendChild(pin); }
-function renderWorldMap(){
+function renderWorldMap(keepView){
   if(!G.regionChosen){ openRegionPicker(); return; }
-  const body=document.getElementById('worldBody'); if(!body)return; body.innerHTML='';
+  const body=document.getElementById('worldBody'); if(!body)return;
+  const _oldZone=document.getElementById('wzone');                              // keepView: poll/grid rebuilds must not yank the pan
+  const _keep=(keepView&&_oldZone)?{sl:_oldZone.scrollLeft,st:_oldZone.scrollTop}:null;
+  body.innerHTML='';
   if(ACC.token){ fetchRealCities(); startCityPoll(); }   // real players' castles from the server (bots only fill)
   maybeSpawnRaid();
   const czone=myCastleZone(), cz=ZONES[czone];
@@ -8123,16 +8148,20 @@ function renderWorldMap(){
   drawMarches();
   head.querySelector('#wbInfo').onclick=openMarchInfo;
   head.querySelector('#wbTele').onclick=toggleTeleMode;
-  head.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(); };
+  head.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(true); };
   head.querySelector('#wbShield').onclick=openShield;
   updateChatVisibility();
-  requestAnimationFrame(()=>{ centerOnCastle(zone); updateCoordReadout(); });
+  requestAnimationFrame(()=>{
+    if(_keep){ zone.scrollLeft=_keep.sl; zone.scrollTop=_keep.st;
+      if(_lastPin && Date.now()<_lastPin.until) dropCoordPin(_lastPin.cx,_lastPin.cy,_lastPin.until-Date.now()); }   // re-drop a live search pin
+    else centerOnCastle(zone);
+    updateCoordReadout(); });
 }
 // ---- coordinate search: jump the map to any X/Y grid cell ----
-function dropCoordPin(cx,cy){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const old=inner.querySelector('#coordPin'); if(old)old.remove();
+function dropCoordPin(cx,cy,ms){ ms=(ms>0)?ms:6000; _lastPin={cx:cx,cy:cy,until:Date.now()+ms}; const inner=document.getElementById('wzoneInner'); if(!inner)return; const old=inner.querySelector('#coordPin'); if(old)old.remove();
   const px=(cx+0.5)*GRID_CELL, py=(cy+0.5)*GRID_CELL;
   const pin=document.createElement('div'); pin.id='coordPin'; pin.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;transform:translate(-50%,-100%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)'; pin.textContent='📍'; inner.appendChild(pin);
-  setTimeout(()=>{ if(pin.parentNode)pin.remove(); },6000); }
+  setTimeout(()=>{ if(pin.parentNode)pin.remove(); if(_lastPin&&_lastPin.cx===cx&&_lastPin.cy===cy&&Date.now()>=_lastPin.until-50)_lastPin=null; },ms); }
 function openCoordSearch(){ closeCityMenu(); const cur=viewCenterCoord();
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   const inp='width:66px;margin-left:5px;padding:7px;border-radius:8px;border:1px solid #33405e;background:#0e1420;color:#e6edf3;font-size:14px;text-align:center';
@@ -8342,8 +8371,10 @@ function resolveMarch(m){
     else if(!(m.real&&m.tId)){ const s1=marchSettle; marchSettle=null; marchEarnServer(gold,40,s1); } }
   else { addMail('war',{from:m.tName,subj:'⚔ Defeat — '+m.tName,body:m.tName+'’s defenders held. Your heroes retreat and march home.',battle:rptBattle});
     marchReport('⚔ Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.'); }
-  if(m.real && m.tId && ACC.token){   // v249: the SERVER resolves city PvP through the combat core — verified result, capped loot, mail to both sides
-    api('/api/pvp/attack','POST',{defId:m.tId,heroIds:(G.team||[]).slice(0,5),requestId:uid8()}).then(r=>{
+  const mIds=((m.heroes&&m.heroes.length)?m.heroes:(G.team||[])).filter(Boolean).slice(0,5);   // v328: the squad that actually MARCHED (wallOrderedSquad snapshot), not the per-mode G.team
+  if(m.real && m.tId && ACC.token && !mIds.length){ bannerMsg('⚠ No heroes marched with this army — the attack could not be verified.'); if(marchSettle) marchSettle(0,0); }
+  else if(m.real && m.tId && ACC.token){   // v249: the SERVER resolves city PvP through the combat core — verified result, capped loot, mail to both sides
+    api('/api/pvp/attack','POST',{defId:m.tId,heroIds:mIds,requestId:uid8()}).then(r=>{
       if(r&&r.ok){ CUR.pvpVerified=Object.assign({},r,{recap:pvpRecap(r.log)});   // v253: the result screen reads the verified payload + event recap
         if(r.loot&&(r.loot.gold||r.loot.guildCoins)) ledgerSync&&ledgerSync();
         if(marchSettle) marchSettle(r.loot?(r.loot.gold|0):0, r.loot?(r.loot.guildCoins|0):0); }
@@ -10985,14 +11016,14 @@ function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)retu
 // Reports required level per chapter, difficulty flags, reachable depth, and rough time-to-L40 / time-to-purple.
 function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">🤖 Simulating…</span>';
   const TEAM=['konwu','grosk','vulmar'], SKILL=1.25, PLAY=CAMPAIGN_PLAYABLE;
-  const upow=(key,lvl,rank,diff,bh,bd)=>{ const t=HERO_TYPES[key]; const s=1+0.18*(lvl-1), q=1+rank*0.12; return t.hp*s*q*diff*bh + t.dmg*s*q*diff*bd*4; };
+  const upow=(key,lvl,rank,diff,bh,bd)=>{ const t=HERO_TYPES[key]; const s=lvlScale(lvl), q=1+rank*0.12; return t.hp*s*q*diff*bh + t.dmg*s*q*diff*bd*4; };
   const enemyPow=g=>{ const base=enemyLevelFor(g), diff=enemyDiff(g), eRank=Math.min(3,Math.floor(g/6)); let p=0;
     if(isBossStage(g)){ const pool=['konwu','grosk','vulmar'],bk=pool[g%pool.length]; p+=upow(bk,base+2,0,diff,1.4,1.15);
       const gc=Math.min(chapterOf(g)+1,2);['konwu','grosk'].slice(0,gc).forEach(k=>p+=upow(k,base,eRank,diff,1,1)); }
     else { const pool=['konwu','grosk','vulmar'],count=Math.min(5,3+Math.floor(chapterOf(g)/2));
       for(let i=0;i<count;i++){const k=pool[(i+g)%pool.length]; p+=upow(k,base,eRank,diff,1,1);} }
     return p; };
-  const playerPow=(L,q)=>{ let p=0; for(const k of TEAM){ const t=HERO_TYPES[k]; p+=(t.hp+t.dmg*4)*(1+0.18*(L-1))*(1+q*0.12);} return p; };
+  const playerPow=(L,q)=>{ let p=0; for(const k of TEAM){ const t=HERO_TYPES[k]; p+=(t.hp+t.dmg*4)*lvlScale(L)*(1+q*0.12);} return p; };
   const qForCh=ch=>(ch-1)*0.42;   // assume gear/quality grows ~evenly per chapter (smoother, more realistic than chunky steps)
   const reqLevel=(g,q)=>{ for(let L=1;L<=MAX_LEVEL;L++){ if(playerPow(L,q)>=enemyPow(g)*SKILL) return L; } return 99; };
   // per-chapter required level
@@ -11587,20 +11618,23 @@ async function claimDailyPack(id){ const p=(G.dailyPacks||[]).find(x=>x.id===id)
   if(q.daysLeft<=0) G.dailyPacks=G.dailyPacks.filter(x=>x.id!==q.id);
   saveG(); updateHubChrome(); renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
 function dailyPacksReady(){ consolidateDailyPacks(); const today=arenaDayKey(); return (G.dailyPacks||[]).some(p=>p.lastClaim!==today && p.daysLeft>0); }
-function foodDayReset(){ const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
-function goldDayReset(){ const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
-function foodNextCost(){ foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
-function goldNextCost(){ goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
-async function buyFood(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at 09:00.'); return; }
+// day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at midnight ET,
+// not the 09:00 arena day) — the local reset and local price table are only a fallback for an old server.
+function shopSrv(){ const s=(LED&&LED.st&&LED.st.shop); return (s&&typeof s==='object')?s:null; }
+function foodDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
+function goldDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
+function foodNextCost(){ const s=shopSrv(); if(s){ G.foodBuys=s.food|0; return (s.foodCost==null)?null:(s.foodCost|0); } foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
+function goldNextCost(){ const s=shopSrv(); if(s){ G.goldBuys=s.gold|0; return (s.goldCost==null)?null:(s.goldCost|0); } goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
+async function buyFood(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at midnight ET.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
   const r=await api('/api/shop/buy','POST',{what:'food',requestId:uid8()});
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('food'); return; }
-  adoptLedger(r.ledger); G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
-async function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at 09:00.'); return; }
+  adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
+async function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at midnight ET.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
   const r=await api('/api/shop/buy','POST',{what:'gold',requestId:uid8()});
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('gold'); return; }
-  adoptLedger(r.ledger); G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+r.gold+' gold!'); }
+  adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+r.gold+' gold!'); }
 function buyGemOffer(i){
   // Devs get a test popup that actually grants the reward, so packs can be verified before purchases go live.
   if(isDevAcct()){
@@ -11637,18 +11671,18 @@ function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.data
 function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||0, n=G.foodBuys||0, out=(c==null);
   document.getElementById('hudShopTitle').innerHTML='🍔 Food · Restore Stamina';
   document.getElementById('hudShopBody').innerHTML=`
-    <div class="shopnote">Each meal instantly restores <b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b>. The price rises with each meal and resets daily at 09:00.</div>
-    <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00':''}</div></div>
-      <div class="bcost">${out?'<span class="bs">Back at 09:00</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
+    <div class="shopnote">Each meal instantly restores <b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b>. The price rises with each meal and resets daily at midnight ET.</div>
+    <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until midnight ET':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at midnight ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${FOOD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
     <div class="shopbal">Balance: 💎 ${gems}</div>`;
   const b=document.getElementById('foodBuyBtn'); if(b) b.onclick=buyFood; }
 function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||0, n=G.goldBuys||0, out=(c==null), amt=goldPerBuy();
   document.getElementById('hudShopTitle').innerHTML='🪙 Buy Gold';
   document.getElementById('hudShopBody').innerHTML=`
-    <div class="shopnote">Trade diamonds for <b style="color:#ffe08a">${amt.toLocaleString()} gold</b> per purchase. Price rises with each buy and resets daily at 09:00. <i>(Scales with your level.)</i></div>
-    <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00':''}</div></div>
-      <div class="bcost">${out?'<span class="bs">Back at 09:00</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
+    <div class="shopnote">Trade diamonds for <b style="color:#ffe08a">${amt.toLocaleString()} gold</b> per purchase. Price rises with each buy and resets daily at midnight ET. <i>(Scales with your level.)</i></div>
+    <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until midnight ET':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at midnight ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${GOLD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
     <div class="shopbal">Balance: 💎 ${gems}</div>`;
   const b=document.getElementById('goldBuyBtn'); if(b) b.onclick=buyGold; }
@@ -11712,10 +11746,23 @@ setHead(document.getElementById('heroesMenuIcon'),'konwu');
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
 document.getElementById('menuBack').onclick=()=>show(menuReturn);
+let _startBusy=false;
+function _startCtx(){ return CUR.mode+':'+(CUR.portal||'normal')+':'+(CUR.node|0)+':'+teamCtx; }
 document.getElementById('startBtn').onclick=async()=>{
+  /* v328: BATTLE is an async handler (forgeSync + /api/campaign/start awaits). A second tap during the
+     round-trip used to run startBattle() twice (re-seed, re-spawn, actBegin re-anchoring the server
+     clock), and a Back tap during it yanked the player from another screen into the fight. In-flight
+     flag + button disable; the landing re-checks the screen and stage before starting. */
+  if(_startBusy) return; _startBusy=true;
+  const _sb=document.getElementById('startBtn'); if(_sb) _sb.disabled=true;
+  try{ await _startBtnGo(_startCtx()); }catch(e){ console.error('startBtn',e); }
+  finally{ _startBusy=false; if(_sb) _sb.disabled=false; }
+};
+async function _startBtnGo(_ctx){
   // RE-AUDIT round 3: a fast player must not enter a fight before the Forge state has loaded —
   // battle entry AWAITS the first forgeSync (one-time; instant once FORGE.st is cached).
   if(ACC.token && typeof FORGE!=='undefined' && FORGE.st===null){ try{ await forgeSync(); }catch(e){} }
+  if(state!=='menu' || _ctx!==_startCtx()) return;   // v328: left the squad screen / changed stage during the await
   /* 28 Aug (Phil: "the game does not register the hero picks i make. it just chooses an old line up").
      The squad screen edits squadFor(mode) — but everything below reads G.team, and G.team was only
      refreshed by syncActiveSquad() INSIDE startBattle(), which runs AFTER the server has already been
@@ -11738,7 +11785,8 @@ document.getElementById('startBtn').onclick=async()=>{
       CUR.serverSnaps=Array.isArray(r.snaps)?r.snaps:null; CUR.seed=(r.seed!=null)?(r.seed>>>0):null; CUR.engine=r.engine||null;
       if(r.stamina) { G.stamina=r.stamina.v|0; G.staminaTS=Date.now(); }
     } else { bannerMsg('Connect to play the campaign — this game is fully synced online.'); return; } }
-  startBattle(); };
+  if(state!=='menu' || _ctx!==_startCtx()) return;   // v328: never land in a fight the player already backed out of
+  startBattle(); }
 document.getElementById('pauseBtn').onclick=()=>{ paused=true; document.getElementById('pauseModal').classList.add('active'); };
 document.getElementById('resumeBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active'); };
 document.getElementById('restartBtn').onclick=()=>{ paused=false; document.getElementById('pauseModal').classList.remove('active');
@@ -11854,7 +11902,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788343716265';
+const BUILD_ID='1788344350288';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -12131,11 +12179,11 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
   if(!ACC.token && online()){ ensureGuest(); }   // no session → provision a persistent level-1 guest account
-  if(ACC.token && online()){ api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
+  if(ACC.token && online()){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
       const adopted=(_cloudReady=true,applyCloudSave(d.profile,true)); _cloudReady=true;   // CLOUD IS THE TRUTH (Phil 26 Aug): adopt the cloud save FIRST, only then may this session push
       if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); } }   // no cloud blob yet (fresh account) → seed it
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
-    /* else: offline / transient error → stay signed in with local progress */ }); }
+    /* else: offline / transient error → stay signed in with local progress */ }).catch(()=>{}); }
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;
     if(_pendingUpdate){ if(!updateUnsafe()) doUpdateReload(); return; }   // a real update was deferred during a fight → apply it silently now the fight is over
     checkForUpdate(); }, 10000);   // poll version.json every 10s (served no-store, so it's always fresh); false updates are impossible now that BUILD_ID is stamped == version.json on deploy
