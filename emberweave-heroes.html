@@ -1181,7 +1181,7 @@ const BATTLE_ANIM = {
      from that file). fathom's and meridian's real hit art is in no file at all, so their hit state is
      removed and the engine falls back to idle — wrong-but-theirs beats right-shape-wrong-hero.
      Verified frame-by-frame against every hero's idle art. */
-    hit:{u:'/assets/anim/meridian/meridian_hit.webp?v=5',n:20,fw:300,fh:248,cols:6,rows:4,figH:233,feet:240,cx:153,fps:16,flip:true,top:2},
+    // 2 Sep: hit clip removed — it was Meridian's sheet, so a different man appeared on every crit. (was: hit:{u:'/assets/anim/meridian/meridian_hit.webp?v=5',n:20,fw:300,fh:248,cols:6,r…)
     green:{u:'/assets/anim/tallow/tallow_green.webp?v=2',n:72,fw:300,fh:256,cols:6,rows:12,figH:229,feet:252,cx:149,fps:30,flip:false,top:22,hold:0.8},
     blue:{u:'/assets/anim/tallow/tallow_blue.webp?v=2',n:72,fw:264,fh:300,cols:6,rows:12,figH:247,feet:277,cx:99,fps:30,flip:false,top:29,hold:0.8},
     ult:{u:'/assets/anim/tallow/tallow_ult.webp?v=2',n:72,fw:300,fh:283,cols:6,rows:12,figH:246,feet:251,cx:152,fps:30,flip:false,top:5}
@@ -1359,7 +1359,7 @@ const BATTLE_ANIM = {
   attack:{u:'/assets/anim/vael/vael_attack.webp?v=6',n:12,fw:188,fh:260,cols:6,rows:2,figH:208,feet:254,cx:113,fps:16,flip:false,hold:0.9,top:6},
   hit:{u:'/assets/anim/vael/vael_hit.webp?v=6',n:12,fw:155,fh:223,cols:6,rows:2,figH:210,feet:217,cx:91,fps:11,flip:false,top:6},
   ult:{u:'/assets/anim/vael/vael_ult.webp?v=6',n:12,fw:247,fh:243,cols:6,rows:2,figH:213,feet:231,cx:121,fps:12,flip:false,hold:1.2,top:7},
-  green:{u:'/assets/anim/vael/vael_green.webp?v=6',n:12,fw:260,fh:212,cols:6,rows:2,figH:199,feet:206,cx:127,fps:12,flip:true,hold:0.9,top:6},
+  green:{u:'/assets/anim/vael/vael_green.webp?v=6',n:12,fw:260,fh:212,cols:6,rows:2,figH:199,feet:206,cx:127,fps:12,flip:false,hold:0.9,top:6},   // 2 Sep: was flip:true — he mirrored mid-fight on every Warcry
   blue:{u:'/assets/anim/vael/vael_blue.webp?v=6',n:12,fw:177,fh:226,cols:6,rows:2,figH:213,feet:211,cx:124,fps:12,flip:false,hold:0.9,top:6}
   },
   oakmir:{
@@ -1438,9 +1438,9 @@ const BATTLE_ANIM = {
    cast:{u:'/assets/anim/mon/fireskeleton_cast_hd.webp?v=1',n:12,fw:212,fh:300,cols:6,rows:2,figH:294,feet:297,cx:75,fps:10,flip:false,hold:0.8,top:2}
   },
   "rock golem":{
-   idle:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:6,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:6,flip:false,pingpong:true,top:25},
-   walk:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:10,flip:false,top:25},
-   attack:{u:'/assets/anim/mon/rockgolem_attack_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:259,feet:267,cx:176,fps:12,flip:false,hold:0.9,top:8},
+   idle:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:6,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:6,flip:true,pingpong:true,top:25},
+   walk:{u:'/assets/anim/mon/rockgolem_walk_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:255,feet:280,cx:101,fps:10,flip:true,top:25},
+   attack:{u:'/assets/anim/mon/rockgolem_attack_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:259,feet:267,cx:176,fps:12,flip:true,hold:0.9,top:8},
    cast:{u:'/assets/anim/mon/rockgolem_cast_hd.webp?v=1',n:12,fw:224,fh:300,cols:6,rows:2,figH:246,feet:278,cx:95,fps:10,flip:false,hold:0.8,top:32}
   },
   "mimic chest":{
@@ -1450,9 +1450,9 @@ const BATTLE_ANIM = {
    cast:{u:'/assets/anim/mon/mimicchest_cast_hd.webp?v=1',n:12,fw:286,fh:300,cols:6,rows:2,figH:286,feet:289,cx:134,fps:10,flip:false,hold:0.8,top:3}
   },
   "ghoul fiend":{
-   idle:{u:'/assets/anim/mon/ghoulfiend_walk_hd.webp?v=1',n:6,fw:300,fh:260,cols:6,rows:2,figH:212,feet:241,cx:115,fps:6,flip:false,pingpong:true,top:29},
-   walk:{u:'/assets/anim/mon/ghoulfiend_walk_hd.webp?v=1',n:12,fw:300,fh:260,cols:6,rows:2,figH:212,feet:241,cx:115,fps:10,flip:false,top:29},
-   attack:{u:'/assets/anim/mon/ghoulfiend_attack_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:247,feet:294,cx:134,fps:12,flip:false,hold:0.9,top:47},
+   idle:{u:'/assets/anim/mon/ghoulfiend_walk_hd.webp?v=1',n:6,fw:300,fh:260,cols:6,rows:2,figH:212,feet:241,cx:115,fps:6,flip:true,pingpong:true,top:29},
+   walk:{u:'/assets/anim/mon/ghoulfiend_walk_hd.webp?v=1',n:12,fw:300,fh:260,cols:6,rows:2,figH:212,feet:241,cx:115,fps:10,flip:true,top:29},
+   attack:{u:'/assets/anim/mon/ghoulfiend_attack_hd.webp?v=1',n:12,fw:289,fh:300,cols:6,rows:2,figH:247,feet:294,cx:134,fps:12,flip:true,hold:0.9,top:47},
    cast:{u:'/assets/anim/mon/ghoulfiend_cast_hd.webp?v=1',n:12,fw:282,fh:300,cols:6,rows:2,figH:289,feet:293,cx:123,fps:10,flip:false,hold:0.8,top:4}
   },
   "garbage mob":{
@@ -1480,10 +1480,10 @@ const BATTLE_ANIM = {
    cast:{u:'/assets/anim/mon/lostsoulss_cast_hd.webp?v=1',n:12,fw:215,fh:300,cols:6,rows:2,figH:262,feet:278,cx:97,fps:10,flip:false,hold:0.8,top:16}
   },
   "raven":{
-   idle:{u:'/assets/anim/mon/raven_walk_hd.webp?v=1',n:6,fw:278,fh:300,cols:6,rows:2,figH:221,feet:252,cx:134,fps:6,flip:false,pingpong:true,top:31},
-   walk:{u:'/assets/anim/mon/raven_walk_hd.webp?v=1',n:12,fw:278,fh:300,cols:6,rows:2,figH:221,feet:252,cx:134,fps:10,flip:false,top:31},
+   idle:{u:'/assets/anim/mon/raven_walk_hd.webp?v=1',n:6,fw:278,fh:300,cols:6,rows:2,figH:221,feet:252,cx:134,fps:6,flip:true,pingpong:true,top:31},
+   walk:{u:'/assets/anim/mon/raven_walk_hd.webp?v=1',n:12,fw:278,fh:300,cols:6,rows:2,figH:221,feet:252,cx:134,fps:10,flip:true,top:31},
    attack:{u:'/assets/anim/mon/raven_attack_hd.webp?v=1',n:12,fw:224,fh:300,cols:6,rows:2,figH:281,feet:284,cx:121,fps:12,flip:false,hold:0.9,top:3},
-   cast:{u:'/assets/anim/mon/raven_cast_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:263,feet:290,cx:142,fps:10,flip:false,hold:0.8,top:27}
+   cast:{u:'/assets/anim/mon/raven_cast_hd.webp?v=1',n:12,fw:300,fh:300,cols:6,rows:2,figH:263,feet:290,cx:142,fps:10,flip:true,hold:0.8,top:27}
   },
   "shadow ghoul":{
    idle:{u:'/assets/anim/mon/shadowghoul_walk_hd.webp?v=1',n:6,fw:257,fh:300,cols:6,rows:2,figH:279,feet:287,cx:175,fps:6,flip:false,pingpong:true,top:8},
@@ -1510,10 +1510,10 @@ const BATTLE_ANIM = {
    cast:{u:'/assets/anim/mon/slugbeast_cast_hd.webp?v=1',n:12,fw:293,fh:300,cols:6,rows:2,figH:259,feet:295,cx:142,fps:10,flip:false,hold:0.8,top:36}
   },
   "tin beast":{
-   idle:{u:'/assets/anim/mon/tinbeast_walk_hd.webp?v=1',n:6,fw:300,fh:275,cols:6,rows:2,figH:266,feet:271,cx:132,fps:6,flip:false,pingpong:true,top:5},
-   walk:{u:'/assets/anim/mon/tinbeast_walk_hd.webp?v=1',n:12,fw:300,fh:275,cols:6,rows:2,figH:266,feet:271,cx:132,fps:10,flip:false,top:5},
-   attack:{u:'/assets/anim/mon/tinbeast_attack_hd.webp?v=1',n:12,fw:300,fh:272,cols:6,rows:2,figH:244,feet:268,cx:155,fps:12,flip:false,hold:0.9,top:24},
-   cast:{u:'/assets/anim/mon/tinbeast_cast_hd.webp?v=1',n:12,fw:300,fh:260,cols:6,rows:2,figH:252,feet:256,cx:144,fps:10,flip:false,hold:0.8,top:4}
+   idle:{u:'/assets/anim/mon/tinbeast_walk_hd.webp?v=1',n:6,fw:300,fh:275,cols:6,rows:2,figH:266,feet:271,cx:132,fps:6,flip:true,pingpong:true,top:5},
+   walk:{u:'/assets/anim/mon/tinbeast_walk_hd.webp?v=1',n:12,fw:300,fh:275,cols:6,rows:2,figH:266,feet:271,cx:132,fps:10,flip:true,top:5},
+   attack:{u:'/assets/anim/mon/tinbeast_attack_hd.webp?v=1',n:12,fw:300,fh:272,cols:6,rows:2,figH:244,feet:268,cx:155,fps:12,flip:true,hold:0.9,top:24},
+   cast:{u:'/assets/anim/mon/tinbeast_cast_hd.webp?v=1',n:12,fw:300,fh:260,cols:6,rows:2,figH:252,feet:256,cx:144,fps:10,flip:true,hold:0.8,top:4}
   },
   "creep":{
    idle:{u:'/assets/anim/mon/creep_walk_hd.webp?v=1',n:6,fw:251,fh:300,cols:6,rows:2,figH:286,feet:293,cx:103,fps:6,flip:false,pingpong:true,top:7},
@@ -5222,7 +5222,12 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           // so the top of the character is qh*(feet-top)/fh above the ground. `top` is the measured
           // first row of real body in the cell (thin staffs/antennae ignored). The HP bar rides on this.
           u._headOff=qh*((A.feet-(A.top||0))/A.fh); u._sprRef=spr;
-          if(spr.center) spr.center.set((A.cx!=null?A.cx/A.fw:0.5), 1-(A.feet/A.fh));
+          /* 2 Sep (Phil: "heroes face the wrong way"): the frame's UVs are mirrored for a unit facing
+             left, but the anchor was not — a character measured at cx from the LEFT edge sits at fw-cx
+             from the left once mirrored. Every left-facing unit whose clips are not dead-centre was
+             therefore drawn sideways of its true position, by a different amount per clip, so it
+             jumped sideways on every walk→attack→cast change. Mirror the anchor with the frame. */
+          if(spr.center){ const _cxn=(A.cx!=null?A.cx/A.fw:0.5); spr.center.set(mirror?1-_cxn:_cxn, 1-(A.feet/A.fh)); }
         } else {
           { const _sc=A.sc||1; spr.scale.set(u.sprH*_sc*(A.aspect||u.sprA),u.sprH*_sc,1); } u._headOff=u.sprH*(A.sc||1); u._sprRef=spr;   // legacy: frame-height maps to sprH; optional per-clip sc for taller re-packed frames (e.g. Grosk croc)
           if(spr.center) spr.center.set(.5,0);
@@ -11913,7 +11918,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788344591481';
+const BUILD_ID='1788348696187';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
