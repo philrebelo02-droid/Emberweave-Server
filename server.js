@@ -3262,10 +3262,10 @@ async function api(req,res,url){
     const node=b.node|0; const st=portalStageOf(mode,node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
     if(node>prog.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
-    /* Daily run cap (guardian & boss, node%5===0): refuse up front so stamina is not spent on a run the
+    /* Daily run cap (elite 3/6/9 & boss 10): refuse up front so stamina is not spent on a run the
        resolve route will not pay. An open, still-valid session for this node is left alone so a
        reconnect can resume the fight it already paid for. */
-    if(node%5===0 && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
+    if((isEliteStageSrv(node)||campIsBoss(node)) && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
       const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3 && !isDev(me)) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }   // v343: dev accounts exempt (Phil testing 1-5)
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
@@ -3426,7 +3426,7 @@ async function api(req,res,url){
            & boss stages (node%5===0), on the SAME prog.runs counter, so manual runs and sweeps share
            one budget. A first clear always pays and never spends the budget. A capped repeat win still
            records stars / cleared / the receipt, but pays nothing and says so (reward.dailyCapped). */
-        const capStage=(a.node%5===0);
+        const capStage=(isEliteStageSrv(a.node)||campIsBoss(a.node));   // v343 (Phil): the capped stages are 3/6/9/10 — node%5 was wrongly capping x-5 and missing 3/6/9
         let rewarded=true;
         if(capStage && !first){
           prog.runs=prog.runs||{}; const _rdk=nyDayKey(); if(prog.runs.k!==_rdk) prog.runs={k:_rdk};
