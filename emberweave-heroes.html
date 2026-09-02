@@ -417,6 +417,13 @@
   .node.cleared .conn{background:#5ee89b;}
   /* graphic campaign trail */
   #campaign{position:relative;overflow:hidden;}#campaign::before{content:'';position:absolute;inset:-30px;background-image:var(--campbg,none);background-size:cover;background-position:center;filter:blur(34px) brightness(.34);z-index:0;pointer-events:none;}#campaign>*{position:relative;z-index:1;}#cmapScroll{width:100%;max-width:none;margin:0;text-align:center;max-height:calc(100vh - 52px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1;}
+  /* 2 Sep (Phil: "this campaign level is too low, off screen"): #campaign is overflow:hidden and the
+     map image is as wide as the screen, so on a landscape phone the first stage sat below the fold with
+     no way to reach it. The map now scrolls inside its own box, and the existing scroll-to-current
+     code (which was writing scrollTop on a non-scrolling div) finally has something to scroll. */
+  #cmapScroll{flex:1 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative;z-index:1;overscroll-behavior:contain;}
+  #cmapScroll::after{content:'';display:block;height:42vh;}   /* room below the map so the LAST stage can be centred, not pinned to the bottom edge */
+  @media (max-height:520px){ #starTrack>div{padding:4px 9px !important;margin-bottom:4px !important} #cmapHdr{padding:3px 86px 3px 86px !important} }
   #cmap{position:relative;width:100%;margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid #2a3550;
         background:linear-gradient(180deg,#a9d8ef 0%,#bfe3c7 22%,#9fd08a 45%,#7fb86a 70%,#5e964e 100%);}
   #cmap svg{position:absolute;inset:0;width:100%;height:100%;}
@@ -6806,7 +6813,13 @@ function renderRoadmap(){
   });
   
   }
-  const cur=map.querySelector('.cnode.justplayed')||map.querySelector('.cnode.current')||map.querySelector('.cnode.cleared'); if(cur){ requestAnimationFrame(()=>{ const scr=document.getElementById('cmapScroll'); if(scr) scr.scrollTop=Math.max(0, cur.offsetTop-scr.clientHeight*0.5); }); }
+  const cur=map.querySelector('.cnode.justplayed')||map.querySelector('.cnode.current')||map.querySelector('.cnode.cleared');
+  if(cur){ const _center=()=>{ const scr=document.getElementById('cmapScroll'); if(!scr) return;
+      /* the node's position is a % of the map IMAGE, which has no height until it has loaded — so
+         centre now, and again when the image lands (2 Sep) */
+      const r=cur.getBoundingClientRect(), sr=scr.getBoundingClientRect();
+      scr.scrollTop=Math.max(0, scr.scrollTop+(r.top+r.height/2)-(sr.top+sr.height/2)); };
+    requestAnimationFrame(_center); const _im=map.querySelector('img'); if(_im&&!_im.complete) _im.addEventListener('load',()=>requestAnimationFrame(_center),{once:true}); setTimeout(_center,400); }
 }
 const STAGE_XP_FIRST=24, STAGE_XP_SWEEP=6;
 // player (account) XP from campaign — first-clears scale up with the global stage so deeper chapters reward more.
@@ -11936,7 +11949,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788351491651';
+const BUILD_ID='1788361487506';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
