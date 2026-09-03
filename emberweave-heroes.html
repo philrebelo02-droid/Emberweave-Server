@@ -4540,9 +4540,9 @@ function think(u,dt){
         let leadAdv=-1e9; for(const o of fronts){ const a=(o.x-u.x)*ax+(o.y-u.y)*ay; if(a>leadAdv) leadAdv=a; }
         const hold=CHAR_DIST*1.2;
         if(leadAdv < hold){                      // the line is not far enough ahead of me: wait behind it
-          if(leadAdv < hold*0.5){ u.x-=ax*spd*0.6*dt; u.y-=ay*spd*0.6*dt; }   // I am level with or ahead of it: drop back
+          if(leadAdv < hold*0.5){ u.x-=ax*spd*0.6*dt; u.y-=ay*spd*0.6*dt; u._walkT=0.25; }   // I am level with or ahead of it: drop back
           return; } } } }
-  if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; }   // run in until at fighting distance
+  if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25; }   // run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
   else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
 
@@ -5044,7 +5044,8 @@ function updateBattle(dt){
       for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B._pullGhost)continue;
         let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=bodyR(A)+bodyR(B);   // SOLID bodies: never overlap — same-team OR cross-team, stop when the actual sprite bodies just touch (Phil: characters are obstacles, never touch)
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
-          const push=(min-d)/2,ux=dx/d,uy=dy/d; A.x-=ux*push;A.y-=uy*push;B.x+=ux*push;B.y+=uy*push; } } }
+          const ov=(min-d),ux=dx/d,uy=dy/d, mA=bodyR(A)*bodyR(A), mB=bodyR(B)*bodyR(B), fA=mB/(mA+mB), fB=mA/(mA+mB);   // v347: mass-weighted — a boss barely budges, the hero gives ground (was 50/50)
+          A.x-=ux*ov*fA;A.y-=uy*ov*fA;B.x+=ux*ov*fB;B.y+=uy*ov*fB; } } }
     units.forEach(u=>{if(!u.alive||u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
   }
   // Hollow's descent + bespoke-mechanic timers. NOTE: deliberately NOT in the passive loop
@@ -5219,7 +5220,11 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // hold the walk state for a moment after the last real step, so the 30Hz sim under a 60Hz
         // render (or any frame hitch) can never flicker walk->idle and restart the clip
         if(_speed>1.5) u._moveT=0.20; else u._moveT=Math.max(0,(u._moveT||0)-dt);
-        const walking=(u._moveT||0)>0;
+        if(u._walkT>0) u._walkT-=dt;
+        /* v347 (Phil: 'Corsair runs backwards'): a big boss shoving into him displaced him every frame while he
+           faced the boss, and the displacement alone drove the walk clip — a moonwalk. Walk now needs INTENT
+           (think() moved him, the wave cinematic, or a pull); a pure collision shove holds idle/attack. */
+        const walking=(u._moveT||0)>0 && ((u._walkT||0)>0 || !!waveXfer || (u.pullT||0)>0);
         const abilActive=(u._abilHold>0 && u._abilAnim && u.anim[u._abilAnim]);   // ability clip overrides everything while it plays
         let st=abilActive?u._abilAnim:((u._atkHold>0)?((u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'):((u._hitHold>0)?'hit':(walking?'walk':'idle')));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
@@ -12711,7 +12716,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788393122650';
+const BUILD_ID='1788395882601';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
