@@ -7734,7 +7734,7 @@ Object.assign(BATTLE_ANIM, {
   },
   dawnbringer:{
     idle:{u:'/assets/anim/dawnbringer/dawnbringer_idle.webp?v=1',n:36,fw:249,fh:300,cols:6,rows:6,figH:290,feet:296,cx:132,fps:15,flip:false,top:5},
-    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=2',n:36,fw:250,fh:300,cols:6,rows:6,figH:290,feet:295,cx:133,fps:15,flip:false,top:4},   /* v350: H3 forward march */
+    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=3',n:36,fw:233,fh:300,cols:6,rows:6,figH:292,feet:296,cx:113,fps:15,flip:false,top:3},   /* v351: true side-profile walk, source faces right */
     attack:{u:'/assets/anim/dawnbringer/dawnbringer_attack.webp?v=1',n:24,fw:275,fh:300,cols:6,rows:4,figH:241,feet:296,cx:153,fps:16,flip:false,top:55,hold:0.9},
     hit:{u:'/assets/anim/dawnbringer/dawnbringer_hit.webp?v=1',n:20,fw:300,fh:284,cols:6,rows:4,figH:273,feet:280,cx:156,fps:16,flip:false,top:6},
     green:{u:'/assets/anim/dawnbringer/dawnbringer_green.webp?v=1',n:36,fw:288,fh:300,cols:6,rows:6,figH:233,feet:296,cx:159,fps:15,flip:false,top:62,hold:0.8},
@@ -7783,7 +7783,7 @@ Object.assign(BATTLE_ANIM, {
   },
   corsair:{
     idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=1',n:36,fw:221,fh:300,cols:6,rows:6,figH:287,feet:295,cx:116,fps:15,flip:true,top:7},
-    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=3',n:36,fw:248,fh:300,cols:6,rows:6,figH:287,feet:295,cx:132,fps:15,flip:true,top:7}   /* v350: H3 high-knee forward march (Phil: 'runs backwards') */,
+    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=4',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:296,cx:103,fps:15,flip:false,top:5}   /* v351: TRUE SIDE-PROFILE walk (GPT Image side redraw → 2.3-Fast), source faces right */,
     attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=1',n:24,fw:300,fh:231,cols:6,rows:4,figH:186,feet:228,cx:164,fps:16,flip:true,top:41,hold:0.9},
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:true,top:25},
     green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:true,top:3,hold:0.8},
@@ -12728,7 +12728,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788406673291';
+const BUILD_ID='1788435432976';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
