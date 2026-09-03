@@ -4576,8 +4576,9 @@ function startBattle(){
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
+    if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
     buildEnemyWave();
-    bannerMsg('🏛️ THE VAULT — FLOOR '+CUR.floor+'\nWAVE 1'); beginWaveEnter(); }
+    bannerMsg('🏛️ THE VAULT — FLOOR '+CUR.floor+'\nWAVE '+(waveIdx+1)+(CUR.devWave2?' (DEV)':'')); beginWaveEnter(); }
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
     const _opp0=(CUR.opp||[]).filter(e=>e&&HERO_TYPES[e.key]); const _opp=_opp0.length?_opp0:[{key:'grosk',level:1,rank:0}];   // drop stale/removed hero keys from opponent teams (old NPC/arena data); never spawn an empty enemy squad
     const oppSlots=formationSlots('enemy',_opp.length); _opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
@@ -5965,12 +5966,22 @@ function vaultPickerHTML(){
     </div>`;
 }
 function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); }
+async function vaultDevJump(toBoss){   // v362 (Phil): God Mode only — set the Vault floor server-side, then launch; optionally skip straight to the final wave
+  if(!(typeof AUDIT_MODE==='function'&&AUDIT_MODE())) return;
+  const el=document.getElementById('vaultDevFloor'); const f=Math.max(1,Math.min(100,parseInt(el&&el.value,10)||0));
+  if(!f){ bannerMsg('Enter a floor 1-100'); return; }
+  VAULT.devFloor=f;
+  const r=await api('/api/dungeon/dev-floor','POST',{floor:f, requestId:uid8()});
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Could not set floor'); return; }
+  await vaultStatus();
+  if(squadFor('vault').slice(0,TEAM_SIZE).length<TEAM_SIZE){ renderDungeon(); bannerMsg('Pick 5 fighters first'); return; }
+  VAULT.devWave2=!!toBoss; await vaultLaunch(); VAULT.devWave2=false; }
 async function vaultLaunch(){ if(VAULT.busy) return; VAULT.busy=true;
   const sq=squadFor('vault').slice(0,TEAM_SIZE*2);
   const st=await api('/api/dungeon/start-battle','POST',{heroIds:sq, requestId:uid8()});
   VAULT.busy=false;
   if(!st||st.error){ bannerMsg((st&&st.error)||'Vault unavailable.'); show('dungeon'); return; }
-  CUR={mode:'vault', attemptId:st.attemptId, floor:st.floor, vwaves:st.waves||[], backups:sq.slice(TEAM_SIZE)};
+  CUR={mode:'vault', attemptId:st.attemptId, floor:st.floor, vwaves:st.waves||[], backups:sq.slice(TEAM_SIZE), devWave2:!!(VAULT.devWave2&&typeof AUDIT_MODE==='function'&&AUDIT_MODE())};
   preloadVaultArt(CUR.vwaves);   // v255: warm both waves' monsters before the floor opens
   startBattle();
 }
@@ -6042,6 +6053,13 @@ function vaultScreenHTML(){
       ${s.isBoss?'<div style="font-size:10.5px;color:#c9a2ff;margin-top:3px">Boss floor — first clear pays the package twice.</div>':''}
     </div>`:''}
     ${s.isBoss?vaultBossLabel(s.bossRule):''}
+    ${(typeof AUDIT_MODE==='function'&&AUDIT_MODE())?`<div class="panel" style="border:1px dashed #ff9f43;background:#1e160c;margin-bottom:10px">
+      <div style="font-size:10px;letter-spacing:1px;color:#ff9f43;margin-bottom:6px">⚔ GOD MODE · DEV — jump to any floor (cleared floors replay with no reward)</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="vaultDevFloor" type="number" min="1" max="100" value="${Math.min(100,Math.max(1,VAULT.devFloor||s.currentFloor))}" placeholder="Floor 1-100" style="width:90px;padding:9px 10px;border-radius:9px;border:1px solid #ff9f4366;background:#0d1320;color:#fff;font-weight:800;text-align:center">
+        <button class="btn secondary" style="flex:1;padding:10px 0" onclick="vaultDevJump(false)">⏩ Go to floor</button>
+        <button class="btn" style="flex:1.3;padding:10px 0;font-weight:900" onclick="vaultDevJump(true)">👑 Start at wave 2/2 (boss)</button>
+      </div></div>`:''}
     <div class="panel">${vaultPickerHTML()}</div>
     ${(typeof preBattleLineHTML==='function')?preBattleLineHTML('vault'):''}
     <div style="display:flex;gap:8px;margin-top:10px">
@@ -12186,7 +12204,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
     return; }
-  el.innerHTML=`${stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}
+  el.innerHTML=`${CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -12728,7 +12746,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788471200813';
+const BUILD_ID = '1788472584846';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
