@@ -225,7 +225,7 @@
   .hd-power b{color:#ffd45e;font-size:17px;}
   .btn.xs{font-size:10px;padding:3px 8px;border-radius:7px;line-height:1.2;}
   .eq-slotpick{display:flex;gap:5px;margin:6px 0;}
-  .eq-pick{flex:1;padding:7px 0;font-size:17px;border-radius:9px;border:1px solid #2a3550;background:#141b2b;color:#e6edf3;cursor:pointer;}
+  .eq-pick{flex:1;padding:5px 0;font-size:17px;min-width:0;display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:9px;border:1px solid #2a3550;background:#141b2b;color:#e6edf3;cursor:pointer;}
   .eq-pick.on{background:#1e2740;border-color:#ffd45e;box-shadow:0 0 0 1px #ffd45e66;}
   .eq-row{display:flex;align-items:center;gap:8px;padding:6px 8px;margin:4px 0;background:#0f1420;border-radius:8px;}
   .glgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;}
@@ -6171,6 +6171,62 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
   await forgeSync(); renderForge();
 }
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
+/* v365 (Phil): the Gear Compendium art — every finished item, fragment and sub-component (Emberweave
+   Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
+const GEAR_ART_V='?v=1';
+function gearSlug(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.id}.webp${GEAR_ART_V}" alt="" style="width:${px||40}px;height:${px||40}px;border-radius:6px;object-fit:cover;flex:none;background:#0e1420" loading="lazy">`:''; }
+function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
+function gearSubImg(n,px){ return n?`<img src="/assets/img/gear/subs/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
+const GEAR_SLOT_ICON={Weapon:'⚔',Helm:'⛑',Boots:'👢',Armor:'🛡',Gloves:'🧤',Belt:'🎗',Ring:'💍',Amulet:'📿',Relic:'🔮'};
+const GEAR_STAT_LABEL={hp:'❤ Health',atk:'⚔ Attack',apow:'✨ Ability Power',armor:'🛡 Armor',mr:'🔮 Magic Resist',crit:'✦ Crit',critDmg:'✦ Crit Dmg',critRes:'✚ Crit Resist',energy:'⚡ Energy Regen',regen:'♻ HP Regen',ctrlRes:'🧱 Tenacity',ctrlHit:'🎯 Control Hit',startEnergy:'⚡ Start Energy',healPow:'✚ Healing',lifesteal:'🩸 Lifesteal',atkSpd:'⚡ Attack Speed',haste:'💨 Haste',eva:'👻 Evasion',acc:'🎯 Accuracy',block:'🛡 Block',dmgBonus:'⚔ Damage Bonus',dmgRed:'🛡 Damage Reduction',shieldStr:'🛡 Shield Strength',armorPen:'🗡 Armor Pen',magicPen:'🔮 Magic Pen',heal:'✚ Heal'};
+let gearSlotSel='Weapon';
+function gearSlotSelect(sl){ gearSlotSel=sl; renderHeroDetail(); }
+async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
+  const r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload));
+  FORGE.busy=false;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); } else if(msg){ try{ bannerMsg(msg(r)); }catch(e){} }
+  await forgeSync(); renderHeroDetail();
+}
+/* v365 — the hero card's Equipment tab IS the Forge gear for this hero: the compendium's nine slots,
+   the equipped piece with its art, stats, temper and Gear Active, and the unbound inventory for the
+   selected slot. The old client-only "Warfare/Ranger/Arcane" trees (Long Sword → Dragonbone Blade)
+   are gone from the card — the server never counted them once you were signed in. */
+function heroGearTabHTML(key){
+  const st=(typeof FORGE!=='undefined')&&FORGE.st;
+  if(!st){ forgeSync().then(()=>renderHeroDetail()); return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">Stoking the Forge…</div>'; }
+  if(!st.enabled||!FORGE.cat) return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">⚒️ The Forge is being built.</div>';
+  const slots=FORGE.cat.meta.slots, T=FORGE.cat.meta.temper, eq=(st.equipped||{})[key]||{}, act=(st.active||{})[key];
+  if(!slots.includes(gearSlotSel)) gearSlotSel=slots[0];
+  const pick=slots.map(sl=>{ const id=eq[sl], it=id&&st.items[id], d=it&&forgeDef(it.d);
+    return `<button class="eq-pick${gearSlotSel===sl?' on':''}" title="${sl}" onclick="gearSlotSelect('${sl}')" style="${d?'border-color:'+(FORGE_QCOLOR[d.quality]||'#888')+';padding:2px':''}">${d?gearImg(d,34):(GEAR_SLOT_ICON[sl]||'▫')}</button>`; }).join('');
+  const sl=gearSlotSel, id=eq[sl], it=id&&st.items[id], d=it&&forgeDef(it.d);
+  const statLine=dd=>Object.entries(dd.stats||{}).map(([k,v])=>`${GEAR_STAT_LABEL[k]||k} <b>+${Math.round(v*10)/10}</b>`).join(' · ');
+  let card;
+  if(d){ const bar=T.startBar+(it.temper||0)*T.barGrowth, tmul=Math.round(100*T.passivePerTemper*(it.temper||0)), maxed=(it.temper||0)>=T.max, cost=Math.round(T.baseDust[d.quality]*Math.pow(1+T.dustGrowth,it.temper||0));
+    card=`<div class="panel" style="margin-bottom:6px"><div style="display:flex;gap:10px;align-items:flex-start">${gearImg(d,64)}
+      <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px;align-items:center"><b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'};font-size:13px">${escapeHTML(d.name)}</b><span style="font-size:10px;color:#8b98a9">${d.quality} · ${d.slotFull||d.slot}</span></div>
+        <div style="font-size:11px;color:#cdd6e4;margin-top:3px">${statLine(d)}${tmul?` <span style="color:#5ee89b">(+${tmul}% temper)</span>`:''}</div>
+        <div style="font-size:10px;color:#8fe3ff;margin-top:3px">✨ ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===id?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:5px"><span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">${it.prog||0}/${bar}</span></div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
+          ${maxed?'<span style="font-size:9px;color:#ffd45e">★ MAX TEMPER</span>':`<button class="btn xs secondary" onclick="gearHeroPost('/temper',{itemId:'${id}',uses:1},r=>'🔥 +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">🔥 Temper (✨${cost})</button>`}
+          ${act===id?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`}
+          <button class="btn xs secondary" onclick="gearHeroPost('/unequip',{heroKey:'${key}',slot:'${sl}'})">Unequip</button>
+        </div></div></div></div>`;
+  } else card=`<div class="panel" style="margin-bottom:6px;text-align:center;color:#6f7d90;font-size:12px;padding:10px 0">${GEAR_SLOT_ICON[sl]||''} No ${sl.toLowerCase()} equipped</div>`;
+  const inv=Object.keys(st.items).filter(iid=>{ const x=st.items[iid], dd=x&&forgeDef(x.d); return dd&&dd.slot===sl&&!forgeEquippedBy(iid); })
+    .sort((a,b)=>(forgeDef(st.items[b].d).qi-forgeDef(st.items[a].d).qi)||((st.items[b].temper||0)-(st.items[a].temper||0)));
+  const invRows=inv.map(iid=>{ const x=st.items[iid], dd=forgeDef(x.d);
+    return `<div class="eq-row" style="border-left:3px solid ${FORGE_QCOLOR[dd.quality]||'#888'};gap:8px">${gearImg(dd,36)}<div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${FORGE_QCOLOR[dd.quality]||'#e6edf3'}">${escapeHTML(dd.name)}</b> <span style="font-size:10px;color:#6f7d90">${dd.quality} · T${x.temper||0}${x.bound?' · bound':''}</span></div><div style="font-size:10px;color:#8b98a9">${statLine(dd)}</div></div>
+      <button class="btn xs" onclick="gearHeroPost('/equip',{itemId:'${iid}',heroKey:'${key}'},r=>'🛡 Equipped — '+r.slot)">Equip</button></div>`; }).join('');
+  const nEq=Object.keys(eq).length, res=st.resonance||{rank:0};
+  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">Equipped <b style="color:#e6edf3">${nEq}/${slots.length}</b></span><span style="font-size:11px;color:#8b98a9">Resonance rank <b style="color:#ffd45e">${res.rank||0}</b> · ✨ Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
+    <div class="eq-slotpick">${pick}</div>
+    ${card}
+    <div class="panel"><div style="font-size:11px;color:#8b98a9;margin-bottom:5px"><b style="color:#e6edf3">${sl} — in your Forge</b> (${inv.length})</div>${invRows||'<div style="font-size:11px;color:#6f7d90">Nothing unequipped for this slot. Craft it in the <b>Forge</b> from fragments that drop in The Vault.</div>'}</div>
+    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Nine slots: Weapon · Helm · Boots · Armor · Gloves · Belt · Ring · Amulet · Relic. One Gear Active per hero, chosen before battle. Equipped gear is bound forever.</div>`;
+}
 function forgeTab(t){ FORGE.tab=t; renderForge(); }
 function forgeQ(i){ FORGE.q=i; renderForge(); }
 /* v256 (80/20 §5): "where does this fragment come from" — answered on the crafting screen itself
@@ -6230,16 +6286,16 @@ function forgeCraftTabHTML(){
     const canSub=d.sub&&have>=d.subFragCost;
     const canItem=d.qi>0&&subs>=1&&freshPrev>=2;
     return `<div style="border-bottom:1px solid #1a2233;padding:6px 0">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <span style="display:flex;align-items:center;gap:6px;min-width:0">${gearImg(d,34)}<b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b></span>
         <span style="font-size:9px;color:#8b98a9">${d.slotFull||d.slot}</span></div>
       <div style="font-size:9px;color:#6f7d90;margin:2px 0">${escapeHTML(d.passive||'')}${d.active?' · <span style="color:#8fe3ff">Active: '+escapeHTML(d.active)+'</span>':''}</div>
       ${fragSourceLine(d.frag)}
       <div style="display:flex;gap:4px;align-items:center;font-size:9px;flex-wrap:wrap">
-        <span style="color:#8b98a9">🧩 ${d.frag}: <b style="color:${have?'#5ee89b':'#6f7d90'}">${have}</b></span>
+        <span style="color:#8b98a9">${gearFragImg(d.frag,18)} ${d.frag}: <b style="color:${have?'#5ee89b':'#6f7d90'}">${have}</b></span>
         ${d.qi===0
           ?`<button class="btn xs ${canGrey?'':'secondary'}" ${canGrey?`onclick="forgePost('/craft',{gearId:'${d.id}'},r=>'⚒️ Forged '+r.name+'!')"`:'disabled'}>⚒ Craft (${cat.meta.greyFragCost} frags)</button>`
-          :`${d.sub?`<span style="color:#8b98a9">· ${d.sub}: <b style="color:${subs?'#5ee89b':'#6f7d90'}">${subs}</b></span>
+          :`${d.sub?`<span style="color:#8b98a9">· ${gearSubImg(d.sub,18)} ${d.sub}: <b style="color:${subs?'#5ee89b':'#6f7d90'}">${subs}</b></span>
              <button class="btn xs ${canSub?'':'secondary'}" ${canSub?`onclick="forgePost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:'disabled'}>🔩 Sub (${d.subFragCost} frags)</button>`:''}
              <button class="btn xs ${canItem?'':'secondary'}" ${canItem?`onclick="forgeCraftPick('${d.id}')"`:'disabled'}>⚒ Craft (sub + 2 ${prevQ})</button>`}
       </div></div>`; }).join('');
@@ -6260,8 +6316,8 @@ function forgeItemsTabHTML(){
     const heroOpts=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]).map(k=>`<option value="${k}">${(HERO_TYPES[k]||{}).name||k}</option>`).join('');
     const tmul=Math.round(100*T.passivePerTemper*(it.temper||0));
     return `<div style="border:1px solid ${eq?'#2b7a55':'#1a2233'};border-radius:8px;padding:6px 8px;margin-bottom:6px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <span style="display:flex;align-items:center;gap:6px;min-width:0">${gearImg(d,30)}<b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b></span>
         <span style="font-size:9px;color:${eq?'#5ee89b':'#8b98a9'}">${eq?'🛡 '+((HERO_TYPES[eq.hero]||{}).name||eq.hero)+' · '+eq.slot:(it.bound?'🔗 bound':'✨ fresh')}</span></div>
       <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin:3px 0">
         <span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span>
@@ -6287,8 +6343,8 @@ function forgeHeroesTabHTML(){
     return `<div style="border:1px solid #1a2233;border-radius:8px;padding:6px 8px;margin-bottom:6px">
       <b style="font-size:11px">${(HERO_TYPES[h]||{}).name||h}</b>
       ${Object.entries(slots).map(([sl,id])=>{ const it=FORGE.st.items[id], d=it&&forgeDef(it.d); if(!d)return '';
-        return `<div style="display:flex;justify-content:space-between;font-size:9px;margin-top:3px">
-          <span>${sl}: <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b> <span style="color:#ffd45e">T${it.temper||0}</span>${act[h]===id?' <span style="color:#8fe3ff">✨ active</span>':''}</span></div>`; }).join('')}
+        return `<div style="display:flex;justify-content:space-between;font-size:9px;margin-top:3px;align-items:center">
+          <span style="display:flex;align-items:center;gap:5px">${gearImg(d,20)}${sl}: <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b> <span style="color:#ffd45e">T${it.temper||0}</span>${act[h]===id?' <span style="color:#8fe3ff">✨ active</span>':''}</span></div>`; }).join('')}
     </div>`; }).join('');
 }
 function renderForge(){
@@ -10489,7 +10545,7 @@ function renderHeroDetail(){
     ${mythBanner}
     <div class="hd-starrow" id="hdStars" title="${owned?'Tap the stars to manage / refine':''}" style="display:flex;gap:2px;justify-content:center;align-items:center;cursor:${owned?'pointer':'default'};padding:6px 16px;border-radius:10px">${starFillRow(key,22)}</div>
     ${starSubLine?`<div style="font-size:11px;color:#8b98a9;margin:3px 0 4px">${starSubLine}</div>`:''}
-    <div style="font-size:11px;color:${myth?'#ffcf40':gi.col};font-weight:700">${myth?'✦ Mythical':gi.name} · <span style="color:#8b98a9">${t.role} · ${EQ_GROUP_LABEL[grp]}</span></div>
+    <div style="font-size:11px;color:${myth?'#ffcf40':gi.col};font-weight:700">${myth?'✦ Mythical':gi.name} · <span style="color:#8b98a9">${t.role}</span></div>
     <div style="font-size:11px;color:#8b98a9;margin-top:4px">Level ${lvl}${capped?' <span style="color:#ffd45e">(cap '+playerLevel()+')</span>':''}</div>
     <div style="height:7px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${capped?100:pct}%;background:${capped?'#ffd45e':'linear-gradient(90deg,#5ee89b,#4aa3ff)'}"></div></div>
   </div>`;
@@ -10548,41 +10604,7 @@ function renderHeroDetail(){
   } else if(heroTab==='glyphs'){
     tab=glyphV2Tab(key);   // GLYPH v2 — the ONLY glyph system (legacy stripped, 26 Aug)
   } else if(heroTab==='equip'){
-    const s=eqSlotSel, sl=EQ_SLOTS[s], un=eqSlotUnlocked(key,s), equipped=equipArr(key)[s];
-    // base materials strip
-    const matStrip=EQ_BASE.map(b=>`<span style="margin-right:10px;font-size:12px" title="${b[2]}">${b[1]} <b>${eqMat(b[0])}</b></span>`).join('');
-    // slot picker row
-    const slotPick=EQ_SLOTS.map((x,i)=>{ const u=eqSlotUnlocked(key,i), id=equipArr(key)[i], it=id?eqParse(id):null, col=it?EQ_TIERS[it.t][1]:'#33405e';
-      return `<button class="eq-pick${eqSlotSel===i?' on':''}" data-eqp="${i}" title="${x.name}" style="${it?'border-color:'+col:''}">${u?x.icon:'🔒'}</button>`; }).join('');
-    let slotBody='';
-    if(!un){
-      slotBody=`<div class="panel" style="text-align:center;color:#8b98a9;font-size:12px">🔒 <b>${sl.name}</b> slot unlocks at glyph rank <b style="color:${gLadderCol(sl.unlock)}">${gLadderName(sl.unlock)}</b>.<br><span style="font-size:10px;color:#6f7d90">Raise this hero's glyph rank to open it.</span></div>`;
-    } else {
-      // equipped item card
-      const eqCard=(()=>{ if(!equipped) return `<div style="text-align:center;color:#6f7d90;font-size:12px;padding:6px 0">No ${sl.name.toLowerCase()} equipped</div>`;
-        const it=eqParse(equipped), col=EQ_TIERS[it.t][1], stt=EQ_SLOT_STAT[s], f=it.t+1;
-        const statLn=Object.entries(stt).map(([k,v])=>({atk:'⚔',hp:'❤',dr:'🛡',crit:'✦',regen:'♻',energy:'⚡'}[k]+' +'+Math.round(v*f*100)+(k==='regen'?'':'%')).replace('regen','')).join(' · ');
-        return `<div style="display:flex;justify-content:space-between;align-items:center"><b style="color:${col}">${sl.icon} ${eqName(it.g,it.s,it.t)} <span style="font-size:10px">(${EQ_TIERS[it.t][0]})</span></b><button class="btn xs secondary" id="eqUnequip">Unequip</button></div>
-          <div style="font-size:11px;color:#8b98a9;margin-top:3px">${statLn}</div>`; })();
-      // craft tree for this slot: tiers 0..max, showing recipe + craft + inventory + equip
-      const tree=EQ_TIERS.map((tier,ti)=>{ const id=eqId(grp,s,ti), have=eqInv(id), r=eqRecipe(grp,s,ti), can=eqCanCraft(grp,s,ti);
-        const isEquipped=equipped===id;
-        return `<div class="eq-row" style="border-left:3px solid ${tier[1]}">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12px"><b style="color:${tier[1]}">${eqName(grp,s,ti)}</b> <span style="font-size:10px;color:#6f7d90">${tier[0]}</span>${have>0?` <span style="color:#8fe3ff;font-size:10px">×${have}</span>`:''}${isEquipped?' <span style="font-size:10px;color:#5ee89b">✓ equipped</span>':''}</div>
-            <div style="font-size:10px;color:#8b98a9">${recipeStr(r)}</div>
-          </div>
-          <div style="display:flex;gap:4px;flex:none">
-            <button class="btn xs" data-craft="${ti}" ${can?'':'disabled'}>Craft</button>
-            <button class="btn xs secondary" data-equip="${ti}" ${have>0&&!isEquipped?'':'disabled'}>Equip</button>
-          </div></div>`; }).join('');
-      slotBody=`<div class="panel" style="margin-bottom:6px">${eqCard}</div>
-        <div class="panel"><div style="font-size:11px;color:#8b98a9;margin-bottom:5px"><b style="color:#e6edf3">${sl.name} tree</b> — combine up the ladder as quality rises</div>${tree}</div>`;
-    }
-    tab=`<div class="panel" style="padding:8px 10px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">Pieces:</span><span>${matStrip}</span></div></div>
-      <div class="eq-slotpick">${slotPick}</div>
-      ${slotBody}
-      <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Base pieces drop from the <b>Dungeon</b>. Trees differ by class — ${t.role} uses the <b>${EQ_GROUP_LABEL[grp]}</b> set.</div>`;
+    tab=heroGearTabHTML(key);   // v365: the Forge gear for this hero (see heroGearTabHTML)
   } else if(heroTab==='lore'){
     const L=HERO_LORE[key]||{title:'',text:'Lore coming soon.'};
     const paras=L.text.split('\n\n').map(p=>`<p style="margin:0 0 10px">${escapeHTML(p)}</p>`).join('');
@@ -12778,7 +12800,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788477125602';
+const BUILD_ID = '1788477777710';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
