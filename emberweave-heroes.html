@@ -1676,7 +1676,7 @@ const WALK_STRIDE=0.12;                      // walk-cycle frames advanced per f
 const ROLE_BATTLE_H={ Tank:4.5, Bruiser:3.9, Fighter:3.9, Assassin:3.6, Mage:3.5, Marksman:3.5, Support:3.5 };
 const HERO_BATTLE_H={ vireo:3.6, 'boar warrior':3.1, 'boar shaman':3.1 };  // per-hero ROW override (absolute world height) — e.g. Vireo is mid-row support, not backline
 const ROLE_BATTLE_DEFAULT=3.6;
-const BOSS_BATTLE_H=3.15;   // v346 (Phil): bosses 15% smaller than the old 3.7 so the 768-px source is not stretched as far
+const BOSS_BATTLE_H=2.52;   // v363 (Phil): 20% smaller than v346's 3.15 ("so you can fit more detail into them"); with the 2K sheets the source is no longer the limit
 function roleBattleH(key){ if(HERO_BATTLE_H[key]!=null) return HERO_BATTLE_H[key]; const t=HERO_TYPES[key]; return (t&&ROLE_BATTLE_H[t.role])||ROLE_BATTLE_DEFAULT; }
 const HERO_BATTLE_SCALE={};  // optional per-hero fine-tune multipliers (default 1); role map above sets base size
 // build per-state THREE textures once (each state gets its own texture so UV offsets don't clash)
@@ -1690,7 +1690,7 @@ function retryTex(s, tx, attempt){
   setTimeout(()=>{
     const bust=s.u+(s.u.indexOf('?')<0?'?':'&')+'r='+attempt;
     new TH.TextureLoader().load(bust,
-      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1]; tx.image=capSheet(t.image,g[0],g[1]); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
+      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1]; tx.image=capSheet(t.image,g[0],g[1],cellCapFor(s.u)); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
       undefined,
       ()=>retryTex(s, tx, attempt+1));
   }, 400*Math.pow(2.5, attempt-1));                            // 0.4s, 1s, 2.5s
@@ -1708,10 +1708,19 @@ function retryTex(s, tx, attempt){
    This is a CAP, not a fixed ratio — it is a no-op on sheets that are already small, so re-exporting
    the art smaller later is safe and makes this free. */
 const CELL_CAP=150;
-function capSheet(img, cols, rows){
+/* 3 Sep (v363) — WHY EVERY BOSS WAS BLURRY. The 150-px cap above was written for heroes (drawn ~185
+   device px tall) and it was applied to EVERYTHING, including the 2K boss sheets whose cells are up
+   to 900 px and whose figure is drawn ~250-350 device px tall. So a 900-px boss was shrunk to 150 px
+   on load and then stretched back up 2x on screen — Phil: "a lot of them are blurry". Boss sheets
+   (`_2k` / `_xl` monster sheets; `_hd` is the ordinary-monster size and keeps the 150 cap) now get their own cap of 450 px: still a shrink from the
+   900-px source, but above the size they are drawn at, so no upscale. Memory: one boss on screen at
+   a time, 3 sheets of 6x2 x 450 px ≈ 29 MB — well inside the phone budget the 150 cap was set for. */
+const BOSS_CELL_CAP=450;
+function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CELL_CAP:CELL_CAP; }
+function capSheet(img, cols, rows, cap){
   try{
     const w=img.width|0, h=img.height|0; if(!w||!h) return img;
-    const cw=w/cols, ch=h/rows, k=Math.min(1, CELL_CAP/Math.max(cw,ch));
+    const cw=w/cols, ch=h/rows, k=Math.min(1, (cap||CELL_CAP)/Math.max(cw,ch));
     if(k>=0.999) return img;                                   // already small enough — leave it alone
     const nw=Math.max(1,Math.round(cw*k))*cols, nh=Math.max(1,Math.round(ch*k))*rows;
     const cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
@@ -1721,7 +1730,7 @@ function capSheet(img, cols, rows){
     return cv;
   }catch(e){ return img; }
 }
-function _fitTex(t, cols, rows){ try{ const im=capSheet(t.image, cols, rows); if(im!==t.image){ t.image=im; t.needsUpdate=true; } }catch(e){} }
+function _fitTex(t, cols, rows, cap){ try{ const im=capSheet(t.image, cols, rows, cap); if(im!==t.image){ t.image=im; t.needsUpdate=true; } }catch(e){} }
 /* 28 Aug (v286 §1.2) — DECODE THE SHEET STRAIGHT TO ITS FINAL SIZE.
    capSheet() below shrinks an over-large sheet to CELL_CAP, but it did so by letting the browser
    decode the full ~1800x1200 image on the main thread and then re-drawing it into a canvas. Warming
@@ -1738,12 +1747,13 @@ function _fitTex(t, cols, rows){ try{ const im=capSheet(t.image, cols, rows); if
    so a mis-declared sheet is at worst slightly off the cap, never broken. */
 function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh){
   if(typeof createImageBitmap!=='function' || typeof fetch!=='function') return false;
+  const CAP=cellCapFor(url);   // v363: bosses keep more pixels
   /* three r128 does NOT apply texture.flipY to an ImageBitmap, so the bitmap has to be created
      already flipped (imageOrientation:'flipY') and the texture told not to flip again — otherwise
      every sprite renders upside down. */
   fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
     .then(bl=>{
-      const k=(fw&&fh)?Math.min(1, CELL_CAP/Math.max(fw,fh)):0;
+      const k=(fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0;
       if(k>0){
         if(k>=0.999) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(onTex);
         const nw=Math.max(1,Math.round(fw*k))*cols, nh=Math.max(1,Math.round(fh*k))*rows;
@@ -1751,7 +1761,7 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh){
       }
       return createImageBitmap(bl,{imageOrientation:'flipY'}).then(probe=>{   // no declared geometry: old two-pass path
         const cw=probe.width/cols, ch=probe.height/rows;
-        const k2=Math.min(1, CELL_CAP/Math.max(cw,ch));
+        const k2=Math.min(1, CAP/Math.max(cw,ch));
         if(k2>=0.999){ onTex(probe); return; }
         const nw=Math.max(1,Math.round(cw*k2))*cols, nh=Math.max(1,Math.round(ch*k2))*rows;
         return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'})
@@ -1765,8 +1775,8 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   const _c=s.cols||s.n,_r=s.rows||1;
   const tx=new TH.Texture();
   if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; },
-                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); }, s.fw, s.fh)){
-    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
+                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u)); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); }, s.fw, s.fh)){
+    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u)); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
   }
   tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
 /* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
@@ -12746,7 +12756,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788472584846';
+const BUILD_ID = '1788473756733';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
