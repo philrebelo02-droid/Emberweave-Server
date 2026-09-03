@@ -3675,6 +3675,10 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
   dealDamage(u,tg,dB*(o.mul||2)*rm*1.2,'#c9b6ff');   // +20% empowered arrival strike
   floatTexts.push({x:u.x,y:u.y-8,txt:'+20%',t:.8,color:'#c9b6ff',vy:1});
   u.target=tg; u._blinkO=null; HERO_FX_MUL=1; }
+/* v367 (Phil): "Magic Rush's spell FX are so much larger than ours … double all spell effects 2× larger."
+   FX_SIZE scales every VISUAL — ground plates, billboard plates, projectiles, beams, particle size and
+   spread — and nothing about hitboxes: radius/range/damage are untouched. */
+const FX_SIZE=2;
 let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while one of the 3 built heroes casts, so their FX (particles, plates, staff) last twice as long; 1 for everyone else. Cast times are untouched.
 /* v313 — GENERIC ABILITY ART.
    Until now only 'aoedot' and 'crescendo' honoured a declared gfx, so 56 of the 58 monster
@@ -4300,7 +4304,7 @@ const _FX2_PLANE=(typeof TH!=='undefined'&&TH)?new TH.PlaneGeometry(1,1):null;  
 const _groundFx=[];
 function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
   const tex=base;
-  const R3=radius*SC, w=R3*2*1.12, h=w*(d.fh/d.fw);
+  const R3=radius*SC, w=R3*2*1.12*FX_SIZE, h=w*(d.fh/d.fw);   // v367: FX_SIZE is visual only
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
   fx2Hook(m); fx2SetFrame(m,d,0);
@@ -4317,7 +4321,7 @@ function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit){ const d=FX2_DEF[k
   const tex=base;
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
   fx2Hook(spr); fx2SetFrame(spr,d,0);
-  spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;
+  scale*=FX_SIZE; spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;   // v367
   let rot=0; try{ const a=new TH.Vector3(wx(fromx),1.2,wz(fromy)).project(camera), b=new TH.Vector3(wx(tox),1.2,wz(toy)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
   spr.material.rotation=rot;                                                      // front(+x) -> travel direction on screen
   spr.position.set(wx(fromx),1.2,wz(fromy)); scene.add(spr);
@@ -4348,7 +4352,7 @@ function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx
   const apexLead=(d.lead[0]-d.apex[0])/d.fw;                   // frame fraction the apex->lead spans
   const wlen=Math.hypot(wx(Px)-wx(mx), wz(Py)-wz(my));         // world length mouth->lead
   const scaleW=Math.max(0.2, BEAM_K*wlen/Math.max(0.001,apexLead));
-  o.spr.material.rotation=rot; o.spr.position.set(wx(mx),MY,wz(my)); o.spr.scale.set(scaleW, scaleW*(d.fh/d.fw), 1);
+  o.spr.material.rotation=rot; o.spr.position.set(wx(mx),MY,wz(my)); o.spr.scale.set(scaleW, scaleW*(d.fh/d.fw)*(1+(FX_SIZE-1)*0.5), 1);   // v367: beams keep their reach (mouth→target), get fatter
   fx2SetFrame(o.tex,d,Math.floor(o.t*11)%d.n); } }
 // Plague/curse telegraph: a tiny void zone blooms under a struck unit; 0.5s later it fades and the DoT begins ticking.
 const _pendingDots=[];
@@ -4445,7 +4449,7 @@ function spawnFxPlate(key,fx,fy){ if(!TH||!scene)return; const d=FX_PLATE_DEF[ke
   if(!base.image){ (base.__waiters=base.__waiters||[]).push(tex); }   // still downloading — collect it
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:1}));
   spr.center.set(d.ax!=null?d.ax:.5, d.ay!=null?d.ay:.12); spr.renderOrder=992;
-  const asp=d.fw/d.fh; spr.scale.set(d.scale*asp,d.scale,1);
+  const asp=d.fw/d.fh; spr.scale.set(d.scale*asp*FX_SIZE,d.scale*FX_SIZE,1);   // v367
   spr.position.set(wx(fx), d.y!=null?d.y:1.1, wz(fy)); scene.add(spr);
   _fxPlates.push({spr,d,t:0,dm:HERO_FX_MUL}); }
 function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fxPlates[i]; p.t+=dt; const DUR=p.d.dur*(p.dm||1); const prog=Math.min(1,p.t/DUR); const fr=Math.min(p.d.n-1,Math.floor(prog*p.d.n));
@@ -5522,13 +5526,13 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     octx.fillStyle='#ffd45e';octx.font='bold 13px sans-serif';octx.textAlign='center';octx.fillText('🎯 '+aiming.t.abilityName,ap.x,ap.y-24); }
   updatePortraits();
 }
-function burstAt(x,y,color,n){if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true}));m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
+function burstAt(x,y,color,n){if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true}));m.scale.setScalar(.9*FX_SIZE*0.8);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=(1.5+Math.random()*3.5)*FX_SIZE;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
 /* ---- ability visual FX (world-space particle helpers) ---- */
-function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true})); m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
+function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true})); m.scale.setScalar((sc||.9)*FX_SIZE*0.8); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx:vx*FX_SIZE,vy,vz:vz*FX_SIZE,t:0,life:(life||.6)*HERO_FX_MUL}); }
 // fire (or any colour) falling from the sky over an area — "reign of fire" style
-function fireRain(cx,cy,radius,n){ radius=radius||90; n=Math.min(n||18,26); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*radius; const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5.5+Math.random()*3.5,wz(py),(Math.random()-.5)*.4,-6-Math.random()*3,(Math.random()-.5)*.4, Math.random()<.5?0xff6a2a:0xffb52a, 1.0+Math.random()*.5, .5+Math.random()*.45); } }
+function fireRain(cx,cy,radius,n){ radius=(radius||90)*FX_SIZE; n=Math.min(n||18,26); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*radius; const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5.5+Math.random()*3.5,wz(py),(Math.random()-.5)*.4,-6-Math.random()*3,(Math.random()-.5)*.4, Math.random()<.5?0xff6a2a:0xffb52a, 1.0+Math.random()*.5, .5+Math.random()*.45); } }
 // generic projectiles falling on a spot (arrow tempest / holy light)
-function rainDown(cx,cy,radius,n,color){ n=Math.min(n||6,12); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*(radius||26); const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5+Math.random()*3,wz(py),0,-8-Math.random()*3,0,color,.85,.5); } }
+function rainDown(cx,cy,radius,n,color){ n=Math.min(n||6,12); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*(radius||26)*FX_SIZE; const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5+Math.random()*3,wz(py),0,-8-Math.random()*3,0,color,.85,.5); } }
 // sparkles rising off a unit (heals / buffs)
 function sparkleUp(x,y,color,n){ n=Math.min(n||6,10); for(let i=0;i<n;i++){ fxParticle(wx(x)+(Math.random()-.5)*.7,.2,wz(y)+(Math.random()-.5)*.7,(Math.random()-.5)*.6,3+Math.random()*2,(Math.random()-.5)*.6,color,.8,.5+Math.random()*.4); } }
 // particles bursting outward in a flat ring (shockwaves / stuns)
@@ -12881,7 +12885,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788478829598';
+const BUILD_ID = '1788479009760';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
