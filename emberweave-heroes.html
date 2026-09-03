@@ -1059,6 +1059,14 @@ Object.assign(HERO_TYPES, {
   corsair:{name:"The Corsair Duelist",emoji:'🏴‍☠️',role:'Marksman',swing:2.0,stars:2,hp:220,dmg:33,range:200,speed:58,atkSpeed:1.05,color:0xb84a3a,abilityName:"Dead Man's Fortune",ability:'multiShot',locked:true,wip:true,start:2},
   waxenduchess:{name:"Waxen Duchess",emoji:'🕯️',role:'Mage',swing:2.0,stars:3,hp:190,dmg:17,apow:35,range:215,speed:54,atkSpeed:0.85,color:0xe8d8b0,abilityName:"Court of the Final Candle",ability:'swamproot',locked:true,wip:true,start:3},
 });
+/* v364 (Phil, 3 Sep): "every hero should start with base stats and increase — Hurne should start with
+   armor at least and gain per level." Every hero now carries BASE Armor / Magic Resist by role
+   (Fritz keeps his authored 60/90). They scale with level and stars exactly like base HP/ATK
+   (makeUnit: base × lvlScale × starMult), so a Lv100 5★ tank sits ~1000 rating ≈ 46% reduction
+   before a single glyph. Mirrored in server/sim.js HERO_BASE (same table, same defaulting). */
+const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Fighter:{armor:45,mr:30}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
+  Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:40}, Support:{armor:22,mr:38} };
+for(const k in HERO_TYPES){ const t=HERO_TYPES[k], d=ROLE_BASE_DEF[t.role]||ROLE_BASE_DEF.Bruiser; if(t.armor==null) t.armor=d.armor; if(t.mr==null) t.mr=d.mr; }
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
 function isMythic(key){ return !!(HERO_TYPES[key] && HERO_TYPES[key].myth); }
@@ -2651,7 +2659,10 @@ function mulsFromTotals(gf, ex){
   const pray=1+(ex.prayerPct||0)/100; atk*=pray; hp*=pray;
   const em=ex.equip||{}; atk+=(em.atk||0); hp+=(em.hp||0); dr+=(em.dr||0); crit+=(em.crit||0); regen+=(em.regen||0); energyReg+=(em.energy||0);
   dr+=Math.min(0.30,(gf.dmgRed||0)*0.004); crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005;
-  regen+=(gf.regen||0)*0.001; energyReg+=(gf.energy||0)*0.01;
+  /* v364: HP Regen is a RATING — 0.01% of max HP per second per point, capped at 6%/s. It was 0.1%/pt
+     with no cap, so an Orange tank's 1,823 banked points healed 182% of its HP every second
+     (Phil's Gruel card: "HP Regen 123,849/s"). Mirrored in server/combat-core.js. */
+  regen+=Math.min(0.06,(gf.regen||0)*0.0001); energyReg+=(gf.energy||0)*0.01;
   const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.004;
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
 }
@@ -6562,6 +6573,12 @@ function renderDungeon(){
   // this screen becomes the Vault; otherwise the legacy Challenge Dungeon below renders unchanged.
   if(VAULT.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Entering the Vault…</div>';
     vaultStatus().then(()=>renderDungeon()); return; }
+  if(VAULT.st.locked){   // v364: the Vault opens at player level 10 (server-decided)
+    b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto"><div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">
+      <div class="panel" style="text-align:center;padding:26px"><div style="font-size:44px">🏛️</div>
+      <div style="font-weight:900;font-size:16px;color:#c9a2ff;margin:6px 0">THE VAULT IS SEALED</div>
+      <div style="font-size:12px;color:#8b98a9">Opens at player level ${VAULT.st.unlockLevel||10}. You are level ${VAULT.st.playerLevel||playerLevel()}.<br>Floor 1 is built for a level-${VAULT.st.unlockLevel||10} line — bring your best five.</div></div></div></div>`;
+    return; }
   if(VAULT.st.enabled){ const sq=squadFor('vault');
     if(!sq.length&&(VAULT.st.lastTeamHeroIds||[]).length){ (VAULT.st.lastTeamHeroIds||[]).filter(k=>G.unlocked&&G.unlocked[k]).slice(0,TEAM_SIZE*2).forEach(k=>sq.push(k)); }
     b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
@@ -10485,13 +10502,18 @@ function renderHeroDetail(){
   const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}</button>`).join('');
   let tab='';
   if(heroTab==='stats'){
-    const armorFlat=Math.round(heroStat(key,t.armor||0)+techTotal('armor'));
-    const mrFlat=Math.round(heroStat(key,t.mr||0)+techTotal('mr'));
+    /* v364: the card shows the SAME rating the fight uses — base (× level × stars) + Academy + glyph/gear
+       points ×3 (makeUnit) — and what it is worth as damage reduction. It used to ignore glyphs and gear
+       entirely, so an Orange hero read "Armor 0". */
+    const _tt=sockStatTotal(key);
+    const armorFlat=Math.round(heroStat(key,t.armor||0)+techTotal('armor')+(_tt.armor||0)*3);
+    const mrFlat=Math.round(heroStat(key,t.mr||0)+techTotal('mr')+(_tt.mr||0)*3);
+    const _pct=v=>' <span style="color:#8b98a9;font-weight:500">('+Math.round(defToDR(v)*100)+'%)</span>';
     const regenStr=(mul.regen||0)>0?Math.round(S_HP*mul.regen)+' /s':'—';   // flat HP/s (tanks show a real number)
     const enrStr=(mul.energyReg||0)>0?'+'+(mul.energyReg).toFixed(1)+' /s':'—';   // flat energy/s
     const rows=[
       ['❤ Health',S_HP],['♻ HP Regen',regenStr],
-      ['🛡 Armor',armorFlat],['🔮 Magic Resistance',mrFlat],
+      ['🛡 Armor',armorFlat+_pct(armorFlat)],['🔮 Magic Resistance',mrFlat+_pct(mrFlat)],
       ['⚔ Attack Damage',S_ATK],['✨ Ability Power',S_APOW],
       ['✦ Crit Chance',Math.round((mul.crit||0)*100)+'%'],['✚ Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
       ['⚡ Attack Speed',S_APS+' /s'],['🔋 Energy Regen',enrStr],
@@ -12756,7 +12778,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788473756733';
+const BUILD_ID = '1788477125602';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

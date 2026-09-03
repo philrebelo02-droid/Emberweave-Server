@@ -890,6 +890,7 @@ function snapshotHeroFromServer(u, key, save){
 
 // ---- spec constants (server-only tuning) ----
 const DUNGEON_MAX_FLOOR=100;
+const VAULT_UNLOCK_LEVEL=10;   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
 const DUNGEON_QUALITY_BANDS=[
   {min:1,max:10,q:'Grey'},{min:11,max:20,q:'Green'},{min:21,max:30,q:'Blue'},{min:31,max:40,q:'Blue +2'},
   {min:41,max:50,q:'Purple'},{min:51,max:60,q:'Purple +3'},{min:61,max:70,q:'Gold +1'},{min:71,max:80,q:'Gold +4'},
@@ -2698,6 +2699,9 @@ async function api(req,res,url){
   if(p.startsWith('/api/dungeon')||p==='/api/fragments/salvage'){
     if(!me) return send(res,401,{error:'auth'});
     if(!dungeonEnabledFor(me)) return send(res,200,{enabled:false});
+    /* v364 (Phil): "the dungeon should not even be available until level 10". Player level, from the
+       ledger. Dev accounts pass (God Mode opens every building). */
+    { const _pl=ledPlayerLevel(ensureLedger(me)); if(!isDev(me)&&_pl<VAULT_UNLOCK_LEVEL) return send(res,200,{enabled:false, locked:true, unlockLevel:VAULT_UNLOCK_LEVEL, playerLevel:_pl}); }
     if(rateLimited(req,'dungeon',40,60000)) return send(res,429,{error:'Slow down.'});
     const prog=getDungeonProgress(me.id);
     resetDungeonSweepIfNewDay(prog.sweep);
