@@ -58,6 +58,11 @@ const HERO_BASE={
   corsair:{hp:220,dmg:33,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.05},
   waxenduchess:{hp:190,dmg:17,apow:35,role:'Mage',stars:3,healer:false,atkSpeed:0.85}
 };
+/* v364: base Armor / Magic Resist by role — the SAME table and defaulting as the client's ROLE_BASE_DEF
+   (emberweave-heroes.html, right after HERO_TYPES). Authored values (Fritz 60/90) are kept. */
+const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Fighter:{armor:45,mr:30}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
+  Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:40}, Support:{armor:22,mr:38} };
+for(const k in HERO_BASE){ const t=HERO_BASE[k], d=ROLE_BASE_DEF[t.role]||ROLE_BASE_DEF.Bruiser; if(t.armor==null) t.armor=d.armor; if(t.mr==null) t.mr=d.mr; }
 const STAR_MULT=[1,1.15,1.35,1.6,1.9], STAR_PIPS=5, MAX_STARS=5;
 const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Fighter:2,Assassin:3,Marksman:4,Mage:5,Support:6,Control:6};
 

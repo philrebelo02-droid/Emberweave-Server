@@ -12,58 +12,58 @@
      {
       "key": "knat",
       "lvl": 3,
-      "hpMul": 1.2211,
-      "dmgMul": 0.9853
+      "hpMul": 9.8997,
+      "dmgMul": 4.2636
      },
      {
       "key": "sootwing imp",
       "lvl": 3,
-      "hpMul": 1.2211,
-      "dmgMul": 0.9853
+      "hpMul": 9.8997,
+      "dmgMul": 4.2636
      },
      {
       "key": "creep",
       "lvl": 3,
-      "hpMul": 1.2211,
-      "dmgMul": 0.9853
+      "hpMul": 9.8997,
+      "dmgMul": 4.2636
      },
      {
       "key": "fire boar",
       "lvl": 3,
-      "hpMul": 1.2211,
-      "dmgMul": 0.9853
+      "hpMul": 9.8997,
+      "dmgMul": 4.2636
      }
     ],
     [
      {
       "key": "slime",
       "lvl": 3,
-      "hpMul": 1.4199,
-      "dmgMul": 1.1457
+      "hpMul": 11.5114,
+      "dmgMul": 4.9577
      },
      {
       "key": "orc",
       "lvl": 3,
-      "hpMul": 1.4199,
-      "dmgMul": 1.1457
+      "hpMul": 11.5114,
+      "dmgMul": 4.9577
      },
      {
       "key": "bug",
       "lvl": 3,
-      "hpMul": 1.4199,
-      "dmgMul": 1.1457
+      "hpMul": 11.5114,
+      "dmgMul": 4.9577
      },
      {
       "key": "knat",
       "lvl": 3,
-      "hpMul": 1.4199,
-      "dmgMul": 1.1457
+      "hpMul": 11.5114,
+      "dmgMul": 4.9577
      },
      {
       "key": "creep",
       "lvl": 3,
-      "hpMul": 1.4199,
-      "dmgMul": 1.1457
+      "hpMul": 11.5114,
+      "dmgMul": 4.9577
      }
     ]
    ],
@@ -75,7 +75,13 @@
     "Rough Ore Fragment",
     "Rough Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 10,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 2,
@@ -85,58 +91,58 @@
      {
       "key": "creep",
       "lvl": 3,
-      "hpMul": 1.1268,
-      "dmgMul": 0.954
+      "hpMul": 7.1131,
+      "dmgMul": 3.4649
      },
      {
       "key": "cinder skulk",
       "lvl": 3,
-      "hpMul": 1.1268,
-      "dmgMul": 0.954
+      "hpMul": 7.1131,
+      "dmgMul": 3.4649
      },
      {
       "key": "knat",
       "lvl": 3,
-      "hpMul": 1.1268,
-      "dmgMul": 0.954
+      "hpMul": 7.1131,
+      "dmgMul": 3.4649
      },
      {
       "key": "fire boar",
       "lvl": 3,
-      "hpMul": 1.1268,
-      "dmgMul": 0.954
+      "hpMul": 7.1131,
+      "dmgMul": 3.4649
      }
     ],
     [
      {
       "key": "creep",
       "lvl": 3,
-      "hpMul": 1.3101,
-      "dmgMul": 1.11
+      "hpMul": 8.2702,
+      "dmgMul": 4.0315
      },
      {
       "key": "slime",
       "lvl": 3,
-      "hpMul": 1.3101,
-      "dmgMul": 1.11
+      "hpMul": 8.2702,
+      "dmgMul": 4.0315
      },
      {
       "key": "sootwing imp",
       "lvl": 3,
-      "hpMul": 1.3101,
-      "dmgMul": 1.11
+      "hpMul": 8.2702,
+      "dmgMul": 4.0315
      },
      {
       "key": "knat",
       "lvl": 3,
-      "hpMul": 1.3101,
-      "dmgMul": 1.11
+      "hpMul": 8.2702,
+      "dmgMul": 4.0315
      },
      {
       "key": "cinder skulk",
       "lvl": 3,
-      "hpMul": 1.3101,
-      "dmgMul": 1.11
+      "hpMul": 8.2702,
+      "dmgMul": 4.0315
      }
     ]
    ],
@@ -148,7 +154,13 @@
     "Rough Guard Rune",
     "Rough Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 11,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 3,
@@ -158,58 +170,58 @@
      {
       "key": "turtle",
       "lvl": 4,
-      "hpMul": 1.2084,
-      "dmgMul": 1.0256
+      "hpMul": 8.1206,
+      "dmgMul": 3.8917
      },
      {
       "key": "sootwing imp",
       "lvl": 4,
-      "hpMul": 1.2084,
-      "dmgMul": 1.0256
+      "hpMul": 8.1206,
+      "dmgMul": 3.8917
      },
      {
       "key": "cinder skulk",
       "lvl": 4,
-      "hpMul": 1.2084,
-      "dmgMul": 1.0256
+      "hpMul": 8.1206,
+      "dmgMul": 3.8917
      },
      {
       "key": "slime",
       "lvl": 4,
-      "hpMul": 1.2084,
-      "dmgMul": 1.0256
+      "hpMul": 8.1206,
+      "dmgMul": 3.8917
      }
     ],
     [
      {
       "key": "orc",
       "lvl": 4,
-      "hpMul": 1.4049,
-      "dmgMul": 1.1925
+      "hpMul": 9.4411,
+      "dmgMul": 4.525
      },
      {
       "key": "creep",
       "lvl": 4,
-      "hpMul": 1.4049,
-      "dmgMul": 1.1925
+      "hpMul": 9.4411,
+      "dmgMul": 4.525
      },
      {
       "key": "turtle",
       "lvl": 4,
-      "hpMul": 1.4049,
-      "dmgMul": 1.1925
+      "hpMul": 9.4411,
+      "dmgMul": 4.525
      },
      {
       "key": "knat",
       "lvl": 4,
-      "hpMul": 1.4049,
-      "dmgMul": 1.1925
+      "hpMul": 9.4411,
+      "dmgMul": 4.525
      },
      {
       "key": "bug",
       "lvl": 4,
-      "hpMul": 1.4049,
-      "dmgMul": 1.1925
+      "hpMul": 9.4411,
+      "dmgMul": 4.525
      }
     ]
    ],
@@ -221,7 +233,13 @@
     "Rough Edge Stone",
     "Rough Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 12,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 4,
@@ -231,58 +249,58 @@
      {
       "key": "turtle",
       "lvl": 4,
-      "hpMul": 2.9778,
-      "dmgMul": 1.9683
+      "hpMul": 13.4175,
+      "dmgMul": 5.6459
      },
      {
       "key": "bug",
       "lvl": 4,
-      "hpMul": 2.9778,
-      "dmgMul": 1.9683
+      "hpMul": 13.4175,
+      "dmgMul": 5.6459
      },
      {
       "key": "cinder skulk",
       "lvl": 4,
-      "hpMul": 2.9778,
-      "dmgMul": 1.9683
+      "hpMul": 13.4175,
+      "dmgMul": 5.6459
      },
      {
       "key": "orc",
       "lvl": 4,
-      "hpMul": 2.9778,
-      "dmgMul": 1.9683
+      "hpMul": 13.4175,
+      "dmgMul": 5.6459
      }
     ],
     [
      {
       "key": "sootwing imp",
       "lvl": 4,
-      "hpMul": 3.4649,
-      "dmgMul": 2.2898
+      "hpMul": 15.6122,
+      "dmgMul": 6.5681
      },
      {
       "key": "orc",
       "lvl": 4,
-      "hpMul": 3.4649,
-      "dmgMul": 2.2898
+      "hpMul": 15.6122,
+      "dmgMul": 6.5681
      },
      {
       "key": "bug",
       "lvl": 4,
-      "hpMul": 3.4649,
-      "dmgMul": 2.2898
+      "hpMul": 15.6122,
+      "dmgMul": 6.5681
      },
      {
       "key": "cinder skulk",
       "lvl": 4,
-      "hpMul": 3.4649,
-      "dmgMul": 2.2898
+      "hpMul": 15.6122,
+      "dmgMul": 6.5681
      },
      {
       "key": "fire boar",
       "lvl": 4,
-      "hpMul": 3.4649,
-      "dmgMul": 2.2898
+      "hpMul": 15.6122,
+      "dmgMul": 6.5681
      }
     ]
    ],
@@ -294,7 +312,13 @@
     "Rough Focus Crystal",
     "Rough Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 13,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 5,
@@ -304,58 +328,58 @@
      {
       "key": "slime",
       "lvl": 5,
-      "hpMul": 0.6853,
-      "dmgMul": 0.7599
+      "hpMul": 0.9641,
+      "dmgMul": 0.965
      },
      {
       "key": "orc",
       "lvl": 5,
-      "hpMul": 0.6853,
-      "dmgMul": 0.7599
+      "hpMul": 0.9641,
+      "dmgMul": 0.965
      },
      {
       "key": "cinder skulk",
       "lvl": 5,
-      "hpMul": 0.6853,
-      "dmgMul": 0.7599
+      "hpMul": 0.9641,
+      "dmgMul": 0.965
      },
      {
       "key": "knat",
       "lvl": 5,
-      "hpMul": 0.6853,
-      "dmgMul": 0.7599
+      "hpMul": 0.9641,
+      "dmgMul": 0.965
      }
     ],
     [
      {
       "key": "fire boar",
       "lvl": 5,
-      "hpMul": 0.8565,
-      "dmgMul": 0.9501
+      "hpMul": 1.205,
+      "dmgMul": 1.2065
      },
      {
       "key": "bug",
       "lvl": 5,
-      "hpMul": 0.8565,
-      "dmgMul": 0.9501
+      "hpMul": 1.205,
+      "dmgMul": 1.2065
      },
      {
       "key": "turtle",
       "lvl": 5,
-      "hpMul": 0.8565,
-      "dmgMul": 0.9501
+      "hpMul": 1.205,
+      "dmgMul": 1.2065
      },
      {
       "key": "cinder skulk",
       "lvl": 5,
-      "hpMul": 0.8565,
-      "dmgMul": 0.9501
+      "hpMul": 1.205,
+      "dmgMul": 1.2065
      },
      {
       "key": "ogre beast",
       "lvl": 8,
-      "hpMul": 2.2161,
-      "dmgMul": 1.3652,
+      "hpMul": 9.3532,
+      "dmgMul": 5.2011,
       "boss": true
      }
     ]
@@ -376,7 +400,13 @@
     "Rough Ore Fragment",
     "Rough Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 14,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 6,
@@ -386,58 +416,58 @@
      {
       "key": "creep",
       "lvl": 6,
-      "hpMul": 2.7469,
-      "dmgMul": 1.9316
+      "hpMul": 10.2895,
+      "dmgMul": 4.8686
      },
      {
       "key": "slime",
       "lvl": 6,
-      "hpMul": 2.7469,
-      "dmgMul": 1.9316
+      "hpMul": 10.2895,
+      "dmgMul": 4.8686
      },
      {
       "key": "turtle",
       "lvl": 6,
-      "hpMul": 2.7469,
-      "dmgMul": 1.9316
+      "hpMul": 10.2895,
+      "dmgMul": 4.8686
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 2.7469,
-      "dmgMul": 1.9316
+      "hpMul": 10.2895,
+      "dmgMul": 4.8686
      }
     ],
     [
      {
       "key": "bug",
       "lvl": 6,
-      "hpMul": 3.1925,
-      "dmgMul": 2.2469
+      "hpMul": 11.9587,
+      "dmgMul": 5.6633
      },
      {
       "key": "turtle",
       "lvl": 6,
-      "hpMul": 3.1925,
-      "dmgMul": 2.2469
+      "hpMul": 11.9587,
+      "dmgMul": 5.6633
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 3.1925,
-      "dmgMul": 2.2469
+      "hpMul": 11.9587,
+      "dmgMul": 5.6633
      },
      {
       "key": "sootwing imp",
       "lvl": 6,
-      "hpMul": 3.1925,
-      "dmgMul": 2.2469
+      "hpMul": 11.9587,
+      "dmgMul": 5.6633
      },
      {
       "key": "orc",
       "lvl": 6,
-      "hpMul": 3.1925,
-      "dmgMul": 2.2469
+      "hpMul": 11.9587,
+      "dmgMul": 5.6633
      }
     ]
    ],
@@ -449,7 +479,13 @@
     "Rough Guard Rune",
     "Rough Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 15,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 7,
@@ -459,58 +495,58 @@
      {
       "key": "sootwing imp",
       "lvl": 6,
-      "hpMul": 8.2586,
-      "dmgMul": 4.2499
+      "hpMul": 13.2963,
+      "dmgMul": 5.9314
      },
      {
       "key": "turtle",
       "lvl": 6,
-      "hpMul": 8.2586,
-      "dmgMul": 4.2499
+      "hpMul": 13.2963,
+      "dmgMul": 5.9314
      },
      {
       "key": "bug",
       "lvl": 6,
-      "hpMul": 8.2586,
-      "dmgMul": 4.2499
+      "hpMul": 13.2963,
+      "dmgMul": 5.9314
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 8.2586,
-      "dmgMul": 4.2499
+      "hpMul": 13.2963,
+      "dmgMul": 5.9314
      }
     ],
     [
      {
       "key": "slime",
       "lvl": 6,
-      "hpMul": 9.5977,
-      "dmgMul": 4.9409
+      "hpMul": 15.4523,
+      "dmgMul": 6.8958
      },
      {
       "key": "cinder skulk",
       "lvl": 6,
-      "hpMul": 9.5977,
-      "dmgMul": 4.9409
+      "hpMul": 15.4523,
+      "dmgMul": 6.8958
      },
      {
       "key": "bug",
       "lvl": 6,
-      "hpMul": 9.5977,
-      "dmgMul": 4.9409
+      "hpMul": 15.4523,
+      "dmgMul": 6.8958
      },
      {
       "key": "creep",
       "lvl": 6,
-      "hpMul": 9.5977,
-      "dmgMul": 4.9409
+      "hpMul": 15.4523,
+      "dmgMul": 6.8958
      },
      {
       "key": "orc",
       "lvl": 6,
-      "hpMul": 9.5977,
-      "dmgMul": 4.9409
+      "hpMul": 15.4523,
+      "dmgMul": 6.8958
      }
     ]
    ],
@@ -522,7 +558,13 @@
     "Rough Edge Stone",
     "Rough Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 16,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 8,
@@ -532,58 +574,58 @@
      {
       "key": "creep",
       "lvl": 7,
-      "hpMul": 5.4795,
-      "dmgMul": 3.2406
+      "hpMul": 11.0672,
+      "dmgMul": 5.3007
      },
      {
       "key": "sootwing imp",
       "lvl": 7,
-      "hpMul": 5.4795,
-      "dmgMul": 3.2406
+      "hpMul": 11.0672,
+      "dmgMul": 5.3007
      },
      {
       "key": "fire boar",
       "lvl": 7,
-      "hpMul": 5.4795,
-      "dmgMul": 3.2406
+      "hpMul": 11.0672,
+      "dmgMul": 5.3007
      },
      {
       "key": "slime",
       "lvl": 7,
-      "hpMul": 5.4795,
-      "dmgMul": 3.2406
+      "hpMul": 11.0672,
+      "dmgMul": 5.3007
      }
     ],
     [
      {
       "key": "cinder skulk",
       "lvl": 7,
-      "hpMul": 6.3724,
-      "dmgMul": 3.7695
+      "hpMul": 12.8707,
+      "dmgMul": 6.1658
      },
      {
       "key": "slime",
       "lvl": 7,
-      "hpMul": 6.3724,
-      "dmgMul": 3.7695
+      "hpMul": 12.8707,
+      "dmgMul": 6.1658
      },
      {
       "key": "sootwing imp",
       "lvl": 7,
-      "hpMul": 6.3724,
-      "dmgMul": 3.7695
+      "hpMul": 12.8707,
+      "dmgMul": 6.1658
      },
      {
       "key": "creep",
       "lvl": 7,
-      "hpMul": 6.3724,
-      "dmgMul": 3.7695
+      "hpMul": 12.8707,
+      "dmgMul": 6.1658
      },
      {
       "key": "orc",
       "lvl": 7,
-      "hpMul": 6.3724,
-      "dmgMul": 3.7695
+      "hpMul": 12.8707,
+      "dmgMul": 6.1658
      }
     ]
    ],
@@ -595,7 +637,13 @@
     "Rough Focus Crystal",
     "Rough Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 17,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 9,
@@ -605,58 +653,58 @@
      {
       "key": "bug",
       "lvl": 7,
-      "hpMul": 7.0947,
-      "dmgMul": 3.9462
+      "hpMul": 18.6567,
+      "dmgMul": 7.7644
      },
      {
       "key": "turtle",
       "lvl": 7,
-      "hpMul": 7.0947,
-      "dmgMul": 3.9462
+      "hpMul": 18.6567,
+      "dmgMul": 7.7644
      },
      {
       "key": "creep",
       "lvl": 7,
-      "hpMul": 7.0947,
-      "dmgMul": 3.9462
+      "hpMul": 18.6567,
+      "dmgMul": 7.7644
      },
      {
       "key": "fire boar",
       "lvl": 7,
-      "hpMul": 7.0947,
-      "dmgMul": 3.9462
+      "hpMul": 18.6567,
+      "dmgMul": 7.7644
      }
     ],
     [
      {
       "key": "turtle",
       "lvl": 7,
-      "hpMul": 8.2503,
-      "dmgMul": 4.5879
+      "hpMul": 21.6955,
+      "dmgMul": 9.027
      },
      {
       "key": "bug",
       "lvl": 7,
-      "hpMul": 8.2503,
-      "dmgMul": 4.5879
+      "hpMul": 21.6955,
+      "dmgMul": 9.027
      },
      {
       "key": "fire boar",
       "lvl": 7,
-      "hpMul": 8.2503,
-      "dmgMul": 4.5879
+      "hpMul": 21.6955,
+      "dmgMul": 9.027
      },
      {
       "key": "sootwing imp",
       "lvl": 7,
-      "hpMul": 8.2503,
-      "dmgMul": 4.5879
+      "hpMul": 21.6955,
+      "dmgMul": 9.027
      },
      {
       "key": "orc",
       "lvl": 7,
-      "hpMul": 8.2503,
-      "dmgMul": 4.5879
+      "hpMul": 21.6955,
+      "dmgMul": 9.027
      }
     ]
    ],
@@ -668,7 +716,13 @@
     "Rough Ore Fragment",
     "Rough Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 18,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 10,
@@ -678,58 +732,58 @@
      {
       "key": "fire boar",
       "lvl": 8,
-      "hpMul": 1.2663,
-      "dmgMul": 1.4472
+      "hpMul": 1.1875,
+      "dmgMul": 1.3836
      },
      {
       "key": "creep",
       "lvl": 8,
-      "hpMul": 1.2663,
-      "dmgMul": 1.4472
+      "hpMul": 1.1875,
+      "dmgMul": 1.3836
      },
      {
       "key": "orc",
       "lvl": 8,
-      "hpMul": 1.2663,
-      "dmgMul": 1.4472
+      "hpMul": 1.1875,
+      "dmgMul": 1.3836
      },
      {
       "key": "sootwing imp",
       "lvl": 8,
-      "hpMul": 1.2663,
-      "dmgMul": 1.4472
+      "hpMul": 1.1875,
+      "dmgMul": 1.3836
      }
     ],
     [
      {
       "key": "turtle",
       "lvl": 8,
-      "hpMul": 1.5831,
-      "dmgMul": 1.809
+      "hpMul": 1.4846,
+      "dmgMul": 1.7295
      },
      {
       "key": "slime",
       "lvl": 8,
-      "hpMul": 1.5831,
-      "dmgMul": 1.809
+      "hpMul": 1.4846,
+      "dmgMul": 1.7295
      },
      {
       "key": "orc",
       "lvl": 8,
-      "hpMul": 1.5831,
-      "dmgMul": 1.809
+      "hpMul": 1.4846,
+      "dmgMul": 1.7295
      },
      {
       "key": "fire boar",
       "lvl": 8,
-      "hpMul": 1.5831,
-      "dmgMul": 1.809
+      "hpMul": 1.4846,
+      "dmgMul": 1.7295
      },
      {
       "key": "nashor beast",
       "lvl": 11,
-      "hpMul": 4.0974,
-      "dmgMul": 2.6007,
+      "hpMul": 11.5274,
+      "dmgMul": 7.459,
       "boss": true
      }
     ]
@@ -750,7 +804,13 @@
     "Rough Guard Rune",
     "Rough Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 19,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 11,
@@ -760,58 +820,58 @@
      {
       "key": "mudsnap crab",
       "lvl": 9,
-      "hpMul": 4.5455,
-      "dmgMul": 2.9747
+      "hpMul": 15.0835,
+      "dmgMul": 6.8879
      },
      {
       "key": "ghoul fiend",
       "lvl": 9,
-      "hpMul": 4.5455,
-      "dmgMul": 2.9747
+      "hpMul": 15.0835,
+      "dmgMul": 6.8879
      },
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 4.5455,
-      "dmgMul": 2.9747
+      "hpMul": 15.0835,
+      "dmgMul": 6.8879
      },
      {
       "key": "rotbloom ooze",
       "lvl": 9,
-      "hpMul": 4.5455,
-      "dmgMul": 2.9747
+      "hpMul": 15.0835,
+      "dmgMul": 6.8879
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 5.2885,
-      "dmgMul": 3.4585
+      "hpMul": 17.549,
+      "dmgMul": 8.0082
      },
      {
       "key": "ghoul fiend",
       "lvl": 9,
-      "hpMul": 5.2885,
-      "dmgMul": 3.4585
+      "hpMul": 17.549,
+      "dmgMul": 8.0082
      },
      {
       "key": "rotbloom ooze",
       "lvl": 9,
-      "hpMul": 5.2885,
-      "dmgMul": 3.4585
+      "hpMul": 17.549,
+      "dmgMul": 8.0082
      },
      {
       "key": "nightcap mimic",
       "lvl": 9,
-      "hpMul": 5.2885,
-      "dmgMul": 3.4585
+      "hpMul": 17.549,
+      "dmgMul": 8.0082
      },
      {
       "key": "kelp hexer",
       "lvl": 9,
-      "hpMul": 5.2885,
-      "dmgMul": 3.4585
+      "hpMul": 17.549,
+      "dmgMul": 8.0082
      }
     ]
    ],
@@ -823,7 +883,13 @@
     "Verdant Ore Fragment",
     "Verdant Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 20,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 12,
@@ -833,58 +899,58 @@
      {
       "key": "slug beast",
       "lvl": 9,
-      "hpMul": 5.2774,
-      "dmgMul": 3.3462
+      "hpMul": 18.7062,
+      "dmgMul": 6.8317
      },
      {
       "key": "kelp hexer",
       "lvl": 9,
-      "hpMul": 5.2774,
-      "dmgMul": 3.3462
+      "hpMul": 18.7062,
+      "dmgMul": 6.8317
      },
      {
       "key": "nightcap mimic",
       "lvl": 9,
-      "hpMul": 5.2774,
-      "dmgMul": 3.3462
+      "hpMul": 18.7062,
+      "dmgMul": 6.8317
      },
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 5.2774,
-      "dmgMul": 3.3462
+      "hpMul": 18.7062,
+      "dmgMul": 6.8317
      }
     ],
     [
      {
       "key": "slug beast",
       "lvl": 9,
-      "hpMul": 6.1395,
-      "dmgMul": 3.8918
+      "hpMul": 21.762,
+      "dmgMul": 7.9456
      },
      {
       "key": "mudsnap crab",
       "lvl": 9,
-      "hpMul": 6.1395,
-      "dmgMul": 3.8918
+      "hpMul": 21.762,
+      "dmgMul": 7.9456
      },
      {
       "key": "kelp hexer",
       "lvl": 9,
-      "hpMul": 6.1395,
-      "dmgMul": 3.8918
+      "hpMul": 21.762,
+      "dmgMul": 7.9456
      },
      {
       "key": "vineback boar",
       "lvl": 9,
-      "hpMul": 6.1395,
-      "dmgMul": 3.8918
+      "hpMul": 21.762,
+      "dmgMul": 7.9456
      },
      {
       "key": "ghoul fiend",
       "lvl": 9,
-      "hpMul": 6.1395,
-      "dmgMul": 3.8918
+      "hpMul": 21.762,
+      "dmgMul": 7.9456
      }
     ]
    ],
@@ -896,7 +962,14 @@
     "Verdant Guard Rune",
     "Verdant Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 21,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.279
+   }
   },
   {
    "floor": 13,
@@ -906,58 +979,58 @@
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 4.8688,
-      "dmgMul": 3.2036
+      "hpMul": 14.1455,
+      "dmgMul": 6.7589
      },
      {
       "key": "nightcap mimic",
       "lvl": 10,
-      "hpMul": 4.8688,
-      "dmgMul": 3.2036
+      "hpMul": 14.1455,
+      "dmgMul": 6.7589
      },
      {
       "key": "slug beast",
       "lvl": 10,
-      "hpMul": 4.8688,
-      "dmgMul": 3.2036
+      "hpMul": 14.1455,
+      "dmgMul": 6.7589
      },
      {
       "key": "ghoul fiend",
       "lvl": 10,
-      "hpMul": 4.8688,
-      "dmgMul": 3.2036
+      "hpMul": 14.1455,
+      "dmgMul": 6.7589
      }
     ],
     [
      {
       "key": "mudsnap crab",
       "lvl": 10,
-      "hpMul": 5.6599,
-      "dmgMul": 3.7245
+      "hpMul": 16.4439,
+      "dmgMul": 7.8579
      },
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 5.6599,
-      "dmgMul": 3.7245
+      "hpMul": 16.4439,
+      "dmgMul": 7.8579
      },
      {
       "key": "ghoul fiend",
       "lvl": 10,
-      "hpMul": 5.6599,
-      "dmgMul": 3.7245
+      "hpMul": 16.4439,
+      "dmgMul": 7.8579
      },
      {
       "key": "kelp hexer",
       "lvl": 10,
-      "hpMul": 5.6599,
-      "dmgMul": 3.7245
+      "hpMul": 16.4439,
+      "dmgMul": 7.8579
      },
      {
       "key": "slug beast",
       "lvl": 10,
-      "hpMul": 5.6599,
-      "dmgMul": 3.7245
+      "hpMul": 16.4439,
+      "dmgMul": 7.8579
      }
     ]
    ],
@@ -969,7 +1042,13 @@
     "Verdant Edge Stone",
     "Verdant Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 22,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 14,
@@ -979,58 +1058,58 @@
      {
       "key": "ghoul fiend",
       "lvl": 10,
-      "hpMul": 6.76,
-      "dmgMul": 4.0801
+      "hpMul": 13.0278,
+      "dmgMul": 6.4583
      },
      {
       "key": "nightcap mimic",
       "lvl": 10,
-      "hpMul": 6.76,
-      "dmgMul": 4.0801
+      "hpMul": 13.0278,
+      "dmgMul": 6.4583
      },
      {
       "key": "mudsnap crab",
       "lvl": 10,
-      "hpMul": 6.76,
-      "dmgMul": 4.0801
+      "hpMul": 13.0278,
+      "dmgMul": 6.4583
      },
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 6.76,
-      "dmgMul": 4.0801
+      "hpMul": 13.0278,
+      "dmgMul": 6.4583
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 10,
-      "hpMul": 7.8582,
-      "dmgMul": 4.745
+      "hpMul": 15.1442,
+      "dmgMul": 7.5108
      },
      {
       "key": "nightcap mimic",
       "lvl": 10,
-      "hpMul": 7.8582,
-      "dmgMul": 4.745
+      "hpMul": 15.1442,
+      "dmgMul": 7.5108
      },
      {
       "key": "kelp hexer",
       "lvl": 10,
-      "hpMul": 7.8582,
-      "dmgMul": 4.745
+      "hpMul": 15.1442,
+      "dmgMul": 7.5108
      },
      {
       "key": "rotbloom ooze",
       "lvl": 10,
-      "hpMul": 7.8582,
-      "dmgMul": 4.745
+      "hpMul": 15.1442,
+      "dmgMul": 7.5108
      },
      {
       "key": "ghoul fiend",
       "lvl": 10,
-      "hpMul": 7.8582,
-      "dmgMul": 4.745
+      "hpMul": 15.1442,
+      "dmgMul": 7.5108
      }
     ]
    ],
@@ -1042,7 +1121,13 @@
     "Verdant Focus Crystal",
     "Verdant Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 23,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 15,
@@ -1052,58 +1137,58 @@
      {
       "key": "nightcap mimic",
       "lvl": 11,
-      "hpMul": 1.6167,
-      "dmgMul": 1.606
+      "hpMul": 1.0737,
+      "dmgMul": 1.206
      },
      {
       "key": "mudsnap crab",
       "lvl": 11,
-      "hpMul": 1.6167,
-      "dmgMul": 1.606
+      "hpMul": 1.0737,
+      "dmgMul": 1.206
      },
      {
       "key": "vineback boar",
       "lvl": 11,
-      "hpMul": 1.6167,
-      "dmgMul": 1.606
+      "hpMul": 1.0737,
+      "dmgMul": 1.206
      },
      {
       "key": "garbage mob",
       "lvl": 11,
-      "hpMul": 1.6167,
-      "dmgMul": 1.606
+      "hpMul": 1.0737,
+      "dmgMul": 1.206
      }
     ],
     [
      {
       "key": "slug beast",
       "lvl": 11,
-      "hpMul": 2.0208,
-      "dmgMul": 2.0079
+      "hpMul": 1.3421,
+      "dmgMul": 1.5078
      },
      {
       "key": "garbage mob",
       "lvl": 11,
-      "hpMul": 2.0208,
-      "dmgMul": 2.0079
+      "hpMul": 1.3421,
+      "dmgMul": 1.5078
      },
      {
       "key": "mudsnap crab",
       "lvl": 11,
-      "hpMul": 2.0208,
-      "dmgMul": 2.0079
+      "hpMul": 1.3421,
+      "dmgMul": 1.5078
      },
      {
       "key": "vineback boar",
       "lvl": 11,
-      "hpMul": 2.0208,
-      "dmgMul": 2.0079
+      "hpMul": 1.3421,
+      "dmgMul": 1.5078
      },
      {
       "key": "water monster",
       "lvl": 14,
-      "hpMul": 5.2299,
-      "dmgMul": 2.8858,
+      "hpMul": 10.4204,
+      "dmgMul": 6.501,
       "boss": true
      }
     ]
@@ -1124,7 +1209,13 @@
     "Verdant Ore Fragment",
     "Verdant Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 23,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 16,
@@ -1134,58 +1225,58 @@
      {
       "key": "mudsnap crab",
       "lvl": 12,
-      "hpMul": 3.8454,
-      "dmgMul": 2.8142
+      "hpMul": 16.5488,
+      "dmgMul": 7.8169
      },
      {
       "key": "ghoul fiend",
       "lvl": 12,
-      "hpMul": 3.8454,
-      "dmgMul": 2.8142
+      "hpMul": 16.5488,
+      "dmgMul": 7.8169
      },
      {
       "key": "rotbloom ooze",
       "lvl": 12,
-      "hpMul": 3.8454,
-      "dmgMul": 2.8142
+      "hpMul": 16.5488,
+      "dmgMul": 7.8169
      },
      {
       "key": "nightcap mimic",
       "lvl": 12,
-      "hpMul": 3.8454,
-      "dmgMul": 2.8142
+      "hpMul": 16.5488,
+      "dmgMul": 7.8169
      }
     ],
     [
      {
       "key": "rotbloom ooze",
       "lvl": 12,
-      "hpMul": 4.4721,
-      "dmgMul": 3.2727
+      "hpMul": 19.2458,
+      "dmgMul": 9.0904
      },
      {
       "key": "ghoul fiend",
       "lvl": 12,
-      "hpMul": 4.4721,
-      "dmgMul": 3.2727
+      "hpMul": 19.2458,
+      "dmgMul": 9.0904
      },
      {
       "key": "kelp hexer",
       "lvl": 12,
-      "hpMul": 4.4721,
-      "dmgMul": 3.2727
+      "hpMul": 19.2458,
+      "dmgMul": 9.0904
      },
      {
       "key": "nightcap mimic",
       "lvl": 12,
-      "hpMul": 4.4721,
-      "dmgMul": 3.2727
+      "hpMul": 19.2458,
+      "dmgMul": 9.0904
      },
      {
       "key": "garbage mob",
       "lvl": 12,
-      "hpMul": 4.4721,
-      "dmgMul": 3.2727
+      "hpMul": 19.2458,
+      "dmgMul": 9.0904
      }
     ]
    ],
@@ -1197,7 +1288,13 @@
     "Verdant Guard Rune",
     "Verdant Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 24,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 17,
@@ -1207,58 +1304,58 @@
      {
       "key": "kelp hexer",
       "lvl": 12,
-      "hpMul": 6.466,
-      "dmgMul": 4.0952
+      "hpMul": 20.5131,
+      "dmgMul": 9.1887
      },
      {
       "key": "vineback boar",
       "lvl": 12,
-      "hpMul": 6.466,
-      "dmgMul": 4.0952
+      "hpMul": 20.5131,
+      "dmgMul": 9.1887
      },
      {
       "key": "mudsnap crab",
       "lvl": 12,
-      "hpMul": 6.466,
-      "dmgMul": 4.0952
+      "hpMul": 20.5131,
+      "dmgMul": 9.1887
      },
      {
       "key": "slug beast",
       "lvl": 12,
-      "hpMul": 6.466,
-      "dmgMul": 4.0952
+      "hpMul": 20.5131,
+      "dmgMul": 9.1887
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 12,
-      "hpMul": 7.5194,
-      "dmgMul": 4.761
+      "hpMul": 23.855,
+      "dmgMul": 10.6826
      },
      {
       "key": "slug beast",
       "lvl": 12,
-      "hpMul": 7.5194,
-      "dmgMul": 4.761
+      "hpMul": 23.855,
+      "dmgMul": 10.6826
      },
      {
       "key": "garbage mob",
       "lvl": 12,
-      "hpMul": 7.5194,
-      "dmgMul": 4.761
+      "hpMul": 23.855,
+      "dmgMul": 10.6826
      },
      {
       "key": "mudsnap crab",
       "lvl": 12,
-      "hpMul": 7.5194,
-      "dmgMul": 4.761
+      "hpMul": 23.855,
+      "dmgMul": 10.6826
      },
      {
       "key": "rotbloom ooze",
       "lvl": 12,
-      "hpMul": 7.5194,
-      "dmgMul": 4.761
+      "hpMul": 23.855,
+      "dmgMul": 10.6826
      }
     ]
    ],
@@ -1270,7 +1367,13 @@
     "Verdant Edge Stone",
     "Verdant Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 25,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 18,
@@ -1280,58 +1383,58 @@
      {
       "key": "ghoul fiend",
       "lvl": 13,
-      "hpMul": 7.0296,
-      "dmgMul": 4.3873
+      "hpMul": 22.7191,
+      "dmgMul": 9.9729
      },
      {
       "key": "vineback boar",
       "lvl": 13,
-      "hpMul": 7.0296,
-      "dmgMul": 4.3873
+      "hpMul": 22.7191,
+      "dmgMul": 9.9729
      },
      {
       "key": "mudsnap crab",
       "lvl": 13,
-      "hpMul": 7.0296,
-      "dmgMul": 4.3873
+      "hpMul": 22.7191,
+      "dmgMul": 9.9729
      },
      {
       "key": "kelp hexer",
       "lvl": 13,
-      "hpMul": 7.0296,
-      "dmgMul": 4.3873
+      "hpMul": 22.7191,
+      "dmgMul": 9.9729
      }
     ],
     [
      {
       "key": "slug beast",
       "lvl": 13,
-      "hpMul": 8.1743,
-      "dmgMul": 5.1019
+      "hpMul": 26.4187,
+      "dmgMul": 11.5972
      },
      {
       "key": "rotbloom ooze",
       "lvl": 13,
-      "hpMul": 8.1743,
-      "dmgMul": 5.1019
+      "hpMul": 26.4187,
+      "dmgMul": 11.5972
      },
      {
       "key": "ghoul fiend",
       "lvl": 13,
-      "hpMul": 8.1743,
-      "dmgMul": 5.1019
+      "hpMul": 26.4187,
+      "dmgMul": 11.5972
      },
      {
       "key": "mudsnap crab",
       "lvl": 13,
-      "hpMul": 8.1743,
-      "dmgMul": 5.1019
+      "hpMul": 26.4187,
+      "dmgMul": 11.5972
      },
      {
       "key": "garbage mob",
       "lvl": 13,
-      "hpMul": 8.1743,
-      "dmgMul": 5.1019
+      "hpMul": 26.4187,
+      "dmgMul": 11.5972
      }
     ]
    ],
@@ -1343,7 +1446,13 @@
     "Verdant Focus Crystal",
     "Verdant Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 26,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 19,
@@ -1353,58 +1462,58 @@
      {
       "key": "kelp hexer",
       "lvl": 13,
-      "hpMul": 8.5266,
-      "dmgMul": 5.0757
+      "hpMul": 20.2155,
+      "dmgMul": 9.2882
      },
      {
       "key": "slug beast",
       "lvl": 13,
-      "hpMul": 8.5266,
-      "dmgMul": 5.0757
+      "hpMul": 20.2155,
+      "dmgMul": 9.2882
      },
      {
       "key": "garbage mob",
       "lvl": 13,
-      "hpMul": 8.5266,
-      "dmgMul": 5.0757
+      "hpMul": 20.2155,
+      "dmgMul": 9.2882
      },
      {
       "key": "vineback boar",
       "lvl": 13,
-      "hpMul": 8.5266,
-      "dmgMul": 5.0757
+      "hpMul": 20.2155,
+      "dmgMul": 9.2882
      }
     ],
     [
      {
       "key": "garbage mob",
       "lvl": 13,
-      "hpMul": 9.9194,
-      "dmgMul": 5.9006
+      "hpMul": 23.5177,
+      "dmgMul": 10.7977
      },
      {
       "key": "slug beast",
       "lvl": 13,
-      "hpMul": 9.9194,
-      "dmgMul": 5.9006
+      "hpMul": 23.5177,
+      "dmgMul": 10.7977
      },
      {
       "key": "vineback boar",
       "lvl": 13,
-      "hpMul": 9.9194,
-      "dmgMul": 5.9006
+      "hpMul": 23.5177,
+      "dmgMul": 10.7977
      },
      {
       "key": "mudsnap crab",
       "lvl": 13,
-      "hpMul": 9.9194,
-      "dmgMul": 5.9006
+      "hpMul": 23.5177,
+      "dmgMul": 10.7977
      },
      {
       "key": "rotbloom ooze",
       "lvl": 13,
-      "hpMul": 9.9194,
-      "dmgMul": 5.9006
+      "hpMul": 23.5177,
+      "dmgMul": 10.7977
      }
     ]
    ],
@@ -1416,7 +1525,13 @@
     "Verdant Ore Fragment",
     "Verdant Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 27,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 20,
@@ -1426,58 +1541,58 @@
      {
       "key": "vineback boar",
       "lvl": 14,
-      "hpMul": 1.3531,
-      "dmgMul": 1.7054
+      "hpMul": 1.4564,
+      "dmgMul": 1.7955
      },
      {
       "key": "slug beast",
       "lvl": 14,
-      "hpMul": 1.3531,
-      "dmgMul": 1.7054
+      "hpMul": 1.4564,
+      "dmgMul": 1.7955
      },
      {
       "key": "mudsnap crab",
       "lvl": 14,
-      "hpMul": 1.3531,
-      "dmgMul": 1.7054
+      "hpMul": 1.4564,
+      "dmgMul": 1.7955
      },
      {
       "key": "kelp hexer",
       "lvl": 14,
-      "hpMul": 1.3531,
-      "dmgMul": 1.7054
+      "hpMul": 1.4564,
+      "dmgMul": 1.7955
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 14,
-      "hpMul": 1.6914,
-      "dmgMul": 2.1319
+      "hpMul": 1.8205,
+      "dmgMul": 2.2446
      },
      {
       "key": "ghoul fiend",
       "lvl": 14,
-      "hpMul": 1.6914,
-      "dmgMul": 2.1319
+      "hpMul": 1.8205,
+      "dmgMul": 2.2446
      },
      {
       "key": "nightcap mimic",
       "lvl": 14,
-      "hpMul": 1.6914,
-      "dmgMul": 2.1319
+      "hpMul": 1.8205,
+      "dmgMul": 2.2446
      },
      {
       "key": "garbage mob",
       "lvl": 14,
-      "hpMul": 1.6914,
-      "dmgMul": 2.1319
+      "hpMul": 1.8205,
+      "dmgMul": 2.2446
      },
      {
       "key": "monster with fireball",
       "lvl": 17,
-      "hpMul": 4.3777,
-      "dmgMul": 3.065,
+      "hpMul": 14.1357,
+      "dmgMul": 9.6809,
       "boss": true
      }
     ]
@@ -1498,7 +1613,13 @@
     "Verdant Guard Rune",
     "Verdant Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 28,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 21,
@@ -1508,58 +1629,58 @@
      {
       "key": "rock golem",
       "lvl": 15,
-      "hpMul": 11.3247,
-      "dmgMul": 6.3114
+      "hpMul": 19.5429,
+      "dmgMul": 9.247
      },
      {
       "key": "raven",
       "lvl": 15,
-      "hpMul": 11.3247,
-      "dmgMul": 6.3114
+      "hpMul": 19.5429,
+      "dmgMul": 9.247
      },
      {
       "key": "tin beast",
       "lvl": 15,
-      "hpMul": 11.3247,
-      "dmgMul": 6.3114
+      "hpMul": 19.5429,
+      "dmgMul": 9.247
      },
      {
       "key": "frostjaw troll",
       "lvl": 15,
-      "hpMul": 11.3247,
-      "dmgMul": 6.3114
+      "hpMul": 19.5429,
+      "dmgMul": 9.247
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 15,
-      "hpMul": 13.1663,
-      "dmgMul": 7.3372
+      "hpMul": 22.7209,
+      "dmgMul": 10.7499
      },
      {
       "key": "tin beast",
       "lvl": 15,
-      "hpMul": 13.1663,
-      "dmgMul": 7.3372
+      "hpMul": 22.7209,
+      "dmgMul": 10.7499
      },
      {
       "key": "frostjaw troll",
       "lvl": 15,
-      "hpMul": 13.1663,
-      "dmgMul": 7.3372
+      "hpMul": 22.7209,
+      "dmgMul": 10.7499
      },
      {
       "key": "raven",
       "lvl": 15,
-      "hpMul": 13.1663,
-      "dmgMul": 7.3372
+      "hpMul": 22.7209,
+      "dmgMul": 10.7499
      },
      {
       "key": "rock golem",
       "lvl": 15,
-      "hpMul": 13.1663,
-      "dmgMul": 7.3372
+      "hpMul": 22.7209,
+      "dmgMul": 10.7499
      }
     ]
    ],
@@ -1571,7 +1692,13 @@
     "Azure Ore Fragment",
     "Azure Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 29,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 22,
@@ -1581,58 +1708,58 @@
      {
       "key": "tin beast",
       "lvl": 15,
-      "hpMul": 9.214,
-      "dmgMul": 5.5127
+      "hpMul": 34.4471,
+      "dmgMul": 13.8758
      },
      {
       "key": "raven",
       "lvl": 15,
-      "hpMul": 9.214,
-      "dmgMul": 5.5127
+      "hpMul": 34.4471,
+      "dmgMul": 13.8758
      },
      {
       "key": "rock golem",
       "lvl": 15,
-      "hpMul": 9.214,
-      "dmgMul": 5.5127
+      "hpMul": 34.4471,
+      "dmgMul": 13.8758
      },
      {
       "key": "frostjaw troll",
       "lvl": 15,
-      "hpMul": 9.214,
-      "dmgMul": 5.5127
+      "hpMul": 34.4471,
+      "dmgMul": 13.8758
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 15,
-      "hpMul": 10.712,
-      "dmgMul": 6.4104
+      "hpMul": 40.0474,
+      "dmgMul": 16.1353
      },
      {
       "key": "raven",
       "lvl": 15,
-      "hpMul": 10.712,
-      "dmgMul": 6.4104
+      "hpMul": 40.0474,
+      "dmgMul": 16.1353
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 15,
-      "hpMul": 10.712,
-      "dmgMul": 6.4104
+      "hpMul": 40.0474,
+      "dmgMul": 16.1353
      },
      {
       "key": "dyrmen",
       "lvl": 15,
-      "hpMul": 10.712,
-      "dmgMul": 6.4104
+      "hpMul": 40.0474,
+      "dmgMul": 16.1353
      },
      {
       "key": "tin beast",
       "lvl": 15,
-      "hpMul": 10.712,
-      "dmgMul": 6.4104
+      "hpMul": 40.0474,
+      "dmgMul": 16.1353
      }
     ]
    ],
@@ -1644,7 +1771,13 @@
     "Azure Guard Rune",
     "Azure Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 30,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 23,
@@ -1654,58 +1787,58 @@
      {
       "key": "zephyr harrier",
       "lvl": 16,
-      "hpMul": 8.5117,
-      "dmgMul": 5.264
+      "hpMul": 30.1267,
+      "dmgMul": 12.7518
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 16,
-      "hpMul": 8.5117,
-      "dmgMul": 5.264
+      "hpMul": 30.1267,
+      "dmgMul": 12.7518
      },
      {
       "key": "frostjaw troll",
       "lvl": 16,
-      "hpMul": 8.5117,
-      "dmgMul": 5.264
+      "hpMul": 30.1267,
+      "dmgMul": 12.7518
      },
      {
       "key": "raven",
       "lvl": 16,
-      "hpMul": 8.5117,
-      "dmgMul": 5.264
+      "hpMul": 30.1267,
+      "dmgMul": 12.7518
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 16,
-      "hpMul": 9.8993,
-      "dmgMul": 6.1195
+      "hpMul": 35.038,
+      "dmgMul": 14.8242
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 16,
-      "hpMul": 9.8993,
-      "dmgMul": 6.1195
+      "hpMul": 35.038,
+      "dmgMul": 14.8242
      },
      {
       "key": "rock golem",
       "lvl": 16,
-      "hpMul": 9.8993,
-      "dmgMul": 6.1195
+      "hpMul": 35.038,
+      "dmgMul": 14.8242
      },
      {
       "key": "dyrmen",
       "lvl": 16,
-      "hpMul": 9.8993,
-      "dmgMul": 6.1195
+      "hpMul": 35.038,
+      "dmgMul": 14.8242
      },
      {
       "key": "tin beast",
       "lvl": 16,
-      "hpMul": 9.8993,
-      "dmgMul": 6.1195
+      "hpMul": 35.038,
+      "dmgMul": 14.8242
      }
     ]
    ],
@@ -1717,7 +1850,13 @@
     "Azure Edge Stone",
     "Azure Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 31,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 24,
@@ -1727,58 +1866,58 @@
      {
       "key": "dyrmen",
       "lvl": 16,
-      "hpMul": 11.5127,
-      "dmgMul": 6.5591
+      "hpMul": 28.4946,
+      "dmgMul": 12.3695
      },
      {
       "key": "tin beast",
       "lvl": 16,
-      "hpMul": 11.5127,
-      "dmgMul": 6.5591
+      "hpMul": 28.4946,
+      "dmgMul": 12.3695
      },
      {
       "key": "rock golem",
       "lvl": 16,
-      "hpMul": 11.5127,
-      "dmgMul": 6.5591
+      "hpMul": 28.4946,
+      "dmgMul": 12.3695
      },
      {
       "key": "frostjaw troll",
       "lvl": 16,
-      "hpMul": 11.5127,
-      "dmgMul": 6.5591
+      "hpMul": 28.4946,
+      "dmgMul": 12.3695
      }
     ],
     [
      {
       "key": "tin beast",
       "lvl": 16,
-      "hpMul": 13.3888,
-      "dmgMul": 7.627
+      "hpMul": 33.138,
+      "dmgMul": 14.3834
      },
      {
       "key": "zephyr harrier",
       "lvl": 16,
-      "hpMul": 13.3888,
-      "dmgMul": 7.627
+      "hpMul": 33.138,
+      "dmgMul": 14.3834
      },
      {
       "key": "luminant orb",
       "lvl": 16,
-      "hpMul": 13.3888,
-      "dmgMul": 7.627
+      "hpMul": 33.138,
+      "dmgMul": 14.3834
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 16,
-      "hpMul": 13.3888,
-      "dmgMul": 7.627
+      "hpMul": 33.138,
+      "dmgMul": 14.3834
      },
      {
       "key": "rock golem",
       "lvl": 16,
-      "hpMul": 13.3888,
-      "dmgMul": 7.627
+      "hpMul": 33.138,
+      "dmgMul": 14.3834
      }
     ]
    ],
@@ -1790,7 +1929,13 @@
     "Azure Focus Crystal",
     "Azure Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 32,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 25,
@@ -1800,58 +1945,58 @@
      {
       "key": "tin beast",
       "lvl": 17,
-      "hpMul": 3.9203,
-      "dmgMul": 3.2945
+      "hpMul": 2.4458,
+      "dmgMul": 2.3679
      },
      {
       "key": "dyrmen",
       "lvl": 17,
-      "hpMul": 3.9203,
-      "dmgMul": 3.2945
+      "hpMul": 2.4458,
+      "dmgMul": 2.3679
      },
      {
       "key": "frostjaw troll",
       "lvl": 17,
-      "hpMul": 3.9203,
-      "dmgMul": 3.2945
+      "hpMul": 2.4458,
+      "dmgMul": 2.3679
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 17,
-      "hpMul": 3.9203,
-      "dmgMul": 3.2945
+      "hpMul": 2.4458,
+      "dmgMul": 2.3679
      }
     ],
     [
      {
       "key": "dyrmen",
       "lvl": 17,
-      "hpMul": 4.9006,
-      "dmgMul": 4.119
+      "hpMul": 3.0574,
+      "dmgMul": 2.9605
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 17,
-      "hpMul": 4.9006,
-      "dmgMul": 4.119
+      "hpMul": 3.0574,
+      "dmgMul": 2.9605
      },
      {
       "key": "rock golem",
       "lvl": 17,
-      "hpMul": 4.9006,
-      "dmgMul": 4.119
+      "hpMul": 3.0574,
+      "dmgMul": 2.9605
      },
      {
       "key": "frostjaw troll",
       "lvl": 17,
-      "hpMul": 4.9006,
-      "dmgMul": 4.119
+      "hpMul": 3.0574,
+      "dmgMul": 2.9605
      },
      {
       "key": "water serpent",
       "lvl": 20,
-      "hpMul": 12.6842,
-      "dmgMul": 5.9206,
+      "hpMul": 23.7405,
+      "dmgMul": 12.7662,
       "boss": true
      }
     ]
@@ -1872,7 +2017,13 @@
     "Azure Spirit Rune",
     "Azure Ore Fragment"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 33,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 26,
@@ -1882,58 +2033,58 @@
      {
       "key": "crystalhorn grazer",
       "lvl": 18,
-      "hpMul": 10.0553,
-      "dmgMul": 6.0677
+      "hpMul": 29.2997,
+      "dmgMul": 12.8278
      },
      {
       "key": "zephyr harrier",
       "lvl": 18,
-      "hpMul": 10.0553,
-      "dmgMul": 6.0677
+      "hpMul": 29.2997,
+      "dmgMul": 12.8278
      },
      {
       "key": "raven",
       "lvl": 18,
-      "hpMul": 10.0553,
-      "dmgMul": 6.0677
+      "hpMul": 29.2997,
+      "dmgMul": 12.8278
      },
      {
       "key": "dyrmen",
       "lvl": 18,
-      "hpMul": 10.0553,
-      "dmgMul": 6.0677
+      "hpMul": 29.2997,
+      "dmgMul": 12.8278
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 18,
-      "hpMul": 11.693,
-      "dmgMul": 7.0556
+      "hpMul": 34.0717,
+      "dmgMul": 14.9163
      },
      {
       "key": "frostjaw troll",
       "lvl": 18,
-      "hpMul": 11.693,
-      "dmgMul": 7.0556
+      "hpMul": 34.0717,
+      "dmgMul": 14.9163
      },
      {
       "key": "tin beast",
       "lvl": 18,
-      "hpMul": 11.693,
-      "dmgMul": 7.0556
+      "hpMul": 34.0717,
+      "dmgMul": 14.9163
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 18,
-      "hpMul": 11.693,
-      "dmgMul": 7.0556
+      "hpMul": 34.0717,
+      "dmgMul": 14.9163
      },
      {
       "key": "zephyr harrier",
       "lvl": 18,
-      "hpMul": 11.693,
-      "dmgMul": 7.0556
+      "hpMul": 34.0717,
+      "dmgMul": 14.9163
      }
     ]
    ],
@@ -1945,7 +2096,13 @@
     "Azure Vitality Gem",
     "Azure Guard Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 34,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 27,
@@ -1955,58 +2112,58 @@
      {
       "key": "dyrmen",
       "lvl": 18,
-      "hpMul": 13.1589,
-      "dmgMul": 7.3807
+      "hpMul": 30.5345,
+      "dmgMul": 13.3045
      },
      {
       "key": "tin beast",
       "lvl": 18,
-      "hpMul": 13.1589,
-      "dmgMul": 7.3807
+      "hpMul": 30.5345,
+      "dmgMul": 13.3045
      },
      {
       "key": "frostjaw troll",
       "lvl": 18,
-      "hpMul": 13.1589,
-      "dmgMul": 7.3807
+      "hpMul": 30.5345,
+      "dmgMul": 13.3045
      },
      {
       "key": "luminant orb",
       "lvl": 18,
-      "hpMul": 13.1589,
-      "dmgMul": 7.3807
+      "hpMul": 30.5345,
+      "dmgMul": 13.3045
      }
     ],
     [
      {
       "key": "raven",
       "lvl": 18,
-      "hpMul": 15.295,
-      "dmgMul": 8.584
+      "hpMul": 35.4912,
+      "dmgMul": 15.4735
      },
      {
       "key": "tin beast",
       "lvl": 18,
-      "hpMul": 15.295,
-      "dmgMul": 8.584
+      "hpMul": 35.4912,
+      "dmgMul": 15.4735
      },
      {
       "key": "zephyr harrier",
       "lvl": 18,
-      "hpMul": 15.295,
-      "dmgMul": 8.584
+      "hpMul": 35.4912,
+      "dmgMul": 15.4735
      },
      {
       "key": "rock golem",
       "lvl": 18,
-      "hpMul": 15.295,
-      "dmgMul": 8.584
+      "hpMul": 35.4912,
+      "dmgMul": 15.4735
      },
      {
       "key": "frostjaw troll",
       "lvl": 18,
-      "hpMul": 15.295,
-      "dmgMul": 8.584
+      "hpMul": 35.4912,
+      "dmgMul": 15.4735
      }
     ]
    ],
@@ -2018,7 +2175,13 @@
     "Azure Blade Shard",
     "Azure Edge Stone"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 35,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 28,
@@ -2028,58 +2191,58 @@
      {
       "key": "raven",
       "lvl": 19,
-      "hpMul": 11.5688,
-      "dmgMul": 6.7993
+      "hpMul": 37.3529,
+      "dmgMul": 15.4451
      },
      {
       "key": "frostjaw troll",
       "lvl": 19,
-      "hpMul": 11.5688,
-      "dmgMul": 6.7993
+      "hpMul": 37.3529,
+      "dmgMul": 15.4451
      },
      {
       "key": "zephyr harrier",
       "lvl": 19,
-      "hpMul": 11.5688,
-      "dmgMul": 6.7993
+      "hpMul": 37.3529,
+      "dmgMul": 15.4451
      },
      {
       "key": "rock golem",
       "lvl": 19,
-      "hpMul": 11.5688,
-      "dmgMul": 6.7993
+      "hpMul": 37.3529,
+      "dmgMul": 15.4451
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 19,
-      "hpMul": 13.4514,
-      "dmgMul": 7.9062
+      "hpMul": 43.4314,
+      "dmgMul": 17.9594
      },
      {
       "key": "rock golem",
       "lvl": 19,
-      "hpMul": 13.4514,
-      "dmgMul": 7.9062
+      "hpMul": 43.4314,
+      "dmgMul": 17.9594
      },
      {
       "key": "tin beast",
       "lvl": 19,
-      "hpMul": 13.4514,
-      "dmgMul": 7.9062
+      "hpMul": 43.4314,
+      "dmgMul": 17.9594
      },
      {
       "key": "zephyr harrier",
       "lvl": 19,
-      "hpMul": 13.4514,
-      "dmgMul": 7.9062
+      "hpMul": 43.4314,
+      "dmgMul": 17.9594
      },
      {
       "key": "raven",
       "lvl": 19,
-      "hpMul": 13.4514,
-      "dmgMul": 7.9062
+      "hpMul": 43.4314,
+      "dmgMul": 17.9594
      }
     ]
    ],
@@ -2091,7 +2254,13 @@
     "Azure Wind Thread",
     "Azure Focus Crystal"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 36,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 29,
@@ -2101,58 +2270,58 @@
      {
       "key": "raven",
       "lvl": 19,
-      "hpMul": 9.7507,
-      "dmgMul": 6.0777
+      "hpMul": 31.9164,
+      "dmgMul": 21.7454
      },
      {
       "key": "rock golem",
       "lvl": 19,
-      "hpMul": 9.7507,
-      "dmgMul": 6.0777
+      "hpMul": 31.9164,
+      "dmgMul": 21.7454
      },
      {
       "key": "tin beast",
       "lvl": 19,
-      "hpMul": 9.7507,
-      "dmgMul": 6.0777
+      "hpMul": 31.9164,
+      "dmgMul": 21.7454
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 19,
-      "hpMul": 9.7507,
-      "dmgMul": 6.0777
+      "hpMul": 31.9164,
+      "dmgMul": 21.7454
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 19,
-      "hpMul": 11.337,
-      "dmgMul": 7.0684
+      "hpMul": 37.1088,
+      "dmgMul": 25.29
      },
      {
       "key": "frostjaw troll",
       "lvl": 19,
-      "hpMul": 11.337,
-      "dmgMul": 7.0684
+      "hpMul": 37.1088,
+      "dmgMul": 25.29
      },
      {
       "key": "luminant orb",
       "lvl": 19,
-      "hpMul": 11.337,
-      "dmgMul": 7.0684
+      "hpMul": 37.1088,
+      "dmgMul": 25.29
      },
      {
       "key": "zephyr harrier",
       "lvl": 19,
-      "hpMul": 11.337,
-      "dmgMul": 7.0684
+      "hpMul": 37.1088,
+      "dmgMul": 25.29
      },
      {
       "key": "rock golem",
       "lvl": 19,
-      "hpMul": 11.337,
-      "dmgMul": 7.0684
+      "hpMul": 37.1088,
+      "dmgMul": 25.29
      }
     ]
    ],
@@ -2164,7 +2333,15 @@
     "Azure Mana Dust",
     "Azure Spirit Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 37,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.56
+   }
   },
   {
    "floor": 30,
@@ -2174,58 +2351,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 20,
-      "hpMul": 4.0825,
-      "dmgMul": 4.0197
+      "hpMul": 3.0878,
+      "dmgMul": 3.306
      },
      {
       "key": "luminant orb",
       "lvl": 20,
-      "hpMul": 4.0825,
-      "dmgMul": 4.0197
+      "hpMul": 3.0878,
+      "dmgMul": 3.306
      },
      {
       "key": "raven",
       "lvl": 20,
-      "hpMul": 4.0825,
-      "dmgMul": 4.0197
+      "hpMul": 3.0878,
+      "dmgMul": 3.306
      },
      {
       "key": "tin beast",
       "lvl": 20,
-      "hpMul": 4.0825,
-      "dmgMul": 4.0197
+      "hpMul": 3.0878,
+      "dmgMul": 3.306
      }
     ],
     [
      {
       "key": "dyrmen",
       "lvl": 20,
-      "hpMul": 5.1031,
-      "dmgMul": 5.0256
+      "hpMul": 3.8597,
+      "dmgMul": 4.1333
      },
      {
       "key": "rock golem",
       "lvl": 20,
-      "hpMul": 5.1031,
-      "dmgMul": 5.0256
+      "hpMul": 3.8597,
+      "dmgMul": 4.1333
      },
      {
       "key": "tin beast",
       "lvl": 20,
-      "hpMul": 5.1031,
-      "dmgMul": 5.0256
+      "hpMul": 3.8597,
+      "dmgMul": 4.1333
      },
      {
       "key": "frostjaw troll",
       "lvl": 20,
-      "hpMul": 5.1031,
-      "dmgMul": 5.0256
+      "hpMul": 3.8597,
+      "dmgMul": 4.1333
      },
      {
       "key": "brukk",
       "lvl": 23,
-      "hpMul": 13.207,
-      "dmgMul": 7.2235,
+      "hpMul": 29.9673,
+      "dmgMul": 17.8228,
       "boss": true
      }
     ]
@@ -2246,7 +2423,13 @@
     "Azure Ore Fragment",
     "Azure Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 38,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 31,
@@ -2256,58 +2439,58 @@
      {
       "key": "mudsnap crab",
       "lvl": 21,
-      "hpMul": 13.9396,
-      "dmgMul": 7.9218
+      "hpMul": 41.7041,
+      "dmgMul": 17.0598
      },
      {
       "key": "turtle",
       "lvl": 21,
-      "hpMul": 13.9396,
-      "dmgMul": 7.9218
+      "hpMul": 41.7041,
+      "dmgMul": 17.0598
      },
      {
       "key": "storm eel",
       "lvl": 21,
-      "hpMul": 13.9396,
-      "dmgMul": 7.9218
+      "hpMul": 41.7041,
+      "dmgMul": 17.0598
      },
      {
       "key": "skeletal warrior",
       "lvl": 21,
-      "hpMul": 13.9396,
-      "dmgMul": 7.9218
+      "hpMul": 41.7041,
+      "dmgMul": 17.0598
      }
     ],
     [
      {
       "key": "lost soulss",
       "lvl": 21,
-      "hpMul": 16.2118,
-      "dmgMul": 9.213
+      "hpMul": 48.502,
+      "dmgMul": 19.8404
      },
      {
       "key": "skeletal warrior",
       "lvl": 21,
-      "hpMul": 16.2118,
-      "dmgMul": 9.213
+      "hpMul": 48.502,
+      "dmgMul": 19.8404
      },
      {
       "key": "turtle",
       "lvl": 21,
-      "hpMul": 16.2118,
-      "dmgMul": 9.213
+      "hpMul": 48.502,
+      "dmgMul": 19.8404
      },
      {
       "key": "shellguard sentinel",
       "lvl": 21,
-      "hpMul": 16.2118,
-      "dmgMul": 9.213
+      "hpMul": 48.502,
+      "dmgMul": 19.8404
      },
      {
       "key": "reef prowler",
       "lvl": 21,
-      "hpMul": 16.2118,
-      "dmgMul": 9.213
+      "hpMul": 48.502,
+      "dmgMul": 19.8404
      }
     ]
    ],
@@ -2319,7 +2502,13 @@
     "Runed Azure Ore Fragment",
     "Runed Azure Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 39,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 32,
@@ -2329,58 +2518,58 @@
      {
       "key": "lost soulss",
       "lvl": 21,
-      "hpMul": 16.1551,
-      "dmgMul": 8.8482
+      "hpMul": 28.9617,
+      "dmgMul": 15.1621
      },
      {
       "key": "turtle",
       "lvl": 21,
-      "hpMul": 16.1551,
-      "dmgMul": 8.8482
+      "hpMul": 28.9617,
+      "dmgMul": 15.1621
      },
      {
       "key": "shellguard sentinel",
       "lvl": 21,
-      "hpMul": 16.1551,
-      "dmgMul": 8.8482
+      "hpMul": 28.9617,
+      "dmgMul": 15.1621
      },
      {
       "key": "skeletal warrior",
       "lvl": 21,
-      "hpMul": 16.1551,
-      "dmgMul": 8.8482
+      "hpMul": 28.9617,
+      "dmgMul": 15.1621
      }
     ],
     [
      {
       "key": "turtle",
       "lvl": 21,
-      "hpMul": 18.7878,
-      "dmgMul": 10.2881
+      "hpMul": 33.6815,
+      "dmgMul": 17.6295
      },
      {
       "key": "skeletal warrior",
       "lvl": 21,
-      "hpMul": 18.7878,
-      "dmgMul": 10.2881
+      "hpMul": 33.6815,
+      "dmgMul": 17.6295
      },
      {
       "key": "mudsnap crab",
       "lvl": 21,
-      "hpMul": 18.7878,
-      "dmgMul": 10.2881
+      "hpMul": 33.6815,
+      "dmgMul": 17.6295
      },
      {
       "key": "reef prowler",
       "lvl": 21,
-      "hpMul": 18.7878,
-      "dmgMul": 10.2881
+      "hpMul": 33.6815,
+      "dmgMul": 17.6295
      },
      {
       "key": "storm eel",
       "lvl": 21,
-      "hpMul": 18.7878,
-      "dmgMul": 10.2881
+      "hpMul": 33.6815,
+      "dmgMul": 17.6295
      }
     ]
    ],
@@ -2392,7 +2581,15 @@
     "Runed Azure Guard Rune",
     "Runed Azure Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 40,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.139
+   }
   },
   {
    "floor": 33,
@@ -2402,58 +2599,58 @@
      {
       "key": "mudsnap crab",
       "lvl": 22,
-      "hpMul": 17.9529,
-      "dmgMul": 9.5914
+      "hpMul": 33.1423,
+      "dmgMul": 16.7764
      },
      {
       "key": "lost soulss",
       "lvl": 22,
-      "hpMul": 17.9529,
-      "dmgMul": 9.5914
+      "hpMul": 33.1423,
+      "dmgMul": 16.7764
      },
      {
       "key": "shellguard sentinel",
       "lvl": 22,
-      "hpMul": 17.9529,
-      "dmgMul": 9.5914
+      "hpMul": 33.1423,
+      "dmgMul": 16.7764
      },
      {
       "key": "skeletal warrior",
       "lvl": 22,
-      "hpMul": 17.9529,
-      "dmgMul": 9.5914
+      "hpMul": 33.1423,
+      "dmgMul": 16.7764
      }
     ],
     [
      {
       "key": "mudsnap crab",
       "lvl": 22,
-      "hpMul": 20.8779,
-      "dmgMul": 11.1543
+      "hpMul": 38.5421,
+      "dmgMul": 19.5101
      },
      {
       "key": "reef prowler",
       "lvl": 22,
-      "hpMul": 20.8779,
-      "dmgMul": 11.1543
+      "hpMul": 38.5421,
+      "dmgMul": 19.5101
      },
      {
       "key": "skeletal warrior",
       "lvl": 22,
-      "hpMul": 20.8779,
-      "dmgMul": 11.1543
+      "hpMul": 38.5421,
+      "dmgMul": 19.5101
      },
      {
       "key": "saltglass siren",
       "lvl": 22,
-      "hpMul": 20.8779,
-      "dmgMul": 11.1543
+      "hpMul": 38.5421,
+      "dmgMul": 19.5101
      },
      {
       "key": "turtle",
       "lvl": 22,
-      "hpMul": 20.8779,
-      "dmgMul": 11.1543
+      "hpMul": 38.5421,
+      "dmgMul": 19.5101
      }
     ]
    ],
@@ -2465,7 +2662,15 @@
     "Runed Azure Edge Stone",
     "Runed Azure Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 41,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.139
+   }
   },
   {
    "floor": 34,
@@ -2475,58 +2680,58 @@
      {
       "key": "saltglass siren",
       "lvl": 22,
-      "hpMul": 15.396,
-      "dmgMul": 8.6739
+      "hpMul": 36.6875,
+      "dmgMul": 15.7311
      },
      {
       "key": "turtle",
       "lvl": 22,
-      "hpMul": 15.396,
-      "dmgMul": 8.6739
+      "hpMul": 36.6875,
+      "dmgMul": 15.7311
      },
      {
       "key": "storm eel",
       "lvl": 22,
-      "hpMul": 15.396,
-      "dmgMul": 8.6739
+      "hpMul": 36.6875,
+      "dmgMul": 15.7311
      },
      {
       "key": "reef prowler",
       "lvl": 22,
-      "hpMul": 15.396,
-      "dmgMul": 8.6739
+      "hpMul": 36.6875,
+      "dmgMul": 15.7311
      }
     ],
     [
      {
       "key": "mudsnap crab",
       "lvl": 22,
-      "hpMul": 17.9038,
-      "dmgMul": 10.0853
+      "hpMul": 42.6634,
+      "dmgMul": 18.2909
      },
      {
       "key": "skeletal warrior",
       "lvl": 22,
-      "hpMul": 17.9038,
-      "dmgMul": 10.0853
+      "hpMul": 42.6634,
+      "dmgMul": 18.2909
      },
      {
       "key": "storm eel",
       "lvl": 22,
-      "hpMul": 17.9038,
-      "dmgMul": 10.0853
+      "hpMul": 42.6634,
+      "dmgMul": 18.2909
      },
      {
       "key": "shellguard sentinel",
       "lvl": 22,
-      "hpMul": 17.9038,
-      "dmgMul": 10.0853
+      "hpMul": 42.6634,
+      "dmgMul": 18.2909
      },
      {
       "key": "reef prowler",
       "lvl": 22,
-      "hpMul": 17.9038,
-      "dmgMul": 10.0853
+      "hpMul": 42.6634,
+      "dmgMul": 18.2909
      }
     ]
    ],
@@ -2538,7 +2743,15 @@
     "Runed Azure Focus Crystal",
     "Runed Azure Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 42,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.027,
+    "cliffDmgScale": 1.006
+   }
   },
   {
    "floor": 35,
@@ -2548,58 +2761,58 @@
      {
       "key": "reef prowler",
       "lvl": 23,
-      "hpMul": 3.287,
-      "dmgMul": 3.1352
+      "hpMul": 3.807,
+      "dmgMul": 3.4747
      },
      {
       "key": "shellguard sentinel",
       "lvl": 23,
-      "hpMul": 3.287,
-      "dmgMul": 3.1352
+      "hpMul": 3.807,
+      "dmgMul": 3.4747
      },
      {
       "key": "storm eel",
       "lvl": 23,
-      "hpMul": 3.287,
-      "dmgMul": 3.1352
+      "hpMul": 3.807,
+      "dmgMul": 3.4747
      },
      {
       "key": "skeletal warrior",
       "lvl": 23,
-      "hpMul": 3.287,
-      "dmgMul": 3.1352
+      "hpMul": 3.807,
+      "dmgMul": 3.4747
      }
     ],
     [
      {
       "key": "skeletal warrior",
       "lvl": 23,
-      "hpMul": 4.108,
-      "dmgMul": 3.9199
+      "hpMul": 4.7579,
+      "dmgMul": 4.3443
      },
      {
       "key": "turtle",
       "lvl": 23,
-      "hpMul": 4.108,
-      "dmgMul": 3.9199
+      "hpMul": 4.7579,
+      "dmgMul": 4.3443
      },
      {
       "key": "shellguard sentinel",
       "lvl": 23,
-      "hpMul": 4.108,
-      "dmgMul": 3.9199
+      "hpMul": 4.7579,
+      "dmgMul": 4.3443
      },
      {
       "key": "reef prowler",
       "lvl": 23,
-      "hpMul": 4.108,
-      "dmgMul": 3.9199
+      "hpMul": 4.7579,
+      "dmgMul": 4.3443
      },
      {
       "key": "miregor",
       "lvl": 26,
-      "hpMul": 10.6332,
-      "dmgMul": 5.6348,
+      "hpMul": 36.9462,
+      "dmgMul": 18.7348,
       "boss": true
      }
     ]
@@ -2620,7 +2833,13 @@
     "Runed Azure Spirit Rune",
     "Runed Azure Ore Fragment"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 43,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 36,
@@ -2630,58 +2849,58 @@
      {
       "key": "shellguard sentinel",
       "lvl": 24,
-      "hpMul": 19.7381,
-      "dmgMul": 10.456
+      "hpMul": 54.2451,
+      "dmgMul": 19.2491
      },
      {
       "key": "reef prowler",
       "lvl": 24,
-      "hpMul": 19.7381,
-      "dmgMul": 10.456
+      "hpMul": 54.2451,
+      "dmgMul": 19.2491
      },
      {
       "key": "skeletal warrior",
       "lvl": 24,
-      "hpMul": 19.7381,
-      "dmgMul": 10.456
+      "hpMul": 54.2451,
+      "dmgMul": 19.2491
      },
      {
       "key": "turtle",
       "lvl": 24,
-      "hpMul": 19.7381,
-      "dmgMul": 10.456
+      "hpMul": 54.2451,
+      "dmgMul": 19.2491
      }
     ],
     [
      {
       "key": "shellguard sentinel",
       "lvl": 24,
-      "hpMul": 22.9507,
-      "dmgMul": 12.1573
+      "hpMul": 63.0741,
+      "dmgMul": 22.3811
      },
      {
       "key": "saltglass siren",
       "lvl": 24,
-      "hpMul": 22.9507,
-      "dmgMul": 12.1573
+      "hpMul": 63.0741,
+      "dmgMul": 22.3811
      },
      {
       "key": "skeletal warrior",
       "lvl": 24,
-      "hpMul": 22.9507,
-      "dmgMul": 12.1573
+      "hpMul": 63.0741,
+      "dmgMul": 22.3811
      },
      {
       "key": "mudsnap crab",
       "lvl": 24,
-      "hpMul": 22.9507,
-      "dmgMul": 12.1573
+      "hpMul": 63.0741,
+      "dmgMul": 22.3811
      },
      {
       "key": "turtle",
       "lvl": 24,
-      "hpMul": 22.9507,
-      "dmgMul": 12.1573
+      "hpMul": 63.0741,
+      "dmgMul": 22.3811
      }
     ]
    ],
@@ -2693,7 +2912,15 @@
     "Runed Azure Vitality Gem",
     "Runed Azure Guard Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 44,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.173,
+    "cliffDmgScale": 1.014
+   }
   },
   {
    "floor": 37,
@@ -2703,58 +2930,58 @@
      {
       "key": "mudsnap crab",
       "lvl": 24,
-      "hpMul": 19.0735,
-      "dmgMul": 10.2718
+      "hpMul": 42.2306,
+      "dmgMul": 17.9178
      },
      {
       "key": "turtle",
       "lvl": 24,
-      "hpMul": 19.0735,
-      "dmgMul": 10.2718
+      "hpMul": 42.2306,
+      "dmgMul": 17.9178
      },
      {
       "key": "skeletal warrior",
       "lvl": 24,
-      "hpMul": 19.0735,
-      "dmgMul": 10.2718
+      "hpMul": 42.2306,
+      "dmgMul": 17.9178
      },
      {
       "key": "storm eel",
       "lvl": 24,
-      "hpMul": 19.0735,
-      "dmgMul": 10.2718
+      "hpMul": 42.2306,
+      "dmgMul": 17.9178
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 24,
-      "hpMul": 22.1774,
-      "dmgMul": 11.9452
+      "hpMul": 49.103,
+      "dmgMul": 20.8368
      },
      {
       "key": "skeletal warrior",
       "lvl": 24,
-      "hpMul": 22.1774,
-      "dmgMul": 11.9452
+      "hpMul": 49.103,
+      "dmgMul": 20.8368
      },
      {
       "key": "reef prowler",
       "lvl": 24,
-      "hpMul": 22.1774,
-      "dmgMul": 11.9452
+      "hpMul": 49.103,
+      "dmgMul": 20.8368
      },
      {
       "key": "turtle",
       "lvl": 24,
-      "hpMul": 22.1774,
-      "dmgMul": 11.9452
+      "hpMul": 49.103,
+      "dmgMul": 20.8368
      },
      {
       "key": "saltglass siren",
       "lvl": 24,
-      "hpMul": 22.1774,
-      "dmgMul": 11.9452
+      "hpMul": 49.103,
+      "dmgMul": 20.8368
      }
     ]
    ],
@@ -2766,7 +2993,15 @@
     "Runed Azure Blade Shard",
     "Runed Azure Edge Stone"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 45,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1
+   }
   },
   {
    "floor": 38,
@@ -2776,58 +3011,58 @@
      {
       "key": "shellguard sentinel",
       "lvl": 25,
-      "hpMul": 15.1331,
-      "dmgMul": 8.792
+      "hpMul": 32.7934,
+      "dmgMul": 17.7003
      },
      {
       "key": "saltglass siren",
       "lvl": 25,
-      "hpMul": 15.1331,
-      "dmgMul": 8.792
+      "hpMul": 32.7934,
+      "dmgMul": 17.7003
      },
      {
       "key": "mudsnap crab",
       "lvl": 25,
-      "hpMul": 15.1331,
-      "dmgMul": 8.792
+      "hpMul": 32.7934,
+      "dmgMul": 17.7003
      },
      {
       "key": "reef prowler",
       "lvl": 25,
-      "hpMul": 15.1331,
-      "dmgMul": 8.792
+      "hpMul": 32.7934,
+      "dmgMul": 17.7003
      }
     ],
     [
      {
       "key": "lost soulss",
       "lvl": 25,
-      "hpMul": 17.5953,
-      "dmgMul": 10.2225
+      "hpMul": 38.129,
+      "dmgMul": 20.5801
      },
      {
       "key": "mudsnap crab",
       "lvl": 25,
-      "hpMul": 17.5953,
-      "dmgMul": 10.2225
+      "hpMul": 38.129,
+      "dmgMul": 20.5801
      },
      {
       "key": "shellguard sentinel",
       "lvl": 25,
-      "hpMul": 17.5953,
-      "dmgMul": 10.2225
+      "hpMul": 38.129,
+      "dmgMul": 20.5801
      },
      {
       "key": "reef prowler",
       "lvl": 25,
-      "hpMul": 17.5953,
-      "dmgMul": 10.2225
+      "hpMul": 38.129,
+      "dmgMul": 20.5801
      },
      {
       "key": "turtle",
       "lvl": 25,
-      "hpMul": 17.5953,
-      "dmgMul": 10.2225
+      "hpMul": 38.129,
+      "dmgMul": 20.5801
      }
     ]
    ],
@@ -2839,7 +3074,15 @@
     "Runed Azure Wind Thread",
     "Runed Azure Focus Crystal"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 46,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.172
+   }
   },
   {
    "floor": 39,
@@ -2849,58 +3092,58 @@
      {
       "key": "skeletal warrior",
       "lvl": 25,
-      "hpMul": 21.1729,
-      "dmgMul": 11.1885
+      "hpMul": 43.2685,
+      "dmgMul": 18.4896
      },
      {
       "key": "saltglass siren",
       "lvl": 25,
-      "hpMul": 21.1729,
-      "dmgMul": 11.1885
+      "hpMul": 43.2685,
+      "dmgMul": 18.4896
      },
      {
       "key": "lost soulss",
       "lvl": 25,
-      "hpMul": 21.1729,
-      "dmgMul": 11.1885
+      "hpMul": 43.2685,
+      "dmgMul": 18.4896
      },
      {
       "key": "turtle",
       "lvl": 25,
-      "hpMul": 21.1729,
-      "dmgMul": 11.1885
+      "hpMul": 43.2685,
+      "dmgMul": 18.4896
      }
     ],
     [
      {
       "key": "saltglass siren",
       "lvl": 25,
-      "hpMul": 24.6242,
-      "dmgMul": 13.011
+      "hpMul": 50.3215,
+      "dmgMul": 21.5014
      },
      {
       "key": "reef prowler",
       "lvl": 25,
-      "hpMul": 24.6242,
-      "dmgMul": 13.011
+      "hpMul": 50.3215,
+      "dmgMul": 21.5014
      },
      {
       "key": "storm eel",
       "lvl": 25,
-      "hpMul": 24.6242,
-      "dmgMul": 13.011
+      "hpMul": 50.3215,
+      "dmgMul": 21.5014
      },
      {
       "key": "skeletal warrior",
       "lvl": 25,
-      "hpMul": 24.6242,
-      "dmgMul": 13.011
+      "hpMul": 50.3215,
+      "dmgMul": 21.5014
      },
      {
       "key": "shellguard sentinel",
       "lvl": 25,
-      "hpMul": 24.6242,
-      "dmgMul": 13.011
+      "hpMul": 50.3215,
+      "dmgMul": 21.5014
      }
     ]
    ],
@@ -2912,7 +3155,15 @@
     "Runed Azure Mana Dust",
     "Runed Azure Spirit Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 47,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.002
+   }
   },
   {
    "floor": 40,
@@ -2922,58 +3173,58 @@
      {
       "key": "shellguard sentinel",
       "lvl": 26,
-      "hpMul": 3.0089,
-      "dmgMul": 3.4685
+      "hpMul": 3.2354,
+      "dmgMul": 3.6493
      },
      {
       "key": "turtle",
       "lvl": 26,
-      "hpMul": 3.0089,
-      "dmgMul": 3.4685
+      "hpMul": 3.2354,
+      "dmgMul": 3.6493
      },
      {
       "key": "storm eel",
       "lvl": 26,
-      "hpMul": 3.0089,
-      "dmgMul": 3.4685
+      "hpMul": 3.2354,
+      "dmgMul": 3.6493
      },
      {
       "key": "saltglass siren",
       "lvl": 26,
-      "hpMul": 3.0089,
-      "dmgMul": 3.4685
+      "hpMul": 3.2354,
+      "dmgMul": 3.6493
      }
     ],
     [
      {
       "key": "lost soulss",
       "lvl": 26,
-      "hpMul": 3.7617,
-      "dmgMul": 4.3355
+      "hpMul": 4.0449,
+      "dmgMul": 4.5615
      },
      {
       "key": "reef prowler",
       "lvl": 26,
-      "hpMul": 3.7617,
-      "dmgMul": 4.3355
+      "hpMul": 4.0449,
+      "dmgMul": 4.5615
      },
      {
       "key": "shellguard sentinel",
       "lvl": 26,
-      "hpMul": 3.7617,
-      "dmgMul": 4.3355
+      "hpMul": 4.0449,
+      "dmgMul": 4.5615
      },
      {
       "key": "turtle",
       "lvl": 26,
-      "hpMul": 3.7617,
-      "dmgMul": 4.3355
+      "hpMul": 4.0449,
+      "dmgMul": 4.5615
      },
      {
       "key": "ice beast",
       "lvl": 29,
-      "hpMul": 9.7354,
-      "dmgMul": 6.2321,
+      "hpMul": 31.4052,
+      "dmgMul": 19.6709,
       "boss": true
      }
     ]
@@ -2994,7 +3245,13 @@
     "Runed Azure Ore Fragment",
     "Runed Azure Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 48,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 41,
@@ -3004,58 +3261,58 @@
      {
       "key": "wispweaver shade",
       "lvl": 27,
-      "hpMul": 13.0986,
-      "dmgMul": 8.0899
+      "hpMul": 35.7483,
+      "dmgMul": 16.3367
      },
      {
       "key": "shadow ghoul",
       "lvl": 27,
-      "hpMul": 13.0986,
-      "dmgMul": 8.0899
+      "hpMul": 35.7483,
+      "dmgMul": 16.3367
      },
      {
       "key": "mimic chest",
       "lvl": 27,
-      "hpMul": 13.0986,
-      "dmgMul": 8.0899
+      "hpMul": 35.7483,
+      "dmgMul": 16.3367
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 27,
-      "hpMul": 13.0986,
-      "dmgMul": 8.0899
+      "hpMul": 35.7483,
+      "dmgMul": 16.3367
      }
     ],
     [
      {
       "key": "skyroot dryad",
       "lvl": 27,
-      "hpMul": 15.2328,
-      "dmgMul": 9.4076
+      "hpMul": 41.5728,
+      "dmgMul": 18.9976
      },
      {
       "key": "mimic chest",
       "lvl": 27,
-      "hpMul": 15.2328,
-      "dmgMul": 9.4076
+      "hpMul": 41.5728,
+      "dmgMul": 18.9976
      },
      {
       "key": "wispweaver shade",
       "lvl": 27,
-      "hpMul": 15.2328,
-      "dmgMul": 9.4076
+      "hpMul": 41.5728,
+      "dmgMul": 18.9976
      },
      {
       "key": "shadow ghoul",
       "lvl": 27,
-      "hpMul": 15.2328,
-      "dmgMul": 9.4076
+      "hpMul": 41.5728,
+      "dmgMul": 18.9976
      },
      {
       "key": "mourn moth",
       "lvl": 27,
-      "hpMul": 15.2328,
-      "dmgMul": 9.4076
+      "hpMul": 41.5728,
+      "dmgMul": 18.9976
      }
     ]
    ],
@@ -3067,7 +3324,13 @@
     "Amethyst Ore Fragment",
     "Amethyst Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 48,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 42,
@@ -3077,58 +3340,58 @@
      {
       "key": "wispweaver shade",
       "lvl": 27,
-      "hpMul": 12.5512,
-      "dmgMul": 7.8969
+      "hpMul": 33.0055,
+      "dmgMul": 15.5377
      },
      {
       "key": "skyroot dryad",
       "lvl": 27,
-      "hpMul": 12.5512,
-      "dmgMul": 7.8969
+      "hpMul": 33.0055,
+      "dmgMul": 15.5377
      },
      {
       "key": "shadow ghoul",
       "lvl": 27,
-      "hpMul": 12.5512,
-      "dmgMul": 7.8969
+      "hpMul": 33.0055,
+      "dmgMul": 15.5377
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 27,
-      "hpMul": 12.5512,
-      "dmgMul": 7.8969
+      "hpMul": 33.0055,
+      "dmgMul": 15.5377
      }
     ],
     [
      {
       "key": "whisp candle",
       "lvl": 27,
-      "hpMul": 14.5914,
-      "dmgMul": 9.1815
+      "hpMul": 38.3705,
+      "dmgMul": 18.0653
      },
      {
       "key": "shadow ghoul",
       "lvl": 27,
-      "hpMul": 14.5914,
-      "dmgMul": 9.1815
+      "hpMul": 38.3705,
+      "dmgMul": 18.0653
      },
      {
       "key": "mimic chest",
       "lvl": 27,
-      "hpMul": 14.5914,
-      "dmgMul": 9.1815
+      "hpMul": 38.3705,
+      "dmgMul": 18.0653
      },
      {
       "key": "riftling spider",
       "lvl": 27,
-      "hpMul": 14.5914,
-      "dmgMul": 9.1815
+      "hpMul": 38.3705,
+      "dmgMul": 18.0653
      },
      {
       "key": "mourn moth",
       "lvl": 27,
-      "hpMul": 14.5914,
-      "dmgMul": 9.1815
+      "hpMul": 38.3705,
+      "dmgMul": 18.0653
      }
     ]
    ],
@@ -3140,7 +3403,13 @@
     "Amethyst Guard Rune",
     "Amethyst Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 49,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 43,
@@ -3150,58 +3419,58 @@
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 14.4387,
-      "dmgMul": 8.7586
+      "hpMul": 29.3055,
+      "dmgMul": 14.3757
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 14.4387,
-      "dmgMul": 8.7586
+      "hpMul": 29.3055,
+      "dmgMul": 14.3757
      },
      {
       "key": "mimic chest",
       "lvl": 28,
-      "hpMul": 14.4387,
-      "dmgMul": 8.7586
+      "hpMul": 29.3055,
+      "dmgMul": 14.3757
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 14.4387,
-      "dmgMul": 8.7586
+      "hpMul": 29.3055,
+      "dmgMul": 14.3757
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 16.7896,
-      "dmgMul": 10.185
+      "hpMul": 34.077,
+      "dmgMul": 16.7169
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 16.7896,
-      "dmgMul": 10.185
+      "hpMul": 34.077,
+      "dmgMul": 16.7169
      },
      {
       "key": "mimic chest",
       "lvl": 28,
-      "hpMul": 16.7896,
-      "dmgMul": 10.185
+      "hpMul": 34.077,
+      "dmgMul": 16.7169
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 16.7896,
-      "dmgMul": 10.185
+      "hpMul": 34.077,
+      "dmgMul": 16.7169
      },
      {
       "key": "wispweaver shade",
       "lvl": 28,
-      "hpMul": 16.7896,
-      "dmgMul": 10.185
+      "hpMul": 34.077,
+      "dmgMul": 16.7169
      }
     ]
    ],
@@ -3213,7 +3482,13 @@
     "Amethyst Edge Stone",
     "Amethyst Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 50,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 44,
@@ -3223,58 +3498,58 @@
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 16.0334,
-      "dmgMul": 9.4793
+      "hpMul": 54.1485,
+      "dmgMul": 22.2213
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 16.0334,
-      "dmgMul": 9.4793
+      "hpMul": 54.1485,
+      "dmgMul": 22.2213
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 16.0334,
-      "dmgMul": 9.4793
+      "hpMul": 54.1485,
+      "dmgMul": 22.2213
      },
      {
       "key": "whisp candle",
       "lvl": 28,
-      "hpMul": 16.0334,
-      "dmgMul": 9.4793
+      "hpMul": 54.1485,
+      "dmgMul": 22.2213
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 18.6437,
-      "dmgMul": 11.0211
+      "hpMul": 62.9641,
+      "dmgMul": 25.8355
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 18.6437,
-      "dmgMul": 11.0211
+      "hpMul": 62.9641,
+      "dmgMul": 25.8355
      },
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 18.6437,
-      "dmgMul": 11.0211
+      "hpMul": 62.9641,
+      "dmgMul": 25.8355
      },
      {
       "key": "whisp candle",
       "lvl": 28,
-      "hpMul": 18.6437,
-      "dmgMul": 11.0211
+      "hpMul": 62.9641,
+      "dmgMul": 25.8355
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 18.6437,
-      "dmgMul": 11.0211
+      "hpMul": 62.9641,
+      "dmgMul": 25.8355
      }
     ]
    ],
@@ -3286,7 +3561,13 @@
     "Amethyst Focus Crystal",
     "Amethyst Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 51,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 45,
@@ -3296,58 +3577,58 @@
      {
       "key": "whisp candle",
       "lvl": 29,
-      "hpMul": 3.8633,
-      "dmgMul": 3.7261
+      "hpMul": 3.2953,
+      "dmgMul": 3.3335
      },
      {
       "key": "mimic chest",
       "lvl": 29,
-      "hpMul": 3.8633,
-      "dmgMul": 3.7261
+      "hpMul": 3.2953,
+      "dmgMul": 3.3335
      },
      {
       "key": "wispweaver shade",
       "lvl": 29,
-      "hpMul": 3.8633,
-      "dmgMul": 3.7261
+      "hpMul": 3.2953,
+      "dmgMul": 3.3335
      },
      {
       "key": "riftling spider",
       "lvl": 29,
-      "hpMul": 3.8633,
-      "dmgMul": 3.7261
+      "hpMul": 3.2953,
+      "dmgMul": 3.3335
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 29,
-      "hpMul": 4.8296,
-      "dmgMul": 4.6577
+      "hpMul": 4.1195,
+      "dmgMul": 4.167
      },
      {
       "key": "shadow ghoul",
       "lvl": 29,
-      "hpMul": 4.8296,
-      "dmgMul": 4.6577
+      "hpMul": 4.1195,
+      "dmgMul": 4.167
      },
      {
       "key": "skyroot dryad",
       "lvl": 29,
-      "hpMul": 4.8296,
-      "dmgMul": 4.6577
+      "hpMul": 4.1195,
+      "dmgMul": 4.167
      },
      {
       "key": "mimic chest",
       "lvl": 29,
-      "hpMul": 4.8296,
-      "dmgMul": 4.6577
+      "hpMul": 4.1195,
+      "dmgMul": 4.167
      },
      {
       "key": "nymira",
       "lvl": 32,
-      "hpMul": 12.4991,
-      "dmgMul": 6.6946,
+      "hpMul": 31.9838,
+      "dmgMul": 17.9679,
       "boss": true
      }
     ]
@@ -3368,7 +3649,13 @@
     "Amethyst Spirit Rune",
     "Amethyst Ore Fragment"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 52,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 46,
@@ -3378,58 +3665,58 @@
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 16.3779,
-      "dmgMul": 9.726
+      "hpMul": 43.0684,
+      "dmgMul": 19.1366
      },
      {
       "key": "whisp candle",
       "lvl": 30,
-      "hpMul": 16.3779,
-      "dmgMul": 9.726
+      "hpMul": 43.0684,
+      "dmgMul": 19.1366
      },
      {
       "key": "mimic chest",
       "lvl": 30,
-      "hpMul": 16.3779,
-      "dmgMul": 9.726
+      "hpMul": 43.0684,
+      "dmgMul": 19.1366
      },
      {
       "key": "wispweaver shade",
       "lvl": 30,
-      "hpMul": 16.3779,
-      "dmgMul": 9.726
+      "hpMul": 43.0684,
+      "dmgMul": 19.1366
      }
     ],
     [
      {
       "key": "mimic chest",
       "lvl": 30,
-      "hpMul": 19.0434,
-      "dmgMul": 11.308
+      "hpMul": 50.0778,
+      "dmgMul": 22.2493
      },
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 19.0434,
-      "dmgMul": 11.308
+      "hpMul": 50.0778,
+      "dmgMul": 22.2493
      },
      {
       "key": "mourn moth",
       "lvl": 30,
-      "hpMul": 19.0434,
-      "dmgMul": 11.308
+      "hpMul": 50.0778,
+      "dmgMul": 22.2493
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 30,
-      "hpMul": 19.0434,
-      "dmgMul": 11.308
+      "hpMul": 50.0778,
+      "dmgMul": 22.2493
      },
      {
       "key": "whisp candle",
       "lvl": 30,
-      "hpMul": 19.0434,
-      "dmgMul": 11.308
+      "hpMul": 50.0778,
+      "dmgMul": 22.2493
      }
     ]
    ],
@@ -3441,7 +3728,13 @@
     "Amethyst Vitality Gem",
     "Amethyst Guard Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 53,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 47,
@@ -3451,58 +3744,58 @@
      {
       "key": "whisp candle",
       "lvl": 30,
-      "hpMul": 10.5834,
-      "dmgMul": 7.2014
+      "hpMul": 41.1441,
+      "dmgMul": 18.6292
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 30,
-      "hpMul": 10.5834,
-      "dmgMul": 7.2014
+      "hpMul": 41.1441,
+      "dmgMul": 18.6292
      },
      {
       "key": "wispweaver shade",
       "lvl": 30,
-      "hpMul": 10.5834,
-      "dmgMul": 7.2014
+      "hpMul": 41.1441,
+      "dmgMul": 18.6292
      },
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 10.5834,
-      "dmgMul": 7.2014
+      "hpMul": 41.1441,
+      "dmgMul": 18.6292
      }
     ],
     [
      {
       "key": "whisp candle",
       "lvl": 30,
-      "hpMul": 12.3055,
-      "dmgMul": 8.3739
+      "hpMul": 47.8389,
+      "dmgMul": 21.6623
      },
      {
       "key": "riftling spider",
       "lvl": 30,
-      "hpMul": 12.3055,
-      "dmgMul": 8.3739
+      "hpMul": 47.8389,
+      "dmgMul": 21.6623
      },
      {
       "key": "mimic chest",
       "lvl": 30,
-      "hpMul": 12.3055,
-      "dmgMul": 8.3739
+      "hpMul": 47.8389,
+      "dmgMul": 21.6623
      },
      {
       "key": "shadow ghoul",
       "lvl": 30,
-      "hpMul": 12.3055,
-      "dmgMul": 8.3739
+      "hpMul": 47.8389,
+      "dmgMul": 21.6623
      },
      {
       "key": "wispweaver shade",
       "lvl": 30,
-      "hpMul": 12.3055,
-      "dmgMul": 8.3739
+      "hpMul": 47.8389,
+      "dmgMul": 21.6623
      }
     ]
    ],
@@ -3514,7 +3807,13 @@
     "Amethyst Blade Shard",
     "Amethyst Edge Stone"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 54,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 48,
@@ -3524,58 +3823,58 @@
      {
       "key": "shadow ghoul",
       "lvl": 31,
-      "hpMul": 14.6149,
-      "dmgMul": 9.075
+      "hpMul": 36.102,
+      "dmgMul": 17.0908
      },
      {
       "key": "whisp candle",
       "lvl": 31,
-      "hpMul": 14.6149,
-      "dmgMul": 9.075
+      "hpMul": 36.102,
+      "dmgMul": 17.0908
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 14.6149,
-      "dmgMul": 9.075
+      "hpMul": 36.102,
+      "dmgMul": 17.0908
      },
      {
       "key": "mourn moth",
       "lvl": 31,
-      "hpMul": 14.6149,
-      "dmgMul": 9.075
+      "hpMul": 36.102,
+      "dmgMul": 17.0908
      }
     ],
     [
      {
       "key": "mourn moth",
       "lvl": 31,
-      "hpMul": 16.9966,
-      "dmgMul": 10.5509
+      "hpMul": 41.9854,
+      "dmgMul": 19.8703
      },
      {
       "key": "mimic chest",
       "lvl": 31,
-      "hpMul": 16.9966,
-      "dmgMul": 10.5509
+      "hpMul": 41.9854,
+      "dmgMul": 19.8703
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 31,
-      "hpMul": 16.9966,
-      "dmgMul": 10.5509
+      "hpMul": 41.9854,
+      "dmgMul": 19.8703
      },
      {
       "key": "riftling spider",
       "lvl": 31,
-      "hpMul": 16.9966,
-      "dmgMul": 10.5509
+      "hpMul": 41.9854,
+      "dmgMul": 19.8703
      },
      {
       "key": "shadow ghoul",
       "lvl": 31,
-      "hpMul": 16.9966,
-      "dmgMul": 10.5509
+      "hpMul": 41.9854,
+      "dmgMul": 19.8703
      }
     ]
    ],
@@ -3587,7 +3886,15 @@
     "Amethyst Wind Thread",
     "Amethyst Focus Crystal"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 55,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1
+   }
   },
   {
    "floor": 49,
@@ -3597,58 +3904,58 @@
      {
       "key": "mimic chest",
       "lvl": 31,
-      "hpMul": 11.6391,
-      "dmgMul": 7.7764
+      "hpMul": 39.7328,
+      "dmgMul": 25.264
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 11.6391,
-      "dmgMul": 7.7764
+      "hpMul": 39.7328,
+      "dmgMul": 25.264
      },
      {
       "key": "wispweaver shade",
       "lvl": 31,
-      "hpMul": 11.6391,
-      "dmgMul": 7.7764
+      "hpMul": 39.7328,
+      "dmgMul": 25.264
      },
      {
       "key": "whisp candle",
       "lvl": 31,
-      "hpMul": 11.6391,
-      "dmgMul": 7.7764
+      "hpMul": 39.7328,
+      "dmgMul": 25.264
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 31,
-      "hpMul": 13.5356,
-      "dmgMul": 9.0425
+      "hpMul": 46.2069,
+      "dmgMul": 29.3772
      },
      {
       "key": "whisp candle",
       "lvl": 31,
-      "hpMul": 13.5356,
-      "dmgMul": 9.0425
+      "hpMul": 46.2069,
+      "dmgMul": 29.3772
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 13.5356,
-      "dmgMul": 9.0425
+      "hpMul": 46.2069,
+      "dmgMul": 29.3772
      },
      {
       "key": "wispweaver shade",
       "lvl": 31,
-      "hpMul": 13.5356,
-      "dmgMul": 9.0425
+      "hpMul": 46.2069,
+      "dmgMul": 29.3772
      },
      {
       "key": "shadow ghoul",
       "lvl": 31,
-      "hpMul": 13.5356,
-      "dmgMul": 9.0425
+      "hpMul": 46.2069,
+      "dmgMul": 29.3772
      }
     ]
    ],
@@ -3660,7 +3967,15 @@
     "Amethyst Mana Dust",
     "Amethyst Spirit Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 56,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.376
+   }
   },
   {
    "floor": 50,
@@ -3670,58 +3985,58 @@
      {
       "key": "graveclaw ghoul",
       "lvl": 32,
-      "hpMul": 2.7292,
-      "dmgMul": 3.4188
+      "hpMul": 3.1827,
+      "dmgMul": 3.8072
      },
      {
       "key": "shadow ghoul",
       "lvl": 32,
-      "hpMul": 2.7292,
-      "dmgMul": 3.4188
+      "hpMul": 3.1827,
+      "dmgMul": 3.8072
      },
      {
       "key": "mourn moth",
       "lvl": 32,
-      "hpMul": 2.7292,
-      "dmgMul": 3.4188
+      "hpMul": 3.1827,
+      "dmgMul": 3.8072
      },
      {
       "key": "skyroot dryad",
       "lvl": 32,
-      "hpMul": 2.7292,
-      "dmgMul": 3.4188
+      "hpMul": 3.1827,
+      "dmgMul": 3.8072
      }
     ],
     [
      {
       "key": "wispweaver shade",
       "lvl": 32,
-      "hpMul": 3.4114,
-      "dmgMul": 4.2733
+      "hpMul": 3.9782,
+      "dmgMul": 4.7587
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 32,
-      "hpMul": 3.4114,
-      "dmgMul": 4.2733
+      "hpMul": 3.9782,
+      "dmgMul": 4.7587
      },
      {
       "key": "mourn moth",
       "lvl": 32,
-      "hpMul": 3.4114,
-      "dmgMul": 4.2733
+      "hpMul": 3.9782,
+      "dmgMul": 4.7587
      },
      {
       "key": "mimic chest",
       "lvl": 32,
-      "hpMul": 3.4114,
-      "dmgMul": 4.2733
+      "hpMul": 3.9782,
+      "dmgMul": 4.7587
      },
      {
       "key": "nerissa",
       "lvl": 35,
-      "hpMul": 8.8296,
-      "dmgMul": 6.1431,
+      "hpMul": 30.89,
+      "dmgMul": 20.5229,
       "boss": true
      }
     ]
@@ -3742,7 +4057,13 @@
     "Amethyst Ore Fragment",
     "Amethyst Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 57,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 51,
@@ -3752,58 +4073,58 @@
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 17.5766,
-      "dmgMul": 10.4792
+      "hpMul": 69.4078,
+      "dmgMul": 27.4069
      },
      {
       "key": "cinder skulk",
       "lvl": 33,
-      "hpMul": 17.5766,
-      "dmgMul": 10.4792
+      "hpMul": 69.4078,
+      "dmgMul": 27.4069
      },
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 17.5766,
-      "dmgMul": 10.4792
+      "hpMul": 69.4078,
+      "dmgMul": 27.4069
      },
      {
       "key": "magma hound",
       "lvl": 33,
-      "hpMul": 17.5766,
-      "dmgMul": 10.4792
+      "hpMul": 69.4078,
+      "dmgMul": 27.4069
      }
     ],
     [
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 20.4343,
-      "dmgMul": 12.1851
+      "hpMul": 80.6925,
+      "dmgMul": 31.8684
      },
      {
       "key": "fire skeleton",
       "lvl": 33,
-      "hpMul": 20.4343,
-      "dmgMul": 12.1851
+      "hpMul": 80.6925,
+      "dmgMul": 31.8684
      },
      {
       "key": "basalt mauler",
       "lvl": 33,
-      "hpMul": 20.4343,
-      "dmgMul": 12.1851
+      "hpMul": 80.6925,
+      "dmgMul": 31.8684
      },
      {
       "key": "furnace gnawer",
       "lvl": 33,
-      "hpMul": 20.4343,
-      "dmgMul": 12.1851
+      "hpMul": 80.6925,
+      "dmgMul": 31.8684
      },
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 20.4343,
-      "dmgMul": 12.1851
+      "hpMul": 80.6925,
+      "dmgMul": 31.8684
      }
     ]
    ],
@@ -3815,7 +4136,13 @@
     "Sovereign Amethyst Ore Fragment",
     "Sovereign Amethyst Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 58,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 52,
@@ -3825,58 +4152,58 @@
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 18.9579,
-      "dmgMul": 11.1013
+      "hpMul": 60.4377,
+      "dmgMul": 24.994
      },
      {
       "key": "fire skeleton",
       "lvl": 33,
-      "hpMul": 18.9579,
-      "dmgMul": 11.1013
+      "hpMul": 60.4377,
+      "dmgMul": 24.994
      },
      {
       "key": "magma hound",
       "lvl": 33,
-      "hpMul": 18.9579,
-      "dmgMul": 11.1013
+      "hpMul": 60.4377,
+      "dmgMul": 24.994
      },
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 18.9579,
-      "dmgMul": 11.1013
+      "hpMul": 60.4377,
+      "dmgMul": 24.994
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 33,
-      "hpMul": 22.0446,
-      "dmgMul": 12.9102
+      "hpMul": 70.2781,
+      "dmgMul": 29.0667
      },
      {
       "key": "golem",
       "lvl": 33,
-      "hpMul": 22.0446,
-      "dmgMul": 12.9102
+      "hpMul": 70.2781,
+      "dmgMul": 29.0667
      },
      {
       "key": "sootwing imp",
       "lvl": 33,
-      "hpMul": 22.0446,
-      "dmgMul": 12.9102
+      "hpMul": 70.2781,
+      "dmgMul": 29.0667
      },
      {
       "key": "basalt mauler",
       "lvl": 33,
-      "hpMul": 22.0446,
-      "dmgMul": 12.9102
+      "hpMul": 70.2781,
+      "dmgMul": 29.0667
      },
      {
       "key": "furnace gnawer",
       "lvl": 33,
-      "hpMul": 22.0446,
-      "dmgMul": 12.9102
+      "hpMul": 70.2781,
+      "dmgMul": 29.0667
      }
     ]
    ],
@@ -3888,7 +4215,13 @@
     "Sovereign Amethyst Guard Rune",
     "Sovereign Amethyst Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 59,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 53,
@@ -3898,58 +4231,58 @@
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 20.5372,
-      "dmgMul": 11.7986
+      "hpMul": 63.0239,
+      "dmgMul": 29.8154
      },
      {
       "key": "basalt mauler",
       "lvl": 34,
-      "hpMul": 20.5372,
-      "dmgMul": 11.7986
+      "hpMul": 63.0239,
+      "dmgMul": 29.8154
      },
      {
       "key": "golem",
       "lvl": 34,
-      "hpMul": 20.5372,
-      "dmgMul": 11.7986
+      "hpMul": 63.0239,
+      "dmgMul": 29.8154
      },
      {
       "key": "cinder skulk",
       "lvl": 34,
-      "hpMul": 20.5372,
-      "dmgMul": 11.7986
+      "hpMul": 63.0239,
+      "dmgMul": 29.8154
      }
     ],
     [
      {
       "key": "basalt mauler",
       "lvl": 34,
-      "hpMul": 23.8806,
-      "dmgMul": 13.7192
+      "hpMul": 73.2841,
+      "dmgMul": 34.6688
      },
      {
       "key": "crucible acolyte",
       "lvl": 34,
-      "hpMul": 23.8806,
-      "dmgMul": 13.7192
+      "hpMul": 73.2841,
+      "dmgMul": 34.6688
      },
      {
       "key": "sootwing imp",
       "lvl": 34,
-      "hpMul": 23.8806,
-      "dmgMul": 13.7192
+      "hpMul": 73.2841,
+      "dmgMul": 34.6688
      },
      {
       "key": "magma hound",
       "lvl": 34,
-      "hpMul": 23.8806,
-      "dmgMul": 13.7192
+      "hpMul": 73.2841,
+      "dmgMul": 34.6688
      },
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 23.8806,
-      "dmgMul": 13.7192
+      "hpMul": 73.2841,
+      "dmgMul": 34.6688
      }
     ]
    ],
@@ -3961,7 +4294,15 @@
     "Sovereign Amethyst Edge Stone",
     "Sovereign Amethyst Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 60,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.153
+   }
   },
   {
    "floor": 54,
@@ -3971,58 +4312,58 @@
      {
       "key": "crucible acolyte",
       "lvl": 34,
-      "hpMul": 18.6336,
-      "dmgMul": 11.0725
+      "hpMul": 72.1574,
+      "dmgMul": 28.565
      },
      {
       "key": "sootwing imp",
       "lvl": 34,
-      "hpMul": 18.6336,
-      "dmgMul": 11.0725
+      "hpMul": 72.1574,
+      "dmgMul": 28.565
      },
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 18.6336,
-      "dmgMul": 11.0725
+      "hpMul": 72.1574,
+      "dmgMul": 28.565
      },
      {
       "key": "cinder skulk",
       "lvl": 34,
-      "hpMul": 18.6336,
-      "dmgMul": 11.0725
+      "hpMul": 72.1574,
+      "dmgMul": 28.565
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 34,
-      "hpMul": 21.6667,
-      "dmgMul": 12.8764
+      "hpMul": 83.9029,
+      "dmgMul": 33.2188
      },
      {
       "key": "furnace gnawer",
       "lvl": 34,
-      "hpMul": 21.6667,
-      "dmgMul": 12.8764
+      "hpMul": 83.9029,
+      "dmgMul": 33.2188
      },
      {
       "key": "magma hound",
       "lvl": 34,
-      "hpMul": 21.6667,
-      "dmgMul": 12.8764
+      "hpMul": 83.9029,
+      "dmgMul": 33.2188
      },
      {
       "key": "sootwing imp",
       "lvl": 34,
-      "hpMul": 21.6667,
-      "dmgMul": 12.8764
+      "hpMul": 83.9029,
+      "dmgMul": 33.2188
      },
      {
       "key": "fire skeleton",
       "lvl": 34,
-      "hpMul": 21.6667,
-      "dmgMul": 12.8764
+      "hpMul": 83.9029,
+      "dmgMul": 33.2188
      }
     ]
    ],
@@ -4034,7 +4375,15 @@
     "Sovereign Amethyst Focus Crystal",
     "Sovereign Amethyst Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 61,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1
+   }
   },
   {
    "floor": 55,
@@ -4044,58 +4393,58 @@
      {
       "key": "crucible acolyte",
       "lvl": 35,
-      "hpMul": 4.2704,
-      "dmgMul": 4.199
+      "hpMul": 3.7582,
+      "dmgMul": 3.8398
      },
      {
       "key": "sootwing imp",
       "lvl": 35,
-      "hpMul": 4.2704,
-      "dmgMul": 4.199
+      "hpMul": 3.7582,
+      "dmgMul": 3.8398
      },
      {
       "key": "golem",
       "lvl": 35,
-      "hpMul": 4.2704,
-      "dmgMul": 4.199
+      "hpMul": 3.7582,
+      "dmgMul": 3.8398
      },
      {
       "key": "basalt mauler",
       "lvl": 35,
-      "hpMul": 4.2704,
-      "dmgMul": 4.199
+      "hpMul": 3.7582,
+      "dmgMul": 3.8398
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 35,
-      "hpMul": 5.3375,
-      "dmgMul": 5.2489
+      "hpMul": 4.6973,
+      "dmgMul": 4.7998
      },
      {
       "key": "basalt mauler",
       "lvl": 35,
-      "hpMul": 5.3375,
-      "dmgMul": 5.2489
+      "hpMul": 4.6973,
+      "dmgMul": 4.7998
      },
      {
       "key": "golem",
       "lvl": 35,
-      "hpMul": 5.3375,
-      "dmgMul": 5.2489
+      "hpMul": 4.6973,
+      "dmgMul": 4.7998
      },
      {
       "key": "sootwing imp",
       "lvl": 35,
-      "hpMul": 5.3375,
-      "dmgMul": 5.2489
+      "hpMul": 4.6973,
+      "dmgMul": 4.7998
      },
      {
       "key": "thorneveil",
       "lvl": 38,
-      "hpMul": 13.8144,
-      "dmgMul": 7.5447,
+      "hpMul": 36.4726,
+      "dmgMul": 20.6977,
       "boss": true
      }
     ]
@@ -4116,7 +4465,13 @@
     "Sovereign Amethyst Spirit Rune",
     "Sovereign Amethyst Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 62,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 56,
@@ -4126,58 +4481,58 @@
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 16.466,
-      "dmgMul": 10.2478
+      "hpMul": 61.6193,
+      "dmgMul": 25.8119
      },
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 16.466,
-      "dmgMul": 10.2478
+      "hpMul": 61.6193,
+      "dmgMul": 25.8119
      },
      {
       "key": "magma hound",
       "lvl": 36,
-      "hpMul": 16.466,
-      "dmgMul": 10.2478
+      "hpMul": 61.6193,
+      "dmgMul": 25.8119
      },
      {
       "key": "furnace gnawer",
       "lvl": 36,
-      "hpMul": 16.466,
-      "dmgMul": 10.2478
+      "hpMul": 61.6193,
+      "dmgMul": 25.8119
      }
     ],
     [
      {
       "key": "crucible acolyte",
       "lvl": 36,
-      "hpMul": 19.1494,
-      "dmgMul": 11.9174
+      "hpMul": 71.6611,
+      "dmgMul": 30.0173
      },
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 19.1494,
-      "dmgMul": 11.9174
+      "hpMul": 71.6611,
+      "dmgMul": 30.0173
      },
      {
       "key": "basalt mauler",
       "lvl": 36,
-      "hpMul": 19.1494,
-      "dmgMul": 11.9174
+      "hpMul": 71.6611,
+      "dmgMul": 30.0173
      },
      {
       "key": "magma hound",
       "lvl": 36,
-      "hpMul": 19.1494,
-      "dmgMul": 11.9174
+      "hpMul": 71.6611,
+      "dmgMul": 30.0173
      },
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 19.1494,
-      "dmgMul": 11.9174
+      "hpMul": 71.6611,
+      "dmgMul": 30.0173
      }
     ]
    ],
@@ -4189,7 +4544,13 @@
     "Sovereign Amethyst Ore Fragment",
     "Sovereign Amethyst Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 63,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 57,
@@ -4199,58 +4560,58 @@
      {
       "key": "basalt mauler",
       "lvl": 36,
-      "hpMul": 25.7926,
-      "dmgMul": 14.0929
+      "hpMul": 51.9422,
+      "dmgMul": 23.0048
      },
      {
       "key": "crucible acolyte",
       "lvl": 36,
-      "hpMul": 25.7926,
-      "dmgMul": 14.0929
+      "hpMul": 51.9422,
+      "dmgMul": 23.0048
      },
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 25.7926,
-      "dmgMul": 14.0929
+      "hpMul": 51.9422,
+      "dmgMul": 23.0048
      },
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 25.7926,
-      "dmgMul": 14.0929
+      "hpMul": 51.9422,
+      "dmgMul": 23.0048
      }
     ],
     [
      {
       "key": "cinder skulk",
       "lvl": 36,
-      "hpMul": 29.9882,
-      "dmgMul": 16.3866
+      "hpMul": 60.3914,
+      "dmgMul": 26.7489
      },
      {
       "key": "sootwing imp",
       "lvl": 36,
-      "hpMul": 29.9882,
-      "dmgMul": 16.3866
+      "hpMul": 60.3914,
+      "dmgMul": 26.7489
      },
      {
       "key": "furnace gnawer",
       "lvl": 36,
-      "hpMul": 29.9882,
-      "dmgMul": 16.3866
+      "hpMul": 60.3914,
+      "dmgMul": 26.7489
      },
      {
       "key": "magma hound",
       "lvl": 36,
-      "hpMul": 29.9882,
-      "dmgMul": 16.3866
+      "hpMul": 60.3914,
+      "dmgMul": 26.7489
      },
      {
       "key": "crucible acolyte",
       "lvl": 36,
-      "hpMul": 29.9882,
-      "dmgMul": 16.3866
+      "hpMul": 60.3914,
+      "dmgMul": 26.7489
      }
     ]
    ],
@@ -4262,7 +4623,15 @@
     "Sovereign Amethyst Guard Rune",
     "Sovereign Amethyst Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 64,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1
+   }
   },
   {
    "floor": 58,
@@ -4272,58 +4641,58 @@
      {
       "key": "cinder skulk",
       "lvl": 37,
-      "hpMul": 19.7712,
-      "dmgMul": 11.7502
+      "hpMul": 74.2778,
+      "dmgMul": 29.6772
      },
      {
       "key": "furnace gnawer",
       "lvl": 37,
-      "hpMul": 19.7712,
-      "dmgMul": 11.7502
+      "hpMul": 74.2778,
+      "dmgMul": 29.6772
      },
      {
       "key": "basalt mauler",
       "lvl": 37,
-      "hpMul": 19.7712,
-      "dmgMul": 11.7502
+      "hpMul": 74.2778,
+      "dmgMul": 29.6772
      },
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 19.7712,
-      "dmgMul": 11.7502
+      "hpMul": 74.2778,
+      "dmgMul": 29.6772
      }
     ],
     [
      {
       "key": "fire skeleton",
       "lvl": 37,
-      "hpMul": 22.9869,
-      "dmgMul": 13.6642
+      "hpMul": 86.3588,
+      "dmgMul": 34.5114
      },
      {
       "key": "furnace gnawer",
       "lvl": 37,
-      "hpMul": 22.9869,
-      "dmgMul": 13.6642
+      "hpMul": 86.3588,
+      "dmgMul": 34.5114
      },
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 22.9869,
-      "dmgMul": 13.6642
+      "hpMul": 86.3588,
+      "dmgMul": 34.5114
      },
      {
       "key": "golem",
       "lvl": 37,
-      "hpMul": 22.9869,
-      "dmgMul": 13.6642
+      "hpMul": 86.3588,
+      "dmgMul": 34.5114
      },
      {
       "key": "sootwing imp",
       "lvl": 37,
-      "hpMul": 22.9869,
-      "dmgMul": 13.6642
+      "hpMul": 86.3588,
+      "dmgMul": 34.5114
      }
     ]
    ],
@@ -4335,7 +4704,13 @@
     "Sovereign Amethyst Edge Stone",
     "Sovereign Amethyst Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 65,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 59,
@@ -4345,58 +4720,58 @@
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 20.1261,
-      "dmgMul": 11.9509
+      "hpMul": 72.3578,
+      "dmgMul": 29.9303
      },
      {
       "key": "basalt mauler",
       "lvl": 37,
-      "hpMul": 20.1261,
-      "dmgMul": 11.9509
+      "hpMul": 72.3578,
+      "dmgMul": 29.9303
      },
      {
       "key": "golem",
       "lvl": 37,
-      "hpMul": 20.1261,
-      "dmgMul": 11.9509
+      "hpMul": 72.3578,
+      "dmgMul": 29.9303
      },
      {
       "key": "fire skeleton",
       "lvl": 37,
-      "hpMul": 20.1261,
-      "dmgMul": 11.9509
+      "hpMul": 72.3578,
+      "dmgMul": 29.9303
      }
     ],
     [
      {
       "key": "golem",
       "lvl": 37,
-      "hpMul": 23.4038,
-      "dmgMul": 13.8958
+      "hpMul": 84.1419,
+      "dmgMul": 34.8011
      },
      {
       "key": "sootwing imp",
       "lvl": 37,
-      "hpMul": 23.4038,
-      "dmgMul": 13.8958
+      "hpMul": 84.1419,
+      "dmgMul": 34.8011
      },
      {
       "key": "crucible acolyte",
       "lvl": 37,
-      "hpMul": 23.4038,
-      "dmgMul": 13.8958
+      "hpMul": 84.1419,
+      "dmgMul": 34.8011
      },
      {
       "key": "magma hound",
       "lvl": 37,
-      "hpMul": 23.4038,
-      "dmgMul": 13.8958
+      "hpMul": 84.1419,
+      "dmgMul": 34.8011
      },
      {
       "key": "basalt mauler",
       "lvl": 37,
-      "hpMul": 23.4038,
-      "dmgMul": 13.8958
+      "hpMul": 84.1419,
+      "dmgMul": 34.8011
      }
     ]
    ],
@@ -4408,7 +4783,15 @@
     "Sovereign Amethyst Focus Crystal",
     "Sovereign Amethyst Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 66,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.023
+   }
   },
   {
    "floor": 60,
@@ -4418,58 +4801,58 @@
      {
       "key": "magma hound",
       "lvl": 38,
-      "hpMul": 3.6074,
-      "dmgMul": 4.3502
+      "hpMul": 2.4841,
+      "dmgMul": 3.3504
      },
      {
       "key": "basalt mauler",
       "lvl": 38,
-      "hpMul": 3.6074,
-      "dmgMul": 4.3502
+      "hpMul": 2.4841,
+      "dmgMul": 3.3504
      },
      {
       "key": "crucible acolyte",
       "lvl": 38,
-      "hpMul": 3.6074,
-      "dmgMul": 4.3502
+      "hpMul": 2.4841,
+      "dmgMul": 3.3504
      },
      {
       "key": "sootwing imp",
       "lvl": 38,
-      "hpMul": 3.6074,
-      "dmgMul": 4.3502
+      "hpMul": 2.4841,
+      "dmgMul": 3.3504
      }
     ],
     [
      {
       "key": "cinder skulk",
       "lvl": 38,
-      "hpMul": 4.5091,
-      "dmgMul": 5.4376
+      "hpMul": 3.105,
+      "dmgMul": 4.1878
      },
      {
       "key": "fire skeleton",
       "lvl": 38,
-      "hpMul": 4.5091,
-      "dmgMul": 5.4376
+      "hpMul": 3.105,
+      "dmgMul": 4.1878
      },
      {
       "key": "golem",
       "lvl": 38,
-      "hpMul": 4.5091,
-      "dmgMul": 5.4376
+      "hpMul": 3.105,
+      "dmgMul": 4.1878
      },
      {
       "key": "basalt mauler",
       "lvl": 38,
-      "hpMul": 4.5091,
-      "dmgMul": 5.4376
+      "hpMul": 3.105,
+      "dmgMul": 4.1878
      },
      {
       "key": "sable vesper",
       "lvl": 41,
-      "hpMul": 11.6705,
-      "dmgMul": 7.8165,
+      "hpMul": 24.1094,
+      "dmgMul": 18.0599,
       "boss": true
      }
     ]
@@ -4490,7 +4873,13 @@
     "Sovereign Amethyst Spirit Rune",
     "Sovereign Amethyst Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 67,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 61,
@@ -4500,58 +4889,58 @@
      {
       "key": "luminant orb",
       "lvl": 39,
-      "hpMul": 25.947,
-      "dmgMul": 14.399
+      "hpMul": 60.2085,
+      "dmgMul": 25.9556
      },
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 25.947,
-      "dmgMul": 14.399
+      "hpMul": 60.2085,
+      "dmgMul": 25.9556
      },
      {
       "key": "rock golem",
       "lvl": 39,
-      "hpMul": 25.947,
-      "dmgMul": 14.399
+      "hpMul": 60.2085,
+      "dmgMul": 25.9556
      },
      {
       "key": "raven",
       "lvl": 39,
-      "hpMul": 25.947,
-      "dmgMul": 14.399
+      "hpMul": 60.2085,
+      "dmgMul": 25.9556
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 39,
-      "hpMul": 30.1717,
-      "dmgMul": 16.7423
+      "hpMul": 70.0117,
+      "dmgMul": 30.1797
      },
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 30.1717,
-      "dmgMul": 16.7423
+      "hpMul": 70.0117,
+      "dmgMul": 30.1797
      },
      {
       "key": "zephyr harrier",
       "lvl": 39,
-      "hpMul": 30.1717,
-      "dmgMul": 16.7423
+      "hpMul": 70.0117,
+      "dmgMul": 30.1797
      },
      {
       "key": "frostjaw troll",
       "lvl": 39,
-      "hpMul": 30.1717,
-      "dmgMul": 16.7423
+      "hpMul": 70.0117,
+      "dmgMul": 30.1797
      },
      {
       "key": "raven",
       "lvl": 39,
-      "hpMul": 30.1717,
-      "dmgMul": 16.7423
+      "hpMul": 70.0117,
+      "dmgMul": 30.1797
      }
     ]
    ],
@@ -4563,7 +4952,13 @@
     "Sunforged Ore Fragment",
     "Sunforged Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 68,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 62,
@@ -4573,58 +4968,58 @@
      {
       "key": "rock golem",
       "lvl": 39,
-      "hpMul": 23.3008,
-      "dmgMul": 13.409
+      "hpMul": 62.8198,
+      "dmgMul": 23.1356
      },
      {
       "key": "storm eel",
       "lvl": 39,
-      "hpMul": 23.3008,
-      "dmgMul": 13.409
+      "hpMul": 62.8198,
+      "dmgMul": 23.1356
      },
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 23.3008,
-      "dmgMul": 13.409
+      "hpMul": 62.8198,
+      "dmgMul": 23.1356
      },
      {
       "key": "raven",
       "lvl": 39,
-      "hpMul": 23.3008,
-      "dmgMul": 13.409
+      "hpMul": 62.8198,
+      "dmgMul": 23.1356
      }
     ],
     [
      {
       "key": "ironjaw raider",
       "lvl": 39,
-      "hpMul": 27.094,
-      "dmgMul": 15.5929
+      "hpMul": 73.0464,
+      "dmgMul": 26.9036
      },
      {
       "key": "frostjaw troll",
       "lvl": 39,
-      "hpMul": 27.094,
-      "dmgMul": 15.5929
+      "hpMul": 73.0464,
+      "dmgMul": 26.9036
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 39,
-      "hpMul": 27.094,
-      "dmgMul": 15.5929
+      "hpMul": 73.0464,
+      "dmgMul": 26.9036
      },
      {
       "key": "luminant orb",
       "lvl": 39,
-      "hpMul": 27.094,
-      "dmgMul": 15.5929
+      "hpMul": 73.0464,
+      "dmgMul": 26.9036
      },
      {
       "key": "rock golem",
       "lvl": 39,
-      "hpMul": 27.094,
-      "dmgMul": 15.5929
+      "hpMul": 73.0464,
+      "dmgMul": 26.9036
      }
     ]
    ],
@@ -4636,7 +5031,14 @@
     "Sunforged Guard Rune",
     "Sunforged Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 69,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.237
+   }
   },
   {
    "floor": 63,
@@ -4646,58 +5048,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 27.129,
-      "dmgMul": 14.9789
+      "hpMul": 69.1436,
+      "dmgMul": 28.8339
      },
      {
       "key": "ironjaw raider",
       "lvl": 40,
-      "hpMul": 27.129,
-      "dmgMul": 14.9789
+      "hpMul": 69.1436,
+      "dmgMul": 28.8339
      },
      {
       "key": "raven",
       "lvl": 40,
-      "hpMul": 27.129,
-      "dmgMul": 14.9789
+      "hpMul": 69.1436,
+      "dmgMul": 28.8339
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 40,
-      "hpMul": 27.129,
-      "dmgMul": 14.9789
+      "hpMul": 69.1436,
+      "dmgMul": 28.8339
      }
     ],
     [
      {
       "key": "rock golem",
       "lvl": 40,
-      "hpMul": 31.5508,
-      "dmgMul": 17.4164
+      "hpMul": 80.4134,
+      "dmgMul": 33.526
      },
      {
       "key": "ironjaw raider",
       "lvl": 40,
-      "hpMul": 31.5508,
-      "dmgMul": 17.4164
+      "hpMul": 80.4134,
+      "dmgMul": 33.526
      },
      {
       "key": "storm eel",
       "lvl": 40,
-      "hpMul": 31.5508,
-      "dmgMul": 17.4164
+      "hpMul": 80.4134,
+      "dmgMul": 33.526
      },
      {
       "key": "zephyr harrier",
       "lvl": 40,
-      "hpMul": 31.5508,
-      "dmgMul": 17.4164
+      "hpMul": 80.4134,
+      "dmgMul": 33.526
      },
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 31.5508,
-      "dmgMul": 17.4164
+      "hpMul": 80.4134,
+      "dmgMul": 33.526
      }
     ]
    ],
@@ -4709,7 +5111,13 @@
     "Sunforged Edge Stone",
     "Sunforged Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 70,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 64,
@@ -4719,58 +5127,58 @@
      {
       "key": "storm eel",
       "lvl": 40,
-      "hpMul": 23.4163,
-      "dmgMul": 13.564
+      "hpMul": 70.7162,
+      "dmgMul": 29.1306
      },
      {
       "key": "luminant orb",
       "lvl": 40,
-      "hpMul": 23.4163,
-      "dmgMul": 13.564
+      "hpMul": 70.7162,
+      "dmgMul": 29.1306
      },
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 23.4163,
-      "dmgMul": 13.564
+      "hpMul": 70.7162,
+      "dmgMul": 29.1306
      },
      {
       "key": "rock golem",
       "lvl": 40,
-      "hpMul": 23.4163,
-      "dmgMul": 13.564
+      "hpMul": 70.7162,
+      "dmgMul": 29.1306
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 40,
-      "hpMul": 27.2265,
-      "dmgMul": 15.7729
+      "hpMul": 82.2229,
+      "dmgMul": 33.8745
      },
      {
       "key": "raven",
       "lvl": 40,
-      "hpMul": 27.2265,
-      "dmgMul": 15.7729
+      "hpMul": 82.2229,
+      "dmgMul": 33.8745
      },
      {
       "key": "ironjaw raider",
       "lvl": 40,
-      "hpMul": 27.2265,
-      "dmgMul": 15.7729
+      "hpMul": 82.2229,
+      "dmgMul": 33.8745
      },
      {
       "key": "frostjaw troll",
       "lvl": 40,
-      "hpMul": 27.2265,
-      "dmgMul": 15.7729
+      "hpMul": 82.2229,
+      "dmgMul": 33.8745
      },
      {
       "key": "rock golem",
       "lvl": 40,
-      "hpMul": 27.2265,
-      "dmgMul": 15.7729
+      "hpMul": 82.2229,
+      "dmgMul": 33.8745
      }
     ]
    ],
@@ -4782,7 +5190,14 @@
     "Sunforged Focus Crystal",
     "Sunforged Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 71,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.013
+   }
   },
   {
    "floor": 65,
@@ -4792,58 +5207,58 @@
      {
       "key": "rock golem",
       "lvl": 41,
-      "hpMul": 9.6379,
-      "dmgMul": 7.7455
+      "hpMul": 8.2127,
+      "dmgMul": 6.9247
      },
      {
       "key": "raven",
       "lvl": 41,
-      "hpMul": 9.6379,
-      "dmgMul": 7.7455
+      "hpMul": 8.2127,
+      "dmgMul": 6.9247
      },
      {
       "key": "zephyr harrier",
       "lvl": 41,
-      "hpMul": 9.6379,
-      "dmgMul": 7.7455
+      "hpMul": 8.2127,
+      "dmgMul": 6.9247
      },
      {
       "key": "frostjaw troll",
       "lvl": 41,
-      "hpMul": 9.6379,
-      "dmgMul": 7.7455
+      "hpMul": 8.2127,
+      "dmgMul": 6.9247
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 41,
-      "hpMul": 12.047,
-      "dmgMul": 9.6827
+      "hpMul": 10.2656,
+      "dmgMul": 8.6567
      },
      {
       "key": "ironjaw raider",
       "lvl": 41,
-      "hpMul": 12.047,
-      "dmgMul": 9.6827
+      "hpMul": 10.2656,
+      "dmgMul": 8.6567
      },
      {
       "key": "rock golem",
       "lvl": 41,
-      "hpMul": 12.047,
-      "dmgMul": 9.6827
+      "hpMul": 10.2656,
+      "dmgMul": 8.6567
      },
      {
       "key": "zephyr harrier",
       "lvl": 41,
-      "hpMul": 12.047,
-      "dmgMul": 9.6827
+      "hpMul": 10.2656,
+      "dmgMul": 8.6567
      },
      {
       "key": "vharok",
       "lvl": 44,
-      "hpMul": 31.1807,
-      "dmgMul": 13.9183,
+      "hpMul": 79.7101,
+      "dmgMul": 37.3303,
       "boss": true
      }
     ]
@@ -4864,7 +5279,13 @@
     "Sunforged Spirit Rune",
     "Sunforged Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 72,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 66,
@@ -4874,58 +5295,58 @@
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 13.4511,
-      "dmgMul": 9.2748
+      "hpMul": 67.2897,
+      "dmgMul": 28.6245
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 13.4511,
-      "dmgMul": 9.2748
+      "hpMul": 67.2897,
+      "dmgMul": 28.6245
      },
      {
       "key": "raven",
       "lvl": 42,
-      "hpMul": 13.4511,
-      "dmgMul": 9.2748
+      "hpMul": 67.2897,
+      "dmgMul": 28.6245
      },
      {
       "key": "rock golem",
       "lvl": 42,
-      "hpMul": 13.4511,
-      "dmgMul": 9.2748
+      "hpMul": 67.2897,
+      "dmgMul": 28.6245
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 15.6385,
-      "dmgMul": 10.7852
+      "hpMul": 78.2323,
+      "dmgMul": 33.286
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 15.6385,
-      "dmgMul": 10.7852
+      "hpMul": 78.2323,
+      "dmgMul": 33.286
      },
      {
       "key": "rock golem",
       "lvl": 42,
-      "hpMul": 15.6385,
-      "dmgMul": 10.7852
+      "hpMul": 78.2323,
+      "dmgMul": 33.286
      },
      {
       "key": "storm eel",
       "lvl": 42,
-      "hpMul": 15.6385,
-      "dmgMul": 10.7852
+      "hpMul": 78.2323,
+      "dmgMul": 33.286
      },
      {
       "key": "frostjaw troll",
       "lvl": 42,
-      "hpMul": 15.6385,
-      "dmgMul": 10.7852
+      "hpMul": 78.2323,
+      "dmgMul": 33.286
      }
     ]
    ],
@@ -4937,7 +5358,13 @@
     "Sunforged Ore Fragment",
     "Sunforged Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 73,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 67,
@@ -4947,58 +5374,58 @@
      {
       "key": "storm eel",
       "lvl": 42,
-      "hpMul": 25.1366,
-      "dmgMul": 14.426
+      "hpMul": 74.9096,
+      "dmgMul": 30.9819
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 25.1366,
-      "dmgMul": 14.426
+      "hpMul": 74.9096,
+      "dmgMul": 30.9819
      },
      {
       "key": "zephyr harrier",
       "lvl": 42,
-      "hpMul": 25.1366,
-      "dmgMul": 14.426
+      "hpMul": 74.9096,
+      "dmgMul": 30.9819
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 25.1366,
-      "dmgMul": 14.426
+      "hpMul": 74.9096,
+      "dmgMul": 30.9819
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 42,
-      "hpMul": 29.2307,
-      "dmgMul": 16.7732
+      "hpMul": 87.1104,
+      "dmgMul": 36.0228
      },
      {
       "key": "ironjaw raider",
       "lvl": 42,
-      "hpMul": 29.2307,
-      "dmgMul": 16.7732
+      "hpMul": 87.1104,
+      "dmgMul": 36.0228
      },
      {
       "key": "rock golem",
       "lvl": 42,
-      "hpMul": 29.2307,
-      "dmgMul": 16.7732
+      "hpMul": 87.1104,
+      "dmgMul": 36.0228
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 42,
-      "hpMul": 29.2307,
-      "dmgMul": 16.7732
+      "hpMul": 87.1104,
+      "dmgMul": 36.0228
      },
      {
       "key": "zephyr harrier",
       "lvl": 42,
-      "hpMul": 29.2307,
-      "dmgMul": 16.7732
+      "hpMul": 87.1104,
+      "dmgMul": 36.0228
      }
     ]
    ],
@@ -5010,7 +5437,13 @@
     "Sunforged Guard Rune",
     "Sunforged Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 73,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 68,
@@ -5020,58 +5453,58 @@
      {
       "key": "zephyr harrier",
       "lvl": 43,
-      "hpMul": 23.5206,
-      "dmgMul": 13.8221
+      "hpMul": 71.6172,
+      "dmgMul": 32.6188
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 23.5206,
-      "dmgMul": 13.8221
+      "hpMul": 71.6172,
+      "dmgMul": 32.6188
      },
      {
       "key": "ironjaw raider",
       "lvl": 43,
-      "hpMul": 23.5206,
-      "dmgMul": 13.8221
+      "hpMul": 71.6172,
+      "dmgMul": 32.6188
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 23.5206,
-      "dmgMul": 13.8221
+      "hpMul": 71.6172,
+      "dmgMul": 32.6188
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 43,
-      "hpMul": 27.3509,
-      "dmgMul": 16.0726
+      "hpMul": 83.2799,
+      "dmgMul": 37.9297
      },
      {
       "key": "ironjaw raider",
       "lvl": 43,
-      "hpMul": 27.3509,
-      "dmgMul": 16.0726
+      "hpMul": 83.2799,
+      "dmgMul": 37.9297
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 27.3509,
-      "dmgMul": 16.0726
+      "hpMul": 83.2799,
+      "dmgMul": 37.9297
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 27.3509,
-      "dmgMul": 16.0726
+      "hpMul": 83.2799,
+      "dmgMul": 37.9297
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 43,
-      "hpMul": 27.3509,
-      "dmgMul": 16.0726
+      "hpMul": 83.2799,
+      "dmgMul": 37.9297
      }
     ]
    ],
@@ -5083,7 +5516,15 @@
     "Sunforged Edge Stone",
     "Sunforged Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 74,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.082
+   }
   },
   {
    "floor": 69,
@@ -5093,58 +5534,58 @@
      {
       "key": "rock golem",
       "lvl": 43,
-      "hpMul": 13.9755,
-      "dmgMul": 9.6384
+      "hpMul": 53.4882,
+      "dmgMul": 24.662
      },
      {
       "key": "raven",
       "lvl": 43,
-      "hpMul": 13.9755,
-      "dmgMul": 9.6384
+      "hpMul": 53.4882,
+      "dmgMul": 24.662
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 13.9755,
-      "dmgMul": 9.6384
+      "hpMul": 53.4882,
+      "dmgMul": 24.662
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 13.9755,
-      "dmgMul": 9.6384
+      "hpMul": 53.4882,
+      "dmgMul": 24.662
      }
     ],
     [
      {
       "key": "rock golem",
       "lvl": 43,
-      "hpMul": 16.2506,
-      "dmgMul": 11.2068
+      "hpMul": 62.1957,
+      "dmgMul": 28.6751
      },
      {
       "key": "frostjaw troll",
       "lvl": 43,
-      "hpMul": 16.2506,
-      "dmgMul": 11.2068
+      "hpMul": 62.1957,
+      "dmgMul": 28.6751
      },
      {
       "key": "luminant orb",
       "lvl": 43,
-      "hpMul": 16.2506,
-      "dmgMul": 11.2068
+      "hpMul": 62.1957,
+      "dmgMul": 28.6751
      },
      {
       "key": "storm eel",
       "lvl": 43,
-      "hpMul": 16.2506,
-      "dmgMul": 11.2068
+      "hpMul": 62.1957,
+      "dmgMul": 28.6751
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 43,
-      "hpMul": 16.2506,
-      "dmgMul": 11.2068
+      "hpMul": 62.1957,
+      "dmgMul": 28.6751
      }
     ]
    ],
@@ -5156,7 +5597,13 @@
     "Sunforged Focus Crystal",
     "Sunforged Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 75,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 70,
@@ -5166,58 +5613,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 6.1425,
-      "dmgMul": 6.5698
+      "hpMul": 4.3899,
+      "dmgMul": 6.5858
      },
      {
       "key": "rock golem",
       "lvl": 44,
-      "hpMul": 6.1425,
-      "dmgMul": 6.5698
+      "hpMul": 4.3899,
+      "dmgMul": 6.5858
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 6.1425,
-      "dmgMul": 6.5698
+      "hpMul": 4.3899,
+      "dmgMul": 6.5858
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 6.1425,
-      "dmgMul": 6.5698
+      "hpMul": 4.3899,
+      "dmgMul": 6.5858
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 44,
-      "hpMul": 7.6786,
-      "dmgMul": 8.2121
+      "hpMul": 5.4877,
+      "dmgMul": 8.2321
      },
      {
       "key": "storm eel",
       "lvl": 44,
-      "hpMul": 7.6786,
-      "dmgMul": 8.2121
+      "hpMul": 5.4877,
+      "dmgMul": 8.2321
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 44,
-      "hpMul": 7.6786,
-      "dmgMul": 8.2121
+      "hpMul": 5.4877,
+      "dmgMul": 8.2321
      },
      {
       "key": "ironjaw raider",
       "lvl": 44,
-      "hpMul": 7.6786,
-      "dmgMul": 8.2121
+      "hpMul": 5.4877,
+      "dmgMul": 8.2321
      },
      {
       "key": "barrowmaw",
       "lvl": 47,
-      "hpMul": 19.8743,
-      "dmgMul": 11.8053,
+      "hpMul": 42.6106,
+      "dmgMul": 35.5023,
       "boss": true
      }
     ]
@@ -5238,7 +5685,15 @@
     "Sunforged Spirit Rune",
     "Sunforged Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 76,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364",
+    "cliffHpScale": 1,
+    "cliffDmgScale": 1.268
+   }
   },
   {
    "floor": 71,
@@ -5248,58 +5703,58 @@
      {
       "key": "riftling spider",
       "lvl": 45,
-      "hpMul": 21.6637,
-      "dmgMul": 13.1983
+      "hpMul": 47.2213,
+      "dmgMul": 22.772
      },
      {
       "key": "golem",
       "lvl": 45,
-      "hpMul": 21.6637,
-      "dmgMul": 13.1983
+      "hpMul": 47.2213,
+      "dmgMul": 22.772
      },
      {
       "key": "glitch phantom",
       "lvl": 45,
-      "hpMul": 21.6637,
-      "dmgMul": 13.1983
+      "hpMul": 47.2213,
+      "dmgMul": 22.772
      },
      {
       "key": "saltglass siren",
       "lvl": 45,
-      "hpMul": 21.6637,
-      "dmgMul": 13.1983
+      "hpMul": 47.2213,
+      "dmgMul": 22.772
      }
     ],
     [
      {
       "key": "bonepike guard",
       "lvl": 45,
-      "hpMul": 25.1906,
-      "dmgMul": 15.3456
+      "hpMul": 54.9091,
+      "dmgMul": 26.4769
      },
      {
       "key": "golem",
       "lvl": 45,
-      "hpMul": 25.1906,
-      "dmgMul": 15.3456
+      "hpMul": 54.9091,
+      "dmgMul": 26.4769
      },
      {
       "key": "glitch phantom",
       "lvl": 45,
-      "hpMul": 25.1906,
-      "dmgMul": 15.3456
+      "hpMul": 54.9091,
+      "dmgMul": 26.4769
      },
      {
       "key": "riftling spider",
       "lvl": 45,
-      "hpMul": 25.1906,
-      "dmgMul": 15.3456
+      "hpMul": 54.9091,
+      "dmgMul": 26.4769
      },
      {
       "key": "clockwork lantern",
       "lvl": 45,
-      "hpMul": 25.1906,
-      "dmgMul": 15.3456
+      "hpMul": 54.9091,
+      "dmgMul": 26.4769
      }
     ]
    ],
@@ -5311,7 +5766,13 @@
     "Royal Sunforged Ore Fragment",
     "Royal Sunforged Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 77,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 72,
@@ -5321,58 +5782,58 @@
      {
       "key": "runic automaton",
       "lvl": 45,
-      "hpMul": 29.7305,
-      "dmgMul": 16.5286
+      "hpMul": 43.75,
+      "dmgMul": 21.661
      },
      {
       "key": "golem",
       "lvl": 45,
-      "hpMul": 29.7305,
-      "dmgMul": 16.5286
+      "hpMul": 43.75,
+      "dmgMul": 21.661
      },
      {
       "key": "riftling spider",
       "lvl": 45,
-      "hpMul": 29.7305,
-      "dmgMul": 16.5286
+      "hpMul": 43.75,
+      "dmgMul": 21.661
      },
      {
       "key": "tin beast",
       "lvl": 45,
-      "hpMul": 29.7305,
-      "dmgMul": 16.5286
+      "hpMul": 43.75,
+      "dmgMul": 21.661
      }
     ],
     [
      {
       "key": "golem",
       "lvl": 45,
-      "hpMul": 34.5691,
-      "dmgMul": 19.2196
+      "hpMul": 50.8702,
+      "dmgMul": 25.1876
      },
      {
       "key": "runic automaton",
       "lvl": 45,
-      "hpMul": 34.5691,
-      "dmgMul": 19.2196
+      "hpMul": 50.8702,
+      "dmgMul": 25.1876
      },
      {
       "key": "glitch phantom",
       "lvl": 45,
-      "hpMul": 34.5691,
-      "dmgMul": 19.2196
+      "hpMul": 50.8702,
+      "dmgMul": 25.1876
      },
      {
       "key": "saltglass siren",
       "lvl": 45,
-      "hpMul": 34.5691,
-      "dmgMul": 19.2196
+      "hpMul": 50.8702,
+      "dmgMul": 25.1876
      },
      {
       "key": "bonepike guard",
       "lvl": 45,
-      "hpMul": 34.5691,
-      "dmgMul": 19.2196
+      "hpMul": 50.8702,
+      "dmgMul": 25.1876
      }
     ]
    ],
@@ -5384,7 +5845,13 @@
     "Royal Sunforged Guard Rune",
     "Royal Sunforged Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 78,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 73,
@@ -5394,58 +5861,58 @@
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 27.0713,
-      "dmgMul": 15.5371
+      "hpMul": 54.6239,
+      "dmgMul": 25.397
      },
      {
       "key": "riftling spider",
       "lvl": 46,
-      "hpMul": 27.0713,
-      "dmgMul": 15.5371
+      "hpMul": 54.6239,
+      "dmgMul": 25.397
      },
      {
       "key": "saltglass siren",
       "lvl": 46,
-      "hpMul": 27.0713,
-      "dmgMul": 15.5371
+      "hpMul": 54.6239,
+      "dmgMul": 25.397
      },
      {
       "key": "tin beast",
       "lvl": 46,
-      "hpMul": 27.0713,
-      "dmgMul": 15.5371
+      "hpMul": 54.6239,
+      "dmgMul": 25.397
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 46,
-      "hpMul": 31.4766,
-      "dmgMul": 18.0648
+      "hpMul": 63.5129,
+      "dmgMul": 29.5287
      },
      {
       "key": "clockwork lantern",
       "lvl": 46,
-      "hpMul": 31.4766,
-      "dmgMul": 18.0648
+      "hpMul": 63.5129,
+      "dmgMul": 29.5287
      },
      {
       "key": "riftling spider",
       "lvl": 46,
-      "hpMul": 31.4766,
-      "dmgMul": 18.0648
+      "hpMul": 63.5129,
+      "dmgMul": 29.5287
      },
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 31.4766,
-      "dmgMul": 18.0648
+      "hpMul": 63.5129,
+      "dmgMul": 29.5287
      },
      {
       "key": "glitch phantom",
       "lvl": 46,
-      "hpMul": 31.4766,
-      "dmgMul": 18.0648
+      "hpMul": 63.5129,
+      "dmgMul": 29.5287
      }
     ]
    ],
@@ -5457,7 +5924,13 @@
     "Royal Sunforged Edge Stone",
     "Royal Sunforged Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 79,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 74,
@@ -5467,58 +5940,58 @@
      {
       "key": "golem",
       "lvl": 46,
-      "hpMul": 26.1519,
-      "dmgMul": 15.2186
+      "hpMul": 63.3505,
+      "dmgMul": 28.2714
      },
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 26.1519,
-      "dmgMul": 15.2186
+      "hpMul": 63.3505,
+      "dmgMul": 28.2714
      },
      {
       "key": "saltglass siren",
       "lvl": 46,
-      "hpMul": 26.1519,
-      "dmgMul": 15.2186
+      "hpMul": 63.3505,
+      "dmgMul": 28.2714
      },
      {
       "key": "glitch phantom",
       "lvl": 46,
-      "hpMul": 26.1519,
-      "dmgMul": 15.2186
+      "hpMul": 63.3505,
+      "dmgMul": 28.2714
      }
     ],
     [
      {
       "key": "bonepike guard",
       "lvl": 46,
-      "hpMul": 30.4071,
-      "dmgMul": 17.6963
+      "hpMul": 73.6583,
+      "dmgMul": 32.8742
      },
      {
       "key": "tin beast",
       "lvl": 46,
-      "hpMul": 30.4071,
-      "dmgMul": 17.6963
+      "hpMul": 73.6583,
+      "dmgMul": 32.8742
      },
      {
       "key": "saltglass siren",
       "lvl": 46,
-      "hpMul": 30.4071,
-      "dmgMul": 17.6963
+      "hpMul": 73.6583,
+      "dmgMul": 32.8742
      },
      {
       "key": "glitch phantom",
       "lvl": 46,
-      "hpMul": 30.4071,
-      "dmgMul": 17.6963
+      "hpMul": 73.6583,
+      "dmgMul": 32.8742
      },
      {
       "key": "golem",
       "lvl": 46,
-      "hpMul": 30.4071,
-      "dmgMul": 17.6963
+      "hpMul": 73.6583,
+      "dmgMul": 32.8742
      }
     ]
    ],
@@ -5530,7 +6003,13 @@
     "Royal Sunforged Focus Crystal",
     "Royal Sunforged Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 80,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 75,
@@ -5540,58 +6019,58 @@
      {
       "key": "golem",
       "lvl": 47,
-      "hpMul": 9.1029,
-      "dmgMul": 7.7241
+      "hpMul": 6.6016,
+      "dmgMul": 6.1685
      },
      {
       "key": "glitch phantom",
       "lvl": 47,
-      "hpMul": 9.1029,
-      "dmgMul": 7.7241
+      "hpMul": 6.6016,
+      "dmgMul": 6.1685
      },
      {
       "key": "tin beast",
       "lvl": 47,
-      "hpMul": 9.1029,
-      "dmgMul": 7.7241
+      "hpMul": 6.6016,
+      "dmgMul": 6.1685
      },
      {
       "key": "bonepike guard",
       "lvl": 47,
-      "hpMul": 9.1029,
-      "dmgMul": 7.7241
+      "hpMul": 6.6016,
+      "dmgMul": 6.1685
      }
     ],
     [
      {
       "key": "tin beast",
       "lvl": 47,
-      "hpMul": 11.3786,
-      "dmgMul": 9.656
+      "hpMul": 8.252,
+      "dmgMul": 7.7113
      },
      {
       "key": "bonepike guard",
       "lvl": 47,
-      "hpMul": 11.3786,
-      "dmgMul": 9.656
+      "hpMul": 8.252,
+      "dmgMul": 7.7113
      },
      {
       "key": "runic automaton",
       "lvl": 47,
-      "hpMul": 11.3786,
-      "dmgMul": 9.656
+      "hpMul": 8.252,
+      "dmgMul": 7.7113
      },
      {
       "key": "clockwork lantern",
       "lvl": 47,
-      "hpMul": 11.3786,
-      "dmgMul": 9.656
+      "hpMul": 8.252,
+      "dmgMul": 7.7113
      },
      {
       "key": "maelvara",
       "lvl": 50,
-      "hpMul": 29.4514,
-      "dmgMul": 13.8803,
+      "hpMul": 64.0765,
+      "dmgMul": 33.2545,
       "boss": true
      }
     ]
@@ -5612,7 +6091,13 @@
     "Royal Sunforged Spirit Rune",
     "Royal Sunforged Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 81,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 76,
@@ -5622,58 +6107,58 @@
      {
       "key": "riftling spider",
       "lvl": 48,
-      "hpMul": 30.291,
-      "dmgMul": 16.9864
+      "hpMul": 51.3612,
+      "dmgMul": 24.5825
      },
      {
       "key": "golem",
       "lvl": 48,
-      "hpMul": 30.291,
-      "dmgMul": 16.9864
+      "hpMul": 51.3612,
+      "dmgMul": 24.5825
      },
      {
       "key": "runic automaton",
       "lvl": 48,
-      "hpMul": 30.291,
-      "dmgMul": 16.9864
+      "hpMul": 51.3612,
+      "dmgMul": 24.5825
      },
      {
       "key": "clockwork lantern",
       "lvl": 48,
-      "hpMul": 30.291,
-      "dmgMul": 16.9864
+      "hpMul": 51.3612,
+      "dmgMul": 24.5825
      }
     ],
     [
      {
       "key": "clockwork lantern",
       "lvl": 48,
-      "hpMul": 35.2242,
-      "dmgMul": 19.7515
+      "hpMul": 59.7259,
+      "dmgMul": 28.5841
      },
      {
       "key": "golem",
       "lvl": 48,
-      "hpMul": 35.2242,
-      "dmgMul": 19.7515
+      "hpMul": 59.7259,
+      "dmgMul": 28.5841
      },
      {
       "key": "riftling spider",
       "lvl": 48,
-      "hpMul": 35.2242,
-      "dmgMul": 19.7515
+      "hpMul": 59.7259,
+      "dmgMul": 28.5841
      },
      {
       "key": "glitch phantom",
       "lvl": 48,
-      "hpMul": 35.2242,
-      "dmgMul": 19.7515
+      "hpMul": 59.7259,
+      "dmgMul": 28.5841
      },
      {
       "key": "runic automaton",
       "lvl": 48,
-      "hpMul": 35.2242,
-      "dmgMul": 19.7515
+      "hpMul": 59.7259,
+      "dmgMul": 28.5841
      }
     ]
    ],
@@ -5685,7 +6170,13 @@
     "Royal Sunforged Ore Fragment",
     "Royal Sunforged Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 82,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 77,
@@ -5695,58 +6186,58 @@
      {
       "key": "golem",
       "lvl": 48,
-      "hpMul": 3.2616,
-      "dmgMul": 3.5814
+      "hpMul": 54.7135,
+      "dmgMul": 25.7821
      },
      {
       "key": "clockwork lantern",
       "lvl": 48,
-      "hpMul": 3.2616,
-      "dmgMul": 3.5814
+      "hpMul": 54.7135,
+      "dmgMul": 25.7821
      },
      {
       "key": "glitch phantom",
       "lvl": 48,
-      "hpMul": 3.2616,
-      "dmgMul": 3.5814
+      "hpMul": 54.7135,
+      "dmgMul": 25.7821
      },
      {
       "key": "tin beast",
       "lvl": 48,
-      "hpMul": 3.2616,
-      "dmgMul": 3.5814
+      "hpMul": 54.7135,
+      "dmgMul": 25.7821
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 48,
-      "hpMul": 3.7928,
-      "dmgMul": 4.1647
+      "hpMul": 63.6245,
+      "dmgMul": 29.9812
      },
      {
       "key": "tin beast",
       "lvl": 48,
-      "hpMul": 3.7928,
-      "dmgMul": 4.1647
+      "hpMul": 63.6245,
+      "dmgMul": 29.9812
      },
      {
       "key": "riftling spider",
       "lvl": 48,
-      "hpMul": 3.7928,
-      "dmgMul": 4.1647
+      "hpMul": 63.6245,
+      "dmgMul": 29.9812
      },
      {
       "key": "bonepike guard",
       "lvl": 48,
-      "hpMul": 3.7928,
-      "dmgMul": 4.1647
+      "hpMul": 63.6245,
+      "dmgMul": 29.9812
      },
      {
       "key": "golem",
       "lvl": 48,
-      "hpMul": 3.7928,
-      "dmgMul": 4.1647
+      "hpMul": 63.6245,
+      "dmgMul": 29.9812
      }
     ]
    ],
@@ -5758,7 +6249,13 @@
     "Royal Sunforged Guard Rune",
     "Royal Sunforged Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 83,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 78,
@@ -5768,58 +6265,58 @@
      {
       "key": "tin beast",
       "lvl": 49,
-      "hpMul": 31.1327,
-      "dmgMul": 17.4349
+      "hpMul": 72.2416,
+      "dmgMul": 31.4282
      },
      {
       "key": "saltglass siren",
       "lvl": 49,
-      "hpMul": 31.1327,
-      "dmgMul": 17.4349
+      "hpMul": 72.2416,
+      "dmgMul": 31.4282
      },
      {
       "key": "runic automaton",
       "lvl": 49,
-      "hpMul": 31.1327,
-      "dmgMul": 17.4349
+      "hpMul": 72.2416,
+      "dmgMul": 31.4282
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 31.1327,
-      "dmgMul": 17.4349
+      "hpMul": 72.2416,
+      "dmgMul": 31.4282
      }
     ],
     [
      {
       "key": "bonepike guard",
       "lvl": 49,
-      "hpMul": 36.202,
-      "dmgMul": 20.273
+      "hpMul": 84.0046,
+      "dmgMul": 36.5441
      },
      {
       "key": "glitch phantom",
       "lvl": 49,
-      "hpMul": 36.202,
-      "dmgMul": 20.273
+      "hpMul": 84.0046,
+      "dmgMul": 36.5441
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 36.202,
-      "dmgMul": 20.273
+      "hpMul": 84.0046,
+      "dmgMul": 36.5441
      },
      {
       "key": "golem",
       "lvl": 49,
-      "hpMul": 36.202,
-      "dmgMul": 20.273
+      "hpMul": 84.0046,
+      "dmgMul": 36.5441
      },
      {
       "key": "runic automaton",
       "lvl": 49,
-      "hpMul": 36.202,
-      "dmgMul": 20.273
+      "hpMul": 84.0046,
+      "dmgMul": 36.5441
      }
     ]
    ],
@@ -5831,7 +6328,13 @@
     "Royal Sunforged Edge Stone",
     "Royal Sunforged Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 84,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 79,
@@ -5841,58 +6344,58 @@
      {
       "key": "glitch phantom",
       "lvl": 49,
-      "hpMul": 39.4719,
-      "dmgMul": 20.6512
+      "hpMul": 62.0764,
+      "dmgMul": 28.3526
      },
      {
       "key": "riftling spider",
       "lvl": 49,
-      "hpMul": 39.4719,
-      "dmgMul": 20.6512
+      "hpMul": 62.0764,
+      "dmgMul": 28.3526
      },
      {
       "key": "tin beast",
       "lvl": 49,
-      "hpMul": 39.4719,
-      "dmgMul": 20.6512
+      "hpMul": 62.0764,
+      "dmgMul": 28.3526
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 39.4719,
-      "dmgMul": 20.6512
+      "hpMul": 62.0764,
+      "dmgMul": 28.3526
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 49,
-      "hpMul": 45.8973,
-      "dmgMul": 24.0149
+      "hpMul": 72.1814,
+      "dmgMul": 32.9707
      },
      {
       "key": "clockwork lantern",
       "lvl": 49,
-      "hpMul": 45.8973,
-      "dmgMul": 24.0149
+      "hpMul": 72.1814,
+      "dmgMul": 32.9707
      },
      {
       "key": "riftling spider",
       "lvl": 49,
-      "hpMul": 45.8973,
-      "dmgMul": 24.0149
+      "hpMul": 72.1814,
+      "dmgMul": 32.9707
      },
      {
       "key": "saltglass siren",
       "lvl": 49,
-      "hpMul": 45.8973,
-      "dmgMul": 24.0149
+      "hpMul": 72.1814,
+      "dmgMul": 32.9707
      },
      {
       "key": "tin beast",
       "lvl": 49,
-      "hpMul": 45.8973,
-      "dmgMul": 24.0149
+      "hpMul": 72.1814,
+      "dmgMul": 32.9707
      }
     ]
    ],
@@ -5904,7 +6407,13 @@
     "Royal Sunforged Focus Crystal",
     "Royal Sunforged Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 85,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 80,
@@ -5914,58 +6423,58 @@
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 7.0566,
-      "dmgMul": 7.4974
+      "hpMul": 7.2832,
+      "dmgMul": 6.2469
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 7.0566,
-      "dmgMul": 7.4974
+      "hpMul": 7.2832,
+      "dmgMul": 6.2469
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 7.0566,
-      "dmgMul": 7.4974
+      "hpMul": 7.2832,
+      "dmgMul": 6.2469
      },
      {
       "key": "tin beast",
       "lvl": 50,
-      "hpMul": 7.0566,
-      "dmgMul": 7.4974
+      "hpMul": 7.2832,
+      "dmgMul": 6.2469
      }
     ],
     [
      {
       "key": "riftling spider",
       "lvl": 50,
-      "hpMul": 8.8209,
-      "dmgMul": 9.3724
+      "hpMul": 9.1041,
+      "dmgMul": 7.8091
      },
      {
       "key": "glitch phantom",
       "lvl": 50,
-      "hpMul": 8.8209,
-      "dmgMul": 9.3724
+      "hpMul": 9.1041,
+      "dmgMul": 7.8091
      },
      {
       "key": "runic automaton",
       "lvl": 50,
-      "hpMul": 8.8209,
-      "dmgMul": 9.3724
+      "hpMul": 9.1041,
+      "dmgMul": 7.8091
      },
      {
       "key": "bonepike guard",
       "lvl": 50,
-      "hpMul": 8.8209,
-      "dmgMul": 9.3724
+      "hpMul": 9.1041,
+      "dmgMul": 7.8091
      },
      {
       "key": "orryx",
       "lvl": 53,
-      "hpMul": 22.8306,
-      "dmgMul": 13.4726,
+      "hpMul": 70.6913,
+      "dmgMul": 33.6763,
       "boss": true
      }
     ]
@@ -5986,7 +6495,14 @@
     "Royal Sunforged Spirit Rune",
     "Royal Sunforged Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 86,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.339
+   }
   },
   {
    "floor": 81,
@@ -5996,58 +6512,58 @@
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 24.795,
-      "dmgMul": 15.0137
+      "hpMul": 66.7501,
+      "dmgMul": 30.0296
      },
      {
       "key": "shadow ghoul",
       "lvl": 51,
-      "hpMul": 24.795,
-      "dmgMul": 15.0137
+      "hpMul": 66.7501,
+      "dmgMul": 30.0296
      },
      {
       "key": "kelp hexer",
       "lvl": 51,
-      "hpMul": 24.795,
-      "dmgMul": 15.0137
+      "hpMul": 66.7501,
+      "dmgMul": 30.0296
      },
      {
       "key": "nightcap mimic",
       "lvl": 51,
-      "hpMul": 24.795,
-      "dmgMul": 15.0137
+      "hpMul": 66.7501,
+      "dmgMul": 30.0296
      }
     ],
     [
      {
       "key": "shadow ghoul",
       "lvl": 51,
-      "hpMul": 28.8303,
-      "dmgMul": 17.459
+      "hpMul": 77.6134,
+      "dmgMul": 34.9205
      },
      {
       "key": "nightcap mimic",
       "lvl": 51,
-      "hpMul": 28.8303,
-      "dmgMul": 17.459
+      "hpMul": 77.6134,
+      "dmgMul": 34.9205
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 28.8303,
-      "dmgMul": 17.459
+      "hpMul": 77.6134,
+      "dmgMul": 34.9205
      },
      {
       "key": "glitch phantom",
       "lvl": 51,
-      "hpMul": 28.8303,
-      "dmgMul": 17.459
+      "hpMul": 77.6134,
+      "dmgMul": 34.9205
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 28.8303,
-      "dmgMul": 17.459
+      "hpMul": 77.6134,
+      "dmgMul": 34.9205
      }
     ]
    ],
@@ -6059,7 +6575,13 @@
     "Worldfire Ore Fragment",
     "Worldfire Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 87,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 82,
@@ -6069,58 +6591,58 @@
      {
       "key": "shadow ghoul",
       "lvl": 51,
-      "hpMul": 29.3623,
-      "dmgMul": 16.9569
+      "hpMul": 75.5706,
+      "dmgMul": 32.8655
      },
      {
       "key": "shadow ghoul",
       "lvl": 51,
-      "hpMul": 29.3623,
-      "dmgMul": 16.9569
+      "hpMul": 75.5706,
+      "dmgMul": 32.8655
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 29.3623,
-      "dmgMul": 16.9569
+      "hpMul": 75.5706,
+      "dmgMul": 32.8655
      },
      {
       "key": "nightcap mimic",
       "lvl": 51,
-      "hpMul": 29.3623,
-      "dmgMul": 16.9569
+      "hpMul": 75.5706,
+      "dmgMul": 32.8655
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 34.1407,
-      "dmgMul": 19.7169
+      "hpMul": 87.8689,
+      "dmgMul": 38.2149
      },
      {
       "key": "lost soulss",
       "lvl": 51,
-      "hpMul": 34.1407,
-      "dmgMul": 19.7169
+      "hpMul": 87.8689,
+      "dmgMul": 38.2149
      },
      {
       "key": "shadow ghoul",
       "lvl": 51,
-      "hpMul": 34.1407,
-      "dmgMul": 19.7169
+      "hpMul": 87.8689,
+      "dmgMul": 38.2149
      },
      {
       "key": "reef prowler",
       "lvl": 51,
-      "hpMul": 34.1407,
-      "dmgMul": 19.7169
+      "hpMul": 87.8689,
+      "dmgMul": 38.2149
      },
      {
       "key": "wispweaver shade",
       "lvl": 51,
-      "hpMul": 34.1407,
-      "dmgMul": 19.7169
+      "hpMul": 87.8689,
+      "dmgMul": 38.2149
      }
     ]
    ],
@@ -6132,7 +6654,13 @@
     "Worldfire Guard Rune",
     "Worldfire Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 87,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 83,
@@ -6142,58 +6670,58 @@
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 33.6598,
-      "dmgMul": 18.7171
+      "hpMul": 97.6018,
+      "dmgMul": 39.4349
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 33.6598,
-      "dmgMul": 18.7171
+      "hpMul": 97.6018,
+      "dmgMul": 39.4349
      },
      {
       "key": "wispweaver shade",
       "lvl": 52,
-      "hpMul": 33.6598,
-      "dmgMul": 18.7171
+      "hpMul": 97.6018,
+      "dmgMul": 39.4349
      },
      {
       "key": "shadow ghoul",
       "lvl": 52,
-      "hpMul": 33.6598,
-      "dmgMul": 18.7171
+      "hpMul": 97.6018,
+      "dmgMul": 39.4349
      }
     ],
     [
      {
       "key": "storm eel",
       "lvl": 52,
-      "hpMul": 39.1426,
-      "dmgMul": 21.7654
+      "hpMul": 113.5,
+      "dmgMul": 45.8573
      },
      {
       "key": "nightcap mimic",
       "lvl": 52,
-      "hpMul": 39.1426,
-      "dmgMul": 21.7654
+      "hpMul": 113.5,
+      "dmgMul": 45.8573
      },
      {
       "key": "shadow ghoul",
       "lvl": 52,
-      "hpMul": 39.1426,
-      "dmgMul": 21.7654
+      "hpMul": 113.5,
+      "dmgMul": 45.8573
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 39.1426,
-      "dmgMul": 21.7654
+      "hpMul": 113.5,
+      "dmgMul": 45.8573
      },
      {
       "key": "shadow ghoul",
       "lvl": 52,
-      "hpMul": 39.1426,
-      "dmgMul": 21.7654
+      "hpMul": 113.5,
+      "dmgMul": 45.8573
      }
     ]
    ],
@@ -6205,7 +6733,13 @@
     "Worldfire Edge Stone",
     "Worldfire Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 88,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 84,
@@ -6215,58 +6749,58 @@
      {
       "key": "shadow ghoul",
       "lvl": 52,
-      "hpMul": 30.6103,
-      "dmgMul": 17.571
+      "hpMul": 77.5602,
+      "dmgMul": 33.685
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 30.6103,
-      "dmgMul": 17.571
+      "hpMul": 77.5602,
+      "dmgMul": 33.685
      },
      {
       "key": "storm eel",
       "lvl": 52,
-      "hpMul": 30.6103,
-      "dmgMul": 17.571
+      "hpMul": 77.5602,
+      "dmgMul": 33.685
      },
      {
       "key": "nightcap mimic",
       "lvl": 52,
-      "hpMul": 30.6103,
-      "dmgMul": 17.571
+      "hpMul": 77.5602,
+      "dmgMul": 33.685
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 35.5958,
-      "dmgMul": 20.4307
+      "hpMul": 90.1925,
+      "dmgMul": 39.1673
      },
      {
       "key": "glitch phantom",
       "lvl": 52,
-      "hpMul": 35.5958,
-      "dmgMul": 20.4307
+      "hpMul": 90.1925,
+      "dmgMul": 39.1673
      },
      {
       "key": "reef prowler",
       "lvl": 52,
-      "hpMul": 35.5958,
-      "dmgMul": 20.4307
+      "hpMul": 90.1925,
+      "dmgMul": 39.1673
      },
      {
       "key": "shadow ghoul",
       "lvl": 52,
-      "hpMul": 35.5958,
-      "dmgMul": 20.4307
+      "hpMul": 90.1925,
+      "dmgMul": 39.1673
      },
      {
       "key": "shadow ghoul",
       "lvl": 52,
-      "hpMul": 35.5958,
-      "dmgMul": 20.4307
+      "hpMul": 90.1925,
+      "dmgMul": 39.1673
      }
     ]
    ],
@@ -6278,7 +6812,13 @@
     "Worldfire Focus Crystal",
     "Worldfire Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 89,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 85,
@@ -6288,58 +6828,58 @@
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 12.3648,
-      "dmgMul": 9.892
+      "hpMul": 9.9072,
+      "dmgMul": 8.4707
      },
      {
       "key": "shadow ghoul",
       "lvl": 53,
-      "hpMul": 12.3648,
-      "dmgMul": 9.892
+      "hpMul": 9.9072,
+      "dmgMul": 8.4707
      },
      {
       "key": "lost soulss",
       "lvl": 53,
-      "hpMul": 12.3648,
-      "dmgMul": 9.892
+      "hpMul": 9.9072,
+      "dmgMul": 8.4707
      },
      {
       "key": "mourn moth",
       "lvl": 53,
-      "hpMul": 12.3648,
-      "dmgMul": 9.892
+      "hpMul": 9.9072,
+      "dmgMul": 8.4707
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 15.456,
-      "dmgMul": 12.3665
+      "hpMul": 12.384,
+      "dmgMul": 10.5897
      },
      {
       "key": "shadow ghoul",
       "lvl": 53,
-      "hpMul": 15.456,
-      "dmgMul": 12.3665
+      "hpMul": 12.384,
+      "dmgMul": 10.5897
      },
      {
       "key": "reef prowler",
       "lvl": 53,
-      "hpMul": 15.456,
-      "dmgMul": 12.3665
+      "hpMul": 12.384,
+      "dmgMul": 10.5897
      },
      {
       "key": "shadow ghoul",
       "lvl": 53,
-      "hpMul": 15.456,
-      "dmgMul": 12.3665
+      "hpMul": 12.384,
+      "dmgMul": 10.5897
      },
      {
       "key": "kharos",
       "lvl": 56,
-      "hpMul": 40.0018,
-      "dmgMul": 17.7755,
+      "hpMul": 96.1538,
+      "dmgMul": 45.6645,
       "boss": true
      }
     ]
@@ -6360,7 +6900,13 @@
     "Worldfire Spirit Rune",
     "Worldfire Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 90,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 86,
@@ -6370,58 +6916,58 @@
      {
       "key": "lost soulss",
       "lvl": 54,
-      "hpMul": 23.289,
-      "dmgMul": 14.6027
+      "hpMul": 73.8834,
+      "dmgMul": 32.765
      },
      {
       "key": "wispweaver shade",
       "lvl": 54,
-      "hpMul": 23.289,
-      "dmgMul": 14.6027
+      "hpMul": 73.8834,
+      "dmgMul": 32.765
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 23.289,
-      "dmgMul": 14.6027
+      "hpMul": 73.8834,
+      "dmgMul": 32.765
      },
      {
       "key": "shadow ghoul",
       "lvl": 54,
-      "hpMul": 23.289,
-      "dmgMul": 14.6027
+      "hpMul": 73.8834,
+      "dmgMul": 32.765
      }
     ],
     [
      {
       "key": "kelp hexer",
       "lvl": 54,
-      "hpMul": 27.0814,
-      "dmgMul": 16.9792
+      "hpMul": 85.9146,
+      "dmgMul": 38.0973
      },
      {
       "key": "shadow ghoul",
       "lvl": 54,
-      "hpMul": 27.0814,
-      "dmgMul": 16.9792
+      "hpMul": 85.9146,
+      "dmgMul": 38.0973
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 27.0814,
-      "dmgMul": 16.9792
+      "hpMul": 85.9146,
+      "dmgMul": 38.0973
      },
      {
       "key": "shadow ghoul",
       "lvl": 54,
-      "hpMul": 27.0814,
-      "dmgMul": 16.9792
+      "hpMul": 85.9146,
+      "dmgMul": 38.0973
      },
      {
       "key": "wispweaver shade",
       "lvl": 54,
-      "hpMul": 27.0814,
-      "dmgMul": 16.9792
+      "hpMul": 85.9146,
+      "dmgMul": 38.0973
      }
     ]
    ],
@@ -6433,7 +6979,13 @@
     "Worldfire Worldheart Core",
     "Worldfire Ore Fragment"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 90,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 87,
@@ -6443,58 +6995,58 @@
      {
       "key": "storm eel",
       "lvl": 54,
-      "hpMul": 31.8388,
-      "dmgMul": 18.2288
+      "hpMul": 73.8801,
+      "dmgMul": 32.8592
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 31.8388,
-      "dmgMul": 18.2288
+      "hpMul": 73.8801,
+      "dmgMul": 32.8592
      },
      {
       "key": "kelp hexer",
       "lvl": 54,
-      "hpMul": 31.8388,
-      "dmgMul": 18.2288
+      "hpMul": 73.8801,
+      "dmgMul": 32.8592
      },
      {
       "key": "shadow ghoul",
       "lvl": 54,
-      "hpMul": 31.8388,
-      "dmgMul": 18.2288
+      "hpMul": 73.8801,
+      "dmgMul": 32.8592
      }
     ],
     [
      {
       "key": "shadow ghoul",
       "lvl": 54,
-      "hpMul": 37.0223,
-      "dmgMul": 21.1973
+      "hpMul": 85.9081,
+      "dmgMul": 38.2103
      },
      {
       "key": "wispweaver shade",
       "lvl": 54,
-      "hpMul": 37.0223,
-      "dmgMul": 21.1973
+      "hpMul": 85.9081,
+      "dmgMul": 38.2103
      },
      {
       "key": "storm eel",
       "lvl": 54,
-      "hpMul": 37.0223,
-      "dmgMul": 21.1973
+      "hpMul": 85.9081,
+      "dmgMul": 38.2103
      },
      {
       "key": "shadow ghoul",
       "lvl": 54,
-      "hpMul": 37.0223,
-      "dmgMul": 21.1973
+      "hpMul": 85.9081,
+      "dmgMul": 38.2103
      },
      {
       "key": "reef prowler",
       "lvl": 54,
-      "hpMul": 37.0223,
-      "dmgMul": 21.1973
+      "hpMul": 85.9081,
+      "dmgMul": 38.2103
      }
     ]
    ],
@@ -6506,7 +7058,13 @@
     "Worldfire Vitality Gem",
     "Worldfire Guard Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 91,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 88,
@@ -6516,58 +7074,58 @@
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 31.6294,
-      "dmgMul": 18.2021
+      "hpMul": 86.4908,
+      "dmgMul": 36.8075
      },
      {
       "key": "lost soulss",
       "lvl": 55,
-      "hpMul": 31.6294,
-      "dmgMul": 18.2021
+      "hpMul": 86.4908,
+      "dmgMul": 36.8075
      },
      {
       "key": "nightcap mimic",
       "lvl": 55,
-      "hpMul": 31.6294,
-      "dmgMul": 18.2021
+      "hpMul": 86.4908,
+      "dmgMul": 36.8075
      },
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 31.6294,
-      "dmgMul": 18.2021
+      "hpMul": 86.4908,
+      "dmgMul": 36.8075
      }
     ],
     [
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 36.7782,
-      "dmgMul": 21.1643
+      "hpMul": 100.5702,
+      "dmgMul": 42.7976
      },
      {
       "key": "lost soulss",
       "lvl": 55,
-      "hpMul": 36.7782,
-      "dmgMul": 21.1643
+      "hpMul": 100.5702,
+      "dmgMul": 42.7976
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 36.7782,
-      "dmgMul": 21.1643
+      "hpMul": 100.5702,
+      "dmgMul": 42.7976
      },
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 36.7782,
-      "dmgMul": 21.1643
+      "hpMul": 100.5702,
+      "dmgMul": 42.7976
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 36.7782,
-      "dmgMul": 21.1643
+      "hpMul": 100.5702,
+      "dmgMul": 42.7976
      }
     ]
    ],
@@ -6579,7 +7137,13 @@
     "Worldfire Blade Shard",
     "Worldfire Edge Stone"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 92,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 89,
@@ -6589,58 +7153,58 @@
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 29.8474,
-      "dmgMul": 17.5298
+      "hpMul": 75.0382,
+      "dmgMul": 33.4226
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 29.8474,
-      "dmgMul": 17.5298
+      "hpMul": 75.0382,
+      "dmgMul": 33.4226
      },
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 29.8474,
-      "dmgMul": 17.5298
+      "hpMul": 75.0382,
+      "dmgMul": 33.4226
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 29.8474,
-      "dmgMul": 17.5298
+      "hpMul": 75.0382,
+      "dmgMul": 33.4226
      }
     ],
     [
      {
       "key": "wispweaver shade",
       "lvl": 55,
-      "hpMul": 34.7056,
-      "dmgMul": 20.3843
+      "hpMul": 87.252,
+      "dmgMul": 38.865
      },
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 34.7056,
-      "dmgMul": 20.3843
+      "hpMul": 87.252,
+      "dmgMul": 38.865
      },
      {
       "key": "shadow ghoul",
       "lvl": 55,
-      "hpMul": 34.7056,
-      "dmgMul": 20.3843
+      "hpMul": 87.252,
+      "dmgMul": 38.865
      },
      {
       "key": "reef prowler",
       "lvl": 55,
-      "hpMul": 34.7056,
-      "dmgMul": 20.3843
+      "hpMul": 87.252,
+      "dmgMul": 38.865
      },
      {
       "key": "mourn moth",
       "lvl": 55,
-      "hpMul": 34.7056,
-      "dmgMul": 20.3843
+      "hpMul": 87.252,
+      "dmgMul": 38.865
      }
     ]
    ],
@@ -6652,7 +7216,13 @@
     "Worldfire Wind Thread",
     "Worldfire Focus Crystal"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 92,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 90,
@@ -6662,58 +7232,58 @@
      {
       "key": "shadow ghoul",
       "lvl": 56,
-      "hpMul": 10.4614,
-      "dmgMul": 10.1909
+      "hpMul": 8.9232,
+      "dmgMul": 9.1173
      },
      {
       "key": "lost soulss",
       "lvl": 56,
-      "hpMul": 10.4614,
-      "dmgMul": 10.1909
+      "hpMul": 8.9232,
+      "dmgMul": 9.1173
      },
      {
       "key": "nightcap mimic",
       "lvl": 56,
-      "hpMul": 10.4614,
-      "dmgMul": 10.1909
+      "hpMul": 8.9232,
+      "dmgMul": 9.1173
      },
      {
       "key": "reef prowler",
       "lvl": 56,
-      "hpMul": 10.4614,
-      "dmgMul": 10.1909
+      "hpMul": 8.9232,
+      "dmgMul": 9.1173
      }
     ],
     [
      {
       "key": "reef prowler",
       "lvl": 56,
-      "hpMul": 13.0769,
-      "dmgMul": 12.7394
+      "hpMul": 11.1541,
+      "dmgMul": 11.3973
      },
      {
       "key": "kelp hexer",
       "lvl": 56,
-      "hpMul": 13.0769,
-      "dmgMul": 12.7394
+      "hpMul": 11.1541,
+      "dmgMul": 11.3973
      },
      {
       "key": "shadow ghoul",
       "lvl": 56,
-      "hpMul": 13.0769,
-      "dmgMul": 12.7394
+      "hpMul": 11.1541,
+      "dmgMul": 11.3973
      },
      {
       "key": "shadow ghoul",
       "lvl": 56,
-      "hpMul": 13.0769,
-      "dmgMul": 12.7394
+      "hpMul": 11.1541,
+      "dmgMul": 11.3973
      },
      {
       "key": "nameless admiral",
       "lvl": 59,
-      "hpMul": 33.8455,
-      "dmgMul": 18.3124,
+      "hpMul": 86.607,
+      "dmgMul": 49.1494,
       "boss": true
      }
     ]
@@ -6734,7 +7304,13 @@
     "Worldfire Mana Dust",
     "Worldfire Spirit Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 93,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 91,
@@ -6744,58 +7320,58 @@
      {
       "key": "zephyr harrier",
       "lvl": 57,
-      "hpMul": 26.0055,
-      "dmgMul": 16.0136
+      "hpMul": 74.2189,
+      "dmgMul": 31.2262
      },
      {
       "key": "basalt mauler",
       "lvl": 57,
-      "hpMul": 26.0055,
-      "dmgMul": 16.0136
+      "hpMul": 74.2189,
+      "dmgMul": 31.2262
      },
      {
       "key": "luminant orb",
       "lvl": 57,
-      "hpMul": 26.0055,
-      "dmgMul": 16.0136
+      "hpMul": 74.2189,
+      "dmgMul": 31.2262
      },
      {
       "key": "ironjaw raider",
       "lvl": 57,
-      "hpMul": 26.0055,
-      "dmgMul": 16.0136
+      "hpMul": 74.2189,
+      "dmgMul": 31.2262
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 57,
-      "hpMul": 30.2416,
-      "dmgMul": 18.621
+      "hpMul": 86.3086,
+      "dmgMul": 36.3105
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 57,
-      "hpMul": 30.2416,
-      "dmgMul": 18.621
+      "hpMul": 86.3086,
+      "dmgMul": 36.3105
      },
      {
       "key": "zephyr harrier",
       "lvl": 57,
-      "hpMul": 30.2416,
-      "dmgMul": 18.621
+      "hpMul": 86.3086,
+      "dmgMul": 36.3105
      },
      {
       "key": "skyroot dryad",
       "lvl": 57,
-      "hpMul": 30.2416,
-      "dmgMul": 18.621
+      "hpMul": 86.3086,
+      "dmgMul": 36.3105
      },
      {
       "key": "bonepike guard",
       "lvl": 57,
-      "hpMul": 30.2416,
-      "dmgMul": 18.621
+      "hpMul": 86.3086,
+      "dmgMul": 36.3105
      }
     ]
    ],
@@ -6807,7 +7383,15 @@
     "Worldfire Prism Shard",
     "Worldfire Worldheart Core"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 94,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.112,
+    "cliffDmgScale": 1.008
+   }
   },
   {
    "floor": 92,
@@ -6817,58 +7401,58 @@
      {
       "key": "vineback boar",
       "lvl": 57,
-      "hpMul": 45.0446,
-      "dmgMul": 23.5946
+      "hpMul": 80.1239,
+      "dmgMul": 35.3099
      },
      {
       "key": "skyroot dryad",
       "lvl": 57,
-      "hpMul": 45.0446,
-      "dmgMul": 23.5946
+      "hpMul": 80.1239,
+      "dmgMul": 35.3099
      },
      {
       "key": "zephyr harrier",
       "lvl": 57,
-      "hpMul": 45.0446,
-      "dmgMul": 23.5946
+      "hpMul": 80.1239,
+      "dmgMul": 35.3099
      },
      {
       "key": "luminant orb",
       "lvl": 57,
-      "hpMul": 45.0446,
-      "dmgMul": 23.5946
+      "hpMul": 80.1239,
+      "dmgMul": 35.3099
      }
     ],
     [
      {
       "key": "runic automaton",
       "lvl": 57,
-      "hpMul": 52.3816,
-      "dmgMul": 27.4341
+      "hpMul": 93.1747,
+      "dmgMul": 41.0558
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 57,
-      "hpMul": 52.3816,
-      "dmgMul": 27.4341
+      "hpMul": 93.1747,
+      "dmgMul": 41.0558
      },
      {
       "key": "bonepike guard",
       "lvl": 57,
-      "hpMul": 52.3816,
-      "dmgMul": 27.4341
+      "hpMul": 93.1747,
+      "dmgMul": 41.0558
      },
      {
       "key": "basalt mauler",
       "lvl": 57,
-      "hpMul": 52.3816,
-      "dmgMul": 27.4341
+      "hpMul": 93.1747,
+      "dmgMul": 41.0558
      },
      {
       "key": "ironjaw raider",
       "lvl": 57,
-      "hpMul": 52.3816,
-      "dmgMul": 27.4341
+      "hpMul": 93.1747,
+      "dmgMul": 41.0558
      }
     ]
    ],
@@ -6880,7 +7464,13 @@
     "Worldfire Ore Fragment",
     "Worldfire Vitality Gem"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 94,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 93,
@@ -6890,58 +7480,58 @@
      {
       "key": "ironjaw raider",
       "lvl": 58,
-      "hpMul": 31.2584,
-      "dmgMul": 18.322
+      "hpMul": 104.4126,
+      "dmgMul": 39.565
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 31.2584,
-      "dmgMul": 18.322
+      "hpMul": 104.4126,
+      "dmgMul": 39.565
      },
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 31.2584,
-      "dmgMul": 18.322
+      "hpMul": 104.4126,
+      "dmgMul": 39.565
      },
      {
       "key": "basalt mauler",
       "lvl": 58,
-      "hpMul": 31.2584,
-      "dmgMul": 18.322
+      "hpMul": 104.4126,
+      "dmgMul": 39.565
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 36.3494,
-      "dmgMul": 21.3052
+      "hpMul": 121.4182,
+      "dmgMul": 46.007
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 36.3494,
-      "dmgMul": 21.3052
+      "hpMul": 121.4182,
+      "dmgMul": 46.007
      },
      {
       "key": "skyroot dryad",
       "lvl": 58,
-      "hpMul": 36.3494,
-      "dmgMul": 21.3052
+      "hpMul": 121.4182,
+      "dmgMul": 46.007
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 36.3494,
-      "dmgMul": 21.3052
+      "hpMul": 121.4182,
+      "dmgMul": 46.007
      },
      {
       "key": "runic automaton",
       "lvl": 58,
-      "hpMul": 36.3494,
-      "dmgMul": 21.3052
+      "hpMul": 121.4182,
+      "dmgMul": 46.007
      }
     ]
    ],
@@ -6953,7 +7543,14 @@
     "Worldfire Guard Rune",
     "Worldfire Blade Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 95,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.112
+   }
   },
   {
    "floor": 94,
@@ -6963,58 +7560,58 @@
      {
       "key": "bonepike guard",
       "lvl": 58,
-      "hpMul": 42.5318,
-      "dmgMul": 22.795
+      "hpMul": 116.3035,
+      "dmgMul": 46.0951
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 58,
-      "hpMul": 42.5318,
-      "dmgMul": 22.795
+      "hpMul": 116.3035,
+      "dmgMul": 46.0951
      },
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 42.5318,
-      "dmgMul": 22.795
+      "hpMul": 116.3035,
+      "dmgMul": 46.0951
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 42.5318,
-      "dmgMul": 22.795
+      "hpMul": 116.3035,
+      "dmgMul": 46.0951
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 58,
-      "hpMul": 49.4504,
-      "dmgMul": 26.5042
+      "hpMul": 135.2224,
+      "dmgMul": 53.5957
      },
      {
       "key": "zephyr harrier",
       "lvl": 58,
-      "hpMul": 49.4504,
-      "dmgMul": 26.5042
+      "hpMul": 135.2224,
+      "dmgMul": 53.5957
      },
      {
       "key": "ironjaw raider",
       "lvl": 58,
-      "hpMul": 49.4504,
-      "dmgMul": 26.5042
+      "hpMul": 135.2224,
+      "dmgMul": 53.5957
      },
      {
       "key": "runic automaton",
       "lvl": 58,
-      "hpMul": 49.4504,
-      "dmgMul": 26.5042
+      "hpMul": 135.2224,
+      "dmgMul": 53.5957
      },
      {
       "key": "vineback boar",
       "lvl": 58,
-      "hpMul": 49.4504,
-      "dmgMul": 26.5042
+      "hpMul": 135.2224,
+      "dmgMul": 53.5957
      }
     ]
    ],
@@ -7026,7 +7623,13 @@
     "Worldfire Edge Stone",
     "Worldfire Wind Thread"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 96,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 95,
@@ -7036,58 +7639,58 @@
      {
       "key": "vineback boar",
       "lvl": 59,
-      "hpMul": 11.5943,
-      "dmgMul": 9.7439
+      "hpMul": 6.1864,
+      "dmgMul": 6.2772
      },
      {
       "key": "ironjaw raider",
       "lvl": 59,
-      "hpMul": 11.5943,
-      "dmgMul": 9.7439
+      "hpMul": 6.1864,
+      "dmgMul": 6.2772
      },
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 11.5943,
-      "dmgMul": 9.7439
+      "hpMul": 6.1864,
+      "dmgMul": 6.2772
      },
      {
       "key": "luminant orb",
       "lvl": 59,
-      "hpMul": 11.5943,
-      "dmgMul": 9.7439
+      "hpMul": 6.1864,
+      "dmgMul": 6.2772
      }
     ],
     [
      {
       "key": "zephyr harrier",
       "lvl": 59,
-      "hpMul": 14.4934,
-      "dmgMul": 12.1799
+      "hpMul": 7.7333,
+      "dmgMul": 7.8466
      },
      {
       "key": "runic automaton",
       "lvl": 59,
-      "hpMul": 14.4934,
-      "dmgMul": 12.1799
+      "hpMul": 7.7333,
+      "dmgMul": 7.8466
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 59,
-      "hpMul": 14.4934,
-      "dmgMul": 12.1799
+      "hpMul": 7.7333,
+      "dmgMul": 7.8466
      },
      {
       "key": "basalt mauler",
       "lvl": 59,
-      "hpMul": 14.4934,
-      "dmgMul": 12.1799
+      "hpMul": 7.7333,
+      "dmgMul": 7.8466
      },
      {
       "key": "asterion",
       "lvl": 60,
-      "hpMul": 37.5114,
-      "dmgMul": 17.5078,
+      "hpMul": 60.0451,
+      "dmgMul": 33.8367,
       "boss": true
      }
     ]
@@ -7108,7 +7711,13 @@
     "Worldfire Focus Crystal",
     "Worldfire Mana Dust"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 97,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 96,
@@ -7118,58 +7727,58 @@
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 39.2016,
-      "dmgMul": 21.6538
+      "hpMul": 104.8142,
+      "dmgMul": 43.1038
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 39.2016,
-      "dmgMul": 21.6538
+      "hpMul": 104.8142,
+      "dmgMul": 43.1038
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 39.2016,
-      "dmgMul": 21.6538
+      "hpMul": 104.8142,
+      "dmgMul": 43.1038
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 39.2016,
-      "dmgMul": 21.6538
+      "hpMul": 104.8142,
+      "dmgMul": 43.1038
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 45.5836,
-      "dmgMul": 25.1772
+      "hpMul": 121.8779,
+      "dmgMul": 50.1174
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 45.5836,
-      "dmgMul": 25.1772
+      "hpMul": 121.8779,
+      "dmgMul": 50.1174
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 45.5836,
-      "dmgMul": 25.1772
+      "hpMul": 121.8779,
+      "dmgMul": 50.1174
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 45.5836,
-      "dmgMul": 25.1772
+      "hpMul": 121.8779,
+      "dmgMul": 50.1174
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 45.5836,
-      "dmgMul": 25.1772
+      "hpMul": 121.8779,
+      "dmgMul": 50.1174
      }
     ]
    ],
@@ -7181,7 +7790,13 @@
     "Worldfire Spirit Rune",
     "Worldfire Prism Shard"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 97,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 97,
@@ -7191,58 +7806,58 @@
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 31.2084,
-      "dmgMul": 18.5096
+      "hpMul": 56.3874,
+      "dmgMul": 28.0049
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 31.2084,
-      "dmgMul": 18.5096
+      "hpMul": 56.3874,
+      "dmgMul": 28.0049
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 31.2084,
-      "dmgMul": 18.5096
+      "hpMul": 56.3874,
+      "dmgMul": 28.0049
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 31.2084,
-      "dmgMul": 18.5096
+      "hpMul": 56.3874,
+      "dmgMul": 28.0049
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 36.2886,
-      "dmgMul": 21.5231
+      "hpMul": 65.5663,
+      "dmgMul": 32.5643
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 36.2886,
-      "dmgMul": 21.5231
+      "hpMul": 65.5663,
+      "dmgMul": 32.5643
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 36.2886,
-      "dmgMul": 21.5231
+      "hpMul": 65.5663,
+      "dmgMul": 32.5643
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 36.2886,
-      "dmgMul": 21.5231
+      "hpMul": 65.5663,
+      "dmgMul": 32.5643
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 36.2886,
-      "dmgMul": 21.5231
+      "hpMul": 65.5663,
+      "dmgMul": 32.5643
      }
     ]
    ],
@@ -7254,7 +7869,13 @@
     "Worldfire Worldheart Core",
     "Worldfire Ore Fragment"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 98,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 98,
@@ -7264,58 +7885,58 @@
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 29.4888,
-      "dmgMul": 17.8408
+      "hpMul": 81.5861,
+      "dmgMul": 34.7209
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 29.4888,
-      "dmgMul": 17.8408
+      "hpMul": 81.5861,
+      "dmgMul": 34.7209
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 29.4888,
-      "dmgMul": 17.8408
+      "hpMul": 81.5861,
+      "dmgMul": 34.7209
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 29.4888,
-      "dmgMul": 17.8408
+      "hpMul": 81.5861,
+      "dmgMul": 34.7209
      }
     ],
     [
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 34.2887,
-      "dmgMul": 20.7436
+      "hpMul": 94.866,
+      "dmgMul": 40.3702
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 34.2887,
-      "dmgMul": 20.7436
+      "hpMul": 94.866,
+      "dmgMul": 40.3702
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 34.2887,
-      "dmgMul": 20.7436
+      "hpMul": 94.866,
+      "dmgMul": 40.3702
      },
      {
       "key": "ironjaw raider",
       "lvl": 60,
-      "hpMul": 34.2887,
-      "dmgMul": 20.7436
+      "hpMul": 94.866,
+      "dmgMul": 40.3702
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 34.2887,
-      "dmgMul": 20.7436
+      "hpMul": 94.866,
+      "dmgMul": 40.3702
      }
     ]
    ],
@@ -7327,7 +7948,14 @@
     "Worldfire Vitality Gem",
     "Worldfire Guard Rune"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 99,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364",
+    "cliffHpScale": 1.069
+   }
   },
   {
    "floor": 99,
@@ -7337,58 +7965,58 @@
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 41.2824,
-      "dmgMul": 22.6389
+      "hpMul": 95.513,
+      "dmgMul": 40.7252
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 41.2824,
-      "dmgMul": 22.6389
+      "hpMul": 95.513,
+      "dmgMul": 40.7252
      },
      {
       "key": "skyroot dryad",
       "lvl": 60,
-      "hpMul": 41.2824,
-      "dmgMul": 22.6389
+      "hpMul": 95.513,
+      "dmgMul": 40.7252
      },
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 41.2824,
-      "dmgMul": 22.6389
+      "hpMul": 95.513,
+      "dmgMul": 40.7252
      }
     ],
     [
      {
       "key": "vineback boar",
       "lvl": 60,
-      "hpMul": 48.0016,
-      "dmgMul": 26.3245
+      "hpMul": 111.0588,
+      "dmgMul": 47.3553
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 48.0016,
-      "dmgMul": 26.3245
+      "hpMul": 111.0588,
+      "dmgMul": 47.3553
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 48.0016,
-      "dmgMul": 26.3245
+      "hpMul": 111.0588,
+      "dmgMul": 47.3553
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 48.0016,
-      "dmgMul": 26.3245
+      "hpMul": 111.0588,
+      "dmgMul": 47.3553
      },
      {
       "key": "ironjaw raider",
       "lvl": 60,
-      "hpMul": 48.0016,
-      "dmgMul": 26.3245
+      "hpMul": 111.0588,
+      "dmgMul": 47.3553
      }
     ]
    ],
@@ -7400,7 +8028,13 @@
     "Worldfire Blade Shard",
     "Worldfire Edge Stone"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 99,
+    "target": 0.35,
+    "bossX": 1,
+    "model": "realboard-v364"
+   }
   },
   {
    "floor": 100,
@@ -7410,58 +8044,58 @@
      {
       "key": "bonepike guard",
       "lvl": 60,
-      "hpMul": 12.1619,
-      "dmgMul": 11.6514
+      "hpMul": 8.1249,
+      "dmgMul": 8.7852
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 12.1619,
-      "dmgMul": 11.6514
+      "hpMul": 8.1249,
+      "dmgMul": 8.7852
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 12.1619,
-      "dmgMul": 11.6514
+      "hpMul": 8.1249,
+      "dmgMul": 8.7852
      },
      {
       "key": "zephyr harrier",
       "lvl": 60,
-      "hpMul": 12.1619,
-      "dmgMul": 11.6514
+      "hpMul": 8.1249,
+      "dmgMul": 8.7852
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 60,
-      "hpMul": 15.2032,
-      "dmgMul": 14.5638
+      "hpMul": 10.1567,
+      "dmgMul": 10.9811
      },
      {
       "key": "basalt mauler",
       "lvl": 60,
-      "hpMul": 15.2032,
-      "dmgMul": 14.5638
+      "hpMul": 10.1567,
+      "dmgMul": 10.9811
      },
      {
       "key": "luminant orb",
       "lvl": 60,
-      "hpMul": 15.2032,
-      "dmgMul": 14.5638
+      "hpMul": 10.1567,
+      "dmgMul": 10.9811
      },
      {
       "key": "runic automaton",
       "lvl": 60,
-      "hpMul": 15.2032,
-      "dmgMul": 14.5638
+      "hpMul": 10.1567,
+      "dmgMul": 10.9811
      },
      {
       "key": "irix",
       "lvl": 60,
-      "hpMul": 39.3488,
-      "dmgMul": 20.9355,
+      "hpMul": 78.8624,
+      "dmgMul": 47.3562,
       "boss": true
      }
     ]
@@ -7482,7 +8116,13 @@
     "Worldfire Wind Thread",
     "Worldfire Focus Crystal"
    ],
-   "realEngineTuned": true
+   "realEngineTuned": true,
+   "tunedFor": {
+    "level": 100,
+    "target": 0.2,
+    "bossX": 3,
+    "model": "realboard-v364"
+   }
   }
  ]
 }

@@ -107,7 +107,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
     critRes:Math.min(CONV.critResCap,(r.critRes||0)*CONV.critResPerPt+(extra.critResFrac||0)),
     energyReg:(r.energy||0)*CONV.energyPer100/100 + (extra.energyRegFlat||0),
     startEnergy:Math.max(0,Math.min(60,Math.round((r.startEnergy||0)*0.35))),
-    regen:(r.regen||0)*0.001,
+    regen:Math.min(0.06,(r.regen||0)*0.0001),   // v364: 0.01% max-HP/s per point, cap 6%/s (was 0.1%/pt uncapped — mirrors the client mulsFromTotals)
     lifesteal:Math.min(CONV.lifestealCap,(r.lifesteal||0)*CONV.lifestealPerPt),
     eva:Math.min(CONV.evaCap,(r.eva||0)*CONV.evaPerPt), acc:(r.acc||0),
     block:Math.min(CONV.blockCap,(r.block||0)*CONV.blockPerPt),
