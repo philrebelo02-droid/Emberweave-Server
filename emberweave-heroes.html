@@ -1118,7 +1118,7 @@ rhukk:{
   3:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,dur:1.2},
 },
 lumi:{
-  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=10',n:72,fw:300,fh:300,cols:6,rows:12,dur:2.4},   // Ultimate
+  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=11',n:72,fw:239,fh:300,cols:6,rows:12,dur:2.4},   // Ultimate (v366 rubber-band cut)
   1:{u:'/assets/anim/lumi/lumi_green.webp?v=10',n:72,fw:240,fh:300,cols:6,rows:12,dur:2.4},   // Green ability
   2:{u:'/assets/anim/lumi/lumi_blue.webp?v=10',n:72,fw:241,fh:300,cols:6,rows:12,dur:2.4},   // Blue ability
   3:{u:'/assets/anim/lumi/lumi_passive.webp?v=10',n:72,fw:223,fh:300,cols:6,rows:12,dur:2.4},   // Passive
@@ -1268,7 +1268,7 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=10',n:72,fw:300,fh:282,cols:6,rows:12,figH:257,feet:276,cx:113,fps:30,flip:true,top:13},
     green:{u:'/assets/anim/lumi/lumi_green.webp?v=10',n:72,fw:240,fh:300,cols:6,rows:12,figH:293,feet:296,cx:162,fps:30,flip:true,top:3,hold:0.8},
     blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=10',n:72,fw:241,fh:300,cols:6,rows:12,figH:238,feet:297,cx:180,fps:30,flip:true,top:58,hold:0.8},
-    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=10',n:72,fw:300,fh:300,cols:6,rows:12,figH:208,feet:274,cx:169,fps:30,flip:true,top:52},
+    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=11',n:72,fw:239,fh:300,cols:6,rows:12,figH:290,feet:293,cx:112,fps:30,flip:true,top:3,pingpong:true},   // v366 (Phil): Radiant Nova rubber-banded at 1.95 s — the nova burst the frame from 2.0 s; the burst itself is the FX plate
     passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=10',n:72,fw:223,fh:300,cols:6,rows:12,figH:263,feet:297,cx:134,fps:30,flip:true,top:33}
   },
   meryln:{
@@ -6090,7 +6090,7 @@ function vaultScreenHTML(){
     <div style="font-size:10px;color:#6f7d90;text-align:center;margin-top:12px;line-height:1.5">Two waves per floor — HP &amp; Energy carry over. Every attempt faces the <b>same</b> monsters:<br>learn the floor, then beat it. Progress and rewards are saved to your account.</div>`;
 }
 /* ================= THE FORGE — gear client (server-authoritative, render-only) ================= */
-let FORGE={ cat:null, st:null, busy:false, tab:'craft', q:0, eqPick:null };
+let FORGE={ cat:null, st:null, busy:false, tab:'items', q:0, eqPick:null };   // v366 (Phil): the Forge is where Temper is raised — building gear lives on the hero card
 /* ---- AUDIT CR-3: the one-use GEAR SKILL (tactical active). Each hero may select ONE equipped
    item's active in the Forge; in manual battles a small button under the portrait fires it ONCE per
    combat. Effects are slot archetypes with hero-relative magnitudes — they do NOT scale with the
@@ -6192,40 +6192,121 @@ async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=
    the equipped piece with its art, stats, temper and Gear Active, and the unbound inventory for the
    selected slot. The old client-only "Warfare/Ranger/Arcane" trees (Long Sword → Dragonbone Blade)
    are gone from the card — the server never counted them once you were signed in. */
+/* v366 (Phil): "you don't create equipment in the Forge — the Forge is where you raise Temper. You BUILD a
+   hero's equipment in the Equipment tab: a 3×3 of the gear they can build, greyed out, a grey ＋ if you
+   can't make it yet and a green ＋ if you can. Once made the item shows fully built. Tapping the ＋ pops
+   out the build tree, like glyphs." The nine pieces come from the compendium's Role Loadouts (one
+   loadout per role/position); every quality IS a slot (Grey = Weapon … Orange = Relic), and an item
+   needs two fresh previous-tier items + its same-tier sub-component (fragments → sub). */
+const GEAR_LOADOUTS={"Melee Tank":["E01","E09","E17","E26","E35","E44","E54","E64","E74"],"Mage Tank":["E02","E10","E18","E27","E36","E45","E55","E65","E75"],"Melee Front Bruiser":["E03","E11","E19","E28","E37","E46","E56","E66","E76"],"Mage Front Bruiser":["E04","E12","E20","E29","E38","E47","E57","E67","E77"],"Marksman Mid":["E05","E13","E21","E30","E39","E48","E58","E68","E78"],"Marksman Back":["E06","E14","E22","E31","E40","E49","E59","E69","E79"],"Mage Mid":["E07","E15","E23","E32","E41","E50","E60","E70","E80"],"Mage Back":["E07","E15","E24","E33","E42","E51","E61","E71","E81"],"Support Mid":["E08","E16","E25","E34","E43","E52","E62","E72","E82"],"Support Back":["E08","E16","E22","E34","E43","E53","E63","E73","E83"]};
+function gearLoadoutFor(key){ const t=HERO_TYPES[key]||{}; const ap=(t.apow||0)>0, rng=t.range||0;
+  switch(t.role){
+    case 'Tank': return ap?'Mage Tank':'Melee Tank';
+    case 'Marksman': return rng>=205?'Marksman Back':'Marksman Mid';
+    case 'Mage': return rng>=210?'Mage Back':'Mage Mid';
+    case 'Support': return rng>190?'Support Back':'Support Mid';
+    default: return rng>=60?'Marksman Mid':(ap?'Mage Front Bruiser':'Melee Front Bruiser'); } }   // Fighter / Bruiser / Assassin
+function gearFreshCount(st,quality){ let n=0; for(const id in st.items){ const it=st.items[id], d=forgeDef(it.d); if(d&&d.quality===quality&&!it.bound&&!forgeEquippedBy(id)) n++; } return n; }
+/* can this item be crafted RIGHT NOW from what is in stock (direct ingredients only)? */
+function gearCanCraft(st,d){ const cat=FORGE.cat; if(!d) return false;
+  if(d.qi===0) return (st.fragments[d.frag]||0)>=cat.meta.greyFragCost;
+  return (st.subs[d.sub]||0)>=1 && gearFreshCount(st,cat.meta.qualities[d.qi-1])>=2; }
+function gearOwnedFresh(st,defId){ for(const id in st.items){ const it=st.items[id]; if(it.d===defId&&!it.bound&&!forgeEquippedBy(id)) return id; } return null; }
+let GEAR_BUILD=null;   // {hero, gearId, open:{}}
+function gearBuildOpen(key,gearId){ GEAR_BUILD={hero:key,gearId,open:{}}; renderHeroDetail(); }
+function gearBuildCancel(){ GEAR_BUILD=null; renderHeroDetail(); }
+function gearBuildToggle(gid){ if(!GEAR_BUILD) return; GEAR_BUILD.open[gid]=!GEAR_BUILD.open[gid]; renderHeroDetail(); }
+async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=true;
+  const r=await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId}); FORGE.busy=false;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); await forgeSync(); renderHeroDetail(); return; }
+  bannerMsg('⚒️ Built '+r.name+'!'); await forgeSync();
+  if(equipHero&&r.crafted){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:r.crafted}); FORGE.busy=false;
+    if(e&&!e.error) bannerMsg('🛡 '+r.name+' equipped'); await forgeSync(); }
+  renderHeroDetail();
+}
+/* one node of the ancestry: the item, and under it what it needs (expandable one tier at a time) */
+function gearTreeNode(st,d,need,have,depth,role){
+  const cat=FORGE.cat, col=FORGE_QCOLOR[d.quality]||'#e6edf3', ok=have>=need, can=gearCanCraft(st,d);
+  const open=!!(GEAR_BUILD&&GEAR_BUILD.open[d.id+'@'+depth]);
+  const prevQ=d.qi>0?cat.meta.qualities[d.qi-1]:null;
+  const prevDef=prevQ?forgeDef((GEAR_LOADOUTS[role]||[])[d.qi-1]||''):null;   // the role's own previous-tier piece (any family works; this is the one the loadout builds)
+  const freshPrev=prevQ?gearFreshCount(st,prevQ):0;
+  const head=`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid ${ok?'#2b7a55':'#1a2233'};border-radius:8px;background:#0f1420">
+      ${gearImg(d,depth===0?56:36)}
+      <div style="flex:1;min-width:0"><div style="font-size:${depth===0?13:11}px"><b style="color:${col}">${escapeHTML(d.name)}</b> <span style="font-size:9px;color:#6f7d90">${d.quality} · ${d.slot}</span></div>
+        ${depth===0?`<div style="font-size:10px;color:#8b98a9">${escapeHTML(d.passive||'')} · <span style="color:#8fe3ff">✨ ${escapeHTML(d.active||'')}</span></div>`:`<div style="font-size:10px;color:${ok?'#5ee89b':'#8b98a9'}">have <b>${have}</b> / ${need}${ok?' ✓':''}</div>`}</div>
+      ${depth>0&&!ok?`<button class="btn xs ${can?'':'secondary'}" ${can?`onclick="gearBuildDo('${d.id}')"`:'disabled'}>⚒ Craft</button>
+        <button class="btn xs secondary" onclick="gearBuildToggle('${d.id}@${depth}')" title="show what it needs">${open?'▾':'▸'}</button>`:''}</div>`;
+  if(depth>0&&(ok||!open)) return head;
+  // ingredients
+  let kids='';
+  if(d.qi===0){ const cost=cat.meta.greyFragCost, hv=st.fragments[d.frag]||0;
+    kids=`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid #1a2233;border-radius:8px;background:#0c111b">${gearFragImg(d.frag,30)}<div style="flex:1;font-size:11px"><b>${escapeHTML(d.frag)}</b> <span style="font-size:10px;color:${hv>=cost?'#5ee89b':'#8b98a9'}">have ${hv} / ${cost}</span></div>${fragSourceLine(d.frag)}</div>`;
+  } else {
+    const subHave=st.subs[d.sub]||0, fr=st.fragments[d.frag]||0, canSub=fr>=d.subFragCost;
+    kids=`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${subHave?'#2b7a55':'#1a2233'};border-radius:8px;background:#0c111b">${gearSubImg(d.sub,30)}
+        <div style="flex:1;min-width:0;font-size:11px"><b>${escapeHTML(d.sub)}</b> <span style="font-size:10px;color:${subHave?'#5ee89b':'#8b98a9'}">have ${subHave} / 1${subHave?' ✓':''}</span>
+          <div style="font-size:10px;color:#8b98a9;display:flex;align-items:center;gap:4px;margin-top:2px">${gearFragImg(d.frag,16)} ${escapeHTML(d.frag)} <b style="color:${canSub?'#5ee89b':'#8b98a9'}">${fr}</b>/${d.subFragCost}</div>${fragSourceLine(d.frag)}</div>
+        ${subHave?'':`<button class="btn xs ${canSub?'':'secondary'}" ${canSub?`onclick="gearHeroPost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:'disabled'}>🔩 Make</button>`}</div>`;
+    if(prevDef){ kids+=`<div style="font-size:10px;color:#6f7d90;margin:4px 0 2px">+ two fresh ${prevQ} pieces <span style="color:${freshPrev>=2?'#5ee89b':'#8b98a9'}">(have ${freshPrev} / 2 — any ${prevQ} item counts; bound or equipped gear never does)</span></div>`;
+      kids+=gearTreeNode(st,prevDef,2,freshPrev,depth+1,role); }
+  }
+  return head+`<div style="margin:6px 0 0 ${depth?14:0}px;display:flex;flex-direction:column;gap:6px">${kids}</div>`;
+}
+function heroGearBuildHTML(key){
+  const st=FORGE.st, d=forgeDef(GEAR_BUILD.gearId); if(!d){ GEAR_BUILD=null; return ''; }
+  const role=gearLoadoutFor(key), can=gearCanCraft(st,d), fresh=gearOwnedFresh(st,d.id);
+  const col=FORGE_QCOLOR[d.quality]||'#e6edf3';
+  const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px">
+      <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">⚒️ <b>Equipment</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Build Tree</b></div>
+      <span class="pill" style="color:${col};border:1px solid ${col};flex:none">${d.quality} · ${d.slot}</span></div>`;
+  const action=fresh
+    ?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${key}'},r=>'🛡 Equipped — '+r.slot);GEAR_BUILD=null;">🛡 Equip the one you have</button>`
+    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearBuildDo('${d.id}','${key}');GEAR_BUILD=null;">⚡ Build &amp; equip</button>`;
+  return `<div class="panel">${head}
+    <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:6px"><button class="btn xs secondary" onclick="gearBuildCancel()">‹ Back</button><button class="btn xs secondary" onclick="gearBuildCancel()">✕</button></div>
+    ${gearTreeNode(st,d,1,fresh?1:0,0,role)}
+    <div style="display:flex;gap:8px;margin-top:10px">${action}</div>
+    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Fragments drop in The Vault. Fragments → sub-component → item. Raise its Temper in the Forge once it's built.</div></div>`;
+}
 function heroGearTabHTML(key){
   const st=(typeof FORGE!=='undefined')&&FORGE.st;
   if(!st){ forgeSync().then(()=>renderHeroDetail()); return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">Stoking the Forge…</div>'; }
   if(!st.enabled||!FORGE.cat) return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">⚒️ The Forge is being built.</div>';
-  const slots=FORGE.cat.meta.slots, T=FORGE.cat.meta.temper, eq=(st.equipped||{})[key]||{}, act=(st.active||{})[key];
-  if(!slots.includes(gearSlotSel)) gearSlotSel=slots[0];
-  const pick=slots.map(sl=>{ const id=eq[sl], it=id&&st.items[id], d=it&&forgeDef(it.d);
-    return `<button class="eq-pick${gearSlotSel===sl?' on':''}" title="${sl}" onclick="gearSlotSelect('${sl}')" style="${d?'border-color:'+(FORGE_QCOLOR[d.quality]||'#888')+';padding:2px':''}">${d?gearImg(d,34):(GEAR_SLOT_ICON[sl]||'▫')}</button>`; }).join('');
-  const sl=gearSlotSel, id=eq[sl], it=id&&st.items[id], d=it&&forgeDef(it.d);
-  const statLine=dd=>Object.entries(dd.stats||{}).map(([k,v])=>`${GEAR_STAT_LABEL[k]||k} <b>+${Math.round(v*10)/10}</b>`).join(' · ');
-  let card;
-  if(d){ const bar=T.startBar+(it.temper||0)*T.barGrowth, tmul=Math.round(100*T.passivePerTemper*(it.temper||0)), maxed=(it.temper||0)>=T.max, cost=Math.round(T.baseDust[d.quality]*Math.pow(1+T.dustGrowth,it.temper||0));
-    card=`<div class="panel" style="margin-bottom:6px"><div style="display:flex;gap:10px;align-items:flex-start">${gearImg(d,64)}
-      <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px;align-items:center"><b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'};font-size:13px">${escapeHTML(d.name)}</b><span style="font-size:10px;color:#8b98a9">${d.quality} · ${d.slotFull||d.slot}</span></div>
-        <div style="font-size:11px;color:#cdd6e4;margin-top:3px">${statLine(d)}${tmul?` <span style="color:#5ee89b">(+${tmul}% temper)</span>`:''}</div>
-        <div style="font-size:10px;color:#8fe3ff;margin-top:3px">✨ ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===id?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:5px"><span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">${it.prog||0}/${bar}</span></div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
-          ${maxed?'<span style="font-size:9px;color:#ffd45e">★ MAX TEMPER</span>':`<button class="btn xs secondary" onclick="gearHeroPost('/temper',{itemId:'${id}',uses:1},r=>'🔥 +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">🔥 Temper (✨${cost})</button>`}
-          ${act===id?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`}
-          <button class="btn xs secondary" onclick="gearHeroPost('/unequip',{heroKey:'${key}',slot:'${sl}'})">Unequip</button>
-        </div></div></div></div>`;
-  } else card=`<div class="panel" style="margin-bottom:6px;text-align:center;color:#6f7d90;font-size:12px;padding:10px 0">${GEAR_SLOT_ICON[sl]||''} No ${sl.toLowerCase()} equipped</div>`;
-  const inv=Object.keys(st.items).filter(iid=>{ const x=st.items[iid], dd=x&&forgeDef(x.d); return dd&&dd.slot===sl&&!forgeEquippedBy(iid); })
-    .sort((a,b)=>(forgeDef(st.items[b].d).qi-forgeDef(st.items[a].d).qi)||((st.items[b].temper||0)-(st.items[a].temper||0)));
-  const invRows=inv.map(iid=>{ const x=st.items[iid], dd=forgeDef(x.d);
-    return `<div class="eq-row" style="border-left:3px solid ${FORGE_QCOLOR[dd.quality]||'#888'};gap:8px">${gearImg(dd,36)}<div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:${FORGE_QCOLOR[dd.quality]||'#e6edf3'}">${escapeHTML(dd.name)}</b> <span style="font-size:10px;color:#6f7d90">${dd.quality} · T${x.temper||0}${x.bound?' · bound':''}</span></div><div style="font-size:10px;color:#8b98a9">${statLine(dd)}</div></div>
-      <button class="btn xs" onclick="gearHeroPost('/equip',{itemId:'${iid}',heroKey:'${key}'},r=>'🛡 Equipped — '+r.slot)">Equip</button></div>`; }).join('');
+  if(GEAR_BUILD&&GEAR_BUILD.hero===key) return heroGearBuildHTML(key);
+  const T=FORGE.cat.meta.temper, eq=(st.equipped||{})[key]||{}, act=(st.active||{})[key];
+  const role=gearLoadoutFor(key), ids=GEAR_LOADOUTS[role]||[];
+  const cells=ids.map(gid=>{ const d=forgeDef(gid); if(!d) return '';
+    const iid=eq[d.slot], it=iid&&st.items[iid], built=it&&it.d===gid?it:null;
+    const col=FORGE_QCOLOR[d.quality]||'#888';
+    if(built){ const tm=built.temper||0;
+      return `<div style="text-align:center;cursor:pointer" onclick="gearSlotSelect('${d.slot}')" title="${escapeHTML(d.name)} — ${escapeHTML(d.passive||'')}">
+        <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center">${gearImg(d,84)}
+          ${tm?`<span style="position:absolute;right:6px;bottom:2px;font-size:9px;color:#ffd45e;font-weight:800">T${tm}</span>`:''}${act===iid?`<span style="position:absolute;left:6px;top:2px;font-size:10px">✨</span>`:''}</div>
+        <div style="font-size:10px;color:${col};font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(d.name)}</div></div>`; }
+    const other=it?forgeDef(it.d):null;   // a different piece sits in this slot
+    const can=gearCanCraft(st,d)||!!gearOwnedFresh(st,d.id); const pc=can?'#5ee89b':'#8b98a9';
+    return `<div style="text-align:center;cursor:pointer" onclick="gearBuildOpen('${key}','${gid}')" title="${escapeHTML(d.name)} (${d.quality} ${d.slot})">
+      <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center">
+        <span style="position:absolute;inset:0;opacity:.28;filter:grayscale(1);display:flex;align-items:center;justify-content:center">${gearImg(d,84)}</span>
+        <span style="position:relative;font-size:34px;font-weight:800;color:${pc};text-shadow:0 1px 6px #000c${can?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div>
+      <div style="font-size:10px;color:#6f7d90;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(d.name)}${other?` <span style="color:#ffb37a">(${escapeHTML(other.name)} on)</span>`:''}</div></div>`; }).join('');
   const nEq=Object.keys(eq).length, res=st.resonance||{rank:0};
-  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">Equipped <b style="color:#e6edf3">${nEq}/${slots.length}</b></span><span style="font-size:11px;color:#8b98a9">Resonance rank <b style="color:#ffd45e">${res.rank||0}</b> · ✨ Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
-    <div class="eq-slotpick">${pick}</div>
-    ${card}
-    <div class="panel"><div style="font-size:11px;color:#8b98a9;margin-bottom:5px"><b style="color:#e6edf3">${sl} — in your Forge</b> (${inv.length})</div>${invRows||'<div style="font-size:11px;color:#6f7d90">Nothing unequipped for this slot. Craft it in the <b>Forge</b> from fragments that drop in The Vault.</div>'}</div>
-    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Nine slots: Weapon · Helm · Boots · Armor · Gloves · Belt · Ring · Amulet · Relic. One Gear Active per hero, chosen before battle. Equipped gear is bound forever.</div>`;
+  // detail strip for a tapped built piece
+  let detail='';
+  const sl=gearSlotSel, iid=eq[sl], it=iid&&st.items[iid], d=it&&forgeDef(it.d);
+  if(d){ const bar=T.startBar+(it.temper||0)*T.barGrowth, tmul=Math.round(100*T.passivePerTemper*(it.temper||0));
+    const statLine=Object.entries(d.stats||{}).map(([k,v])=>`${GEAR_STAT_LABEL[k]||k} <b>+${Math.round(v*10)/10}</b>`).join(' · ');
+    detail=`<div class="panel" style="margin-top:6px"><div style="display:flex;gap:10px;align-items:flex-start">${gearImg(d,56)}
+      <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'};font-size:12px">${escapeHTML(d.name)}</b><span style="font-size:10px;color:#8b98a9">${d.quality} · ${d.slotFull||d.slot}</span></div>
+        <div style="font-size:11px;color:#cdd6e4;margin-top:2px">${statLine}${tmul?` <span style="color:#5ee89b">(+${tmul}% temper)</span>`:''}</div>
+        <div style="font-size:10px;color:#8fe3ff;margin-top:2px">✨ ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===iid?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:4px"><span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">raise it in the Forge</span></div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'✨ Active: '+r.active)">Set Active</button>`}<button class="btn xs secondary" onclick="gearHeroPost('/unequip',{heroKey:'${key}',slot:'${sl}'})">Unequip</button></div></div></div></div>`; }
+  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ✨ Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0">${cells}</div>
+    ${detail}
+    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Tap a ＋ to see the build tree. <span style="color:#5ee89b">Green</span> = you can make it now. One Gear Active per hero, chosen before battle.</div>`;
 }
 function forgeTab(t){ FORGE.tab=t; renderForge(); }
 function forgeQ(i){ FORGE.q=i; renderForge(); }
@@ -6308,7 +6389,7 @@ function forgeEquippedBy(itemId){ const eq=FORGE.st.equipped||{};
 function forgeItemsTabHTML(){
   const st=FORGE.st, T=FORGE.cat.meta.temper;
   const ids=Object.keys(st.items).sort((a,b)=>(st.items[a].createdAt||0)-(st.items[b].createdAt||0));
-  if(!ids.length) return '<div style="color:#6f7d90;font-size:11px;padding:10px 0">No gear yet — craft it from fragments, which drop from The Vault.</div>';
+  if(!ids.length) return '<div style="color:#6f7d90;font-size:11px;padding:10px 0">No gear yet — build it on a hero\'s card (Heroes › Equipment) from fragments that drop in The Vault. The Forge raises its Temper.</div>';
   return ids.map(id=>{ const it=st.items[id], d=forgeDef(it.d); if(!d) return '';
     const eq=forgeEquippedBy(id), bar=T.startBar+(it.temper||0)*T.barGrowth;
     const cost=Math.round(T.baseDust[d.quality]*Math.pow(1+T.dustGrowth,it.temper||0));
@@ -6360,8 +6441,8 @@ function renderForge(){
       <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div>
       <div style="font-size:9px;color:#6f7d90;margin-top:3px">Gear fragments drop in The Vault. Tempering never fails — each bar filled is a guaranteed Temper level (max 30).</div></div>
     <div style="display:flex;gap:4px;margin:8px 0">
-      ${[['craft','⚒ Craft'],['items','🎒 Gear'],['heroes','🛡 Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
-    <div class="panel">${FORGE.tab==='craft'?forgeCraftTabHTML():FORGE.tab==='items'?forgeItemsTabHTML():forgeHeroesTabHTML()}</div>
+      ${[['items','🔥 Temper'],['heroes','🛡 Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
+    <div class="panel">${FORGE.tab==='heroes'?forgeHeroesTabHTML():forgeItemsTabHTML()}</div>
     <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — costs, results and refunds are computed on the server.</div>`;
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
@@ -12800,7 +12881,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788477777710';
+const BUILD_ID = '1788478829598';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
