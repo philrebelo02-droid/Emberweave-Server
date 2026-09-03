@@ -124,6 +124,14 @@ function migrateAdminRoles(){ let n=0;
     if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
   if(n){ console.log('🔐 stamped role:admin on '+n+' account(s) from ADMIN_IDS'); writeDB(); } }
 function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id))); }
+// headless/cloud DB backups: a shared secret lets an unattended job pull /api/admin/backup
+// without a logged-in admin browser session. Set BACKUP_TOKEN in the deployment env to enable.
+function backupTokenValid(tok){
+  const want = process.env.BACKUP_TOKEN || '';
+  if(!want || !tok) return false;
+  try { const a=Buffer.from(String(tok)), b=Buffer.from(want); return a.length===b.length && crypto.timingSafeEqual(a,b); }
+  catch(e){ return false; }
+}
 // --- security helpers: per-IP rate limiting, single-session, admin diamond edits ---
 const _hits={};
 function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-suppliable (spoofs the rate
@@ -2340,7 +2348,10 @@ async function api(req,res,url){
     if(!(u.led&&u.led.migratedAt)) dropTokens(tid);   // ledger accounts pick it up on the next ledgerSync (<=45s); kicking a live player mid-battle is worse than waiting
     writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng, live:!!(u.led&&u.led.migratedAt)}); }
   // admin: download the whole DB as a backup
-  if(p==='/api/admin/backup'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'}); backupDB(); return send(res,200, DB); }
+    if(p==='/api/admin/backup'){
+    const bt = req.headers['x-backup-token'] || url.searchParams.get('token') || '';
+    if(!backupTokenValid(bt) && (!me||!isDev(me))) return send(res,403,{error:'forbidden'});
+    backupDB(); return send(res,200, DB); }
   // bug / balance reports: any signed-in player (or a dev's balance bots) can file one
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
