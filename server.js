@@ -2707,6 +2707,14 @@ async function api(req,res,url){
     const reqId=String(b.requestId||'').slice(0,64);
     if(!reqId) return send(res,400,{error:'requestId required'});
 
+    if(p==='/api/dungeon/dev-floor'){   // v362 (Phil): God Mode only — jump the Vault to any floor 1..100, cleared or not, for testing bosses
+      if(!isDev(me)) return send(res,403,{error:'dev only'});
+      const f=Math.max(1,Math.min(DUNGEON_MAX_FLOOR,parseInt(b.floor,10)||0));
+      if(!f) return send(res,400,{error:'floor 1..'+DUNGEON_MAX_FLOOR});
+      prog.activeAttempt=null; prog.currentFloor=f; if(prog.vaultStatus==='complete') prog.vaultStatus='active';
+      prog.version++; writeDB();
+      return send(res,200,Object.assign({ok:true, enabled:true},dungeonView(prog)));
+    }
     if(p==='/api/dungeon/start-battle'){
       if(prog.activeAttempt) prog.activeAttempt=null;   // an unresolved attempt (closed the app mid-fight) is abandoned = a loss; floors only advance through a resolved win
       if(prog.vaultStatus==='complete'||prog.currentFloor>DUNGEON_MAX_FLOOR) return send(res,400,{error:'You have cleared the Aether Vault. Its extension is coming soon.'});
@@ -2732,6 +2740,8 @@ async function api(req,res,url){
         // AUDIT C7 (owner-approved): the result is SERVER-AUTHORITATIVE. The client's `won` is not
         // read; the deterministic estimate — with the documented, deterministic skill band standing
         // in for manual play/backups (vaultWinPlausible) — decides the floor.
+        if(isDev(me)&&prog.claimedFloors[a.floor]){ prog.version++; writeDB();   // v362: dev replaying an already-cleared floor — no reward, progress untouched
+          return { ok:true, result:{won:true, replay:true}, reward:null, dust:me.dust||0, progress:dungeonView(prog) }; }
         const won=vaultWinPlausible(a);
         if(!won){ prog.version++; writeDB();
           return { ok:true, result:{won:false, authoritative:true}, progress:dungeonView(prog) }; }
