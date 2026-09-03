@@ -7688,10 +7688,10 @@ Object.assign(BATTLE_ANIM, {
     idle:{u:'/assets/anim/librarian_inkspirit/librarian_inkspirit_walk.webp?v=1',n:12,fw:300,fh:208,cols:6,rows:2,figH:168,feet:203,cx:138,fps:10,flip:true,top:35}
   },
   'ink horror':{
-    attack:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_attack.webp?v=1',n:12,fw:300,fh:185,cols:6,rows:2,figH:138,feet:182,cx:140,fps:12,flip:false,top:43,hold:0.9},
-    walk:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:false,top:3},
-    cast:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_cast.webp?v=1',n:12,fw:300,fh:256,cols:6,rows:2,figH:176,feet:252,cx:162,fps:10,flip:false,top:75,hold:0.8},
-    idle:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:false,top:3}
+    attack:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_attack.webp?v=1',n:12,fw:300,fh:185,cols:6,rows:2,figH:138,feet:182,cx:140,fps:12,flip:true,top:43,hold:0.9},   /* v359: faced away from its target — mirrored */
+    walk:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:true,top:3},   /* v359: same fix */
+    cast:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_cast.webp?v=1',n:12,fw:300,fh:256,cols:6,rows:2,figH:176,feet:252,cx:162,fps:10,flip:true,top:75,hold:0.8},   /* v359: same fix */
+    idle:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:true,top:3}   /* v359: same fix */
   },
   pyroclast:{
     idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=2',n:36,fw:283,fh:400,cols:6,rows:6,figH:389,feet:394,cx:144,fps:15,flip:true,top:5},
@@ -7737,10 +7737,10 @@ Object.assign(BATTLE_ANIM, {
     walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=8',n:36,fw:260,fh:300,cols:6,rows:6,figH:283,feet:293,cx:133,fps:15,flip:true,top:10},   /* v357: Phil's clip, mirrored */
     attack:{u:'/assets/anim/dawnbringer/dawnbringer_attack.webp?v=1',n:24,fw:275,fh:300,cols:6,rows:4,figH:241,feet:296,cx:153,fps:16,flip:false,top:55,hold:0.9},
     hit:{u:'/assets/anim/dawnbringer/dawnbringer_hit.webp?v=1',n:20,fw:300,fh:284,cols:6,rows:4,figH:273,feet:280,cx:156,fps:16,flip:false,top:6},
-    green:{u:'/assets/anim/dawnbringer/dawnbringer_green.webp?v=1',n:36,fw:288,fh:300,cols:6,rows:6,figH:233,feet:296,cx:159,fps:15,flip:false,top:62,hold:0.8},
-    blue:{u:'/assets/anim/dawnbringer/dawnbringer_blue.webp?v=1',n:36,fw:259,fh:300,cols:6,rows:6,figH:268,feet:296,cx:164,fps:15,flip:false,top:27,hold:0.8},
-    ult:{u:'/assets/anim/dawnbringer/dawnbringer_ult.webp?v=1',n:48,fw:260,fh:300,cols:6,rows:8,figH:223,feet:295,cx:156,fps:15,flip:false,top:71},
-    passive:{u:'/assets/anim/dawnbringer/dawnbringer_passive.webp?v=1',n:36,fw:278,fh:300,cols:6,rows:6,figH:272,feet:283,cx:155,fps:15,flip:false,top:11}
+    green:{u:'/assets/anim/dawnbringer/dawnbringer_green.webp?v=1',n:36,fw:288,fh:300,cols:6,rows:6,figH:233,feet:296,cx:159,fps:15,flip:true,top:62,hold:0.8},   /* v359: hammer was swinging away from the enemy — mirrored */
+    blue:{u:'/assets/anim/dawnbringer/dawnbringer_blue.webp?v=1',n:36,fw:259,fh:300,cols:6,rows:6,figH:268,feet:296,cx:164,fps:15,flip:true,top:27,hold:0.8},   /* v359: same fix */
+    ult:{u:'/assets/anim/dawnbringer/dawnbringer_ult.webp?v=1',n:48,fw:260,fh:300,cols:6,rows:8,figH:223,feet:295,cx:156,fps:15,flip:true,top:71},   /* v359: same fix */
+    passive:{u:'/assets/anim/dawnbringer/dawnbringer_passive.webp?v=1',n:36,fw:278,fh:300,cols:6,rows:6,figH:272,feet:283,cx:155,fps:15,flip:true,top:11}   /* v359: same fix */
   },
   cathedral:{
     idle:{u:'/assets/anim/cathedral/cathedral_idle.webp?v=1',n:36,fw:257,fh:300,cols:6,rows:6,figH:289,feet:296,cx:150,fps:15,flip:false,top:6},
@@ -7759,7 +7759,7 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/lastfurnace/lastfurnace_hit.webp?v=1',n:20,fw:300,fh:242,cols:6,rows:4,figH:213,feet:238,cx:166,fps:16,flip:false,top:25},
     green:{u:'/assets/anim/lastfurnace/lastfurnace_green.webp?v=1',n:36,fw:255,fh:300,cols:6,rows:6,figH:228,feet:296,cx:153,fps:15,flip:false,top:68,hold:0.8,pingpong:true},
     blue:{u:'/assets/anim/lastfurnace/lastfurnace_blue.webp?v=1',n:36,fw:242,fh:300,cols:6,rows:6,figH:229,feet:296,cx:118,fps:15,flip:false,top:67,hold:0.8,pingpong:true},
-    ult:{u:'/assets/anim/lastfurnace/lastfurnace_ult.webp?v=1',n:48,fw:236,fh:300,cols:6,rows:8,figH:240,feet:296,cx:112,fps:15,flip:false,top:55},
+    ult:{u:'/assets/anim/lastfurnace/lastfurnace_ult.webp?v=1',n:48,fw:236,fh:300,cols:6,rows:8,figH:240,feet:296,cx:112,fps:15,flip:true,top:55},   /* v359: hammer was on the wrong side vs attack/green/blue — mirrored */
     passive:{u:'/assets/anim/lastfurnace/lastfurnace_passive.webp?v=1',n:36,fw:283,fh:300,cols:6,rows:6,figH:238,feet:294,cx:149,fps:15,flip:false,top:55}
   },
   beekeeper:{
@@ -7787,7 +7787,7 @@ Object.assign(BATTLE_ANIM, {
     attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=1',n:24,fw:300,fh:231,cols:6,rows:4,figH:186,feet:228,cx:164,fps:16,flip:true,top:41,hold:0.9},
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:true,top:25},
     green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:true,top:3,hold:0.8},
-    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=1',n:36,fw:300,fh:235,cols:6,rows:6,figH:171,feet:232,cx:153,fps:15,flip:false,top:60,hold:0.8},
+    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=1',n:36,fw:300,fh:235,cols:6,rows:6,figH:171,feet:232,cx:153,fps:15,flip:true,top:60,hold:0.8},   /* v359: grapple was firing away from the enemy — mirrored */
     ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=1',n:48,fw:289,fh:300,cols:6,rows:8,figH:232,feet:296,cx:204,fps:15,flip:true,top:64,pingpong:true},
     passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=1',n:36,fw:231,fh:300,cols:6,rows:6,figH:248,feet:296,cx:136,fps:15,flip:true,top:47}
   },
@@ -12728,7 +12728,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788457354068';
+const BUILD_ID = '1788459925318';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
