@@ -5256,6 +5256,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           fr=Math.max(0,Math.min(A.n-1,Math.floor(prog*A.n))); }
         else if(A.pingpong && A.n>1){ const per=2*A.n-2; let p=Math.floor(u._animAcc)%per; fr=p<A.n?p:per-p; }
         else fr=Math.floor(u._animAcc)%A.n;
+        if(A.reverse) fr=A.n-1-fr;   // v349 (Phil: Corsair/Dawnbringer 'walk backwards'): the Hailuo clip is a backpedal — play it reversed
         // desired facing: during the wave run-in/out they actually travel, so face movement direction; in COMBAT always
         // face the target — never turn our back when shoved into or Vulmar-dragged backward — with a small deadzone so a
         // foe hovering near our own x can't flip-flop the sprite.
@@ -7733,7 +7734,7 @@ Object.assign(BATTLE_ANIM, {
   },
   dawnbringer:{
     idle:{u:'/assets/anim/dawnbringer/dawnbringer_idle.webp?v=1',n:36,fw:249,fh:300,cols:6,rows:6,figH:290,feet:296,cx:132,fps:15,flip:false,top:5},
-    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=1',n:36,fw:272,fh:300,cols:6,rows:6,figH:292,feet:296,cx:148,fps:15,flip:false,top:3},
+    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=1',n:36,fw:272,fh:300,cols:6,rows:6,figH:292,feet:296,cx:148,fps:15,flip:false,reverse:true,top:3},
     attack:{u:'/assets/anim/dawnbringer/dawnbringer_attack.webp?v=1',n:24,fw:275,fh:300,cols:6,rows:4,figH:241,feet:296,cx:153,fps:16,flip:false,top:55,hold:0.9},
     hit:{u:'/assets/anim/dawnbringer/dawnbringer_hit.webp?v=1',n:20,fw:300,fh:284,cols:6,rows:4,figH:273,feet:280,cx:156,fps:16,flip:false,top:6},
     green:{u:'/assets/anim/dawnbringer/dawnbringer_green.webp?v=1',n:36,fw:288,fh:300,cols:6,rows:6,figH:233,feet:296,cx:159,fps:15,flip:false,top:62,hold:0.8},
@@ -7782,7 +7783,7 @@ Object.assign(BATTLE_ANIM, {
   },
   corsair:{
     idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=1',n:36,fw:221,fh:300,cols:6,rows:6,figH:287,feet:295,cx:116,fps:15,flip:true,top:7},
-    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=2',n:36,fw:245,fh:300,cols:6,rows:6,figH:279,feet:297,cx:131,fps:15,flip:true,top:17}   /* v345: regenerated side-stride walk (Phil: 'runs backwards') */,
+    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=2',n:36,fw:245,fh:300,cols:6,rows:6,figH:279,feet:297,cx:131,fps:15,flip:true,reverse:true,top:17}   /* v345: regenerated side-stride walk (Phil: 'runs backwards') */,
     attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=1',n:24,fw:300,fh:231,cols:6,rows:4,figH:186,feet:228,cx:164,fps:16,flip:true,top:41,hold:0.9},
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:true,top:25},
     green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:true,top:3,hold:0.8},
@@ -12716,7 +12717,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788400470334';
+const BUILD_ID='1788405123604';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
