@@ -238,6 +238,26 @@ function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); 
   const files=fs.readdirSync(dir).filter(f=>f.startsWith('db-')).sort(); while(files.length>48){ try{ fs.unlinkSync(path.join(dir,files.shift())); }catch(e){} }
 }catch(e){ console.error('⚠ backup failed:', e.message); } }
 
+// off-site backup: push the whole DB to a private GitHub repo.
+// Enabled only when GITHUB_BACKUP_TOKEN and GITHUB_BACKUP_REPO ("owner/repo") are both set.
+async function pushBackupToGitHub(){
+  const token=process.env.GITHUB_BACKUP_TOKEN, repo=process.env.GITHUB_BACKUP_REPO;
+  if(!token || !repo) return;
+  try{
+    const iso=new Date().toISOString();
+    const ts=iso.slice(0,10)+'_'+iso.slice(11,13)+iso.slice(14,16); // YYYY-MM-DD_HHMM (UTC)
+    const relPath='Player Data Backups/emberweave-playerdata-'+ts+'.json';
+    const body=JSON.stringify(DB);
+    const res=await fetch('https://api.github.com/repos/'+repo+'/contents/'+encodeURI(relPath), {
+      method:'PUT',
+      headers:{ 'Authorization':'Bearer '+token, 'Accept':'application/vnd.github+json',
+                'User-Agent':'emberweave-backup', 'X-GitHub-Api-Version':'2022-11-28' },
+      body:JSON.stringify({ message:'backup '+ts+' UTC', content:Buffer.from(body).toString('base64'), branch:'main' })
+    });
+    if(res.ok){ console.log('☁ off-site backup pushed: '+relPath+' ('+body.length+' bytes)'); }
+    else { const t=await res.text().catch(()=>''); console.error('⚠ github backup failed '+res.status+': '+t.slice(0,200)); }
+  }catch(e){ console.error('⚠ github backup error:', e.message); }
+}
 // --- email: password-reset codes over SMTP (any provider via env vars). Degrades gracefully: if SMTP
 //     isn't configured (or nodemailer isn't installed) the code is logged to the server console so the
 //     flow still works for local/dev testing. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM to send real mail.
@@ -4349,6 +4369,7 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
+    setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
   console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
   console.log('👤 Player accounts loaded: '+realAccts);
