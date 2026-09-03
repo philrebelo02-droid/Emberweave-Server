@@ -7724,13 +7724,13 @@ Object.assign(BATTLE_ANIM, {
   },
   voidweaver:{
     idle:{u:'/assets/anim/voidweaver/voidweaver_idle.webp?v=2',n:36,fw:267,fh:400,cols:6,rows:6,figH:384,feet:394,cx:130,fps:15,flip:false,top:10},
-    walk:{u:'/assets/anim/voidweaver/voidweaver_walk.webp?v=2',n:36,fw:400,fh:391,cols:6,rows:6,figH:336,feet:378,cx:163,fps:15,flip:false,top:42},
+    walk:{u:'/assets/anim/voidweaver/voidweaver_ult.webp?v=2',n:48,fw:291,fh:400,cols:6,rows:8,figH:383,feet:391,cx:138,flip:false,top:7,fps:15},
     attack:{u:'/assets/anim/voidweaver/voidweaver_attack.webp?v=2',n:24,fw:400,fh:348,cols:6,rows:4,figH:295,feet:344,cx:181,fps:16,flip:false,top:48,hold:0.9},
-    hit:{u:'/assets/anim/voidweaver/voidweaver_hit.webp?v=2',n:20,fw:388,fh:400,cols:6,rows:4,figH:291,feet:396,cx:246,fps:16,flip:false,top:104},
-    green:{u:'/assets/anim/voidweaver/voidweaver_green.webp?v=2',n:36,fw:315,fh:400,cols:6,rows:6,figH:315,feet:395,cx:118,fps:15,flip:false,top:79,hold:0.8},
-    blue:{u:'/assets/anim/voidweaver/voidweaver_blue.webp?v=2',n:36,fw:237,fh:400,cols:6,rows:6,figH:324,feet:395,cx:119,fps:15,flip:false,top:71,hold:0.8},
-    ult:{u:'/assets/anim/voidweaver/voidweaver_ult.webp?v=2',n:48,fw:291,fh:400,cols:6,rows:8,figH:383,feet:391,cx:138,fps:15,flip:false,top:7},
-    passive:{u:'/assets/anim/voidweaver/voidweaver_passive.webp?v=2',n:36,fw:266,fh:400,cols:6,rows:6,figH:368,feet:388,cx:131,fps:15,flip:false,top:19}
+    hit:{u:'/assets/anim/voidweaver/voidweaver_walk.webp?v=2',n:36,fw:400,fh:391,cols:6,rows:6,figH:336,feet:378,cx:163,flip:false,top:42,fps:24},
+    green:{u:'/assets/anim/voidweaver/voidweaver_passive.webp?v=2',n:36,fw:266,fh:400,cols:6,rows:6,figH:368,feet:388,cx:131,flip:false,top:19,fps:15,hold:0.8},
+    blue:{u:'/assets/anim/voidweaver/voidweaver_green.webp?v=2',n:36,fw:315,fh:400,cols:6,rows:6,figH:315,feet:395,cx:118,flip:false,top:79,fps:15,hold:0.8},
+    ult:{u:'/assets/anim/voidweaver/voidweaver_hit.webp?v=2',n:20,fw:388,fh:400,cols:6,rows:4,figH:291,feet:396,cx:246,flip:false,top:104,fps:12,hold:0.8},
+    passive:{u:'/assets/anim/voidweaver/voidweaver_blue.webp?v=2',n:36,fw:237,fh:400,cols:6,rows:6,figH:324,feet:395,cx:119,flip:false,top:71,fps:15}
   },
   dawnbringer:{
     idle:{u:'/assets/anim/dawnbringer/dawnbringer_idle.webp?v=1',n:36,fw:249,fh:300,cols:6,rows:6,figH:290,feet:296,cx:132,fps:15,flip:false,top:5},
@@ -12728,7 +12728,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788439825091';
+const BUILD_ID = '1788440140585';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
