@@ -7734,7 +7734,7 @@ Object.assign(BATTLE_ANIM, {
   },
   dawnbringer:{
     idle:{u:'/assets/anim/dawnbringer/dawnbringer_idle.webp?v=1',n:36,fw:249,fh:300,cols:6,rows:6,figH:290,feet:296,cx:132,fps:15,flip:false,top:5},
-    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=1',n:36,fw:272,fh:300,cols:6,rows:6,figH:292,feet:296,cx:148,fps:15,flip:false,reverse:true,top:3},
+    walk:{u:'/assets/anim/dawnbringer/dawnbringer_walk.webp?v=2',n:36,fw:250,fh:300,cols:6,rows:6,figH:290,feet:295,cx:133,fps:15,flip:false,top:4},   /* v350: H3 forward march */
     attack:{u:'/assets/anim/dawnbringer/dawnbringer_attack.webp?v=1',n:24,fw:275,fh:300,cols:6,rows:4,figH:241,feet:296,cx:153,fps:16,flip:false,top:55,hold:0.9},
     hit:{u:'/assets/anim/dawnbringer/dawnbringer_hit.webp?v=1',n:20,fw:300,fh:284,cols:6,rows:4,figH:273,feet:280,cx:156,fps:16,flip:false,top:6},
     green:{u:'/assets/anim/dawnbringer/dawnbringer_green.webp?v=1',n:36,fw:288,fh:300,cols:6,rows:6,figH:233,feet:296,cx:159,fps:15,flip:false,top:62,hold:0.8},
@@ -7783,7 +7783,7 @@ Object.assign(BATTLE_ANIM, {
   },
   corsair:{
     idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=1',n:36,fw:221,fh:300,cols:6,rows:6,figH:287,feet:295,cx:116,fps:15,flip:true,top:7},
-    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=2',n:36,fw:245,fh:300,cols:6,rows:6,figH:279,feet:297,cx:131,fps:15,flip:true,reverse:true,top:17}   /* v345: regenerated side-stride walk (Phil: 'runs backwards') */,
+    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=3',n:36,fw:248,fh:300,cols:6,rows:6,figH:287,feet:295,cx:132,fps:15,flip:true,top:7}   /* v350: H3 high-knee forward march (Phil: 'runs backwards') */,
     attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=1',n:24,fw:300,fh:231,cols:6,rows:4,figH:186,feet:228,cx:164,fps:16,flip:true,top:41,hold:0.9},
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=1',n:20,fw:282,fh:300,cols:6,rows:4,figH:270,feet:295,cx:143,fps:16,flip:true,top:25},
     green:{u:'/assets/anim/corsair/corsair_green.webp?v=1',n:36,fw:251,fh:300,cols:6,rows:6,figH:291,feet:295,cx:143,fps:15,flip:true,top:3,hold:0.8},
@@ -12530,6 +12530,17 @@ function sizeTownMap(){
   img.style.width=W+'px'; img.style.height=H+'px';
 }
 window.addEventListener('resize',()=>{ const h=document.getElementById('home'); if(h&&h.classList.contains('active')) sizeTownMap(); });
+/* v350 (Phil: "when I open the game it is often zoomed in until I tab away"). The first layout can run
+   while the browser chrome / PWA splash / soft keyboard still occupies part of the viewport, and the
+   width-only resize guard above then never re-fits when only the HEIGHT settles. Re-fit the town map and
+   the 3D buffers on a short schedule after load, whenever the tab becomes visible again, and whenever
+   the visual viewport height changes by more than 15% with no text field focused. */
+function _refitAll(){ try{ const h=document.getElementById('home'); if(h&&h.classList.contains('active')) sizeTownMap(); }catch(e){}
+  try{ if(renderer){ const w=window.innerWidth,hh=window.innerHeight; _lastResizeW=w; _lastResizeH=hh; resize3D(); } }catch(e){} }
+for(const d of [250,800,1600,3200]) setTimeout(_refitAll,d);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') for(const d of [50,400]) setTimeout(_refitAll,d); });
+window.addEventListener('pageshow',()=>{ for(const d of [50,400]) setTimeout(_refitAll,d); });
+if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualViewport.addEventListener('resize',()=>{ const h=window.visualViewport.height; const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName); if(!foc && Math.abs(h-_vvH)>_vvH*0.15){ _vvH=h; _refitAll(); } }); }
 // free left/right panning of the town panorama (mouse drag on desktop; touch uses native pan-x). Tap still opens buildings.
 (function initTownPan(){
   const wrap=document.getElementById('townWrap'); if(!wrap) return;
@@ -12717,7 +12728,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID='1788405123604';
+const BUILD_ID='1788406673291';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
