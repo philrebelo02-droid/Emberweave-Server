@@ -6228,9 +6228,8 @@ function gearCanCraft(st,d){ const cat=FORGE.cat; if(!d) return false;
   return (st.subs[d.sub]||0)>=1 && gearFreshCount(st,cat.meta.qualities[d.qi-1])>=2; }
 function gearOwnedFresh(st,defId){ for(const id in st.items){ const it=st.items[id]; if(it.d===defId&&!it.bound&&!forgeEquippedBy(id)) return id; } return null; }
 let GEAR_BUILD=null;   // {hero, gearId, open:{}}
-function gearBuildOpen(key,gearId){ GEAR_BUILD={hero:key,gearId,open:{}}; renderHeroDetail(); }
+function gearBuildOpen(key,gearId){ GEAR_BUILD={hero:key,gearId,stack:[]}; renderHeroDetail(); }
 function gearBuildCancel(){ GEAR_BUILD=null; renderHeroDetail(); }
-function gearBuildToggle(gid){ if(!GEAR_BUILD) return; GEAR_BUILD.open[gid]=!GEAR_BUILD.open[gid]; renderHeroDetail(); }
 async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=true;
   const r=await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId}); FORGE.busy=false;
   if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); await forgeSync(); renderHeroDetail(); return; }
@@ -6239,50 +6238,75 @@ async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=
     if(e&&!e.error) bannerMsg('🛡 '+r.name+' equipped'); await forgeSync(); }
   renderHeroDetail();
 }
-/* one node of the ancestry: the item, and under it what it needs (expandable one tier at a time) */
-function gearTreeNode(st,d,need,have,depth,role){
-  const cat=FORGE.cat, col=FORGE_QCOLOR[d.quality]||'#e6edf3', ok=have>=need, can=gearCanCraft(st,d);
-  const open=!!(GEAR_BUILD&&GEAR_BUILD.open[d.id+'@'+depth]);
-  const prevQ=d.qi>0?cat.meta.qualities[d.qi-1]:null;
-  const prevDef=prevQ?forgeDef((GEAR_LOADOUTS[role]||[])[d.qi-1]||''):null;   // the role's own previous-tier piece (any family works; this is the one the loadout builds)
-  const freshPrev=prevQ?gearFreshCount(st,prevQ):0;
-  const head=`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid ${ok?'#2b7a55':'#1a2233'};border-radius:8px;background:#0f1420">
-      ${gearImg(d,depth===0?56:36)}
-      <div style="flex:1;min-width:0"><div style="font-size:${depth===0?13:11}px"><b style="color:${col}">${escapeHTML(d.name)}</b> <span style="font-size:9px;color:#6f7d90">${d.quality} · ${d.slot}</span></div>
-        ${depth===0?`<div style="font-size:10px;color:#8b98a9">${escapeHTML(d.passive||'')} · <span style="color:#8fe3ff">✨ ${escapeHTML(d.active||'')}</span></div>`:`<div style="font-size:10px;color:${ok?'#5ee89b':'#8b98a9'}">have <b>${have}</b> / ${need}${ok?' ✓':''}</div>`}</div>
-      ${depth>0&&!ok?`<button class="btn xs ${can?'':'secondary'}" ${can?`onclick="gearBuildDo('${d.id}')"`:'disabled'}>⚒ Craft</button>
-        <button class="btn xs secondary" onclick="gearBuildToggle('${d.id}@${depth}')" title="show what it needs">${open?'▾':'▸'}</button>`:''}</div>`;
-  if(depth>0&&(ok||!open)) return head;
-  // ingredients
-  let kids='';
-  if(d.qi===0){ const cost=cat.meta.greyFragCost, hv=st.fragments[d.frag]||0;
-    kids=`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid #1a2233;border-radius:8px;background:#0c111b">${gearFragImg(d.frag,30)}<div style="flex:1;font-size:11px"><b>${escapeHTML(d.frag)}</b> <span style="font-size:10px;color:${hv>=cost?'#5ee89b':'#8b98a9'}">have ${hv} / ${cost}</span></div>${fragSourceLine(d.frag)}</div>`;
-  } else {
+/* v371 (Phil): "make it similar to the glyph tree — end item at the top, blue lines from the sub-items to
+   the end item and from fragments to sub-items, greyed out if not owned, grey ＋ if you can't make it,
+   green ＋ if you can, and a fast build, just like glyphs." Same DOM contract as g2TreeView
+   (.g2treeBox / svg.g2svg / data-g2p) so g2DrawTree() draws the connectors. */
+function gearBuildPush(gid){ if(!GEAR_BUILD) return; GEAR_BUILD.stack.push(GEAR_BUILD.gearId); GEAR_BUILD.gearId=gid; renderHeroDetail(); }
+function gearBuildBack(){ if(!GEAR_BUILD) return; if(GEAR_BUILD.stack.length){ GEAR_BUILD.gearId=GEAR_BUILD.stack.pop(); renderHeroDetail(); } else gearBuildCancel(); }
+function gearGhost(imgHtml,px,can,owned){ return owned
+  ?`<div style="height:${px+6}px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px #5ee89b66)">${imgHtml}</div>`
+  :`<div style="position:relative;height:${px+6}px;display:flex;align-items:center;justify-content:center">
+      <span style="position:absolute;inset:0;opacity:.35;filter:grayscale(1);display:flex;align-items:center;justify-content:center">${imgHtml}</span>
+      <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:${can?'#5ee89b':'#8b98a9'};text-shadow:0 1px 6px #000c${can?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div>`; }
+function gearTreeView(key){
+  const st=FORGE.st, cat=FORGE.cat, d=forgeDef(GEAR_BUILD.gearId); if(!d) return '';
+  const role=gearLoadoutFor(key), col=FORGE_QCOLOR[d.quality]||'#e6edf3';
+  const id=s=>'gr_'+s;
+  const fresh=gearOwnedFresh(st,d.id), can=gearCanCraft(st,d), ready=!!fresh||can;
+  const badge=fresh?`<span class="pill" style="color:#5ee89b;border:1px solid #5ee89b">Built — ready to equip</span>`
+    :(can?`<span class="pill" style="color:#5ee89b;border:1px solid #5ee89b">Ready to Build</span>`:`<span class="pill" style="color:#ffb454;border:1px solid #ffb454">Missing materials</span>`);
+  const fragLeaf=(name,have,need,parent)=>{ const ok=have>=need, c=ok?'#5ee89b':'#e86a6a';
+    return `<div id="${id('f_'+gearSlug(name))}" data-g2p="${id(parent)}" data-rdy="${ok?1:0}" style="width:86px;flex:none;text-align:center;position:relative;z-index:1">
+      <div style="width:64px;height:64px;margin:0 auto;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px ${c}44)">${gearFragImg(name,60)}</div>
+      <div style="font-size:9.5px;font-weight:700;color:${c};margin-top:4px;line-height:1.15">${escapeHTML(name.replace(/ Fragment$/,''))}</div>
+      <div style="margin-top:3px"><span class="pill" style="font-size:9px;color:${c};border:1px solid ${c}">${have} / ${need}</span></div>
+      <div style="margin-top:2px;font-size:8px">${fragSourceLine(name)}</div></div>`; };
+  let cols='';
+  if(d.qi===0){ cols=`<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:86px">${fragLeaf(d.frag,st.fragments[d.frag]||0,cat.meta.greyFragCost,'root')}</div>`; }
+  else {
     const subHave=st.subs[d.sub]||0, fr=st.fragments[d.frag]||0, canSub=fr>=d.subFragCost;
-    kids=`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${subHave?'#2b7a55':'#1a2233'};border-radius:8px;background:#0c111b">${gearSubImg(d.sub,30)}
-        <div style="flex:1;min-width:0;font-size:11px"><b>${escapeHTML(d.sub)}</b> <span style="font-size:10px;color:${subHave?'#5ee89b':'#8b98a9'}">have ${subHave} / 1${subHave?' ✓':''}</span>
-          <div style="font-size:10px;color:#8b98a9;display:flex;align-items:center;gap:4px;margin-top:2px">${gearFragImg(d.frag,16)} ${escapeHTML(d.frag)} <b style="color:${canSub?'#5ee89b':'#8b98a9'}">${fr}</b>/${d.subFragCost}</div>${fragSourceLine(d.frag)}</div>
-        ${subHave?'':`<button class="btn xs ${canSub?'':'secondary'}" ${canSub?`onclick="gearHeroPost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:'disabled'}>🔩 Make</button>`}</div>`;
-    if(prevDef){ kids+=`<div style="font-size:10px;color:#6f7d90;margin:4px 0 2px">+ two fresh ${prevQ} pieces <span style="color:${freshPrev>=2?'#5ee89b':'#8b98a9'}">(have ${freshPrev} / 2 — any ${prevQ} item counts; bound or equipped gear never does)</span></div>`;
-      kids+=gearTreeNode(st,prevDef,2,freshPrev,depth+1,role); }
+    const subNode=`<div id="${id('sub')}" data-g2p="${id('root')}" data-rdy="${subHave?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:${(!subHave&&canSub)?'pointer':'default'}" ${(!subHave&&canSub)?`onclick="gearHeroPost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:''}>
+        ${gearGhost(gearSubImg(d.sub,76),82,canSub,subHave>0)}
+        <div style="font-size:11px;font-weight:800;color:${col};line-height:1.2">${escapeHTML(d.sub)}</div>
+        <div style="margin-top:3px"><span class="pill" style="font-size:9px;color:${subHave?'#5ee89b':'#8b98a9'};border:1px solid ${subHave?'#5ee89b':'#8b98a9'}">${subHave} / 1${(!subHave&&canSub)?' · tap to make':''}</span></div></div>`;
+    const prevQ=cat.meta.qualities[d.qi-1], prevDef=forgeDef((GEAR_LOADOUTS[role]||[])[d.qi-1]||'');
+    const freshPrev=gearFreshCount(st,prevQ), pcol=FORGE_QCOLOR[prevQ]||'#888';
+    const prevNode=(i)=>{ const owned=freshPrev>i, canP=prevDef&&gearCanCraft(st,prevDef);
+      return `<div id="${id('p'+i)}" data-g2p="${id('root')}" data-rdy="${owned?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:pointer" onclick="gearBuildPush('${prevDef?prevDef.id:''}')">
+        ${gearGhost(gearImg(prevDef,76),82,canP,owned)}
+        <div style="font-size:11px;font-weight:800;color:${pcol};line-height:1.2">${prevDef?escapeHTML(prevDef.name):prevQ}</div>
+        <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:${owned?'#5ee89b':'#8b98a9'};border:1px solid ${owned?'#5ee89b':'#33405e'};border-radius:10px;padding:1px 9px;background:#0b1424d9">${owned?'✓ fresh copy ready':'Tap to open'}</span></div></div>`; };
+    cols=`<div style="display:flex;flex-direction:column;align-items:center;gap:26px;flex:1;min-width:120px">${subNode}<div style="display:flex;gap:8px;justify-content:center">${fragLeaf(d.frag,fr,d.subFragCost,'sub')}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:110px">${prevNode(0)}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:110px">${prevNode(1)}</div>`;
   }
-  return head+`<div style="margin:6px 0 0 ${depth?14:0}px;display:flex;flex-direction:column;gap:6px">${kids}</div>`;
+  const stats=Object.entries(d.stats||{}).map(([k,v])=>`${GEAR_STAT_LABEL[k]||k} +${Math.round(v*10)/10}`).join(' · ');
+  setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
+  return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
+    <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
+    <div id="${id('root')}" style="text-align:center;position:relative;z-index:1;margin-bottom:30px">
+      <span style="position:relative;display:inline-block">${gearGhost(gearImg(d,104),112,can,!!fresh)}</span>
+      <div style="font-size:15px;font-weight:800;color:${col};margin-top:2px">${escapeHTML(d.name)}</div>
+      <div style="font-size:10px;color:#c3ccd8;margin-top:2px">${stats} · <span style="color:#8fe3ff">✨ ${escapeHTML(d.active||'')}</span></div>
+      <div style="margin-top:5px">${badge}</div></div>
+    <div style="display:flex;justify-content:center;align-items:flex-start;gap:6px;flex-wrap:wrap">${cols}</div></div>`;
 }
 function heroGearBuildHTML(key){
   const st=FORGE.st, d=forgeDef(GEAR_BUILD.gearId); if(!d){ GEAR_BUILD=null; return ''; }
-  const role=gearLoadoutFor(key), can=gearCanCraft(st,d), fresh=gearOwnedFresh(st,d.id);
-  const col=FORGE_QCOLOR[d.quality]||'#e6edf3';
+  const can=gearCanCraft(st,d), fresh=gearOwnedFresh(st,d.id), col=FORGE_QCOLOR[d.quality]||'#e6edf3';
+  const isRoot=!GEAR_BUILD.stack.length, hero=GEAR_BUILD.hero;
   const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px">
-      <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">⚒️ <b>Equipment</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Build Tree</b></div>
+      <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">⚒️ <b>Equipment</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Build Tree</b>${isRoot?'':' <span style="color:#3a4a6e">›</span> <span style="color:#8b98a9">ingredient</span>'}</div>
       <span class="pill" style="color:${col};border:1px solid ${col};flex:none">${d.quality} · ${d.slot}</span></div>`;
-  const action=fresh
-    ?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${key}'},r=>'🛡 Equipped — '+r.slot);GEAR_BUILD=null;">🛡 Equip the one you have</button>`
-    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearBuildDo('${d.id}','${key}');GEAR_BUILD=null;">⚡ Build &amp; equip</button>`;
+  const action=isRoot
+    ?(fresh?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${hero}'},r=>'🛡 Equipped — '+r.slot);GEAR_BUILD=null;">🛡 Equip</button>`
+      :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearBuildDo('${d.id}','${hero}');GEAR_BUILD=null;">⚡ Quick Build</button>`)
+    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearBuildDo('${d.id}');gearBuildBack();">⚡ Quick Build</button>`;
   return `<div class="panel">${head}
-    <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:6px"><button class="btn xs secondary" onclick="gearBuildCancel()">‹ Back</button><button class="btn xs secondary" onclick="gearBuildCancel()">✕</button></div>
-    ${gearTreeNode(st,d,1,fresh?1:0,0,role)}
-    <div style="display:flex;gap:8px;margin-top:10px">${action}</div>
-    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Fragments drop in The Vault. Fragments → sub-component → item. Raise its Temper in the Forge once it's built.</div></div>`;
+    <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:2px"><button class="btn xs secondary" onclick="gearBuildBack()">‹ Back</button><button class="btn xs secondary" onclick="gearBuildCancel()">✕</button></div>
+    ${gearTreeView(key)}
+    <div style="display:flex;gap:8px;margin-top:10px">${action}</div></div>`;
 }
 function heroGearTabHTML(key){
   const st=(typeof FORGE!=='undefined')&&FORGE.st;
@@ -12900,7 +12924,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788480884665';
+const BUILD_ID = '1788481597016';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

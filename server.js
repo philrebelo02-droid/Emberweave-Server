@@ -2770,7 +2770,7 @@ async function api(req,res,url){
       const out=idem(me.id+':dsweep:'+reqId,()=>{
         resetDungeonSweepIfNewDay(prog.sweep);
         if(prog.sweep.freeUsesRemaining<=0) return { ok:false, error:'No free Sweeps remaining today.', nextResetAt:dungeonNextReset() };
-        if(prog.activeAttempt) return { ok:false, error:'Finish the current Vault battle first.' };
+        if(prog.activeAttempt) prog.activeAttempt=null;   // v371 (Phil: "sweep button isn't working"): an unresolved attempt (closed the app mid-fight / God-Mode floor jump) is abandoned = a loss, same rule as start-battle — it must not block sweeping
         if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };
         const rnd=Math.random;   // AUDIT C7: rolled per sweep transaction, persisted via the idempotency record
         const rewards=[]; let dust=0; const frags={}; const gfrags={};
