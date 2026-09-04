@@ -1037,6 +1037,7 @@ const HERO_TYPES = {
    fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true,start:2},
    lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
+   vaelora:{name:'Vaelora Velvetclaw',emoji:'🐱',role:'Support',swing:1.8,stars:3,hp:265,dmg:32,range:195,speed:58,atkSpeed:1.00,color:0xd8d0e0,abilityName:'Velvet Ward',ability:'firstspring',locked:true,wip:true,start:2},
    silkcoil:{name:'Silkcoil',emoji:'🐍',role:'Assassin',swing:1.8,stars:2,hp:255,dmg:39,range:28,speed:66,atkSpeed:1.15,color:0x3f8f5c,abilityName:'Silk Bind',ability:'multiShot',locked:true,wip:true,start:2},
    nox:{name:'Nox Quillfinger',emoji:'🦊',role:'Assassin',swing:1.8,stars:2,hp:245,dmg:40,range:26,speed:68,atkSpeed:1.20,color:0x6b3f8f,abilityName:'Ink Mark',ability:'multiShot',locked:true,wip:true,start:2},
    nerisse:{name:'Nerisse Bellglass',emoji:'🪼',role:'Support',swing:1.8,stars:2,hp:230,dmg:30,range:195,speed:55,atkSpeed:0.95,color:0x4aa8d8,abilityName:'Bell Toll',ability:'firstspring',locked:true,wip:true,start:2},
@@ -1346,6 +1347,16 @@ const BATTLE_ANIM = {
     blue:{u:'/assets/anim/silkcoil/silkcoil_blue.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,hold:0.8,top:3},
     ult:{u:'/assets/anim/silkcoil/silkcoil_ult.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,hold:0.8,top:3},
     passive:{u:'/assets/anim/silkcoil/silkcoil_passive.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,top:3}
+  },
+  vaelora:{
+    idle:{u:'/assets/anim/vaelora/vaelora_idle.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,pingpong:true,top:3},
+    walk:{u:'/assets/anim/vaelora/vaelora_walk.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,top:3},
+    attack:{u:'/assets/anim/vaelora/vaelora_attack.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,hold:0.9,top:3},
+    hit:{u:'/assets/anim/vaelora/vaelora_hit.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,top:3},
+    green:{u:'/assets/anim/vaelora/vaelora_green.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,hold:0.8,top:3},
+    blue:{u:'/assets/anim/vaelora/vaelora_blue.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,hold:0.8,top:3},
+    ult:{u:'/assets/anim/vaelora/vaelora_ult.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,hold:0.8,top:3},
+    passive:{u:'/assets/anim/vaelora/vaelora_passive.webp?v=1',n:48,fw:400,fh:400,cols:6,rows:8,figH:393,feet:396,cx:198,fps:24,flip:false,top:3}
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=5',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
@@ -2074,6 +2085,7 @@ const KITS={
   nerisse:{green:{name:'Bell Toll',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Deep Current',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Tidereserve',pass:'power'}},
   nox:{green:{name:'Ink Mark',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Quill Strike',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Night Ledger',pass:'power'}},
   silkcoil:{green:{name:'Silk Bind',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Venom Fang',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Coil of Ages',pass:'power'}},
+  vaelora:{green:{name:'Velvet Ward',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Moon Ring',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Court of Silver',pass:'power'}},
   vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8},blue:{name:'Bleed Them Dry',type:'mortal',mul:1.2,dur:5,cd:9},purple:{name:'Killer Instinct',pass:'power'}},
   arrears:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6},blue:{name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10},purple:{name:'Compound Interest',pass:'debtaura'}},
   meryln:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8},blue:{name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
@@ -13063,7 +13075,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788500142509';
+const BUILD_ID = '1788501274626';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
