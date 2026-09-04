@@ -1313,15 +1313,15 @@ const BATTLE_ANIM = {
     blue:{u:'/assets/anim/fathom/fathom_blue.webp?v=2',n:72,fw:276,fh:300,cols:6,rows:12,figH:232,feet:282,cx:108,fps:30,flip:false,top:49,hold:0.8},   /* Tsunami - was falling back to the attack clip */
     ult:{u:'/assets/anim/fathom/fathom_ult.webp?v=2',n:72,fw:300,fh:245,cols:6,rows:12,figH:203,feet:202,cx:147,fps:30,flip:false,top:8}   /* Maelstrom - was falling back to the attack clip */
   },
-  lumi:{
-    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=13',n:72,fw:123,fh:300,cols:6,rows:12,figH:293,feet:296,cx:64,fps:30,flip:true,top:3},
-    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=13',n:72,fw:174,fh:300,cols:6,rows:12,figH:282,feet:292,cx:92,fps:30,flip:true,top:4},
-    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=13',n:36,fw:300,fh:269,cols:6,rows:6,figH:259,feet:266,cx:195,fps:30,flip:true,top:6,hold:1.2},
-    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=13',n:72,fw:300,fh:282,cols:6,rows:12,figH:257,feet:276,cx:113,fps:30,flip:true,top:13},
-    green:{u:'/assets/anim/lumi/lumi_green.webp?v=13',n:72,fw:240,fh:300,cols:6,rows:12,figH:293,feet:296,cx:162,fps:30,flip:true,top:3,hold:0.8},
-    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=14',n:72,fw:300,fh:254,cols:6,rows:12,figH:231,feet:233,cx:147,fps:30,flip:true,top:2,hold:0.8},
-    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=13',n:64,fw:250,fh:300,cols:6,rows:11,figH:243,feet:297,cx:120,fps:30,flip:true,top:53,pingpong:true},   // v366 (Phil): Radiant Nova rubber-banded at 1.95 s — the nova burst the frame from 2.0 s; the burst itself is the FX plate
-    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=13',n:72,fw:223,fh:300,cols:6,rows:12,figH:263,feet:297,cx:134,fps:30,flip:true,top:33}
+lumi:{
+    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=20',n:48,fw:290,fh:500,cols:6,rows:8,figH:490,feet:495,cx:156,fps:24.0,flip:false,top:4},
+    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=20',n:48,fw:372,fh:500,cols:6,rows:8,figH:490,feet:495,cx:198,fps:24.0,flip:false,top:4},
+    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=20',n:48,fw:316,fh:500,cols:6,rows:8,figH:490,feet:495,cx:151,fps:24.0,flip:false,top:4,hold:0.9},
+    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=20',n:48,fw:323,fh:500,cols:6,rows:8,figH:454,feet:487,cx:190,fps:24.0,flip:false,top:32},
+    green:{u:'/assets/anim/lumi/lumi_green.webp?v=20',n:48,fw:318,fh:500,cols:6,rows:8,figH:484,feet:495,cx:158,fps:24.0,flip:false,top:10,hold:0.8},
+    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=20',n:48,fw:278,fh:500,cols:6,rows:8,figH:433,feet:460,cx:145,fps:24.0,flip:false,top:27,hold:0.8},
+    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=20',n:48,fw:288,fh:500,cols:6,rows:8,figH:488,feet:495,cx:144,fps:24.0,flip:false,top:6},
+    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=20',n:48,fw:464,fh:500,cols:6,rows:8,figH:423,feet:469,cx:241,fps:24.0,flip:false,top:46}
   },
   meryln:{
     idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=11',n:72,fw:230,fh:300,cols:6,rows:12,figH:293,feet:296,cx:121,fps:30,flip:false,top:3},
@@ -1373,15 +1373,15 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/nerisse/nerisse_ult.webp?v=2',n:48,fw:269,fh:400,cols:6,rows:8,figH:390,feet:396,cx:138,fps:24,flip:false,hold:0.8,top:5},
     passive:{u:'/assets/anim/nerisse/nerisse_passive.webp?v=2',n:48,fw:284,fh:400,cols:6,rows:8,figH:391,feet:396,cx:140,fps:24,flip:false,top:4}
   },
-  nox:{
-    idle:{u:'/assets/anim/nox/nox_idle.webp?v=2',n:48,fw:315,fh:400,cols:6,rows:8,figH:342,feet:396,cx:152,fps:24,flip:false,pingpong:true,top:54},
-    walk:{u:'/assets/anim/nox/nox_walk.webp?v=2',n:48,fw:350,fh:400,cols:6,rows:8,figH:370,feet:395,cx:172,fps:24,flip:false,top:24},
-    attack:{u:'/assets/anim/nox/nox_attack.webp?v=2',n:48,fw:400,fh:400,cols:6,rows:8,figH:305,feet:372,cx:192,fps:24,flip:false,hold:0.9,top:66},
-    hit:{u:'/assets/anim/nox/nox_hit.webp?v=2',n:48,fw:390,fh:400,cols:6,rows:8,figH:384,feet:396,cx:181,fps:24,flip:false,top:11},
-    green:{u:'/assets/anim/nox/nox_green.webp?v=2',n:48,fw:391,fh:400,cols:6,rows:8,figH:363,feet:390,cx:169,fps:24,flip:false,hold:0.8,top:26},
-    blue:{u:'/assets/anim/nox/nox_blue.webp?v=2',n:48,fw:356,fh:400,cols:6,rows:8,figH:378,feet:396,cx:163,fps:24,flip:false,hold:0.8,top:17},
-    ult:{u:'/assets/anim/nox/nox_ult.webp?v=2',n:48,fw:400,fh:371,cols:6,rows:8,figH:335,feet:367,cx:172,fps:24,flip:false,hold:0.8,top:31},
-    passive:{u:'/assets/anim/nox/nox_passive.webp?v=2',n:48,fw:400,fh:386,cols:6,rows:8,figH:371,feet:381,cx:147,fps:24,flip:false,top:9}
+nox:{
+    idle:{u:'/assets/anim/nox/nox_idle.webp?v=2',n:48,fw:400,fh:386,cols:6,rows:8,figH:371,feet:381,cx:147,fps:24.0,flip:false,top:9},
+    walk:{u:'/assets/anim/nox/nox_walk.webp?v=2',n:48,fw:400,fh:343,cols:6,rows:8,figH:332,feet:339,cx:187,fps:24.0,flip:false,top:7},
+    attack:{u:'/assets/anim/nox/nox_attack.webp?v=2',n:48,fw:400,fh:391,cols:6,rows:8,figH:382,feet:387,cx:200,fps:24.0,flip:false,top:5,hold:0.9},
+    hit:{u:'/assets/anim/nox/nox_hit.webp?v=2',n:48,fw:400,fh:376,cols:6,rows:8,figH:354,feet:369,cx:183,fps:24.0,flip:false,top:14},
+    green:{u:'/assets/anim/nox/nox_green.webp?v=2',n:48,fw:400,fh:377,cols:6,rows:8,figH:369,feet:372,cx:194,fps:24.0,flip:false,top:3,hold:0.8},
+    blue:{u:'/assets/anim/nox/nox_blue.webp?v=2',n:48,fw:373,fh:400,cols:6,rows:8,figH:387,feet:396,cx:203,fps:24.0,flip:false,top:9,hold:0.8},
+    ult:{u:'/assets/anim/nox/nox_ult.webp?v=2',n:48,fw:374,fh:400,cols:6,rows:8,figH:387,feet:392,cx:203,fps:24.0,flip:false,top:5},
+    passive:{u:'/assets/anim/nox/nox_passive.webp?v=2',n:48,fw:353,fh:400,cols:6,rows:8,figH:378,feet:388,cx:186,fps:24.0,flip:false,top:10}
   },
   silkcoil:{
     idle:{u:'/assets/anim/silkcoil/silkcoil_idle.webp?v=2',n:48,fw:400,fh:343,cols:6,rows:8,figH:332,feet:339,cx:187,fps:24,flip:false,pingpong:true,top:7},
@@ -13412,7 +13412,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788534418638';
+const BUILD_ID = '1788540112300';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
