@@ -1965,10 +1965,11 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
 const ULT_RADIUS=['aoeStun','fireball','gravcrush','eventhorizon','blizzard','thundershower','umbralcata','swamproot'];   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave','triplecleave'];                              // 45-degree wedge aimed off the caster's body
+const ULT_ALLY_RADIUS=['firstspring'];   // v369 (Phil): Oakmir's First Spring is CLICK-TO-HEAL — lands under the ally you point at, heals every ally within 20 m
 const ULT_LINE=[];                                      // single straight-line directional ult (reserved: line+arrow)
 const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony'];       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
 const ULT_AIMED=[...ULT_RADIUS,...ULT_CONE,...ULT_LINE,...ULT_TARGET]; // ults that open the aim UI (rest fire instantly)
-function ultAimMode(ab){ return ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':'none'; }
+function ultAimMode(ab){ return ULT_ALLY_RADIUS.includes(ab)?'allyradius':ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':'none'; }
 function screenToField(sx,sy,h){ h=(h==null?0.15:h); if(typeof TH==='undefined'||!camera) return {x:(typeof aiming!=='undefined'&&aiming)?aiming.x:FW/2,y:(typeof aiming!=='undefined'&&aiming)?aiming.y:FD/2};
   const nx=(sx/CW)*2-1, ny=-((sy/CH)*2-1); const a=new TH.Vector3(nx,ny,-1).unproject(camera), b=new TH.Vector3(nx,ny,1).unproject(camera);
   const dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z, t=(dy!==0)?(h-a.y)/dy:0; return { x:(a.x+dx*t)/SC+FW/2, y:(a.z+dz*t)/SC+FD/2 }; }
@@ -2088,7 +2089,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
+const ULT_DEF={vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
@@ -3999,7 +4000,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
     case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
-    case 'firstspring':{ spawnGroundFx('firstspring',u.x,u.y,2.6*METER,2.2); alliesOf(u).forEach(a=>{ healUnit(a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(u.x,u.y,0x5ee89b,24); burstAt(u.x,u.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
+    case 'firstspring':{ /* v369 (Phil): click-to-heal — the spring rises under the ally you aimed at (auto: the most-hurt ally) and heals every ally within 20 m of it */
+      const R=o.radius||20*METER; let c=aimCtr; if(!c){ let w=null,ws=2; alliesOf(u).forEach(a=>{ const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} }); c=w?{x:w.x,y:w.y}:{x:u.x,y:u.y}; }
+      spawnGroundFx('firstspring',c.x,c.y,3.2*METER,2.2); alliesOf(u).forEach(a=>{ if(Math.hypot(a.x-c.x,a.y-c.y)>R) return; healUnit(a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(c.x,c.y,0x5ee89b,24); burstAt(c.x,c.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,o.dur||3);});u.drMul=Math.max(0.15,1-0.4*sm);u.drT=o.dur||3;burstAt(u.x,u.y,0x6ea8ff,12);break;}
     case 'rally':{alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+40);healUnit(a,a.maxHp*.3);a.hasteMul=1.2;a.hasteT=5;floatTexts.push({x:a.x,y:a.y-16,txt:'Rally!',t:1.0,color:'#ffd45e',vy:1.0,sz:14});});break;}
     // ---- Grosk ----
@@ -4248,14 +4251,14 @@ const FX2_DEF={
   bleed:     {u:'/assets/anim/fx/bleed.webp?v=3',     n:16, fw:130, fh:210, cols:4, rows:4, dur:2.2},
   poison:    {u:'/assets/anim/fx/poison.webp?v=3',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
   firepatch: {u:'/assets/anim/fx/firepatch.webp?v=3', n:20, fw:210, fh:200, cols:5, rows:4, dur:2.5},
-  blizzard:  {u:'/assets/anim/fx/blizzard.webp?v=3',  n:18, fw:207, fh:210, cols:6, rows:3, dur:2.5},
-  frostnova: {u:'/assets/anim/fx/frostnova.webp?v=3', n:14, fw:210, fh:183, cols:5, rows:3, dur:1.3},
-  groundslam:{u:'/assets/anim/fx/groundslam.webp?v=3',n:18, fw:210, fh:183, cols:6, rows:3, dur:1.6},
+  blizzard:  {u:'/assets/anim/fx/blizzard.webp?v=4',  n:18, fw:207, fh:210, cols:6, rows:3, dur:2.5},
+  frostnova: {u:'/assets/anim/fx/frostnova.webp?v=4', n:14, fw:210, fh:183, cols:5, rows:3, dur:1.3},
+  groundslam:{u:'/assets/anim/fx/groundslam.webp?v=4',n:18, fw:210, fh:183, cols:6, rows:3, dur:1.6},
   tsunami:   {u:'/assets/anim/fx/tsunami.webp?v=3',   n:26, fw:210, fh:189, cols:6, rows:5, dur:3.0},
-  tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=3', n:24, fw:210, fh:131, cols:6, rows:4, dur:2.6},
-  firstspring:{u:'/assets/anim/fx/firstspring.webp?v=3',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
+  tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=4', n:24, fw:210, fh:131, cols:6, rows:4, dur:2.6},
+  firstspring:{u:'/assets/anim/fx/firstspring.webp?v=4',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=3',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
-  mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=3',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
+  mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=4',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=3',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
   frozenorb: {u:'/assets/anim/fx/frozenorb.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.0},
   glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
@@ -5505,8 +5508,14 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
   units.forEach(u=>{ if(u.alive && (u.brighten||0)>0) glowUnit(u, Math.min(1,(u.brighten||0)*2), '255,245,200'); });   // non-aimable ult: affected enemies brighten
   if(aiming){ octx.fillStyle='rgba(0,0,0,.35)';octx.fillRect(0,0,CW,CH);
     const ap=project(aiming.x,aiming.y,1.0), tt=battleTime*8, ULD=ULT_DEF[aiming.t.ability]||{};
-    const mode=ultAimMode(aiming.abilityOverride||aiming.t.ability), best=nearestToScreen(aimTX,aimTY,aimTargetTeam());
-    if(mode==='radius'){
+    const mode=ultAimMode(aiming.abilityOverride||aiming.t.ability), best=nearestToScreen(aimTX,aimTY,mode==='allyradius'?aiming.team:aimTargetTeam());
+    if(mode==='allyradius'){   // v369: green circle centred on the ally under the cursor
+      const ctr=best?{x:best.x,y:best.y}:screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||20*METER);
+      const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));
+      octx.fillStyle='rgba(94,232,155,.16)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.fill();
+      octx.strokeStyle='rgba(125,255,176,.98)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.lineDashOffset=-tt*2; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); octx.lineDashOffset=0;
+      if(best) glowUnit(best,0.95,'125,255,176');
+    } else if(mode==='radius'){
       const ctr=screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
       const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));   // ellipse axes = the ACTUAL projected ult radius in both directions
       octx.fillStyle='rgba(139,92,246,.18)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.fill();
@@ -6178,9 +6187,9 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
 /* v365 (Phil): the Gear Compendium art — every finished item, fragment and sub-component (Emberweave
    Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
-const GEAR_ART_V='?v=1';
+const GEAR_ART_V='?v=2';   // v369: white backgrounds keyed out
 function gearSlug(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
-function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.id}.webp${GEAR_ART_V}" alt="" style="width:${px||40}px;height:${px||40}px;border-radius:6px;object-fit:cover;flex:none;background:#0e1420" loading="lazy">`:''; }
+function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.id}.webp${GEAR_ART_V}" alt="" style="width:${px||40}px;height:${px||40}px;border-radius:6px;object-fit:cover;flex:none;background:transparent" loading="lazy">`:''; }
 function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 function gearSubImg(n,px){ return n?`<img src="/assets/img/gear/subs/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 const GEAR_SLOT_ICON={Weapon:'⚔',Helm:'⛑',Boots:'👢',Armor:'🛡',Gloves:'🧤',Belt:'🎗',Ring:'💍',Amulet:'📿',Relic:'🔮'};
@@ -6286,13 +6295,13 @@ function heroGearTabHTML(key){
     const col=FORGE_QCOLOR[d.quality]||'#888';
     if(built){ const tm=built.temper||0;
       return `<div style="text-align:center;cursor:pointer" onclick="gearSlotSelect('${d.slot}')" title="${escapeHTML(d.name)} — ${escapeHTML(d.passive||'')}">
-        <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center">${gearImg(d,84)}
+        <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center;border:1px solid ${col};border-radius:10px;background:#17142d;box-shadow:0 0 8px ${col}55">${gearImg(d,84)}
           ${tm?`<span style="position:absolute;right:6px;bottom:2px;font-size:9px;color:#ffd45e;font-weight:800">T${tm}</span>`:''}${act===iid?`<span style="position:absolute;left:6px;top:2px;font-size:10px">✨</span>`:''}</div>
         <div style="font-size:10px;color:${col};font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(d.name)}</div></div>`; }
     const other=it?forgeDef(it.d):null;   // a different piece sits in this slot
     const can=gearCanCraft(st,d)||!!gearOwnedFresh(st,d.id); const pc=can?'#5ee89b':'#8b98a9';
     return `<div style="text-align:center;cursor:pointer" onclick="gearBuildOpen('${key}','${gid}')" title="${escapeHTML(d.name)} (${d.quality} ${d.slot})">
-      <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center">
+      <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center;border:1px solid ${col};border-radius:10px;background:#17142d;opacity:.9">
         <span style="position:absolute;inset:0;opacity:.28;filter:grayscale(1);display:flex;align-items:center;justify-content:center">${gearImg(d,84)}</span>
         <span style="position:relative;font-size:34px;font-weight:800;color:${pc};text-shadow:0 1px 6px #000c${can?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div>
       <div style="font-size:10px;color:#6f7d90;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(d.name)}${other?` <span style="color:#ffb37a">(${escapeHTML(other.name)} on)</span>`:''}</div></div>`; }).join('');
@@ -12395,6 +12404,9 @@ function nearestToScreen(sx,sy,team){ let best=null,bd=1e9; units.forEach(o=>{if
 function aimCandidates(u){ return units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)); }
 function optimalAimField(u){
   const ab=u.abilityOverride||u.t.ability, mode=ultAimMode(ab), D=ULT_DEF[ab]||{};
+  if(mode==='allyradius'){   // v369: the ally who needs it most; the 20 m circle around them
+    let w=null,ws=2; units.forEach(a=>{ if(!a.alive||a.team!==u.team) return; const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} });
+    return w?{x:w.x,y:w.y,tgt:w}:{x:u.x,y:u.y,tgt:u}; }
   const foes=aimCandidates(u);
   if(!foes.length) return null;
   if(mode==='target'){
@@ -12450,14 +12462,15 @@ function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remov
 function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0)return;
   const mode=ultAimMode(u.abilityOverride||u.t.ability);
   const auto=(u._autoAimUse&&u._autoAim)?u._autoAim:null; u._autoAimUse=false;
-  const best=auto?auto.tgt:nearestToScreen(aimTX,aimTY,aimTargetTeam());
-  if(mode==='radius'||mode==='line'){ const w=auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
+  const best=auto?auto.tgt:nearestToScreen(aimTX,aimTY,mode==='allyradius'?u.team:aimTargetTeam());
+  if(mode==='allyradius'){ const w=best?{x:best.x,y:best.y}:(auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15)); u._aimWX=w.x; u._aimWY=w.y; }   // v369: snaps to the ally under the cursor
+  else if(mode==='radius'||mode==='line'){ const w=auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
   else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
-  if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:best?best.id:-1,wx:(mode==='radius'||mode==='line')?u._aimWX:null,wy:(mode==='radius'||mode==='line')?u._aimWY:null}); }
+  if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:(best&&mode!=='allyradius')?best.id:-1,wx:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWX:null,wy:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWY:null}); }
   // v269: the ult is QUEUED with its resolved FIELD aim + target uid, and fires on the next tick —
   // so "when you fired" is an exact tick the server can replay, not a wall-clock instant.
-  else queueInput({k:'ult', uid:u.uid, tid:(best?best.uid:null),
-    wx:(mode==='radius'||mode==='line')?u._aimWX:null, wy:(mode==='radius'||mode==='line')?u._aimWY:null}); }
+  else queueInput({k:'ult', uid:u.uid, tid:(best&&mode!=='allyradius'?best.uid:null),   // v369: an ally-aimed ult never becomes an attack target
+    wx:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWX:null, wy:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWY:null}); }
 function onDown(e){ if(state!=='battle')return; const p=evXY(e);
   if(aiming){ aimTX=p.x; aimTY=p.y; return; }              // during aim: set direction (fire on release)
   let hit=null,hd=44; units.forEach(u=>{if(!u.alive||u.team!=='ally')return;const q=project(u.x,u.y,1);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<hd){hd=d;hit=u;}}); selected=hit; }
@@ -12886,7 +12899,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788479506816';
+const BUILD_ID = '1788480365029';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
