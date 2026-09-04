@@ -4261,7 +4261,7 @@ const FX2_DEF={
   mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=4',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=3',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
   frozenorb: {u:'/assets/anim/fx/frozenorb.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.0},
-  glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
+  glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=4', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   bonechant: {u:'/assets/anim/fx/bonechant.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   pyregrunt: {u:'/assets/anim/fx/pyregrunt.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=3', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]},
@@ -6376,11 +6376,11 @@ function heroGearTabHTML(key){
         <div style="font-size:11px;color:#cdd6e4;margin-top:2px">${statLine}${tmul?` <span style="color:#5ee89b">(+${tmul}% temper)</span>`:''}</div>
         <div style="font-size:10px;color:#8fe3ff;margin-top:2px">✨ ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===iid?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:4px"><span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">raise it in the Forge</span></div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'✨ Active: '+r.active)">Set Active</button>`}<button class="btn xs secondary" onclick="gearHeroPost('/unequip',{heroKey:'${key}',slot:'${sl}'})">Unequip</button></div></div></div></div>`; }
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'✨ Active: '+r.active)">Set Active</button>`}<span style="font-size:9px;color:#8b98a9;align-self:center">🔗 bound to ${escapeHTML((HERO_TYPES[key]||{}).name||key)} — build a higher piece to replace it</span></div></div></div></div>`; }
   return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ✨ Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0">${cells}</div>
     ${detail}
-    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Tap a ＋ to see the build tree. <span style="color:#5ee89b">Green</span> = you can make it now. One Gear Active per hero, chosen before battle.</div>`;
+    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Tap a ＋ to see the build tree. <span style="color:#5ee89b">Green</span> = you can make it now. One Gear Active per hero, chosen before battle. Equipped gear is bound to that hero for good.</div>`;
 }
 function forgeTab(t){ FORGE.tab=t; renderForge(); }
 function forgeQ(i){ FORGE.q=i; renderForge(); }
@@ -6483,8 +6483,7 @@ function forgeItemsTabHTML(){
         ${maxed?'<span style="color:#ffd45e">★ MAX TEMPER</span>':`
         <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:1},r=>'🔥 +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">🔥 ×1 (✨${cost})</button>
         <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:10},r=>'🔥 Tempered ×'+(10)+' (−'+r.dustSpent+' Dust)')">🔥 ×10</button>`}
-        ${eq?`<button class="btn xs secondary" onclick="forgePost('/unequip',{heroKey:'${eq.hero}',slot:'${eq.slot}'})">Unequip</button>
-              <button class="btn xs secondary" onclick="forgePost('/select-active',{heroKey:'${eq.hero}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`
+        ${eq?`<button class="btn xs secondary" onclick="forgePost('/select-active',{heroKey:'${eq.hero}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`
             :`<select id="fEq_${id}" class="btn xs secondary" style="font-size:9px;max-width:96px">${heroOpts}</select>
               <button class="btn xs" onclick="forgePost('/equip',{itemId:'${id}',heroKey:document.getElementById('fEq_${id}').value},r=>'🛡 Equipped — '+r.slot)">Equip</button>
               ${(it.dustSpent||0)>0?`<button class="btn xs secondary" onclick="forgePost('/extract',{itemId:'${id}'},r=>'♻ +'+r.refund+' Dust refunded')">♻ Extract ${Math.floor((it.dustSpent||0)*T.extractRefund)}</button>`:''}`}
@@ -8116,13 +8115,13 @@ Object.assign(FX2_DEF, {
   voidweaver_green_fx:{u:'/assets/anim/fx/voidweaver_green_fx.webp?v=1',n:18,fw:210,fh:36,cols:6,rows:3,dur:1.5},
   voidweaver_blue_fx:{u:'/assets/anim/fx/voidweaver_blue_fx.webp?v=1',n:18,fw:202,fh:210,cols:6,rows:3,dur:1.5},
   voidweaver_ult_fx:{u:'/assets/anim/fx/voidweaver_ult_fx.webp?v=1',n:18,fw:210,fh:191,cols:6,rows:3,dur:1.5},
-  dawnbringer_blue_fx:{u:'/assets/anim/fx/dawnbringer_blue_fx.webp?v=1',n:18,fw:210,fh:143,cols:6,rows:3,dur:1.5},
+  dawnbringer_blue_fx:{u:'/assets/anim/fx/dawnbringer_blue_fx.webp?v=2',n:18,fw:210,fh:143,cols:6,rows:3,dur:1.5},
   dawnbringer_ult_fx:{u:'/assets/anim/fx/dawnbringer_ult_fx.webp?v=1',n:18,fw:210,fh:189,cols:6,rows:3,dur:1.5},
-  dawnbringer_green_fx:{u:'/assets/anim/fx/dawnbringer_green_fx.webp?v=1',n:18,fw:210,fh:171,cols:6,rows:3,dur:1.5},
+  dawnbringer_green_fx:{u:'/assets/anim/fx/dawnbringer_green_fx.webp?v=2',n:18,fw:210,fh:171,cols:6,rows:3,dur:1.5},
   cathedral_ult_fx:{u:'/assets/anim/fx/cathedral_ult_fx.webp?v=1',n:18,fw:140,fh:210,cols:6,rows:3,dur:1.5},
   cathedral_green_fx:{u:'/assets/anim/fx/cathedral_green_fx.webp?v=1',n:18,fw:210,fh:206,cols:6,rows:3,dur:1.5},
   cathedral_blue_fx:{u:'/assets/anim/fx/cathedral_blue_fx.webp?v=1',n:18,fw:210,fh:135,cols:6,rows:3,dur:1.5},
-  lastfurnace_ult_fx:{u:'/assets/anim/fx/lastfurnace_ult_fx.webp?v=1',n:18,fw:210,fh:189,cols:6,rows:3,dur:1.5},
+  lastfurnace_ult_fx:{u:'/assets/anim/fx/lastfurnace_ult_fx.webp?v=2',n:18,fw:210,fh:189,cols:6,rows:3,dur:1.5},
   lastfurnace_green_fx:{u:'/assets/anim/fx/lastfurnace_green_fx.webp?v=1',n:18,fw:210,fh:164,cols:6,rows:3,dur:1.5},
   lastfurnace_blue_fx:{u:'/assets/anim/fx/lastfurnace_blue_fx.webp?v=1',n:18,fw:210,fh:155,cols:6,rows:3,dur:1.5},
   beekeeper_green_fx:{u:'/assets/anim/fx/beekeeper_green_fx.webp?v=1',n:18,fw:210,fh:152,cols:6,rows:3,dur:1.5},
@@ -12991,7 +12990,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788482572144';
+const BUILD_ID = '1788483121777';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

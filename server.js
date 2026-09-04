@@ -2525,6 +2525,7 @@ async function api(req,res,url){
       return ok({ hero, slot:def.slot, itemId:iid });
     }
     if(p==='/api/gear/unequip'){
+      return bad('Equipped gear is bound to its hero for good — build a higher piece to replace it.');   // v375 (Phil): "once you equip an item it should be bound"
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const slot=String(b.slot||'');
       if(!g.equipped[hero]||!g.equipped[hero][slot]) return bad('Nothing equipped there.');
       const iid=g.equipped[hero][slot]; delete g.equipped[hero][slot];
