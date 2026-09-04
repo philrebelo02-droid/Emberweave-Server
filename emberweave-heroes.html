@@ -205,7 +205,12 @@
   .sk-clipwrap{position:relative;height:158px;border-radius:9px;margin-bottom:8px;overflow:hidden;
     background:radial-gradient(ellipse at 50% 92%,#2a3a24,#111a26 72%);border:1px solid #2a3550;
     display:flex;align-items:flex-end;justify-content:center;}
-  .sk-clipsprite{filter:drop-shadow(0 3px 6px #000a);}
+  /* 4 Sep (Phil): "the skill animation previews should fit into the frame of this preview box".
+     Sheets are authored at up to 300px tall; the wrap is 158px with overflow:hidden and the sprite
+     bottom-aligned, so anything above the knees was simply cut off. The sprite is now scaled down
+     to fit, anchored at the feet (transform-origin 50% 100%) so it still stands on the ground line.
+     transform does not touch background-position, so the step animations are unaffected. */
+  .sk-clipsprite{filter:drop-shadow(0 3px 6px #000a);transform-origin:50% 100%;}
   .sk-clipcap{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:#ffd45e;text-shadow:0 1px 3px #000;pointer-events:none;}
   .sk-cliphint{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:#8b98a9;pointer-events:none;}
   .skrow.sksel{background:#141c2c;}
@@ -2078,8 +2083,14 @@ function preloadVaultArt(waves){
   try{ (waves||[]).forEach(w=>w.forEach(m=>keys.push(m.key))); }catch(e){}
   preloadBattleArt(keys, (typeof BATTLE_MAPS!=='undefined'&&BATTLE_MAPS.vault)||null);
 }
+/* v401: the preview box is 158px tall with a caption and a hint inside it, so ~124px is clear art
+   height; SK_CLIP_W is the narrowest the panel gets on a phone. Scale is never >1 (small sheets are
+   left at native size) and is anchored at the feet by .sk-clipsprite's transform-origin. */
+const SK_CLIP_H=124, SK_CLIP_W=300;
+function skClipFit(c){ return Math.min(1, SK_CLIP_H/(c.fh||1), SK_CLIP_W/(c.fw||1)); }
 function skillClipHTML(key,idx){ const c=HERO_SKILL_CLIPS[key]&&HERO_SKILL_CLIPS[key][idx]; if(!c||!isAssetRef(c.u)) return '';
   const d=(c.dur/1.5).toFixed(3);   // /1.5 → skill previews play 50% faster
+  const fit=skClipFit(c), tf=fit<1?('transform:scale('+fit.toFixed(4)+');'):'';
   /* 29 Aug — GRID SHEETS. This used to assume every preview sheet was ONE horizontal strip
      (background-size fw*n) and pan it with a single steps(n) animation. The newer sheets are grids
      — Lumi and Dandra are 6 wide by 8 tall — and a strip pan on a grid shows a 6x-too-wide slice of
@@ -2087,9 +2098,9 @@ function skillClipHTML(key,idx){ const c=HERO_SKILL_CLIPS[key]&&HERO_SKILL_CLIPS
      A grid needs two animations: step across the columns once per row, and step down the rows once
      per cycle. background-position-x and -y animate independently, so they compose cleanly. */
   if(c.cols && c.rows && c.rows>1){ const W=c.fw*c.cols, H=c.fh*c.rows;
-    return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background-image:url('${c.u}');background-size:${W}px ${H}px;animation:skcx-${key}-${idx} ${(c.dur/1.5/c.rows).toFixed(3)}s steps(${c.cols}) infinite, skcy-${key}-${idx} ${d}s steps(${c.rows}) infinite"></div>`; }
+    return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background-image:url('${c.u}');background-size:${W}px ${H}px;${tf}animation:skcx-${key}-${idx} ${(c.dur/1.5/c.rows).toFixed(3)}s steps(${c.cols}) infinite, skcy-${key}-${idx} ${d}s steps(${c.rows}) infinite"></div>`; }
   const strip=c.fw*c.n;
-  return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background:url('${c.u}');background-size:${strip}px ${c.fh}px;animation:skc-${key}-${idx} ${d}s steps(${c.n}) infinite"></div>`; }
+  return `<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background:url('${c.u}');background-size:${strip}px ${c.fh}px;${tf}animation:skc-${key}-${idx} ${d}s steps(${c.n}) infinite"></div>`; }
 // inject one keyframe per built-in clip (per-clip guard, so any hero with clips gets its previews)
 (function(){ let css='';
   for(const hk in HERO_SKILL_CLIPS){ const set=HERO_SKILL_CLIPS[hk];
@@ -7774,7 +7785,12 @@ function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)r
 // Finished hero-card art (Phil, 2026-08-21). These supersede the concept cutouts for both the
 // hero portrait and the glossary tile — the cutouts remain the ANIMATION source, not the display art.
 const HERO_CARD_ART={};
-for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
+/* 4 Sep (Phil: "the hero cards for the new heroes is still place holders") — THE MIRROR USED TO RUN
+   HERE, one line after the table was declared EMPTY. Every HERO_CARD_ART.<key>=... assignment lives
+   ~700 lines further down, so this loop copied nothing and HERO_PORTRAITS kept whatever it already
+   had. The 40 older heroes happened to have their own HERO_PORTRAITS entries from the concept-art
+   era, so they looked fine; the 20 heroes added in v380-v398 had none and fell through to the emoji
+   placeholder. The mirror now runs AFTER the assignments (search: MIRROR CARD ART -> PORTRAITS). */
 const MONSTER_SPRITES={}; for(const k in GLOSSARY_ART){ const i=k.indexOf('/'), cat=k.slice(0,i), id=k.slice(i+1); if(cat==='monsters'||cat==='bosses') MONSTER_SPRITES[id]=GLOSSARY_ART[k]; }
 Object.assign(HERO_SPRITES, MONSTER_SPRITES);   // monsters render as static billboards from their keyed art
 
@@ -8482,6 +8498,9 @@ HERO_CARD_ART.voidweaver='/assets/img/hero-cards/card-voidweaver.webp?v=9';
 HERO_CARD_ART.vulmar='/assets/img/hero-cards/card-vulmar.webp?v=9';
 HERO_CARD_ART.waxenduchess='/assets/img/hero-cards/card-waxenduchess.webp?v=9';
 HERO_CARD_ART.zahri='/assets/img/hero-cards/card-zahri.webp?v=9';
+/* MIRROR CARD ART -> PORTRAITS — must stay AFTER every HERO_CARD_ART assignment above. The finished
+   card art IS the portrait and the glossary tile for every hero that has one. */
+for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
 HERO_PORTRAITS.dawnbringer='/assets/img/glossary/glossary-heroes-dawnbringer.webp?v=1'; HERO_SPRITES.dawnbringer=HERO_PORTRAITS.dawnbringer; GLOSSARY_ART['heroes/dawnbringer']=HERO_PORTRAITS.dawnbringer;
 HERO_PORTRAITS.cathedral='/assets/img/glossary/glossary-heroes-cathedral.webp?v=1'; HERO_SPRITES.cathedral=HERO_PORTRAITS.cathedral; GLOSSARY_ART['heroes/cathedral']=HERO_PORTRAITS.cathedral;
 HERO_PORTRAITS.lastfurnace='/assets/img/glossary/glossary-heroes-lastfurnace.webp?v=1'; HERO_SPRITES.lastfurnace=HERO_PORTRAITS.lastfurnace; GLOSSARY_ART['heroes/lastfurnace']=HERO_PORTRAITS.lastfurnace;
@@ -8936,7 +8955,8 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     ${(ACC&&ACC.signedOut)?`<button class="btn xs secondary" id="guestBtn" style="width:100%;margin-top:8px">🎮 Play as a guest instead</button>`:''}
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
   { const gb=b.querySelector('#guestBtn'); if(gb) gb.onclick=()=>{ gb.disabled=true; playAsGuest(()=>{ renderAccount(); show('home'); }); }; }
-  const finishAuth=(d,isReg)=>{ clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
+  const finishAuth=(d,isReg)=>{ const _prevId=ACC&&ACC.id; clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
+      if(acctSwitchReload(_prevId, d.profile.id, isReg)) return;   // v401: switching account reboots the app (see acctSwitchReload)
       if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); }
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
@@ -8965,6 +8985,22 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
       if(!d.token){ m.textContent='Could not set password.'; return; }
       ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); updateHubChrome(); renderAccount(); }); };
+}
+/* 4 Sep (Phil): "when I log into another account its stuck level 1 until I close the game ... best to
+   force someone back to the loading screen when they log into another account so it auto refreshes".
+   Signing in swaps the token and pulls the new account's cloud save, but a lot of state was already
+   built from the OLD account and is only read once at boot (ledger-derived levels, hub chrome,
+   cached screens), so the hub could keep showing Lv 1 until the app was closed. Rather than hunt
+   every one of those, an account SWITCH now reboots the app: the token is already persisted, so the
+   reload comes straight back up signed in as the new account with everything rebuilt from scratch.
+   Only a switch reloads - signing into the SAME account, or creating one, is left alone. */
+function acctSwitchReload(prevId, newId, isCreate){
+  if(isCreate || !prevId || !newId || prevId===newId) return false;
+  try{ document.body.innerHTML='<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0f17;color:#e6edf3;font-family:system-ui,sans-serif;gap:10px;z-index:99999">'
+    +'<div style="font-size:30px">\u2694</div><div style="font-weight:800">Switching account\u2026</div>'
+    +'<div style="font-size:12px;color:#8b98a9">Reloading Emberweave for this account</div></div>'; }catch(e){}
+  setTimeout(()=>{ try{ location.reload(); }catch(e){} }, 450);
+  return true;
 }
 function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">🌐 '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
   if(!ACC.token){ body.innerHTML='<div class="panel" style="text-align:center">Sign in to enter '+what+'.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return true; } return false; }
@@ -12197,9 +12233,11 @@ function renderSettings(){
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
+        const _prevId=ACC&&ACC.id;
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
         DEV.on=isDevAcct();
         clearServerCaches();   // 31 Aug: settings-screen sign-in is an account switch too — mirror finishAuth()
+        if(acctSwitchReload(_prevId, d.profile.id, isCreate)) return;   // v401: a switch reboots the app (see acctSwitchReload)
         if(isCreate){ _cloudReady=true; pushSave(); }                            // new account → seed the cloud with your current progress
         else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } // sign in → load THIS account's own cloud save
         acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
@@ -13316,7 +13354,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788531999707';
+const BUILD_ID = '1788532655838';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
