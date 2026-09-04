@@ -2659,8 +2659,42 @@ function equipMul(key){ const out={atk:0,hp:0,dr:0,crit:0,regen:0,energy:0};
   equipArr(key).forEach((id,s)=>{ if(!id)return; const f=eqParse(id).t+1, base=EQ_SLOT_STAT[s]; for(const k in base) out[k]+=base[k]*f; }); return out; }
 function equipTierSum(key){ return equipArr(key).reduce((s,id)=>s+(id?eqParse(id).t+1:0),0); }
 function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skillLevel(key,i)||1)-1); return s*20; }   // leveling skills raises power
-function heroPower(key){ const m=heroMuls(key),t=HERO_TYPES[key]; const hp=heroStat(key,t.hp)*m.hp+heroFlatHp(key), atk=heroStat(key,t.dmg)*m.atk+heroFlatAtk(key);
-  return Math.round(hp/6 + atk*5 + heroStars(key)*45 + starPips(key)*8 + glyphRank(key)*22 + equipTierSum(key)*14 + skillPowerBonus(key) + (m.dr||0)*350 + (m.crit||0)*220); }
+/* v403 — POWER IS A COMBAT VALUE, NOT A STAT SUM. Phil: "the scaling of power is off ... tanks are
+   16k power while the others 6k ... hp should not scale so much that it makes the other stats seem
+   insignificant."
+   The old formula was `hp/6 + atk*5 + ...`: a straight weighted SUM, which means the biggest raw
+   number always wins. HP runs into the tens of thousands while Attack sits in the hundreds, so the
+   HP term buried everything else and a tank read ~2.5x a carry no matter how the carry was built.
+   Worse, ARMOR AND MAGIC RESIST WERE NOT COUNTED AT ALL (only the glyph 'dr' fraction), so a tank's
+   actual defensive contribution was measured entirely as raw HP.
+   Power is now the GEOMETRIC MEAN of what a hero survives and what a hero deals:
+
+       EHP   = HP / (1 - averageMitigation)      <- armor and MR finally count, level-aware
+       DPS   = (attack + ability power) * swings/sec * crit expectation * damage bonus
+       POWER = K * sqrt(EHP * DPS)
+
+   A geometric mean cannot be dominated by one factor: doubling HP alone raises power by only ~41%,
+   and a hero with big HP and no damage scores LOW, which is the property the sum never had. Tanks
+   still lead on EHP and carries still lead on DPS, and the two land in the same band. */
+const POWER_K=5.2;
+function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
+  const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
+  const hp   = heroStat(key,t.hp,'hp')*m.hp + heroFlatHp(key);
+  const atkP = heroStat(key,t.dmg,'dmg')*m.atk + heroFlatAtk(key);
+  const atkM = (t.apow||0)>0 ? heroStat(key,t.apow,'apow')*(typeof abilityPowerMul==='function'?abilityPowerMul():1) + heroFlatApow(key) : 0;
+  const armor= heroStat(key,t.armor||0,'armor') + (typeof techTotal==='function'?techTotal('armor'):0) + (tt.armor||0)*3;
+  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techTotal==='function'?techTotal('mr'):0)    + (tt.mr||0)*3;
+  // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
+  const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
+  const ehp  = hp/Math.max(0.15,1-mitig);
+  const crit = Math.min(0.6,(m.crit||0)+(tt.crit||0)*0.005), critDmg=0.6+((tt.critDmg||0)*0.005);
+  const sw   = 1/Math.max(0.05, swingInterval(t)/(1+((tt.atkSpd||0)*0.004)));
+  /* AP is weighted 1.5x a point of Attack and energy regen adds a little on top: a spell carries a
+     kit coefficient and usually lands on more than one target, so counting Ability Power as if it
+     were a single-target auto-attack read every Mage and Support ~40% below the rest of the roster.
+     These two constants are what flatten the per-class power bands (widest gap 1.5x, was 2.5x). */
+  const dps  = Math.max(1,(atkP+1.5*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.004))*(1+0.25*(m.energyReg||0)));
+  return Math.round(POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key) + equipTierSum(key)*14); }
 
 /* ------------------------------ progression -------------------------------- */
 const DEFAULT_G = {
@@ -2882,9 +2916,16 @@ function levelFromXP(xp){ return levelForXP(xp, HERO_CUM); }
 function heroLevel(key){ return Math.max(1, Math.min(playerLevel(), levelFromXP(G.heroXP[key]||0))); }
 function heroCapped(key){ return levelFromXP(G.heroXP[key]||0) >= playerLevel(); } // xp level hit the account cap
 function lvlScale(lvl){ return 1+0.05*(lvl-1); }   // THE per-level stat curve. Shared by makeUnit (combat), statAtLevel (codex), heroStat (cards) and the power estimators so display can never drift from the unit that actually fights (server mirrors 0.05 too).
-function heroStat(key,base){ const t=HERO_TYPES[key]; const lv=heroLevel(key);
-  if(t&&ROLE_GROWTH[t.role]){ const b=baseAtLevel(t,lv); const r=(base===t.dmg)?b.dmg:(base===t.hp?b.hp:base*(1+0.05*(lv-1))); return r*starMult(key); }
-  return base*lvlScale(lv)*starMult(key); }   // stars multiply base HP/ATK (Magic-Rush style)
+/* v403: heroStat takes the stat NAME. It used to guess which stat you meant by comparing the number
+   you passed against t.hp / t.dmg — so Ability Power, Armor and Magic Resist all fell through to the
+   old 0.05/level curve instead of ROLE_GROWTH, and any hero whose hp happened to equal its dmg was
+   read as the wrong stat entirely. The name is now explicit; the identity guess survives only as a
+   fallback for callers that don't pass one. */
+function heroStat(key,base,which){ const t=HERO_TYPES[key], lv=heroLevel(key), sm=starMult(key);
+  if(t&&ROLE_GROWTH[t.role]){ const b=baseAtLevel(t,lv);
+    const w=which || (base===t.hp?'hp':base===t.dmg?'dmg':(t.apow&&base===t.apow)?'apow':(t.armor&&base===t.armor)?'armor':(t.mr&&base===t.mr)?'mr':null);
+    if(w&&b[w]!=null) return b[w]*sm; }
+  return base*lvlScale(lv)*sm; }   // stars multiply base HP/ATK (Magic-Rush style)
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
 const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=20;   // City Wall opens with the Watch Tower city loop (Blueprint v1)
 // ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). All 10 chapters playable. ----
@@ -3583,7 +3624,16 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   const kit=KITS[key]||{};   // monsters have no kit
   const fAtk = S?(S.fAtk||0) : (owned?(heroFlatAtk(key)+techTotal('atk')):0), fHp = S?(S.fHp||0) : (owned?(heroFlatHp(key)+techTotal('hp')):0);   // flat glyph + star + Academy tech Attack/Health
   const sm=S?(S.sm!=null?S.sm:starMultFrom(S.stars||1,S.pips||0,S.ref||0)) : (owned?starMult(key):1);   // stars multiply an OWNED hero's base HP/ATK (enemies keep base stats)
-  const uHp=t.hp*scale*bhp*mul.hp*sm + fHp, uDmg=t.dmg*scale*bdmg*mul.atk*sm + fAtk;
+  /* v403 — THE GROWTH CURVE NOW REACHES COMBAT. v401 put ROLE_GROWTH behind heroStat(), which the
+     hero card and the power number read, but makeUnit built the actual fighting unit from
+     `t.hp*scale` with scale=lvlScale(lvl) — the old flat 0.05/level. So the class curve was a
+     display-only lie: the card said one thing and the battle used another. Heroes now grow through
+     baseAtLevel(); MONSTERS deliberately stay on lvlScale, because their bases are an order of
+     magnitude larger and flat per-level growth would make them weaker every level. */
+  const BL=(HERO_TYPES[key]&&!t.monster&&ROLE_GROWTH[t.role])
+    ? baseAtLevel(t,lvl)
+    : {hp:t.hp*scale, dmg:t.dmg*scale, apow:(t.apow||0)*scale, armor:(t.armor||0)*scale, mr:(t.mr||0)*scale};
+  const uHp=BL.hp*bhp*mul.hp*sm + fHp, uDmg=BL.dmg*bdmg*mul.atk*sm + fAtk;
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
@@ -3598,7 +3648,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
-    apow: Math.round((t.apow||0)*scale*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1))*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1))*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
   // MAGICAL hits, each through defToDR and countered only by its own penetration. Every other
@@ -3606,8 +3656,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   // bonus, attack speed, haste (energy), shield strength. Same conversions as the server core.
   { const tt=S?(S.tt||{}):(owned?sockStatTotal(key):{});
     u.lvl=lvl;   // v401: mitigation constant scales with level, so the unit must carry it
-    u.armorRating=(t.armor||0)*scale*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3);
-    u.mrRating   =(t.mr||0)*scale*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3);
+    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3);
+    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3);
     u.armorPen=(tt.armorPen||0); u.magicPen=(tt.magicPen||0);
     u.critDmg=0.6+((tt.critDmg||0)*0.005);
     u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.004);
@@ -9008,7 +9058,15 @@ function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel"
 /* ---- local opponents / cities (no sign-in needed; NPCs fill the pool) ---- */
 const NPC_NAMES=['Kael','Mira','Doran','Wren','Sable','Corin','Vesh','Lio','Nyra','Bram','Tarn','Isolde','Fenn','Ashe','Garrick','Petra','Odo','Selene','Marcus','Elowen'];
 function seededTeam(seed){ const arr=[]; const lv=Math.max(1,playerLevel()); for(let i=0;i<5;i++){ const key=HERO_KEYS[(seed*3+i*7)%HERO_KEYS.length]; const dl=((seed+i)%5)-2; arr.push({key,level:Math.max(1,lv+dl),rank:Math.min(3,Math.floor(lv/6)+((seed+i)%2))}); } return arr; }
-function teamPower(team){ let p=0; (team||[]).forEach(e=>{ const t=e&&HERO_TYPES[e.key]; if(!t) return; const b=baseAtLevel(t,e.level||1), qm=1+(e.rank||0)*0.12; p+=(b.hp+b.dmg*4)*qm; }); return Math.round(p); }
+/* v403: NPC/arena team power uses the same combat-value shape as heroPower — geometric mean of what
+   the unit survives and what it deals — instead of `hp + dmg*4`, where the HP term alone decided the
+   number and a tank-heavy NPC line read as far stronger than it fights. */
+function teamPower(team){ let p=0; (team||[]).forEach(e=>{ const t=e&&HERO_TYPES[e.key]; if(!t) return;
+  const lv=e.level||1, b=baseAtLevel(t,lv), qm=1+(e.rank||0)*0.12;
+  const mitig=Math.min(0.85,(defToDR(b.armor*qm,lv)+defToDR(b.mr*qm,lv))/2);
+  const ehp=(b.hp*qm)/Math.max(0.15,1-mitig);
+  const dps=Math.max(1,(b.dmg+b.apow)*qm/Math.max(0.05,swingInterval(t)));
+  p+=5.2*Math.sqrt(ehp*dps); }); return Math.round(p); }
 // arena spread: 4 opponents at %-better rank bands so you jump ranks instead of climbing 1 at a time.
 // the spread widens as you climb (per the tier rules), and the top 10 all reach toward rank 1.
 function arenaBandBonus(me){ let b=0;
@@ -11056,7 +11114,7 @@ function renderHeroDetail(){
   const lvl=heroLevel(key), capped=heroCapped(key);
   const xp=G.heroXP[key]||0, curBase=xpForLevel(lvl), nextBase=xpForLevel(lvl+1);
   const into=Math.max(0,xp-curBase), span=Math.max(1,nextBase-curBase), pct=Math.max(0,Math.min(100,Math.round(into/span*100)));
-  const S_HP=Math.round(heroStat(key,t.hp)*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg)*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0)*abilityPowerMul())+heroFlatApow(key);
+  const S_HP=Math.round(heroStat(key,t.hp,'hp')*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg,'dmg')*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0,'apow')*abilityPowerMul())+heroFlatApow(key);
   const gr=glyphRank(key), gi={name:gLadderName(gr), col:gLadderCol(gr)}, stars=heroStars(key); eliteCheckReset();
   const grp=eqGroup(key);
   const owned=!!G.unlocked[key], myth=isMythic(key);
@@ -11098,8 +11156,8 @@ function renderHeroDetail(){
        points ×3 (makeUnit) — and what it is worth as damage reduction. It used to ignore glyphs and gear
        entirely, so an Orange hero read "Armor 0". */
     const _tt=sockStatTotal(key);
-    const armorFlat=Math.round(heroStat(key,t.armor||0)+techTotal('armor')+(_tt.armor||0)*3);
-    const mrFlat=Math.round(heroStat(key,t.mr||0)+techTotal('mr')+(_tt.mr||0)*3);
+    const armorFlat=Math.round(heroStat(key,t.armor||0,'armor')+techTotal('armor')+(_tt.armor||0)*3);
+    const mrFlat=Math.round(heroStat(key,t.mr||0,'mr')+techTotal('mr')+(_tt.mr||0)*3);
     const _pct=v=>' <span style="color:#8b98a9;font-weight:500">('+Math.round(defToDR(v,(typeof key!=='undefined'&&key)?heroLevel(key):1)*100)+'%)</span>';
     const regenStr=(mul.regen||0)>0?Math.round(S_HP*mul.regen)+' /s':'—';   // flat HP/s (tanks show a real number)
     const enrStr=(mul.energyReg||0)>0?'+'+(mul.energyReg).toFixed(1)+' /s':'—';   // flat energy/s
@@ -13354,7 +13412,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788532655838';
+const BUILD_ID = '1788534418638';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

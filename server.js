@@ -1028,7 +1028,19 @@ function vaultFloorScore(floor){
     const sc=1+0.05*(m.lvl-1); s+= base.hp*sc*(m.hpMul||1)/8 + base.dmg*sc*(m.dmgMul||1)*3; } }
   return s;
 }
-function vaultTeamScore(snaps){ let s=0; for(const h of snaps){ if(!h) continue; s+= (h.maxHp||0)/8 + (h.atk||0)*3 + (h.heal||0)*2; } return s; }
+/* v403: the same combat-value shape the client's heroPower() uses — the geometric mean of what a
+   unit survives and what it deals, so one huge stat cannot carry the score. The old weighted sum
+   (maxHp/8 + atk*3) let HP, which runs 10-100x larger than attack, decide the number by itself. */
+function vaultTeamScore(snaps){ let s=0;
+  for(const h of snaps){ if(!h) continue;
+    const C=SIM&&SIM.CORE, dr=(r)=>C?C.defToDR(r,h.level):(r>0?r/(r+1200):0);
+    const mitig=Math.min(0.85,(dr(h.armor||0)+dr(h.mr||0))/2+(h.dmgRed||0));
+    const ehp=(h.maxHp||0)/Math.max(0.15,1-mitig);
+    // AP weighted 1.5x (spells carry a kit coefficient and hit more than one target) plus a small
+    // energy-regen term for ability uptime — the same constants as the client's heroPower().
+    const dps=Math.max(1,((h.atkP||0)+1.5*(h.atkM||0)+0.8*(h.heal||0))*(h.speed||1)*(1+(h.crit||0)*(h.critDmg||0.6))*(1+0.25*(h.energyReg||0)));
+    s+=5.2*Math.sqrt(ehp*dps); }
+  return s; }
 // AUDIT CR-1 (26 Aug): the client reports the battle outcome BY DESIGN (Phil: real fights, beatable by
 // practice, player-chosen backups — a pure server sim can't represent that). But a claimed win is no
 // longer taken on faith: the server re-fights the floor with the deterministic sim, granting the player
