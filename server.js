@@ -3560,25 +3560,42 @@ async function api(req,res,url){
       const serverEndDigest=String(rep.digest||'');
       const clientEnd=(typeof b.digest==='string')?b.digest:'';
       const digestMatch = clientEnd ? (sha256hex(clientEnd)===sha256hex(serverEndDigest)) : null;
+
+      /* v412 — PLAYER TRUTH IN CAMPAIGN TOO (Phil, 4 Sep: "it stays players truth, figure it out …
+         this is wrong for someone to spend hours trying to win a stage then the server will say
+         they lose").
+         This used to REFUSE the battle whenever the server's replay did not reach a byte-identical
+         end state, and separately took its `won` and `stars` from that replay rather than from the
+         player. Both are the same mistake wearing different hats: they make a re-simulation the
+         judge of a fight a person actually played and watched. And the replay diverges for ordinary
+         reasons — the client is a version ahead, an animation timing changed, a float landed
+         differently — none of which is the player's doing, and all of which cost them the stage.
+         So the fight on the player's screen is the result. Every other guard stays exactly as it
+         was: the attempt must exist and not have expired, the stamina must have been paid, the
+         request is idempotent, and the daily caps and first-clear rules below are untouched.
+         A divergence is still recorded as an incident so it can be found and fixed — it just no
+         longer costs the player their win. */
       if(digestMatch!==true){
-        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         const why=(digestMatch===null)?'no-client-digest':'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:st.id, mode, why,
-          source:transcriptSource,
+          source:transcriptSource, playerTruth:true,
           engine:a.engine||null, seed:a.seed>>>0, inputs:inputLog.length,
           server:sha256hex(serverEndDigest), client:clientEnd?sha256hex(clientEnd):null,
-          transcript:inputLog }]).slice(-20);
-        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
-        writeDB();
-        console.warn('⚠️  battle unverified ('+why+') — stage '+st.id+', engine '+(a.engine||'?'));
-        return {ok:false, unverified:true, reason:why,
-          error:'This battle could not be verified against the server — nothing was recorded and your stamina was returned.',
-          ledger:ledgerView(me)};
+          serverWon:!!rep.won, serverStars:rep.stars|0, transcript:inputLog }]).slice(-20);
+        console.warn('battle diverged from replay ('+why+') — stage '+st.id+', engine '+(a.engine||'?')+' — recorded the PLAYER result');
       }
-      const won=!!rep.won;
+      /* The player's own end state carries the verdict and the star count. It is only fallen back
+         off when the client sent nothing at all, in which case the replay is all there is. */
+      const _cp=(function(){ try{ return clientEnd?JSON.parse(clientEnd):null; }catch(e){ return null; } })();
+      const won = (typeof b.won==='boolean') ? b.won
+                : (_cp && typeof _cp.won==='boolean' ? _cp.won : !!rep.won);
       let stars=0, reward=null;
       if(won){
-        stars=Math.max(1,Math.min(3,rep.stars|0));
+        /* b.stars is the squad-only count the player was shown. The digest's own star field still
+           counts summons on purpose (it has to stay byte-identical to the pre-v328 client), and
+           counting summons is the bug v328 fixed, so it is the last resort, behind the replay. */
+        const _cs=(b.stars!=null)?(b.stars|0):((_cp && _cp.stars!=null)?(_cp.stars|0):(rep.stars|0));
+        stars=Math.max(1,Math.min(3,_cs));
         const first=a.node>prog.cleared;
         /* DAILY RUN CAP — the SAME 3-rewarded-runs/day budget /api/campaign/sweep enforces for guardian
            & boss stages (node%5===0), on the SAME prog.runs counter, so manual runs and sweeps share

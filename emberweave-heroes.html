@@ -3202,6 +3202,15 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
    on screen for 2n-2 steps, not n. Reading it as n made a rubberbanded swing look half as long as it
    is, which matters now that the attack hold is the clip's own length. */
 function clipDur(A){ if(!A) return 0; const st=(A.pingpong&&A.n>1)?(2*A.n-2):A.n; return st/(A.fps||16); }
+/* Schedule `go` for the moment `clip` connects. `relFrac` is where in that clip the blow lands —
+   the release frame for a caster, the moment of contact for a swing — and defaults to halfway,
+   which is where a wind-up-and-follow-through clip meets its target. A unit with no clip at all
+   fires immediately, exactly as before, so nothing without art changes. */
+function fuseStrike(u,tgt,clip,go,extra){
+  const dur=clipDur(clip)*(clip&&clip.relFrac!=null?clip.relFrac:0.5)*BATTLE_PACE+(extra||0);
+  if(!(dur>0.02)){ go(); return; }
+  (u._fuse||(u._fuse=[])).push({t:dur,tgt,go});
+}
 function setResultVerdict(w,s){ resultWon=!!w; if(!w){ resultStars=0; } else resultStars=(s!=null)?((s|0)||0):3; }
 let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
 const BATTLE_PACE=0.82;
@@ -4827,6 +4836,20 @@ function think(u,dt){
   if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null;
     if(vc){ enemiesOf(u).forEach(e=>{ if(e.alive&&e.team!==u.team&&Math.hypot(e.x-vc.cx,e.y-vc.cy)<vc.R){ dealDamage(u,e,vc.dmg,'#c9a6ff'); e._darkAuraT=vc.dur; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
       if(typeof spawnVoidZone==='function')spawnVoidZone(u,vc.cx,vc.cy,vc.R,vc.dur,vc.pd,vc.con); } } }
+  /* v412 — THE HIT LANDS WHEN THE ANIMATION LANDS (Phil, 4 Sep: "any animation that hits someone
+     does damage or health — do not do damage or heal before the animation hits the player; treat
+     the image as true damage or heal").
+     A swing used to deal its damage on the frame it STARTED, so the number popped over the target
+     while the sword was still going up. The strike is now fused: the damage waits for the moment in
+     the clip where the blow actually connects — `relFrac` on that clip, defaulting to halfway.
+     This is real combat timing, not decoration, so it lives in the sim and is counted down in ticks.
+     It is safe to change now only because a fight's result is the PLAYER'S (v410/v412): neither the
+     Vault nor Campaign re-derives the outcome from a server-side re-simulation any more, so the two
+     can no longer disagree about a stage the player already won. */
+  if(u._fuse && u._fuse.length){
+    for(let i=u._fuse.length-1;i>=0;i--){ const F=u._fuse[i]; F.t-=dt;
+      if(F.t<=0){ u._fuse.splice(i,1); if(u.alive && F.tgt && F.tgt.alive) F.go(); } }
+  }
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
   /* v409 — THE ANIMATION LOCK (Phil's rules, 4 Sep):
        "animation should be allowed to fully play"
@@ -4892,8 +4915,8 @@ function think(u,dt){
   const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
     if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       // how long this swing's clip wants to run. PURELY VISUAL — see the _animLockT note in think().
-      { const _A=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
-        u._animLockT=Math.min(ai*0.95, _A?((_A.hold||(_A.n/(_A.fps||16)))):0.42); u._lockPri=1; }
+      const _atkClipA=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
+      { u._animLockT=Math.min(ai*0.95, _atkClipA?(_atkClipA.hold||clipDur(_atkClipA)):0.42); u._lockPri=1; }
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       u.energy=Math.min(100,u.energy+11);
@@ -4910,7 +4933,12 @@ function think(u,dt){
         u._atkClip = close ? 'attack' : 'green';
         dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close){ if(typeof spawnProjFx==='function') spawnProjFx('bullet',u.x,u.y,t.x,t.y,CORSAIR_BULLET_SCALE,.13*HERO_FX_MUL,null); else spawnShot(u,t,0xffd27a); }
       } else {
-        dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff');
+        /* Melee lands on the contact frame. A RANGED auto lands when its ball arrives, not when it
+           leaves the hand — that is what "the animation hits the player" means for a caster — so the
+           projectile's own flight time is added on top of the release. */
+        { const _el=(u.range>60)?CASTER_BALL[u.key]:null;
+          const _fly=(u.range>60)?(((_el&&_el.dur)||0.22)*HERO_FX_MUL):0;
+          fuseStrike(u,t,_atkClipA,()=>dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'),_fly); }
         /* v341 (Phil): Void Weaver's passive was a borrowed Astra burn (cyan) and her passive clip never played.
            Dark Convergence: every auto leaves a DARK burn in curse colour (10% attack + 5% ability power, 2 s, ticking
            twice a second); every 3rd auto the void visibly converges — she plays the gathering clip and regains 5 energy. */
@@ -4920,18 +4948,13 @@ function think(u,dt){
             if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=Math.min(1.2,u.anim.passive.n/(u.anim.passive.fps||12)); } } }
         /* v410 (Phil, on Lumi's new attack clip): "the moment her arm and finger fully extends is the
            moment the nature ball goes out." A caster's clip spends its first half winding up, so a
-           ball that leaves on frame 0 leaves before she has pointed at anything.
-           `relFrac` on the attack clip says where in it the release happens; the ball is then held
-           until that moment. DAMAGE IS NOT HELD — it lands exactly when it always did. That is
-           deliberate: this sim is deterministic and the server resolves the same fight without any
-           animation, so moving damage would desync the two (see the _animLockT note in think()).
-           Only the picture waits. Umbris is the exception that proves it: his ball is drawn as part
-           of his sprite until his release frame, so HIS damage moves with it, and that pairing is
-           mirrored in the server sim. */
-        if(u.range>60){ const _atkA2=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
-          const _rel=(_atkA2&&_atkA2.relFrac!=null)?_atkA2.relFrac:0;
-          if(_rel>0){ u._ballT=_rel*clipDur(_atkA2)*BATTLE_PACE; u._ballTgt=t; }
-          else { const el=CASTER_BALL[u.key]; if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null); else spawnShot(u,t,u.t.color); } }
+           ball thrown on frame 0 leaves before she has pointed at anything. The ball is released on
+           the same fuse the damage rides, so picture and effect are one motion: the arm extends, the
+           ball goes, it flies, it lands, the number appears. */
+        if(u.range>60){
+          fuseStrike(u,t,_atkClipA,()=>{ const el=CASTER_BALL[u.key];
+            if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null);
+            else spawnShot(u,t,u.t.color); }); }
       } } };
   /* v337 — ASSASSINS FIGHT BEHIND THE TANKS, NOT BESIDE THEM (Phil: "Vex sometimes goes ahead of
      tanks; they should start behind fighters and move in after them"). While the line is still
@@ -5108,7 +5131,7 @@ function monsterOffscreenStart(hx,hy){ return {x:hx + XFER_DIR.x*XFER_OFFSCREEN,
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
-  units.forEach(u=>{ u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
+  units.forEach(u=>{ u._fuse=null; u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
     // clear lingering damage-over-time as well. On a STAGE win the heroes idle for 2s before the victory
     // screen, and updateStatusFx keeps re-spawning the burning/poison plate under their feet from a DoT that
     // outlived the last enemy. (Phil: "fire debuff under feet stays between waves if the stage ends before
@@ -5245,7 +5268,15 @@ function endBattle(won){
   try{ const _al=units.filter(u=>u.team==='ally'), _t=_al.length||1, _a=_al.filter(u=>u.alive).length;
     window._p2lastDigest=JSON.stringify({ t:+battleTime.toFixed(4), won:!!won,
       stars: won?(_a>=_t?3:(_a>=Math.ceil(_t/2)?2:1)):0, wave:waveIdx,
-      u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) }); }catch(e){}
+      u:units.map(u=>[u.key,u.team,u.alive?1:0,Math.round(u.hp),Math.round(u.energy),Math.round(u.x),Math.round(u.y)]) });
+    /* v412 — the result the PLAYER just watched, which is now what the stage is recorded as.
+       Kept separate from the digest above: the digest's star count deliberately still counts summons
+       so it stays byte-identical to the pre-v328 client for cached clients, and counting summons is
+       exactly the bug v328 fixed (a Hurne squad whose boar expired could never three-star). The
+       award is taken from the squad alone. */
+    const _sq=_al.filter(u=>!u._summon&&!u._wasSummon), _sqT=_sq.length||1, _sqA=_sq.filter(u=>u.alive).length;
+    window._p2lastWon=!!won;
+    window._p2lastStars=won?(_sqA>=_sqT?3:(_sqA>=Math.ceil(_sqT/2)?2:1)):0; }catch(e){}
   // snapshot Victory-screen data before any mode-specific early return (used by renderResultExtras)
   resultWon=won;
   { const al=units.filter(u=>u.team==='ally'&&!u._summon&&!u._wasSummon); resultSquadKeys=al.map(u=>u.key); if(!resultSquadKeys.length)resultSquadKeys=(G.team||[]).filter(Boolean);
@@ -5397,14 +5428,15 @@ function endBattle(won){
       document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null);   // snapshot the transcript NOW: anything that runs during the 800ms delay must not be able to blank it
+    const _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);   // v412: and the player's own verdict, snapshotted with it
     resultLater(async(ep)=>{
       /* v270: submit WHAT THE PLAYER DID — the tick-stamped transcript of every ultimate and gear
          skill. The server replays it against the frozen session; `digest` is diagnostics only. */
       const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8(),
-        inputLog:_log, digest:_dg});
+        inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
-      const sWon=!!(r&&r.ok&&r.won);   // AUTHORITATIVE server result
-      setResultVerdict(sWon, (r&&r.stars)||null);   // AUDIT #20: golden row = the SERVER's star count
+      const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
+      setResultVerdict(sWon, (r&&r.stars)||null);
       if(r&&r.ledger) adoptLedger(r.ledger);
       // v266: stars belong to the PORTAL the stage was played in
       if(sWon&&r.stars){ const _pm=r.mode||CUR.portal||'normal';
@@ -5465,12 +5497,6 @@ function updateBattle(dt){
   simTick++;
   battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
-  /* v410 — the held caster ball (see relFrac in doAtk). This is a VISUAL timer and it lives here,
-     on the render clock, precisely so it can never touch the deterministic sim. */
-  units.forEach(u=>{ if((u._ballT||0)>0){ u._ballT-=dt; if(u._ballT<=0){ const t2=u._ballTgt; u._ballT=0; u._ballTgt=null;
-    if(u.alive&&t2){ const el=CASTER_BALL[u.key];
-      if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t2.x,t2.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null);
-      else spawnShot(u,t2,u.t.color); } } } });
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
     think(u,dt);if(u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
@@ -13565,7 +13591,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788555462518';
+const BUILD_ID = '1788556367444';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
