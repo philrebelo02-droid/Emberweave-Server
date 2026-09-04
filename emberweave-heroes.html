@@ -1315,13 +1315,13 @@ const BATTLE_ANIM = {
   },
   lumi:{
     idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=24',n:48,fw:298,fh:500,cols:6,rows:8,figH:490,feet:495,cx:147,fps:24.0,flip:true,top:4},
-    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=24',n:48,fw:311,fh:500,cols:6,rows:8,figH:483,feet:493,cx:162,fps:24.0,flip:true,top:9},
-    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=24',n:48,fw:293,fh:500,cols:6,rows:8,figH:488,feet:495,cx:147,fps:24.0,flip:true,top:6,hold:0.9},
-    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=24',n:48,fw:321,fh:500,cols:6,rows:8,figH:490,feet:495,cx:154,fps:24.0,flip:true,top:4},
-    green:{u:'/assets/anim/lumi/lumi_green.webp?v=24',n:48,fw:324,fh:500,cols:6,rows:8,figH:484,feet:495,cx:160,fps:24.0,flip:true,top:10,hold:0.8},
-    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=24',n:48,fw:354,fh:500,cols:6,rows:8,figH:490,feet:495,cx:204,fps:24.0,flip:true,top:4,hold:0.8},
-    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=24',n:48,fw:328,fh:500,cols:6,rows:8,figH:461,feet:495,cx:193,fps:24.0,flip:true,top:34},
-    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=24',n:48,fw:345,fh:500,cols:6,rows:8,figH:490,feet:495,cx:151,fps:24.0,flip:true,top:4}
+    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=24',n:48,fw:311,fh:500,cols:6,rows:8,figH:480,feet:493,cx:162,fps:24.0,flip:true,top:9,ax:[0,0,-25,-29,-30,-25,-21,-17,-13,-9,-4,-4,-13,-21,-27,-30,-31,-33,-38,-45,-47,-53,-57,-55,-54,-49,-46,-43,-41,-38,-35,-30,-26,-25,-22,-17,-14,-12,-10,-8,-7,-6,-5,-3,-2,-1,0,0]},
+    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=24',n:48,fw:293,fh:500,cols:6,rows:8,figH:490,feet:495,cx:144,fps:24.0,flip:true,top:6,hold:0.9},
+    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=24',n:48,fw:321,fh:500,cols:6,rows:8,figH:490,feet:495,cx:152,fps:24.0,flip:true,top:4,ax:[0,0,0,0,0,-1,-1,-1,-2,-1,-2,-2,-3,-4,-6,-6,-7,-7,-7,-8,-8,-8,-8,-7,-8,-8,-8,-8,-8,-8,-7,-7,-7,-7,-6,-6,-5,-5,-4,-2,-1,-2,-1,-1,-1,-1,-1,-1]},
+    green:{u:'/assets/anim/lumi/lumi_green.webp?v=24',n:48,fw:324,fh:500,cols:6,rows:8,figH:485,feet:495,cx:157,fps:24.0,flip:true,top:10,hold:0.8},
+    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=24',n:48,fw:354,fh:500,cols:6,rows:8,figH:490,feet:495,cx:201,fps:24.0,flip:true,top:4,hold:0.8,ax:[0,-1,-1,-2,-3,-5,-6,-8,-10,-11,-12,-13,-15,-17,-17,-19,-19,-20,-21,-21,-21,-21,-22,-22,-22,-21,-21,-21,-20,-21,-20,-19,-17,-15,-14,-13,-11,-9,-9,-5,-4,-3,-2,-1,0,0,0,0]},
+    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=24',n:48,fw:328,fh:500,cols:6,rows:8,figH:462,feet:495,cx:191,fps:24.0,flip:true,top:34,ax:[0,0,0,-1,-3,-4,-5,-5,-5,-5,-4,-4,-4,-3,-2,-2,-2,-1,0,0,0,1,1,1,0,-1,-2,-3,-3,-3,-4,-5,-5,-5,-6,-6,-5,-5,-5,-4,-4,-3,-2,-2,0,1,1,1]},
+    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=24',n:48,fw:345,fh:500,cols:6,rows:8,figH:490,feet:495,cx:149,fps:24.0,flip:true,top:4}
   },
   meryln:{
     idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=11',n:72,fw:230,fh:300,cols:6,rows:12,figH:293,feet:296,cx:121,fps:30,flip:false,top:3},
@@ -3713,7 +3713,7 @@ const SUMMON_SCALE={'boar warrior':{hp:0.55,dmg:0.50,armor:120,mr:60},
                     'boar shaman':{hp:0.42,dmg:0.30,apow:0.55,armor:70,mr:110}};
 // Packmaster: every beast that goes down sends its soul back to Hurne. Play his passive clip.
 function _soulHome(p){ const o=p&&p._summonOwner; if(!o||!o.alive)return;
-  if(o.anim&&o.anim.passive){ o._abilAnim='passive'; o._abilHold=(o.anim.passive.n/(o.anim.passive.fps||12)); }
+  if(o.anim&&o.anim.passive){ o._abilPri=2; o._abilAnim='passive'; o._abilHold=(o.anim.passive.n/(o.anim.passive.fps||12)); }
   try{ burstAt(o.x,o.y,0x8fd08f,12); floatTexts.push({x:o.x,y:o.y-18,txt:'RETURNED',t:1.0,color:'#8fd08f',vy:1,sz:11}); }catch(e){} }
 function killSummon(p){ if(!p||!p.alive)return; p.hp=0; p.alive=false; p.deathT=0;
   try{ _soulHome(p); }catch(e){}
@@ -3895,7 +3895,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||'phys';   // v247
   if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=4;
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
-    if(tgt.anim&&tgt.anim.passive){ tgt._abilAnim='passive'; tgt._abilHold=(tgt.anim.passive.n/(tgt.anim.passive.fps||12)); }
+    if(tgt.anim&&tgt.anim.passive){ tgt._abilPri=2; tgt._abilAnim='passive'; tgt._abilHold=(tgt.anim.passive.n/(tgt.anim.passive.fps||12)); }
     return; }
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
@@ -4065,7 +4065,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
        cast, not as a recoloured swing, so cast wins over the attack stand-in for every monster. */
     if(!st && u.t && u.t.monster && u.anim && u.anim.cast) st='cast';
     if(!st && u.anim && u.anim.attack){ st='attack'; u._abilFallback=true; }
-    if(st && u.anim && u.anim[st]){ const A=u.anim[st]; u._abilAnim=st;
+    if(st && u.anim && u.anim[st]){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4;   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
       const once=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10);
       u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
@@ -4446,11 +4446,15 @@ function kitReady(u,ab){ const ty=ab.type;
 }
 const _KIT_ANYWHERE={defensive:1,lifestealbuff:1,warcry:1,selfheal:1,harmonyshield:1,heal:1,summonwarriors:1,summonshaman:1,dawnward:1,mendburst:1,duality:1,worldtree:1,own:1,mine:1,region:1};
 function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
-  u._castSlot=slot; doEffect(u,ab.type,ab); u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct); }
+  u._castSlot=slot; doEffect(u,ab.type,ab); u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
+  // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
+  u._lockPri=4; u._abilPri=4; u._animLockT=Math.max(u._abilHold||0, ct); }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a; floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
+  u._animLockT=0;   // the ult outranks everything: it is the one action allowed to cut a clip short
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
+  u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
 }
 
@@ -4817,6 +4821,19 @@ function think(u,dt){
     if(vc){ enemiesOf(u).forEach(e=>{ if(e.alive&&e.team!==u.team&&Math.hypot(e.x-vc.cx,e.y-vc.cy)<vc.R){ dealDamage(u,e,vc.dmg,'#c9a6ff'); e._darkAuraT=vc.dur; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
       if(typeof spawnVoidZone==='function')spawnVoidZone(u,vc.cx,vc.cy,vc.R,vc.dur,vc.pd,vc.con); } } }
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
+  /* v408 — THE ANIMATION LOCK (Phil's rules, 4 Sep):
+       "animation should be allowed to fully play"
+       · Never cancel an ult animation, unless the hero gets CC'd (fear / silence / stun)
+       · Never cancel a skill, unless to use the ult, or CC
+       · Never cancel an auto attack, unless to use the ult, or CC
+     _animLockT is how long the clip that is currently playing still needs. It is set where the
+     action STARTS and counted down HERE, in the sim — deliberately not from the render loop, where
+     the existing _atkHold/_abilHold/_hitHold timers live. Those stop being decremented when the tab
+     is backgrounded, and a gate hung off them would leave a backgrounded fight permanently locked
+     and nobody would ever swing again. The sim keeps running, so the lock does too.
+     Crowd control is the one thing that cuts a clip short, so it clears the lock outright. */
+  if((u.stunned>0)||((u.fearT||0)>0)||((u.silencedT||0)>0)) u._animLockT=0;
+  else if((u._animLockT||0)>0) u._animLockT-=dt;
   if(u.stunned>0){u.stunned-=dt*(1+2*(u.ctrlRes||0));return;}   // Control Resist shortens stuns (AUDIT C6)
   if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
   if(u._castT>0)u._castT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
@@ -4845,10 +4862,13 @@ function think(u,dt){
   if(!silenced && !u.t.monster && (u._castT||0)<=0 && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
     if(auto){ if(u.t.healer){const low=lowestAlly(u);if(low&&low.hp/low.maxHp<.78){castAbility(u);return;}}
       else if(u.t.ability==='rally'){if(units.some(o=>o.alive&&o.team===u.team&&o.energy<60)){castAbility(u);return;}}
-      else if(u.target){castAbility(u);}}}
+      else if(u.target){castAbility(u);}}}   // the ult is the ONE action allowed to cut a clip short (castAbility clears the lock)
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
-  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
-  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
+  const _locked=(u._animLockT||0)>0;   // a clip is still playing: a skill or an auto must wait for it
+  if(!silenced && !_locked && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
+  else if(!silenced && _locked && u.greenAb) u.greenCd-=dt;   // the cooldown still runs down while she finishes the clip
+  if(!silenced && !_locked && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
+  else if(!silenced && _locked && u.blueAb) u.blueCd-=dt;
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   const t=u.target;if(!t)return;const d=dist(u,t);
@@ -4858,7 +4878,10 @@ function think(u,dt){
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
-    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
+    if(u.atkCd<=0 && (u._castT||0)<=0 && (u._animLockT||0)<=0 && d<=(u.melee?bodyR(u)+bodyR(t)+12:u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
+      // hold the swing for as long as its clip needs, but never past the next swing
+      { const _A=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
+        u._animLockT=Math.min(ai*0.95, _A?((_A.hold||(_A.n/(_A.fps||16)))):0.42); u._lockPri=1; }
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       u.energy=Math.min(100,u.energy+11);
@@ -4882,7 +4905,7 @@ function think(u,dt){
         if(u.pass&&u.pass.darkconv&&t.alive){ const pm=(u.passMul||1);
           pushDot(t,(u.dmg*0.10+(u.apow||0)*0.05)*pm,2,0.5,'#7a3fb0');
           u._dcN=((u._dcN||0)+1)%3; if(u._dcN===0){ u.energy=Math.min(100,u.energy+5*pm); ringBurst(t.x,t.y,0x4a2a8a,12); burstAt(t.x,t.y,0x7a3fb0,8);
-            if(u.anim&&u.anim.passive){ u._abilAnim='passive'; u._abilHold=Math.min(1.2,u.anim.passive.n/(u.anim.passive.fps||12)); } } }
+            if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=Math.min(1.2,u.anim.passive.n/(u.anim.passive.fps||12)); } } }
         if(u.range>60){ const el=CASTER_BALL[u.key]; if(el&&typeof spawnProjFx==='function') spawnProjFx(el.fx,u.x,u.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null); else spawnShot(u,t,u.t.color); }
       } } };
   /* v337 — ASSASSINS FIGHT BEHIND THE TANKS, NOT BESIDE THEM (Phil: "Vex sometimes goes ahead of
@@ -4920,8 +4943,7 @@ function think(u,dt){
      the unit both meant to move and is measured as moving — during the lead-in it means to but has
      not yet, and without _moveT it would show idle and the lead-in would achieve nothing. */
   if(dn>cd){
-    const _clipT=Math.max(u._abilHold||0, u._atkHold||0, u._hitHold||0);
-    if(_clipT>0){ u._walkLead=0; return; }                       // beat 1: let the current clip finish
+    if((u._animLockT||0)>0){ u._walkLead=0; return; }             // beat 1: let the current clip finish
     const _wa=u.anim&&u.anim.walk, _lead=_wa?Math.min(0.30,2/(_wa.fps||12)):0.12;
     if((u._walkLead||0)<_lead){ u._walkLead=(u._walkLead||0)+dt; u._walkT=0.25; u._moveT=0.20; return; }   // beat 2: walk clip, in place
     const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25;   // beat 3: run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
@@ -5454,7 +5476,7 @@ function updateBattle(dt){
         burstAt(u.x,u.y,0x7a3fa0,26);
         floatTexts.push({x:u.x,y:u.y-16,txt:'HOLLOW',t:1.4,color:'#c9a6ff',vy:1,sz:15});
         u._fallT=0.5; u._fallMax=0.5; u._noTarget=true;   // he is still in the air for half a second
-        if(u.anim&&u.anim.drop){ u._abilAnim='drop'; u._abilHold=0.5+(u.anim.drop.n/(u.anim.drop.fps||14)); }
+        if(u.anim&&u.anim.drop){ u._abilPri=6; u._abilAnim='drop'; u._abilHold=0.5+(u.anim.drop.n/(u.anim.drop.fps||14)); }   // the entry drop is an arrival cinematic — nothing overrides it
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); }
       return; }   // nothing else ticks for him while he is still up there
     if(u._fallT>0){ u._fallT-=dt; u.target=null; u.attackAnim=0;
@@ -5511,7 +5533,7 @@ function updateBattle(dt){
         /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
-        if(u.anim&&u.anim.passive){ u._abilAnim='passive'; u._abilHold=(u.anim.passive.n/(u.anim.passive.fps||12)); }
+        if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=(u.anim.passive.n/(u.anim.passive.fps||12)); }
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; if(u._uwT>=5){ u._uwT-=5;
@@ -5625,7 +5647,21 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            (think() moved him, the wave cinematic, or a pull); a pure collision shove holds idle/attack. */
         const walking=(u._moveT||0)>0 && ((u._walkT||0)>0 || !!waveXfer || (u.pullT||0)>0);
         const abilActive=(u._abilHold>0 && u._abilAnim && u.anim[u._abilAnim]);   // ability clip overrides everything while it plays
-        let st=abilActive?u._abilAnim:((u._atkHold>0)?((u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'):((u._hitHold>0)?'hit':(walking?'walk':'idle')));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
+        /* v408 — Phil's animation priority, in his words:
+               ULT > Walk (if not close enough) > Skill > Hit > Passive > auto
+           The ult outranks even movement: once it is running she plants and finishes it. Below that,
+           closing the distance beats anything she could be doing standing still — she can only be in
+           this position when nothing is locked, because the sim will not start a skill or a swing
+           while a clip is playing (see _animLockT), so walk can never cut a skill or an auto short.
+           _abilPri tags which kind of clip _abilAnim currently holds: 6 ult, 4 skill, 2 passive. */
+        const _ultActive=abilActive && (u._abilPri|0)>=6;
+        const _atkSt=(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack';
+        let st = _ultActive ? u._abilAnim
+               : (walking ? 'walk'
+               : (abilActive && (u._abilPri|0)>=4 ? u._abilAnim
+               : ((u._hitHold>0) ? 'hit'
+               : (abilActive ? u._abilAnim
+               : ((u._atkHold>0) ? _atkSt : 'idle')))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
         if(rising) st='rise';
         // Channelled ultimates (Blizzard / Thunder Shower): once the cast clip has finished
@@ -5751,7 +5787,16 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              from the left once mirrored. Every left-facing unit whose clips are not dead-centre was
              therefore drawn sideways of its true position, by a different amount per clip, so it
              jumped sideways on every walk→attack→cast change. Mirror the anchor with the frame. */
-          if(spr.center){ const _cxn=(A.cx!=null?A.cx/A.fw:0.5); spr.center.set(mirror?1-_cxn:_cxn, 1-(A.feet/A.fh)); }
+          /* v408 — PER-FRAME ANCHOR (Phil: "anchor lumi, make sure she starts in the same spot of the
+             frame every animation"). cx is measured on frame 0 only, so it pins the character at the
+             START of a clip and nowhere else. Hailuo clips drift: Lumi's walk carries her 57 px
+             across her own cell and her ability 22 px, so she slid off her position through the clip
+             and snapped back when the state changed. `ax` is her foot-centre offset for every frame,
+             relative to frame 0, so the anchor tracks her and she stays put for the whole clip.
+             Intentional travel is still authored with `lunge`, which moves the whole quad instead. */
+          if(spr.center){ let _cxp=(A.cx!=null?A.cx:A.fw*0.5);
+            if(A.ax&&A.ax.length) _cxp+=A.ax[Math.min(fr,A.ax.length-1)]||0;
+            const _cxn=_cxp/A.fw; spr.center.set(mirror?1-_cxn:_cxn, 1-(A.feet/A.fh)); }
         } else {
           { const _sc=A.sc||1; spr.scale.set(u.sprH*_sc*(A.aspect||u.sprA),u.sprH*_sc,1); } u._headOff=u.sprH*(A.sc||1); u._sprRef=spr;   // legacy: frame-height maps to sprH; optional per-clip sc for taller re-packed frames (e.g. Grosk croc)
           if(spr.center) spr.center.set(.5,0);
@@ -13474,7 +13519,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788552117378';
+const BUILD_ID = '1788552779180';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
