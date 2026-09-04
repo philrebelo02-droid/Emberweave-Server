@@ -2836,14 +2836,24 @@ async function api(req,res,url){
         const a=prog.activeAttempt;
         if(!a||a.id!==String(b.attemptId||'')) return { ok:false, error:'No matching Vault battle.' };
         prog.activeAttempt=null;
-        // AUDIT C7 (owner-approved): the result is SERVER-AUTHORITATIVE. The client's `won` is not
-        // read; the deterministic estimate — with the documented, deterministic skill band standing
-        // in for manual play/backups (vaultWinPlausible) — decides the floor.
+        /* v410 — PLAYER TRUTH IN THE VAULT (Phil, 4 Sep: "campaign and vault should be the players
+           truth, not the servers truth … what i see on my screen should be the result").
+           This used to ignore the client's `won` entirely and decide the floor from
+           vaultWinPlausible() — a deterministic ESTIMATE that re-fights the floor with a skill band
+           standing in for how a person actually plays. Estimates are wrong sometimes, and when this
+           one was wrong it was wrong in the worst direction: Phil watched himself lose floor 71 and
+           the server cleared him and paid the reward.
+           Campaign has been player-truth since v270 — it replays the player's own session from the
+           transcript rather than guessing at it — and the Vault now follows the same principle: the
+           fight on the player's screen is the result. The estimate is still computed, but only to
+           log a disagreement so a real divergence between the two is visible rather than silent. */
         if(isDev(me)&&prog.claimedFloors[a.floor]){ prog.version++; writeDB();   // v362: dev replaying an already-cleared floor — no reward, progress untouched
           return { ok:true, result:{won:true, replay:true}, reward:null, dust:me.dust||0, progress:dungeonView(prog) }; }
-        const won=vaultWinPlausible(a);
+        const won = (typeof b.won==='boolean') ? b.won : vaultWinPlausible(a);
+        if(typeof b.won==='boolean'){ const est=vaultWinPlausible(a);
+          if(est!==b.won) console.log('vault floor %s: player says %s, estimate said %s (player wins)', a.floor, b.won?'won':'lost', est?'won':'lost'); }
         if(!won){ prog.version++; writeDB();
-          return { ok:true, result:{won:false, authoritative:true}, progress:dungeonView(prog) }; }
+          return { ok:true, result:{won:false, playerTruth:true}, progress:dungeonView(prog) }; }
         if(Date.now()-a.startedAt<VAULT_MIN_BATTLE_MS){ prog.version++; writeDB(); return { ok:false, error:'That was too fast to be a real battle.' }; }
         if(a.floor!==prog.currentFloor||prog.claimedFloors[a.floor]){ prog.version++; writeDB();
           return { ok:false, error:'Stale Vault floor.' }; }
