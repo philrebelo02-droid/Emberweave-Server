@@ -4903,8 +4903,30 @@ function think(u,dt){
         if(leadAdv < hold){                      // the line is not far enough ahead of me: wait behind it
           if(leadAdv < hold*0.5){ u.x-=ax*spd*0.6*dt; u.y-=ay*spd*0.6*dt; u._walkT=0.25; }   // I am level with or ahead of it: drop back
           return; } } } }
-  if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25; }   // run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
-  else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
+  /* v406 (Phil: "if someone is mid animation and its time for them to start moving, they just start
+     moving without the walk animation … heroes should finish their current animation, then start
+     walk animation, then start moving"). Closing the distance now happens in three beats:
+
+       1. FINISH THE CLIP. While a one-shot is still playing — a swing, an ability, an ultimate, a
+          crit flinch — the unit is rooted. It used to translate underneath that clip, and because
+          the sheet shows a stationary pose the hero appeared to slide across the ground.
+       2. TAKE A STRIDE IN PLACE. The clip ends and the walk clip starts, held for _walkLead before
+          any movement, so the first stride is actually seen instead of skipped. The lead is two
+          frames of THIS hero's own walk clip, so a slow glide gets a slightly longer run-up than a
+          quick step and nobody stands about for longer than one stride.
+       3. THEN MOVE, exactly as before.
+
+     Both holds set _walkT (intent) and _moveT, because the renderer only shows the walk state when
+     the unit both meant to move and is measured as moving — during the lead-in it means to but has
+     not yet, and without _moveT it would show idle and the lead-in would achieve nothing. */
+  if(dn>cd){
+    const _clipT=Math.max(u._abilHold||0, u._atkHold||0, u._hitHold||0);
+    if(_clipT>0){ u._walkLead=0; return; }                       // beat 1: let the current clip finish
+    const _wa=u.anim&&u.anim.walk, _lead=_wa?Math.min(0.30,2/(_wa.fps||12)):0.12;
+    if((u._walkLead||0)<_lead){ u._walkLead=(u._walkLead||0)+dt; u._walkT=0.25; u._moveT=0.20; return; }   // beat 2: walk clip, in place
+    const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25;   // beat 3: run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
+  }
+  else { u._walkLead=0; doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
 
 /* ---------------------------- battle lifecycle ----------------------------- */
@@ -5539,7 +5561,15 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
   if(u.sprite){ // 2D billboard sprite unit
     g.position.set(wx(u.rx==null?u.x:u.rx),0,wz(u.ry==null?u.y:u.ry)); const spr=u.sprite;   // v268: interpolated between sim ticks
     const foe=(u.target&&u.target.alive)?u.target:null;
-    if(u.alive){ u.bob+=dt*4; const bob=Math.abs(Math.sin(u.bob))*.06;
+    if(u.alive){ u.bob+=dt*4;
+      /* v406 — the idle bob is a breathing motion for the static billboard. While a real one-shot
+         clip is playing (a swing, an ability, an ultimate, a crit flinch) the sheet already carries
+         the body's motion, and adding a sine on top of it is the second half of Phil's wobble. Hold
+         the bob at its current height for the length of the clip rather than snapping it to zero,
+         so the hero does not visibly drop when the swing starts. */
+      const _oneShot=u.anim&&((u._atkHold||0)>0||(u._abilHold||0)>0||(u._hitHold||0)>0);
+      if(!_oneShot) u._bobY=Math.abs(Math.sin(u.bob))*.06;
+      const bob=(u._bobY||0);
       const pdx=u.x-(u._ax==null?u.x:u._ax), pdy=u.y-(u._ay==null?u.y:u._ay); u._ax=u.x; u._ay=u.y;
       /* 28 Aug — WHY HALF THE ROSTER "GLIDES IN PLACE" (Phil).
          `moved` was the change in u.x/u.y since the last RENDER frame — but u.x only changes on a SIM
@@ -5557,7 +5587,13 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       const _speed=moved/Math.max(dt,1e-4);                       // field units per second, frame-rate independent
       { const LU=(u.anim&&u.anim.attack&&u.anim.attack.lunge)||0;
         if(LU>0 && u._atkHold>0 && u.target){ const _ah2=((u.anim.attack.hold)||0.42); const p=Math.min(1,Math.max(0,1-(u._atkHold/_ah2))); const arc=Math.sin(p*Math.PI); const dx=Math.sign(wx(u.target.x)-wx(u.x))||0, dz=Math.sign(wz(u.target.y)-wz(u.y))||0; g.position.x+=dx*LU*arc; g.position.z+=dz*LU*arc; }
-        else if(u.attackAnim>0&&u.target){const k=u.attackAnim/.18;g.position.x+=(Math.sign(wx(u.target.x)-wx(u.x))||0)*.28*k;g.position.z+=(Math.sign(wz(u.target.y)-wz(u.y))||0)*.28*k;} }
+        /* v406 (Phil: "when they attack they shouldn't move their animation like a bob … Lumi sort of
+           wobbles to attack"). This 0.28-unit shove toward the target on every auto exists for units
+           with NO attack clip, where nothing else would read as a swing. On a hero who has a real
+           attack sheet it fights the art: the clip already steps and leans, and the engine slid the
+           whole body on top of it, which is the wobble. Animated attackers now move only as their
+           clip moves — unless the clip is authored with an explicit `lunge`, handled above. */
+        else if(u.attackAnim>0&&u.target&&!(u.anim&&u.anim.attack)){const k=u.attackAnim/.18;g.position.x+=(Math.sign(wx(u.target.x)-wx(u.x))||0)*.28*k;g.position.z+=(Math.sign(wz(u.target.y)-wz(u.y))||0)*.28*k;} }
       spr.position.y=.05+bob+(u.castAnim>0?.4*(u.castAnim/.5):0)+(u._fallH||0);
       /* v276: the ability tell for a hero whose green/blue/ult art does not exist yet — a warm flare
          over the cast, so the attack clip standing in for the ability does not read as an ordinary
@@ -5608,7 +5644,21 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // walk<->idle share a leg cadence; carrying the accumulator across that swap stops a visible
         // snap back to frame 0 every time a hero pauses for an instant mid-approach
         if(u._animSt!==st){ const _soft=(u._animSt==='walk'&&st==='idle')||(u._animSt==='idle'&&st==='walk');
-          u._animSt=st; if(!_soft) u._animAcc=0; }
+          u._animSt=st; if(!_soft) u._animAcc=0;
+          /* v406 — remember how long THIS one-shot was given, at the moment it starts. See _osFrac. */
+          u._osMax=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0); }
+        /* v406 (Phil: "they don't actually attack, they just twitch and bob into their target").
+           A one-shot state — a swing, an ability, an ultimate, a crit flinch — is held for a fixed
+           window (`hold`, or 0.42 s by default) while its clip runs at its OWN fps. That was fine
+           when clips were 24 frames at 16 fps, but every hero made since is 48 frames at 24 fps, a
+           two-second swing. Held for 0.42 s it renders frames 0-10 of 48: the wind-up, and never the
+           strike. Which is exactly what a twitch looks like.
+           Rather than lengthen the hold — that would change combat pacing for the whole roster — the
+           clip is now fitted to whatever window it is given. Progress through the hold picks the
+           frame, so the FULL swing always plays, fast or slow, and no hero's timing moves at all. */
+        const _osH=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0);
+        const _osFrac=(_osH>0 && (u._osMax||0)>0 && st!=='walk' && st!=='idle' && !rising && A.n>1)
+          ? Math.max(0,Math.min(0.999,1-(_osH/u._osMax))) : null;
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12)*WALK_ANIM_MUL;   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8))*WALK_ANIM_MUL; }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else u._animAcc=(u._animAcc||0)+dt*(A.fps||10);
@@ -5617,6 +5667,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
           const prog=1-Math.max(0,Math.min(1,u._riseT/(u._riseMax||(12/14))));
           fr=Math.max(0,Math.min(A.n-1,Math.floor(prog*A.n))); }
+        else if(_osFrac!==null) fr=Math.floor(_osFrac*A.n);   // one-shot: the whole clip, fitted to its hold
         else if(A.pingpong && A.n>1){ const per=2*A.n-2; let p=Math.floor(u._animAcc)%per; fr=p<A.n?p:per-p; }
         else fr=Math.floor(u._animAcc)%A.n;
         if(A.reverse) fr=A.n-1-fr;   // v349 (Phil: Corsair/Dawnbringer 'walk backwards'): the Hailuo clip is a backpedal — play it reversed
@@ -7835,6 +7886,10 @@ function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)r
 // Finished hero-card art (Phil, 2026-08-21). These supersede the concept cutouts for both the
 // hero portrait and the glossary tile — the cutouts remain the ANIMATION source, not the display art.
 const HERO_CARD_ART={};
+/* Per-hero vertical framing for the roster card image (see the `_cpos` note where the card is built).
+   Values are the `object-position` Y for `object-fit: cover`: 0% shows the very top of the art,
+   larger values slide the art UP in the tile. Absent = the shared `top center` default. */
+const HERO_CARD_POS={ lumi:'12%' };
 /* 4 Sep (Phil: "the hero cards for the new heroes is still place holders") — THE MIRROR USED TO RUN
    HERE, one line after the table was declared EMPTY. Every HERO_CARD_ART.<key>=... assignment lives
    ~700 lines further down, so this loop copied nothing and HERO_PORTRAITS kept whatever it already
@@ -10739,8 +10794,15 @@ function renderHeroList(){
       ? (myth ? `<img src="${MYTHICAL_BANNER}" alt="Mythical" style="${_mbStyle};filter:drop-shadow(0 1px 3px #0008)">`
               : `<img src="${MYTHICAL_BANNER}" alt="" aria-hidden="true" style="${_mbStyle};visibility:hidden">`) : '';
     // uniform head-and-shoulders bust for EVERY hero (matches KonWu's framing); async-upgraded after render
+    /* v406 — per-hero framing nudge on the roster card. Every card is `object-position: top center`,
+       which is right for art drawn head-and-shoulders but crops badly when a piece is composed with
+       more headroom: the face sits too low in the tile. A percentage here picks which band of the
+       art the tile shows, so a LARGER number slides the art UP. Only heroes that need it appear in
+       HERO_CARD_POS; everyone else keeps the shared default. (Phil, 4 Sep: Lumi's card art needs to
+       move up slightly.) */
+    const _cpos=(typeof HERO_CARD_POS!=='undefined' && HERO_CARD_POS[key]) || null;
     const portImg = HERO_PORTRAITS[key]
-      ? `<img class="hc-img" id="rcp_${key}" src="${HERO_PORTRAITS[key]}">`
+      ? `<img class="hc-img" id="rcp_${key}" src="${HERO_PORTRAITS[key]}"${_cpos?` style="object-position:center ${_cpos}"`:''}>`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:46px">${t.emoji}</div>`;
     const mythTag = (myth && MYTHICAL_BANNER && isAssetRef(MYTHICAL_BANNER)) ? `<img class="hc-myth" src="${MYTHICAL_BANNER}" alt="Mythical">` : '';
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<span class="rolebl">${t.role}</span>
@@ -13412,7 +13474,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788551453259';
+const BUILD_ID = '1788552117378';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
