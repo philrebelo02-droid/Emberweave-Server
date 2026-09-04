@@ -2583,8 +2583,8 @@ function arenaDailyReady(){ return G.arenaDailyDay !== arenaDayKey(); }
 function arenaDailyLeft(){ return arenaDailyReady()? 0 : arenaNextResetMs(); }
 function deepMerge(base,src){ for(const k in src){ if(src[k]&&typeof src[k]==='object'&&!Array.isArray(src[k])&&base[k]) deepMerge(base[k],src[k]); else base[k]=src[k]; } }
 // lightweight themed confirm dialog: gameConfirm(htmlMessage, onConfirm)
-function gameConfirm(msg,onYes){ const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.74);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
+function gameConfirm(msg,onYes,opts){ const ov=document.createElement('div'); opts=opts||{};
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,'+(opts.side?'.35':'.74')+');display:flex;align-items:center;justify-content:'+(opts.side==='right'?'flex-end':'center')+';z-index:20000;padding:16px'+(opts.side==='right'?';padding-right:max(16px,4vw)':'');   // v373 (Phil): gear confirms sit on the RIGHT so the tree stays visible
   ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:20px;width:100%;max-width:340px;text-align:center;box-shadow:0 10px 40px #000a">
     <div style="font-size:14px;color:#e6edf3;line-height:1.5;margin-bottom:16px">${msg}</div>
     <div style="display:flex;gap:8px"><button class="btn secondary" style="flex:1" id="_gcNo">Cancel</button><button class="btn" style="flex:1" id="_gcYes">Confirm</button></div></div>`;
@@ -6043,7 +6043,7 @@ function vaultResultHTML(r){
 async function vaultSweep(){ if(VAULT.busy)return;
   const cost=(VAULT.st&&VAULT.st.sweep&&VAULT.st.sweep.nextCost)||0;   // v372 (Phil): the 3rd/4th/5th sweep cost 200/400/600 diamonds — confirm before paying
   if(cost>0){ if((G.gems||0)<cost){ bannerMsg('Not enough diamonds — this Sweep costs 💎 '+cost+'.'); return; }
-    if(!VAULT._sweepConfirmed){ gameConfirm('Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style="color:#8fe3ff">💎 '+cost+'</b>?<br><span style="font-size:12px;color:#8b98a9">You have 💎 '+(G.gems||0)+'. Your 2 free sweeps are used.</span>', ()=>{ VAULT._sweepConfirmed=true; vaultSweep(); }); return; } }
+    if(!VAULT._sweepConfirmed){ gameConfirm('Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style="color:#8fe3ff">💎 '+cost+'</b>?<br><span style="font-size:12px;color:#8b98a9">You have 💎 '+(G.gems||0)+'. Your 2 free sweeps are used.</span>', ()=>{ VAULT._sweepConfirmed=true; vaultSweep(); }, {side:'right'}); return; } }
   VAULT._sweepConfirmed=false; VAULT.busy=true;
   const r=await api('/api/dungeon/sweep','POST',{requestId:uid8()}); VAULT.busy=false;
   if(r&&r.ok&&r.ledger){ try{ adoptLedger(r.ledger); }catch(e){} }
@@ -6060,7 +6060,7 @@ function vaultSweepPopup(r){
       return `<div style="display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #1b2438;font-size:11px"><b style="flex:none;width:64px;color:#c9a2ff">Floor ${f.floor}</b><div style="flex:1;line-height:1.5">${bits.join(' · ')}</div></div>`; }).join('');
   const fr=Object.entries(r.fragments||{}), gf=Object.entries(r.gearFragments||{});
   const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">✨ +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">⭐ +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>🧩 '+fr.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>⚒ '+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.45);display:flex;align-items:center;justify-content:flex-end;z-index:20000;padding:16px;padding-right:max(16px,4vw)';   // v373 (Phil): pop-ups on the right
   ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a">
     <div style="font-weight:900;font-size:15px;color:#ffd45e;text-align:center">🧹 Swept ${r.floors} floors</div>
     <div style="font-size:10px;color:#8b98a9;text-align:center;margin:2px 0 8px">Every cleared floor paid out again</div>
@@ -6272,16 +6272,18 @@ function gearCostHTML(d){ const st=FORGE.st, cat=FORGE.cat; if(!d) return '';
   const prevQ=cat.meta.qualities[d.qi-1];
   return `<b>1 × ${escapeHTML(d.sub)}</b> and <b>2 fresh ${prevQ} items</b> (the two least-tempered unbound ${prevQ} pieces you own are consumed)`; }
 function gearConfirmBuild(gearId,equipHero){ const d=forgeDef(gearId); if(!d) return;
-  gameConfirm(`Build <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?<br><span style="font-size:12px;color:#8b98a9">This spends ${gearCostHTML(d)}.</span>`, ()=>{ gearBuildDo(gearId,equipHero); if(equipHero) GEAR_BUILD=null; else gearBuildBack(); }); }
+  gameConfirm(`Build <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?<br><span style="font-size:12px;color:#8b98a9">This spends ${gearCostHTML(d)}.</span>`, ()=>{ gearBuildDo(gearId,equipHero); if(equipHero) GEAR_BUILD=null; else gearBuildBack(); }, {side:'right'}); }
+function gearConfirmBuildOne(gearId){ const d=forgeDef(gearId); if(!d) return;   // v373 (Phil): the ＋ on any node builds THAT piece alone, stays on the tree
+  gameConfirm(`Build <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${escapeHTML(d.name)}</b>?<br><span style="font-size:12px;color:#8b98a9">This spends ${gearCostHTML(d)}.</span>`, async()=>{ await gearBuildDo(gearId,null); }, {side:'right'}); }
 function gearConfirmSub(gearId){ const d=forgeDef(gearId); if(!d||!d.sub) return;
-  gameConfirm(`Make <b>${escapeHTML(d.sub)}</b>?<br><span style="font-size:12px;color:#8b98a9">This spends <b>${d.subFragCost} × ${escapeHTML(d.frag)}</b>.</span>`, ()=>gearHeroPost('/craft-sub',{gearId},r=>'🔩 '+r.sub+' made!')); }
+  gameConfirm(`Make <b>${escapeHTML(d.sub)}</b>?<br><span style="font-size:12px;color:#8b98a9">This spends <b>${d.subFragCost} × ${escapeHTML(d.frag)}</b>.</span>`, ()=>gearHeroPost('/craft-sub',{gearId},r=>'🔩 '+r.sub+' made!'), {side:'right'}); }
 function gearBuildPush(gid){ if(!GEAR_BUILD) return; GEAR_BUILD.stack.push(GEAR_BUILD.gearId); GEAR_BUILD.gearId=gid; renderHeroDetail(); }
 function gearBuildBack(){ if(!GEAR_BUILD) return; if(GEAR_BUILD.stack.length){ GEAR_BUILD.gearId=GEAR_BUILD.stack.pop(); renderHeroDetail(); } else gearBuildCancel(); }
-function gearGhost(imgHtml,px,can,owned){ return owned
+function gearGhost(imgHtml,px,can,owned,onPlus){ return owned
   ?`<div style="height:${px+6}px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px #5ee89b66)">${imgHtml}</div>`
   :`<div style="position:relative;height:${px+6}px;display:flex;align-items:center;justify-content:center">
       <span style="position:absolute;inset:0;opacity:.35;filter:grayscale(1);display:flex;align-items:center;justify-content:center">${imgHtml}</span>
-      <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:${can?'#5ee89b':'#8b98a9'};text-shadow:0 1px 6px #000c${can?';filter:drop-shadow(0 0 6px #5ee89b88)':''}">＋</span></div>`; }
+      <span style="position:relative;font-size:${Math.max(18,Math.round(px/3.4))}px;font-weight:800;color:${can?'#5ee89b':'#8b98a9'};text-shadow:0 1px 6px #000c${can?';filter:drop-shadow(0 0 6px #5ee89b88);cursor:pointer':''}" ${(can&&onPlus)?`onclick="event.stopPropagation();${onPlus}"`:''} title="${can?'Build this piece':'Missing materials'}">＋</span></div>`; }
 function gearTreeView(key){
   const st=FORGE.st, cat=FORGE.cat, d=forgeDef(GEAR_BUILD.gearId); if(!d) return '';
   const role=gearLoadoutFor(key), col=FORGE_QCOLOR[d.quality]||'#e6edf3';
@@ -6300,14 +6302,14 @@ function gearTreeView(key){
   else {
     const subHave=st.subs[d.sub]||0, fr=st.fragments[d.frag]||0, canSub=fr>=d.subFragCost;
     const subNode=`<div id="${id('sub')}" data-g2p="${id('root')}" data-rdy="${subHave?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:${(!subHave&&canSub)?'pointer':'default'}" ${(!subHave&&canSub)?`onclick="gearConfirmSub('${d.id}')"`:''}>
-        ${gearGhost(gearSubImg(d.sub,76),82,canSub,subHave>0)}
+        ${gearGhost(gearSubImg(d.sub,76),82,canSub,subHave>0,`gearConfirmSub('${d.id}')`)}
         <div style="font-size:11px;font-weight:800;color:${col};line-height:1.2">${escapeHTML(d.sub)}</div>
         <div style="margin-top:3px"><span class="pill" style="font-size:9px;color:${subHave?'#5ee89b':'#8b98a9'};border:1px solid ${subHave?'#5ee89b':'#8b98a9'}">${subHave} / 1${(!subHave&&canSub)?' · tap to make':''}</span></div></div>`;
     const prevQ=cat.meta.qualities[d.qi-1], prevDef=forgeDef((GEAR_LOADOUTS[role]||[])[d.qi-1]||'');
     const freshPrev=gearFreshCount(st,prevQ), pcol=FORGE_QCOLOR[prevQ]||'#888';
     const prevNode=(i)=>{ const owned=freshPrev>i, canP=prevDef&&gearCanCraft(st,prevDef);
       return `<div id="${id('p'+i)}" data-g2p="${id('root')}" data-rdy="${owned?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:pointer" onclick="gearBuildPush('${prevDef?prevDef.id:''}')">
-        ${gearGhost(gearImg(prevDef,76),82,canP,owned)}
+        ${gearGhost(gearImg(prevDef,76),82,canP,owned,prevDef?`gearConfirmBuildOne('${prevDef.id}')`:'')}
         <div style="font-size:11px;font-weight:800;color:${pcol};line-height:1.2">${prevDef?escapeHTML(prevDef.name):prevQ}</div>
         <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:${owned?'#5ee89b':'#8b98a9'};border:1px solid ${owned?'#5ee89b':'#33405e'};border-radius:10px;padding:1px 9px;background:#0b1424d9">${owned?'✓ fresh copy ready':'Tap to open'}</span></div></div>`; };
     cols=`<div style="display:flex;flex-direction:column;align-items:center;gap:26px;flex:1;min-width:120px">${subNode}<div style="display:flex;gap:8px;justify-content:center">${fragLeaf(d.frag,fr,d.subFragCost,'sub')}</div></div>
@@ -6319,7 +6321,7 @@ function gearTreeView(key){
   return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
     <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
     <div id="${id('root')}" style="text-align:center;position:relative;z-index:1;margin-bottom:30px">
-      <span style="position:relative;display:inline-block">${gearGhost(gearImg(d,104),112,can,!!fresh)}</span>
+      <span style="position:relative;display:inline-block">${gearGhost(gearImg(d,104),112,can,!!fresh,`gearConfirmBuildOne('${d.id}')`)}</span>
       <div style="font-size:15px;font-weight:800;color:${col};margin-top:2px">${escapeHTML(d.name)}</div>
       <div style="font-size:10px;color:#c3ccd8;margin-top:2px">${stats} · <span style="color:#8fe3ff">✨ ${escapeHTML(d.active||'')}</span></div>
       <div style="margin-top:5px">${badge}</div></div>
@@ -12957,7 +12959,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788481880150';
+const BUILD_ID = '1788482201474';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
