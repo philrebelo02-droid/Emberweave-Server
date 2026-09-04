@@ -1037,6 +1037,7 @@ const HERO_TYPES = {
    fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true,start:2},
    lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
+   cardwraith:{name:'Cardwraith',emoji:'🃏',role:'Mage',swing:1.9,stars:2,hp:225,dmg:36,range:200,speed:57,atkSpeed:0.95,color:0x6a5a8a,abilityName:"Dealer's Cut",ability:'fireball',locked:true,wip:true,start:2},
    cacklefang:{name:'Cacklefang',emoji:'🐺',role:'Bruiser',swing:1.8,stars:2,hp:340,dmg:42,range:30,speed:60,atkSpeed:1.00,color:0x8a7a4a,abilityName:'Raven Howl',ability:'cleave',locked:true,wip:true,start:2},
    kharos:{name:'Kharos Bloomknife',emoji:'🌸',role:'Assassin',swing:1.8,stars:3,hp:275,dmg:46,range:28,speed:70,atkSpeed:1.25,color:0xe8a0c0,abilityName:'Bloom Cut',ability:'multiShot',locked:true,wip:true,start:2},
    zahri:{name:'Zahri Sunhorn',emoji:'☀️',role:'Fighter',swing:1.8,stars:3,hp:320,dmg:44,range:30,speed:62,atkSpeed:1.05,color:0xe0a83a,abilityName:'Sunbrand',ability:'cleave',locked:true,wip:true,start:2},
@@ -1390,6 +1391,16 @@ const BATTLE_ANIM = {
     blue:{u:'/assets/anim/cacklefang/cacklefang_blue.webp?v=2',n:48,fw:300,fh:295,cols:6,rows:8,figH:228,feet:273,cx:156,fps:24,flip:false,hold:0.8,top:44},
     ult:{u:'/assets/anim/cacklefang/cacklefang_ult.webp?v=2',n:48,fw:300,fh:282,cols:6,rows:8,figH:228,feet:260,cx:156,fps:24,flip:false,hold:0.8,top:32},
     passive:{u:'/assets/anim/cacklefang/cacklefang_passive.webp?v=2',n:48,fw:300,fh:282,cols:6,rows:8,figH:228,feet:260,cx:156,fps:24,flip:false,top:32}
+  },
+  cardwraith:{
+    idle:{u:'/assets/anim/cardwraith/cardwraith_idle.webp?v=1',n:48,fw:230,fh:300,cols:6,rows:8,figH:293,feet:296,cx:98,fps:24,flip:false,pingpong:true,top:2},
+    walk:{u:'/assets/anim/cardwraith/cardwraith_walk.webp?v=1',n:48,fw:214,fh:300,cols:6,rows:8,figH:257,feet:275,cx:97,fps:24,flip:false,top:18},
+    attack:{u:'/assets/anim/cardwraith/cardwraith_attack.webp?v=1',n:48,fw:263,fh:300,cols:6,rows:8,figH:293,feet:296,cx:130,fps:24,flip:false,hold:0.9,top:2},
+    hit:{u:'/assets/anim/cardwraith/cardwraith_hit.webp?v=1',n:48,fw:300,fh:297,cols:6,rows:8,figH:290,feet:293,cx:105,fps:24,flip:false,top:2},
+    green:{u:'/assets/anim/cardwraith/cardwraith_green.webp?v=1',n:48,fw:300,fh:298,cols:6,rows:8,figH:241,feet:276,cx:143,fps:24,flip:false,hold:0.8,top:34},
+    blue:{u:'/assets/anim/cardwraith/cardwraith_blue.webp?v=1',n:48,fw:216,fh:300,cols:6,rows:8,figH:293,feet:296,cx:107,fps:24,flip:false,hold:0.8,top:2},
+    ult:{u:'/assets/anim/cardwraith/cardwraith_ult.webp?v=1',n:48,fw:216,fh:300,cols:6,rows:8,figH:293,feet:296,cx:107,fps:24,flip:false,hold:0.8,top:2},
+    passive:{u:'/assets/anim/cardwraith/cardwraith_passive.webp?v=1',n:48,fw:230,fh:300,cols:6,rows:8,figH:293,feet:296,cx:98,fps:24,flip:false,top:2}
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=5',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
@@ -2122,6 +2133,7 @@ const KITS={
   zahri:{green:{name:'Sunbrand',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Solar Lance',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Daybreak',pass:'power'}},
   kharos:{green:{name:'Bloom Cut',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Thorn Point',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Garden of Knives',pass:'power'}},
   cacklefang:{green:{name:'Raven Howl',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Bone Snap',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Pack Frenzy',pass:'power'}},
+  cardwraith:{green:{name:"Dealer's Cut",type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Lantern Hex',type:'strike',mul:1.7,color:'#8fe0a0',cd:9},purple:{name:'Full House',pass:'power'}},
   vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8},blue:{name:'Bleed Them Dry',type:'mortal',mul:1.2,dur:5,cd:9},purple:{name:'Killer Instinct',pass:'power'}},
   arrears:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6},blue:{name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10},purple:{name:'Compound Interest',pass:'debtaura'}},
   meryln:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8},blue:{name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
@@ -13111,7 +13123,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788508118413';
+const BUILD_ID = '1788510545043';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
