@@ -5,7 +5,7 @@
    every fight through resolveLineBattle()/resolveTwoWaveBattle() below, so
    the client can never invent an outcome. This v1 is a deterministic
    round-based QUALIFICATION ESTIMATE. Stat RESOLUTION follows the client's formulas; the battle itself is a simplified line model — it is never a replay of a client battle
-   (base × (1+0.18·(level−1)) × starMult + glyph bonuses) but simplifies the
+   (baseAtLevel(base,level) × starMult + glyph bonuses — see ROLE_GROWTH) but simplifies the
    moment-to-moment combat (no positioning/FX). Swapping in the full 30 Hz
    extracted sim later means replacing ONLY the internals of
    resolveLineBattle(); every caller keeps working.
@@ -109,6 +109,32 @@ function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0
    crit multiplier 1.6×, critRes shrinks the bonus (1+(0.6)·(1−critRes)), DR multiplies incoming
    damage under a 0.6 cap. The sim is still a simplified line resolver, not a replay of the full
    client battle (kits, positioning, manual timing), and is labeled as such where it gates results. */
+/* v401 (4 Sep) — PER-CLASS FLAT GROWTH. This table is the SINGLE SOURCE OF TRUTH shared with the
+   client (emberweave-heroes.html ROLE_GROWTH); the two MUST stay identical or server and client
+   disagree about how strong a hero is. Prior to v401 this file grew HP/ATK at 0.18/level while the
+   client grew at 0.05/level — a 3.2x divergence at level 100 hidden behind a comment claiming they
+   matched. Growth is FLAT PER LEVEL, not a multiplier: every class gains every stat, but gains most
+   in its own (Phil: "the classes arent just one stat. they gain all stats. but each class gains
+   more of their specific stat"). Star multiplier still multiplies the level-adjusted base. */
+const ROLE_GROWTH={
+  Tank    :{hp:34,dmg:0.9,apow:0.3,armor:12,mr:8},
+  Fighter :{hp:24,dmg:1.4,apow:0.6,armor:9, mr:6},
+  Bruiser :{hp:22,dmg:1.6,apow:0.4,armor:8, mr:6},
+  Assassin:{hp:15,dmg:2.2,apow:0.3,armor:5, mr:4},
+  Marksman:{hp:13,dmg:2.0,apow:0.4,armor:4, mr:4},
+  Support :{hp:13,dmg:0.5,apow:1.6,armor:4, mr:7},
+  Mage    :{hp:11,dmg:0.6,apow:2.0,armor:3, mr:8} };
+/* Returns a COPY of the hero base with every stat advanced to `lvl`. Heroes whose role is missing
+   from the table fall back to the old 0.05/level multiplier so nothing can resolve to null. */
+function baseAtLevel(b,lvl){
+  const n=Math.max(0,((lvl|0)||1)-1), g=ROLE_GROWTH[b.role];
+  const o=Object.assign({},b);
+  if(!g){ const s=1+0.05*n;
+    o.hp=(b.hp||0)*s; o.dmg=(b.dmg||0)*s; o.apow=(b.apow||0)*s; o.armor=(b.armor||0)*s; o.mr=(b.mr||0)*s; return o; }
+  o.hp=(b.hp||0)+g.hp*n; o.dmg=(b.dmg||0)+g.dmg*n; o.apow=(b.apow||0)+g.apow*n;
+  o.armor=(b.armor||0)+g.armor*n; o.mr=(b.mr||0)+g.mr*n; return o;
+}
+
 function heroCombatStats(key, opts){
   const b=HERO_BASE[key]; if(!b) return null;
   opts=opts||{};
@@ -117,19 +143,22 @@ function heroCombatStats(key, opts){
   let smul=starMultFor(stars,pips);
   if(stars>=5&&ref>0){ const A=[1.90,2.25,2.65,2.90];
     smul = ref>=15 ? A[3] : A[Math.floor(ref/5)]+(A[Math.floor(ref/5)+1]-A[Math.floor(ref/5)])*((ref%5)/5); }
-  const mul=(1+0.18*(level-1))*smul;                                   // the client's heroStat() curve
-  const defScale=(1+0.05*(level-1))*starMultFor(stars,pips);           // the client's makeUnit defense scale
+  // v401: growth is baked into the base by baseAtLevel(); the only multiplier left is the star mult,
+  // exactly as the client does it (heroStat = baseAtLevel(t,lvl) * starMult(key)).
+  const bl=baseAtLevel(b,level);
+  const mul=smul;
+  const defScale=starMultFor(stars,pips);
   // v242: RAW TYPED RATINGS in (snapshotHeroFromServer), typed core unit out. Legacy callers that
   // still pass {glyph:{hp,atk,apow,heal}} get those as flats with no ratings.
   const R=opts.ratings || (opts.glyph?{hpFlat:opts.glyph.hp|0,atkFlat:opts.glyph.atk|0,apowFlat:opts.glyph.apow|0,healFlat:opts.glyph.heal|0}:{});
-  const u=CORE.buildUnit(key, b, mul, defScale, R, Object.assign({gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null}, opts.extra||{}));
+  const u=CORE.buildUnit(key, bl, mul, defScale, R, Object.assign({level:level, gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null}, opts.extra||{}));
   u.level=level;
   // legacy aliases: scores (vaultTeamScore), plausibility gates, and views read these
   u.atk=Math.max(u.atkP,u.atkM);
-  u.dr=(CORE.defToDR(u.armor)+CORE.defToDR(u.mr))/2;
+  u.dr=(CORE.defToDR(u.armor,level)+CORE.defToDR(u.mr,level))/2;
   return u;
 }
-function defToDR(flatDef){ return flatDef>0 ? flatDef/(flatDef+1200) : 0; }   // the client's exact diminishing curve
+function defToDR(flatDef,lvl){ return flatDef>0 ? flatDef/(flatDef+CORE.defK(lvl==null?1:lvl)) : 0; }   // v401: level-aware, mirrors the client
 
 /* Build a battle line from resolved stats + optional carried state.
    snaps: [heroCombatStats...] (≤5) · carry: [{hp,energy}] aligned or null */

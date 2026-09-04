@@ -22,7 +22,13 @@
 
 function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
 function seedFrom(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
-function defToDR(r){ return r>0 ? r/(r+1200) : 0; }   // the client's exact diminishing curve
+/* v401 (4 Sep): LEVEL-AWARE mitigation. Phil: "mitigation reduces per level. so 60 armor at
+   level 1 maybe is 4.8% mitigation but at level 2 should be like 4.7". The constant K grows with
+   the defender's level, so a fixed rating is worth steadily less %DR as levels climb — this is
+   what keeps a level-100 tank from becoming unkillable. MIRRORS the client's defK() exactly. */
+const DEF_K_BASE=1200, DEF_K_PER_LV=17.4;
+function defK(lvl){ return DEF_K_BASE + DEF_K_PER_LV*Math.max(0,((lvl|0)||1)-1); }
+function defToDR(r,lvl){ return r>0 ? r/(r+defK(lvl==null?1:lvl)) : 0; }
 
 /* ---- rating→fraction conversions (points from glyphs/gear are RATINGS; these are the only
         places they become percentages, shared by every battle authority) ---- */
@@ -94,7 +100,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
   // AP flats never create an ability line where none exists — a pure physical hero gains NOTHING from AP
   const atkM=Math.round(((base.apow||0)>0 ? Math.round(base.apow*mul)+(r.apowFlat|0) : 0)*(extra.apMul||1));   // Academy AP research scales spells only
   return {
-    key, role:base.role||'Bruiser', healer:!!base.healer,
+    key, role:base.role||'Bruiser', healer:!!base.healer, level:Math.max(1,(extra.level|0)||1),
     maxHp:Math.round((base.hp||100)*mul)+(r.hpFlat|0),
     hp:0, energy:0,
     atkP, atkM,
@@ -158,11 +164,11 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   if(tgt._markR>0) dmg*=(tgt._markMul||1);
   // TYPED mitigation: armor vs phys (blockable), MR vs magic — each countered only by its own pen
   if(kind==='phys'){
-    dmg*=1-defToDR(Math.max(0,(tgt.armor||0)-(src.armorPen||0)));
+    dmg*=1-defToDR(Math.max(0,(tgt.armor||0)-(src.armorPen||0)), tgt.level);
     const blockRoll=rnd();
     if((tgt.block||0)>0 && blockRoll<(tgt.block||0)){ dmg*=0.5; if(log.length<600) log.push([round,side,tgt.key,'block',src.key,0,0,kind,0]); }
   } else if(kind==='magic'){
-    dmg*=1-defToDR(Math.max(0,(tgt.mr||0)-(src.magicPen||0)));
+    dmg*=1-defToDR(Math.max(0,(tgt.mr||0)-(src.magicPen||0)), tgt.level);
     rnd();   // parity roll so phys/magic consume identical stream length
   } else { rnd(); }
   if(tgt._drR>0) dmg*=0.65;                      // gear brace
@@ -284,5 +290,5 @@ function resolveBattle(a, b, seed){
   return { won, rounds:round, aState:state(a), bState:state(b), log };
 }
 
-module.exports={ mulberry32, seedFrom, defToDR, CONV, KITS, buildUnit, lineUp, resolveBattle,
+module.exports={ mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
   applyDamage, applyHeal, grantShield, state };
