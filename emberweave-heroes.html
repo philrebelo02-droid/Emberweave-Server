@@ -1037,6 +1037,7 @@ const HERO_TYPES = {
    fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true,start:2},
    lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
+   veyr:{name:'Veyr Manta-Born',emoji:'🐟',role:'Assassin',swing:1.8,stars:3,hp:900,dmg:92,range:2.0,speed:3.0,atkSpeed:1.2,color:0x3a5fa8,abilityName:'Tidewing',ability:'frostnova',locked:true,wip:true,start:2},
    velvetplum:{name:'Velvetplum',emoji:'🦚',role:'Assassin',swing:1.8,stars:3,hp:880,dmg:96,range:1.8,speed:2.9,atkSpeed:1.25,color:0x3f7f6b,abilityName:'Plume Dance',ability:'fireball',locked:true,wip:true,start:2},
    pellucid:{name:'Pellucid Rook',emoji:'💎',role:'Tank',swing:1.8,stars:3,hp:1300,dmg:68,range:1.7,speed:2.1,atkSpeed:0.95,color:0x6fb7c9,abilityName:'Prism Guard',ability:'frostnova',locked:true,wip:true,start:2},
    orryn:{name:'Orryn of the Spiral Deep',emoji:'🐚',role:'Mage',swing:1.8,stars:3,hp:940,dmg:88,range:5.5,speed:2.2,atkSpeed:1.05,color:0x2f8fa8,abilityName:'Spiral Tide',ability:'frostnova',locked:true,wip:true,start:2},
@@ -1489,6 +1490,16 @@ const BATTLE_ANIM = {
     blue:{u:'/assets/anim/velvetplum/velvetplum_blue.webp?v=1',n:48,fw:300,fh:294,cols:6,rows:8,figH:284,feet:290,cx:141,fps:24,flip:false,top:5,hold:0.8},
     ult:{u:'/assets/anim/velvetplum/velvetplum_ult.webp?v=1',n:48,fw:279,fh:300,cols:6,rows:8,figH:291,feet:297,cx:145,fps:24,flip:false,top:5,hold:0.8},
     passive:{u:'/assets/anim/velvetplum/velvetplum_passive.webp?v=1',n:48,fw:243,fh:300,cols:6,rows:8,figH:273,feet:297,cx:124,fps:24,flip:false,top:23}
+  },
+  veyr:{
+    idle:{u:'/assets/anim/veyr/veyr_idle.webp?v=1',n:48,fw:300,fh:269,cols:6,rows:8,figH:256,feet:266,cx:161,fps:24,flip:false,top:9,pingpong:true},
+    walk:{u:'/assets/anim/veyr/veyr_walk.webp?v=1',n:48,fw:300,fh:253,cols:6,rows:8,figH:246,feet:249,cx:157,fps:24,flip:false,top:3},
+    attack:{u:'/assets/anim/veyr/veyr_attack.webp?v=1',n:48,fw:300,fh:268,cols:6,rows:8,figH:259,feet:265,cx:165,fps:24,flip:false,top:5,hold:0.9},
+    hit:{u:'/assets/anim/veyr/veyr_hit.webp?v=1',n:48,fw:300,fh:258,cols:6,rows:8,figH:243,feet:251,cx:155,fps:24,flip:false,top:7},
+    green:{u:'/assets/anim/veyr/veyr_green.webp?v=1',n:48,fw:300,fh:256,cols:6,rows:8,figH:250,feet:253,cx:157,fps:24,flip:false,top:2,hold:0.8},
+    blue:{u:'/assets/anim/veyr/veyr_blue.webp?v=1',n:48,fw:300,fh:252,cols:6,rows:8,figH:245,feet:249,cx:154,fps:24,flip:false,top:4,hold:0.8},
+    ult:{u:'/assets/anim/veyr/veyr_ult.webp?v=1',n:48,fw:300,fh:277,cols:6,rows:8,figH:242,feet:274,cx:155,fps:24,flip:false,top:32,hold:0.8},
+    passive:{u:'/assets/anim/veyr/veyr_passive.webp?v=1',n:48,fw:300,fh:269,cols:6,rows:8,figH:256,feet:266,cx:161,fps:24,flip:false,top:9}
   },
   hollow:{
     idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=5',n:24,fw:270,fh:300,cols:6,rows:4,figH:291,feet:295,cx:168,fps:8,flip:false,top:3},
@@ -2230,6 +2241,7 @@ const KITS={
   orryn:{green:{name:'Undertow',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Abyssal Coil',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Deep Sight',pass:'power'}},
   pellucid:{green:{name:'Refract',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Crystal Break',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Clear Sight',pass:'power'}},
   velvetplum:{green:{name:'Fan Slash',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Iridescent Feint',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Dazzling Display',pass:'power'}},
+  veyr:{green:{name:'Wing Cut',type:'cleave',mul:1.3,radius:2.4*METER,cd:8},blue:{name:'Deep Glide',type:'strike',mul:1.7,color:'#9fd8ff',cd:9},purple:{name:'Current Rider',pass:'power'}},
   vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8},blue:{name:'Bleed Them Dry',type:'mortal',mul:1.2,dur:5,cd:9},purple:{name:'Killer Instinct',pass:'power'}},
   arrears:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6},blue:{name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10},purple:{name:'Compound Interest',pass:'debtaura'}},
   meryln:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8},blue:{name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
@@ -13219,7 +13231,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788520599954';
+const BUILD_ID = '1788521754170';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
