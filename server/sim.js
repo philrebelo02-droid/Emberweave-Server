@@ -16,6 +16,30 @@
 
 // ---- base stat table (extracted from the client's HERO_TYPES, 26 Aug 2026 v209) ----
 const HERO_BASE={
+  // --- 4 Sep 2026: the 20 roster heroes wired client-side in v380-v398. Without these the
+  // server silently skipped them everywhere it does `if(!SIM.HERO_BASE[k]) continue`, so they
+  // could never be unlocked, summoned or granted - the dev panel's Unlock-all did nothing. ---
+  cacklefang:{hp:340,dmg:42,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:1.0},
+  calypsa:{hp:240,dmg:36,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.1},
+  cardwraith:{hp:205,dmg:18,apow:32,role:'Mage',stars:2,healer:false,atkSpeed:0.95},
+  chainwheel:{hp:390,dmg:38,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.0},
+  deepcleft:{hp:400,dmg:36,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.95},
+  greatbrow:{hp:620,dmg:24,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
+  ironcoil:{hp:600,dmg:26,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.95},
+  kharos:{hp:275,dmg:46,apow:0,role:'Assassin',stars:3,healer:false,atkSpeed:1.25},
+  kilnmask:{hp:370,dmg:40,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.0},
+  lysara:{hp:195,dmg:16,apow:32,role:'Mage',stars:2,healer:false,atkSpeed:0.95},
+  nerisse:{hp:215,dmg:14,apow:30,role:'Support',stars:2,healer:true,atkSpeed:0.95},
+  nox:{hp:245,dmg:40,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:1.2},
+  orryn:{hp:195,dmg:18,apow:34,role:'Mage',stars:3,healer:false,atkSpeed:1.05},
+  pellucid:{hp:580,dmg:25,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.95},
+  silkcoil:{hp:255,dmg:39,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:1.15},
+  threadseer:{hp:250,dmg:38,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:1.15},
+  vaelora:{hp:230,dmg:16,apow:32,role:'Support',stars:3,healer:true,atkSpeed:1.0},
+  velvetplum:{hp:300,dmg:46,apow:0,role:'Assassin',stars:3,healer:false,atkSpeed:1.25},
+  veyr:{hp:310,dmg:44,apow:0,role:'Assassin',stars:3,healer:false,atkSpeed:1.2},
+  zahri:{hp:320,dmg:44,apow:0,role:'Fighter',stars:3,healer:false,atkSpeed:1.05},
+
   konwu:{hp:380,dmg:34,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.15},
   grosk:{hp:620,dmg:18,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.85},
   vulmar:{hp:175,dmg:26,apow:0,role:'Mage',stars:3,healer:false,atkSpeed:0.85},
