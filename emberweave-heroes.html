@@ -4255,7 +4255,7 @@ const FX2_DEF={
   frostnova: {u:'/assets/anim/fx/frostnova.webp?v=4', n:14, fw:210, fh:183, cols:5, rows:3, dur:1.3},
   groundslam:{u:'/assets/anim/fx/groundslam.webp?v=4',n:18, fw:210, fh:183, cols:6, rows:3, dur:1.6},
   tsunami:   {u:'/assets/anim/fx/tsunami.webp?v=3',   n:26, fw:210, fh:189, cols:6, rows:5, dur:3.0},
-  tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=4', n:24, fw:210, fh:131, cols:6, rows:4, dur:2.6},
+  tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=5', n:24, fw:420, fh:128, cols:6, rows:4, dur:2.0},
   firstspring:{u:'/assets/anim/fx/firstspring.webp?v=4',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=3',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
   mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=4',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
@@ -12990,7 +12990,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788483121777';
+const BUILD_ID = '1788484687570';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
