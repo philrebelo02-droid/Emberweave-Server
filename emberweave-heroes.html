@@ -1028,56 +1028,56 @@ const HERO_TYPES = {
    vael:   {name:'Vael',      emoji:'🗡️',role:'Bruiser', swing:2.3, stars:1,hp:400,dmg:30,range:28, speed:58,atkSpeed:0.95,color:0x4a4e5a,abilityName:'Last Stand',ability:'laststand',locked:true},
    oakmir: {name:'Oakmir',    emoji:'🌳',role:'Support', swing:2.0, stars:3,hp:230,dmg:16,apow:32,range:190,speed:54,atkSpeed:0.85,color:0x6aa84a,abilityName:'First Spring',ability:'firstspring',healer:true,locked:true,start:3},
    rhukk:  {name:'Rhukk',     emoji:'🪲',role:'Bruiser', swing:2.4, stars:2,hp:430,dmg:26,range:28, speed:56,atkSpeed:0.9, color:0x7a5fb0,abilityName:'Impale Rush',ability:'charge',locked:true,start:2},
-   hurne:   {name:'Hurne the Chained',emoji:'\u26D3\uFE0F',role:'Fighter',swing:2.5,stars:3,hp:520,dmg:32,range:30,speed:52,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase',wip:true},
-   meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:3,hp:200,dmg:34,range:210,speed:54,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,wip:true,start:3},
-   tallow:  {name:'Gruel',emoji:'🪙',role:'Tank',swing:2.6,stars:2,hp:560,dmg:26,range:30,speed:50,atkSpeed:0.85,color:0xb9a06a,abilityName:'The Reckoning',ability:'taunt',locked:true,wip:true,start:2},
-   astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:2,hp:180,dmg:16,apow:34,range:230,speed:54,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Event Horizon',ability:'gravcrush',locked:true,wip:true,start:2},
-   magistrant:{name:'The Magistrant',emoji:'⚖️',role:'Fighter',swing:2.2,stars:2,hp:450,dmg:28,range:28,speed:56,atkSpeed:1.0,color:0x2f2f38,abilityName:'Contempt Storm',ability:'volley',locked:true,wip:true,start:2},
-   vharn:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:2,hp:430,dmg:32,range:28,speed:58,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,wip:true,start:2},
-   fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,wip:true,start:2},
-   lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,wip:true,start:2},
+   hurne:   {name:'Hurne the Chained',emoji:'\u26D3\uFE0F',role:'Fighter',swing:2.5,stars:3,hp:520,dmg:32,range:30,speed:52,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase'},
+   meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:3,hp:200,dmg:34,range:210,speed:54,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,start:3},
+   tallow:  {name:'Gruel',emoji:'🪙',role:'Tank',swing:2.6,stars:2,hp:560,dmg:26,range:30,speed:50,atkSpeed:0.85,color:0xb9a06a,abilityName:'The Reckoning',ability:'taunt',locked:true,start:2},
+   astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:2,hp:180,dmg:16,apow:34,range:230,speed:54,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Event Horizon',ability:'gravcrush',locked:true,start:2},
+   magistrant:{name:'The Magistrant',emoji:'⚖️',role:'Fighter',swing:2.2,stars:2,hp:450,dmg:28,range:28,speed:56,atkSpeed:1.0,color:0x2f2f38,abilityName:'Contempt Storm',ability:'volley',locked:true,start:2},
+   vharn:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:2,hp:430,dmg:32,range:28,speed:58,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,start:2},
+   fathom:  {name:'Old Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:50,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,start:2},
+   lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:56,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:66,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
-   veyr:{name:'Veyr Manta-Born',emoji:'🐟',role:'Assassin',swing:1.8,stars:3,hp:900,dmg:92,range:2.0,speed:3.0,atkSpeed:1.2,color:0x3a5fa8,abilityName:'Tidewing',ability:'frostnova',locked:true,wip:true,start:2},
-   velvetplum:{name:'Velvetplum',emoji:'🦚',role:'Assassin',swing:1.8,stars:3,hp:880,dmg:96,range:1.8,speed:2.9,atkSpeed:1.25,color:0x3f7f6b,abilityName:'Plume Dance',ability:'fireball',locked:true,wip:true,start:2},
-   pellucid:{name:'Pellucid Rook',emoji:'💎',role:'Tank',swing:1.8,stars:3,hp:1300,dmg:68,range:1.7,speed:2.1,atkSpeed:0.95,color:0x6fb7c9,abilityName:'Prism Guard',ability:'frostnova',locked:true,wip:true,start:2},
-   orryn:{name:'Orryn of the Spiral Deep',emoji:'🐚',role:'Mage',swing:1.8,stars:3,hp:940,dmg:88,range:5.5,speed:2.2,atkSpeed:1.05,color:0x2f8fa8,abilityName:'Spiral Tide',ability:'frostnova',locked:true,wip:true,start:2},
-   kilnmask:{name:'Kilnmask Potter',emoji:'🏺',role:'Bruiser',swing:1.8,stars:3,hp:1120,dmg:74,range:1.7,speed:2.3,atkSpeed:1.0,color:0xc4652f,abilityName:'Fired Clay',ability:'groundslam',locked:true,wip:true,start:2},
-   ironcoil:{name:'Ironcoil',emoji:'🦎',role:'Tank',swing:1.8,stars:3,hp:1380,dmg:66,range:1.6,speed:2.1,atkSpeed:0.95,color:0xb8863a,abilityName:'Scale Guard',ability:'groundslam',locked:true,wip:true,start:2},
-   greatbrow:{name:'Greatbrow',emoji:'🫎',role:'Tank',swing:1.8,stars:3,hp:1420,dmg:62,range:1.7,speed:2.0,atkSpeed:0.9,color:0x8a6b3f,abilityName:'Antler Charge',ability:'groundslam',locked:true,wip:true,start:2},
-   deepcleft:{name:'Deepcleft',emoji:'🦡',role:'Bruiser',swing:1.8,stars:3,hp:1240,dmg:72,range:1.6,speed:2.2,atkSpeed:0.95,color:0xc9a227,abilityName:'Cleaving Charge',ability:'groundslam',locked:true,wip:true,start:2},
-   chainwheel:{name:'Chainwheel Gladiator',emoji:'🛞',role:'Bruiser',swing:1.8,stars:3,hp:1180,dmg:76,range:1.6,speed:2.3,atkSpeed:1.0,color:0xe08a3a,abilityName:'Wheelbreaker',ability:'groundslam',locked:true,wip:true,start:2},
-   cardwraith:{name:'Cardwraith',emoji:'🃏',role:'Mage',swing:1.9,stars:2,hp:225,dmg:36,range:200,speed:57,atkSpeed:0.95,color:0x6a5a8a,abilityName:"Dealer's Cut",ability:'fireball',locked:true,wip:true,start:2},
-   cacklefang:{name:'Cacklefang',emoji:'🐺',role:'Bruiser',swing:1.8,stars:2,hp:340,dmg:42,range:30,speed:60,atkSpeed:1.00,color:0x8a7a4a,abilityName:'Raven Howl',ability:'cleave',locked:true,wip:true,start:2},
-   kharos:{name:'Kharos Bloomknife',emoji:'🌸',role:'Assassin',swing:1.8,stars:3,hp:275,dmg:46,range:28,speed:70,atkSpeed:1.25,color:0xe8a0c0,abilityName:'Bloom Cut',ability:'multiShot',locked:true,wip:true,start:2},
-   zahri:{name:'Zahri Sunhorn',emoji:'☀️',role:'Fighter',swing:1.8,stars:3,hp:320,dmg:44,range:30,speed:62,atkSpeed:1.05,color:0xe0a83a,abilityName:'Sunbrand',ability:'cleave',locked:true,wip:true,start:2},
-   vaelora:{name:'Vaelora Velvetclaw',emoji:'🐱',role:'Support',swing:1.8,stars:3,hp:265,dmg:32,range:195,speed:58,atkSpeed:1.00,color:0xd8d0e0,abilityName:'Velvet Ward',ability:'firstspring',locked:true,wip:true,start:2},
-   silkcoil:{name:'Silkcoil',emoji:'🐍',role:'Assassin',swing:1.8,stars:2,hp:255,dmg:39,range:28,speed:66,atkSpeed:1.15,color:0x3f8f5c,abilityName:'Silk Bind',ability:'multiShot',locked:true,wip:true,start:2},
-   nox:{name:'Nox Quillfinger',emoji:'🦊',role:'Assassin',swing:1.8,stars:2,hp:245,dmg:40,range:26,speed:68,atkSpeed:1.20,color:0x6b3f8f,abilityName:'Ink Mark',ability:'multiShot',locked:true,wip:true,start:2},
-   nerisse:{name:'Nerisse Bellglass',emoji:'🪼',role:'Support',swing:1.8,stars:2,hp:230,dmg:30,range:195,speed:55,atkSpeed:0.95,color:0x4aa8d8,abilityName:'Bell Toll',ability:'firstspring',locked:true,wip:true,start:2},
-   lysara:{name:'Lysara Moonveil',emoji:'🌙',role:'Mage',swing:1.8,stars:2,hp:210,dmg:34,range:200,speed:56,atkSpeed:0.95,color:0xb9a6e0,abilityName:'Moonveil',ability:'fireball',locked:true,wip:true,start:2},
-   calypsa:{name:'Calypsa Prismfin',emoji:'🌊',role:'Marksman',swing:1.8,stars:2,hp:240,dmg:36,range:190,speed:60,atkSpeed:1.10,color:0x3aa0d8,abilityName:'Tide Call',ability:'multiShot',locked:true,wip:true,start:2},
-   threadseer:{name:'Threadseer',emoji:'🧵',role:'Assassin',swing:1.6,stars:2,hp:250,dmg:38,range:26,speed:64,atkSpeed:1.15,color:0xc8552f,abilityName:'Thread Cut',ability:'multiShot',locked:true,wip:true,start:2},
-   sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:3,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,wip:true,start:3},
-   carn:    {name:'Carn',emoji:'🩸',role:'Bruiser',swing:2.4,stars:1,hp:410,dmg:34,range:28,speed:60,atkSpeed:1.05,color:0xb03a3a,abilityName:'Crimson Reap',ability:'cleave',locked:true,wip:true},
-   vesper:  {name:'The Annotator',emoji:'📖',role:'Mage',swing:2.0,stars:2,hp:190,dmg:16,apow:32,range:215,speed:54,atkSpeed:0.85,color:0xc9a227,abilityName:'Puncture',ability:'riftpuncture',locked:true,wip:true,start:2},
-   sablewick:{name:'Tessit',emoji:'⏳',role:'Support',swing:2.0,stars:2,hp:200,dmg:15,apow:31,range:205,speed:54,atkSpeed:0.85,color:0x4fc4a8,abilityName:'Hourglass',ability:'aoeStun',locked:true,wip:true,start:2},
-   vex:     {name:'Vex',emoji:'🔪',role:'Assassin',swing:1.8,stars:1,hp:320,dmg:34,range:26,speed:64,atkSpeed:1.15,color:0x7a3fa0,abilityName:'Razor Tempest',ability:'triplecleave',locked:true,wip:true},
-   arrears: {name:'Grimsby',emoji:'📜',role:'Bruiser',swing:2.2,stars:3,hp:360,dmg:28,range:200,speed:52,atkSpeed:0.85,color:0x3a3a44,abilityName:'Foreclosure',ability:'aoedot',locked:true,wip:true,start:3},
-   meryln:  {name:'Dandra',emoji:'🌸',role:'Support',swing:2.0,stars:1,hp:200,dmg:12,apow:30,range:185,speed:56,atkSpeed:0.9,color:0x8a5fd0,abilityName:"Queen's Call",ability:'rally',healer:true,locked:true,wip:true},
+   veyr:{name:'Veyr Manta-Born',emoji:'🐟',role:'Assassin',swing:1.8,stars:3,hp:900,dmg:92,range:2.0,speed:3.0,atkSpeed:1.2,color:0x3a5fa8,abilityName:'Tidewing',ability:'frostnova',locked:true,start:2},
+   velvetplum:{name:'Velvetplum',emoji:'🦚',role:'Assassin',swing:1.8,stars:3,hp:880,dmg:96,range:1.8,speed:2.9,atkSpeed:1.25,color:0x3f7f6b,abilityName:'Plume Dance',ability:'fireball',locked:true,start:2},
+   pellucid:{name:'Pellucid Rook',emoji:'💎',role:'Tank',swing:1.8,stars:3,hp:1300,dmg:68,range:1.7,speed:2.1,atkSpeed:0.95,color:0x6fb7c9,abilityName:'Prism Guard',ability:'frostnova',locked:true,start:2},
+   orryn:{name:'Orryn of the Spiral Deep',emoji:'🐚',role:'Mage',swing:1.8,stars:3,hp:940,dmg:88,range:5.5,speed:2.2,atkSpeed:1.05,color:0x2f8fa8,abilityName:'Spiral Tide',ability:'frostnova',locked:true,start:2},
+   kilnmask:{name:'Kilnmask Potter',emoji:'🏺',role:'Bruiser',swing:1.8,stars:3,hp:1120,dmg:74,range:1.7,speed:2.3,atkSpeed:1.0,color:0xc4652f,abilityName:'Fired Clay',ability:'groundslam',locked:true,start:2},
+   ironcoil:{name:'Ironcoil',emoji:'🦎',role:'Tank',swing:1.8,stars:3,hp:1380,dmg:66,range:1.6,speed:2.1,atkSpeed:0.95,color:0xb8863a,abilityName:'Scale Guard',ability:'groundslam',locked:true,start:2},
+   greatbrow:{name:'Greatbrow',emoji:'🫎',role:'Tank',swing:1.8,stars:3,hp:1420,dmg:62,range:1.7,speed:2.0,atkSpeed:0.9,color:0x8a6b3f,abilityName:'Antler Charge',ability:'groundslam',locked:true,start:2},
+   deepcleft:{name:'Deepcleft',emoji:'🦡',role:'Bruiser',swing:1.8,stars:3,hp:1240,dmg:72,range:1.6,speed:2.2,atkSpeed:0.95,color:0xc9a227,abilityName:'Cleaving Charge',ability:'groundslam',locked:true,start:2},
+   chainwheel:{name:'Chainwheel Gladiator',emoji:'🛞',role:'Bruiser',swing:1.8,stars:3,hp:1180,dmg:76,range:1.6,speed:2.3,atkSpeed:1.0,color:0xe08a3a,abilityName:'Wheelbreaker',ability:'groundslam',locked:true,start:2},
+   cardwraith:{name:'Cardwraith',emoji:'🃏',role:'Mage',swing:1.9,stars:2,hp:225,dmg:36,range:200,speed:57,atkSpeed:0.95,color:0x6a5a8a,abilityName:"Dealer's Cut",ability:'fireball',locked:true,start:2},
+   cacklefang:{name:'Cacklefang',emoji:'🐺',role:'Bruiser',swing:1.8,stars:2,hp:340,dmg:42,range:30,speed:60,atkSpeed:1.00,color:0x8a7a4a,abilityName:'Raven Howl',ability:'cleave',locked:true,start:2},
+   kharos:{name:'Kharos Bloomknife',emoji:'🌸',role:'Assassin',swing:1.8,stars:3,hp:275,dmg:46,range:28,speed:70,atkSpeed:1.25,color:0xe8a0c0,abilityName:'Bloom Cut',ability:'multiShot',locked:true,start:2},
+   zahri:{name:'Zahri Sunhorn',emoji:'☀️',role:'Fighter',swing:1.8,stars:3,hp:320,dmg:44,range:30,speed:62,atkSpeed:1.05,color:0xe0a83a,abilityName:'Sunbrand',ability:'cleave',locked:true,start:2},
+   vaelora:{name:'Vaelora Velvetclaw',emoji:'🐱',role:'Support',swing:1.8,stars:3,hp:265,dmg:32,range:195,speed:58,atkSpeed:1.00,color:0xd8d0e0,abilityName:'Velvet Ward',ability:'firstspring',locked:true,start:2},
+   silkcoil:{name:'Silkcoil',emoji:'🐍',role:'Assassin',swing:1.8,stars:2,hp:255,dmg:39,range:28,speed:66,atkSpeed:1.15,color:0x3f8f5c,abilityName:'Silk Bind',ability:'multiShot',locked:true,start:2},
+   nox:{name:'Nox Quillfinger',emoji:'🦊',role:'Assassin',swing:1.8,stars:2,hp:245,dmg:40,range:26,speed:68,atkSpeed:1.20,color:0x6b3f8f,abilityName:'Ink Mark',ability:'multiShot',locked:true,start:2},
+   nerisse:{name:'Nerisse Bellglass',emoji:'🪼',role:'Support',swing:1.8,stars:2,hp:230,dmg:30,range:195,speed:55,atkSpeed:0.95,color:0x4aa8d8,abilityName:'Bell Toll',ability:'firstspring',locked:true,start:2},
+   lysara:{name:'Lysara Moonveil',emoji:'🌙',role:'Mage',swing:1.8,stars:2,hp:210,dmg:34,range:200,speed:56,atkSpeed:0.95,color:0xb9a6e0,abilityName:'Moonveil',ability:'fireball',locked:true,start:2},
+   calypsa:{name:'Calypsa Prismfin',emoji:'🌊',role:'Marksman',swing:1.8,stars:2,hp:240,dmg:36,range:190,speed:60,atkSpeed:1.10,color:0x3aa0d8,abilityName:'Tide Call',ability:'multiShot',locked:true,start:2},
+   threadseer:{name:'Threadseer',emoji:'🧵',role:'Assassin',swing:1.6,stars:2,hp:250,dmg:38,range:26,speed:64,atkSpeed:1.15,color:0xc8552f,abilityName:'Thread Cut',ability:'multiShot',locked:true,start:2},
+   sprocket:{name:'Rivet',emoji:'🔩',role:'Bruiser',swing:1.8,stars:3,hp:380,dmg:30,range:200,speed:52,atkSpeed:1.0,color:0xb08d57,abilityName:'Full Arsenal',ability:'multiShot',locked:true,start:3},
+   carn:    {name:'Carn',emoji:'🩸',role:'Bruiser',swing:2.4,stars:1,hp:410,dmg:34,range:28,speed:60,atkSpeed:1.05,color:0xb03a3a,abilityName:'Crimson Reap',ability:'cleave',locked:true},
+   vesper:  {name:'The Annotator',emoji:'📖',role:'Mage',swing:2.0,stars:2,hp:190,dmg:16,apow:32,range:215,speed:54,atkSpeed:0.85,color:0xc9a227,abilityName:'Puncture',ability:'riftpuncture',locked:true,start:2},
+   sablewick:{name:'Tessit',emoji:'⏳',role:'Support',swing:2.0,stars:2,hp:200,dmg:15,apow:31,range:205,speed:54,atkSpeed:0.85,color:0x4fc4a8,abilityName:'Hourglass',ability:'aoeStun',locked:true,start:2},
+   vex:     {name:'Vex',emoji:'🔪',role:'Assassin',swing:1.8,stars:1,hp:320,dmg:34,range:26,speed:64,atkSpeed:1.15,color:0x7a3fa0,abilityName:'Razor Tempest',ability:'triplecleave',locked:true},
+   arrears: {name:'Grimsby',emoji:'📜',role:'Bruiser',swing:2.2,stars:3,hp:360,dmg:28,range:200,speed:52,atkSpeed:0.85,color:0x3a3a44,abilityName:'Foreclosure',ability:'aoedot',locked:true,start:3},
+   meryln:  {name:'Dandra',emoji:'🌸',role:'Support',swing:2.0,stars:1,hp:200,dmg:12,apow:30,range:185,speed:56,atkSpeed:0.9,color:0x8a5fd0,abilityName:"Queen's Call",ability:'rally',healer:true,locked:true},
 };
 /* v332 — the 11 new heroes (Phil, 1-2 Sep). Stats/kits in the hero block after the roster. */
 Object.assign(HERO_TYPES, {
-  pyroclast:{name:"Pyroclast",emoji:'🔥',role:'Mage',swing:2.0,stars:2,hp:185,dmg:16,apow:34,range:215,speed:54,atkSpeed:0.85,color:0xff6a2a,abilityName:"Crownfire",ability:'fireball',locked:true,wip:true,start:2},
-  stormwarden:{name:"Stormwarden",emoji:'⚡',role:'Fighter',swing:2.3,stars:2,hp:440,dmg:30,range:30,speed:56,atkSpeed:1.0,color:0x5aa8ff,abilityName:"Skybreak",ability:'aoeStun',locked:true,wip:true,start:2},
-  verdantshade:{name:"Verdant Shade",emoji:'🏹',role:'Marksman',swing:2.0,stars:2,hp:210,dmg:32,range:220,speed:56,atkSpeed:1.0,color:0x4fae5a,abilityName:"Emerald Volley",ability:'volley',locked:true,wip:true,start:2},
-  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Event Horizon",ability:'eventhorizon',locked:true,wip:true,start:3},
-  dawnbringer:{name:"Dawnbringer",emoji:'🔨',role:'Tank',swing:2.5,stars:3,hp:580,dmg:24,apow:20,range:30,speed:52,atkSpeed:0.9,color:0xf0d070,abilityName:"Daybreak Judgment",ability:'sunburst',locked:true,wip:true,start:3},
-  cathedral:{name:"The Walking Cathedral",emoji:'⛪',role:'Tank',swing:2.6,stars:3,hp:620,dmg:20,apow:26,range:30,speed:48,atkSpeed:0.85,color:0xc8b890,abilityName:"Divine Mass",ability:'sunburst',locked:true,wip:true,start:3},
-  lastfurnace:{name:"The Last Furnace",emoji:'🔩',role:'Bruiser',swing:2.4,stars:3,hp:470,dmg:34,range:30,speed:54,atkSpeed:0.95,color:0xe06a2a,abilityName:"Living Forge",ability:'ashfall',locked:true,wip:true,start:3},
-  beekeeper:{name:"The Beekeeper King",emoji:'🐝',role:'Support',swing:2.0,stars:2,hp:230,dmg:14,apow:32,range:195,speed:54,atkSpeed:0.9,color:0xf0b830,abilityName:"Hive Mind",ability:'symphony',healer:true,locked:true,wip:true,start:2},
-  librarian:{name:"The Librarian of Monsters",emoji:'📚',role:'Mage',swing:2.1,stars:3,hp:200,dmg:16,apow:34,range:210,speed:52,atkSpeed:0.85,color:0x2c2c3c,abilityName:"Final Volume",ability:'summonshaman',locked:true,wip:true,start:3},
-  corsair:{name:"The Corsair Duelist",emoji:'🏴‍☠️',role:'Marksman',swing:2.0,stars:2,hp:220,dmg:33,range:200,speed:58,atkSpeed:1.05,color:0xb84a3a,abilityName:"Dead Man's Fortune",ability:'multiShot',locked:true,wip:true,start:2},
-  waxenduchess:{name:"Waxen Duchess",emoji:'🕯️',role:'Mage',swing:2.0,stars:3,hp:190,dmg:17,apow:35,range:215,speed:54,atkSpeed:0.85,color:0xe8d8b0,abilityName:"Court of the Final Candle",ability:'swamproot',locked:true,wip:true,start:3},
+  pyroclast:{name:"Pyroclast",emoji:'🔥',role:'Mage',swing:2.0,stars:2,hp:185,dmg:16,apow:34,range:215,speed:54,atkSpeed:0.85,color:0xff6a2a,abilityName:"Crownfire",ability:'fireball',locked:true,start:2},
+  stormwarden:{name:"Stormwarden",emoji:'⚡',role:'Fighter',swing:2.3,stars:2,hp:440,dmg:30,range:30,speed:56,atkSpeed:1.0,color:0x5aa8ff,abilityName:"Skybreak",ability:'aoeStun',locked:true,start:2},
+  verdantshade:{name:"Verdant Shade",emoji:'🏹',role:'Marksman',swing:2.0,stars:2,hp:210,dmg:32,range:220,speed:56,atkSpeed:1.0,color:0x4fae5a,abilityName:"Emerald Volley",ability:'volley',locked:true,start:2},
+  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Event Horizon",ability:'eventhorizon',locked:true,start:3},
+  dawnbringer:{name:"Dawnbringer",emoji:'🔨',role:'Tank',swing:2.5,stars:3,hp:580,dmg:24,apow:20,range:30,speed:52,atkSpeed:0.9,color:0xf0d070,abilityName:"Daybreak Judgment",ability:'sunburst',locked:true,start:3},
+  cathedral:{name:"The Walking Cathedral",emoji:'⛪',role:'Tank',swing:2.6,stars:3,hp:620,dmg:20,apow:26,range:30,speed:48,atkSpeed:0.85,color:0xc8b890,abilityName:"Divine Mass",ability:'sunburst',locked:true,start:3},
+  lastfurnace:{name:"The Last Furnace",emoji:'🔩',role:'Bruiser',swing:2.4,stars:3,hp:470,dmg:34,range:30,speed:54,atkSpeed:0.95,color:0xe06a2a,abilityName:"Living Forge",ability:'ashfall',locked:true,start:3},
+  beekeeper:{name:"The Beekeeper King",emoji:'🐝',role:'Support',swing:2.0,stars:2,hp:230,dmg:14,apow:32,range:195,speed:54,atkSpeed:0.9,color:0xf0b830,abilityName:"Hive Mind",ability:'symphony',healer:true,locked:true,start:2},
+  librarian:{name:"The Librarian of Monsters",emoji:'📚',role:'Mage',swing:2.1,stars:3,hp:200,dmg:16,apow:34,range:210,speed:52,atkSpeed:0.85,color:0x2c2c3c,abilityName:"Final Volume",ability:'summonshaman',locked:true,start:3},
+  corsair:{name:"The Corsair Duelist",emoji:'🏴‍☠️',role:'Marksman',swing:2.0,stars:2,hp:220,dmg:33,range:200,speed:58,atkSpeed:1.05,color:0xb84a3a,abilityName:"Dead Man's Fortune",ability:'multiShot',locked:true,start:2},
+  waxenduchess:{name:"Waxen Duchess",emoji:'🕯️',role:'Mage',swing:2.0,stars:3,hp:190,dmg:17,apow:35,range:215,speed:54,atkSpeed:0.85,color:0xe8d8b0,abilityName:"Court of the Final Candle",ability:'swamproot',locked:true,start:3},
 });
 /* v364 (Phil, 3 Sep): "every hero should start with base stats and increase — Hurne should start with
    armor at least and gain per level." Every hero now carries BASE Armor / Magic Resist by role
@@ -7744,23 +7744,6 @@ function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)r
 // Finished hero-card art (Phil, 2026-08-21). These supersede the concept cutouts for both the
 // hero portrait and the glossary tile — the cutouts remain the ANIMATION source, not the display art.
 const HERO_CARD_ART={};
-HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=8';
-HERO_CARD_ART.carn='/assets/img/hero-cards/card-carn.webp?v=7';
-HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=8';
-HERO_CARD_ART.arrears='/assets/img/hero-cards/card-arrears.webp?v=7';
-HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=7';
-HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=7';
-HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=8';
-HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=8';
-HERO_CARD_ART.tallow='/assets/img/hero-cards/card-tallow.webp?v=7';
-HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=7';
-HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=7';
-HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=7';
-HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=7';
-HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=7';
-HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=7';
-HERO_CARD_ART.sprocket='/assets/img/hero-cards/card-sprocket.webp?v=7';
-HERO_CARD_ART.sablewick='/assets/img/hero-cards/card-sablewick.webp?v=7';
 for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
 const MONSTER_SPRITES={}; for(const k in GLOSSARY_ART){ const i=k.indexOf('/'), cat=k.slice(0,i), id=k.slice(i+1); if(cat==='monsters'||cat==='bosses') MONSTER_SPRITES[id]=GLOSSARY_ART[k]; }
 Object.assign(HERO_SPRITES, MONSTER_SPRITES);   // monsters render as static billboards from their keyed art
@@ -8409,6 +8392,66 @@ HERO_PORTRAITS.pyroclast='/assets/img/glossary/glossary-heroes-pyroclast.webp?v=
 HERO_PORTRAITS.stormwarden='/assets/img/glossary/glossary-heroes-stormwarden.webp?v=1'; HERO_SPRITES.stormwarden=HERO_PORTRAITS.stormwarden; GLOSSARY_ART['heroes/stormwarden']=HERO_PORTRAITS.stormwarden;
 HERO_PORTRAITS.verdantshade='/assets/img/glossary/glossary-heroes-verdantshade.webp?v=1'; HERO_SPRITES.verdantshade=HERO_PORTRAITS.verdantshade; GLOSSARY_ART['heroes/verdantshade']=HERO_PORTRAITS.verdantshade;
 HERO_PORTRAITS.voidweaver='/assets/img/glossary/glossary-heroes-voidweaver.webp?v=1'; HERO_SPRITES.voidweaver=HERO_PORTRAITS.voidweaver; GLOSSARY_ART['heroes/voidweaver']=HERO_PORTRAITS.voidweaver;
+HERO_CARD_ART.arrears='/assets/img/hero-cards/card-arrears.webp?v=9';
+HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=9';
+HERO_CARD_ART.aureth='/assets/img/hero-cards/card-aureth.webp?v=9';
+HERO_CARD_ART.beekeeper='/assets/img/hero-cards/card-beekeeper.webp?v=9';
+HERO_CARD_ART.bloatus='/assets/img/hero-cards/card-bloatus.webp?v=9';
+HERO_CARD_ART.cacklefang='/assets/img/hero-cards/card-cacklefang.webp?v=9';
+HERO_CARD_ART.calypsa='/assets/img/hero-cards/card-calypsa.webp?v=9';
+HERO_CARD_ART.cardwraith='/assets/img/hero-cards/card-cardwraith.webp?v=9';
+HERO_CARD_ART.carn='/assets/img/hero-cards/card-carn.webp?v=9';
+HERO_CARD_ART.cathedral='/assets/img/hero-cards/card-cathedral.webp?v=9';
+HERO_CARD_ART.chainwheel='/assets/img/hero-cards/card-chainwheel.webp?v=9';
+HERO_CARD_ART.corsair='/assets/img/hero-cards/card-corsair.webp?v=9';
+HERO_CARD_ART.dawnbringer='/assets/img/hero-cards/card-dawnbringer.webp?v=9';
+HERO_CARD_ART.deepcleft='/assets/img/hero-cards/card-deepcleft.webp?v=9';
+HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=9';
+HERO_CARD_ART.fritz='/assets/img/hero-cards/card-fritz.webp?v=9';
+HERO_CARD_ART.greatbrow='/assets/img/hero-cards/card-greatbrow.webp?v=9';
+HERO_CARD_ART.grosk='/assets/img/hero-cards/card-grosk.webp?v=9';
+HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=9';
+HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=9';
+HERO_CARD_ART.ironcoil='/assets/img/hero-cards/card-ironcoil.webp?v=9';
+HERO_CARD_ART.kharos='/assets/img/hero-cards/card-kharos.webp?v=9';
+HERO_CARD_ART.kilnmask='/assets/img/hero-cards/card-kilnmask.webp?v=9';
+HERO_CARD_ART.konwu='/assets/img/hero-cards/card-konwu.webp?v=9';
+HERO_CARD_ART.lastfurnace='/assets/img/hero-cards/card-lastfurnace.webp?v=9';
+HERO_CARD_ART.librarian='/assets/img/hero-cards/card-librarian.webp?v=9';
+HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=9';
+HERO_CARD_ART.lysara='/assets/img/hero-cards/card-lysara.webp?v=9';
+HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=9';
+HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=9';
+HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=9';
+HERO_CARD_ART.nerisse='/assets/img/hero-cards/card-nerisse.webp?v=9';
+HERO_CARD_ART.nox='/assets/img/hero-cards/card-nox.webp?v=9';
+HERO_CARD_ART.oakmir='/assets/img/hero-cards/card-oakmir.webp?v=9';
+HERO_CARD_ART.orryn='/assets/img/hero-cards/card-orryn.webp?v=9';
+HERO_CARD_ART.pellucid='/assets/img/hero-cards/card-pellucid.webp?v=9';
+HERO_CARD_ART.pyroclast='/assets/img/hero-cards/card-pyroclast.webp?v=9';
+HERO_CARD_ART.rhukk='/assets/img/hero-cards/card-rhukk.webp?v=9';
+HERO_CARD_ART.sablewick='/assets/img/hero-cards/card-sablewick.webp?v=9';
+HERO_CARD_ART.silkcoil='/assets/img/hero-cards/card-silkcoil.webp?v=9';
+HERO_CARD_ART.sprocket='/assets/img/hero-cards/card-sprocket.webp?v=9';
+HERO_CARD_ART.stormwarden='/assets/img/hero-cards/card-stormwarden.webp?v=9';
+HERO_CARD_ART.sylthaine='/assets/img/hero-cards/card-sylthaine.webp?v=9';
+HERO_CARD_ART.tallow='/assets/img/hero-cards/card-tallow.webp?v=9';
+HERO_CARD_ART.threadseer='/assets/img/hero-cards/card-threadseer.webp?v=9';
+HERO_CARD_ART.tick='/assets/img/hero-cards/card-tick.webp?v=9';
+HERO_CARD_ART.umbris='/assets/img/hero-cards/card-umbris.webp?v=9';
+HERO_CARD_ART.vael='/assets/img/hero-cards/card-vael.webp?v=9';
+HERO_CARD_ART.vaelora='/assets/img/hero-cards/card-vaelora.webp?v=9';
+HERO_CARD_ART.velvetplum='/assets/img/hero-cards/card-velvetplum.webp?v=9';
+HERO_CARD_ART.verdantshade='/assets/img/hero-cards/card-verdantshade.webp?v=9';
+HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=9';
+HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=9';
+HERO_CARD_ART.veyr='/assets/img/hero-cards/card-veyr.webp?v=9';
+HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=9';
+HERO_CARD_ART.vireo='/assets/img/hero-cards/card-vireo.webp?v=9';
+HERO_CARD_ART.voidweaver='/assets/img/hero-cards/card-voidweaver.webp?v=9';
+HERO_CARD_ART.vulmar='/assets/img/hero-cards/card-vulmar.webp?v=9';
+HERO_CARD_ART.waxenduchess='/assets/img/hero-cards/card-waxenduchess.webp?v=9';
+HERO_CARD_ART.zahri='/assets/img/hero-cards/card-zahri.webp?v=9';
 HERO_PORTRAITS.dawnbringer='/assets/img/glossary/glossary-heroes-dawnbringer.webp?v=1'; HERO_SPRITES.dawnbringer=HERO_PORTRAITS.dawnbringer; GLOSSARY_ART['heroes/dawnbringer']=HERO_PORTRAITS.dawnbringer;
 HERO_PORTRAITS.cathedral='/assets/img/glossary/glossary-heroes-cathedral.webp?v=1'; HERO_SPRITES.cathedral=HERO_PORTRAITS.cathedral; GLOSSARY_ART['heroes/cathedral']=HERO_PORTRAITS.cathedral;
 HERO_PORTRAITS.lastfurnace='/assets/img/glossary/glossary-heroes-lastfurnace.webp?v=1'; HERO_SPRITES.lastfurnace=HERO_PORTRAITS.lastfurnace; GLOSSARY_ART['heroes/lastfurnace']=HERO_PORTRAITS.lastfurnace;
@@ -13231,7 +13274,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788521754170';
+const BUILD_ID = '1788527076634';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
