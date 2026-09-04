@@ -1118,7 +1118,7 @@ rhukk:{
   3:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,dur:1.2},
 },
 lumi:{
-  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=11',n:72,fw:239,fh:300,cols:6,rows:12,dur:2.4},   // Ultimate (v366 rubber-band cut)
+  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=12',n:64,fw:250,fh:300,cols:6,rows:11,dur:2.13},   // Ultimate (v366 rubber-band cut)
   1:{u:'/assets/anim/lumi/lumi_green.webp?v=10',n:72,fw:240,fh:300,cols:6,rows:12,dur:2.4},   // Green ability
   2:{u:'/assets/anim/lumi/lumi_blue.webp?v=10',n:72,fw:241,fh:300,cols:6,rows:12,dur:2.4},   // Blue ability
   3:{u:'/assets/anim/lumi/lumi_passive.webp?v=10',n:72,fw:223,fh:300,cols:6,rows:12,dur:2.4},   // Passive
@@ -1268,7 +1268,7 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=10',n:72,fw:300,fh:282,cols:6,rows:12,figH:257,feet:276,cx:113,fps:30,flip:true,top:13},
     green:{u:'/assets/anim/lumi/lumi_green.webp?v=10',n:72,fw:240,fh:300,cols:6,rows:12,figH:293,feet:296,cx:162,fps:30,flip:true,top:3,hold:0.8},
     blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=10',n:72,fw:241,fh:300,cols:6,rows:12,figH:238,feet:297,cx:180,fps:30,flip:true,top:58,hold:0.8},
-    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=11',n:72,fw:239,fh:300,cols:6,rows:12,figH:290,feet:293,cx:112,fps:30,flip:true,top:3,pingpong:true},   // v366 (Phil): Radiant Nova rubber-banded at 1.95 s — the nova burst the frame from 2.0 s; the burst itself is the FX plate
+    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=12',n:64,fw:250,fh:300,cols:6,rows:11,figH:243,feet:297,cx:120,fps:30,flip:true,top:53,pingpong:true},   // v366 (Phil): Radiant Nova rubber-banded at 1.95 s — the nova burst the frame from 2.0 s; the burst itself is the FX plate
     passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=10',n:72,fw:223,fh:300,cols:6,rows:12,figH:263,feet:297,cx:134,fps:30,flip:true,top:33}
   },
   meryln:{
@@ -3681,6 +3681,7 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
    and rains — and nothing about hitboxes. v368 (Phil): "auto-attack effects aren't spells" — projectiles,
    auto-attack balls, bullets, arrows and plain hit sparks are never scaled. */
 const FX_SIZE=2;
+const CORSAIR_BULLET_SCALE=0.22;   // v378 (Phil): "bullets roughly the width of his barrel" — was 1.3 (a third of the hero tall). Sprite height in world units; Marksman row is 3.5 tall.
 let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while one of the 3 built heroes casts, so their FX (particles, plates, staff) last twice as long; 1 for everyone else. Cast times are untouched.
 /* v313 — GENERIC ABILITY ART.
    Until now only 'aoedot' and 'crescendo' honoured a declared gfx, so 56 of the 58 monster
@@ -4252,13 +4253,13 @@ const FX2_DEF={
   poison:    {u:'/assets/anim/fx/poison.webp?v=3',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
   firepatch: {u:'/assets/anim/fx/firepatch.webp?v=3', n:20, fw:210, fh:200, cols:5, rows:4, dur:2.5},
   blizzard:  {u:'/assets/anim/fx/blizzard.webp?v=4',  n:18, fw:207, fh:210, cols:6, rows:3, dur:2.5},
-  frostnova: {u:'/assets/anim/fx/frostnova.webp?v=4', n:14, fw:210, fh:183, cols:5, rows:3, dur:1.3},
-  groundslam:{u:'/assets/anim/fx/groundslam.webp?v=4',n:18, fw:210, fh:183, cols:6, rows:3, dur:1.6},
+  frostnova: {u:'/assets/anim/fx/frostnova.webp?v=5', n:14, fw:420, fh:308, cols:6, rows:3, dur:1.3},
+  groundslam:{u:'/assets/anim/fx/groundslam.webp?v=5',n:18, fw:420, fh:298, cols:6, rows:3, dur:1.6},
   tsunami:   {u:'/assets/anim/fx/tsunami.webp?v=3',   n:26, fw:210, fh:189, cols:6, rows:5, dur:3.0},
   tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=6', n:24, fw:420, fh:179, cols:6, rows:4, dur:2.0},
   firstspring:{u:'/assets/anim/fx/firstspring.webp?v=4',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=3',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
-  mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=4',    n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
+  mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=5',    n:18, fw:300, fh:294, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=3',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
   frozenorb: {u:'/assets/anim/fx/frozenorb.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.0},
   glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=4', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
@@ -4541,7 +4542,7 @@ function think(u,dt){
            pistol firing, so it doubles as the shooting clip. Saber hits harder (it is the close-quarters answer). */
         const close = d <= 2.5*METER;   // target's centre within ~2 m of his (bodies are ~1 m wide)
         u._atkClip = close ? 'attack' : 'green';
-        dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close){ if(typeof spawnProjFx==='function') spawnProjFx('bullet',u.x,u.y,t.x,t.y,1.3,.13*HERO_FX_MUL,null); else spawnShot(u,t,0xffd27a); }
+        dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close){ if(typeof spawnProjFx==='function') spawnProjFx('bullet',u.x,u.y,t.x,t.y,CORSAIR_BULLET_SCALE,.13*HERO_FX_MUL,null); else spawnShot(u,t,0xffd27a); }
       } else {
         dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff');
         /* v341 (Phil): Void Weaver's passive was a borrowed Astra burn (cyan) and her passive clip never played.
@@ -8099,7 +8100,7 @@ Object.assign(KITS, {
   lastfurnace:{green:{name:'Forge Strike',type:'cleave',mul:1.7,radius:3*METER,cd:7,gfx:'lastfurnace_green_fx',gfxAt:'target',gfxR:2.2*METER,gdur:1.4},blue:{name:'Chain Quench',type:'pullsilence',radius:4*METER,dur:1.5,cd:10,gfx:'lastfurnace_blue_fx',gfxAt:'self',gfxR:3.0*METER,gdur:1.8},purple:{name:'Tempered Steel',pass:'juggernaut'}},
   beekeeper:{green:{name:'Hornet Cloud',type:'aoedot',mul:0.5,dps:0.4,dur:4,radius:2.8*METER,cd:7,gfx:'beekeeper_green_fx',gfxAt:'target',gfxR:2.8*METER,gdur:2.0},blue:{name:'Royal Nectar',type:'crescendo',heal:0.14,hot:0.04,dur:5,cd:8,gfx:'beekeeper_blue_fx',gfxAt:'self',gfxR:2.6*METER,gdur:1.8},purple:{name:'Worker Swarm',pass:'regen'}},
   librarian:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,dur:15,radius:1.6*METER,cd:11},blue:{name:'Chapter Rewrite',type:'weighdebt',mul:1.0,pct:0.3,dur:5,cd:9,gfx:'librarian_blue_fx',gfxAt:'target',gfxR:2.0*METER,gdur:1.6},purple:{name:'Living Pages',pass:'scriptorium'}},
-  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.8,n:3,cd:6,pfx:'bullet',pscale:1.3,pdur:0.14},blue:{name:'Grappling Hook',type:'stun',mul:1.2,stun:1.0,cd:9,pfx:'corsair_blue_fx',pscale:2.4},purple:{name:"Pirate's Instinct",pass:'power'}},
+  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.8,n:3,cd:6,pfx:'bullet',pscale:CORSAIR_BULLET_SCALE,pdur:0.14},blue:{name:'Grappling Hook',type:'stun',mul:1.2,stun:1.0,cd:9,pfx:'corsair_blue_fx',pscale:2.4},purple:{name:"Pirate's Instinct",pass:'power'}},
   waxenduchess:{green:{name:'Waxen Effigy',type:'stun',mul:1.3,stun:0.8,cd:7},blue:{name:'Mourning Bell',type:'nova',mul:0.9,radius:8*METER,cd:9},purple:{name:'Living Tallow',pass:'hush'}},
 });
 Object.assign(ABILITY_CAST, {pyroclast:{ult:1.0,green:0.5,blue:0.6}, stormwarden:{ult:1.0,green:0.5,blue:0.6}, verdantshade:{ult:1.0,green:0.5,blue:0.6}, voidweaver:{ult:1.0,green:0.5,blue:0.6}, dawnbringer:{ult:1.0,green:0.5,blue:0.6}, cathedral:{ult:1.0,green:0.5,blue:0.6}, lastfurnace:{ult:1.0,green:0.5,blue:0.6}, beekeeper:{ult:1.0,green:0.5,blue:0.6}, librarian:{ult:1.0,green:0.5,blue:0.6}, corsair:{ult:1.0,green:0.5,blue:0.6}, waxenduchess:{ult:1.0,green:0.5,blue:0.6}});
@@ -8147,7 +8148,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0,pfx:'bullet',pscale:1.3,pdur:0.14}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
+const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.2}, stormwarden:{gfx:'stormwarden_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.0}, verdantshade:{gfx:'needlespray',gfxAt:'target',gfxR:3.0*METER,gdur:1.6}, voidweaver:{gfx:'voidweaver_ult_fx',gfxAt:'target',gfxR:3.2*METER,gdur:2.4}, dawnbringer:{gfx:'dawnbringer_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.2}, cathedral:{gfx:'cathedral_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, lastfurnace:{gfx:'lastfurnace_ult_fx',gfxAt:'self',gfxR:3.4*METER,gdur:2.4}, beekeeper:{gfx:'beekeeper_ult_fx',gfxAt:'self',gfxR:3.6*METER,gdur:2.4}, corsair:{gfx:'corsair_ult_fx',gfxAt:'self',gfxR:3.0*METER,gdur:2.0,pfx:'bullet',pscale:CORSAIR_BULLET_SCALE,pdur:0.14}, waxenduchess:{gfx:'waxenduchess_ult_fx',gfxAt:'target',gfxR:3.6*METER,gdur:2.6}};
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
 Object.assign(ULT_DESC, {summonshaman:'Ultimate \u2014 the Librarian reads the final chapter aloud: an Elder Ink Horror steps off the page beside him for 22 seconds, striking enemies and spinning ink around itself.'});
@@ -12990,7 +12991,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788486210999';
+const BUILD_ID = '1788489481340';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
