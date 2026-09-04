@@ -2688,6 +2688,85 @@ async function api(req,res,url){
       writeDB();
       return send(res,200,{ok:true, coins:me.coins, amount:total, tier:last.tier});
     }
+    /* v374 (Phil): GOD MODE WAR SIMULATOR — "simulate guild wars with a bot guild, and bot allies on my
+       side: 20 vs 20 players with 3 lines of 5 heroes each." A sandbox match, never a real tournament:
+       bots are built from HERO_BASE at a chosen level/star/glyph tier through the SAME snapshot path
+       real players use (glyphFlatStats on a synthetic pre-choice board → SIM.heroCombatStats), then the
+       whole match is fought with the real war rules (five lanes, first alive defender, 3 orders per
+       line, first to 3 citadels, tiebreak) using SIM.resolveLineBattle. Dev only. */
+    if(p==='/api/guild-war/sim'){
+      if(!isDev(me)) return send(res,403,{error:'dev only'});
+      const players=Math.max(1,Math.min(30,parseInt(b.players,10)||20)), linesPer=Math.max(1,Math.min(5,parseInt(b.linesPer,10)||3));
+      const botLevel=Math.max(1,Math.min(D_MAX_LEVEL,parseInt(b.botLevel,10)||ledPlayerLevel(ensureLedger(me))));
+      const botTier=Math.max(0,Math.min(16,parseInt(b.botTier,10)||0)), botStars=Math.max(1,Math.min(5,parseInt(b.botStars,10)||3));
+      const allyMul=Math.max(0.2,Math.min(5,parseFloat(b.allyMul)||1)), foeMul=Math.max(0.2,Math.min(5,parseFloat(b.foeMul)||1));
+      const seedBase=String(b.seed||('sim'+Date.now()));
+      let rng=SIM.mulberry32(SIM.seedFrom(seedBase));
+      const keys=Object.keys(SIM.HERO_BASE);
+      const byRole=r=>keys.filter(k=>SIM.HERO_BASE[k].role===r);
+      const pick=arr=>arr[Math.floor(rng()*arr.length)];
+      // synthetic glyph board: the server's own pre-choice, every tier below botTier banked + botTier's six
+      const boardCache={};
+      const botBoard=(key)=>{ if(boardCache[key]) return boardCache[key]; const asc={}; if(GLYPHS&&typeof glyphPreChoice==='function'){
+          for(let qi=0;qi<=Math.min(15,botTier);qi++) for(let i=0;i<6;i++){ const d=glyphPreChoice(key,i,qi); if(!d) continue; for(const st of d.stats){ const c=asc[st.stat]||{val:0,pct:st.pct}; c.val=+(c.val+st.val).toFixed(2); c.pct=st.pct; asc[st.stat]=c; } } }
+        return (boardCache[key]={ slots:[null,null,null,null,null,null], ascensionIndex:botTier, ascended:asc }); };
+      const botHero=(key,mul)=>{ const fake={ glyphs:{ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{ [key]:botBoard(key) } } };
+        const fl=glyphFlatStats(fake,key); const R={ hpFlat:fl.hp|0, atkFlat:fl.atk|0, apowFlat:fl.apow|0, healFlat:0, armor:fl.armor|0, mr:fl.mr|0, armorPen:fl.armorPen|0, magicPen:fl.magicPen|0,
+          crit:fl.crit|0, critDmg:fl.critDmg|0, critRes:fl.critRes|0, energy:fl.energy|0, startEnergy:fl.startEnergy|0, regen:fl.regenRating|0, lifesteal:fl.lifesteal|0, atkSpd:fl.atkSpd|0, haste:fl.haste|0,
+          eva:fl.eva|0, acc:fl.acc|0, block:fl.block|0, dmgBonus:fl.dmgBonus|0, dmgRed:fl.dmgRed|0, shieldStr:fl.shieldStr|0, ctrlHit:fl.ctrlHit|0, ctrlRes:fl.ctrlRes|0, healPow:fl.healPow|0 };
+        const h=SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R, gearSkillSlot:null, gearSkill:null, extra:null});
+        if(mul!==1){ h.maxHp=Math.round(h.maxHp*mul); h.hp=h.maxHp; h.atk=Math.round((h.atk||0)*mul); h.atkP=Math.round((h.atkP||0)*mul); h.atkM=Math.round((h.atkM||0)*mul); h.heal=Math.round((h.heal||0)*mul); }
+        return h; };
+      const botLine=(mul)=>{ const used=new Set(); const want=[byRole('Tank'),byRole('Bruiser').concat(byRole('Fighter')),byRole('Assassin').concat(byRole('Marksman')),byRole('Mage'),byRole('Support')];
+        const line=[]; for(const pool of want){ let k=pick(pool.length?pool:keys), tries=0; while(used.has(k)&&tries++<20) k=pick(keys); used.add(k); line.push(botHero(k,mul)); }
+        return line; };
+      const linePower=l=>Math.round(l.reduce((s,h)=>s+h.maxHp/8+(h.atk||0),0));
+      // Phil's own lines: his roster sorted by power, chunked into linesPer lines of five
+      const save=parseSaveOf(me), rled=ensureLedger(me);
+      const mine=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(me,k,save)).filter(Boolean).sort((a,c)=>(c.maxHp/8+c.atk)-(a.maxHp/8+a.atk));
+      const myLines=[]; for(let i=0;i<linesPer;i++){ const chunk=mine.slice(i*5,i*5+5); if(chunk.length===5) myLines.push(chunk); }
+      const mkSide=(name,isMine,mul)=>{ const side={ guildId:name, name, players:[], citadels:WAR_LANES.map((l,i)=>({lane:i,key:l.key,name:l.name,destroyed:false,defenders:[]})) };
+        for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally bot '+pi:'Enemy bot '+(pi+1));
+          const lines=you&&myLines.length?myLines:Array.from({length:linesPer},()=>botLine(mul));
+          side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
+        // place: player by player, line by line, round-robin across the five citadels
+        let lane=0; for(const pl of side.players) for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
+          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, power:L.power }); lane++; }
+        side.power=side.players.reduce((s,pl)=>s+pl.lines.reduce((x,l)=>x+l.power,0),0); return side; };
+      const A=mkSide('Your side',true,allyMul), B=mkSide('Bot guild',false,foeMul);
+      const m={ id:'gwsim_'+uid(), sides:{A,B}, log:[], winner:null, why:null, assaults:0 };
+      const destroyedOf=side=>side.citadels.filter(c=>c.destroyed).length;
+      const survivorHp=side=>{ let hp=0,max=0; for(const c of side.citadels) for(const d of c.defenders){ if(d.alive===false) continue; for(let i=0;i<d.lineSnapshot.length;i++){ hp+=(d.hpState[i]||{}).hp||0; max+=d.lineSnapshot[i].maxHp||0; } } return max?hp/max:0; };
+      const march=(atkSide,defSide,lane,tag)=>{ const mine=atkSide.citadels[lane], foe=defSide.citadels[lane];
+        if(mine.destroyed||foe.destroyed) return false;
+        const attacker=mine.defenders.find(d=>d.alive!==false&&d.orders>0); if(!attacker) return false;
+        attacker.orders--; m.assaults++;
+        const defender=foe.defenders.find(d=>d.alive!==false);
+        if(!defender){ foe.destroyed=true; m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,captured:true}); return true; }
+        const seed=SIM.seedFrom(seedBase+':'+m.assaults+':'+lane);
+        const r=SIM.resolveLineBattle(SIM.makeLine(attacker.lineSnapshot,attacker.hpState), SIM.makeLine(defender.lineSnapshot,defender.hpState), seed);
+        const mapBack=(snap,state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+        attacker.hpState=mapBack(attacker.lineSnapshot,r.aState); defender.hpState=mapBack(defender.lineSnapshot,r.bState);
+        if(!r.aState.some(x=>x.alive)) attacker.alive=false; if(!r.bState.some(x=>x.alive)) defender.alive=false;
+        let fell=false; if(!foe.defenders.some(d=>d.alive!==false)){ foe.destroyed=true; fell=true; }
+        const hpLeft=st=>Math.round(100*st.reduce((s,x)=>s+(x.alive?x.hp:0),0)/Math.max(1,st.reduce((s,x)=>s+x.maxHp,0)));
+        m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,d:defender.name,dPower:defender.power,won:r.won,rounds:r.rounds,aHp:hpLeft(r.aState),dHp:hpLeft(r.bState),fell,you:!!(attacker.you||defender.you)});
+        return true; };
+      // the live window: both guilds march, lane by lane, until one holds three citadels or nobody can move
+      let guard=0, moved=true;
+      while(!m.winner&&moved&&guard++<4000){ moved=false;
+        for(let lane=0;lane<5&&!m.winner;lane++){
+          if(march(A,B,lane,'A')) moved=true; if(destroyedOf(B)>=3){ m.winner='A'; m.why='three citadels'; break; }
+          if(march(B,A,lane,'B')) moved=true; if(destroyedOf(A)>=3){ m.winner='B'; m.why='three citadels'; break; } } }
+      if(!m.winner){ const dA=destroyedOf(B), dB=destroyedOf(A);   // tiebreak: destroyed → surviving HP% → power
+        if(dA!==dB){ m.winner=dA>dB?'A':'B'; m.why='more citadels destroyed at the bell'; }
+        else { const hA=survivorHp(A), hB=survivorHp(B); if(Math.abs(hA-hB)>1e-6){ m.winner=hA>hB?'A':'B'; m.why='surviving defender HP at the bell'; } else { m.winner=A.power>=B.power?'A':'B'; m.why='power at lock'; } } }
+      const view=side=>({ name:side.name, power:side.power, players:side.players.length, lines:side.players.reduce((s,pl)=>s+pl.lines.length,0),
+        citadels:side.citadels.map(c=>({lane:c.lane,name:c.name,destroyed:c.destroyed,alive:c.defenders.filter(d=>d.alive!==false).length,total:c.defenders.length,
+          defenders:c.defenders.map(d=>({name:d.name,you:d.you,alive:d.alive!==false,power:d.power,orders:d.orders,hpPct:Math.round(100*d.hpState.reduce((s,x)=>s+x.hp,0)/Math.max(1,d.lineSnapshot.reduce((s,h)=>s+h.maxHp,0)))})) })),
+        yourLines:side.players.filter(pl=>pl.you).flatMap(pl=>pl.lines.map((l,i)=>({line:i+1,power:l.power,heroes:l.heroes.map(h=>h.key)}))) });
+      return send(res,200,{ ok:true, seed:seedBase, params:{players,linesPer,botLevel,botTier,botStars,allyMul,foeMul}, winner:m.winner, why:m.why, assaults:m.assaults, you:view(A), foe:view(B), log:m.log });
+    }
     if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
       DB.warTimeOffset=(parseInt(b.offsetMs,10)|0)||0; writeDB();

@@ -6749,6 +6749,38 @@ function skyMatchHTML(m, canOfficer){
     ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?'🏆 VICTORY':'💀 DEFEAT'}</div>${skyWarSummaryHTML(m)}`:''}
   </div>`;
 }
+/* v374 (Phil): GOD MODE war simulator — a sandbox Skyfall match, 20 vs 20 players × 3 lines of five,
+   bot allies on your side, a bot guild across the bridges. Results + a scrolling battle log. Dev only. */
+const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1}, r:null, busy:false};
+function skySimOpen(){ if(!SKYSIM.p.botLevel) SKYSIM.p.botLevel=playerLevel();
+  const ov=document.createElement('div'); ov.className='gmodal-ov'; ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.45);z-index:12000;display:flex;align-items:center;justify-content:flex-end;padding:16px;padding-right:max(16px,4vw)';
+  const card=document.createElement('div'); card.id='skySimCard'; card.style.cssText='background:#141b2b;border:1px solid #ff9f43;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:88vh;overflow:auto;position:relative';
+  ov.appendChild(card); document.body.appendChild(ov); ov.onclick=(e)=>{ if(e.target===ov) ov.remove(); }; skySimRender(); }
+function skySimRender(){ const card=document.getElementById('skySimCard'); if(!card) return; const P=SKYSIM.p, r=SKYSIM.r;
+  const ladder=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange','Orange (all banked)'];
+  const num=(k,label,min,max,step)=>`<label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">${label}<input type="number" min="${min}" max="${max}" step="${step||1}" value="${P[k]}" style="width:100%;background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px 7px;font-size:12px" onchange="SKYSIM.p.${k}=+this.value"></label>`;
+  const params=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">
+      ${num('players','Players per side',1,30)}${num('linesPer','Lines per player',1,5)}${num('botLevel','Bot hero level',1,100)}
+      <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Bot glyph tier<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.botTier=+this.value">${ladder.map((q,i)=>`<option value="${i}" ${P.botTier===i?'selected':''}>${q}</option>`).join('')}</select></label>
+      ${num('botStars','Bot stars',1,5)}${num('foeMul','Enemy power ×',0.2,5,0.1)}</div>
+    <button class="btn" style="width:100%;${SKYSIM.busy?'opacity:.5':''}" ${SKYSIM.busy?'disabled':''} onclick="skySimRun()">${SKYSIM.busy?'⏳ Fighting…':'⚔ Run the war'}</button>`;
+  let res='';
+  if(r){ const won=r.winner==='A';
+    const cit=(side,mine)=>side.citadels.map(c=>`<div style="font-size:9px;padding:3px 5px;border-radius:6px;margin-bottom:3px;background:${c.destroyed?'#2a1212':(mine?'#0f1a14':'#1a0f14')};border:1px solid ${c.destroyed?'#5a2b2b':(mine?'#2b7a55':'#7a2b46')};${c.destroyed?'opacity:.6':''}">${c.destroyed?'💥 ':'🏰 '}<b>${c.name}</b> <span style="color:#8b98a9">${c.alive}/${c.total} lines alive</span></div>`).join('');
+    const logRows=r.log.map(e=>e.captured?`<div style="padding:3px 0;border-bottom:1px solid #1b2438;color:#ffd45e">#${e.n} ${e.side==='A'?'🟢':'🔴'} ${e.laneName}: <b>${escapeHTML(e.a)}</b> marches into an EMPTY citadel — captured!</div>`
+      :`<div style="padding:3px 0;border-bottom:1px solid #1b2438;${e.you?'background:rgba(255,212,94,.06)':''}">#${e.n} ${e.side==='A'?'🟢':'🔴'} <span style="color:#8b98a9">${e.laneName}</span> · <b style="color:${e.side==='A'?'#5ee89b':'#ff8b8b'}">${escapeHTML(e.a)}</b> <span style="color:#6f7d90">(⚡${e.aPower})</span> vs <b style="color:${e.side==='A'?'#ff8b8b':'#5ee89b'}">${escapeHTML(e.d)}</b> <span style="color:#6f7d90">(⚡${e.dPower})</span> → ${e.won?'<span style="color:#5ee89b">attacker wins</span>':'<span style="color:#ff8b8b">driven back</span>'} <span style="color:#6f7d90">${e.rounds} rounds · HP left ${e.aHp}% / ${e.dHp}%</span>${e.fell?' <b style="color:#ffd45e">💥 citadel falls</b>':''}</div>`).join('');
+    res=`<div style="margin-top:10px;text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?'🏆 YOUR SIDE WINS':'💀 BOT GUILD WINS'} <span style="font-size:10px;color:#8b98a9;font-weight:500">— ${escapeHTML(r.why)} · ${r.assaults} marches · seed ${escapeHTML(String(r.seed))}</span></div>
+      <div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1"><div style="font-size:9px;color:#5ee89b;margin-bottom:3px">YOUR SIDE · ⚡${r.you.power} · ${r.you.players} players · ${r.you.lines} lines</div>${cit(r.you,true)}</div>
+        <div style="flex:1"><div style="font-size:9px;color:#ff8b8b;margin-bottom:3px">BOT GUILD · ⚡${r.foe.power} · ${r.foe.players} players · ${r.foe.lines} lines</div>${cit(r.foe,false)}</div></div>
+      ${r.you.yourLines.length?`<div style="font-size:10px;color:#8b98a9;margin-top:6px">Your lines: ${r.you.yourLines.map(l=>'L'+l.line+' ⚡'+l.power+' ('+l.heroes.map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')+')').join(' · ')}</div>`:'<div style="font-size:10px;color:#ff8b8b;margin-top:6px">You own fewer than 5 heroes — your side is all bots.</div>'}
+      <div style="font-size:9px;color:#8b98a9;margin:8px 0 3px">BATTLE LOG (🟢 your side marches · 🔴 bot guild marches · highlighted = your lines)</div>
+      <div style="max-height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #1b2438;border-radius:10px;padding:4px 8px;background:#0f1420;font-size:10px">${logRows}</div>`; }
+  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px;color:#ff9f43">⚔ God Mode — War Simulator</b><button class="btn sm secondary" onclick="this.closest('.gmodal-ov').remove()">✕</button></div>
+    <div style="font-size:10px;color:#8b98a9;margin-top:2px">A sandbox Skyfall match: you + bot allies vs a bot guild, fought with the real war rules and the real sim. Nothing is recorded.</div>${params}${res}`; }
+async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRender();
+  const r=await api('/api/guild-war/sim','POST',Object.assign({seed:'sim'+Date.now()},SKYSIM.p)); SKYSIM.busy=false;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Simulation failed.'); } else SKYSIM.r=r;
+  skySimRender(); }
 function skyPanelHTML(){
   const s=SKY.st, t=s.tournament;
   let head=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
@@ -10039,7 +10071,7 @@ function renderGuild(){
     +`</div>`;
   b.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-weight:800;font-size:15px">&lt;${escapeHTML(g.name)}&gt; <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${g.level}</span> <span style="font-size:10px;color:#8b98a9">${g.count}/${g.cap}</span></div>
-      <button class="btn sm secondary" id="gLeave">${g.youLeader?'Manage':'Leave'}</button></div>
+      <div style="display:flex;gap:6px">${(typeof AUDIT_MODE==='function'&&AUDIT_MODE()&&guildTab==='war')?`<button class="btn sm" style="background:linear-gradient(#ff9f43,#c4661a);color:#1a0d00" onclick="skySimOpen()">⚔ Simulate</button>`:''}<button class="btn sm secondary" id="gLeave">${g.youLeader?'Manage':'Leave'}</button></div></div>
     ${tabBar}
     <div id="gTabBody"></div>`;
   b.querySelector('#gLeave').onclick=()=> g.youLeader?openGuildManage():doGuildLeave();
@@ -12959,7 +12991,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788482201474';
+const BUILD_ID = '1788482572144';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
