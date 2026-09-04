@@ -5292,9 +5292,14 @@ function endBattle(won){
       document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
     resultLater(async(ep)=>{ let r=null;
-      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, requestId:uid8()}); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
+      /* v410 — PLAYER TRUTH (Phil: "what i see on my screen should be the result, not whatever crap
+         the server decided"). The fight the player just watched is the fight, so `won` is SENT to
+         the server rather than fetched from it. This used to overwrite `won` with the server's
+         answer, which was not a replay of this fight at all but a re-simulation with a skill band
+         standing in for manual play — and when that estimate disagreed, the screen said one thing
+         and the result screen said the other. Campaign has worked this way since v270. */
+      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, won:!!won, requestId:uid8()}); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
-      if(r&&r.result&&typeof r.result.won==='boolean') won=r.result.won;   // AUDIT C7: the server's verdict IS the result
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
       document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
@@ -5632,7 +5637,20 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       if(u.anim && u.anim.idle && u.anim.idle._err){ u.anim=null; spr.material.map=spriteTex(u.key); spr.material.needsUpdate=true; u.sprA=0.7;
         const im=new Image(); im.onload=()=>{ if(u.sprite&&!u.anim){u.sprA=im.width/im.height;} }; im.src=HERO_SPRITES[u.key]||''; }
       if(u.anim){ // animated hero: idle / walk / attack / hit
-        const _ah=(u.anim.attack&&u.anim.attack.hold)||0.42;   // per-hero attack-anim hold (heavy swings need longer)
+        /* v410 — HOW LONG A SWING STAYS ON SCREEN. Phil: "use logic from early created classes …
+           vulmar for mages for example, check out his cast/animation times."
+           Every established hero follows one rule: the attack clip is short and its `hold` is
+           exactly its own length, so the whole swing plays at natural speed — Sylthaine 1.20 s clip
+           with a 1.20 hold, Meryln 1.20 / 1.20, Astra 1.33 / 1.33. Every hero built since is a
+           48-frame 24 fps clip (two seconds) carrying a blanket 0.9 hold, so 45% of the swing played
+           and the rest was thrown away.
+           So the hold is the CLIP's own duration, with an authored `hold` still winning where one
+           was set, capped just under the attack interval so a swing never runs into the next. This
+           costs nothing mechanically — the hold is render-only (see _animLockT) — so lengthening it
+           changes only what is seen, never when damage lands. */
+        const _atkA=u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
+        const _ai=u.atkInterval/((u.hasteT>0?u.hasteMul:1)||1);
+        const _ah=Math.min(_ai*0.95, _atkA?(_atkA.hold||(_atkA.n/(_atkA.fps||16))):0.42);
         if(u.attackAnim>0)u._atkHold=_ah; else if(u._atkHold>0)u._atkHold-=dt;
         /* 29 Aug — the crit flinch was a flat 0.28s regardless of how long the hit clip was. Every
            hit sheet on the roster runs 0.6-1.5s, so all anyone ever saw was its first few frames —
@@ -5687,17 +5705,18 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           u._animSt=st; if(!_soft) u._animAcc=0;
           /* v406 — remember how long THIS one-shot was given, at the moment it starts. See _osFrac. */
           u._osMax=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0); }
-        /* v406 (Phil: "they don't actually attack, they just twitch and bob into their target").
-           A one-shot state — a swing, an ability, an ultimate, a crit flinch — is held for a fixed
-           window (`hold`, or 0.42 s by default) while its clip runs at its OWN fps. That was fine
-           when clips were 24 frames at 16 fps, but every hero made since is 48 frames at 24 fps, a
-           two-second swing. Held for 0.42 s it renders frames 0-10 of 48: the wind-up, and never the
-           strike. Which is exactly what a twitch looks like.
-           Rather than lengthen the hold — that would change combat pacing for the whole roster — the
-           clip is now fitted to whatever window it is given. Progress through the hold picks the
-           frame, so the FULL swing always plays, fast or slow, and no hero's timing moves at all. */
+        /* v410 — a one-shot is FITTED to its window only when the window is SHORTER than the clip,
+           and even then never played faster than 1.6x natural speed. v406 fitted every one-shot
+           unconditionally: that fixed the truncated swings on the new heroes (Phil: "they don't
+           actually attack, they just twitch and bob into their target" — a 48-frame 24 fps clip held
+           for 0.42 s renders frames 0-10 of 48, the wind-up and never the strike) but it also ran
+           the established heroes' 2.4 s ability clips through an 0.8 s hold, a 3x speed-up on art
+           that was fine. Now that the attack hold is the clip's own length, most one-shots play at
+           natural speed and this only catches the genuinely over-long ones. */
         const _osH=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0);
-        const _osFrac=(_osH>0 && (u._osMax||0)>0 && st!=='walk' && st!=='idle' && !rising && A.n>1)
+        const _osDur=A?(A.n/(A.fps||16)):0;
+        const _osFit=(u._osMax||0)>0 && _osDur>(u._osMax||0) && _osDur<=(u._osMax||0)*1.6;
+        const _osFrac=(_osH>0 && _osFit && st!=='walk' && st!=='idle' && !rising && A.n>1)
           ? Math.max(0,Math.min(0.999,1-(_osH/u._osMax))) : null;
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12)*WALK_ANIM_MUL;   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8))*WALK_ANIM_MUL; }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
@@ -13523,7 +13542,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788553983464';
+const BUILD_ID = '1788554345362';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
