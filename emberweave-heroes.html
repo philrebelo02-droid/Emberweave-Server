@@ -6040,11 +6040,34 @@ function vaultResultHTML(r){
     ${(r.waveResults||[]).map(vaultWaveHTML).join('')}
     <button class="btn" style="width:100%;margin-top:8px" onclick="VAULT.result=null;renderDungeon()">${won?'Continue ▶':'↻ Retry Floor'}</button></div>`;
 }
-async function vaultSweep(){ if(VAULT.busy)return; VAULT.busy=true;
+async function vaultSweep(){ if(VAULT.busy)return;
+  const cost=(VAULT.st&&VAULT.st.sweep&&VAULT.st.sweep.nextCost)||0;   // v372 (Phil): the 3rd/4th/5th sweep cost 200/400/600 diamonds — confirm before paying
+  if(cost>0){ if((G.gems||0)<cost){ bannerMsg('Not enough diamonds — this Sweep costs 💎 '+cost+'.'); return; }
+    if(!VAULT._sweepConfirmed){ gameConfirm('Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style="color:#8fe3ff">💎 '+cost+'</b>?<br><span style="font-size:12px;color:#8b98a9">You have 💎 '+(G.gems||0)+'. Your 2 free sweeps are used.</span>', ()=>{ VAULT._sweepConfirmed=true; vaultSweep(); }); return; } }
+  VAULT._sweepConfirmed=false; VAULT.busy=true;
   const r=await api('/api/dungeon/sweep','POST',{requestId:uid8()}); VAULT.busy=false;
+  if(r&&r.ok&&r.ledger){ try{ adoptLedger(r.ledger); }catch(e){} }
   if(!r||r.error){ bannerMsg((r&&r.error)||'Sweep unavailable.'); }
-  else{ const fr=Object.entries(r.fragments||{}); bannerMsg('🧹 Swept '+r.floors+' floors!\n✨ +'+r.totalDust+' Forge Dust'+(r.heroXp?'\n⭐ +'+r.heroXp+' hero XP to your last Vault line':'')+(fr.length?'\n🧩 '+fr.map(([k,n])=>n+'× '+k).join(', '):'')); try{ ledgerSync&&ledgerSync(); }catch(e){} }
+  else{ vaultSweepPopup(r); try{ ledgerSync&&ledgerSync(); }catch(e){} }
   await vaultStatus(); renderDungeon();
+}
+/* v372 (Phil): "when I sweep a pop-up should populate — a scrolling text of all the items you earn per level" */
+function vaultSweepPopup(r){
+  const rows=(r.perFloor||[]).map(f=>{ const bits=['<span style="color:#ffd45e">✨ '+f.dust+' Dust</span>'];
+      (f.fragments||[]).forEach(k=>bits.push('<span style="color:#c9a2ff">🧩 '+escapeHTML(k)+'</span>'));
+      (f.gearFragments||[]).forEach(k=>bits.push('<span style="color:#ff9d5e">⚒ '+escapeHTML(k)+'</span>'));
+      if(r.heroXpPerFloor) bits.push('<span style="color:#5ee89b">⭐ +'+r.heroXpPerFloor+' hero XP</span>');
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #1b2438;font-size:11px"><b style="flex:none;width:64px;color:#c9a2ff">Floor ${f.floor}</b><div style="flex:1;line-height:1.5">${bits.join(' · ')}</div></div>`; }).join('');
+  const fr=Object.entries(r.fragments||{}), gf=Object.entries(r.gearFragments||{});
+  const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">✨ +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">⭐ +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>🧩 '+fr.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>⚒ '+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
+  ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a">
+    <div style="font-weight:900;font-size:15px;color:#ffd45e;text-align:center">🧹 Swept ${r.floors} floors</div>
+    <div style="font-size:10px;color:#8b98a9;text-align:center;margin:2px 0 8px">Every cleared floor paid out again</div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #1b2438;border-radius:10px;padding:4px 10px;background:#0f1420;min-height:120px">${rows||'<div style="color:#6f7d90;font-size:11px;padding:10px">Nothing to show.</div>'}</div>
+    <div style="margin-top:10px;padding:8px 10px;background:#0f1420;border-radius:10px">${totals}</div>
+    <button class="btn" style="margin-top:10px" id="_swOk">Collect</button></div>`;
+  document.body.appendChild(ov); const close=()=>ov.remove(); ov.querySelector('#_swOk').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
 }
 async function vaultSalvage(key,qty){ const q=Math.max(1,qty|0);
   const r=await api('/api/fragments/salvage','POST',{stacks:[{key,quantity:q}],requestId:uid8()});
@@ -6099,7 +6122,7 @@ function vaultScreenHTML(){
     <div class="panel">${vaultPickerHTML()}</div>
     ${(typeof preBattleLineHTML==='function')?preBattleLineHTML('vault'):''}
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.freeUsesRemaining>0?'onclick="vaultSweep()"':'disabled'}>🧹 Sweep ×${s.sweep.freeUsesRemaining}</button>
+      <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.nextCost!==null&&s.sweep.nextCost!==undefined?'onclick="vaultSweep()"':'disabled'}>${s.sweep.freeUsesRemaining>0?'🧹 Sweep ×'+s.sweep.freeUsesRemaining:(s.sweep.nextCost?'🧹 Sweep · 💎 '+s.sweep.nextCost+' ('+s.sweep.paidLeft+' left)':'🧹 No sweeps left today')}</button>
       <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">♻ Salvage</button></div>
     ${VAULT.salv?vaultSalvageHTML():''}
     <div style="font-size:10px;color:#6f7d90;text-align:center;margin-top:12px;line-height:1.5">Two waves per floor — HP &amp; Energy carry over. Every attempt faces the <b>same</b> monsters:<br>learn the floor, then beat it. Progress and rewards are saved to your account.</div>`;
@@ -6242,6 +6265,16 @@ async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=
    the end item and from fragments to sub-items, greyed out if not owned, grey ＋ if you can't make it,
    green ＋ if you can, and a fast build, just like glyphs." Same DOM contract as g2TreeView
    (.g2treeBox / svg.g2svg / data-g2p) so g2DrawTree() draws the connectors. */
+/* v372 (Phil): "make sure it doesn't auto build an item when I click it — it should ask to confirm
+   spending materials." Every spend goes through gameConfirm with the exact bill. */
+function gearCostHTML(d){ const st=FORGE.st, cat=FORGE.cat; if(!d) return '';
+  if(d.qi===0) return `<b>${cat.meta.greyFragCost} × ${escapeHTML(d.frag)}</b>`;
+  const prevQ=cat.meta.qualities[d.qi-1];
+  return `<b>1 × ${escapeHTML(d.sub)}</b> and <b>2 fresh ${prevQ} items</b> (the two least-tempered unbound ${prevQ} pieces you own are consumed)`; }
+function gearConfirmBuild(gearId,equipHero){ const d=forgeDef(gearId); if(!d) return;
+  gameConfirm(`Build <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?<br><span style="font-size:12px;color:#8b98a9">This spends ${gearCostHTML(d)}.</span>`, ()=>{ gearBuildDo(gearId,equipHero); if(equipHero) GEAR_BUILD=null; else gearBuildBack(); }); }
+function gearConfirmSub(gearId){ const d=forgeDef(gearId); if(!d||!d.sub) return;
+  gameConfirm(`Make <b>${escapeHTML(d.sub)}</b>?<br><span style="font-size:12px;color:#8b98a9">This spends <b>${d.subFragCost} × ${escapeHTML(d.frag)}</b>.</span>`, ()=>gearHeroPost('/craft-sub',{gearId},r=>'🔩 '+r.sub+' made!')); }
 function gearBuildPush(gid){ if(!GEAR_BUILD) return; GEAR_BUILD.stack.push(GEAR_BUILD.gearId); GEAR_BUILD.gearId=gid; renderHeroDetail(); }
 function gearBuildBack(){ if(!GEAR_BUILD) return; if(GEAR_BUILD.stack.length){ GEAR_BUILD.gearId=GEAR_BUILD.stack.pop(); renderHeroDetail(); } else gearBuildCancel(); }
 function gearGhost(imgHtml,px,can,owned){ return owned
@@ -6266,7 +6299,7 @@ function gearTreeView(key){
   if(d.qi===0){ cols=`<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:86px">${fragLeaf(d.frag,st.fragments[d.frag]||0,cat.meta.greyFragCost,'root')}</div>`; }
   else {
     const subHave=st.subs[d.sub]||0, fr=st.fragments[d.frag]||0, canSub=fr>=d.subFragCost;
-    const subNode=`<div id="${id('sub')}" data-g2p="${id('root')}" data-rdy="${subHave?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:${(!subHave&&canSub)?'pointer':'default'}" ${(!subHave&&canSub)?`onclick="gearHeroPost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:''}>
+    const subNode=`<div id="${id('sub')}" data-g2p="${id('root')}" data-rdy="${subHave?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:${(!subHave&&canSub)?'pointer':'default'}" ${(!subHave&&canSub)?`onclick="gearConfirmSub('${d.id}')"`:''}>
         ${gearGhost(gearSubImg(d.sub,76),82,canSub,subHave>0)}
         <div style="font-size:11px;font-weight:800;color:${col};line-height:1.2">${escapeHTML(d.sub)}</div>
         <div style="margin-top:3px"><span class="pill" style="font-size:9px;color:${subHave?'#5ee89b':'#8b98a9'};border:1px solid ${subHave?'#5ee89b':'#8b98a9'}">${subHave} / 1${(!subHave&&canSub)?' · tap to make':''}</span></div></div>`;
@@ -6301,8 +6334,8 @@ function heroGearBuildHTML(key){
       <span class="pill" style="color:${col};border:1px solid ${col};flex:none">${d.quality} · ${d.slot}</span></div>`;
   const action=isRoot
     ?(fresh?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${hero}'},r=>'🛡 Equipped — '+r.slot);GEAR_BUILD=null;">🛡 Equip</button>`
-      :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearBuildDo('${d.id}','${hero}');GEAR_BUILD=null;">⚡ Quick Build</button>`)
-    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearBuildDo('${d.id}');gearBuildBack();">⚡ Quick Build</button>`;
+      :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearConfirmBuild('${d.id}','${hero}')">⚡ Quick Build</button>`)
+    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearConfirmBuild('${d.id}',null)">⚡ Quick Build</button>`;
   return `<div class="panel">${head}
     <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:2px"><button class="btn xs secondary" onclick="gearBuildBack()">‹ Back</button><button class="btn xs secondary" onclick="gearBuildCancel()">✕</button></div>
     ${gearTreeView(key)}
@@ -12924,7 +12957,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788481597016';
+const BUILD_ID = '1788481880150';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

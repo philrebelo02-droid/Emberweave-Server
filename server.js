@@ -891,7 +891,8 @@ function snapshotHeroFromServer(u, key, save){
 // ---- spec constants (server-only tuning) ----
 const DUNGEON_MAX_FLOOR=100;
 const VAULT_UNLOCK_LEVEL=10;
-const VAULT_HERO_XP_PER_FLOOR=30;   // v370 (Phil): "heroes should get 30 exp per floor, sweeps also" — every hero on the line, per floor, never the player   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
+const VAULT_HERO_XP_PER_FLOOR=30;
+const VAULT_SWEEP_FREE=2, VAULT_SWEEP_PAID_COST=[200,400,600];   // v372 (Phil): 3rd, 4th and 5th sweep of the day cost 200 / 400 / 600 diamonds   // v370 (Phil): "heroes should get 30 exp per floor, sweeps also" — every hero on the line, per floor, never the player   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
 const DUNGEON_QUALITY_BANDS=[
   {min:1,max:10,q:'Grey'},{min:11,max:20,q:'Green'},{min:21,max:30,q:'Blue'},{min:31,max:40,q:'Blue +2'},
   {min:41,max:50,q:'Purple'},{min:51,max:60,q:'Purple +3'},{min:61,max:70,q:'Gold +1'},{min:71,max:80,q:'Gold +4'},
@@ -921,7 +922,8 @@ function getDungeonProgress(id){
     vaultStatus:'active', claimedFloors:{}, sweep:{dateKey:dungeonServerDayKey(),freeUsesRemaining:2,totalSweepsToday:0},
     activeAttempt:null, lastTeamHeroIds:[], version:0 };
   return DB.dungeonProgress[id]; }
-function resetDungeonSweepIfNewDay(sw){ const k=dungeonServerDayKey(); if(sw.dateKey!==k){ sw.dateKey=k; sw.freeUsesRemaining=2; sw.totalSweepsToday=0; } }
+function resetDungeonSweepIfNewDay(sw){ const k=dungeonServerDayKey(); if(sw.dateKey!==k){ sw.dateKey=k; sw.freeUsesRemaining=VAULT_SWEEP_FREE; sw.totalSweepsToday=0; } }
+function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid=Math.max(0,(sw.totalSweepsToday|0)-VAULT_SWEEP_FREE); return paid<VAULT_SWEEP_PAID_COST.length?VAULT_SWEEP_PAID_COST[paid]:null; }   // 0 = free, null = none left today
 // bounded idempotency ledger: retried requests return the committed result instead of paying twice
 /* v273 — A REWARD AND ITS RECEIPT ARE ONE DURABLE TRANSACTION.
    writeDB() coalesces on a 200 ms timer, so a crash in that window used to lose the idempotency
@@ -1104,7 +1106,7 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
     // before spending an attempt — glyph fragments on boss floors, gear fragments every floor.
     targets:(function(){ const f=Math.min(floor,DUNGEON_MAX_FLOOR); const rec=VAULT_ENC?vaultFloorRecord(f):null;
       return rec?{ glyphFragments:(rec.glyphFragments||[]).slice(), gearFragments:(rec.gearFragments||[]).slice() }:null; })(),
-    sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset() },
+    sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(p.sweep), paidLeft:Math.max(0,VAULT_SWEEP_PAID_COST.length-Math.max(0,(p.sweep.totalSweepsToday|0)-VAULT_SWEEP_FREE)), costs:VAULT_SWEEP_PAID_COST },
     lastTeamHeroIds:p.lastTeamHeroIds||[], activeAttemptId:p.activeAttempt?p.activeAttempt.id:null, version:p.version };
 }
 /* ====================== end Aether Vault module (routes in api()) ====================== */
@@ -2769,7 +2771,9 @@ async function api(req,res,url){
     if(p==='/api/dungeon/sweep'){
       const out=idem(me.id+':dsweep:'+reqId,()=>{
         resetDungeonSweepIfNewDay(prog.sweep);
-        if(prog.sweep.freeUsesRemaining<=0) return { ok:false, error:'No free Sweeps remaining today.', nextResetAt:dungeonNextReset() };
+        const sweepCost=vaultSweepNextCost(prog.sweep);
+        if(sweepCost===null) return { ok:false, error:'No Sweeps left today (2 free + 3 paid).', nextResetAt:dungeonNextReset() };
+        if(sweepCost>0){ const led=ensureLedger(me); if(led.gems<sweepCost) return { ok:false, error:'Not enough diamonds — this Sweep costs '+sweepCost+'.' }; led.gems-=sweepCost; ledTx(me,'vault:sweep:paid',{gems:-sweepCost}); }
         if(prog.activeAttempt) prog.activeAttempt=null;   // v371 (Phil: "sweep button isn't working"): an unresolved attempt (closed the app mid-fight / God-Mode floor jump) is abandoned = a loss, same rule as start-battle — it must not block sweeping
         if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };
         const rnd=Math.random;   // AUDIT C7: rolled per sweep transaction, persisted via the idempotency record
@@ -2781,8 +2785,8 @@ async function api(req,res,url){
         // v370 (Phil): a sweep pays the hero XP of every floor swept to the last line that fought in the Vault
         const sweepTeam=(prog.lastTeamHeroIds||[]).filter(k=>SIM.HERO_BASE[k]); const heroXp=VAULT_HERO_XP_PER_FLOOR*prog.highestClearedFloor;
         if(sweepTeam.length){ const led=ensureLedger(me); for(const k of sweepTeam){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+heroXp); } ledTx(me,'vault:sweep:x'+prog.highestClearedFloor,{heroXp}); }
-        prog.sweep.freeUsesRemaining--; prog.sweep.totalSweepsToday++; prog.version++; writeDB();
-        return { ok:true, totalDust:dust, fragments:frags, gearFragments:gfrags, floors:prog.highestClearedFloor, heroXp:sweepTeam.length?heroXp:0, heroXpTeam:sweepTeam, sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset()}, dust:me.dust||0 };
+        if(sweepCost===0) prog.sweep.freeUsesRemaining--; prog.sweep.totalSweepsToday++; prog.version++; writeDB();
+        return { ok:true, totalDust:dust, fragments:frags, gearFragments:gfrags, floors:prog.highestClearedFloor, heroXp:sweepTeam.length?heroXp:0, heroXpTeam:sweepTeam, perFloor:rewards, heroXpPerFloor:sweepTeam.length?VAULT_HERO_XP_PER_FLOOR:0, /* v372: the sweep pop-up lists every floor's drops */ sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(prog.sweep)}, dust:me.dust||0, gemsSpent:sweepCost, ledger:ledgerView(me) };
       });
       return send(res, out.ok===false?400:200, out);
     }
