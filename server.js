@@ -890,7 +890,8 @@ function snapshotHeroFromServer(u, key, save){
 
 // ---- spec constants (server-only tuning) ----
 const DUNGEON_MAX_FLOOR=100;
-const VAULT_UNLOCK_LEVEL=10;   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
+const VAULT_UNLOCK_LEVEL=10;
+const VAULT_HERO_XP_PER_FLOOR=30;   // v370 (Phil): "heroes should get 30 exp per floor, sweeps also" — every hero on the line, per floor, never the player   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
 const DUNGEON_QUALITY_BANDS=[
   {min:1,max:10,q:'Grey'},{min:11,max:20,q:'Green'},{min:21,max:30,q:'Blue'},{min:31,max:40,q:'Blue +2'},
   {min:41,max:50,q:'Purple'},{min:51,max:60,q:'Purple +3'},{min:61,max:70,q:'Gold +1'},{min:71,max:80,q:'Gold +4'},
@@ -2754,6 +2755,9 @@ async function api(req,res,url){
           return { ok:false, error:'Stale Vault floor.' }; }
         const reward=makeFirstClearDungeonReward(a.floor);   // rolls with server RNG; persisted below + in the idempotency record
         grantDungeonReward(me, reward);
+        { const led=ensureLedger(me); reward.heroXp=VAULT_HERO_XP_PER_FLOOR;   // v370: 30 hero XP per floor to everyone who fought (fighters + backups)
+          for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
+          ledTx(me,'vault:clear:'+a.floor,{heroXp:reward.heroXp}); }
         prog.claimedFloors[a.floor]={ claimedAt:Date.now(), dust:reward.dust, fragments:reward.fragments||[] };
         prog.highestClearedFloor=a.floor; prog.currentFloor=a.floor+1;
         if(a.floor===DUNGEON_MAX_FLOOR) prog.vaultStatus='complete';
@@ -2774,8 +2778,11 @@ async function api(req,res,url){
           dust+=r.dust; (r.fragments||[]).forEach(k=>frags[k]=(frags[k]||0)+1); (r.gearFragments||[]).forEach(k=>gfrags[k]=(gfrags[k]||0)+1); rewards.push(Object.assign({floor:f},r)); }
         grantDungeonReward(me,{dust, fragments:Object.entries(frags).flatMap(([k,n])=>Array(n).fill(k)),
           gearFragments:Object.entries(gfrags).flatMap(([k,n])=>Array(n).fill(k))});
+        // v370 (Phil): a sweep pays the hero XP of every floor swept to the last line that fought in the Vault
+        const sweepTeam=(prog.lastTeamHeroIds||[]).filter(k=>SIM.HERO_BASE[k]); const heroXp=VAULT_HERO_XP_PER_FLOOR*prog.highestClearedFloor;
+        if(sweepTeam.length){ const led=ensureLedger(me); for(const k of sweepTeam){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+heroXp); } ledTx(me,'vault:sweep:x'+prog.highestClearedFloor,{heroXp}); }
         prog.sweep.freeUsesRemaining--; prog.sweep.totalSweepsToday++; prog.version++; writeDB();
-        return { ok:true, totalDust:dust, fragments:frags, gearFragments:gfrags, floors:prog.highestClearedFloor, sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset()}, dust:me.dust||0 };
+        return { ok:true, totalDust:dust, fragments:frags, gearFragments:gfrags, floors:prog.highestClearedFloor, heroXp:sweepTeam.length?heroXp:0, heroXpTeam:sweepTeam, sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset()}, dust:me.dust||0 };
       });
       return send(res, out.ok===false?400:200, out);
     }

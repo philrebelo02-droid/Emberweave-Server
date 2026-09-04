@@ -4928,6 +4928,7 @@ function endBattle(won){
         const ecount={}; (r.reward.gearFragments||[]).forEach(k=>{ ecount[k]=(ecount[k]||0)+1; });
         const eList=Object.keys(ecount).map(k=>k+' ×'+ecount[k]);
         msg=rewardPanel(gList,{dust:r.reward.dust},'Aether Vault — floor '+CUR.floor,eList)
+          +(r.reward.heroXp?'<div style="margin-top:6px;font-size:12px;color:#5ee89b">⭐ +'+r.reward.heroXp+' hero XP to every hero on the line</div>':'')
           +(r.reward.firstClearDoubled?'<div style="margin-top:8px"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9">FIRST-CLEAR BONUS</div><b style="color:#ffd45e">Boss floor — package and Dust paid twice, once only.</b></div>':''); }
       else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
       else { msg='Your squad fell. The floor is unchanged — same monsters every attempt, so learn the lineup and try again.'; }
@@ -6033,7 +6034,7 @@ function vaultWaveHTML(w){
 function vaultResultHTML(r){
   const won=r.result&&r.result.won;
   let rew='';
-  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">✨ +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>🧩 '+r.reward.fragments.join(', '):''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
+  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">✨ +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>🧩 '+r.reward.fragments.join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">⭐ +'+r.reward.heroXp+' hero XP each</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
   return `<div class="panel" style="border-color:${won?'#2b7a55':'#7a2b2b'}">
     <div style="text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?'🏆 FLOOR CLEARED':'💀 THE VAULT HOLDS'}</div>${rew}
     ${(r.waveResults||[]).map(vaultWaveHTML).join('')}
@@ -6042,7 +6043,7 @@ function vaultResultHTML(r){
 async function vaultSweep(){ if(VAULT.busy)return; VAULT.busy=true;
   const r=await api('/api/dungeon/sweep','POST',{requestId:uid8()}); VAULT.busy=false;
   if(!r||r.error){ bannerMsg((r&&r.error)||'Sweep unavailable.'); }
-  else{ const fr=Object.entries(r.fragments||{}); bannerMsg('🧹 Swept '+r.floors+' floors!\n✨ +'+r.totalDust+' Forge Dust'+(fr.length?'\n🧩 '+fr.map(([k,n])=>n+'× '+k).join(', '):'')); }
+  else{ const fr=Object.entries(r.fragments||{}); bannerMsg('🧹 Swept '+r.floors+' floors!\n✨ +'+r.totalDust+' Forge Dust'+(r.heroXp?'\n⭐ +'+r.heroXp+' hero XP to your last Vault line':'')+(fr.length?'\n🧩 '+fr.map(([k,n])=>n+'× '+k).join(', '):'')); try{ ledgerSync&&ledgerSync(); }catch(e){} }
   await vaultStatus(); renderDungeon();
 }
 async function vaultSalvage(key,qty){ const q=Math.max(1,qty|0);
@@ -6187,7 +6188,7 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
 /* v365 (Phil): the Gear Compendium art — every finished item, fragment and sub-component (Emberweave
    Archive/Gear/, from Emberweave_Gear_Compendium_Rebuilt19.xlsx). Items by catalog id, the rest by slug. */
-const GEAR_ART_V='?v=2';   // v369: white backgrounds keyed out
+const GEAR_ART_V='?v=3';   // v370: backgrounds keyed out, no fringe (Phil: "revert the white outline")
 function gearSlug(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
 function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.id}.webp${GEAR_ART_V}" alt="" style="width:${px||40}px;height:${px||40}px;border-radius:6px;object-fit:cover;flex:none;background:transparent" loading="lazy">`:''; }
 function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
@@ -12899,7 +12900,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788480365029';
+const BUILD_ID = '1788480884665';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
