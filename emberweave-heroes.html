@@ -8575,11 +8575,11 @@ Object.assign(BATTLE_ANIM, {
     passive:{u:'/assets/anim/librarian/librarian_passive.webp?v=3',n:48,fw:344,fh:400,cols:6,rows:8,figH:355.0,feet:393.0,cx:170.5,fps:24,flip:false,top:39}
   },
   corsair:{
-    idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=3',n:48,fw:295,fh:400,cols:6,rows:8,figH:386.0,feet:393.0,cx:151.0,fps:24,flip:true,top:8,pingpong:true},
-    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=3',n:48,fw:325,fh:400,cols:6,rows:8,figH:366.0,feet:378.0,cx:163.0,fps:24,flip:true,top:13},
-    attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=3',n:48,fw:400,fh:337,cols:6,rows:8,figH:274.0,feet:332.0,cx:196.0,fps:24,flip:true,top:59},
+    idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=4',n:48,fw:387,fh:400,cols:6,rows:8,figH:388.0,feet:394.0,cx:193.0,fps:24,flip:true,top:7,pingpong:true},
+    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=4',n:48,fw:295,fh:400,cols:6,rows:8,figH:381.0,feet:394.0,cx:146.5,fps:24,flip:true,top:14},
+    attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=4',n:48,fw:336,fh:400,cols:6,rows:8,figH:389.0,feet:394.0,cx:184.0,fps:24,flip:true,top:6},
     hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=3',n:48,fw:375,fh:400,cols:6,rows:8,figH:353.0,feet:394.0,cx:187.5,fps:24,flip:true,top:42},
-    green:{u:'/assets/anim/corsair/corsair_green.webp?v=3',n:48,fw:334,fh:400,cols:6,rows:8,figH:388.0,feet:394.0,cx:182.0,fps:24,flip:true,top:7},
+    green:{u:'/assets/anim/corsair/corsair_green.webp?v=4',n:48,fw:400,fh:332,cols:6,rows:8,figH:324.0,feet:327.0,cx:274.5,fps:24,flip:true,top:4},
     blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=3',n:48,fw:400,fh:291,cols:6,rows:8,figH:229.0,feet:287.0,cx:200.0,fps:24,flip:true,top:59},
     ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=3',n:48,fw:400,fh:346,cols:6,rows:8,figH:272.0,feet:341.0,cx:238.0,fps:24,flip:true,top:70},
     passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=3',n:48,fw:299,fh:400,cols:6,rows:8,figH:326.0,feet:395.0,cx:168.0,fps:24,flip:true,top:70}
@@ -13634,7 +13634,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788645121476';
+const BUILD_ID = '1788646095909';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
