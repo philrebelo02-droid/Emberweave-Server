@@ -3480,6 +3480,7 @@ function laneXi(i,n,team){ return 500 + (i-(n-1)/2)*150 + (team?teamXOff(team):0
 // deepest in the bottom-left corner and the ally front near centre; the enemy front is near centre and the
 // enemy BACK row deepest in the top-right corner. Depth (0 front … 3.4 back) slides a unit along that line.
 function _laneDepthOf(k){ return (ROW_OVERRIDE[k]!=null)?ROW_OVERRIDE[k]:roleDepth((HERO_TYPES[k]||MONSTER_TYPES[k]||{}).role||'Warrior'); }
+const ROWMATE_GAP_M=4.5, ROWMATE_STAGGER=0.28;   // v425: horizontal gap between heroes sharing a row (m) + depth stagger per metre of gap
 function laneSlot(team,key,i,n,keys){
   const depth=_laneDepthOf(key);
   // separate row-mates left↔right by 2 m so a team with 2-3 in one row never spawns stacked.
@@ -3490,8 +3491,13 @@ function laneSlot(team,key,i,n,keys){
   const EF={x:440,y:630}, EC={x:850,y:345};    // enemy: front (near centre) → back (top-right corner)
   const F=(team==='ally')?AF:EF, C=(team==='ally')?AC:EC;
   let x=F.x+(C.x-F.x)*t, y=F.y+(C.y-F.y)*t;
-  const dx=C.x-F.x, dy=C.y-F.y, L=Math.hypot(dx,dy)||1, px=-dy/L, py=dx/L, off=(rowIdx-(rowCount-1)/2)*(2*METER);   // 2 m between row-mates, perpendicular to the diagonal
-  x+=px*off; y+=py*off;
+  // v425 (Phil, 5 Sep): row-mates spread LEFT/RIGHT on screen so every hero stays visible — 2 m perpendicular to the
+  // diagonal left a 3-hero back row standing inside each other. Now ROWMATE_GAP_M metres of screen-x per neighbour,
+  // with a small depth stagger so the row still reads along the diagonal. Client placement only (the server sim
+  // never reads laneSlot), so nothing desyncs.
+  const gap=ROWMATE_GAP_M*METER, off=(rowIdx-(rowCount-1)/2)*gap, half=(rowCount-1)/2*gap;
+  let shift=0; if(x-half<60) shift=60-(x-half); else if(x+half>FW-60) shift=(FW-60)-(x+half);   // keep the whole row on the field instead of clamping the end hero into its neighbour
+  x+=off+shift; y+=off*ROWMATE_STAGGER*((team==='ally')?1:-1);
   return {x:Math.max(60,Math.min(FW-60,x)), y:Math.max(80,Math.min(FD-60,y))};
 }
 /* --- Phase 2: portable resolved-stat snapshot + rebuild (for exact, device-independent replays) ---
@@ -13590,7 +13596,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788606790749';
+const BUILD_ID = '1788609592059';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
