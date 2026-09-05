@@ -1525,6 +1525,16 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=8',n:48,fw:255,fh:474,cols:6,rows:8,figH:460.0,feet:467.0,cx:122.5,fps:24,flip:false,top:8},
     passive:{u:'/assets/anim/vireo/vireo_passive.webp?v=8',n:48,fw:189,fh:471,cols:6,rows:8,figH:459.0,feet:464.0,cx:95.5,fps:24,flip:false,top:6}
   },
+  vulmar:{
+    idle:{u:'/assets/anim/vulmar/vulmar_idle.webp?v=7',n:48,fw:216,fh:400,cols:6,rows:8,figH:344.0,feet:371.0,cx:107.5,fps:24,flip:false,top:28,pingpong:true},
+    walk:{u:'/assets/anim/vulmar/vulmar_walk.webp?v=7',n:48,fw:274,fh:400,cols:6,rows:8,figH:352.0,feet:388.0,cx:125.0,fps:24,flip:false,top:37},
+    attack:{u:'/assets/anim/vulmar/vulmar_attack.webp?v=7',n:48,fw:239,fh:400,cols:6,rows:8,figH:382.0,feet:394.0,cx:119.0,fps:24,flip:false,top:13},
+    hit:{u:'/assets/anim/vulmar/vulmar_hit.webp?v=7',n:48,fw:271,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:148.5,fps:24,flip:false,top:5,ax:[0.0,0.0,0.3,0.8,1.9,2.6,3.1,2.8,2.6,2.6,2.6,2.6,2.6,2.6,2.6,2.6,2.6,25.9,25.9,25.9,25.5,25.5,25.5,25.5,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,25.4,0.7,-0.8,-0.2,0.1,0.0,0.0]},
+    green:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,figH:337.0,feet:389.0,cx:217.5,fps:24,flip:false,top:53,ax:[0.0,-0.0,-0.1,-1.4,-4.8,-4.8,-4.8,-4.8,-6.5,-4.5,-1.2,1.1,3.1,3.6,3.9,2.7,2.9,3.4,4.0,4.4,4.4,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.1,4.2,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.1,4.1,4.1,4.0,4.1,4.1,4.1,4.1]},
+    blue:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,figH:364.0,feet:394.0,cx:137.5,fps:24,flip:false,top:31},
+    ult:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,figH:385.0,feet:394.0,cx:120.0,fps:24,flip:false,top:10},
+    passive:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=7',n:48,fw:240,fh:400,cols:6,rows:8,figH:380.0,feet:384.0,cx:120.0,fps:24,flip:false,top:5,ax:[0.0,-0.1,-0.2,-0.3,-0.1,-0.2,-0.2,-0.2,-0.3,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,1.0,1.9,1.9,1.9,1.9,2.3,2.3,2.3,2.3,2.3,2.3,2.3,2.3,2.3,4.2,4.4,4.4,4.3,3.9,2.9,2.2,1.7,1.3,1.3,1.7,1.7,1.7,1.7,1.7,1.8,1.7,1.7,1.8]}
+  },
   velvetplum:{
     idle:{u:'/assets/anim/velvetplum/velvetplum_idle.webp?v=3',n:48,fw:355,fh:456,cols:6,rows:8,figH:444.0,feet:449.0,cx:176.5,fps:24,flip:true,top:6,pingpong:true},
     walk:{u:'/assets/anim/velvetplum/velvetplum_walk.webp?v=3',n:48,fw:400,fh:468,cols:6,rows:8,figH:439.0,feet:445.0,cx:182.5,fps:24,flip:true,top:7},
@@ -1619,16 +1629,7 @@ const BATTLE_ANIM = {
   pull:{u:'/assets/anim/grosk/grosk_pull.webp?v=7',n:24,fw:300,fh:265,cols:6,rows:4,figH:183,feet:258,cx:156,fps:13,flip:false, hold:1.85,top:2},      // GREEN Gravemaw Pull - 24/13 = 1.85s
   fists:{u:'/assets/anim/grosk/grosk_fists.webp?v=7',n:18,fw:300,fh:292,cols:6,rows:3,figH:185,feet:276,cx:217,fps:12,flip:false, hold:1.5,top:2},      // BLUE Hammer Fists - 18/12 = 1.5s
   passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true,top:2},  // PASSIVE The Mirewall (shield raised and held)
-}, vulmar:{
-  idle:{u:'/assets/anim/vulmar/vulmar_idle.webp?v=6',n:72,fw:170,fh:300,cols:6,rows:12,figH:267,feet:281,cx:78,fps:30,flip:false,top:14},
-  attack:{u:'/assets/anim/vulmar/vulmar_attack.webp?v=6',n:36,fw:300,fh:260,cols:6,rows:6,figH:224,feet:248,cx:142,fps:30,flip:false,top:23,hold:1.1},
-  hit:{u:'/assets/anim/vulmar/vulmar_hit.webp?v=6',n:24,fw:271,fh:300,cols:6,rows:4,figH:282,feet:289,cx:155,fps:30,flip:false,top:7},
-  ult:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=6',n:48,fw:241,fh:300,cols:6,rows:8,figH:246,feet:285,cx:74,fps:30,flip:false,top:39,hold:1.5},
-  sling:{u:'/assets/anim/vulmar/vulmar_sling.webp?v=6',n:48,fw:300,fh:279,cols:6,rows:8,figH:215,feet:264,cx:152,fps:30,flip:false,top:49,hold:1.5},
-  grasp:{u:'/assets/anim/vulmar/vulmar_grasp.webp?v=6',n:48,fw:283,fh:300,cols:6,rows:8,figH:280,feet:296,cx:81,fps:30,flip:false,top:16,hold:1.8},
-  passive:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=6',n:48,fw:164,fh:300,cols:6,rows:8,figH:260,feet:289,cx:75,fps:30,flip:false,top:36},
-  walk:{u:'/assets/anim/vulmar/vulmar_walk.webp?v=6',n:72,fw:185,fh:300,cols:6,rows:12,figH:293,feet:296,cx:85,fps:30,flip:false,top:3}
-  },
+},
   fritz:{ idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=3',n:24,fw:343,fh:423,cols:5,rows:5,figH:305,feet:378,cx:165,fps:8,flip:false,top:28}, walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=3',n:24,fw:605,fh:454,cols:5,rows:5,figH:305,feet:394,cx:371,fps:8,flip:false,top:12}, attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=4',n:30,fw:695,fh:459,cols:6,rows:5,figH:304,feet:395,cx:167,fps:20,flip:false,hold:1.5,top:0}, hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=3',n:30,fw:481,fh:438,cols:6,rows:5,figH:305,feet:415,cx:265,fps:14,flip:false,top:34}, ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=3',n:27,fw:793,fh:820,cols:6,rows:5,figH:304,feet:682,cx:384,fps:9,flip:false,top:36}, chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=3',n:27,fw:614,fh:394,cols:6,rows:5,figH:304,feet:371,cx:161,fps:14,flip:false,top:9}, surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=3',n:27,fw:679,fh:614,cols:6,rows:5,figH:304,feet:590,cx:237,fps:14,flip:false,top:21} },
   aureth:{
     idle:{u:'/assets/anim/aureth/aureth_idle.webp?v=3',n:48,fw:334,fh:400,cols:6,rows:8,figH:389.0,feet:394.0,cx:158.5,fps:24,flip:false,top:6,pingpong:true},
@@ -1876,7 +1877,7 @@ HERO_SKILL_CLIPS.grosk = {
   2:{u:GROSK_FISTS, n:18,fw:300,fh:292,cols:6,rows:3,dur:2.4},
   3:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,dur:2.6},
 };
-HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=6',n:48,fw:241,fh:300,cols:6,rows:8,dur:2.6}, 1:{u:'/assets/anim/vulmar/vulmar_sling.webp?v=6',n:48,fw:300,fh:279,cols:6,rows:8,dur:2.4}, 2:{u:'/assets/anim/vulmar/vulmar_grasp.webp?v=6',n:48,fw:283,fh:300,cols:6,rows:8,dur:2.4}, 3:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=6',n:48,fw:164,fh:300,cols:6,rows:8,dur:2.6} };
+HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,dur:2.0}, 1:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,dur:2.0}, 2:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,dur:2.0}, 3:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=7',n:48,fw:240,fh:400,cols:6,rows:8,dur:2.0} };
 // Vael + Oakmir skill-tab previews — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
 // Slots match the Skills list order: 0 ult, 1 green, 2 blue, 3 passive → idle stance.
 HERO_SKILL_CLIPS.vael = {
@@ -13637,7 +13638,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788647039457';
+const BUILD_ID = '1788648436849';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
