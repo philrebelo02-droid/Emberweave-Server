@@ -13426,7 +13426,12 @@ if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualV
    real layout viewport in px, and run a zoom watchdog that snaps visualViewport.scale back to 1 (by re-applying the
    viewport meta) whenever it drifts with no text field focused. Also forced after any update reload. */
 function _fitApp(){ try{ const app=document.getElementById('app'); if(!app) return; const de=document.documentElement;
-    const vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight; if(!vw||!vh) return;
+    /* v438: right after an update reload the LAYOUT viewport can still be ~18% taller than the screen (Phil's two
+       screenshots), and every vw/dvh/clientHeight number inherits that. The VISUAL viewport is what is actually on
+       screen, so size the stage from the smaller of the two, in CSS px (visual size × scale undoes any page zoom). */
+    let vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight;
+    const vv=window.visualViewport; if(vv&&vv.width&&vv.height){ const sc=vv.scale||1; vw=Math.min(vw, Math.round(vv.width*sc)); vh=Math.min(vh, Math.round(vv.height*sc)); }
+    if(!vw||!vh) return;
     const w=Math.min(vw, vh*1024/572), h=Math.min(vh, vw*572/1024);
     if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){ app.style.width=Math.floor(w)+'px'; app.style.height=Math.floor(h)+'px'; _refitAll(); } }catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
@@ -13435,7 +13440,7 @@ let _zoomBadSince=0;
 function _zoomWatch(){ try{ const vv=window.visualViewport; if(!vv) return; const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
     if(vv.scale>1.02 && !foc){ if(!_zoomBadSince) _zoomBadSince=Date.now(); else if(Date.now()-_zoomBadSince>600){ _zoomBadSince=0; _resetPageZoom(); } }
     else _zoomBadSince=0; }catch(e){} }
-setInterval(_zoomWatch,400);
+setInterval(()=>{ _zoomWatch(); _fitApp(); },400);   // v438: continuous — a stale layout viewport after a reload can never stick
 for(const d of [0,300,1000,2500]) setTimeout(_fitApp,d);
 window.addEventListener('resize',()=>setTimeout(_fitApp,30));
 if(window.visualViewport) window.visualViewport.addEventListener('resize',()=>setTimeout(_fitApp,30));
@@ -13629,7 +13634,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788644989002';
+const BUILD_ID = '1788645121476';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
