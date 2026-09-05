@@ -16,6 +16,7 @@
   body{display:flex;align-items:center;justify-content:center;}
   /* the whole game is a landscape stage (matches the town art ~1024:572) that scales to fill the window and centers */
   #app{position:relative;width:min(100vw, calc(100vh * 1024 / 572));height:min(100vh, calc(100vw * 572 / 1024));width:min(100dvw, calc(100dvh * 1024 / 572));height:min(100dvh, calc(100dvw * 572 / 1024));overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.7);}
+  @media (pointer:coarse){ input,textarea,select{font-size:16px !important;} }   /* v437: <16px text fields make Android/iOS zoom the page on focus */
   #home{padding:0;}
   /* boot splash gate: shown for everyone until they tap the (invisible) logo Play button while online */
   #rotateGate{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;background:#0a0603;overflow:hidden;-webkit-tap-highlight-color:transparent;}
@@ -4813,7 +4814,7 @@ function _fxPlateTex(key){ const d=FX_PLATE_DEF[key]; if(!d||!TH)return null; if
 function spawnFxPlate(key,fx,fy){ if(!TH||!scene)return; const d=FX_PLATE_DEF[key]; if(!d)return; const base=_fxPlateTex(key); if(!base)return;
   const _c=d.cols||d.n, _r=d.rows||1;
   const _ex=1.5/Math.max(1,_c*d.fw), _ey=1.5/Math.max(1,_r*d.fh);
-  const tex=base.clone(); tex.needsUpdate=true;
+  const tex=base.clone(); if(base.image) tex.needsUpdate=true;   // v437: never flag an update before the bitmap exists (Three.js warning spam)
   tex.repeat.set(Math.max(1e-6,1/_c-2*_ex), Math.max(1e-6,1/_r-2*_ey)); tex.offset.set(_ex,1-1/_r+_ey);
   if(!base.image){ (base.__waiters=base.__waiters||[]).push(tex); }   // still downloading — collect it
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:1}));
@@ -13417,6 +13418,30 @@ for(const d of [250,800,1600,3200]) setTimeout(_refitAll,d);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') for(const d of [50,400]) setTimeout(_refitAll,d); });
 window.addEventListener('pageshow',()=>{ for(const d of [50,400]) setTimeout(_refitAll,d); });
 if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualViewport.addEventListener('resize',()=>{ const h=window.visualViewport.height; const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName); if(!foc && Math.abs(h-_vvH)>_vvH*0.15){ _vvH=h; _refitAll(); } }); }
+/* v437 (Phil: "when I log on a lot of the time the screen is stuck zoomed in… you cannot click the UI at the top or
+   the chat on the bottom… it happens when you push the server"). Two things happen at an update reload on Android:
+   (a) the page can come back with a BROWSER zoom factor > 1 (a focused chat/name field, or a stale pinch) that
+   nothing ever resets — the fixed 100dvh stage is then taller than what is visible, so the top bar and the chat are
+   off-screen; (b) the vw/dvh-based #app size can be computed against a stale layout viewport. Fix: size #app from the
+   real layout viewport in px, and run a zoom watchdog that snaps visualViewport.scale back to 1 (by re-applying the
+   viewport meta) whenever it drifts with no text field focused. Also forced after any update reload. */
+function _fitApp(){ try{ const app=document.getElementById('app'); if(!app) return; const de=document.documentElement;
+    const vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight; if(!vw||!vh) return;
+    const w=Math.min(vw, vh*1024/572), h=Math.min(vh, vw*572/1024);
+    if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){ app.style.width=Math.floor(w)+'px'; app.style.height=Math.floor(h)+'px'; _refitAll(); } }catch(e){} }
+function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
+    m.setAttribute('content', c.replace(/maximum-scale=[\d.]+/,'maximum-scale=1.0001')); setTimeout(()=>{ m.setAttribute('content',c); _fitApp(); },40); }catch(e){} }
+let _zoomBadSince=0;
+function _zoomWatch(){ try{ const vv=window.visualViewport; if(!vv) return; const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+    if(vv.scale>1.02 && !foc){ if(!_zoomBadSince) _zoomBadSince=Date.now(); else if(Date.now()-_zoomBadSince>600){ _zoomBadSince=0; _resetPageZoom(); } }
+    else _zoomBadSince=0; }catch(e){} }
+setInterval(_zoomWatch,400);
+for(const d of [0,300,1000,2500]) setTimeout(_fitApp,d);
+window.addEventListener('resize',()=>setTimeout(_fitApp,30));
+if(window.visualViewport) window.visualViewport.addEventListener('resize',()=>setTimeout(_fitApp,30));
+window.addEventListener('pageshow',()=>{ for(const d of [50,400,1200]) setTimeout(()=>{ _fitApp(); _zoomWatch(); },d); });
+try{ if(sessionStorage.getItem('ew_postupdate')){ sessionStorage.removeItem('ew_postupdate'); for(const d of [100,600,1500,3000]) setTimeout(()=>{ _resetPageZoom(); },d); } }catch(e){}
+document.addEventListener('focusout',()=>{ setTimeout(_zoomWatch,700); });
 // free left/right panning of the town panorama (mouse drag on desktop; touch uses native pan-x). Tap still opens buildings.
 (function initTownPan(){
   const wrap=document.getElementById('townWrap'); if(!wrap) return;
@@ -13604,7 +13629,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788643960697';
+const BUILD_ID = '1788644989002';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -13613,6 +13638,8 @@ function updLoopBlocked(){ try{ const now=Date.now(), g=JSON.parse(localStorage.
 function updLoopMark(){ try{ const now=Date.now(); let g=JSON.parse(localStorage.getItem('ew_updguard')||'{}');
   if(!g.t || (now-g.t)>60000) g={t:now,n:0}; g.n=(g.n||0)+1; localStorage.setItem('ew_updguard',JSON.stringify(g)); }catch(e){} }
 function doUpdateReload(){ if(_updating)return; _updating=true; updLoopMark();
+  try{ if(document.activeElement&&document.activeElement.blur) document.activeElement.blur(); }catch(e){}   // v437: a focused text field at reload is what leaves the page zoomed in afterwards
+  try{ sessionStorage.setItem('ew_postupdate','1'); }catch(e){}
   const st=document.getElementById('splashStatus'); if(st){ st.className='splashStatus check'; st.textContent='Updating…'; }
   const fin=()=>{ try{ location.reload(); }catch(e){ location.href=location.href; } };
   try{ const jobs=[];
