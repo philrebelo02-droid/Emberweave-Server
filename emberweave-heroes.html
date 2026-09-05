@@ -1216,13 +1216,13 @@ const GROSK_CROC="/assets/anim/grosk/grosk_croc.webp?v=7", GROSK_PULL="/assets/a
    never cleared — so the game mirrored them and they fought with their backs to the enemy. */
 const BATTLE_ANIM = {
   vesper:{
-    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=6',n:72,fw:241,fh:300,cols:6,rows:12,figH:284.0,feet:296.0,cx:116.0,fps:30,flip:false,top:13},
-    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=6',n:51,fw:232,fh:300,cols:6,rows:9,figH:285.0,feet:296.0,cx:116.0,fps:30,flip:false,top:12},
-    attack:{u:'/assets/anim/vesper/vesper_attack.webp?v=5',n:24,fw:300,fh:295,cols:6,rows:4,figH:277.0,feet:290.0,cx:109.0,fps:20,flip:false,hold:1.2,top:14},
-    hit:{u:'/assets/anim/vesper/vesper_hit.webp?v=5',n:24,fw:294,fh:300,cols:6,rows:4,figH:246.0,feet:283.0,cx:149.5,fps:16,flip:false,top:38},
-    green:{u:'/assets/anim/vesper/vesper_green.webp?v=2',n:72,fw:239,fh:300,cols:6,rows:12,figH:254.0,feet:296.0,cx:127.0,fps:30,flip:false,top:43,hold:0.8},
-    ult:{u:'/assets/anim/vesper/vesper_ult.webp?v=3',n:72,fw:224,fh:300,cols:6,rows:12,figH:282.0,feet:296.0,cx:112.0,fps:30,flip:false,top:15},
-    blue:{u:'/assets/anim/vesper/vesper_blue.webp?v=1',n:72,fw:257,fh:300,cols:6,rows:12,figH:238.0,feet:297.0,cx:94.5,fps:30,flip:false,top:60,hold:0.8}   /* Pagestorm - was falling back to the attack clip */
+    idle:{u:'/assets/anim/vesper/vesper_idle.webp?v=9',n:48,fw:326,fh:422,cols:6,rows:8,figH:410.0,feet:415.0,cx:161.5,fps:24,flip:false,top:6,pingpong:true},
+    walk:{u:'/assets/anim/vesper/vesper_walk.webp?v=9',n:48,fw:330,fh:431,cols:6,rows:8,figH:406.0,feet:417.0,cx:171.0,fps:24,flip:false,top:12},
+    attack:{u:'/assets/anim/vesper/vesper_attack.webp?v=9',n:48,fw:327,fh:433,cols:6,rows:8,figH:421.0,feet:426.0,cx:164.5,fps:24,flip:false,top:6},
+    hit:{u:'/assets/anim/vesper/vesper_hit.webp?v=9',n:48,fw:322,fh:421,cols:6,rows:8,figH:406.0,feet:414.0,cx:161.5,fps:24,flip:false,top:9},
+    green:{u:'/assets/anim/vesper/vesper_green.webp?v=9',n:48,fw:474,fh:500,cols:6,rows:8,figH:386.0,feet:493.0,cx:236.5,fps:24,flip:false,top:108,ax:[0.0,-0.2,-0.4,-0.6,-0.7,-0.9,-1.0,-0.9,-1.0,-1.0,-1.0,-1.0,-1.0,-1.3,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,21.0,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2]},
+    blue:{u:'/assets/anim/vesper/vesper_blue.webp?v=9',n:48,fw:358,fh:479,cols:6,rows:8,figH:410.0,feet:472.0,cx:168.5,fps:24,flip:false,top:63},
+    ult:{u:'/assets/anim/vesper/vesper_ult.webp?v=9',n:48,fw:440,fh:471,cols:6,rows:8,figH:405.0,feet:464.0,cx:215.5,fps:24,flip:false,top:60,ax:[0.0,0.0,-0.1,-0.1,-1.2,-2.4,-4.2,-5.8,-13.1,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,-20.3,4.1,5.9,-4.1,0.6,-0.7,-0.8,-0.2,-0.2]}
   },
   sablewick:{
     idle:{u:'/assets/anim/sablewick/sablewick_idle.webp?v=3',n:48,fw:354,fh:466,cols:6,rows:8,figH:444.0,feet:459.0,cx:176.5,fps:24,flip:false,top:16,pingpong:true},
@@ -13596,7 +13596,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788614961341';
+const BUILD_ID = '1788620288662';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
