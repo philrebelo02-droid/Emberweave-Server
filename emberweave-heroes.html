@@ -1587,14 +1587,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/meridian/meridian_passive.webp?v=3',n:48,fw:253,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:112.0,fps:24,flip:true,top:5}
   },
   hurne:{
-    idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=3',n:48,fw:334,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:166.5,fps:24,flip:false,top:5,pingpong:true},
-    walk:{u:'/assets/anim/hurne/hurne_walk.webp?v=3',n:48,fw:378,fh:400,cols:6,rows:8,figH:380.0,feet:393.0,cx:177.0,fps:24,flip:false,top:14},
-    attack:{u:'/assets/anim/hurne/hurne_attack.webp?v=3',n:48,fw:400,fh:242,cols:6,rows:8,figH:228.0,feet:236.0,cx:199.5,fps:24,flip:false,top:9,ax:[0.0,-0.0,0.0,0.0,0.2,0.5,1.7,3.6,4.7,7.1,9.4,11.5,12.6,12.6,12.6,12.6,12.6,7.9,3.6,2.4,2.7,3.4,3.5,3.4,2.9,2.7,2.6,2.5,2.5,2.6,2.6,2.6,2.7,3.4,3.9,4.5,4.5,4.0,2.1,0.1,-0.2,-0.1,0.0,0.0,0.0,0.0,0.0,0.0]},
-    hit:{u:'/assets/anim/hurne/hurne_hit.webp?v=3',n:48,fw:318,fh:400,cols:6,rows:8,figH:332.0,feet:387.0,cx:153.0,fps:24,flip:false,top:56},
+    idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=4',n:48,fw:332,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:165.5,fps:24,flip:true,top:5,pingpong:true},
+    walk:{u:'/assets/anim/hurne/hurne_walk.webp?v=4',n:48,fw:325,fh:400,cols:6,rows:8,figH:382.0,feet:394.0,cx:162.0,fps:24,flip:true,top:13},
+    attack:{u:'/assets/anim/hurne/hurne_attack.webp?v=4',n:48,fw:364,fh:400,cols:6,rows:8,figH:389.0,feet:393.0,cx:168.0,fps:24,flip:true,top:5},
+    hit:{u:'/assets/anim/hurne/hurne_hit.webp?v=4',n:48,fw:338,fh:400,cols:6,rows:8,figH:385.0,feet:392.0,cx:171.0,fps:24,flip:true,top:8},
     green:{u:'/assets/anim/hurne/hurne_green.webp?v=3',n:48,fw:335,fh:400,cols:6,rows:8,figH:301.0,feet:385.0,cx:148.5,fps:24,flip:false,top:85},
-    blue:{u:'/assets/anim/hurne/hurne_blue.webp?v=3',n:48,fw:400,fh:308,cols:6,rows:8,figH:285.0,feet:289.0,cx:240.0,fps:24,flip:false,top:5},
+    blue:{u:'/assets/anim/hurne/hurne_blue.webp?v=4',n:48,fw:368,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:169.0,fps:24,flip:true,top:5},
     ult:{u:'/assets/anim/hurne/hurne_ult.webp?v=3',n:48,fw:369,fh:400,cols:6,rows:8,figH:266.0,feet:342.0,cx:155.5,fps:24,flip:false,top:77},
-    passive:{u:'/assets/anim/hurne/hurne_passive.webp?v=3',n:48,fw:354,fh:400,cols:6,rows:8,figH:381.0,feet:394.0,cx:187.0,fps:24,flip:false,top:14}
+    passive:{u:'/assets/anim/hurne/hurne_passive.webp?v=4',n:48,fw:340,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:173.0,fps:24,flip:true,top:5}
   },
   'boar warrior':{
     hit:{u:'/assets/anim/boarwarrior/boarwarrior_hit.webp?v=5',n:20,fw:292,fh:300,cols:6,rows:4,figH:258,feet:298,cx:171,fps:16,flip:false,top:2},
@@ -13638,7 +13638,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788648436849';
+const BUILD_ID = '1788650295040';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
