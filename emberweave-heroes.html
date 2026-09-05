@@ -1194,10 +1194,10 @@ sylthaine:{
   3:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=10',n:72,fw:137,fh:300,cols:6,rows:12,dur:2.4},   // Cold Snap (passive)
 },
 tick:{
-  0:{u:'/assets/anim/tick/tick_ult.webp?v=6',n:48,fw:300,fh:244,cols:6,rows:8,dur:2.4},
-  1:{u:'/assets/anim/tick/tick_green.webp?v=6',n:48,fw:200,fh:300,cols:6,rows:8,dur:2.4},
-  2:{u:'/assets/anim/tick/tick_blue.webp?v=6',n:48,fw:281,fh:300,cols:6,rows:8,dur:2.4},
-  3:{u:'/assets/anim/tick/tick_pass.webp?v=5',n:12,fw:260,fh:210,cols:6,rows:2,dur:1.2},
+  0:{u:'/assets/anim/tick/tick_ult.webp?v=7',n:48,fw:300,fh:244,cols:6,rows:8,dur:2.4},
+  1:{u:'/assets/anim/tick/tick_green.webp?v=7',n:48,fw:200,fh:300,cols:6,rows:8,dur:2.4},
+  2:{u:'/assets/anim/tick/tick_blue.webp?v=7',n:48,fw:281,fh:300,cols:6,rows:8,dur:2.4},
+  3:{u:'/assets/anim/tick/tick_pass.webp?v=7',n:12,fw:260,fh:210,cols:6,rows:2,dur:1.2},
 }};
 const MOBILE=(('ontouchstart' in window)||(navigator.maxTouchPoints||0)>0);
 // an animation source is "real" if the build replaced its marker — either an inline data: URI OR an external
@@ -1235,14 +1235,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/sablewick/sablewick_passive.webp?v=4',n:48,fw:293,fh:475,cols:6,rows:8,figH:442.0,feet:468.0,cx:147.0,fps:24,flip:false,top:27}
   },
   vex:{
-    idle:{u:'/assets/anim/vex/vex_idle.webp?v=4',n:48,fw:442,fh:498,cols:6,rows:8,figH:461.0,feet:466.0,cx:231.5,fps:24,flip:false,top:6,pingpong:true},
-    walk:{u:'/assets/anim/vex/vex_walk.webp?v=4',n:48,fw:360,fh:484,cols:6,rows:8,figH:444.0,feet:463.0,cx:168.5,fps:24,flip:false,top:20},
-    attack:{u:'/assets/anim/vex/vex_attack.webp?v=4',n:48,fw:472,fh:500,cols:6,rows:8,figH:429.0,feet:493.0,cx:222.0,fps:24,flip:false,top:65},
-    hit:{u:'/assets/anim/vex/vex_hit.webp?v=4',n:48,fw:418,fh:496,cols:6,rows:8,figH:460.0,feet:487.0,cx:237.0,fps:24,flip:false,top:28},
-    green:{u:'/assets/anim/vex/vex_green.webp?v=4',n:48,fw:485,fh:500,cols:6,rows:8,figH:411.0,feet:494.0,cx:182.5,fps:24,flip:false,top:84},
-    blue:{u:'/assets/anim/vex/vex_blue.webp?v=4',n:48,fw:492,fh:493,cols:6,rows:8,figH:460.0,feet:485.0,cx:307.0,fps:24,flip:false,top:26},
-    ult:{u:'/assets/anim/vex/vex_ult.webp?v=4',n:48,fw:428,fh:500,cols:6,rows:8,figH:394.0,feet:494.0,cx:220.5,fps:24,flip:false,top:101,ax:[0.0,-0.0,-0.0,-0.1,-0.1,-0.1,-0.3,0.4,1.2,3.6,4.2,4.2,8.1,9.8,10.9,11.4,11.5,11.0,9.8,8.9,8.2,7.2,5.8,5.2,4.8,4.7,4.7,4.9,5.3,5.5,5.6,6.8,5.1,4.2,3.7,2.1,0.6,-1.6,-3.2,-6.1,-7.6,-10.0,-10.5,-11.4,-11.2,-10.4,-10.0,-8.4]},
-    passive:{u:'/assets/anim/vex/vex_passive.webp?v=4',n:48,fw:341,fh:500,cols:6,rows:8,figH:454.0,feet:492.0,cx:170.5,fps:24,flip:false,top:39,ax:[0.0,-0.0,-0.0,-0.0,-0.0,-0.1,-0.1,-0.1,-0.1,-0.0,-0.2,-0.4,-0.5,-1.2,-2.6,-4.5,-5.9,-7.5,-9.1,-9.4,-9.4,-9.3,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.3,-9.2,-9.3,-9.2,-9.2,-9.1,-9.0,-8.2,-5.5,-2.6,0.1,1.4,1.8]}
+    idle:{u:'/assets/anim/vex/vex_idle.webp?v=4',n:48,fw:442,fh:498,cols:6,rows:8,figH:461.0,feet:466.0,cx:231.5,fps:24,flip:true,top:6,pingpong:true},
+    walk:{u:'/assets/anim/vex/vex_walk.webp?v=4',n:48,fw:360,fh:484,cols:6,rows:8,figH:444.0,feet:463.0,cx:168.5,fps:24,flip:true,top:20},
+    attack:{u:'/assets/anim/vex/vex_attack.webp?v=4',n:48,fw:472,fh:500,cols:6,rows:8,figH:429.0,feet:493.0,cx:222.0,fps:24,flip:true,top:65},
+    hit:{u:'/assets/anim/vex/vex_hit.webp?v=4',n:48,fw:418,fh:496,cols:6,rows:8,figH:460.0,feet:487.0,cx:237.0,fps:24,flip:true,top:28},
+    green:{u:'/assets/anim/vex/vex_green.webp?v=4',n:48,fw:485,fh:500,cols:6,rows:8,figH:411.0,feet:494.0,cx:182.5,fps:24,flip:true,top:84},
+    blue:{u:'/assets/anim/vex/vex_blue.webp?v=4',n:48,fw:492,fh:493,cols:6,rows:8,figH:460.0,feet:485.0,cx:307.0,fps:24,flip:true,top:26},
+    ult:{u:'/assets/anim/vex/vex_ult.webp?v=4',n:48,fw:428,fh:500,cols:6,rows:8,figH:394.0,feet:494.0,cx:220.5,fps:24,flip:true,top:101,ax:[0.0,-0.0,-0.0,-0.1,-0.1,-0.1,-0.3,0.4,1.2,3.6,4.2,4.2,8.1,9.8,10.9,11.4,11.5,11.0,9.8,8.9,8.2,7.2,5.8,5.2,4.8,4.7,4.7,4.9,5.3,5.5,5.6,6.8,5.1,4.2,3.7,2.1,0.6,-1.6,-3.2,-6.1,-7.6,-10.0,-10.5,-11.4,-11.2,-10.4,-10.0,-8.4]},
+    passive:{u:'/assets/anim/vex/vex_passive.webp?v=4',n:48,fw:341,fh:500,cols:6,rows:8,figH:454.0,feet:492.0,cx:170.5,fps:24,flip:true,top:39,ax:[0.0,-0.0,-0.0,-0.0,-0.0,-0.1,-0.1,-0.1,-0.1,-0.0,-0.2,-0.4,-0.5,-1.2,-2.6,-4.5,-5.9,-7.5,-9.1,-9.4,-9.4,-9.3,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.2,-9.3,-9.2,-9.3,-9.2,-9.2,-9.1,-9.0,-8.2,-5.5,-2.6,0.1,1.4,1.8]}
   },
   arrears:{
     idle:{u:'/assets/anim/arrears/arrears_idle.webp?v=3',n:48,fw:284,fh:400,cols:6,rows:8,figH:334.0,feet:394.0,cx:142.0,fps:24,flip:false,top:61,pingpong:true},
@@ -1504,6 +1504,16 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/pellucid/pellucid_ult.webp?v=3',n:48,fw:335,fh:400,cols:6,rows:8,figH:391.0,feet:395.0,cx:171.0,fps:24,flip:true,top:5},
     passive:{u:'/assets/anim/pellucid/pellucid_passive.webp?v=3',n:48,fw:299,fh:400,cols:6,rows:8,figH:388.0,feet:393.0,cx:145.5,fps:24,flip:true,top:6}
   },
+  tick:{
+    idle:{u:'/assets/anim/tick/tick_idle.webp?v=7',n:48,fw:289,fh:400,cols:6,rows:8,figH:387.0,feet:391.0,cx:141.5,fps:24,flip:true,top:5,pingpong:true},
+    walk:{u:'/assets/anim/tick/tick_walk.webp?v=7',n:48,fw:315,fh:400,cols:6,rows:8,figH:383.0,feet:388.0,cx:150.0,fps:24,flip:true,top:6,ax:[0.0,-2.4,-2.5,-1.8,0.8,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,2.4,1.9,0.4,-0.2,-2.7,-2.2,1.0,2.2,2.2,2.2,2.2,2.2,2.2,2.2,2.2,2.2,2.2,0.6,0.1,-2.4,-2.5,-1.9,0.2,1.4,1.4,1.4,1.4,1.4,1.4,1.4,1.4,11.9,11.9,0.6]},
+    attack:{u:'/assets/anim/tick/tick_attack.webp?v=7',n:48,fw:338,fh:400,cols:6,rows:8,figH:388.0,feet:394.0,cx:145.0,fps:24,flip:true,top:7},
+    hit:{u:'/assets/anim/tick/tick_hit.webp?v=7',n:48,fw:298,fh:400,cols:6,rows:8,figH:341.0,feet:395.0,cx:153.0,fps:24,flip:true,top:55},
+    green:{u:'/assets/anim/tick/tick_green.webp?v=7',n:48,fw:384,fh:400,cols:6,rows:8,figH:380.0,feet:394.0,cx:163.0,fps:24,flip:true,top:15},
+    blue:{u:'/assets/anim/tick/tick_blue.webp?v=7',n:48,fw:400,fh:389,cols:6,rows:8,figH:378.0,feet:382.0,cx:243.0,fps:24,flip:true,top:5,ax:[0.0,-0.0,-12.3,-17.5,-21.7,-22.1,-21.6,-19.7,-18.2,-18.5,-18.6,-20.4,-22.1,-13.0,-9.4,-6.6,-18.0,-14.3,-9.1,-8.9,-9.2,-19.1,-21.1,-21.1,-21.0,-22.6,-23.0,-20.1,-16.7,-16.8,-16.7,-18.0,-20.0,-18.7,-15.9,-12.7,-15.6,-17.1,-15.7,-8.0,-8.3,-7.8,-7.1,-9.1,-0.0,0.1,0.1,0.1]},
+    ult:{u:'/assets/anim/tick/tick_ult.webp?v=7',n:48,fw:361,fh:400,cols:6,rows:8,figH:339.0,feet:395.0,cx:179.0,fps:24,flip:true,top:57,ax:[0.0,-0.0,-0.1,-0.0,2.2,4.1,0.1,-2.9,-7.8,-11.2,-10.8,-11.0,-14.4,-18.2,-21.3,-20.8,-8.5,-10.2,-15.0,-12.7,-8.8,-5.5,-13.2,-13.9,-10.1,-2.9,-11.5,-17.0,-16.7,-7.5,-7.2,-12.7,-14.2,-14.5,-13.0,-12.5,-10.3,-9.9,-9.1,-6.7,-4.6,-3.8,-1.6,0.0,-0.1,-0.1,0.0,0.0]},
+    passive:{u:'/assets/anim/tick/tick_passive.webp?v=7',n:48,fw:319,fh:400,cols:6,rows:8,figH:390.0,feet:394.0,cx:147.5,fps:24,flip:true,top:5}
+  },
   velvetplum:{
     idle:{u:'/assets/anim/velvetplum/velvetplum_idle.webp?v=3',n:48,fw:355,fh:456,cols:6,rows:8,figH:444.0,feet:449.0,cx:176.5,fps:24,flip:true,top:6,pingpong:true},
     walk:{u:'/assets/anim/velvetplum/velvetplum_walk.webp?v=3',n:48,fw:400,fh:468,cols:6,rows:8,figH:439.0,feet:445.0,cx:182.5,fps:24,flip:true,top:7},
@@ -1677,17 +1687,6 @@ const BATTLE_ANIM = {
     blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=3',n:48,fw:406,fh:456,cols:6,rows:8,figH:444.0,feet:449.0,cx:188.5,fps:24,flip:false,top:6},
     ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=3',n:48,fw:312,fh:500,cols:6,rows:8,figH:352.0,feet:486.0,cx:111.5,fps:24,flip:false,top:135},
     passive:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=3',n:48,fw:312,fh:456,cols:6,rows:8,figH:444.0,feet:449.0,cx:161.5,fps:24,flip:false,top:6}
-  },
-  tick:{
-  idle:{u:'/assets/anim/tick/tick_idle.webp?v=6',n:72,fw:246,fh:300,cols:6,rows:12,figH:287,feet:295,cx:127,fps:30,flip:true,top:8},
-  walk:{u:'/assets/anim/tick/tick_walk_run.webp?v=1',n:12,fw:196,fh:223,cols:6,rows:2,figH:183,feet:222,cx:139,fps:14,flip:true,top:6},   // v307: the 72-frame sheet only swings his arms on the spot. Back to the original run cycle.
-  attack:{u:'/assets/anim/tick/tick_attack.webp?v=6',n:36,fw:300,fh:286,cols:6,rows:6,figH:269,feet:282,cx:170,fps:30,flip:true,top:13,hold:1.1},
-  hit:{u:'/assets/anim/tick/tick_hit.webp?v=6',n:24,fw:300,fh:274,cols:6,rows:4,figH:248,feet:267,cx:147,fps:30,flip:true,top:18},
-  ult:{u:'/assets/anim/tick/tick_ult.webp?v=6',n:48,fw:300,fh:244,cols:6,rows:8,figH:230,feet:241,cx:105,fps:30,flip:true,top:10,hold:1.5},
-  green:{u:'/assets/anim/tick/tick_green.webp?v=6',n:48,fw:200,fh:300,cols:6,rows:8,figH:239,feet:297,cx:75,fps:30,flip:true,top:57,hold:1.0},
-  blue:{u:'/assets/anim/tick/tick_blue.webp?v=6',n:48,fw:281,fh:300,cols:6,rows:8,figH:266,feet:293,cx:88,fps:30,flip:true,top:19,hold:0.9},
-  passive:{u:'/assets/anim/tick/tick_passive.webp?v=6',n:48,fw:255,fh:300,cols:6,rows:8,figH:293,feet:296,cx:122,fps:30,flip:true,top:3},
-  fists:{u:'/assets/anim/tick/tick_blue.webp?v=6',n:48,fw:281,fh:300,cols:6,rows:8,figH:266,feet:293,cx:88,fps:30,flip:true,top:19,hold:0.95}
   },
   // ---- MONSTERS (regenerated 30 Aug at hero resolution; idle = pingpong slice of walk, no hit clip) ----
   "bug":{
@@ -13596,7 +13595,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788635328643';
+const BUILD_ID = '1788637211213';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
