@@ -1990,7 +1990,12 @@ function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CEL
    cell. The budget is now spent on the FIGURE (figFrac = figH/fh tells us how much of the cell he actually occupies), with
    a ceiling on the cell so a big effect can't blow out video memory. Measured: every hero lands near 130px on the body,
    Fritz's attack doubles, and the whole catalogue costs 21% more texture. */
-const CELL_FIG_CAP=130, CELL_HARD_CAP=300;
+/* v494 (Phil: "when fritz attacks it seems his quality dips a lot" -> "we said all males is 400 and females 500").
+   CELL_CAP capped a cell by its LONGEST SIDE, so a WIDE cell spent the whole budget on empty margin: Fritz's attack
+   sheet is 695x459 because the lightning spreads sideways, and he came out 66 px tall against Lumi's 147 in a
+   298x500 cell. Spend the budget on the FIGURE instead (figFrac = figH/fh), with a ceiling on the cell so a very
+   wide sheet still can't run away. Measured over all 509 clips: worst 56 -> 120 px, median 128 -> 140. */
+const CELL_FIG_CAP=140, CELL_HARD_CAP=340;
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -2024,15 +2029,19 @@ function _fitTex(t, cols, rows, cap, figFrac){ try{ const im=capSheet(t.image, c
    roster matches its declaration exactly. Decode ONCE, straight to the final size. Sheets whose
    declaration is somehow wrong still land correctly: the resize is proportional to the real image,
    so a mis-declared sheet is at worst slightly off the cap, never broken. */
-function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh){
+function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
   if(typeof createImageBitmap!=='function' || typeof fetch!=='function') return false;
   const CAP=cellCapFor(url);   // v363: bosses keep more pixels
+  /* v494: THIS is the loader that actually runs. capSheet() got the figure-fraction budget in an earlier pass and
+     nothing changed on screen, because capSheet is only the FALLBACK path -- createImageBitmap resizes here, and
+     here the cap was still by longest side. Same rule as capSheet now: spend the budget on the figure. */
+  const _figK=(fw&&fh&&figFrac>0&&CAP<=CELL_CAP)?Math.min(1,(CELL_FIG_CAP/figFrac)/fh, CELL_HARD_CAP/Math.max(fw,fh)):0;
   /* three r128 does NOT apply texture.flipY to an ImageBitmap, so the bitmap has to be created
      already flipped (imageOrientation:'flipY') and the texture told not to flip again — otherwise
      every sprite renders upside down. */
   fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
     .then(bl=>{
-      const k=(fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0;
+      const k=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0);
       if(k>0){
         if(k>=0.999) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(onTex);
         const nw=Math.max(1,Math.round(fw*k))*cols, nh=Math.max(1,Math.round(fh*k))*rows;
@@ -2053,8 +2062,9 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh){
 function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   const _c=s.cols||s.n,_r=s.rows||1;
   const tx=new TH.Texture();
+  const _ff=(s.figH&&s.fh)?s.figH/s.fh:0;
   if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; },
-                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); }, s.fw, s.fh)){
+                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
     new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
   }
   tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
@@ -14129,7 +14139,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788734214093';
+const BUILD_ID = '1788735150342';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
