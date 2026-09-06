@@ -4676,10 +4676,13 @@ const _groundFx=[];
 function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
   const tex=base;
   const R3=radius*SC, w=R3*2*1.12*FX_SIZE, h=w*(d.fh/d.fw);   // v367: FX_SIZE is visual only
-  const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:TH.DoubleSide,opacity:0}));
+  const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
   fx2Hook(m); fx2SetFrame(m,d,0);
-  m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)); m.renderOrder=5; scene.add(m);
+  // v447 (Phil, Blizzard screenshots: "spell effects are always behind characters"): this ground plate was renderOrder 5 with
+  // depth testing ON, so it painted AFTER the unit sprites (renderOrder 0) and its near half occluded their bodies.
+  // Now: drawn before every unit, no depth test — a ground spell can never sit over a hero.
+  m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)); m.renderOrder=-6; scene.add(m);
   const o={m,d,tex,t:0,life}; _groundFx.push(o); return o; }
 function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
   fx2SetFrame(o.m,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                            // loop the cycle
@@ -13639,7 +13642,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788667575430';
+const BUILD_ID = '1788667887810';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
