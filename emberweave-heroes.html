@@ -1995,7 +1995,7 @@ function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CEL
    sheet is 695x459 because the lightning spreads sideways, and he came out 66 px tall against Lumi's 147 in a
    298x500 cell. Spend the budget on the FIGURE instead (figFrac = figH/fh), with a ceiling on the cell so a very
    wide sheet still can't run away. Measured over all 509 clips: worst 56 -> 120 px, median 128 -> 140. */
-const CELL_FIG_CAP=140, CELL_HARD_CAP=340;
+const CELL_FIG_CAP=140, CELL_HARD_CAP=380;
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -14139,7 +14139,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788735150342';
+const BUILD_ID = '1788735796462';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
