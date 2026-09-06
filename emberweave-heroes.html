@@ -4059,7 +4059,7 @@ function abilArt(u,o,tgt,aimCtr,type){
      radius whenever the radius is a real circle (≤ 8 m). gfxR only sizes the sentinel/"everyone" abilities (Shade Nova
      15 m, Ignite All 99999). 23 abilities were drawing a smaller circle than they actually hit. */
   const R = (o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER);   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR */
-  try{ const _o=spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6);
+  try{ window._fxTgtH=(c&&c.sprH)||null; const _o=spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6); window._fxTgtH=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
@@ -4726,7 +4726,7 @@ const FX2_DEF={
   astra_blue:{u:'/assets/anim/fx/astra_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.515,dh:0.41,dw:0.9}},
   astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.57,dh:0.595,dw:0.86}},
 
-  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=4',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,front:'vulmar_blue_front'},
+  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=4',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,front:'vulmar_blue_front',upright:true,upSize:1.2,upExtent:0.87,upPalm:0.27},
   vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=2',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,frontScale:0.8,frontFoot:0.06},
   vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=2',n:24,fw:240,fh:240,cols:6,rows:4,dur:2.0,disc:{cy:0.709,dh:0.196,dw:0.529}},
   voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0, disc:{cy:0.50,dh:0.90,dw:0.95}},
@@ -4806,7 +4806,19 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
      camera than the aim point and came out flatter than the true ground circle. With `disc` we stretch the plane so the
      painted disc is exactly a 2R ground circle (it then projects like the aim ring) and slide the plane so that disc,
      not the frame, is centred on the aim. */
-  if(d.disc){ w=R3*2/d.disc.dw; h=R3*2/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
+  if(d.disc){ w=R3*2/d.disc.dw; h=R3*2/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }
+  /* v468 (Phil, Grasping Vow screenshot: "the center of the palm should line up with the character its grabbing, the size of
+     the hand should be about 20% larger than a tank character"): an `upright` plate is NOT laid on the ground. It stands as a
+     billboard on the target: its height is (d.upSize||1.2) x the grabbed unit's sprite height (d.upExtent = how much of the
+     cell the painted hand fills), and the cell point (0.5, d.upPalm from the bottom) - the palm centre - is pinned to the
+     unit's body centre. Back layer draws just behind the unit sprites (renderOrder -1); the `front` finger layer draws over
+     them (renderOrder 1) with identical geometry so the two halves stay registered. */
+  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=0.05+th*0.5;
+    const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
+      sp.scale.set(S,S*(d.fh/d.fw),1); sp.center.set(0.5,d.upPalm!=null?d.upPalm:0.28); sp.position.set(wx(cx),y,wz(cy)); sp.renderOrder=ro; scene.add(sp); return sp; };
+    const sp=mk(tex,-1); fx2Hook(sp); fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
+    if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,1); fx2Hook(sp2); fx2SetFrame(sp2,fd,0); const fo={m:sp2,d:fd,tex:ft,t:0,life,front:true,upY:y}; _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
+    return o; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
   fx2Hook(m); fx2SetFrame(m,d,0);
@@ -4824,7 +4836,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
     sp.position.set(wx(cx),0.2,wz(cy)); sp.renderOrder=1; scene.add(sp); const fo={m:sp,d:fd,tex:ft,t:0,life,front:true}; _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
   return o; }
 function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
-  if(o.follow){ const f=o.follow, fx=(f.rx==null?f.x:f.rx), fy=(f.ry==null?f.y:f.ry); if(o.front) o.m.position.set(wx(fx),0.2,wz(fy)); else o.m.position.x=wx(fx), o.m.position.z=wz(fy)+(o.zoff||0); }
+  if(o.follow){ const f=o.follow, fx=(f.rx==null?f.x:f.rx), fy=(f.ry==null?f.y:f.ry); if(o.front) o.m.position.set(wx(fx),o.upY!=null?o.upY:0.2,wz(fy)); else o.m.position.x=wx(fx), o.m.position.z=wz(fy)+(o.zoff||0); }
   fx2SetFrame(o.m,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                            // loop the cycle
   o.m.material.opacity=Math.min(1,o.t/0.12)*Math.min(1,o.life/0.18);              // snappy fade in / out (so brief 0.5s curse telegraphs still reach full opacity)
   if(o.life<=0){ scene.remove(o.m); o.m.material.dispose(); _groundFx.splice(i,1); } } }   // geometry + texture are shared: never disposed
@@ -13780,7 +13792,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788709358496';
+const BUILD_ID = '1788709633142';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
