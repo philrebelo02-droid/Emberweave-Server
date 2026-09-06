@@ -1648,8 +1648,12 @@ const BATTLE_ANIM = {
   attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b7',n:41,fw:402,fh:336,cols:10,rows:5,figH:301,feet:313,cx:201,fps:30,flip:true,hold:1.4,relFrac:0.5,handfx:0.861,handfy:0.476,top:12},
   hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=f2',n:29,fw:210,fh:181,cols:12,rows:3,figH:147,feet:175,cx:109,fps:8,flip:true,top:5},
   ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:72,fw:206,fh:210,cols:6,rows:12,figH:155,feet:187,cx:107,fps:30.6,flip:true,relFrac:0.95,top:5},
-  green:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:33,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6},
-  blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:33,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6}
+  /* v486 (Phil: "rubberband him so that his shadow orb he channels doesnt grow out of the frame ... rubber band before it
+     goes out and go back to frame zero" — 26 confirmed by him). The orb forms at f13 and swells; measured against the cell
+     top it sits 9px clear at f26, then jumps to 6px and doubles in area at f27-f29, which is where it clipped. The clip now
+     runs 0..26 and pingpongs back to 0, so the orb grows to its fullest and is drawn back in. Same sheet, no re-slice. */
+  green:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:27,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6,pingpong:true},
+  blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:27,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6,pingpong:true}
   },
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=6',n:60,fw:93,fh:133,cols:6,rows:10,figH:120,feet:126,cx:52,fps:30,flip:false,top:6},
@@ -4955,13 +4959,13 @@ function beeTex(){ if(_beeTex) return _beeTex; const c=document.createElement('c
   g.strokeStyle='#1c130a'; g.lineWidth=1.5; g.beginPath(); g.moveTo(11,37); g.lineTo(4,39); g.stroke();
   _beeTex=new TH.CanvasTexture(c); return _beeTex; }
 function spawnBeeHive(u,plan,cfg){ const draw=!!(TH&&scene);   // the SIM path is identical with or without a renderer (server replays this code headless)
-  const th=(u.sprH||3.2), hh=0.05+th*1.12, hx=u.x, hy=u.y;   // hive floats just above his raised hands
+  const th=(u.sprH||3.2), hx=u.x, hy=u.y;   // hive floats just above his raised hands (camera-up, see beeAbove)
   const tex=draw?beeTex():null; const n=plan.length; const hivedur=cfg.hold||0.7;
-  if(draw){ try{ const g=new TH.Sprite(new TH.SpriteMaterial({map:hiveGlowTex(),transparent:true,depthWrite:false,depthTest:false,opacity:0.85})); g.renderOrder=994; g.scale.set(2.1,2.1,1); g.position.set(wx(hx),hh,wz(hy)); scene.add(g); _bees.push({glow:g,tt:0,life:hivedur+1.0,ph:9}); }catch(_){} }
+  if(draw){ try{ const g=new TH.Sprite(new TH.SpriteMaterial({map:hiveGlowTex(),transparent:true,depthWrite:false,depthTest:false,opacity:0.85})); g.renderOrder=994; g.scale.set(2.1,2.1,1); beeAbove(u,0.35,_bv); g.position.copy(_bv); scene.add(g); _bees.push({glow:g,u,tt:0,life:hivedur+1.0,ph:9}); }catch(_){} }
   for(let i=0;i<n;i++){ const t=plan[i]; const sc=0.44+brnd()*0.12;
     const ang=brnd()*Math.PI*2, rad=0.06+brnd()*0.55, spin=(brnd()<0.5?-1:1)*(4+brnd()*4), bob=brnd()*Math.PI*2, wob=brnd()*Math.PI*2;
-    let spr=null; if(draw){ try{ spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); spr.renderOrder=995; spr.scale.set(sc,sc,1); spr.position.set(wx(hx)+Math.cos(ang)*rad,hh+Math.sin(bob)*0.2,wz(hy)+Math.sin(ang)*rad*0.5); scene.add(spr); }catch(_){ spr=null; } }
-    _bees.push({spr,u,t,cfg,ph:0,tt:0,hx,hy,hh,ang,rad,spin,bob,dep:hivedur+i*(0.9/n),wob,fx:0,fy:0,fh:hh,dur:0}); }
+    let spr=null; if(draw){ try{ spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); spr.renderOrder=995; spr.scale.set(sc,sc,1); beeAbove(u,0.35,_bv); spr.position.set(_bv.x+Math.cos(ang)*rad,_bv.y+Math.sin(bob)*0.2,_bv.z+Math.sin(ang)*rad*0.5); scene.add(spr); }catch(_){ spr=null; } }
+    _bees.push({spr,u,t,cfg,ph:0,tt:0,hx,hy,ang,rad,spin,bob,dep:hivedur+i*(0.9/n),wob,fx:0,fy:0,fh:0,dur:0}); }
   ringBurst(u.x,u.y,0xf4c531,12); }
 function beeLand(u,t,cfg){ if(!t||!t.alive) return; if(t.team===u.team){ healUnit(t,cfg.heal+t.maxHp*cfg.healPct); if(cfg.shield){ t.shield=Math.max(t.shield||0,cfg.heal*0.4); t.shieldT=6; } }
   else dealDamage(u,t,cfg.dmg,'#f4c531','magic'); burstAt(t.x,t.y,t.team===u.team?0xffe27a:0xf4c531,3); }
@@ -4972,34 +4976,49 @@ function spawnHornetSwarm(u,cx,cy,R,cfg){ const draw=!!(TH&&scene); const tex=dr
     let spr=null; if(draw){ try{ spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); spr.renderOrder=995; spr.scale.set(sc,sc,1); spr.position.set(wx(u.x),sh,wz(u.y)); scene.add(spr); }catch(_){ spr=null; } }
     const d=dist(u,{x:cx,y:cy}); _bees.push({ph:6,spr,u,cx,cy,R,ang,rad,spin,wob,tt:-i*0.03,fx:u.x,fy:u.y,fh:sh,dur:Math.max(0.3,d/(11*METER)),life:cfg.dur,gx:cx+Math.cos(ang)*rad,gy:cy+Math.sin(ang)*rad}); }
   ringBurst(u.x,u.y,0xf4c531,10); }
+/* v486 (Phil: "please aim the glob of honey better over the head of the target"): every bee/honey sprite is a
+   BILLBOARD, so a world-Y offset is foreshortened by the tilted camera and lands ~3/4 up the body — the same
+   trap the HP bar hit. Anchor on the unit's OWN drawn sprite and offset along the CAMERA's up axis, exactly
+   like headScreen()/restHeadOff(), so "above the head" really is above the head and it follows the bob. */
+const _bv=TH?new TH.Vector3():null, _bu=TH?new TH.Vector3():null;
+function beeAnchor(u,out){ const s=u&&u._sprRef; if(s){ s.getWorldPosition(out); } else { out.set(wx(u.x),0.05,wz(u.y)); } return out; }
+function beeAbove(u,extra,out){ beeAnchor(u,out); _bu.set(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(restHeadOff(u)+(extra||0)); return out.add(_bu); }
 let _honeyTex=null; function honeyTex(){ if(_honeyTex) return _honeyTex; const c=document.createElement('canvas'); c.width=c.height=96; const g=c.getContext('2d');
   g.fillStyle='#e9a21c'; g.beginPath(); g.moveTo(48,6); g.bezierCurveTo(62,30,84,44,84,62); g.arc(48,62,36,0,Math.PI,false); g.bezierCurveTo(12,44,34,30,48,6); g.fill();
   const r=g.createRadialGradient(36,48,4,48,58,44); r.addColorStop(0,'rgba(255,230,140,0.95)'); r.addColorStop(0.5,'rgba(240,170,40,0.4)'); r.addColorStop(1,'rgba(160,90,10,0.55)'); g.fillStyle=r; g.beginPath(); g.arc(48,62,36,0,Math.PI*2); g.fill();
   g.fillStyle='rgba(255,245,200,0.8)'; g.beginPath(); g.ellipse(34,44,7,11,-0.5,0,Math.PI*2); g.fill();
   _honeyTex=new TH.CanvasTexture(c); return _honeyTex; }
-function spawnHoneyGlob(u,t,onLand){ const th=(t.sprH||3.2); const draw=!!(TH&&scene); let spr=null;
-  if(draw){ try{ spr=new TH.Sprite(new TH.SpriteMaterial({map:honeyTex(),transparent:true,depthWrite:false,depthTest:false})); spr.renderOrder=995; const sc=th*0.55; spr.scale.set(sc,sc,1); spr.position.set(wx(t.x),0.05+th*2.4,wz(t.y)); scene.add(spr); }catch(_){ spr=null; } }
-  _bees.push({ph:7,spr,u,t,tt:0,dur:0.45,melt:0.5,onLand,done:false}); }
+function honeyPlace(b,k,m){ if(!b.spr) return; const t=b.t, sc=b.sc;
+  /* k = 0..1 fall, m = 0..1 melt. At k=1 the glob's BOTTOM sits on the top of the head; the melt spreads it
+     flatter and wider and settles it down over the head. */
+  const drop=(1-k*k)*b.fall, half=sc*0.5*(1-0.6*m);
+  beeAbove(t, half + drop - sc*0.55*m, _bv); b.spr.position.copy(_bv);
+  b.spr.scale.set(sc*(1+0.4*m), sc*(1-0.6*m), 1); }
+function spawnHoneyGlob(u,t,onLand){ const th=(t.sprH||3.2), sc=th*0.5, draw=!!(TH&&scene); let spr=null;
+  if(draw){ try{ spr=new TH.Sprite(new TH.SpriteMaterial({map:honeyTex(),transparent:true,depthWrite:false,depthTest:false})); spr.renderOrder=995; spr.scale.set(sc,sc,1); scene.add(spr); }catch(_){ spr=null; } }
+  const b={ph:7,spr,u,t,tt:0,dur:0.45,melt:0.5,sc,fall:th*1.5,onLand,done:false};
+  _bees.push(b); if(spr) honeyPlace(b,0,0); }
 function beeDrop(b){ if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} b.glow=null; } if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} b.spr=null; } }
 function updateBees(dt){ for(let i=_bees.length-1;i>=0;i--){ const b=_bees[i]; b.tt+=dt;
-    if(b.ph===7){ const t=b.t, th=(t.sprH||3.2);
-      if(b.tt<b.dur){ if(b.spr){ const k=b.tt/b.dur; b.spr.position.set(wx(t.x),0.05+th*2.4-(th*2.4-th*1.02)*k*k,wz(t.y)); } continue; }
+    if(b.ph===7){ const t=b.t;
+      if(b.tt<b.dur){ honeyPlace(b, b.tt/b.dur, 0); continue; }
       if(!b.done){ b.done=true; try{ b.onLand(); }catch(_){} burstAt(t.x,t.y,0xf0b830,10); }
       const m=(b.tt-b.dur)/b.melt; if(m>=1){ beeDrop(b); _bees.splice(i,1); continue; }
-      if(b.spr){ const sc=th*0.55*(1+0.35*m); b.spr.scale.set(sc*(1+0.4*m),sc*(1-0.6*m),1); b.spr.position.set(wx(t.x),0.05+th*(1.02-0.25*m),wz(t.y)); b.spr.material.opacity=1-m; } continue; }
+      honeyPlace(b, 1, m); if(b.spr) b.spr.material.opacity=1-m; continue; }
     if(b.ph===5){ b.acc+=dt; if(b.acc>=b.tick){ b.acc-=b.tick; enemiesOf(b.u).forEach(e=>{ if(dist(e,{x:b.cx,y:b.cy})<=b.R) dealDamage(b.u,e,b.dps*b.tick,'#f4c531','magic'); }); } if(b.tt>=b.life){ _bees.splice(i,1); } continue; }
     if(b.ph===6){ if(b.tt<0) continue;   // staggered take-off
       if(b.tt<=b.dur){ const k=b.tt/b.dur, ease=k*k*(3-2*k); if(b.spr){ const nx=b.fx+(b.gx-b.fx)*ease, ny=b.fy+(b.gy-b.fy)*ease, nh=b.fh+(1.6-b.fh)*ease+Math.sin(k*Math.PI)*0.8; b.spr.material.rotation=((b.gx-b.fx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); } continue; }
       const st=b.tt-b.dur; if(st<b.life){ b.ang+=b.spin*dt; const r=b.rad*(0.7+0.3*Math.sin(st*2+b.wob)); if(b.spr){ b.spr.position.set(wx(b.cx)+Math.cos(b.ang)*r*SC, 1.9+Math.sin(st*11+b.wob)*0.4, wz(b.cy)+Math.sin(b.ang)*r*SC); b.spr.material.rotation=Math.cos(b.ang)>=0?0:Math.PI; } continue; }
       const rt=st-b.life, rd=Math.max(0.3,dist(b.u,{x:b.cx,y:b.cy})/(11*METER)); if(rt>=rd||!b.u.alive){ beeDrop(b); _bees.splice(i,1); continue; }
       if(b.spr){ const k=rt/rd, ease=k*k*(3-2*k); const hx=b.u.x, hy=b.u.y, hh=0.05+(b.u.sprH||3.2)*0.8; const sx=b.cx+Math.cos(b.ang)*b.rad, sy=b.cy+Math.sin(b.ang)*b.rad; const nx=sx+(hx-sx)*ease, ny=sy+(hy-sy)*ease, nh=1.1+(hh-1.1)*ease+Math.sin(k*Math.PI)*0.6; b.spr.material.rotation=((hx-sx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); b.spr.material.opacity=1-Math.max(0,k-0.8)*5; } continue; }
-    if(b.ph===9){ if(b.glow){ const f=Math.max(0,1-b.tt/b.life); b.glow.material.opacity=0.85*f; b.glow.scale.set(2.1*(0.85+0.15*Math.sin(b.tt*9)),2.1*(0.85+0.15*Math.sin(b.tt*9)),1); } if(b.tt>=b.life){ beeDrop(b); _bees.splice(i,1); } continue; }
-    if(b.ph===0){ b.ang+=b.spin*dt; b.bob+=5*dt; const r=b.rad*(1+0.15*Math.sin(b.bob*0.7)); const hy=b.hh+Math.sin(b.bob)*0.18;
-      if(b.spr){ b.spr.position.set(wx(b.hx)+Math.cos(b.ang)*r, hy, wz(b.hy)+Math.sin(b.ang)*r*0.5); b.spr.material.rotation=Math.cos(b.ang)>=0?0:Math.PI; }
+    if(b.ph===9){ if(b.glow){ const f=Math.max(0,1-b.tt/b.life); if(b.u){ beeAbove(b.u,0.35,_bv); b.glow.position.copy(_bv); } b.glow.material.opacity=0.85*f; b.glow.scale.set(2.1*(0.85+0.15*Math.sin(b.tt*9)),2.1*(0.85+0.15*Math.sin(b.tt*9)),1); } if(b.tt>=b.life){ beeDrop(b); _bees.splice(i,1); } continue; }
+    if(b.ph===0){ b.ang+=b.spin*dt; b.bob+=5*dt; const r=b.rad*(1+0.15*Math.sin(b.bob*0.7)); beeAbove(b.u,0.35,_bv); const hy=_bv.y+Math.sin(b.bob)*0.18;
+      if(b.spr){ b.spr.position.set(_bv.x+Math.cos(b.ang)*r, hy, _bv.z+Math.sin(b.ang)*r*0.5); b.spr.material.rotation=Math.cos(b.ang)>=0?0:Math.PI; }
       if(b.tt>=b.dep){ b.ph=1; b.tt=0; b.fx=b.hx+Math.cos(b.ang)*b.rad/SC; b.fy=b.hy+Math.sin(b.ang)*b.rad*0.5/SC; b.fh=hy; const d=dist({x:b.fx,y:b.fy},b.t); b.dur=Math.max(0.35,d/(11*METER)); } continue; }
     const t=b.t; if(!t||!t.alive){ beeDrop(b); _bees.splice(i,1); continue; }
-    const k=Math.min(1,b.tt/b.dur), ease=k*k*(3-2*k); const th=(t.sprH||3), gx=t.x, gy=t.y, gh=0.05+th*0.55;
-    if(b.spr){ const nx=b.fx+(gx-b.fx)*ease, ny=b.fy+(gy-b.fy)*ease, nh=b.fh+(gh-b.fh)*ease+Math.sin(k*Math.PI)*0.9+Math.sin(b.tt*18+b.wob)*0.08;
+    const k=Math.min(1,b.tt/b.dur), ease=k*k*(3-2*k); const gx=t.x, gy=t.y;
+    if(b.spr){ beeAbove(t,-restHeadOff(t)*0.45,_bv); const gh=_bv.y;   // bees converge on the target's upper body, not a flat world height
+      const nx=b.fx+(gx-b.fx)*ease, ny=b.fy+(gy-b.fy)*ease, nh=b.fh+(gh-b.fh)*ease+Math.sin(k*Math.PI)*0.9+Math.sin(b.tt*18+b.wob)*0.08;
       b.spr.material.rotation=((gx-b.fx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); }
     if(k>=1){ beeLand(b.u,t,b.cfg); beeDrop(b); _bees.splice(i,1); } } }
 function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ const PH=(fromH!=null?fromH:1.2); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
@@ -5905,7 +5924,7 @@ function updateBattle(dt){
     if(u.pass.beeward){ let w=u._wardBee; if(!w||!w.t||!w.t.alive){ const cands=units.filter(o=>o.alive&&o.team===u.team&&o!==u&&!o.summoned); const pick=(cands.length?cands:units.filter(o=>o.alive&&o.team===u.team)).sort((a,b)=>a.maxHp-b.maxHp)[0]; if(w&&w.spr){ try{scene.remove(w.spr);}catch(_){}} w=u._wardBee=pick?{t:pick,spr:null,ang:0,acc:0}:null; }
       if(w){ const pm=u.passMul||1; w.acc+=dt; if(w.acc>=0.5){ w.acc-=0.5; const h=(w.t.maxHp*0.012+(u.apow||0)*0.25*pm)*0.5; if(w.t.hp<w.t.maxHp) w.t.hp=Math.min(w.t.maxHp,w.t.hp+h); }
         if(TH&&scene){ try{ if(!w.spr){ w.spr=new TH.Sprite(new TH.SpriteMaterial({map:beeTex(),transparent:true,depthWrite:false,depthTest:false})); w.spr.renderOrder=995; w.spr.scale.set(0.42,0.42,1); scene.add(w.spr); }
-          w.ang+=2.6*dt; const th=(w.t.sprH||3); w.spr.position.set(wx(w.t.x)+Math.cos(w.ang)*0.55, 0.05+th*0.95+Math.sin(w.ang*2.3)*0.12, wz(w.t.y)+Math.sin(w.ang)*0.3); w.spr.material.rotation=Math.cos(w.ang)>=0?0:Math.PI; }catch(_){} } } }   /* v483 Phil: Beekeeper's passive — one bee stays with an ally all game and slowly heals them */
+          w.ang+=2.6*dt; beeAbove(w.t,0.25,_bv); w.spr.position.set(_bv.x+Math.cos(w.ang)*0.55, _bv.y+Math.sin(w.ang*2.3)*0.12, _bv.z+Math.sin(w.ang)*0.3); w.spr.material.rotation=Math.cos(w.ang)>=0?0:Math.PI; }catch(_){} } } }   /* v483 Phil: Beekeeper's passive — one bee stays with an ally all game and slowly heals them */
     if(u.pass.battery) units.forEach(o=>{if(o.alive&&o.team===u.team)o.energy=Math.min(100,o.energy+6*dt);});
     if(u.pass.juggernaut) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.04*(u.passMul||1)*dt);   // Gruel self-heal 4% max HP/s (Grosk now runs mirewall instead)
     // The Mirewall (Grosk): re-pick the ally he is standing in front of every frame - always the one closest to dying.
@@ -14005,7 +14024,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788724838437';
+const BUILD_ID = '1788727636622';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
