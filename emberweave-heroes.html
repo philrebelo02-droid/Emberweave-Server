@@ -4063,7 +4063,7 @@ function abilArt(u,o,tgt,aimCtr,type){
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
-    if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; } }catch(e){}
+    if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; if(_o.d&&_o.d.upright){ _o.grip=c; if(c.sprite)c.sprite.renderOrder=-1; } }   /* v470: the grabbed unit drops to layer -1 for the life of the hand: behind the fingers (-0.5), in front of the palm (-2), every other unit stays at 0 */ }catch(e){}
 }
 /* A shot that prefers the ability's own projectile art, falling back to the plain coloured tracer. */
 function abilShot(u,o,e,color,onHit){
@@ -4816,8 +4816,8 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
   if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=0.05+th*0.5;
     const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
       sp.scale.set(S,S*(d.fh/d.fw),1); sp.center.set(0.5,d.upPalm!=null?d.upPalm:0.28); sp.position.set(wx(cx),y,wz(cy)); sp.renderOrder=ro; scene.add(sp); return sp; };
-    const sp=mk(tex,-1); fx2Hook(sp); fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
-    if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,1); const fd2=Object.assign({},fd,{n:d.n,dur:d.dur}); fx2Hook(sp2); fx2SetFrame(sp2,fd2,0); const fo={m:sp2,d:fd2,tex:ft,t:0,life,front:true,upY:y};   /* v469 (Phil: 'both animations need to synchronize'): front layer runs on the back layer's n/dur */ _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
+    const sp=mk(tex,-2); fx2Hook(sp);   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
+    if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,-0.5); const fd2=Object.assign({},fd,{n:d.n,dur:d.dur}); fx2Hook(sp2); fx2SetFrame(sp2,fd2,0); const fo={m:sp2,d:fd2,tex:ft,t:0,life,front:true,upY:y};   /* v469 (Phil: 'both animations need to synchronize'): front layer runs on the back layer's n/dur */ _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
     return o; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
@@ -4839,6 +4839,7 @@ function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_gr
   if(o.follow){ const f=o.follow, fx=(f.rx==null?f.x:f.rx), fy=(f.ry==null?f.y:f.ry); if(o.front) o.m.position.set(wx(fx),o.upY!=null?o.upY:0.2,wz(fy)); else o.m.position.x=wx(fx), o.m.position.z=wz(fy)+(o.zoff||0); }
   fx2SetFrame(o.m,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                            // loop the cycle
   o.m.material.opacity=Math.min(1,o.t/0.12)*Math.min(1,o.life/0.18);              // snappy fade in / out (so brief 0.5s curse telegraphs still reach full opacity)
+  if(o.grip&&o.grip.sprite){ o.grip.sprite.renderOrder=o.life<=0?0:-1; }
   if(o.life<=0){ scene.remove(o.m); o.m.material.dispose(); _groundFx.splice(i,1); } } }   // geometry + texture are shared: never disposed
 // Traveling projectile: a billboard that flies from->to, its sheet looping (rubberband is baked in), rotated so the
 // orb FRONT (baked pointing +x) faces the direction of travel. onHit fires on arrival.
@@ -13792,7 +13793,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788709770627';
+const BUILD_ID = '1788710094420';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
