@@ -4061,6 +4061,7 @@ function abilArt(u,o,tgt,aimCtr,type){
   if(!aimCtr&&o.gfxAt!=='muzzle'&&o.gfxAt!=='target'){ if(_SELF_CENTRED[type]) c=u; else if(_ALLY_CENTRED[type]){ try{ const l=lowestAlly(u); if(l)c=l; }catch(e){} } }
   window._fxCone=null; if(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ window._fxCone={dx:t.x-u.x,dy:t.y-u.y}; c=u; } }
   let _mz=null; if(o.gfxAt==='muzzle'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }
+  if(o.gfxAt==='front'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.h=0.05; _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }   /* v475: 'front' = the cast-origin point but on the ground (upright swings that start at the caster's feet) */
   /* v462 (Phil: "the center of the hand is off"): Grasping Vow yanks the FARTHEST foe but the plate was drawn on the nearest. */
   if(o.target==='farthest'&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length) c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0]; }catch(e){} }
   /* NEVER size a plate from o.radius alone: a radius is a TARGETING distance and some abilities use a
@@ -4562,7 +4563,14 @@ function arsenalImpact(idx,x,y){ const A=ARSENAL[idx%6]; if(!A)return;
    fraction of his sprite width, at hand/weapon height - instead of from his feet-centre at a fixed 1.2 units up. MUZZLE tunes it
    per hero: fwd = fraction of the sprite's width to push forward (0.5 = the sprite's front edge), h = fraction of sprite height. */
 const MUZZLE={ corsair:{fwd:0.55,h:0.56}, sprocket:{fwd:0.55,h:0.52}, verdantshade:{fwd:0.5,h:0.6}, calypsa:{fwd:0.5,h:0.58}, meridian:{fwd:0.5,h:0.58}, stormwarden:{fwd:0.5,h:0.6}, voidweaver:{fwd:0.45,h:0.62}, pyroclast:{fwd:0.45,h:0.6}, kharos:{fwd:0.5,h:0.55}, nox:{fwd:0.5,h:0.55}, silkcoil:{fwd:0.5,h:0.55}, threadseer:{fwd:0.5,h:0.55}, magistrant:{fwd:0.5,h:0.58} };
-function castOrigin(u,tx,ty){ const m=MUZZLE[u.key]||{fwd:0.38,h:0.52}; const sh=u.sprH||3, sw=sh*(u.sprA||0.7); const d=Math.max(1,Math.hypot(tx-u.x,ty-u.y)); const f=(sw*m.fwd)/SC;   // sprite width is in world units; the field is world/SC
+/* v475 (Phil: "measure the tip of his pistol as the Apex and then attach the apex of the pistol barrage animation"): APEX is a
+   MEASURED weapon tip per hero, in fractions of the character's figure height (figH px = sprH): fx = how far the tip sits from the
+   anchor column (cx) toward the facing side, fy = how high above the feet line. Corsair's Pistol Barrage clip: tip at (42,62.5) of a
+   397x400 cell, cx 242, feet 395, figH 391 -> fx (242-42)/391, fy (395-62.5)/391. Sprites are billboards, so the tip is offset along
+   screen-x on the facing side, at the unit's own depth. */
+const APEX={ corsair:{fx:0.5115,fy:0.850} };
+function castOrigin(u,tx,ty){ const sh=u.sprH||3; const ap=APEX[u.key]; if(ap){ const dir=(tx>=u.x)?1:-1; return {x:u.x+dir*ap.fx*sh/SC, y:u.y, h:0.05+sh*ap.fy}; }
+  const m=MUZZLE[u.key]||{fwd:0.38,h:0.52}; const sw=sh*(u.sprA||0.7); const d=Math.max(1,Math.hypot(tx-u.x,ty-u.y)); const f=(sw*m.fwd)/SC;   // sprite width is in world units; the field is world/SC
   return {x:u.x+(tx-u.x)/d*f, y:u.y+(ty-u.y)/d*f, h:0.05+sh*m.h}; }
 function spawnShot(from,to,color){const o=(from.sprH!=null)?castOrigin(from,to.x,to.y):{x:from.x,y:from.y,h:1}; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2);mesh.position.set(wx(o.x),o.h,wz(o.y));scene.add(mesh);shots.push({mesh,sx:o.x,sy:o.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL,h:o.h});}
 // Umbris basic-attack projectile: a violet shadow orb that departs from his HAND (a forward offset toward the
@@ -4634,7 +4642,9 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
   if(z.life<=0){ [z.disc,z.ring,z.ring2].forEach(m=>{ if(m){ scene.remove(m); if(m.geometry)m.geometry.dispose(); m.material.dispose(); } }); voidZones.splice(i,1); } } }
 // ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
 const FX2_DEF={
-  astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=10',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5},
+  astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5},
+  aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,upright:true,upAbove:true,upSize:1.1,upExtent:0.9,hold:false,ro:1},
+  carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.509,dh:0.263,dw:0.655}},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
@@ -4737,7 +4747,7 @@ const FX2_DEF={
   chainwheel_blue:{u:'/assets/anim/fx/chainwheel_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.685,dh:0.245,dw:0.915}},
   chainwheel_green:{u:'/assets/anim/fx/chainwheel_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   corsair_blue:{u:'/assets/anim/fx/corsair_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.484,dh:0.035,dw:0.63}},
-  corsair_green:{u:'/assets/anim/fx/corsair_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.655,dh:0.185,dw:0.6},upright:true,upSize:1.0,upExtent:0.7,upAnchor:[0.05,0.28],upFlip:true,ro:2},
+  corsair_green:{u:'/assets/anim/fx/corsair_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.655,dh:0.185,dw:0.6},upright:true,upSize:0.8,upExtent:0.57,upAnchor:[0.025,0.26],upFlip:true,ro:2},
   dawnbringer_blue:{u:'/assets/anim/fx/dawnbringer_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.578,dh:0.295,dw:0.925}},
   deepcleft_blue:{u:'/assets/anim/fx/deepcleft_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.605,dh:0.16,dw:0.375}},
   deepcleft_green:{u:'/assets/anim/fx/deepcleft_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
@@ -4832,7 +4842,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
      cell the painted hand fills), and the cell point (0.5, d.upPalm from the bottom) - the palm centre - is pinned to the
      unit's body centre. Back layer draws just behind the unit sprites (renderOrder -1); the `front` finger layer draws over
      them (renderOrder 1) with identical geometry so the two halves stay registered. */
-  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(0.05+th*0.5); const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upPalm!=null?d.upPalm:0.28)); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
+  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*1.02):(0.05+th*0.5));   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
     const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
       sp.scale.set(S*dirx,S*(d.fh/d.fw),1); sp.center.set(dirx<0?1-ax:ax,ay); sp.position.set(wx(cx),y,wz(cy)); sp.renderOrder=ro; scene.add(sp); return sp; };
     const sp=mk(tex,d.ro!=null?d.ro:-2); fx2Hook(sp);   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
@@ -8834,7 +8844,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -13816,7 +13826,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788712224569';
+const BUILD_ID = '1788712948290';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
