@@ -4727,7 +4727,7 @@ const FX2_DEF={
   astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.57,dh:0.595,dw:0.86}},
 
   vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=4',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,front:'vulmar_blue_front',upright:true,upSize:1.2,upExtent:0.87,upPalm:0.27},
-  vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=2',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,frontScale:0.8,frontFoot:0.06},
+  vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=2',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4},
   vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=2',n:24,fw:240,fh:240,cols:6,rows:4,dur:2.0,disc:{cy:0.709,dh:0.196,dw:0.529}},
   voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0, disc:{cy:0.50,dh:0.90,dw:0.95}},
   shadowball:{u:'/assets/anim/fx/shadowball.webp?v=3',n:18, fw:200, fh:200, cols:8, rows:3, dur:2.0},
@@ -4817,7 +4817,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
     const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
       sp.scale.set(S,S*(d.fh/d.fw),1); sp.center.set(0.5,d.upPalm!=null?d.upPalm:0.28); sp.position.set(wx(cx),y,wz(cy)); sp.renderOrder=ro; scene.add(sp); return sp; };
     const sp=mk(tex,-1); fx2Hook(sp); fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
-    if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,1); fx2Hook(sp2); fx2SetFrame(sp2,fd,0); const fo={m:sp2,d:fd,tex:ft,t:0,life,front:true,upY:y}; _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
+    if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,1); const fd2=Object.assign({},fd,{n:d.n,dur:d.dur}); fx2Hook(sp2); fx2SetFrame(sp2,fd2,0); const fo={m:sp2,d:fd2,tex:ft,t:0,life,front:true,upY:y};   /* v469 (Phil: 'both animations need to synchronize'): front layer runs on the back layer's n/dur */ _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
     return o; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
@@ -13792,7 +13792,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788709633142';
+const BUILD_ID = '1788709770627';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
