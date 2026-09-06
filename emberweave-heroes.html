@@ -3267,7 +3267,7 @@ function brnd(){ return _brng?_brng():Math.random(); }
    A leftover void zone (or a queued damage-over-time) from the PREVIOUS fight used to survive into the
    next one and damage a hero that nothing in this fight had touched. Two runs of the same seed then
    produced different results — the single worst thing that can happen to a game whose battles are law. */
-function battleFxReset(){ try{ units.forEach(u=>{ if(u&&u._wardBees){ u._wardBees.forEach(w=>{ try{ if(w.spr)scene.remove(w.spr); }catch(_){} }); u._wardBees=null; } }); }catch(_){} try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ try{scene.remove(b.spr);}catch(_){} }); _bees.length=0; } }catch(_){} VAULT_PICK_OPEN=false; try{ shots.length=0; particles.length=0; floatTexts.length=0; groundHazards.length=0;
+function battleFxReset(){ try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ try{scene.remove(b.spr);}catch(_){} }); _bees.length=0; } }catch(_){} VAULT_PICK_OPEN=false; try{ shots.length=0; particles.length=0; floatTexts.length=0; groundHazards.length=0;
     voidZones.length=0; chains.length=0; _pendingDots.length=0;
     if(typeof staffFx!=='undefined') staffFx.length=0;
     if(typeof _groundFx!=='undefined') _groundFx.length=0;
@@ -4717,6 +4717,9 @@ const FX2_DEF={
   aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,upright:true,upAbove:true,upSize:1.1,upExtent:0.9,hold:false,ro:1},
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.2,upright:true,upSize:2.0,upExtent:0.8,upAnchor:[0.5,0.40],ro:1},
+  deepcleft_ult:{u:'/assets/anim/fx/deepcleft_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.609,dh:0.183,dw:0.787}},
+  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.447,dh:0.263,dw:0.93},upright:true,upAbove:true,upSize:1.5,upExtent:0.95,ro:1},
+  meryln_ult:{u:'/assets/anim/fx/meryln_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.32,dh:0.244,dw:0.489},upright:true,upAbove:true,upSize:1.2,upExtent:0.9,ro:1},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
@@ -4951,12 +4954,28 @@ function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_gr
 const _projFx=[];
 /* v483 Hive Mind bees (Phil: 'summons 30 projectile bees and make them look like a hive ... spread evenly amongst all enemy and allies') */
 const _bees=[]; let _beeTex=null;
-function beeTex(){ if(_beeTex) return _beeTex; const c=document.createElement('canvas'); c.width=64; c.height=64; const g=c.getContext('2d');
-  g.fillStyle='rgba(225,238,255,0.78)'; g.beginPath(); g.ellipse(24,19,13,7,-0.55,0,Math.PI*2); g.fill(); g.beginPath(); g.ellipse(38,19,13,7,0.55,0,Math.PI*2); g.fill();
-  g.fillStyle='#f4c531'; g.beginPath(); g.ellipse(30,37,18,11,0,0,Math.PI*2); g.fill();
-  g.fillStyle='#1c130a'; [20,29,38].forEach(x=>{ g.beginPath(); g.ellipse(x,37,3.2,11,0,0,Math.PI*2); g.fill(); });
-  g.beginPath(); g.arc(50,37,6.5,0,Math.PI*2); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(52,35,1.6,0,Math.PI*2); g.fill();
-  g.strokeStyle='#1c130a'; g.lineWidth=1.5; g.beginPath(); g.moveTo(11,37); g.lineTo(4,39); g.stroke();
+function beeTex(){ if(_beeTex) return _beeTex; const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d');
+  g.translate(64,64); g.scale(1.25,1.25); g.translate(-64,-64);
+  // wings: two translucent blades with a faint vein, swept back
+  const wing=(x,y,rot,sx)=>{ g.save(); g.translate(x,y); g.rotate(rot); g.scale(sx,1);
+    const lg=g.createLinearGradient(0,-14,0,4); lg.addColorStop(0,'rgba(228,242,255,0.30)'); lg.addColorStop(1,'rgba(196,222,248,0.80)');
+    g.fillStyle=lg; g.beginPath(); g.ellipse(0,-7,7.5,15,0,0,Math.PI*2); g.fill();
+    g.strokeStyle='rgba(150,180,214,0.55)'; g.lineWidth=0.9; g.beginPath(); g.moveTo(0,4); g.quadraticCurveTo(2,-6,0.5,-19); g.stroke(); g.restore(); };
+  wing(56,40,-0.42,1); wing(74,40,0.42,1);
+  // abdomen: tapered, banded, with a stinger
+  g.save(); g.translate(64,72); g.rotate(0.10);
+  const bg=g.createLinearGradient(-18,-12,14,14); bg.addColorStop(0,'#ffd84f'); bg.addColorStop(0.55,'#f0ab1c'); bg.addColorStop(1,'#b9760c');
+  g.fillStyle=bg; g.beginPath(); g.moveTo(-19,0); g.bezierCurveTo(-19,-13,10,-14,20,-5); g.bezierCurveTo(25,-1,25,1,20,5); g.bezierCurveTo(10,14,-19,13,-19,0); g.fill();
+  g.save(); g.beginPath(); g.moveTo(-19,0); g.bezierCurveTo(-19,-13,10,-14,20,-5); g.bezierCurveTo(25,-1,25,1,20,5); g.bezierCurveTo(10,14,-19,13,-19,0); g.clip();
+  g.fillStyle='rgba(28,19,10,0.92)'; [-6,2,10].forEach(x=>{ g.beginPath(); g.moveTo(x-3,-15); g.lineTo(x+3,-15); g.lineTo(x+5,15); g.lineTo(x-1,15); g.fill(); });
+  g.restore();
+  g.strokeStyle='rgba(70,45,12,0.55)'; g.lineWidth=1; g.stroke();
+  g.fillStyle='#3a2a12'; g.beginPath(); g.moveTo(-19,-2); g.lineTo(-28,0); g.lineTo(-19,2); g.fill();   // stinger
+  // head
+  g.fillStyle='#241a0c'; g.beginPath(); g.ellipse(23,0,8,7.5,0,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(255,255,255,0.85)'; g.beginPath(); g.ellipse(26,-2.5,2.6,2.2,0.3,0,Math.PI*2); g.fill();
+  g.strokeStyle='#241a0c'; g.lineWidth=1.2; g.beginPath(); g.moveTo(27,-5); g.quadraticCurveTo(33,-11,31,-14); g.moveTo(28,-3); g.quadraticCurveTo(35,-7,35,-10); g.stroke();
+  g.restore();
   _beeTex=new TH.CanvasTexture(c); return _beeTex; }
 function spawnBeeHive(u,plan,cfg){ const draw=!!(TH&&scene);   // the SIM path is identical with or without a renderer (server replays this code headless)
   const th=(u.sprH||3.2), hx=u.x, hy=u.y;   // hive floats just above his raised hands (camera-up, see beeAbove)
@@ -4999,7 +5018,8 @@ function spawnHoneyGlob(u,t,onLand){ const th=(t.sprH||3.2), sc=th*0.5, draw=!!(
   const b={ph:7,spr,u,t,tt:0,dur:0.45,melt:0.5,sc,fall:th*1.5,onLand,done:false};
   _bees.push(b); if(spr) honeyPlace(b,0,0); }
 function beeDrop(b){ if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} b.glow=null; } if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} b.spr=null; } }
-function updateBees(dt){ for(let i=_bees.length-1;i>=0;i--){ const b=_bees[i]; b.tt+=dt;
+function updateBees(dt){
+  for(let i=_bees.length-1;i>=0;i--){ const b=_bees[i]; b.tt+=dt;
     if(b.ph===7){ const t=b.t;
       if(b.tt<b.dur){ honeyPlace(b, b.tt/b.dur, 0); continue; }
       if(!b.done){ b.done=true; try{ b.onLand(); }catch(_){} burstAt(t.x,t.y,0xf0b830,10); }
@@ -5011,11 +5031,20 @@ function updateBees(dt){ for(let i=_bees.length-1;i>=0;i--){ const b=_bees[i]; b
       const st=b.tt-b.dur; if(st<b.life){ b.ang+=b.spin*dt; const r=b.rad*(0.7+0.3*Math.sin(st*2+b.wob)); if(b.spr){ b.spr.position.set(wx(b.cx)+Math.cos(b.ang)*r*SC, 1.9+Math.sin(st*11+b.wob)*0.4, wz(b.cy)+Math.sin(b.ang)*r*SC); b.spr.material.rotation=Math.cos(b.ang)>=0?0:Math.PI; } continue; }
       const rt=st-b.life, rd=Math.max(0.3,dist(b.u,{x:b.cx,y:b.cy})/(11*METER)); if(rt>=rd||!b.u.alive){ beeDrop(b); _bees.splice(i,1); continue; }
       if(b.spr){ const k=rt/rd, ease=k*k*(3-2*k); const hx=b.u.x, hy=b.u.y, hh=0.05+(b.u.sprH||3.2)*0.8; const sx=b.cx+Math.cos(b.ang)*b.rad, sy=b.cy+Math.sin(b.ang)*b.rad; const nx=sx+(hx-sx)*ease, ny=sy+(hy-sy)*ease, nh=1.1+(hh-1.1)*ease+Math.sin(k*Math.PI)*0.6; b.spr.material.rotation=((hx-sx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); b.spr.material.opacity=1-Math.max(0,k-0.8)*5; } continue; }
+    if(b.ph===8){ const o=b.u, t=b.t;
+      if(!o||!o.alive||!(o.pass&&o.pass.beeward)||!t||!t.alive||units.indexOf(t)<0){ beeDrop(b); _bees.splice(i,1); continue; }
+      b.acc+=dt; if(b.acc>=0.5){ b.acc-=0.5; const h=(t.maxHp*0.004+(o.apow||0)*0.08*(b.pm||1))*0.5; if(t.hp<t.maxHp) t.hp=Math.min(t.maxHp,t.hp+h); }
+      if(TH&&scene){ try{ if(!b.spr){ b.spr=new TH.Sprite(new TH.SpriteMaterial({map:beeTex(),transparent:true,depthWrite:false,depthTest:false})); b.spr.scale.set(0.55,0.55,1); scene.add(b.spr); }
+        b.ang+=2.6*dt; const c=Math.cos(b.ang), sn=Math.sin(b.ang);
+        beeAbove(t,0.25,_bv); b.spr.position.set(_bv.x+c*0.55, _bv.y+Math.sin(b.ang*2.3)*0.12, _bv.z+sn*0.3);
+        b.spr.renderOrder=(sn<0)?-0.5:1;   // far half (travelling right) behind the hero, near half (travelling left) in front
+        b.spr.material.rotation=(-sn>=0)?0:Math.PI; }catch(_){} }
+      continue; }
     if(b.ph===9){ if(b.glow){ const f=Math.max(0,1-b.tt/b.life); if(b.u){ beeAbove(b.u,0.35,_bv); b.glow.position.copy(_bv); } b.glow.material.opacity=0.85*f; b.glow.scale.set(2.1*(0.85+0.15*Math.sin(b.tt*9)),2.1*(0.85+0.15*Math.sin(b.tt*9)),1); } if(b.tt>=b.life){ beeDrop(b); _bees.splice(i,1); } continue; }
     if(b.ph===0){ b.ang+=b.spin*dt; b.bob+=5*dt; const r=b.rad*(1+0.15*Math.sin(b.bob*0.7)); beeAbove(b.u,0.35,_bv); const hy=_bv.y+Math.sin(b.bob)*0.18;
       if(b.spr){ b.spr.position.set(_bv.x+Math.cos(b.ang)*r, hy, _bv.z+Math.sin(b.ang)*r*0.5); b.spr.material.rotation=Math.cos(b.ang)>=0?0:Math.PI; }
       if(b.tt>=b.dep){ b.ph=1; b.tt=0; b.fx=b.hx+Math.cos(b.ang)*b.rad/SC; b.fy=b.hy+Math.sin(b.ang)*b.rad*0.5/SC; b.fh=hy; const d=dist({x:b.fx,y:b.fy},b.t); b.dur=Math.max(0.35,d/(11*METER)); } continue; }
-    const t=b.t; if(!t||!t.alive){ beeDrop(b); _bees.splice(i,1); continue; }
+    const t=b.t; if(!t||!t.alive||(b.u&&!b.u.alive&&b.ph===0)){ beeDrop(b); _bees.splice(i,1); continue; }
     const k=Math.min(1,b.tt/b.dur), ease=k*k*(3-2*k); const gx=t.x, gy=t.y;
     if(b.spr){ beeAbove(t,-restHeadOff(t)*0.45,_bv); const gh=_bv.y;   // bees converge on the target's upper body, not a flat world height
       const nx=b.fx+(gx-b.fx)*ease, ny=b.fy+(gy-b.fy)*ease, nh=b.fh+(gh-b.fh)*ease+Math.sin(k*Math.PI)*0.9+Math.sin(b.tt*18+b.wob)*0.08;
@@ -5076,7 +5105,15 @@ function dotKind(color){ if(!color)return null; const h=color.replace('#',''); i
   return null; }
 function unitDotKind(u){ if(!u.dots||!u.dots.length)return null; for(let i=u.dots.length-1;i>=0;i--){ const k=dotKind(u.dots[i].color); if(k)return k; } return null; }
 const STATUSFX_KEY={poison:'poison',bleed:'bleed',burn:'firepatch'};   // burn is rendered as a tiny fire patch
-function _killStatusFx(u){ if(u._statusFx){ scene.remove(u._statusFx.spr); u._statusFx.spr.material.dispose(); u._statusFx=null; } }
+/* v488 (Phil: "this should be the same for fire, curse, poison, bleed effects when i go to a new wave ... i keep seeing
+   them stay in the image if i end a wave fast"). Same bug the passive bee had: these sprites are scene children owned by a
+   unit, and every sweep walked `units` — which clearBattle empties FIRST — so a wave that ended while a DoT was burning
+   left its plate on the floor forever. They are now registered in a module list that no teardown path can miss. */
+const _statusFxAll=[];
+function _killStatusFx(u){ if(u&&u._statusFx){ try{ scene.remove(u._statusFx.spr); u._statusFx.spr.material.dispose(); }catch(_){}
+    const i=_statusFxAll.indexOf(u._statusFx); if(i>=0)_statusFxAll.splice(i,1); u._statusFx=null; } }
+function killAllStatusFx(){ _statusFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._statusFx=null; }); _statusFxAll.length=0;
+  try{ if(typeof units!=='undefined') units.forEach(u=>{ u._statusFx=null; }); }catch(_){} }
 function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
   const kind=u.alive?unitDotKind(u):null;
   if(!kind || (u._statusFx&&u._statusFx.kind!==kind)) _killStatusFx(u);
@@ -5085,12 +5122,12 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
     const tex=base; const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
     fx2Hook(spr); fx2SetFrame(spr,d,0);
-    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
+    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); }
   const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0;
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
-  if(typeof units!=='undefined') units.forEach(u=>_killStatusFx(u)); }
+  killAllStatusFx(); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
@@ -5341,7 +5378,12 @@ function think(u,dt){
 
 /* ---------------------------- battle lifecycle ----------------------------- */
 function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is exactly 3 waves
-function clearBattle(){ waveXfer=null; units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite){if(x._utex){try{x._utex.dispose();}catch(_){}} if(x.material){try{x.material.dispose();}catch(_){}}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
+function clearBattle(){ waveXfer=null;
+  /* v488: bees are scene children, not unit children, so they survive the unit teardown below unless they are
+     explicitly dropped FIRST — clearBattle runs before battleFxReset and empties `units`. */
+  try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} } if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} } }); _bees.length=0; } }catch(_){}
+  try{ const stray=[]; scene.traverse(o=>{ if(o.isSprite&&o.material&&_beeTex&&o.material.map===_beeTex) stray.push(o); }); stray.forEach(o=>{ try{ scene.remove(o); o.material.dispose(); }catch(_){} }); }catch(_){}
+  try{ killAllStatusFx(); }catch(_){} units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite){if(x._utex){try{x._utex.dispose();}catch(_){}} if(x.material){try{x.material.dispose();}catch(_){}}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
   voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
@@ -5486,6 +5528,7 @@ function purgeTransientFx(){
     // the dot ends.") purgeTransientFx only runs at wave/stage boundaries, never mid-combat, so this can
     // never cancel a DoT that is still meant to be ticking.
     u.dots=[]; u.hots=[]; if(typeof _killStatusFx==='function')_killStatusFx(u); });
+  try{ killAllStatusFx(); }catch(_){}   // v488: anything whose owner already left the unit list
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();}); shots=[];
   particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
@@ -5497,7 +5540,6 @@ function purgeTransientFx(){
      hornet swarm (and its damage controller), the honey glob — is gone, and the passive's ward bee is dropped
      so it re-attaches on the next wave with a live ally. */
   if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} } if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} } }); _bees.length=0; }
-  units.forEach(u=>{ if(u._wardBees){ u._wardBees.forEach(w=>{ if(w.spr){ try{ scene.remove(w.spr); w.spr.material.dispose(); }catch(_){} } }); u._wardBees=null; } });
 }
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
@@ -5925,20 +5967,14 @@ function updateBattle(dt){
        hero dies. Depth flips with the orbit: on the far half the bee is travelling RIGHT past the head and draws one
        layer BEHIND the hero; on the near half it is travelling LEFT and draws one layer in FRONT of him. Units render
        at renderOrder 0, so -0.5 is behind and +1 is in front. */
-    if(u.pass.beeward){ const pm=u.passMul||1; const mates=units.filter(o=>o.alive&&o.team===u.team&&!o.summoned&&!o._dropHidden);
-      if(!u._wardBees) u._wardBees=[];
-      u._wardBees=u._wardBees.filter(w=>{ if(w.t&&w.t.alive&&mates.indexOf(w.t)>=0) return true; if(w.spr){ try{ scene.remove(w.spr); w.spr.material.dispose(); }catch(_){} } return false; });
-      mates.forEach((m,i)=>{ if(!u._wardBees.some(w=>w.t===m)) u._wardBees.push({t:m,spr:null,ang:i*1.7,acc:0}); });
-      u._wardBees.forEach(w=>{
-        w.acc+=dt; if(w.acc>=0.5){ w.acc-=0.5; const h=(w.t.maxHp*0.004+(u.apow||0)*0.08*pm)*0.5; if(w.t.hp<w.t.maxHp) w.t.hp=Math.min(w.t.maxHp,w.t.hp+h); }
-        if(!(TH&&scene)) return;
-        try{ if(!w.spr){ w.spr=new TH.Sprite(new TH.SpriteMaterial({map:beeTex(),transparent:true,depthWrite:false,depthTest:false})); w.spr.scale.set(0.55,0.55,1); scene.add(w.spr); }
-          w.ang+=2.6*dt; const c=Math.cos(w.ang), sn=Math.sin(w.ang);
-          beeAbove(w.t,0.25,_bv);
-          w.spr.position.set(_bv.x+c*0.55, _bv.y+Math.sin(w.ang*2.3)*0.12, _bv.z+sn*0.3);
-          w.spr.renderOrder = (sn<0) ? -0.5 : 1;   // far half (moving right) behind the hero; near half (moving left) in front
-          w.spr.material.rotation = (-sn>=0)?0:Math.PI;   // face the way it is actually travelling
-        }catch(_){} }); }
+    /* v488 (Phil found it: "everytime i leave a fight and come back in, the passive bee stays on my head ... never cleaned
+       up ... then regenerated in the next fight, but the old image stays"). The bees used to hang off the unit object, and
+       battleFxReset sweeps by walking `units` — which clearBattle has already emptied — so every fight orphaned another
+       sprite in the scene. They now live in _bees like every other bee, which every purge path already empties. */
+    if(u.pass.beeward){ const pm=u.passMul||1;
+      const mates=units.filter(o=>o.alive&&o.team===u.team&&!o.summoned&&!o._dropHidden);
+      mates.forEach((m,i)=>{ if(!_bees.some(w=>w.ph===8&&w.u===u&&w.t===m)) _bees.push({ph:8,u,t:m,spr:null,ang:i*1.7,acc:0,pm}); });
+    }
     if(u.pass.battery) units.forEach(o=>{if(o.alive&&o.team===u.team)o.energy=Math.min(100,o.energy+6*dt);});
     if(u.pass.juggernaut) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.04*(u.passMul||1)*dt);   // Gruel self-heal 4% max HP/s (Grosk now runs mirewall instead)
     // The Mirewall (Grosk): re-pick the ally he is standing in front of every frame - always the one closest to dying.
@@ -9045,7 +9081,7 @@ Object.assign(FX2_DEF, {
    frost ball, green casters a nature ball. Casters whose element is none of those (Fritz, Lumi, Tessit, Beekeeper,
    The Annotator) kept the plain sphere in v339; v340 (Phil) moved them onto balls too. Umbris keeps his hand-thrown orb. */
 const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Tessit shadow, Fritz a short lightning zap
-  vulmar:{fx:'shadowball',scale:1.5}, voidweaver:{fx:'voidweaver_green_fx',scale:0.55,dur:0.20},   /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX, even though i asked you to use her own"). Her ABILITIES were always on her own art -- voidweaver_green_fx/_blue_fx/_ult_fx -- but her auto-attack ball was the shared shadowball, the same sphere Vulmar and the Librarian throw, so in a fight she read as casting his spell. She now throws her own Abyssal Needle, shrunk for an auto the way Umbris's auto is a shrunken Shadow Ball. */ librarian:{fx:'shadowball',scale:1.5}, meryln:{fx:'bee',scale:1.2,dur:0.26}, vireo:{fx:'shadowball',scale:1.3}, astra:{fx:'shadowball',scale:1.5},
+  vulmar:{fx:'shadowball',scale:1.5}, voidweaver:{fx:'voidweaver_green_fx',scale:0.55,dur:0.20},   /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX, even though i asked you to use her own"). Her ABILITIES were always on her own art -- voidweaver_green_fx/_blue_fx/_ult_fx -- but her auto-attack ball was the shared shadowball, the same sphere Vulmar and the Librarian throw, so in a fight she read as casting his spell. She now throws her own Abyssal Needle, shrunk for an auto the way Umbris's auto is a shrunken Shadow Ball. */ librarian:{fx:'shadowball',scale:1.5}, meryln:{fx:'natureball',scale:1.4}, vireo:{fx:'shadowball',scale:1.3}, astra:{fx:'shadowball',scale:1.5},
   vesper:{fx:'shadowball',scale:1.4}, sablewick:{fx:'shadowball',scale:1.4},
   pyroclast:{fx:'fireball',scale:1.6}, waxenduchess:{fx:'fireball',scale:1.4},
   sylthaine:{fx:'frostball',scale:1.6}, fathom:{fx:'frostball',scale:1.6},
@@ -9053,7 +9089,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:3.3}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:3.3}, deepcleft:{gfx:'deepcleft_ult',gdur:2.6}, fritz:{gfx:'fritz_ult',gdur:2.6}, meryln:{gfx:'meryln_ult',gdur:2.6}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -14038,7 +14074,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788728509290';
+const BUILD_ID = '1788729434174';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
