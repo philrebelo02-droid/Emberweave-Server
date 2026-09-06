@@ -2401,7 +2401,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:2.6*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
+const ULT_DEF={hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3}};
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
@@ -4114,7 +4114,10 @@ function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the abi
   let _mz=null; if(o.gfxAt==='muzzle'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }
   if(o.gfxAt==='front'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.h=0.05; _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }   /* v475: 'front' = the cast-origin point but on the ground (upright swings that start at the caster's feet) */
   /* v462 (Phil: "the center of the hand is off"): Grasping Vow yanks the FARTHEST foe but the plate was drawn on the nearest. */
-  if((o.target==='farthest'||type==='charge'||type==='piercethrow')&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length) c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0]; }catch(e){} }
+  if((o.target==='farthest'||type==='charge'||type==='piercethrow')&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length){ c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0];
+    /* v493: 'charge' teleports the caster to a CLAMPED landing point, but the plate was drawn on the un-clamped foe, so a
+       charge into the back rank put the blast above the damage AND over the top edge of the screen. Same clamp, same point. */
+    if(type==='charge') c={x:Math.max(60,Math.min(FW-60,c.x)), y:Math.max(110,Math.min(FD-60,c.y)), sprH:c.sprH, alive:true}; } }catch(e){} }
   /* v477 (pass 2 of the placement audit): plates follow the SAME target pick as the effect that owns them */
   if(type==='gravsling'&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length){ const proj=fs.slice().sort((p,q)=>dist(u,p)-dist(u,q))[0], others=fs.filter(e=>e!==proj); c=others.length?others.slice().sort((p,q)=>dist(proj,p)-dist(proj,q))[0]:proj; } }catch(e){} }   // the orb lands on the ANVIL (the foe the nearest one is slung into)
   if(type==='blink'&&!o._deferred){ const oo=Object.assign({},o,{_deferred:true}); setTimeout(()=>{ try{ if(!u.alive)return; const R=oo.range||15*METER; const fs=enemiesOf(u).filter(e=>e.alive&&dist(u,e)<=R); const lo=fs.length?fs.slice().sort((p,q)=>p.hp-q.hp)[0]:null; if(lo){ _fxAllow=true; abilArt(u,oo,lo,null,type); } }finally{ _fxAllow=false; } },1000); return; }   // KonWu channels 1 s, then lands behind the lowest-HP foe in range: the flash goes there, then
@@ -4127,8 +4130,8 @@ function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the abi
   const R = (o.artR>0) ? o.artR : ((o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER));   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR. v483: artR = explicit art size (Umbris Shadeburst covered the whole screen) */
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
-  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
-    const _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); window._fxTgtH=null; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
+    const _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); window._fxTgtH=null; window._fxTgtU=null; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
@@ -4431,7 +4434,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       const col=o.color?0x9fe0ff:0xff5b2a; burstAt(px,py,col,20); if(typeof fireRain==='function')fireRain(px,py,o.radius||3*METER,14); break; }
     case 'charge':{ const foes=enemiesOf(u); if(!foes.length)break;   // dash to the farthest foe, then AoE-slam everyone near the landing
       const tg2=foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
-      const lx=Math.max(60,Math.min(FW-60,tg2.x)), ly=Math.max(80,Math.min(FD-60,tg2.y));
+      const lx=Math.max(60,Math.min(FW-60,tg2.x)), ly=Math.max(110,Math.min(FD-60,tg2.y));   /* v493: charge radius 2.6->5 m, so the landing clamp moves in to keep the wider blast fully in frame */
       ringBurst(u.x,u.y,0xff8844,12); u.x=lx; u.y=ly; u._ax=lx; u._ay=ly; u.attackAnim=.2;
       const R=o.radius||2.4*METER; enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<R){ dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf40'); if(o.stun)e.stunned=Math.max(e.stunned||0,o.stun); } });
       burstAt(lx,ly,0xffcf40,20); break; }
@@ -4731,12 +4734,12 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
 // ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
 const FX2_DEF={
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5},
-  aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,upright:true,upAbove:true,upSize:1.1,upExtent:0.9,hold:false,ro:1},
+  aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,upright:true,upAbove:true,upSize:1.1,upExtent:0.9,hold:false,ro:1,upAboveM:-0.2},
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.2,upright:true,upSize:2.0,upExtent:0.8,upAnchor:[0.5,0.40],ro:1},
-  deepcleft_ult:{u:'/assets/anim/fx/deepcleft_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.609,dh:0.183,dw:0.787}},
-  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.447,dh:0.263,dw:0.93},upright:true,upSize:1.9,upExtent:1.0,upAnchor:[0.5,0.0]},
-  meryln_ult:{u:'/assets/anim/fx/meryln_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.32,dh:0.244,dw:0.489},upright:true,upSize:2.2,upExtent:0.95,upAnchor:[0.5,0.55]},
+  deepcleft_ult:{u:'/assets/anim/fx/deepcleft_ult.webp?v=13',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.615,dh:0.18,dw:0.777}},
+  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=13',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.444,dh:0.263,dw:0.934},upright:true,upSize:1.9,upExtent:1.0,upAnchor:[0.5,0.0]},
+  meryln_ult:{u:'/assets/anim/fx/meryln_ult.webp?v=13',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.317,dh:0.247,dw:0.506},upright:true,upAbove:true,upAboveM:0.1,upAnchor:[0.5,0.48],upSize:1.7,upExtent:0.95},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
@@ -4934,9 +4937,17 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
      cell the painted hand fills), and the cell point (0.5, d.upPalm from the bottom) - the palm centre - is pinned to the
      unit's body centre. Back layer draws just behind the unit sprites (renderOrder -1); the `front` finger layer draws over
      them (renderOrder 1) with identical geometry so the two halves stay registered. */
-  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*1.02):(d.upAnchor?0.05:(0.05+th*0.5)));   /* v477 pass 3: an anchored plate (upAnchor) hangs from the unit's FEET line; only palm-anchored (upPalm) plates sit at body centre */   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
+  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*(d.upAboveM||1.02)):(d.upAnchor?0.05:(0.05+th*0.5)));   /* v477 pass 3: an anchored plate (upAnchor) hangs from the unit's FEET line; only palm-anchored (upPalm) plates sit at body centre */   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head. v493: upAboveM raises that clearance -- Phil, on Dandra's lotus: 'should appear above her health bar, not over her body'. */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
     const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
-      sp.scale.set(S*dirx,S*(d.fh/d.fw),1); sp.center.set(dirx<0?1-ax:ax,ay); sp.position.set(wx(cx),y,wz(cy)); sp.renderOrder=ro; scene.add(sp); return sp; };
+      sp.scale.set(S*dirx,S*(d.fh/d.fw),1); sp.center.set(dirx<0?1-ax:ax,ay); sp.position.set(wx(cx),y,wz(cy));
+      /* v493 (Phil, Dandra's lotus: "should appear above her health bar, not over her body"): a sprite always faces the
+         camera, so raising it in WORLD Y slides it up-AND-LEFT on screen under this tilted camera -- the same trap that
+         put the passive bee off a hero's head. Clearance above a unit is measured along CAMERA up, like headScreen(). */
+      if(d.upAbove&&window._fxAtH==null){ const tu=window._fxTgtU;
+        if(tu&&tu._sprRef){ tu._sprRef.getWorldPosition(sp.position); }else{ sp.position.set(wx(cx),0.05,wz(cy)); }
+        const gap=(tu&&typeof restHeadOff==='function')?restHeadOff(tu):th;
+        sp.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(gap+th*(d.upAboveM||0.0))); }
+      sp.renderOrder=ro; scene.add(sp); return sp; };
     const sp=mk(tex,d.ro!=null?d.ro:-2); fx2Hook(sp);   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
     if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,-0.5); const fd2=Object.assign({},fd,{n:d.n,dur:d.dur,hold:d.hold}); fx2Hook(sp2); fx2SetFrame(sp2,fd2,0); const fo={m:sp2,d:fd2,tex:ft,t:0,life,front:true,upY:y};   /* v469 (Phil: 'both animations need to synchronize'): front layer runs on the back layer's n/dur */ _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
     return o; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
@@ -14118,7 +14129,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788732386948';
+const BUILD_ID = '1788734214093';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
