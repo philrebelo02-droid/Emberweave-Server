@@ -2465,7 +2465,17 @@ function heroQuality(key){ return G2_TIER16[Math.min(15,glyphRank(key))]; }   //
 // ============== GLYPHS — v2 only (the legacy socketable-glyph system was stripped 26 Aug) ==============
 // Crafting, fragments, socketing and ascension all live on the SERVER (u.glyphs; /api/glyphs/*).
 // The client renders the board via the RUNE2 state and reads combat stats through the two bridges below.
-function glyphSockMul(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; }   // v2 only — legacy socket stats are gone
+/* v480 (Phil: "balance the glyphs out power wise — heroes all get around 25k power from Orange"): the glyph share of a hero's
+   Power is a TIER CURVE that is the same for every hero — 16 ascension steps, each 18% bigger than the last, totalling 25,000 at
+   Orange (Grey 343 … Orange step 4,150) — plus a share of the next step for the glyphs already slotted toward it. The glyphs'
+   stats still do everything they did in combat; they just no longer make one role's board read 40% "stronger" than another's. */
+const GLYPH_POWER_TOTAL=25000, GLYPH_POWER_R=1.18;
+const GLYPH_TIER_POWER=(function(){ const v=[]; let s=0; for(let i=0;i<GMAX_RANK;i++){ v.push(Math.pow(GLYPH_POWER_R,i)); s+=v[i]; } return v.map(x=>x/s*GLYPH_POWER_TOTAL); })();
+function glyphTierPower(rank,filled){ let p=0; for(let i=0;i<Math.min(GMAX_RANK,rank);i++) p+=GLYPH_TIER_POWER[i]; if(rank<GMAX_RANK&&filled>0) p+=GLYPH_TIER_POWER[rank]*Math.min(6,filled)/6; return Math.round(p); }
+function glyphPowerFor(key){ const r=glyphRank(key); let filled=0; try{ const b=RUNE2&&RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; if(b&&b.slots) filled=b.slots.filter(Boolean).length; }catch(e){} return glyphTierPower(r,filled); }
+let _powerNoGlyph=false;   // heroPower() zeroes the glyph stat contribution while it computes the non-glyph part
+function glyphSockMul(key){ if(_powerNoGlyph) return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
+  if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
@@ -2681,6 +2691,7 @@ function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skil
    still lead on EHP and carries still lead on DPS, and the two land in the same band. */
 const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) lifted every class's EHP; K retuned so an Orange board reads ~25k power across classes
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
+  if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return heroPower(key)+glyphPowerFor(key); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
   const hp   = heroStat(key,t.hp,'hp')*m.hp + heroFlatHp(key);
   const atkP = heroStat(key,t.dmg,'dmg')*m.atk + heroFlatAtk(key);
@@ -13253,7 +13264,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
          the button IS the item — its own art in a gold ring; the type emoji is only the fallback when the art is missing. */
       const _gid=u.gearSkill.defId; gb.innerHTML=_gid?`<img src="/assets/img/gear/items/${_gid}.webp${GEAR_ART_V}" alt="" draggable="false" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none" onerror="this.replaceWith(document.createTextNode('${u.gearSkill.icon}'))">`:u.gearSkill.icon;
       gb.title=u.gearSkill.name+' — '+u.gearSkill.desc; gb.className='gearActiveBtn';
-      gb.style.cssText='position:absolute;top:-9px;right:-7px;width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;background:#1a2434;border:2px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 0 6px rgba(255,212,94,.6),0 1px 4px rgba(0,0,0,.6);overflow:hidden;'+(u.gearSkill.used?'opacity:.25;pointer-events:none;filter:grayscale(1);':'');
+      gb.style.cssText='pointer-events:auto;position:absolute;top:-9px;right:-7px;width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;background:#1a2434;border:2px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 0 6px rgba(255,212,94,.6),0 1px 4px rgba(0,0,0,.6);overflow:hidden;'   /* v480 ROOT CAUSE of "equipment actives don't work": #hud and #portraitBar are pointer-events:none (taps fall through to the field) and only .portrait turns them back on - this button inherited none and could never be tapped */+(u.gearSkill.used?'opacity:.25;pointer-events:none;filter:grayscale(1);':'');
       const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); queueInput({k:'gear', uid:u.uid}); };   // v269: tick-aligned
       gb.addEventListener('pointerdown',(e)=>e.stopPropagation());
       gb.addEventListener('click',fire); gb.addEventListener('touchstart',fire,{passive:false});
@@ -13877,7 +13888,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788716094269';
+const BUILD_ID = '1788716713670';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

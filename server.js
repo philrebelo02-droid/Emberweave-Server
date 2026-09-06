@@ -710,13 +710,16 @@ function dailyGlyphFragsFor(dayKey){ let h=0; for(const c of String(dayKey)) h=(
 // glyph combat/power contribution — flat + % stats reduced to one scalar, added into serverTeamPower
 const GLYPH_POWER_WEIGHT=+(process.env.GLYPH_POWER_WEIGHT||0.2);
 function glyphStatScore(stats){ let p=0; for(const s of stats){ if(s.pct) p+=s.val*4; else if(/^HP$/i.test(s.stat)) p+=s.val/8; else if(/Regen/i.test(s.stat)) p+=s.val/6; else p+=s.val*1.2; } return p; }
+/* v480 (Phil: "balance the glyphs out power wise — heroes all get around 25k power from Orange"): the glyph share of Power is a
+   TIER CURVE identical for every hero (mirrors the client's glyphTierPower): 16 ascension steps growing 18% each, 25,000 total at
+   Orange, plus a share of the next step for glyphs already slotted toward it. Stats still reach combat unchanged. */
+const GLYPH_POWER_TOTAL=25000, GLYPH_POWER_R=1.18;
+const GLYPH_TIER_POWER=(function(){ const v=[]; let s=0; for(let i=0;i<GLYPH_MAX_ASC;i++){ v.push(Math.pow(GLYPH_POWER_R,i)); s+=v[i]; } return v.map(x=>x/s*GLYPH_POWER_TOTAL); })();
+function glyphTierPower(rank,filled){ let p=0; for(let i=0;i<Math.min(GLYPH_MAX_ASC,rank);i++) p+=GLYPH_TIER_POWER[i]; if(rank<GLYPH_MAX_ASC&&filled>0) p+=GLYPH_TIER_POWER[rank]*Math.min(6,filled)/6; return Math.round(p); }
 function glyphHeroPower(u, heroKey){
   if(!GLYPHS) return 0;
   const g=u&&u.glyphs; if(!g) return 0; const b=g.boards&&g.boards[heroKey]; if(!b) return 0;
-  let p=0;
-  for(const st in (b.ascended||{})){ const a=b.ascended[st]; p+= a.pct? a.val*4 : (/^HP$/i.test(st)? a.val/8 : (/Regen/i.test(st)? a.val/6 : a.val*1.2)); }
-  for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const def=inst&&GLYPHS.byId[inst.definitionId]; if(def) p+=glyphStatScore(def.stats); }
-  return p*GLYPH_POWER_WEIGHT;
+  return glyphTierPower(b.ascensionIndex|0, (b.slots||[]).filter(Boolean).length);
 }
 /* ================== end Glyph Ascension module (routes live in api()) ================== */
 /* ==================== AETHER VAULT (Dungeon v2) — server-authoritative ====================
