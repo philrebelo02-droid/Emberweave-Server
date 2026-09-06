@@ -8579,14 +8579,14 @@ Object.assign(BATTLE_ANIM, {
     passive:{u:'/assets/anim/librarian/librarian_passive.webp?v=3',n:48,fw:344,fh:400,cols:6,rows:8,figH:355.0,feet:393.0,cx:170.5,fps:24,flip:false,top:39}
   },
   corsair:{
-    idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=5',n:48,fw:290,fh:400,cols:6,rows:8,figH:386.0,feet:395.0,cx:139.0,fps:24,flip:false,top:10,pingpong:true},
-    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=5',n:48,fw:285,fh:400,cols:6,rows:8,figH:384.0,feet:395.0,cx:125.5,fps:24,flip:false,top:12},
-    attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=5',n:48,fw:362,fh:400,cols:6,rows:8,figH:356.0,feet:395.0,cx:228.0,fps:24,flip:false,top:40},
-    melee:{u:'/assets/anim/corsair/corsair_melee.webp?v=5',n:48,fw:300,fh:400,cols:6,rows:8,figH:336.0,feet:391.0,cx:143.5,fps:24,flip:false,top:56},
-    hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=5',n:48,fw:400,fh:351,cols:6,rows:8,figH:295.0,feet:345.0,cx:184.5,fps:24,flip:false,top:51},
-    green:{u:'/assets/anim/corsair/corsair_green.webp?v=5',n:48,fw:397,fh:400,cols:6,rows:8,figH:391.0,feet:395.0,cx:242.0,fps:24,flip:false,top:5},
-    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=5',n:48,fw:400,fh:345,cols:6,rows:8,figH:330.0,feet:336.0,cx:210.0,fps:24,flip:false,top:7},
-    ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=5',n:48,fw:400,fh:331,cols:6,rows:8,figH:294.0,feet:327.0,cx:172.5,fps:24,flip:false,top:34},
+    idle:{u:'/assets/anim/corsair/corsair_idle.webp?v=5',n:48,fw:290,fh:400,cols:6,rows:8,figH:386.0,feet:395.0,cx:139.0,fps:24,flip:true,top:10,pingpong:true},
+    walk:{u:'/assets/anim/corsair/corsair_walk.webp?v=5',n:48,fw:285,fh:400,cols:6,rows:8,figH:384.0,feet:395.0,cx:125.5,fps:24,flip:true,top:12},
+    attack:{u:'/assets/anim/corsair/corsair_attack.webp?v=5',n:48,fw:362,fh:400,cols:6,rows:8,figH:356.0,feet:395.0,cx:228.0,fps:24,flip:true,top:40},
+    melee:{u:'/assets/anim/corsair/corsair_melee.webp?v=5',n:48,fw:300,fh:400,cols:6,rows:8,figH:336.0,feet:391.0,cx:143.5,fps:24,flip:true,top:56},
+    hit:{u:'/assets/anim/corsair/corsair_hit.webp?v=5',n:48,fw:400,fh:351,cols:6,rows:8,figH:295.0,feet:345.0,cx:184.5,fps:24,flip:true,top:51},
+    green:{u:'/assets/anim/corsair/corsair_green.webp?v=5',n:48,fw:397,fh:400,cols:6,rows:8,figH:391.0,feet:395.0,cx:242.0,fps:24,flip:true,top:5},
+    blue:{u:'/assets/anim/corsair/corsair_blue.webp?v=5',n:48,fw:400,fh:345,cols:6,rows:8,figH:330.0,feet:336.0,cx:210.0,fps:24,flip:true,top:7},
+    ult:{u:'/assets/anim/corsair/corsair_ult.webp?v=5',n:48,fw:400,fh:331,cols:6,rows:8,figH:294.0,feet:327.0,cx:172.5,fps:24,flip:true,top:34},
     passive:{u:'/assets/anim/corsair/corsair_passive.webp?v=3',n:48,fw:299,fh:400,cols:6,rows:8,figH:326.0,feet:395.0,cx:168.0,fps:24,flip:true,top:70}
   },
   waxenduchess:{
@@ -13639,7 +13639,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788651374330';
+const BUILD_ID = '1788667197526';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
