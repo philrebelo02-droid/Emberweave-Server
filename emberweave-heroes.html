@@ -4049,7 +4049,9 @@ const _SELF_PLATE={aoedot:1, crescendo:1};   // these two always drew their plat
 function abilArt(u,o,tgt,aimCtr,type){
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
-  const c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
+  let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
+  /* v462 (Phil: "the center of the hand is off"): Grasping Vow yanks the FARTHEST foe but the plate was drawn on the nearest. */
+  if(o.target==='farthest'&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length) c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0]; }catch(e){} }
   /* NEVER size a plate from o.radius alone: a radius is a TARGETING distance and some abilities use a
      sentinel for "everyone" — Ignite All is radius 99999, which drew a fire plate 99999 units wide
      across the whole screen. gfxR is the drawn size; fall back to radius only when it is sane. */
@@ -13833,7 +13835,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788705132530';
+const BUILD_ID = '1788705336774';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
