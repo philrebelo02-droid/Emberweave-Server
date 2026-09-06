@@ -4053,7 +4053,10 @@ function abilArt(u,o,tgt,aimCtr,type){
   /* NEVER size a plate from o.radius alone: a radius is a TARGETING distance and some abilities use a
      sentinel for "everyone" — Ignite All is radius 99999, which drew a fire plate 99999 units wide
      across the whole screen. gfxR is the drawn size; fall back to radius only when it is sane. */
-  const R = o.gfxR || ((o.radius>0 && o.radius<=8*METER) ? o.radius : 2.4*METER);
+  /* v449 (Phil: "anyone hit by the animation circle takes damage or gets healed"): the DRAWN circle is now the HIT
+     radius whenever the radius is a real circle (≤ 8 m). gfxR only sizes the sentinel/"everyone" abilities (Shade Nova
+     15 m, Ignite All 99999). 23 abilities were drawing a smaller circle than they actually hit. */
+  const R = (o.radius>0 && o.radius<=8*METER) ? o.radius : (o.gfxR || 2.4*METER);
   try{ spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6); }catch(e){}
 }
 /* A shot that prefers the ability's own projectile art, falling back to the plain coloured tracer. */
@@ -4682,7 +4685,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!sc
      camera than the aim point and came out flatter than the true ground circle. With `disc` we stretch the plane so the
      painted disc is exactly a 2R ground circle (it then projects like the aim ring) and slide the plane so that disc,
      not the frame, is centred on the aim. */
-  if(d.disc){ w=R3*2*FX_SIZE/d.disc.dw; h=R3*2*FX_SIZE/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }
+  if(d.disc){ w=R3*2/d.disc.dw; h=R3*2/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
   fx2Hook(m); fx2SetFrame(m,d,0);
@@ -13649,7 +13652,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788668313807';
+const BUILD_ID = '1788668544639';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
