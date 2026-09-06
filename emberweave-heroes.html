@@ -5239,6 +5239,9 @@ function startBattle(){
     const oppSlots=formationSlots('enemy',_opp.length); _opp.forEach((e,i)=>{const melee=HERO_TYPES[e.key].range<60,s=oppSlots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
     bannerMsg('RAID!\nDefeat the rival squad'); beginWaveEnter(); }
   buildPortraitBar();refreshCtrlBtns();updateWaveTag();updateCounts();show('battle');
+  /* v478 (Phil: "equipment actives don't work"): the Gear Active button only existed if the Forge had been opened earlier in the
+     session (FORGE.st stays null until then). Fetch the gear state now and rebuild the portrait bar so the button is there. */
+  if(FORGE.st===null&&!isAutoBattle()){ forgeSync().then(()=>{ try{ if(state==='battle'&&!ended) buildPortraitBar(); }catch(e){} }).catch(()=>{}); }
 }
 /* The Vault: when a FIGHTER falls, the battle pauses and YOU pick which backup steps in (Phil 26 Aug).
    Only real squad heroes carry _vaultFighter — summons (Hurne's boars etc.) NEVER trigger the picker. */
@@ -6852,7 +6855,7 @@ function gearActiveFor(key){ try{
   const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled)return null;
   const id=(st.active||{})[key]; const it=id&&st.items&&st.items[id]; const d=it&&forgeDef(it.d); if(!d||!d.active)return null;
   const eq=(st.equipped||{})[key]||{}; if(!Object.values(eq).includes(id)) return null;   // must still be equipped
-  return { name:d.active, slot:d.slot, itemId:id, type:d.activeType||null, params:d.activeParams||null,
+  return { name:d.active, slot:d.slot, itemId:id, defId:d.id, type:d.activeType||null, params:d.activeParams||null,
     icon:GEAR_TYPE_ICON[d.activeType]||'🗡', desc:d.effect||'' };
 }catch(e){ return null; } }
 function _gsNearFoe(u){ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} } }); return b; }
@@ -6875,10 +6878,11 @@ function castGearSkill(u,_fromTick){
   const g=u.gearSkill, p=g.params||{}, ty=g.type;
   if((u.stunned>0||(u.fearT||0)>0) && ty!=='cleanse') return;
   u.gearSkill.used=true;
-  floatTexts.push({x:u.x,y:u.y-16,txt:g.name,t:.9,color:'#ffd45e',vy:1.2,sz:13});
+  floatTexts.push({x:u.x,y:u.y-16,txt:'✦ '+g.name,t:1.2,color:'#ffd45e',vy:1.2,sz:15});
+  try{ ringBurst(u.x,u.y,0xffd45e,22); burstAt(u.x,u.y,0xfff1b0,14); if(u.team==='ally') screenFlash=Math.max(screenFlash,.18); }catch(e){}   // v478: the active is a visible event
   const burn=(t,frac,dur)=>{ if(t&&frac&&t.dots) pushDot(t,u.dmg*frac/(2*(dur||3)),dur||3,0.5,'#ff9a3c'); };
   switch(ty){
-    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
+    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
     case 'stun': { const ts=_gsFoes(u,p.target==='aoe'?'aoe':(p.target==='caster'?'near':'near'),p.target==='aoe'?3:1);
       ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,(p.dur||0.75)); }); break; }
     case 'silence': { const t=_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,p.dur||1.25); break; }
@@ -13207,8 +13211,11 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     if(side==='ally'&&!isAutoBattle()&&!u.gearSkill){ const gs=gearActiveFor(u.key); if(gs) u.gearSkill=Object.assign({used:false},gs); }
     if(side==='ally'&&u.gearSkill){
       const gb=document.createElement('div');
-      gb.textContent=u.gearSkill.icon; gb.title=u.gearSkill.name+' — '+u.gearSkill.desc;
-      gb.style.cssText='position:absolute;top:-7px;right:-5px;width:22px;height:22px;line-height:22px;text-align:center;font-size:12px;background:#1a2434;border:1px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.6);'+(u.gearSkill.used?'opacity:.25;pointer-events:none;':'');
+      /* v478 (Phil: "the equipment active button should be the item that you have activated in the heroes panel, not a placeholder"):
+         the button IS the item — its own art in a gold ring; the type emoji is only the fallback when the art is missing. */
+      const _gid=u.gearSkill.defId; gb.innerHTML=_gid?`<img src="/assets/img/gear/items/${_gid}.webp${GEAR_ART_V}" alt="" draggable="false" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none" onerror="this.replaceWith(document.createTextNode('${u.gearSkill.icon}'))">`:u.gearSkill.icon;
+      gb.title=u.gearSkill.name+' — '+u.gearSkill.desc; gb.className='gearActiveBtn';
+      gb.style.cssText='position:absolute;top:-9px;right:-7px;width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;background:#1a2434;border:2px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 0 6px rgba(255,212,94,.6),0 1px 4px rgba(0,0,0,.6);overflow:hidden;'+(u.gearSkill.used?'opacity:.25;pointer-events:none;filter:grayscale(1);':'');
       const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); queueInput({k:'gear', uid:u.uid}); };   // v269: tick-aligned
       gb.addEventListener('pointerdown',(e)=>e.stopPropagation());
       gb.addEventListener('click',fire); gb.addEventListener('touchstart',fire,{passive:false});
@@ -13832,7 +13839,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788714680032';
+const BUILD_ID = '1788715399857';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -1089,13 +1089,30 @@ function vaultWinPlausible(a){
 }
 // (rollFragmentOfQuality deleted — Correction Spec v1: no random family roll exists in any live
 //  reward path; vault/campaign/arena/daily all use named deterministic tables.)
+/* v478 (Phil, 6 Sep: "there is not enough fragments dropping in The Vault, it should be 1-2 fragments per floor based on the
+   quality range of the floor"): EVERY floor drops glyph fragments — 1 on a normal floor, 2 on a boss floor (first clears still
+   double). The pick walks every (quality, family) pair of the floor band's quality RANGE in canonical order, one step per drop
+   across the band, and the walk advances by one full band-cycle per day, so over consecutive days every pair in the range comes
+   out of the Vault (deterministic per floor per day: the pre-attempt Targets panel, the reward and the sweep all agree). */
+const VAULT_BAND_RANGE=[[1,10,['Grey']],[11,20,['Green','Green +1']],[21,30,['Blue','Blue +1']],[31,40,['Blue +1','Blue +2']],[41,50,['Purple','Purple +1']],[51,60,['Purple +2','Purple +3']],[61,70,['Gold','Gold +1','Gold +2']],[71,80,['Gold +3','Gold +4']],[81,100,['Orange']]];
+function vaultDayIndex(){ return Math.floor((Date.now()-(4*3600*1000))/86400000); }   // rolls at 04:00 UTC with the daily reset
+function vaultGlyphFragsForFloor(floor, dayIdx){
+  const band=VAULT_BAND_RANGE.find(b=>floor>=b[0]&&floor<=b[1])||VAULT_BAND_RANGE[0];
+  const pairs=[]; for(const q of band[2]) for(const f of glyphTierFams(q)) pairs.push(q+' '+f);
+  if(!pairs.length) return [];
+  let idx=0; for(let f=band[0]; f<floor; f++) idx+=(isDungeonBossFloor(f)?2:1);
+  const perCycle=(function(){ let n=0; for(let f=band[0]; f<=band[1]; f++) n+=(isDungeonBossFloor(f)?2:1); return n; })();
+  const day=(dayIdx==null?vaultDayIndex():dayIdx); const off=((day%pairs.length)+pairs.length)%pairs.length*perCycle;
+  const n=isDungeonBossFloor(floor)?2:1, out=[]; for(let k=0;k<n;k++) out.push(pairs[(idx+off+k)%pairs.length]);
+  return out;
+}
 function makeStandardDungeonFloorReward(floor,rnd){
   // v241 (full-game audit): every part of the floor reward is AUTHORED in vault-encounters.json —
-  // Dust, the boss-floor glyph fragments, and the two TARGETED gear fragments (no random roll, so
-  // a player can farm a specific floor for a specific item's fragments, like Campaign).
+  // Dust and the two TARGETED gear fragments (no random roll, so a player can farm a specific floor
+  // for a specific item's fragments, like Campaign). v478: glyph fragments come from vaultGlyphFragsForFloor.
   const rec=vaultFloorRecord(floor);
   const r={ dust:rec.dust };
-  if(isDungeonBossFloor(floor)){ r.fragments=(rec.glyphFragments||[]).slice(); }
+  r.fragments=vaultGlyphFragsForFloor(floor);
   if(typeof GEARCAT!=='undefined'&&GEARCAT){ r.gearFragments=(rec.gearFragments||[]).slice(); }
   return r;
 }
@@ -1117,7 +1134,7 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
     // v255 (80/20 contract §3/§5): the player sees EXACTLY which named materials this floor drops
     // before spending an attempt — glyph fragments on boss floors, gear fragments every floor.
     targets:(function(){ const f=Math.min(floor,DUNGEON_MAX_FLOOR); const rec=VAULT_ENC?vaultFloorRecord(f):null;
-      return rec?{ glyphFragments:(rec.glyphFragments||[]).slice(), gearFragments:(rec.gearFragments||[]).slice() }:null; })(),
+      return rec?{ glyphFragments:vaultGlyphFragsForFloor(f), gearFragments:(rec.gearFragments||[]).slice() }:null; })(),
     sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(p.sweep), paidLeft:Math.max(0,VAULT_SWEEP_PAID_COST.length-Math.max(0,(p.sweep.totalSweepsToday|0)-VAULT_SWEEP_FREE)), costs:VAULT_SWEEP_PAID_COST },
     lastTeamHeroIds:p.lastTeamHeroIds||[], activeAttemptId:p.activeAttempt?p.activeAttempt.id:null, version:p.version };
 }
