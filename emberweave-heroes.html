@@ -1076,7 +1076,7 @@ Object.assign(HERO_TYPES, {
   pyroclast:{name:"Pyroclast",emoji:'🔥',role:'Mage',swing:2.0,stars:2,hp:185,dmg:16,apow:34,range:215,speed:54,atkSpeed:0.85,color:0xff6a2a,abilityName:"Crownfire",ability:'fireball',locked:true,start:2},
   stormwarden:{name:"Stormwarden",emoji:'⚡',role:'Fighter',swing:2.3,stars:2,hp:440,dmg:30,range:30,speed:56,atkSpeed:1.0,color:0x5aa8ff,abilityName:"Skybreak",ability:'aoeStun',locked:true,start:2},
   verdantshade:{name:"Verdant Shade",emoji:'🏹',role:'Marksman',swing:2.0,stars:2,hp:210,dmg:32,range:220,speed:56,atkSpeed:1.0,color:0x4fae5a,abilityName:"Emerald Volley",ability:'volley',locked:true,start:2},
-  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Event Horizon",ability:'eventhorizon',locked:true,start:3},
+  voidweaver:{name:"Void Weaver",emoji:'🕳️',role:'Mage',swing:2.0,stars:3,hp:175,dmg:18,apow:36,range:225,speed:54,atkSpeed:0.85,color:0x6a3fb0,abilityName:"Singularity",ability:'eventhorizon',locked:true,start:3},
   dawnbringer:{name:"Dawnbringer",emoji:'🔨',role:'Tank',swing:2.5,stars:3,hp:580,dmg:24,apow:20,range:30,speed:52,atkSpeed:0.9,color:0xf0d070,abilityName:"Daybreak Judgment",ability:'sunburst',locked:true,start:3},
   cathedral:{name:"The Walking Cathedral",emoji:'⛪',role:'Tank',swing:2.6,stars:3,hp:620,dmg:20,apow:26,range:30,speed:48,atkSpeed:0.85,color:0xc8b890,abilityName:"Divine Mass",ability:'sunburst',locked:true,start:3},
   lastfurnace:{name:"The Last Furnace",emoji:'🔩',role:'Bruiser',swing:2.4,stars:3,hp:470,dmg:34,range:30,speed:54,atkSpeed:0.95,color:0xe06a2a,abilityName:"Living Forge",ability:'ashfall',locked:true,start:3},
@@ -2246,7 +2246,7 @@ const KITS={
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green'},blue:{name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10,gfx:'bloatus_blue'},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his plague, the plague bursts onto every enemy nearby — and can spread again from them'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:3*METER,dur:6,cd:9},purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',gfxR:3*METER},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7,gfx:'fritz_blue',gfxR:3*METER},purple:{name:'Static Veil',pass:'stormdodge'}},
-  umbris:{green:{name:'Shadeburst',type:'shadeburst',dps:0.3,dur:6,radius:25*METER,cd:7,gfx:'umbris_green'},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
+  umbris:{green:{name:'Shadeburst',type:'shadeburst',dps:0.3,dur:6,radius:25*METER,cd:7,gfx:'umbris_green',noArt:true},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2,gfx:'vael_green',gfxR:3*METER},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7,gfx:'vael_blue',gfxR:3*METER},purple:{name:'Second Wind',pass:'selfregen'}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER},purple:{name:'Twin Fonts',pass:'twinfonts'}},
    rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER},purple:{name:'Thick Chitin',pass:'warden'}},
@@ -4065,7 +4065,7 @@ let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while 
 const _SELF_PLATE={aoedot:1, crescendo:1};
 const _SELF_CENTRED={haste:1,defensive:1,warcry:1,taunt:1,lifestealbuff:1,dmgbuff:1,rally:1,nova:1,bloodnova:1,shadeburst:1,sunburst:1,duality:1,tidalsurge:1,pullsilence:1,crescendo:1,aoedot:1,harmonyshield:1,heal:1,spdsteal:1,erratafield:0};
 const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};   // these two always drew their plate on the caster
-function abilArt(u,o,tgt,aimCtr,type){
+function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
@@ -4090,7 +4090,7 @@ function abilArt(u,o,tgt,aimCtr,type){
   /* v449 (Phil: "anyone hit by the animation circle takes damage or gets healed"): the DRAWN circle is now the HIT
      radius whenever the radius is a real circle (≤ 8 m). gfxR only sizes the sentinel/"everyone" abilities (Shade Nova
      15 m, Ignite All 99999). 23 abilities were drawing a smaller circle than they actually hit. */
-  const R = (o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER);   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR */
+  const R = (o.artR>0) ? o.artR : ((o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER));   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR. v483: artR = explicit art size (Umbris Shadeburst covered the whole screen) */
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
   try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _o=spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6); window._fxTgtH=null; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
@@ -4191,7 +4191,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       // Contagion carriers tag their OWN plague/curse so it can spread on the victim's death.
       if(u.pass&&u.pass.contagion){ tgt._contagion=true; tgt._plagueDps=_pd; tgt._plagueColor=_pc; tgt._plagueHex=parseInt(_pc.slice(1),16)||0x8fbf3f; } if(o.foot){tgt._darkAuraT=o.dur||4;tgt._plagueColor=o.color||'#8a5cff';tgt._plagueHex=0x7a3fb0;} if(o.handglow){ const dd=Math.max(1,dist(u,tgt)); const hx=u.x+(tgt.x-u.x)/dd*20, hy=u.y+(tgt.y-u.y)/dd*20; u._darkAuraT=Math.max(u._darkAuraT||0,0.7); burstAt(hx,hy,0x7a3fb0,8); burstAt(tgt.x,tgt.y,0x7a3fb0,12); ringBurst(tgt.x,tgt.y,0x8a5cff,8); } else if(o.chain){spawnShadowChain(u,tgt);} else if(u.range>60)spawnShot(u,tgt,u.t.color); break;}
     case 'shadeburst':{ const R=o.radius||25*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ if(o.mul)dealDamage(u,e,dB*o.mul,'#c9a6ff'); const _sd=apB*(o.dps||0.3); plagueDot(e,_sd,o.dur||6,1,'#8a5cff'); e._darkAuraT=o.dur||6; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0;
-        if(u.pass&&u.pass.contagion){ e._contagion=true; e._plagueDps=_sd; } } }); for(let i=0;i<3;i++)ringBurst(u.x,u.y,0x7a3fb0,20); rainDown(u.x,u.y,R,22,0x9a6fff); burstAt(u.x,u.y,0x4a2a6a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.14); break; }
+        if(u.pass&&u.pass.contagion){ e._contagion=true; e._plagueDps=_sd; }
+        if(o.gfx&&e.sprH){ const th=e.sprH; window._fxTgtH=th; window._fxAtH=0.05+th*0.84; const _pa=(typeof _fxAllow!=='undefined'); if(_pa)_fxAllow=true; try{ spawnGroundFx(o.gfx,e.x,e.y,(o.artR||2*METER),o.gdur||1.6); }catch(_){} finally{ if(_pa)_fxAllow=false; window._fxTgtH=null; window._fxAtH=null; } }   /* v483 Phil: Shadeburst bursts over the FACE of every enemy it touches, face-sized; the 25 m reach is unchanged */
+      } }); for(let i=0;i<3;i++)ringBurst(u.x,u.y,0x7a3fb0,20); rainDown(u.x,u.y,R,22,0x9a6fff); burstAt(u.x,u.y,0x4a2a6a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.14); break; }
     case 'umbralcata':{ const R=o.radius||6.8*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
       // He GATHERS a large void orb (the cast clip). At the release frame the orb leaves his hand, flies to the
       // aimed point, and on IMPACT tears open the lingering void zone (initial slam + shadow damage each second).
@@ -4210,12 +4212,12 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
         e.mortalT=Math.max(e.mortalT||0,md); pushDot(e,bd,bdur,1,'#c0392b'); });
       u._lifestealPct=Math.max(u._lifestealPct||0,o.steal||0.35); u._lifestealT=o.buffDur||3;
       pushHot(u,u.maxHp*(o.regen||0.03),o.buffDur||3,1);
-      floatTexts.push({x:u.x,y:u.y-14,txt:'FINAL EXPEDITION',t:1.2,color:'#d9b26a',vy:1,sz:14});
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'FINAL EXPEDITION',t:1.2,color:'#d9b26a',vy:1,sz:14});
       ringBurst(u.x,u.y,0xd9b26a,18); break; }
     case 'riftpuncture':{ const fz=o.freeze||1, si=o.silence||1;
       enemiesOf(u).forEach(e=>{ if(!e.alive)return; e.stunned=Math.max(e.stunned||0,fz);
         e.silencedT=Math.max(e.silencedT||0,fz+si); burstAt(e.x,e.y,0xc9a227,12); });
-      floatTexts.push({x:u.x,y:u.y-14,txt:'PUNCTURE',t:1.2,color:'#c9a227',vy:1,sz:15});
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PUNCTURE',t:1.2,color:'#c9a227',vy:1,sz:15});
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xc9a227,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'triplecleave':{ const hits=o.hits||3, R=o.radius||3*METER, mul=o.mul||1.2;
       const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI));
@@ -4226,7 +4228,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
         if(Math.abs(a)<=half){ for(let h=0;h<hits;h++) dealDamage(u,e,dB*mul*rm,'#c9a6ff');
           pushDot(e,u.dmg*0.12*sm,3,1,'#c0392b'); } });
       for(let h=0;h<hits;h++) setTimeout(()=>ringBurst(u.x+Math.cos(dir)*R*.4,u.y+Math.sin(dir)*R*.4,0x7a3fa0,10), h*160);
-      floatTexts.push({x:u.x,y:u.y-12,txt:'RAZOR TEMPEST',t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'RAZOR TEMPEST',t:1.1,color:'#c9a6ff',vy:1,sz:14}); break; }
     case 'mendburst':{ const l=lowestAlly(u); if(!l)break;
       healUnit(l,l.maxHp*(o.mul||0.45)*sm); pushHot(l,l.maxHp*(o.hot||0.06)*sm,o.dur||6,1);
       burstAt(l.x,l.y,0xffe08a,16); ringBurst(l.x,l.y,0x8a5fd0,12);
@@ -4371,7 +4373,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       u._devourT=o.dur||8; u._devourBonus=pw*(o.dmgPct||0.9);
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<(o.radius||3*METER)) dealDamage(u,e,dB*(o.mul||1.2)*rm,'#b03a3a'); });
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xb03a3a,20); burstAt(u.x,u.y,0x6b1a1a,24);
-      floatTexts.push({x:u.x,y:u.y-16,txt:'FEED THEM',t:1.4,color:'#ff6a6a',vy:1,sz:15});
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-16,txt:'FEED THEM',t:1.4,color:'#ff6a6a',vy:1,sz:15});
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'selfheal':{healUnit(u,u.maxHp*(o.mul||0.25)*sm);burstAt(u.x,u.y,0x5ee89b,14);break;}   // Ooznik: Divide — regenerate own HP
     case 'hot':{const l=lowestAlly(u); if(l){pushHot(l,l.maxHp*(o.hps||.05)*sm,o.dur||6,1); if(u.key==='oakmir')spawnGroundFx('mendbloom',l.x,l.y,0.9*METER,1.4);} break;}
@@ -4400,7 +4402,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
-    case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
+    case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'firstspring':{ /* v369 (Phil): click-to-heal — the spring rises under the ally you aimed at (auto: the most-hurt ally) and heals every ally within 20 m of it */
       const R=o.radius||20*METER; let c=aimCtr; if(!c){ let w=null,ws=2; alliesOf(u).forEach(a=>{ const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} }); c=w?{x:w.x,y:w.y}:{x:u.x,y:u.y}; }
       spawnGroundFx('firstspring',c.x,c.y,3.2*METER,2.2); alliesOf(u).forEach(a=>{ if(Math.hypot(a.x-c.x,a.y-c.y)>R) return; healUnit(a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(c.x,c.y,0x5ee89b,24); burstAt(c.x,c.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
@@ -4462,7 +4464,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       dealDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap) tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y;
       spawnGroundFx('blizzard',ctr.x,ctr.y,o.radius||8*METER,(o.dur||4)+0.4);   // the storm itself — plate lives for the whole channel
- u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
+ u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
     case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a','magic'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healUnit(a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
@@ -4482,7 +4484,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); break; }
     case 'plaguesov':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
-      ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
+      ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Vireo (bard support) — heals/shields scale off ability power ----
     case 'crescendo':{
       u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
@@ -4494,7 +4496,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
     case 'symphony':{ const R=o.radius||8*METER, pp=!!(u.pass&&u.pass.perfectpitch);
       alliesOf(u).forEach(a=>{ if(dist(u,a)<R){ const h=a.maxHp*(o.healMul||0.35)+apB*2; healUnit(a,h); if(pp){ a.shield=Math.max(a.shield,h*0.4); a.shieldT=6; } } });
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.dmgMul||1.4)*rm,'#d0a6ff','magic'); });
-      floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
+      if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     // ---- Fritz (lightning assassin) — lightning scales off ability power ----
     case 'stormsurge':{ let foes=enemiesOf(u); if(!foes.length)break; const n=Math.min(o.n||5, foes.length);
       for(let i=0;i<n && foes.length;i++){ const k=Math.floor(brnd()*foes.length); const e=foes.splice(k,1)[0]; dealDamage(u,e,apB*(o.mul||0.85)*rm,'#f2e07a','magic'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); }
@@ -4503,7 +4505,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev)spawnShot(prev,cur,'#bfe6ff'); prev=cur; dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<4*METER){nd=d;nxt=e;} } }); cur=nxt; }
       break; }
-    case 'thundershower':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'thundershower':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
   }
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
 }
@@ -4669,13 +4671,13 @@ const FX2_DEF={
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.2,upright:true,upSize:2.0,upExtent:0.8,upAnchor:[0.5,0.40],ro:1},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
-  vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
   vesper_blue:{u:'/assets/anim/fx/vesper_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   vesper_green:{u:'/assets/anim/fx/vesper_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.537,dh:0.415,dw:0.885}},
   dawnbringer_green:{u:'/assets/anim/fx/dawnbringer_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   lumi_green:{u:'/assets/anim/fx/lumi_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
-  lumi_blue:{u:'/assets/anim/fx/lumi_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  lumi_blue:{u:'/assets/anim/fx/lumi_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   lysara_blue:{u:'/assets/anim/fx/lysara_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   meryln_blue:{u:'/assets/anim/fx/meryln_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
@@ -4691,7 +4693,7 @@ const FX2_DEF={
   tallow_green:{u:'/assets/anim/fx/tallow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   tick_blue:{u:'/assets/anim/fx/tick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   umbris_blue:{u:'/assets/anim/fx/umbris_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
-  umbris_green:{u:'/assets/anim/fx/umbris_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.496,dh:0.258,dw:0.932}},
+  umbris_green:{u:'/assets/anim/fx/umbris_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.496,dh:0.258,dw:0.932},upright:true,upSize:0.34,upExtent:1.0,upPalm:0.5,ro:1},
   vaelora_green:{u:'/assets/anim/fx/vaelora_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   vaelora_blue:{u:'/assets/anim/fx/vaelora_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   velvetplum_blue:{u:'/assets/anim/fx/velvetplum_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
@@ -4742,20 +4744,20 @@ const FX2_DEF={
   pyroclast_blue:{u:'/assets/anim/fx/pyroclast_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.501,dh:0.305,dw:0.875}},
   pyroclast_green:{u:'/assets/anim/fx/pyroclast_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.44,dh:0.253,dw:0.682}},
   rhukk_blue:{u:'/assets/anim/fx/rhukk_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.575,dh:0.18,dw:0.85}},
-  rhukk_green:{u:'/assets/anim/fx/rhukk_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  rhukk_green:{u:'/assets/anim/fx/rhukk_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   sablewick_blue:{u:'/assets/anim/fx/sablewick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAbove:true,upSize:0.7,upExtent:1.0,ro:1},
-  sablewick_green:{u:'/assets/anim/fx/sablewick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  sablewick_green:{u:'/assets/anim/fx/sablewick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   sprocket_blue:{u:'/assets/anim/fx/sprocket_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   sprocket_green:{u:'/assets/anim/fx/sprocket_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:0.9,upExtent:0.7,upAnchor:[0.04,0.3],upFlip:true,ro:2},
-  stormwarden_blue:{u:'/assets/anim/fx/stormwarden_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  stormwarden_blue:{u:'/assets/anim/fx/stormwarden_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   stormwarden_green:{u:'/assets/anim/fx/stormwarden_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   sylthaine_green:{u:'/assets/anim/fx/sylthaine_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.495,dh:0.475,dw:0.958}},
   threadseer_blue:{u:'/assets/anim/fx/threadseer_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   threadseer_green:{u:'/assets/anim/fx/threadseer_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
-  tick_green:{u:'/assets/anim/fx/tick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  tick_green:{u:'/assets/anim/fx/tick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   aureth_blue:{u:'/assets/anim/fx/aureth_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAbove:true,upSize:0.7,upExtent:1.0,ro:1},
   aureth_green:{u:'/assets/anim/fx/aureth_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.491,dh:0.41,dw:0.905}},
-  beekeeper_blue:{u:'/assets/anim/fx/beekeeper_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  beekeeper_blue:{u:'/assets/anim/fx/beekeeper_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   beekeeper_green:{u:'/assets/anim/fx/beekeeper_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.435,dh:0.19,dw:0.8}},
   bloatus_blue:{u:'/assets/anim/fx/bloatus_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.487,dh:0.26,dw:0.935}},
   bloatus_green:{u:'/assets/anim/fx/bloatus_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
@@ -4776,7 +4778,7 @@ const FX2_DEF={
   deepcleft_green:{u:'/assets/anim/fx/deepcleft_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   arrears_green:{u:'/assets/anim/fx/arrears_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAbove:true,upSize:0.7,upExtent:1.0,ro:1},
   astra_blue:{u:'/assets/anim/fx/astra_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.515,dh:0.41,dw:0.9}},
-  astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
 
   vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=5',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.0,front:'vulmar_blue_front',upright:true,upSize:1.2,upExtent:0.87,upPalm:0.27,hold:true},
   vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=3',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4},
@@ -13894,7 +13896,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788717860928';
+const BUILD_ID = '1788722649434';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
