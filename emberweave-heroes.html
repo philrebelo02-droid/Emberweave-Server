@@ -1630,7 +1630,7 @@ const BATTLE_ANIM = {
   fists:{u:'/assets/anim/grosk/grosk_fists.webp?v=7',n:18,fw:300,fh:292,cols:6,rows:3,figH:185,feet:276,cx:217,fps:12,flip:false, hold:1.5,top:2},      // BLUE Hammer Fists - 18/12 = 1.5s
   passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true,top:2},  // PASSIVE The Mirewall (shield raised and held)
 },
-  fritz:{ idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=3',n:24,fw:343,fh:423,cols:5,rows:5,figH:305,feet:378,cx:165,fps:8,flip:false,top:28}, walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=3',n:24,fw:605,fh:454,cols:5,rows:5,figH:305,feet:394,cx:371,fps:8,flip:false,top:12}, attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=4',n:30,fw:695,fh:459,cols:6,rows:5,figH:304,feet:395,cx:167,fps:20,flip:false,hold:1.5,top:0}, hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=3',n:30,fw:481,fh:438,cols:6,rows:5,figH:305,feet:415,cx:265,fps:14,flip:false,top:34}, ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=3',n:27,fw:793,fh:820,cols:6,rows:5,figH:304,feet:682,cx:384,fps:9,flip:false,top:36}, chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=3',n:27,fw:614,fh:394,cols:6,rows:5,figH:304,feet:371,cx:161,fps:14,flip:false,top:9}, surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=3',n:27,fw:679,fh:614,cols:6,rows:5,figH:304,feet:590,cx:237,fps:14,flip:false,top:21} },
+  fritz:{ idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=10',n:24,fw:362,fh:471,cols:6,rows:4,figH:400,feet:443,cx:182,fps:8,flip:false,top:43,ax:[0,-28,-9,74,57,20,-14,54,11,4,-5,-35,87,76,62,27,-6,70,43,9,4,-15,-39,-12]}, walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=10',n:24,fw:628,fh:576,cols:6,rows:4,figH:400,feet:465,cx:389,fps:8,flip:false,top:65,ax:[0,-181,216,131,-72,-164,184,87,-59,-151,213,148,-73,230,177,95,-47,195,205,128,-77,-160,171,68]}, attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=10',n:30,fw:774,fh:667,cols:6,rows:5,figH:400,feet:534,cx:276,fps:20,flip:false,top:134,hold:1.5,ax:[0,-49,-78,-102,-64,103,87,41,-17,-44,-59,-92,-117,-127,125,100,43,30,-24,-91,-113,22,51,-63,-101,-204,-232,-241,-239,-231]}, hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=10',n:30,fw:516,fh:465,cols:6,rows:5,figH:400,feet:451,cx:303,fps:14,flip:false,top:51,ax:[0,-44,-80,131,138,143,145,126,37,148,144,138,134,87,133,156,166,164,160,161,163,166,165,164,124,53,50,52,51,51]}, ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=10',n:27,fw:352,fh:834,cols:6,rows:5,figH:400,feet:790,cx:193,fps:9,flip:false,top:390}, chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=10',n:27,fw:716,fh:469,cols:6,rows:5,figH:400,feet:464,cx:219,fps:14,flip:false,top:64,ax:[0,-20,-45,-61,-97,114,118,118,111,118,118,118,118,118,118,118,118,118,118,118,118,118,114,118,118,118,118]}, surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=10',n:27,fw:663,fh:771,cols:6,rows:5,figH:400,feet:661,cx:165,fps:14,flip:false,top:261,ax:[0,-52,-153,-153,-153,-153,-153,-53,386,-153,-153,-154,-153,-133,383,-153,-152,-152,-154,389,-153,-153,-154,-153,1,-152,-152]} },
   aureth:{
     idle:{u:'/assets/anim/aureth/aureth_idle.webp?v=3',n:48,fw:334,fh:400,cols:6,rows:8,figH:389,feet:394.0,cx:158.5,fps:24,flip:false,top:6,pingpong:true},
     walk:{u:'/assets/anim/aureth/aureth_walk.webp?v=3',n:48,fw:328,fh:400,cols:6,rows:8,figH:380,feet:393.0,cx:161.0,fps:24,flip:false,top:14},
@@ -1995,7 +1995,14 @@ function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CEL
    sheet is 695x459 because the lightning spreads sideways, and he came out 66 px tall against Lumi's 147 in a
    298x500 cell. Spend the budget on the FIGURE instead (figFrac = figH/fh), with a ceiling on the cell so a very
    wide sheet still can't run away. Measured over all 509 clips: worst 56 -> 120 px, median 128 -> 140. */
-const CELL_FIG_CAP=140, CELL_HARD_CAP=380;
+/* v496 (Phil: "all males 400 and all females 500"): the budget is now the STANDARD, not a compromise.
+   Heroes whose sheet holds less than this simply stay at their native size -- k is clamped to 1, nothing is
+   ever upscaled -- so raising the cap costs nothing until a hero is actually re-sliced at 400/500. */
+const CELL_FIG_CAP=400, CELL_HARD_CAP=900;
+/* Phil's standard, confirmed 4 Sep ("if they have breasts they are women"): 21 women at 500 px of figure,
+   everyone else at 400. Source of truth is the FEMALE PROTOCOL doc; when unsure, ASK -- do not guess. */
+const FIG_WOMEN=new Set(['astra','vesper','calypsa','cacklefang','meryln','lumi','lysara','nerisse','pyroclast','silkcoil','sylthaine','sablewick','threadseer','vaelora','velvetplum','verdantshade','vex','vireo','voidweaver','waxenduchess','zahri']);
+function figCapFor(u){ try{ const k=(u||'').split('/assets/anim/')[1]; return (k&&FIG_WOMEN.has(k.split('/')[0]))?500:CELL_FIG_CAP; }catch(e){ return CELL_FIG_CAP; } }
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -2035,7 +2042,7 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
   /* v494: THIS is the loader that actually runs. capSheet() got the figure-fraction budget in an earlier pass and
      nothing changed on screen, because capSheet is only the FALLBACK path -- createImageBitmap resizes here, and
      here the cap was still by longest side. Same rule as capSheet now: spend the budget on the figure. */
-  const _figK=(fw&&fh&&figFrac>0&&CAP<=CELL_CAP)?Math.min(1,(CELL_FIG_CAP/figFrac)/fh, CELL_HARD_CAP/Math.max(fw,fh)):0;
+  const _figK=(fw&&fh&&figFrac>0&&CAP<=CELL_CAP)?Math.min(1,(figCapFor(url)/figFrac)/fh, CELL_HARD_CAP/Math.max(fw,fh)):0;
   /* three r128 does NOT apply texture.flipY to an ImageBitmap, so the bitmap has to be created
      already flipped (imageOrientation:'flipY') and the texture told not to flip again — otherwise
      every sprite renders upside down. */
@@ -14139,7 +14146,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788735796462';
+const BUILD_ID = '1788736731384';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
