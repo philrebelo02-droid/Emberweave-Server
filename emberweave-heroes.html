@@ -4565,7 +4565,7 @@ function spawnShadowChain(u,t){ if(!TH||!scene||!t)return; const d=Math.max(1,di
   const hx=u.x+(t.x-u.x)/d*22, hy=u.y+(t.y-u.y)/d*22;   // launch from his extended hand
   const N=10, links=[];
   for(let i=0;i<N;i++){ const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color:0x7a3fb0,emissive:0x8a5cff,emissiveIntensity:1.15,transparent:true,opacity:0,depthWrite:false}));
-    m.scale.setScalar(1.7-0.06*i); scene.add(m); links.push(m); }
+    m.material.depthTest=false; m.renderOrder=-2; m.scale.setScalar(1.7-0.06*i); scene.add(m); links.push(m); }   // v448: spell, behind units
   chains.push({sx:hx,sy:hy,tx:t.x,ty:t.y,target:t,t:0,dur:0.42*HERO_FX_MUL,links});
   burstAt(hx,hy,0x7a3fb0,5); }
 function updateChains(dt){ for(let i=chains.length-1;i>=0;i--){ const c=chains[i]; c.t+=dt; const k=Math.min(1,c.t/c.dur), N=c.links.length;
@@ -4587,7 +4587,7 @@ function spawnVoidZone(u,cx,cy,R,dur,pd,con){
   // the real animated Void Zone plate laid on the ground, sized to the zone radius, looping for its lifetime
   if(TH&&scene){ z.gfx=spawnGroundFx('voidzone',cx,cy,R,dur);
     if(!z.gfx){ const R3=R*SC;   // fallback: procedural disc if the plate can't load
-      const mk=(geo,color,op)=>{ const m=new TH.Mesh(geo,new TH.MeshBasicMaterial({color,transparent:true,opacity:0,side:TH.DoubleSide,depthWrite:false})); m.rotation.x=-Math.PI/2; scene.add(m); m._baseOp=op; return m; };
+      const mk=(geo,color,op)=>{ const m=new TH.Mesh(geo,new TH.MeshBasicMaterial({color,transparent:true,opacity:0,side:TH.DoubleSide,depthWrite:false,depthTest:false})); m.renderOrder=-6; m.rotation.x=-Math.PI/2; scene.add(m); m._baseOp=op; return m; };
       z.disc=mk(new TH.CircleGeometry(R3,44),0x1a0b2e,0.6); z.disc.position.set(wx(cx),0.12,wz(cy));
       z.ring=mk(new TH.RingGeometry(R3*0.85,R3,52),0x8a5cff,0.85); z.ring.position.set(wx(cx),0.15,wz(cy));
       z.ring2=mk(new TH.RingGeometry(R3*0.28,R3*0.5,36,1,0,Math.PI*1.35),0x7a3fb0,0.7); z.ring2.position.set(wx(cx),0.18,wz(cy));
@@ -4606,7 +4606,7 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
   if(z.life<=0){ [z.disc,z.ring,z.ring2].forEach(m=>{ if(m){ scene.remove(m); if(m.geometry)m.geometry.dispose(); m.material.dispose(); } }); voidZones.splice(i,1); } } }
 // ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
 const FX2_DEF={
-  voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0},
+  voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0, disc:{cy:0.50,dh:0.90,dw:0.95}},
   shadowball:{u:'/assets/anim/fx/shadowball.webp?v=3',n:18, fw:200, fh:200, cols:8, rows:3, dur:2.0},
   fireball:  {u:'/assets/anim/fx/fireball.webp?v=3',  n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
   frostball: {u:'/assets/anim/fx/frostball.webp?v=3', n:14, fw:200, fh:200, cols:8, rows:2, dur:1.56},
@@ -4618,13 +4618,13 @@ const FX2_DEF={
   bleed:     {u:'/assets/anim/fx/bleed.webp?v=3',     n:16, fw:130, fh:210, cols:4, rows:4, dur:2.2},
   poison:    {u:'/assets/anim/fx/poison.webp?v=3',    n:18, fw:152, fh:210, cols:6, rows:3, dur:2.2},
   firepatch: {u:'/assets/anim/fx/firepatch.webp?v=3', n:20, fw:210, fh:200, cols:5, rows:4, dur:2.5},
-  blizzard:  {u:'/assets/anim/fx/blizzard.webp?v=4',  n:18, fw:207, fh:210, cols:6, rows:3, dur:2.5},
+  blizzard:  {u:'/assets/anim/fx/blizzard.webp?v=4',  n:18, fw:207, fh:210, cols:6, rows:3, dur:2.5, disc:{cy:0.74,dh:0.40,dw:0.87}},   // v448: painted disc = spell radius, centred on the aim
   frostnova: {u:'/assets/anim/fx/frostnova.webp?v=5', n:14, fw:420, fh:308, cols:6, rows:3, dur:1.3},
   groundslam:{u:'/assets/anim/fx/groundslam.webp?v=5',n:18, fw:420, fh:298, cols:6, rows:3, dur:1.6},
   tsunami:   {u:'/assets/anim/fx/tsunami.webp?v=3',   n:26, fw:210, fh:189, cols:6, rows:5, dur:3.0},
   tidalwave: {u:'/assets/anim/fx/tidalwave.webp?v=6', n:24, fw:420, fh:179, cols:6, rows:4, dur:2.0},
-  firstspring:{u:'/assets/anim/fx/firstspring.webp?v=4',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
-  rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=3',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6},
+  firstspring:{u:'/assets/anim/fx/firstspring.webp?v=4',n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4, disc:{cy:0.56,dh:0.42,dw:0.85}},
+  rallyroots:{u:'/assets/anim/fx/rallyroots.webp?v=3',  n:18, fw:200, fh:200, cols:6, rows:3, dur:1.6, disc:{cy:0.60,dh:0.26,dw:0.46}},
   mendbloom:{u:'/assets/anim/fx/mendbloom.webp?v=5',    n:18, fw:300, fh:294, cols:6, rows:3, dur:2.2},
   cleave:    {u:'/assets/anim/fx/cleave.webp?v=3',    n:16, fw:230, fh:206, cols:6, rows:3, dur:2.0},
   frozenorb: {u:'/assets/anim/fx/frozenorb.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.0},
@@ -4675,14 +4675,21 @@ const _FX2_PLANE=(typeof TH!=='undefined'&&TH)?new TH.PlaneGeometry(1,1):null;  
 const _groundFx=[];
 function spawnGroundFx(key,cx,cy,radius,life){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
   const tex=base;
-  const R3=radius*SC, w=R3*2*1.12*FX_SIZE, h=w*(d.fh/d.fw);   // v367: FX_SIZE is visual only
+  const R3=radius*SC; let w=R3*2*1.12*FX_SIZE, h=w*(d.fh/d.fw), zoff=0;   // v367: FX_SIZE is visual only
+  /* v448 (Phil: "when I place a spell it doesn't land where I want" / "the radius circle should be the same shape as the
+     circle in the animation"). These plates are painted with perspective baked in: the disc sits in the LOWER part of the
+     frame with mist/crystals above it. Laid flat with the texture bottom on the near side, the disc landed closer to the
+     camera than the aim point and came out flatter than the true ground circle. With `disc` we stretch the plane so the
+     painted disc is exactly a 2R ground circle (it then projects like the aim ring) and slide the plane so that disc,
+     not the frame, is centred on the aim. */
+  if(d.disc){ w=R3*2*FX_SIZE/d.disc.dw; h=R3*2*FX_SIZE/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
   m.scale.set(w,h,1);                                    // shared 1x1 quad, scaled — no per-cast geometry
   fx2Hook(m); fx2SetFrame(m,d,0);
   // v447 (Phil, Blizzard screenshots: "spell effects are always behind characters"): this ground plate was renderOrder 5 with
   // depth testing ON, so it painted AFTER the unit sprites (renderOrder 0) and its near half occluded their bodies.
   // Now: drawn before every unit, no depth test — a ground spell can never sit over a hero.
-  m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)); m.renderOrder=-6; scene.add(m);
+  m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)+zoff); m.renderOrder=-6; scene.add(m);
   const o={m,d,tex,t:0,life}; _groundFx.push(o); return o; }
 function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
   fx2SetFrame(o.m,o.d,Math.floor((o.t/o.d.dur)*o.d.n));                            // loop the cycle
@@ -6058,9 +6065,9 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     octx.fillStyle='#ffd45e';octx.font='bold 13px sans-serif';octx.textAlign='center';octx.fillText('🎯 '+aiming.t.abilityName,ap.x,ap.y-24); }
   updatePortraits();
 }
-function burstAt(x,y,color,n){if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true}));m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
+function burstAt(x,y,color,n){if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true,depthTest:false}));m.renderOrder=-2;m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
 /* ---- ability visual FX (world-space particle helpers) ---- */
-function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true})); m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
+function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true,depthTest:false})); m.renderOrder=-2; m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
 // fire (or any colour) falling from the sky over an area — "reign of fire" style
 function fireRain(cx,cy,radius,n){ radius=(radius||90)*FX_SIZE; n=Math.min(n||18,26); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*radius; const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5.5+Math.random()*3.5,wz(py),(Math.random()-.5)*.4,-6-Math.random()*3,(Math.random()-.5)*.4, Math.random()<.5?0xff6a2a:0xffb52a, 1.0+Math.random()*.5, .5+Math.random()*.45); } }
 // generic projectiles falling on a spot (arrow tempest / holy light)
@@ -13642,7 +13649,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788667887810';
+const BUILD_ID = '1788668313807';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
