@@ -2239,7 +2239,7 @@ const METER=28.2;   // field-units per in-game metre (tripled from 9.4 so 13 m /
 const KITS={
   konwu:{green:{name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:3*METER,angle:45,cd:6,gfx:'konwu_green'},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10,gfx:'konwu_blue',gfxR:3*METER},purple:{name:'Adamant Discipline',pass:'warden'}},
   grosk:{green:{name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green'},blue:{name:'Hammer Fists',type:'punchflurry',hits:4,mul:0.26,tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',gfxR:3*METER},purple:{name:'The Mirewall',pass:'mirewall'}},
-  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER,gdur:3.6},purple:{name:'Unstepped',pass:'unstepped'}},
+  vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER},purple:{name:'Unstepped',pass:'unstepped'}},
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,cd:8,gfx:'tick_green',gfxR:3*METER},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,radius:2.6*METER,cd:8,gfx:'sylthaine_green'},blue:{name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green'},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER},purple:{name:'Twin Fonts',pass:'twinfonts'}},
@@ -4406,19 +4406,19 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1, apB=(u.
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
       enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
-      ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18); if(!(o&&o.gfx)&&typeof spawnFxPlate==='function')spawnFxPlate('ultland',ctr.x,ctr.y);   /* v457: heroes with their own ult plate skip the legacy rune disc */ if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
+      ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
       const proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; const others=foes.filter(e=>e!==proj);
       const anvil=others.length?others.slice().sort((a,b)=>dist(proj,a)-dist(proj,b))[0]:null;
       dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); proj.stunned=Math.max(proj.stunned||0,0.6);
-      if(anvil){ if(!proj.immovable){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); anvil.stunned=Math.max(anvil.stunned||0,0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); if(!(o&&o.gfx)&&typeof spawnFxPlate==='function')spawnFxPlate('slingfx',anvil.x,anvil.y); }
+      if(anvil){ if(!proj.immovable){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); anvil.stunned=Math.max(anvil.stunned||0,0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
       burstAt(proj.x,proj.y,0x8B5CF6,14); break; }
     case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       const tg2=o.nearest?foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]:foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const dur=o.dur||3, stopD=(o.stop||10)*METER;
       if(!tg2.immovable){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(22,(dist(u,tg2)-stopD)/dur); tg2._pullGhost=true; } // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
       if(o.silence)tg2.silencedT=Math.max(tg2.silencedT||0,dur); tg2.stunned=Math.max(tg2.stunned||0,dur);   // rooted for the whole drag so it can't walk back out
-      ringBurst(u.x,u.y,0x8B5CF6,14); if(!(o&&o.gfx)&&typeof spawnFxPlate==='function')spawnFxPlate('graspfx',tg2.x,tg2.y); break; }
+      ringBurst(u.x,u.y,0x8B5CF6,14); break; }
     // ---- Tick (clockwork bruiser) ----
     case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); }); ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     // ---- Sylthaine (frost mage — AP scaling) ----
@@ -4782,8 +4782,8 @@ const FX2_DEF={
   astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.57,dh:0.595,dw:0.86}},
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.672,dh:0.385,dw:0.96}},
 
-  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=4',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,disc:{cy:0.5,dh:1.0,dw:1.0},front:'vulmar_blue_front'},
-  vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=3',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,frontScale:0.8,frontFoot:0.06},
+  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=4',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,front:'vulmar_blue_front'},
+  vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=2',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,frontScale:0.8,frontFoot:0.06},
   vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=2',n:24,fw:240,fh:240,cols:6,rows:4,dur:2.0,disc:{cy:0.709,dh:0.196,dw:0.529}},
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.694,dh:0.24,dw:0.925}},
   voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0, disc:{cy:0.50,dh:0.90,dw:0.95}},
@@ -4996,9 +4996,6 @@ const FX_PLATE_DEF={
   // KonWu's phantom Ruyi. ax/ay pin the sprite on the STRIKE POINT (0.747 down the frame),
   // so the burst lands on the target's feet no matter how the plate is scaled.
   konwu_staff:{u:'/assets/anim/fx/konwu_staff.webp?v=3',n:20,fw:300,fh:300,cols:5,rows:4,dur:0.78,scale:6.4,ax:0.5,ay:0.2533,y:1.15,hit:0.50,fade:0.80},
-  ultland:{u:'/assets/anim/vulmar/vulmar_ultland.webp?v=5',n:28,fw:191,fh:190,dur:1.2,scale:5.3,ay:0.28,y:0.1},   // v450 (Phil: "vulmar still way off"): the rune disc is painted 72% down the frame — anchor THAT on the aim point at ground level, and size it so the disc = the 8 m Weight of the World circle (was anchored 12% up, 1.1 high, 6.0 scale → disc floated a body-height above and behind the ring)
-  slingfx:{u:'/assets/anim/vulmar/vulmar_slingfx.webp?v=5',n:26,fw:200,fh:200,dur:1.1,scale:4.6},
-  graspfx:{u:'/assets/anim/vulmar/vulmar_graspfx.webp?v=5',n:26,fw:200,fh:200,dur:1.1,scale:4.6},
   fritz_chainfx:{u:'/assets/anim/fritz/fritz_chainfx.webp?v=4',n:12,fw:1315,fh:300,dur:1.4,scale:6.5},
   fritz_surgefx:{u:'/assets/anim/fritz/fritz_surgefx.webp?v=4',n:12,fw:575,fh:300,dur:1.4,scale:4.8},
   fritz_showerfx:{u:'/assets/anim/fritz/fritz_showerfx.webp?v=4',n:12,fw:573,fh:300,dur:1.4,scale:5.5},
@@ -5046,7 +5043,7 @@ function think(u,dt){
   if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; } } }
   if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */
       H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,'#9b5cff'); e.silencedT=Math.max(e.silencedT||0,H.sil); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
-      ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20); if(!(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key]&&HERO_ULT_ART[u.key].gfx)&&typeof spawnFxPlate==='function')spawnFxPlate('ultland',H.cx,H.cy);   /* v457: Void Weaver has his own Event Horizon plate */ if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
+      ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       u._horizon=null; } }
   if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null;
     if(vc){ enemiesOf(u).forEach(e=>{ if(e.alive&&e.team!==u.team&&Math.hypot(e.x-vc.cx,e.y-vc.cy)<vc.R){ dealDamage(u,e,vc.dmg,'#c9a6ff'); e._darkAuraT=vc.dur; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
@@ -13840,7 +13837,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788705468015';
+const BUILD_ID = '1788706397031';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
