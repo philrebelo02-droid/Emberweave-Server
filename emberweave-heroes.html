@@ -4097,7 +4097,7 @@ let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while 
      pfx   — a projectile sprite flown caster -> victim;  pscale;  pdur
    Damage, timing and targeting are untouched — this is purely what the player sees. */
 const _SELF_PLATE={aoedot:1, crescendo:1};
-const _SELF_CENTRED={haste:1,defensive:1,warcry:1,taunt:1,lifestealbuff:1,dmgbuff:1,rally:1,nova:1,bloodnova:1,shadeburst:1,sunburst:1,duality:1,tidalsurge:1,pullsilence:1,crescendo:1,aoedot:1,harmonyshield:1,heal:1,spdsteal:1,erratafield:0};
+const _SELF_CENTRED={thundershower:1,haste:1,defensive:1,warcry:1,taunt:1,lifestealbuff:1,dmgbuff:1,rally:1,nova:1,bloodnova:1,shadeburst:1,sunburst:1,duality:1,tidalsurge:1,pullsilence:1,crescendo:1,aoedot:1,harmonyshield:1,heal:1,spdsteal:1,erratafield:0};
 const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};   // these two always drew their plate on the caster
 function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   if(!o||!u||typeof spawnGroundFx!=='function') return;
@@ -4569,7 +4569,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev)spawnShot(prev,cur,'#bfe6ff'); prev=cur; dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<4*METER){nd=d;nxt=e;} } }); cur=nxt; }
       break; }
-    case 'thundershower':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'thundershower':{ const ctr=u;   /* v491 (Phil: Fritz's ult was not to standard): it is a SELF-CENTRED channel - "a storm around the caster ... enemies within 8 m" - but it aimed at the enemy, so the cloud spawned 20 units away from him */ u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
   }
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
 }
@@ -4735,8 +4735,8 @@ const FX2_DEF={
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.2,upright:true,upSize:2.0,upExtent:0.8,upAnchor:[0.5,0.40],ro:1},
   deepcleft_ult:{u:'/assets/anim/fx/deepcleft_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.609,dh:0.183,dw:0.787}},
-  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.447,dh:0.263,dw:0.93},upright:true,upAbove:true,upSize:1.5,upExtent:0.95,ro:1},
-  meryln_ult:{u:'/assets/anim/fx/meryln_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.32,dh:0.244,dw:0.489},upright:true,upAbove:true,upSize:1.2,upExtent:0.9,ro:1},
+  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.447,dh:0.263,dw:0.93},upright:true,upSize:1.9,upExtent:1.0,upAnchor:[0.5,0.0]},
+  meryln_ult:{u:'/assets/anim/fx/meryln_ult.webp?v=12',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.32,dh:0.244,dw:0.489},upright:true,upSize:2.2,upExtent:0.95,upAnchor:[0.5,0.55]},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
@@ -14118,7 +14118,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788730808744';
+const BUILD_ID = '1788732386948';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
