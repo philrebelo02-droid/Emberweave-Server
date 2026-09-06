@@ -4058,12 +4058,15 @@ function abilArt(u,o,tgt,aimCtr,type){
      - self-cast buffs / bursts / drags draw on the CASTER, not on whoever he happens to be attacking;
      - ally-targeted heals/wards draw on the ally they land on;
      - wedge plates (cleaves, cones, breath, fans) start at the caster and point at the target (see d.cone in spawnGroundFx). */
-  if(!aimCtr&&o.gfxAt!=='muzzle'&&o.gfxAt!=='target'){ if(_SELF_CENTRED[type]) c=u; else if(_ALLY_CENTRED[type]){ try{ const l=lowestAlly(u); if(l)c=l; }catch(e){} } }
+  if(!aimCtr&&o.gfxAt!=='muzzle'&&o.gfxAt!=='target'&&o.gfxAt!=='self'){ if(_SELF_CENTRED[type]) c=u; else if(_ALLY_CENTRED[type]){ try{ const l=lowestAlly(u); if(l)c=l; }catch(e){} } }
   window._fxCone=null; if(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ window._fxCone={dx:t.x-u.x,dy:t.y-u.y}; c=u; } }
   let _mz=null; if(o.gfxAt==='muzzle'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }
   if(o.gfxAt==='front'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.h=0.05; _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }   /* v475: 'front' = the cast-origin point but on the ground (upright swings that start at the caster's feet) */
   /* v462 (Phil: "the center of the hand is off"): Grasping Vow yanks the FARTHEST foe but the plate was drawn on the nearest. */
-  if((o.target==='farthest'||type==='charge')&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length) c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0]; }catch(e){} }
+  if((o.target==='farthest'||type==='charge'||type==='piercethrow')&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length) c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0]; }catch(e){} }
+  /* v477 (pass 2 of the placement audit): plates follow the SAME target pick as the effect that owns them */
+  if(type==='gravsling'&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length){ const proj=fs.slice().sort((p,q)=>dist(u,p)-dist(u,q))[0], others=fs.filter(e=>e!==proj); c=others.length?others.slice().sort((p,q)=>dist(proj,p)-dist(proj,q))[0]:proj; } }catch(e){} }   // the orb lands on the ANVIL (the foe the nearest one is slung into)
+  if(type==='blink'&&!o._deferred){ const oo=Object.assign({},o,{_deferred:true}); setTimeout(()=>{ try{ if(!u.alive)return; const R=oo.range||15*METER; const fs=enemiesOf(u).filter(e=>e.alive&&dist(u,e)<=R); const lo=fs.length?fs.slice().sort((p,q)=>p.hp-q.hp)[0]:null; if(lo){ _fxAllow=true; abilArt(u,oo,lo,null,type); } }finally{ _fxAllow=false; } },1000); return; }   // KonWu channels 1 s, then lands behind the lowest-HP foe in range: the flash goes there, then
   /* NEVER size a plate from o.radius alone: a radius is a TARGETING distance and some abilities use a
      sentinel for "everyone" — Ignite All is radius 99999, which drew a fire plate 99999 units wide
      across the whole screen. gfxR is the drawn size; fall back to radius only when it is sane. */
@@ -4072,7 +4075,7 @@ function abilArt(u,o,tgt,aimCtr,type){
      15 m, Ignite All 99999). 23 abilities were drawing a smaller circle than they actually hit. */
   const R = (o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER);   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR */
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
-  if(o.pfx&&o.pdur&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round(o.pdur*1000)); return; }
+  if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
   try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _o=spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6); window._fxTgtH=null; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
@@ -4647,6 +4650,7 @@ const FX2_DEF={
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5},
   aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,upright:true,upAbove:true,upSize:1.1,upExtent:0.9,hold:false,ro:1},
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
+  cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.2,upright:true,upSize:2.0,upExtent:0.8,upAnchor:[0.5,0.40],ro:1},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
@@ -4844,7 +4848,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
      cell the painted hand fills), and the cell point (0.5, d.upPalm from the bottom) - the palm centre - is pinned to the
      unit's body centre. Back layer draws just behind the unit sprites (renderOrder -1); the `front` finger layer draws over
      them (renderOrder 1) with identical geometry so the two halves stay registered. */
-  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*1.02):(0.05+th*0.5));   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
+  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*1.02):(d.upAnchor?0.05:(0.05+th*0.5)));   /* v477 pass 3: an anchored plate (upAnchor) hangs from the unit's FEET line; only palm-anchored (upPalm) plates sit at body centre */   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
     const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
       sp.scale.set(S*dirx,S*(d.fh/d.fw),1); sp.center.set(dirx<0?1-ax:ax,ay); sp.position.set(wx(cx),y,wz(cy)); sp.renderOrder=ro; scene.add(sp); return sp; };
     const sp=mk(tex,d.ro!=null?d.ro:-2); fx2Hook(sp);   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
@@ -8846,7 +8850,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:3.3}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -13828,7 +13832,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788713371480';
+const BUILD_ID = '1788714680032';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
