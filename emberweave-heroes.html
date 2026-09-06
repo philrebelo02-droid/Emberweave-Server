@@ -4776,9 +4776,9 @@ const FX2_DEF={
   astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.57,dh:0.595,dw:0.86}},
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.672,dh:0.385,dw:0.96}},
 
-  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=2',n:24,fw:240,fh:240,cols:6,rows:4,dur:2.0,disc:{cy:0.675,dh:0.469,dw:0.758},front:'vulmar_blue_front'},
-  vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=1',n:24,fw:240,fh:240,cols:6,rows:4,dur:2.0,frontScale:0.8,frontFoot:0.06},
-  vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.5,dh:0.28,dw:0.407}},
+  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=3',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,disc:{cy:0.5,dh:1.0,dw:1.0},front:'vulmar_blue_front'},
+  vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=2',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,frontScale:0.8,frontFoot:0.06},
+  vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=2',n:24,fw:240,fh:240,cols:6,rows:4,dur:2.0,disc:{cy:0.709,dh:0.196,dw:0.529}},
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.694,dh:0.24,dw:0.925}},
   voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0, disc:{cy:0.50,dh:0.90,dw:0.95}},
   shadowball:{u:'/assets/anim/fx/shadowball.webp?v=3',n:18, fw:200, fh:200, cols:8, rows:3, dur:2.0},
@@ -13833,7 +13833,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788704619527';
+const BUILD_ID = '1788705132530';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
