@@ -5474,6 +5474,11 @@ function purgeTransientFx(){
   floatTexts=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
   if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
+  /* v485 (Phil): bees never carry across a wave. Anything still in the air when the wave ends — hive swarm,
+     hornet swarm (and its damage controller), the honey glob — is gone, and the passive's ward bee is dropped
+     so it re-attaches on the next wave with a live ally. */
+  if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} } if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} } }); _bees.length=0; }
+  units.forEach(u=>{ if(u._wardBee){ if(u._wardBee.spr){ try{ scene.remove(u._wardBee.spr); u._wardBee.spr.material.dispose(); }catch(_){} } u._wardBee=null; } });
 }
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
@@ -9011,7 +9016,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   vesper:{fx:'shadowball',scale:1.4}, sablewick:{fx:'shadowball',scale:1.4},
   pyroclast:{fx:'fireball',scale:1.6}, waxenduchess:{fx:'fireball',scale:1.4},
   sylthaine:{fx:'frostball',scale:1.6}, fathom:{fx:'frostball',scale:1.6},
-  oakmir:{fx:'natureball',scale:1.5}, lumi:{fx:'natureball',scale:1.4}, beekeeper:{fx:'bee',scale:1.2,dur:0.26},
+  oakmir:{fx:'natureball',scale:1.5}, lumi:{fx:'natureball',scale:1.4}, beekeeper:{fx:'natureball',scale:1.4},
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
@@ -14000,7 +14005,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788723915056';
+const BUILD_ID = '1788724838437';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
