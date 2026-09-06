@@ -4634,6 +4634,7 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
   if(z.life<=0){ [z.disc,z.ring,z.ring2].forEach(m=>{ if(m){ scene.remove(m); if(m.geometry)m.geometry.dispose(); m.material.dispose(); } }); voidZones.splice(i,1); } } }
 // ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
 const FX2_DEF={
+  astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=10',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.509,dh:0.263,dw:0.655}},
   vael_green:{u:'/assets/anim/fx/vael_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.225,dw:0.62}},
@@ -8833,7 +8834,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -13815,7 +13816,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788711810272';
+const BUILD_ID = '1788712224569';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
