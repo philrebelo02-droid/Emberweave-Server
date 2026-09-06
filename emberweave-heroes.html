@@ -4809,7 +4809,7 @@ const FX_PLATE_DEF={
   // KonWu's phantom Ruyi. ax/ay pin the sprite on the STRIKE POINT (0.747 down the frame),
   // so the burst lands on the target's feet no matter how the plate is scaled.
   konwu_staff:{u:'/assets/anim/fx/konwu_staff.webp?v=3',n:20,fw:300,fh:300,cols:5,rows:4,dur:0.78,scale:6.4,ax:0.5,ay:0.2533,y:1.15,hit:0.50,fade:0.80},
-  ultland:{u:'/assets/anim/vulmar/vulmar_ultland.webp?v=5',n:28,fw:191,fh:190,dur:1.2,scale:6.0},
+  ultland:{u:'/assets/anim/vulmar/vulmar_ultland.webp?v=5',n:28,fw:191,fh:190,dur:1.2,scale:5.3,ay:0.28,y:0.1},   // v450 (Phil: "vulmar still way off"): the rune disc is painted 72% down the frame — anchor THAT on the aim point at ground level, and size it so the disc = the 8 m Weight of the World circle (was anchored 12% up, 1.1 high, 6.0 scale → disc floated a body-height above and behind the ring)
   slingfx:{u:'/assets/anim/vulmar/vulmar_slingfx.webp?v=5',n:26,fw:200,fh:200,dur:1.1,scale:4.6},
   graspfx:{u:'/assets/anim/vulmar/vulmar_graspfx.webp?v=5',n:26,fw:200,fh:200,dur:1.1,scale:4.6},
   fritz_chainfx:{u:'/assets/anim/fritz/fritz_chainfx.webp?v=4',n:12,fw:1315,fh:300,dur:1.4,scale:6.5},
@@ -13652,7 +13652,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788668544639';
+const BUILD_ID = '1788668834694';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
