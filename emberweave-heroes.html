@@ -4555,7 +4555,7 @@ function spawnVoidOrb(u,vc){ if(!TH||!scene)return; const d=Math.max(1,Math.hypo
   // the ACTUAL gathered orb (cropped from his ult clip) detaches from his hand and flies to the void zone —
   // a billboard sprite, so it reads as the real ball, not a plain attack sphere.
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:umbrisOrbTex(),transparent:true,depthWrite:false,depthTest:false,opacity:1}));
-  spr.scale.set(6.2,6.2,1); spr.renderOrder=993; spr.position.set(wx(ox),1.4,wz(oy)); scene.add(spr);
+  spr.scale.set(6.2,6.2,1); spr.renderOrder=-3; spr.position.set(wx(ox),1.4,wz(oy)); scene.add(spr);
   shots.push({mesh:spr,sx:ox,sy:oy,tx:vc.cx,ty:vc.cy,t:0,dur:.22*HERO_FX_MUL,trail:0x8a5cff,orb:true,
     onDone:()=>{ burstAt(vc.cx,vc.cy,0x8a5cff,14); ringBurst(vc.cx,vc.cy,0x7a3fb0,16); }});
   burstAt(ox,oy,0x7a3fb0,7); ringBurst(u.x,u.y,0x4a2a6a,10); }
@@ -4752,7 +4752,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
     const tex=base; const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
     fx2Hook(spr); fx2SetFrame(spr,d,0);
-    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=993; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
+    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0}; }
   const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0;
@@ -4819,7 +4819,7 @@ function spawnFxPlate(key,fx,fy){ if(!TH||!scene)return; const d=FX_PLATE_DEF[ke
   tex.repeat.set(Math.max(1e-6,1/_c-2*_ex), Math.max(1e-6,1/_r-2*_ey)); tex.offset.set(_ex,1-1/_r+_ey);
   if(!base.image){ (base.__waiters=base.__waiters||[]).push(tex); }   // still downloading — collect it
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:1}));
-  spr.center.set(d.ax!=null?d.ax:.5, d.ay!=null?d.ay:.12); spr.renderOrder=992;
+  spr.center.set(d.ax!=null?d.ax:.5, d.ay!=null?d.ay:.12); spr.renderOrder=-5;   // v446 (Phil: "spell effects are always behind characters") — unit sprites are renderOrder 0; FX plates draw BEFORE them, never over a hero
   const asp=d.fw/d.fh; spr.scale.set(d.scale*asp*FX_SIZE,d.scale*FX_SIZE,1);   // v367
   spr.position.set(wx(fx), d.y!=null?d.y:1.1, wz(fy)); scene.add(spr);
   _fxPlates.push({spr,d,t:0,dm:HERO_FX_MUL}); }
@@ -13639,7 +13639,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788667197526';
+const BUILD_ID = '1788667575430';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
