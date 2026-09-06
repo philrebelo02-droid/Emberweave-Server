@@ -4045,13 +4045,21 @@ let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while 
      gfx   — a ground plate (FX2_DEF key);  gfxAt:'self'|'target';  gfxR (radius);  gdur (seconds)
      pfx   — a projectile sprite flown caster -> victim;  pscale;  pdur
    Damage, timing and targeting are untouched — this is purely what the player sees. */
-const _SELF_PLATE={aoedot:1, crescendo:1};   // these two always drew their plate on the caster
+const _SELF_PLATE={aoedot:1, crescendo:1};
+const _SELF_CENTRED={haste:1,defensive:1,warcry:1,taunt:1,lifestealbuff:1,dmgbuff:1,rally:1,nova:1,bloodnova:1,shadeburst:1,sunburst:1,duality:1,tidalsurge:1,pullsilence:1,crescendo:1,aoedot:1,harmonyshield:1,heal:1,spdsteal:1,erratafield:0};
+const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};   // these two always drew their plate on the caster
 function abilArt(u,o,tgt,aimCtr,type){
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
   /* v472 (Phil: "that barrage should originate out of the front of the barrel of his gun"): gfxAt:'muzzle' puts the plate at the
      hero's cast origin (hand / gun barrel, see castOrigin), stood upright and facing the target. */
+  /* v473 placement rules (Phil: "make sure hero spell FX are actually making sense with spawn location"):
+     - self-cast buffs / bursts / drags draw on the CASTER, not on whoever he happens to be attacking;
+     - ally-targeted heals/wards draw on the ally they land on;
+     - wedge plates (cleaves, cones, breath, fans) start at the caster and point at the target (see d.cone in spawnGroundFx). */
+  if(!aimCtr&&o.gfxAt!=='muzzle'&&o.gfxAt!=='target'){ if(_SELF_CENTRED[type]) c=u; else if(_ALLY_CENTRED[type]){ try{ const l=lowestAlly(u); if(l)c=l; }catch(e){} } }
+  window._fxCone=null; if(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ window._fxCone={dx:t.x-u.x,dy:t.y-u.y}; c=u; } }
   let _mz=null; if(o.gfxAt==='muzzle'){ const t=(aimCtr||((tgt&&tgt.alive)?tgt:null)); if(t){ _mz=castOrigin(u,t.x,t.y); _mz.dir=(t.x>=u.x)?1:-1; c=_mz; } }
   /* v462 (Phil: "the center of the hand is off"): Grasping Vow yanks the FARTHEST foe but the plate was drawn on the nearest. */
   if(o.target==='farthest'&&!aimCtr){ try{ const fs=enemiesOf(u).filter(e=>e.alive); if(fs.length) c=fs.slice().sort((p,q)=>dist(u,q)-dist(u,p))[0]; }catch(e){} }
@@ -4062,7 +4070,7 @@ function abilArt(u,o,tgt,aimCtr,type){
      radius whenever the radius is a real circle (≤ 8 m). gfxR only sizes the sentinel/"everyone" abilities (Shade Nova
      15 m, Ignite All 99999). 23 abilities were drawing a smaller circle than they actually hit. */
   const R = (o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER);   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR */
-  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _o=spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6); window._fxTgtH=null; window._fxAtH=null; window._fxDir=1;
+  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _o=spawnGroundFx(o.gfx, c.x, c.y, R, o.gdur||1.6); window._fxTgtH=null; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
@@ -4635,31 +4643,31 @@ const FX2_DEF={
   lumi_green:{u:'/assets/anim/fx/lumi_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.497,dh:0.505,dw:0.725}},
   lumi_blue:{u:'/assets/anim/fx/lumi_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.574,dh:0.41,dw:0.662}},
   lysara_blue:{u:'/assets/anim/fx/lysara_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.581,dh:0.762,dw:0.552}},
-  lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.431,dh:0.198,dw:0.863}},
+  lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   meryln_blue:{u:'/assets/anim/fx/meryln_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.527,dh:0.425,dw:0.66}},
   nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.56,dh:0.395,dw:0.735}},
-  nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.515,dh:0.22,dw:0.98}},
+  nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   orryn_blue:{u:'/assets/anim/fx/orryn_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.55,dh:0.405,dw:0.702}},
   pellucid_blue:{u:'/assets/anim/fx/pellucid_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.535,dh:0.03,dw:0.635}},
-  pellucid_green:{u:'/assets/anim/fx/pellucid_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.537,dh:0.265,dw:0.815}},
+  pellucid_green:{u:'/assets/anim/fx/pellucid_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   silkcoil_blue:{u:'/assets/anim/fx/silkcoil_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.485,dh:0.235,dw:0.47}},
-  silkcoil_green:{u:'/assets/anim/fx/silkcoil_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.403,dh:0.37,dw:0.885}},
+  silkcoil_green:{u:'/assets/anim/fx/silkcoil_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   sylthaine_blue:{u:'/assets/anim/fx/sylthaine_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.535,dh:0.515,dw:0.865}},
   tallow_blue:{u:'/assets/anim/fx/tallow_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.623,dh:0.09,dw:0.675}},
-  tallow_green:{u:'/assets/anim/fx/tallow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.537,dh:0.1,dw:0.915}},
+  tallow_green:{u:'/assets/anim/fx/tallow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   tick_blue:{u:'/assets/anim/fx/tick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.431,dh:0.045,dw:0.34}},
   umbris_blue:{u:'/assets/anim/fx/umbris_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.499,dh:0.253,dw:0.473}},
   umbris_green:{u:'/assets/anim/fx/umbris_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.496,dh:0.258,dw:0.932}},
-  vaelora_green:{u:'/assets/anim/fx/vaelora_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.477,dh:0.285,dw:0.915}},
+  vaelora_green:{u:'/assets/anim/fx/vaelora_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   vaelora_blue:{u:'/assets/anim/fx/vaelora_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.494,dh:0.443,dw:0.48}},
   velvetplum_blue:{u:'/assets/anim/fx/velvetplum_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.49,dh:0.475,dw:0.75}},
-  velvetplum_green:{u:'/assets/anim/fx/velvetplum_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.502,dh:0.455,dw:0.89}},
+  velvetplum_green:{u:'/assets/anim/fx/velvetplum_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   verdantshade_blue:{u:'/assets/anim/fx/verdantshade_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.68,dh:0.26,dw:0.935}},
   verdantshade_green:{u:'/assets/anim/fx/verdantshade_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.579,dh:0.055,dw:0.82}},
   vex_blue:{u:'/assets/anim/fx/vex_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.575,dh:0.06,dw:0.755}},
   vex_green:{u:'/assets/anim/fx/vex_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.674,dh:0.13,dw:0.23}},
   veyr_blue:{u:'/assets/anim/fx/veyr_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.665,dh:0.195,dw:0.76}},
-  veyr_green:{u:'/assets/anim/fx/veyr_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.487,dh:0.245,dw:0.94}},
+  veyr_green:{u:'/assets/anim/fx/veyr_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   vharn_green:{u:'/assets/anim/fx/vharn_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.55,dh:0.12,dw:0.445}},
   voidweaver_blue:{u:'/assets/anim/fx/voidweaver_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.568,dh:0.255,dw:0.89}},
   voidweaver_green:{u:'/assets/anim/fx/voidweaver_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.297,dh:0.055,dw:0.56}},
@@ -4667,24 +4675,24 @@ const FX2_DEF={
   fritz_blue:{u:'/assets/anim/fx/fritz_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.507,dh:0.375,dw:0.43}},
   fritz_green:{u:'/assets/anim/fx/fritz_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.614,dh:0.292,dw:0.515}},
   greatbrow_blue:{u:'/assets/anim/fx/greatbrow_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.465,dh:0.57,dw:0.4}},
-  greatbrow_green:{u:'/assets/anim/fx/greatbrow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.507,dh:0.215,dw:0.825}},
+  greatbrow_green:{u:'/assets/anim/fx/greatbrow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   grosk_blue:{u:'/assets/anim/fx/grosk_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.492,dh:0.31,dw:0.82}},
   grosk_green:{u:'/assets/anim/fx/grosk_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.561,dh:0.35,dw:0.82}},
   hollow_blue:{u:'/assets/anim/fx/hollow_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.518,dh:0.033,dw:0.6}},
-  hollow_green:{u:'/assets/anim/fx/hollow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.713,dh:0.115,dw:0.83}},
+  hollow_green:{u:'/assets/anim/fx/hollow_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   fathom_green:{u:'/assets/anim/fx/fathom_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.535,dh:0.465,dw:0.922}},
   hurne_blue:{u:'/assets/anim/fx/hurne_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.627,dh:0.448,dw:0.61}},
   hurne_green:{u:'/assets/anim/fx/hurne_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.598,dh:0.245,dw:0.78}},
   ironcoil_blue:{u:'/assets/anim/fx/ironcoil_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.577,dh:0.045,dw:0.653}},
-  ironcoil_green:{u:'/assets/anim/fx/ironcoil_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.52,dh:0.12,dw:0.835}},
+  ironcoil_green:{u:'/assets/anim/fx/ironcoil_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   kharos_blue:{u:'/assets/anim/fx/kharos_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.155,dh:0.12,dw:0.22}},
-  kharos_green:{u:'/assets/anim/fx/kharos_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.57,dh:0.1,dw:0.63}},
-  kilnmask_green:{u:'/assets/anim/fx/kilnmask_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.575,dh:0.6,dw:0.97}},
+  kharos_green:{u:'/assets/anim/fx/kharos_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
+  kilnmask_green:{u:'/assets/anim/fx/kilnmask_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   kilnmask_blue:{u:'/assets/anim/fx/kilnmask_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.555,dh:0.587,dw:0.762}},
   konwu_blue:{u:'/assets/anim/fx/konwu_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.505,dh:0.235,dw:0.535}},
-  konwu_green:{u:'/assets/anim/fx/konwu_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.54,dh:0.188,dw:0.925}},
+  konwu_green:{u:'/assets/anim/fx/konwu_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   lastfurnace_blue:{u:'/assets/anim/fx/lastfurnace_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.395,dh:0.287,dw:0.867}},
-  lastfurnace_green:{u:'/assets/anim/fx/lastfurnace_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.542,dh:0.205,dw:0.81}},
+  lastfurnace_green:{u:'/assets/anim/fx/lastfurnace_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   librarian_blue:{u:'/assets/anim/fx/librarian_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.52,dh:0.06,dw:0.72}},
   librarian_green:{u:'/assets/anim/fx/librarian_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.314,dh:0.058,dw:0.275}},
   magistrant_green:{u:'/assets/anim/fx/magistrant_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.515,dh:0.492,dw:0.903}},
@@ -4693,10 +4701,10 @@ const FX2_DEF={
   meridian_green:{u:'/assets/anim/fx/meridian_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.823,dh:0.015,dw:0.305}},
   meryln_green:{u:'/assets/anim/fx/meryln_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.338,dh:0.395,dw:0.51}},
   nox_blue:{u:'/assets/anim/fx/nox_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.439,dh:0.272,dw:0.657}},
-  nox_green:{u:'/assets/anim/fx/nox_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.465,dh:0.2,dw:0.835}},
+  nox_green:{u:'/assets/anim/fx/nox_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   oakmir_blue:{u:'/assets/anim/fx/oakmir_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.468,dh:0.145,dw:0.738}},
   oakmir_green:{u:'/assets/anim/fx/oakmir_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.598,dh:0.35,dw:0.625}},
-  orryn_green:{u:'/assets/anim/fx/orryn_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.476,dh:0.403,dw:0.948}},
+  orryn_green:{u:'/assets/anim/fx/orryn_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   pyroclast_blue:{u:'/assets/anim/fx/pyroclast_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.501,dh:0.305,dw:0.875}},
   pyroclast_green:{u:'/assets/anim/fx/pyroclast_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.44,dh:0.253,dw:0.682}},
   rhukk_blue:{u:'/assets/anim/fx/rhukk_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.575,dh:0.18,dw:0.85}},
@@ -4704,34 +4712,34 @@ const FX2_DEF={
   sablewick_blue:{u:'/assets/anim/fx/sablewick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.549,dh:0.312,dw:0.837}},
   sablewick_green:{u:'/assets/anim/fx/sablewick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.497,dh:0.448,dw:0.587}},
   sprocket_blue:{u:'/assets/anim/fx/sprocket_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.483,dh:0.453,dw:0.797}},
-  sprocket_green:{u:'/assets/anim/fx/sprocket_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.453,dh:0.237,dw:0.83}},
+  sprocket_green:{u:'/assets/anim/fx/sprocket_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   stormwarden_blue:{u:'/assets/anim/fx/stormwarden_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.557,dh:0.425,dw:0.96}},
   stormwarden_green:{u:'/assets/anim/fx/stormwarden_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.555,dh:0.25,dw:0.75}},
   sylthaine_green:{u:'/assets/anim/fx/sylthaine_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.495,dh:0.475,dw:0.958}},
   threadseer_blue:{u:'/assets/anim/fx/threadseer_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.473,dh:0.03,dw:0.57}},
-  threadseer_green:{u:'/assets/anim/fx/threadseer_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.5,dh:0.58,dw:0.96}},
+  threadseer_green:{u:'/assets/anim/fx/threadseer_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   tick_green:{u:'/assets/anim/fx/tick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.502,dh:0.37,dw:0.792}},
   aureth_blue:{u:'/assets/anim/fx/aureth_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.465,dh:0.247,dw:0.545}},
   aureth_green:{u:'/assets/anim/fx/aureth_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.491,dh:0.41,dw:0.905}},
   beekeeper_blue:{u:'/assets/anim/fx/beekeeper_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.39,dh:0.225,dw:0.26}},
   beekeeper_green:{u:'/assets/anim/fx/beekeeper_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.435,dh:0.19,dw:0.8}},
   bloatus_blue:{u:'/assets/anim/fx/bloatus_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.487,dh:0.26,dw:0.935}},
-  bloatus_green:{u:'/assets/anim/fx/bloatus_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.585,dh:0.5,dw:0.85}},
+  bloatus_green:{u:'/assets/anim/fx/bloatus_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   cacklefang_blue:{u:'/assets/anim/fx/cacklefang_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.517,dh:0.295,dw:0.505}},
-  cacklefang_green:{u:'/assets/anim/fx/cacklefang_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.432,dh:0.24,dw:0.755}},
+  cacklefang_green:{u:'/assets/anim/fx/cacklefang_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   calypsa_blue:{u:'/assets/anim/fx/calypsa_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.545,dh:0.115,dw:0.407}},
-  calypsa_green:{u:'/assets/anim/fx/calypsa_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.453,dh:0.545,dw:0.84}},
+  calypsa_green:{u:'/assets/anim/fx/calypsa_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   carn_blue:{u:'/assets/anim/fx/carn_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.537,dh:0.28,dw:0.885}},
   carn_green:{u:'/assets/anim/fx/carn_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.562,dh:0.335,dw:0.57}},
   cathedral_blue:{u:'/assets/anim/fx/cathedral_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.718,dh:0.355,dw:0.53}},
   cathedral_green:{u:'/assets/anim/fx/cathedral_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.583,dh:0.365,dw:0.75}},
   chainwheel_blue:{u:'/assets/anim/fx/chainwheel_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.685,dh:0.245,dw:0.915}},
-  chainwheel_green:{u:'/assets/anim/fx/chainwheel_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.593,dh:0.13,dw:0.77}},
+  chainwheel_green:{u:'/assets/anim/fx/chainwheel_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   corsair_blue:{u:'/assets/anim/fx/corsair_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.484,dh:0.035,dw:0.63}},
   corsair_green:{u:'/assets/anim/fx/corsair_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.655,dh:0.185,dw:0.6},upright:true,upSize:1.0,upExtent:0.7,upAnchor:[0.05,0.28],upFlip:true,ro:2},
   dawnbringer_blue:{u:'/assets/anim/fx/dawnbringer_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.578,dh:0.295,dw:0.925}},
   deepcleft_blue:{u:'/assets/anim/fx/deepcleft_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.605,dh:0.16,dw:0.375}},
-  deepcleft_green:{u:'/assets/anim/fx/deepcleft_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.64,dh:0.23,dw:0.8}},
+  deepcleft_green:{u:'/assets/anim/fx/deepcleft_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   arrears_green:{u:'/assets/anim/fx/arrears_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.458,dh:0.845,dw:0.81}},
   astra_blue:{u:'/assets/anim/fx/astra_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.515,dh:0.41,dw:0.9}},
   astra_green:{u:'/assets/anim/fx/astra_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.57,dh:0.595,dw:0.86}},
@@ -4836,6 +4844,10 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
   // depth testing ON, so it painted AFTER the unit sprites (renderOrder 0) and its near half occluded their bodies.
   // Now: drawn before every unit, no depth test — a ground spell can never sit over a hero.
   m.rotation.x=-Math.PI/2; m.position.set(wx(cx),0.13,wz(cy)+zoff); m.renderOrder=-6; scene.add(m);
+  /* v473: a `cone` plate is painted as a wedge pointing +x (narrow at the left). Lay it with the narrow end on the caster and
+     spin it to face the target: length = the ability's reach (R), not 2R. */
+  if(d.cone&&window._fxCone){ const v=window._fxCone, L=Math.hypot(v.dx,v.dy)||1, ux=v.dx/L, uz=v.dy/L; w=R3*1.15; h=w*(d.fh/d.fw); m.scale.set(w,h,1);
+    const phi=Math.atan2(uz,ux); m.rotation.set(-Math.PI/2,0,-phi);   /* Euler XYZ: spin the texture in its own plane first (Z), then lay it flat (X) -> texture +x lands on the caster->target direction */ m.position.set(wx(cx)+ux*w*0.5*(d.coneFoot!=null?1-2*d.coneFoot:0.9),0.13,wz(cy)+uz*w*0.5*(d.coneFoot!=null?1-2*d.coneFoot:0.9)); }
   const o={m,d,tex,t:0,life,zoff}; _groundFx.push(o);
   /* v460 (Phil: "make the hand spawn behind the player, the fingers that fold over go over the player"): a plate may name a
      FRONT layer - a second sheet holding only the part that should wrap round the target (Grasping Vow's fingers). It is drawn
@@ -13803,7 +13815,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788711572438';
+const BUILD_ID = '1788711810272';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
