@@ -1,6 +1,6 @@
 {
  "meta": {
-  "note": "AUTHORED 100-floor Aether Vault table (v241). The server reads THIS file — waves, boss rules, dust, glyph fragments, and the two TARGETED gear fragments per floor. No runtime monster selection, no random gear roll. | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses).",
+  "note": "AUTHORED 100-floor Aether Vault table (v241). The server reads THIS file \u2014 waves, boss rules, dust, glyph fragments, and the two TARGETED gear fragments per floor. No runtime monster selection, no random gear roll. | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v337: re-cast with the chapter families; one distinct boss every 5 floors (20 bosses). | v478 (Phil, 6 Sep): every floor drops glyph fragments \u2014 1 on a normal floor, 2 on a boss floor (first clears double) \u2014 rotating through every (quality,family) pair of the floor band's quality RANGE (Grey / Green\u2013Green+1 / Blue\u2013Blue+1 / Blue+1\u2013Blue+2 / Purple\u2013Purple+1 / Purple+2\u2013Purple+3 / Gold\u2013Gold+2 / Gold+3\u2013Gold+4 / Orange).",
   "generated": "2026-08-27"
  },
  "floors": [
@@ -70,7 +70,9 @@
    "bossRule": null,
    "recommendedPower": 515,
    "dust": 30,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Stoneheart"
+   ],
    "gearFragments": [
     "Rough Ore Fragment",
     "Rough Vitality Gem"
@@ -149,7 +151,9 @@
    "bossRule": null,
    "recommendedPower": 556,
    "dust": 31,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Ironwall"
+   ],
    "gearFragments": [
     "Rough Guard Rune",
     "Rough Blade Shard"
@@ -228,7 +232,9 @@
    "bossRule": null,
    "recommendedPower": 638,
    "dust": 34,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Veilward"
+   ],
    "gearFragments": [
     "Rough Edge Stone",
     "Rough Wind Thread"
@@ -307,7 +313,9 @@
    "bossRule": null,
    "recommendedPower": 676,
    "dust": 36,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Ravager"
+   ],
    "gearFragments": [
     "Rough Focus Crystal",
     "Rough Mana Dust"
@@ -393,8 +401,8 @@
    "recommendedPower": 1253,
    "dust": 38,
    "glyphFragments": [
-    "Grey Ironwall",
-    "Grey Starfire"
+    "Grey Starfire",
+    "Grey Windstep"
    ],
    "gearFragments": [
     "Rough Ore Fragment",
@@ -474,7 +482,9 @@
    "bossRule": null,
    "recommendedPower": 839,
    "dust": 41,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Hawkeye"
+   ],
    "gearFragments": [
     "Rough Guard Rune",
     "Rough Blade Shard"
@@ -553,7 +563,9 @@
    "bossRule": null,
    "recommendedPower": 874,
    "dust": 43,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Lifebloom"
+   ],
    "gearFragments": [
     "Rough Edge Stone",
     "Rough Wind Thread"
@@ -632,7 +644,9 @@
    "bossRule": null,
    "recommendedPower": 977,
    "dust": 46,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Stoneheart"
+   ],
    "gearFragments": [
     "Rough Focus Crystal",
     "Rough Mana Dust"
@@ -711,7 +725,9 @@
    "bossRule": null,
    "recommendedPower": 1036,
    "dust": 49,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Grey Ironwall"
+   ],
    "gearFragments": [
     "Rough Ore Fragment",
     "Rough Vitality Gem"
@@ -798,7 +814,7 @@
    "dust": 52,
    "glyphFragments": [
     "Grey Veilward",
-    "Grey Windstep"
+    "Grey Ravager"
    ],
    "gearFragments": [
     "Rough Guard Rune",
@@ -878,7 +894,9 @@
    "bossRule": null,
    "recommendedPower": 1277,
    "dust": 56,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Stoneheart"
+   ],
    "gearFragments": [
     "Verdant Ore Fragment",
     "Verdant Vitality Gem"
@@ -957,7 +975,9 @@
    "bossRule": null,
    "recommendedPower": 1283,
    "dust": 59,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Ironwall"
+   ],
    "gearFragments": [
     "Verdant Guard Rune",
     "Verdant Blade Shard"
@@ -1037,7 +1057,9 @@
    "bossRule": null,
    "recommendedPower": 1381,
    "dust": 63,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Veilward"
+   ],
    "gearFragments": [
     "Verdant Edge Stone",
     "Verdant Wind Thread"
@@ -1116,7 +1138,9 @@
    "bossRule": null,
    "recommendedPower": 1482,
    "dust": 68,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Ravager"
+   ],
    "gearFragments": [
     "Verdant Focus Crystal",
     "Verdant Mana Dust"
@@ -1202,8 +1226,8 @@
    "recommendedPower": 2568,
    "dust": 72,
    "glyphFragments": [
-    "Green Ravager",
-    "Green Hawkeye"
+    "Green Starfire",
+    "Green Windstep"
    ],
    "gearFragments": [
     "Verdant Ore Fragment",
@@ -1283,7 +1307,9 @@
    "bossRule": null,
    "recommendedPower": 1730,
    "dust": 77,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Hawkeye"
+   ],
    "gearFragments": [
     "Verdant Guard Rune",
     "Verdant Blade Shard"
@@ -1362,7 +1388,9 @@
    "bossRule": null,
    "recommendedPower": 1724,
    "dust": 82,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Lifebloom"
+   ],
    "gearFragments": [
     "Verdant Edge Stone",
     "Verdant Wind Thread"
@@ -1441,7 +1469,9 @@
    "bossRule": null,
    "recommendedPower": 1812,
    "dust": 87,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Shadepath"
+   ],
    "gearFragments": [
     "Verdant Focus Crystal",
     "Verdant Mana Dust"
@@ -1520,7 +1550,9 @@
    "bossRule": null,
    "recommendedPower": 1934,
    "dust": 93,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Green Sunder"
+   ],
    "gearFragments": [
     "Verdant Ore Fragment",
     "Verdant Vitality Gem"
@@ -1606,8 +1638,8 @@
    "recommendedPower": 5108,
    "dust": 99,
    "glyphFragments": [
-    "Green Starfire",
-    "Green Lifebloom"
+    "Green +1 Stoneheart",
+    "Green +1 Ironwall"
    ],
    "gearFragments": [
     "Verdant Guard Rune",
@@ -1687,7 +1719,9 @@
    "bossRule": null,
    "recommendedPower": 2151,
    "dust": 105,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Stoneheart"
+   ],
    "gearFragments": [
     "Azure Ore Fragment",
     "Azure Vitality Gem"
@@ -1766,7 +1800,9 @@
    "bossRule": null,
    "recommendedPower": 2232,
    "dust": 112,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Ironwall"
+   ],
    "gearFragments": [
     "Azure Guard Rune",
     "Azure Blade Shard"
@@ -1845,7 +1881,9 @@
    "bossRule": null,
    "recommendedPower": 2431,
    "dust": 119,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Veilward"
+   ],
    "gearFragments": [
     "Azure Edge Stone",
     "Azure Wind Thread"
@@ -1924,7 +1962,9 @@
    "bossRule": null,
    "recommendedPower": 2462,
    "dust": 127,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Ravager"
+   ],
    "gearFragments": [
     "Azure Focus Crystal",
     "Azure Mana Dust"
@@ -2010,8 +2050,8 @@
    "recommendedPower": 4195,
    "dust": 135,
    "glyphFragments": [
-    "Blue Windstep",
-    "Blue Bastion"
+    "Blue Starfire",
+    "Blue Windstep"
    ],
    "gearFragments": [
     "Azure Spirit Rune",
@@ -2091,7 +2131,9 @@
    "bossRule": null,
    "recommendedPower": 2740,
    "dust": 144,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Hawkeye"
+   ],
    "gearFragments": [
     "Azure Vitality Gem",
     "Azure Guard Rune"
@@ -2170,7 +2212,9 @@
    "bossRule": null,
    "recommendedPower": 2782,
    "dust": 154,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Lifebloom"
+   ],
    "gearFragments": [
     "Azure Blade Shard",
     "Azure Edge Stone"
@@ -2249,7 +2293,9 @@
    "bossRule": null,
    "recommendedPower": 3054,
    "dust": 164,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Bastion"
+   ],
    "gearFragments": [
     "Azure Wind Thread",
     "Azure Focus Crystal"
@@ -2328,7 +2374,9 @@
    "bossRule": null,
    "recommendedPower": 3006,
    "dust": 174,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue Shadepath"
+   ],
    "gearFragments": [
     "Azure Mana Dust",
     "Azure Spirit Rune"
@@ -2416,8 +2464,8 @@
    "recommendedPower": 8046,
    "dust": 186,
    "glyphFragments": [
-    "Blue Hawkeye",
-    "Blue Shadepath"
+    "Blue Sunder",
+    "Blue Voidbind"
    ],
    "gearFragments": [
     "Azure Ore Fragment",
@@ -2497,7 +2545,9 @@
    "bossRule": null,
    "recommendedPower": 3362,
    "dust": 198,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Stoneheart"
+   ],
    "gearFragments": [
     "Runed Azure Ore Fragment",
     "Runed Azure Vitality Gem"
@@ -2576,7 +2626,9 @@
    "bossRule": null,
    "recommendedPower": 3424,
    "dust": 211,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Ironwall"
+   ],
    "gearFragments": [
     "Runed Azure Guard Rune",
     "Runed Azure Blade Shard"
@@ -2657,7 +2709,9 @@
    "bossRule": null,
    "recommendedPower": 3717,
    "dust": 225,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Veilward"
+   ],
    "gearFragments": [
     "Runed Azure Edge Stone",
     "Runed Azure Wind Thread"
@@ -2738,7 +2792,9 @@
    "bossRule": null,
    "recommendedPower": 3677,
    "dust": 239,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Ravager"
+   ],
    "gearFragments": [
     "Runed Azure Focus Crystal",
     "Runed Azure Mana Dust"
@@ -2826,8 +2882,8 @@
    "recommendedPower": 6265,
    "dust": 255,
    "glyphFragments": [
-    "Blue +2 Lifebloom",
-    "Blue +2 Sunder"
+    "Blue +1 Starfire",
+    "Blue +1 Windstep"
    ],
    "gearFragments": [
     "Runed Azure Spirit Rune",
@@ -2907,7 +2963,9 @@
    "bossRule": null,
    "recommendedPower": 4029,
    "dust": 271,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Hawkeye"
+   ],
    "gearFragments": [
     "Runed Azure Vitality Gem",
     "Runed Azure Guard Rune"
@@ -2988,7 +3046,9 @@
    "bossRule": null,
    "recommendedPower": 4145,
    "dust": 289,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Lifebloom"
+   ],
    "gearFragments": [
     "Runed Azure Blade Shard",
     "Runed Azure Edge Stone"
@@ -3069,7 +3129,9 @@
    "bossRule": null,
    "recommendedPower": 4295,
    "dust": 308,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Bastion"
+   ],
    "gearFragments": [
     "Runed Azure Wind Thread",
     "Runed Azure Focus Crystal"
@@ -3150,7 +3212,9 @@
    "bossRule": null,
    "recommendedPower": 4337,
    "dust": 328,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Blue +1 Shadepath"
+   ],
    "gearFragments": [
     "Runed Azure Mana Dust",
     "Runed Azure Spirit Rune"
@@ -3238,8 +3302,8 @@
    "recommendedPower": 12240,
    "dust": 349,
    "glyphFragments": [
-    "Blue +2 Bastion",
-    "Blue +2 Voidbind"
+    "Blue +1 Sunder",
+    "Blue +1 Voidbind"
    ],
    "gearFragments": [
     "Runed Azure Ore Fragment",
@@ -3319,7 +3383,9 @@
    "bossRule": null,
    "recommendedPower": 4742,
    "dust": 372,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Stoneheart"
+   ],
    "gearFragments": [
     "Amethyst Ore Fragment",
     "Amethyst Vitality Gem"
@@ -3398,7 +3464,9 @@
    "bossRule": null,
    "recommendedPower": 4833,
    "dust": 396,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Ironwall"
+   ],
    "gearFragments": [
     "Amethyst Guard Rune",
     "Amethyst Blade Shard"
@@ -3477,7 +3545,9 @@
    "bossRule": null,
    "recommendedPower": 5005,
    "dust": 422,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Veilward"
+   ],
    "gearFragments": [
     "Amethyst Edge Stone",
     "Amethyst Wind Thread"
@@ -3556,7 +3626,9 @@
    "bossRule": null,
    "recommendedPower": 5157,
    "dust": 449,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Ravager"
+   ],
    "gearFragments": [
     "Amethyst Focus Crystal",
     "Amethyst Mana Dust"
@@ -3642,8 +3714,8 @@
    "recommendedPower": 8703,
    "dust": 479,
    "glyphFragments": [
-    "Purple Bloodroot",
-    "Purple Tidecall"
+    "Purple Starfire",
+    "Purple Windstep"
    ],
    "gearFragments": [
     "Amethyst Spirit Rune",
@@ -3723,7 +3795,9 @@
    "bossRule": null,
    "recommendedPower": 5543,
    "dust": 510,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Hawkeye"
+   ],
    "gearFragments": [
     "Amethyst Vitality Gem",
     "Amethyst Guard Rune"
@@ -3802,7 +3876,9 @@
    "bossRule": null,
    "recommendedPower": 5636,
    "dust": 543,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Lifebloom"
+   ],
    "gearFragments": [
     "Amethyst Blade Shard",
     "Amethyst Edge Stone"
@@ -3881,7 +3957,9 @@
    "bossRule": null,
    "recommendedPower": 5815,
    "dust": 578,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Bastion"
+   ],
    "gearFragments": [
     "Amethyst Wind Thread",
     "Amethyst Focus Crystal"
@@ -3962,7 +4040,9 @@
    "bossRule": null,
    "recommendedPower": 6068,
    "dust": 616,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple Bloodroot"
+   ],
    "gearFragments": [
     "Amethyst Mana Dust",
     "Amethyst Spirit Rune"
@@ -4051,7 +4131,7 @@
    "dust": 656,
    "glyphFragments": [
     "Purple Shadepath",
-    "Purple Voidbind"
+    "Purple Sunder"
    ],
    "gearFragments": [
     "Amethyst Ore Fragment",
@@ -4131,7 +4211,9 @@
    "bossRule": null,
    "recommendedPower": 6468,
    "dust": 699,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Stoneheart"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Ore Fragment",
     "Sovereign Amethyst Vitality Gem"
@@ -4210,7 +4292,9 @@
    "bossRule": null,
    "recommendedPower": 6644,
    "dust": 744,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Ironwall"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Guard Rune",
     "Sovereign Amethyst Blade Shard"
@@ -4289,7 +4373,9 @@
    "bossRule": null,
    "recommendedPower": 6771,
    "dust": 793,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Veilward"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Edge Stone",
     "Sovereign Amethyst Wind Thread"
@@ -4370,7 +4456,9 @@
    "bossRule": null,
    "recommendedPower": 6798,
    "dust": 844,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Ravager"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Focus Crystal",
     "Sovereign Amethyst Mana Dust"
@@ -4458,8 +4546,8 @@
    "recommendedPower": 11559,
    "dust": 899,
    "glyphFragments": [
-    "Purple +3 Sunder",
-    "Purple +3 Stoneheart"
+    "Purple +2 Starfire",
+    "Purple +2 Windstep"
    ],
    "gearFragments": [
     "Sovereign Amethyst Spirit Rune",
@@ -4539,7 +4627,9 @@
    "bossRule": null,
    "recommendedPower": 7351,
    "dust": 957,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Hawkeye"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Ore Fragment",
     "Sovereign Amethyst Vitality Gem"
@@ -4618,7 +4708,9 @@
    "bossRule": null,
    "recommendedPower": 7422,
    "dust": 1020,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Lifebloom"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Guard Rune",
     "Sovereign Amethyst Blade Shard"
@@ -4699,7 +4791,9 @@
    "bossRule": null,
    "recommendedPower": 7771,
    "dust": 1086,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Bastion"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Edge Stone",
     "Sovereign Amethyst Wind Thread"
@@ -4778,7 +4872,9 @@
    "bossRule": null,
    "recommendedPower": 7974,
    "dust": 1157,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Purple +2 Bloodroot"
+   ],
    "gearFragments": [
     "Sovereign Amethyst Focus Crystal",
     "Sovereign Amethyst Mana Dust"
@@ -4866,8 +4962,8 @@
    "recommendedPower": 20314,
    "dust": 1232,
    "glyphFragments": [
-    "Purple +3 Tidecall",
-    "Purple +3 Ironwall"
+    "Purple +2 Shadepath",
+    "Purple +2 Sunder"
    ],
    "gearFragments": [
     "Sovereign Amethyst Spirit Rune",
@@ -4947,7 +5043,9 @@
    "bossRule": null,
    "recommendedPower": 8193,
    "dust": 1312,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Stoneheart"
+   ],
    "gearFragments": [
     "Sunforged Ore Fragment",
     "Sunforged Vitality Gem"
@@ -5026,7 +5124,9 @@
    "bossRule": null,
    "recommendedPower": 8455,
    "dust": 1397,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Ironwall"
+   ],
    "gearFragments": [
     "Sunforged Guard Rune",
     "Sunforged Blade Shard"
@@ -5106,7 +5206,9 @@
    "bossRule": null,
    "recommendedPower": 8882,
    "dust": 1488,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Veilward"
+   ],
    "gearFragments": [
     "Sunforged Edge Stone",
     "Sunforged Wind Thread"
@@ -5185,7 +5287,9 @@
    "bossRule": null,
    "recommendedPower": 8838,
    "dust": 1585,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Ravager"
+   ],
    "gearFragments": [
     "Sunforged Focus Crystal",
     "Sunforged Mana Dust"
@@ -5272,8 +5376,8 @@
    "recommendedPower": 14740,
    "dust": 1688,
    "glyphFragments": [
-    "Gold +1 Sunder",
-    "Gold +1 Stoneheart"
+    "Gold Starfire",
+    "Gold Windstep"
    ],
    "gearFragments": [
     "Sunforged Spirit Rune",
@@ -5353,7 +5457,9 @@
    "bossRule": null,
    "recommendedPower": 9324,
    "dust": 1798,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Hawkeye"
+   ],
    "gearFragments": [
     "Sunforged Ore Fragment",
     "Sunforged Vitality Gem"
@@ -5432,7 +5538,9 @@
    "bossRule": null,
    "recommendedPower": 9496,
    "dust": 1915,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Lifebloom"
+   ],
    "gearFragments": [
     "Sunforged Guard Rune",
     "Sunforged Blade Shard"
@@ -5511,7 +5619,9 @@
    "bossRule": null,
    "recommendedPower": 9716,
    "dust": 2039,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Bastion"
+   ],
    "gearFragments": [
     "Sunforged Edge Stone",
     "Sunforged Wind Thread"
@@ -5592,7 +5702,9 @@
    "bossRule": null,
    "recommendedPower": 10155,
    "dust": 2172,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold Bloodroot"
+   ],
    "gearFragments": [
     "Sunforged Focus Crystal",
     "Sunforged Mana Dust"
@@ -5678,8 +5790,8 @@
    "recommendedPower": 27084,
    "dust": 2313,
    "glyphFragments": [
-    "Gold +1 Tidecall",
-    "Gold +1 Ironwall"
+    "Gold Dawnshield",
+    "Gold Keenmind"
    ],
    "gearFragments": [
     "Sunforged Spirit Rune",
@@ -5761,7 +5873,9 @@
    "bossRule": null,
    "recommendedPower": 11032,
    "dust": 2463,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Stoneheart"
+   ],
    "gearFragments": [
     "Royal Sunforged Ore Fragment",
     "Royal Sunforged Vitality Gem"
@@ -5840,7 +5954,9 @@
    "bossRule": null,
    "recommendedPower": 10492,
    "dust": 2623,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Ironwall"
+   ],
    "gearFragments": [
     "Royal Sunforged Guard Rune",
     "Royal Sunforged Blade Shard"
@@ -5919,7 +6035,9 @@
    "bossRule": null,
    "recommendedPower": 11042,
    "dust": 2794,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Veilward"
+   ],
    "gearFragments": [
     "Royal Sunforged Edge Stone",
     "Royal Sunforged Wind Thread"
@@ -5998,7 +6116,9 @@
    "bossRule": null,
    "recommendedPower": 11038,
    "dust": 2976,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Ravager"
+   ],
    "gearFragments": [
     "Royal Sunforged Focus Crystal",
     "Royal Sunforged Mana Dust"
@@ -6084,8 +6204,8 @@
    "recommendedPower": 18425,
    "dust": 3169,
    "glyphFragments": [
-    "Gold +4 Voidbind",
-    "Gold +4 Veilward"
+    "Gold +3 Starfire",
+    "Gold +3 Windstep"
    ],
    "gearFragments": [
     "Royal Sunforged Spirit Rune",
@@ -6165,7 +6285,9 @@
    "bossRule": null,
    "recommendedPower": 11576,
    "dust": 3375,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Hawkeye"
+   ],
    "gearFragments": [
     "Royal Sunforged Ore Fragment",
     "Royal Sunforged Vitality Gem"
@@ -6244,7 +6366,9 @@
    "bossRule": null,
    "recommendedPower": 11959,
    "dust": 3594,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Lifebloom"
+   ],
    "gearFragments": [
     "Royal Sunforged Guard Rune",
     "Royal Sunforged Blade Shard"
@@ -6323,7 +6447,9 @@
    "bossRule": null,
    "recommendedPower": 11944,
    "dust": 3828,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Bastion"
+   ],
    "gearFragments": [
     "Royal Sunforged Edge Stone",
     "Royal Sunforged Wind Thread"
@@ -6402,7 +6528,9 @@
    "bossRule": null,
    "recommendedPower": 12089,
    "dust": 4077,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Gold +3 Bloodroot"
+   ],
    "gearFragments": [
     "Royal Sunforged Focus Crystal",
     "Royal Sunforged Mana Dust"
@@ -6488,8 +6616,8 @@
    "recommendedPower": 32235,
    "dust": 4342,
    "glyphFragments": [
-    "Gold +4 Stoneheart",
-    "Gold +4 Ravager"
+    "Gold +3 Dawnshield",
+    "Gold +3 Keenmind"
    ],
    "gearFragments": [
     "Royal Sunforged Spirit Rune",
@@ -6570,7 +6698,9 @@
    "bossRule": null,
    "recommendedPower": 12724,
    "dust": 4624,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Stoneheart"
+   ],
    "gearFragments": [
     "Worldfire Ore Fragment",
     "Worldfire Vitality Gem"
@@ -6649,7 +6779,9 @@
    "bossRule": null,
    "recommendedPower": 13010,
    "dust": 4925,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Ironwall"
+   ],
    "gearFragments": [
     "Worldfire Guard Rune",
     "Worldfire Blade Shard"
@@ -6728,7 +6860,9 @@
    "bossRule": null,
    "recommendedPower": 13256,
    "dust": 5245,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Veilward"
+   ],
    "gearFragments": [
     "Worldfire Edge Stone",
     "Worldfire Wind Thread"
@@ -6807,7 +6941,9 @@
    "bossRule": null,
    "recommendedPower": 13551,
    "dust": 5586,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Ravager"
+   ],
    "gearFragments": [
     "Worldfire Focus Crystal",
     "Worldfire Mana Dust"
@@ -6893,8 +7029,8 @@
    "recommendedPower": 22172,
    "dust": 5949,
    "glyphFragments": [
-    "Orange Worldheart",
-    "Orange Veilward"
+    "Orange Starfire",
+    "Orange Windstep"
    ],
    "gearFragments": [
     "Worldfire Spirit Rune",
@@ -6974,7 +7110,9 @@
    "bossRule": null,
    "recommendedPower": 14719,
    "dust": 6336,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Hawkeye"
+   ],
    "gearFragments": [
     "Worldfire Worldheart Core",
     "Worldfire Ore Fragment"
@@ -7053,7 +7191,9 @@
    "bossRule": null,
    "recommendedPower": 14123,
    "dust": 6748,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Lifebloom"
+   ],
    "gearFragments": [
     "Worldfire Vitality Gem",
     "Worldfire Guard Rune"
@@ -7132,7 +7272,9 @@
    "bossRule": null,
    "recommendedPower": 14643,
    "dust": 7186,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Bastion"
+   ],
    "gearFragments": [
     "Worldfire Blade Shard",
     "Worldfire Edge Stone"
@@ -7211,7 +7353,9 @@
    "bossRule": null,
    "recommendedPower": 14699,
    "dust": 7653,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Bloodroot"
+   ],
    "gearFragments": [
     "Worldfire Wind Thread",
     "Worldfire Focus Crystal"
@@ -7297,8 +7441,8 @@
    "recommendedPower": 37765,
    "dust": 8151,
    "glyphFragments": [
-    "Orange Stoneheart",
-    "Orange Ravager"
+    "Orange Cataclysm",
+    "Orange Dawnshield"
    ],
    "gearFragments": [
     "Worldfire Mana Dust",
@@ -7378,7 +7522,9 @@
    "bossRule": null,
    "recommendedPower": 15306,
    "dust": 8681,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Keenmind"
+   ],
    "gearFragments": [
     "Worldfire Prism Shard",
     "Worldfire Worldheart Core"
@@ -7459,7 +7605,9 @@
    "bossRule": null,
    "recommendedPower": 15648,
    "dust": 9245,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Shadepath"
+   ],
    "gearFragments": [
     "Worldfire Ore Fragment",
     "Worldfire Vitality Gem"
@@ -7538,7 +7686,9 @@
    "bossRule": null,
    "recommendedPower": 15811,
    "dust": 9846,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Sunder"
+   ],
    "gearFragments": [
     "Worldfire Guard Rune",
     "Worldfire Blade Shard"
@@ -7618,7 +7768,9 @@
    "bossRule": null,
    "recommendedPower": 16062,
    "dust": 10486,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Tidecall"
+   ],
    "gearFragments": [
     "Worldfire Edge Stone",
     "Worldfire Wind Thread"
@@ -7704,8 +7856,8 @@
    "recommendedPower": 26301,
    "dust": 11168,
    "glyphFragments": [
-    "Orange Ironwall",
-    "Orange Starfire"
+    "Orange Voidbind",
+    "Orange Worldheart"
    ],
    "gearFragments": [
     "Worldfire Focus Crystal",
@@ -7785,7 +7937,9 @@
    "bossRule": null,
    "recommendedPower": 17214,
    "dust": 11894,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Stoneheart"
+   ],
    "gearFragments": [
     "Worldfire Spirit Rune",
     "Worldfire Prism Shard"
@@ -7864,7 +8018,9 @@
    "bossRule": null,
    "recommendedPower": 17494,
    "dust": 12667,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Ironwall"
+   ],
    "gearFragments": [
     "Worldfire Worldheart Core",
     "Worldfire Ore Fragment"
@@ -7943,7 +8099,9 @@
    "bossRule": null,
    "recommendedPower": 17582,
    "dust": 13490,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Veilward"
+   ],
    "gearFragments": [
     "Worldfire Vitality Gem",
     "Worldfire Guard Rune"
@@ -8023,7 +8181,9 @@
    "bossRule": null,
    "recommendedPower": 17373,
    "dust": 14367,
-   "glyphFragments": [],
+   "glyphFragments": [
+    "Orange Ravager"
+   ],
    "gearFragments": [
     "Worldfire Blade Shard",
     "Worldfire Edge Stone"
@@ -8109,7 +8269,7 @@
    "recommendedPower": 46209,
    "dust": 15301,
    "glyphFragments": [
-    "Orange Veilward",
+    "Orange Starfire",
     "Orange Windstep"
    ],
    "gearFragments": [
