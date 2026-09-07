@@ -3420,7 +3420,11 @@ function qualityInit(){
   const mem=navigator.deviceMemory||4;
   QUAL.max=Math.min(dpr,3);
   const weak=(cores<=4||mem<=4);
-  QUAL.dpr=mobile ? Math.min(dpr, weak?1.5:2) : Math.min(dpr,3);
+  /* v507 - START AT THE SCREEN'S OWN RESOLUTION. Starting mobile at 2 on a 3x phone meant zoom 1
+     rendered at 2 and the browser upscaled it to 3; each zoom step raised DPRxzoom and the picture
+     visibly sharpened, which is the bug reported as "it gets better every time I zoom". Start at
+     the device DPR and let qualityTick pull it down if the phone genuinely cannot hold it. */
+  QUAL.dpr=mobile ? Math.min(dpr, weak?2:3) : Math.min(dpr,3);
   try{
     if(localStorage.getItem('ew_dpr_scheme')!==DPR_SCHEME){    // drop anything the old scheme pinned
       localStorage.removeItem('ew_dpr'); localStorage.setItem('ew_dpr_scheme',DPR_SCHEME);
@@ -3447,7 +3451,12 @@ function qualityApply(){ try{ localStorage.setItem('ew_dpr',String(QUAL.dpr)); }
    now renders at DPR x zoom, so the buffer actually HAS the pixels the stretch consumes and the
    result lands 1:1 on the screen. Framing, layout and the transform itself are untouched - only
    the resolution the frame is drawn at. Capped at 3 so a deep zoom on a 3x phone cannot run away. */
-function zoomPR(){ const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1; return Math.min(3, DPR*z); }
+/* v507 - THE PICTURE MUST NOT CHANGE WITH ZOOM. Capping at 3 meant zoom 1.5 on a 3x screen wanted
+   4.5 and got 3, so the top zoom levels were still an upscale while zoom 1 was native - the quality
+   visibly climbed and then stalled as you zoomed. The ceiling is now the deepest zoom x a 3x screen,
+   so DPRxzoom is reachable at every level and the result is 1:1 throughout. qualityTick still sheds
+   resolution if a phone cannot hold it, which is a frame-rate decision, not a zoom one. */
+function zoomPR(){ const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1; return Math.min(4.5, DPR*z); }
 function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
   const PR=zoomPR();
   renderer.setPixelRatio(PR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
