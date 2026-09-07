@@ -1990,7 +1990,7 @@ function retryTex(s, tx, attempt){
    no visible change, and no re-uploading of a hundred megabytes of art.
    This is a CAP, not a fixed ratio — it is a no-op on sheets that are already small, so re-exporting
    the art smaller later is safe and makes this free. */
-const CELL_CAP=150;
+const CELL_CAP=99999;   /* v504: limiter removed - sheets load at full source resolution */
 /* 3 Sep (v363) — WHY EVERY BOSS WAS BLURRY. The 150-px cap above was written for heroes (drawn ~185
    device px tall) and it was applied to EVERYTHING, including the 2K boss sheets whose cells are up
    to 900 px and whose figure is drawn ~250-350 device px tall. So a 900-px boss was shrunk to 150 px
@@ -1998,7 +1998,7 @@ const CELL_CAP=150;
    (`_2k` / `_xl` monster sheets; `_hd` is the ordinary-monster size and keeps the 150 cap) now get their own cap of 450 px: still a shrink from the
    900-px source, but above the size they are drawn at, so no upscale. Memory: one boss on screen at
    a time, 3 sheets of 6x2 x 450 px ≈ 29 MB — well inside the phone budget the 150 cap was set for. */
-const BOSS_CELL_CAP=450;
+const BOSS_CELL_CAP=99999;
 function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CELL_CAP:CELL_CAP; }
 /* v489 (Phil: "fix fritz quality, its very low ... when he attacks", "he kind of looks like hes still 300px, maybe even
    lower"). The cap was applied to the CELL's longest side, so a wide cell — Fritz's attack is 695x459 because the lightning
@@ -2014,11 +2014,11 @@ function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CEL
 /* v496 (Phil: "all males 400 and all females 500"): the budget is now the STANDARD, not a compromise.
    Heroes whose sheet holds less than this simply stay at their native size -- k is clamped to 1, nothing is
    ever upscaled -- so raising the cap costs nothing until a hero is actually re-sliced at 400/500. */
-const CELL_FIG_CAP=400, CELL_HARD_CAP=900;
+const CELL_FIG_CAP=99999, CELL_HARD_CAP=99999;
 /* Phil's standard, confirmed 4 Sep ("if they have breasts they are women"): 21 women at 500 px of figure,
    everyone else at 400. Source of truth is the FEMALE PROTOCOL doc; when unsure, ASK -- do not guess. */
 const FIG_WOMEN=new Set(['astra','vesper','calypsa','cacklefang','meryln','lumi','lysara','nerisse','pyroclast','silkcoil','sylthaine','sablewick','threadseer','vaelora','velvetplum','verdantshade','vex','vireo','voidweaver','waxenduchess','zahri']);
-function figCapFor(u){ try{ const k=(u||'').split('/assets/anim/')[1]; return (k&&FIG_WOMEN.has(k.split('/')[0]))?500:CELL_FIG_CAP; }catch(e){ return CELL_FIG_CAP; } }
+function figCapFor(u){ try{ const k=(u||'').split('/assets/anim/')[1]; return CELL_FIG_CAP; }catch(e){ return CELL_FIG_CAP; } }
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
