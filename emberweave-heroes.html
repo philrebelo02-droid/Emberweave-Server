@@ -3333,11 +3333,11 @@ let renderer,scene,camera,groundGroup,SPH=null,CW=0,CH=0,DPR=1;
 function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSprite)x.geometry.dispose();if(x.material&&!x.isSprite){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>m.dispose());}});}
 
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
-const ZOOM_LEVELS=[0.5,0.75,1,1.25,1.5];
+const ZOOM_LEVELS=[1,1.25,1.5];   // v508: 0.5x and 0.75x removed - 1x is the floor
 let battleZoom=1, battlePanX=0, battlePanY=0;
 function applyBattleView(){ const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
-function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(0.5,Math.min(1.5,z)));
+function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z)));
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
