@@ -3335,7 +3335,20 @@ function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSpri
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
 const ZOOM_LEVELS=[1,1.25,1.5];   // v508: 0.5x and 0.75x removed - 1x is the floor
 let battleZoom=1, battlePanX=0, battlePanY=0;
-function applyBattleView(){ const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
+/* v509 - PAN COULD LEAVE THE MAP. Neither the mouse nor the touch handler bounded battlePanX/Y, so
+   a drag could slide the battlefield right off the screen and leave dead space where the map should
+   be. The transform is translate() then scale() about the centre, so the content spans
+   centre +/- W*z/2: keeping both edges outside the viewport means |pan| <= W*(z-1)/2 on each axis
+   (and exactly 0 at 1x, where there is nothing to pan). Clamped here rather than in the handlers so
+   every path that moves the view - drag, zoom, resize - goes through the same bound. */
+function clampPan(){
+  const app=document.getElementById('app');
+  const w=(app?app.clientWidth:0)||window.innerWidth, h=(app?app.clientHeight:0)||window.innerHeight;
+  const mx=Math.max(0, w*(battleZoom-1)/2), my=Math.max(0, h*(battleZoom-1)/2);
+  battlePanX=Math.max(-mx, Math.min(mx, battlePanX));
+  battlePanY=Math.max(-my, Math.min(my, battlePanY));
+}
+function applyBattleView(){ clampPan(); const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
 function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z)));
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
