@@ -4821,6 +4821,46 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
 // ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
 const FX2_DEF={
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5},
+  /* v514: the 38 ult FX sheets that shipped but were never declared. Each hero's ultimate spawned a
+     generic plate because nothing named its own clip. Geometry read off each sheet, not assumed. */
+  arrears_ult:{u:'/assets/anim/fx/arrears_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  bloatus_ult:{u:'/assets/anim/fx/bloatus_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  cacklefang_ult:{u:'/assets/anim/fx/cacklefang_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  calypsa_ult:{u:'/assets/anim/fx/calypsa_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  chainwheel_ult:{u:'/assets/anim/fx/chainwheel_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  fathom_ult:{u:'/assets/anim/fx/fathom_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  greatbrow_ult:{u:'/assets/anim/fx/greatbrow_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  grosk_ult:{u:'/assets/anim/fx/grosk_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  hollow_ult:{u:'/assets/anim/fx/hollow_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  hurne_ult:{u:'/assets/anim/fx/hurne_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  ironcoil_ult:{u:'/assets/anim/fx/ironcoil_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  kharos_ult:{u:'/assets/anim/fx/kharos_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  kilnmask_ult:{u:'/assets/anim/fx/kilnmask_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  konwu_ult:{u:'/assets/anim/fx/konwu_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  lumi_ult:{u:'/assets/anim/fx/lumi_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  lysara_ult:{u:'/assets/anim/fx/lysara_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  magistrant_ult:{u:'/assets/anim/fx/magistrant_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  meridian_ult:{u:'/assets/anim/fx/meridian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  nerisse_ult:{u:'/assets/anim/fx/nerisse_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  nox_ult:{u:'/assets/anim/fx/nox_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  oakmir_ult:{u:'/assets/anim/fx/oakmir_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  orryn_ult:{u:'/assets/anim/fx/orryn_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  pellucid_ult:{u:'/assets/anim/fx/pellucid_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  rhukk_ult:{u:'/assets/anim/fx/rhukk_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  sablewick_ult:{u:'/assets/anim/fx/sablewick_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  silkcoil_ult:{u:'/assets/anim/fx/silkcoil_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  sprocket_ult:{u:'/assets/anim/fx/sprocket_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  sylthaine_ult:{u:'/assets/anim/fx/sylthaine_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  tallow_ult:{u:'/assets/anim/fx/tallow_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  threadseer_ult:{u:'/assets/anim/fx/threadseer_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  tick_ult:{u:'/assets/anim/fx/tick_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  vaelora_ult:{u:'/assets/anim/fx/vaelora_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  velvetplum_ult:{u:'/assets/anim/fx/velvetplum_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  vharn_ult:{u:'/assets/anim/fx/vharn_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
+  vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:2.4},
   aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4,upright:true,upAbove:true,upSize:1.1,upExtent:0.9,hold:false,ro:1,upAboveM:-0.2},
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.6,upright:true,upSize:1.7,upExtent:0.8,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=11',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.2,upright:true,upSize:2.0,upExtent:0.8,upAnchor:[0.5,0.40],ro:1},
@@ -9234,7 +9274,8 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:3.3}, deepcleft:{gfx:'deepcleft_ult',gdur:2.6}, fritz:{gfx:'fritz_ult',gdur:2.6}, meryln:{gfx:'meryln_ult',gdur:2.6}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:3.3}, deepcleft:{gfx:'deepcleft_ult',gdur:2.6}, fritz:{gfx:'fritz_ult',gdur:2.6}, meryln:{gfx:'meryln_ult',gdur:2.6},
+ /* v514 */ arrears:{gfx:'arrears_ult',gdur:2.4}, bloatus:{gfx:'bloatus_ult',gdur:2.4}, cacklefang:{gfx:'cacklefang_ult',gdur:2.4}, calypsa:{gfx:'calypsa_ult',gdur:2.4}, chainwheel:{gfx:'chainwheel_ult',gdur:2.4}, fathom:{gfx:'fathom_ult',gdur:2.4}, greatbrow:{gfx:'greatbrow_ult',gdur:2.4}, grosk:{gfx:'grosk_ult',gdur:2.4}, hollow:{gfx:'hollow_ult',gdur:2.4}, hurne:{gfx:'hurne_ult',gdur:2.4}, ironcoil:{gfx:'ironcoil_ult',gdur:2.4}, kharos:{gfx:'kharos_ult',gdur:2.4}, kilnmask:{gfx:'kilnmask_ult',gdur:2.4}, konwu:{gfx:'konwu_ult',gdur:2.4}, lumi:{gfx:'lumi_ult',gdur:2.4}, lysara:{gfx:'lysara_ult',gdur:2.4}, magistrant:{gfx:'magistrant_ult',gdur:2.4}, meridian:{gfx:'meridian_ult',gdur:2.4}, nerisse:{gfx:'nerisse_ult',gdur:2.4}, nox:{gfx:'nox_ult',gdur:2.4}, oakmir:{gfx:'oakmir_ult',gdur:2.4}, orryn:{gfx:'orryn_ult',gdur:2.4}, pellucid:{gfx:'pellucid_ult',gdur:2.4}, rhukk:{gfx:'rhukk_ult',gdur:2.4}, sablewick:{gfx:'sablewick_ult',gdur:2.4}, silkcoil:{gfx:'silkcoil_ult',gdur:2.4}, sprocket:{gfx:'sprocket_ult',gdur:2.4}, sylthaine:{gfx:'sylthaine_ult',gdur:2.4}, tallow:{gfx:'tallow_ult',gdur:2.4}, threadseer:{gfx:'threadseer_ult',gdur:2.4}, tick:{gfx:'tick_ult',gdur:2.4}, umbris:{gfx:'umbris_ult',gdur:2.4}, vaelora:{gfx:'vaelora_ult',gdur:2.4}, velvetplum:{gfx:'velvetplum_ult',gdur:2.4}, vex:{gfx:'vex_ult',gdur:2.4}, veyr:{gfx:'veyr_ult',gdur:2.4}, vharn:{gfx:'vharn_ult',gdur:2.4}, vulmar:{gfx:'vulmar_ult',gdur:2.4}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
