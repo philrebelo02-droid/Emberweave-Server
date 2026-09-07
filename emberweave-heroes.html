@@ -3403,15 +3403,31 @@ function initThree(){
    sprites are ~150px of source art. The renderer now starts at a safe mobile resolution and EARNS its
    way up: QUAL.dpr rises only after a sustained window of comfortable frames and drops immediately on
    sustained slow ones. It never touches the simulation — only how many pixels are shaded. */
+/* v505 - RENDER AT THE SCREEN'S RESOLUTION. The old rule capped max at 2 and STARTED mobile at
+   1.0-1.25, so a 3x phone was shading a third of the pixels it can show and stretching the result.
+   The saved ew_dpr made it permanent: one bad build wrote 0.75 to storage and every later load
+   restored the floor, because climbing back needs 6 unbroken seconds of healthy frames. Now the
+   ceiling is the device's own DPR (to 3), mobile starts at 2, and any value saved under the old
+   scheme is discarded once. The adaptive downgrade still protects a phone that truly cannot hold
+   it - it just no longer starts crippled or stays crippled. */
 const QUAL={ dpr:1, max:2, min:0.75, good:0, bad:0, last:0, locked:false };
+const DPR_SCHEME='v505';
 function qualityInit(){
   const dpr=window.devicePixelRatio||1;
   const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
   const cores=navigator.hardwareConcurrency||4;
   const mem=navigator.deviceMemory||4;
-  QUAL.max=Math.min(dpr,2);
-  QUAL.dpr=mobile ? Math.min(dpr,(cores<=4||mem<=4)?1.0:1.25) : Math.min(dpr,2);
-  try{ const saved=parseFloat(localStorage.getItem('ew_dpr')||''); if(saved>=0.75&&saved<=2) QUAL.dpr=Math.min(saved,QUAL.max); }catch(e){}
+  QUAL.max=Math.min(dpr,3);
+  const weak=(cores<=4||mem<=4);
+  QUAL.dpr=mobile ? Math.min(dpr, weak?1.5:2) : Math.min(dpr,3);
+  try{
+    if(localStorage.getItem('ew_dpr_scheme')!==DPR_SCHEME){    // drop anything the old scheme pinned
+      localStorage.removeItem('ew_dpr'); localStorage.setItem('ew_dpr_scheme',DPR_SCHEME);
+    } else {
+      const saved=parseFloat(localStorage.getItem('ew_dpr')||'');
+      if(saved>=0.75&&saved<=3) QUAL.dpr=Math.min(saved,QUAL.max);
+    }
+  }catch(e){}
 }
 function qualityTick(frameMs){
   if(QUAL.locked || state!=='battle') return;
