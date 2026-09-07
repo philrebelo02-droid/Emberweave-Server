@@ -3343,7 +3343,8 @@ function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(0.5,Math.min(1.5
   let origin='50% 50%';   // default: zoom around screen centre
   if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.getBoundingClientRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
   ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; } }); applyBattleView();
-  if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); } }
+  if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); }
+  CW=0; resize3D(); }                       // v506: re-render at the zoomed resolution, not a stretched bitmap
 function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZoom)); i=Math.max(0,Math.min(ZOOM_LEVELS.length-1,i+dir)); setBattleZoom(ZOOM_LEVELS[i], fx, fy); }
 function initThree(){
   SPH=new TH.SphereGeometry(0.1,6,6);
@@ -3439,10 +3440,19 @@ function qualityTick(frameMs){
 }
 function qualityApply(){ try{ localStorage.setItem('ew_dpr',String(QUAL.dpr)); }catch(e){}
   CW=0; resize3D(); }                                          // force a real resize at the new resolution
+/* v506 - ZOOM WAS A CSS UPSCALE OF A FINISHED FRAME. Battle zoom is a transform: scale() on
+   #three, so at 1.25x/1.5x the browser stretched an already-rendered WebGL bitmap. Every pixel
+   of sprite detail was smeared straight back out, which is why raising the source resolution and
+   removing the load-time cap changed nothing on screen for anyone playing zoomed in. The canvas
+   now renders at DPR x zoom, so the buffer actually HAS the pixels the stretch consumes and the
+   result lands 1:1 on the screen. Framing, layout and the transform itself are untouched - only
+   the resolution the frame is drawn at. Capped at 3 so a deep zoom on a 3x phone cannot run away. */
+function zoomPR(){ const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1; return Math.min(3, DPR*z); }
 function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
-  renderer.setPixelRatio(DPR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
+  const PR=zoomPR();
+  renderer.setPixelRatio(PR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
   renderer.domElement.style.width='100%'; renderer.domElement.style.height='100%';   // always fill #app (buffer aspect already matches)
-  overlay.width=CW*DPR; overlay.height=CH*DPR; overlay.style.width=CW+'px'; overlay.style.height=CH+'px'; octx.setTransform(DPR,0,0,DPR,0,0); }
+  overlay.width=Math.round(CW*PR); overlay.height=Math.round(CH*PR); overlay.style.width=CW+'px'; overlay.style.height=CH+'px'; octx.setTransform(PR,0,0,PR,0,0); }
 // Only rebuild the 3D/overlay buffers when the WIDTH changes. The mobile soft keyboard changes only the
 // viewport HEIGHT (open on input focus, close on tap) and would otherwise fire this expensive realloc
 // repeatedly → multi-second freezes (e.g. opening the dev fragment tool / tapping a hero row).
