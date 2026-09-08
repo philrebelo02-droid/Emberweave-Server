@@ -1990,7 +1990,7 @@ function retryTex(s, tx, attempt){
    no visible change, and no re-uploading of a hundred megabytes of art.
    This is a CAP, not a fixed ratio — it is a no-op on sheets that are already small, so re-exporting
    the art smaller later is safe and makes this free. */
-const CELL_CAP=150;
+const CELL_CAP=99999;
 /* 3 Sep (v363) — WHY EVERY BOSS WAS BLURRY. The 150-px cap above was written for heroes (drawn ~185
    device px tall) and it was applied to EVERYTHING, including the 2K boss sheets whose cells are up
    to 900 px and whose figure is drawn ~250-350 device px tall. So a 900-px boss was shrunk to 150 px
@@ -1998,7 +1998,7 @@ const CELL_CAP=150;
    (`_2k` / `_xl` monster sheets; `_hd` is the ordinary-monster size and keeps the 150 cap) now get their own cap of 450 px: still a shrink from the
    900-px source, but above the size they are drawn at, so no upscale. Memory: one boss on screen at
    a time, 3 sheets of 6x2 x 450 px ≈ 29 MB — well inside the phone budget the 150 cap was set for. */
-const BOSS_CELL_CAP=450;
+const BOSS_CELL_CAP=99999;
 function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CELL_CAP:CELL_CAP; }
 /* v489 (Phil: "fix fritz quality, its very low ... when he attacks", "he kind of looks like hes still 300px, maybe even
    lower"). The cap was applied to the CELL's longest side, so a wide cell — Fritz's attack is 695x459 because the lightning
@@ -2014,7 +2014,7 @@ function cellCapFor(u){ return /\/mon\/[^?]*_(2k|xl)\.webp/.test(u||'')?BOSS_CEL
 /* v496 (Phil: "all males 400 and all females 500"): the budget is now the STANDARD, not a compromise.
    Heroes whose sheet holds less than this simply stay at their native size -- k is clamped to 1, nothing is
    ever upscaled -- so raising the cap costs nothing until a hero is actually re-sliced at 400/500. */
-const CELL_FIG_CAP=400, CELL_HARD_CAP=900;
+const CELL_FIG_CAP=99999, CELL_HARD_CAP=99999;
 /* Phil's standard, confirmed 4 Sep ("if they have breasts they are women"): 21 women at 500 px of figure,
    everyone else at 400. Source of truth is the FEMALE PROTOCOL doc; when unsure, ASK -- do not guess. */
 const FIG_WOMEN=new Set(['astra','vesper','calypsa','cacklefang','meryln','lumi','lysara','nerisse','pyroclast','silkcoil','sylthaine','sablewick','threadseer','vaelora','velvetplum','verdantshade','vex','vireo','voidweaver','waxenduchess','zahri']);
@@ -3333,17 +3333,26 @@ let renderer,scene,camera,groundGroup,SPH=null,CW=0,CH=0,DPR=1;
 function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSprite)x.geometry.dispose();if(x.material&&!x.isSprite){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>m.dispose());}});}
 
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
-const ZOOM_LEVELS=[0.5,0.75,1,1.25,1.5];
+const ZOOM_LEVELS=[1,1.25,1.5];
 let battleZoom=1, battlePanX=0, battlePanY=0;
-function applyBattleView(){ const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
+function zoomPR(){ const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1; return Math.min(4.5, DPR*z); }
+function clampPan(){
+  const app=document.getElementById('app');
+  const w=(app?app.clientWidth:0)||window.innerWidth, h=(app?app.clientHeight:0)||window.innerHeight;
+  const mx=Math.max(0, w*(battleZoom-1)/2), my=Math.max(0, h*(battleZoom-1)/2);
+  battlePanX=Math.max(-mx, Math.min(mx, battlePanX));
+  battlePanY=Math.max(-my, Math.min(my, battlePanY));
+}
+function applyBattleView(){ clampPan(); const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
-function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(0.5,Math.min(1.5,z)));
+function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z)));
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
   if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.getBoundingClientRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
   ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; } }); applyBattleView();
-  if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); } }
+  if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); }
+  CW=0; resize3D(); }
 function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZoom)); i=Math.max(0,Math.min(ZOOM_LEVELS.length-1,i+dir)); setBattleZoom(ZOOM_LEVELS[i], fx, fy); }
 function initThree(){
   SPH=new TH.SphereGeometry(0.1,6,6);
@@ -3409,9 +3418,21 @@ function qualityInit(){
   const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
   const cores=navigator.hardwareConcurrency||4;
   const mem=navigator.deviceMemory||4;
-  QUAL.max=Math.min(dpr,2);
-  QUAL.dpr=mobile ? Math.min(dpr,(cores<=4||mem<=4)?1.0:1.25) : Math.min(dpr,2);
-  try{ const saved=parseFloat(localStorage.getItem('ew_dpr')||''); if(saved>=0.75&&saved<=2) QUAL.dpr=Math.min(saved,QUAL.max); }catch(e){}
+  QUAL.max=Math.min(dpr,3);
+  const weak=(cores<=4||mem<=4);
+  /* v507 - START AT THE SCREEN'S OWN RESOLUTION. Starting mobile at 2 on a 3x phone meant zoom 1
+     rendered at 2 and the browser upscaled it to 3; each zoom step raised DPRxzoom and the picture
+     visibly sharpened, which is the bug reported as "it gets better every time I zoom". Start at
+     the device DPR and let qualityTick pull it down if the phone genuinely cannot hold it. */
+  QUAL.dpr=mobile ? Math.min(dpr, weak?2:3) : Math.min(dpr,3);
+  try{
+    if(localStorage.getItem('ew_dpr_scheme')!==DPR_SCHEME){    // drop anything the old scheme pinned
+      localStorage.removeItem('ew_dpr'); localStorage.setItem('ew_dpr_scheme',DPR_SCHEME);
+    } else {
+      const saved=parseFloat(localStorage.getItem('ew_dpr')||'');
+      if(saved>=0.75&&saved<=3) QUAL.dpr=Math.min(saved,QUAL.max);
+    }
+  }catch(e){}
 }
 function qualityTick(frameMs){
   if(QUAL.locked || state!=='battle') return;
@@ -3424,9 +3445,10 @@ function qualityTick(frameMs){
 function qualityApply(){ try{ localStorage.setItem('ew_dpr',String(QUAL.dpr)); }catch(e){}
   CW=0; resize3D(); }                                          // force a real resize at the new resolution
 function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
-  renderer.setPixelRatio(DPR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
+  const PR=zoomPR();
+  renderer.setPixelRatio(PR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
   renderer.domElement.style.width='100%'; renderer.domElement.style.height='100%';   // always fill #app (buffer aspect already matches)
-  overlay.width=CW*DPR; overlay.height=CH*DPR; overlay.style.width=CW+'px'; overlay.style.height=CH+'px'; octx.setTransform(DPR,0,0,DPR,0,0); }
+  overlay.width=Math.round(CW*PR); overlay.height=Math.round(CH*PR); overlay.style.width=CW+'px'; overlay.style.height=CH+'px'; octx.setTransform(PR,0,0,PR,0,0); }
 // Only rebuild the 3D/overlay buffers when the WIDTH changes. The mobile soft keyboard changes only the
 // viewport HEIGHT (open on input focus, close on tap) and would otherwise fire this expensive realloc
 // repeatedly → multi-second freezes (e.g. opening the dev fragment tool / tapping a hero row).
@@ -14171,7 +14193,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788900404049';
+const BUILD_ID = '1788900780323';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
