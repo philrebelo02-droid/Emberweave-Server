@@ -3333,11 +3333,11 @@ let renderer,scene,camera,groundGroup,SPH=null,CW=0,CH=0,DPR=1;
 function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSprite)x.geometry.dispose();if(x.material&&!x.isSprite){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>m.dispose());}});}
 
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
-const ZOOM_LEVELS=[0.5,0.75,1,1.25,1.5];
+const ZOOM_LEVELS=[1,1.25,1.5];
 let battleZoom=1, battlePanX=0, battlePanY=0;
 function applyBattleView(){ const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
-function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(0.5,Math.min(1.5,z)));
+function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z)));
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
@@ -3410,7 +3410,7 @@ function qualityInit(){
   const cores=navigator.hardwareConcurrency||4;
   const mem=navigator.deviceMemory||4;
   QUAL.max=Math.min(dpr,2);
-  QUAL.dpr=mobile ? Math.min(dpr,(cores<=4||mem<=4)?1.0:1.25) : Math.min(dpr,2);
+  QUAL.dpr=Math.min(dpr,2);
   try{ const saved=parseFloat(localStorage.getItem('ew_dpr')||''); if(saved>=0.75&&saved<=2) QUAL.dpr=Math.min(saved,QUAL.max); }catch(e){}
 }
 function qualityTick(frameMs){
@@ -14171,7 +14171,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788893787909';
+const BUILD_ID = '1788895358767';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
