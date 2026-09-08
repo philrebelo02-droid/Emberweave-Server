@@ -3412,14 +3412,20 @@ function initThree(){
    sprites are ~150px of source art. The renderer now starts at a safe mobile resolution and EARNS its
    way up: QUAL.dpr rises only after a sustained window of comfortable frames and drops immediately on
    sustained slow ones. It never touches the simulation — only how many pixels are shaded. */
-const QUAL={ dpr:1, max:2, min:0.75, good:0, bad:0, last:0, locked:false };
+const DPR_SCHEME='v511-vsync-governor';   /* v511 - this const was REFERENCED in qualityInit and NEVER
+   DECLARED. Reading it threw a ReferenceError inside the try, the catch swallowed it, and the entire
+   saved-resolution branch below never ran on any device. Bumping this string retires every stale
+   saved value once, for every player, with no cache clearing. */
+const QUAL={ dpr:1, max:2, min:1.5, good:0, bad:0, last:0, locked:false };   // v511 floor 0.75 -> 1.5
 function qualityInit(){
   const dpr=window.devicePixelRatio||1;
   const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
   const cores=navigator.hardwareConcurrency||4;
-  const mem=navigator.deviceMemory||4;
+  const mem=navigator.deviceMemory;   /* v511 - this was 'navigator.deviceMemory||4'. Safari/iOS does not
+     implement deviceMemory at all, so every iPhone fell through to 4, tripped mem<=4, was branded WEAK
+     and started at DPR 2 on a 3x screen. Only trust the figure when the browser actually reports one. */
   QUAL.max=Math.min(dpr,3);
-  const weak=(cores<=4||mem<=4);
+  const weak=(mem!==undefined&&mem<=3)||cores<=2;   // v511 - was (cores<=4||mem<=4), true on nearly every phone
   /* v507 - START AT THE SCREEN'S OWN RESOLUTION. Starting mobile at 2 on a 3x phone meant zoom 1
      rendered at 2 and the browser upscaled it to 3; each zoom step raised DPRxzoom and the picture
      visibly sharpened, which is the bug reported as "it gets better every time I zoom". Start at
@@ -3430,16 +3436,24 @@ function qualityInit(){
       localStorage.removeItem('ew_dpr2'); localStorage.setItem('ew_dpr_scheme',DPR_SCHEME);
     } else {
       const saved=parseFloat(localStorage.getItem('ew_dpr2')||'');
-      if(saved>=0.75&&saved<=3) QUAL.dpr=Math.min(saved,QUAL.max);
+      if(saved>=QUAL.min&&saved<=3) QUAL.dpr=Math.min(saved,QUAL.max);   // v511 - was a hardcoded 0.75
     }
   }catch(e){}
 }
 function qualityTick(frameMs){
   if(QUAL.locked || state!=='battle') return;
-  if(frameMs>26){ QUAL.bad++; QUAL.good=0; } else if(frameMs<15){ QUAL.good++; QUAL.bad=0; } else { return; }
-  if(QUAL.bad>=25 && QUAL.dpr>QUAL.min){                       // ~0.4s of slow frames -> shed pixels now
+  /* v511 - THE GOVERNOR WAS A ONE-WAY RATCHET. A 60Hz phone rendering PERFECTLY at vsync produces
+     ~16.7ms frames. The old test counted >26ms as bad and <15ms as good, so a flawless 16.7ms frame
+     landed in the 15-26ms DEAD BAND and counted as NEITHER. On the exact devices this governor was
+     written for, QUAL.good could essentially never increment, while any hitch still incremented bad.
+     Resolution could only ever fall. 0.4s of sub-38fps shed a quarter, over and over, until the phone
+     sat on the floor for the rest of the session. That is the "mobile quality is less" report.
+     Good is now AT OR NEAR VSYNC (<20ms = 50fps+), bad is REAL stutter (>33ms = under 30fps), and it
+     takes ~2s of genuine stutter to shed so a battle-start hitch cannot cost resolution. */
+  if(frameMs>33){ QUAL.bad++; QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
+  if(QUAL.bad>=60 && QUAL.dpr>QUAL.min){                       // ~2s of genuine stutter -> shed pixels
     QUAL.dpr=Math.max(QUAL.min, +(QUAL.dpr-0.25).toFixed(2)); QUAL.bad=0; qualityApply(); }
-  else if(QUAL.good>=360 && QUAL.dpr<QUAL.max){                // ~6s of healthy frames -> earn some back
+  else if(QUAL.good>=180 && QUAL.dpr<QUAL.max){                // ~3s of healthy frames -> earn some back
     QUAL.dpr=Math.min(QUAL.max, +(QUAL.dpr+0.25).toFixed(2)); QUAL.good=0; qualityApply(); }
 }
 function qualityApply(){ try{ localStorage.setItem('ew_dpr2',String(QUAL.dpr)); }catch(e){}
@@ -14193,7 +14207,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788902465795';
+const BUILD_ID = '1788903349426';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
