@@ -14207,7 +14207,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788908942105';
+const BUILD_ID = '1788910121482';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -14495,6 +14495,24 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;
     if(_pendingUpdate){ if(!updateUnsafe()) doUpdateReload(); return; }   // a real update was deferred during a fight → apply it silently now the fight is over
     checkForUpdate(); }, 10000);   // poll version.json every 10s (served no-store, so it's always fresh); false updates are impossible now that BUILD_ID is stamped == version.json on deploy
+  /* v515 — WHY UPDATES REACHED DESKTOP BUT NEVER THE PHONE (Phil: "somehow these updates arent
+     being pushed through mobile, only desktop"). The updater above is a setInterval, and a
+     setInterval DOES NOT RUN while the page is frozen. On desktop you reload the tab, so you always
+     land on the newest build. On a phone — especially the installed PWA — you don't reload: you
+     switch away, the page is frozen or put in the back/forward cache, and when you come back the
+     browser RESTORES it. The old JS resumes with the old BUILD_ID and the old ?v= sheet URLs, and
+     the 10s timer may not fire for a long time (background timers are heavily throttled, and on a
+     bfcache restore it can be late or never). So the phone kept playing a build from hours ago and
+     no amount of waiting fixed it. Clearing site data "worked" only because it forced a real load.
+     The fix is to check the moment the app comes back to the foreground, on every path a mobile
+     app actually takes: tab/app visible again, bfcache restore, and network returning. */
+  const _fgCheck=()=>{ try{ if(!online()||_updating||_updateNoticeShown) return;
+    if(_pendingUpdate){ if(!updateUnsafe()) doUpdateReload(); return; }
+    checkForUpdate(); }catch(e){} };
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(_fgCheck,300); });
+  window.addEventListener('pageshow',(e)=>{ setTimeout(_fgCheck, e && e.persisted ? 0 : 1200); });   // e.persisted === restored from bfcache
+  window.addEventListener('focus',()=>setTimeout(_fgCheck,300));
+  window.addEventListener('online',()=>setTimeout(_fgCheck,600));
   setInterval(marchTick,1000);                                             // resolve arrivals / free troops (works off the map too)
   setInterval(()=>{ if(document.getElementById('wzone')) drawMarches(); },150);   // smooth ship movement while the map is open
   requestAnimationFrame(loop); }
