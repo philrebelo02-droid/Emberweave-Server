@@ -14218,8 +14218,49 @@ function loop(now){let dt=(now-last)/1000;last=now;
 }
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
+/* v517 — ON-DEVICE DIAGNOSTIC. Open /play?diag=sylthaine on the phone.
+   Three evenings of theories about why one hero's new sheets render on desktop and not on a
+   phone produced nothing, because every check was run from a desktop. This overlay runs the
+   checks ON THE DEVICE THAT IS BROKEN and prints what it finds. It is inert without ?diag=. */
+async function ewDiag(key){
+  const T=(BATTLE_ANIM&&BATTLE_ANIM[key])||null;
+  const box=document.createElement('div');
+  box.style.cssText='position:fixed;inset:0;z-index:99999;background:#0b0d12;color:#cfe;font:11px/1.45 monospace;padding:10px;overflow:auto;-webkit-overflow-scrolling:touch';
+  box.innerHTML='<b style="color:#6cf">EW DIAG · '+key+'</b> · build '+BUILD_ID+'<br>createImageBitmap: '+(typeof createImageBitmap==='function')+' · dpr '+(window.devicePixelRatio||1)+'<br><br>';
+  const close=document.createElement('button'); close.textContent='close';
+  close.style.cssText='position:fixed;right:8px;top:8px;z-index:100000;padding:6px 12px';
+  close.onclick=()=>box.remove(); box.appendChild(close); document.body.appendChild(box);
+  const say=(t,c)=>{ const d=document.createElement('div'); if(c)d.style.color=c; d.textContent=t; box.appendChild(d); };
+  if(!T){ say('NO ENTRY in BATTLE_ANIM for '+key,'#f88'); return; }
+  for(const st of Object.keys(T)){
+    const s=T[st]; if(!s||!s.u){ continue; }
+    say('── '+st+' ─────────────','#6cf');
+    say('  url        '+s.u);
+    say('  declared   fw '+s.fw+' fh '+s.fh+'  cols '+s.cols+' rows '+s.rows+'  figH '+s.figH);
+    say('  in-game    tex '+(!!s.tex)+'  image '+(s.tex&&s.tex.image?((s.tex.image.width||0)+'x'+(s.tex.image.height||0)):'NONE')+'  _err '+(!!s._err),
+        (s._err||!(s.tex&&s.tex.image))?'#f88':'#8f8');
+    try{
+      const t0=Date.now(); const r=await fetch(s.u,{cache:'no-store'});
+      const bl=await r.blob(); const ms=Date.now()-t0;
+      say('  fetch      HTTP '+r.status+'  '+Math.round(bl.size/1024)+' KB  '+ms+' ms', r.ok?'#8f8':'#f88');
+      try{ const bm=await createImageBitmap(bl,{imageOrientation:'flipY'});
+        say('  decode     OK '+bm.width+'x'+bm.height,'#8f8'); bm.close&&bm.close();
+      }catch(e){ say('  decode     FAILED '+String(e).slice(0,90),'#f88'); }
+      const nw=Math.round(s.fw*0.998)*s.cols, nh=Math.round(s.fh*0.998)*s.rows;
+      try{ const bm2=await createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'});
+        say('  resize     OK '+bm2.width+'x'+bm2.height,'#8f8'); bm2.close&&bm2.close();
+      }catch(e){ say('  resize     FAILED '+String(e).slice(0,90),'#f88'); }
+    }catch(e){ say('  fetch      FAILED '+String(e).slice(0,90),'#f88'); }
+  }
+  try{ const ks=await caches.keys(); say(''); say('caches: '+ks.join(' | '),'#fc6');
+    for(const k of ks){ const c=await caches.open(k); const urls=(await c.keys()).map(x=>x.url).filter(u=>u.indexOf(key)>=0);
+      if(urls.length) say('  '+k+' holds:\n   '+urls.join('\n   '),'#fc6'); }
+  }catch(e){ say('caches: unreadable '+String(e).slice(0,60),'#f88'); }
+  say(''); say('done.','#6cf');
+}
+try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788911432501';
+const BUILD_ID = '1788911870726';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
