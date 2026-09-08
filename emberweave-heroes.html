@@ -3427,9 +3427,9 @@ function qualityInit(){
   QUAL.dpr=mobile ? Math.min(dpr, weak?2:3) : Math.min(dpr,3);
   try{
     if(localStorage.getItem('ew_dpr_scheme')!==DPR_SCHEME){    // drop anything the old scheme pinned
-      localStorage.removeItem('ew_dpr'); localStorage.setItem('ew_dpr_scheme',DPR_SCHEME);
+      localStorage.removeItem('ew_dpr2'); localStorage.setItem('ew_dpr_scheme',DPR_SCHEME);
     } else {
-      const saved=parseFloat(localStorage.getItem('ew_dpr')||'');
+      const saved=parseFloat(localStorage.getItem('ew_dpr2')||'');
       if(saved>=0.75&&saved<=3) QUAL.dpr=Math.min(saved,QUAL.max);
     }
   }catch(e){}
@@ -3442,7 +3442,7 @@ function qualityTick(frameMs){
   else if(QUAL.good>=360 && QUAL.dpr<QUAL.max){                // ~6s of healthy frames -> earn some back
     QUAL.dpr=Math.min(QUAL.max, +(QUAL.dpr+0.25).toFixed(2)); QUAL.good=0; qualityApply(); }
 }
-function qualityApply(){ try{ localStorage.setItem('ew_dpr',String(QUAL.dpr)); }catch(e){}
+function qualityApply(){ try{ localStorage.setItem('ew_dpr2',String(QUAL.dpr)); }catch(e){}
   CW=0; resize3D(); }                                          // force a real resize at the new resolution
 function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
   const PR=zoomPR();
@@ -14193,7 +14193,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788900780323';
+const BUILD_ID = '1788902465795';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
