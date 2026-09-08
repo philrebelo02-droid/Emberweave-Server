@@ -2066,7 +2066,19 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
     .then(bl=>{
       const k=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0);
       if(k>0){
-        if(k>=0.999) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(onTex);
+        /* v516 — THE 0.998 CLIFF (Phil: "no sylthaine is not live on phone", after clearing site data
+           and with the phone confirmed on the new build). This threshold decides whether a sheet is
+           uploaded as-is or RESIZED by createImageBitmap. Sylthaine's recut cells are 520 tall
+           instead of 470, which moves her figure fraction from 458/470=0.9745 to 501/520=0.9635 and
+           therefore k from (500/0.9745)/470 = 1.09 (clamped to 1, NO resize) to (500/0.9635)/520 =
+           0.998 — two tenths of a percent under the old 0.999 bar. That bought nothing visible and
+           put every one of her eight sheets through a full-resolution resize of a ~13 megapixel
+           image, a path her old sheets never took. Desktop absorbs it; a phone that rejects or runs
+           out of memory on eight of those in a burst fails the load, and retryTex gives up after 3
+           attempts and sets _err, which drops the hero to her STATIC SPRITE — indistinguishable
+           from "she still has her old art". A sub-1% shave is not worth a resize.
+           TO UNDO: change 0.99 back to 0.999 on the line below. Nothing else in this change. */
+        if(k>=0.99) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(onTex);
         const nw=Math.max(1,Math.round(fw*k))*cols, nh=Math.max(1,Math.round(fh*k))*rows;
         return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'}).then(onTex);
       }
@@ -14207,7 +14219,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
 
 /* ---- force landscape: fullscreen + orientation lock (needs a user gesture on Android) ---- */
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788910121482';
+const BUILD_ID = '1788911432501';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
