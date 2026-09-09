@@ -1717,7 +1717,7 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=22',n:48,fw:406,fh:520,cols:6,rows:8,figH:502,feet:514,cx:195,fps:24,flip:false,top:12},
     green:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=22',n:48,fw:542,fh:520,cols:6,rows:8,figH:502,feet:514,cx:263,fps:24,flip:false,top:12},
     blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=22',n:48,fw:398,fh:520,cols:6,rows:8,figH:502,feet:514,cx:191,fps:24,flip:false,top:12},
-    ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=22',n:48,fw:450,fh:520,cols:6,rows:8,figH:507,feet:520,cx:217,fps:24,flip:false,top:13},
+    ult:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=22',n:48,fw:450,fh:520,cols:6,rows:8,figH:507,feet:520,cx:217,fps:24,flip:false,top:13,apex:31},   // v525 (Phil, off the contact sheet): hold frame 31 for the length of the blizzard, then 32..47 to return
     passive:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=22',n:48,fw:312,fh:520,cols:6,rows:8,figH:501,feet:514,cx:147,fps:24,flip:false,top:13}
   },
   'bug':{
@@ -4746,6 +4746,7 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
+  u._ultChanT=0;   // v525: clock for the wind-up / hold-at-apex / return of a CHANNELLED ult
   u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
 }
 
@@ -6448,10 +6449,17 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         /* v523 - Phil: "sometimes its like she goes 1 second standing still doing nothing,
            typically its after i cast her ult". Sylthaine has no `channel` clip, so once the ult
            clip's single playthrough ended she dropped out of the ult and stood there for the rest
-           of the blizzard. Phil's rule was already explicit: "ult animation never interrupted, its
-           a channel the animation should go until the blizzard is done." With no channel art, the
-           ULT clip itself loops for the length of the storm. */
-        else if(!abilActive && ((u._blizzT||0)>0 || (u._stormT||0)>0) && !u.anim.channel && u.anim.ult) st='ult';
+           of the blizzard.
+           v525 - Phil, correcting the first fix: "for ults dont repeat the ult animation, for
+           someone like sylthaine where it is a channel, just hold her frame thats at her apex
+           until the ult it about to finish then finish the animation returning to start."
+           So a channelled ult with no dedicated `channel` clip runs in three phases:
+             1. WIND-UP  - frames 0..apex at natural speed
+             2. HOLD     - the apex frame, for as long as the storm lasts
+             3. RETURN   - apex..last, timed to land on the last frame as the storm ends
+           The apex is the clip's release point (relFrac) - where the spell leaves her hands. */
+        else if(((u._blizzT||0)>0 || (u._stormT||0)>0) && !u.anim.channel && u.anim.ult){ st='ult'; u._ultChan=1; }
+        else u._ultChan=0;
         let A=u.anim[st]||u.anim.idle;
         // NEVER go invisible: if this clip's sheet hasn't finished downloading (or failed), show idle instead of a blank frame.
         /* 28 Aug — this readiness test was written for an <img>, and v286 started decoding sheets to
@@ -6490,6 +6498,20 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
           const prog=1-Math.max(0,Math.min(1,u._riseT/(u._riseMax||(12/14))));
           fr=Math.max(0,Math.min(A.n-1,Math.floor(prog*A.n))); }
+        else if(u._ultChan && st==='ult' && A.n>1){
+          /* v525 - wind-up, hold at the apex, then return. Never a repeat. */
+          u._ultChanT=(u._ultChanT||0)+dt;
+          /* v525 - the apex is a FRAME NUMBER on the clip (`apex:`) when one is set, because the
+             right frame to freeze on is something you pick by eye off the sheet, not something a
+             fraction guesses. Falls back to the release point (relFrac) when it is not set. */
+          const _ap=(A.apex!=null)?Math.max(0,Math.min(A.n-1,A.apex|0))
+                   :Math.max(0,Math.min(A.n-1,Math.round(((A.relFrac!=null)?A.relFrac:0.85)*(A.n-1))));
+          const _tail=((A.n-1)-_ap)/(A.fps||16);
+          const _rem=Math.max(u._blizzT||0,u._stormT||0);
+          if(_rem<=_tail){ const _q=Math.max(0,Math.min(1,1-(_rem/Math.max(_tail,0.001))));
+            fr=Math.max(_ap,Math.min(A.n-1,_ap+Math.round(_q*((A.n-1)-_ap)))); }
+          else { const _wu=Math.max(0.001,(_ap/(A.fps||16)));
+            fr=Math.min(_ap,Math.round((Math.min(u._ultChanT,_wu)/_wu)*_ap)); } }
         else if(st===(u._idleClip||'idle') && (u._idleHold||0)>0 && (u._idleDur||0)>0 && A.n>1){
           /* v521 - ONE FULL idle cycle fitted into the gap (pingpong counts the return leg). */
           const _ip=(A.pingpong&&A.n>1)?(2*A.n-2):A.n;
@@ -14435,7 +14457,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788915921904';
+const BUILD_ID = '1788916183895';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
