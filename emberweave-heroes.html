@@ -1565,14 +1565,17 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/veyr/veyr_passive.webp?v=21',n:48,fw:467,fh:440,cols:6,rows:8,figH:400,feet:433,cx:252,fps:24,flip:true,top:33,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,14,15,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
   },
   hollow:{
-    idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=21',n:48,fw:351,fh:412,cols:6,rows:8,figH:400,feet:406,cx:206,fps:24,flip:true,top:6,pingpong:true},
-    walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=21',n:48,fw:391,fh:537,cols:6,rows:8,figH:400,feet:523,cx:216,fps:24,flip:true,top:123,ax:[0,-1.5,-6,-13.5,-23.8,-31.5,-32.7,-35.5,-38.2,-36.1,-33.2,-31.8,-31.4,-32.5,-33.6,-35,-37.4,-39.6,-42.2,-45,-47.3,-38.8,-33.8,-36.9,-38.8,-33.8,-30.7,-29.2,-29.5,-31.2,-33.4,-36,-38.5,-40.3,-42.5,-44.6,-37.7,-27.9,-29.5,-32.9,-32.5,-28.3,-30.2,-40.6,-50.2,-57.1,-61.4,-62.9]},
-    attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=21',n:48,fw:647,fh:414,cols:6,rows:8,figH:400,feet:409,cx:339,fps:24,flip:true,top:9,ax:[0,1,-1,-240,-242,-244,-246,-248,-250,-252,-253,-253,-253,-253,-253,-253,-253,-253,-253,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-252,-251,-249,-246,-243,-240,-2,-2,-1,-1,-1]},
-    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=21',n:48,fw:472,fh:489,cols:6,rows:8,figH:400,feet:474,cx:218,fps:24,flip:true,top:74,ax:[0,0,48,31,25,-61,-189,-237,-237,-236,-236,-236,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-236,-236,-236,-236,-236,-236,-171,5,3,1,1,1,1,1]},
-    green:{u:'/assets/anim/hollow/hollow_green.webp?v=21',n:48,fw:530,fh:548,cols:6,rows:8,figH:400,feet:542,cx:296,fps:24,flip:true,top:142,ax:[0,-2,1,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235]},
-    blue:{u:'/assets/anim/hollow/hollow_blue.webp?v=21',n:48,fw:612,fh:605,cols:6,rows:8,figH:400,feet:553,cx:288,fps:24,flip:true,top:153,ax:[0,1,-25,-53,-112,-171,-244,-244,-244,-244,-244,-244,-244,104,-83,-244,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243]},
-    ult:{u:'/assets/anim/hollow/hollow_ult.webp?v=21',n:48,fw:630,fh:559,cols:6,rows:8,figH:400,feet:553,cx:352,fps:24,flip:true,top:153,ax:[0,0,1,-123,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-233,-242,-250,-250,-250,-250,-250,-250,-250,-250,-250,-250,-250]},
-    passive:{u:'/assets/anim/hollow/hollow_passive.webp?v=21',n:48,fw:349,fh:480,cols:6,rows:8,figH:400,feet:474,cx:204,fps:24,flip:true,top:74},
+    /* v541 (Phil: "hollow is way too tall when walking, also he does everything backwards"): the walk sheet stands him at 506-526 px
+       while every other sheet crouches him at ~400, but all carried figH 400, so the walk drew him 30% taller - walk figH is now
+       its real 516. And, as with Hurne, his art is not flipped in any state. */
+    idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=21',n:48,fw:351,fh:412,cols:6,rows:8,figH:400,feet:406,cx:206,fps:24,flip:false,top:6,pingpong:true},
+    walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=21',n:48,fw:391,fh:537,cols:6,rows:8,figH:516,feet:523,cx:216,fps:24,flip:false,top:123,ax:[0,-1.5,-6,-13.5,-23.8,-31.5,-32.7,-35.5,-38.2,-36.1,-33.2,-31.8,-31.4,-32.5,-33.6,-35,-37.4,-39.6,-42.2,-45,-47.3,-38.8,-33.8,-36.9,-38.8,-33.8,-30.7,-29.2,-29.5,-31.2,-33.4,-36,-38.5,-40.3,-42.5,-44.6,-37.7,-27.9,-29.5,-32.9,-32.5,-28.3,-30.2,-40.6,-50.2,-57.1,-61.4,-62.9]},
+    attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=21',n:48,fw:647,fh:414,cols:6,rows:8,figH:400,feet:409,cx:339,fps:24,flip:false,top:9,ax:[0,1,-1,-240,-242,-244,-246,-248,-250,-252,-253,-253,-253,-253,-253,-253,-253,-253,-253,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-252,-251,-249,-246,-243,-240,-2,-2,-1,-1,-1]},
+    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=21',n:48,fw:472,fh:489,cols:6,rows:8,figH:400,feet:474,cx:218,fps:24,flip:false,top:74,ax:[0,0,48,31,25,-61,-189,-237,-237,-236,-236,-236,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-236,-236,-236,-236,-236,-236,-171,5,3,1,1,1,1,1]},
+    green:{u:'/assets/anim/hollow/hollow_green.webp?v=21',n:48,fw:530,fh:548,cols:6,rows:8,figH:400,feet:542,cx:296,fps:24,flip:false,top:142,ax:[0,-2,1,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235]},
+    blue:{u:'/assets/anim/hollow/hollow_blue.webp?v=21',n:48,fw:612,fh:605,cols:6,rows:8,figH:400,feet:553,cx:288,fps:24,flip:false,top:153,ax:[0,1,-25,-53,-112,-171,-244,-244,-244,-244,-244,-244,-244,104,-83,-244,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243]},
+    ult:{u:'/assets/anim/hollow/hollow_ult.webp?v=21',n:48,fw:630,fh:559,cols:6,rows:8,figH:400,feet:553,cx:352,fps:24,flip:false,top:153,ax:[0,0,1,-123,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-233,-242,-250,-250,-250,-250,-250,-250,-250,-250,-250,-250,-250]},
+    passive:{u:'/assets/anim/hollow/hollow_passive.webp?v=21',n:48,fw:349,fh:480,cols:6,rows:8,figH:400,feet:474,cx:204,fps:24,flip:false,top:74},
     drop:{u:'/assets/anim/hollow/hollow_drop.webp?v=3',n:24,fw:218,fh:300,cols:6,rows:4,figH:254,feet:295,cx:131,fps:14,flip:false,top:4}
   },
   sprocket:{
@@ -7631,10 +7634,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     }
     if(_gated){
       const D=ULT_DEF[aiming.t.ability]||{};
-      if(mode==='target' && D.range){ // the reach ring around the caster, painted when the art is there
-        const cp=project(aiming.x,aiming.y,0.15), rpx=project(aiming.x+D.range,aiming.y,0.15), rpy=project(aiming.x,aiming.y+D.range,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));
-        if(aimGround('ring',aiming.key,aiming.x,aiming.y,D.range*2*SC*1.04,D.range*2*SC*1.04,tt*0.06,0.55+0.15*Math.sin(tt*0.9))){ }
-        else { octx.strokeStyle='rgba(255,180,90,.7)'; octx.lineWidth=2; octx.setLineDash([8,8]); octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); } }
+      /* v541 - no reach ring for the target modes: Phil specified the blood drip on the eligible enemies and a drag onto the one he wants, nothing else ("i told you what i wanted for him"). */
       const col=(mode==='target')?'255,180,90':(mode==='summon')?'201,162,39':(mode==='self')?'255,212,94':(best&&best.team!==aiming.team)?'255,180,90':'125,255,176';
       if(best){ glowUnit(best,0.95,col); const bp=project(best.x,best.y,1); octx.strokeStyle='rgb('+col+')'; octx.lineWidth=3; octx.beginPath(); octx.arc(bp.x,bp.y,22+Math.sin(tt)*3,0,7); octx.stroke(); }
       else { octx.fillStyle='#ffb347'; octx.font='bold 12px sans-serif'; octx.textAlign='center'; octx.fillText(ultBlockedReason(aiming)||'drag onto a target',ap.x,ap.y-40); }
@@ -15379,7 +15379,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788993987914';
+const BUILD_ID = '1788994127945';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
