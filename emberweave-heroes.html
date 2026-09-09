@@ -2366,7 +2366,7 @@ const KITS={
   meridian:{green:{name:'Golden Quill',type:'piercethrow',mul:1.5,width:34,cd:7,gfx:'meridian_green',gfxR:3*METER},blue:{name:'Plumb Line',type:'plumbline',mul:1.2,farBonus:0.9,cd:6,gfx:'meridian_blue',gfxR:3*METER},purple:{name:'Well-Read',pass:'momentum'}},
   tallow:{green:{name:'Coinflail',type:'cleavecone',mul:1.3,radius:3*METER,angle:70,cd:7,gfx:'tallow_green'},blue:{name:'Weigh the Debt',type:'weighdebt',mul:1.0,pct:0.35,dur:6,cd:10,gfx:'tallow_blue',gfxR:3*METER},purple:{name:'Gluttony',pass:'juggernaut'}},
   astra:{green:{name:'Starfire',type:'nova',at:'cluster',mul:1.1,radius:2.8*METER,cd:7,gfx:'astra_green'},blue:{name:'Nebula',type:'aoedot',at:'cluster',mul:0.5,dps:0.5,dur:4,radius:3*METER,cd:9,gfx:'astra_blue'},purple:{name:'Stardust',pass:'stardust'}},
-  magistrant:{green:{name:'Gag Order',type:'aoeStun',mul:1.0,stun:1.2,radius:2.6*METER,cd:10,gfx:'magistrant_green'},blue:{name:'Contempt',type:'stun',mul:1.5,stun:1.3,cd:8,gfx:'magistrant_blue',gfxR:3*METER},purple:{name:'Tireless',pass:'fury'}},
+  magistrant:{green:{name:'Gag Order',type:'aoeStun',mul:1.0,stun:1.2,silence:2.5,radius:2.6*METER,cd:10,desc:"The court is called to order: every enemy in the area is struck, held, and forbidden to cast.",gfx:'magistrant_green'},blue:{name:'Contempt',type:'stun',mul:1.5,stun:1.3,cd:8,gfx:'magistrant_blue',gfxR:3*METER},purple:{name:'Tireless',pass:'fury'}},
   vharn:{green:{name:'Comet Dash',type:'charge',mul:1.5,radius:2.4*METER,stun:0.6,cd:9,gfx:'vharn_green'},blue:{name:'Ember Cleave',type:'cleave',mul:1.6,radius:3.2*METER,cd:7},purple:{name:'Emberskin',pass:'immolate'}},
   fathom:{green:{name:'Tide Pool',type:'ashfall',dps:0.5,dur:4,radius:3*METER,slow:2,color:'#9fe0ff',cd:8,gfx:'fathom_green'},blue:{name:'Tsunami',type:'tidalsurge',mul:1.1,radius:3.4*METER,push:1.6*METER,slow:2.5,cd:10,gfx:'fathom_blue'},purple:{name:'Deep Reserves',pass:'tidereserve'}},
   lumi:{green:{name:'Dawnward',type:'dawnward',dur:3,cd:11,gfx:'lumi_green',gfxR:3*METER},blue:{name:'Quickening',type:'haste',mul:1.3,dur:5,cd:9,gfx:'lumi_blue',gfxR:3*METER},purple:{name:'Hush',pass:'hush'}},
@@ -2379,7 +2379,7 @@ const KITS={
   calypsa:{green:{name:'Tidal Ribbon',type:'piercethrow',mul:1.55,width:36,cd:6,desc:"Cuts through a line with both water sabers.",gfx:'calypsa_green'},blue:{name:'Fighting Current',type:'evadecounter',mul:1.6,dur:2.6,dr:0.6,cd:9,desc:"Dashes in place through an attack stance and gains dodge.",gfx:'calypsa_blue',gfxR:3*METER},purple:{name:'Prismatic Scales',pass:'prismscales',desc:"Dodges release a small retaliating water blade."}},
   lysara:{green:{name:'Dreamthread',type:'linkheal',mul:0.55,hot:0.022,dur:8,cd:8,desc:"Links two allies so healing and shields are shared.",gfx:'lysara_green'},blue:{name:'Moon Cocoon',type:'harmonyshield',mul:2.2,radius:3*METER,dur:6,cd:9,desc:"Wraps the weakest ally in protective dream silk.",gfx:'lysara_blue',gfxR:3*METER},purple:{name:'Powdered Slumber',pass:'slumber',desc:"Attacks gradually reduce enemy accuracy."}},
   nerisse:{green:{name:'Resonant Star',type:'silencestrike',mul:1.35,silence:2.4,cd:7,desc:"Strikes an enemy with a tuning-fork pulse that silences casting.",gfx:'nerisse_green'},blue:{name:'Drifting Constellation',type:'orbheal',mul:0.38,hot:0.022,dur:4,cd:9,desc:"Sends her star orb between allies, healing each one.",gfx:'nerisse_blue',gfxR:3*METER},purple:{name:'Pelagic Insight',pass:'pelagic',desc:"Every spell reveals the next enemy ability and grants resistance."}},
-  nox:{green:{name:'Lockpick Soul',type:'energysteal',mul:1.25,steal:30,cd:7,desc:"Hooks the highest-Energy enemy, steals part of its Energy, and creates a Skeleton Key.",gfx:'nox_green'},blue:{name:'Forbidden Key',type:'energygift',give:25,perKey:6,ultMul:1.25,dur:6,cd:9,desc:"Transfers stolen Energy to the ally nearest its Ultimate and increases that Ultimate's power.",gfx:'nox_blue',gfxR:3*METER},purple:{name:'Skeleton-Key Savant',pass:'skeletonkey',desc:"Every ability creates one Skeleton Key, up to five. At five keys the next ability is Master-Unlocked, and the keys build permanent Fortune - Dodge and critical damage."}},
+  nox:{green:{name:'Lockpick Soul',type:'energysteal',mul:1.25,steal:30,cd:7,muSilence:1.6,desc:"Hooks the highest-Energy enemy, steals part of its Energy, and creates a Skeleton Key. When Master-Unlocked, it strikes three enemies and briefly silences them.",gfx:'nox_green'},blue:{name:'Forbidden Key',type:'energygift',give:25,perKey:6,ultMul:1.25,dur:6,cd:9,muUltMul:1.5,desc:"Transfers stolen Energy to the ally nearest its Ultimate and increases that Ultimate's power. Its bonus grows with every held Skeleton Key; when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and uninterruptible.",gfx:'nox_blue',gfxR:3*METER},purple:{name:'Skeleton-Key Savant',pass:'skeletonkey',desc:"Every ability creates one Skeleton Key, up to five. At five keys the next ability is Master-Unlocked, and the keys build permanent Fortune - Dodge and critical damage."}},
   silkcoil:{green:{name:'Ribbon Fang',type:'bleedstack',mul:1.35,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,desc:"Crosses both ribbon-blades through the nearest target and applies a stacking wound.",gfx:'silkcoil_green'},blue:{name:'Hooded Feint',type:'evadecounter',mul:1.9,dur:2.4,dr:0.6,cd:9,desc:"Flares her cobra hood, evades the next attack, and immediately counters from the target's flank.",gfx:'silkcoil_blue',gfxR:3*METER},purple:{name:'Venom Rhythm',pass:'venomrhythm',desc:"Every third attack injects venom that reduces healing and energy gain."}},
   vaelora:{green:{name:'Featherfang',type:'piercethrow',mul:1.5,width:34,cd:6,desc:"Throws the ice-feather chakram through two enemies.",gfx:'vaelora_green'},blue:{name:'Whiteout Pounce',type:'evadecounter',mul:2.0,dur:2.2,dr:0.55,cd:9,desc:"Evades and counters the lowest-health enemy.",gfx:'vaelora_blue',gfxR:3*METER},purple:{name:'Silent Altitude',pass:'silentalt',desc:"Remaining untouched increases critical damage."}},
   zahri:{green:{name:'Solar Impalement',type:'shred',mul:1.6,shred:0.32,dur:5,cd:6,desc:"Pierces the nearest enemy and reduces its armor."},blue:{name:'Mirage Herd',type:'mirage',pct:0.20,eva:0.18,dur:3.5,cd:9,desc:"Creates mirage copies that absorb attacks."},purple:{name:'Desert Momentum',pass:'desertmom',desc:"Moving or attacking builds speed and penetration."}},
@@ -2664,6 +2664,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'shred': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% armour';
     case 'mrshred': return '✨ '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% resist';
     case 'knockstun': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+(ab.stun||1)+'s stun + knockback';
+    case 'aoeStun': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+(ab.stun||2)+'s stun'+(ab.silence?' + '+ab.silence+'s silence':'');
     case 'evadecounter': return '🌀 evade + ⚔ '+Math.round(atk*(ab.mul||1.8)*sm)+' counter';
     case 'interruptslam': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + interrupt';
     case 'banner': return '🛡 team +'+Math.round((1-(ab.dr||0.82))*100)+'% DR · ⚡ +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
@@ -3479,6 +3480,14 @@ function clipDur(A){ if(!A) return 0; const st=(A.pingpong&&A.n>1)?(2*A.n-2):A.n
    stomping it - the same way two skills off cooldown play one after the other.
    RENDER ONLY. The passive's effect has already been applied by the caller; this decides
    nothing about when it lands, only when its clip is seen. */
+/* v529 Skeleton-Key Savant. Five keys Master-Unlock the NEXT ability and are consumed by it -
+   the passive tick only ever announced it, so nothing was ever spent and no ability changed. */
+function noxSpendKeys(u){ if(!(u&&u.pass&&u.pass.skeletonkey)) return false;
+  if((u._keys||0)<5) return false;
+  u._keys=0; u._masterT=0;
+  try{ ringBurst(u.x,u.y,0xc9a6ff,20); }catch(e){}
+  floatTexts.push({x:u.x,y:u.y-20,txt:'MASTER-UNLOCKED',t:1.3,color:'#c9a6ff',vy:1,sz:13});
+  return true; }
 function firePassiveClip(o,hold){
   if(!(o&&o.anim&&o.anim.passive)) return;
   o._passFired=true;                                   // v522: a timed passive is never idle filler
@@ -4552,7 +4561,12 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
       enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');abilShot(u,o,e,'#5ee89b');});break;}
-    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);}});burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
+    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);
+      /* v529 - an aoeStun may also SILENCE. The Magistrant's "Gag Order" was a plain stun: the name
+         promised a silencing and the panel just said "slams an area". */
+      if(o.silence){ e.silencedT=Math.max(e.silencedT||0,o.silence); e._castT=0; e.castAnim=0; }}});
+      if(o.silence)floatTexts.push({x:ctr.x,y:ctr.y-16,txt:'ORDER',t:1.0,color:'#8fd0ff',vy:1,sz:12});
+      burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
     case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'monkSlam':{ const ctr=u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to EVERY enemy within 15 m of KonWu himself (Phil); a phantom Ruyi slams each
       let di=0; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||15*METER)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); e.stunned=Math.max(e.stunned||0,o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
@@ -4856,23 +4870,39 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       ringBurst(best.x,best.y,0xff9a6a,12); break; }
 
     case 'energysteal':{                                            // "hooks the highest-Energy enemy, steals part of its Energy"
-      let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; if((e.energy||0)>bv){bv=e.energy||0;best=e;} });
-      if(!best)break;
-      dealDamage(u,best,dB*(o.mul||1.2)*rm,o.color||'#c9a6ff');
-      const take=Math.min(best.energy||0,o.steal||30); best.energy=Math.max(0,(best.energy||0)-take);
-      u.energy=Math.min(100,(u.energy||0)+take*(o.keep||1));
-      floatTexts.push({x:best.x,y:best.y-8,txt:'−'+Math.round(take)+' energy',t:.9,color:'#c9a6ff',vy:1.2,sz:11});
-      u._keys=Math.min(o.maxKeys||5,(u._keys||0)+1);
-      ringBurst(u.x,u.y,0x6b3f8f,10); break; }
+      /* v529 - the Master-Unlock is now SPENT, not just announced. Phil's pack line: "When
+         Master-Unlocked, it strikes three enemies and briefly silences them." */
+      const _mu=noxSpendKeys(u);
+      const _picks=[]; const _foes=enemiesOf(u).filter(e=>e.alive).sort((a,b)=>(b.energy||0)-(a.energy||0));
+      if(!_foes.length)break;
+      _picks.push(_foes[0]); if(_mu){ for(let i=1;i<_foes.length&&_picks.length<3;i++) _picks.push(_foes[i]); }
+      let _tot=0;
+      _picks.forEach(best=>{
+        dealDamage(u,best,dB*(o.mul||1.2)*rm,o.color||'#c9a6ff');
+        const take=Math.min(best.energy||0,o.steal||30); best.energy=Math.max(0,(best.energy||0)-take); _tot+=take;
+        if(_mu){ best.silencedT=Math.max(best.silencedT||0,o.muSilence||1.6); best._castT=0; best.castAnim=0; }
+        floatTexts.push({x:best.x,y:best.y-8,txt:'−'+Math.round(take)+' energy',t:.9,color:'#c9a6ff',vy:1.2,sz:11}); });
+      u.energy=Math.min(100,(u.energy||0)+_tot*(o.keep||1));
+      if(!_mu) u._keys=Math.min(o.maxKeys||5,(u._keys||0)+1);
+      ringBurst(u.x,u.y,0x6b3f8f,_mu?18:10); break; }
 
     case 'energygift':{                                             // "transfers stolen Energy to the ally nearest its Ultimate"
       let best=null,bv=-1; alliesOf(u).forEach(a=>{ if(!a.alive||a===u)return; if((a.energy||0)>bv){bv=a.energy||0;best=a;} });
       if(!best)break;
-      const give=(o.give||25)+(o.perKey||6)*(u._keys||0);
-      best.energy=Math.min(100,(best.energy||0)+give);
-      best.dmgBuffMul=Math.max(best.dmgBuffMul||1,o.ultMul||1.25); best.dmgBuffT=Math.max(best.dmgBuffT||0,o.dur||6);
-      floatTexts.push({x:best.x,y:best.y-16,txt:'+'+Math.round(give)+' energy',t:1.0,color:'#f4c35f',vy:1,sz:12});
-      u._keys=Math.min(o.maxKeys||5,(u._keys||0)+1);
+      /* v529 - "when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and
+         uninterruptible." The keys are counted BEFORE they are spent, so the bonus still scales. */
+      const _held=(u._keys||0), _mu=noxSpendKeys(u);
+      const give=(o.give||25)+(o.perKey||6)*_held;
+      best.energy=Math.min(100,(best.energy||0)+(_mu?100:give));
+      best.dmgBuffMul=Math.max(best.dmgBuffMul||1,_mu?(o.muUltMul||1.5):(o.ultMul||1.25));
+      best.dmgBuffT=Math.max(best.dmgBuffT||0,o.dur||6);
+      best._buffedT=0.5;
+      if(_mu){ best.ctrlRes=Math.min(0.95,(best.ctrlRes||0)+0.6); best._ctrlBonus=0.6; best._ctrlBonusT=o.dur||6;
+        best.stunned=0; best.fearT=0; best.silencedT=0;
+        ringBurst(best.x,best.y,0xf4c35f,22);
+        floatTexts.push({x:best.x,y:best.y-24,txt:'UNINTERRUPTIBLE',t:1.3,color:'#f4c35f',vy:1,sz:12}); }
+      else u._keys=Math.min(o.maxKeys||5,(u._keys||0)+1);
+      floatTexts.push({x:best.x,y:best.y-16,txt:'+'+Math.round(_mu?100:give)+' energy',t:1.0,color:'#f4c35f',vy:1,sz:12});
       burstAt(best.x,best.y,0xf4c35f,14); break; }
 
     case 'silencestrike':{ if(!tgt)break;                           // "a pulse that silences casting"
@@ -4992,14 +5022,16 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       floatTexts.push({x:u.x,y:u.y-18,txt:'QUEEN OF QUIET WINGS',t:1.4,color:'#b9a6e0',vy:1,sz:13}); break; }
 
     case 'openeverydoor':{                                          // ULT: "locks and suspends every enemy, steals Energy, then shatters the locks"
+      const _mu=noxSpendKeys(u);   // v529: "when Master-Unlocked, the locks cannot be resisted and allied Ultimates are empowered"
       let pool=0;
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
-        const lock=(o.lock||1.6)*(u._keys>=5?1:(1-(e.ctrlRes||0)));
+        const lock=(o.lock||1.6)*(_mu?1:(1-(e.ctrlRes||0)));
         e.stunned=Math.max(e.stunned||0,lock); e.silencedT=Math.max(e.silencedT||0,lock);
         const take=Math.min(e.energy||0,o.steal||35); e.energy=Math.max(0,(e.energy||0)-take); pool+=take;
         ringBurst(e.x,e.y,0x6b3f8f,12); });
       enemiesOf(u).forEach(e=>{ if(!e.alive)return; dealDamage(u,e,(u.apow||u.dmg)*(o.mul||0.9)*sm*(1+pool/100)*rm,'#c9a6ff','magic'); });
-      alliesOf(u).forEach(a=>{ if(!a.alive||a===u)return; a.energy=Math.min(100,(a.energy||0)+pool*(o.share||0.25)); });
+      alliesOf(u).forEach(a=>{ if(!a.alive||a===u)return; a.energy=Math.min(100,(a.energy||0)+pool*(o.share||0.25));
+        if(_mu){ a.dmgBuffMul=Math.max(a.dmgBuffMul||1,1.35); a.dmgBuffT=Math.max(a.dmgBuffT||0,8); a._buffedT=0.5; burstAt(a.x,a.y,0xf4c35f,10); } });
       u._keys=Math.min(5,(u._keys||0)+3);
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.25);
       floatTexts.push({x:u.x,y:u.y-18,txt:'OPEN EVERY DOOR',t:1.4,color:'#c9a6ff',vy:1,sz:13}); break; }
@@ -6855,8 +6887,8 @@ function updateBattle(dt){
         ringBurst(u.x,u.y,0x6fb7c9,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#6fb7c9',vy:1}); } }
     // Skeleton-Key Savant (Nox): keys accumulate, and the fifth unlocks the next ability outright.
     if(u.pass.skeletonkey){ if((u._keys||0)>=5 && !u._masterT){ u._masterT=1;
-        u.critDmg=(u.critDmg||0.6)+0.05; u.evaStat=Math.min(0.5,(u.evaStat||0)+0.03);
-        floatTexts.push({x:u.x,y:u.y-12,txt:'MASTER-UNLOCKED',t:1.2,color:'#c9a6ff',vy:1,sz:12}); ringBurst(u.x,u.y,0x6b3f8f,16); } }
+        u.critDmg=(u.critDmg||0.6)+0.05; u.evaStat=Math.min(0.5,(u.evaStat||0)+0.03);   // permanent Fortune
+        floatTexts.push({x:u.x,y:u.y-12,txt:'5 KEYS',t:1.0,color:'#c9a6ff',vy:1,sz:12}); ringBurst(u.x,u.y,0x6b3f8f,16); } }
     if(u.pass.wrath){ if(u._baseDmg==null)u._baseDmg=u.dmg; u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
     /* v528 Desert Momentum (Zahri): his pack line is "speed AND penetration" - the borrowed
        `momentum` passive only ever gave attack speed, so the readout and the sentence disagreed. */
@@ -15111,7 +15143,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788921146277';
+const BUILD_ID = '1788922408501';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
