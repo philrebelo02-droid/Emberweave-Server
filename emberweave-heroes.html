@@ -3906,7 +3906,7 @@ const SUMMON_SCALE={'boar warrior':{hp:0.55,dmg:0.50,armor:120,mr:60},
                     'boar shaman':{hp:0.42,dmg:0.30,apow:0.55,armor:70,mr:110}};
 // Packmaster: every beast that goes down sends its soul back to Hurne. Play his passive clip.
 function _soulHome(p){ const o=p&&p._summonOwner; if(!o||!o.alive)return;
-  if(o.anim&&o.anim.passive){ o._abilPri=2; o._abilAnim='passive'; o._abilHold=(o.anim.passive.n/(o.anim.passive.fps||12)); }
+  if(o.anim&&o.anim.passive){ o._abilPri=2; o._abilAnim='passive'; o._abilHold=(o.anim.passive.n/(o.anim.passive.fps||12)); o._passFired=true;   /* v522: an EVENT-driven passive - never reuse this clip as idle filler */ }
   try{ burstAt(o.x,o.y,0x8fd08f,12); floatTexts.push({x:o.x,y:o.y-18,txt:'RETURNED',t:1.0,color:'#8fd08f',vy:1,sz:11}); }catch(e){} }
 function killSummon(p){ if(!p||!p.alive)return; p.hp=0; p.alive=false; p.deathT=0;
   try{ _soulHome(p); }catch(e){}
@@ -4088,7 +4088,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||'phys';   // v247
   if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=4;
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
-    if(tgt.anim&&tgt.anim.passive){ tgt._abilPri=2; tgt._abilAnim='passive'; tgt._abilHold=(tgt.anim.passive.n/(tgt.anim.passive.fps||12)); }
+    if(tgt.anim&&tgt.anim.passive){ tgt._abilPri=2; tgt._abilAnim='passive'; tgt._abilHold=(tgt.anim.passive.n/(tgt.anim.passive.fps||12)); tgt._passFired=true;   /* v522: an EVENT-driven passive - never reuse this clip as idle filler */ }
     return; }
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
   if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
@@ -5451,7 +5451,7 @@ function think(u,dt){
      included (Phil, asked directly: "yes if someone is stunned during their ult, its interrupted"). */
   if((u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)){
     u._animLockT=0; u._lockPri=0; u._abilHold=0; u._atkHold=0; u._hitHold=0;
-    u._idleHold=0; u._idleFrozen=false; }
+    u._idleHold=0; u._idleFrozen=false; u._idleClip=null; }
   /* SILENCE is NOT hard CC (Phil, 8 Sep): "silence only cuts short Skills and ult". It takes the
      casting away, so a skill or an ult already in flight stops — but an auto attack, a walk, a
      flinch or an idle is untouched and plays to its end. Before v520 silence cleared the lock
@@ -5532,7 +5532,7 @@ function think(u,dt){
         if(u.pass&&u.pass.darkconv&&t.alive){ const pm=(u.passMul||1);
           pushDot(t,(u.dmg*0.10+(u.apow||0)*0.05)*pm,2,0.5,'#7a3fb0');
           u._dcN=((u._dcN||0)+1)%3; if(u._dcN===0){ u.energy=Math.min(100,u.energy+5*pm); ringBurst(t.x,t.y,0x4a2a8a,12); burstAt(t.x,t.y,0x7a3fb0,8);
-            if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=Math.min(1.2,u.anim.passive.n/(u.anim.passive.fps||12)); } } }
+            if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=Math.min(1.2,u.anim.passive.n/(u.anim.passive.fps||12)); u._passFired=true;   /* v522: an EVENT-driven passive - never reuse this clip as idle filler */ } } }
         /* v410 (Phil, on Lumi's new attack clip): "the moment her arm and finger fully extends is the
            moment the nature ball goes out." A caster's clip spends its first half winding up, so a
            ball thrown on frame 0 leaves before she has pointed at anything. The ball is released on
@@ -6202,7 +6202,7 @@ function updateBattle(dt){
         /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
-        if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=(u.anim.passive.n/(u.anim.passive.fps||12)); }
+        if(u.anim&&u.anim.passive){ u._abilPri=2; u._abilAnim='passive'; u._abilHold=(u.anim.passive.n/(u.anim.passive.fps||12)); u._passFired=true;   /* v522: an EVENT-driven passive - never reuse this clip as idle filler */ }
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; if(u._uwT>=5){ u._uwT-=5;
@@ -6359,18 +6359,44 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              clip/gap  > 2.5   -> do not start one at all; hold the frame (never half an idle)
            The gap is the soonest KNOWN next action: the swing timer and the two skill cooldowns.
            An ult is player-fired and unknowable, which is fine - the ult cuts idle anyway. */
-        const _IDLE_MAX_RATE=2.5;
-        const _idleA=u.anim&&u.anim.idle, _idleD=_idleA?clipDur(_idleA):0;
+        /* v522 - Phil: "sometimes she pauses too long, if its longer than 1 second between
+           attack/skill she should sneak an idle or passive in". So a gap over a second must
+           never be spent standing still: idle is tried first, the passive flourish is the
+           shorter fallback for a gap idle cannot fit, and only then is a speed-up past the
+           comfortable cap allowed. Under a second a held frame reads as a beat, not a freeze. */
+        const _IDLE_MAX_RATE=2.5;    // comfortable speed-up
+        const _IDLE_PUSH_RATE=3.5;   // only to avoid standing still for more than a second
+        const _IDLE_MIN_GAP=1.0;     // Phil's threshold, in seconds
         const _wouldIdle=!_ultActive && !abilActive && !(u._hitHold>0) && !walking && !(u._atkHold>0);
         if(_ultActive || (u._hitHold>0) || walking){ u._idleHold=0; u._idleFrozen=false; }
         else if((u._idleHold||0)>0){ u._idleHold=Math.max(0,u._idleHold-dt); }
-        else if(_wouldIdle && _idleD>0){
+        else if(_wouldIdle){
+          /* v522 - Phil: "maybe for heroes like sylthaine that has no timed passive, it should
+             alternate with idle". A hero whose passive clip is fired by an EVENT (Hurne, Hollow,
+             and anyone who sets _passFired) keeps that clip meaningful - it is never used as
+             filler. For everyone else the passive is just a second resting flourish, so the gap
+             alternates between it and the idle instead of playing the same idle every time. */
+          const _passFree=!u._passFired && !!(u.anim&&u.anim.passive);
+          const _cand=[];
+          if(u.anim&&u.anim.idle)    _cand.push(['idle',    clipDur(u.anim.idle)]);
+          if(_passFree)              _cand.push(['passive', clipDur(u.anim.passive)]);
           let T=Infinity;
           if(u.target) T=Math.min(T,Math.max(0,u.atkCd||0));
           if(u.greenAb) T=Math.min(T,Math.max(0,u.greenCd||0));
           if(u.blueAb)  T=Math.min(T,Math.max(0,u.blueCd||0));
-          if(!isFinite(T) || T>=_idleD){ u._idleDur=_idleD; u._idleHold=_idleD; u._idleFrozen=false; }
-          else if(_idleD/Math.max(T,0.001) <= _IDLE_MAX_RATE){ const F=T*0.95; u._idleDur=F; u._idleHold=F; u._idleFrozen=false; }
+          const _F=isFinite(T)?Math.max(0,T)*0.95:Infinity;
+          let _pick=null;
+          const _fits=_cand.filter(c=>c[1]>0 && c[1]/Math.max(_F,0.001)<=_IDLE_MAX_RATE);
+          const _want=(_passFree && u._idleClip==='idle') ? 'passive' : 'idle';   // alternate
+          _pick=_fits.filter(c=>c[0]===_want)[0] || _fits.filter(c=>c[0]==='idle')[0]
+             || _fits.sort((a,b)=>b[1]-a[1])[0] || null;
+          if(!_pick && isFinite(_F) && T>_IDLE_MIN_GAP){
+            // nothing fits comfortably, but a second of standing still is worse than a fast clip
+            const _cheap=_cand.filter(c=>c[1]>0).sort((a,b)=>a[1]-b[1])[0];
+            if(_cheap && _cheap[1]/Math.max(_F,0.001)<=_IDLE_PUSH_RATE) _pick=_cheap;
+          }
+          if(_pick){ const _d=Math.min(_pick[1], isFinite(_F)?_F:_pick[1]);
+            u._idleClip=_pick[0]; u._idleDur=_d; u._idleHold=_d; u._idleFrozen=false; }
           else u._idleFrozen=true;
         }
         else u._idleFrozen=false;
@@ -6383,7 +6409,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
                : ((u._hitHold>0) ? 'hit'
                : (walking ? 'walk'
                : (abilActive ? u._abilAnim
-               : (((u._idleHold||0)>0) ? 'idle'
+               : (((u._idleHold||0)>0) ? (u._idleClip||'idle')
                : ((u._atkHold>0) ? _atkSt : 'idle'))))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
         if(rising) st='rise';
@@ -6428,7 +6454,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
           const prog=1-Math.max(0,Math.min(1,u._riseT/(u._riseMax||(12/14))));
           fr=Math.max(0,Math.min(A.n-1,Math.floor(prog*A.n))); }
-        else if(st==='idle' && (u._idleHold||0)>0 && (u._idleDur||0)>0 && A.n>1){
+        else if(st===(u._idleClip||'idle') && (u._idleHold||0)>0 && (u._idleDur||0)>0 && A.n>1){
           /* v521 - ONE FULL idle cycle fitted into the gap (pingpong counts the return leg). */
           const _ip=(A.pingpong&&A.n>1)?(2*A.n-2):A.n;
           const _iq=Math.max(0,Math.min(0.999,1-(u._idleHold/u._idleDur)));
@@ -14373,7 +14399,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788914952209';
+const BUILD_ID = '1788915387188';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
