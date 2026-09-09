@@ -2395,9 +2395,32 @@ function _keyAimTex(im,white){ try{ const c=document.createElement('canvas'); c.
       if(white){ const a=255-Math.min(r,g,b); q[i+3]=a; if(a>0&&a<255){ q[i]=Math.min(255,Math.round((r-(255-a))*255/a)); q[i+1]=Math.min(255,Math.round((g-(255-a))*255/a)); q[i+2]=Math.min(255,Math.round((b-(255-a))*255/a)); } }
       else { const a=Math.max(r,g,b); q[i+3]=a; if(a>0&&a<255){ q[i]=Math.min(255,Math.round(r*255/a)); q[i+1]=Math.min(255,Math.round(g*255/a)); q[i+2]=Math.min(255,Math.round(b*255/a)); } } }
     x.putImageData(d,0,0); return c; }catch(e){ return im; } }
+/* v543 (Phil, 9 Sep, screenshot of the pale ring under Cathedral: "i need ult plates that differ in color per hero. void hero
+   purple circle, ice blue, fire red", "same for line aimed ults and cones"). Every aim texture - ring, cone, lane - is TINTED
+   to the hero's colour: the keyed painting is reduced to its light intensity and re-lit in the tint, the hottest core kept
+   near white so the painting's depth survives. The tint is HERO_AIM_TINT[hero] when set (the elements Phil named), else the
+   hero's own roster colour lifted to a readable brightness. The blood drip is never tinted. One tinted canvas per
+   texture+colour, built once. */
+const HERO_AIM_TINT={ vulmar:'#7a30ff', umbris:'#7a30ff', voidweaver:'#7a30ff', nox:'#8a30f0', vex:'#8a30e8', vharn:'#7a30ff', hollow:'#8040e0', veyr:'#6a40f0', cardwraith:'#8a50e0',   // void - purple
+  sylthaine:'#30a0ff', vaelora:'#50b0ff', nerisse:'#2090ff', calypsa:'#2098ff', orryn:'#2090d0', fathom:'#2088b0', astra:'#30d0d0',   // ice / water - blue
+  pyroclast:'#ff3010', carn:'#ff2020', lastfurnace:'#ff4010', kilnmask:'#ff5018', threadseer:'#ff4020', corsair:'#ff3020',   // fire - red
+  lumi:'#ffd040', cathedral:'#ffc040', dawnbringer:'#ffb800', aureth:'#ffb000', meridian:'#ffb830', zahri:'#ffa800', beekeeper:'#ffb000',   // sun / gold
+  fritz:'#ffffff', stormwarden:'#ffffff',   // electric - white
+  deepcleft:'#a0501a', hurne:'#a0501a', grosk:'#a0501a', ironcoil:'#a0501a', greatbrow:'#a0501a', pellucid:'#a0501a', chainwheel:'#a0501a', konwu:'#a0501a',   // earth - brown
+  tallow:'#e0b040', waxenduchess:'#f0d060', librarian:'#4060e0', magistrant:'#6070c0', arrears:'#7080c0', vael:'#8090d0' };
+function heroAimTint(hero){ if(!hero) return null; if(HERO_AIM_TINT[hero]) return HERO_AIM_TINT[hero];
+  const t=HERO_TYPES[hero]; if(!t||t.color==null) return null; let r=(t.color>>16)&255,g=(t.color>>8)&255,b=t.color&255;
+  const mx=Math.max(r,g,b,1); if(mx<176){ const k=176/mx; r=Math.min(255,r*k); g=Math.min(255,g*k); b=Math.min(255,b*k); }
+  return '#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join(''); }
+function _tintAimTex(src,tint){ try{ const c=document.createElement('canvas'); c.width=src.width; c.height=src.height; const x=c.getContext('2d'); x.drawImage(src,0,0);
+    const d=x.getImageData(0,0,c.width,c.height), q=d.data; const tr=parseInt(tint.slice(1,3),16),tg=parseInt(tint.slice(3,5),16),tb=parseInt(tint.slice(5,7),16);
+    for(let i=0;i<q.length;i+=4){ if(!q[i+3]) continue; const I=q[i+3]/255, w=0.35*I*I*I*I;   // after keying the light's intensity IS the alpha; w: only the hottest core leans white (additive over a bright field whitens fast, so the tint stays deep)
+      q[i]=Math.round(tr*(1-w)+255*w); q[i+1]=Math.round(tg*(1-w)+255*w); q[i+2]=Math.round(tb*(1-w)+255*w); }
+    x.putImageData(d,0,0); return c; }catch(e){ return src; } }
 function aimArt(kind,hero){ const url=(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind])||AIM_ART[kind]; if(!url) return null;
   let im=_aimImg[url]; if(im===undefined){ im=new Image(); im._ok=false; im.crossOrigin='anonymous'; im.onload=()=>{ im._keyed=_keyAimTex(im,kind==='blood'); im._ok=true; }; im.onerror=()=>{ im._ok=false; }; im.src=url; _aimImg[url]=im; }
-  if(im&&im._ok) return im._keyed||im;
+  if(im&&im._ok){ const base=im._keyed||im; const tint=(kind!=='blood')?heroAimTint(hero):null; if(!tint) return base;
+    im._tints=im._tints||{}; if(!im._tints[tint]) im._tints[tint]=_tintAimTex(base,tint); return im._tints[tint]; }
   if(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind]&&AIM_ART[kind]) return aimArt(kind,null);   // hero art still loading: generic meanwhile
   return null; }
 /* v540 (Phil: "the ult aim should be a layer below heroes"). The painted aim art is no longer drawn on the 2D overlay (which
@@ -2415,7 +2438,7 @@ function aimGround(kind,hero,fx,fy,sx,sz,spin,alpha,scrollV){ if(typeof TH==='un
   if(scrollV!=null){ m.material.map.offset.y=scrollV; }
   return true; }
 function aimGroundHide(){ for(const k in _aimMesh) _aimMesh[k].visible=false; }
-function preloadAimArt(){ for(const k in AIM_ART) aimArt(k); try{ (G.team||[]).forEach(h=>{ const a=HERO_AIM_ART[h]; if(a) for(const k in a) aimArt(k,h); }); }catch(e){} }
+function preloadAimArt(){ for(const k in AIM_ART) aimArt(k); try{ (G.team||[]).forEach(h=>{ const a=HERO_AIM_ART[h]; if(a) for(const k in a) aimArt(k,h); for(const k in AIM_ART) aimArt(k,h); }); }catch(e){} }   // v543: also builds each squad hero's tinted copies once the generic art is in
 function ultAimMode(ab){ return ULT_ALLY_RADIUS.includes(ab)?'allyradius':ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':ULT_ALLY_TARGET.includes(ab)?'ally':ULT_ANY_TARGET.includes(ab)?'any':ULT_SELF.includes(ab)?'self':ULT_SUMMON.includes(ab)?'summon':'none'; }
 /* v538 - what an aimed ult may be released on, and whether it can be activated at all right now. */
 function ultTargetOK(u,ab,o){ const mode=ultAimMode(ab), D=ULT_DEF[ab]||{}; if(!o||!o.alive) return false;
@@ -4867,13 +4890,26 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
         floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'STUNG',t:.9,color:'#f2d84a',vy:1,sz:12}); } break; }
     // ---- Hurne: three undead boar warriors haul themselves up out of the floor ----
     case 'summonwarriors':{ const n=o.n||3, dur=o.dur||18;
-      for(let i=0;i<n;i++){ const a=(-0.6+1.2*(i/(n-1||1))) + (u.team==='ally'?0:Math.PI);
-        summonUnit(u,o.key||'boar warrior',dur,{a:a,r:(o.radius||1.7*METER)}); }
-      ringBurst(u.x,u.y,0x6b5230,22);
-      if(!o.key) floatTexts.push({x:u.x,y:u.y-14,txt:'UP, THE LOT OF YOU',t:1.2,color:'#c9a227',vy:1,sz:13}); break; }
+      /* v542 (Phil): "make sure the boar warriors for hurne are not summoned until the part of his ability animation where he
+         puts his hands to the ground" - frame 24 of 48 on his green (1.0 s at 24 fps). The rise is fused to that frame; a
+         caster without the clip (or a monster copy) summons at once as before. */
+      const _gc=u.anim&&u.anim.green, _at=(_gc&&_gc.n>1)?((o.groundFrame!=null?o.groundFrame:24)/(_gc.fps||24))*BATTLE_PACE:0;
+      const _go=()=>{ if(!u.alive) return;
+        for(let i=0;i<n;i++){ const a=(-0.6+1.2*(i/(n-1||1))) + (u.team==='ally'?0:Math.PI);
+          summonUnit(u,o.key||'boar warrior',dur,{a:a,r:(o.radius||1.7*METER)}); }
+        ringBurst(u.x,u.y,0x6b5230,22);
+        if(!o.key) floatTexts.push({x:u.x,y:u.y-14,txt:'UP, THE LOT OF YOU',t:1.2,color:'#c9a227',vy:1,sz:13}); };
+      if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
+      break; }
     // ---- Hurne: one boar shaman — mends the pack, and burns whatever stands near it ----
-    case 'summonshaman':{ const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER)});
-      if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:'BONE CHANT',t:1.1,color:'#8fbf3f',vy:1,sz:12}); }
+    case 'summonshaman':{
+      /* v542 (Phil): "same for his boar shaman, make sure he only summons them when his hand closes" - frame 15 of 48 on his
+         blue (the open hand clenches at 13-16). Fused to that frame; the Librarian (his own clip) and anyone without the clip
+         summon at once as before. */
+      const _bc=(u.key==='hurne')?(u.anim&&u.anim.blue):null, _at=(_bc&&_bc.n>1)?((o.handFrame!=null?o.handFrame:15)/(_bc.fps||24))*BATTLE_PACE:0;
+      const _go=()=>{ if(!u.alive) return; const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER)});
+        if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:'BONE CHANT',t:1.1,color:'#8fbf3f',vy:1,sz:12}); } };
+      if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
       break; }
     // ---- Hurne ULT: he tears the whole pack apart and takes it into himself ----
     case 'devourpack':{ const pack=units.filter(x=>x.alive&&x._summonOwner===u);
@@ -5431,12 +5467,27 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
     floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); }
   else floatTexts.push({x:c.x,y:c.y-8,txt:'wax x'+c._wax,t:.7,color:'#e8d8b0',vy:1,sz:10}); }
+/* v542 — how long the hero's ULT CLIP runs, read from BATTLE_ANIM DATA and never from u.anim: only the renderer
+   attaches u.anim (buildFigure), and the server's verdict replays this same code with no meshes, so a root read off
+   u.anim would run for the clip on the player's screen and for the bare cast time in the verdict — the v408 split.
+   Mirrors doEffect's slot-aware pick exactly: the hero's own ult sheet, else ABIL_ANIM's state, else a monster's cast,
+   else the attack clip as the stand-in (held at least 0.55 s). */
+function ultClipDur(u){ const set=BATTLE_ANIM[u.key]; if(!set||!heroHasAnim(u.key)) return 0;
+  const has=st=>!!(st&&set[st]&&isAssetRef(set[st].u));
+  const type=u.abilityOverride||u.t.ability, aa=ABIL_ANIM[type];
+  let st=has('ult')?'ult':((aa&&has(aa.st))?aa.st:null), fb=false;
+  if(!st && u.t && u.t.monster && has('cast')) st='cast';
+  if(!st && has('attack')){ st='attack'; fb=true; }
+  if(!st) return 0;
+  const A=set[st], once=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10);
+  return fb?Math.max(once,0.55):once; }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   try{ waxOnCaster(u); }catch(e){}
   u._animLockT=0;   // the ult outranks everything: it is the one action allowed to cut a clip short
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
+  u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
   u._ultChanT=0;   // v525: clock for the wind-up / hold-at-apex / return of a CHANNELLED ult
   u.energy=0;u.castAnim=Math.max(.5,_ct);floatTexts.push({x:u.x,y:u.y,txt:u.t.abilityName,t:1.25,color:'#ffd45e',vy:1.1,sz:14,label:true});if(u.team==='ally')screenFlash=.3;   // v253: plated ability label, anchored above the caster
 }
@@ -6160,14 +6211,14 @@ function think(u,dt){
   /* HARD CC — stun, fear, knock-up/knockback (_airT) and the pull cut ANY clip, the ult channel
      included (Phil, asked directly: "yes if someone is stunned during their ult, its interrupted"). */
   if((u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)){
-    u._animLockT=0; u._lockPri=0; u._abilHold=0; u._atkHold=0; u._hitHold=0;
+    u._animLockT=0; u._lockPri=0; u._abilHold=0; u._atkHold=0; u._hitHold=0; u._ultRootT=0;
     u._idleHold=0; u._idleFrozen=false; u._idleClip=null; u._qPass=0; }
   /* SILENCE is NOT hard CC (Phil, 8 Sep): "silence only cuts short Skills and ult". It takes the
      casting away, so a skill or an ult already in flight stops — but an auto attack, a walk, a
      flinch or an idle is untouched and plays to its end. Before v520 silence cleared the lock
      outright and cut all of those too. _lockPri: 6 ult, 4 skill, 2 hit, 1 attack. */
   else if((u.silencedT||0)>0 && (u._lockPri|0)>=4){
-    u._animLockT=0; u._lockPri=0; u._abilHold=0; }
+    u._animLockT=0; u._lockPri=0; u._abilHold=0; u._ultRootT=0; }
   else if((u._animLockT||0)>0) u._animLockT-=dt;
   /* v524 - a timed passive that fired behind a skill or ult plays as soon as the lock frees. */
   if((u._qPass||0)>0 && (u._animLockT||0)<=0 && (u._abilHold||0)<=0){
@@ -6214,7 +6265,7 @@ function think(u,dt){
   /* Rewrite the Pattern reads this: one health sample every half-second, five seconds deep */
   u._hpSampT=(u._hpSampT||0)-dt;
   if(u._hpSampT<=0){ u._hpSampT=0.5; (u._hpHist=u._hpHist||[]).push(u.hp); if(u._hpHist.length>10) u._hpHist.shift(); }
-  if(u._castT>0)u._castT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
+  if(u._castT>0)u._castT-=dt; if((u._ultRootT||0)>0)u._ultRootT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
   // The Space He Isn't In recharges on a plain 4s timer, so the miss is banked, never rolled.
   if(u.pass&&u.pass.notthere){ if(u._ntReady===undefined){ u._ntReady=true; u._ntCd=0; }
     else if(!u._ntReady){ u._ntCd=(u._ntCd||0)-dt; if(u._ntCd<=0){ u._ntReady=true;
@@ -6235,6 +6286,13 @@ function think(u,dt){
       ringBurst(sx,sy,0xf2d84a,14); for(let i=0;i<3;i++){ const a=Math.random()*6.28, d=Math.random()*R; burstAt(sx+Math.cos(a)*d,sy+Math.sin(a)*d,0xfff0a0,3); } }
     return; }   // rooted: cannot auto-attack or cast during the channel (Static Veil grants 30% dodge throughout)
   if(u.slow>0)u.slow-=dt; const spd=u.speed*(u.slow>0?0.55:1)*MOVE_MUL;   // v309: +20% travel to match the stride
+  /* v542 (Phil, 9 Sep): "while a heroes ult animation is going on, they cannot use other animations including walk
+     — unless CC'd then it breaks animation — since they cannot walk animation it also means they cannot move
+     physically". The ULT CLIP ROOTS THE HERO: no step, no swing, no skill until the clip has played out (the lock
+     is _ultRootT, set by castAbility from BATTLE_ANIM data — see ultClipDur). Hard CC clears it above and is the one way out. The ult's
+     OWN movement (Zahri's stampede run, a charge hop, Hollow's vanish) is driven by the ult, not by this walk, and
+     is untouched. Safe for the server verdict: sim-host replays this same code, so both sides root together. */
+  const _ultRoot=((u._ultRootT||0)>0);
   const silenced=(u.silencedT||0)>0;   // silenced (Grosk): can't use ANY ability — only auto-attack
   // ultimate (energy): enemies + AUTO auto-fire; player fires (and aims) via portrait
   if(!silenced && !u.t.monster && (u._castT||0)<=0 && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
@@ -6243,8 +6301,8 @@ function think(u,dt){
       else if(u.t.ability==='rally'){if(units.some(o=>o.alive&&o.team===u.team&&o.energy<60)){castAbility(u);return;}}
       else if(u.target){castAbility(u);}}}   // the ult is the ONE action allowed to cut a clip short (castAbility clears the lock)
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
-  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
-  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
+  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
+  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   const t=u.target;if(!t)return;const d=dist(u,t);
@@ -6254,7 +6312,7 @@ function think(u,dt){
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
-    if(u.atkCd<=0 && (u._castT||0)<=0 && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
+    if(u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       /* v532 CRIT CLIP (Phil: "when a hero crit attacks they will do this instead of attack"; "melees from this point on
          will have 9 animations"). A hero with a `crit` clip rolls THIS swing's crit at the wind-up, so the heavier clip
          plays from the first frame; dealDamage takes the pre-rolled result on the fuse instead of rolling again. Heroes
@@ -6362,7 +6420,7 @@ function think(u,dt){
         let leadAdv=-1e9; for(const o of fronts){ const a=(o.x-u.x)*ax+(o.y-u.y)*ay; if(a>leadAdv) leadAdv=a; }
         const hold=CHAR_DIST*1.2;
         if(leadAdv < hold){                      // the line is not far enough ahead of me: wait behind it
-          if(leadAdv < hold*0.5){ u.x-=ax*spd*0.6*dt; u.y-=ay*spd*0.6*dt; u._walkT=0.25; }   // I am level with or ahead of it: drop back
+          if(leadAdv < hold*0.5 && !_ultRoot){ u.x-=ax*spd*0.6*dt; u.y-=ay*spd*0.6*dt; u._walkT=0.25; }   // I am level with or ahead of it: drop back
           return; } } } }
   /* v406 (Phil: "if someone is mid animation and its time for them to start moving, they just start
      moving without the walk animation … heroes should finish their current animation, then start
@@ -6380,7 +6438,7 @@ function think(u,dt){
      Both holds set _walkT (intent) and _moveT, because the renderer only shows the walk state when
      the unit both meant to move and is measured as moving — during the lead-in it means to but has
      not yet, and without _moveT it would show idle and the lead-in would achieve nothing. */
-  if(dn>cd){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25; }   // run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
+  if(dn>cd){ if(!_ultRoot){ const mv=spd*(dn>cd+180?1.8:1); u.x+=(t.x-u.x)/d*mv*dt; u.y+=(t.y-u.y)/d*mv*dt; u._walkT=0.25; } }   // v542: rooted while the ult clip plays   // run in until at fighting distance   (v347: _walkT = this unit MEANT to move — the walk clip only plays for intentional steps, never for a shove)
   else { doAtk(); }   // at OR inside fighting distance → HOLD GROUND and keep firing. No kiting: a foe pushing into our row (or a Vulmar pull dragging us forward) no longer triggers a retreat to home.
 }
 
@@ -6530,7 +6588,7 @@ function monsterOffscreenStart(hx,hy){ return {x:hx + XFER_DIR.x*XFER_OFFSCREEN,
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
-  units.forEach(u=>{ u._fuse=null; u._abilHold=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
+  units.forEach(u=>{ u._fuse=null; u._abilHold=0; u._ultRootT=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
     // clear lingering damage-over-time as well. On a STAGE win the heroes idle for 2s before the victory
     // screen, and updateStatusFx keeps re-spawning the burning/poison plate under their feet from a DoT that
     // outlived the last enemy. (Phil: "fire debuff under feet stays between waves if the stage ends before
@@ -15379,7 +15437,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788994127945';
+const BUILD_ID = '1788994985243';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
