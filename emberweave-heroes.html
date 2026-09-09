@@ -1596,14 +1596,15 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/meridian/meridian_passive.webp?v=21',n:48,fw:259,fh:413,cols:6,rows:8,figH:400,feet:407,cx:117,fps:24,flip:true,top:7}
   },
   hurne:{
-    idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=21',n:48,fw:340,fh:411,cols:6,rows:8,figH:400,feet:405,cx:147,fps:24,flip:true,top:5,pingpong:true},
-    walk:{u:'/assets/anim/hurne/hurne_walk.webp?v=21',n:48,fw:340,fh:420,cols:6,rows:8,figH:400,feet:413,cx:147,fps:24,flip:true,top:13,ax:[0,-0.1,-0.3,-1.1,-1.9,-2.1,-3.2,-4.8,-5.8,-7.5,-8.5,-10.1,-10.4,-10.4,-10.2,-9.6,-8.3,-6.6,-4.7,-2.9,-1.4,-0.2,0.1,0.6,1.1,0.8,1.2,1,1.5,1.3,1.1,0.9,0.4,-0.4,-1.3,-2.4,-3.3,-3.9,-4.1,-3.5,-3.1,-2.8,-2.5,-2.2,-2,-1.8,-1.6,-1.6]},
-    attack:{u:'/assets/anim/hurne/hurne_attack.webp?v=21',n:48,fw:373,fh:411,cols:6,rows:8,figH:400,feet:405,cx:147,fps:24,flip:true,top:5,ax:[0,0,0,0,0,0,1,-5,-2,-2,-2,-3,-4,-4,-6,2,22,33,27,0,-14,-18,-9,-11,-19,-20,-20,-20,-20,-20,-20,-21,-22,-22,-21,-21,-22,-22,-22,-22,-23,-23,-23,-23,-23,-23,-23,-23]},
-    hit:{u:'/assets/anim/hurne/hurne_hit.webp?v=21',n:48,fw:351,fh:415,cols:6,rows:8,figH:400,feet:407,cx:155,fps:24,flip:true,top:7,ax:[0,0,0,0,0,0,-9,-9,-10,-10,-10,-11,-11,-11,-11,-11,-10,-10,-8,3,-3,-30,-41,-41,-41,-14,-16,-16,-16,-17,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18]},
+    /* v538 (Phil: "hurne does everything backwards") - every sheet of his faces RIGHT (arm and chain out to the right on cell 0 of all eight), so no state is flipped; six of eight were, which mirrored idle/walk/attack/hit/blue/passive against green/ult. */
+    idle:{u:'/assets/anim/hurne/hurne_idle.webp?v=21',n:48,fw:340,fh:411,cols:6,rows:8,figH:400,feet:405,cx:147,fps:24,flip:false,top:5,pingpong:true},
+    walk:{u:'/assets/anim/hurne/hurne_walk.webp?v=21',n:48,fw:340,fh:420,cols:6,rows:8,figH:400,feet:413,cx:147,fps:24,flip:false,top:13,ax:[0,-0.1,-0.3,-1.1,-1.9,-2.1,-3.2,-4.8,-5.8,-7.5,-8.5,-10.1,-10.4,-10.4,-10.2,-9.6,-8.3,-6.6,-4.7,-2.9,-1.4,-0.2,0.1,0.6,1.1,0.8,1.2,1,1.5,1.3,1.1,0.9,0.4,-0.4,-1.3,-2.4,-3.3,-3.9,-4.1,-3.5,-3.1,-2.8,-2.5,-2.2,-2,-1.8,-1.6,-1.6]},
+    attack:{u:'/assets/anim/hurne/hurne_attack.webp?v=21',n:48,fw:373,fh:411,cols:6,rows:8,figH:400,feet:405,cx:147,fps:24,flip:false,top:5,ax:[0,0,0,0,0,0,1,-5,-2,-2,-2,-3,-4,-4,-6,2,22,33,27,0,-14,-18,-9,-11,-19,-20,-20,-20,-20,-20,-20,-21,-22,-22,-21,-21,-22,-22,-22,-22,-23,-23,-23,-23,-23,-23,-23,-23]},
+    hit:{u:'/assets/anim/hurne/hurne_hit.webp?v=21',n:48,fw:351,fh:415,cols:6,rows:8,figH:400,feet:407,cx:155,fps:24,flip:false,top:7,ax:[0,0,0,0,0,0,-9,-9,-10,-10,-10,-11,-11,-11,-11,-11,-10,-10,-8,3,-3,-30,-41,-41,-41,-14,-16,-16,-16,-17,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18,-18]},
     green:{u:'/assets/anim/hurne/hurne_green.webp?v=21',n:48,fw:446,fh:531,cols:6,rows:8,figH:400,feet:511,cx:176,fps:24,flip:false,top:111,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,-9,-9,-10,-9,-23,-27,-23,-6,16,50,69,75,82,90,94,96,112,125,135,136,132,124,46,9,-21,-21,-21,-21,-21,-21,-21,-21,-21,-21]},
-    blue:{u:'/assets/anim/hurne/hurne_blue.webp?v=21',n:48,fw:376,fh:410,cols:6,rows:8,figH:400,feet:405,cx:150,fps:24,flip:true,top:5},
+    blue:{u:'/assets/anim/hurne/hurne_blue.webp?v=21',n:48,fw:376,fh:410,cols:6,rows:8,figH:400,feet:405,cx:150,fps:24,flip:false,top:5},
     ult:{u:'/assets/anim/hurne/hurne_ult.webp?v=21',n:48,fw:551,fh:598,cols:6,rows:8,figH:400,feet:511,cx:210,fps:24,flip:false,top:111,ax:[0,-8,-20,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,11,-35,-21,-28,-27,-29,-29,-29,-29,-29]},
-    passive:{u:'/assets/anim/hurne/hurne_passive.webp?v=21',n:48,fw:347,fh:410,cols:6,rows:8,figH:400,feet:405,cx:154,fps:24,flip:true,top:5}
+    passive:{u:'/assets/anim/hurne/hurne_passive.webp?v=21',n:48,fw:347,fh:410,cols:6,rows:8,figH:400,feet:405,cx:154,fps:24,flip:false,top:5}
   },
   'boar warrior':{
     hit:{u:'/assets/anim/boarwarrior/boarwarrior_hit.webp?v=5',n:20,fw:292,fh:300,cols:6,rows:4,figH:258,feet:298,cx:171,fps:16,flip:false,top:2},
@@ -2359,9 +2360,46 @@ const ULT_RADIUS=['aoeStun','fireball','gravcrush','eventhorizon','blizzard','th
 const ULT_CONE=['cleave','triplecleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_ALLY_RADIUS=['firstspring'];   // v369 (Phil): Oakmir's First Spring is CLICK-TO-HEAL — lands under the ally you point at, heals every ally within 20 m
 const ULT_LINE=['stampede'];                            // v534 Zahri's Noonday Stampede: a 20 m line; she charges to the LAST foe on it
-const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony'];       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
-const ULT_AIMED=[...ULT_RADIUS,...ULT_CONE,...ULT_LINE,...ULT_TARGET]; // ults that open the aim UI (rest fire instantly)
-function ultAimMode(ab){ return ULT_ALLY_RADIUS.includes(ab)?'allyradius':ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':'none'; }
+const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony','vanishpoint','finalsurvey'];       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
+/* v538 (Phil, 9 Sep - "I would like to make the rest of the ults aimed"): four more aim modes.
+   ally    - "click and drag on to a teammate to activate" (Dandra's Queen's Call, Threadseer's Rewrite the Pattern)
+   any     - "on to a teammate or enemy" (Nox Open Every Door, Lysara Queen of Quiet Wings, Velvetplum Imperial Plumage, Beekeeper Hive Mind)
+   self    - "click on himself" (Vael's Last Stand)
+   summon  - "on to a summoned creature ... if there is no summoned creature its not activateable" (Hurne's Feed Them)
+   Hollow's Vanishing Point and Meridian's Final Expedition join the enemy-target list with a range (ULT_DEF.range). */
+const ULT_ALLY_TARGET=['rally','rewind'];
+const ULT_ANY_TARGET=['openeverydoor','quietwings','plumage','hivemind'];
+const ULT_SELF=['laststand'];
+const ULT_SUMMON=['devourpack'];
+const ULT_AIMED=[...ULT_RADIUS,...ULT_CONE,...ULT_LINE,...ULT_TARGET,...ULT_ALLY_TARGET,...ULT_ANY_TARGET,...ULT_SELF,...ULT_SUMMON,...ULT_ALLY_RADIUS]; // ults that open the aim UI (rest fire instantly)
+/* v537 (Phil, 9 Sep: the code-drawn aim shapes are "bland and ugly ... you see the detail in this game i need the markers
+   better"). The aim indicators are now PAINTED ART - ring / cone / lane textures painted on black and blended additively
+   over the field ("lighter"), so only the light shows. Code places and animates them; it no longer draws the art. Each
+   texture falls back to the old vector shape until it has loaded (or if it fails). */
+const AIM_ART={ring:'/assets/img/aim/aim_ring.webp?v=1', cone:'/assets/img/aim/aim_cone.webp?v=1', line:'/assets/img/aim/aim_line.webp?v=1', blood:'/assets/img/aim/aim_blood.webp?v=1'};   // blood: painted on WHITE, drawn with 'multiply' so only the darkening reads
+/* Per-hero art: Phil, 9 Sep - "this is a required art for every single ult aim in game, matching their ult style".
+   HERO_AIM_ART[heroKey] = {ring|cone|line|target: url}; anything missing falls back to the generic AIM_ART texture. */
+const HERO_AIM_ART={};
+const _aimImg={};
+function aimArt(kind,hero){ const url=(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind])||AIM_ART[kind]; if(!url) return null;
+  let im=_aimImg[url]; if(im===undefined){ im=new Image(); im._ok=false; im.onload=()=>{ im._ok=true; }; im.onerror=()=>{ im._ok=false; }; im.src=url; _aimImg[url]=im; }
+  if(im&&im._ok) return im;
+  if(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind]&&AIM_ART[kind]) return aimArt(kind,null);   // hero art still loading: generic meanwhile
+  return null; }
+function preloadAimArt(){ for(const k in AIM_ART) aimArt(k); try{ (G.team||[]).forEach(h=>{ const a=HERO_AIM_ART[h]; if(a) for(const k in a) aimArt(k,h); }); }catch(e){} }
+function ultAimMode(ab){ return ULT_ALLY_RADIUS.includes(ab)?'allyradius':ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':ULT_ALLY_TARGET.includes(ab)?'ally':ULT_ANY_TARGET.includes(ab)?'any':ULT_SELF.includes(ab)?'self':ULT_SUMMON.includes(ab)?'summon':'none'; }
+/* v538 - what an aimed ult may be released on, and whether it can be activated at all right now. */
+function ultTargetOK(u,ab,o){ const mode=ultAimMode(ab), D=ULT_DEF[ab]||{}; if(!o||!o.alive) return false;
+  if(mode==='target'){ if(o.team===u.team) return false; if(D.range&&dist(u,o)>D.range) return false; return true; }
+  if(mode==='ally') return o.team===u.team && o!==u && !o._summon;
+  if(mode==='any') return true;
+  if(mode==='self') return o===u;
+  if(mode==='summon') return o.team===u.team && !!o._summon && o._summonOwner===u;
+  return true; }
+function ultBlockedReason(u){ const ab=u.abilityOverride||u.t.ability, mode=ultAimMode(ab), D=ULT_DEF[ab]||{};
+  if(mode==='summon' && !units.some(o=>o.alive&&o._summon&&o._summonOwner===u)) return 'no summoned creature to feed on';
+  if(mode==='target' && D.range && !units.some(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&dist(u,o)<=D.range)) return 'no enemy within '+Math.round(D.range/METER)+' m';
+  return null; }
 function screenToField(sx,sy,h){ h=(h==null?0.15:h); if(typeof TH==='undefined'||!camera) return {x:(typeof aiming!=='undefined'&&aiming)?aiming.x:FW/2,y:(typeof aiming!=='undefined'&&aiming)?aiming.y:FD/2};
   const nx=(sx/CW)*2-1, ny=-((sy/CH)*2-1); const a=new TH.Vector3(nx,ny,-1).unproject(camera), b=new TH.Vector3(nx,ny,1).unproject(camera);
   const dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z, t=(dy!==0)?(h-a.y)/dy:0; return { x:(a.x+dx*t)/SC+FW/2, y:(a.z+dz*t)/SC+FD/2 }; }
@@ -2529,7 +2567,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3},
+const ULT_DEF={hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.35,dmgMul:1.4,radius:8*METER},thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
   quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
@@ -4406,9 +4444,11 @@ function hollowStrike(u){ const o=u._vpO||{}; if(!u.alive){ u._vpO=null; u._noTa
   const foes=units.filter(e=>e.alive&&e.team!==u.team&&!e._dropHidden&&!e._noTarget);
   if(!foes.length){ u._vpO=null; u._noTarget=false; return; }
   let tg=null,bs=-1e9;
-  for(const e of foes){ const depth=(typeof _laneDepthOf==='function')?_laneDepthOf(e.key):1;
+  if(u._vpForced&&u._vpForced.alive&&(u._vpStep||0)===0){ tg=u._vpForced; }   // v538: the first hop is the one the player chose
+  else for(const e of foes){ const depth=(typeof _laneDepthOf==='function')?_laneDepthOf(e.key):1;
     const sc=depth*1000 - (e.hp/Math.max(1,e.maxHp))*100;   // deepest first, then whoever is closest to breaking
     if(sc>bs){ bs=sc; tg=e; } }
+  u._vpForced=null;
   if(!tg){ u._vpO=null; u._noTarget=false; return; }
   // arrive behind them, on the far side from his own line
   const home=u._dropHome||{x:FW/2,y:FD/2};
@@ -4425,7 +4465,7 @@ function hollowStrike(u){ const o=u._vpO||{}; if(!u.alive){ u._vpO=null; u._noTa
   if(tg.hp-amt<=thresh){   // anything left under a fifth is finished where it stands
     dealDamage(u,tg,tg.hp+9999,'#c9a6ff');
     try{ floatTexts.push({x:tg.x,y:tg.y-16,txt:'TERMINATED',t:1.2,color:'#c9a6ff',vy:1,sz:15}); }catch(e){} }
-  else dealDamage(u,tg,amt,'#c9a6ff');
+  else dealDamage(u,tg,dB*(o.mul||2.0)*rm*fall,'#c9a6ff');   // v538: not executable -> FLAT damage (no wound bonus), and no vanish after it
   try{ addBleedStack(u,tg,KITS.hollow?KITS.hollow.blue:{}); }catch(e){}
   u._vpStep=step+1;
   if(!tg.alive && u._vpStep<(o.chain||3)){   // it killed — he is gone again before the body lands
@@ -4614,6 +4654,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       burstAt(u.x,u.y,0x8f6fe0,14); ringBurst(u.x,u.y,0x8f6fe0,10);   // charge telegraph at the start point
       floatTexts.push({x:u.x,y:u.y-8,txt:'⚡ Phantom Step',t:1.0,color:'#c9b6ff',vy:1}); break; }
     case 'vanishpoint':{   // he steps off the field; hollowStrike lands each hop
+      /* v538 (Phil): the player drags onto the enemy he jumps to (within 15 m). A target that cannot be executed takes
+         flat damage and he does NOT vanish again; the chain of vanishes only continues through executions. */
+      u._vpForced=(tgt&&tgt.alive&&tgt.team!==u.team&&dist(u,tgt)<=(o.range||15*METER))?tgt:null;
       u._vpO=o; u._vpSM=sm; u._vpStep=0; u._vpT=(o.gone||0.9);
       u._noTarget=true; u.target=null;
       try{ for(let i=0;i<2;i++)ringBurst(u.x,u.y,0x1a1a22,16); burstAt(u.x,u.y,0x7a3fa0,20);
@@ -4642,7 +4685,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=o.dur||5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
     case 'heal':{if(u.key==='oakmir')spawnGroundFx('rallyroots',u.x,u.y,2.2*METER,1.0);alliesOf(u).forEach(a=>healUnit(a,a.maxHp*(o.mul||.9)*sm));burstAt(u.x,u.y,0x5ee89b,16);break;}
     case 'finalsurvey':{ const bd=_sD*(o.bleedPct||0.10)*sm, md=o.mortalDur||3, bdur=o.bleedDur||3;
-      enemiesOf(u).forEach(e=>{ if(!e.alive)return; dealDamage(u,e,dB*(o.mul||1.4)*rm,'#d9b26a');
+      /* v538 (Phil): "it should only apply on anyone within 30 meters of him" - cast on an enemy, hits every enemy in 30 m of HIM */
+      const _fsR=o.range||30*METER;
+      enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>_fsR)return; dealDamage(u,e,dB*(o.mul||1.4)*rm,'#d9b26a');
         e.mortalT=Math.max(e.mortalT||0,md); pushDot(e,bd,bdur,1,'#c0392b'); });
       u._lifestealPct=Math.max(u._lifestealPct||0,o.steal||0.35); u._lifestealT=o.buffDur||3;
       pushHot(u,u.maxHp*(o.regen||0.03),o.buffDur||3,1);
@@ -4861,7 +4906,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
-    case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
+    case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; if(o.heal) healUnit(u,u.maxHp*o.heal);   /* v538 (Phil): +15% self heal */ ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'firstspring':{ /* v369 (Phil): click-to-heal — the spring rises under the ally you aimed at (auto: the most-hurt ally) and heals every ally within 20 m of it */
       const R=o.radius||20*METER; let c=aimCtr; if(!c){ let w=null,ws=2; alliesOf(u).forEach(a=>{ const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} }); c=w?{x:w.x,y:w.y}:{x:u.x,y:u.y}; }
       spawnGroundFx('firstspring',c.x,c.y,3.2*METER,2.2); alliesOf(u).forEach(a=>{ if(Math.hypot(a.x-c.x,a.y-c.y)>R) return; healUnit(a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(c.x,c.y,0x5ee89b,24); burstAt(c.x,c.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
@@ -6160,7 +6205,8 @@ function think(u,dt){
   const silenced=(u.silencedT||0)>0;   // silenced (Grosk): can't use ANY ability — only auto-attack
   // ultimate (energy): enemies + AUTO auto-fire; player fires (and aims) via portrait
   if(!silenced && !u.t.monster && (u._castT||0)<=0 && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
-    if(auto){ if(u.t.healer){const low=lowestAlly(u);if(low&&low.hp/low.maxHp<.78){castAbility(u);return;}}
+    if(auto && !ultBlockedReason(u)){   // v538: Feed Them with no pack, Vanishing Point / Final Expedition with nobody in range - hold the ult (never `return`: the kit block below must still run)
+      if(u.t.healer){const low=lowestAlly(u);if(low&&low.hp/low.maxHp<.78){castAbility(u);return;}}
       else if(u.t.ability==='rally'){if(units.some(o=>o.alive&&o.team===u.team&&o.energy<60)){castAbility(u);return;}}
       else if(u.target){castAbility(u);}}}   // the ult is the ONE action allowed to cut a clip short (castAbility clears the lock)
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
@@ -6333,6 +6379,7 @@ function startBattle(){
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
+  try{ preloadAimArt(); }catch(e){}   // v537: painted aim indicators
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
     buildEnemyWave();
@@ -7533,8 +7580,35 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
   units.forEach(u=>{ if(u.alive && (u.brighten||0)>0) glowUnit(u, Math.min(1,(u.brighten||0)*2), '255,245,200'); });   // non-aimable ult: affected enemies brighten
   if(aiming){ octx.fillStyle='rgba(0,0,0,.35)';octx.fillRect(0,0,CW,CH);
     const ap=project(aiming.x,aiming.y,1.0), tt=battleTime*8, ULD=ULT_DEF[aiming.t.ability]||{};
-    const mode=ultAimMode(aiming.abilityOverride||aiming.t.ability), best=nearestToScreen(aimTX,aimTY,mode==='allyradius'?aiming.team:aimTargetTeam());
-    if(mode==='allyradius'){   // v369: green circle centred on the ally under the cursor
+    const mode=ultAimMode(aiming.abilityOverride||aiming.t.ability);
+    const _gated=(mode==='target'||mode==='ally'||mode==='any'||mode==='self'||mode==='summon');
+    const best=_gated?nearestPoolToScreen(aimPool(aiming,mode),aimTX,aimTY):nearestToScreen(aimTX,aimTY,mode==='allyradius'?aiming.team:aimTargetTeam());
+    /* v538 BLOOD DRIP (Phil): while Hollow holds Vanishing Point, every enemy in execute range bleeds from neck to waist;
+       while Meridian holds Final Expedition, every enemy within 30 m bleeds. Painted texture (white bg, multiply); a plain
+       red-drip fallback until it loads. */
+    if(_gated && (aiming.t.ability==='vanishpoint'||aiming.t.ability==='finalsurvey')){
+      const ab=aiming.t.ability, D=ULT_DEF[ab]||{}, R=D.range||15*METER; const bl=aimArt('blood',aiming.key);
+      const dB=aiming.dmg*(aiming.dmgBuffT>0?aiming.dmgBuffMul:1)*(aiming.apMul||1);
+      units.forEach(o=>{ if(!o.alive||o.team===aiming.team||o._dropHidden||o._noTarget||dist(aiming,o)>R) return;
+        if(ab==='vanishpoint'){ const weak=1+(1-o.hp/Math.max(1,o.maxHp))*1.6, amt=dB*(D.mul||2.0)*weak; if(!(o.hp-amt<=(D.exec||0.20)*o.maxHp)) return; }
+        const H=o.sprH||1.8, pn=project(o.x,o.y,H*0.82), pw=project(o.x,o.y,H*0.42); if(!pn.vis) return;
+        const h=Math.max(10,pw.y-pn.y), w=h*0.7;
+        octx.save();
+        if(bl){ octx.globalCompositeOperation='multiply'; octx.globalAlpha=0.95; octx.drawImage(bl,pn.x-w/2,pn.y,w,h); }
+        else { octx.globalCompositeOperation='multiply'; octx.fillStyle='rgba(150,10,20,.85)'; for(let k=0;k<4;k++){ const dx=(k-1.5)*w*0.22, dh=h*(0.55+0.45*Math.abs(Math.sin(tt*0.7+k*1.7))); octx.beginPath(); octx.ellipse(pn.x+dx,pn.y+dh/2,w*0.06,dh/2,0,0,7); octx.fill(); } }
+        octx.restore(); octx.globalAlpha=1; });
+    }
+    if(_gated){
+      const D=ULT_DEF[aiming.t.ability]||{};
+      if(mode==='target' && D.range){ // the reach ring around the caster, painted when the art is there
+        const cp=project(aiming.x,aiming.y,0.15), rpx=project(aiming.x+D.range,aiming.y,0.15), rpy=project(aiming.x,aiming.y+D.range,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));
+        const im=aimArt('ring',aiming.key);
+        if(im){ octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(cp.x,cp.y); octx.scale(rx/512*1.04,ry/512*1.04); octx.globalAlpha=0.55+0.15*Math.sin(tt*0.9); octx.rotate(tt*0.06); octx.drawImage(im,-512,-512,1024,1024); octx.restore(); octx.globalAlpha=1; }
+        else { octx.strokeStyle='rgba(255,180,90,.7)'; octx.lineWidth=2; octx.setLineDash([8,8]); octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); } }
+      const col=(mode==='target')?'255,180,90':(mode==='summon')?'201,162,39':(mode==='self')?'255,212,94':(best&&best.team!==aiming.team)?'255,180,90':'125,255,176';
+      if(best){ glowUnit(best,0.95,col); const bp=project(best.x,best.y,1); octx.strokeStyle='rgb('+col+')'; octx.lineWidth=3; octx.beginPath(); octx.arc(bp.x,bp.y,22+Math.sin(tt)*3,0,7); octx.stroke(); }
+      else { octx.fillStyle='#ffb347'; octx.font='bold 12px sans-serif'; octx.textAlign='center'; octx.fillText(ultBlockedReason(aiming)||'drag onto a target',ap.x,ap.y-40); }
+    } else if(mode==='allyradius'){   // v369: green circle centred on the ally under the cursor
       const ctr=best?{x:best.x,y:best.y}:screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||20*METER);
       const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));
       octx.fillStyle='rgba(94,232,155,.16)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.fill();
@@ -7543,16 +7617,40 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     } else if(mode==='radius'){
       const ctr=screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
       const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));   // ellipse axes = the ACTUAL projected ult radius in both directions
+      const _ringIm=aimArt('ring',aiming.key);
+      if(_ringIm){ /* v537 painted ring: squashed into the ground ellipse, slow counter-rotating pair, breathing */
+        octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(cp.x,cp.y); octx.scale(rx/512*1.04,ry/512*1.04);
+        octx.globalAlpha=0.85+0.15*Math.sin(tt*0.9); octx.rotate(tt*0.08); octx.drawImage(_ringIm,-512,-512,1024,1024);
+        octx.globalAlpha=0.35; octx.rotate(-tt*0.2); octx.drawImage(_ringIm,-512,-512,1024,1024);
+        octx.restore(); octx.globalAlpha=1; }
+      else {
       octx.fillStyle='rgba(139,92,246,.18)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.fill();
-      octx.strokeStyle='rgba(170,130,255,.98)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.lineDashOffset=-tt*2; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); octx.lineDashOffset=0;
+      octx.strokeStyle='rgba(170,130,255,.98)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.lineDashOffset=-tt*2; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); octx.lineDashOffset=0; }
     } else if(mode==='cone'){
       const hp=project(aiming.x,aiming.y,0.4), tp=best?project(best.x,best.y,0.6):{x:aimTX,y:aimTY}, sang=Math.atan2(tp.y-hp.y,tp.x-hp.x);
       const cp0=project(aiming.x,aiming.y,0.15), rp=project(aiming.x+(ULD.radius||90),aiming.y,0.15), Rpx=Math.max(60,Math.hypot(rp.x-cp0.x,rp.y-cp0.y)*1.7), half=(45*Math.PI/180)/2;
+      const _coneIm=aimArt('cone',aiming.key);
+      if(_coneIm){ /* v537 painted wedge: point on her, arc at the reach, rim pulsing */
+        octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(hp.x,hp.y); octx.rotate(sang+Math.PI/2);
+        const s=Rpx/900; octx.scale(s*0.42,s); octx.globalAlpha=0.8+0.2*Math.sin(tt*1.1); octx.drawImage(_coneIm,-512,-1000,1024,1024);   // painted wedge is ~110 deg wide; x-squash to the 45-degree game cone
+        octx.restore(); octx.globalAlpha=1; }
+      else {
       octx.fillStyle='rgba(255,166,87,.20)'; octx.strokeStyle='rgba(255,196,120,.97)'; octx.lineWidth=3; octx.beginPath(); octx.moveTo(hp.x,hp.y);
       for(let a2=-half;a2<=half+1e-4;a2+=half/8){ octx.lineTo(hp.x+Math.cos(sang+a2)*Rpx, hp.y+Math.sin(sang+a2)*Rpx); }
-      octx.closePath(); octx.fill(); octx.stroke();
-    } else if(mode==='target'){
+      octx.closePath(); octx.fill(); octx.stroke(); }
+    } else if(mode==='target' && !_gated){
       if(best){ glowUnit(best,0.95,'255,180,90'); const bp=project(best.x,best.y,1); octx.strokeStyle='#ffb347'; octx.lineWidth=3; octx.beginPath(); octx.arc(bp.x,bp.y,22+Math.sin(tt)*3,0,7); octx.stroke(); }
+    } else if(mode==='line' && aimArt('line',aiming.key)){
+      /* v537 painted lane: from her feet to the real projected reach along the aim direction; chevrons scroll up the lane */
+      const _lineIm=aimArt('line',aiming.key); const fp=screenToField(aimTX,aimTY,0.15); const fdx=fp.x-aiming.x, fdy=fp.y-aiming.y, fl=Math.hypot(fdx,fdy)||1;
+      const _R=(ULD.radius||20*METER); const ep=project(aiming.x+fdx/fl*_R, aiming.y+fdy/fl*_R, 0.15), sp=project(aiming.x,aiming.y,0.15);
+      const dx=ep.x-sp.x, dy=ep.y-sp.y, Lp=Math.max(60,Math.hypot(dx,dy)), ang=Math.atan2(dy,dx);
+      octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(sp.x,sp.y); octx.rotate(ang+Math.PI/2);
+      const sy=Lp/1000, sx=Math.max(0.16,Math.min(0.5,sy*0.6)); octx.scale(sx,sy);
+      octx.beginPath(); octx.rect(-512,-1024,1024,1024); octx.clip();
+      const off=(tt*40)%256; octx.globalAlpha=0.95;
+      octx.drawImage(_lineIm,-512,-1024+off,1024,1024); octx.drawImage(_lineIm,-512,-1024+off-1024,1024,1024);   // two copies scrolling so the chevrons flow
+      octx.restore(); octx.globalAlpha=1;
     } else {
       let dx=aimTX-ap.x, dy=aimTY-ap.y; const len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len, L=Math.min(Math.max(len,60),190), ex=ap.x+ux*L, ey=ap.y+uy*L, ang=Math.atan2(uy,ux);
       octx.strokeStyle='rgba(255,212,94,.9)'; octx.lineWidth=4; octx.lineCap='round'; octx.beginPath(); octx.moveTo(ap.x,ap.y); octx.lineTo(ex,ey); octx.stroke();
@@ -14655,6 +14753,10 @@ function evXY(e){ const r=overlay.getBoundingClientRect();
   const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1;
   return {x:((e.clientX)-r.left)/z, y:((e.clientY)-r.top)/z}; }
 function aimTargetTeam(){ return (OL.active&&!OL.host)?'ally':'enemy'; }
+/* v538 - the units an aimed ult may be released on, per mode, and the nearest of them to the pointer. */
+function aimPool(u,mode){ const ab=u.abilityOverride||u.t.ability;
+  return units.filter(o=>o.alive&&!o._dropHidden&&!(o._riseT>0)&&ultTargetOK(u,ab,o)); }
+function nearestPoolToScreen(pool,sx,sy){ let best=null,bd=1e9; pool.forEach(o=>{ const p=project(o.x,o.y,1); if(!p.vis)return; const d=Math.hypot(p.x-sx,p.y-sy); if(d<bd){bd=d;best=o;} }); return best; }
 function nearestToScreen(sx,sy,team){ let best=null,bd=1e9; units.forEach(o=>{if(!o.alive||o.team!==team)return;const p=project(o.x,o.y,1);if(!p.vis)return;const d=Math.hypot(p.x-sx,p.y-sy);if(d<bd){bd=d;best=o;}}); return best; }
 /* OPTIMAL AUTO-AIM (Phil: "click and let go it automatically ults in an optimal direction;
    click and hold you can aim it").  The old default just grabbed whichever enemy happened to be
@@ -14667,7 +14769,12 @@ function optimalAimField(u){
   if(mode==='allyradius'){   // v369: the ally who needs it most; the 20 m circle around them
     let w=null,ws=2; units.forEach(a=>{ if(!a.alive||a.team!==u.team) return; const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} });
     return w?{x:w.x,y:w.y,tgt:w}:{x:u.x,y:u.y,tgt:u}; }
-  const foes=aimCandidates(u);
+  if(mode==='self') return {x:u.x,y:u.y,tgt:u};
+  if(mode==='ally'||mode==='any'||mode==='summon'){   // v538: the most-hurt valid ally / summon; 'any' prefers the enemy the target rule would pick, else the most-hurt ally
+    const pool=aimPool(u,mode); if(!pool.length) return null;
+    if(mode==='any'){ const foes=pool.filter(o=>o.team!==u.team); if(foes.length){ let b=null,bs=-1e9; for(const o of foes){ const sc=(o.hp/Math.max(o.maxHp,1))*100+(o.dmg||0)-Math.hypot(o.x-u.x,o.y-u.y)*0.08; if(sc>bs){bs=sc;b=o;} } return {x:b.x,y:b.y,tgt:b}; } }
+    let w=null,ws=2; pool.forEach(a=>{ const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} }); return w?{x:w.x,y:w.y,tgt:w}:null; }
+  const foes=(mode==='target'&&D.range)?aimCandidates(u).filter(o=>dist(u,o)<=D.range):aimCandidates(u);
   if(!foes.length) return null;
   if(mode==='target'){
     // single-target ults: the most valuable body, not the closest pixel.
@@ -14722,7 +14829,16 @@ function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remov
 function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0)return;
   const mode=ultAimMode(u.abilityOverride||u.t.ability);
   const auto=(u._autoAimUse&&u._autoAim)?u._autoAim:null; u._autoAimUse=false;
-  const best=auto?auto.tgt:nearestToScreen(aimTX,aimTY,mode==='allyradius'?u.team:aimTargetTeam());
+  let best=auto?auto.tgt:nearestToScreen(aimTX,aimTY,mode==='allyradius'?u.team:aimTargetTeam());
+  /* v538 - gated modes: the release must land on a VALID unit (an enemy in range, a teammate, anyone, himself, his summon) or nothing fires */
+  if(mode==='target'||mode==='ally'||mode==='any'||mode==='self'||mode==='summon'){
+    const pool=aimPool(u,mode); best=auto?auto.tgt:nearestPoolToScreen(pool,aimTX,aimTY);
+    if(best&&!auto){ const bp=project(best.x,best.y,1); if(Math.hypot(bp.x-aimTX,bp.y-aimTY)>90) best=null; }   // released too far from any valid unit
+    if(!best||!ultTargetOK(u,u.abilityOverride||u.t.ability,best)){ try{ floatTexts.push({x:u.x,y:u.y-18,txt:ultBlockedReason(u)||'pick a target',t:1.0,color:'#ffb347',vy:1,sz:11}); }catch(e){} return; }
+    if(mode!=='target'){ // ally / any / self / summon: never becomes an attack target
+      if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:-1,wx:null,wy:null}); }
+      else queueInput({k:'ult', uid:u.uid, tid:null, wx:null, wy:null});
+      return; } }
   if(mode==='allyradius'){ const w=best?{x:best.x,y:best.y}:(auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15)); u._aimWX=w.x; u._aimWY=w.y; }   // v369: snaps to the ally under the cursor
   else if(mode==='radius'||mode==='line'){ const w=auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
   else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
@@ -14754,6 +14870,7 @@ function attachUltPress(el,u,relayMode){
     if(isAutoBattle()){ notReady(); return; }   // deterministic fight — the ult fires itself
     if(!(u.alive&&u.energy>=100)||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0){ notReady(); return; }
     const ab=u.abilityOverride||u.t.ability;
+    { const why=ultBlockedReason(u); if(why){ try{ floatTexts.push({x:u.x,y:u.y-18,txt:why.toUpperCase(),t:1.2,color:'#ffb347',vy:1,sz:11}); }catch(_){} notReady(); return; } }   // v538: Feed Them with no pack etc.
     if(ULT_AIMED.includes(ab)){ enterAim(u); holdAim=true; sx=e.clientX; sy=e.clientY; moved=false; hideAbilityTip(); try{el.setPointerCapture(e.pointerId);}catch(_){} }
     else { pending=true; }
   });
@@ -15239,7 +15356,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788990620951';
+const BUILD_ID = '1788992739457';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
