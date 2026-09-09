@@ -2052,6 +2052,7 @@ function _fitTex(t, cols, rows, cap, figFrac){ try{ const im=capSheet(t.image, c
    roster matches its declaration exactly. Decode ONCE, straight to the final size. Sheets whose
    declaration is somehow wrong still land correctly: the resize is proportional to the real image,
    so a mis-declared sheet is at worst slightly off the cap, never broken. */
+const _healed=Object.create(null);   // v519: at most one heal attempt per sheet URL per session
 function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
   if(typeof createImageBitmap!=='function' || typeof fetch!=='function') return false;
   const CAP=cellCapFor(url);   // v363: bosses keep more pixels
@@ -2062,6 +2063,35 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
   /* three r128 does NOT apply texture.flipY to an ImageBitmap, so the bitmap has to be created
      already flipped (imageOrientation:'flipY') and the texture told not to flip again — otherwise
      every sprite renders upside down. */
+  /* v519 — SELF-HEALING SHEETS. A sprite sheet's true size is not a guess: the clip record
+     declares fw, fh, cols and rows, so the file MUST decode to exactly fw*cols x fh*rows.
+     Anything else is the wrong file, and the way it happens is now well understood: ship a new
+     ?v= while the edge has not propagated it, the device gets the OLD bytes under the NEW key,
+     and ember-assets-v1 (which deliberately survives every deploy) writes that down as truth.
+     Clearing site data does not help, because the next load re-fetches from the same edge and
+     caches the same wrong bytes again. That cost a whole evening on Sylthaine, and Dandra before
+     her. So: verify the decoded size, and if it is wrong, refetch ONCE past every cache and write
+     the good copy over the bad one. One extra request per sheet per session, worst case. */
+  const _want=(fw&&fh&&cols&&rows)?[fw*cols, fh*rows]:null;
+  const _sizeOK=(im)=>!_want || (im && im.width===_want[0] && im.height===_want[1]);
+  const _heal=(reason)=>{
+    if(_healed[url]) return false; _healed[url]=1;
+    try{ console.warn('[EW] sheet mismatch, healing', url, reason); }catch(e){}
+    const u2=url+(url.indexOf('?')<0?'?':'&')+'heal='+Date.now().toString(36);
+    fetch(u2,{cache:'reload'}).then(r=>r.ok?r.blob():Promise.reject(new Error('http '+r.status)))
+      .then(bl=>createImageBitmap(bl,{imageOrientation:'flipY'}).then(bm=>{
+        if(!_sizeOK(bm)){ try{ bm.close&&bm.close(); }catch(e){}
+          throw new Error('origin also wrong '+bm.width+'x'+bm.height); }
+        /* the good bytes exist — overwrite the poisoned entry so the next launch is clean */
+        try{ if('caches' in self) caches.open('ember-assets-v1').then(c=>c.put(url, new Response(bl,{headers:{'Content-Type':'image/webp'}}))).catch(()=>{}); }catch(e){}
+        onTex(bm);
+      }))
+      .catch(e=>{ try{ console.warn('[EW] heal failed', url, String(e)); }catch(_){} onErr&&onErr(); });
+    return true;
+  };
+  const _guard=(bm)=>{ if(_sizeOK(bm)) { onTex(bm); return; }
+    try{ bm && bm.close && bm.close(); }catch(e){}
+    if(!_heal(bm?(bm.width+'x'+bm.height):'no bitmap')) onErr&&onErr(); };
   fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
     .then(bl=>{
       const k=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0);
@@ -2078,9 +2108,15 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
            attempts and sets _err, which drops the hero to her STATIC SPRITE — indistinguishable
            from "she still has her old art". A sub-1% shave is not worth a resize.
            TO UNDO: change 0.99 back to 0.999 on the line below. Nothing else in this change. */
-        if(k>=0.99) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(onTex);
+        if(k>=0.99) return createImageBitmap(bl,{imageOrientation:'flipY'}).then(_guard);
         const nw=Math.max(1,Math.round(fw*k))*cols, nh=Math.max(1,Math.round(fh*k))*rows;
-        return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'}).then(onTex);
+        /* a RESIZED bitmap is intentionally not fw*cols x fh*rows, so verify the SOURCE first */
+        return createImageBitmap(bl,{imageOrientation:'flipY'}).then(src=>{
+          if(!_sizeOK(src)){ try{ src.close&&src.close(); }catch(e){}
+            if(!_heal(src.width+'x'+src.height)) onErr&&onErr(); return; }
+          try{ src.close&&src.close(); }catch(e){}
+          return createImageBitmap(bl,{imageOrientation:'flipY',resizeWidth:nw,resizeHeight:nh,resizeQuality:'high'}).then(onTex);
+        });
       }
       return createImageBitmap(bl,{imageOrientation:'flipY'}).then(probe=>{   // no declared geometry: old two-pass path
         const cw=probe.width/cols, ch=probe.height/rows;
@@ -14270,7 +14306,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788912376888';
+const BUILD_ID = '1788913003424';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
