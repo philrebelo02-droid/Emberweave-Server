@@ -1171,10 +1171,10 @@ rhukk:{
   3:{u:'/assets/anim/rhukk/rhukk_pass.webp?v=8',n:12,fw:239,fh:218,cols:6,rows:2,dur:1.2},
 },
 lumi:{
-  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=13',n:64,fw:250,fh:300,cols:6,rows:11,dur:2.13},   // Ultimate (v366 rubber-band cut)
-  1:{u:'/assets/anim/lumi/lumi_green.webp?v=13',n:72,fw:240,fh:300,cols:6,rows:12,dur:2.4},   // Green ability
-  2:{u:'/assets/anim/lumi/lumi_blue.webp?v=14',n:72,fw:300,fh:254,cols:6,rows:12,dur:2.4},   // Blue ability
-  3:{u:'/assets/anim/lumi/lumi_passive.webp?v=13',n:72,fw:223,fh:300,cols:6,rows:12,dur:2.4},   // Passive
+  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=25',n:48,fw:332,fh:600,cols:6,rows:8,dur:2.0,flip:true},   // Radiant Nova (ultimate) (v531 - same sheet the fight uses)
+  1:{u:'/assets/anim/lumi/lumi_green.webp?v=25',n:48,fw:370,fh:544,cols:6,rows:8,dur:2.0,flip:true},   // Dawnward (v531 - same sheet the fight uses)
+  2:{u:'/assets/anim/lumi/lumi_blue.webp?v=25',n:48,fw:384,fh:520,cols:6,rows:8,dur:2.0,flip:true},   // Quickening (v531 - same sheet the fight uses)
+  3:{u:'/assets/anim/lumi/lumi_passive.webp?v=25',n:48,fw:336,fh:520,cols:6,rows:8,dur:2.0,flip:true},   // Hush (passive) (v531 - same sheet the fight uses)
 },
 meryln:{
   0:{u:'/assets/anim/meryln/meryln_ult.webp?v=12',n:72,fw:300,fh:299,cols:6,rows:12,dur:2.4},   // Queen's Call (ultimate)
@@ -1306,14 +1306,18 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/fathom/fathom_passive.webp?v=21',n:48,fw:398,fh:458,cols:6,rows:8,figH:400,feet:452,cx:208,fps:24,flip:false,top:52}
   },
   lumi:{
-    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=21',n:48,fw:304,fh:510,cols:6,rows:8,figH:500,feet:505,cx:150,fps:24,flip:true,top:5},
-    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=21',n:48,fw:321,fh:517,cols:6,rows:8,figH:500,feet:510,cx:168,fps:24,flip:true,top:10,ax:[0,0.3,1.1,2.1,2.8,3.2,2.9,2.2,0.1,-2.1,-4.7,-6.1,-7.4,-9,-11.1,-13.3,-15.5,-17.6,-19.9,-22.2,-24.4,-25.9,-26.6,-26.5,-25.9,-25.4,-24.5,-23.1,-21.1,-18.9,-16.1,-13,-9.9,-6.9,-4.2,-1.5,1.1,3.6,5.9,8.1,9.9,11.6,13.1,14.2,15,15.5,15.9,16.1]},
-    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=21',n:20,fw:299,fh:512,cols:6,rows:4,figH:500,feet:506,cx:150,fps:30,flip:true,top:6,pingpong:true},
-    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=21',n:48,fw:327,fh:510,cols:6,rows:8,figH:500,feet:505,cx:157,fps:24,flip:true,top:5,ax:[0,0,0,-1,-1,-2,-2,-2,-3,-3,-3,-3,-5,-5,-6,-7,-7,-7,-8,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-8,-8,-8,-8,-7,-7,-7,-7,-6,-6,-4,-2,-2,-2,-2,-2,-1,-1,-1]},
-    green:{u:'/assets/anim/lumi/lumi_green.webp?v=21',n:48,fw:333,fh:516,cols:6,rows:8,figH:500,feet:510,cx:164,fps:24,flip:true,top:10,hold:0.8},
-    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=21',n:48,fw:362,fh:510,cols:6,rows:8,figH:500,feet:505,cx:208,fps:24,flip:true,top:5,hold:0.8,ax:[0,-1,-1,-2,-4,-5,-6,-8,-10,-11,-12,-14,-16,-17,-18,-19,-20,-22,-22,-23,-23,-23,-24,-24,-24,-24,-24,-23,-23,-22,-21,-20,-18,-15,-14,-12,-11,-9,-9,-5,-4,-3,-2,-1,0,0,0,0]},
-    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=21',n:48,fw:356,fh:542,cols:6,rows:8,figH:500,feet:536,cx:209,fps:24,flip:true,top:36,ax:[0,-1,-1,-2,-4,-5,-6,-7,-6,-6,-5,-5,-5,-4,-3,-3,-3,-2,0,0,0,0,1,0,-1,-2,-2,-3,-4,-4,-5,-6,-6,-6,-6,-6,-6,-6,-5,-5,-4,-3,-2,-2,-1,1,1,1]},
-    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=21',n:48,fw:352,fh:510,cols:6,rows:8,figH:500,feet:505,cx:154,fps:24,flip:true,top:5}
+    /* v531 (9 Sep 2026) - Lumi regenerated one state at a time on Hailuo 2.0 dual-plate, every clip approved by Phil;
+       sliced at 500 art px off her own plate (fig 599 -> x0.8347), 6x8x48 @24fps, feet on the cell baseline; green and ult
+       carry a taller cell (544/600) so the raised staff never bleeds into the cell above. No ax tables - each frame is
+       pinned on its own body bbox by the slicer. Ladder (v520) and no-interrupt play-out (v521) are engine-wide. */
+    idle:{u:'/assets/anim/lumi/lumi_idle.webp?v=25',n:48,fw:332,fh:520,cols:6,rows:8,figH:496,feet:511,cx:166.0,fps:24,flip:true,top:16},
+    walk:{u:'/assets/anim/lumi/lumi_walk.webp?v=25',n:48,fw:338,fh:520,cols:6,rows:8,figH:497,feet:512,cx:168.0,fps:24,flip:true,top:16},
+    attack:{u:'/assets/anim/lumi/lumi_attack.webp?v=25',n:48,fw:420,fh:520,cols:6,rows:8,figH:496,feet:511,cx:210.5,fps:24,flip:true,top:16},
+    hit:{u:'/assets/anim/lumi/lumi_hit.webp?v=25',n:48,fw:374,fh:520,cols:6,rows:8,figH:495,feet:511,cx:187.5,fps:24,flip:true,top:17},
+    green:{u:'/assets/anim/lumi/lumi_green.webp?v=25',n:48,fw:370,fh:544,cols:6,rows:8,figH:496,feet:536,cx:185.0,fps:24,flip:true,top:41},
+    blue:{u:'/assets/anim/lumi/lumi_blue.webp?v=25',n:48,fw:384,fh:520,cols:6,rows:8,figH:497,feet:511,cx:192.5,fps:24,flip:true,top:15},
+    ult:{u:'/assets/anim/lumi/lumi_ult.webp?v=25',n:48,fw:332,fh:600,cols:6,rows:8,figH:497,feet:591,cx:166.5,fps:24,flip:true,top:95},
+    passive:{u:'/assets/anim/lumi/lumi_passive.webp?v=25',n:48,fw:336,fh:520,cols:6,rows:8,figH:496,feet:511,cx:168.5,fps:24,flip:true,top:16}
   },
   meryln:{
     idle:{u:'/assets/anim/meryln/meryln_idle.webp?v=23',n:48,fw:374,fh:458,cols:6,rows:8,figH:444,feet:452,cx:194,fps:24,flip:false,top:8},   /* v512 - the v21 sheet was the OLD RIGHT-FACING SIDE-PROFILE take: all 48 frames showed her in profile with one eye, matching neither her plate nor her other seven states. Recut from Heroes/Dandra/clips/Dandra - idle.mp4, the same front-facing source the other seven came from. Native scale, figure 444px - that clip does not carry 500px of real detail and upscaling it would be fake detail. */
@@ -15143,7 +15147,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788927523598';
+const BUILD_ID = '1788970607658';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
