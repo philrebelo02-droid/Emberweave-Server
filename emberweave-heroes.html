@@ -3551,7 +3551,11 @@ function firePassiveClip(o,hold){
   if(!(o&&o.anim&&o.anim.passive)) return;
   o._passFired=true;                                   // v522: a timed passive is never idle filler
   const h=hold||clipDur(o.anim.passive);
-  if(((o._lockPri|0)>=4) && ((o._animLockT||0)>0)){ o._qPass=h; return; }   // queue behind the skill/ult
+  /* v539 (Phil: Hurne "must be canceling his ult animation with walk" - it was not walk). Feed Them kills the pack INSIDE
+     castAbility's doEffect, every boar sends its soul home, and _soulHome fires his passive clip - at that instant the ult's
+     lock is not up yet (castAbility raises _lockPri 6 only after doEffect returns), so the passive OVERWROTE the ult clip
+     and castAbility then pinned the passive at priority 6. A unit mid-cast (`_castSlot` set) queues the passive behind it. */
+  if(o._castSlot || (((o._lockPri|0)>=4) && ((o._animLockT||0)>0))){ o._qPass=h; return; }   // queue behind the skill/ult
   o._abilPri=4; o._abilAnim='passive'; o._abilHold=h;
   o._lockPri=4; o._animLockT=Math.max(o._animLockT||0,h);
 }
@@ -15357,7 +15361,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788993247041';
+const BUILD_ID = '1788993724783';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
