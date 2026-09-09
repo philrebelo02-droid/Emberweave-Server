@@ -2382,11 +2382,36 @@ const AIM_ART={ring:'/assets/img/aim/aim_ring.webp?v=1', cone:'/assets/img/aim/a
    HERO_AIM_ART[heroKey] = {ring|cone|line|target: url}; anything missing falls back to the generic AIM_ART texture. */
 const HERO_AIM_ART={};
 const _aimImg={};
+/* v540 (Phil, screenshot of a black square around the ring: "this aim box is not good, needs to be keyed"). The overlay
+   canvas is transparent, so 'lighter' over nothing still writes the texture's BLACK as opaque black. Every aim texture is
+   keyed once on load: black -> alpha 0 (alpha = brightest channel, colour un-premultiplied so the glow keeps its intensity);
+   the blood texture is keyed the other way (white -> alpha 0). The keyed canvas is what gets drawn. */
+function _keyAimTex(im,white){ try{ const c=document.createElement('canvas'); c.width=im.naturalWidth||im.width; c.height=im.naturalHeight||im.height;
+    const x=c.getContext('2d'); x.drawImage(im,0,0); const d=x.getImageData(0,0,c.width,c.height), q=d.data;
+    for(let i=0;i<q.length;i+=4){ const r=q[i],g=q[i+1],b=q[i+2];
+      if(white){ const a=255-Math.min(r,g,b); q[i+3]=a; if(a>0&&a<255){ q[i]=Math.min(255,Math.round((r-(255-a))*255/a)); q[i+1]=Math.min(255,Math.round((g-(255-a))*255/a)); q[i+2]=Math.min(255,Math.round((b-(255-a))*255/a)); } }
+      else { const a=Math.max(r,g,b); q[i+3]=a; if(a>0&&a<255){ q[i]=Math.min(255,Math.round(r*255/a)); q[i+1]=Math.min(255,Math.round(g*255/a)); q[i+2]=Math.min(255,Math.round(b*255/a)); } } }
+    x.putImageData(d,0,0); return c; }catch(e){ return im; } }
 function aimArt(kind,hero){ const url=(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind])||AIM_ART[kind]; if(!url) return null;
-  let im=_aimImg[url]; if(im===undefined){ im=new Image(); im._ok=false; im.onload=()=>{ im._ok=true; }; im.onerror=()=>{ im._ok=false; }; im.src=url; _aimImg[url]=im; }
-  if(im&&im._ok) return im;
+  let im=_aimImg[url]; if(im===undefined){ im=new Image(); im._ok=false; im.crossOrigin='anonymous'; im.onload=()=>{ im._keyed=_keyAimTex(im,kind==='blood'); im._ok=true; }; im.onerror=()=>{ im._ok=false; }; im.src=url; _aimImg[url]=im; }
+  if(im&&im._ok) return im._keyed||im;
   if(hero&&HERO_AIM_ART[hero]&&HERO_AIM_ART[hero][kind]&&AIM_ART[kind]) return aimArt(kind,null);   // hero art still loading: generic meanwhile
   return null; }
+/* v540 (Phil: "the ult aim should be a layer below heroes"). The painted aim art is no longer drawn on the 2D overlay (which
+   sits above everything) but as a GROUND PLANE in the 3D scene at renderOrder -5 - under the unit sprites, like the ground
+   FX plates - with additive blending on the keyed texture. Perspective comes for free from the camera. */
+const _aimMesh={};
+function aimGround(kind,hero,fx,fy,sx,sz,spin,alpha,scrollV){ if(typeof TH==='undefined'||!scene) return false;
+  const src=aimArt(kind,hero); if(!src) return false;
+  let m=_aimMesh[kind];
+  if(!m){ const tex=new TH.CanvasTexture(src); tex.wrapS=tex.wrapT=TH.RepeatWrapping;
+    m=new TH.Mesh(new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,blending:TH.AdditiveBlending,opacity:1}));
+    m.renderOrder=-5; m._src=src; scene.add(m); _aimMesh[kind]=m; }
+  if(m._src!==src){ m.material.map.image=src; m.material.map.needsUpdate=true; m._src=src; }
+  m.visible=true; m.position.set(wx(fx),0.12,wz(fy)); m.scale.set(sx,sz,1); m.rotation.set(-Math.PI/2,0,spin||0); m.material.opacity=alpha==null?1:alpha;
+  if(scrollV!=null){ m.material.map.offset.y=scrollV; }
+  return true; }
+function aimGroundHide(){ for(const k in _aimMesh) _aimMesh[k].visible=false; }
 function preloadAimArt(){ for(const k in AIM_ART) aimArt(k); try{ (G.team||[]).forEach(h=>{ const a=HERO_AIM_ART[h]; if(a) for(const k in a) aimArt(k,h); }); }catch(e){} }
 function ultAimMode(ab){ return ULT_ALLY_RADIUS.includes(ab)?'allyradius':ULT_RADIUS.includes(ab)?'radius':ULT_CONE.includes(ab)?'cone':ULT_LINE.includes(ab)?'line':ULT_TARGET.includes(ab)?'target':ULT_ALLY_TARGET.includes(ab)?'ally':ULT_ANY_TARGET.includes(ab)?'any':ULT_SELF.includes(ab)?'self':ULT_SUMMON.includes(ab)?'summon':'none'; }
 /* v538 - what an aimed ult may be released on, and whether it can be activated at all right now. */
@@ -7583,6 +7608,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
   octx.globalAlpha=1; octx.textBaseline='alphabetic';
   if(screenFlash>0){octx.fillStyle=`rgba(255,212,94,${screenFlash*.4})`;octx.fillRect(0,0,CW,CH);}
   units.forEach(u=>{ if(u.alive && (u.brighten||0)>0) glowUnit(u, Math.min(1,(u.brighten||0)*2), '255,245,200'); });   // non-aimable ult: affected enemies brighten
+  if(!aiming) aimGroundHide();
   if(aiming){ octx.fillStyle='rgba(0,0,0,.35)';octx.fillRect(0,0,CW,CH);
     const ap=project(aiming.x,aiming.y,1.0), tt=battleTime*8, ULD=ULT_DEF[aiming.t.ability]||{};
     const mode=ultAimMode(aiming.abilityOverride||aiming.t.ability);
@@ -7599,16 +7625,15 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
         const H=o.sprH||1.8, pn=project(o.x,o.y,H*0.82), pw=project(o.x,o.y,H*0.42); if(!pn.vis) return;
         const h=Math.max(10,pw.y-pn.y), w=h*0.7;
         octx.save();
-        if(bl){ octx.globalCompositeOperation='multiply'; octx.globalAlpha=0.95; octx.drawImage(bl,pn.x-w/2,pn.y,w,h); }
-        else { octx.globalCompositeOperation='multiply'; octx.fillStyle='rgba(150,10,20,.85)'; for(let k=0;k<4;k++){ const dx=(k-1.5)*w*0.22, dh=h*(0.55+0.45*Math.abs(Math.sin(tt*0.7+k*1.7))); octx.beginPath(); octx.ellipse(pn.x+dx,pn.y+dh/2,w*0.06,dh/2,0,0,7); octx.fill(); } }
+        if(bl){ octx.globalCompositeOperation='source-over'; octx.globalAlpha=0.95; octx.drawImage(bl,pn.x-w/2,pn.y,w,h); }   // v540: keyed on white, so plain source-over
+        else { octx.globalCompositeOperation='source-over'; octx.fillStyle='rgba(150,10,20,.85)'; for(let k=0;k<4;k++){ const dx=(k-1.5)*w*0.22, dh=h*(0.55+0.45*Math.abs(Math.sin(tt*0.7+k*1.7))); octx.beginPath(); octx.ellipse(pn.x+dx,pn.y+dh/2,w*0.06,dh/2,0,0,7); octx.fill(); } }
         octx.restore(); octx.globalAlpha=1; });
     }
     if(_gated){
       const D=ULT_DEF[aiming.t.ability]||{};
       if(mode==='target' && D.range){ // the reach ring around the caster, painted when the art is there
         const cp=project(aiming.x,aiming.y,0.15), rpx=project(aiming.x+D.range,aiming.y,0.15), rpy=project(aiming.x,aiming.y+D.range,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));
-        const im=aimArt('ring',aiming.key);
-        if(im){ octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(cp.x,cp.y); octx.scale(rx/512*1.04,ry/512*1.04); octx.globalAlpha=0.55+0.15*Math.sin(tt*0.9); octx.rotate(tt*0.06); octx.drawImage(im,-512,-512,1024,1024); octx.restore(); octx.globalAlpha=1; }
+        if(aimGround('ring',aiming.key,aiming.x,aiming.y,D.range*2*SC*1.04,D.range*2*SC*1.04,tt*0.06,0.55+0.15*Math.sin(tt*0.9))){ }
         else { octx.strokeStyle='rgba(255,180,90,.7)'; octx.lineWidth=2; octx.setLineDash([8,8]); octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); } }
       const col=(mode==='target')?'255,180,90':(mode==='summon')?'201,162,39':(mode==='self')?'255,212,94':(best&&best.team!==aiming.team)?'255,180,90':'125,255,176';
       if(best){ glowUnit(best,0.95,col); const bp=project(best.x,best.y,1); octx.strokeStyle='rgb('+col+')'; octx.lineWidth=3; octx.beginPath(); octx.arc(bp.x,bp.y,22+Math.sin(tt)*3,0,7); octx.stroke(); }
@@ -7622,23 +7647,19 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     } else if(mode==='radius'){
       const ctr=screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
       const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));   // ellipse axes = the ACTUAL projected ult radius in both directions
-      const _ringIm=aimArt('ring',aiming.key);
-      if(_ringIm){ /* v537 painted ring: squashed into the ground ellipse, slow counter-rotating pair, breathing */
-        octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(cp.x,cp.y); octx.scale(rx/512*1.04,ry/512*1.04);
-        octx.globalAlpha=0.85+0.15*Math.sin(tt*0.9); octx.rotate(tt*0.08); octx.drawImage(_ringIm,-512,-512,1024,1024);
-        octx.globalAlpha=0.35; octx.rotate(-tt*0.2); octx.drawImage(_ringIm,-512,-512,1024,1024);
-        octx.restore(); octx.globalAlpha=1; }
+      const _ringOn=aimGround('ring',aiming.key,ctr.x,ctr.y,_R*2*SC*1.04,_R*2*SC*1.04,tt*0.08,0.85+0.15*Math.sin(tt*0.9));
+      if(_ringOn){ /* v540: painted ring on the ground, under the heroes */ }
       else {
       octx.fillStyle='rgba(139,92,246,.18)'; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.fill();
       octx.strokeStyle='rgba(170,130,255,.98)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.lineDashOffset=-tt*2; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); octx.lineDashOffset=0; }
     } else if(mode==='cone'){
       const hp=project(aiming.x,aiming.y,0.4), tp=best?project(best.x,best.y,0.6):{x:aimTX,y:aimTY}, sang=Math.atan2(tp.y-hp.y,tp.x-hp.x);
       const cp0=project(aiming.x,aiming.y,0.15), rp=project(aiming.x+(ULD.radius||90),aiming.y,0.15), Rpx=Math.max(60,Math.hypot(rp.x-cp0.x,rp.y-cp0.y)*1.7), half=(45*Math.PI/180)/2;
-      const _coneIm=aimArt('cone',aiming.key);
-      if(_coneIm){ /* v537 painted wedge: point on her, arc at the reach, rim pulsing */
-        octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(hp.x,hp.y); octx.rotate(sang+Math.PI/2);
-        const s=Rpx/900; octx.scale(s*0.42,s); octx.globalAlpha=0.8+0.2*Math.sin(tt*1.1); octx.drawImage(_coneIm,-512,-1000,1024,1024);   // painted wedge is ~110 deg wide; x-squash to the 45-degree game cone
-        octx.restore(); octx.globalAlpha=1; }
+      { /* v540 painted wedge on the ground: point on the caster, arc at the reach, aimed along the field direction */
+        const _tf=best?{x:best.x,y:best.y}:screenToField(aimTX,aimTY,0.15); const fdx=_tf.x-aiming.x, fdy=_tf.y-aiming.y, phi=Math.atan2(fdy,fdx);
+        const Rf=(ULD.radius||90)*1.0; const cwid=Rf*2*Math.tan(22.5*Math.PI/180)/0.42;   // painted wedge is ~110 deg wide; squash so its rim lands on the 45-degree game cone
+        var _coneOn=aimGround('cone',aiming.key,aiming.x+Math.cos(phi)*Rf*0.5,aiming.y+Math.sin(phi)*Rf*0.5,cwid*SC*0.42,Rf*SC*1.05,-phi-Math.PI/2,0.8+0.2*Math.sin(tt*1.1)); }
+      if(_coneOn){ }
       else {
       octx.fillStyle='rgba(255,166,87,.20)'; octx.strokeStyle='rgba(255,196,120,.97)'; octx.lineWidth=3; octx.beginPath(); octx.moveTo(hp.x,hp.y);
       for(let a2=-half;a2<=half+1e-4;a2+=half/8){ octx.lineTo(hp.x+Math.cos(sang+a2)*Rpx, hp.y+Math.sin(sang+a2)*Rpx); }
@@ -7650,12 +7671,9 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
       const _lineIm=aimArt('line',aiming.key); const fp=screenToField(aimTX,aimTY,0.15); const fdx=fp.x-aiming.x, fdy=fp.y-aiming.y, fl=Math.hypot(fdx,fdy)||1;
       const _R=(ULD.radius||20*METER); const ep=project(aiming.x+fdx/fl*_R, aiming.y+fdy/fl*_R, 0.15), sp=project(aiming.x,aiming.y,0.15);
       const dx=ep.x-sp.x, dy=ep.y-sp.y, Lp=Math.max(60,Math.hypot(dx,dy)), ang=Math.atan2(dy,dx);
-      octx.save(); octx.globalCompositeOperation='lighter'; octx.translate(sp.x,sp.y); octx.rotate(ang+Math.PI/2);
-      const sy=Lp/1000, sx=Math.max(0.16,Math.min(0.5,sy*0.6)); octx.scale(sx,sy);
-      octx.beginPath(); octx.rect(-512,-1024,1024,1024); octx.clip();
-      const off=(tt*40)%256; octx.globalAlpha=0.95;
-      octx.drawImage(_lineIm,-512,-1024+off,1024,1024); octx.drawImage(_lineIm,-512,-1024+off-1024,1024,1024);   // two copies scrolling so the chevrons flow
-      octx.restore(); octx.globalAlpha=1;
+      { /* v540: the lane lies on the ground from her feet to the reach, chevrons scrolling along it (texture offset) */
+        const phi=Math.atan2(fdy,fdx); const lw=Math.max(2.2*METER, _R*0.22);
+        aimGround('line',aiming.key,aiming.x+fdx/fl*_R*0.5,aiming.y+fdy/fl*_R*0.5,lw*SC,_R*SC,-phi-Math.PI/2,0.95,-(tt*0.05)%1); }
     } else {
       let dx=aimTX-ap.x, dy=aimTY-ap.y; const len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len, L=Math.min(Math.max(len,60),190), ex=ap.x+ux*L, ey=ap.y+uy*L, ang=Math.atan2(uy,ux);
       octx.strokeStyle='rgba(255,212,94,.9)'; octx.lineWidth=4; octx.lineCap='round'; octx.beginPath(); octx.moveTo(ap.x,ap.y); octx.lineTo(ex,ey); octx.stroke();
@@ -15361,7 +15379,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788993724783';
+const BUILD_ID = '1788993987914';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
