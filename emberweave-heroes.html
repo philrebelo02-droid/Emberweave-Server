@@ -5433,7 +5433,23 @@ function think(u,dt){
      It is counted down in the sim rather than the render loop because the render loop stops when
      the tab is backgrounded, and a clip would then never finish; the sim keeps running.
      Crowd control is the one thing that cuts a clip short, so it clears the lock outright. */
-  if((u.stunned>0)||((u.fearT||0)>0)||((u.silencedT||0)>0)) u._animLockT=0;
+  /* v520 (Phil, 8 Sep): "all animations can be interrupted when crowd controlled by Stun, Fear,
+     Knock up, Knockback, Pull or Taunt" and "yes if someone is stunned during their ult, its
+     interrupted". Stun/fear/silence were already here; knock-up and knockback both surface as
+     _airT (airborne) and the pull as pullT, and neither was clearing the lock — so a hero yanked
+     or launched mid-swing kept playing the swing. TAUNT is deliberately NOT here: in this sim a
+     taunt redirects targeting, it does not apply a state to the taunted unit, so there is nothing
+     to interrupt. If taunt should also cut the clip it needs its own timer first. */
+  /* HARD CC — stun, fear, knock-up/knockback (_airT) and the pull cut ANY clip, the ult channel
+     included (Phil, asked directly: "yes if someone is stunned during their ult, its interrupted"). */
+  if((u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)){
+    u._animLockT=0; u._lockPri=0; u._abilHold=0; u._atkHold=0; u._hitHold=0; }
+  /* SILENCE is NOT hard CC (Phil, 8 Sep): "silence only cuts short Skills and ult". It takes the
+     casting away, so a skill or an ult already in flight stops — but an auto attack, a walk, a
+     flinch or an idle is untouched and plays to its end. Before v520 silence cleared the lock
+     outright and cut all of those too. _lockPri: 6 ult, 4 skill, 2 hit, 1 attack. */
+  else if((u.silencedT||0)>0 && (u._lockPri|0)>=4){
+    u._animLockT=0; u._lockPri=0; u._abilHold=0; }
   else if((u._animLockT||0)>0) u._animLockT-=dt;
   if(u.stunned>0){u.stunned-=dt*(1+2*(u.ctrlRes||0));return;}   // Control Resist shortens stuns (AUDIT C6)
   if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
@@ -6296,7 +6312,13 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            hit sheet on the roster runs 0.6-1.5s, so all anyone ever saw was its first few frames —
            the wind-up before the recoil, never the recoil. Drive it from the clip and cap it at 0.6s,
            which is still far inside every swing interval (the shortest is Hollow at 1.7s). */
-        if(u._critHit&&!(u._atkHold>0)){ const _h=u.anim&&u.anim.hit; u._hitHold=_h?Math.min(0.6,_h.n/(_h.fps||16)):0.28; }
+        /* v520 (Phil): "Hit takes priority over attack" — and hit only ever fires on a CRIT.
+           This used to be gated on !(u._atkHold>0), so a crit landing mid-swing was simply dropped
+           and the flinch never played. It now cuts the swing, but NEVER a skill or an ult: those
+           hold _lockPri 4 and 6, and Phil's rule is that only an ult (or CC) may cut a skill. */
+        if(u._critHit && (u._lockPri|0)<4){ const _h=u.anim&&u.anim.hit;
+          u._hitHold=_h?Math.min(0.6,_h.n/(_h.fps||16)):0.28;
+          u._atkHold=0; u._animLockT=Math.max(u._animLockT||0,u._hitHold); u._lockPri=2; }
         else if(u._hitHold>0)u._hitHold-=dt; u._critHit=false;
         if(u._abilHold>0)u._abilHold-=dt;
         // hold the walk state for a moment after the last real step, so the 30Hz sim under a 60Hz
@@ -6318,10 +6340,14 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            _abilPri tags which kind of clip _abilAnim currently holds: 6 ult, 4 skill, 2 passive. */
         const _ultActive=abilActive && (u._abilPri|0)>=6;
         const _atkSt=(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack';
+        /* v520 — Phil's ladder, 8 Sep. CC (handled in think(), it clears the lock) > ULT >
+           SKILL > HIT > WALK > ATTACK > PASSIVE > IDLE. The change from v408 is that HIT now sits
+           ABOVE WALK: Phil, asked directly whether a hit should flinch her mid-walk, said yes.
+           A running skill is still never cut by a hit — the skill branch is tested first. */
         let st = _ultActive ? u._abilAnim
-               : (walking ? 'walk'
                : (abilActive && (u._abilPri|0)>=4 ? u._abilAnim
                : ((u._hitHold>0) ? 'hit'
+               : (walking ? 'walk'
                : (abilActive ? u._abilAnim
                : ((u._atkHold>0) ? _atkSt : 'idle')))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
@@ -14306,7 +14332,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788913003424';
+const BUILD_ID = '1788913677919';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
