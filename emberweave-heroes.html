@@ -2495,7 +2495,7 @@ const KITS={
   nox:{green:{name:'Lockpick Soul',type:'energysteal',mul:1.25,steal:30,cd:7,muSilence:1.6,desc:"Hooks the highest-Energy enemy, steals part of its Energy, and creates a Skeleton Key. When Master-Unlocked, it strikes three enemies and briefly silences them.",gfx:'nox_green'},blue:{name:'Forbidden Key',type:'energygift',give:25,perKey:6,ultMul:1.25,dur:6,cd:9,muUltMul:1.5,desc:"Transfers stolen Energy to the ally nearest its Ultimate and increases that Ultimate's power. Its bonus grows with every held Skeleton Key; when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and uninterruptible.",gfx:'nox_blue',gfxR:3*METER},purple:{name:'Skeleton-Key Savant',pass:'skeletonkey',desc:"Every ability creates one Skeleton Key, up to five. At five keys the next ability is Master-Unlocked, and the keys build permanent Fortune - Dodge and critical damage."}},
   silkcoil:{green:{name:'Ribbon Fang',type:'bleedstack',mul:1.35,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,desc:"Crosses both ribbon-blades through the nearest target and applies a stacking wound.",gfx:'silkcoil_green'},blue:{name:'Hooded Feint',type:'evadecounter',mul:1.9,dur:2.4,dr:0.6,cd:9,desc:"Flares her cobra hood, evades the next attack, and immediately counters from the target's flank.",gfx:'silkcoil_blue',gfxR:3*METER},purple:{name:'Venom Rhythm',pass:'venomrhythm',desc:"Every third attack injects venom that reduces healing and energy gain."}},
   vaelora:{green:{name:'Featherfang',type:'piercethrow',mul:1.5,width:34,cd:6,desc:"Throws the ice-feather chakram through two enemies.",gfx:'vaelora_green'},blue:{name:'Whiteout Pounce',type:'evadecounter',mul:2.0,dur:2.2,dr:0.55,cd:9,desc:"Evades and counters the lowest-health enemy.",gfx:'vaelora_blue',gfxR:3*METER},purple:{name:'Silent Altitude',pass:'silentalt',desc:"Remaining untouched increases critical damage."}},
-  zahri:{green:{name:'Solar Impalement',type:'shred',mul:1.6,shred:0.32,dur:5,cd:6,desc:"Pierces the nearest enemy and reduces its armor."},blue:{name:'Mirage Herd',type:'summonmirage',key:'zahri mirage',dur:12,radius:1.2*METER,cd:9,desc:"Calls up a mirage of herself - a blurred copy with 30% of her stats that fights only with her lance."},purple:{name:'Desert Momentum',pass:'desertmom',desc:"Moving or attacking builds speed and penetration."}},
+  zahri:{green:{name:'Solar Impalement',type:'shred',mul:1.6,shred:0.32,dur:5,cd:6,desc:"Pierces the nearest enemy and reduces its armor."},blue:{name:'Mirage Herd',type:'summonmirage',key:'zahri mirage',dur:0,radius:1.2*METER,cd:9,desc:"Calls up a mirage of herself - a blurred copy with 30% of her stats that fights only with her lance."},purple:{name:'Desert Momentum',pass:'desertmom',desc:"Moving or attacking builds speed and penetration."}},
   kharos:{green:{name:'Petal Sever',type:'bleedstack',mul:1.6,bleed:0.18,rupture:3,ruptMul:2.0,stackDur:6,cd:6,desc:"Crosses both arm-blades, inflicting a deep wound.",gfx:'kharos_green'},blue:{name:'Bloomstep',type:'evadecounter',mul:2.1,dur:2.2,dr:0.55,cd:9,desc:"Evades the next strike and reappears behind the attacker.",gfx:'kharos_blue',gfxR:3*METER},purple:{name:'Perfect Camouflage',pass:'camouflage',desc:"Standing untouched increases dodge and damage."}},
   cacklefang:{green:{name:'Rending Return',type:'boomerang',mul:0.95,n:3,backMul:1.6,back:0.45,cd:7,desc:"Throws her bone boomerang through the enemy line; it deals greater damage while returning.",gfx:'cacklefang_green'},blue:{name:'Laughing Mark',type:'markreveal',mul:1.28,dur:8,cd:9,desc:"Marks the lowest-health enemy, revealing them and making allied critical hits restore energy.",gfx:'cacklefang_blue',gfxR:3*METER},purple:{name:'Pack Opportunist',pass:'packopp',desc:"Deals increased damage to isolated, controlled, or low-health enemies."}},
   cardwraith:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6},blue:{name:'House Edge',type:'haste',mul:1.32,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present."},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
@@ -2792,7 +2792,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'lastbreath': return '🛡 '+Math.round(apw*(ab.mul||1.8)*sm)+' shield · cannot fall below 1';
     case 'boomerang': return '⚔ '+Math.round(atk*(ab.mul||0.9)*sm)+' out · '+Math.round(atk*(ab.mul||0.9)*(ab.backMul||1.5)*sm)+' back';
     case 'markreveal': return '✦ mark: +'+Math.round(((ab.mul||1.25)-1)*100)+'% damage taken';
-    case 'summonmirage': return '✨ a mirage of herself · 30% stats · '+(ab.dur||12)+'s';
+    case 'summonmirage': return '✨ a mirage of herself · 30% stats · until it dies';
     case 'mirage': return '🛡 '+Math.round(hp*(ab.pct||0.18)*sm)+' shield + '+Math.round((ab.eva||0.15)*100)+'% dodge';
     case 'effigy': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + effigy ('+(ab.stun||1)+'s stun on break)';
     case 'gravknot': return '🌀 pull + slow'+(ab.mul?' · ✨ '+Math.round(apw*ab.mul*sm):'');
@@ -4217,7 +4217,7 @@ function summonUnit(owner,key,dur,off){
   /* v532 - the rise takes as long as the type's own rise clip (the boars' 12 @ 14 fps; Zahri's mirage builds out of a
      seed of light over 48 @ 24 = 2.0 s), so the last frame of the climb IS the first frame of idle and there is no pop. */
   const _rc=(BATTLE_ANIM[key]&&BATTLE_ANIM[key].rise), _rt=_rc?(_rc.n/(_rc.fps||14)):(12/14);
-  u._summon=true; u._wasSummon=true; u._summonOwner=owner; u._summonT=dur||15; u._riseT=_rt; u._riseMax=_rt;
+  u._summon=true; u._wasSummon=true; u._summonOwner=owner; u._summonT=(dur===0)?Infinity:(dur||15);   // v546: dur 0 = lives until killed (Zahri's mirage) u._riseT=_rt; u._riseMax=_rt;
   if(t_is_mirage(key)){ u._mirage=true;   // v532: a MIRAGE summon (Zahri) - tagged so mechanics can tell it from the herd
     /* v534 (Phil, 9 Sep): "the mirage can crit, it inherits 30% of her crit chance. however the crit wont have a different
        animation, instead the mirage will just double attack when it crits instead of doing more damage. so the attack
@@ -5144,7 +5144,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
 
     /* v532 Mirage Herd (Zahri) is now a SUMMON, "just like librarian and hurne" (Phil): the moment she uses her blue,
        one mirage copy of her builds out of a seed of light beside her - 1/10 of her stats, auto-attacks only, on a leash. */
-    case 'summonmirage':{ const m=summonUnit(u,o.key||'zahri mirage',o.dur||12,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.2*METER)});
+    case 'summonmirage':{ const m=summonUnit(u,o.key||'zahri mirage',(o.dur==null?0:o.dur),   /* v546 (Phil): "mirage should last until dead" - dur 0 = no timer */{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.2*METER)});
       if(!m){ floatTexts.push({x:u.x,y:u.y-16,txt:'MIRAGE HOLDS',t:.8,color:'#ffd08a',vy:1,sz:11}); }
       break; }
 
@@ -5404,6 +5404,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
 }
 function kitReady(u,ab){ const ty=ab.type;
+  if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
   if(ty==='hot'){const l=lowestAlly(u);return l&&l.hp/l.maxHp<0.92;}
   if(ty==='shield'){const l=ab.self?u:lowestAlly(u);return l&&l.shieldT<=0&&l.hp/l.maxHp<0.95;}
   if(ty==='dmgbuff'||ty==='haste'||ty==='taunt'||ty==='rally'){return !!nearestEnemy(u);}
@@ -14977,6 +14978,12 @@ function attachUltPress(el,u,relayMode){
     if(holdAim){ holdAim=false; try{el.releasePointerCapture(e.pointerId);}catch(_){}
       if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; }
       if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; u._autoAimUse=false; } else { u._autoAimUse=true; }   // tap fires the solved optimum, drag fires where you pointed
+      /* v546 (Phil): "the team or enemy target ults should still be click to drag, this gives the players time to think
+         about strategy". A tap never fires a TARGET-type ult (enemy / teammate / anyone / self / summon) - the player
+         drags onto the unit. Circle, cone and line keep their tap = solved optimum. */
+      { const _m=ultAimMode(u.abilityOverride||u.t.ability);
+        if(!moved && (_m==='target'||_m==='ally'||_m==='any'||_m==='self'||_m==='summon')){ cancelAim();
+          try{ floatTexts.push({x:u.x,y:u.y-18,txt:'HOLD & DRAG ONTO A TARGET',t:1.2,color:'#ffb347',vy:1,sz:11}); }catch(_){} return; } }
       fireAimed(); }
     /* 30 Aug — A NON-AIMED ULTIMATE WAS INVISIBLE TO THE SERVER.
        This called castAbility(u) DIRECTLY, so unlike the aimed path (fireAimed → queueInput) it was
@@ -15451,7 +15458,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788997085921';
+const BUILD_ID = '1788997639933';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
