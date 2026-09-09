@@ -14239,10 +14239,20 @@ async function ewDiag(key){
     say('  declared   fw '+s.fw+' fh '+s.fh+'  cols '+s.cols+' rows '+s.rows+'  figH '+s.figH);
     say('  in-game    tex '+(!!s.tex)+'  image '+(s.tex&&s.tex.image?((s.tex.image.width||0)+'x'+(s.tex.image.height||0)):'NONE')+'  _err '+(!!s._err),
         (s._err||!(s.tex&&s.tex.image))?'#f88':'#8f8');
+    const _sha=async(b)=>{ try{ const h=await crypto.subtle.digest('SHA-1', await b.arrayBuffer());
+      return [...new Uint8Array(h)].slice(0,6).map(x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return '??'; } };
     try{
       const t0=Date.now(); const r=await fetch(s.u,{cache:'no-store'});
       const bl=await r.blob(); const ms=Date.now()-t0;
-      say('  fetch      HTTP '+r.status+'  '+Math.round(bl.size/1024)+' KB  '+ms+' ms', r.ok?'#8f8':'#f88');
+      say('  via SW     HTTP '+r.status+'  '+Math.round(bl.size/1024)+' KB  sha '+(await _sha(bl))+'  '+ms+' ms', r.ok?'#8f8':'#f88');
+      /* CONTROL: fetch(...,{cache:'no-store'}) does NOT bypass a service worker - it only skips the
+         HTTP cache. A unique query the SW cache cannot match is the only way to see the ORIGIN. */
+      try{ const u2=s.u+'&swbypass='+Math.random().toString(36).slice(2);
+        const r2=await fetch(u2,{cache:'no-store'}); const b2=await r2.blob();
+        const bm2=await createImageBitmap(b2);
+        say('  ORIGIN     HTTP '+r2.status+'  '+Math.round(b2.size/1024)+' KB  sha '+(await _sha(b2))+'  '+bm2.width+'x'+bm2.height,'#ff0');
+        bm2.close&&bm2.close();
+      }catch(e){ say('  ORIGIN     FAILED '+String(e).slice(0,90),'#f88'); }
       try{ const bm=await createImageBitmap(bl,{imageOrientation:'flipY'});
         say('  decode     OK '+bm.width+'x'+bm.height,'#8f8'); bm.close&&bm.close();
       }catch(e){ say('  decode     FAILED '+String(e).slice(0,90),'#f88'); }
@@ -14260,7 +14270,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788911870726';
+const BUILD_ID = '1788912376888';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
