@@ -4304,7 +4304,12 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
        cast, not as a recoloured swing, so cast wins over the attack stand-in for every monster. */
     if(!st && u.t && u.t.monster && u.anim && u.anim.cast) st='cast';
     if(!st && u.anim && u.anim.attack){ st='attack'; u._abilFallback=true; }
-    if(st && u.anim && u.anim[st]){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4;   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
+    /* v521 (Phil, 8 Sep): "idle and passive is never interrupted once it starts except by ult
+       or hit". A passive flourish is a short one-shot at _abilPri 2; a skill firing on top of it
+       used to overwrite _abilAnim and the passive vanished mid-play. The skill still FIRES - this
+       is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
+    const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
+    if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4;   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
       const once=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10);
       u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
@@ -4715,7 +4720,9 @@ const _KIT_ANYWHERE={defensive:1,lifestealbuff:1,warcry:1,selfheal:1,harmonyshie
 function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
   u._castSlot=slot; doEffect(u,ab.type,ab); u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
-  u._lockPri=4; u._abilPri=4; u._animLockT=Math.max(u._abilHold||0, ct); }
+  // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
+  // and re-tagging it 4 here would relabel the PASSIVE as a skill. Leave the tag where it is.
+  if(!((u._abilPri|0)===2 && (u._abilHold||0)>0)){ u._lockPri=4; u._abilPri=4; u._animLockT=Math.max(u._abilHold||0, ct); } }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a; floatTexts.push({x:u.x,y:u.y,txt:'+'+Math.round(a),t:.85,color:'#5ee89b',vy:1,sz:8}); }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._animLockT=0;   // the ult outranks everything: it is the one action allowed to cut a clip short
@@ -5443,7 +5450,8 @@ function think(u,dt){
   /* HARD CC — stun, fear, knock-up/knockback (_airT) and the pull cut ANY clip, the ult channel
      included (Phil, asked directly: "yes if someone is stunned during their ult, its interrupted"). */
   if((u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)){
-    u._animLockT=0; u._lockPri=0; u._abilHold=0; u._atkHold=0; u._hitHold=0; }
+    u._animLockT=0; u._lockPri=0; u._abilHold=0; u._atkHold=0; u._hitHold=0;
+    u._idleHold=0; u._idleFrozen=false; }
   /* SILENCE is NOT hard CC (Phil, 8 Sep): "silence only cuts short Skills and ult". It takes the
      casting away, so a skill or an ult already in flight stops — but an auto attack, a walk, a
      flinch or an idle is untouched and plays to its end. Before v520 silence cleared the lock
@@ -6340,6 +6348,32 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            _abilPri tags which kind of clip _abilAnim currently holds: 6 ult, 4 skill, 2 passive. */
         const _ultActive=abilActive && (u._abilPri|0)>=6;
         const _atkSt=(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack';
+        /* v521 - Phil, 8 Sep, watching v520: "idle and passive is never interrupted once it
+           starts except by ult or hit", and "if a known attack or skill is coming soon idle is
+           only sped up by the amount of time before the next animation, that was shes not doing
+           half an idle, shes doing a full idle but faster". Walk also cuts it (Phil, asked).
+           So idle stopped being a clip that loops until something stomps it. It is a ONE-SHOT,
+           started only when there is room for the WHOLE cycle, then fitted to the gap:
+             gap >= clip       -> one cycle at natural speed
+             clip/gap <= 2.5   -> one cycle sped up to land exactly on the next action
+             clip/gap  > 2.5   -> do not start one at all; hold the frame (never half an idle)
+           The gap is the soonest KNOWN next action: the swing timer and the two skill cooldowns.
+           An ult is player-fired and unknowable, which is fine - the ult cuts idle anyway. */
+        const _IDLE_MAX_RATE=2.5;
+        const _idleA=u.anim&&u.anim.idle, _idleD=_idleA?clipDur(_idleA):0;
+        const _wouldIdle=!_ultActive && !abilActive && !(u._hitHold>0) && !walking && !(u._atkHold>0);
+        if(_ultActive || (u._hitHold>0) || walking){ u._idleHold=0; u._idleFrozen=false; }
+        else if((u._idleHold||0)>0){ u._idleHold=Math.max(0,u._idleHold-dt); }
+        else if(_wouldIdle && _idleD>0){
+          let T=Infinity;
+          if(u.target) T=Math.min(T,Math.max(0,u.atkCd||0));
+          if(u.greenAb) T=Math.min(T,Math.max(0,u.greenCd||0));
+          if(u.blueAb)  T=Math.min(T,Math.max(0,u.blueCd||0));
+          if(!isFinite(T) || T>=_idleD){ u._idleDur=_idleD; u._idleHold=_idleD; u._idleFrozen=false; }
+          else if(_idleD/Math.max(T,0.001) <= _IDLE_MAX_RATE){ const F=T*0.95; u._idleDur=F; u._idleHold=F; u._idleFrozen=false; }
+          else u._idleFrozen=true;
+        }
+        else u._idleFrozen=false;
         /* v520 — Phil's ladder, 8 Sep. CC (handled in think(), it clears the lock) > ULT >
            SKILL > HIT > WALK > ATTACK > PASSIVE > IDLE. The change from v408 is that HIT now sits
            ABOVE WALK: Phil, asked directly whether a hit should flinch her mid-walk, said yes.
@@ -6349,7 +6383,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
                : ((u._hitHold>0) ? 'hit'
                : (walking ? 'walk'
                : (abilActive ? u._abilAnim
-               : ((u._atkHold>0) ? _atkSt : 'idle')))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
+               : (((u._idleHold||0)>0) ? 'idle'
+               : ((u._atkHold>0) ? _atkSt : 'idle'))))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
         if(rising) st='rise';
         // Channelled ultimates (Blizzard / Thunder Shower): once the cast clip has finished
@@ -6386,12 +6421,18 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           ? Math.max(0,Math.min(0.999,1-(_osH/u._osMax))) : null;
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12)*WALK_ANIM_MUL;   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8))*WALK_ANIM_MUL; }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
+        else if(st==='idle' && u._idleFrozen){ /* v521: no room for a whole idle - hold, never half of one */ }
         else u._animAcc=(u._animAcc||0)+dt*(A.fps||10);
         // pingpong clips play forward THEN reverse (0..n-1..1) so the loop never hard-snaps back to frame 0
         let fr;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
           const prog=1-Math.max(0,Math.min(1,u._riseT/(u._riseMax||(12/14))));
           fr=Math.max(0,Math.min(A.n-1,Math.floor(prog*A.n))); }
+        else if(st==='idle' && (u._idleHold||0)>0 && (u._idleDur||0)>0 && A.n>1){
+          /* v521 - ONE FULL idle cycle fitted into the gap (pingpong counts the return leg). */
+          const _ip=(A.pingpong&&A.n>1)?(2*A.n-2):A.n;
+          const _iq=Math.max(0,Math.min(0.999,1-(u._idleHold/u._idleDur)));
+          const _is=Math.floor(_iq*_ip); fr=(A.pingpong&&A.n>1)?(_is<A.n?_is:_ip-_is):_is; }
         else if(_osFrac!==null) fr=Math.floor(_osFrac*A.n);   // one-shot: the whole clip, fitted to its hold
         else if(A.pingpong && A.n>1){ const per=2*A.n-2; let p=Math.floor(u._animAcc)%per; fr=p<A.n?p:per-p; }
         else fr=Math.floor(u._animAcc)%A.n;
@@ -14332,7 +14373,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788913677919';
+const BUILD_ID = '1788914952209';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
