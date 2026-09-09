@@ -55,6 +55,40 @@ const CONV={
    'hybrid' fires both lines at half weight. shape: nuke (first alive), lowest (weakest foe),
    aoe (up to n foes), cleave (first 2). stun: rounds of lost actions on the struck target(s). ---- */
 const KITS={
+  /* v527 — the 31 design-pack heroes. The server authors ONLY the ultimate, so each of these is
+     the closest honest shape for what the pack's ult does; anything the client's A1/A2 do is not
+     modelled here and never was. Without these they all fell through to DEFAULT_KIT. */
+  pyroclast:   {kind:'magic', shape:'aoe',    coef:1.45, n:3},                 // Crownfire
+  stormwarden: {kind:'phys',  shape:'aoe',    coef:1.35, n:3, stun:1},         // Skybreak
+  verdantshade:{kind:'phys',  shape:'aoe',    coef:1.35, n:3},                 // Emerald Volley
+  voidweaver:  {kind:'magic', shape:'aoe',    coef:1.40, n:3, stun:1},         // Event Horizon
+  dawnbringer: {kind:'magic', shape:'aoe',    coef:1.20, n:3, stun:1},         // Daybreak Judgment
+  cathedral:   {kind:'magic', shape:'aoe',    coef:1.15, n:3, stun:1},         // Divine Mass
+  lastfurnace: {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Living Forge
+  beekeeper:   {kind:'heal',  who:'allies',   coef:1.25},                      // Hive Mind
+  librarian:   {kind:'magic', shape:'aoe',    coef:1.10, n:3},                 // Final Volume (the summon is not modelled)
+  corsair:     {kind:'phys',  shape:'aoe',    coef:1.35, n:3},                 // Dead Man's Fortune
+  ironcoil:    {kind:'phys',  shape:'cleave', coef:2.20, n:2},                 // Avalanche Coil
+  silkcoil:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Serpent's Last Dance
+  greatbrow:   {kind:'phys',  shape:'cleave', coef:2.10, n:2},                 // March of the Greatbrow
+  velvetplum:  {kind:'shieldTeam', pct:0.16},                                  // Imperial Plumage
+  cacklefang:  {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Crescent Stampede
+  deepcleft:   {kind:'phys',  shape:'aoe',    coef:1.45, n:3, stun:1},         // Quarry Collapse
+  cardwraith:  {kind:'phys',  shape:'nuke',   coef:2.50},                      // Grand Reveal (all cards into one)
+  waxenduchess:{kind:'magic', shape:'aoe',    coef:1.35, n:3, stun:1},         // Court of the Final Candle
+  chainwheel:  {kind:'phys',  shape:'cleave', coef:2.30, n:2},                 // Lionwheel Rampage
+  threadseer:  {kind:'heal',  who:'allies',   coef:1.35},                      // Rewrite the Pattern
+  kilnmask:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3, stun:1},         // Grand Kiln Shape
+  veyr:        {kind:'phys',  shape:'aoe',    coef:1.45, n:3, stun:1},         // Event Horizon
+  kharos:      {kind:'phys',  shape:'lowest', coef:3.00},                      // Orchid Execution
+  orryn:       {kind:'magic', shape:'aoe',    coef:1.45, n:3},                 // Ocean Without Shore
+  pellucid:    {kind:'phys',  shape:'aoe',    coef:1.50, n:3, stun:1},         // Worldbreaker Fists
+  nox:         {kind:'magic', shape:'aoe',    coef:1.20, n:3, stun:1},         // Open Every Door
+  lysara:      {kind:'magic', shape:'aoe',    coef:0.80, n:3, stun:1},         // Queen of Quiet Wings
+  calypsa:     {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Thousand-Fin Tempest
+  zahri:       {kind:'phys',  shape:'cleave', coef:2.30, n:2},                 // Noonday Stampede
+  nerisse:     {kind:'magic', shape:'aoe',    coef:1.20, n:3, stun:1},         // Choir of the Deep Sky
+  vaelora:     {kind:'magic', shape:'aoe',    coef:1.40, n:3, stun:1},         // Winter Plumage
   konwu:     {kind:'phys',  shape:'cleave', coef:2.4, n:2},
   grosk:     {kind:'shieldTeam', pct:0.22},
   vulmar:    {kind:'magic', shape:'aoe',   coef:1.5, n:3},
