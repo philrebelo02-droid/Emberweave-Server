@@ -6368,7 +6368,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         const _IDLE_PUSH_RATE=3.5;   // only to avoid standing still for more than a second
         const _IDLE_MIN_GAP=1.0;     // Phil's threshold, in seconds
         const _wouldIdle=!_ultActive && !abilActive && !(u._hitHold>0) && !walking && !(u._atkHold>0);
-        if(_ultActive || (u._hitHold>0) || walking){ u._idleHold=0; u._idleFrozen=false; }
+        if(_ultActive || (u._hitHold>0) || walking || ((u._blizzT||0)>0) || ((u._stormT||0)>0)){
+          u._idleHold=0; u._idleFrozen=false; }
         else if((u._idleHold||0)>0){ u._idleHold=Math.max(0,u._idleHold-dt); }
         else if(_wouldIdle){
           /* v522 - Phil: "maybe for heroes like sylthaine that has no timed passive, it should
@@ -6380,10 +6381,17 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           const _cand=[];
           if(u.anim&&u.anim.idle)    _cand.push(['idle',    clipDur(u.anim.idle)]);
           if(_passFree)              _cand.push(['passive', clipDur(u.anim.passive)]);
+          /* v523 - the gap is when the next action can actually HAPPEN, not when its cooldown
+             expires. A swing with atkCd at 0 is still blocked while _castT runs (the whole cast,
+             the ult included), and a skill is blocked by _castT and by _recentAtk. Reading the raw
+             cooldowns made the gap 0 during a cast, nothing fit, and she froze - which is exactly
+             the standing-still Phil saw after her ult. */
+          const _blk=Math.max(0,u._castT||0);
+          const _sblk=Math.max(_blk, Math.max(0,u._recentAtk||0));
           let T=Infinity;
-          if(u.target) T=Math.min(T,Math.max(0,u.atkCd||0));
-          if(u.greenAb) T=Math.min(T,Math.max(0,u.greenCd||0));
-          if(u.blueAb)  T=Math.min(T,Math.max(0,u.blueCd||0));
+          if(u.target) T=Math.min(T,Math.max(_blk, Math.max(0,u.atkCd||0)));
+          if(u.greenAb) T=Math.min(T,Math.max(_sblk,Math.max(0,u.greenCd||0)));
+          if(u.blueAb)  T=Math.min(T,Math.max(_sblk,Math.max(0,u.blueCd||0)));
           const _F=isFinite(T)?Math.max(0,T)*0.95:Infinity;
           let _pick=null;
           const _fits=_cand.filter(c=>c[1]>0 && c[1]/Math.max(_F,0.001)<=_IDLE_MAX_RATE);
@@ -6416,6 +6424,13 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // Channelled ultimates (Blizzard / Thunder Shower): once the cast clip has finished
         // raising the staff, hold the channel clip for the rest of the storm.
         else if(!abilActive && ((u._blizzT||0)>0 || (u._stormT||0)>0) && u.anim.channel) st='channel';
+        /* v523 - Phil: "sometimes its like she goes 1 second standing still doing nothing,
+           typically its after i cast her ult". Sylthaine has no `channel` clip, so once the ult
+           clip's single playthrough ended she dropped out of the ult and stood there for the rest
+           of the blizzard. Phil's rule was already explicit: "ult animation never interrupted, its
+           a channel the animation should go until the blizzard is done." With no channel art, the
+           ULT clip itself loops for the length of the storm. */
+        else if(!abilActive && ((u._blizzT||0)>0 || (u._stormT||0)>0) && !u.anim.channel && u.anim.ult) st='ult';
         let A=u.anim[st]||u.anim.idle;
         // NEVER go invisible: if this clip's sheet hasn't finished downloading (or failed), show idle instead of a blank frame.
         /* 28 Aug — this readiness test was written for an <img>, and v286 started decoding sheets to
@@ -14399,7 +14414,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788915387188';
+const BUILD_ID = '1788915700665';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
