@@ -4646,7 +4646,11 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
   const tgt=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
   _ownFxCast = !!(o && o.gfx); setTimeout(()=>{_ownFxCast=false;},0);   /* v451 FX-OWNERSHIP */
   fxFor(type,u,tgt,o);   // ability visual effect
-  _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; }   // v313 — sprite plate for any ability that declares one
+  /* v552 (Phil: 'buff abilities like vireos heal and shield + any buff abilities should generate above everyone's health bar that's effected'):
+     a buff/heal that owns a sheet draws its plate AFTER the effect lands, once per unit it touched (see buffArtAll). */
+  const _buffArt=!!(o&&o.gfx&&FX2_DEF[o.gfx]&&_ABOVE_BAR[type]); let _buffSnap=null;
+  if(_buffArt){ _buffSnap=units.filter(a=>a.alive&&a.team===u.team).map(a=>[a,a.hp,a.shield||0,a.shieldT||0,a.hasteT||0,a.dmgBuffT||0,a.drT||0,a._wardT||0,(a.hots||[]).length,a._lifestealT||0,a.slow||0,a._cleanseT||0,a._bulwarkT||0,a._regenT||0]); }
+  else { _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } }   // v313 — sprite plate for any ability that declares one
   // Slot-aware clip pick. Shared ability TYPES (nova, aoedot, heal…) are reused by many heroes,
   // so the type alone cannot name the right clip. If this cast is the hero's own green/blue and
   // their own sheet has a matching state, that clip wins; otherwise fall back to ABIL_ANIM.
@@ -5425,7 +5429,21 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       break; }
     case 'thundershower':{ const ctr=u;   /* v491 (Phil: Fritz's ult was not to standard): it is a SELF-CENTRED channel - "a storm around the caster ... enemies within 8 m" - but it aimed at the enemy, so the cloud spawned 20 units away from him */ u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
   }
+  if(_buffArt){ try{ buffArtAll(u,o,tgt,aimCtr,type,_buffSnap); }catch(e){} }   /* v552 */
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
+}
+/* v552: one buff plate per affected unit, hung above that unit's health bar and following it. 'Affected' = any buff field
+   changed by the cast (hp, shield, ward, haste, damage buff, DR, HoT count, lifesteal, cleanse, bulwark, regen). If the cast
+   touched nobody (everyone full, nobody in range) the plate falls back to the old single placement so the cast still reads. */
+function buffArtAll(u,o,tgt,aimCtr,type,snap){
+  const hit=[]; (snap||[]).forEach(s=>{ const a=s[0]; if(!a.alive)return; const now=[a,a.hp,a.shield||0,a.shieldT||0,a.hasteT||0,a.dmgBuffT||0,a.drT||0,a._wardT||0,(a.hots||[]).length,a._lifestealT||0,a.slow||0,a._cleanseT||0,a._bulwarkT||0,a._regenT||0];
+    for(let i=1;i<now.length;i++){ if(now[i]!==s[i]){ hit.push(a); break; } } });
+  if(!hit.length){ _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } return; }
+  const R=(o.artR>0)?o.artR:((o.radius>0&&o.radius<=30*METER)?o.radius:(o.gfxR||2.4*METER)), life=o.gdur||1.6;
+  hit.forEach(a=>{ try{ window._fxTgtH=a.sprH||null; window._fxTgtU=a._sprRef?a:null; window._fxAboveBar=!!a._sprRef; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+      _fxAllow=true; const fo=spawnGroundFx(o.gfx,a.x,a.y,R,life);
+      if(fo&&fo.m&&a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); fo.followAbove=a; fo.aboveOff=fo.m.position.clone().sub(p); }
+    }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; } });
 }
 function kitReady(u,ab){ const ty=ab.type;
   if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
@@ -5933,6 +5951,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
     sp.position.set(wx(cx),0.2,wz(cy)); sp.renderOrder=1; scene.add(sp); const fo={m:sp,d:fd,tex:ft,t:0,life,front:true}; _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
   return o; }
 function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
+  if(o.followAbove&&o.aboveOff){ const a=o.followAbove; if(a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); o.m.position.copy(p).add(o.aboveOff); } if(!a.alive) o.life=Math.min(o.life,0.18); }   /* v552: a buff badge rides above its unit's bar */
   if(o.follow){ const f=o.follow, fx=(f.rx==null?f.x:f.rx), fy=(f.ry==null?f.y:f.ry); if(o.front) o.m.position.set(wx(fx),o.upY!=null?o.upY:0.2,wz(fy)); else o.m.position.x=wx(fx), o.m.position.z=wz(fy)+(o.zoff||0); }
   { let fr=Math.floor((o.t/o.d.dur)*o.d.n);
     /* v489 (Phil): Grasping Vow's fist is driven by HOW FAR THE VICTIM HAS COME, not by a clock — "get to f14 faster, and
@@ -7819,9 +7838,9 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     octx.fillStyle='#ffd45e';octx.font='bold 13px sans-serif';octx.textAlign='center';octx.fillText('🎯 '+aiming.t.abilityName,ap.x,ap.y-24); }
   updatePortraits();
 }
-function burstAt(x,y,color,n){if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true,depthTest:false}));m.renderOrder=-2;m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
+function burstAt(x,y,color,n){if(_ownFxCast)return;   /* v552 (Phil: 'only animation spell fx should be used'): an ability that owns a sheet draws no code splash */ if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true,depthTest:false}));m.renderOrder=-2;m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
 /* ---- ability visual FX (world-space particle helpers) ---- */
-function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true,depthTest:false})); m.renderOrder=-2; m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
+function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(_ownFxCast)return;   /* v552: see burstAt */ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true,depthTest:false})); m.renderOrder=-2; m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
 // fire (or any colour) falling from the sky over an area — "reign of fire" style
 function fireRain(cx,cy,radius,n){ radius=(radius||90)*FX_SIZE; n=Math.min(n||18,26); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*radius; const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5.5+Math.random()*3.5,wz(py),(Math.random()-.5)*.4,-6-Math.random()*3,(Math.random()-.5)*.4, Math.random()<.5?0xff6a2a:0xffb52a, 1.0+Math.random()*.5, .5+Math.random()*.45); } }
 // generic projectiles falling on a spot (arrow tempest / holy light)
@@ -15523,7 +15542,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789039190064';
+const BUILD_ID = '1789040136131';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
