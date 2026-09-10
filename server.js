@@ -3392,7 +3392,7 @@ async function api(req,res,url){
       else if(what==='stamina'){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+amt); }
       else if(what==='px'){ const before=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+amt);
         if(ledPlayerLevel(led)>before){ ledStamRegen(led); led.stam.v=Math.max(led.stam.v,ledStamMax(led)); } }
-      else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?b.heroKeys.map(String).slice(0,10):[]);
+      else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?[...new Set(b.heroKeys.map(String))].slice(0,10):[]);   /* v559: the daily counter moved once per request but the loop paid once per ELEMENT, so ten copies of one key multiplied the award tenfold. */
         for(const k of keys){ if(!led.unlocked[k]) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
       else if(what==='frag'){ const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'};
         led.frags[k]=Math.min(9999,(led.frags[k]|0)+amt); }
@@ -3447,7 +3447,7 @@ async function api(req,res,url){
       const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3 && !isDev(me)) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }   // v343: dev accounts exempt (Phil testing 1-5)
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
-    const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+    const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
     for(const k of ids){ if(!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
     ledStamRegen(led); const cost=campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL;
@@ -3741,7 +3741,7 @@ async function api(req,res,url){
         if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
         const dk=nyDayKey(); led.eliteDay=led.eliteDay&&led.eliteDay.k===dk?led.eliteDay:{k:dk};
         if((led.eliteDay[node]|0)>=3) return {ok:false,error:'Elite rewards are limited to 3 per day.'};
-        const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
         for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'not unlocked: '+k}; }
         const st=campStageOf(node); if(!st) return {ok:false,error:'Stage data missing.'};
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
@@ -3763,7 +3763,7 @@ async function api(req,res,url){
         const floor=Math.max(1,Math.min(500,b.floor|0));
         led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
         if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
-        const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
         for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'not unlocked: '+k}; }
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
@@ -3894,7 +3894,7 @@ async function api(req,res,url){
         if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
         const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0,coins:0};
         if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
-        const ids=Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[];
+        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
         for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'You have not unlocked '+k+'.'}; }
         const mySnaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
@@ -4015,6 +4015,7 @@ async function api(req,res,url){
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
         simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
     }
+    if(!opp) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* v559: a missing opponent left won=false and fell through to the +5 consolation coins, so an unbounded string of invalid oppIds minted coins at the route limit without ever fighting. No opponent, no attempt, no payout. */
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
     let goldReward=0; if(won){ const led=ensureLedger(me);
       // per-NY-day cap on arena gold (EARN_RULES pattern): rank still moves after the cap, gold stops.
