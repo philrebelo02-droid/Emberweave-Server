@@ -5871,7 +5871,12 @@ const FX2_DEF={
   vharn_ult:{u:'/assets/anim/fx/vharn_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vireo_blue:{u:'/assets/anim/fx/vireo_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vireo_green:{u:'/assets/anim/fx/vireo_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:1}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
+  /* v557 (Phil, 10 Sep 2026): "make sure her ult is a layer behind all heroes". Grand Symphony is a
+     screen-filling wave of notes, so at the roster-standard ro:1 it painted OVER every hero on the
+     board and buried the fight it is supposed to frame. ro:-2 puts it behind every unit sprite
+     (which render at 0) while still sitting above the ground plates (-6), status FX (-4) and the
+     backdrop. This is deliberately the exception to the ro:1 default, not a mistake to tidy up. */
+  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.21,disc:{cy:0.498,dh:0.391,dw:0.912}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -15554,7 +15559,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789062558715';
+const BUILD_ID = '1789063654153';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
