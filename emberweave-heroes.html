@@ -7838,9 +7838,9 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     octx.fillStyle='#ffd45e';octx.font='bold 13px sans-serif';octx.textAlign='center';octx.fillText('🎯 '+aiming.t.abilityName,ap.x,ap.y-24); }
   updatePortraits();
 }
-function burstAt(x,y,color,n){if(_ownFxCast)return;   /* v552 (Phil: 'only animation spell fx should be used'): an ability that owns a sheet draws no code splash */ if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true,depthTest:false}));m.renderOrder=-2;m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
+function burstAt(x,y,color,n){return;   /* v554 (Phil, 10 Sep: 'all spell fx that you created personally using code ... only animation spell fx should be used'): code particles are OFF for everything, not just sheet-owning casts */ if(particles.length>140)n=Math.min(n,6);for(let i=0;i<n;i++){const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.7,transparent:true,depthTest:false}));m.renderOrder=-2;m.scale.setScalar(.9);m.position.set(wx(x),1,wz(y));scene.add(m);const a=Math.random()*6.28,sp=1.5+Math.random()*3.5;particles.push({mesh:m,vx:Math.cos(a)*sp,vy:2+Math.random()*3,vz:Math.sin(a)*sp,t:0,life:.6*HERO_FX_MUL});}}
 /* ---- ability visual FX (world-space particle helpers) ---- */
-function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ if(_ownFxCast)return;   /* v552: see burstAt */ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true,depthTest:false})); m.renderOrder=-2; m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
+function fxParticle(wxp,wyp,wzp,vx,vy,vz,color,life,sc){ return;   /* v554: see burstAt - no code particles anywhere */ if(particles.length>210)return; const m=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.95,transparent:true,depthTest:false})); m.renderOrder=-2; m.scale.setScalar(sc||.9); m.position.set(wxp,wyp,wzp); scene.add(m); particles.push({mesh:m,vx,vy,vz,t:0,life:(life||.6)*HERO_FX_MUL}); }
 // fire (or any colour) falling from the sky over an area — "reign of fire" style
 function fireRain(cx,cy,radius,n){ radius=(radius||90)*FX_SIZE; n=Math.min(n||18,26); for(let i=0;i<n;i++){ const a=Math.random()*6.28,r=Math.random()*radius; const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r; fxParticle(wx(px),5.5+Math.random()*3.5,wz(py),(Math.random()-.5)*.4,-6-Math.random()*3,(Math.random()-.5)*.4, Math.random()<.5?0xff6a2a:0xffb52a, 1.0+Math.random()*.5, .5+Math.random()*.45); } }
 // generic projectiles falling on a spot (arrow tempest / holy light)
@@ -15542,7 +15542,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789040472044';
+const BUILD_ID = '1789040818305';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
