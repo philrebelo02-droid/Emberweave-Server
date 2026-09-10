@@ -1629,7 +1629,7 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/boarshaman/boarshaman_hit.webp?v=4',n:20,fw:300,fh:275,cols:6,rows:4,figH:221,feet:270,cx:143,fps:16,flip:false,top:2},
     cast:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=6',n:48,fw:354,fh:552,cols:6,rows:8,figH:400,feet:540,cx:177,fps:8,flip:false,hold:2.4,top:12},
     crescendo:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=6',n:48,fw:354,fh:552,cols:6,rows:8,figH:400,feet:540,cx:177,fps:8,flip:false,hold:2.4,top:12},
-    attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=6',n:48,fw:460,fh:528,cols:6,rows:8,figH:400,feet:515,cx:230,fps:8,flip:false,hold:1.33,top:12},
+    attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=7',n:48,fw:386,fh:442,cols:6,rows:8,figH:400,feet:430,cx:193,fps:8,flip:false,hold:1.33,top:13},   // v548 (Phil: "he shrinks"): the attack clip was fired on the 62% plate (figure 480 px), walk/cast on the 52% plate (400) - v6 sliced all three at scale 1.0 so he grew 20% for every auto; re-sliced at 400/480
     idle:{u:'/assets/anim/boarshaman/boarshaman_idle.webp?v=6',n:1,fw:318,fh:422,cols:6,rows:1,figH:400,feet:410,cx:159,fps:8,flip:false,top:13},
     walk:{u:'/assets/anim/boarshaman/boarshaman_walk.webp?v=6',n:48,fw:326,fh:450,cols:6,rows:8,figH:400,feet:437,cx:163,fps:14,flip:false,top:14},
     rise:{u:'/assets/anim/boarshaman/boarshaman_rise.webp?v=4',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:353,cx:192,fps:14,flip:false,top:146}
@@ -2530,7 +2530,7 @@ const MONSTER_KITS={
      armour, haste, lifesteal, taunt, blink — where a plate on the ground would be a lie about what
      happened; those keep their particle tell. Numbers below are untouched. */
 
-  'boar shaman': {green:{name:'Bone Chant',type:'crescendo',dur:4,cd:6,gfx:'bonechant',radius:2.6*METER},blue:{name:'Pyre Grunt',type:'aoedot',mul:0.5,dps:0.45,dur:4,radius:2.6*METER,cd:8,gfx:'pyregrunt',gdur:2.4}},
+  'boar shaman': {green:{name:'Bone Chant',type:'chantzone',dur:4,lead:1.5,tick:1,hps:0.6,dps:0.35,cd:9,gfx:'bonechantfx',gdur:6,radius:5*METER},blue:{name:'Pyre Grunt',type:'aoedot',mul:0.5,dps:0.45,dur:4,radius:2.6*METER,cd:8,gfx:'pyregrunt',gdur:2.4}},
 
   'bug':          {green:{name:'Frenzied Wings',type:'haste',mul:1.6,dur:4,self:true,cd:8},           blue:{name:'Hive Vigor',type:'lifestealbuff',pct:0.25,dur:5,cd:11}},                 // Skarrn — both self-buffs, no plate
   'creep':        {green:{name:'Grasping Reach',type:'tendrilpull',dur:1.4,cd:8},                     blue:{name:'Rockskin Slam',type:'stun',mul:1.3,stun:1.2,cd:10,gfx:'groundslam',gfxR:1.6*METER,gdur:1.3}},   // Skulk
@@ -2607,7 +2607,7 @@ const PASS_DESC={beeward:'a worker bee circles the head of every living ally, th
   weightless:'every dodge adds attack speed and crit chance',
   prismscales:'every dodge fires a water blade back at whoever missed',
   slumber:'her attacks steadily blind what she hits, taking their accuracy down'};
-const KIT_DESC={honeyglob:'A big glob of royal honey drops on the head of the most wounded ally and melts away, healing them on impact and a little more over the next seconds',hornetswarm:'Sends a swarm of 30 bees to the most crowded enemy group: they spread over the area and sting every enemy in it for 4 seconds, then fly back to the Beekeeper and vanish',fireball:'Hurls a ball of fire that bursts on the target and burns everyone around it',summonwarriors:'Three undead boar warriors claw their way up out of the floor and fight for him',summonshaman:'A boar shaman climbs out of the floor — it mends nearby allies and burns whatever stands near it',summonmirage:'A seed of light builds into a mirage of Zahri herself: a blurred copy with 30% of her stats that fights only with her lance, and fades when its time is up',plumbline:'A ranged shot that hits HARDER the farther away the target is',weighdebt:'Marks the enemy with the most health — while marked, part of the damage they deal is redirected into him, and he heals from what he absorbs',tidalsurge:'A wave that physically shoves nearby enemies backwards and leaves them slowed',dawnward:'For a few seconds the ally nearest death cannot drop below 1 health',bladefan:'A cone of thrown daggers — every one adds a bleed stack',bleedstack:'Adds a bleed stack. The third stack RUPTURES for a burst of damage and clears them',spread:'A shotgun spread — devastating point-blank, weak at range',reckless:'An all-in blow that costs him a slice of his own health',bloodnova:'Bursts around him — the damage grows with the health he has already lost',erratafield:'Lays down a field of corrections. Anything standing in it cannot cast',pagestorm:'Pages tear down the lane and cut a second time on the way back',hookline:'Throws and hauls HERSELF in — lands behind the target with a guaranteed critical',debtmark:'A debt that grows: each stack ticks harder, and it can outlive its holder',drowsy:'The sting slows their hands. Sting an already-stung foe and they fall asleep until struck',piercethrow:'Hurls through the line — hits every enemy between the caster and the FARTHEST foe',charge:'Dashes to the farthest enemy, then slams everyone at the landing point',cleave:'A heavy 45° sweep in front of the caster',aoeStun:'Slams an area — damages and stuns everything inside it',ashfall:'Drops a lasting hazard on the ground that ticks damage to anything standing in it',selfheal:'Restores a chunk of the caster\u2019s own health',mendburst:'One large heal on the worst-off ally, plus a strong heal-over-time on top',spdsteal:'Steals attack speed from the enemy\u2019s fastest fighter and gives it to your fastest ally',strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves every enemy in a wide arc toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Bursts around the caster — damages every nearby enemy and leaves them burning',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team',punchflurry:'A rapid flurry of quick strikes',frozenorb:'A drifting orb that chills and damages nearby foes',freeze:'Freezes a single target solid (stun)',sunburst:'A burst of light — burns nearby foes and heals nearby allies',duality:'Swaps stance — Dark (bonus damage) or Light (team shield)',toxbreath:'A cone of poison that lingers as a damage-over-time',swamproot:'Summons vines that root enemies in place',crescendo:'A rising note that heals allies',harmonyshield:'A shield-song that guards nearby allies',stormsurge:'Calls down bolts on several random foes',chainlight:'A bolt of lightning that leaps between enemies',shadeburst:'Erupts a wave of creeping shadow, sinking a lingering rot into every enemy caught in a wide radius around Umbris',creeprot:'Marks a single enemy with festering shadow-rot that eats away at them over time',warcry:'A savage roar that raises Vael’s damage and rattles nearby foes',lifestealbuff:'Vael feeds on the fight, healing for a share of all the damage he deals for a while',heal:'Restores health to the WHOLE team at once',defensive:'Rhukk braces behind his carapace, taking far less damage for a few seconds',pullsilence:'Yanks in and silences nearby enemies',gravsling:'Flings a gravity orb that splashes nearby foes',tendrilpull:'Drags the farthest enemy in and silences it'};
+const KIT_DESC={honeyglob:'A big glob of royal honey drops on the head of the most wounded ally and melts away, healing them on impact and a little more over the next seconds',hornetswarm:'Sends a swarm of 30 bees to the most crowded enemy group: they spread over the area and sting every enemy in it for 4 seconds, then fly back to the Beekeeper and vanish',fireball:'Hurls a ball of fire that bursts on the target and burns everyone around it',summonwarriors:'Three undead boar warriors claw their way up out of the floor and fight for him',summonshaman:'A boar shaman climbs out of the floor — it mends nearby allies and burns whatever stands near it',summonmirage:'A seed of light builds into a mirage of Zahri herself: a blurred copy with 30% of her stats that fights only with her lance, and fades when its time is up',plumbline:'A ranged shot that hits HARDER the farther away the target is',weighdebt:'Marks the enemy with the most health — while marked, part of the damage they deal is redirected into him, and he heals from what he absorbs',tidalsurge:'A wave that physically shoves nearby enemies backwards and leaves them slowed',dawnward:'For a few seconds the ally nearest death cannot drop below 1 health',bladefan:'A cone of thrown daggers — every one adds a bleed stack',bleedstack:'Adds a bleed stack. The third stack RUPTURES for a burst of damage and clears them',spread:'A shotgun spread — devastating point-blank, weak at range',reckless:'An all-in blow that costs him a slice of his own health',bloodnova:'Bursts around him — the damage grows with the health he has already lost',erratafield:'Lays down a field of corrections. Anything standing in it cannot cast',pagestorm:'Pages tear down the lane and cut a second time on the way back',hookline:'Throws and hauls HERSELF in — lands behind the target with a guaranteed critical',debtmark:'A debt that grows: each stack ticks harder, and it can outlive its holder',drowsy:'The sting slows their hands. Sting an already-stung foe and they fall asleep until struck',piercethrow:'Hurls through the line — hits every enemy between the caster and the FARTHEST foe',charge:'Dashes to the farthest enemy, then slams everyone at the landing point',cleave:'A heavy 45° sweep in front of the caster',aoeStun:'Slams an area — damages and stuns everything inside it',ashfall:'Drops a lasting hazard on the ground that ticks damage to anything standing in it',selfheal:'Restores a chunk of the caster\u2019s own health',mendburst:'One large heal on the worst-off ally, plus a strong heal-over-time on top',spdsteal:'Steals attack speed from the enemy\u2019s fastest fighter and gives it to your fastest ally',strike:'Heavy strike',double:'Two fast strikes',volley:'Hits several enemies',nova:'Damages all nearby enemies',cleavecone:'Cleaves every enemy in a wide arc toward the target',blink:'Teleports behind the lowest-health enemy (15 m) and strikes',dot:'Damage-over-time (bleed/poison/burn)',aoedot:'Bursts around the caster — damages every nearby enemy and leaves them burning',fireorb:'Hurls a giant fire orb that erupts on impact',stun:'Strike that stuns the target',slow:'Strike that slows the target',mortal:'Strike + Mortal Wounds (−50% healing)',hot:'Heal-over-time on a wounded ally',shield:'Absorb shield on an ally',dmgbuff:'Boosts your team’s damage',haste:'Boosts your team’s attack speed',taunt:'Taunts foes + cuts damage taken',rally:'Energy + haste to the whole team',punchflurry:'A rapid flurry of quick strikes',frozenorb:'A drifting orb that chills and damages nearby foes',freeze:'Freezes a single target solid (stun)',sunburst:'A burst of light — burns nearby foes and heals nearby allies',duality:'Swaps stance — Dark (bonus damage) or Light (team shield)',toxbreath:'A cone of poison that lingers as a damage-over-time',swamproot:'Summons vines that root enemies in place',crescendo:'A rising note that heals allies',chantzone:'A 10 m circle of green bone-fire on the floor under the most crowded group of allies — for 4 seconds, every second it heals every ally standing in it and burns every enemy in it',harmonyshield:'A shield-song that guards nearby allies',stormsurge:'Calls down bolts on several random foes',chainlight:'A bolt of lightning that leaps between enemies',shadeburst:'Erupts a wave of creeping shadow, sinking a lingering rot into every enemy caught in a wide radius around Umbris',creeprot:'Marks a single enemy with festering shadow-rot that eats away at them over time',warcry:'A savage roar that raises Vael’s damage and rattles nearby foes',lifestealbuff:'Vael feeds on the fight, healing for a share of all the damage he deals for a while',heal:'Restores health to the WHOLE team at once',defensive:'Rhukk braces behind his carapace, taking far less damage for a few seconds',pullsilence:'Yanks in and silences nearby enemies',gravsling:'Flings a gravity orb that splashes nearby foes',tendrilpull:'Drags the farthest enemy in and silences it'};
 function promoteCost(rank){ const mat=['green','blue','purple'][rank]; return {[mat]:4+rank*4, gold:150+rank*150}; }
 // ---- SKILL LEVELS: each unlocked skill has a level, upgraded with gold; leveling boosts its damage / heal / DR ----
 const SKILL_MAX=10, SKILL_UP_BASE=[300,220,260,400];   // gold base per skill index (ult / green / blue / passive)
@@ -2773,6 +2773,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'toxbreath': return '☠ '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
     case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+' + '+(ab.root||2)+'s root';
     case 'crescendo': return '✚ '+Math.round(apw*2*sm)+' heal';
+    case 'chantzone': return '✚ '+Math.round(apw*(ab.hps||0.6)*sm)+'/s allies · ⚔ '+Math.round(apw*(ab.dps||0.35)*sm)+'/s foes';
     case 'honeyglob': return '🍯 '+Math.round(apw*2*sm)+' + '+Math.round((ab.heal||0.14)*100)+'% HP heal';
     case 'harmonyshield': return '🛡 '+Math.round(apw*(ab.mul||2.4)*sm)+' shield';
     case 'stormsurge': return '⚡ '+Math.round(apw*(ab.mul||0.85)*sm)+' ×'+(ab.n||5);
@@ -4201,12 +4202,19 @@ function killSummon(p){ if(!p||!p.alive)return; p.hp=0; p.alive=false; p.deathT=
 function t_is_mirage(key){ const T=MONSTER_TYPES[key]; return !!(T&&T.mirage); }
 function livingSummons(owner){ let n=0; for(const o of units){ if(o.alive&&o._summonOwner===owner)n++; } return n; }
 function livingSummonsOf(owner,key){ let n=0; for(const o of units){ if(o.alive&&o._summonOwner===owner&&o.key===key)n++; } return n; }
+/* v548 (Phil): "the shamans should be summoned back where backrow belongs" - a ranged summon rises in his team's BACK row
+   (laneSlot depth 3.4, the same diagonal the backline musters on), in the next free row-mate slot beside the living
+   back-row heroes, not at his master's heel in the front line. Pure function of team + living units: identical headless. */
+function backRowSpawn(owner,key){ const team=owner.team;
+  const mates=units.filter(o=>o.alive&&o.team===team&&o!==owner&&!o._dropHidden&&Math.abs(_laneDepthOf(o.key)-3.4)<0.01);
+  const keys=mates.map(o=>o.key).concat([key]); return laneSlot(team,key,keys.length-1,keys.length,keys); }
 function summonUnit(owner,key,dur,off){
   if(!owner||!owner.alive)return null;
   if(livingSummonsOf(owner,key)>=(SUMMON_CAPS[key]||3))return null;
   const ang=(off&&off.a)||0, rad=(off&&off.r)||1.6*METER;
-  const px=Math.max(60,Math.min(FW-60, owner.x+Math.cos(ang)*rad));
-  const py=Math.max(80,Math.min(FD-60, owner.y+Math.sin(ang)*rad));
+  let px=Math.max(60,Math.min(FW-60, owner.x+Math.cos(ang)*rad));
+  let py=Math.max(80,Math.min(FD-60, owner.y+Math.sin(ang)*rad));
+  if(off&&off.backRow){ const _b=backRowSpawn(owner,key); px=_b.x; py=_b.y; }
   let u=null; try{ u=makeUnit(key,owner.team,px,py,heroLevel(owner.key)); }catch(e){ return null; }
   if(!u)return null;
   const sc=SUMMON_SCALE[key];
@@ -4574,6 +4582,7 @@ function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the abi
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
+  if(type==='chantzone'&&!aimCtr){ const _cc=densestAllyCluster(u,o.radius||5*METER); if(_cc) c=_cc; }   // v548: the circle is drawn where it lands - on the ally cluster
   /* v472 (Phil: "that barrage should originate out of the front of the barrel of his gun"): gfxAt:'muzzle' puts the plate at the
      hero's cast origin (hand / gun barrel, see castOrigin), stood upright and facing the target. */
   /* v473 placement rules (Phil: "make sure hero spell FX are actually making sense with spawn location"):
@@ -4618,6 +4627,9 @@ function abilShot(u,o,e,color,onHit){
 }
 function densestEnemyCluster(u,R){ const foes=enemiesOf(u); if(!foes.length) return null; let best=null, bn=-1;
   foes.forEach(e=>{ const g=foes.filter(f=>dist(e,f)<=R); if(g.length>bn){ bn=g.length; best=g; } });
+  if(!best) return null; const cx=best.reduce((a,f)=>a+f.x,0)/best.length, cy=best.reduce((a,f)=>a+f.y,0)/best.length; return {x:cx,y:cy,n:bn}; }
+function densestAllyCluster(u,R){ const al=alliesOf(u); if(!al.length) return null; let best=null, bn=-1;   // v548: Bone Chant lands on the most congested ally group
+  al.forEach(e=>{ const g=al.filter(f=>dist(e,f)<=R); if(g.length>bn){ bn=g.length; best=g; } });
   if(!best) return null; const cx=best.reduce((a,f)=>a+f.x,0)/best.length, cy=best.reduce((a,f)=>a+f.y,0)/best.length; return {x:cx,y:cy,n:bn}; }
 function heroScaleMode(u){ const t=u&&u.t; if(!t||t.monster) return null; const r=t.role; if(r==='Mage'||r==='Support') return 'ap'; if(r==='Tank') return (t.apow>0)?'ap':'ad'; if(r==='Fighter'&&t.apow>0) return null; return 'ad'; }   /* v483 Phil: casters/mage tanks scale off AP, physical roles off Attack; hybrids later */
 function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
@@ -4915,7 +4927,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
          blue (the open hand clenches at 13-16). Fused to that frame; the Librarian (his own clip) and anyone without the clip
          summon at once as before. */
       const _bc=(u.key==='hurne')?(u.anim&&u.anim.blue):null, _at=(_bc&&_bc.n>1)?((o.handFrame!=null?o.handFrame:15)/(_bc.fps||24))*BATTLE_PACE:0;
-      const _go=()=>{ if(!u.alive) return; const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER)});
+      const _go=()=>{ if(!u.alive) return; const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER),backRow:true});   // v548: rises in the back row
         if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:'BONE CHANT',t:1.1,color:'#8fbf3f',vy:1,sz:12}); } };
       if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
       break; }
@@ -4938,6 +4950,14 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'haste':{const tg2=o.self?[u]:alliesOf(u); tg2.forEach(a=>{a.hasteMul=Math.max(a.hasteMul||1,o.mul||1.3);a.hasteT=Math.max(a.hasteT||0,o.dur||5);a._ocMul=o.mul||1.3;a._ocT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
     case 'lifestealbuff':{u._lifestealT=o.dur||5;u._lifestealPct=o.pct||0.25;floatTexts.push({x:u.x,y:u.y-10,txt:'Vigor',t:1.1,color:'#8fff9b',vy:1.0,sz:13});burstAt(u.x,u.y,0x5ee89b,10);break;}
     case 'devour':{if(tgt){const d=dB*(o.mul||1.6)*rm; dealDamage(u,tgt,d,'#9acd32'); healUnit(u,d*(o.heal||0.6)); burstAt(tgt.x,tgt.y,0x9acd32,12);} break;}
+    /* v548 (Phil): Bone Chant = "a circle with green embers rising slowly for 4 seconds, healing those in the area per
+       second and damaging enemy", "10 meter green circle on the floor hitting the most congested group of allies". A ground
+       hazard with a heal: every tick allies inside are healed and enemies inside are burned, for o.dur seconds. */
+    case 'chantzone':{ const R=o.radius||5*METER; const C=aimCtr||densestAllyCluster(u,R)||u;
+      /* Phil: "only after the circle is complete the 4 seconds starts" - o.lead is the snake's lap round the circle; no tick
+         lands during it, then dur seconds of ticks. life = lead + dur so the hazard outlives its own lead-in. */
+      groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35)*sm,heal:apB*(o.hps||0.6)*sm,team:u.team,interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
+      floatTexts.push({x:C.x,y:C.y-12,txt:'BONE CHANT',t:1.0,color:'#8fe08f',vy:1,sz:13}); ringBurst(C.x,C.y,0x5fbf5f,16); break; }
     case 'ashfall':{ const _aC=aimCtr||((tgt&&tgt.alive)?tgt:u), px=_aC.x, py=_aC.y;   // v544: aimed (radius) - lands on the aim point, else the target   // throw a burning/icy patch to the ground: ticks damage (+optional slow) to foes within radius for a few seconds
       groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,interval:0.5,acc:0,life:o.dur||3,color:o.color||'#ff6a3a',slow:o.slow||0});
       /* v527 Spiral Current - the whirlpool does not just hurt, it slows what the formation is charging. */
@@ -5410,6 +5430,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
 function kitReady(u,ab){ const ty=ab.type;
   if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
   if(ty==='hot'){const l=lowestAlly(u);return l&&l.hp/l.maxHp<0.92;}
+  if(ty==='chantzone'){ const l=lowestAlly(u); if(l&&l.hp/l.maxHp<0.9) return true; const R=ab.radius||5*METER, C=densestAllyCluster(u,R); return !!(C&&enemiesOf(u).some(e=>dist(C,e)<=R)); }   // v548: chant when someone is hurt, or when foes stand in the circle it would draw
   if(ty==='shield'){const l=ab.self?u:lowestAlly(u);return l&&l.shieldT<=0&&l.hp/l.maxHp<0.95;}
   if(ty==='dmgbuff'||ty==='haste'||ty==='taunt'||ty==='rally'){return !!nearestEnemy(u);}
   const ne=nearestEnemy(u); if(!ne) return false;
@@ -5777,6 +5798,7 @@ const FX2_DEF={
   glacialprison:{u:'/assets/anim/fx/glacialprison.webp?v=4', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   bonechant: {u:'/assets/anim/fx/bonechant.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.2},
   pyregrunt: {u:'/assets/anim/fx/pyregrunt.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
+  bonechantfx:{u:'/assets/anim/fx/bonechantfx.webp?v=1', n:48, fw:320, fh:320, cols:6, rows:8, dur:6.0, disc:{cy:0.506,dh:0.284,dw:0.704}},   // v548 (Phil): Bone Chant - a snake of green ember-fire draws the circle clockwise from 12 o'clock (cells 0-11, 1.5 s), then the ring burns with a faint green inside; Hailuo 2.0 from a spark seed, keyed off magenta (tools/fx_slice_snake_ring.py)
   toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=3', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]},
   /* v313 — drawn for monster abilities that no existing plate could honestly stand in for.
      Projectile plates are side-on with the effect pointing SCREEN-RIGHT, because spawnProjFx bakes
@@ -7187,7 +7209,8 @@ function updateBattle(dt){
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
   for(let i=groundHazards.length-1;i>=0;i--){ const h=groundHazards[i]; h.life-=dt; h.acc+=dt;
-    if(h.acc>=h.interval){ h.acc-=h.interval; units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,h.slow); if(h.silence)e.silencedT=Math.max(e.silencedT||0,h.silence); } }); if(Math.random()<0.6)burstAt(h.x+(Math.random()*2-1)*h.r*0.6,h.y+(Math.random()*2-1)*h.r*0.6,0xff5b2a,4); }
+    if(h.acc>=h.interval){ h.acc-=h.interval; if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,h.slow); if(h.silence)e.silencedT=Math.max(e.silencedT||0,h.silence); } }); if(Math.random()<0.6)burstAt(h.x+(Math.random()*2-1)*h.r*0.6,h.y+(Math.random()*2-1)*h.r*0.6,0xff5b2a,4); }
     if(h.life<=0)groundHazards.splice(i,1); }
   shots.forEach(s=>{s.t+=dt;}); shots.filter(s=>s.t>=s.dur).forEach(s=>{if(s.onDone)s.onDone(); scene.remove(s.mesh);s.mesh.material.dispose();}); shots=shots.filter(s=>s.t<s.dur);
   particles.forEach(p=>{p.t+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=6*dt;p.mesh.material.opacity=Math.max(0,1-p.t/p.life);});
@@ -15463,7 +15486,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789003807292';
+const BUILD_ID = '1789005941164';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
