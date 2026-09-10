@@ -2485,7 +2485,7 @@ const KITS={
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,radius:2.6*METER,cd:8,gfx:'sylthaine_green',gdur:3.92},blue:{name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04},blue:{name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his plague, the plague bursts onto every enemy nearby — and can spread again from them'}},
-  vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:7*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76}   /* v558 Phil: 'any ally within 7 meters of the center of the dome is shielded ... total dome should be 14 meters' */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
+  vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',gfxR:3*METER,gdur:5.88},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7,gfx:'fritz_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{name:'Shadeburst',type:'shadeburst',dps:0.3,dur:6,radius:25*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2,gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7,gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Second Wind',pass:'selfregen'}},
@@ -15566,7 +15566,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789072498665';
+const BUILD_ID = '1789073385946';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
