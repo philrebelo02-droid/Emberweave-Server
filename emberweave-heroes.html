@@ -1718,7 +1718,8 @@ const BATTLE_ANIM = {
      top it sits 9px clear at f26, then jumps to 6px and doubles in area at f27-f29, which is where it clipped. The clip now
      runs 0..26 and pingpongs back to 0, so the orb grows to its fullest and is drawn back in. Same sheet, no re-slice. */
   green:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:27,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6,pingpong:true},
-  blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:27,fw:230,fh:220,cols:12,rows:3,figH:207.6,feet:211,cx:112,fps:8,flip:true,top:6,pingpong:true}
+  /* v563 (10 Sep, Phil: "umbris is jumping in size") - blue and green are the SAME sheet (umbris_cast.webp, identical n/fw/fh/cols/rows) but blue carried figH:207.6 against green's 171: the same pixels drawn 21% apart, so he changed size every time he swapped abilities. The .6 was a hand-tweak, not a measurement. Verified with a scale proxy FX cannot inflate - sqrt of the BLACK body area only, cloak and spell FX excluded - which reproduces the wired figH within 5% on idle/walk/attack/hit/ult/green and flags ONLY blue (+21%). Set to green's measured 171. */
+  blue:{u:'/assets/anim/umbris/umbris_cast.webp?v=3',n:27,fw:230,fh:220,cols:12,rows:3,figH:171,feet:211,cx:112,fps:8,flip:true,top:6,pingpong:true}
   },
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=6',n:60,fw:93,fh:133,cols:6,rows:10,figH:120,feet:126,cx:52,fps:30,flip:false,top:6},
@@ -15580,7 +15581,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789078311142';
+const BUILD_ID = '1789081129678';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
