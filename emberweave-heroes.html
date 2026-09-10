@@ -1618,16 +1618,20 @@ const BATTLE_ANIM = {
     rise:{u:'/assets/anim/boarwarrior/boarwarrior_rise.webp?v=5',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:352,cx:192,fps:14,flip:false,top:124}
   },
   'boar shaman':{
+    /* v547 (Phil, 9 Sep): Phil regenerated the shaman's static; walk / attack / cast re-fired on his new plate (walk +
+       attack on green, cast on MAGENTA so the green flames key - tools/normalize_magenta.py, RGBA out) and sliced with
+       tools/slice_summon.py at 400 art px (the 768 plate draws him at 399, scale 1.0 - nothing resampled away).
+       Beats are his: attack = aims the burning hand at the target, the fire flares a little, back to the start pose
+       (the engine's fireball is the projectile); cast = staff raised a forearm, crystal glows green with a thin aura,
+       the hand fire turns to natural green flame and grows to head size, then both dwindle back to red. Walk = 3/4
+       right treadmill, frames 0-82 of the clip as a true cycle. Idle = the cast's opening stance (one cell) until an
+       idle clip is fired. hit / rise are still the OLD art's sheets. Nothing leaves any cell. */
     hit:{u:'/assets/anim/boarshaman/boarshaman_hit.webp?v=4',n:20,fw:300,fh:275,cols:6,rows:4,figH:221,feet:270,cx:143,fps:16,flip:false,top:2},
-    /* v544 (Phil, 9 Sep): "rubberband the boar shaman so when he casts it rubberbands the moment he gets out of frame, then
-       brought back to start", "same for attack". Same sheets, fewer cells: the cast's staff leaves the top of the cell from
-       cell 11 (cells 0-10 are whole) and cannot be keyed apart from the figure (the glow is lit INTO the fur), so the cast
-       plays 0 -> 10 -> 0 (pingpong) until the clip is regenerated; the attack's clipped beam COULD be keyed - see below. */
-    cast:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=4',n:11,pingpong:true,fw:255,fh:300,cols:6,rows:4,figH:242,feet:297,cx:128,fps:12,flip:false,hold:1.67,top:3},
-    crescendo:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=4',n:11,pingpong:true,fw:255,fh:300,cols:6,rows:4,figH:242,feet:297,cx:128,fps:12,flip:false,hold:1.67,top:3},
-    attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=5',n:24,fw:300,fh:262,cols:6,rows:4,figH:246,feet:252,cx:183,fps:18,flip:false,hold:1.33,top:5},   // v544: the beam that ran off the left edge in cells 16-18 is keyed out of the sheet (?v=5) - the engine's own shot carries the fireball - so the full throw plays
-    idle:{u:'/assets/anim/boarshaman/boarshaman_idle.webp?v=4',n:24,fw:282,fh:300,cols:6,rows:4,figH:293,feet:297,cx:151,fps:8,flip:false,top:4},
-    walk:{u:'/assets/anim/boarshaman/boarshaman_walk.webp?v=4',n:24,fw:266,fh:300,cols:6,rows:4,figH:243,feet:291,cx:129,fps:14,flip:false,top:3},
+    cast:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=6',n:48,fw:354,fh:552,cols:6,rows:8,figH:400,feet:540,cx:177,fps:8,flip:false,hold:2.4,top:12},
+    crescendo:{u:'/assets/anim/boarshaman/boarshaman_cast.webp?v=6',n:48,fw:354,fh:552,cols:6,rows:8,figH:400,feet:540,cx:177,fps:8,flip:false,hold:2.4,top:12},
+    attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=6',n:48,fw:460,fh:528,cols:6,rows:8,figH:400,feet:515,cx:230,fps:8,flip:false,hold:1.33,top:12},
+    idle:{u:'/assets/anim/boarshaman/boarshaman_idle.webp?v=6',n:1,fw:318,fh:422,cols:6,rows:1,figH:400,feet:410,cx:159,fps:8,flip:false,top:13},
+    walk:{u:'/assets/anim/boarshaman/boarshaman_walk.webp?v=6',n:48,fw:326,fh:450,cols:6,rows:8,figH:400,feet:437,cx:163,fps:14,flip:false,top:14},
     rise:{u:'/assets/anim/boarshaman/boarshaman_rise.webp?v=4',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:353,cx:192,fps:14,flip:false,top:146}
   },
   'zahri mirage':{
@@ -10395,7 +10399,8 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   sylthaine:{fx:'frostball',scale:1.6}, fathom:{fx:'frostball',scale:1.6},
   oakmir:{fx:'natureball',scale:1.5}, lumi:{fx:'natureball',scale:1.4}, beekeeper:{fx:'natureball',scale:1.4},
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
-  fritz:{fx:'fritz_zap',scale:2.2,dur:0.13}
+  fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
+  'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
 const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:2.6}, aureth:{gfx:'aureth_ult',gdur:3.5}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:3.3}, deepcleft:{gfx:'deepcleft_ult',gdur:2.6}, fritz:{gfx:'fritz_ult',gdur:2.6}, meryln:{gfx:'meryln_ult',gdur:2.6}
 };
@@ -15458,7 +15463,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1788997639933';
+const BUILD_ID = '1789003807292';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
