@@ -6756,6 +6756,12 @@ function bringBackHiddenAllies(){
 function beginWaveWin(){ purgeDead(); purgeTransientFx(); bringBackHiddenAllies(); waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
+  /* v561 (Phil: "make sure if a summon is in the middle of a summon when the wave ends they finish the summon
+     animation and start walking out properly. I just saw a summon bugged in summon png"). The combat tick returns
+     early while waveXfer is set, so the _riseT countdown at the top of the unit update never ran during the
+     cinematic -- a summon caught mid-emergence kept _riseT>0 forever, and the anim picker gives 'rise' priority
+     over everything, so it was slid off-screen still frozen on its climb frame. Tick the rise here too. */
+  units.forEach(u=>{ if(u.alive && u._riseT>0){ u._riseT-=dt; if(u._riseT<=0){ u._riseT=0; burstAt(u.x,u.y,0x6b5230,10); } } });
   const allies=units.filter(u=>u.team==='ally'&&u.alive);
   if(waveXfer.phase==='win'){   // stage cleared: heroes stand still and idle for 2 s, then go to the victory screen
     allies.forEach(u=>{ u.target=null; u.attackAnim=0; u.castAnim=0; });
@@ -6777,6 +6783,10 @@ function updateWaveXfer(dt){
   // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
   let allOut=true;
   allies.forEach(u=>{ u.attackAnim=0; u.castAnim=0; u.target=null; u.stunned=0; u.fearT=0; u.slow=0;
+    /* v561: a summon still climbing out holds its ground and finishes the rise first -- it must not slide up the
+       line in its emergence pose. Once _riseT reaches 0 the anim picker drops back to walk and it leaves with the
+       squad. The waveXfer.t>6 guard below still bounds the whole cinematic, so this can never stall a wave. */
+    if(u._riseT>0){ allOut=false; return; }
     u.x+=XFER_DIR.x*XFER_SPD*dt; u.y+=XFER_DIR.y*XFER_SPD*dt;
     if(u.x<FW+40 && u.y>-40)allOut=false; });   // off the top-right corner
   if(allOut || waveXfer.t>6){
@@ -15566,7 +15576,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789073385946';
+const BUILD_ID = '1789073657973';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
