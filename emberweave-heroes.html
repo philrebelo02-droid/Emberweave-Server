@@ -1644,7 +1644,11 @@ const BATTLE_ANIM = {
     attack:{u:'/assets/anim/boarshaman/boarshaman_attack.webp?v=7',n:48,fw:386,fh:442,cols:6,rows:8,figH:400,feet:430,cx:193,fps:8,flip:false,hold:1.33,top:13},   // v548 (Phil: "he shrinks"): the attack clip was fired on the 62% plate (figure 480 px), walk/cast on the 52% plate (400) - v6 sliced all three at scale 1.0 so he grew 20% for every auto; re-sliced at 400/480
     idle:{u:'/assets/anim/boarshaman/boarshaman_idle.webp?v=6',n:1,fw:318,fh:422,cols:6,rows:1,figH:400,feet:410,cx:159,fps:8,flip:false,top:13},
     walk:{u:'/assets/anim/boarshaman/boarshaman_walk.webp?v=6',n:48,fw:326,fh:450,cols:6,rows:8,figH:400,feet:437,cx:163,fps:14,flip:false,top:14},
-    rise:{u:'/assets/anim/boarshaman/boarshaman_rise.webp?v=4',n:12,fw:384,fh:384,cols:6,rows:2,figH:200,feet:353,cx:192,fps:14,flip:false,top:146}
+    /* v562 (10 Sep) - rise REMADE on his current art (the old sheet was the retired art; Phil: "rise needs to match their art").
+       Cut NATIVE - no cap, no target - so figH:397 is a MEASUREMENT and sits beside the other states' 400, i.e. he does not
+       change size stepping out of the portal. Measured off the LAST source frame (REF_FRAME=last): a rise ENDS on the pose
+       it shares with idle/walk, so frame 0 would have measured the seed ember (figH 46). 142 px of torso detail, native. */
+    rise:{u:'/assets/anim/boarshaman/boarshaman_rise.webp?v=5',n:30,fw:564,fh:488,cols:6,rows:5,figH:397,feet:403,cx:284,fps:15,flip:false,top:6}
   },
   'zahri mirage':{
     /* v532 - Zahri's Mirage Herd summon: a blurred, translucent copy of her (ChatGPT concept, Hailuo 2.0). Phil: "it can only
@@ -15576,7 +15580,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789073657973';
+const BUILD_ID = '1789078311142';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
