@@ -8,7 +8,7 @@
 # Register caps are raised via env for fixtures only (REG_PER_MIN/REG_ACCOUNTS_PER_IP) — the
 # production defaults are untouched. Cleanup signals ONLY the PID this runner started.
 set -u
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."   # v559: the runner cd-ed INTO tests/ and then called tests/... so every path resolved to tests/tests/... and the suite never ran
 SRV=../server.js; [ -f ./server.js ] && SRV=./server.js
 PORT=${PORT:-8871}
 DBDIR=$(mktemp -d); DB="$DBDIR/db.json"
