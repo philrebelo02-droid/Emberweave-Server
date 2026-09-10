@@ -2022,7 +2022,7 @@ function retryTex(s, tx, attempt){
   setTimeout(()=>{
     const bust=s.u+(s.u.indexOf('?')<0?'?':'&')+'r='+attempt;
     new TH.TextureLoader().load(bust,
-      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1]; tx.image=capSheet(t.image,g[0],g[1],cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
+      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1]; tx.image=capSheet(t.image,g[0],g[1],cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); if(typeof _applyTexQual==='function')_applyTexQual(tx); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
       undefined,
       ()=>retryTex(s, tx, attempt+1));
   }, 400*Math.pow(2.5, attempt-1));                            // 0.4s, 1s, 2.5s
@@ -2067,7 +2067,14 @@ const CELL_FIG_CAP=99999, CELL_HARD_CAP=99999;
 /* Phil's standard, confirmed 4 Sep ("if they have breasts they are women"): 21 women at 500 px of figure,
    everyone else at 400. Source of truth is the FEMALE PROTOCOL doc; when unsure, ASK -- do not guess. */
 const FIG_WOMEN=new Set(['astra','vesper','calypsa','cacklefang','meryln','lumi','lysara','nerisse','pyroclast','silkcoil','sylthaine','sablewick','threadseer','vaelora','velvetplum','verdantshade','vex','vireo','voidweaver','waxenduchess','zahri']);
-function figCapFor(u){ try{ const k=(u||'').split('/assets/anim/')[1]; return (k&&FIG_WOMEN.has(k.split('/')[0]))?500:CELL_FIG_CAP; }catch(e){ return CELL_FIG_CAP; } }
+/* v565 - the 500 came off. It capped the 21 women at 500 figure px ON LOAD, after slicing, in the
+   browser: Vireo (figH 596 after her native recut) was being downscaled x0.84 and lost 16% of her
+   detail before it ever reached the GPU. 107 more states sit at exactly 500 where the cap reads as a
+   no-op TODAY - and every one of them would be silently capped straight back down the moment the 17
+   remaining women are remade and cut native above 500, which is the entire point of remaking them.
+   Same figH-as-a-target mistake as the slicer had, living in the renderer. Nothing is upscaled by
+   removing it (k is still clamped to 1), so a hero whose sheet holds less simply stays native. */
+function figCapFor(u){ return CELL_FIG_CAP; }
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -2185,6 +2192,39 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
    0.2s and 6.4s AFTER the battle had started. Nothing could wait on it because nothing counted it.
    _LOADQ counts every sheet in flight and fires exactly once per clip (success, fallback or give
    up), which is what drives the loading bar and lets the fight hold until the art is actually in. */
+/* v565 (Phil, 10 Sep) - MIPMAPS. Measured: with the 47-degree camera at (0,20.5,16.5), a hero is
+   about 179 device px tall on a 360css landscape phone at DPR 3, 299 on a DPR-2 desktop, and 672 on a
+   DPR-3 desktop zoomed to 1.5x. Sheets carry figH 400-596, so on a phone every sprite is MINIFIED 2-3x
+   at draw time - and minFilter was LinearFilter with generateMipmaps off. Bilinear minification samples
+   4 texels where a 3x downscale needs 9, so the rest are skipped: that undersampling is the crawling,
+   shimmering edge that reads as "low quality", and it is worst while units move, which is most of a fight.
+   Mipmaps fix it at the right level per fragment, per device, per zoom, from ONE sheet - the phone samples
+   near 180px while a zoomed desktop still gets the full 600. Nothing is thrown away for anybody, and
+   sampling gets CHEAPER, so this should help frame rate rather than cost it.
+   Why it is safe on an atlas: the usual objection is neighbouring cells bleeding together, but cs10 leaves
+   a 6px transparent margin around every figure (pad=6), so shallow-level bleed lands in empty space - and
+   at 2-3x minification only levels 0-2 are ever sampled. The deep levels where bleed would show are never
+   reached.
+   GUARD: these sheets are not power-of-two, and NPOT mipmaps need WebGL2. On a WebGL1 fallback we keep
+   exactly the old behaviour rather than silently producing a black or unmipped texture. */
+let _MIPOK=null, _ANISO=1;
+function _texCaps(){
+  if(_MIPOK!==null) return _MIPOK;
+  try{
+    if(typeof renderer==='undefined' || !renderer || !renderer.capabilities) return false;   // asked too early - retry next clip
+    _MIPOK=!!renderer.capabilities.isWebGL2;
+    _ANISO=_MIPOK?Math.min(8, renderer.capabilities.getMaxAnisotropy()||1):1;
+    try{ console.log('[EW] texture quality: mipmaps='+_MIPOK+' anisotropy='+_ANISO); }catch(_){}
+    return _MIPOK;
+  }catch(e){ return false; }
+}
+function _applyTexQual(tx){
+  try{
+    if(_texCaps()){ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter; tx.anisotropy=_ANISO; }
+    else { tx.generateMipmaps=false; tx.minFilter=TH.LinearFilter; }
+    tx.magFilter=TH.LinearFilter;
+  }catch(e){}
+}
 const _LOADQ={n:0,done:0,cbs:[]};
 function _lqTick(){ _LOADQ.cbs.slice().forEach(f=>{ try{f(_LOADQ.done,_LOADQ.n);}catch(_){} }); }
 function _lqOnDone(fn){ _LOADQ.cbs.push(fn); return ()=>{ const i=_LOADQ.cbs.indexOf(fn); if(i>=0)_LOADQ.cbs.splice(i,1); }; }
@@ -2195,11 +2235,11 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   _LOADQ.n++; let _fired=false;
   const _fin=()=>{ if(_fired) return; _fired=true; _LOADQ.done++; _lqTick(); };
   s._fin=_fin;
-  if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; _fin(); },
-                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
-    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
+  if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
+                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
+    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
   }
-  tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
+  _applyTexQual(tx); tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
 /* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
    burst, in declaration order, hero after hero: all seven of hero #1's sheets (including his ult and
    his passive, which nobody will see for thirty seconds) queued ahead of hero #5's WALK. Measured on
@@ -15795,7 +15835,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789082018511';
+const BUILD_ID = '1789083382407';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
