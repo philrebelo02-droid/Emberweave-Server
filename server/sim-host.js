@@ -115,7 +115,7 @@ function load(htmlPath){
     ctx, sandbox,
     /* BUILD_ID is a top-level const inside the game script (script-scoped, never on the sandbox), so
        read the shipped build straight out of the file — this is the engine version a result is tied to. */
-    buildVersion: (html.match(/const BUILD_ID='(\d+)'/)||[])[1]||null,
+    buildVersion: (html.match(/const\s+BUILD_ID\s*=\s*'(\d+)'/)||[])[1]||null,   /* v559: the shipped client writes `const BUILD_ID = '...'` WITH spaces, so this never matched and every campaign session and incident recorded a null engine id. */
     snapSquad(keys){ return sandbox.snapAllySquad(keys); },
     /* Resolve the server's frozen per-hero specs into full combat snapshots using the CLIENT's own
        unit builder — the same code the player's browser runs. */
