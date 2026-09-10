@@ -2485,7 +2485,7 @@ const KITS={
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,radius:2.6*METER,cd:8,gfx:'sylthaine_green',gdur:3.92},blue:{name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04},blue:{name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his plague, the plague bursts onto every enemy nearby — and can spread again from them'}},
-  vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:3*METER,dur:6,cd:9,gfx:'vireo_blue',gdur:5.88},purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
+  vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:7*METER,dur:6,cd:9,gfx:'vireo_blue',gdur:5.88}   /* v558 Phil: 'any ally within 7 meters of the center of the dome is shielded ... total dome should be 14 meters' */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',gfxR:3*METER,gdur:5.88},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7,gfx:'fritz_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{name:'Shadeburst',type:'shadeburst',dps:0.3,dur:6,radius:25*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2,gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7,gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Second Wind',pass:'selfregen'}},
@@ -4588,13 +4588,14 @@ const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};   // these two alwa
    A buff or a heal is a STATUS MARKER, not a spell landing on the ground: it must never cover the body it belongs to.
    Every type listed here draws its plate above that unit's HEALTH BAR -- same anchor the bar itself uses -- whatever
    the sheet declares. Damage abilities are deliberately absent: those still land where they land. */
-const _ABOVE_BAR={dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,defensive:1,warcry:1,dmgbuff:1,
-  lifestealbuff:1,laststand:1,harmonyshield:1,spdsteal:1,firstspring:1,regen:1,cleanse:1,bulwark:1,dawnguard:1};
+const _ABOVE_BAR={dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,defensive:1,warcry:1,dmgbuff:1,crescendo:1,
+  lifestealbuff:1,laststand:1,spdsteal:1,firstspring:1,regen:1,cleanse:1,bulwark:1,dawnguard:1};   /* v558: harmonyshield LEFT this list on purpose. Phil: 'this is used on the lowest health ally, any ally within 7 meters of the center of the dome is shielded also' -- that is ONE 14 m dome over one ally, not a dome per shielded ally, so it must not go through the v552 per-unit fan-out. */
 function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
   if(type==='chantzone'&&!aimCtr){ const _cc=densestAllyCluster(u,o.radius||5*METER); if(_cc) c=_cc; }   // v548: the circle is drawn where it lands - on the ally cluster
+  if(type==='harmonyshield'&&!aimCtr){ const _lo=(typeof lowestAlly==='function')?lowestAlly(u):null; if(_lo) c=_lo; }   /* v558 (Phil: 'this is used on the lowest health ally ... have the note be over the targets health bar'): the dome is centred on that ally, so the plate -- and the note anchored in it -- belongs to that unit, not the caster. Passing the UNIT (not a point) is what lets upAbove find its sprite and sit over its bar. */
   /* v472 (Phil: "that barrage should originate out of the front of the barrel of his gun"): gfxAt:'muzzle' puts the plate at the
      hero's cast origin (hand / gun barrel, see castOrigin), stood upright and facing the target. */
   /* v473 placement rules (Phil: "make sure hero spell FX are actually making sense with spawn location"):
@@ -5408,8 +5409,13 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
       alliesOf(u).forEach(a=>{ healUnit(a,heal); pushHot(a, apB*0.4*ramp, o.dur||5, 1); if(pp){ a.shield=Math.max(a.shield,heal*0.5); a.shieldT=5; } });
       floatTexts.push({x:u.x,y:u.y-12,txt:'CRESCENDO',t:1.0,color:'#e0b6ff',vy:1,sz:13}); ringBurst(u.x,u.y,0xc07fe0,16); burstAt(u.x,u.y,0xe0b6ff,12); break; }
+    /* v558 (Phil, on Vireo's Harmony): 'this is used on the lowest health ally, any ally within 7 meters of the center
+       of the dome is shielded also. which means the total dome should be 14 meters. 7 meter radius from the intended target.'
+       The centre is the WORST-OFF ally, not the caster -- which is also what Lysara's Moon Cocoon has always claimed to do
+       ('Wraps the weakest ally in protective dream silk') while actually centring on herself. */
     case 'harmonyshield':{ const R=o.radius||3*METER, sh=apB*(o.mul||2.4);
-      alliesOf(u).forEach(a=>{ if(dist(u,a)<R){ a.shield=Math.max(a.shield,sh); a.shieldT=o.dur||6; burstAt(a.x,a.y,0x8fd0ff,8); } });
+      const C=((typeof lowestAlly==='function')?lowestAlly(u):null)||u;
+      alliesOf(u).forEach(a=>{ if(dist(C,a)<R){ a.shield=Math.max(a.shield,sh); a.shieldT=o.dur||6; burstAt(a.x,a.y,0x8fd0ff,8); } });
       floatTexts.push({x:u.x,y:u.y-12,txt:'HARMONY',t:1.0,color:'#b6e0ff',vy:1,sz:13}); ringBurst(u.x,u.y,0x9fbfff,16); break; }
     /* v483 (Phil): Hive Mind — 30 bees gather as a hive above his raised arms, then split EVENLY between every living ally and enemy
        on the field (infinite range). Enemy bees sting for ability damage, ally bees heal. 1 enemy + Beekeeper alone = 15 stings / 15 heals. */
@@ -5869,14 +5875,14 @@ const FX2_DEF={
   veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.12,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vharn_blue:{u:'/assets/anim/fx/vharn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,cone:true,coneFoot:0.05},
   vharn_ult:{u:'/assets/anim/fx/vharn_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vireo_blue:{u:'/assets/anim/fx/vireo_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vireo_green:{u:'/assets/anim/fx/vireo_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  vireo_blue:{u:'/assets/anim/fx/vireo_blue.webp?v=24',n:30,fw:320,fh:246,cols:6,rows:5,dur:5.88,upright:true,upAbove:true,upAboveM:0.10,upAnchor:[0.498,0.787],upMetric:true,upExtent:0.909,ro:1}   /* v558 (Phil: 'the note be over the targets health bar ... total dome should be 14 meters, 7 meter radius from the intended target'): the NOTE, at cell (0.498,0.787), is the anchor and it hangs over the target ally's bar; upMetric sizes the plate from the ability radius so the painted dome (0.909 of the cell) is exactly 2R = 14 m, not a multiple of the hero's sprite */,
+  vireo_green:{u:'/assets/anim/fx/vireo_green.webp?v=24',n:30,fw:320,fh:309,cols:6,rows:5,dur:5.88,upright:true,upAbove:true,upAboveM:0.06,upAnchor:[0.5,0.0],upSize:1.3,upExtent:0.838,ro:1}   /* v558 (Phil: 'the green should always be over someone\u2019s health bar. aim it off of their head and place it above the bar'): bottom-anchored so the note STARTS just above the bar and rises from there; drawn once per ally by the crescendo case */,
   /* v557 (Phil, 10 Sep 2026): "make sure her ult is a layer behind all heroes". Grand Symphony is a
      screen-filling wave of notes, so at the roster-standard ro:1 it painted OVER every hero on the
      board and buried the fight it is supposed to frame. ro:-2 puts it behind every unit sprite
      (which render at 0) while still sitting above the ground plates (-6), status FX (-4) and the
      backdrop. This is deliberately the exception to the ro:1 default, not a mistake to tidy up. */
-  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
+  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=24',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.21,disc:{cy:0.498,dh:0.391,dw:0.912}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -5933,7 +5939,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return n
      cell the painted hand fills), and the cell point (0.5, d.upPalm from the bottom) - the palm centre - is pinned to the
      unit's body centre. Back layer draws just behind the unit sprites (renderOrder -1); the `front` finger layer draws over
      them (renderOrder 1) with identical geometry so the two halves stay registered. */
-  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=th*(d.upSize||1.2)/(d.upExtent||0.85); const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*(d.upAboveM||1.02)):(d.upAnchor?0.05:(0.05+th*0.5)));   /* v477 pass 3: an anchored plate (upAnchor) hangs from the unit's FEET line; only palm-anchored (upPalm) plates sit at body centre */   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head. v493: upAboveM raises that clearance -- Phil, on Dandra's lotus: 'should appear above her health bar, not over her body'. */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
+  if(d.upright){ const th=window._fxTgtH||(R3*1.2); const S=d.upMetric?((R3*2)/(d.upExtent||0.85)):(th*(d.upSize||1.2)/(d.upExtent||0.85));   /* v558: upMetric makes an upright plate a REAL metric size -- painted width (upExtent) spans exactly 2R -- instead of a multiple of the target's sprite height. Vireo's dome has to be 14 m across whoever is standing under it. */ const y=(window._fxAtH!=null)?window._fxAtH:(d.upAbove?(0.05+th*(d.upAboveM||1.02)):(d.upAnchor?0.05:(0.05+th*0.5)));   /* v477 pass 3: an anchored plate (upAnchor) hangs from the unit's FEET line; only palm-anchored (upPalm) plates sit at body centre */   /* upAbove (Aureth Eclipse, Phil: 'above him not over him'): the plate's bottom edge sits just over the caster's head. v493: upAboveM raises that clearance -- Phil, on Dandra's lotus: 'should appear above her health bar, not over her body'. */ const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28))); const dirx=(d.upFlip&&window._fxDir<0)?-1:1;
     const mk=(t,ro)=>{ const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:0}));
       sp.scale.set(S*dirx,S*(d.fh/d.fw),1); sp.center.set(dirx<0?1-ax:ax,ay); sp.position.set(wx(cx),y,wz(cy));
       /* v493 (Phil, Dandra's lotus: "should appear above her health bar, not over her body"): a sprite always faces the
@@ -15559,7 +15565,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789063654153';
+const BUILD_ID = '1789070977877';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
