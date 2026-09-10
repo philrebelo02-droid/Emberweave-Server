@@ -2372,16 +2372,16 @@ const ULT_RADIUS=['aoeStun','fireball','gravcrush','eventhorizon','blizzard','th
 const ULT_CONE=['cleave','triplecleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_ALLY_RADIUS=['firstspring'];   // v369 (Phil): Oakmir's First Spring is CLICK-TO-HEAL — lands under the ally you point at, heals every ally within 20 m
 const ULT_LINE=['stampede'];                            // v534 Zahri's Noonday Stampede: a 20 m line; she charges to the LAST foe on it
-const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','symphony','vanishpoint','finalsurvey'];       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
+const ULT_TARGET=['execute','burst','multiShot','flywheel','eclipse','plaguesov','vanishpoint','finalsurvey'];   /* v553 (Phil): Vireo's Grand Symphony is self-centred (8 m around her) - the aimed target changed nothing, so it is tap-to-fire again */       // hover an in-range enemy -> it glows; release to fire (thundershower is radius-aimed, listed in ULT_RADIUS)
 /* v538 (Phil, 9 Sep - "I would like to make the rest of the ults aimed"): four more aim modes.
    ally    - "click and drag on to a teammate to activate" (Dandra's Queen's Call, Threadseer's Rewrite the Pattern)
    any     - "on to a teammate or enemy" (Nox Open Every Door, Lysara Queen of Quiet Wings, Velvetplum Imperial Plumage, Beekeeper Hive Mind)
    self    - "click on himself" (Vael's Last Stand)
    summon  - "on to a summoned creature ... if there is no summoned creature its not activateable" (Hurne's Feed Them)
    Hollow's Vanishing Point and Meridian's Final Expedition join the enemy-target list with a range (ULT_DEF.range). */
-const ULT_ALLY_TARGET=['rally','rewind'];
-const ULT_ANY_TARGET=['openeverydoor','quietwings','plumage','hivemind'];
-const ULT_SELF=['laststand'];
+const ULT_ALLY_TARGET=[];   /* v553 (Phil, 10 Sep: 'revert the heal and damage abilities that heal the entire team without radius or damage the enemy team without radius or self buff without radius back to just clicking the ult to activate'): Dandra's Queen's Call, Threadseer's Rewrite the Pattern */
+const ULT_ANY_TARGET=[];   /* v553: Nox, Lysara, Velvetplum, Beekeeper King - team-wide, no radius -> tap to fire */
+const ULT_SELF=[];   /* v553: Vael's Last Stand - self buff, no radius -> tap to fire (the 15% self-heal stays) */
 const ULT_SUMMON=['devourpack'];
 const ULT_AIMED=[...ULT_RADIUS,...ULT_CONE,...ULT_LINE,...ULT_TARGET,...ULT_ALLY_TARGET,...ULT_ANY_TARGET,...ULT_SELF,...ULT_SUMMON,...ULT_ALLY_RADIUS]; // ults that open the aim UI (rest fire instantly)
 /* v537 (Phil, 9 Sep: the code-drawn aim shapes are "bland and ugly ... you see the detail in this game i need the markers
@@ -5859,7 +5859,7 @@ const FX2_DEF={
   vharn_ult:{u:'/assets/anim/fx/vharn_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vireo_blue:{u:'/assets/anim/fx/vireo_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vireo_green:{u:'/assets/anim/fx/vireo_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:1}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.21,disc:{cy:0.498,dh:0.391,dw:0.912}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -15542,7 +15542,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789040136131';
+const BUILD_ID = '1789040472044';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
