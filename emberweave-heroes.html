@@ -1525,25 +1525,26 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/tick/tick_passive.webp?v=21',n:48,fw:327,fh:412,cols:6,rows:8,figH:400,feet:406,cx:160,fps:24,flip:false,top:6}
   },
   vireo:{
-    /* v555 (10 Sep 2026) - Vireo regenerated end to end on Hailuo 2.0 dual-plate, every state approved by Phil.
-       Sliced from her own 768 green plate at FIGURE height 500 art px, 6x8x48 @24fps, feet on the cell baseline.
-       The figure - not the cell - is what is scaled: capping the CELL made a wide state come out smaller than a
-       narrow one, so she changed size between animations.
-       NO ax TABLES. The slicer measures the anchor from the bottom 10px of the silhouette, and in a floor-length
-       gown that band IS the hem: her walk measured 112px of "drift" on a 286px cell (39%) and her hit 117px on
-       339 (35%) - that is skirt swing, not camera push, and feeding it back would have slid her across the tile.
-       The dual-plate end frame already pins first frame == last, which is what ax existed to patch.
-       hit is the SHORT recoil take - the fold-in-half take is in the archive under alt takes, never re-wire it.
-       green, walk and attack were shot against a DRIFTING backdrop and were normalised to flat #03FA07 with a
-       per-frame sampler + despill before slicing (see 20 - GOTCHAS). Ladder (v520) and play-out (v521) are engine-wide. */
-    idle:{u:'/assets/anim/vireo/vireo_idle.webp?v=22',n:48,fw:259,fh:524,cols:6,rows:8,figH:500,feet:509,cx:113,fps:24,flip:false,top:9},
-    walk:{u:'/assets/anim/vireo/vireo_walk.webp?v=22',n:48,fw:286,fh:517,cols:6,rows:8,figH:500,feet:505,cx:121,fps:24,flip:false,top:5},
-    attack:{u:'/assets/anim/vireo/vireo_attack.webp?v=22',n:48,fw:334,fh:512,cols:6,rows:8,figH:500,feet:505,cx:125,fps:24,flip:false,top:5,hold:0.9},
-    hit:{u:'/assets/anim/vireo/vireo_hit.webp?v=22',n:48,fw:339,fh:524,cols:6,rows:8,figH:500,feet:515,cx:140,fps:24,flip:false,top:15},
-    green:{u:'/assets/anim/vireo/vireo_green.webp?v=22',n:48,fw:257,fh:522,cols:6,rows:8,figH:500,feet:511,cx:142,fps:24,flip:false,top:11,hold:0.8},
-    blue:{u:'/assets/anim/vireo/vireo_blue.webp?v=22',n:48,fw:256,fh:510,cols:6,rows:8,figH:500,feet:505,cx:113,fps:24,flip:false,top:5,hold:0.8},
-    ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=22',n:48,fw:309,fh:520,cols:6,rows:8,figH:500,feet:506,cx:148,fps:24,flip:false,top:6},
-    passive:{u:'/assets/anim/vireo/vireo_passive.webp?v=22',n:48,fw:378,fh:523,cols:6,rows:8,figH:500,feet:506,cx:216,fps:24,flip:false,top:6}
+    /* v556 (10 Sep 2026) - RECUT AT NATIVE. v555 was cut wrong: the slicer scaled her body box to a
+       round figH of 500, which is the mistake 21 - QUALITY TRUTH names outright ("figH is a
+       MEASUREMENT, not a target", "500px means DETAIL, not height"). That was a x0.836 DOWNSCALE and
+       it threw away ~17% of the pixels the clips actually carried, for nothing.
+       These are cut at ds = 1.0, no scaling at all, and figH is recorded truthfully (~596).
+       MEASURED TORSO DETAIL: 270 px, neck fabric to waistband, identical in all eight states. That is
+       everything a 768p Hailuo clip can carry at her framing - it cannot be raised by cutting, only by
+       rendering her larger on the plate.
+       The FIG_TARGET knob that caused this has been deleted from cs10.py; native is now the default and
+       any downscale prints a warning. The slicer measures and records detailPx every run.
+       NO ax TABLES - the anchor band is the gown's HEM, so it reads skirt swing as camera drift.
+       hit is the SHORT recoil take. green/walk/attack were normalised off a drifting backdrop first. */
+    idle:{u:'/assets/anim/vireo/vireo_idle.webp?v=23',n:48,fw:308,fh:623,cols:6,rows:8,figH:595,feet:606,cx:135,fps:24,flip:false,top:11},
+    walk:{u:'/assets/anim/vireo/vireo_walk.webp?v=23',n:48,fw:341,fh:616,cols:6,rows:8,figH:596,feet:602,cx:144,fps:24,flip:false,top:6},
+    attack:{u:'/assets/anim/vireo/vireo_attack.webp?v=23',n:48,fw:397,fh:609,cols:6,rows:8,figH:595,feet:601,cx:149,fps:24,flip:false,top:6,hold:0.9},
+    hit:{u:'/assets/anim/vireo/vireo_hit.webp?v=23',n:48,fw:404,fh:625,cols:6,rows:8,figH:596,feet:614,cx:167,fps:24,flip:false,top:18},
+    green:{u:'/assets/anim/vireo/vireo_green.webp?v=23',n:48,fw:306,fh:622,cols:6,rows:8,figH:596,feet:610,cx:169,fps:24,flip:false,top:14,hold:0.8},
+    blue:{u:'/assets/anim/vireo/vireo_blue.webp?v=23',n:48,fw:305,fh:608,cols:6,rows:8,figH:596,feet:602,cx:135,fps:24,flip:false,top:6,hold:0.8},
+    ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=23',n:48,fw:368,fh:620,cols:6,rows:8,figH:596,feet:604,cx:177,fps:24,flip:false,top:8},
+    passive:{u:'/assets/anim/vireo/vireo_passive.webp?v=23',n:48,fw:450,fh:624,cols:6,rows:8,figH:596,feet:604,cx:258,fps:24,flip:false,top:8}
   },
   vulmar:{
     idle:{u:'/assets/anim/vulmar/vulmar_idle.webp?v=21',n:48,fw:250,fh:464,cols:6,rows:8,figH:400,feet:459,cx:116,fps:24,flip:false,top:59,pingpong:true},
@@ -15553,7 +15554,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789060847821';
+const BUILD_ID = '1789062558715';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
