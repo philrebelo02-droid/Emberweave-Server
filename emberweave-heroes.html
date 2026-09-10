@@ -1712,7 +1712,7 @@ const BATTLE_ANIM = {
   walk:{u:'/assets/anim/umbris/umbris_walk.webp?v=f2',n:72,fw:210,fh:208,cols:6,rows:12,figH:176,feet:195,cx:99,fps:30,flip:true,top:5},
   attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b7',n:41,fw:402,fh:336,cols:10,rows:5,figH:301,feet:313,cx:201,fps:30,flip:true,hold:1.4,relFrac:0.5,handfx:0.861,handfy:0.476,top:12},
   hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=f2',n:29,fw:210,fh:181,cols:12,rows:3,figH:147,feet:175,cx:109,fps:8,flip:true,top:5},
-  ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:72,fw:206,fh:210,cols:6,rows:12,figH:155,feet:187,cx:107,fps:30.6,flip:true,relFrac:0.95,top:5},
+  ult:{u:'/assets/anim/umbris/umbris_ult.webp?v=f2',n:72,fw:206,fh:210,cols:6,rows:12,figH:155,feet:187,cx:107,fps:30.6,flip:true,relFrac:0.95,top:5,fs:[0.9948, 0.9945, 0.994, 0.9939, 0.9937, 0.9945, 0.994, 0.9943, 0.9945, 0.9989, 1.0011, 1.0077, 1.0119, 1.0185, 1.0223, 1.0261, 1.024, 1.0225, 1.0154, 1.0098, 1.0026, 0.9968, 0.9905, 0.9852, 0.9691, 0.9542, 0.9411, 0.93, 0.9133, 0.8993, 0.8831, 0.8769, 0.8702, 0.8627, 0.856, 0.8528, 0.8493, 0.8465, 0.8456, 0.8431, 0.8455, 0.8441, 0.8451, 0.8388, 0.8648, 0.8577, 0.8604, 0.8582, 0.8663, 0.8678, 0.8955, 0.8749, 0.8988, 0.9005, 0.9235, 0.9261, 0.9369, 0.926, 0.9337, 0.9294, 0.9412, 0.9312, 0.9341, 0.9366, 0.9395, 0.9421, 0.9448, 0.9472, 0.9489, 0.9498, 0.9505, 0.9509]},   /* v566: the ult clip pushes in - fs divides the camera zoom back out per frame (see the fs note in syncMesh) */
   /* v486 (Phil: "rubberband him so that his shadow orb he channels doesnt grow out of the frame ... rubber band before it
      goes out and go back to frame zero" — 26 confirmed by him). The orb forms at f13 and swells; measured against the cell
      top it sits 9px clear at f26, then jumps to 6px and doubles in area at f27-f29, which is where it clipped. The clip now
@@ -7850,7 +7850,20 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(A.figH){ // character-normalized clip: the frame may include effects bigger than the hero.
           // scale so the CHARACTER (figH px of the fh-tall frame) is exactly sprH tall — identical size in EVERY action —
           // and anchor at the character's feet/center so effects extend freely without moving him.
-          const qh=u.sprH*(A.fh/A.figH); spr.scale.set(qh*(A.fw/A.fh), qh, 1);
+          /* v566 - PER-FRAME SCALE (`fs`), the zoom twin of v408's per-frame anchor `ax`.
+             figH normalises a state by ONE measurement off the reference frame, so it cannot answer a
+             clip whose CAMERA moves: Umbris's ult pushes in and he swells through his own animation
+             (measured: body height x1.54 across the clip). Correcting that with figH is impossible -
+             one number cannot describe a moving camera - and he has no source clip left to re-fire, so
+             the correction is per-frame here instead. `fs[frame]` divides the zoom back out.
+             It must be measured on the BODY, never the alpha box: the box also holds his cloak and the
+             ult's own effects, which is what made the first two diagnoses of this hero wrong (Phil:
+             "you are being tricked because some of these have animations with spell FX in them").
+             sqrt(black-body area) separates real zoom from pose - his height moved x1.54 but his area
+             only x1.28, so most of that growth is him RISING and must be left alone; only the 1.28 is
+             camera. Smoothed over 7 frames so the scale never jitters. */
+          const _fsc=(A.fs&&A.fs.length)?(A.fs[Math.min(fr,A.fs.length-1)]||1):1;
+          const qh=u.sprH*(A.fh/A.figH)*_fsc; spr.scale.set(qh*(A.fw/A.fh), qh, 1);
           // exact head height of the frame being drawn: the quad is anchored on the feet line,
           // so the top of the character is qh*(feet-top)/fh above the ground. `top` is the measured
           // first row of real body in the cell (thin staffs/antennae ignored). The HP bar rides on this.
@@ -15835,7 +15848,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789083382407';
+const BUILD_ID = '1789084069611';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
