@@ -2179,13 +2179,25 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
     .catch(()=>{ onErr&&onErr(); });
   return true;
 }
+/* v564 (Phil, 10 Sep: "lag in game when loading ... a loading screen when you click battle").
+   _loadClip was fire-and-forget: it kicked off a decode and returned, so startBattle ran while
+   sheets were still landing. The v306 note above measured it - walk sheets became usable between
+   0.2s and 6.4s AFTER the battle had started. Nothing could wait on it because nothing counted it.
+   _LOADQ counts every sheet in flight and fires exactly once per clip (success, fallback or give
+   up), which is what drives the loading bar and lets the fight hold until the art is actually in. */
+const _LOADQ={n:0,done:0,cbs:[]};
+function _lqTick(){ _LOADQ.cbs.slice().forEach(f=>{ try{f(_LOADQ.done,_LOADQ.n);}catch(_){} }); }
+function _lqOnDone(fn){ _LOADQ.cbs.push(fn); return ()=>{ const i=_LOADQ.cbs.indexOf(fn); if(i>=0)_LOADQ.cbs.splice(i,1); }; }
 function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   const _c=s.cols||s.n,_r=s.rows||1;
   const tx=new TH.Texture();
   const _ff=(s.figH&&s.fh)?s.figH/s.fh:0;
-  if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; },
-                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
-    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; tx.needsUpdate=true; }, undefined, ()=>{ retryTex(s, tx, 1); });
+  _LOADQ.n++; let _fired=false;
+  const _fin=()=>{ if(_fired) return; _fired=true; _LOADQ.done++; _lqTick(); };
+  s._fin=_fin;
+  if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; tx.needsUpdate=true; s._err=false; _fin(); },
+                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
+    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
   }
   tx.magFilter=TH.LinearFilter; tx.minFilter=TH.LinearFilter; tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
 /* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
@@ -2220,6 +2232,120 @@ function preloadBattleArt(keys, bgUrl){
     });
   }catch(e){}
 }
+/* v564 - THE BATTLE LOADING SCREEN (Phil: "I want everything loaded that can be played in that
+   match ... heroes, animations, monsters, bosses, everything. so when you get in the game there is
+   no lag"). preloadBattleArt above is TIERED and fire-and-forget, which is right for warming in the
+   background but wrong for a gate: the tiers exist so a marching unit's walk never queues behind
+   somebody's ult, and that ordering does not matter when we are waiting for ALL of it anyway.
+   This variant queues every state of every key at once and resolves when the queue drains.
+   It ALWAYS resolves - a dead sheet must never lock a player out of their own battle - so there is
+   a hard timeout, and the existing retryTex path keeps healing anything that missed. */
+function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
+  return new Promise(resolve=>{
+    let off=null, done=false;
+    const finish=()=>{ if(done) return; done=true; if(off) off(); resolve(); };
+    try{
+      if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
+      const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
+      _ks.forEach(k=>{ try{ const sp=(typeof HERO_SPRITES!=='undefined')&&HERO_SPRITES[k]; if(sp&&isAssetRef(sp)){ const i2=new Image(); i2.decoding='async'; i2.src=sp; } }catch(e){} });
+      const base=_LOADQ.n, baseDone=_LOADQ.done;
+      _ks.forEach(k=>{ try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k, null); }catch(e){} });
+      const total=_LOADQ.n-base;
+      if(total<=0){ if(onProgress) onProgress(1,0,0); return finish(); }
+      const tick=(d,n)=>{ const got=d-baseDone;
+        if(onProgress) onProgress(Math.max(0,Math.min(1,got/total)), got, total);
+        if(got>=total) finish(); };
+      off=_lqOnDone(tick); tick(_LOADQ.done,_LOADQ.n);
+    }catch(e){ return finish(); }
+    setTimeout(finish, timeoutMs||12000);
+  });
+}
+/* The screen itself: the squad in a row and a bar. Built and torn down per fight so it never holds
+   textures or listeners between battles. */
+function showBattleLoader(keys){
+  let el=document.getElementById('battleLoader');
+  if(el) el.remove();
+  el=document.createElement('div'); el.id='battleLoader';
+  el.style.cssText='position:fixed;inset:0;z-index:9000;background:radial-gradient(120% 90% at 50% 30%,#141a2b 0%,#080b13 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:20px';
+  const row=(keys||[]).slice(0,6).map(k=>{
+    const t=(typeof HERO_TYPES!=='undefined')&&HERO_TYPES[k];
+    const nm=(t&&t.name)||k||'';
+    const por=(typeof HERO_PORTRAITS!=='undefined')&&HERO_PORTRAITS[k];
+    const face=por?('<img src="'+por+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block">')
+                  :('<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">'+((t&&t.emoji)||'\u2694\ufe0f')+'</div>');
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:7px;width:84px">'
+      +'<div style="width:76px;height:76px;border-radius:14px;overflow:hidden;border:1px solid #33405e;background:#0f1420;box-shadow:0 6px 18px rgba(0,0,0,.45)">'+face+'</div>'
+      +'<div style="font-size:11px;color:#cdd6e4;text-align:center;line-height:1.15;max-width:84px">'+escapeHTML(nm)+'</div></div>';
+  }).join('');
+  el.innerHTML='<div style="font-weight:800;letter-spacing:.14em;font-size:13px;color:#c9a35e">PREPARING BATTLE</div>'
+    +'<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:560px">'+row+'</div>'
+    +'<div style="width:min(78vw,420px)">'
+    +'  <div style="height:10px;border-radius:999px;background:#0f1420;border:1px solid #2a3550;overflow:hidden">'
+    +'    <div id="blBar" style="height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#c9a35e,#f0c987);transition:width .18s ease"></div></div>'
+    +'  <div id="blTxt" style="text-align:center;font-size:11px;color:#8b98a9;margin-top:8px">Loading art\u2026</div></div>';
+  document.body.appendChild(el);
+  return {
+    set(f,got,total){ const b=document.getElementById('blBar'), t=document.getElementById('blTxt');
+      if(b) b.style.width=Math.round(f*100)+'%';
+      if(t) t.textContent = total ? ('Loading art\u2026 '+got+' / '+total+' sheets') : 'Ready';
+    },
+    close(){ const e2=document.getElementById('battleLoader'); if(!e2) return;
+      e2.style.transition='opacity .22s ease'; e2.style.opacity='0'; setTimeout(()=>{ try{e2.remove();}catch(_){} },240); }
+  };
+}
+/* v564 - ASSET LIBRARY: pre-download every sheet, and clear the cache (Phil, 10 Sep:
+   "we need a update all features option ... and a clear cache button ... this makes it so you can
+   actually pre download all animations into your cache if you dont want loads to take so long.
+   one download and its in your cache").
+   The service worker already does the storing: ANY GET under /assets/ is written into
+   ember-assets-v1, which deliberately survives every deploy (see sw.js). So downloading is simply
+   fetching each URL once and letting the SW keep it - no new cache, no new plumbing.
+   The URL list is built from the wired records themselves rather than a hand-kept manifest, so it
+   can never drift from what the game actually loads. */
+function allAssetUrls(){
+  const out=new Set();
+  const add=u=>{ if(typeof u==='string' && u.indexOf('/assets/')===0) out.add(u); };
+  try{ for(const k in BATTLE_ANIM){ const set=BATTLE_ANIM[k]; for(const st in set){ if(st[0]==='_')continue; const c=set[st]; if(c&&c.u) add(c.u); } } }catch(e){}
+  try{ for(const k in HERO_SKILL_CLIPS){ const g=HERO_SKILL_CLIPS[k]; for(const i in g){ if(g[i]&&g[i].u) add(g[i].u); } } }catch(e){}
+  try{ for(const k in HERO_PORTRAITS) add(HERO_PORTRAITS[k]); }catch(e){}
+  try{ for(const k in HERO_SPRITES) add(HERO_SPRITES[k]); }catch(e){}
+  try{ for(const k in BATTLE_MAPS) add(BATTLE_MAPS[k]); }catch(e){}
+  try{ if(typeof BATTLE_BG!=='undefined') add(BATTLE_BG); }catch(e){}
+  try{ if(typeof AIM_ART!=='undefined') for(const k in AIM_ART) add(AIM_ART[k]); }catch(e){}
+  try{ if(typeof FX_ANIM!=='undefined') for(const k in FX_ANIM){ const c=FX_ANIM[k]; if(c&&c.u) add(c.u); } }catch(e){}
+  return [...out];
+}
+let _dlAbort=false;
+/* Downloads sequentially with a small concurrency window. Sequential-ish on purpose: a phone asked
+   for 900 files at once will have requests time out and the run reports failures that are really
+   just congestion. Individual failures never stop the run - it reports them at the end. */
+async function downloadAllAssets(onProgress){
+  _dlAbort=false;
+  const urls=allAssetUrls();
+  let done=0, bytes=0, failed=0;
+  const CONC=4;
+  const one=async(u)=>{
+    if(_dlAbort) return;
+    try{ const r=await fetch(u,{cache:'force-cache'});
+      if(r&&r.ok){ const b=await r.blob(); bytes+=b.size; } else failed++;
+    }catch(e){ failed++; }
+    done++; if(onProgress) onProgress(done, urls.length, bytes, failed);
+  };
+  const q=urls.slice();
+  const workers=Array.from({length:CONC},async()=>{ while(q.length && !_dlAbort) await one(q.shift()); });
+  await Promise.all(workers);
+  return {total:urls.length, done, bytes, failed, aborted:_dlAbort};
+}
+async function clearAssetCache(){
+  let n=0;
+  try{ const keys=await caches.keys();
+    for(const k of keys){ if(k.indexOf('ember-')===0){ await caches.delete(k); n++; } } }catch(e){}
+  try{ for(const key in BATTLE_ANIM){ const set=BATTLE_ANIM[key]; delete set._loaded;
+        for(const st in set){ if(st[0]==='_')continue; const c=set[st]; if(c){ if(c.tex&&c.tex.dispose) try{c.tex.dispose();}catch(_){} delete c.tex; delete c._err; } } } }catch(e){}
+  try{ for(const k in _artWarmed) delete _artWarmed[k]; }catch(e){}
+  return n;
+}
+function fmtMB(b){ return (b/1048576).toFixed(1)+' MB'; }
 function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
   const keys=[];
   try{ (squadFor('campaign')||[]).forEach(k=>keys.push(k)); (G.team||[]).forEach(k=>keys.push(k)); }catch(e){}
@@ -6576,7 +6702,43 @@ const BATTLE_MAPS={ vault:'/assets/img/battlefields/dungeon-forest-01.webp', dun
 function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg) return;
   const url=(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
   bg.style.backgroundImage='url('+url+')'; bg.style.backgroundSize='cover'; bg.style.backgroundPosition='center'; }
+/* v564 - startBattle is now GATED on the art. The old body is _startBattleNow; the wrapper collects
+   every key this match can possibly show (squad + every authored wave + the PvP/elite opponent),
+   puts the loading screen up, waits for the queue to drain, then runs the fight. Wrapping instead of
+   editing every call site keeps replay/auto/PvP entry points working unchanged. A minimum on-screen
+   time stops it strobing on a warm cache; the timeout inside preloadBattleArtFull guarantees the
+   fight starts either way. */
+function battleKeysForMatch(){
+  const _k=[];
+  try{
+    (G.team||[]).forEach(x=>_k.push(x));
+    if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
+    (CUR.waves||[]).forEach(w=>(w||[]).forEach(m=>m&&_k.push(m.key)));
+  }catch(e){}
+  return _k;
+}
+let _blBusy=false;
 function startBattle(){
+  if(_blBusy) return; 
+  try{ syncActiveSquad(); }catch(e){}
+  const keys=battleKeysForMatch();
+  const bg=(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
+  let ui=null; try{ ui=showBattleLoader((G.team||[]).slice(0,6)); }catch(e){}
+  _blBusy=true;
+  const t0=Date.now(), MIN=520;
+  const go=()=>{ _blBusy=false;
+    const wait=Math.max(0, MIN-(Date.now()-t0));
+    setTimeout(()=>{ try{ if(ui) ui.set(1,0,0); }catch(e){}
+      try{ _startBattleNow(); }catch(e){ try{console.error(e);}catch(_){}}
+      try{ if(ui) ui.close(); }catch(e){} }, wait);
+  };
+  try{
+    preloadBattleArtFull(keys, bg, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go);
+  }catch(e){ go(); }
+}
+function _startBattleNow(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
   applyBattleMap();
   // v255: warm EVERY wave's art before the first frame — no more sprites appearing on wave 2
@@ -14264,7 +14426,7 @@ function renderSettings(){
     const accountsTab = dt!=='accounts'?'':`
       <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
     const qaTab = dt!=='qa'?'':`
-      <div class="dvp-grid">${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
+      <div class="dvp-grid">${act('dlart','\ud83d\udce6','Update all features')}${act('clrart','\ud83e\uddf9','Clear cache')}${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
     /* 30 Aug (Phil) — THE INTEGRITY DESK.
        "no roll backs just the option to ban the player for 1, 7 or 30 days if they are found guilty."
        So this screen only ever reads and bans. There is deliberately no button here that takes
@@ -14291,10 +14453,26 @@ function renderSettings(){
     <textarea id="rpText" rows="3" placeholder="Describe the bug or suggestion…" style="${inp};resize:vertical"></textarea>
     <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">Send report</button>
     <div id="rpMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>` : '';
+  /* v564 - OFFLINE ART (Phil): pre-download every sheet into the persistent service-worker cache so
+     battles load with no network at all, plus a way to throw that cache away. Shown to any SIGNED-IN
+     player; the dev panel gets the same two controls (see `dev` below) so they are reachable while
+     testing without signing in and out. */
+  const assetCard = (ACC.token) ? `<div class="panel">
+      <div style="font-weight:800;font-size:13px;margin-bottom:2px">\u{1F4E6} Offline Art</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.</div>
+      <div id="alBarWrap" style="display:none;margin-bottom:8px">
+        <div style="height:8px;border-radius:999px;background:#0f1420;border:1px solid #2a3550;overflow:hidden"><div id="alBar" style="height:100%;width:0%;background:linear-gradient(90deg,#c9a35e,#f0c987)"></div></div>
+        <div id="alTxt" style="font-size:11px;color:#8b98a9;margin-top:5px"></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn xs" id="alDl" style="flex:1;min-width:150px">Update all features</button>
+        <button class="btn xs secondary" id="alClear" style="flex:1;min-width:110px">Clear cache</button></div>
+      <div id="alMsg" style="font-size:11px;color:#8b98a9;margin-top:6px;min-height:13px"></div>
+    </div>` : '';
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
     ${account}
+    ${assetCard}
     ${reportCard}
     ${saveTools}
     ${dev}
@@ -14303,6 +14481,14 @@ function renderSettings(){
       <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</div>
     </div>
   </div>`;
+  {  // v564: Offline Art card (signed-in players) - same two actions as the dev panel's QA tab
+    const alMsg=b.querySelector('#alMsg'), alBar=b.querySelector('#alBar'), alWrap=b.querySelector('#alBarWrap'), alDl=b.querySelector('#alDl');
+    const rep=(m)=>{ if(alMsg) alMsg.textContent=m; if(alDl) alDl.textContent=_alRunning?'Stop download':'Update all features'; };
+    const bar={ wrap:(v)=>{ if(alWrap) alWrap.style.display=v?'block':'none'; },
+                set:(f)=>{ if(alBar) alBar.style.width=Math.round(f*100)+'%'; } };
+    if(alDl) alDl.onclick=()=>runAssetDownload(rep, bar);
+    const alC=b.querySelector('#alClear'); if(alC) alC.onclick=()=>runAssetClear(rep);
+  }
   const tosL=b.querySelector('#tosLink'); if(tosL) tosL.onclick=(e)=>{ e.preventDefault(); showTerms(); };
   const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const t=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
     if(t.length<3){ m.style.color='#ff8b8b'; m.textContent='Please add a little detail.'; return; }
@@ -14443,8 +14629,36 @@ function renderSettings(){
   b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); if(devTab==='integrity') loadIntegrity(); });
   b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); }); const _flt=b.querySelector('#devFilter'); if(_flt){ _flt.oninput=()=>{ const q=_flt.value.trim().toLowerCase(); b.querySelectorAll('.dvp-cell').forEach(c=>{ c.style.display=(!q||(c.textContent||'').toLowerCase().includes(q))?'':'none'; }); b.querySelectorAll('.dvp-sec').forEach(sec=>{ const nx=sec.nextElementSibling; const any=nx&&[...nx.querySelectorAll('.dvp-cell')].some(c=>c.style.display!=='none'); sec.style.display=any?'':'none'; }); }; }
 }
+/* v564 - ONE implementation behind both entry points: the player-facing Offline Art card in
+   Settings and the dev panel's QA tab. `report` is whatever each caller uses to show text, so the
+   behaviour can never drift between the two. */
+let _alRunning=false;
+function runAssetDownload(report, bar){
+  if(_alRunning){ _dlAbort=true; report('Stopping\u2026'); return; }
+  const total0=allAssetUrls().length;
+  if(!confirm('Download all game art to this device?\n\n'+total0+' files, roughly 740 MB.\nUse Wi-Fi if you can - this is a large download.\n\nIt only has to be done once.')) return;
+  _alRunning=true; if(bar) bar.wrap(true);
+  report('Starting\u2026 0 / '+total0);
+  downloadAllAssets((done,total,bytes,failed)=>{
+    if(bar) bar.set(done/total);
+    report('Downloading\u2026 '+done+' / '+total+'  ('+fmtMB(bytes)+(failed?(' \u00b7 '+failed+' failed'):'')+')');
+  }).then(r=>{
+    _alRunning=false;
+    if(r.aborted) report('Stopped. '+r.done+' of '+r.total+' files saved ('+fmtMB(r.bytes)+').');
+    else if(r.failed) report('Done with problems: '+(r.done-r.failed)+' of '+r.total+' saved ('+fmtMB(r.bytes)+'). '+r.failed+' failed - your device may have run out of storage. Run it again to retry those.');
+    else report('\u2705 All '+r.total+' files saved ('+fmtMB(r.bytes)+'). Battles will load instantly on this device.');
+  }, ()=>{ _alRunning=false; report('Download failed.'); });
+}
+function runAssetClear(report){
+  if(!confirm('Clear all downloaded art from this device?\n\nThe game will re-download art as you play. Nothing in your account or progress is touched.')) return;
+  report('Clearing\u2026');
+  clearAssetCache().then(n=>{ report('\u2705 Cleared '+n+' cache'+(n===1?'':'s')+'. Art will re-download as you play.'); },
+                        ()=>report('Could not clear the cache.'));
+}
 function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
+  if(a==='dlart'){ runAssetDownload(done, null); return; }
+  if(a==='clrart'){ runAssetClear(done); return; }
   if(a==='intrefresh'){ loadIntegrity(); done('Refreshing reports…'); return; }
   if(a==='intall'){ INTEG.showAll=!INTEG.showAll; loadIntegrity(); done(INTEG.showAll?'Showing resolved reports too':'Showing open reports only'); return; }
   if(a==='gold'){ api('/api/admin/led-grant','POST',{gold:100000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+100,000 gold'); }
@@ -15581,7 +15795,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789081129678';
+const BUILD_ID = '1789082018511';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
