@@ -1744,7 +1744,7 @@ const BATTLE_ANIM = {
      was eating a third of it - Phil: "you cropped over 30% of the flames out". Green-ness of the flame is 6, so nothing of his is at risk.
      Cut with PAD=60 (6 left 7px under his feet - "still overly cropped") and hard-despilled: edge pixels leaning green 36.8%%->0%%, solid
      2.18%%->0%%, violet flame pixels UP 2%%. See 24 - PROMPT LEARNER C8, C9, S1, S2, S3. */
-  blue:{u:'/assets/anim/umbris/umbris_blue_cast.webp?v=3',n:33,fw:638,fh:602,cols:6,rows:6,figH:444,feet:542,cx:317,fps:12,flip:true,top:98,hold:0.8,pingpong:true}
+  blue:{u:'/assets/anim/umbris/umbris_blue_cast.webp?v=4',n:33,fw:638,fh:602,cols:6,rows:6,figH:444,feet:542,cx:317,fps:12,flip:true,top:98,hold:0.8,pingpong:true}
   },
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=6',n:60,fw:93,fh:133,cols:6,rows:10,figH:120,feet:126,cx:52,fps:30,flip:false,top:6},
@@ -15873,7 +15873,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789100890151';
+const BUILD_ID = '1789101714609';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
