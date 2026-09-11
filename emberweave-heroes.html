@@ -1711,7 +1711,7 @@ const BATTLE_ANIM = {
   idle:{u:'/assets/anim/umbris/umbris_idle.webp?v=f2',n:72,fw:210,fh:210,cols:6,rows:12,figH:191,feet:204,cx:102,fps:30,flip:true,top:6},
   walk:{u:'/assets/anim/umbris/umbris_walk.webp?v=f2',n:72,fw:210,fh:208,cols:6,rows:12,figH:176,feet:195,cx:99,fps:30,flip:true,top:5},
   attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b7',n:41,fw:402,fh:336,cols:10,rows:5,figH:301,feet:313,cx:201,fps:30,flip:true,hold:1.4,relFrac:0.5,handfx:0.861,handfy:0.476,top:12},
-  hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=f2',n:29,fw:210,fh:181,cols:12,rows:3,figH:147,feet:175,cx:109,fps:8,flip:true,top:5},
+  hit:{u:'/assets/anim/umbris/umbris_hit.webp?v=f2',n:29,fw:210,fh:181,cols:12,rows:3,figH:147,feet:175,cx:109,fps:16,flip:true,top:5},
   /* v568 (11 Sep) - Umbral Cataclysm REMADE. Phil: "his right hand starts glowing almost immediately, he winds back as if to
      throw a baseball and the purple ember quickly gains size, but the time he does the throw apex the ember is twice the size".
      Fired start=his own apex art (arm extended down-left holding the ember), end=his overhead-throw art (same arm raised high
@@ -15874,7 +15874,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789107184977';
+const BUILD_ID = '1789118542181';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
