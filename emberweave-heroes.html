@@ -3998,7 +3998,18 @@ function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSpri
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
 const ZOOM_LEVELS=[1,1.25,1.5];
 let battleZoom=1, battlePanX=0, battlePanY=0;
-function zoomPR(){ const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1; return Math.min(4.5, DPR*z); }
+/* v586 (Phil: "same character zoomed in and out, the detail is much worse").
+   The zoom is a CSS transform on the canvas — the 3D scene is NOT re-rendered larger. `zoomPR()`
+   existed to raise the render resolution to match, but NOTHING called resize3D() when the zoom
+   changed (setBattleZoom only re-applies the CSS transform), so the pixel ratio was whatever the
+   last window resize happened to set it to. Zoom in after a resize and you magnified a buffer
+   rendered for 1x; the detail you saw depended on the order you did things in.
+   Fixed by rendering at the HIGHEST zoom's resolution all the time: zoomed in, those pixels are
+   shown 1:1; zoomed out, they supersample down and the sprite keeps its detail instead of
+   collapsing into a mip. QUAL.dpr still throttles the whole thing down on a device that cannot
+   hold frame rate, so this is a ceiling, not a demand. */
+const ZOOM_PR_MAX=(typeof ZOOM_LEVELS!=='undefined'&&ZOOM_LEVELS.length)?ZOOM_LEVELS[ZOOM_LEVELS.length-1]:1.5;
+function zoomPR(){ return Math.min(4.5, DPR*ZOOM_PR_MAX); }
 function clampPan(){
   const app=document.getElementById('app');
   const w=(app?app.clientWidth:0)||window.innerWidth, h=(app?app.clientHeight:0)||window.innerHeight;
@@ -4014,6 +4025,9 @@ function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z
   let origin='50% 50%';   // default: zoom around screen centre
   if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.getBoundingClientRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
   ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; } }); applyBattleView();
+  /* v586: keep the render buffer in step with the view. Cheap now that the ratio is constant —
+     this only redoes work if QUAL has since changed the resolution under us. */
+  try{ if(renderer && Math.abs(renderer.getPixelRatio()-zoomPR())>0.01){ CW=0; resize3D(); } }catch(e){}
   if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); }
   CW=0; resize3D(); }
 function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZoom)); i=Math.max(0,Math.min(ZOOM_LEVELS.length-1,i+dir)); setBattleZoom(ZOOM_LEVELS[i], fx, fy); }
@@ -16179,7 +16193,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789241776961';
+const BUILD_ID = '1789242178814';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
