@@ -481,8 +481,14 @@ function glyphCompile(){
   GLYPH_TIER_FAMS={};   // quality -> the families that EXIST at that tier (drives every drop rotation)
   const FRAG=/^(\d+)\s*[×x]\s*(.+?)\s+Fragments$/;
   for(const d of raw){
-    const m=/(\w+)\s+(Glyph|Core|Crown)$/.exec(d.name); if(!m) throw new Error('glyph name unparsable: '+d.name);
-    d.family=m[1];
+    // 12 Sep 2026 (Phil: "rename every glyph in the game... progressively get more strong sounding
+    // the closer to orange they get"). The FAMILY is now an explicit field, so a glyph's NAME is
+    // free to change completely from tier to tier. The old "second-to-last word" parse stays as the
+    // fallback so a definition written the old way still compiles.
+    if(!d.family){
+      const m=/(\w+)\s+(Glyph|Core|Crown)$/.exec(d.name); if(!m) throw new Error('glyph name unparsable, and no family field: '+d.name);
+      d.family=m[1];
+    }
     d.qi=GLYPH_LADDER.indexOf(d.quality); if(d.qi<0) throw new Error('glyph quality unknown: '+d.quality+' ('+d.id+')');
     d.stats=(d.passiveStats||'').split(';').map(s=>s.trim()).filter(Boolean).map(s=>{
       const mm=/^(.+?)\s*\+([\d.]+)(%?)$/.exec(s); if(!mm) throw new Error('glyph passive unparsable: '+d.id+' "'+s+'"');
@@ -520,10 +526,19 @@ function glyphCompile(){
   // then the tier's extended families alphabetically
   for(const q in GLYPH_TIER_FAMS){ const l=GLYPH_TIER_FAMS[q];
     GLYPH_TIER_FAMS[q]=[...GLYPH_FAMS.filter(f=>l.includes(f)), ...l.filter(f=>!GLYPH_FAMS.includes(f)).sort()]; }
-  GLYPHS={ raw, byId, byName, subs, version:1 };
+  // 12 Sep 2026 (Phil: "fragments werent renamed either"). A fragment's KEY stays '<Quality> <Family>'
+  // — it is wired into player balances, the portal targets, the grant route and the tests — but its
+  // DISPLAY NAME now climbs with its tier, taken from the glyph that tier's family builds:
+  // 'Grey Stoneheart' reads as 'Pebbleheart Fragment', 'Gold +4 Ironwall' as 'Starforged Wall Fragment'.
+  const fragName={};
+  for(const d of raw){ fragName[d.quality+' '+d.family]=d.name.replace(/ (Glyph|Core|Crown)$/,'')+' Fragment'; }
+  GLYPHS={ raw, byId, byName, subs, fragName, version:1 };
   console.log('🔮 Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }
 glyphCompile();
+// One name for a fragment key, everywhere it is shown to a player. Falls back to the key itself so
+// a key with no matching definition still renders something sane.
+function glyphFragName(key){ return (GLYPHS&&GLYPHS.fragName&&GLYPHS.fragName[key])||(key+' Fragment'); }
 // A definition whose expanded lineage needs a fragment key no tier can drop is unforgeable —
 // glyphPreChoice silently filters it out and its drops become dead loot. Surface it at boot.
 try{ if(GLYPHS){ const dead=GLYPHS.raw.filter(d=>!glyphSupplyOK(d)); if(dead.length) console.error('✖ unfarmable glyph definitions: '+dead.map(d=>d.id+' '+d.name).join(', ')); } }catch(e){}
@@ -578,7 +593,7 @@ function glyphPreChoice(heroKey, slotIdx, qi){
    Sub-Glyphs as branches, named fragments as the leaves. Purely a read model: nothing here (and
    no client allocation) ever creates a loose Sub-Glyph or finished-glyph item. ---- */
 function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:glyphFragSlug(key),
-  displayName:key+' Fragment', need:qty, have:(g.fragments[key]|0),
+  displayName:glyphFragName(key), need:qty, have:(g.fragments[key]|0),
   sources:portalSourcesFor(key) }; }
 /* AUDIT (glyph-tree-cost): every `finished` ingredient used to be re-expanded IN FULL wherever it
    appeared. Measured on the live catalog the worst root (R16-18 Worldfire Cataclysm Crown) reaches
@@ -685,7 +700,7 @@ function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.l
   const g=ensureGlyphs(u); glyphMigrate(u); glyphFlowMigrate(u);
   const receipt=[];
   for(const it of list){ const q=Math.max(1,it.quantity|0); g.fragments[it.key]=(g.fragments[it.key]||0)+q;
-    receipt.push({ fragmentId:glyphFragSlug(it.key), displayName:it.key+' Fragment', quantity:q }); }
+    receipt.push({ fragmentId:glyphFragSlug(it.key), displayName:glyphFragName(it.key), quantity:q }); }
   g.revision++; return receipt; }
 // Authored named drops: campaign stages (chapter sets the quality band, family cycles by stage),
 // vault boss floors (band by floor, family by boss index), arena wins (band by rank), daily
@@ -1719,7 +1734,7 @@ const EQ_SLOT_BASE_SRV=Object.freeze({ plate:[1,0,3,0,3,2], ranged:[2,0,0,2,2,3]
 const EQ_CRAFT_MAT_COST=2;   // a Grey piece costs 2 of its base material
 const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
-const SKILL_MAX_SRV=10;
+const SKILL_MAX_SRV=100, SKILL_COST_R_SRV=1.04;  /* 12 Sep 2026 - must match the client's SKILL_MAX / SKILL_COST_R exactly. */
 const SKILL_UP_BASE_SRV=[300,220,260,400];   // mirrors the client's SKILL_UP_BASE (ult / green / blue / passive)
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
   if(!Array.isArray(a)||a.length!==4){ led.skill[key]=[1,1,1,1]; }
@@ -1893,7 +1908,7 @@ function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
   return {type:'hero', hero:hk, stars:st}; }
 function poolGlyphFrag(u,q,n){ const fams=glyphTierFams(q); const key=q+' '+fams[Math.floor(Math.random()*fams.length)];
   const rec=glyphGrantNamedList(u,[{key,quantity:n}]);
-  return {type:'glyphFrag', key, displayName:key+' Fragment', n};
+  return {type:'glyphFrag', key, displayName:glyphFragName(key), n};
 }
 function poolRollGold(u){ const led=u.led; const h=Math.random();
   if(h<0.05) return poolGrantHero(u, poolPick(POOL_GOLD_HEROES));
@@ -2976,7 +2991,7 @@ async function api(req,res,url){
       const pre=glyphPreChoice(hero, slot, board.ascensionIndex);
       const opts=(pre?[pre]:[]).map(d=>{
         const cost=g2BuildCost(g,d)||{need:{},useSubs:{}};
-        const materials=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
+        const materials=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:glyphFragName(k),
           need:cost.need[k], have:(g.fragments[k]|0), sources:portalSourcesFor(k) }));
         return { blueprintId:d.id, name:d.name, family:d.family, quality:d.quality, stats:d.stats,
           materials, buildable:materials.every(m=>m.have>=m.need) }; });
@@ -2998,7 +3013,7 @@ async function api(req,res,url){
       const pre=glyphPreChoice(hero, slot, board.ascensionIndex);
       if(!pre) return send(res,400,{error:'No blueprint for this slot.'});
       const cost=g2BuildCost(g,pre)||{need:{}};
-      const totals=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:k+' Fragment',
+      const totals=Object.keys(cost.need).map(k=>({ fragmentId:glyphFragSlug(k), key:k, displayName:glyphFragName(k),
         need:cost.need[k], have:(g.fragments[k]|0), sources:portalSourcesFor(k) }));
       const canBuild=totals.every(t=>t.have>=t.need);
       const lvNeed=glyphLevelGate(board.ascensionIndex), lvHave=ledHeroLevel(ensureLedger(me),hero);
@@ -3322,7 +3337,9 @@ async function api(req,res,url){
       if(!led.unlocked[key]) return {ok:false,error:'You have not unlocked that hero.'};
       const arr=ledSkillArr(led,key); const lv=Math.max(1,arr[idx]|0);
       if(lv>=SKILL_MAX_SRV) return {ok:false,error:'That skill is already at max.'};
-      const cost=Math.round((SKILL_UP_BASE_SRV[idx]||300)*Math.pow(1.55,lv-1));
+      const hl=ledHeroLevel(led,key);
+      if(lv>=hl) return {ok:false,error:'Skill level cannot pass the hero level (hero is '+hl+').'};
+      const cost=Math.round((SKILL_UP_BASE_SRV[idx]||300)*Math.pow(SKILL_COST_R_SRV,lv-1));
       if((led.gold|0)<cost) return {ok:false,error:'Not enough gold.'};
       led.gold-=cost; arr[idx]=lv+1; led.rev++;
       ledTx(me,'skillup:'+key+':'+idx,{gold:-cost});
