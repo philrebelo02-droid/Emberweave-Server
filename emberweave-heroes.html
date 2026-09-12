@@ -4900,9 +4900,20 @@ function abilShot(u,o,e,color,onHit){
 function densestEnemyCluster(u,R){ const foes=enemiesOf(u); if(!foes.length) return null; let best=null, bn=-1;
   foes.forEach(e=>{ const g=foes.filter(f=>dist(e,f)<=R); if(g.length>bn){ bn=g.length; best=g; } });
   if(!best) return null; const cx=best.reduce((a,f)=>a+f.x,0)/best.length, cy=best.reduce((a,f)=>a+f.y,0)/best.length; return {x:cx,y:cy,n:bn}; }
-function densestAllyCluster(u,R){ const al=alliesOf(u); if(!al.length) return null; let best=null, bn=-1;   // v548: Bone Chant lands on the most congested ally group
-  al.forEach(e=>{ const g=al.filter(f=>dist(e,f)<=R); if(g.length>bn){ bn=g.length; best=g; } });
-  if(!best) return null; const cx=best.reduce((a,f)=>a+f.x,0)/best.length, cy=best.reduce((a,f)=>a+f.y,0)/best.length; return {x:cx,y:cy,n:bn}; }
+/* v579 (Phil, 12 Sep 2026: "boar shamans cast ability seems to not land on enemy or allies, its
+   meant to heal or damage but it lands in a random place").
+   It landed in a random place because it WAS a random place: this returned the CENTROID of the
+   densest ally group — the average of their positions, which for any group that is not a tight
+   huddle is a patch of empty floor between them. Three units in a triangle put the circle in the
+   middle of the triangle, touching nobody.
+   It now returns the position of an actual ALLY: the one with the most allies inside R, and on a
+   tie the most hurt of them, so the chant lands on a body and covers the most units. */
+function densestAllyCluster(u,R){ const al=(alliesOf(u)||[]).filter(e=>e&&e.alive); if(!al.length) return null;
+  let best=null, bn=-1, bf=2;
+  al.forEach(e=>{ const n=al.filter(f=>dist(e,f)<=R).length;
+    const frac=(e.maxHp>0)?(e.hp/e.maxHp):1;
+    if(n>bn || (n===bn && frac<bf)){ bn=n; bf=frac; best=e; } });
+  return best?{x:best.x,y:best.y,n:bn,on:best}:null; }
 function heroScaleMode(u){ const t=u&&u.t; if(!t||t.monster) return null; const r=t.role; if(r==='Mage'||r==='Support') return 'ap'; if(r==='Tank') return (t.apow>0)?'ap':'ad'; if(r==='Fighter'&&t.apow>0) return null; return 'ad'; }   /* v483 Phil: casters/mage tanks scale off AP, physical roles off Attack; hybrids later */
 function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
   const _mode=heroScaleMode(u); if(_mode==='ap'){ dB=apB; } else if(_mode==='ad'){ apB=dB; }
@@ -15986,7 +15997,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789239082004';
+const BUILD_ID = '1789239198035';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
