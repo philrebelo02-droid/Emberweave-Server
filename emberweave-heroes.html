@@ -14816,21 +14816,29 @@ function renderSettings(){
 /* v580 (Phil: "make this Pop up be on the right and match the ui"). An in-game confirm, drawn on the
    right-hand column over the Settings panel instead of a browser dialog. Resolves true / false.
    Esc and the backdrop both cancel, so it can never trap the player. */
-function uiConfirm(title, body, okLabel, danger){
+function uiConfirm(title, body, okLabel, danger, anchor){
   return new Promise(resolve=>{
     document.querySelectorAll('#uiConfirmWrap').forEach(n=>n.remove());
     const ov=document.createElement('div'); ov.id='uiConfirmWrap';
-    /* v580: the game's OWN modal skin (the same plate as the tutorial offer, maybeOfferTutorial),
-       but pinned to the RIGHT column so it sits over Settings where the button was pressed. */
-    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;'
-      +'align-items:center;justify-content:flex-end;z-index:20001;padding:18px';
+    /* v581 (Phil: "make the pop out ... the same exact dimensions as the Offline Art box so that
+       its seemless when you click it"). Given an anchor element, the card is drawn AT that
+       element's rect - same left, same top, same width, at least the same height - so pressing the
+       button turns that card into the question rather than throwing a dialog over the screen. */
+    const r = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
+    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);z-index:20001;'
+      +(r?'':'display:flex;align-items:center;justify-content:flex-end;padding:18px');
     const lines=(body||[]).map(l=>'<div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:6px">'+l+'</div>').join('');
-    ov.innerHTML='<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;'
-      +'border-radius:18px;padding:22px;width:100%;max-width:340px;box-shadow:0 12px 44px #000b">'
-      +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">'+(title||'')+'</div>'
+    const place = r ? ('position:absolute;left:'+Math.round(r.left)+'px;top:'+Math.round(r.top)+'px;'
+                       +'width:'+Math.round(r.width)+'px;min-height:'+Math.round(r.height)+'px;'
+                       +'display:flex;flex-direction:column;justify-content:center')
+                    : 'width:100%;max-width:340px';
+    ov.innerHTML='<div id="uiCfCard" style="'+place+';background:linear-gradient(160deg,#1c2334,#0c1420);'
+      +'border:1px solid #4a628f;border-radius:14px;padding:14px;box-shadow:0 12px 44px #000b;box-sizing:border-box">'
+      +'<div style="font-weight:800;font-size:14px;margin-bottom:8px">'+(title||'')+'</div>'
       +lines
-      +'<button class="btn" style="width:100%;margin:14px 0 6px"'+(danger?' data-danger="1"':'')+' id="uiCfOk">'+(okLabel||'OK')+'</button>'
-      +'<button class="btn xs secondary" style="width:100%" id="uiCfNo">Cancel</button></div>';
+      +'<div style="display:flex;gap:6px;margin-top:12px">'
+      +'<button class="btn xs" id="uiCfOk" style="flex:1">'+(okLabel||'OK')+'</button>'
+      +'<button class="btn xs secondary" id="uiCfNo" style="flex:1">Cancel</button></div></div>';
     document.body.appendChild(ov);
     const ok=ov.querySelector('#uiCfOk');
     if(danger) ok.style.background='linear-gradient(180deg,#a8433a,#7e2f28)';
@@ -14867,9 +14875,10 @@ function runAssetDownload(report, bar){
       });
       return; }
     if(!n && drop){
+      const _card=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.panel'))||null;
       const okDrop=await uiConfirm('Nothing new to download',
         [drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared.'],
-        'Clear them');
+        'Clear them', false, _card);
       if(!okDrop){ report('Up to date.'); return; }
     } else {
       const share=plan.urls.length?Math.round(n*100/plan.urls.length):100;
@@ -14877,7 +14886,8 @@ function runAssetDownload(report, bar){
       if(plan.cached) lines.push(plan.cached+' already saved \u2014 they will be skipped.');
       if(drop) lines.push(drop+' replaced file'+(drop===1?'':'s')+' will be cleared.');
       lines.push('Use Wi-Fi if this is a large update.');
-      if(!await uiConfirm('Download new art to this device?', lines, 'Download')) return;
+      const _card2=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.panel'))||null;
+      if(!await uiConfirm('Download new art to this device?', lines, 'Download', false, _card2)) return;
     }
     _alRunning=true; if(bar) bar.wrap(true);
     report(n?('Starting\u2026 0 / '+n):'Clearing replaced art\u2026');
@@ -14903,7 +14913,8 @@ async function runAssetClear(report){
   if(!await uiConfirm('Clear all downloaded art from this device?',
       ['The game will re-download art as you play.',
        'Nothing in your account or your progress is touched.'],
-      'Clear cache', true)) return;
+      'Clear cache', true,
+      (document.getElementById('alClear')&&document.getElementById('alClear').closest('.panel'))||null)) return;
   report('Clearing\u2026');
   clearAssetCache().then(n=>{ report('\u2705 Cleared '+n+' cache'+(n===1?'':'s')+'. Art will re-download as you play.'); },
                         ()=>report('Could not clear the cache.'));
@@ -16048,7 +16059,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789239836164';
+const BUILD_ID = '1789240194328';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
