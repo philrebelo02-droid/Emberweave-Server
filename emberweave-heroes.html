@@ -2437,13 +2437,32 @@ async function downloadAllAssets(onProgress){
   /* v580: a sweep that wants to delete while EVERY file also reads as missing is not looking at a
      stale library, it is looking at a matching bug. Deleting there is how a working download gets
      binned, so it does not delete. */
+  /* v583. Two rules, after 709.7 MB went to 3.1 MB with nobody able to say what removed it:
+     1. a sweep that wants to delete while EVERY file also reads as missing is a matching bug;
+     2. a sweep may never remove more than a QUARTER of what is stored in one run. A real version
+        bump retires a handful of sheets; anything at that scale is this code being wrong, and the
+        player's library is not the thing that should pay for it.
+     Every deletion is written to a breadcrumb in localStorage, so the next time a library goes
+     missing it says what removed it and when instead of being guessed at. */
+  const _held = plan.cached + (plan.foreign||0) + plan.stale.length;
+  const _cap = Math.max(8, Math.floor(_held*0.25));
   const _sane = !(plan.stale.length && plan.missing.length===plan.urls.length);
-  if(plan.cache && _sane){
+  const _tooMany = plan.stale.length > _cap;
+  if(plan.cache && _sane && !_tooMany){
     for(const req of plan.stale){
       try{ const hit=await plan.cache.match(req); if(hit){ const b=await hit.blob(); freed+=b.size; }
            await plan.cache.delete(req); dropped++; }catch(e){}
     }
   }
+  try{
+    if(plan.stale.length){
+      const note={t:new Date().toISOString(), held:_held, wanted:plan.stale.length,
+                  deleted:dropped, blocked:(!_sane?'degenerate-plan':(_tooMany?'over-quarter-cap':null))};
+      const log=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); log.push(note);
+      localStorage.setItem('ew_cache_log', JSON.stringify(log.slice(-10)));
+      if(note.blocked) console.warn('Offline Art: refused to delete', plan.stale.length, 'of', _held, '-', note.blocked);
+    }
+  }catch(e){}
   const urls=plan.missing;
   let done=0, bytes=0, failed=0;
   const CONC=4;
@@ -4860,7 +4879,7 @@ const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};   // these two alwa
    the sheet declares. Damage abilities are deliberately absent: those still land where they land. */
 const _ABOVE_BAR={dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,defensive:1,warcry:1,dmgbuff:1,crescendo:1,
   lifestealbuff:1,laststand:1,spdsteal:1,firstspring:1,regen:1,cleanse:1,bulwark:1,dawnguard:1};   /* v558: harmonyshield LEFT this list on purpose. Phil: 'this is used on the lowest health ally, any ally within 7 meters of the center of the dome is shielded also' -- that is ONE 14 m dome over one ally, not a dome per shielded ally, so it must not go through the v552 per-unit fan-out. */
-function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
+function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
@@ -4903,7 +4922,7 @@ function abilArt(u,o,tgt,aimCtr,type){ if(o&&o.noArt) return;   /* v483: the abi
 /* A shot that prefers the ability's own projectile art, falling back to the plain coloured tracer. */
 function abilShot(u,o,e,color,onHit){
   if(o && o.pfx && FX2_DEF[o.pfx] && typeof spawnProjFx==='function'){
-    try{ const co=castOrigin(u,e.x,e.y); window._projTgtU=e; spawnProjFx(o.pfx,co.x,co.y,e.x,e.y,o.pscale||2.6,o.pdur||0.30,onHit,co.h); return true; }catch(err){}
+    try{ const co=castOrigin(u,e.x,e.y); window._projTgtU=e; window._fxCaster=u; spawnProjFx(o.pfx,co.x,co.y,e.x,e.y,o.pscale||2.6,o.pdur||0.30,onHit,co.h); return true; }catch(err){}
   }
   try{ spawnShot(u,e,color); }catch(err){}
   if(onHit)onHit(); return false;
@@ -6216,7 +6235,7 @@ const _FX2_PLANE=(typeof TH!=='undefined'&&TH)?new TH.PlaneGeometry(1,1):null;  
 // Ground zone: a flat animated quad laid on the battlefield, sized to the ability RADIUS, looping for `life` seconds.
 const _groundFx=[];
 let _ownFxCast=false,_fxAllow=false;   /* v451 FX-OWNERSHIP  a hero with their own gfx suppresses the shared type plate */
-function spawnGroundFx(key,cx,cy,radius,life){ if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
+function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
   /* v498: a buff/heal marker is drawn as an upright badge whose BOTTOM sits just over the target's health bar,
      no matter how its sheet is declared -- a flat ground disc for a shield would still lie across the body. */
   if(window._fxAboveBar && !d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:0.8,upExtent:0.95,upAnchor:null,upPalm:null,cone:false,ro:1});   /* a sheet that already declares upAbove keeps its own tuning (Dandra's lotus, Aureth's eclipse) */
@@ -6404,7 +6423,29 @@ function updateBees(dt){
       const nx=b.fx+(gx-b.fx)*ease, ny=b.fy+(gy-b.fy)*ease, nh=b.fh+(gh-b.fh)*ease+Math.sin(k*Math.PI)*0.9+Math.sin(b.tt*18+b.wob)*0.08;
       b.spr.material.rotation=((gx-b.fx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); }
     if(k>=1){ beeLand(b.u,t,b.cfg); beeDrop(b); _bees.splice(i,1); } } }
-function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ const PH=(fromH!=null?fromH:1.2); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
+/* v583 (Phil: "i saw the ability miss completely, before the target moved" — and he is right that
+   guessing at it from a screenshot is not an answer). Every FX spawn is checked against the units
+   on the field: if it lands further than 4 m from ANY of them it is recorded with the ability that
+   fired it. `window._fxMiss` holds the last 25, and the dev panel's QA tab prints them, so the next
+   miss names itself instead of being described. Costs one distance loop per spawn. */
+window._fxMiss=[];
+function _fxCheck(kind,key,x,y,caster){
+  try{
+    const us=(window.units||[]).filter(u=>u.alive&&!u._dropHidden);
+    if(!us.length) return;
+    let best=1e9,who=null;
+    for(const u of us){ const d=Math.hypot(u.x-x,u.y-y); if(d<best){best=d;who=(u.t&&u.t.name)||u.key;} }
+    if(best>4*METER){
+      _fxMiss.push({kind,key,at:[Math.round(x),Math.round(y)],nearest:who,
+                    metres:Math.round(best/METER*10)/10,
+                    by:(caster&&((caster.t&&caster.t.name)||caster.key))||'?',t:Date.now()});
+      if(_fxMiss.length>25) _fxMiss.shift();
+      try{ console.warn('FX MISS',kind,key,'by',(caster&&((caster.t&&caster.t.name)||caster.key)),
+                        Math.round(best/METER*10)/10+'m from the nearest unit ('+who+')'); }catch(e){}
+    }
+  }catch(e){}
+}
+function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('projectile',key,tox,toy,window._fxCaster); const PH=(fromH!=null?fromH:1.2); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
   const tex=base;
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
   fx2Hook(spr); fx2SetFrame(spr,d,0);
@@ -14614,7 +14655,7 @@ function renderSettings(){
     const accountsTab = dt!=='accounts'?'':`
       <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
     const qaTab = dt!=='qa'?'':`
-      <div class="dvp-grid">${act('dlart','\ud83d\udce6','Update all features')}${act('clrart','\ud83e\uddf9','Clear cache')}${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
+      <div class="dvp-grid">${act('dlart','\ud83d\udce6','Update all features')}${act('clrart','\ud83e\uddf9','Clear cache')}${act('fxmiss','\ud83c\udfaf','FX misses')}${act('cachelog','\ud83d\udcdc','Cache log')}${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
     /* 30 Aug (Phil) — THE INTEGRITY DESK.
        "no roll backs just the option to ban the player for 1, 7 or 30 days if they are found guilty."
        So this screen only ever reads and bans. There is deliberately no button here that takes
@@ -14683,7 +14724,11 @@ function renderSettings(){
        and whether the browser has promised to keep them. */
     (async()=>{ try{
       const plan=await assetCachePlan();
-      let mb=''; try{ const e=await navigator.storage.estimate(); mb=' \u00b7 '+fmtMB(e.usage||0); }catch(e){}
+      /* v583: the QUOTA matters as much as the usage. Chrome shrinks an origin's budget when the
+         DISK is filling up and evicts to fit, and it will do that even to storage it has marked
+         persistent. Showing both turns "my downloads vanished" into a number that explains it. */
+      let mb=''; try{ const e=await navigator.storage.estimate();
+        mb=' \u00b7 '+fmtMB(e.usage||0)+' of '+fmtMB(e.quota||0)+' allowed'; }catch(e){}
       let keep=''; try{ if(navigator.storage&&navigator.storage.persisted && !(await navigator.storage.persisted()))
         keep=' \u00b7 \u26a0 not guaranteed to be kept'; }catch(e){}
       rep(plan.cached+' of '+plan.urls.length+' files saved on this device'+mb+keep);
@@ -14942,6 +14987,14 @@ function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
   if(a==='dlart'){ runAssetDownload(done, null); return; }
   if(a==='clrart'){ runAssetClear(done); return; }
+  if(a==='cachelog'){ let L=[]; try{ L=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); }catch(e){}
+    done(L.length? L.slice(-4).map(x=>x.t.slice(11,19)+' held '+x.held+', wanted to drop '+x.wanted+', dropped '+x.deleted+(x.blocked?' ('+x.blocked+')':'')).join(' | ')
+                 : 'Offline Art has never deleted anything on this device.');
+    return; }
+  if(a==='fxmiss'){ const L=(window._fxMiss||[]);
+    done(L.length? L.slice(-6).map(x=>x.by+' \u2192 '+x.key+' ('+x.kind+') '+x.metres+'m from '+x.nearest).join(' | ')
+                 : 'No FX has landed away from a unit since this page loaded.');
+    return; }
   if(a==='intrefresh'){ loadIntegrity(); done('Refreshing reports…'); return; }
   if(a==='intall'){ INTEG.showAll=!INTEG.showAll; loadIntegrity(); done(INTEG.showAll?'Showing resolved reports too':'Showing open reports only'); return; }
   if(a==='gold'){ api('/api/admin/led-grant','POST',{gold:100000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+100,000 gold'); }
@@ -16078,7 +16131,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789240679938';
+const BUILD_ID = '1789241054665';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
