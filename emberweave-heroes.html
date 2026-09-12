@@ -2434,7 +2434,11 @@ async function downloadAllAssets(onProgress){
   const plan=await assetCachePlan();
   plan.persist=persist;
   let dropped=0, freed=0;
-  if(plan.cache){
+  /* v580: a sweep that wants to delete while EVERY file also reads as missing is not looking at a
+     stale library, it is looking at a matching bug. Deleting there is how a working download gets
+     binned, so it does not delete. */
+  const _sane = !(plan.stale.length && plan.missing.length===plan.urls.length);
+  if(plan.cache && _sane){
     for(const req of plan.stale){
       try{ const hit=await plan.cache.match(req); if(hit){ const b=await hit.blob(); freed+=b.size; }
            await plan.cache.delete(req); dropped++; }catch(e){}
@@ -2443,10 +2447,17 @@ async function downloadAllAssets(onProgress){
   const urls=plan.missing;
   let done=0, bytes=0, failed=0;
   const CONC=4;
+  /* v580: PUT IT IN THE CACHE OURSELVES. Leaving the service worker to store these as a side
+     effect of the fetch only works while a SW is controlling the page; during an update, a hard
+     reload, or before clients.claim() lands, the request goes to the network and is kept nowhere -
+     the bar fills and the device ends up with nothing. Writing it here, under the exact key
+     allAssetUrls() produced, makes the download mean what it says. */
   const one=async(u)=>{
     if(_dlAbort) return;
-    try{ const r=await fetch(u);                       // through the SW, which stores it
-      if(r&&r.ok){ const b=await r.blob(); bytes+=b.size; } else failed++;
+    try{ const r=await fetch(u,{cache:'no-store'});
+      if(r&&r.ok){ const b=await r.clone().blob(); bytes+=b.size;
+        if(plan.cache){ try{ await plan.cache.put(u, r); }catch(e){} }
+      } else failed++;
     }catch(e){ failed++; }
     done++; if(onProgress) onProgress(done, urls.length, bytes, failed);
   };
@@ -14802,13 +14813,46 @@ function renderSettings(){
 /* v564 - ONE implementation behind both entry points: the player-facing Offline Art card in
    Settings and the dev panel's QA tab. `report` is whatever each caller uses to show text, so the
    behaviour can never drift between the two. */
+/* v580 (Phil: "make this Pop up be on the right and match the ui"). An in-game confirm, drawn on the
+   right-hand column over the Settings panel instead of a browser dialog. Resolves true / false.
+   Esc and the backdrop both cancel, so it can never trap the player. */
+function uiConfirm(title, body, okLabel, danger){
+  return new Promise(resolve=>{
+    document.querySelectorAll('#uiConfirmWrap').forEach(n=>n.remove());
+    const ov=document.createElement('div'); ov.id='uiConfirmWrap';
+    /* v580: the game's OWN modal skin (the same plate as the tutorial offer, maybeOfferTutorial),
+       but pinned to the RIGHT column so it sits over Settings where the button was pressed. */
+    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;'
+      +'align-items:center;justify-content:flex-end;z-index:20001;padding:18px';
+    const lines=(body||[]).map(l=>'<div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:6px">'+l+'</div>').join('');
+    ov.innerHTML='<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;'
+      +'border-radius:18px;padding:22px;width:100%;max-width:340px;box-shadow:0 12px 44px #000b">'
+      +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">'+(title||'')+'</div>'
+      +lines
+      +'<button class="btn" style="width:100%;margin:14px 0 6px"'+(danger?' data-danger="1"':'')+' id="uiCfOk">'+(okLabel||'OK')+'</button>'
+      +'<button class="btn xs secondary" style="width:100%" id="uiCfNo">Cancel</button></div>';
+    document.body.appendChild(ov);
+    const ok=ov.querySelector('#uiCfOk');
+    if(danger) ok.style.background='linear-gradient(180deg,#a8433a,#7e2f28)';
+    const done=(v)=>{ try{ document.removeEventListener('keydown',key); ov.remove(); }catch(e){} resolve(v); };
+    const key=(e)=>{ if(e.key==='Escape') done(false); };
+    document.addEventListener('keydown',key);
+    ov.onclick=(e)=>{ if(e.target===ov) done(false); };
+    ok.onclick=()=>done(true);
+    ov.querySelector('#uiCfNo').onclick=()=>done(false);
+    try{ ok.focus(); }catch(e){}
+  });
+}
+/* v580: ask ONCE at load, so the grant exists before the first byte is written rather than being
+   requested halfway through a 740 MB download. */
+try{ if(navigator.storage&&navigator.storage.persist) setTimeout(()=>{ try{ askPersistentStorage(); }catch(e){} }, 3000); }catch(e){}
 let _alRunning=false;
 function runAssetDownload(report, bar){
   if(_alRunning){ _dlAbort=true; report('Stopping\u2026'); return; }
   /* v576: ask the cache what is actually missing BEFORE prompting. A player who is up to date is
      told so and charged nothing; a player who needs 30 MB is asked about 30 MB, not 740. */
   report('Checking what this device already has\u2026');
-  assetCachePlan().then(plan=>{
+  assetCachePlan().then(async plan=>{
     const n=plan.missing.length, drop=plan.stale.length;
     if(!n && !drop){
       assetCacheSize().then(sz=>{
@@ -14823,13 +14867,17 @@ function runAssetDownload(report, bar){
       });
       return; }
     if(!n && drop){
-      if(!confirm('Nothing new to download.\n\n'+drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared. Clear them?')) { report('Up to date.'); return; }
+      const okDrop=await uiConfirm('Nothing new to download',
+        [drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared.'],
+        'Clear them');
+      if(!okDrop){ report('Up to date.'); return; }
     } else {
       const share=plan.urls.length?Math.round(n*100/plan.urls.length):100;
-      if(!confirm('Download new art to this device?\n\n'+n+' new file'+(n===1?'':'s')+' of '+plan.urls.length+' ('+share+'%).'
-                  +(plan.cached?('\n'+plan.cached+' are already saved and will be skipped.'):'')
-                  +(drop?('\n'+drop+' replaced file'+(drop===1?'':'s')+' will be cleared.'):'')
-                  +'\n\nUse Wi-Fi if this is a large update.')) return;
+      const lines=['<b style="color:#e7ecf5">'+n+' new file'+(n===1?'':'s')+'</b> of '+plan.urls.length+' \u00b7 '+share+'%'];
+      if(plan.cached) lines.push(plan.cached+' already saved \u2014 they will be skipped.');
+      if(drop) lines.push(drop+' replaced file'+(drop===1?'':'s')+' will be cleared.');
+      lines.push('Use Wi-Fi if this is a large update.');
+      if(!await uiConfirm('Download new art to this device?', lines, 'Download')) return;
     }
     _alRunning=true; if(bar) bar.wrap(true);
     report(n?('Starting\u2026 0 / '+n):'Clearing replaced art\u2026');
@@ -14851,8 +14899,11 @@ function runAssetDownload(report, bar){
     }, ()=>{ _alRunning=false; report('Download failed.'); });
   }, ()=>report('Could not read this device\u2019s cache.'));
 }
-function runAssetClear(report){
-  if(!confirm('Clear all downloaded art from this device?\n\nThe game will re-download art as you play. Nothing in your account or progress is touched.')) return;
+async function runAssetClear(report){
+  if(!await uiConfirm('Clear all downloaded art from this device?',
+      ['The game will re-download art as you play.',
+       'Nothing in your account or your progress is touched.'],
+      'Clear cache', true)) return;
   report('Clearing\u2026');
   clearAssetCache().then(n=>{ report('\u2705 Cleared '+n+' cache'+(n===1?'':'s')+'. Art will re-download as you play.'); },
                         ()=>report('Could not clear the cache.'));
@@ -15997,7 +16048,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789239198035';
+const BUILD_ID = '1789239836164';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
