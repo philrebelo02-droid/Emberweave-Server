@@ -2775,7 +2775,7 @@ const KITS={
   pellucid:{green:{name:'Meteor Knuckle',type:'aoeStun',mul:1.25,stun:1.2,radius:2.6*METER,cd:8,desc:"Drives one colossal fist down, stunning nearby enemies.",gfx:'pellucid_green',gdur:5.88},blue:{name:'Infernal Clinch',type:'atkcrush',mul:1.5,pct:0.35,stun:0.6,dur:5,cd:10,desc:"Grabs the strongest enemy and crushes its Attack for several seconds.",gfx:'pellucid_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Unmovable Mass',pass:'unmovable',desc:"Cannot be displaced; damage taken builds molten armor."}},
   velvetplum:{green:{name:'Scent of Courage',type:'healbuff',mul:0.95,atk:1.28,dur:6,cd:7,desc:"Sprays the weakest ally with restorative perfume, healing them and increasing their Attack.",gfx:'velvetplum_green',gdur:5.88},blue:{name:'Soporific Bouquet',type:'sleepbouquet',sleep:2.2,slow:3,cd:10,desc:"Releases a drifting fragrance that puts the highest-energy enemy to sleep.",gfx:'velvetplum_blue',gfxR:3*METER,gdur:4.42},purple:{name:'Trail of Splendor',pass:'splendor',desc:"Whenever an ally receives a buff, they also gain a small stacking shield."}},
   veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
-  vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,gfx:'vex_green',gfxR:3*METER,gdur:4.58},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,gfx:'vex_blue',gfxR:3*METER,gdur:5.25},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
+  vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,range:20*METER,gfx:'vex_green',gfxR:3*METER,gdur:4.58},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,gfx:'vex_blue',gfxR:3*METER,gdur:5.25},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
   arrears:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6,gfx:'arrears_green',gfxR:3*METER,gdur:5.88},blue:{name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10,gfx:'arrears_blue',gdur:5.88},purple:{name:'Compound Interest',pass:'debtaura'}},
   meryln:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8,gfx:'meryln_green',gfxR:3*METER},blue:{name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6,gfx:'meryln_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
 };
@@ -2896,7 +2896,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:1.2,radius:3*METER,hits:3},
+const ULT_DEF={hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
   quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
@@ -5052,7 +5052,9 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xc9a227,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'triplecleave':{ const hits=o.hits||3, R=o.radius||3*METER, mul=o.mul||1.2;
       const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI));
-      const half=(60*Math.PI/180)/2;
+      /* v578: the AIM UI paints a 45-degree wedge (ultAimMode 'cone'), so the damage cone is 45
+         degrees too. It was 60, which meant the shape you aimed was not the shape that got hit. */
+      const half=(45*Math.PI/180)/2;
       // all three cuts resolve now (sim stays deterministic); only the ring FX are staggered.
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
         let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI;
@@ -5157,14 +5159,27 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       break; }
 
     // ---- Vex: the inverse of a pull. She throws, and hauls HERSELF in behind them. ----
-    case 'hookline':{ if(!tgt)break;
-      burstAt(u.x,u.y,0x7a3fa0,14); spawnShot(u,tgt,'#c9a6ff');
-      const behind=(tgt.y<u.y)?tgt.y-24:tgt.y+24;
-      u.x=Math.max(60,Math.min(FW-60,tgt.x+(tgt.x>=u.x?20:-20)));
-      u.y=Math.max(80,Math.min(FD-60,behind)); u._ax=u.x; u._ay=u.y; u.attackAnim=.18;
-      dealDamage(u,tgt,dB*(o.mul||1.6)*(o.crit||1.5)*rm,'#c9a6ff');
+    /* v578 (Phil): "jump to the lowest max health enemy within 20 meters, and land BEHIND them,
+       that means she needs to turn mid animation when she arrives behind them."
+       It used to leap at whatever she was already swinging at, from any distance. Three fixes:
+       the target is chosen (lowest MAX health, inside 20 m), the landing is genuinely behind that
+       target along her own approach line, and she turns to face it on arrival. */
+    case 'hookline':{
+      const _R=(o.range||20*METER);
+      const _mark=enemiesOf(u).filter(e=>e.alive&&dist(u,e)<=_R)
+                   .sort((a,b)=>(a.maxHp||a.hp||0)-(b.maxHp||b.hp||0))[0] || null;
+      if(!_mark) break;                                   // nothing in reach: the leap does not fire
+      burstAt(u.x,u.y,0x7a3fa0,14); spawnShot(u,_mark,'#c9a6ff');
+      // behind = on the far side of the mark from where she started, along that same line
+      const _dx=_mark.x-u.x, _dy=_mark.y-u.y, _L=Math.hypot(_dx,_dy)||1;
+      const _gap=0.9*METER;
+      u.x=Math.max(60,Math.min(FW-60,_mark.x+(_dx/_L)*_gap));
+      u.y=Math.max(80,Math.min(FD-60,_mark.y+(_dy/_L)*_gap));
+      u._ax=u.x; u._ay=u.y; u.attackAnim=.18;
+      u._faceDir=(_mark.x>=u.x)?1:-1;                     // she lands past them and turns back
+      dealDamage(u,_mark,dB*(o.mul||1.6)*(o.crit||1.5)*rm,'#c9a6ff');
       burstAt(u.x,u.y,0x7a3fa0,18);
-      floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'BEHIND YOU',t:1.0,color:'#c9a6ff',vy:1,sz:12}); break; }
+      floatTexts.push({x:_mark.x,y:_mark.y-12,txt:'BEHIND YOU',t:1.0,color:'#c9a6ff',vy:1,sz:12}); break; }
 
     // ---- Grimsby: a debt that GROWS, and detonates onto the room if it outlives its holder. ----
     case 'debtmark':{ if(!tgt)break; dealDamage(u,tgt,dB*(o.mul||0.5)*rm,'#8a7a3a');
@@ -6130,7 +6145,7 @@ const FX2_DEF={
   umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vael_ult:{u:'/assets/anim/fx/vael_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   velvetplum_ult:{u:'/assets/anim/fx/velvetplum_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.62,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.75,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.75,cone:true,coneFoot:0.05},
   veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.12,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vharn_blue:{u:'/assets/anim/fx/vharn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,cone:true,coneFoot:0.05},
   vharn_ult:{u:'/assets/anim/fx/vharn_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -10826,7 +10841,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:5.88}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:3.29}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62}, vex:{gfx:'vex_ult',gdur:4.75}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:5.88}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:3.29}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -15971,7 +15986,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789238701272';
+const BUILD_ID = '1789239082004';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
