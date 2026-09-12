@@ -2394,23 +2394,45 @@ function _absUrl(u){ try{ return new URL(u, location.origin).href; }catch(e){ re
 /* What the device still needs, and what it is holding that nothing wants any more.
    A bumped ?v= is a NEW key, so the art it replaced shows up here as stale and gets dropped - that
    is what stops the cache growing forever. */
+function _pathOf(u){ try{ return new URL(u, location.origin).pathname; }catch(e){ return u; } }
 async function assetCachePlan(){
   const urls=allAssetUrls();
   const want=new Set(urls.map(_absUrl));
+  // v577: a REPLACED asset is one whose path we still want but under a different ?v=. Anything else
+  // under /assets/ is art the game loads by some other route (UI icons) - deleting it was a bug that
+  // threw away 7 working files on every run.
+  const wantPath=new Set(urls.map(_pathOf));
   let cache=null, have=[];
   try{ cache=await caches.open(ASSET_CACHE_NAME); have=await cache.keys(); }catch(e){}
   const haveSet=new Set(have.map(r=>r.url));
-  return { cache, urls,
-           missing: urls.filter(u=>!haveSet.has(_absUrl(u))),
-           stale:   have.filter(r=>!want.has(r.url)),
-           cached:  urls.length - urls.filter(u=>!haveSet.has(_absUrl(u))).length };
+  const missing=urls.filter(u=>!haveSet.has(_absUrl(u)));
+  return { cache, urls, missing,
+           stale:   have.filter(r=>!want.has(r.url) && wantPath.has(_pathOf(r.url))),
+           cached:  urls.length - missing.length,
+           foreign: have.filter(r=>!want.has(r.url) && !wantPath.has(_pathOf(r.url))).length };
+}
+/* v577: without this the origin is BEST-EFFORT storage and the browser discards the art whenever it
+   feels like it - measured on the live site: persisted() false, and a 706-file download had decayed
+   to 9 entries. Ask once, before the first big download. */
+async function askPersistentStorage(){
+  try{
+    if(!navigator.storage||!navigator.storage.persist) return 'unsupported';
+    if(await navigator.storage.persisted()) return 'granted';
+    return (await navigator.storage.persist())?'granted':'denied';
+  }catch(e){ return 'unsupported'; }
+}
+async function assetCacheSize(){
+  try{ const e=await navigator.storage.estimate();
+    return {usage:e.usage||0, quota:e.quota||0}; }catch(e){ return null; }
 }
 /* Downloads with a small concurrency window. Sequential-ish on purpose: a phone asked for 900 files
    at once will have requests time out and the run reports failures that are really just congestion.
    Individual failures never stop the run - it reports them at the end. */
 async function downloadAllAssets(onProgress){
   _dlAbort=false;
+  const persist=await askPersistentStorage();      // v577: before writing hundreds of MB
   const plan=await assetCachePlan();
+  plan.persist=persist;
   let dropped=0, freed=0;
   if(plan.cache){
     for(const req of plan.stale){
@@ -2432,7 +2454,7 @@ async function downloadAllAssets(onProgress){
   const workers=Array.from({length:CONC},async()=>{ while(q.length && !_dlAbort) await one(q.shift()); });
   await Promise.all(workers);
   return {total:urls.length, done, bytes, failed, aborted:_dlAbort,
-          dropped, freed, alreadyHad:plan.cached, library:plan.urls.length};
+          dropped, freed, alreadyHad:plan.cached, library:plan.urls.length, persist:plan.persist};
 }
 async function clearAssetCache(){
   let n=0;
@@ -14762,7 +14784,18 @@ function runAssetDownload(report, bar){
   report('Checking what this device already has\u2026');
   assetCachePlan().then(plan=>{
     const n=plan.missing.length, drop=plan.stale.length;
-    if(!n && !drop){ report('\u2705 Up to date \u2014 all '+plan.urls.length+' files are already on this device.'); return; }
+    if(!n && !drop){
+      assetCacheSize().then(sz=>{
+        const mb = sz ? (' \u00b7 '+fmtMB(sz.usage)+' stored') : '';
+        report('\u2705 Up to date \u2014 all '+plan.urls.length+' files are on this device'+mb+'.');
+        // v577: if the browser has not promised to keep them, say so - this is exactly how "up to
+        // date" turns into a full re-download after a reload.
+        askPersistentStorage().then(st=>{ if(st!=='granted')
+          report('\u2705 All '+plan.urls.length+' files are on this device'+mb+', but your browser has NOT '
+                 +'guaranteed to keep them and may clear them at any time. Re-run this if battles start '
+                 +'loading slowly again.'); });
+      });
+      return; }
     if(!n && drop){
       if(!confirm('Nothing new to download.\n\n'+drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared. Clear them?')) { report('Up to date.'); return; }
     } else {
@@ -14783,7 +14816,12 @@ function runAssetDownload(report, bar){
       if(r.aborted) report('Stopped. '+r.done+' of '+r.total+' new files saved ('+fmtMB(r.bytes)+').'+cleared);
       else if(r.failed) report('Done with problems: '+(r.done-r.failed)+' of '+r.total+' saved ('+fmtMB(r.bytes)+'). '+r.failed+' failed - your device may have run out of storage. Run it again to retry those.'+cleared);
       else if(!r.total) report('\u2705 Up to date.'+cleared);
-      else report('\u2705 '+r.total+' new file'+(r.total===1?'':'s')+' saved ('+fmtMB(r.bytes)+').'+cleared+' Battles will load instantly on this device.');
+      else {
+        const warn = (r.persist==='granted') ? '' :
+          ' \u26a0 Your browser would not guarantee to keep them, so it may clear them later.';
+        report('\u2705 '+r.total+' new file'+(r.total===1?'':'s')+' saved ('+fmtMB(r.bytes)+').'+cleared
+               +' Battles will load instantly on this device.'+warn);
+      }
     }, ()=>{ _alRunning=false; report('Download failed.'); });
   }, ()=>report('Could not read this device\u2019s cache.'));
 }
@@ -15933,7 +15971,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789237823412';
+const BUILD_ID = '1789238701272';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
