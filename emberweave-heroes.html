@@ -2242,16 +2242,49 @@ function _texCaps(){
   try{
     if(typeof renderer==='undefined' || !renderer || !renderer.capabilities) return false;   // asked too early - retry next clip
     _MIPOK=!!renderer.capabilities.isWebGL2;
-    _ANISO=_MIPOK?Math.min(8, renderer.capabilities.getMaxAnisotropy()||1):1;
+    _ANISO=_MIPOK?(renderer.capabilities.getMaxAnisotropy()||1):1;   // v584: the hardware max, was capped at 8 and never reached
     try{ console.log('[EW] texture quality: mipmaps='+_MIPOK+' anisotropy='+_ANISO); }catch(_){}
     return _MIPOK;
   }catch(e){ return false; }
 }
+/* v584 (Phil: "a detail difference when zooming ... the detail of the heroes").
+   Measured in the live game: WebGL2 true, hardware max anisotropy 16, but the engine was running
+   at anisotropy 1 with mipmaps off. Two faults, and the first is the one that bites:
+
+   1. TEXTURE QUALITY WAS DECIDED BY A RACE. `_texCaps()` returns false while the renderer does not
+      exist yet, and a sheet that loads in that window is given `generateMipmaps=false` +
+      LinearFilter FOREVER - it is never looked at again. A sheet that loads after the renderer is
+      ready gets mipmaps and anisotropy. So two heroes on the same screen could be filtered
+      differently depending on which one's art happened to arrive first, and a hero that loaded
+      early stayed soft at every zoom level.
+      Every texture is now remembered, and the moment the renderer is available they are all
+      re-qualified.
+   2. ANISOTROPY WAS CAPPED AT 8, then never actually applied because of (1). It now takes the
+      hardware maximum. Anisotropy is what keeps detail in a sprite drawn smaller than its native
+      size - exactly the zoomed-out case - without the shimmer you get from disabling mipmaps. */
+const _texReg=[];
 function _applyTexQual(tx){
   try{
+    if(_texReg.indexOf(tx)<0) _texReg.push(tx);
     if(_texCaps()){ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter; tx.anisotropy=_ANISO; }
     else { tx.generateMipmaps=false; tx.minFilter=TH.LinearFilter; }
     tx.magFilter=TH.LinearFilter;
+    tx.needsUpdate=true;
+  }catch(e){}
+}
+/* Called once the renderer exists: upgrade everything that loaded before it did. */
+let _texRequalDone=false;
+function requalifyTextures(){
+  if(_texRequalDone) return;
+  try{
+    if(typeof renderer==='undefined' || !renderer || !renderer.capabilities) return;
+    _MIPOK=null; if(!_texCaps()) return;          // recompute now that the caps are real
+    _texRequalDone=true;
+    for(const tx of _texReg){
+      try{ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter;
+           tx.magFilter=TH.LinearFilter; tx.anisotropy=_ANISO; tx.needsUpdate=true; }catch(e){}
+    }
+    try{ console.log('texture quality: re-applied to '+_texReg.length+' sheets at anisotropy '+_ANISO); }catch(e){}
   }catch(e){}
 }
 const _LOADQ={n:0,done:0,cbs:[]};
@@ -4180,7 +4213,7 @@ function buildFigure3D(u){
   scene.add(g); syncMesh(u,0);
 }
 const _texCache={};
-function spriteTex(key){ if(!_texCache[key]) _texCache[key]=new TH.TextureLoader().load(HERO_SPRITES[key]); return _texCache[key]; }
+function spriteTex(key){ if(!_texCache[key]){ _texCache[key]=new TH.TextureLoader().load(HERO_SPRITES[key], t=>{ try{ _applyTexQual(t); }catch(e){} }); try{ _applyTexQual(_texCache[key]); }catch(e){} } return _texCache[key]; }   /* v584: cutouts were loaded raw - no mipmaps, no anisotropy, ever */
 // soft radial ground-shadow texture (cached) — a fuzzy dark blob that grounds each billboard on the field
 let _shadowTex=null;
 function shadowTex(){ if(_shadowTex)return _shadowTex; const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
@@ -6460,7 +6493,7 @@ function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('p
    — and it got far worse the moment movement speed went up 10-35% per role in v575, which is why it
    started showing now. The bolt now re-reads its target's position every frame while that target is
    alive, so it always ends on the unit it was aimed at. */
-function updateProjFx(dt){ for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
+function updateProjFx(dt){ if(!_texRequalDone) requalifyTextures(); for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
   if(p.tu&&p.tu.alive){ p.tx=p.tu.x; p.ty=p.tu.y; }
   fx2SetFrame(p.spr,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
   p.spr.position.set(wx(p.sx+(p.tx-p.sx)*k),(p.h!=null?p.h:1.2)+(1.2-(p.h!=null?p.h:1.2))*k,wz(p.sy+(p.ty-p.sy)*k));
@@ -16131,7 +16164,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789241054665';
+const BUILD_ID = '1789241545666';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
