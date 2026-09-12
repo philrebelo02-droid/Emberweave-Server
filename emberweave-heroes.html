@@ -2385,17 +2385,45 @@ function allAssetUrls(){
   return [...out];
 }
 let _dlAbort=false;
-/* Downloads sequentially with a small concurrency window. Sequential-ish on purpose: a phone asked
-   for 900 files at once will have requests time out and the run reports failures that are really
-   just congestion. Individual failures never stop the run - it reports them at the end. */
+/* v576 (Phil, 12 Sep): "it should only allow me to download new content ... and if that 30mbs
+   replaced old art, it clears that old art". The download is now a DIFF against the cache, not a
+   blind re-run. ASSET_CACHE_NAME must stay in step with sw.js - it is the persistent art cache
+   that deliberately survives every deploy. */
+const ASSET_CACHE_NAME='ember-assets-v1';
+function _absUrl(u){ try{ return new URL(u, location.origin).href; }catch(e){ return u; } }
+/* What the device still needs, and what it is holding that nothing wants any more.
+   A bumped ?v= is a NEW key, so the art it replaced shows up here as stale and gets dropped - that
+   is what stops the cache growing forever. */
+async function assetCachePlan(){
+  const urls=allAssetUrls();
+  const want=new Set(urls.map(_absUrl));
+  let cache=null, have=[];
+  try{ cache=await caches.open(ASSET_CACHE_NAME); have=await cache.keys(); }catch(e){}
+  const haveSet=new Set(have.map(r=>r.url));
+  return { cache, urls,
+           missing: urls.filter(u=>!haveSet.has(_absUrl(u))),
+           stale:   have.filter(r=>!want.has(r.url)),
+           cached:  urls.length - urls.filter(u=>!haveSet.has(_absUrl(u))).length };
+}
+/* Downloads with a small concurrency window. Sequential-ish on purpose: a phone asked for 900 files
+   at once will have requests time out and the run reports failures that are really just congestion.
+   Individual failures never stop the run - it reports them at the end. */
 async function downloadAllAssets(onProgress){
   _dlAbort=false;
-  const urls=allAssetUrls();
+  const plan=await assetCachePlan();
+  let dropped=0, freed=0;
+  if(plan.cache){
+    for(const req of plan.stale){
+      try{ const hit=await plan.cache.match(req); if(hit){ const b=await hit.blob(); freed+=b.size; }
+           await plan.cache.delete(req); dropped++; }catch(e){}
+    }
+  }
+  const urls=plan.missing;
   let done=0, bytes=0, failed=0;
   const CONC=4;
   const one=async(u)=>{
     if(_dlAbort) return;
-    try{ const r=await fetch(u,{cache:'force-cache'});
+    try{ const r=await fetch(u);                       // through the SW, which stores it
       if(r&&r.ok){ const b=await r.blob(); bytes+=b.size; } else failed++;
     }catch(e){ failed++; }
     done++; if(onProgress) onProgress(done, urls.length, bytes, failed);
@@ -2403,7 +2431,8 @@ async function downloadAllAssets(onProgress){
   const q=urls.slice();
   const workers=Array.from({length:CONC},async()=>{ while(q.length && !_dlAbort) await one(q.shift()); });
   await Promise.all(workers);
-  return {total:urls.length, done, bytes, failed, aborted:_dlAbort};
+  return {total:urls.length, done, bytes, failed, aborted:_dlAbort,
+          dropped, freed, alreadyHad:plan.cached, library:plan.urls.length};
 }
 async function clearAssetCache(){
   let n=0;
@@ -14728,19 +14757,35 @@ function renderSettings(){
 let _alRunning=false;
 function runAssetDownload(report, bar){
   if(_alRunning){ _dlAbort=true; report('Stopping\u2026'); return; }
-  const total0=allAssetUrls().length;
-  if(!confirm('Download all game art to this device?\n\n'+total0+' files, roughly 740 MB.\nUse Wi-Fi if you can - this is a large download.\n\nIt only has to be done once.')) return;
-  _alRunning=true; if(bar) bar.wrap(true);
-  report('Starting\u2026 0 / '+total0);
-  downloadAllAssets((done,total,bytes,failed)=>{
-    if(bar) bar.set(done/total);
-    report('Downloading\u2026 '+done+' / '+total+'  ('+fmtMB(bytes)+(failed?(' \u00b7 '+failed+' failed'):'')+')');
-  }).then(r=>{
-    _alRunning=false;
-    if(r.aborted) report('Stopped. '+r.done+' of '+r.total+' files saved ('+fmtMB(r.bytes)+').');
-    else if(r.failed) report('Done with problems: '+(r.done-r.failed)+' of '+r.total+' saved ('+fmtMB(r.bytes)+'). '+r.failed+' failed - your device may have run out of storage. Run it again to retry those.');
-    else report('\u2705 All '+r.total+' files saved ('+fmtMB(r.bytes)+'). Battles will load instantly on this device.');
-  }, ()=>{ _alRunning=false; report('Download failed.'); });
+  /* v576: ask the cache what is actually missing BEFORE prompting. A player who is up to date is
+     told so and charged nothing; a player who needs 30 MB is asked about 30 MB, not 740. */
+  report('Checking what this device already has\u2026');
+  assetCachePlan().then(plan=>{
+    const n=plan.missing.length, drop=plan.stale.length;
+    if(!n && !drop){ report('\u2705 Up to date \u2014 all '+plan.urls.length+' files are already on this device.'); return; }
+    if(!n && drop){
+      if(!confirm('Nothing new to download.\n\n'+drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared. Clear them?')) { report('Up to date.'); return; }
+    } else {
+      const share=plan.urls.length?Math.round(n*100/plan.urls.length):100;
+      if(!confirm('Download new art to this device?\n\n'+n+' new file'+(n===1?'':'s')+' of '+plan.urls.length+' ('+share+'%).'
+                  +(plan.cached?('\n'+plan.cached+' are already saved and will be skipped.'):'')
+                  +(drop?('\n'+drop+' replaced file'+(drop===1?'':'s')+' will be cleared.'):'')
+                  +'\n\nUse Wi-Fi if this is a large update.')) return;
+    }
+    _alRunning=true; if(bar) bar.wrap(true);
+    report(n?('Starting\u2026 0 / '+n):'Clearing replaced art\u2026');
+    downloadAllAssets((done,total,bytes,failed)=>{
+      if(bar) bar.set(total?done/total:1);
+      report('Downloading\u2026 '+done+' / '+total+'  ('+fmtMB(bytes)+(failed?(' \u00b7 '+failed+' failed'):'')+')');
+    }).then(r=>{
+      _alRunning=false;
+      const cleared=r.dropped?(' Cleared '+r.dropped+' replaced file'+(r.dropped===1?'':'s')+' ('+fmtMB(r.freed)+').'):'';
+      if(r.aborted) report('Stopped. '+r.done+' of '+r.total+' new files saved ('+fmtMB(r.bytes)+').'+cleared);
+      else if(r.failed) report('Done with problems: '+(r.done-r.failed)+' of '+r.total+' saved ('+fmtMB(r.bytes)+'). '+r.failed+' failed - your device may have run out of storage. Run it again to retry those.'+cleared);
+      else if(!r.total) report('\u2705 Up to date.'+cleared);
+      else report('\u2705 '+r.total+' new file'+(r.total===1?'':'s')+' saved ('+fmtMB(r.bytes)+').'+cleared+' Battles will load instantly on this device.');
+    }, ()=>{ _alRunning=false; report('Download failed.'); });
+  }, ()=>report('Could not read this device\u2019s cache.'));
 }
 function runAssetClear(report){
   if(!confirm('Clear all downloaded art from this device?\n\nThe game will re-download art as you play. Nothing in your account or progress is touched.')) return;
@@ -15888,7 +15933,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789235104950';
+const BUILD_ID = '1789237823412';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

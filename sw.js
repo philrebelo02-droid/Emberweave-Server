@@ -13,7 +13,7 @@
    cache instantly and revalidated in the background, so a genuinely changed file is picked up on
    the next open instead of never — and a ?v= bumped URL is a new key anyway, so it is fetched
    immediately. */
-const BUILD  = '1789235104950';
+const BUILD  = '1789237823412';
 const SHELL_CACHE = 'ember-shell-' + BUILD;   // versioned: wiped on every deploy
 const ASSET_CACHE = 'ember-assets-v1';        // persistent: survives deploys
 const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-512-maskable.png', '/apple-touch-icon.png'];
@@ -45,8 +45,15 @@ self.addEventListener('fetch', (e) => {
   // trip at all (this is what stops sprite sheets popping in on a slow phone); the refresh happens
   // afterwards and lands for the next open.
   if (isOwnAsset) {
+    // v576 (Phil: "it should only allow me to download new content"). A ?v= URL is IMMUTABLE by
+    // protocol - SHIPPING RULE 2.5 forbids reusing a version number, so a bumped asset is a new
+    // key, never new bytes under an old one. Revalidating one in the background re-downloaded the
+    // whole library as the player played. A versioned hit is now served and left alone; only an
+    // UNversioned asset still gets the stale-while-revalidate treatment.
+    const versioned = url.searchParams.has('v');
     e.respondWith(
       caches.open(ASSET_CACHE).then(c => c.match(req).then(hit => {
+        if (hit && versioned) return hit;                                          // immutable: done
         const net = fetch(req).then(res => {
           if (res && res.ok) c.put(req, res.clone()).catch(()=>{});
           return res;

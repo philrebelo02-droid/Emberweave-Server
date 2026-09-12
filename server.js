@@ -530,15 +530,35 @@ function glyphCompile(){
   // — it is wired into player balances, the portal targets, the grant route and the tests — but its
   // DISPLAY NAME now climbs with its tier, taken from the glyph that tier's family builds:
   // 'Grey Stoneheart' reads as 'Pebbleheart Fragment', 'Gold +4 Ironwall' as 'Starforged Wall Fragment'.
-  const fragName={};
-  for(const d of raw){ fragName[d.quality+' '+d.family]=d.name.replace(/ (Glyph|Core|Crown)$/,'')+' Fragment'; }
-  GLYPHS={ raw, byId, byName, subs, fragName, version:1 };
+  // 12 Sep 2026 (Phil: "the end glyph is not the same as the fragment or the sub, because often end
+  // glyphs are made of multiple glyph sub components, so it cannot share the same name"). A fragment
+  // is named for the raw MATERIAL its family drops at that tier, and its sub-glyph shares that base
+  // - so 'Rough Gravel Fragment' and 'Rough Gravel Core' build a 'Stone Glyph', and a recipe that
+  // mixes four families never reads as though the glyph were one of them.
+  // `material` is authored in glyph-source.json; the old glyph-derived name stays as the fallback.
+  const fragName={}, subName={};
+  for(const d of raw){
+    const base = d.material || d.name.replace(/ (Glyph|Core|Crown)$/,'');
+    fragName[d.quality+' '+d.family] = base+' Fragment';
+    subName[d.quality+' '+d.family]  = base+' Core';
+  }
+  GLYPHS={ raw, byId, byName, subs, fragName, subName, version:1 };
   console.log('🔮 Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }
 glyphCompile();
 // One name for a fragment key, everywhere it is shown to a player. Falls back to the key itself so
 // a key with no matching definition still renders something sane.
 function glyphFragName(key){ return (GLYPHS&&GLYPHS.fragName&&GLYPHS.fragName[key])||(key+' Fragment'); }
+/* '<Quality> <Family> Sub-Glyph', with an optional Rare/Superior/Mythic grade, shown as the
+   material's Core: 'Rough Gravel Core'. The grade is kept in front where there is one. */
+function glyphSubName(key){
+  try{ const m=/^(?:(Rare|Superior|Mythic)\s+)?(.+?)\s+(\w+)\s+Sub-Glyph$/.exec(key);
+    if(!m) return key;
+    const grade=m[1]?m[1]+' ':'', q=m[2]==='Worldfire'?'Orange':m[2];
+    const base=GLYPHS&&GLYPHS.subName&&GLYPHS.subName[q+' '+m[3]];
+    return base?(grade+base):key;
+  }catch(e){ return key; }
+}
 // A definition whose expanded lineage needs a fragment key no tier can drop is unforgeable —
 // glyphPreChoice silently filters it out and its drops become dead loot. Surface it at boot.
 try{ if(GLYPHS){ const dead=GLYPHS.raw.filter(d=>!glyphSupplyOK(d)); if(dead.length) console.error('✖ unfarmable glyph definitions: '+dead.map(d=>d.id+' '+d.name).join(', ')); } }catch(e){}
@@ -611,7 +631,7 @@ function glyphTreeChildren(g, def, ctx){ const kids=[];
   for(const ing of def.ing){
     if(ing.kind==='frag'){ ctx.nodes++; kids.push(glyphTreeLeaf(g, ing.key, ing.qty)); }
     else if(ing.kind==='sub'){ const sd=GLYPHS.subs[ing.key]; ctx.nodes++;
-      kids.push({ kind:'subGlyph', key:ing.key, qty:ing.qty, virtual:true,
+      kids.push({ kind:'subGlyph', key:ing.key, displayName:glyphSubName(ing.key), qty:ing.qty, virtual:true,
         children: sd?sd.ing.map(si=>{ ctx.nodes++; return glyphTreeLeaf(g, si.key, si.qty*ing.qty); }):[] }); }
     else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId]; if(!fd) continue;
       if(ctx.depth<GLYPH_TREE_MAX_DEPTH && ctx.nodes<GLYPH_TREE_MAX_NODES)
