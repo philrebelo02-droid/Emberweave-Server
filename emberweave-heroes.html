@@ -1361,7 +1361,7 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/lysara/lysara_passive.webp?v=21',n:48,fw:536,fh:517,cols:6,rows:8,figH:500,feet:506,cx:234,fps:24,flip:true,top:6,ax:[0,-6,-2,4,4,3,10,23,38,34,35,33,31,33,31,31,31,31,32,29,31,33,31,19,24,10,10,1,-1,-6,-7,-6,-6,0,3,3,11,24,24,36,35,34,31,33,32,31,31,31]}
   },
   nerisse:{
-    idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=30',n:48,fw:462,fh:576,cols:6,rows:8,figH:444,feet:515,cx:257,fps:24,flip:true,top:71},
+    idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=31',n:48,fw:462,fh:576,cols:6,rows:8,figH:444,feet:515,cx:256,fps:24,flip:true,top:72},
     walk:{u:'/assets/anim/nerisse/nerisse_walk.webp?v=22',n:48,fw:412,fh:577,cols:6,rows:8,figH:446,feet:511,cx:197,fps:24,flip:true,top:65},
     attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=21',n:48,fw:545,fh:517,cols:6,rows:8,figH:500,feet:511,cx:177,fps:24,flip:true,top:11,ax:[0,0,3,9,17,25,25,26,26,23,20,16,16,16,16,17,17,19,19,18,15,0,0,0,0,0,0,0,0,0,0,0,0,26,38,44,48,50,49,36,26,0,0,0,0,0,0,0]},
     hit:{u:'/assets/anim/nerisse/nerisse_hit.webp?v=21',n:48,fw:316,fh:523,cols:6,rows:8,figH:500,feet:505,cx:155,fps:24,flip:true,top:5,ax:[0,34,31,28,28,28,28,28,28,28,28,28,26,17,7,-4,14,41,64,72,65,51,40,27,19,15,15,17,23,27,33,34,34,33,34,33,31,30,31,30,29,28,28,27,27,27,27,27]},
@@ -16193,7 +16193,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789324081137';
+const BUILD_ID = '1789329560043';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
