@@ -187,13 +187,10 @@ const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
 const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
   'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
   'techLearn','skillLevel','dust','starShards','eqMats','mats',
-  /* 28 Aug — 'prayer' and 'arenaCoins' were REMOVED from this list. Deleting a field only makes
-     sense when the ledger holds the real value. The server has no led.arenaCoins at all, and never
-     writes led.prayer after the one-time import, so stripping them from the save destroyed progress
-     the player had legitimately paid for and handed back nothing. They stay in the save (still
-     clamped by ECON_CAP) until they are properly server-owned. 'guildCoins' DOES live on the ledger
-     and is now read back by the client, so it stays stripped. */
-  'guildCoins',
+  /* Prayer became ledger-owned with /api/temple/pray: legacy progress imports once, every purchase
+     is atomic on the server, ledgerView hands it back, and both combat models read led.prayer.
+     arenaCoins still has no ledger owner and therefore remains in the client save. */
+  'prayer','guildCoins',
   /* v274 (hardening directive §2.4): gear and equipment too. The Forge (u.gear) is server-owned and
      the legacy equip bundle no longer reaches combat, so there is no reason to keep either in a blob
      the client writes. */
@@ -911,6 +908,7 @@ function snapshotHeroFromServer(u, key, save){
     energy:(fl.energy|0)+((gf&&gf.energy)|0), startEnergy:(fl.startEnergy|0)+((gf&&gf.startEnergy)|0),
     regen:(fl.regenRating|0)+((gf&&gf.regenRating)|0),
     lifesteal:(fl.lifesteal|0)+((gf&&gf.lifesteal)|0), atkSpd:(fl.atkSpd|0)+((gf&&gf.atkSpd)|0), haste:(fl.haste|0)+((gf&&gf.haste)|0),
+    moveSpd:((gf&&gf.moveSpd)|0), range:((gf&&gf.range)|0),
     eva:(fl.eva|0)+((gf&&gf.eva)|0), acc:(fl.acc|0)+((gf&&gf.acc)|0), block:(fl.block|0)+((gf&&gf.block)|0),
     dmgBonus:(fl.dmgBonus|0)+((gf&&gf.dmgBonus)|0), dmgRed:(fl.dmgRed|0)+((gf&&gf.dmgRed)|0), shieldStr:(fl.shieldStr|0)+((gf&&gf.shieldStr)|0),
     ctrlHit:(fl.ctrlHit|0)+((gf&&gf.ctrlHit)|0), ctrlRes:(fl.ctrlRes|0)+((gf&&gf.ctrlRes)|0), healPow:(fl.healPow|0)+((gf&&gf.healPow)|0)
@@ -922,8 +920,9 @@ function snapshotHeroFromServer(u, key, save){
   // v249: Academy research is SERVER-owned and reaches combat here (flats, ratings, fractions, AP multiplier)
   const AC=acadCombat(u);
   if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
+  const prayerMul=1+Math.max(0,Math.min(200,u.led.prayer|0))*0.02;
   return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill,
-    extra:AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:null});
+    extra:Object.assign({prayerMul},AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{})});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -1756,6 +1755,8 @@ const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
 const SKILL_MAX_SRV=100, SKILL_COST_R_SRV=1.04;  /* 12 Sep 2026 - must match the client's SKILL_MAX / SKILL_COST_R exactly. */
 const SKILL_UP_BASE_SRV=[300,220,260,400];   // mirrors the client's SKILL_UP_BASE (ult / green / blue / passive)
+const PRAYER_UNLOCK_LEVEL_SRV=40, PRAYER_MAX_SRV=200;
+function prayerCostSrv(lvl){ return 50000+Math.max(0,lvl|0)*30000; }
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
   if(!Array.isArray(a)||a.length!==4){ led.skill[key]=[1,1,1,1]; }
   return led.skill[key]; }
@@ -1810,23 +1811,29 @@ function campaignHeroSpec(u,key){
     energy:pick('energy'), regen:((fl.regenRating|0)+((gf&&gf.regenRating|0)||0)),
     startEnergy:pick('startEnergy'), ctrlRes:pick('ctrlRes'), ctrlHit:pick('ctrlHit'),
     healPow:pick('healPow'), lifesteal:pick('lifesteal'), atkSpd:pick('atkSpd'), haste:pick('haste'),
+    moveSpd:pick('moveSpd'), range:pick('range'),
     eva:pick('eva'), acc:pick('acc'), block:pick('block'),
     dmgBonus:pick('dmgBonus'), dmgRed:pick('dmgRed'), shieldStr:pick('shieldStr') };
   const AC=acadCombat(u);
   const board=(u.glyphs&&u.glyphs.boards&&u.glyphs.boards[key])||null;
+  let gearSkill=null;
+  if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key], it=aid&&u.gear.items[aid], d=it&&GEARCAT.byId[it.d];
+    if(d&&d.active&&Object.values((u.gear.equipped||{})[key]||{}).includes(aid)) gearSkill={
+      name:d.active, slot:d.slot, defId:d.id, type:d.activeType||null,
+      params:d.activeParams||null, desc:d.effect||'' }; }
   return {
     key, level:ledHeroLevel(led,key),
     stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:Math.max(0,Math.min(15,h.ref|0)),
     glyphRank:Math.max(0,Math.min(16,(board&&board.ascensionIndex)|0)),
     tt,
-    /* Academy research is server-owned and reaches combat here. Temple prayer and the legacy client
-       equip bundle are NOT server-owned, so they contribute nothing — a browser cannot grant power. */
+    /* Academy research and Temple prayer are server-owned and reach the frozen fight spec.
+       The legacy client equip bundle contributes nothing — a browser cannot grant power. */
     ex:{ techDef:AC?AC.dmgRedFrac*100:0, techCrit:AC?AC.critFrac*100:0, techCritRes:AC?AC.critResFrac*100:0,
-         prayerPct:0, equip:{} },
+         prayerPct:Math.max(0,Math.min(PRAYER_MAX_SRV,led.prayer|0))*2, equip:{} },
     fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow,
     techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0,
     apMul:AC?AC.apMul:1,
-    skillLv:ledSkillArr(led,key).slice()
+    skillLv:ledSkillArr(led,key).slice(), gearSkill
   };
 }
 /* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
@@ -1855,7 +1862,7 @@ function ledStamRegen(led){ const now=Date.now(); const mx=ledStamMax(led);
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
   return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
-    skill:led.skill||{},
+    skill:led.skill||{}, prayer:Math.max(0,Math.min(200,led.prayer|0)),
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
@@ -2093,7 +2100,7 @@ function gearHeroFlats(u,heroKey){
   // v255 (80/20 contract §5): gear stats are TYPED like glyphs — a caster item's damage stat is
   // Ability Power (its own line), Haste is not Energy Regen, and every key reaches the combat core.
   const out={hp:0,atk:0,apow:0,heal:0,armor:0,mr:0,armorPen:0,magicPen:0,crit:0,critDmg:0,critRes:0,
-    energy:0,regenRating:0,haste:0,atkSpd:0,lifesteal:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,
+    energy:0,regenRating:0,haste:0,atkSpd:0,moveSpd:0,range:0,lifesteal:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,
     shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
   const eq=g.equipped[heroKey]; if(!eq) return out;
   const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
@@ -3392,6 +3399,21 @@ async function api(req,res,url){
     return send(res, out&&out.ok?200:400, out); }
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     const v=ledgerView(me); writeDB(); return send(res,200,v); }
+  if(p==='/api/temple/pray' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':prayer:'+reqId,()=>{
+      const led=ensureLedger(me); ledSkillImport(me);
+      if(ledPlayerLevel(led)<PRAYER_UNLOCK_LEVEL_SRV) return {ok:false,error:'Prayer is still locked.'};
+      const level=Math.max(0,Math.min(PRAYER_MAX_SRV,led.prayer|0));
+      if(level>=PRAYER_MAX_SRV) return {ok:false,error:'Prayer is at maximum level.'};
+      const cost=prayerCostSrv(level);
+      if(led.gold<cost) return {ok:false,error:'Not enough gold.'};
+      led.gold-=cost; led.prayer=level+1; led.rev++;
+      const tx=ledTx(me,'temple:prayer',{gold:-cost,prayer:1});
+      writeDB();
+      return {ok:true,level:led.prayer,cost,tx,ledger:ledgerView(me)};
+    });
+    return send(res,out&&out.ok?200:400,out); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':spend:'+reqId,()=>{
