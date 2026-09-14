@@ -13424,7 +13424,7 @@ async function g2buildAll(){ if(RUNE2.busy) return; RUNE2.busy=true;
   const n=(r.built||[]).length;
   RUNE2.build=null; g2RenderOverlays();
   bannerMsg(n?('🔮 Built '+n+' glyph'+(n>1?'s':'')+' into the board!'):'Not enough materials for any slot yet.');
-  await glyphV2Sync(); renderHeroDetail(); }
+  await glyphV2Sync(); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
 /* ---- Glyph Ancestry helpers (allocation is TEMPORARY UI state — it never touches inventory) ---- */
 function g2NodeAt(path){ let n=RUNE2.build.data.root; if(path==='r') return n;
   for(const i of path.slice(2).split('.')) n=n.children[+i]; return n; }
@@ -13786,7 +13786,7 @@ function renderHeroDetail(){
            <div style="font-size:10px;color:#6f7d90;margin-top:7px">Collect ${smNeed} ${escapeHTML(t.name)} fragments to summon at ${heroStartStars(key)}★.${myth?' Mythical — also a rare 1% Diamond wish.':''}</div>`}
     </div>` : '';
   body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
-  { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=()=>{ if(doSummon(key)){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); } }; }
+  { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=()=>{ if(doSummon(key)){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
   // clicking an equipment slot on the left jumps to the Equipment tab focused on that slot
   body.querySelectorAll('.eq-pick').forEach(el=>el.onclick=()=>{ eqSlotSel=+el.dataset.eqp; renderHeroDetail(); });
@@ -14250,14 +14250,14 @@ const TUTORIAL_STEPS=[
   {id:'win11', icon:'⚔️', title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
   {id:'quest11', icon:'📜', title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=1)},
   {id:'skill', icon:'✨', title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
-  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', go:()=>show('campaign'), reward:{frag:3}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
   {id:'quest12', icon:'📜', title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=2)},
   {id:'rune',  icon:'💠', title:'Build your first glyph', desc:'Open Heroes → choose a hero → Glyphs. Tap an empty slot and build the matching glyph. Glyph fragments come from named Campaign stages, which you can replay to farm.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
   {id:'win13', icon:'🛡️', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
   {id:'quest13', icon:'📜', title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
   {id:'wish',  icon:'⛲', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Wishes can award heroes, hero fragments, and named glyph fragments.', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
   {id:'win14', icon:'🗺️', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
-  {id:'quest14', icon:'🦸', title:'Recruit your fourth hero', desc:'Open Quests and claim the Stage 1-4 reward. The four starter quest rewards total enough Vex fragments to recruit your fourth hero.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=4)},
+  {id:'quest14', icon:'🦸', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
   {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
   {id:'gemwish', icon:'💎', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2★ hero and gives you your fifth hero.', go:()=>show('wishing'), reward:{gems:40}, done:()=>!!G.wishGemFirstDone},
 ];
@@ -16270,7 +16270,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789393762694';
+const BUILD_ID = '1789395066199';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
