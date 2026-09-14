@@ -1917,7 +1917,7 @@ const EARN_RULES={
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
-  win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{frag:3}, quest12:{}, rune:{gems:30},
+  win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{}, quest12:{}, rune:{gems:30},
   win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{}, win15:{}, gemwish:{gems:40},
   signin:{stam:60}, name:{gems:20} });
 
