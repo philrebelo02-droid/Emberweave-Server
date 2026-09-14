@@ -14765,7 +14765,7 @@ function renderSettings(){
       <div class="dvp-sec">Currency</div>
       <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 each shard')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
       <div class="dvp-sec">Progression</div>
-      <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('campstage','\ud83d\uddfa','Campaign +5 stages')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
+      <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('stam30','\u29d7','+30 stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('campstage','\ud83d\uddfa','Campaign +5 stages')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
       <div class="dvp-sec">Diagnostics</div>
       <div class="dvp-grid">${act('perf','\ud83d\udcc9','Performance HUD on/off')}</div>
       <div class="dvp-sec">Roster</div>
@@ -15128,6 +15128,8 @@ function devAction(a,b){
      never got migrated with them. It does now, so a dev cheat is real progress or an honest error. */
   else if(a==='stam'){ done('Refilling stamina…');
     api('/api/admin/led-grant','POST',{stamina:999}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Stamina refilled'); } else done('✖ server refused — not applied'); }); return; }
+  else if(a==='stam30'){ done('Granting +30 stamina…');
+    api('/api/admin/led-grant','POST',{stamina:30}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('+30 stamina'); } else done('✖ server refused — not applied'); }); return; }
   else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); const need=Math.max(0,(TROOP_CUM[nl]||0)-(G.playerXP||0));
     done('Levelling…');
     api('/api/admin/led-grant','POST',{px:need}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('Now player level '+playerLevel()); } else done('✖ server refused — not applied'); }); return; }
@@ -16268,7 +16270,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789393250884';
+const BUILD_ID = '1789393762694';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
