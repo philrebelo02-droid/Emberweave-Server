@@ -30,7 +30,7 @@ ck('every Veteran fragment is Orange', veteranStages.every(s=>s.rewards.glyphFra
 // the catalog is fully covered, and nothing is farmed twice
 const raw=Object.values(require('../server/glyph-source.json'));
 const catalog=new Set();
-for(const d of raw){ const m=/(\w+)\s+(Glyph|Core|Crown)$/.exec(d.name); if(m) catalog.add(slug(d.quality+' '+m[1])); }
+for(const d of raw){ if(d.family) catalog.add(slug(d.quality+' '+d.family)); }
 const all=[...normalFragmentIds,...eliteFragmentIds,...vetIds];
 ck('the catalog defines 218 raw fragment families', catalog.size===218, String(catalog.size));
 ck('allGlyphFragmentIds.size === 218', uniq(all).size===218, String(uniq(all).size));

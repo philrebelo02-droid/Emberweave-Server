@@ -75,6 +75,8 @@ node tests/test_war_bracket.js || FAILED=1
 node tests/test_campaign_curve.js || FAILED=1
 node tests/test_farm_map.js || FAILED=1
 node tests/test_flags_default.js || FAILED=1
+node tests/test_power_sources.js || FAILED=1
+node tests/test_prayer_authority.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

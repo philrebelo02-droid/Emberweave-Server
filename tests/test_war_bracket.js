@@ -1,6 +1,6 @@
 // Top-16 qualification: 17 registered guilds -> exactly 16 kept, the weakest 17th excluded,
 // seeds 1..16 by power. Runs against server internals (listener neutered).
-const load=require('./_probe_loader.js');
+const load=require('../scripts/_probe_loader.js');
 const S=load('./probe-db-wb.json');
 let pass=0,fail=0; const ck=(n,c)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n)); };
 const t=S.getTournament();

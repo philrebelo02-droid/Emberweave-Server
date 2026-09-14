@@ -1,6 +1,6 @@
 // GLYPH FLOW probes (Correction Spec v1): one-time migration preserves value; deterministic
 // named drop tables; insufficiency is atomic (nothing consumed on failure). No server needed.
-const load=require('./_probe_loader.js');
+const load=require('../scripts/_probe_loader.js');
 let P=0,F=0; const ck=(n,c)=>{ if(c){P++;console.log('  ✓ '+n);} else {F++;console.log('  ✗ '+n);} };
 const S=load('./probe-db-glyphflow.json');
 

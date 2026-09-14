@@ -37,7 +37,7 @@ ck('Helm gear skill absorbs damage ('+defRounds({gearSkillSlot:'Helm'})+' > '+de
 const fz=S.heroCombatStats('fritz',{level:10,stars:2,pips:0});
 ck('fritz base armor/MR reaches dr via defToDR ('+fz.dr.toFixed(3)+')', fz.dr>0.05 && fz.dr<0.5);
 const va=S.heroCombatStats('vael',{level:10,stars:1,pips:0});
-ck('heroes without base armor have dr 0', va.dr===0);
+ck('role base defenses and per-level defense growth reach every hero', va.dr>0);
 // ==== v242 COMBAT CORE — the audit's acceptance tests (typed damage, separate pens) ====
 const C=S.CORE, rr=C.mulberry32(7), lg=[];
 const T=o=>Object.assign({key:'t',role:'Bruiser',healer:false,maxHp:1e6,hp:1e6,energy:0,atkP:0,atkM:0,heal:0,speed:1,
@@ -50,7 +50,8 @@ const syl0=S.heroCombatStats('sylthaine',{level:10});
 ck('1a Mage + AP raises the ability line ('+syl0.atkM+' -> '+sylA.atkM+')', sylA.atkM===syl0.atkM+400);
 const vaA=S.heroCombatStats('vael',{level:10,ratings:{apowFlat:400}});
 const va0b=S.heroCombatStats('vael',{level:10});
-ck('1b Bruiser gains NOTHING from AP ('+va0b.atk+' == '+vaA.atk+')', vaA.atk===va0b.atk && vaA.atkM===0);
+ck('1b Bruiser AP growth creates its small magic line, and AP flats stay off the physical line',
+  vaA.atkP===va0b.atkP && vaA.atkM===va0b.atkM+400);
 ck('1c Bruiser + Physical Attack raises his line', S.heroCombatStats('vael',{level:10,ratings:{atkFlat:400}}).atkP===va0b.atkP+400);
 // 2. Magic Penetration beats high MR — and does nothing against Armor
 const vsMR=hitK({},{mr:1200},'magic');
@@ -132,8 +133,8 @@ const C2=S.CORE;
   const glyphed=S.heroCombatStats('vael',{level:25,ratings:board});
   ck('8a a glyph board raises HP by exactly its flat', glyphed.maxHp===bare.maxHp+1200);
   ck('8b a glyph board raises the PHYSICAL line on a physical hero', glyphed.atkP===bare.atkP+60);
-  ck('8c Ability Power glyphs never invent a magic line on a physical hero',
-     S.heroCombatStats('vael',{level:25,ratings:{apowFlat:400}}).atkM===0);
+  ck('8c Ability Power glyphs raise only the magic line created by role growth',
+     S.heroCombatStats('vael',{level:25,ratings:{apowFlat:400}}).atkM===bare.atkM+400);
   ck('8d armour and magic resist arrive as RATINGS, converted by the same curve',
      glyphed.armor>bare.armor && glyphed.mr>bare.mr);
   ck('8e penetration glyphs arrive typed and separate', glyphed.armorPen>0 && glyphed.magicPen>0 && glyphed.armorPen===glyphed.magicPen);

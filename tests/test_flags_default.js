@@ -30,7 +30,7 @@ const done=code=>{ try{srv.kill();}catch(e){} process.exit(code); };
   const gear=await req('GET','/api/gear/state',null,reg.token);
   ck('a normal player reaches the Forge', gear.enabled===true, JSON.stringify(gear).slice(0,120));
   const vault=await req("GET","/api/dungeon/status",null,reg.token);
-  ck('a normal player reaches the Vault', vault.enabled!==false && !vault.error, JSON.stringify(vault).slice(0,120));
+  ck('a normal player reaches the Vault endpoint and sees the level-10 lock', vault.locked===true && vault.unlockLevel===10 && !vault.error, JSON.stringify(vault).slice(0,120));
   console.log(''); console.log('PASS: '+PASS+'  FAIL: '+FAIL);
   done(FAIL?1:0);
 })().catch(e=>{ console.error(e); done(1); });
