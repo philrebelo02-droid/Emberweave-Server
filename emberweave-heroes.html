@@ -11501,6 +11501,7 @@ function clearServerCaches(){
   try{ if(typeof POOLSRV!=='undefined'){ POOLSRV=null; } }catch(e){}
   try{ if(typeof INTEG!=='undefined'){ INTEG.reports=[]; INTEG.open=null; INTEG.audit=null; } }catch(e){}
   try{ if(typeof LED!=='undefined'){ LED.st=null; } }catch(e){}
+  try{ _questStateReady=false; _questStateAt=0; _questStatePending=null; }catch(e){}
   try{ ACAD_SYNCED=false; _acadSyncing=false; }catch(e){}   // v327: academy levels are per-account too — force a refetch on any account transition
   try{ if(typeof ARENA!=='undefined'){ ARENA.oppsRank=null; } }catch(e){}
   try{ _worldCitiesCache=null; }catch(e){}
@@ -14172,6 +14173,28 @@ function questDefs(){
       claim:()=>{ G.gems=(G.gems||0)+20; return '+💎 20 diamonds'; } },
   ];
 }
+/* 14 Sep — quest claims are server-owned, but the client previously never read /api/quest/state.
+   After any reload the cloud blob could therefore paint already-paid quests as claimable again
+   until the player tapped them and the server refused "Already claimed."  Pull the authoritative
+   claimed map and chain step before rendering the quest list. */
+let _questStateReady=false, _questStateAt=0, _questStatePending=null;
+function questStateSync(force){
+  if(!ACC.token) return Promise.resolve(null);
+  if(_questStatePending) return _questStatePending;
+  if(!force && _questStateReady && Date.now()-_questStateAt<30000) return Promise.resolve(true);
+  _questStatePending=api('/api/quest/state').then(function(sr){
+    if(sr && !sr.error){
+      const claimed={}; Object.keys(sr.claimed||{}).forEach(function(id){ claimed[id]=true; });
+      G.questClaimed=claimed;
+      G.questChainStep=Math.max(0,sr.chainStep|0);
+      _questStateReady=true; _questStateAt=Date.now(); saveGLocalOnly();
+      updateMailBadges();
+      return sr;
+    }
+    _questStateReady=true; return null;          // transient failure: keep the last local view usable
+  }).catch(function(){ _questStateReady=true; return null; }).then(function(sr){ _questStatePending=null; return sr; });
+  return _questStatePending;
+}
 function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
   if(ACC.token){ api('/api/quest/claim','POST',{id:q.id,requestId:uid8()}).then(sr=>{   // v250: the SERVER validates + pays quests
       if(sr&&sr.ok){ const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
@@ -14200,6 +14223,11 @@ async function claimChain(){ if(!questChainReady()) return; const steps=questCha
   bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); }
 function questsAvailable(){ let n=0; if(questChainReady())n++; questDefs().forEach(q=>{ if(q.ready&&!G.questClaimed[q.id])n++; }); if(typeof dailyPacksReady==='function'&&dailyPacksReady())n++; return n; }
 function renderQuests(){ const b=document.getElementById('questBody'); if(!b)return;
+  if(ACC.token && !_questStateReady){
+    b.innerHTML='<div style="text-align:center;color:#8b98a9;padding:30px 12px">Syncing quest progress…</div>';
+    questStateSync(true).then(function(){ if(document.getElementById('questBody')===b) renderQuests(); });
+    return;
+  }
   const today=arenaDayKey();
   consolidateDailyPacks();   // one stacked entry per pack type; claimable once per day
   // 1) purchased packs (Cluster / Burger) — pinned to the very top; recurring, never removed until they expire
@@ -16324,7 +16352,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789398268127';
+const BUILD_ID = '1789399349883';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -16606,7 +16634,8 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   if(!ACC.token && online()){ ensureGuest(); }   // no session → provision a persistent level-1 guest account
   if(ACC.token && online()){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
       const adopted=(_cloudReady=true,applyCloudSave(d.profile,true)); _cloudReady=true;   // CLOUD IS THE TRUTH (Phil 26 Aug): adopt the cloud save FIRST, only then may this session push
-      if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); } }   // no cloud blob yet (fresh account) → seed it
+      if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); }
+      try{ questStateSync(true).then(function(){ updateMailBadges(); if(state==='quest') renderQuests(); }); }catch(e){} }   // server-owned quest claims must be adopted before badges or claim buttons are trusted
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
     /* else: offline / transient error → stay signed in with local progress */ }).catch(()=>{}); }
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;
