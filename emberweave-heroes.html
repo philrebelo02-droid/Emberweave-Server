@@ -3177,8 +3177,8 @@ const GLYPH_TIER_POWER=(function(){ const v=[]; let s=0; for(let i=0;i<GMAX_RANK
 function glyphTierPower(rank,filled){ let p=0; for(let i=0;i<Math.min(GMAX_RANK,rank);i++) p+=GLYPH_TIER_POWER[i]; if(rank<GMAX_RANK&&filled>0) p+=GLYPH_TIER_POWER[rank]*Math.min(6,filled)/6; return Math.round(p); }
 function glyphPowerFor(key){ const r=glyphRank(key); let filled=0; try{ const b=RUNE2&&RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; if(b&&b.slots) filled=b.slots.filter(Boolean).length; }catch(e){} return glyphTierPower(r,filled); }
 let _powerNoGlyph=false;   // heroPower() zeroes the glyph stat contribution while it computes the non-glyph part
-function glyphSockMul(key){ if(_powerNoGlyph) return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
-  if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; }   // v2 only — legacy socket stats are gone
+function glyphSockMul(key){ if(_powerNoGlyph) return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
+  if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
@@ -3227,7 +3227,7 @@ function starMult(key){ return starMultFrom(heroStars(key), starPips(key), refin
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
 function gearSockMul(key){
-  const z={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
+  const z={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
   try{
     const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled||!st.equipped) return z;
     const eq=st.equipped[key]; if(!eq) return z;
@@ -3396,15 +3396,15 @@ const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) 
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return heroPower(key)+glyphPowerFor(key); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
-  const hp   = heroStat(key,t.hp,'hp')*m.hp + heroFlatHp(key);
-  const atkP = heroStat(key,t.dmg,'dmg')*m.atk + heroFlatAtk(key);
+  const hp   = heroStat(key,t.hp,'hp')*m.hp + heroFlatHp(key) + (typeof techTotal==='function'?techTotal('hp'):0);
+  const atkP = heroStat(key,t.dmg,'dmg')*m.atk + heroFlatAtk(key) + (typeof techTotal==='function'?techTotal('atk'):0);
   const atkM = (t.apow||0)>0 ? heroStat(key,t.apow,'apow')*(typeof abilityPowerMul==='function'?abilityPowerMul():1) + heroFlatApow(key) : 0;
   const armor= heroStat(key,t.armor||0,'armor') + (typeof techTotal==='function'?techTotal('armor'):0) + (tt.armor||0)*3;
   const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techTotal==='function'?techTotal('mr'):0)    + (tt.mr||0)*3;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   const ehp  = hp/Math.max(0.15,1-mitig);
-  const crit = Math.min(0.6,(m.crit||0)+(tt.crit||0)*0.005), critDmg=0.6+((tt.critDmg||0)*0.005);
+  const crit = Math.min(0.6,m.crit||0), critDmg=0.6+((tt.critDmg||0)*0.005);
   const sw   = 1/Math.max(0.05, swingInterval(t)/(1+((tt.atkSpd||0)*0.004)));
   /* AP is weighted 1.5x a point of Attack and energy regen adds a little on top: a spell carries a
      kit coefficient and usually lands on more than one target, so counting Ability Power as if it
@@ -3415,7 +3415,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
   const dps  = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.004))*(1+0.25*(m.energyReg||0)));
-  return Math.round(POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key) + equipTierSum(key)*14); }
+  return Math.round(POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key)); }
 
 /* ------------------------------ progression -------------------------------- */
 const DEFAULT_G = {
@@ -3475,7 +3475,7 @@ const NODE_GATHER_MS=8*60*1000; // a node refills 8 min after you gather it
 // (Phil, 26 Aug: God Mode is the switch that opens every building regardless of level).
 function AUDIT_MODE(){ try{ return typeof isDevAcct==='function' && isDevAcct() && !!DEV.god; }catch(e){ return false; } }
 // Temple prayer: unlocks at level 40, costs major gold, permanently boosts every hero's ATK & HP.
-const PRAYER_UNLOCK_LEVEL=40;
+const PRAYER_UNLOCK_LEVEL=40, PRAYER_MAX_LEVEL=200;
 function prayerCost(lvl){ return 50000 + lvl*30000; }
 function prayerBonusPct(lvl){ return lvl*2; } // +2% ATK & HP per prayer level
 // ---- progression tables (max level 60) ----
@@ -4324,7 +4324,8 @@ function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, bo
   dmgBonusMul2:u.dmgBonusMul2||1, shieldStrMul:u.shieldStrMul||1, ctrlHitF:u.ctrlHitF||0, hasteEnergyMul:u.hasteEnergyMul||1,
   glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
   critRes:u.critRes||0, energyReg:u.energyReg||0, energy:u.energy, ctrlRes:u.ctrlRes||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
-  immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null }; }
+    immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null,
+    gearSkill:u.gearSkill?JSON.parse(JSON.stringify(u.gearSkill)):null }; }
 function buildUnitFromSnapshot(s,team,x,y){
   const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank,boss:s.boss});   // structure + kit abilities by rank
   u.maxHp=u.hp=s.maxHp; u.dmg=s.dmg; u.range=s.range; u.speed=s.speed; u.atkInterval=s.atkInterval; u.combatDist=s.combatDist; u.r=s.r; u.melee=s.melee; u.reach=s.reach||0;
@@ -4338,6 +4339,7 @@ function buildUnitFromSnapshot(s,team,x,y){
      fight mutated the snapshot and the SECOND fight off the same snapshot ran differently — the exact
      leak that made a replay diverge from the fight it was replaying. */
   u.pass=s.pass?JSON.parse(JSON.stringify(s.pass)):null;
+  u.gearSkill=s.gearSkill?Object.assign({used:false},JSON.parse(JSON.stringify(s.gearSkill))):null;
   if(!u.melee && u.combatDist>u.range) u.range=u.combatDist+18;   // re-apply the ranged reach gate after overriding stats
   return u;
 }
@@ -4474,6 +4476,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
     apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1))*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), hybrid:!!t.hybrid, _frozenT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    gearSkill:(S&&S.gearSkill)?Object.assign({used:false},JSON.parse(JSON.stringify(S.gearSkill))):null,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
   // MAGICAL hits, each through defToDR and countered only by its own penetration. Every other
@@ -4492,6 +4495,9 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.shieldStrMul=1+((tt.shieldStr||0)*0.005);
     u.ctrlHitF=(tt.ctrlHit||0)*0.004;
     u.hasteEnergyMul=1+((tt.haste||0)*0.004);
+    /* Forge mobility ratings: 100 points = 10%, capped at 30%. */
+    u.speed*=1+Math.min(0.30,(tt.moveSpd||0)*0.001);
+    u.range*=1+Math.min(0.30,(tt.range||0)*0.001);
     u.atkInterval/= (1+((tt.atkSpd||0)*0.004));
     u.defRating=u.armorRating+u.mrRating; u.penRating=(tt.armorPen||0)+(tt.magicPen||0); }   // legacy aliases
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
@@ -4793,14 +4799,15 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||'phys';   // v247
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
-  const _shA=Math.max(0,(tgt.armorRating||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0));
+  const _shA=Math.max(0,(tgt.armorRating||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0));
   const _shM=Math.max(0,(tgt.mrRating||0))*(1-(((tgt._mrShredT||0)>0)?(tgt._mrShredPct||0):0));
   if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); }      // MR vs Magic Pen
   else if(kind!=='true'){ amt*=1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl); // Armor vs Armor Pen
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
+  const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
-  if(_preCrit!=null ? _preCrit : (cc&&brnd()<cc)){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
+  if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<cc))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   /* v527 Thunder Guard (Stormwarden): the brace answers whatever struck it. */
@@ -4809,6 +4816,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||'phys';   // v247
     tgt._ctring=0; }
   if(src.pass&&src.pass.lifesteal&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.2);
   if((src.lifestealStat||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*src.lifestealStat);   // v247: Lifesteal stat
+  if((src._gearVampT||0)>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._gearVampPct||0));
   if(src.pass&&src.pass.notthere&&tgt!==src&&src.alive) healUnit(src,_hpLost*0.10);   // the smaller Bloodletter that survived the rework
   if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
@@ -4992,7 +5000,12 @@ function densestAllyCluster(u,R){ const al=(alliesOf(u)||[]).filter(e=>e&&e.aliv
     if(n>bn || (n===bn && frac<bf)){ bn=n; bf=frac; best=e; } });
   return best?{x:best.x,y:best.y,n:bn,on:best}:null; }
 function heroScaleMode(u){ const t=u&&u.t; if(!t||t.monster) return null; const r=t.role; if(r==='Mage'||r==='Support') return 'ap'; if(r==='Tank') return (t.apow>0)?'ap':'ad'; if(r==='Fighter'&&t.apow>0) return null; return 'ad'; }   /* v483 Phil: casters/mage tanks scale off AP, physical roles off Attack; hybrids later */
-function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1);
+function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1;
+  const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
+  // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
+  // a second time made base AP scale quadratically, and also gave physical abilities an unintended
+  // Ability Power research multiplier. Buffs and per-cast skill scaling still apply here once.
+  let apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm; let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm;
   const _mode=heroScaleMode(u); if(_mode==='ap'){ dB=apB; } else if(_mode==='ad'){ apB=dB; }
   const _sD=(_mode==='ap')?(u.apow||0):u.dmg, _sA=(_mode==='ad')?u.dmg:(u.apow||0);   // the role's stat, for the cases that read u.dmg / u.apow directly
   // Monster/boss abilities scale off POWER: Mage-role casters deal +30% ability damage; brutes/warriors/tanks unchanged.
@@ -5050,7 +5063,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
       break;}
     case 'nova':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)e.slow=Math.max(e.slow||0,2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
-      if(o.push&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))){ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
+      if(o.push&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
       if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a');}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
@@ -5183,7 +5196,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'tidalsurge':{ const R=o.radius||3.4*METER, push=o.push||1.6*METER;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
         dealDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); e.slow=Math.max(e.slow||0,o.slow||2.5);
-        if(!e.immovable){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
+        if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
           e._ax=e.x; e._ay=e.y; } });
       ringBurst(u.x,u.y,0x9fe0ff,22); burstAt(u.x,u.y,0x6fb6d0,14);
@@ -5411,7 +5424,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'knockstun':{ if(!tgt)break;                               // "stunning ... and pushing it backward"
       dealDamage(u,tgt,dB*(o.mul||1.4)*rm,o.color||'#ffd08a');
       tgt.stunned=Math.max(tgt.stunned||0,(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
-      if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))){
+      if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){
         const dx=(tgt.x-u.x)||1, L=Math.abs(dx)||1, push=o.push||(1.6*METER);
         tgt.x+=Math.sign(dx)*push; tgt._ax=tgt.x; tgt._airT=Math.max(tgt._airT||0,0.35); }
       ringBurst(tgt.x,tgt.y,0xffd08a,12); break; }
@@ -5623,7 +5636,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'gravknot':{                                               // "nearby enemies are pulled together and slowed"
       const R=o.radius||4*METER; let n=0;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return; n++;
-        if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))){
+        if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
           const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         e.slow=Math.max(e.slow||0,o.slow||3);
@@ -5650,7 +5663,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'chainquench':{                                            // "molten chains, pulling enemies together and burning them"
       const R=o.radius||4.5*METER; const bd=_sD*(o.dps||0.35)*sm;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
-        if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))){
+        if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
           const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.4*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         dealDamage(u,e,dB*(o.mul||0.8)*rm,'#ff8a3a');
@@ -5678,7 +5691,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
 
     case 'grapple':{ if(!tgt)break;                                 // "launch a hook that pulls an enemy inward and stuns it"
       dealDamage(u,tgt,dB*(o.mul||1.2)*rm,o.color||'#d8b06a');
-      if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))){
+      if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){
         const dx=u.x-tgt.x, dy=u.y-tgt.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.75,o.pull||5*METER);
         tgt.x+=dx/L*pull; tgt.y+=dy/L*pull; tgt._ax=tgt.x; tgt._ay=tgt.y; tgt.pullT=Math.max(tgt.pullT||0,0.35); }
       tgt.stunned=Math.max(tgt.stunned||0,(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
@@ -5713,18 +5726,18 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
          aimed point drags every enemy in for `pull` seconds, then collapses: AP damage + silence (no stun — that is Vulmar's). */
       const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||7*METER, pullT=o.pull||1.2;
       const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y)); const caught=[];
-      enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(!e.immovable){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
+      enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
       const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
       u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil};
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
+      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
       const proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; const others=foes.filter(e=>e!==proj);
       const anvil=others.length?others.slice().sort((a,b)=>dist(proj,a)-dist(proj,b))[0]:null;
       dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); proj.stunned=Math.max(proj.stunned||0,0.6);
-      if(anvil){ if(!proj.immovable){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); anvil.stunned=Math.max(anvil.stunned||0,0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
+      if(anvil){ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); anvil.stunned=Math.max(anvil.stunned||0,0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
       burstAt(proj.x,proj.y,0x8B5CF6,14); break; }
     case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       const tg2=o.nearest?foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]:foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
@@ -5733,7 +5746,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
          finished closing. It is now timed off the HAND CLIP itself, a shade quicker, so he lands as the fist shuts. */
       const _hand=(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].dur)||o.dur||3;
       const dur=_hand, stopD=(o.stop||10)*METER;
-      if(!tg2.immovable){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(1,(dist(u,tg2)-stopD))/(dur*0.97); tg2._pullGhost=true; }   // no speed floor: near or far, the trip lasts exactly one hand-close // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
+      if(!tg2.immovable&&!((tg2._gearImmovableT||0)>0)){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(1,(dist(u,tg2)-stopD))/(dur*0.97); tg2._pullGhost=true; }   // no speed floor: near or far, the trip lasts exactly one hand-close // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
       if(o.silence)tg2.silencedT=Math.max(tg2.silencedT||0,dur); tg2.stunned=Math.max(tg2.stunned||0,dur);   // rooted for the whole drag so it can't walk back out
       ringBurst(u.x,u.y,0x8B5CF6,14); break; }
     // ---- Tick (clockwork bruiser) ----
@@ -5810,6 +5823,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1; let apB
     case 'thundershower':{ const ctr=u;   /* v491 (Phil: Fritz's ult was not to standard): it is a SELF-CENTRED channel - "a storm around the caster ... enemies within 8 m" - but it aimed at the enemy, so the cloud spawned 20 units away from him */ u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
   }
   if(_buffArt){ try{ buffArtAll(u,o,tgt,aimCtr,type,_buffSnap); }catch(e){} }   /* v552 */
+  if(_gearSpellCrit)u._gearSpellCrit=false;
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
 }
 /* v552: one buff plate per affected unit, hung above that unit's health bar and following it. 'Affected' = any buff field
@@ -5865,7 +5879,9 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       if(foes.length){ ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
     if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*1.45;           // a full pressure gauge empowers this spell
       floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); } }
-  u._castSlot=slot; doEffect(u,ab.type,ab); u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
+  u._castSlot=slot; doEffect(u,ab.type,ab);
+  if(u._gearRepeatSpell){ const rep=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rep; doEffect(u,ab.type,ab); u._castSM=prev; }
+  u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
   // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
   // and re-tagging it 4 here would relabel the PASSIVE as a skill. Leave the tag where it is.
@@ -6820,7 +6836,7 @@ function think(u,dt){
          plays from the first frame; dealDamage takes the pre-rolled result on the fuse instead of rolling again. Heroes
          without a crit clip roll exactly where they always did, so their fights replay byte-identical. */
       let _swCrit=null;
-      if(u.anim&&u.anim.crit){ const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0); _swCrit=!!(_cc&&brnd()<_cc); u._atkClip=_swCrit?'crit':null; }
+      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0); _swCrit=!!(_forced||(_cc&&brnd()<_cc)); u._atkClip=_swCrit?'crit':null; }
       /* v534 - the MIRAGE's crit is a DOUBLE SWING: the attack clip plays twice at double speed inside the same swing
          window and lands twice for normal damage (Phil: "double attack when it crits instead of doing more damage"). */
       let _dbl=false;
@@ -7574,7 +7590,7 @@ function updateBattle(dt){
         const near=dist(u,e)<=u._stampW+bodyR(u)+bodyR(e);
         if(near || (tt<=along+8 && tt>=-8 && Math.abs(side)<=u._stampW)){ u._stampHit.add(e);
           dealDamage(u,e,u._stampDmg,'#ffcf40'); e.stunned=Math.max(e.stunned||0,(u._stampStun||1)*(1-(e.ctrlRes||0)));
-          if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))){ const s=side>=0?1:-1;
+          if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const s=side>=0?1:-1;
             e.x+=(-u._stampUY)*s*u._stampPush; e.y+=(u._stampUX)*s*u._stampPush;
             e.x=Math.max(40,Math.min(FW-40,e.x)); e.y=Math.max(90,Math.min(FD-40,e.y)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.35); }
           burstAt(e.x,e.y,0xffcf40,10); } });
@@ -7722,10 +7738,11 @@ function updateBattle(dt){
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
-    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._ocT>0)u._ocT-=dt;
+    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._ocT>0)u._ocT-=dt;
+    if(u._gearDelayedHeals&&u._gearDelayedHeals.length){ for(let i=u._gearDelayedHeals.length-1;i>=0;i--){ const h=u._gearDelayedHeals[i]; h.t-=dt; if(h.t<=0){ healUnit(u,h.amt); u._gearDelayedHeals.splice(i,1); } } }
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
-    if(u.pullT>0){ u.pullT-=dt; const p=u.immovable?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null||u._pullGhost){ u.pullStop=null; u.pullSpeed=null; u._pullGhost=false; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe right up to Vulmar, phasing through bodies.
+    if(u.pullT>0){ u.pullT-=dt; const p=(u.immovable||(u._gearImmovableT||0)>0)?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null||u._pullGhost){ u.pullStop=null; u.pullSpeed=null; u._pullGhost=false; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe right up to Vulmar, phasing through bodies.
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
   for(let i=groundHazards.length-1;i>=0;i--){ const h=groundHazards[i]; h.life-=dt; h.acc+=dt;
@@ -8925,6 +8942,7 @@ function gearActiveFor(key){ try{
 }catch(e){ return null; } }
 function _gsNearFoe(u){ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} } }); return b; }
 function _gsFarFoe(u){ let b=null,bd=-1; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d>bd){bd=d;b=o;} } }); return b; }
+function _gsFarCaster(u){ let b=null,bd=-1; units.forEach(o=>{ if(!o.alive||o.team===u.team)return; const role=(o.t&&o.t.role)||'', caster=role==='Mage'||role==='Support'||(o.apow||0)>(o.dmg||0); if(!caster)return; const d=Math.hypot(o.x-u.x,o.y-u.y); if(d>bd){bd=d;b=o;} }); return b||_gsFarFoe(u); }
 function _gsLowFoe(u){ let b=null,bp=2; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const p=o.hp/o.maxHp; if(p<bp){bp=p;b=o;} } }); return b; }
 function _gsFoes(u,how,n,anchor){ const foes=units.filter(o=>o.alive&&o.team!==u.team);
   if(how==='all') return foes;
@@ -8942,31 +8960,38 @@ function castGearSkill(u,_fromTick){
   if(!u||!u.alive||!u.gearSkill||u.gearSkill.used||ended||paused) return;
   const g=u.gearSkill, p=g.params||{}, ty=g.type;
   if((u.stunned>0||(u.fearT||0)>0) && ty!=='cleanse') return;
+  if(p.ifBelow!=null && u.hp/Math.max(1,u.maxHp)>=p.ifBelow) return;
   u.gearSkill.used=true;
   floatTexts.push({x:u.x,y:u.y-16,txt:'✦ '+g.name,t:1.2,color:'#ffd45e',vy:1.2,sz:15});
   try{ ringBurst(u.x,u.y,0xffd45e,22); burstAt(u.x,u.y,0xfff1b0,14); if(u.team==='ally') screenFlash=Math.max(screenFlash,.18); }catch(e){}   // v478: the active is a visible event
   const burn=(t,frac,dur)=>{ if(t&&frac&&t.dots) pushDot(t,u.dmg*frac/(2*(dur||3)),dur||3,0.5,'#ff9a3c'); };
   switch(ty){
-    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
+    case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
     case 'stun': { const ts=_gsFoes(u,p.target==='aoe'?'aoe':(p.target==='caster'?'near':'near'),p.target==='aoe'?3:1);
       ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,(p.dur||0.75)); }); break; }
-    case 'silence': { const t=_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,p.dur||1.25); break; }
+    case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,p.dur||1.25); break; }
     case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ t.slow=Math.max(t.slow||0,p.dur||2); if((p.pct||0)>=0.9) t.stunned=Math.max(t.stunned||0,(p.dur||1.25)*0.6); }); break; }
     case 'shield': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.ap?Math.round((u.apow||u.dmg)*(p.ap||1)):Math.round(w.maxHp*(p.pct||0.1)); w.shield=(w.shield||0)+amt; w.shieldT=Math.max(w.shieldT||0,p.dur||5); if(p.energy) w.energy=Math.min(100,w.energy+p.energy); }); break; }
-    case 'heal': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.missing?Math.round((w.maxHp-w.hp)*p.missing):Math.round(w.maxHp*(p.pct||0.1)); if(p.over){ if(w.hots) pushHot(w,amt/(2*p.over),p.over,0.5); else { w.hp=Math.min(w.maxHp,w.hp+amt); } } else { w.hp=Math.min(w.maxHp,w.hp+amt); floatTexts.push({x:w.x,y:w.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:12}); } }); break; }
-    case 'energy': u.energy=Math.min(100,(u.energy||0)+(p.n||20)); break;
+    case 'heal': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.missing?Math.round((w.maxHp-w.hp)*p.missing):Math.round(w.maxHp*(p.pct||0.1));
+      if(p.delay){ (w._gearDelayedHeals||(w._gearDelayedHeals=[])).push({t:p.delay,amt}); }
+      else if(p.over){ if(w.hots) pushHot(w,amt/(2*p.over),p.over,0.5); else { w.hp=Math.min(w.maxHp,w.hp+amt); } }
+      else { w.hp=Math.min(w.maxHp,w.hp+amt); floatTexts.push({x:w.x,y:w.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:12}); }
+      if(p.pull&&w!==u){ const dx=u.x-w.x,dy=u.y-w.y,dd=Math.hypot(dx,dy)||1,step=Math.min(60,Math.max(0,dd-bodyR(u)-bodyR(w))); w.x+=dx/dd*step; w.y+=dy/dd*step; w._ax=w.x; w._ay=w.y; }
+    }); break; }
+    case 'energy': u.energy=Math.min(100,(u.energy||0)+(p.n||20)); if(p.selfArmorCut){u._gearArmorCut=Math.max(u._gearArmorCut||0,p.selfArmorCut);u._gearArmorCutT=Math.max(u._gearArmorCutT||0,p.dur||2);} break;
     case 'buff': { u.dmgBuffT=Math.max(u.dmgBuffT||0,p.dur||3); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,p.atk||1);
       if(p.as||p.speed){ u.hasteT=Math.max(u.hasteT||0,p.dur||3); u.hasteMul=Math.max(u.hasteMul||1,p.as||p.speed||1.2); }
       if(p.dr!=null){ u.drT=Math.max(u.drT||0,p.dur||3); u.drMul=Math.min(u.drMul||1,p.dr); }
       if(p.shieldPct){ u.shield=(u.shield||0)+Math.round(u.maxHp*p.shieldPct); u.shieldT=Math.max(u.shieldT||0,p.dur||3); }
+      if(p.vamp){ u._gearVampPct=Math.max(u._gearVampPct||0,p.vamp); u._gearVampT=Math.max(u._gearVampT||0,p.dur||3); }
       if(p.who==='nearAllies'){ _gsAllies(u,'allies').forEach(w=>{ if(p.as){ w.hasteT=Math.max(w.hasteT||0,p.dur||3); w.hasteMul=Math.max(w.hasteMul||1,p.as); } }); } break; }
     case 'mark': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':(p.target==='far'?'far':'near'),5);
       ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,p.dur||2); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
     case 'taunt': { const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,p.dur||1.5); }); break; }
     case 'cleanse': { _gsAllies(u,p.who||'allies').forEach(w=>{ w.stunned=0; w.fearT=0; w.slow=0; w.silencedT=0; }); break; }
-    case 'untarget': { u._noTarget=true; u._noTargetT=(p.dur||1.5); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); break; }   // v268: SIM-TIME countdown (was a wall-clock setTimeout that ignored pause, speed and the skip loop)
+    case 'untarget': { if(p.ccImmune){ u._gearImmovableT=Math.max(u._gearImmovableT||0,p.ccImmune); } else { u._noTarget=true; u._noTargetT=(p.dur||1.5); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); } break; }   // v268: SIM-TIME countdown (was a wall-clock setTimeout that ignored pause, speed and the skip loop)
     case 'ward': { const w=_gsAllies(u,p.who||'lowest')[0]||u; w._wardT=Math.max(w._wardT||0,p.dur||2); break; }
-    case 'next': { u.dmgBuffT=Math.max(u.dmgBuffT||0,p.dur||3); u.dmgBuffMul=Math.max(u.dmgBuffMul||1,p.mult||1.35); if(p.kind==='crit') u.glyphCrit=Math.min(0.6,(u.glyphCrit||0)+0.5); break; }
+    case 'next': { if(p.kind==='crit')u._gearNextCrit=p.spell?'spell':'hit'; else if(p.spell)u._gearRepeatSpell=Math.max(u._gearRepeatSpell||0,Math.max(0,(p.mult||1.4)-1)); break; }
     case 'move': { if(p.kind==='pullAoe'){ const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ const dx=u.x-t.x,dy=u.y-t.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*60; t.y+=dy/dd*60; }); }
       else { u.hasteT=Math.max(u.hasteT||0,2); u.hasteMul=Math.max(u.hasteMul||1,1.35); if(p.cleanseSlow) u.slow=0; } break; }
     default: { u.shield=(u.shield||0)+Math.round(u.maxHp*0.12); u.shieldT=Math.max(u.shieldT||0,5); }
@@ -9379,6 +9404,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
      don't merge — server truth, no more and no less. Guard kept so a response without eqMats is a no-op. */
   if(st.eqMats){ const _m={}; for(const _k in (G.eqMats||{})) _m[_k]=0; for(const _k in st.eqMats) _m[_k]=st.eqMats[_k]|0; G.eqMats=_m; }
   if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
+  if(st.prayer!=null) G.prayer=Math.max(0,Math.min(200,st.prayer|0));
   // day-boundary: HUD shop counters are server-owned (ET-midnight day). Mirror them when the server reports them;
   // an old server without `shop` leaves the local fallback untouched.
   if(st.shop&&typeof st.shop==='object'){ G.foodBuys=st.shop.food|0; G.goldBuys=st.shop.gold|0; }
@@ -9567,7 +9593,7 @@ function skyMatchHTML(m, canOfficer){
 }
 /* v374 (Phil): GOD MODE war simulator — a sandbox Skyfall match, 20 vs 20 players × 3 lines of five,
    bot allies on your side, a bot guild across the bridges. Results + a scrolling battle log. Dev only. */
-const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1}, r:null, busy:false};
+const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1}, r:null, busy:false, skipReplay:false};
 function skySimOpen(){ if(!SKYSIM.p.botLevel) SKYSIM.p.botLevel=playerLevel();
   const ov=document.createElement('div'); ov.className='gmodal-ov'; ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.45);z-index:12000;display:flex;align-items:center;justify-content:flex-end;padding:16px;padding-right:max(16px,4vw)';
   const card=document.createElement('div'); card.id='skySimCard'; card.style.cssText='background:#141b2b;border:1px solid #ff9f43;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:88vh;overflow:auto;position:relative';
@@ -9595,8 +9621,42 @@ function skySimRender(){ const card=document.getElementById('skySimCard'); if(!c
     <div style="font-size:10px;color:#8b98a9;margin-top:2px">A sandbox Skyfall match: you + bot allies vs a bot guild, fought with the real war rules and the real sim. Nothing is recorded.</div>${params}${res}`; }
 async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRender();
   const r=await api('/api/guild-war/sim','POST',Object.assign({seed:'sim'+Date.now()},SKYSIM.p)); SKYSIM.busy=false;
-  if(!r||r.error){ bannerMsg((r&&r.error)||'Simulation failed.'); } else SKYSIM.r=r;
+  if(!r||r.error){ bannerMsg((r&&r.error)||'Simulation failed.'); }
+  else { await skySimReplay(r); SKYSIM.r=r; }
   skySimRender(); }
+/* Phil's Personal Notes (14 Sep): the simulator must SHOW a war, not jump straight from parameters
+   to arithmetic. This replay is presentation-only: the server still resolves every march first and
+   returns the authoritative log. We then play that exact log through planning, marching and clash
+   beats before revealing the existing detailed result. Skip only skips presentation. */
+async function skySimReplay(r){
+  const card=document.getElementById('skySimCard'); if(!card||!r||!Array.isArray(r.log)) return;
+  SKYSIM.skipReplay=false;
+  const lanes=(r.you&&r.you.citadels)||[];
+  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px;color:#ff9f43">⚔ Skyfall War Simulation</b><button class="btn sm secondary" onclick="SKYSIM.skipReplay=true">Skip replay</button></div>
+    <div id="skyReplayPhase" style="margin:8px 0;text-align:center;font-size:12px;font-weight:900;color:#ffd45e">📋 PREPARATION — armies take their citadels</div>
+    <div id="skyReplayField" style="padding:7px;border:1px solid #293752;border-radius:12px;background:linear-gradient(180deg,#15243a,#0c1422)">${lanes.map((c,i)=>`<div id="skyReplayLane${i}" style="position:relative;height:54px;margin:5px 0;border:1px solid #263752;border-radius:9px;overflow:hidden;background:linear-gradient(90deg,rgba(34,122,85,.2),rgba(70,95,130,.16),rgba(122,43,70,.2));transition:box-shadow .12s,border-color .12s">
+      <div id="skyReplayA${i}" style="position:absolute;left:7px;top:6px;font-size:22px">🏰</div><div style="position:absolute;left:36px;top:7px;font-size:9px;color:#5ee89b">YOUR<br><b>${c.total||0} lines</b></div>
+      <div style="position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:8px;color:#8b98a9">${escapeHTML(c.name||('Lane '+(i+1)))}</div>
+      <div id="skyReplayToken${i}" style="position:absolute;left:12%;top:26px;font-size:18px;opacity:0;transition:left .055s linear;filter:drop-shadow(0 2px 3px #000)">⚔️</div>
+      <div id="skyReplayB${i}" style="position:absolute;right:7px;top:6px;font-size:22px">🏰</div><div style="position:absolute;right:36px;top:7px;text-align:right;font-size:9px;color:#ff8b8b">ENEMY<br><b>${((r.foe.citadels||[])[i]||{}).total||0} lines</b></div>
+      <div id="skyReplayClash${i}" style="position:absolute;left:50%;top:25px;transform:translateX(-50%) scale(.3);font-size:21px;opacity:0;transition:transform .08s,opacity .08s">💥</div></div>`).join('')}</div>
+    <div id="skyReplayEvent" style="height:38px;padding-top:8px;text-align:center;font-size:10px;color:#c3ccd8">Officers lock five battle lines across the skybridges.</div>`;
+  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  await pause(1100); if(SKYSIM.skipReplay||!document.getElementById('skyReplayPhase')) return;
+  document.getElementById('skyReplayPhase').textContent='🚩 MARCH & FIGHT — the Skyfall assault begins';
+  const beat=Math.max(58,Math.min(150,Math.floor(12000/Math.max(1,r.log.length))));
+  for(const e of r.log){
+    if(SKYSIM.skipReplay||!document.getElementById('skyReplayPhase')) break;
+    const i=Math.max(0,Math.min(4,e.lane|0)), row=document.getElementById('skyReplayLane'+i), tok=document.getElementById('skyReplayToken'+i), clash=document.getElementById('skyReplayClash'+i);
+    row.style.borderColor=e.side==='A'?'#5ee89b':'#ff8b8b'; row.style.boxShadow='0 0 12px '+(e.side==='A'?'#5ee89b55':'#ff6b8b55');
+    tok.textContent=e.side==='A'?'⚔️➜':'⬅⚔️'; tok.style.transition='none'; tok.style.left=e.side==='A'?'12%':'82%'; tok.style.opacity='1'; void tok.offsetWidth; tok.style.transition='left '+beat+'ms linear'; tok.style.left=e.side==='A'?'76%':'18%';
+    document.getElementById('skyReplayEvent').textContent='#'+e.n+' · '+e.laneName+' · '+e.a+(e.captured?' captures an open citadel':(' clashes with '+e.d));
+    await pause(beat); clash.style.opacity='1'; clash.style.transform='translateX(-50%) scale(1.2)';
+    if(e.captured||e.fell){ const castle=document.getElementById((e.side==='A'?'skyReplayB':'skyReplayA')+i); castle.textContent='💥'; castle.style.filter='grayscale(1)'; castle.style.transform='rotate('+(e.side==='A'?'14':'-14')+'deg)'; }
+    await pause(Math.max(28,Math.floor(beat*.55))); tok.style.opacity='0'; clash.style.opacity='0'; clash.style.transform='translateX(-50%) scale(.3)'; row.style.boxShadow='none';
+  }
+  const phase=document.getElementById('skyReplayPhase'); if(phase){ const won=r.winner==='A'; phase.textContent=(won?'🏆 YOUR SIDE WINS — ':'💀 BOT GUILD WINS — ')+r.why; phase.style.color=won?'#5ee89b':'#ff8b8b'; await pause(SKYSIM.skipReplay?80:900); }
+}
 function skyPanelHTML(){
   const s=SKY.st, t=s.tournament;
   let head=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
@@ -9660,7 +9720,7 @@ function renderDungeon(){
 }
 function renderTemple(){
   const b=document.getElementById('templeBody');
-  const lv=playerLevel(), unlocked=lv>=PRAYER_UNLOCK_LEVEL, plvl=G.prayer||0, cost=prayerCost(plvl), canPray=unlocked&&G.gold>=cost;
+  const lv=playerLevel(), unlocked=lv>=PRAYER_UNLOCK_LEVEL, plvl=Math.max(0,Math.min(PRAYER_MAX_LEVEL,G.prayer||0)), cost=prayerCost(plvl), canPray=unlocked&&plvl<PRAYER_MAX_LEVEL&&G.gold>=cost;
   const now=Date.now(), ready=(now-(G.lastBless||0))>=20*60*60*1000;
   const lockNote = unlocked ? '' : `<div style="font-size:12px;color:#ff9a9a;margin:4px 0 8px">🔒 Prayer opens at player level ${PRAYER_UNLOCK_LEVEL}. You are level ${lv}.${AUDIT_MODE()?' (Audit view — you can still see it.)':''}</div>`;
   b.innerHTML=`<div style="text-align:center"><div style="font-size:40px">🙏</div>
@@ -9668,13 +9728,14 @@ function renderTemple(){
       <div style="font-size:12px;color:#8b98a9;margin-bottom:6px">Offer great sums of gold to permanently strengthen <b>every</b> hero. Each prayer adds <b>+2% ATK &amp; HP</b> to your whole roster.</div>
       ${lockNote}
       <div style="margin:8px 0;font-size:13px"><span class="pill">Prayer Lv ${plvl}</span> <span class="pill">now +${prayerBonusPct(plvl)}% ATK/HP</span></div>
-      <button class="btn" id="prayBtn" ${(canPray||(AUDIT_MODE()&&unlocked))?'':'disabled'}>🙏 Pray → Lv ${plvl+1} · 🪙 ${cost.toLocaleString()}</button>
+      <button class="btn" id="prayBtn" ${(canPray||(AUDIT_MODE()&&unlocked&&plvl<PRAYER_MAX_LEVEL))?'':'disabled'}>${plvl>=PRAYER_MAX_LEVEL?'🙏 Prayer at maximum':'🙏 Pray → Lv '+(plvl+1)+' · 🪙 '+cost.toLocaleString()}</button>
       <div id="prayMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div>
     </div>`;
   const pray=b.querySelector('#prayBtn'); if(pray) pray.onclick=async()=>{ if(!unlocked)return; const c=prayerCost(G.prayer||0);
     if(G.gold<c){ document.getElementById('prayMsg').textContent='Not enough gold for this offering.'; return; }
-    if(!(await txSpend('gold',c,'prayer'))) return;
-    G.prayer=(G.prayer||0)+1; saveG(); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; };
+    const r=await api('/api/temple/pray','POST',{requestId:uid8()});
+    if(!(r&&r.ok)){ bannerMsg((r&&r.error)||'Prayer failed.'); await ledgerSync(); return; }
+    adoptLedger(r.ledger); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; };
 }
 function startDungeon(){
   syncActiveSquad();   // per-mode squad
@@ -13322,7 +13383,7 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
-function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
+function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
   if(!RUNE2.enabled||!RUNE2.st||!RUNE2.cat) return out;
   // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = CONTROL resist; Starting Energy = initial
   // energy; Healing Power = healer output; HP Regen = universal regen. Never folded into lookalikes.
@@ -15491,7 +15552,8 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
       const gb=document.createElement('div');
       /* v478 (Phil: "the equipment active button should be the item that you have activated in the heroes panel, not a placeholder"):
          the button IS the item — its own art in a gold ring; the type emoji is only the fallback when the art is missing. */
-      const _gid=u.gearSkill.defId; gb.innerHTML=_gid?`<img src="/assets/img/gear/items/${_gid}.webp${GEAR_ART_V}" alt="" draggable="false" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none" onerror="this.replaceWith(document.createTextNode('${u.gearSkill.icon}'))">`:u.gearSkill.icon;
+      const _gid=u.gearSkill.defId, _gicon=u.gearSkill.icon||GEAR_TYPE_ICON[u.gearSkill.type]||'⚔';
+      gb.innerHTML=_gid?`<img src="/assets/img/gear/items/${_gid}.webp${GEAR_ART_V}" alt="" draggable="false" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none" onerror="this.replaceWith(document.createTextNode('${_gicon}'))">`:_gicon;
       gb.title=u.gearSkill.name+' — '+u.gearSkill.desc; gb.className='gearActiveBtn';
       gb.style.cssText='pointer-events:auto;position:absolute;top:-9px;right:-7px;width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;background:#1a2434;border:2px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 0 6px rgba(255,212,94,.6),0 1px 4px rgba(0,0,0,.6);overflow:hidden;'   /* v480 ROOT CAUSE of "equipment actives don't work": #hud and #portraitBar are pointer-events:none (taps fall through to the field) and only .portrait turns them back on - this button inherited none and could never be tapped */+(u.gearSkill.used?'opacity:.25;pointer-events:none;filter:grayscale(1);':'');
       const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); queueInput({k:'gear', uid:u.uid}); };   // v269: tick-aligned
@@ -16193,7 +16255,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789329560043';
+const BUILD_ID = '1789385780264';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
