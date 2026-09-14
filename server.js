@@ -1918,8 +1918,9 @@ const EARN_RULES={
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
   win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{}, quest12:{}, rune:{gems:30},
-  win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{}, win15:{}, gemwish:{gems:40},
+  win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{}, win15:{}, gemwish:{gems:140},
   signin:{stam:60}, name:{gems:20} });
+const TUTORIAL_ORDER=Object.freeze(['win11','quest11','skill','win12','quest12','rune','win13','quest13','wish','win14','quest14','win15','gemwish']);
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -3285,6 +3286,8 @@ async function api(req,res,url){
     const rw=TUTORIAL_REWARDS[step]; if(!rw) return send(res,400,{error:'Unknown step.'});
     const led=ensureLedger(me); led.tut=led.tut||{};
     if(led.tut[step]) return send(res,200,{ok:true, already:true, ledger:ledgerView(me)});
+    const pos=TUTORIAL_ORDER.indexOf(step);
+    if(pos>=0 && TUTORIAL_ORDER.slice(0,pos).some(id=>!led.tut[id])) return send(res,409,{error:'Claim the previous Start Here reward first.'});
     led.tut[step]=Date.now();
     const out={gold:0,gems:0,stam:0,frag:null};
     if(rw.gold){ led.gold=Math.min(100000000,led.gold+rw.gold); out.gold=rw.gold; }
