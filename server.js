@@ -719,6 +719,15 @@ function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.l
   for(const it of list){ const q=Math.max(1,it.quantity|0); g.fragments[it.key]=(g.fragments[it.key]||0)+q;
     receipt.push({ fragmentId:glyphFragSlug(it.key), displayName:glyphFragName(it.key), quantity:q }); }
   g.revision++; return receipt; }
+function campaignGlyphDrops(st,runs,seed){
+  const list=(st&&st.rewards&&st.rewards.glyphFragments)||[], n=Math.max(1,runs|0);
+  if(!st||!st.rewards||(st.rewards.fragmentRolls|0)!==2||list.length<2) return list.map(f=>({key:f.key,quantity:(f.quantity|0||1)*n}));
+  let x=(seed>>>0)||0x9e3779b9; const next=()=>{ x^=x<<13; x^=x>>>17; x^=x<<5; return x>>>0; };
+  const qty={};
+  for(let r=0;r<n;r++){ const a=next()%list.length; let b=next()%(list.length-1); if(b>=a)b++;
+    qty[list[a].key]=(qty[list[a].key]||0)+1; qty[list[b].key]=(qty[list[b].key]||0)+1; }
+  return Object.keys(qty).map(key=>({key,quantity:qty[key]}));
+}
 // Authored named drops: campaign stages (chapter sets the quality band, family cycles by stage),
 // vault boss floors (band by floor, family by boss index), arena wins (band by rank), daily
 // (fixed rotation by NY day). Deterministic — no unseeded family roll anywhere.
@@ -804,9 +813,10 @@ function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; con
 /* ---- v250: per-loop server authorities (audit P1 — generic tx/earn retired) ---- */
 const ELITE_SEQ_SRV=["tick","sylthaine","vireo","vael","fritz","rhukk","bloatus","umbris","oakmir"];
 function isEliteStageSrv(g){ const st=((g-1)%10)+1; return st===3||st===6||st===9; }
-function eliteHeroForSrv(g){ if(!isEliteStageSrv(g)) return null;
+function isHeroRewardStageSrv(g){ return isEliteStageSrv(g)||campIsBoss(g); }
+function eliteHeroForSrv(g){ if(!isHeroRewardStageSrv(g)) return null;
   const ch=Math.floor((g-1)/10)+1, st=((g-1)%10)+1;
-  const idx=(ch-1)*3 + ({3:0,6:1,9:2})[st];
+  const idx=(ch-1)*4 + ({3:0,6:1,9:2,10:3})[st];
   return ELITE_SEQ_SRV[idx%ELITE_SEQ_SRV.length]; }
 const ARENA_DAILY_BANDS=[[1,1,600,30000,800],[2,2,520,27000,775],[3,3,440,24000,750],[4,4,380,21000,725],[5,5,320,19000,700],[6,6,260,17000,680],[7,7,200,15000,660],[8,8,180,14000,640],[9,10,160,12500,610],[11,20,150,11000,590],[21,30,140,10000,575],[31,40,130,9000,560],[41,50,120,8000,545],[51,70,110,7500,530],[71,100,100,7000,500],[101,150,90,6500,475],[151,200,80,6000,450],[201,300,70,5500,425],[301,400,60,5000,388],[401,500,55,4500,350],[501,700,55,4000,300],[701,1000,50,3500,260],[1001,1500,50,3300,220],[1501,2000,50,3100,180],[2001,2500,50,2900,140],[2501,3500,45,2700,100],[3501,5000,45,2500,50],[5001,15000,45,2200,30]];
 function arenaDailyRewardSrv(rank){ for(const [lo,hi,g,gold,c] of ARENA_DAILY_BANDS){ if(rank>=lo&&rank<=hi) return {gems:g,gold,coins:c}; } return {gems:0,gold:0,coins:0}; }
@@ -1087,6 +1097,12 @@ function vaultTeamScore(snaps){ let s=0;
 const VAULT_SKILL_BAND=parseFloat(process.env.VAULT_SKILL_BAND||'1.75');
 if(!(VAULT_SKILL_BAND>0)) console.warn('🚨 VAULT_SKILL_BAND<=0 — the Vault win sim gate is DISABLED. Never run production like this; wins are then accepted on the score gate alone.');
 function vaultSpecToCombatUnit(m){
+  if(m&&m.isHero&&SIM&&SIM.HERO_BASE[m.key]){
+    const u=SIM.heroCombatStats(m.key,{level:m.lvl||1,stars:(SIM.HERO_BASE[m.key].stars||1)});
+    u.maxHp=Math.max(1,Math.round(u.maxHp*(m.hpMul||1))); u.hp=0;
+    u.atkP=Math.round((u.atkP||0)*(m.dmgMul||1)); u.atkM=Math.round((u.atkM||0)*(m.dmgMul||1));
+    u.atk=Math.max(u.atkP,u.atkM); return u;
+  }
   const base=VAULT_MONSTERS[m.key]||VAULT_BOSS_STATS[m.key]||{hp:200,dmg:18};
   const sc=1+0.05*((m.lvl|0||1)-1);
   // AUDIT v229 (P0 stat parity): mirror the client's generic boss multipliers exactly — makeUnit
@@ -1984,16 +2000,16 @@ function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:''
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=100;   // Blueprint v1: 10 chapters × 10 fixed stages. Chapters 11+ are explicitly OUT.
-/* v266 — Exact Glyph Fragment Farm Map v1. THREE fixed portals, one visible source per fragment:
-   Normal (100 families) · Elite (the other 100, stronger fixed version of the same stage) ·
-   Veteran (all 18 Orange). No random rolls, no stage showing unrelated families. */
+/* Glyph Fragment Farm Map. Ordinary Normal stages each advertise four fixed possibilities and pay
+   two distinct server-seeded results per run; together those 60 stages cover all 218 types. Elite,
+   Veteran, Guardian and boss stages retain their fixed target. */
 const PORTAL_MODES=Object.freeze(['normal','elite','veteran']);
 const PORTAL_LABEL=Object.freeze({normal:'Normal Portal', elite:'Elite Portal', veteran:'Veteran Portal'});
 const PORTAL_FILE=Object.freeze({normal:'campaign-encounters.json', elite:'elite-campaign-encounters.json', veteran:'veteran-campaign-encounters.json'});
 const PORTAL_SIZE=Object.freeze({normal:100, elite:100, veteran:18});
 /* unlock gates (spec §"Campaign mode" table) */
 const PORTAL_GATE=Object.freeze({ normal:null,
-  elite:{ afterNode:20, level:20, text:'Elite Portal opens after Normal 2-10 at player level 20.' },
+  elite:{ afterNode:10, level:10, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
   veteran:{ afterNode:100, level:100, text:'Veteran Portal opens after Normal 10-10 at player level 100.' } });
 let PORTALS={};          // mode -> { byNode, list }
 let FRAG_SOURCES={};     // fragmentId -> [{ mode, stageId }]
@@ -2004,29 +2020,30 @@ function portalCompile(){
     const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server',PORTAL_FILE[mode]),'utf8'));
     if(!Array.isArray(raw)||raw.length!==PORTAL_SIZE[mode])
       throw new Error(mode+' portal: expected '+PORTAL_SIZE[mode]+' stages, got '+(raw&&raw.length));
-    const byNode={}; const seen=new Set();
+    const byNode={};
     for(const e of raw){
       if(!e.id||!(e.node>=1)) throw new Error(mode+' portal: stage record missing id/node');
       if(!Array.isArray(e.waves)||!e.waves.length) throw new Error(mode+' '+e.id+': no waves');
       const gf=e.rewards&&e.rewards.glyphFragments;
-      // THE farm-map rule: exactly ONE primary fragment family per stage, never a random replacement
-      if(!Array.isArray(gf)||gf.length!==1) throw new Error(mode+' '+e.id+': must name exactly one glyph fragment');
-      const f=gf[0];
-      if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error(mode+' '+e.id+': fragment record malformed');
-      const q=f.key.slice(0,f.key.lastIndexOf(' '));
-      if(GLYPH_LADDER.indexOf(q)<0) throw new Error(mode+' '+e.id+': illegal fragment quality "'+q+'"');
-      if(seen.has(f.fragmentId)) throw new Error(mode+' portal: '+f.fragmentId+' is farmed by two stages');
-      seen.add(f.fragmentId);
-      (FRAG_SOURCES[f.fragmentId]=FRAG_SOURCES[f.fragmentId]||[]).push({mode, stageId:e.id, key:f.key});
+      const ordinaryNormal=mode==='normal'&&!isHeroRewardStageSrv(e.node), expected=ordinaryNormal?4:1;
+      if(!Array.isArray(gf)||gf.length!==expected) throw new Error(mode+' '+e.id+': expected '+expected+' glyph fragment possibilities');
+      if(ordinaryNormal&&((e.rewards.fragmentRolls|0)!==2||new Set(gf.map(f=>f.key)).size!==4)) throw new Error(mode+' '+e.id+': ordinary stage must roll 2 from 4 distinct fragments');
+      if(mode==='elite'){
+        const final=e.waves[e.waves.length-1]||[];
+        if(gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Elite stage must pay two Glyph Fragments');
+        if(e.rewardHero&&!final.some(m=>m&&m.isHero&&m.rewardHero&&m.key===e.rewardHero)) throw new Error(mode+' '+e.id+': Elite hero-reward stage must fight its authored hero');
+      }
+      for(const f of gf){
+        if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error(mode+' '+e.id+': fragment record malformed');
+        const q=f.key.slice(0,f.key.lastIndexOf(' '));
+        if(GLYPH_LADDER.indexOf(q)<0) throw new Error(mode+' '+e.id+': illegal fragment quality "'+q+'"');
+        (FRAG_SOURCES[f.fragmentId]=FRAG_SOURCES[f.fragmentId]||[]).push({mode, stageId:e.id, key:f.key}); }
       byNode[e.node]=e;
     }
     PORTALS[mode]={ byNode, list:raw };
   }
-  // no family may be farmed in two different portals — one fixed, visible source each
-  const dup=Object.keys(FRAG_SOURCES).filter(k=>FRAG_SOURCES[k].length>1);
-  if(dup.length) throw new Error('fragments with more than one source: '+dup.slice(0,5).join(', '));
   console.log('🗺  Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
-    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families, one fixed source each.');
+    +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; every type has an ordinary Normal source.');
 }
 /* the one visible source of a fragment, as the ancestry tree and inventory show it:
    "Farm: Normal Portal 1-9" — and enough data to deep-link straight to that stage. */
@@ -2049,6 +2066,11 @@ function portalLocked(led,mode){
   if(ledPlayerLevel(led) < g.level) return g.text;
   return null;
 }
+function portalChapterLocked(led,mode,node){
+  if(mode!=='elite') return null;
+  const ch=Math.max(1,Math.ceil((node|0)/10)), need=ch*10;
+  return (led.camp.cleared|0)<need ? ('Complete Normal '+ch+'-10 to unlock Elite Chapter '+ch+'.') : null;
+}
 function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
     if(!Array.isArray(raw)||raw.length!==CAMPAIGN_NODES) throw new Error('expected '+CAMPAIGN_NODES+' encounters, got '+(raw&&raw.length));
@@ -2059,6 +2081,12 @@ function campCompile(){
     for(const e of raw){
       const gf=e.rewards&&e.rewards.glyphFragments;
       if(!Array.isArray(gf)||!gf.length) throw new Error('stage '+e.node+' has no authored glyphFragments');
+      if(isHeroRewardStageSrv(e.node)){
+        const expected=eliteHeroForSrv(e.node), final=e.waves&&e.waves[2];
+        if(e.rewardHero!==expected) throw new Error('stage '+e.node+' rewardHero is '+e.rewardHero+', expected '+expected);
+        if(!Array.isArray(final)||!final.some(m=>m&&m.isHero&&m.rewardHero&&m.key===expected)) throw new Error('stage '+e.node+' final wave is missing reward hero '+expected);
+        if(campIsBoss(e.node)&&!final.some(m=>m&&m.boss)) throw new Error('stage '+e.node+' final wave is missing its chapter boss');
+      }
       for(const f of gf){ if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error('stage '+e.node+' glyph target malformed');
         const q=f.key.slice(0,f.key.lastIndexOf(' '));
         if(GLYPH_LADDER.indexOf(q)<0) throw new Error('stage '+e.node+' glyph target has illegal quality "'+q+'"');
@@ -3301,19 +3329,19 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':csweep:'+reqId,()=>{
       const led=ensureLedger(me); const mode=portalModeOf(b.mode); const prog=portalProg(led,mode);
-      const lockMsg=portalLocked(led,mode); if(lockMsg) return {ok:false,error:lockMsg};
+      const lockMsg=portalLocked(led,mode)||portalChapterLocked(led,mode,b.node|0); if(lockMsg) return {ok:false,error:lockMsg};
       const node=b.node|0; const st=portalStageOf(mode,node); if(!st) return {ok:false,error:'Unknown stage.'};
       if(node>prog.cleared) return {ok:false,error:'Clear the stage first.'};
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
       if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(prog.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
-      const elite=(mode==='normal' && isEliteStageSrv(node)) || campIsBoss(node);   // guardian (3/6/9, normal portal — the stages that pay a hero fragment) & boss (10) stages: 3 rewarded runs/day, sweeps included. Was node%5===0, which capped 5/15/25 and never a guardian.
+      const elite=mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)) || campIsBoss(node);   // every Elite stage and Normal 3/6/9/10: 3 rewarded runs/day, sweeps included
       prog.runs=prog.runs||{}; const dk=nyDayKey();
       if(prog.runs.k!==dk) prog.runs={k:dk};
       if(elite){ const used=prog.runs['n'+node]|0; const left=Math.max(0,3-used);
         if(left<1) return {ok:false,error:'Daily limit reached (3/day for guardian & boss stages).'};
         times=Math.min(times,left); }
-      const cost=(campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL)*times;
+      const cost=((mode==='elite'||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL)*times;
       ledStamRegen(led); if(led.stam.v<cost) return {ok:false,error:'Not enough stamina.'};
       led.stam.v-=cost;
       if(elite) prog.runs['n'+node]=(prog.runs['n'+node]|0)+times;
@@ -3324,11 +3352,11 @@ async function api(req,res,url){
       const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
       ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
-      // Farm Map v1: a sweep grants the SAME named fragment the stage always drops, ×times.
-      const glyphFragments=glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity*times})));
-      // v250: guardian stages grant their hero's summon fragment ON THE SERVER (1/run)
+      // A sweep grants the stage's authored Glyph reward; Elite pays two per run.
+      const glyphFragments=glyphGrantNamedList(me,campaignGlyphDrops(st,times,srvSeed('campglyph-sweep',me.id,mode,node,reqId)));
+      // Guardian and boss reward stages grant the fragment of the hero fought in their final wave.
       let eliteFrag=null;
-      if(mode==='normal' && isEliteStageSrv(node)){ const hk=eliteHeroForSrv(node);
+      if(st.rewardHero && (mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)))){ const hk=st.rewardHero||eliteHeroForSrv(node);
         led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+times); eliteFrag={heroKey:hk, qty:times}; }
       writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
@@ -3493,7 +3521,7 @@ async function api(req,res,url){
     const _led=ensureLedger(me), _pr=portalProg(_led,mode);
     return send(res,200,{stage:st, mode, portal:PORTAL_LABEL[mode], yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
       bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(_led),
-      locked:portalLocked(_led,mode), cleared:_pr.cleared|0,
+      locked:portalLocked(_led,mode)||portalChapterLocked(_led,mode,node), cleared:_pr.cleared|0,
       stars:(_pr.stars[node]|0), sweepUnlocked:(_pr.stars[node]|0)>=3,
       farm:(st.rewards.glyphFragments[0]||null) }); }
   /* v266: the whole farm map in one call — every portal's stage list with its ONE named fragment,
@@ -3503,28 +3531,29 @@ async function api(req,res,url){
     return send(res,200,{ modes:PORTAL_MODES.map(m=>{ const pr=portalProg(led,m);
         return { mode:m, label:PORTAL_LABEL[m], stages:PORTAL_SIZE[m], locked:portalLocked(led,m),
           cleared:pr.cleared|0, stars:pr.stars,
-          map:PORTALS[m].list.map(e=>({ node:e.node, id:e.id, fragment:e.rewards.glyphFragments[0] })) }; }),
+          map:PORTALS[m].list.map(e=>({ node:e.node, id:e.id, fragment:e.rewards.glyphFragments[0],
+            fragments:e.rewards.glyphFragments, fragmentRolls:e.rewards.fragmentRolls||0 })) }; }),
       fragmentSources:FRAG_SOURCES }); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
     const led=ensureLedger(me);
     const mode=portalModeOf(b.mode); const prog=portalProg(led,mode);
-    const lockMsg=portalLocked(led,mode); if(lockMsg) return send(res,400,{error:lockMsg});
+    const lockMsg=portalLocked(led,mode)||portalChapterLocked(led,mode,b.node|0); if(lockMsg) return send(res,400,{error:lockMsg});
     const node=b.node|0; const st=portalStageOf(mode,node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
     if(node>prog.cleared+1) return send(res,400,{error:'Stage locked — clear the previous stage first.'});
     /* Daily run cap (elite 3/6/9 & boss 10): refuse up front so stamina is not spent on a run the
        resolve route will not pay. An open, still-valid session for this node is left alone so a
        reconnect can resume the fight it already paid for. */
-    if((isEliteStageSrv(node)||campIsBoss(node)) && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
+    if((mode==='elite'||isEliteStageSrv(node)||campIsBoss(node)) && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
       const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3 && !isDev(me)) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }   // v343: dev accounts exempt (Phil testing 1-5)
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
     for(const k of ids){ if(!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
-    ledStamRegen(led); const cost=campIsBoss(node)?STAM_COST_BOSS:STAM_COST_NORMAL;
+    ledStamRegen(led); const cost=(mode==='elite'||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL;
     /* v273 (audit response §4.5) — RECONNECT RESUMES, IT DOES NOT RE-CHARGE.
        Closing the app mid-battle used to abandon the frozen session and take the stamina again on the
        next attempt. Now: the same stage returns the SAME session (same seed, same snapshots — no
@@ -3691,11 +3720,11 @@ async function api(req,res,url){
         const _cs=(b.stars!=null)?(b.stars|0):((_cp && _cp.stars!=null)?(_cp.stars|0):(rep.stars|0));
         stars=Math.max(1,Math.min(3,_cs));
         const first=a.node>prog.cleared;
-        /* DAILY RUN CAP — the SAME 3-rewarded-runs/day budget /api/campaign/sweep enforces for guardian
-           & boss stages (node%5===0), on the SAME prog.runs counter, so manual runs and sweeps share
+        /* DAILY RUN CAP — the SAME 3-rewarded-runs/day budget /api/campaign/sweep enforces for Guardian
+           and boss stages (3/6/9/10), on the SAME prog.runs counter, so manual runs and sweeps share
            one budget. A first clear always pays and never spends the budget. A capped repeat win still
            records stars / cleared / the receipt, but pays nothing and says so (reward.dailyCapped). */
-        const capStage=(isEliteStageSrv(a.node)||campIsBoss(a.node));   // v343 (Phil): the capped stages are 3/6/9/10 — node%5 was wrongly capping x-5 and missing 3/6/9
+        const capStage=mode==='elite'||isEliteStageSrv(a.node)||campIsBoss(a.node);   // every Elite stage; Normal 3/6/9/10
         let rewarded=true;
         if(capStage && !first){
           prog.runs=prog.runs||{}; const _rdk=nyDayKey(); if(prog.runs.k!==_rdk) prog.runs={k:_rdk};
@@ -3711,21 +3740,21 @@ async function api(req,res,url){
         if(first) prog.cleared=a.node;
         if(stars>(prog.stars[a.node]|0)) prog.stars[a.node]=stars;
         ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
-        // Correction Spec v1: the stage's EXACT named Glyph Fragment target, granted server-side
-        reward.glyphFragments=rewarded?glyphGrantNamedList(me,(st.rewards.glyphFragments||[]).map(f=>({key:f.key,quantity:f.quantity}))):[];
+        // Ordinary Normal stages pay two distinct server-seeded fragments from their visible pool of four.
+        reward.glyphFragments=rewarded?glyphGrantNamedList(me,campaignGlyphDrops(st,1,srvSeed('campglyph-clear',me.id,mode,a.node,reqId))):[];
         /* GUARDIAN STAGES PAY THEIR FRAGMENT ON THIS ROUTE TOO. The DROPS panel promises x2-4 hero
            fragments on a normal-portal elite stage, and the sweep route + /api/elite/resolve both
            grant them — but manual play resolved HERE granted none, so a signed-in player got nothing,
            first clear included (and a first clear can never be swept: sweep needs three stars).
            Capped on the SAME 3-rewarded-runs-per-day budget the sweep route enforces, so this is not
            a new uncapped farm; the amount is what every other path already pays. */
-        if(mode==='normal' && isEliteStageSrv(a.node)){
+        if(rewarded && st.rewardHero && (mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(a.node)))){
           prog.runs=prog.runs||{}; const _dk=nyDayKey(); if(prog.runs.k!==_dk) prog.runs={k:_dk};
           const _used=prog.runs['n'+a.node]|0;
-          if(_used<3){
-            const _hk=eliteHeroForSrv(a.node);
+          if(_used<3 || (capStage&&!first)){
+            const _hk=st.rewardHero||eliteHeroForSrv(a.node);
             const _amt=first?(2+(srvSeed('efrag', me.id, a.node, reqId)%3)):1;   // first clear: the advertised 2-4 roll; farm runs: +1, same as a sweep run
-            prog.runs['n'+a.node]=_used+1;
+            if(first) prog.runs['n'+a.node]=_used+1;   // repeats were counted once by the shared cap above
             led.frags=led.frags||{};
             led.frags[_hk]=Math.min(9999,(led.frags[_hk]|0)+_amt);
             reward.eliteFrag={heroKey:_hk, qty:_amt};
@@ -3811,7 +3840,7 @@ async function api(req,res,url){
     if(req.method!=='POST') return send(res,404,{error:'loop'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/elite/resolve'){ const out=idem(me.id+':elite:'+reqId,()=>{
-        const node=b.node|0; if(!isEliteStageSrv(node)) return {ok:false,error:'Not an elite stage.'};
+        const node=b.node|0; if(!isHeroRewardStageSrv(node)) return {ok:false,error:'Not a hero-reward stage.'};
         if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
         const dk=nyDayKey(); led.eliteDay=led.eliteDay&&led.eliteDay.k===dk?led.eliteDay:{k:dk};
         if((led.eliteDay[node]|0)>=3) return {ok:false,error:'Elite rewards are limited to 3 per day.'};
@@ -3825,7 +3854,7 @@ async function api(req,res,url){
         const r=SIM.qualificationEstimate(snaps.map(band), waves, srvSeed('elite', me.id, node, reqId));
         if(!r.result.won) return {ok:true, won:false};
         led.eliteDay[node]=(led.eliteDay[node]|0)+1;
-        const hk=eliteHeroForSrv(node);
+        const hk=st.rewardHero||eliteHeroForSrv(node);
         const frags=2+(srvSeed('efrag', me.id, node, reqId)%3);
         led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+frags);
         for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+70); }
