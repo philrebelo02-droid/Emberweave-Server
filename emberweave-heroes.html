@@ -3978,7 +3978,7 @@ function queueInput(inp){
 function applyInput(inp){
   /* v270: flipping AUTO is a player action too. Recording it is what lets a fight the player put on
      auto replay as the same fight — otherwise the server would run a battle where nobody ultimates. */
-  if(inp.k==='auto'){ autoUlt=!!inp.tid; return; }
+  if(inp.k==='auto'){ autoUlt=!!inp.tid; try{ refreshCtrlBtns(); }catch(e){} return; }
   const u=unitByUid(inp.uid); if(!u||!u.alive) return;
   if(inp.k==='ult'){
     if(u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0) return;   // an illegal fire simply does not happen
@@ -4325,7 +4325,13 @@ function shadowTex(){ if(_shadowTex)return _shadowTex; const c=document.createEl
   x.fillStyle=gr; x.fillRect(0,0,64,64); _shadowTex=new TH.CanvasTexture(c); return _shadowTex; }
 // battlefield unit as a 2D sprite (the hero's cutout art) standing on the 3D field
 function buildFigure(u){
-  if(window._p2guard) return;   // v270: a headless fight (server replay / verification) builds no meshes
+  if(window._p2guard){
+    /* Headless replay skips meshes and textures, but strike timing still reads clip metadata through
+       u.anim (fuseStrike/clipDur). Omitting it made the server land attacks earlier than the browser.
+       BATTLE_ANIM is plain authored timing data and is safe to attach without loading any art. */
+    u.anim=BATTLE_ANIM[u.key]||null;
+    return;
+  }
   if(!HERO_SPRITES[u.key] && !heroHasAnim(u.key)) return buildFigure3D(u);   // low-poly only when there is neither a cutout NOR a sheet
   const g=new TH.Group();
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
@@ -16255,8 +16261,12 @@ document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.ind
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle())return;
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
-document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; autoUlt=!autoUlt;
-  if(state==='battle'&&!ended) queueInput({k:'auto', uid:-1, tid:(autoUlt?1:0)});   // v270: recorded, so the replay matches
+document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; const next=!autoUlt;
+  /* The toggle is a battle input, so it changes AUTO only when applyInput reaches its recorded tick.
+     Applying it here too made the browser use AUTO for the nine receipt-delay ticks before the
+     server replay did, which produced honest digest mismatches. */
+  if(state==='battle'&&!ended) queueInput({k:'auto', uid:-1, tid:(next?1:0)});
+  else autoUlt=next;
   refreshCtrlBtns();};
 
 /* 28 Aug — a real measurement instead of another guess about why the game is slow on a phone.
@@ -16403,7 +16413,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789411918718';
+const BUILD_ID = '1789416636877';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
