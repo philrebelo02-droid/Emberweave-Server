@@ -14277,17 +14277,17 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   }
   const today=arenaDayKey();
   consolidateDailyPacks();   // one stacked entry per pack type; claimable once per day
-  // 1) purchased packs (Cluster / Burger) — pinned to the very top; recurring, never removed until they expire
-  let packsHtml='';
+  // Every claimable item belongs at the top. Recurring packs remain after a daily claim,
+  // but become ongoing items below every reward that is ready now.
+  const cards=[];   // {ready, html}
   (G.dailyPacks||[]).forEach(p=>{ const ready=(p.lastClaim!==today && p.daysLeft>0);
     const rew=(p.type==='gems')?('💎 '+p.amount+' diamonds'):('⧗ '+p.amount+' stamina');
-    packsHtml+=`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
+    cards.push({ready, html:`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
       <div class="qh"><div class="qt">🎁 ${escapeHTML(p.name)}</div><div class="qrew">${rew} / day</div></div>
       <div class="qd">Daily reward pack — <b style="color:#ffd45e">${p.daysLeft}</b> day${p.daysLeft===1?'':'s'} remaining.</div>
       <div class="qmeta"><span>${ready?'✨ Ready to claim':'✔ Claimed today · resets 09:00'}</span>
-        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.id}" ${ready?'':'disabled'}>${ready?'Claim':'Claimed'}</button></div></div>`; });
-  // 2) regular quests — completed (claimable) ones bubble to the top; claimed/finished ones drop off the log entirely
-  const cards=[];   // {ready, html}
+        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.id}" ${ready?'':'disabled'}>${ready?'Claim':'Claimed'}</button></div></div>`}); });
+  // Chained quests show only their current step. Claimed one-offs have no follow-up and disappear.
   if(!questChainDone()){ const chSteps=questChainDef(); const step=G.questChainStep||0, chReady=questChainReady();
     const st=chSteps[step], node=st.node, chProg=Math.min(node,G.campaignCleared||0);
     const rewLbl=st.gems?('💎 '+st.gems+' diamonds'):('×'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments');
@@ -14308,7 +14308,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   // completed quests always sit at the top; claim one and the next completed quest rises up
   cards.sort((a,b)=> (b.ready?1:0)-(a.ready?1:0));
   const questHtml=cards.map(c=>c.html).join('');
-  b.innerHTML = (packsHtml + questHtml) || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">🎉 All quests complete! New quests will appear here as you play.</div>';
+  b.innerHTML = questHtml || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">🎉 All quests complete! New quests will appear here as you play.</div>';
   const cc=b.querySelector('#qcClaim'); if(cc)cc.onclick=claimChain;
   b.querySelectorAll('button[data-q]').forEach(btn=>btn.onclick=()=>{ const q=questDefs().find(x=>x.id===btn.dataset.q); if(q)claimQuest(q); });
   b.querySelectorAll('button[data-pack]').forEach(btn=>btn.onclick=()=>claimDailyPack(btn.dataset.pack));
@@ -14440,8 +14440,11 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
   let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?'🎉 All done!':'Your journey begins'}</div>
     <div style="font-size:12px;color:#8b98a9;margin-top:2px">${doneCount} / ${TUTORIAL_STEPS.length} steps complete</div>
     <div class="qbar" style="margin-top:6px"><i style="width:${Math.round(doneCount/TUTORIAL_STEPS.length*100)}%"></i></div></div>`;
+  // Start Here is one chain: once a step is claimed, the next step replaces it.
+  // This keeps the claimable current lesson first and all upcoming lessons underneath it.
   TUTORIAL_STEPS.forEach((s,i)=>{ const claimed=!!(G.tutRewarded&&G.tutRewarded[s.id]), isCur=(cur&&cur.id===s.id), ready=isCur&&s.done();
-    html+=`<div class="qcard${claimed?' done':ready?' ready':''}" style="${claimed?'opacity:.65':''}">
+    if(claimed)return;
+    html+=`<div class="qcard${ready?' ready':''}">
       <div class="qh"><div class="qt">${claimed?'✅':s.icon} ${escapeHTML(s.title)}</div></div>
       <div class="qd">${escapeHTML(s.desc)}</div>
       <div class="qrew" style="font-size:11px;line-height:1.35;margin:1px 0 8px">🎁 ${escapeHTML(s.rewardLabel)}</div>
@@ -16400,7 +16403,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789409720443';
+const BUILD_ID = '1789411918718';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
