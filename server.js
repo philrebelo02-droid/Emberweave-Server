@@ -1859,6 +1859,18 @@ function ledStamRegen(led){ const now=Date.now(); const mx=ledStamMax(led);
   if(led.stam.v<mx){ const g=Math.floor((now-led.stam.ts)/STAM_REGEN_MS);
     if(g>0){ led.stam.v=Math.min(mx,led.stam.v+g); led.stam.ts+=g*STAM_REGEN_MS; } }
   else led.stam.ts=now; }
+const STAMINA_PER_PLAYER_LEVEL=30;
+function ledAddPlayerXP(led,amount){
+  ledStamRegen(led);
+  const before=ledPlayerLevel(led);
+  led.px=Math.min(99000000,(led.px||0)+Math.max(0,amount|0));
+  const gained=Math.max(0,ledPlayerLevel(led)-before);
+  if(gained){
+    led.stam.v=Math.min(999,led.stam.v+STAMINA_PER_PLAYER_LEVEL*gained);
+    led.stam.ts=Date.now();
+  }
+  return gained;
+}
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
   return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
@@ -3305,8 +3317,7 @@ async function api(req,res,url){
       const rw=st.rewards;
       const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
       led.gold=Math.min(100000000,led.gold+gold);
-      const beforeLvl=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+px);
-      if(ledPlayerLevel(led)>beforeLvl) led.stam.v=Math.max(led.stam.v,ledStamMax(led));   // level-up refill
+      ledAddPlayerXP(led,px);
       const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
       ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
@@ -3330,7 +3341,7 @@ async function api(req,res,url){
       h.stars=Math.max(SIM.HERO_BASE[k].stars,Math.min(5,b.stars|0)); }
     if(b.gold) led.gold=Math.min(100000000,led.gold+(b.gold|0));
     if(b.gems) led.gems=Math.min(2000000,led.gems+(b.gems|0));
-    if(b.px) led.px=Math.min(99000000,led.px+(b.px|0));
+    if(b.px) ledAddPlayerXP(led,b.px|0);
     if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
     if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
     if(b.campCleared!=null) led.camp.cleared=Math.max(0,Math.min(CAMPAIGN_NODES,b.campCleared|0));   // dev-only fixture
@@ -3451,8 +3462,7 @@ async function api(req,res,url){
       else if(what==='guildCoins') led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+amt);
       else if(what==='gems'){ gemGain(me,amt,reason); led.gems=Math.min(2000000,led.gems+amt); }
       else if(what==='stamina'){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+amt); }
-      else if(what==='px'){ const before=ledPlayerLevel(led); led.px=Math.min(99000000,led.px+amt);
-        if(ledPlayerLevel(led)>before){ ledStamRegen(led); led.stam.v=Math.max(led.stam.v,ledStamMax(led)); } }
+      else if(what==='px') ledAddPlayerXP(led,amt);
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?[...new Set(b.heroKeys.map(String))].slice(0,10):[]);   /* v559: the daily counter moved once per request but the loop paid once per ELEMENT, so ten copies of one key multiplied the award tenfold. */
         for(const k of keys){ if(!led.unlocked[k]) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
       else if(what==='frag'){ const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'};
@@ -3693,7 +3703,7 @@ async function api(req,res,url){
         reward={ gold:rewarded?(first?rw.firstGold:rw.repeatGold):0, playerXp:rewarded?(first?rw.playerXpFirst:rw.playerXpRepeat):0,
                  heroXp:rewarded?(first?rw.heroXpFirst:rw.heroXpRepeat):0, first, dailyCapped:!rewarded, runCounted:(capStage&&!first&&rewarded) };
         led.gold=Math.min(100000000,led.gold+reward.gold);
-        led.px=Math.min(99000000,led.px+reward.playerXp);
+        ledAddPlayerXP(led,reward.playerXp);
         for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
         if(first) prog.cleared=a.node;
         if(stars>(prog.stars[a.node]|0)) prog.stars[a.node]=stars;
@@ -3837,7 +3847,7 @@ async function api(req,res,url){
         let reward=null;
         if(first){ reward=K.reward(floor);
           if(reward.gold) led.gold=Math.min(ECON_CAP.gold,led.gold+reward.gold);
-          if(reward.px){ led.px=Math.min(99000000,led.px+reward.px); }
+          if(reward.px) ledAddPlayerXP(led,reward.px);
           if(reward.heroXp) for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
           ledTx(me,'trial:'+kind+':'+floor,reward); }
         /* v273 (audit response P0) — EQUIPMENT MATERIALS ARE SERVER-OWNED.
