@@ -3,7 +3,7 @@
    Enemy stats come from the blueprint's smooth baseline, calibrated at stage 1 against the REAL
    starter team, then VALIDATED stage by stage in the shared server combat core (35-65% HP left).
    Run with REPORT=1 to validate without writing. */
-const fs=require('fs');
+const fs=require('fs'), os=require('os'), path=require('path');
 const SIM=require('./server/sim.js');
 const D=require(process.env.SNAPS||'/tmp/tune_snaps.json');
 const P=__dirname+'/server/campaign-encounters.json';
@@ -54,7 +54,11 @@ const MON={
   'whisp candle':{hp:110,dmg:18,role:'Mage'},
   'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},
   'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26} };
-function monUnit(m){ const base=MON[m.key]||{hp:200,dmg:18};
+function monUnit(m){
+  if(m.isHero&&D.levels[String(Math.max(1,Math.min(100,m.lvl|0||1)))][m.key]){
+    const u=heroUnit(m.key,m.lvl||1,m.rank||0); u.maxHp=Math.max(1,Math.round(u.maxHp*(m.hpMul||1))); u.hp=0;
+    u.atkP=Math.round((u.atkP||0)*(m.dmgMul||1)); u.atkM=Math.round((u.atkM||0)*(m.dmgMul||1)); u.atk=Math.max(u.atkP,u.atkM); return u; }
+  const base=MON[m.key]||{hp:200,dmg:18};
   const sc=1+0.05*((m.lvl|0||1)-1), bh=m.boss?2.4*1.15:1, bd=m.boss?1.8:1;
   return { key:m.key, role:(base.role==='Tank'||m.boss)?'Tank':'Bruiser', healer:false,
     maxHp:Math.round(base.hp*sc*(m.hpMul||1)*bh), hp:0, energy:0,
@@ -90,8 +94,10 @@ function targetFor(s){
 const teamFor=(s,t)=>(s<=3?SQ.slice(0,3):s<=6?SQ.slice(0,4):SQ).map(h=>heroUnit(h,t.L,t.tf));
 
 /* the blueprint's smooth baseline */
-const baseHp =s=>Math.pow(1.045,s-1)*(s%10===5?1.08:1)*(s%10===0?1.16:1);
-const baseDmg=s=>Math.pow(1.035,s-1)*(s%10===5?1.05:1)*(s%10===0?1.10:1);
+const rewardSlot=s=>((s-1)%10)+1;
+const isGuardianNode=s=>[3,6,9].includes(rewardSlot(s));
+const baseHp =s=>Math.pow(1.045,s-1)*(isGuardianNode(s)?1.08:1)*(s%10===0?1.16:1);
+const baseDmg=s=>Math.pow(1.035,s-1)*(isGuardianNode(s)?1.05:1)*(s%10===0?1.10:1);
 
 // ---- player XP: first-clear Portal supplies 82% of the level path (blueprint: 80-85%) ----
 const D_MAX_LEVEL=100;
@@ -103,6 +109,17 @@ const T_CUM=cum(runSum(D_TROOP_INC)), PORTAL_SHARE=0.82;
 const C=JSON.parse(fs.readFileSync(P,'utf8'));
 const all=Object.values(C).sort((a,b)=>a.node-b.node);
 const stages=all.filter(e=>e.node<=100);            // blueprint: NO chapters 11+
+
+const REWARD_HEROES=['tick','sylthaine','vireo','vael','fritz','rhukk','bloatus','umbris','oakmir'];
+function rewardHeroForNode(node){ const st=((node-1)%10)+1, slot=({3:0,6:1,9:2,10:3})[st];
+  return slot==null?null:REWARD_HEROES[((Math.floor((node-1)/10)*4)+slot)%REWARD_HEROES.length]; }
+for(const e of stages){ const key=rewardHeroForNode(e.node); if(!key) continue;
+  const wave=e.waves[2]; let at=wave.findIndex(m=>m.rewardHero);
+  if(at<0) for(let i=wave.length-1;i>=0;i--) if(!wave[i].boss&&!wave[i].isHero){ at=i; break; }
+  if(at<0) throw new Error(e.id+': no ordinary final-wave slot for reward hero');
+  wave[at]=Object.assign({},wave[at],{key,isHero:true,rewardHero:true,rank:Math.min(3,Math.floor(e.node/6))});
+  e.rewardHero=key;
+}
 
 // ---- calibrate the single global constant K at stage 1 against the real starter team ----
 function stageWaves(e,s,khp,kdmg,tune){
@@ -127,7 +144,7 @@ console.log('calibration: stage-1 constant K = '+K.toFixed(3));
    the HP the target line finishes with — using the blueprint's own numbers as the shape:
 
      normal   0.56 early drifting to 0.46 by stage 100   (inside the blueprint's 35-65% window)
-     stage 5  the observable elite check                 (-0.06)
+     stages 3/6/9 the observable Guardian checks         (-0.08)
      stage 10 the meaningful, fair boss jump             (-0.12) and it must STOP a line one
               full quality behind (blueprint: "usually fails its chapter boss")
 
@@ -145,7 +162,7 @@ for(const e of stages){ const s=e.node, t=targetFor(s);
 function fracAt(e,s,tune){ return runStage(teams[s], stageWaves(e,s,K,K,tune), seeds[s]); }
 function underAt(e,s,tune){ return runStage(unders[s], stageWaves(e,s,K,K,tune), seeds[s]); }
 function targetFrac(s){ let f=0.62-(0.10*(s-1)/99);
-  if(s%10===5) f-=0.08; if(s%10===0) f-=0.20; return f; }
+  if(isGuardianNode(s)) f-=0.08; if(s%10===0) f-=0.20; return f; }
 
 const report=[]; let cumXp=0, outside=0, bossHolds=0;
 for(const e of stages){
@@ -164,7 +181,7 @@ for(const e of stages){
   if(!(r.won&&r.frac>=0.33&&r.frac<=0.68)) outside++;
   if(boss && !u.won) bossHolds++;
   e.waves=stageWaves(e,s,K,K,tune);
-  e.checkpoint = boss?'boss' : (s%10===5?'guardian':'normal');
+  e.checkpoint = boss?'boss' : (isGuardianNode(s)?'guardian':'normal');
   e.targetLevel=s; e.targetGlyph=t.quality; e.recommendedQuality=t.bandQuality;
   e.qualityMinHeroLevel=MIN_LEVEL[t.bandQuality];
   e.bossLevelGate = boss ? Math.min(100, Math.round(s/10)*10) : 0;   // blueprint boss gates
@@ -217,7 +234,7 @@ console.log('normal stages a line one quality behind can still clear: '+report.f
 
 if(!REPORT){
   fs.writeFileSync(P, JSON.stringify(stages,null,1));   // the file is a JSON ARRAY — campCompile requires it
-  fs.writeFileSync('/tmp/bp_report.json', JSON.stringify(report,null,1));
+  fs.writeFileSync(path.join(os.tmpdir(),'bp_report.json'), JSON.stringify(report,null,1));
   console.log('written: '+stages.length+' stages');
 }
 console.log(report.filter(r=>/-(1|5|10)$/.test(r.id)).map(r=>
