@@ -23,10 +23,20 @@ ck('every stage has three fixed authored waves', S.every(e=>e.waves.length===3),
   JSON.stringify([...new Set(S.map(e=>e.waves.length))]));
 ck('every stage-10 puts a distinct boss in wave 3',
   S.filter(e=>e.node%10===0).every(e=>e.waves[2].some(m=>m.boss)));
-ck('bosses only ever stand in wave 3, and only on a stage 5 or stage 10',
-  S.every(e=>e.waves.every((w,i)=>w.every(m=>!m.boss||(i===2&&(e.node%10===0||e.node%10===5))))));
-ck('stage 5 of every chapter is the elite checkpoint',
-  S.filter(e=>e.node%10===5).every(e=>e.checkpoint==='guardian'));
+const REWARD_HEROES=['tick','sylthaine','vireo','vael','fritz','rhukk','bloatus','umbris','oakmir'];
+const rewardSlot=s=>({3:0,6:1,9:2,10:3})[((s-1)%10)+1];
+const rewardHero=s=>REWARD_HEROES[((Math.floor((s-1)/10)*4)+rewardSlot(s))%REWARD_HEROES.length];
+const rewardStages=S.filter(e=>[3,6,9,0].includes(e.node%10));
+ck('stages 3, 6, 9 and 10 put their exact sweep-reward hero in wave 3',
+  rewardStages.every(e=>e.waves[2].some(m=>m.isHero&&m.rewardHero&&m.key===rewardHero(e.node))),
+  JSON.stringify(rewardStages.filter(e=>!e.waves[2].some(m=>m.isHero&&m.rewardHero&&m.key===rewardHero(e.node))).map(e=>e.id)));
+ck('stage 10 always fights both its reward hero and its chapter boss',
+  S.filter(e=>e.node%10===0).every(e=>e.waves[2].some(m=>m.isHero&&m.rewardHero)&&e.waves[2].some(m=>m.boss)));
+ck('bosses only ever stand in wave 3, and only on stage 10',
+  S.every(e=>e.waves.every((w,i)=>w.every(m=>!m.boss||(i===2&&e.node%10===0)))));
+ck('stages 3, 6 and 9 of every chapter are the Guardian checkpoints',
+  S.filter(e=>[3,6,9].includes(e.node%10)).every(e=>e.checkpoint==='guardian') &&
+  S.filter(e=>![3,6,9].includes(e.node%10)&&e.node%10!==0).every(e=>e.checkpoint==='normal'));
 
 // the exact quality path and its level gates
 ck('every stage names the quality it is built for and that quality is on the frozen ladder',
@@ -66,32 +76,35 @@ ck('Portal first-clears supply 80–85% of the whole level path',
 ck('player XP never goes backwards stage to stage',
   S.every((e,i)=>i===0||e.rewards.playerXpFirst>=S[i-1].rewards.playerXpFirst*0.5));
 
-// rewards
-// v266 (Farm Map v1): ONE primary family per stage — no bonus rows, no unrelated families
-ck('every stage names exactly ONE glyph fragment family',
-  S.every(e=>e.rewards.glyphFragments.length===1),
-  JSON.stringify(S.filter(e=>e.rewards.glyphFragments.length!==1).slice(0,3).map(e=>e.id)));
+// rewards: ordinary stages roll two distinct fragments from four visible possibilities;
+// Guardian/boss Normal stages keep their fixed reward.
+const ordinary=S.filter(e=>![3,6,9,0].includes(e.node%10));
+const rewardNodes=S.filter(e=>[3,6,9,0].includes(e.node%10));
+ck('ordinary Normal stages roll two from four distinct named fragments',
+  ordinary.every(e=>e.rewards.fragmentRolls===2&&e.rewards.glyphFragments.length===4
+    &&new Set(e.rewards.glyphFragments.map(f=>f.key)).size===4));
+ck('Guardian and boss Normal stages keep one fixed named fragment',
+  rewardNodes.every(e=>e.rewards.glyphFragments.length===1));
 ck('every reward line carries an exact name and a count (never "9 grey fragments")',
   S.every(e=>e.rewards.glyphFragments.every(f=>f.key&&f.fragmentId&&f.displayName&&f.quantity>=1)));
 // the farm map deliberately offers materials a few stages BEFORE the matching level gate, so the
 // fragment quality tracks the ladder without having to equal the stage's recommended quality
 const LI=q=>LADDER.indexOf(q);
-ck('fragment quality never goes backwards across the Normal Portal',
-  S.every((e,i)=>i===0||LI(e.rewards.glyphFragments[0].key.slice(0,e.rewards.glyphFragments[0].key.lastIndexOf(' ')))
-    >=LI(S[i-1].rewards.glyphFragments[0].key.slice(0,S[i-1].rewards.glyphFragments[0].key.lastIndexOf(' ')))));
-ck('the fragment on offer is never more than one ladder step past the stage\'s own quality goal',
-  S.every(e=>{ const k=e.rewards.glyphFragments[0].key; const q=k.slice(0,k.lastIndexOf(' '));
-    return LI(q)-LI(e.recommendedQuality)<=1; }),
-  JSON.stringify(S.filter(e=>{ const k=e.rewards.glyphFragments[0].key; const q=k.slice(0,k.lastIndexOf(' '));
-    return LI(q)-LI(e.recommendedQuality)>1; }).slice(0,3).map(e=>e.id+':'+e.rewards.glyphFragments[0].key+' vs '+e.recommendedQuality)));
+ck('the first two ordinary stages expose all eight Grey glyph families',
+  new Set([...S[0].rewards.glyphFragments,...S[1].rewards.glyphFragments].map(f=>f.key)).size===8
+  && [...S[0].rewards.glyphFragments,...S[1].rewards.glyphFragments].every(f=>f.key.startsWith('Grey ')));
+ck('ordinary fragment pools progress from Grey to Orange without reversing',
+  ordinary.every((e,i)=>i===0||LI(e.rewards.glyphFragments[0].key.slice(0,e.rewards.glyphFragments[0].key.lastIndexOf(' ')))
+    >=LI(ordinary[i-1].rewards.glyphFragments[0].key.slice(0,ordinary[i-1].rewards.glyphFragments[0].key.lastIndexOf(' ')))));
 // (whole-catalogue fragment coverage is proven across all three portals in test_farm_map.js)
 
 // the difficulty curve
-const normalBase=e=>e.baselineHp/((e.node%10===5?1.08:1)*(e.node%10===0?1.16:1));
+const isGuardian=e=>[3,6,9].includes(e.node%10);
+const normalBase=e=>e.baselineHp/((isGuardian(e)?1.08:1)*(e.node%10===0?1.16:1));
 ck('the normal-growth baseline rises every single stage',
   S.every((e,i)=>i===0||normalBase(e)>normalBase(S[i-1])));
-ck('stage 5 and stage 10 carry the blueprint elite/boss steps',
-  S.filter(e=>e.node%10===5).every(e=>Math.abs(e.baselineHp/Math.pow(1.045,e.node-1)-1.08)<0.01) &&
+ck('stages 3/6/9 and stage 10 carry the Guardian/boss steps',
+  S.filter(isGuardian).every(e=>Math.abs(e.baselineHp/Math.pow(1.045,e.node-1)-1.08)<0.01) &&
   S.filter(e=>e.node%10===0).every(e=>Math.abs(e.baselineHp/Math.pow(1.045,e.node-1)-1.16)<0.01));
 ck('every stage records the validated correction applied to the baseline',
   S.every(e=>typeof e.difficultyTune==='number'&&e.difficultyTune>0));

@@ -11,23 +11,33 @@ const normalStages=load('campaign-encounters.json');
 const eliteStages=load('elite-campaign-encounters.json');
 const veteranStages=load('veteran-campaign-encounters.json');
 const fid=s=>s.rewards.glyphFragments[0].fragmentId;
-const normalFragmentIds=normalStages.map(fid), eliteFragmentIds=eliteStages.map(fid), vetIds=veteranStages.map(fid);
+const ordinaryNormal=normalStages.filter(s=>![3,6,9,0].includes(s.node%10));
+const normalFragmentIds=ordinaryNormal.flatMap(s=>s.rewards.glyphFragments.map(f=>f.fragmentId));
+const eliteFragmentIds=eliteStages.map(fid), vetIds=veteranStages.map(fid);
 
 console.log('== exact glyph fragment farm map v1 ==');
 // the spec's own assertion block
 ck('normalStages.length === 100', normalStages.length===100, String(normalStages.length));
 ck('eliteStages.length === 100', eliteStages.length===100, String(eliteStages.length));
-ck('every Normal stage names exactly ONE glyph fragment', normalStages.every(s=>s.rewards.glyphFragments.length===1));
-ck('every Elite stage names exactly ONE glyph fragment', eliteStages.every(s=>s.rewards.glyphFragments.length===1));
+ck('every ordinary Normal stage offers four distinct glyph fragments and rolls two', ordinaryNormal.every(s=>s.rewards.glyphFragments.length===4
+  && new Set(s.rewards.glyphFragments.map(f=>f.key)).size===4 && s.rewards.fragmentRolls===2));
+ck('Guardian and boss Normal stages keep one fixed glyph fragment', normalStages.filter(s=>[3,6,9,0].includes(s.node%10)).every(s=>s.rewards.glyphFragments.length===1));
+ck('every Elite stage awards two of one named Glyph Fragment', eliteStages.every(s=>s.rewards.glyphFragments.length===1&&s.rewards.glyphFragments[0].quantity===2));
+const eliteHeroStages=eliteStages.filter(s=>s.rewardHero);
+ck('four selected Elite stages per chapter reward heroes', eliteHeroStages.length===40
+  &&eliteHeroStages.every(s=>[1,4,7,0].includes(s.node%10)));
+ck('every hero-reward Elite stage fights its authored hero', eliteHeroStages.every(s=>
+  s.waves[s.waves.length-1].some(m=>m.isHero&&m.rewardHero&&m.key===s.rewardHero)));
+ck('1-star rewards run through 2-1 and 2-star rewards begin at 2-4',
+  eliteStages.find(s=>s.id==='2-1').rewardHero==='tick'&&['fritz','rhukk'].includes(eliteStages.find(s=>s.id==='2-4').rewardHero));
 ck('every Veteran stage names exactly ONE glyph fragment', veteranStages.every(s=>s.rewards.glyphFragments.length===1));
-ck('unique(normalFragmentIds).size === 100', uniq(normalFragmentIds).size===100, String(uniq(normalFragmentIds).size));
+ck('ordinary Normal pools cover all 218 fragment types', uniq(normalFragmentIds).size===218, String(uniq(normalFragmentIds).size));
 ck('unique(eliteFragmentIds).size === 100', uniq(eliteFragmentIds).size===100, String(uniq(eliteFragmentIds).size));
-ck('intersection(normal, elite) === 0', normalFragmentIds.filter(x=>eliteFragmentIds.includes(x)).length===0,
-  normalFragmentIds.filter(x=>eliteFragmentIds.includes(x)).slice(0,4).join(','));
+ck('every Elite fragment also has an ordinary Normal home', eliteFragmentIds.every(x=>normalFragmentIds.includes(x)));
 ck('veteranOrangeFragmentIds.size === 18', uniq(vetIds).size===18, String(uniq(vetIds).size));
 ck('every Veteran fragment is Orange', veteranStages.every(s=>s.rewards.glyphFragments[0].key.startsWith('Orange ')));
 
-// the catalog is fully covered, and nothing is farmed twice
+// the catalog is fully covered by ordinary Normal stages; Elite/Veteran remain alternate sources
 const raw=Object.values(require('../server/glyph-source.json'));
 const catalog=new Set();
 for(const d of raw){ if(d.family) catalog.add(slug(d.quality+' '+d.family)); }
@@ -36,29 +46,25 @@ ck('the catalog defines 218 raw fragment families', catalog.size===218, String(c
 ck('allGlyphFragmentIds.size === 218', uniq(all).size===218, String(uniq(all).size));
 ck('every fragment has at least one source', [...catalog].every(c=>all.includes(c)),
   [...catalog].filter(c=>!all.includes(c)).slice(0,5).join(', '));
-ck('no fragment has more than ONE source', all.length===uniq(all).size,
-  all.filter((x,i)=>all.indexOf(x)!==i).slice(0,5).join(', '));
+ck('all 60 ordinary Normal stages are used', ordinaryNormal.length===60, String(ordinaryNormal.length));
 
 // the positional map itself — spot-checks straight out of the spec's own examples
 const nAt=id=>normalStages.find(s=>s.id===id).rewards.glyphFragments[0].key;
 const eAt=id=>eliteStages.find(s=>s.id===id).rewards.glyphFragments[0].key;
-ck('spec example: Normal 1-5 drops Green Stoneheart', nAt('1-5')==='Green Stoneheart', nAt('1-5'));
-ck('spec example: Normal 1-10 drops Green Windstep', nAt('1-10')==='Green Windstep', nAt('1-10'));
-ck('Normal 1-1 drops Grey Stoneheart', nAt('1-1')==='Grey Stoneheart', nAt('1-1'));
-ck('Normal 10-10 drops Gold +4 Bloodroot', nAt('10-10')==='Gold +4 Bloodroot', nAt('10-10'));
+ck('Normal 1-1 begins the progression-ordered ordinary pools', nAt('1-1')==='Grey Stoneheart', nAt('1-1'));
 ck('Elite 1-1 drops Grey Windstep', eAt('1-1')==='Grey Windstep', eAt('1-1'));
 ck('Elite 10-10 drops Gold +4 Voidbind', eAt('10-10')==='Gold +4 Voidbind', eAt('10-10'));
 ck('Veteran 1-1 drops Orange Stoneheart', veteranStages[0].rewards.glyphFragments[0].key==='Orange Stoneheart');
 ck('Veteran 2-8 drops Orange Cataclysm', veteranStages[17].rewards.glyphFragments[0].key==='Orange Cataclysm');
 
-// no Normal/Elite stage may quietly show unrelated families, and a boss may only give MORE of its own
-ck('a boss stage grants extra copies of ITS OWN named fragment, never a different one',
+// fixed Guardian/boss Normal rewards and the stronger Elite variant
+ck('a boss stage grants extra copies of its fixed named fragment',
   normalStages.filter(s=>s.node%10===0).every(s=>s.rewards.glyphFragments.length===1 && s.rewards.glyphFragments[0].quantity===2));
 ck('Elite Portal is a stronger fixed version of the matching Normal stage',
   eliteStages.every((e,i)=>e.id===normalStages[i].id && e.waves.length===normalStages[i].waves.length
     && e.waves[0][0].hpMul>normalStages[i].waves[0][0].hpMul));
-ck('Elite never randomises: every wave keeps the Normal stage line-up',
-  eliteStages.every((e,i)=>JSON.stringify(e.waves.map(w=>w.map(m=>m.key)))===JSON.stringify(normalStages[i].waves.map(w=>w.map(m=>m.key)))));
+ck('Elite keeps the Normal wave sizes while replacing one final-wave enemy with its reward hero',
+  eliteStages.every((e,i)=>e.waves.every((w,wi)=>w.length===normalStages[i].waves[wi].length)));
 ck('every stage record carries its portal mode', normalStages.every(s=>s.portalMode==='normal')
   && eliteStages.every(s=>s.portalMode==='elite') && veteranStages.every(s=>s.portalMode==='veteran'));
 

@@ -28,7 +28,7 @@ ck('migration is one-time (idempotent)', g.flow2At===flowStamp);
 // ---- AUTHORED per-stage named drops (read from campaign-encounters.json records) ----
 const st1=S.campStageOf(1), st15=S.campStageOf(15), st10=S.campStageOf(10);
 ck('stage 1 record authors Grey Stoneheart ×1', st1.rewards.glyphFragments[0].key==='Grey Stoneheart' && st1.rewards.glyphFragments[0].quantity===1);
-ck('chapter 2 record authors its own named Green fragment', st15.rewards.glyphFragments[0].key.startsWith('Green ') && st15.rewards.glyphFragments[0].key!==st1.rewards.glyphFragments[0].key);
+ck('ordinary chapter 2 record exposes a four-fragment pool and rolls two', st15.rewards.glyphFragments.length===4 && st15.rewards.fragmentRolls===2);
 ck('boss stage records author ×2', st10.rewards.glyphFragments[0].quantity===2);
 ck('all 100 records carry a validated named target', [...Array(100)].every((_,i)=>{ const st=S.campStageOf(i+1); return st&&st.rewards.glyphFragments&&st.rewards.glyphFragments.length>=1; }));
 
@@ -64,24 +64,22 @@ ck('Gold tree: multi-level lineage (predecessors of predecessors)',
    treeG.kind==='finishedGlyph' && (treeG.children||[]).some(c=>c.kind==='finishedGlyph' && (c.children||[]).some(cc=>cc.kind==='finishedGlyph'||cc.kind==='subGlyph')));
 ck('every leaf in both trees is a FARMABLE fragment (family exists at its own tier)',
    [...leaves(treeP,[]),...leaves(treeG,[])].every(l=>S.glyphSupplyOK({ing:[{kind:'frag',key:l.key,qty:1}]})));
-// v266 (Farm Map v1): a source is now {mode, stageId} and must resolve inside that exact portal
-ck('every leaf names ONE fixed source, and that portal stage really drops it',
+// A fragment can have multiple sources; every source must resolve to a stage that visibly offers it.
+ck('every leaf names at least one valid stage source that offers it',
    [...leaves(treeP,[]),...leaves(treeG,[])].every(l=>{
-     const src=l.sources||[]; if(src.length!==1) return false;
-     const x=src[0]; const m=/^(\d+)-(\d+)$/.exec(String(x.stageId||'')); if(!m) return false;
-     const st=S.portalStageOf(x.mode, (+m[1]-1)*10 + (+m[2]));
-     return st && st.rewards.glyphFragments.length===1 && st.rewards.glyphFragments[0].key===l.key; }));
+     const src=l.sources||[]; if(!src.length) return false;
+     return src.every(x=>{ const m=/^(\d+)-(\d+)$/.exec(String(x.stageId||'')); if(!m) return false;
+       const st=S.portalStageOf(x.mode, (+m[1]-1)*10 + (+m[2]));
+       return st && st.rewards.glyphFragments.some(f=>f.key===l.key); }); }));
 ck('flattened totals equal the sum of the tree leaves',
    (()=>{ const tot=S.g2BuildCost(gg,preP).need; const acc={};
      leaves(treeP,[]).forEach(l=>acc[l.key]=(acc[l.key]||0)+l.need);
      return JSON.stringify(Object.fromEntries(Object.entries(acc).sort()))===JSON.stringify(Object.fromEntries(Object.entries(tot).sort())); })());
-ck('PORTAL COVERAGE: every (tier,family) pair including Orange has exactly one portal source',
+ck('PORTAL COVERAGE: every (tier,family) pair including Orange has a portal source',
    (()=>{ const covered=new Set();
      for(const mode of ['normal','elite','veteran']){
        const P=S.PORTALS[mode]; if(!P) return false;
-       for(const e of P.list){ const gf=e.rewards.glyphFragments; if(gf.length!==1) return false;
-         if(covered.has(gf[0].key)) return false;   // one fixed source, never two
-         covered.add(gf[0].key); } }
+       for(const e of P.list) for(const f of e.rewards.glyphFragments) covered.add(f.key); }
      return S.GLYPH_LADDER.every(q=>{ const fams=(S.GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family));
        return [...new Set(fams)].every(f=>covered.has(q+' '+f)); }); })());
 ck('every pre-choice at every tier is farmable end-to-end',
