@@ -667,7 +667,7 @@
       <div id="menuPanel">
         <div class="mitem" data-pop data-nav="heroesPanel"><span class="mi"><img id="heroesMenuIcon" style="width:24px;height:24px;border-radius:50%;object-fit:cover;display:block"></span> Heroes</div>
         <div class="mitem" data-pop data-nav="bag"><span class="mi"><svg viewBox="0 0 32 32" width="24" height="24" aria-label="Bag"><path d="M6 14 h20 v8 a6 6 0 0 1 -6 6 h-8 a6 6 0 0 1 -6 -6 z" fill="#6e4423"/><path d="M6 14 h20 v3 h-20 z" fill="#4f2f14" opacity=".5"/><path d="M5 13 q0 -6 6 -6 h10 q6 0 6 6 v3 q0 2 -2 2 h-18 q-2 0 -2 -2 z" fill="#a8692c"/><path d="M8 9.5 q1.2 -1 3 -1 h9 q3 0 3.4 3 h-16 z" fill="#c98a3e"/><rect x="14" y="7" width="4" height="19" rx="1.2" fill="#5a3210"/><rect x="13" y="16.5" width="6" height="4.5" rx="1.2" fill="#d3d3da" stroke="#7f7f88" stroke-width=".6"/><rect x="15.4" y="17.6" width="1.2" height="2.3" rx=".5" fill="#7f7f88"/></svg></span> Bag</div>
-        <div class="mitem" data-pop data-nav="tutorial"><span class="mi">🎓</span> Getting Started <span id="tutDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="tutorial"><span class="mi">🎓</span> Start Here <span id="tutDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-pop data-nav="quest"><span class="mi">📜</span> Quests <span id="questDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-pop data-nav="signin"><span class="mi">📅</span> Sign-In <span id="signinDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-pop data-nav="mail"><span class="mi">✉️</span> Mail <span id="mailDot" class="menuDot" style="display:none"></span></div>
@@ -893,7 +893,7 @@
   </div>
   <div class="screen hub" id="tutorial">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>🎓 GETTING STARTED</h1></div>
+    <div class="titlebar"><h1>🎓 START HERE</h1></div>
     <div class="sub">Follow these steps to learn the ropes — each one hands you a reward.</div>
     <div class="panel" id="tutorialBody"></div>
   </div>
@@ -7479,6 +7479,10 @@ function endBattle(won){
       // the receipt, so an old server (no eliteFrag) leaves the counter exactly as it was.
       if(sWon && r && r.reward && (r.reward.eliteFrag || r.reward.runCounted)) try{ stageCountRun(CUR.node,1); }catch(e){}
       if(sWon && r && r.reward && r.reward.dailyCapped) try{ stageCountRun(CUR.node,ELITE_BOSS_DAILY); }catch(e){}
+      /* New-player path: after each first clear in 1-1 through 1-5, Continue opens Getting Started.
+         The reward screen remains visible until the player dismisses it, then the next lesson explains
+         the one system needed before the following round. Replays and later clears never interrupt. */
+      window._tutReturnAfterResult=!!(sWon && r && r.reward && r.reward.first && (r.mode||CUR.portal||'normal')==='normal' && CUR.node>=1 && CUR.node<=5 && !G.tutDone);
       /* v334 (Phil: "I just won a stage 1-1 and it said defeat and I lost") — an UNVERIFIED fight is
          not a defeat. The server recorded nothing and returned the stamina, so the screen must say
          that, not DEFEAT. Same for an attempt the server no longer knows (expired / restarted). */
@@ -13842,7 +13846,7 @@ const BUILD_VERSION='v0.16';
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000;   // 1 free gold wish/hour, up to 3/day
 // (diamond free wish resets at the 09:00 ET daily reset — see wishGemFreeReady)
-const WISH_FIRST_GEM_DELAY_MS=20*60000;                   // first diamond wish unlocks 20 min after account creation
+const WISH_FIRST_GEM_CLEAR_NODE=5;                        // first diamond wish unlocks after clearing Stage 1-5
 function wishRiggedHeroes(){ const p=wishStarPool(2); return p.length?p:['fritz']; }   // rigged first wish → a non-mythical, non-shop starter only
 // ---- WISH POOLS (Phil's economy spec, 2026-08-21) ----
 // GOLD well carries the three 1★ heroes only. DIAMOND well carries the 2★ and 3★ ladders
@@ -13864,10 +13868,9 @@ function wishGoldFreeReady(){ if(POOLSRV&&POOLSRV.goldFree) return !!POOLSRV.gol
   return wishGoldFreeLeft()>0 && (Date.now()-(G.wishGoldLast||0))>=WISH_GOLD_FREE_MS; }
 function wishGoldNextFreeMs(){ if(POOLSRV&&POOLSRV.goldFree) return POOLSRV.goldFree.ready?0:Math.max(0,POOLSRV.goldFree.nextMs|0);
   if(wishGoldFreeLeft()<=0) return null; return Math.max(0, WISH_GOLD_FREE_MS-(Date.now()-(G.wishGoldLast||0))); }
-function wishGemUnlockAt(){ return ((ACC&&ACC.created)||G.created||Date.now())+WISH_FIRST_GEM_DELAY_MS; }   // anchored to ACCOUNT creation: a dev progress-reset never restarts the 20-min countdown
-// the POOL is never fully locked — a paid wish (💎300) is always available if you have the diamonds.
-// only the FREE wish is gated: the first free wish opens 20 min after account creation, then one
-// per server-day, resetting at the 09:00 ET daily reset (same boundary as all daily rewards).
+function wishGemUnlocked(){ if(G.wishGemFirstDone)return true; if(POOLSRV&&POOLSRV.gemFree&&POOLSRV.gemFree.unlocked!=null)return !!POOLSRV.gemFree.unlocked; return (G.campaignCleared||0)>=WISH_FIRST_GEM_CLEAR_NODE; }
+// The first Diamond wish is earned by clearing Stage 1-5. After that first guaranteed hero,
+// one free wish returns per server-day at the 09:00 ET daily reset.
 /* 30 Aug (Phil): "people having infinite free wishes in pool", and separately "diamonds disappear".
    ONE bug, both symptoms. G.wishGemLast, G.wishGemDay, G.wishGoldLast and G.wishGoldUsed were only
    ever READ — nothing in the client ever wrote them after a wish. So wishGoldFreeLeft() was always 3,
@@ -13887,9 +13890,9 @@ async function poolStateSync(){ if(!ACC.token){ POOLSRV=null; _poolAt=0; return 
     if(st&&!st.error){ POOLSRV=st; _poolAt=Date.now(); if(st.ledger)adoptLedger(st.ledger); if(st.firstDone!=null)G.wishGemFirstDone=!!st.firstDone; return st; } }catch(e){}
   return null; }
 function wishGemFreeReady(){ if(POOLSRV&&POOLSRV.gemFree) return !!POOLSRV.gemFree.ready;
-  if(!G.wishGemLast){ return Date.now()>=wishGemUnlockAt(); } return G.wishGemDay!==arenaDayKey(); }
+  if(!wishGemUnlocked())return false; if(!G.wishGemLast)return true; return G.wishGemDay!==arenaDayKey(); }
 function wishGemNextFreeMs(){ if(POOLSRV&&POOLSRV.gemFree) return POOLSRV.gemFree.ready?0:arenaNextResetMs();
-  if(!G.wishGemLast){ return Math.max(0, wishGemUnlockAt()-Date.now()); } return G.wishGemDay!==arenaDayKey()?0:arenaNextResetMs(); }
+  if(!wishGemUnlocked())return 0; if(!G.wishGemLast)return 0; return G.wishGemDay!==arenaDayKey()?0:arenaNextResetMs(); }
 // ---- reward grants (return {icon,name,extra?,big?}) ----
 // (wishMat deleted — v232 audit: no generic Rune/Glyph Shard currency exists; the pool grants NAMED fragments server-side)
 function heroBigIcon(hk){ const t=HERO_TYPES[hk]; return HERO_PORTRAITS[hk]?('<img src="'+HERO_PORTRAITS[hk]+'" style="width:92px;height:92px;border-radius:14px;object-fit:cover;box-shadow:0 3px 12px #000a">'):t.emoji; }
@@ -14039,9 +14042,9 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   if(ACC.token && !renderWishing._pending && (!POOLSRV || Date.now()-_poolAt > 30000)){ renderWishing._pending=1;
     poolStateSync().then(()=>{ renderWishing._pending=0; try{ renderWishing(); }catch(e){} }); }
   const goldFree=wishGoldFreeReady(), goldLeft=wishGoldFreeLeft(), goldNext=wishGoldNextFreeMs();
-  const gemRigged=!G.wishGemFirstDone, gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
+  const gemRigged=!G.wishGemFirstDone, gemUnlocked=wishGemUnlocked(), gemFree=wishGemFreeReady(), gemNext=wishGemNextFreeMs();
   const canGold = goldFree || (G.gold||0)>=WISH_GOLD_COST;
-  const canGem = gemFree || (G.gems||0)>=WISH_GEM_COST;
+  const canGem = gemUnlocked && (gemFree || (G.gems||0)>=WISH_GEM_COST);
   b.innerHTML=`
   <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 8px">The Gold Pool holds Tick, Dandra &amp; Carn. The Diamond Pool holds the 2★ and 3★ ladders — with a <b>0.1% shot at KonWu</b>.</div>
   <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
@@ -14062,7 +14065,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-orb">🔮</div>
       <div class="wp-name">Diamond Pool</div>
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
-      <div class="wp-free ${gemFree?'on':''}">${gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0))}</div>
+      <div class="wp-free ${gemFree?'on':''}">${!gemUnlocked?'🔒 Clear Stage 1-5 to unlock':(gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0)))}</div>
       <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (09:00 reset)'}</div>
       <div class="wp-sub" style="opacity:.75">8% 2★ · 1% 3★ · 25% fragments · 0.1% KonWu</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
@@ -14244,13 +14247,19 @@ function anyGlyphSocketed(){ if(HERO_KEYS.some(k=>glyphRank(k)>0)) return true;
   return Object.values(st.boards).some(b=>((b&&b.slots)||[]).some(Boolean)); }
 function anySkillRaised(){ return HERO_KEYS.some(k=> ((G.skillLevel&&G.skillLevel[k])||[1,1,1,1]).some(v=>v>1)); }
 const TUTORIAL_STEPS=[
-  {id:'win11', icon:'⚔️', title:'Win your first battle', desc:'Open the Campaign and clear Stage 1-1.', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
-  {id:'rune',  icon:'💠', title:'Empower a hero', desc:'Open a hero (Menu → Heroes → Glyphs tab), tap an empty slot and Build its glyph — built glyphs lock in forever.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
-  {id:'win12', icon:'🗺️', title:'Push onward', desc:'Clear Stage 1-2 in the Campaign.', go:()=>show('campaign'), reward:{frag:3}, done:()=>(G.campaignCleared||0)>=2},
-  {id:'skill', icon:'✨', title:'Train a skill', desc:'On a hero, raise one of their skills a level (costs gold).', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
-  {id:'name',  icon:'🪶', title:'Claim your title', desc:'Tap your portrait and set your commander name.', go:()=>{show('home'); if(typeof openProfile==='function') openProfile();}, reward:{gems:20}, done:()=>!!G.nameChanged},
-  {id:'signin',icon:'📅', title:'Grab a daily reward', desc:'Open Daily Sign-In and claim today’s reward.', go:()=>show('signin'), reward:{stam:60}, done:()=>((G.signinClaimed||[]).length>0)},
-  {id:'wish',  icon:'🔮', title:'Make a wish', desc:'Visit the Wishing Pool and toss a coin.', go:()=>show('wishing'), reward:{gems:40}, done:()=>((G.wishClicks||0)>0)},
+  {id:'win11', icon:'⚔️', title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
+  {id:'quest11', icon:'📜', title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=1)},
+  {id:'skill', icon:'✨', title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
+  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', go:()=>show('campaign'), reward:{frag:3}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'quest12', icon:'📜', title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=2)},
+  {id:'rune',  icon:'💠', title:'Build your first glyph', desc:'Open Heroes → choose a hero → Glyphs. Tap an empty slot and build the matching glyph. Glyph fragments come from named Campaign stages, which you can replay to farm.', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
+  {id:'win13', icon:'🛡️', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
+  {id:'quest13', icon:'📜', title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
+  {id:'wish',  icon:'⛲', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Wishes can award heroes, hero fragments, and named glyph fragments.', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
+  {id:'win14', icon:'🗺️', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
+  {id:'quest14', icon:'🦸', title:'Recruit your fourth hero', desc:'Open Quests and claim the Stage 1-4 reward. The four starter quest rewards total enough Vex fragments to recruit your fourth hero.', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=4)},
+  {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
+  {id:'gemwish', icon:'💎', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2★ hero and gives you your fifth hero.', go:()=>show('wishing'), reward:{gems:40}, done:()=>!!G.wishGemFirstDone},
 ];
 /* v267 (80/20 §9): Getting Started rewards are granted BY THE SERVER, once per step, from its own
    authored table (`/api/tutorial/claim`). Signed out, the local grant remains as the offline path. */
@@ -14272,7 +14281,7 @@ function grantTutReward(r, stepId){
   }
   let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push('🪙 '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push('💎 '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
   if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } return s.join(' · '); }
-function tutComplete(){ return TUTORIAL_STEPS.every(s=>s.done()); }
+function tutComplete(){ return (G.campaignCleared||0)>=5 && !!G.wishGemFirstDone; }
 function tutReady(){ if(G.tutDone) return false; return TUTORIAL_STEPS.some(s=>s.done() && !(G.tutRewarded&&G.tutRewarded[s.id])); }
 // grant rewards for any steps newly completed; called after actions via updateHubChrome
 function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded={}; let changed=false;
@@ -14287,7 +14296,7 @@ function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded=
     const str=grantTutReward(s.reward, s.id); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); });
   /* completion needs every step SERVER-CONFIRMED, else tutDone would latch and the top-of-function
      early return would block the retry of a step whose claim had failed. */
-  if(!G.tutDone && tutComplete() && TUTORIAL_STEPS.every(s=>G.tutRewarded[s.id])){
+  if(!G.tutDone && tutComplete()){
     if(ACC.token){ if(!IF._done){ IF._done=1;
       txEarnP('gems',100,'quest',{requestId:'tutdone'}).then(ok=>{ IF._done=0; if(!ok) return;   // stable requestId: the server idem-keys it, so a retry cannot double-pay
         G.tutDone=true; saveG(); if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds');
@@ -14311,17 +14320,15 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
   b.querySelectorAll('[data-tut]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tut); if(s&&s.go)s.go(); });
 }
 // first-run prompt for brand-new accounts
-function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutDismissed) return; if((G.campaignCleared||0)>0) return;
+function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted) return; if((G.campaignCleared||0)>0) return;
   if(document.getElementById('tutOffer')) return;   // 2 Sep: renderHome runs more than once at boot — each call stacked another full-screen overlay, and every extra layer swallowed a tap
   const ov=document.createElement('div'); ov.id='tutOffer'; ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">🎓</div><div style="font-weight:800;font-size:17px;margin:6px 0">Welcome, Commander!</div>
-    <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">New here? Take a quick guided tour of the essentials — you’ll earn rewards for each step.</div>
-    <button class="btn" style="width:100%;margin-bottom:6px" id="tutStart">Start the tour</button>
-    <button class="btn xs secondary" style="width:100%" id="tutLater">Maybe later</button></div>`;
+    <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">Start here to learn one essential system before each of the first five Campaign rounds.</div>
+    <button class="btn" style="width:100%" id="tutStart">Start Here</button></div>`;
   document.body.appendChild(ov); const close=()=>{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); };
-  ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); };
-  ov.querySelector('#tutLater').onclick=()=>{ G.tutDismissed=true; saveG(); close(); }; }
+  ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); }; }
 
 /* ============================ FLOATING ISLE: THREE TRIALS ============================ */
 const ISLE_FEATURES=[
@@ -16099,7 +16106,9 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   const _wasCamp=(CUR&&CUR.mode==='campaign'), _portal=(CUR&&CUR.portal)||'normal';
   clearBattle();
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
-document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; } show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign'); };
+document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; }
+  if(m==='campaign'&&window._tutReturnAfterResult){ window._tutReturnAfterResult=false; G.tutStarted=true; saveG(); show('tutorial'); return; }
+  show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign'); };
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
@@ -16255,7 +16264,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789385780264';
+const BUILD_ID = '1789389996509';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
