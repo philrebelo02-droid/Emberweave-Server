@@ -44,6 +44,7 @@ const CONV={
   dmgRedPerPt:0.004, dmgRedCap:0.30,
   atkSpdPerPt:0.004,                       // Attack Speed points speed the swing timer
   hastePerPt:0.004,                        // Haste speeds energy gain
+  mobilityPerPt:0.001, mobilityCap:0.30,    // Forge Move Speed / Range: 100 pts = 10%
   shieldStrPerPt:0.005,
   ctrlHitPerPt:0.004,                      // Control Hit: raises stun chance
   ctrlResPerPt:0.005, ctrlResCap:0.6,      // Tenacity/Control Resist: shrinks stun duration/chance
@@ -130,16 +131,19 @@ function buildUnit(key, base, mul, defScale, r, extra){
   r=r||{}; extra=extra||{};
   const armor=(base.armor||0)*defScale + (r.armor||0)*CONV.defPtMul + (extra.armorRating||0);
   const mr=(base.mr||0)*defScale + (r.mr||0)*CONV.defPtMul + (extra.mrRating||0);
-  const atkP=Math.round((base.dmg||0)*mul)+(r.atkFlat|0);
+  const prayerMul=Math.max(1,+extra.prayerMul||1);
+  const atkP=Math.round((base.dmg||0)*mul*prayerMul)+(r.atkFlat|0);
   // AP flats never create an ability line where none exists — a pure physical hero gains NOTHING from AP
   const atkM=Math.round(((base.apow||0)>0 ? Math.round(base.apow*mul)+(r.apowFlat|0) : 0)*(extra.apMul||1));   // Academy AP research scales spells only
   return {
     key, role:base.role||'Bruiser', healer:!!base.healer, level:Math.max(1,(extra.level|0)||1),
-    maxHp:Math.round((base.hp||100)*mul)+(r.hpFlat|0),
+    maxHp:Math.round((base.hp||100)*mul*prayerMul)+(r.hpFlat|0),
     hp:0, energy:0,
     atkP, atkM,
     heal: base.healer? Math.round((Math.max(10,base.apow||10)*mul+(r.apowFlat|0))*0.9)+(r.healFlat|0) : 0,
     speed:(base.atkSpeed||1)*(1+(r.atkSpd||0)*CONV.atkSpdPerPt),
+    moveSpd:1+Math.min(CONV.mobilityCap,(r.moveSpd||0)*CONV.mobilityPerPt),
+    rangeMul:1+Math.min(CONV.mobilityCap,(r.range||0)*CONV.mobilityPerPt),
     armor, mr,
     armorPen:Math.max(0,r.armorPen|0), magicPen:Math.max(0,r.magicPen|0),
     crit:Math.min(CONV.critCap,(r.crit||0)*CONV.critPerPt + (extra.critFrac||0)),

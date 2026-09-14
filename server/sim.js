@@ -147,7 +147,10 @@ function heroCombatStats(key, opts){
   // exactly as the client does it (heroStat = baseAtLevel(t,lvl) * starMult(key)).
   const bl=baseAtLevel(b,level);
   const mul=smul;
-  const defScale=starMultFor(stars,pips);
+  // Refinement is part of the same progression multiplier as stars/pips. The client applies the
+  // refined multiplier to Armor and Magic Resist too; using the unrefined star multiplier here made
+  // authoritative Arena, city and Guild War snapshots weaker than the playable client battle.
+  const defScale=smul;
   // v242: RAW TYPED RATINGS in (snapshotHeroFromServer), typed core unit out. Legacy callers that
   // still pass {glyph:{hp,atk,apow,heal}} get those as flats with no ratings.
   const R=opts.ratings || (opts.glyph?{hpFlat:opts.glyph.hp|0,atkFlat:opts.glyph.atk|0,apowFlat:opts.glyph.apow|0,healFlat:opts.glyph.heal|0}:{});
