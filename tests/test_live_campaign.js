@@ -8,7 +8,7 @@ const PORT=process.env.PORT||8871;
 let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n+(d?' — '+d:''))); };
 
 (async()=>{
-  const b=await chromium.launch();
+  let b; try{ b=await chromium.launch(); }catch(e){ b=await chromium.launch({channel:'chrome'}); }
   const pg=await (await b.newContext({viewport:{width:1000,height:600}})).newPage();
   const errs=[]; pg.on('pageerror',e=>errs.push(String(e.message)));
   await pg.goto('http://localhost:'+PORT+'/play',{waitUntil:'domcontentloaded'});
@@ -27,12 +27,19 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
     if(!s||!s.ok) return {error:(s&&s.error)||'start failed'};
     CUR.attemptId=s.attemptId; CUR.cwaves=(s.stage&&s.stage.waves)||null;
     CUR.serverSnaps=s.snaps; CUR.seed=s.seed>>>0; CUR.engine=s.engine;
-    G.team=['vael','sylthaine','vireo'];
+    G.squads=G.squads||{};
+    G.squads.campaign=['vael','sylthaine','vireo'];
+    G.team=G.squads.campaign.slice();
     // capture the game's OWN resolve call — the real flow fires it from endBattle
     window.__cap=null; const _api=window.api;
     window.api=async function(path,method,body){ const out=await _api.apply(null,arguments);
       if(path==='/api/campaign/resolve') window.__cap={body,out}; return out; };
+    /* The test owns the fixed-step clock below. Pause the normal requestAnimationFrame driver before
+       the asynchronous battle loader starts, otherwise the real loop and step() both advance the
+       same fight and manufacture a parity failure. Direct updateBattle() calls still run. */
+    paused=true;
     startBattle();
+    for(let i=0;i<140 && !(state==='battle'&&units.some(u=>u.team==='ally'));i++) await new Promise(r=>setTimeout(r,100));
     const seedUsed=CUR.seed;
     // v275: a real player's frames are spaced out, so the server's receipts can come back between
     // them. Driving updateBattle in a tight synchronous loop is not a player — it is a stopwatch.
@@ -66,6 +73,7 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
   ck('the server verified the battle', r.res && r.res.ok===true && r.res.verified===true, JSON.stringify(r.res).slice(0,160));
   ck('the server replay reached the SAME end state as the fight on screen', r.res && r.res.digestMatch===true,
      'digestMatch='+(r.res&&r.res.digestMatch)+'\n      client: '+String(r.clientDigest).slice(0,300)+'\n      server: '+String(r.res&&r.res.serverEnd).slice(0,300));
+  if(!(r.res&&r.res.digestMatch===true)) console.log('      input:  '+JSON.stringify(r.log));
   ck('the server recorded the same outcome the player saw', !!(r.res&&r.res.won)===!!r.clientWon,
      'client won='+r.clientWon+' server won='+(r.res&&r.res.won));
   ck('no page errors during the fight', errs.length===0, errs.slice(0,2).join(' | '));

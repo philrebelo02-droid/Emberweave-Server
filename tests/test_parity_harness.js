@@ -4,11 +4,12 @@
 // (dr / crit / critRes / energyReg / regen + gearSkillSlot) — not sim.js against itself.
 // Known, documented non-shared parts: client-only quality/prayer/tech multipliers on HP/ATK.
 const { chromium } = require('playwright');
+const PORT=process.env.PORT||8871;
 (async()=>{
   let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n+(d?' — '+d:''))); };
-  const b=await chromium.launch();
+  let b; try{ b=await chromium.launch(); }catch(e){ b=await chromium.launch({channel:'chrome'}); }
   const pg=await (await b.newContext({viewport:{width:1000,height:520}})).newPage();
-  await pg.goto('http://localhost:8871/play',{waitUntil:'domcontentloaded'});
+  await pg.goto('http://localhost:'+PORT+'/play',{waitUntil:'domcontentloaded'});
   await pg.waitForTimeout(2200);
   await pg.evaluate(()=>{ const p=document.querySelector('.splashPlay'); if(p)p.click(); });
   await pg.waitForTimeout(1000);
@@ -25,7 +26,9 @@ const { chromium } = require('playwright');
     // CLIENT-side expected fields from its own stat bundle + its own constants
     const tot=sockStatTotal('vael');
     // v247 TYPED parity: armor/mr are DEFENSE RATINGS (glyph/gear pts ×3), pens are separate
-    const exp={ armor:(tot.armor||0)*3, mr:(tot.mr||0)*3,
+    const ht0=HERO_TYPES.vael;
+    const exp={ armor:heroStat('vael',ht0.armor||0,'armor')+techTotal('armor')+(tot.armor||0)*3,
+      mr:heroStat('vael',ht0.mr||0,'mr')+techTotal('mr')+(tot.mr||0)*3,
       armorPen:(tot.armorPen||0), magicPen:(tot.magicPen||0),
       crit:Math.min(0.6,(tot.crit||0)*0.005), critRes:Math.min(0.75,(tot.critRes||0)*0.005),
       energyReg:(tot.energy||0)*0.01, regen:(tot.regen||0)*0.001 };
@@ -48,7 +51,8 @@ const { chromium } = require('playwright');
     const soN=await api('/api/glyphs/slot-options?heroKey=sylthaine&slot=2');
     const bd=g2board('vael');
     const tot2=sockStatTotal('vael');
-    const exp2={ armor:(tot2.armor||0)*3, mr:(tot2.mr||0)*3,
+    const exp2={ armor:heroStat('vael',ht0.armor||0,'armor')+techTotal('armor')+(tot2.armor||0)*3,
+      mr:heroStat('vael',ht0.mr||0,'mr')+techTotal('mr')+(tot2.mr||0)*3,
       armorPen:(tot2.armorPen||0), magicPen:(tot2.magicPen||0),
       crit:Math.min(0.6,(tot2.crit||0)*0.005), critRes:Math.min(0.75,(tot2.critRes||0)*0.005),
       energyReg:(tot2.energy||0)*0.01, regen:(tot2.regen||0)*0.001 };
