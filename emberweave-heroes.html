@@ -14261,7 +14261,7 @@ const TUTORIAL_STEPS=[
   {id:'win14', icon:'🗺️', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
   {id:'quest14', icon:'🦸', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
   {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
-  {id:'gemwish', icon:'💎', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2★ hero and gives you your fifth hero.', go:()=>show('wishing'), reward:{gems:40}, done:()=>!!G.wishGemFirstDone},
+  {id:'gemwish', icon:'💎', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2★ hero and gives you your fifth hero.', go:()=>show('wishing'), reward:{gems:140}, done:()=>!!G.wishGemFirstDone},
 ];
 /* v267 (80/20 §9): Getting Started rewards are granted BY THE SERVER, once per step, from its own
    authored table (`/api/tutorial/claim`). Signed out, the local grant remains as the offline path. */
@@ -14283,47 +14283,38 @@ function grantTutReward(r, stepId){
   }
   let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push('🪙 '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push('💎 '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
   if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } return s.join(' · '); }
-function tutComplete(){ return (G.campaignCleared||0)>=5 && !!G.wishGemFirstDone; }
-function tutReady(){ if(G.tutDone) return false; return TUTORIAL_STEPS.some(s=>s.done() && !(G.tutRewarded&&G.tutRewarded[s.id])); }
+function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.every(s=>!!G.tutRewarded[s.id]); }
+function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
+function tutReady(){ if(G.tutDone) return false; const s=tutCurrent(); return !!(s&&s.done()); }
 function tutReturnAfterAction(){
   if(!G.tutStarted||G.tutDone||state==='tutorial'||state==='result'||state==='battle')return;
   setTimeout(()=>{ if(G.tutStarted&&!G.tutDone&&state!=='tutorial'&&state!=='result'&&state!=='battle')show('tutorial'); },0);
 }
-// grant rewards for any steps newly completed; called after actions via updateHubChrome
-function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded={}; let changed=false;
-  const IF=checkTutorial._inflight||(checkTutorial._inflight={});
-  TUTORIAL_STEPS.forEach(s=>{ if(!s.done() || G.tutRewarded[s.id]) return;
-    if(ACC.token){ if(IF[s.id]) return; IF[s.id]=1;   // in-flight guard: NOT on G, so a reload cannot latch it
-      grantTutReward(s.reward, s.id).then(str=>{ IF[s.id]=0; G.tutRewarded[s.id]=true; saveG();
-        if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str);
-        if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); tutReturnAfterAction(); checkTutorial(); },
-      ()=>{ IF[s.id]=0; });   // left unrewarded on purpose — the next checkTutorial retries it
-      return; }
-    const str=grantTutReward(s.reward, s.id); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); });
-  /* completion needs every step SERVER-CONFIRMED, else tutDone would latch and the top-of-function
-     early return would block the retry of a step whose claim had failed. */
-  if(!G.tutDone && tutComplete()){
-    if(ACC.token){ if(!IF._done){ IF._done=1;
-      txEarnP('gems',100,'quest',{requestId:'tutdone'}).then(ok=>{ IF._done=0; if(!ok) return;   // stable requestId: the server idem-keys it, so a retry cannot double-pay
-        G.tutDone=true; saveG(); if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds');
-        if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); }); } }
-    else { G.tutDone=true; changed=true; G.gems=(G.gems||0)+100; if(typeof bannerMsg==='function') bannerMsg('🎓 Tutorial complete!\n💎 100 bonus diamonds'); } }
-  if(changed){ saveG(); if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); } }
+// Completion unlocks Claim; it never grants a reward or advances the lesson by itself.
+function checkTutorial(){ if(!G.tutRewarded)G.tutRewarded={}; if(!G.tutDone&&tutComplete()){ G.tutDone=true; saveG(); } }
+async function claimTutorialStep(id){ if(G.tutDone)return; const s=tutCurrent();
+  if(!s||s.id!==id||!s.done())return; const IF=claimTutorialStep._inflight||(claimTutorialStep._inflight={}); if(IF[id])return; IF[id]=1;
+  try{ const str=await Promise.resolve(grantTutReward(s.reward,s.id)); G.tutRewarded[s.id]=true;
+    const finished=tutComplete(); if(finished)G.tutDone=true; saveG(); updateHubChrome(); updateMailBadges();
+    bannerMsg(finished?('🎓 Tutorial complete!\n'+str):('🎁 '+s.title+' claimed!\n'+str)); renderTutorial();
+  }catch(e){ bannerMsg('That reward could not be claimed yet.'); if(typeof ledgerSync==='function')ledgerSync(); }
+  finally{ IF[id]=0; } }
 function renderTutorial(){ checkTutorial(); const b=document.getElementById('tutorialBody'); if(!b)return;
-  const doneCount=TUTORIAL_STEPS.filter(s=>s.done()).length; const cur=TUTORIAL_STEPS.find(s=>!s.done());
+  const doneCount=TUTORIAL_STEPS.filter(s=>G.tutRewarded&&G.tutRewarded[s.id]).length; const cur=tutCurrent();
   let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?'🎉 All done!':'Your journey begins'}</div>
     <div style="font-size:12px;color:#8b98a9;margin-top:2px">${doneCount} / ${TUTORIAL_STEPS.length} steps complete</div>
     <div class="qbar" style="margin-top:6px"><i style="width:${Math.round(doneCount/TUTORIAL_STEPS.length*100)}%"></i></div></div>`;
-  TUTORIAL_STEPS.forEach((s,i)=>{ const done=s.done(), isCur=(cur&&cur.id===s.id);
+  TUTORIAL_STEPS.forEach((s,i)=>{ const claimed=!!(G.tutRewarded&&G.tutRewarded[s.id]), isCur=(cur&&cur.id===s.id), ready=isCur&&s.done();
     const rew=[]; if(s.reward.gold)rew.push('🪙 '+s.reward.gold); if(s.reward.gems)rew.push('💎 '+s.reward.gems); if(s.reward.stam)rew.push('⧗ '+s.reward.stam); if(s.reward.frag)rew.push('⭐ '+s.reward.frag+' frags');
-    html+=`<div class="qcard${done?' done':isCur?' ready':''}" style="${done?'opacity:.65':''}">
-      <div class="qh"><div class="qt">${done?'✅':s.icon} ${escapeHTML(s.title)}</div><div class="qrew">${rew.length?('🎁 '+rew.join(' · ')):'GUIDE'}</div></div>
+    html+=`<div class="qcard${claimed?' done':ready?' ready':''}" style="${claimed?'opacity:.65':''}">
+      <div class="qh"><div class="qt">${claimed?'✅':s.icon} ${escapeHTML(s.title)}</div><div class="qrew">${rew.length?('🎁 '+rew.join(' · ')):'GUIDE'}</div></div>
       <div class="qd">${escapeHTML(s.desc)}</div>
-      <div class="qmeta"><span>${done?'<span style="color:#5ee89b;font-weight:800">Complete</span>':(isCur?'Next up':'Locked')}</span>
-        ${isCur?`<button class="btn xs" data-tut="${s.id}">Go →</button>`:''}</div></div>`; });
+      <div class="qmeta"><span>${claimed?'<span style="color:#5ee89b;font-weight:800">Claimed</span>':(ready?'<span style="color:#ffd45e;font-weight:800">Reward ready</span>':(isCur?'Next up':'Locked'))}</span>
+        ${ready?`<button class="btn xs" data-tut-claim="${s.id}">Claim 🎁</button>`:(isCur?`<button class="btn xs" data-tut-go="${s.id}">Go →</button>`:'')}</div></div>`; });
   if(G.tutDone||!cur) html+=`<div style="text-align:center;color:#8b98a9;font-size:12px;margin-top:8px">You’ve got the basics — now go build the strongest region in the realm. 🔥</div>`;
   b.innerHTML=html;
-  b.querySelectorAll('[data-tut]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tut); if(s&&s.go)s.go(); });
+  b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go)s.go(); });
+  b.querySelectorAll('[data-tut-claim]').forEach(btn=>btn.onclick=()=>claimTutorialStep(btn.dataset.tutClaim));
 }
 // first-run prompt for brand-new accounts
 function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted) return; if((G.campaignCleared||0)>0) return;
@@ -16272,7 +16263,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789396380412';
+const BUILD_ID = '1789397202016';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
