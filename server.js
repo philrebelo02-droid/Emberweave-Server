@@ -1905,8 +1905,9 @@ const EARN_RULES={
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
-  win11:{gold:500}, rune:{gems:30}, win12:{frag:3}, skill:{gold:800},
-  name:{gems:20}, signin:{stam:60}, wish:{gems:40} });
+  win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{frag:3}, quest12:{}, rune:{gems:30},
+  win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{}, win15:{}, gemwish:{gems:40},
+  signin:{stam:60}, name:{gems:20} });
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -1920,7 +1921,7 @@ const POOL_GOLD_HEROES=["tick","meryln","carn"];
 const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,tallow:2,astra:2,magistrant:2,vharn:2,fathom:2,lumi:2,hollow:3,sprocket:3,carn:1,vesper:2,sablewick:2,vex:1,arrears:3,meryln:1};
 const POOL_DUPE_FRAG={1:7,2:14,3:30};
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300, WISH10_MULT=9;
-const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000, WISH_FIRST_GEM_DELAY_MS=20*60000;
+const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000, WISH_FIRST_GEM_CLEAR_NODE=5;
 const WISH_GEM_PITY=40;   // a full hero is guaranteed within this many paid diamond wishes
 function poolState(u){ const led=ensureLedger(u);
   if(!led.pool) led.pool={ goldUsedDay:'', goldFree:0, goldLast:0, gemFreeDay:'', gemFirstDone:false, pity:0, history:[] };
@@ -3187,12 +3188,13 @@ async function api(req,res,url){
     const led=ensureLedger(me), pool=poolState(me); const now=Date.now(), dk=nyDayKey();
     if(pool.goldUsedDay!==dk){ pool.goldUsedDay=dk; pool.goldFree=0; }
     const goldFreeReady=pool.goldFree<WISH_GOLD_FREE_MAX && (now-pool.goldLast)>=WISH_GOLD_FREE_MS;
-    const gemFreeReady=pool.gemFreeDay!==dk && (now-(me.created||0))>=WISH_FIRST_GEM_DELAY_MS;
+    const gemUnlocked=pool.gemFirstDone || ((led.camp&&led.camp.cleared)|0)>=WISH_FIRST_GEM_CLEAR_NODE;
+    const gemFreeReady=pool.gemFreeDay!==dk && gemUnlocked;
     writeDB();
     return send(res,200,{ odds:{konwu:0.001,full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
-      gemFree:{ready:gemFreeReady}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
+      gemFree:{ready:gemFreeReady,unlocked:gemUnlocked,clearsNeeded:Math.max(0,WISH_FIRST_GEM_CLEAR_NODE-((led.camp&&led.camp.cleared)|0))}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
   if(p==='/api/pool/history'){ if(!me)return send(res,401,{error:'auth'});
     // v251 (audit): the AUDITABLE roll history — every wish this account made, server-recorded
     const pool=poolState(me);
@@ -3214,7 +3216,7 @@ async function api(req,res,url){
         if(led.gold<cost) return {ok:false,error:'Not enough gold.'};
         led.gold-=cost; if(free){ pool.goldFree++; pool.goldLast=now; } }
       else if(which==='gem'){ cur='gems';
-        if((now-(me.created||0))<WISH_FIRST_GEM_DELAY_MS && !pool.gemFirstDone) return {ok:false,error:'The Diamond Pool opens 20 minutes after your account is created.'};
+        if(((led.camp&&led.camp.cleared)|0)<WISH_FIRST_GEM_CLEAR_NODE && !pool.gemFirstDone) return {ok:false,error:'Clear Stage 1-5 to unlock your first Diamond wish.'};
         free=(n===1)&&pool.gemFreeDay!==dk;
         rigged=!pool.gemFirstDone;
         cost=free?0:(n===10?WISH_GEM_COST*WISH10_MULT:WISH_GEM_COST);
