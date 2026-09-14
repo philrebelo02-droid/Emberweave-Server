@@ -15737,9 +15737,10 @@ function isAutoBattle(){ const m=CUR&&CUR.mode;
   // ultimates the player deliberately held back, or the replay is a different fight.
   if(CUR&&CUR.manualReplay) return false;
   return m==='arena'||m==='raid'||m==='elite'||m==='replay'; }
-function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
+function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn'),kb=document.getElementById('skipBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
   const forced=isAutoBattle();   // deterministic, recorded fights are 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
+  if(kb) kb.style.display=forced?'':'none';   // Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
   ab.textContent='AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':'');ab.className='ctrlBtn'+(autoUlt?' on':'')+(forced?' locked':'');ab.style.opacity=forced?'.7':'';}
 
 /* input */
@@ -16214,8 +16215,8 @@ document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='rep
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
-// ⏭ Skip: instantly fast-forward the auto-sim to the win/lose result (arena & any battle)
-document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended)return; if(CUR.mode==='online')return;   // can't skip a live PvP sync
+// ⏭ Skip: fast-forward presentation only when the fight is already deterministic (Arena, World raid, Elite, replay).
+document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle())return;
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; autoUlt=!autoUlt;
@@ -16366,7 +16367,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789401292464';
+const BUILD_ID = '1789401906095';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
