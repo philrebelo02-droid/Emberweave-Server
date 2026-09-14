@@ -623,10 +623,11 @@
     radial-gradient(circle at 50% -12%,rgba(100,126,191,.18),transparent 42%),
     radial-gradient(circle at 90% 80%,rgba(109,58,145,.16),transparent 44%),
     linear-gradient(168deg,#111827 0%,#17152a 58%,#211522 100%);}
-  .screen.popout{background:
+  .screen.popout{position:absolute;height:100%;max-height:100%;background:
     radial-gradient(circle at 70% 0,rgba(91,119,187,.17),transparent 38%),
     linear-gradient(180deg,rgba(24,32,51,.985),rgba(10,15,25,.992));
     border-color:#586b92;box-shadow:-22px 0 62px rgba(0,0,0,.72),inset 1px 0 rgba(255,255,255,.06);}
+  #popoutBackdrop{position:absolute;}
   h1{font-family:Georgia,'Times New Roman',serif;font-weight:900;text-shadow:0 2px 12px rgba(174,126,255,.22);}
   .sub{color:#a9b5c7;line-height:1.42;}
   .panel{background:
@@ -16323,7 +16324,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789397823070';
+const BUILD_ID = '1789398268127';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
