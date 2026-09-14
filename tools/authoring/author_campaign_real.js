@@ -64,11 +64,24 @@ function referenceSpecs(s, tierShift, levelShift){
    — held ultimates, aim, focus fire — can only do better, and now actually shows up in the result. */
 const AUTO=[[1,'auto',-1,1,null,null]];
 
+/* Campaign reward encounter contract: in every chapter, stages 3/6/9/10 put the exact hero whose
+   fragments that stage pays into wave 3. We replace one ordinary enemy so encounter size stays
+   stable; stage 10's authored boss is never replaced. */
+const REWARD_HEROES=['tick','sylthaine','vireo','vael','fritz','rhukk','bloatus','umbris','oakmir'];
+function rewardHeroForNode(node){ const st=((node-1)%10)+1, slot=({3:0,6:1,9:2,10:3})[st];
+  return slot==null?null:REWARD_HEROES[((Math.floor((node-1)/10)*4)+slot)%REWARD_HEROES.length]; }
+function applyRewardHero(stage){ const key=rewardHeroForNode(stage.node); if(!key) return stage;
+  const wave=stage.waves[2]; let at=wave.findIndex(m=>m.rewardHero);
+  if(at<0) for(let i=wave.length-1;i>=0;i--) if(!wave[i].boss&&!wave[i].isHero){ at=i; break; }
+  if(at<0) throw new Error(stage.id+': no ordinary final-wave slot for reward hero');
+  const old=wave[at]; wave[at]=Object.assign({},old,{key,isHero:true,rewardHero:true,rank:Math.min(3,Math.floor(stage.node/6))});
+  stage.rewardHero=key; return stage; }
+
 /* ---- the target the player should EXPERIENCE (blueprint §difficulty) ---- */
 function targetHpFrac(s){
   const st=((s-1)%10)+1;
   let hp=0.62+(0.52-0.62)*((s-1)/99);          // 0.62 at 1-1 → 0.52 at 10-10
-  if(st===5) hp-=0.08;                          // the observable elite check
+  if(st===3||st===6||st===9) hp-=0.08;          // the three Guardian checks in every chapter
   if(st===10) hp-=0.20;                         // the boss jump
   return Math.max(0.14,hp);
 }
@@ -108,7 +121,8 @@ function tuneStage(stage, s, opts){
   if((!best || best.m.wins<seeds.length) && hardestWin) return Object.assign({}, hardestWin, {cliff:true});
   return best;
 }
-module.exports={ referenceSpecs, tuneStage, scaleWaves, targetHpFrac, BOARD_BY_TIER, fight, AUTO, HOST };
+module.exports={ referenceSpecs, tuneStage, scaleWaves, targetHpFrac, BOARD_BY_TIER, fight, AUTO, HOST,
+  REWARD_HEROES, rewardHeroForNode, applyRewardHero };
 
 if(require.main===module){
   const enc=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/campaign-encounters.json'),'utf8'));
