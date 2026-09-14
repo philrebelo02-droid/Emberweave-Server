@@ -14283,6 +14283,10 @@ function grantTutReward(r, stepId){
   if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } return s.join(' · '); }
 function tutComplete(){ return (G.campaignCleared||0)>=5 && !!G.wishGemFirstDone; }
 function tutReady(){ if(G.tutDone) return false; return TUTORIAL_STEPS.some(s=>s.done() && !(G.tutRewarded&&G.tutRewarded[s.id])); }
+function tutReturnAfterAction(){
+  if(!G.tutStarted||G.tutDone||state==='tutorial'||state==='result'||state==='battle')return;
+  setTimeout(()=>{ if(G.tutStarted&&!G.tutDone&&state!=='tutorial'&&state!=='result'&&state!=='battle')show('tutorial'); },0);
+}
 // grant rewards for any steps newly completed; called after actions via updateHubChrome
 function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded={}; let changed=false;
   const IF=checkTutorial._inflight||(checkTutorial._inflight={});
@@ -14290,7 +14294,7 @@ function checkTutorial(){ if(G.tutDone) return; if(!G.tutRewarded)G.tutRewarded=
     if(ACC.token){ if(IF[s.id]) return; IF[s.id]=1;   // in-flight guard: NOT on G, so a reload cannot latch it
       grantTutReward(s.reward, s.id).then(str=>{ IF[s.id]=0; G.tutRewarded[s.id]=true; saveG();
         if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str);
-        if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); checkTutorial(); },
+        if(typeof updateMailBadges==='function') updateMailBadges(); if(state==='tutorial') renderTutorial(); tutReturnAfterAction(); checkTutorial(); },
       ()=>{ IF[s.id]=0; });   // left unrewarded on purpose — the next checkTutorial retries it
       return; }
     const str=grantTutReward(s.reward, s.id); G.tutRewarded[s.id]=true; changed=true; if(typeof bannerMsg==='function') bannerMsg('🎓 '+s.title+' ✓\n'+str); });
@@ -14311,7 +14315,7 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
   TUTORIAL_STEPS.forEach((s,i)=>{ const done=s.done(), isCur=(cur&&cur.id===s.id);
     const rew=[]; if(s.reward.gold)rew.push('🪙 '+s.reward.gold); if(s.reward.gems)rew.push('💎 '+s.reward.gems); if(s.reward.stam)rew.push('⧗ '+s.reward.stam); if(s.reward.frag)rew.push('⭐ '+s.reward.frag+' frags');
     html+=`<div class="qcard${done?' done':isCur?' ready':''}" style="${done?'opacity:.65':''}">
-      <div class="qh"><div class="qt">${done?'✅':s.icon} ${escapeHTML(s.title)}</div><div class="qrew">🎁 ${rew.join(' · ')}</div></div>
+      <div class="qh"><div class="qt">${done?'✅':s.icon} ${escapeHTML(s.title)}</div><div class="qrew">${rew.length?('🎁 '+rew.join(' · ')):'GUIDE'}</div></div>
       <div class="qd">${escapeHTML(s.desc)}</div>
       <div class="qmeta"><span>${done?'<span style="color:#5ee89b;font-weight:800">Complete</span>':(isCur?'Next up':'Locked')}</span>
         ${isCur?`<button class="btn xs" data-tut="${s.id}">Go →</button>`:''}</div></div>`; });
@@ -16264,7 +16268,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789389996509';
+const BUILD_ID = '1789391284561';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
