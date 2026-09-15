@@ -14,10 +14,10 @@
   "rewards": {
    "firstGold": 240,
    "repeatGold": 112,
-   "playerXpFirst": 12,
-   "playerXpRepeat": 6,
-   "heroXpFirst": 120,
-   "heroXpRepeat": 60,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "grey-windstep",
@@ -109,10 +109,10 @@
   "rewards": {
    "firstGold": 288,
    "repeatGold": 160,
-   "playerXpFirst": 12,
-   "playerXpRepeat": 6,
-   "heroXpFirst": 120,
-   "heroXpRepeat": 60,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "grey-starfire",
@@ -200,10 +200,10 @@
   "rewards": {
    "firstGold": 336,
    "repeatGold": 208,
-   "playerXpFirst": 12,
-   "playerXpRepeat": 6,
-   "heroXpFirst": 120,
-   "heroXpRepeat": 60,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "grey-hawkeye",
@@ -293,10 +293,10 @@
   "rewards": {
    "firstGold": 384,
    "repeatGold": 256,
-   "playerXpFirst": 62,
-   "playerXpRepeat": 24,
-   "heroXpFirst": 620,
-   "heroXpRepeat": 240,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "grey-lifebloom",
@@ -394,10 +394,10 @@
   "rewards": {
    "firstGold": 432,
    "repeatGold": 304,
-   "playerXpFirst": 120,
-   "playerXpRepeat": 48,
-   "heroXpFirst": 1200,
-   "heroXpRepeat": 480,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-hawkeye",
@@ -497,10 +497,10 @@
   "rewards": {
    "firstGold": 480,
    "repeatGold": 352,
-   "playerXpFirst": 195,
-   "playerXpRepeat": 78,
-   "heroXpFirst": 1950,
-   "heroXpRepeat": 780,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-lifebloom",
@@ -590,10 +590,10 @@
   "rewards": {
    "firstGold": 528,
    "repeatGold": 400,
-   "playerXpFirst": 281,
-   "playerXpRepeat": 113,
-   "heroXpFirst": 2810,
-   "heroXpRepeat": 1130,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-shadepath",
@@ -691,10 +691,10 @@
   "rewards": {
    "firstGold": 576,
    "repeatGold": 448,
-   "playerXpFirst": 366,
-   "playerXpRepeat": 147,
-   "heroXpFirst": 3660,
-   "heroXpRepeat": 1470,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-sunder",
@@ -812,10 +812,10 @@
   "rewards": {
    "firstGold": 624,
    "repeatGold": 496,
-   "playerXpFirst": 465,
-   "playerXpRepeat": 186,
-   "heroXpFirst": 4650,
-   "heroXpRepeat": 1860,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-hawkeye",
@@ -911,16 +911,16 @@
   "targetLevel": 10,
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 7,
-  "bossLevelGate": 10,
+  "bossLevelGate": 5,
   "portalMode": "elite",
   "farmFragment": "green-plus-1-lifebloom",
   "rewards": {
    "firstGold": 672,
    "repeatGold": 544,
-   "playerXpFirst": 576,
-   "playerXpRepeat": 231,
-   "heroXpFirst": 5760,
-   "heroXpRepeat": 2310,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-lifebloom",
@@ -1049,10 +1049,10 @@
   "rewards": {
    "firstGold": 720,
    "repeatGold": 592,
-   "playerXpFirst": 711,
-   "playerXpRepeat": 285,
-   "heroXpFirst": 7110,
-   "heroXpRepeat": 2850,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-shadepath",
@@ -1168,10 +1168,10 @@
   "rewards": {
    "firstGold": 768,
    "repeatGold": 640,
-   "playerXpFirst": 846,
-   "playerXpRepeat": 339,
-   "heroXpFirst": 8460,
-   "heroXpRepeat": 3390,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-sunder",
@@ -1283,10 +1283,10 @@
   "rewards": {
    "firstGold": 816,
    "repeatGold": 688,
-   "playerXpFirst": 993,
-   "playerXpRepeat": 398,
-   "heroXpFirst": 9930,
-   "heroXpRepeat": 3980,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-hawkeye",
@@ -1400,10 +1400,10 @@
   "rewards": {
    "firstGold": 864,
    "repeatGold": 736,
-   "playerXpFirst": 1142,
-   "playerXpRepeat": 456,
-   "heroXpFirst": 11420,
-   "heroXpRepeat": 4560,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-lifebloom",
@@ -1513,10 +1513,10 @@
   "rewards": {
    "firstGold": 912,
    "repeatGold": 784,
-   "playerXpFirst": 1302,
-   "playerXpRepeat": 521,
-   "heroXpFirst": 13020,
-   "heroXpRepeat": 5210,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-bastion",
@@ -1628,10 +1628,10 @@
   "rewards": {
    "firstGold": 960,
    "repeatGold": 832,
-   "playerXpFirst": 1461,
-   "playerXpRepeat": 585,
-   "heroXpFirst": 14610,
-   "heroXpRepeat": 5850,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-shadepath",
@@ -1751,10 +1751,10 @@
   "rewards": {
    "firstGold": 1008,
    "repeatGold": 880,
-   "playerXpFirst": 1622,
-   "playerXpRepeat": 648,
-   "heroXpFirst": 16220,
-   "heroXpRepeat": 6480,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-sunder",
@@ -1864,10 +1864,10 @@
   "rewards": {
    "firstGold": 1056,
    "repeatGold": 928,
-   "playerXpFirst": 1781,
-   "playerXpRepeat": 713,
-   "heroXpFirst": 17810,
-   "heroXpRepeat": 7130,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-voidbind",
@@ -1967,10 +1967,10 @@
   "rewards": {
    "firstGold": 1104,
    "repeatGold": 976,
-   "playerXpFirst": 1941,
-   "playerXpRepeat": 777,
-   "heroXpFirst": 19410,
-   "heroXpRepeat": 7770,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-hawkeye",
@@ -2072,16 +2072,16 @@
   "targetLevel": 20,
   "recommendedQuality": "Blue",
   "qualityMinHeroLevel": 18,
-  "bossLevelGate": 20,
+  "bossLevelGate": 7,
   "portalMode": "elite",
   "farmFragment": "blue-plus-1-lifebloom",
   "rewards": {
    "firstGold": 1152,
    "repeatGold": 1024,
-   "playerXpFirst": 2126,
-   "playerXpRepeat": 851,
-   "heroXpFirst": 21260,
-   "heroXpRepeat": 8510,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-lifebloom",
@@ -2186,10 +2186,10 @@
   "rewards": {
    "firstGold": 1200,
    "repeatGold": 1072,
-   "playerXpFirst": 2433,
-   "playerXpRepeat": 974,
-   "heroXpFirst": 24330,
-   "heroXpRepeat": 9740,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-bastion",
@@ -2311,10 +2311,10 @@
   "rewards": {
    "firstGold": 1248,
    "repeatGold": 1120,
-   "playerXpFirst": 2433,
-   "playerXpRepeat": 974,
-   "heroXpFirst": 24330,
-   "heroXpRepeat": 9740,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-shadepath",
@@ -2426,10 +2426,10 @@
   "rewards": {
    "firstGold": 1296,
    "repeatGold": 1168,
-   "playerXpFirst": 2433,
-   "playerXpRepeat": 974,
-   "heroXpFirst": 24330,
-   "heroXpRepeat": 9740,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-sunder",
@@ -2537,10 +2537,10 @@
   "rewards": {
    "firstGold": 1344,
    "repeatGold": 1216,
-   "playerXpFirst": 2433,
-   "playerXpRepeat": 974,
-   "heroXpFirst": 24330,
-   "heroXpRepeat": 9740,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-voidbind",
@@ -2644,10 +2644,10 @@
   "rewards": {
    "firstGold": 1392,
    "repeatGold": 1264,
-   "playerXpFirst": 2802,
-   "playerXpRepeat": 1121,
-   "heroXpFirst": 28020,
-   "heroXpRepeat": 11210,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-hawkeye",
@@ -2747,10 +2747,10 @@
   "rewards": {
    "firstGold": 1440,
    "repeatGold": 1312,
-   "playerXpFirst": 3209,
-   "playerXpRepeat": 1284,
-   "heroXpFirst": 32090,
-   "heroXpRepeat": 12840,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-lifebloom",
@@ -2858,10 +2858,10 @@
   "rewards": {
    "firstGold": 1488,
    "repeatGold": 1360,
-   "playerXpFirst": 3638,
-   "playerXpRepeat": 1455,
-   "heroXpFirst": 36380,
-   "heroXpRepeat": 14550,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-bastion",
@@ -2953,10 +2953,10 @@
   "rewards": {
    "firstGold": 1536,
    "repeatGold": 1408,
-   "playerXpFirst": 3639,
-   "playerXpRepeat": 1455,
-   "heroXpFirst": 36390,
-   "heroXpRepeat": 14550,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-shadepath",
@@ -3068,10 +3068,10 @@
   "rewards": {
    "firstGold": 1584,
    "repeatGold": 1456,
-   "playerXpFirst": 4094,
-   "playerXpRepeat": 1638,
-   "heroXpFirst": 40940,
-   "heroXpRepeat": 16380,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-sunder",
@@ -3197,10 +3197,10 @@
   "rewards": {
    "firstGold": 1632,
    "repeatGold": 1504,
-   "playerXpFirst": 4094,
-   "playerXpRepeat": 1638,
-   "heroXpFirst": 40940,
-   "heroXpRepeat": 16380,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-voidbind",
@@ -3317,10 +3317,10 @@
   "rewards": {
    "firstGold": 1680,
    "repeatGold": 1552,
-   "playerXpFirst": 4094,
-   "playerXpRepeat": 1638,
-   "heroXpFirst": 40940,
-   "heroXpRepeat": 16380,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-lifebloom",
@@ -3436,10 +3436,10 @@
   "rewards": {
    "firstGold": 1728,
    "repeatGold": 1600,
-   "playerXpFirst": 4646,
-   "playerXpRepeat": 1859,
-   "heroXpFirst": 46460,
-   "heroXpRepeat": 18590,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-bastion",
@@ -3551,10 +3551,10 @@
   "rewards": {
    "firstGold": 1776,
    "repeatGold": 1648,
-   "playerXpFirst": 4647,
-   "playerXpRepeat": 1859,
-   "heroXpFirst": 46470,
-   "heroXpRepeat": 18590,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-bloodroot",
@@ -3668,10 +3668,10 @@
   "rewards": {
    "firstGold": 1824,
    "repeatGold": 1696,
-   "playerXpFirst": 4647,
-   "playerXpRepeat": 1859,
-   "heroXpFirst": 46470,
-   "heroXpRepeat": 18590,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-shadepath",
@@ -3763,10 +3763,10 @@
   "rewards": {
    "firstGold": 1872,
    "repeatGold": 1744,
-   "playerXpFirst": 5385,
-   "playerXpRepeat": 2154,
-   "heroXpFirst": 53850,
-   "heroXpRepeat": 21540,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-sunder",
@@ -3884,10 +3884,10 @@
   "rewards": {
    "firstGold": 1920,
    "repeatGold": 1792,
-   "playerXpFirst": 6246,
-   "playerXpRepeat": 2499,
-   "heroXpFirst": 62460,
-   "heroXpRepeat": 24990,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-tidecall",
@@ -3983,10 +3983,10 @@
   "rewards": {
    "firstGold": 1968,
    "repeatGold": 1840,
-   "playerXpFirst": 7230,
-   "playerXpRepeat": 2892,
-   "heroXpFirst": 72300,
-   "heroXpRepeat": 28920,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-voidbind",
@@ -4090,10 +4090,10 @@
   "rewards": {
    "firstGold": 2016,
    "repeatGold": 1888,
-   "playerXpFirst": 7230,
-   "playerXpRepeat": 2892,
-   "heroXpFirst": 72300,
-   "heroXpRepeat": 28920,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-lifebloom",
@@ -4193,10 +4193,10 @@
   "rewards": {
    "firstGold": 2064,
    "repeatGold": 1936,
-   "playerXpFirst": 7230,
-   "playerXpRepeat": 2892,
-   "heroXpFirst": 72300,
-   "heroXpRepeat": 28920,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-bastion",
@@ -4298,10 +4298,10 @@
   "rewards": {
    "firstGold": 2112,
    "repeatGold": 1984,
-   "playerXpFirst": 8706,
-   "playerXpRepeat": 3483,
-   "heroXpFirst": 87060,
-   "heroXpRepeat": 34830,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-bloodroot",
@@ -4430,10 +4430,10 @@
   "rewards": {
    "firstGold": 2160,
    "repeatGold": 2032,
-   "playerXpFirst": 10182,
-   "playerXpRepeat": 4073,
-   "heroXpFirst": 101820,
-   "heroXpRepeat": 40730,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-shadepath",
@@ -4543,10 +4543,10 @@
   "rewards": {
    "firstGold": 2208,
    "repeatGold": 2080,
-   "playerXpFirst": 11781,
-   "playerXpRepeat": 4713,
-   "heroXpFirst": 117810,
-   "heroXpRepeat": 47130,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-sunder",
@@ -4658,10 +4658,10 @@
   "rewards": {
    "firstGold": 2256,
    "repeatGold": 2128,
-   "playerXpFirst": 13503,
-   "playerXpRepeat": 5402,
-   "heroXpFirst": 135030,
-   "heroXpRepeat": 54020,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-tidecall",
@@ -4787,10 +4787,10 @@
   "rewards": {
    "firstGold": 2304,
    "repeatGold": 2176,
-   "playerXpFirst": 13503,
-   "playerXpRepeat": 5402,
-   "heroXpFirst": 135030,
-   "heroXpRepeat": 54020,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-voidbind",
@@ -4906,10 +4906,10 @@
   "rewards": {
    "firstGold": 2352,
    "repeatGold": 2224,
-   "playerXpFirst": 13503,
-   "playerXpRepeat": 5402,
-   "heroXpFirst": 135030,
-   "heroXpRepeat": 54020,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-lifebloom",
@@ -5015,10 +5015,10 @@
   "rewards": {
    "firstGold": 2400,
    "repeatGold": 2272,
-   "playerXpFirst": 15840,
-   "playerXpRepeat": 6336,
-   "heroXpFirst": 158400,
-   "heroXpRepeat": 63360,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-bastion",
@@ -5132,10 +5132,10 @@
   "rewards": {
    "firstGold": 2448,
    "repeatGold": 2320,
-   "playerXpFirst": 15840,
-   "playerXpRepeat": 6336,
-   "heroXpFirst": 158400,
-   "heroXpRepeat": 63360,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-bloodroot",
@@ -5245,10 +5245,10 @@
   "rewards": {
    "firstGold": 2496,
    "repeatGold": 2368,
-   "playerXpFirst": 15840,
-   "playerXpRepeat": 6336,
-   "heroXpFirst": 158400,
-   "heroXpRepeat": 63360,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-shadepath",
@@ -5366,10 +5366,10 @@
   "rewards": {
    "firstGold": 2544,
    "repeatGold": 2416,
-   "playerXpFirst": 15840,
-   "playerXpRepeat": 6336,
-   "heroXpFirst": 158400,
-   "heroXpRepeat": 63360,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-sunder",
@@ -5477,10 +5477,10 @@
   "rewards": {
    "firstGold": 2592,
    "repeatGold": 2464,
-   "playerXpFirst": 19530,
-   "playerXpRepeat": 7812,
-   "heroXpFirst": 195300,
-   "heroXpRepeat": 78120,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-tidecall",
@@ -5609,10 +5609,10 @@
   "rewards": {
    "firstGold": 2640,
    "repeatGold": 2512,
-   "playerXpFirst": 23528,
-   "playerXpRepeat": 9411,
-   "heroXpFirst": 235280,
-   "heroXpRepeat": 94110,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-voidbind",
@@ -5716,10 +5716,10 @@
   "rewards": {
    "firstGold": 2688,
    "repeatGold": 2560,
-   "playerXpFirst": 23528,
-   "playerXpRepeat": 9411,
-   "heroXpFirst": 235280,
-   "heroXpRepeat": 94110,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-lifebloom",
@@ -5825,10 +5825,10 @@
   "rewards": {
    "firstGold": 2736,
    "repeatGold": 2608,
-   "playerXpFirst": 27525,
-   "playerXpRepeat": 11010,
-   "heroXpFirst": 275250,
-   "heroXpRepeat": 110100,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-bastion",
@@ -5954,10 +5954,10 @@
   "rewards": {
    "firstGold": 2784,
    "repeatGold": 2656,
-   "playerXpFirst": 31523,
-   "playerXpRepeat": 12609,
-   "heroXpFirst": 315230,
-   "heroXpRepeat": 126090,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-bloodroot",
@@ -6061,10 +6061,10 @@
   "rewards": {
    "firstGold": 2832,
    "repeatGold": 2704,
-   "playerXpFirst": 35520,
-   "playerXpRepeat": 14208,
-   "heroXpFirst": 355200,
-   "heroXpRepeat": 142080,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-shadepath",
@@ -6170,10 +6170,10 @@
   "rewards": {
    "firstGold": 2880,
    "repeatGold": 2752,
-   "playerXpFirst": 35520,
-   "playerXpRepeat": 14208,
-   "heroXpFirst": 355200,
-   "heroXpRepeat": 142080,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-sunder",
@@ -6281,10 +6281,10 @@
   "rewards": {
    "firstGold": 2928,
    "repeatGold": 2800,
-   "playerXpFirst": 39701,
-   "playerXpRepeat": 15881,
-   "heroXpFirst": 397010,
-   "heroXpRepeat": 158810,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-tidecall",
@@ -6406,10 +6406,10 @@
   "rewards": {
    "firstGold": 2976,
    "repeatGold": 2848,
-   "playerXpFirst": 39702,
-   "playerXpRepeat": 15881,
-   "heroXpFirst": 397020,
-   "heroXpRepeat": 158810,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-voidbind",
@@ -6527,10 +6527,10 @@
   "rewards": {
    "firstGold": 3024,
    "repeatGold": 2896,
-   "playerXpFirst": 44033,
-   "playerXpRepeat": 17613,
-   "heroXpFirst": 440330,
-   "heroXpRepeat": 176130,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-lifebloom",
@@ -6632,10 +6632,10 @@
   "rewards": {
    "firstGold": 3072,
    "repeatGold": 2944,
-   "playerXpFirst": 48509,
-   "playerXpRepeat": 19404,
-   "heroXpFirst": 485090,
-   "heroXpRepeat": 194040,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-bastion",
@@ -6746,10 +6746,10 @@
   "rewards": {
    "firstGold": 3120,
    "repeatGold": 2992,
-   "playerXpFirst": 48509,
-   "playerXpRepeat": 19404,
-   "heroXpFirst": 485090,
-   "heroXpRepeat": 194040,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-bloodroot",
@@ -6877,10 +6877,10 @@
   "rewards": {
    "firstGold": 3168,
    "repeatGold": 3040,
-   "playerXpFirst": 53133,
-   "playerXpRepeat": 21254,
-   "heroXpFirst": 531330,
-   "heroXpRepeat": 212540,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-dawnshield",
@@ -6986,10 +6986,10 @@
   "rewards": {
    "firstGold": 3216,
    "repeatGold": 3088,
-   "playerXpFirst": 53135,
-   "playerXpRepeat": 21254,
-   "heroXpFirst": 531350,
-   "heroXpRepeat": 212540,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-keenmind",
@@ -7103,10 +7103,10 @@
   "rewards": {
    "firstGold": 3264,
    "repeatGold": 3136,
-   "playerXpFirst": 57906,
-   "playerXpRepeat": 23163,
-   "heroXpFirst": 579060,
-   "heroXpRepeat": 231630,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-shadepath",
@@ -7216,10 +7216,10 @@
   "rewards": {
    "firstGold": 3312,
    "repeatGold": 3184,
-   "playerXpFirst": 62826,
-   "playerXpRepeat": 25131,
-   "heroXpFirst": 628260,
-   "heroXpRepeat": 251310,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-sunder",
@@ -7331,10 +7331,10 @@
   "rewards": {
    "firstGold": 3360,
    "repeatGold": 3232,
-   "playerXpFirst": 62826,
-   "playerXpRepeat": 25131,
-   "heroXpFirst": 628260,
-   "heroXpRepeat": 251310,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-tidecall",
@@ -7448,10 +7448,10 @@
   "rewards": {
    "firstGold": 3408,
    "repeatGold": 3280,
-   "playerXpFirst": 67893,
-   "playerXpRepeat": 27158,
-   "heroXpFirst": 678930,
-   "heroXpRepeat": 271580,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-voidbind",
@@ -7561,10 +7561,10 @@
   "rewards": {
    "firstGold": 3456,
    "repeatGold": 3328,
-   "playerXpFirst": 73109,
-   "playerXpRepeat": 29244,
-   "heroXpFirst": 731090,
-   "heroXpRepeat": 292440,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-lifebloom",
@@ -7670,10 +7670,10 @@
   "rewards": {
    "firstGold": 3504,
    "repeatGold": 3376,
-   "playerXpFirst": 73109,
-   "playerXpRepeat": 29244,
-   "heroXpFirst": 731090,
-   "heroXpRepeat": 292440,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-bastion",
@@ -7793,10 +7793,10 @@
   "rewards": {
    "firstGold": 3552,
    "repeatGold": 3424,
-   "playerXpFirst": 78473,
-   "playerXpRepeat": 31389,
-   "heroXpFirst": 784730,
-   "heroXpRepeat": 313890,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-bloodroot",
@@ -7913,10 +7913,10 @@
   "rewards": {
    "firstGold": 3600,
    "repeatGold": 3472,
-   "playerXpFirst": 78471,
-   "playerXpRepeat": 31389,
-   "heroXpFirst": 784710,
-   "heroXpRepeat": 313890,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-dawnshield",
@@ -8020,10 +8020,10 @@
   "rewards": {
    "firstGold": 3648,
    "repeatGold": 3520,
-   "playerXpFirst": 83982,
-   "playerXpRepeat": 33593,
-   "heroXpFirst": 839820,
-   "heroXpRepeat": 335930,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-keenmind",
@@ -8123,10 +8123,10 @@
   "rewards": {
    "firstGold": 3696,
    "repeatGold": 3568,
-   "playerXpFirst": 83982,
-   "playerXpRepeat": 33593,
-   "heroXpFirst": 839820,
-   "heroXpRepeat": 335930,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-shadepath",
@@ -8240,10 +8240,10 @@
   "rewards": {
    "firstGold": 3744,
    "repeatGold": 3616,
-   "playerXpFirst": 89640,
-   "playerXpRepeat": 35856,
-   "heroXpFirst": 896400,
-   "heroXpRepeat": 358560,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-sunder",
@@ -8359,10 +8359,10 @@
   "rewards": {
    "firstGold": 3792,
    "repeatGold": 3664,
-   "playerXpFirst": 95445,
-   "playerXpRepeat": 38178,
-   "heroXpFirst": 954450,
-   "heroXpRepeat": 381780,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-tidecall",
@@ -8468,10 +8468,10 @@
   "rewards": {
    "firstGold": 3840,
    "repeatGold": 3712,
-   "playerXpFirst": 95447,
-   "playerXpRepeat": 38178,
-   "heroXpFirst": 954470,
-   "heroXpRepeat": 381780,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-voidbind",
@@ -8579,10 +8579,10 @@
   "rewards": {
    "firstGold": 3888,
    "repeatGold": 3760,
-   "playerXpFirst": 101399,
-   "playerXpRepeat": 40560,
-   "heroXpFirst": 1013990,
-   "heroXpRepeat": 405600,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-lifebloom",
@@ -8692,10 +8692,10 @@
   "rewards": {
    "firstGold": 3936,
    "repeatGold": 3808,
-   "playerXpFirst": 107499,
-   "playerXpRepeat": 42999,
-   "heroXpFirst": 1074990,
-   "heroXpRepeat": 429990,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-bastion",
@@ -8795,10 +8795,10 @@
   "rewards": {
    "firstGold": 3984,
    "repeatGold": 3856,
-   "playerXpFirst": 107501,
-   "playerXpRepeat": 43001,
-   "heroXpFirst": 1075010,
-   "heroXpRepeat": 430010,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-bloodroot",
@@ -8906,10 +8906,10 @@
   "rewards": {
    "firstGold": 4032,
    "repeatGold": 3904,
-   "playerXpFirst": 113748,
-   "playerXpRepeat": 45500,
-   "heroXpFirst": 1137480,
-   "heroXpRepeat": 455000,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-dawnshield",
@@ -9038,10 +9038,10 @@
   "rewards": {
    "firstGold": 4080,
    "repeatGold": 3952,
-   "playerXpFirst": 113748,
-   "playerXpRepeat": 45500,
-   "heroXpFirst": 1137480,
-   "heroXpRepeat": 455000,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-keenmind",
@@ -9163,10 +9163,10 @@
   "rewards": {
    "firstGold": 4128,
    "repeatGold": 4000,
-   "playerXpFirst": 120143,
-   "playerXpRepeat": 48057,
-   "heroXpFirst": 1201430,
-   "heroXpRepeat": 480570,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-shadepath",
@@ -9284,10 +9284,10 @@
   "rewards": {
    "firstGold": 4176,
    "repeatGold": 4048,
-   "playerXpFirst": 120144,
-   "playerXpRepeat": 48057,
-   "heroXpFirst": 1201440,
-   "heroXpRepeat": 480570,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-sunder",
@@ -9401,10 +9401,10 @@
   "rewards": {
    "firstGold": 4224,
    "repeatGold": 4096,
-   "playerXpFirst": 126689,
-   "playerXpRepeat": 50676,
-   "heroXpFirst": 1266890,
-   "heroXpRepeat": 506760,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-tidecall",
@@ -9508,10 +9508,10 @@
   "rewards": {
    "firstGold": 4272,
    "repeatGold": 4144,
-   "playerXpFirst": 133379,
-   "playerXpRepeat": 53352,
-   "heroXpFirst": 1333790,
-   "heroXpRepeat": 533520,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-voidbind",
@@ -9641,10 +9641,10 @@
   "rewards": {
    "firstGold": 4320,
    "repeatGold": 4192,
-   "playerXpFirst": 133379,
-   "playerXpRepeat": 53352,
-   "heroXpFirst": 1333790,
-   "heroXpRepeat": 533520,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-lifebloom",
@@ -9764,10 +9764,10 @@
   "rewards": {
    "firstGold": 4368,
    "repeatGold": 4240,
-   "playerXpFirst": 140217,
-   "playerXpRepeat": 56087,
-   "heroXpFirst": 1402170,
-   "heroXpRepeat": 560870,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-bastion",
@@ -9877,10 +9877,10 @@
   "rewards": {
    "firstGold": 4416,
    "repeatGold": 4288,
-   "playerXpFirst": 147204,
-   "playerXpRepeat": 58881,
-   "heroXpFirst": 1472040,
-   "heroXpRepeat": 588810,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-bloodroot",
@@ -9998,10 +9998,10 @@
   "rewards": {
    "firstGold": 4464,
    "repeatGold": 4336,
-   "playerXpFirst": 147204,
-   "playerXpRepeat": 58881,
-   "heroXpFirst": 1472040,
-   "heroXpRepeat": 588810,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-dawnshield",
@@ -10121,10 +10121,10 @@
   "rewards": {
    "firstGold": 4512,
    "repeatGold": 4384,
-   "playerXpFirst": 154338,
-   "playerXpRepeat": 61736,
-   "heroXpFirst": 1543380,
-   "heroXpRepeat": 617360,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-keenmind",
@@ -10241,10 +10241,10 @@
   "rewards": {
    "firstGold": 4560,
    "repeatGold": 4432,
-   "playerXpFirst": 154338,
-   "playerXpRepeat": 61736,
-   "heroXpFirst": 1543380,
-   "heroXpRepeat": 617360,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-shadepath",
@@ -10360,10 +10360,10 @@
   "rewards": {
    "firstGold": 4608,
    "repeatGold": 4480,
-   "playerXpFirst": 161621,
-   "playerXpRepeat": 64649,
-   "heroXpFirst": 1616210,
-   "heroXpRepeat": 646490,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-sunder",
@@ -10481,10 +10481,10 @@
   "rewards": {
    "firstGold": 4656,
    "repeatGold": 4528,
-   "playerXpFirst": 161619,
-   "playerXpRepeat": 64647,
-   "heroXpFirst": 1616190,
-   "heroXpRepeat": 646470,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-tidecall",
@@ -10604,10 +10604,10 @@
   "rewards": {
    "firstGold": 4704,
    "repeatGold": 4576,
-   "playerXpFirst": 169049,
-   "playerXpRepeat": 67620,
-   "heroXpFirst": 1690490,
-   "heroXpRepeat": 676200,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-voidbind",
@@ -10735,10 +10735,10 @@
   "rewards": {
    "firstGold": 4752,
    "repeatGold": 4624,
-   "playerXpFirst": 176627,
-   "playerXpRepeat": 70650,
-   "heroXpFirst": 1766270,
-   "heroXpRepeat": 706500,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-dawnshield",
@@ -10844,10 +10844,10 @@
   "rewards": {
    "firstGold": 4800,
    "repeatGold": 4672,
-   "playerXpFirst": 176625,
-   "playerXpRepeat": 70650,
-   "heroXpFirst": 1766250,
-   "heroXpRepeat": 706500,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-keenmind",
@@ -10949,10 +10949,10 @@
   "rewards": {
    "firstGold": 4848,
    "repeatGold": 4720,
-   "playerXpFirst": 184350,
-   "playerXpRepeat": 73740,
-   "heroXpFirst": 1843500,
-   "heroXpRepeat": 737400,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-shadepath",
@@ -11056,10 +11056,10 @@
   "rewards": {
    "firstGold": 4896,
    "repeatGold": 4768,
-   "playerXpFirst": 192222,
-   "playerXpRepeat": 76889,
-   "heroXpFirst": 1922220,
-   "heroXpRepeat": 768890,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-sunder",
@@ -11177,10 +11177,10 @@
   "rewards": {
    "firstGold": 4944,
    "repeatGold": 4816,
-   "playerXpFirst": 192222,
-   "playerXpRepeat": 76889,
-   "heroXpFirst": 1922220,
-   "heroXpRepeat": 768890,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-tidecall",
@@ -11288,10 +11288,10 @@
   "rewards": {
    "firstGold": 4992,
    "repeatGold": 4864,
-   "playerXpFirst": 200241,
-   "playerXpRepeat": 80097,
-   "heroXpFirst": 2002410,
-   "heroXpRepeat": 800970,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-voidbind",

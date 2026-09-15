@@ -779,6 +779,27 @@ const D_HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,6
 function d_runSum(inc){ const o=[]; let r=0; for(const v of inc){ r+=v; o.push(r); } return o; }
 function d_cum(steps){ const c=new Array(D_MAX_LEVEL+1); c[1]=0; for(let L=2;L<=D_MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const D_TROOP_CUM=d_cum(d_runSum(D_TROOP_INC)), D_HERO_CUM=d_cum(D_HERO_STEP);
+// Campaign earns one directed Hero XP Potion per rewarded run. Each tier gives a flat
+// XP amount; the recipient is limited by Commander level.
+const XP_POTION_BASE=Object.freeze({minor:60,greater:300,major:1000,superior:2500});
+function xpPotionTier(mode,node,seed){
+  const chapter=mode==='veteran'?10:Math.ceil(node/10);
+  if(chapter<=2) return 'minor';
+  if(chapter<=4) return 'greater';
+  if(chapter===5) return seed%10===0?'major':'greater';
+  if(chapter<=7) return 'major';
+  return seed%10===0?'superior':'major';
+}
+function xpPotionGrant(led,mode,node,count,seed){
+  led.xpPotions=led.xpPotions||{}; const out={};
+  for(let i=0;i<count;i++){
+    const tier=xpPotionTier(mode,node,srvSeed('campxp-run',mode,node,seed,i));
+    led.xpPotions[tier]=Math.min(999999,(led.xpPotions[tier]|0)+1);
+    out[tier]=(out[tier]|0)+1;
+  }
+  return out;
+}
+function xpPotionAmount(tier){ return XP_POTION_BASE[tier]|0; }
 function d_levelForXP(xp,cum){ let L=1; while(L<D_MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
 
 /* ---- v249 Academy on the ledger: mirrors of the client's research tables ---- */
@@ -1885,7 +1906,7 @@ function ledAddPlayerXP(led,amount){
 }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
   return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
-    hero:led.hero, unlocked:led.unlocked, frags:led.frags, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
+    hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, prayer:Math.max(0,Math.min(200,led.prayer|0)),
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
@@ -1930,9 +1951,9 @@ const EARN_RULES={
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
   win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{}, quest12:{}, rune:{gems:30},
-  win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{}, win15:{}, gemwish:{gems:140},
+  win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{xpPotion:'minor'}, vexxp:{}, win15:{}, gemwish:{gems:140},
   signin:{stam:60}, name:{gems:20} });
-const TUTORIAL_ORDER=Object.freeze(['win11','quest11','skill','win12','quest12','rune','win13','quest13','wish','win14','quest14','win15','gemwish']);
+const TUTORIAL_ORDER=Object.freeze(['win11','quest11','skill','win12','quest12','rune','win13','quest13','wish','win14','quest14','vexxp','win15','gemwish']);
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -2095,7 +2116,7 @@ function campStageOf(node){ return CAMP_ENC&&CAMP_ENC.byNode[node|0]||null; }
 /* Blueprint v1 §"Chapter graduation bosses": normal stages may be attempted early, but each
    Stage 10 boss is a HARD graduation gate on Player Level (1-10 → 10 … 10-10 → 100). Never a
    star or evolution threshold. */
-function campBossLevelGate(node){ return (node%10===0) ? Math.min(100, Math.round(node/10)*10) : 0; }
+function campBossLevelGate(node){ if(node%10!==0)return 0; if(node===10)return 5; if(node===20)return 7; return Math.min(100,Math.round(node/10)*10); }
 function campIsBoss(node){ return node%10===0; }
 
 /* ==================== THE FORGE (Gear/Temper v2) — server-authoritative ====================
@@ -3309,6 +3330,7 @@ async function api(req,res,url){
     const b=await body(req); const step=String(b.step||'').slice(0,16);
     const rw=TUTORIAL_REWARDS[step]; if(!rw) return send(res,400,{error:'Unknown step.'});
     const led=ensureLedger(me); led.tut=led.tut||{};
+    if(step==='vexxp'&&((led.xpPotionUsed||{}).vexMinor|0)<=(led.tutVexXpBase|0))return send(res,400,{error:'Use a Minor XP Potion on Vex after claiming the lesson potion.'});
     if(led.tut[step]) return send(res,200,{ok:true, already:true, ledger:ledgerView(me)});
     const pos=TUTORIAL_ORDER.indexOf(step);
     if(pos>=0 && TUTORIAL_ORDER.slice(0,pos).some(id=>!led.tut[id])) return send(res,409,{error:'Claim the previous Start Here reward first.'});
@@ -3317,10 +3339,32 @@ async function api(req,res,url){
     if(rw.gold){ led.gold=Math.min(100000000,led.gold+rw.gold); out.gold=rw.gold; }
     if(rw.gems){ led.gems=Math.min(9999999,led.gems+rw.gems); out.gems=rw.gems; }
     if(rw.stam){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+rw.stam); out.stam=rw.stam; }
+    if(rw.xpPotion){ led.xpPotions=led.xpPotions||{}; led.xpPotions[rw.xpPotion]=(led.xpPotions[rw.xpPotion]|0)+1; out.xpPotion={tier:rw.xpPotion,qty:1}; if(step==='quest14')led.tutVexXpBase=(led.xpPotionUsed||{}).vexMinor|0; }
     if(rw.frag){ // a fixed, named starter hero — never a random pick made by the browser
       const hk='vex'; led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+rw.frag); out.frag={heroKey:hk, qty:rw.frag}; }
-    ledTx(me,'tutorial:'+step,{gold:out.gold,gems:out.gems,stamina:out.stam});
+    ledTx(me,'tutorial:'+step,{gold:out.gold,gems:out.gems,stamina:out.stam,xpPotion:out.xpPotion||null});
     writeDB(); return send(res,200,{ok:true, step, reward:out, ledger:ledgerView(me)}); }
+  if(p==='/api/hero/xp-potion' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req), reqId=String(b.requestId||'').slice(0,48);
+    if(!reqId)return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':xp-potion:'+reqId,()=>{
+      const led=ensureLedger(me), tier=String(b.tier||''), key=String(b.heroKey||'');
+      if(!XP_POTION_BASE[tier])return {ok:false,error:'Unknown potion.'};
+      if(!led.unlocked[key]||!SIM.HERO_BASE[key])return {ok:false,error:'Own the hero first.'};
+      led.xpPotions=led.xpPotions||{};
+      if((led.xpPotions[tier]|0)<1)return {ok:false,error:'No '+tier+' potions left.'};
+      const hero=led.hero[key], before=ledHeroLevel(led,key);
+      if(d_levelForXP(hero.xp||0,D_HERO_CUM)>=D_MAX_LEVEL)return {ok:false,error:'Hero has reached maximum XP.'};
+      if(before>=ledPlayerLevel(led))return {ok:false,error:'Hero is at the Commander level cap.'};
+      const amount=xpPotionAmount(tier);
+      if(amount<1)return {ok:false,error:'Hero cannot gain XP.'};
+      led.xpPotions[tier]--;
+      hero.xp=Math.min(99000000,(hero.xp|0)+amount);
+      led.xpPotionUsed=led.xpPotionUsed||{}; led.xpPotionUsed[key]=(led.xpPotionUsed[key]|0)+1; if(key==='vex'&&tier==='minor')led.xpPotionUsed.vexMinor=(led.xpPotionUsed.vexMinor|0)+1;
+      ledTx(me,'hero:xp-potion:'+tier,{hero:key,heroXp:amount,xpPotion:-1});
+      writeDB(); return {ok:true,tier,heroKey:key,heroXp:amount,levelBefore:before,levelAfter:ledHeroLevel(led,key),ledger:ledgerView(me)};
+    });
+    return send(res,out.ok===false?400:200,out); }
   if(p==='/api/campaign/sweep' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':csweep:'+reqId,()=>{
@@ -3347,14 +3391,15 @@ async function api(req,res,url){
       ledAddPlayerXP(led,px);
       const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
-      ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost});
+      const xpPotions=xpPotionGrant(led,mode,node,times,srvSeed('campxp-sweep',me.id,mode,node,reqId));
+      ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost,xpPotions});
       // A sweep grants the stage's authored Glyph reward; Elite pays two per run.
       const glyphFragments=glyphGrantNamedList(me,campaignGlyphDrops(st,times,srvSeed('campglyph-sweep',me.id,mode,node,reqId)));
       // Guardian and boss reward stages grant the fragment of the hero fought in their final wave.
       let eliteFrag=null;
       if(st.rewardHero && (mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)))){ const hk=st.rewardHero||eliteHeroForSrv(node);
         led.frags[hk]=Math.min(9999,(led.frags[hk]|0)+times); eliteFrag={heroKey:hk, qty:times}; }
-      writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, glyphFragments, eliteFrag, ledger:ledgerView(me)};
+      writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, xpPotions, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -3718,13 +3763,14 @@ async function api(req,res,url){
         }
         const rw=st.rewards;
         reward={ gold:rewarded?(first?rw.firstGold:rw.repeatGold):0, playerXp:rewarded?(first?rw.playerXpFirst:rw.playerXpRepeat):0,
-                 heroXp:rewarded?(first?rw.heroXpFirst:rw.heroXpRepeat):0, first, dailyCapped:!rewarded, runCounted:(capStage&&!first&&rewarded) };
+                 heroXp:rewarded?(first?rw.heroXpFirst:rw.heroXpRepeat):0, first, dailyCapped:!rewarded, runCounted:(capStage&&!first&&rewarded),
+                 xpPotions:rewarded?xpPotionGrant(led,mode,a.node,1,srvSeed('campxp-clear',me.id,mode,a.node,reqId)):{} };
         led.gold=Math.min(100000000,led.gold+reward.gold);
         ledAddPlayerXP(led,reward.playerXp);
         for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
         if(first) prog.cleared=a.node;
         if(stars>(prog.stars[a.node]|0)) prog.stars[a.node]=stars;
-        ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp});
+        ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp,xpPotions:reward.xpPotions});
         // Ordinary Normal stages pay two distinct server-seeded fragments from their visible pool of four.
         reward.glyphFragments=rewarded?glyphGrantNamedList(me,campaignGlyphDrops(st,1,srvSeed('campglyph-clear',me.id,mode,a.node,reqId))):[];
         /* GUARDIAN STAGES PAY THEIR FRAGMENT ON THIS ROUTE TOO. The DROPS panel promises x2-4 hero

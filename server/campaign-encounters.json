@@ -3,14 +3,14 @@
   "id": "1-1",
   "node": 1,
   "checkpoint": "normal",
-  "recommendedPower": 426,
+  "recommendedPower": 276,
   "rewards": {
    "firstGold": 150,
    "repeatGold": 70,
-   "heroXpFirst": 80,
-   "heroXpRepeat": 40,
-   "playerXpFirst": 8,
-   "playerXpRepeat": 4,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "grey-stoneheart",
@@ -129,14 +129,14 @@
   "id": "1-2",
   "node": 2,
   "checkpoint": "normal",
-  "recommendedPower": 502,
+  "recommendedPower": 303,
   "rewards": {
    "firstGold": 180,
    "repeatGold": 100,
-   "heroXpFirst": 80,
-   "heroXpRepeat": 40,
-   "playerXpFirst": 8,
-   "playerXpRepeat": 4,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "grey-starfire",
@@ -173,19 +173,19 @@
    [
     {
      "key": "fire boar",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     },
     {
      "key": "knat",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     },
     {
      "key": "creep",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     }
@@ -193,19 +193,19 @@
    [
     {
      "key": "bug",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     },
     {
      "key": "creep",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     },
     {
      "key": "fire boar",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     }
@@ -213,25 +213,25 @@
    [
     {
      "key": "cinder skulk",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     },
     {
      "key": "fire boar",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     },
     {
      "key": "sootwing imp",
-     "lvl": 2,
+     "lvl": 3,
      "hpMul": 0.9024,
      "dmgMul": 1.0191
     }
    ]
   ],
-  "targetLevel": 2,
+  "targetLevel": 3,
   "targetGlyph": "None",
   "recommendedQuality": "Grey",
   "qualityMinHeroLevel": 1,
@@ -255,14 +255,14 @@
   "id": "1-3",
   "node": 3,
   "checkpoint": "guardian",
-  "recommendedPower": 701,
+  "recommendedPower": 303,
   "rewards": {
    "firstGold": 210,
    "repeatGold": 130,
-   "heroXpFirst": 80,
-   "heroXpRepeat": 40,
-   "playerXpFirst": 8,
-   "playerXpRepeat": 4,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "grey-veilward",
@@ -356,14 +356,14 @@
   "id": "1-4",
   "node": 4,
   "checkpoint": "normal",
-  "recommendedPower": 1126,
+  "recommendedPower": 761,
   "rewards": {
    "firstGold": 240,
    "repeatGold": 160,
-   "heroXpFirst": 410,
-   "heroXpRepeat": 160,
-   "playerXpFirst": 41,
-   "playerXpRepeat": 16,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-stoneheart",
@@ -401,66 +401,66 @@
     {
      "key": "turtle",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "sootwing imp",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "cinder skulk",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     }
    ],
    [
     {
      "key": "fire boar",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "bug",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "orc",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     }
    ],
    [
     {
      "key": "orc",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "bug",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "fire boar",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     },
     {
      "key": "sootwing imp",
      "lvl": 4,
-     "hpMul": 1.5771,
-     "dmgMul": 1.8905
+     "hpMul": 1.2046,
+     "dmgMul": 1.5656
     }
    ]
   ],
@@ -469,7 +469,7 @@
   "recommendedQuality": "Grey",
   "qualityMinHeroLevel": 1,
   "bossLevelGate": 0,
-  "difficultyTune": 1.0876,
+  "difficultyTune": 0.7638,
   "baselineHp": 1.1412,
   "baselineDmg": 1.1087,
   "portalMode": "normal",
@@ -488,14 +488,14 @@
   "id": "1-5",
   "node": 5,
   "checkpoint": "normal",
-  "recommendedPower": 1336,
+  "recommendedPower": 761,
   "rewards": {
    "firstGold": 270,
    "repeatGold": 190,
-   "heroXpFirst": 800,
-   "heroXpRepeat": 320,
-   "playerXpFirst": 80,
-   "playerXpRepeat": 32,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-ravager",
@@ -532,82 +532,82 @@
    [
     {
      "key": "orc",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "creep",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "cinder skulk",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     }
    ],
    [
     {
      "key": "orc",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "turtle",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "slime",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     }
    ],
    [
     {
      "key": "bug",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "knat",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "creep",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "turtle",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     },
     {
      "key": "fire boar",
-     "lvl": 5,
-     "hpMul": 2.4061,
-     "dmgMul": 2.1751
+     "lvl": 4,
+     "hpMul": 1.9155,
+     "dmgMul": 1.8542
     }
    ]
   ],
-  "targetLevel": 5,
+  "targetLevel": 4,
   "targetGlyph": "Grey",
   "recommendedQuality": "Grey",
   "qualityMinHeroLevel": 1,
   "bossLevelGate": 0,
-  "difficultyTune": 1.5343,
+  "difficultyTune": 0.7961,
   "baselineHp": 1.1925,
   "baselineDmg": 1.1475,
   "portalMode": "normal",
@@ -626,14 +626,14 @@
   "id": "1-6",
   "node": 6,
   "checkpoint": "guardian",
-  "recommendedPower": 1524,
+  "recommendedPower": 761,
   "rewards": {
    "firstGold": 300,
    "repeatGold": 220,
-   "heroXpFirst": 1300,
-   "heroXpRepeat": 520,
-   "playerXpFirst": 130,
-   "playerXpRepeat": 52,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-ironwall",
@@ -647,73 +647,73 @@
    [
     {
      "key": "slime",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     },
     {
      "key": "creep",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     },
     {
      "key": "bug",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     }
    ],
    [
     {
      "key": "slime",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     },
     {
      "key": "fire boar",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     },
     {
      "key": "creep",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     }
    ],
    [
     {
      "key": "slime",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     },
     {
      "key": "knat",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064
     },
     {
      "key": "sylthaine",
-     "lvl": 6,
-     "hpMul": 1.9402,
-     "dmgMul": 2.3313,
+     "lvl": 4,
+     "hpMul": 1.7935,
+     "dmgMul": 2.2064,
      "isHero": true,
      "rewardHero": true,
      "rank": 1
     }
    ]
   ],
-  "targetLevel": 6,
+  "targetLevel": 4,
   "targetGlyph": "Grey",
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 7,
   "bossLevelGate": 0,
-  "difficultyTune": 1.3317,
+  "difficultyTune": 0.9244,
   "baselineHp": 1.3459,
   "baselineDmg": 1.2471,
   "portalMode": "normal",
@@ -727,14 +727,14 @@
   "id": "1-7",
   "node": 7,
   "checkpoint": "normal",
-  "recommendedPower": 2073,
+  "recommendedPower": 1011,
   "rewards": {
    "firstGold": 330,
    "repeatGold": 250,
-   "heroXpFirst": 1870,
-   "heroXpRepeat": 750,
-   "playerXpFirst": 187,
-   "playerXpRepeat": 75,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-lifebloom",
@@ -771,76 +771,76 @@
    [
     {
      "key": "knat",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "fire boar",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "turtle",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     }
    ],
    [
     {
      "key": "sootwing imp",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "bug",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "turtle",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "slime",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     }
    ],
    [
     {
      "key": "slime",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "fire boar",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     },
     {
      "key": "sootwing imp",
-     "lvl": 7,
-     "hpMul": 4.6653,
-     "dmgMul": 4.5323
+     "lvl": 5,
+     "hpMul": 1.0267,
+     "dmgMul": 1.5708
     }
    ]
   ],
-  "targetLevel": 7,
+  "targetLevel": 5,
   "targetGlyph": "Grey",
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 7,
   "bossLevelGate": 0,
-  "difficultyTune": 3.1871,
+  "difficultyTune": 0.2201,
   "baselineHp": 1.3023,
   "baselineDmg": 1.2293,
   "portalMode": "normal",
@@ -859,14 +859,14 @@
   "id": "1-8",
   "node": 8,
   "checkpoint": "normal",
-  "recommendedPower": 2289,
+  "recommendedPower": 1011,
   "rewards": {
    "firstGold": 360,
    "repeatGold": 280,
-   "heroXpFirst": 2440,
-   "heroXpRepeat": 980,
-   "playerXpFirst": 244,
-   "playerXpRepeat": 98,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-ironwall",
@@ -903,100 +903,100 @@
    [
     {
      "key": "sootwing imp",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "creep",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "bug",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "slime",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "fire boar",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     }
    ],
    [
     {
      "key": "fire boar",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "orc",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "bug",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "knat",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     }
    ],
    [
     {
      "key": "orc",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "knat",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "fire boar",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "creep",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     },
     {
      "key": "bug",
-     "lvl": 8,
-     "hpMul": 3.6768,
-     "dmgMul": 3.6748
+     "lvl": 5,
+     "hpMul": 1.0454,
+     "dmgMul": 1.5237
     }
    ]
   ],
-  "targetLevel": 8,
+  "targetLevel": 5,
   "targetGlyph": "Green",
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 7,
   "bossLevelGate": 0,
-  "difficultyTune": 2.4961,
+  "difficultyTune": 0.2843,
   "baselineHp": 1.3609,
   "baselineDmg": 1.2723,
   "portalMode": "normal",
@@ -1015,14 +1015,14 @@
   "id": "1-9",
   "node": 9,
   "checkpoint": "guardian",
-  "recommendedPower": 2508,
+  "recommendedPower": 1011,
   "rewards": {
    "firstGold": 390,
    "repeatGold": 310,
-   "heroXpFirst": 3100,
-   "heroXpRepeat": 1240,
-   "playerXpFirst": 310,
-   "playerXpRepeat": 124,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-starfire",
@@ -1036,85 +1036,85 @@
    [
     {
      "key": "fire boar",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "knat",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "orc",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "cinder skulk",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     }
    ],
    [
     {
      "key": "bug",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "turtle",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "slime",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     }
    ],
    [
     {
      "key": "sootwing imp",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "slime",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "creep",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928
     },
     {
      "key": "vireo",
-     "lvl": 9,
-     "hpMul": 4.597,
-     "dmgMul": 4.471,
+     "lvl": 5,
+     "hpMul": 1.3464,
+     "dmgMul": 1.8928,
      "isHero": true,
      "rewardHero": true,
      "rank": 1
     }
    ]
   ],
-  "targetLevel": 9,
+  "targetLevel": 5,
   "targetGlyph": "Green",
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 7,
   "bossLevelGate": 0,
-  "difficultyTune": 3.0971,
+  "difficultyTune": 0.2929,
   "baselineHp": 1.5359,
   "baselineDmg": 1.3826,
   "portalMode": "normal",
@@ -1128,14 +1128,14 @@
   "id": "1-10",
   "node": 10,
   "checkpoint": "boss",
-  "recommendedPower": 2738,
+  "recommendedPower": 1011,
   "rewards": {
    "firstGold": 420,
    "repeatGold": 340,
-   "heroXpFirst": 3840,
-   "heroXpRepeat": 1540,
-   "playerXpFirst": 384,
-   "playerXpRepeat": 154,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "green-windstep",
@@ -1149,110 +1149,110 @@
    [
     {
      "key": "knat",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "fire boar",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "turtle",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "bug",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "slime",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     }
    ],
    [
     {
      "key": "turtle",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "slime",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "sootwing imp",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "orc",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     }
    ],
    [
     {
      "key": "knat",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "slime",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "bug",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "cinder skulk",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061
     },
     {
      "key": "vael",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139,
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061,
      "isHero": true,
      "rewardHero": true,
      "rank": 1
     },
     {
      "key": "brukk",
-     "lvl": 10,
-     "hpMul": 1.4327,
-     "dmgMul": 1.8139,
+     "lvl": 5,
+     "hpMul": 0.6659,
+     "dmgMul": 1.061,
      "boss": true
     }
    ]
   ],
-  "targetLevel": 10,
+  "targetLevel": 5,
   "targetGlyph": "Green",
   "recommendedQuality": "Green",
   "qualityMinHeroLevel": 7,
-  "bossLevelGate": 10,
-  "difficultyTune": 0.8247,
+  "bossLevelGate": 5,
+  "difficultyTune": 0.4648,
   "baselineHp": 1.7239,
   "baselineDmg": 1.4992,
   "portalMode": "normal",
@@ -1266,14 +1266,14 @@
   "id": "2-1",
   "node": 11,
   "checkpoint": "normal",
-  "recommendedPower": 3414,
+  "recommendedPower": 1011,
   "rewards": {
    "firstGold": 450,
    "repeatGold": 370,
-   "heroXpFirst": 4740,
-   "heroXpRepeat": 1900,
-   "playerXpFirst": 474,
-   "playerXpRepeat": 190,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-starfire",
@@ -1310,94 +1310,94 @@
    [
     {
      "key": "nightcap mimic",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "ghoul fiend",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "slug beast",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "vineback boar",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     }
    ],
    [
     {
      "key": "nightcap mimic",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "ghoul fiend",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "kelp hexer",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "vineback boar",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     }
    ],
    [
     {
      "key": "garbage mob",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "slug beast",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     },
     {
      "key": "nightcap mimic",
-     "lvl": 11,
-     "hpMul": 2.5752,
-     "dmgMul": 2.9751
+     "lvl": 5,
+     "hpMul": 0.965,
+     "dmgMul": 1.4966
     }
    ]
   ],
-  "targetLevel": 11,
+  "targetLevel": 5,
   "targetGlyph": "Green +1",
   "recommendedQuality": "Green +1",
   "qualityMinHeroLevel": 13,
   "bossLevelGate": 0,
-  "difficultyTune": 1.7023,
+  "difficultyTune": 0.3747,
   "baselineHp": 1.553,
   "baselineDmg": 1.4106,
   "portalMode": "normal",
@@ -1416,14 +1416,14 @@
   "id": "2-2",
   "node": 12,
   "checkpoint": "normal",
-  "recommendedPower": 3532,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 480,
    "repeatGold": 400,
-   "heroXpFirst": 5640,
-   "heroXpRepeat": 2260,
-   "playerXpFirst": 564,
-   "playerXpRepeat": 226,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-shadepath",
@@ -1460,94 +1460,94 @@
    [
     {
      "key": "nightcap mimic",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "garbage mob",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "ghoul fiend",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "slug beast",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "vineback boar",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     }
    ],
    [
     {
      "key": "slug beast",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "kelp hexer",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "vineback boar",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "garbage mob",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     }
    ],
    [
     {
      "key": "mudsnap crab",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "slug beast",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "nightcap mimic",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     },
     {
      "key": "ghoul fiend",
-     "lvl": 12,
-     "hpMul": 2.8732,
-     "dmgMul": 3.3067
+     "lvl": 6,
+     "hpMul": 0.9778,
+     "dmgMul": 1.5549
     }
    ]
   ],
-  "targetLevel": 12,
+  "targetLevel": 6,
   "targetGlyph": "Green +1",
   "recommendedQuality": "Green +1",
   "qualityMinHeroLevel": 13,
   "bossLevelGate": 0,
-  "difficultyTune": 1.8781,
+  "difficultyTune": 0.3403,
   "baselineHp": 1.6229,
   "baselineDmg": 1.46,
   "portalMode": "normal",
@@ -1566,14 +1566,14 @@
   "id": "2-3",
   "node": 13,
   "checkpoint": "guardian",
-  "recommendedPower": 3662,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 510,
    "repeatGold": 430,
-   "heroXpFirst": 6620,
-   "heroXpRepeat": 2650,
-   "playerXpFirst": 662,
-   "playerXpRepeat": 265,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-veilward",
@@ -1587,97 +1587,97 @@
    [
     {
      "key": "nightcap mimic",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "kelp hexer",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "slug beast",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "vineback boar",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     }
    ],
    [
     {
      "key": "mudsnap crab",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "vineback boar",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "kelp hexer",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "ghoul fiend",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "garbage mob",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     }
    ],
    [
     {
      "key": "vineback boar",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "kelp hexer",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "slug beast",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978
     },
     {
      "key": "fritz",
-     "lvl": 13,
-     "hpMul": 4.4423,
-     "dmgMul": 4.3556,
+     "lvl": 6,
+     "hpMul": 0.7025,
+     "dmgMul": 1.1978,
      "isHero": true,
      "rewardHero": true,
      "rank": 2
     }
    ]
   ],
-  "targetLevel": 13,
+  "targetLevel": 6,
   "targetGlyph": "Green +1",
   "recommendedQuality": "Green +1",
   "qualityMinHeroLevel": 13,
   "bossLevelGate": 0,
-  "difficultyTune": 2.8681,
+  "difficultyTune": 0.1581,
   "baselineHp": 1.8316,
   "baselineDmg": 1.5866,
   "portalMode": "normal",
@@ -1691,14 +1691,14 @@
   "id": "2-4",
   "node": 14,
   "checkpoint": "normal",
-  "recommendedPower": 3792,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 540,
    "repeatGold": 460,
-   "heroXpFirst": 7610,
-   "heroXpRepeat": 3040,
-   "playerXpFirst": 761,
-   "playerXpRepeat": 304,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-veilward",
@@ -1735,88 +1735,88 @@
    [
     {
      "key": "garbage mob",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "mudsnap crab",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "slug beast",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "ghoul fiend",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "kelp hexer",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     }
    ],
    [
     {
      "key": "garbage mob",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "slug beast",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "kelp hexer",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     }
    ],
    [
     {
      "key": "kelp hexer",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "mudsnap crab",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     },
     {
      "key": "vineback boar",
-     "lvl": 14,
-     "hpMul": 3.1297,
-     "dmgMul": 3.3894
+     "lvl": 6,
+     "hpMul": 0.8149,
+     "dmgMul": 1.3214
     }
    ]
   ],
-  "targetLevel": 14,
+  "targetLevel": 6,
   "targetGlyph": "Green +1",
   "recommendedQuality": "Green +1",
   "qualityMinHeroLevel": 13,
   "bossLevelGate": 0,
-  "difficultyTune": 1.9941,
+  "difficultyTune": 0.2604,
   "baselineHp": 1.7722,
   "baselineDmg": 1.564,
   "portalMode": "normal",
@@ -1835,14 +1835,14 @@
   "id": "2-5",
   "node": 15,
   "checkpoint": "normal",
-  "recommendedPower": 3921,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 570,
    "repeatGold": 490,
-   "heroXpFirst": 8680,
-   "heroXpRepeat": 3470,
-   "playerXpFirst": 868,
-   "playerXpRepeat": 347,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-windstep",
@@ -1879,94 +1879,94 @@
    [
     {
      "key": "rotbloom ooze",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "ghoul fiend",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "slug beast",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     }
    ],
    [
     {
      "key": "slug beast",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "kelp hexer",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "vineback boar",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "mudsnap crab",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "garbage mob",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     }
    ],
    [
     {
      "key": "nightcap mimic",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "vineback boar",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "garbage mob",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     },
     {
      "key": "slug beast",
-     "lvl": 15,
-     "hpMul": 4.4928,
-     "dmgMul": 4.0257
+     "lvl": 6,
+     "hpMul": 1.1224,
+     "dmgMul": 1.5247
     }
    ]
   ],
-  "targetLevel": 15,
+  "targetLevel": 6,
   "targetGlyph": "Green +1",
   "recommendedQuality": "Green +1",
   "qualityMinHeroLevel": 13,
   "bossLevelGate": 0,
-  "difficultyTune": 2.6134,
+  "difficultyTune": 0.2498,
   "baselineHp": 1.8519,
   "baselineDmg": 1.6187,
   "portalMode": "normal",
@@ -1985,14 +1985,14 @@
   "id": "2-6",
   "node": 16,
   "checkpoint": "guardian",
-  "recommendedPower": 4729,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 600,
    "repeatGold": 520,
-   "heroXpFirst": 9740,
-   "heroXpRepeat": 3900,
-   "playerXpFirst": 974,
-   "playerXpRepeat": 390,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "green-plus-1-windstep",
@@ -2006,103 +2006,103 @@
    [
     {
      "key": "kelp hexer",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "ghoul fiend",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "slug beast",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "nightcap mimic",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     }
    ],
    [
     {
      "key": "garbage mob",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "kelp hexer",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "nightcap mimic",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "vineback boar",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     }
    ],
    [
     {
      "key": "nightcap mimic",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "slug beast",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "vineback boar",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871
     },
     {
      "key": "rhukk",
-     "lvl": 16,
-     "hpMul": 3.1917,
-     "dmgMul": 3.6066,
+     "lvl": 6,
+     "hpMul": 0.8151,
+     "dmgMul": 1.3871,
      "isHero": true,
      "rewardHero": true,
      "rank": 2
     }
    ]
   ],
-  "targetLevel": 16,
+  "targetLevel": 6,
   "targetGlyph": "Blue",
   "recommendedQuality": "Blue",
   "qualityMinHeroLevel": 18,
   "bossLevelGate": 0,
-  "difficultyTune": 1.9749,
+  "difficultyTune": 0.2554,
   "baselineHp": 2.0901,
   "baselineDmg": 1.7591,
   "portalMode": "normal",
@@ -2116,14 +2116,14 @@
   "id": "2-7",
   "node": 17,
   "checkpoint": "normal",
-  "recommendedPower": 4852,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 630,
    "repeatGold": 550,
-   "heroXpFirst": 10810,
-   "heroXpRepeat": 4320,
-   "playerXpFirst": 1081,
-   "playerXpRepeat": 432,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-sunder",
@@ -2160,88 +2160,88 @@
    [
     {
      "key": "garbage mob",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "slug beast",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "mudsnap crab",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "nightcap mimic",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     }
    ],
    [
     {
      "key": "kelp hexer",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "ghoul fiend",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "slug beast",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "garbage mob",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     }
    ],
    [
     {
      "key": "kelp hexer",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "nightcap mimic",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "garbage mob",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     },
     {
      "key": "slug beast",
-     "lvl": 17,
-     "hpMul": 3.2845,
-     "dmgMul": 3.9298
+     "lvl": 6,
+     "hpMul": 0.6671,
+     "dmgMul": 1.2876
     }
    ]
   ],
-  "targetLevel": 17,
+  "targetLevel": 6,
   "targetGlyph": "Blue",
   "recommendedQuality": "Blue",
   "qualityMinHeroLevel": 18,
   "bossLevelGate": 0,
-  "difficultyTune": 2.0006,
+  "difficultyTune": 0.2031,
   "baselineHp": 2.0224,
   "baselineDmg": 1.734,
   "portalMode": "normal",
@@ -2260,14 +2260,14 @@
   "id": "2-8",
   "node": 18,
   "checkpoint": "normal",
-  "recommendedPower": 4982,
+  "recommendedPower": 1041,
   "rewards": {
    "firstGold": 660,
    "repeatGold": 580,
-   "heroXpFirst": 11870,
-   "heroXpRepeat": 4750,
-   "playerXpFirst": 1187,
-   "playerXpRepeat": 475,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-stoneheart",
@@ -2304,82 +2304,82 @@
    [
     {
      "key": "ghoul fiend",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "nightcap mimic",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "kelp hexer",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "slug beast",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     }
    ],
    [
     {
      "key": "mudsnap crab",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "nightcap mimic",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "vineback boar",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "ghoul fiend",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     }
    ],
    [
     {
      "key": "ghoul fiend",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "vineback boar",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 18,
-     "hpMul": 4.861,
-     "dmgMul": 4.9101
+     "lvl": 6,
+     "hpMul": 1.2057,
+     "dmgMul": 1.8504
     }
    ]
   ],
-  "targetLevel": 18,
+  "targetLevel": 6,
   "targetGlyph": "Blue",
   "recommendedQuality": "Blue",
   "qualityMinHeroLevel": 18,
   "bossLevelGate": 0,
-  "difficultyTune": 2.912,
+  "difficultyTune": 0.248,
   "baselineHp": 2.1134,
   "baselineDmg": 1.7947,
   "portalMode": "normal",
@@ -2398,14 +2398,14 @@
   "id": "2-9",
   "node": 19,
   "checkpoint": "guardian",
-  "recommendedPower": 5103,
+  "recommendedPower": 1459,
   "rewards": {
    "firstGold": 690,
    "repeatGold": 610,
-   "heroXpFirst": 12940,
-   "heroXpRepeat": 5180,
-   "playerXpFirst": 1294,
-   "playerXpRepeat": 518,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-veilward",
@@ -2419,91 +2419,91 @@
    [
     {
      "key": "rotbloom ooze",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "nightcap mimic",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "ghoul fiend",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     }
    ],
    [
     {
      "key": "kelp hexer",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "mudsnap crab",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "vineback boar",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "ghoul fiend",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     }
    ],
    [
     {
      "key": "garbage mob",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "ghoul fiend",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "slug beast",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903
     },
     {
      "key": "bloatus",
-     "lvl": 19,
-     "hpMul": 5.343,
-     "dmgMul": 5.162,
+     "lvl": 7,
+     "hpMul": 2.9306,
+     "dmgMul": 3.3903,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
     }
    ]
   ],
-  "targetLevel": 19,
+  "targetLevel": 7,
   "targetGlyph": "Blue",
   "recommendedQuality": "Blue",
   "qualityMinHeroLevel": 18,
   "bossLevelGate": 0,
-  "difficultyTune": 3.1458,
+  "difficultyTune": 0.5485,
   "baselineHp": 2.3852,
   "baselineDmg": 1.9504,
   "portalMode": "normal",
@@ -2517,14 +2517,14 @@
   "id": "2-10",
   "node": 20,
   "checkpoint": "boss",
-  "recommendedPower": 5230,
+  "recommendedPower": 1459,
   "rewards": {
    "firstGold": 720,
    "repeatGold": 640,
-   "heroXpFirst": 14170,
-   "heroXpRepeat": 5670,
-   "playerXpFirst": 1417,
-   "playerXpRepeat": 567,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-ravager",
@@ -2538,86 +2538,86 @@
    [
     {
      "key": "kelp hexer",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "garbage mob",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "rotbloom ooze",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     }
    ],
    [
     {
      "key": "rotbloom ooze",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "kelp hexer",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "vineback boar",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     }
    ],
    [
     {
      "key": "vineback boar",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "kelp hexer",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "nightcap mimic",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185
     },
     {
      "key": "umbris",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301,
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
     },
     {
      "key": "miregor",
-     "lvl": 20,
-     "hpMul": 3.557,
-     "dmgMul": 3.5301,
+     "lvl": 7,
+     "hpMul": 1.951,
+     "dmgMul": 2.3185,
      "boss": true
     }
    ]
   ],
-  "targetLevel": 20,
+  "targetLevel": 7,
   "targetGlyph": "Blue",
   "recommendedQuality": "Blue",
   "qualityMinHeroLevel": 18,
-  "bossLevelGate": 20,
-  "difficultyTune": 1.7731,
+  "bossLevelGate": 7,
+  "difficultyTune": 0.5485,
   "baselineHp": 2.6771,
   "baselineDmg": 2.1148,
   "portalMode": "normal",
@@ -2635,10 +2635,10 @@
   "rewards": {
    "firstGold": 750,
    "repeatGold": 670,
-   "heroXpFirst": 16220,
-   "heroXpRepeat": 6490,
-   "playerXpFirst": 1622,
-   "playerXpRepeat": 649,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-starfire",
@@ -2791,10 +2791,10 @@
   "rewards": {
    "firstGold": 780,
    "repeatGold": 700,
-   "heroXpFirst": 16220,
-   "heroXpRepeat": 6490,
-   "playerXpFirst": 1622,
-   "playerXpRepeat": 649,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-shadepath",
@@ -2941,10 +2941,10 @@
   "rewards": {
    "firstGold": 810,
    "repeatGold": 730,
-   "heroXpFirst": 16220,
-   "heroXpRepeat": 6490,
-   "playerXpFirst": 1622,
-   "playerXpRepeat": 649,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-stoneheart",
@@ -3060,10 +3060,10 @@
   "rewards": {
    "firstGold": 840,
    "repeatGold": 760,
-   "heroXpFirst": 16220,
-   "heroXpRepeat": 6490,
-   "playerXpFirst": 1622,
-   "playerXpRepeat": 649,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-bastion",
@@ -3198,10 +3198,10 @@
   "rewards": {
    "firstGold": 870,
    "repeatGold": 790,
-   "heroXpFirst": 18680,
-   "heroXpRepeat": 7470,
-   "playerXpFirst": 1868,
-   "playerXpRepeat": 747,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-ravager",
@@ -3336,10 +3336,10 @@
   "rewards": {
    "firstGold": 900,
    "repeatGold": 820,
-   "heroXpFirst": 21390,
-   "heroXpRepeat": 8560,
-   "playerXpFirst": 2139,
-   "playerXpRepeat": 856,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-1-ravager",
@@ -3455,10 +3455,10 @@
   "rewards": {
    "firstGold": 930,
    "repeatGold": 850,
-   "heroXpFirst": 24250,
-   "heroXpRepeat": 9700,
-   "playerXpFirst": 2425,
-   "playerXpRepeat": 970,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-lifebloom",
@@ -3581,10 +3581,10 @@
   "rewards": {
    "firstGold": 960,
    "repeatGold": 880,
-   "heroXpFirst": 24260,
-   "heroXpRepeat": 9700,
-   "playerXpFirst": 2426,
-   "playerXpRepeat": 970,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-voidbind",
@@ -3731,10 +3731,10 @@
   "rewards": {
    "firstGold": 990,
    "repeatGold": 910,
-   "heroXpFirst": 27290,
-   "heroXpRepeat": 10920,
-   "playerXpFirst": 2729,
-   "playerXpRepeat": 1092,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-stoneheart",
@@ -3868,10 +3868,10 @@
   "rewards": {
    "firstGold": 1020,
    "repeatGold": 940,
-   "heroXpFirst": 27290,
-   "heroXpRepeat": 10920,
-   "playerXpFirst": 2729,
-   "playerXpRepeat": 1092,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-ironwall",
@@ -3994,10 +3994,10 @@
   "rewards": {
    "firstGold": 1050,
    "repeatGold": 970,
-   "heroXpFirst": 27290,
-   "heroXpRepeat": 10920,
-   "playerXpFirst": 2729,
-   "playerXpRepeat": 1092,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-veilward",
@@ -4144,10 +4144,10 @@
   "rewards": {
    "firstGold": 1080,
    "repeatGold": 1000,
-   "heroXpFirst": 30970,
-   "heroXpRepeat": 12390,
-   "playerXpFirst": 3097,
-   "playerXpRepeat": 1239,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-hawkeye",
@@ -4294,10 +4294,10 @@
   "rewards": {
    "firstGold": 1110,
    "repeatGold": 1030,
-   "heroXpFirst": 30980,
-   "heroXpRepeat": 12390,
-   "playerXpFirst": 3098,
-   "playerXpRepeat": 1239,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "blue-plus-2-starfire",
@@ -4419,10 +4419,10 @@
   "rewards": {
    "firstGold": 1140,
    "repeatGold": 1060,
-   "heroXpFirst": 30980,
-   "heroXpRepeat": 12390,
-   "playerXpFirst": 3098,
-   "playerXpRepeat": 1239,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-sunder",
@@ -4545,10 +4545,10 @@
   "rewards": {
    "firstGold": 1170,
    "repeatGold": 1090,
-   "heroXpFirst": 35900,
-   "heroXpRepeat": 14360,
-   "playerXpFirst": 3590,
-   "playerXpRepeat": 1436,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-bloodroot",
@@ -4701,10 +4701,10 @@
   "rewards": {
    "firstGold": 1200,
    "repeatGold": 1120,
-   "heroXpFirst": 41640,
-   "heroXpRepeat": 16660,
-   "playerXpFirst": 4164,
-   "playerXpRepeat": 1666,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-ironwall",
@@ -4808,10 +4808,10 @@
   "rewards": {
    "firstGold": 1230,
    "repeatGold": 1150,
-   "heroXpFirst": 48200,
-   "heroXpRepeat": 19280,
-   "playerXpFirst": 4820,
-   "playerXpRepeat": 1928,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-veilward",
@@ -4946,10 +4946,10 @@
   "rewards": {
    "firstGold": 1260,
    "repeatGold": 1180,
-   "heroXpFirst": 48200,
-   "heroXpRepeat": 19280,
-   "playerXpFirst": 4820,
-   "playerXpRepeat": 1928,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-hawkeye",
@@ -5084,10 +5084,10 @@
   "rewards": {
    "firstGold": 1290,
    "repeatGold": 1210,
-   "heroXpFirst": 48200,
-   "heroXpRepeat": 19280,
-   "playerXpFirst": 4820,
-   "playerXpRepeat": 1928,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-starfire",
@@ -5197,10 +5197,10 @@
   "rewards": {
    "firstGold": 1320,
    "repeatGold": 1240,
-   "heroXpFirst": 58040,
-   "heroXpRepeat": 23220,
-   "playerXpFirst": 5804,
-   "playerXpRepeat": 2322,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-windstep",
@@ -5335,10 +5335,10 @@
   "rewards": {
    "firstGold": 1350,
    "repeatGold": 1270,
-   "heroXpFirst": 67880,
-   "heroXpRepeat": 27150,
-   "playerXpFirst": 6788,
-   "playerXpRepeat": 2715,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-voidbind",
@@ -5479,10 +5479,10 @@
   "rewards": {
    "firstGold": 1380,
    "repeatGold": 1300,
-   "heroXpFirst": 78540,
-   "heroXpRepeat": 31420,
-   "playerXpFirst": 7854,
-   "playerXpRepeat": 3142,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-bloodroot",
@@ -5629,10 +5629,10 @@
   "rewards": {
    "firstGold": 1410,
    "repeatGold": 1330,
-   "heroXpFirst": 90020,
-   "heroXpRepeat": 36010,
-   "playerXpFirst": 9002,
-   "playerXpRepeat": 3601,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-ironwall",
@@ -5766,10 +5766,10 @@
   "rewards": {
    "firstGold": 1440,
    "repeatGold": 1360,
-   "heroXpFirst": 90020,
-   "heroXpRepeat": 36010,
-   "playerXpFirst": 9002,
-   "playerXpRepeat": 3601,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-ravager",
@@ -5916,10 +5916,10 @@
   "rewards": {
    "firstGold": 1470,
    "repeatGold": 1390,
-   "heroXpFirst": 90020,
-   "heroXpRepeat": 36010,
-   "playerXpFirst": 9002,
-   "playerXpRepeat": 3601,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-lifebloom",
@@ -6060,10 +6060,10 @@
   "rewards": {
    "firstGold": 1500,
    "repeatGold": 1420,
-   "heroXpFirst": 105600,
-   "heroXpRepeat": 42240,
-   "playerXpFirst": 10560,
-   "playerXpRepeat": 4224,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-1-starfire",
@@ -6185,10 +6185,10 @@
   "rewards": {
    "firstGold": 1530,
    "repeatGold": 1450,
-   "heroXpFirst": 105600,
-   "heroXpRepeat": 42240,
-   "playerXpFirst": 10560,
-   "playerXpRepeat": 4224,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-voidbind",
@@ -6329,10 +6329,10 @@
   "rewards": {
    "firstGold": 1560,
    "repeatGold": 1480,
-   "heroXpFirst": 105600,
-   "heroXpRepeat": 42240,
-   "playerXpFirst": 10560,
-   "playerXpRepeat": 4224,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-stoneheart",
@@ -6485,10 +6485,10 @@
   "rewards": {
    "firstGold": 1590,
    "repeatGold": 1510,
-   "heroXpFirst": 105600,
-   "heroXpRepeat": 42240,
-   "playerXpFirst": 10560,
-   "playerXpRepeat": 4224,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-stoneheart",
@@ -6604,10 +6604,10 @@
   "rewards": {
    "firstGold": 1620,
    "repeatGold": 1540,
-   "heroXpFirst": 130200,
-   "heroXpRepeat": 52080,
-   "playerXpFirst": 13020,
-   "playerXpRepeat": 5208,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-ironwall",
@@ -6742,10 +6742,10 @@
   "rewards": {
    "firstGold": 1650,
    "repeatGold": 1570,
-   "heroXpFirst": 156850,
-   "heroXpRepeat": 62740,
-   "playerXpFirst": 15685,
-   "playerXpRepeat": 6274,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-ravager",
@@ -6880,10 +6880,10 @@
   "rewards": {
    "firstGold": 1680,
    "repeatGold": 1600,
-   "heroXpFirst": 156850,
-   "heroXpRepeat": 62740,
-   "playerXpFirst": 15685,
-   "playerXpRepeat": 6274,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-lifebloom",
@@ -7024,10 +7024,10 @@
   "rewards": {
    "firstGold": 1710,
    "repeatGold": 1630,
-   "heroXpFirst": 183500,
-   "heroXpRepeat": 73400,
-   "playerXpFirst": 18350,
-   "playerXpRepeat": 7340,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-2-starfire",
@@ -7161,10 +7161,10 @@
   "rewards": {
    "firstGold": 1740,
    "repeatGold": 1660,
-   "heroXpFirst": 210150,
-   "heroXpRepeat": 84060,
-   "playerXpFirst": 21015,
-   "playerXpRepeat": 8406,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-bastion",
@@ -7299,10 +7299,10 @@
   "rewards": {
    "firstGold": 1770,
    "repeatGold": 1690,
-   "heroXpFirst": 236800,
-   "heroXpRepeat": 94720,
-   "playerXpFirst": 23680,
-   "playerXpRepeat": 9472,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-stoneheart",
@@ -7443,10 +7443,10 @@
   "rewards": {
    "firstGold": 1800,
    "repeatGold": 1720,
-   "heroXpFirst": 236800,
-   "heroXpRepeat": 94720,
-   "playerXpFirst": 23680,
-   "playerXpRepeat": 9472,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-stoneheart",
@@ -7562,10 +7562,10 @@
   "rewards": {
    "firstGold": 1830,
    "repeatGold": 1750,
-   "heroXpFirst": 264670,
-   "heroXpRepeat": 105870,
-   "playerXpFirst": 26467,
-   "playerXpRepeat": 10587,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-starfire",
@@ -7718,10 +7718,10 @@
   "rewards": {
    "firstGold": 1860,
    "repeatGold": 1780,
-   "heroXpFirst": 264680,
-   "heroXpRepeat": 105870,
-   "playerXpFirst": 26468,
-   "playerXpRepeat": 10587,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-shadepath",
@@ -7874,10 +7874,10 @@
   "rewards": {
    "firstGold": 1890,
    "repeatGold": 1810,
-   "heroXpFirst": 293550,
-   "heroXpRepeat": 117420,
-   "playerXpFirst": 29355,
-   "playerXpRepeat": 11742,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-ravager",
@@ -7987,10 +7987,10 @@
   "rewards": {
    "firstGold": 1920,
    "repeatGold": 1840,
-   "heroXpFirst": 323390,
-   "heroXpRepeat": 129360,
-   "playerXpFirst": 32339,
-   "playerXpRepeat": 12936,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "purple-plus-3-starfire",
@@ -8107,10 +8107,10 @@
   "rewards": {
    "firstGold": 1950,
    "repeatGold": 1870,
-   "heroXpFirst": 323390,
-   "heroXpRepeat": 129360,
-   "playerXpFirst": 32339,
-   "playerXpRepeat": 12936,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-bastion",
@@ -8269,10 +8269,10 @@
   "rewards": {
    "firstGold": 1980,
    "repeatGold": 1900,
-   "heroXpFirst": 354220,
-   "heroXpRepeat": 141690,
-   "playerXpFirst": 35422,
-   "playerXpRepeat": 14169,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-dawnshield",
@@ -8413,10 +8413,10 @@
   "rewards": {
    "firstGold": 2010,
    "repeatGold": 1930,
-   "heroXpFirst": 354230,
-   "heroXpRepeat": 141690,
-   "playerXpFirst": 35423,
-   "playerXpRepeat": 14169,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-stoneheart",
@@ -8538,10 +8538,10 @@
   "rewards": {
    "firstGold": 2040,
    "repeatGold": 1960,
-   "heroXpFirst": 386040,
-   "heroXpRepeat": 154420,
-   "playerXpFirst": 38604,
-   "playerXpRepeat": 15442,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-ravager",
@@ -8682,10 +8682,10 @@
   "rewards": {
    "firstGold": 2070,
    "repeatGold": 1990,
-   "heroXpFirst": 418840,
-   "heroXpRepeat": 167540,
-   "playerXpFirst": 41884,
-   "playerXpRepeat": 16754,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-hawkeye",
@@ -8832,10 +8832,10 @@
   "rewards": {
    "firstGold": 2100,
    "repeatGold": 2020,
-   "heroXpFirst": 418840,
-   "heroXpRepeat": 167540,
-   "playerXpFirst": 41884,
-   "playerXpRepeat": 16754,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-ravager",
@@ -8957,10 +8957,10 @@
   "rewards": {
    "firstGold": 2130,
    "repeatGold": 2050,
-   "heroXpFirst": 452620,
-   "heroXpRepeat": 181050,
-   "playerXpFirst": 45262,
-   "playerXpRepeat": 18105,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-voidbind",
@@ -9101,10 +9101,10 @@
   "rewards": {
    "firstGold": 2160,
    "repeatGold": 2080,
-   "heroXpFirst": 487390,
-   "heroXpRepeat": 194960,
-   "playerXpFirst": 48739,
-   "playerXpRepeat": 19496,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-bloodroot",
@@ -9245,10 +9245,10 @@
   "rewards": {
    "firstGold": 2190,
    "repeatGold": 2110,
-   "heroXpFirst": 487390,
-   "heroXpRepeat": 194960,
-   "playerXpFirst": 48739,
-   "playerXpRepeat": 19496,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-hawkeye",
@@ -9376,10 +9376,10 @@
   "rewards": {
    "firstGold": 2220,
    "repeatGold": 2140,
-   "heroXpFirst": 523150,
-   "heroXpRepeat": 209260,
-   "playerXpFirst": 52315,
-   "playerXpRepeat": 20926,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-stoneheart",
@@ -9502,10 +9502,10 @@
   "rewards": {
    "firstGold": 2250,
    "repeatGold": 2170,
-   "heroXpFirst": 523140,
-   "heroXpRepeat": 209260,
-   "playerXpFirst": 52314,
-   "playerXpRepeat": 20926,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-ironwall",
@@ -9640,10 +9640,10 @@
   "rewards": {
    "firstGold": 2280,
    "repeatGold": 2200,
-   "heroXpFirst": 559880,
-   "heroXpRepeat": 223950,
-   "playerXpFirst": 55988,
-   "playerXpRepeat": 22395,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-windstep",
@@ -9778,10 +9778,10 @@
   "rewards": {
    "firstGold": 2310,
    "repeatGold": 2230,
-   "heroXpFirst": 559880,
-   "heroXpRepeat": 223950,
-   "playerXpFirst": 55988,
-   "playerXpRepeat": 22395,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-ravager",
@@ -9903,10 +9903,10 @@
   "rewards": {
    "firstGold": 2340,
    "repeatGold": 2260,
-   "heroXpFirst": 597600,
-   "heroXpRepeat": 239040,
-   "playerXpFirst": 59760,
-   "playerXpRepeat": 23904,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-shadepath",
@@ -10053,10 +10053,10 @@
   "rewards": {
    "firstGold": 2370,
    "repeatGold": 2290,
-   "heroXpFirst": 636300,
-   "heroXpRepeat": 254520,
-   "playerXpFirst": 63630,
-   "playerXpRepeat": 25452,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-tidecall",
@@ -10197,10 +10197,10 @@
   "rewards": {
    "firstGold": 2400,
    "repeatGold": 2320,
-   "heroXpFirst": 636310,
-   "heroXpRepeat": 254520,
-   "playerXpFirst": 63631,
-   "playerXpRepeat": 25452,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-1-hawkeye",
@@ -10316,10 +10316,10 @@
   "rewards": {
    "firstGold": 2430,
    "repeatGold": 2350,
-   "heroXpFirst": 675990,
-   "heroXpRepeat": 270400,
-   "playerXpFirst": 67599,
-   "playerXpRepeat": 27040,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-stoneheart",
@@ -10460,10 +10460,10 @@
   "rewards": {
    "firstGold": 2460,
    "repeatGold": 2380,
-   "heroXpFirst": 716660,
-   "heroXpRepeat": 286660,
-   "playerXpFirst": 71666,
-   "playerXpRepeat": 28666,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-ravager",
@@ -10598,10 +10598,10 @@
   "rewards": {
    "firstGold": 2490,
    "repeatGold": 2410,
-   "heroXpFirst": 716670,
-   "heroXpRepeat": 286670,
-   "playerXpFirst": 71667,
-   "playerXpRepeat": 28667,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-veilward",
@@ -10717,10 +10717,10 @@
   "rewards": {
    "firstGold": 2520,
    "repeatGold": 2440,
-   "heroXpFirst": 758320,
-   "heroXpRepeat": 303330,
-   "playerXpFirst": 75832,
-   "playerXpRepeat": 30333,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-ravager",
@@ -10855,10 +10855,10 @@
   "rewards": {
    "firstGold": 2550,
    "repeatGold": 2470,
-   "heroXpFirst": 758320,
-   "heroXpRepeat": 303330,
-   "playerXpFirst": 75832,
-   "playerXpRepeat": 30333,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-lifebloom",
@@ -11011,10 +11011,10 @@
   "rewards": {
    "firstGold": 2580,
    "repeatGold": 2500,
-   "heroXpFirst": 800950,
-   "heroXpRepeat": 320380,
-   "playerXpFirst": 80095,
-   "playerXpRepeat": 32038,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-bastion",
@@ -11167,10 +11167,10 @@
   "rewards": {
    "firstGold": 2610,
    "repeatGold": 2530,
-   "heroXpFirst": 800960,
-   "heroXpRepeat": 320380,
-   "playerXpFirst": 80096,
-   "playerXpRepeat": 32038,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-2-hawkeye",
@@ -11292,10 +11292,10 @@
   "rewards": {
    "firstGold": 2640,
    "repeatGold": 2560,
-   "heroXpFirst": 844590,
-   "heroXpRepeat": 337840,
-   "playerXpFirst": 84459,
-   "playerXpRepeat": 33784,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-keenmind",
@@ -11430,10 +11430,10 @@
   "rewards": {
    "firstGold": 2670,
    "repeatGold": 2590,
-   "heroXpFirst": 889190,
-   "heroXpRepeat": 355680,
-   "playerXpFirst": 88919,
-   "playerXpRepeat": 35568,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-veilward",
@@ -11598,10 +11598,10 @@
   "rewards": {
    "firstGold": 2700,
    "repeatGold": 2620,
-   "heroXpFirst": 889190,
-   "heroXpRepeat": 355680,
-   "playerXpFirst": 88919,
-   "playerXpRepeat": 35568,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-veilward",
@@ -11729,10 +11729,10 @@
   "rewards": {
    "firstGold": 2730,
    "repeatGold": 2650,
-   "heroXpFirst": 934780,
-   "heroXpRepeat": 373910,
-   "playerXpFirst": 93478,
-   "playerXpRepeat": 37391,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-windstep",
@@ -11873,10 +11873,10 @@
   "rewards": {
    "firstGold": 2760,
    "repeatGold": 2680,
-   "heroXpFirst": 981360,
-   "heroXpRepeat": 392540,
-   "playerXpFirst": 98136,
-   "playerXpRepeat": 39254,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-sunder",
@@ -12029,10 +12029,10 @@
   "rewards": {
    "firstGold": 2790,
    "repeatGold": 2710,
-   "heroXpFirst": 981360,
-   "heroXpRepeat": 392540,
-   "playerXpFirst": 98136,
-   "playerXpRepeat": 39254,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-windstep",
@@ -12160,10 +12160,10 @@
   "rewards": {
    "firstGold": 2820,
    "repeatGold": 2740,
-   "heroXpFirst": 1028920,
-   "heroXpRepeat": 411570,
-   "playerXpFirst": 102892,
-   "playerXpRepeat": 41157,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-3-hawkeye",
@@ -12286,10 +12286,10 @@
   "rewards": {
    "firstGold": 2850,
    "repeatGold": 2770,
-   "heroXpFirst": 1028920,
-   "heroXpRepeat": 411570,
-   "playerXpFirst": 102892,
-   "playerXpRepeat": 41157,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-bloodroot",
@@ -12436,10 +12436,10 @@
   "rewards": {
    "firstGold": 2880,
    "repeatGold": 2800,
-   "heroXpFirst": 1077470,
-   "heroXpRepeat": 430990,
-   "playerXpFirst": 107747,
-   "playerXpRepeat": 43099,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "orange-stoneheart",
@@ -12592,10 +12592,10 @@
   "rewards": {
    "firstGold": 2910,
    "repeatGold": 2830,
-   "heroXpFirst": 1077460,
-   "heroXpRepeat": 430980,
-   "playerXpFirst": 107746,
-   "playerXpRepeat": 43098,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-veilward",
@@ -12723,10 +12723,10 @@
   "rewards": {
    "firstGold": 2940,
    "repeatGold": 2860,
-   "heroXpFirst": 1126990,
-   "heroXpRepeat": 450800,
-   "playerXpFirst": 112699,
-   "playerXpRepeat": 45080,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "orange-starfire",
@@ -12885,10 +12885,10 @@
   "rewards": {
    "firstGold": 2970,
    "repeatGold": 2890,
-   "heroXpFirst": 1177510,
-   "heroXpRepeat": 471000,
-   "playerXpFirst": 117751,
-   "playerXpRepeat": 47100,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "orange-shadepath",
@@ -13029,10 +13029,10 @@
   "rewards": {
    "firstGold": 3000,
    "repeatGold": 2920,
-   "heroXpFirst": 1177500,
-   "heroXpRepeat": 471000,
-   "playerXpFirst": 117750,
-   "playerXpRepeat": 47100,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-windstep",
@@ -13142,10 +13142,10 @@
   "rewards": {
    "firstGold": 3030,
    "repeatGold": 2950,
-   "heroXpFirst": 1229000,
-   "heroXpRepeat": 491600,
-   "playerXpFirst": 122900,
-   "playerXpRepeat": 49160,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "orange-bastion",
@@ -13280,10 +13280,10 @@
   "rewards": {
    "firstGold": 3060,
    "repeatGold": 2980,
-   "heroXpFirst": 1281480,
-   "heroXpRepeat": 512590,
-   "playerXpFirst": 128148,
-   "playerXpRepeat": 51259,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "orange-dawnshield",
@@ -13436,10 +13436,10 @@
   "rewards": {
    "firstGold": 3090,
    "repeatGold": 3010,
-   "heroXpFirst": 1281480,
-   "heroXpRepeat": 512590,
-   "playerXpFirst": 128148,
-   "playerXpRepeat": 51259,
+   "heroXpFirst": 30,
+   "heroXpRepeat": 6,
+   "playerXpFirst": 30,
+   "playerXpRepeat": 6,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-bastion",
@@ -13555,10 +13555,10 @@
   "rewards": {
    "firstGold": 3120,
    "repeatGold": 3040,
-   "heroXpFirst": 1334940,
-   "heroXpRepeat": 533980,
-   "playerXpFirst": 133494,
-   "playerXpRepeat": 53398,
+   "heroXpFirst": 60,
+   "heroXpRepeat": 12,
+   "playerXpFirst": 60,
+   "playerXpRepeat": 12,
    "glyphFragments": [
     {
      "fragmentId": "gold-plus-4-bloodroot",
