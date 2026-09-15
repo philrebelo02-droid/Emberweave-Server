@@ -683,6 +683,9 @@
     linear-gradient(180deg,#192c2c,#101c20);
     box-shadow:0 0 0 1px rgba(94,232,155,.28),0 8px 22px rgba(0,0,0,.38),inset 3px 0 #5ee89b;}
   .qcard.done{border-color:#395d4b;background:linear-gradient(180deg,#16251f,#101a18);}
+  @keyframes tutGoldPulse{0%,100%{box-shadow:0 0 0 2px #ffdd74,0 0 12px #e9a92999;}50%{box-shadow:0 0 0 3px #fff2ad,0 0 25px #ffcf5ecc;}}
+  .tut-next-glow{outline:2px solid #ffd45e!important;outline-offset:2px;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
+  .tut-target-glow{outline:3px solid #ffd45e!important;outline-offset:3px;box-shadow:0 0 0 2px #fff1a5,0 0 24px #ffcf5e!important;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
   .qcard .qt{letter-spacing:.12px;text-shadow:0 1px 3px #000;}.qcard .qd{color:#aab7c9;line-height:1.45;}.qrew{text-shadow:0 1px 5px rgba(255,212,94,.26);}
   .qbar{height:9px;background:#080d16;border-color:#2e3c57;box-shadow:inset 0 2px 4px rgba(0,0,0,.55);}
   .qbar>i{background:linear-gradient(90deg,#45c984,#72efb0);box-shadow:0 0 10px rgba(94,232,155,.42);}
@@ -3783,11 +3786,14 @@ function heroFrag(key){ return (G.heroFrag&&G.heroFrag[key])||0; }
 // grant fragments; auto-unlock a locked hero once enough are gathered. returns a status message.
 function giveHeroFrag(key,amt){ if(!G.heroFrag)G.heroFrag={}; G.heroFrag[key]=(G.heroFrag[key]||0)+amt; return ''; }   // fragments only accumulate — summon is a MANUAL action (no auto-summon)
 function canSummon(key){ const t=HERO_TYPES[key]; return !!(t && t.locked && !G.unlocked[key] && heroFrag(key)>=summonCost(key)); }
-function doSummon(key){ if(!canSummon(key)) return false;
-  api('/api/hero/summon','POST',{heroKey:key,requestId:uid8()}).then(r=>{ if(r&&r.ok) adoptLedger(r.ledger); else { bannerMsg((r&&r.error)||'Summon failed.'); ledgerSync(); } }).catch(()=>{});
-  G.heroFrag[key]-=summonCost(key); G.unlocked[key]=true;
-  if(!G.starLevel)G.starLevel={}; G.starLevel[key]=heroStartStars(key); if(!G.starPip)G.starPip={}; G.starPip[key]=0;
-  saveG(); updateHubChrome(); return true; }
+let summonBusy=false;
+async function doSummon(key){ if(!canSummon(key)||summonBusy) return false;
+  summonBusy=true;
+  try{ const r=await api('/api/hero/summon','POST',{heroKey:key,requestId:uid8()});
+    if(!r||!r.ok||!r.ledger){ bannerMsg((r&&r.error)||'Summon failed.'); await ledgerSync(); return false; }
+    adoptLedger(r.ledger); saveG(); updateHubChrome(); return true;
+  }catch(e){ bannerMsg('Summon failed.'); await ledgerSync(); return false;
+  }finally{ summonBusy=false; } }
 
 // combined stat modifiers from quality + glyphs + tech (owned heroes only)
 /* v270 (PLAYER-TRUTH): the stat conversions, with NO access to this browser's save. heroMuls()
@@ -8632,6 +8638,7 @@ function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(b
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
+  if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token) name='tutorial';
   const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
   if(_popout) closePopout();   // any full navigation closes an open pop-out
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
@@ -8690,6 +8697,7 @@ function show(name){
   if(name==='mail') renderMail();
   if(name==='world') renderWorldOverview();
   updateChatVisibility();
+  if(G.tutStarted&&!G.tutDone) setTimeout(highlightTutorialTarget,0);
 }
 /* v255 (80/20 contract §9): NOTHING may cover a battle/reward result. While the result panel is up,
    any auto-opened notice, tutorial nudge, event card or modal is QUEUED and flushed the moment the
@@ -10175,6 +10183,7 @@ function renderRoadmap(){
       const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
       const clickable=(cleared||current) && g<=PLAYABLE;
       const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
+      el.dataset.tutStage=String(g);
       el.style.left=nd[0]+'%'; el.style.top=nd[1]+'%';
       const face=cleared?'✓':(boss?'👑':(elite?'★':s));
       const _sst=cleared?portalStars(MODE,g):null;
@@ -10202,6 +10211,7 @@ function renderRoadmap(){
     const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
     const clickable=(cleared||current) && g<=PLAYABLE;
     const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
+    el.dataset.tutStage=String(g);
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
     const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
     const _sst=cleared?portalStars(MODE,g):null;
@@ -13413,6 +13423,7 @@ function renderHeroList(){
     if(locked.length && ix===owned.length+ready.length) hdr('STILL COLLECTING ('+locked.length+')','#6f7d90');
     const summonReady=!unlocked&&canSummon(key);
     const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(summonReady?' summon-ready':'')+(myth?' mythic':'');
+    card.dataset.heroKey=key;
     const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
     // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
     const powerLine = unlocked ? `<div style="font-size:9.5px;font-weight:800;color:#ffd45e;line-height:1.1">⚔ Total Power: ${heroPower(key).toLocaleString()}</div>` : '<div style="height:12px"></div>';
@@ -13915,7 +13926,9 @@ function renderHeroDetail(){
            <div style="font-size:10px;color:#6f7d90;margin-top:7px">Collect ${smNeed} ${escapeHTML(t.name)} fragments to summon at ${heroStartStars(key)}★.${myth?' Mythical — also a rare 1% Diamond wish.':''}</div>`}
     </div>` : '';
   body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
-  { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=()=>{ if(doSummon(key)){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); } }; }
+  { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=async()=>{ sm.disabled=true;
+      const summoned=await doSummon(key); if(summoned){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
+      else { renderHeroDetail(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
   // clicking an equipment slot on the left jumps to the Equipment tab focused on that slot
   body.querySelectorAll('.eq-pick').forEach(el=>el.onclick=()=>{ eqSlotSel=+el.dataset.eqp; renderHeroDetail(); });
@@ -14272,7 +14285,7 @@ function questStateSync(force){
 }
 function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
   if(ACC.token){ api('/api/quest/claim','POST',{id:q.id,requestId:uid8()}).then(sr=>{   // v250: the SERVER validates + pays quests
-      if(sr&&sr.ok){ const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
+      if(sr&&sr.ok){ const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); tutReturnAfterAction(); }
       else if(sr&&sr.error){ bannerMsg(sr.error); } }).catch(()=>{}); return; }
   const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
 /* 30 Aug — THE STAGE-QUEST CHAIN BURNED THE STEP AND PAID NOTHING.
@@ -14289,7 +14302,7 @@ async function claimChain(){ if(!questChainReady()) return; const steps=questCha
     if(res.step!=null) G.questChainStep=res.step;                      // the SERVER's step, not a local guess
     const g=res.got||{};
     const r=g.gems?('+💎 '+g.gems+' diamonds'):(g.vexFrags?('+'+g.vexFrags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'):'Reward banked');
-    saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); return;
+    saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ Stage quest complete!\n'+r); renderQuests(); tutReturnAfterAction(); return;
   }
   let r='';
   if(st.gems){ G.gems=(G.gems||0)+st.gems; r='+💎 '+st.gems+' diamonds'; }
@@ -14308,9 +14321,9 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   // Every claimable item belongs at the top. Recurring packs remain after a daily claim,
   // but become ongoing items below every reward that is ready now.
   const cards=[];   // {ready, html}
-  (G.dailyPacks||[]).forEach(p=>{ const ready=(p.lastClaim!==today && p.daysLeft>0);
+  (G.dailyPacks||[]).forEach((p,packOrder)=>{ const ready=(p.lastClaim!==today && p.daysLeft>0);
     const rew=(p.type==='gems')?('💎 '+p.amount+' diamonds'):('⧗ '+p.amount+' stamina');
-    cards.push({ready, html:`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
+    cards.push({ready,group:'Daily packs',groupOrder:3,order:packOrder,html:`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
       <div class="qh"><div class="qt">🎁 ${escapeHTML(p.name)}</div><div class="qrew">${rew} / day</div></div>
       <div class="qd">Daily reward pack — <b style="color:#ffd45e">${p.daysLeft}</b> day${p.daysLeft===1?'':'s'} remaining.</div>
       <div class="qmeta"><span>${ready?'✨ Ready to claim':'✔ Claimed today · resets 09:00'}</span>
@@ -14319,23 +14332,26 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   if(!questChainDone()){ const chSteps=questChainDef(); const step=G.questChainStep||0, chReady=questChainReady();
     const st=chSteps[step], node=st.node, chProg=Math.min(node,G.campaignCleared||0);
     const rewLbl=st.gems?('💎 '+st.gems+' diamonds'):('×'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments');
-    cards.push({ready:chReady, html:`<div class="qcard${chReady?' ready':''}">
-      <div class="qh"><div class="qt">🗺️ Rise Through the Ranks</div><div class="qrew">🎁 ${rewLbl}</div></div>
+    cards.push({ready:chReady,group:step<4?'Starter Vex fragments':'Campaign milestones',groupOrder:step<4?0:1,order:step,html:`<div class="qcard${chReady?' ready':''}">
+      <div class="qh"><div class="qt">🗺️ ${step<4?'Recruit Vex':'Rise Through the Ranks'}</div><div class="qrew">🎁 ${rewLbl}</div></div>
       <div class="qd">Clear Stage ${stageCode(node)} of the campaign. (${step}/${chSteps.length} steps done)</div>
       <div class="qbar"><i style="width:${Math.round(chProg/node*100)}%"></i></div>
       <div class="qmeta"><span>Stage ${chProg>=1?stageCode(chProg):'—'} / ${stageCode(node)} cleared</span>
         <button class="btn xs${chReady?'':' secondary'}" id="qcClaim" ${chReady?'':'disabled'}>${chReady?'Claim':'Locked'}</button></div></div>`}); }
-  questDefs().forEach(q=>{ if(G.questClaimed[q.id]) return;   // claimed one-offs have no follow-up → removed from the log
+  questDefs().forEach((q,questOrder)=>{ if(G.questClaimed[q.id]) return;   // claimed one-offs have no follow-up → removed from the log
     const pct=Math.round(q.prog/q.goal*100);
-    cards.push({ready:!!q.ready, html:`<div class="qcard${q.ready?' ready':''}">
+    cards.push({ready:!!q.ready,group:'Other quests',groupOrder:2,order:questOrder,html:`<div class="qcard${q.ready?' ready':''}">
       <div class="qh"><div class="qt">${q.title}</div><div class="qrew">🎁 ${q.reward}</div></div>
       <div class="qd">${q.desc}</div>
       <div class="qbar"><i style="width:${pct}%"></i></div>
       <div class="qmeta"><span>${q.prog} / ${q.goal}</span>
         <button class="btn xs${q.ready?'':' secondary'}" data-q="${q.id}" ${q.ready?'':'disabled'}>${q.ready?'Claim':'In progress'}</button></div></div>`}); });
   // completed quests always sit at the top; claim one and the next completed quest rises up
-  cards.sort((a,b)=> (b.ready?1:0)-(a.ready?1:0));
-  const questHtml=cards.map(c=>c.html).join('');
+  cards.sort((a,b)=> (b.ready?1:0)-(a.ready?1:0)||a.groupOrder-b.groupOrder||a.order-b.order);
+  let prevReady=null,prevGroup=null;
+  const questHtml=cards.map(c=>{ let h=''; if(c.ready!==prevReady){h+=`<div style="font-size:12px;font-weight:800;color:${c.ready?'#ffd45e':'#aab7c9'};margin:14px 0 7px">${c.ready?'🎁 Rewards ready':'📍 Quests in progress'}</div>`;prevReady=c.ready;prevGroup=null;}
+    if(c.group!==prevGroup){h+=`<div style="font-size:12px;font-weight:900;color:#e5d4a5;margin:7px 0">${c.group}</div>`;prevGroup=c.group;}
+    return h+c.html;}).join('');
   b.innerHTML = questHtml || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">🎉 All quests complete! New quests will appear here as you play.</div>';
   const cc=b.querySelector('#qcClaim'); if(cc)cc.onclick=claimChain;
   b.querySelectorAll('button[data-q]').forEach(btn=>btn.onclick=()=>{ const q=questDefs().find(x=>x.id===btn.dataset.q); if(q)claimQuest(q); });
@@ -14428,6 +14444,12 @@ const TUTORIAL_STEPS=[
   {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'🪙 270 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 2 glyph fragments · 🔮 free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
   {id:'gemwish', icon:'💎', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2★ hero and gives you your fifth hero.', rewardLabel:'🦸 guaranteed 2★ hero · 💎 140 bonus Diamonds', go:()=>show('wishing'), reward:{gems:140}, done:()=>!!G.wishGemFirstDone},
 ];
+const TUTORIAL_GROUPS=[
+  {stage:'1-1',ids:['win11','quest11','skill']},
+  {stage:'1-2',ids:['win12','quest12','rune']},
+  {stage:'1-3',ids:['win13','quest13','wish']},
+  {stage:'1-4',ids:['win14','quest14','vexxp']},
+  {stage:'1-5',ids:['win15','gemwish']}];
 /* v267 (80/20 §9): Getting Started rewards are granted BY THE SERVER, once per step, from its own
    authored table (`/api/tutorial/claim`). Signed out, the local grant remains as the offline path. */
 function grantTutReward(r, stepId){
@@ -14450,16 +14472,38 @@ function grantTutReward(r, stepId){
   if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } if(r.xpPotion){G.xpPotions=G.xpPotions||{};G.xpPotions[r.xpPotion]=(G.xpPotions[r.xpPotion]|0)+1;s.push('📖 1 '+r.xpPotion+' XP Potion');} return s.join(' · '); }
 function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.every(s=>!!G.tutRewarded[s.id]); }
 function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
-function tutReady(){ if(G.tutDone) return false; const s=tutCurrent(); return !!(s&&s.done()); }
+function tutGroupCurrent(group){ const id=group.ids.find(k=>!G.tutRewarded?.[k]); return TUTORIAL_STEPS.find(s=>s.id===id)||null; }
+function tutReady(){ if(G.tutDone) return false; return TUTORIAL_GROUPS.some(g=>{ const s=tutGroupCurrent(g); return !!(s&&s.done()); }); }
 function tutReturnAfterAction(){
   if(!G.tutStarted||G.tutDone||state==='tutorial'||state==='result'||state==='battle')return;
   setTimeout(()=>{ if(G.tutStarted&&!G.tutDone&&state!=='tutorial'&&state!=='result'&&state!=='battle')show('tutorial'); },0);
 }
+function highlightTutorialTarget(){
+  document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
+  if(!G.tutStarted||G.tutDone||['tutorial','battle','result'].includes(state))return;
+  const id=G.tutFocusStep; if(!id||G.tutRewarded?.[id])return;
+  const visible=el=>el&&!el.disabled&&el.getClientRects().length>0;
+  const pick=sel=>[...document.querySelectorAll(sel)].find(visible);
+  let target=null;
+  if(/^win1[1-5]$/.test(id)){
+    const n=Number(id.slice(-1));
+    target=pick('#smBattle')||(state==='campaign'?pick(`.cnode[data-tut-stage="${n}"]`):null)||(state==='menu'?pick('#startBtn'):null);
+    if(id==='win11'&&state==='menu')target=pick('#roster .hero-card:not(.selected)')||target;
+  }else if(/^quest1[1-4]$/.test(id))target=pick('#qcClaim')||pick('#hdSummon')||pick('#heroesPanel .hero-card[data-hero-key="vex"]');
+  else if(id==='skill')target=pick('#heroDetail [data-skillup]:not([disabled])')||pick('#heroDetail [data-tab="skills"]')||pick('#heroesPanel .hero-card[data-hero-key="vael"]');
+  else if(id==='rune')target=[...document.querySelectorAll('#heroDetail button')].find(el=>visible(el)&&/Quick Build/.test(el.textContent))||pick('#heroDetail [data-tab="glyphs"]')||pick('#heroesPanel .hero-card[data-hero-key="vael"]');
+  else if(id==='vexxp')target=pick('#heroDetail [data-xp-potion="minor"]')||pick('#heroesPanel .hero-card[data-hero-key="vex"]');
+  else if(id==='wish')target=pick('#wpGold');
+  else if(id==='gemwish')target=pick('#wpGem');
+  if(target)target.classList.add('tut-target-glow');
+}
+document.addEventListener('click',()=>{if(G.tutStarted&&!G.tutDone&&G.tutFocusStep){setTimeout(highlightTutorialTarget,80);setTimeout(highlightTutorialTarget,500);}},true);
 // Completion unlocks Claim; it never grants a reward or advances the lesson by itself.
 function checkTutorial(){ if(!G.tutRewarded)G.tutRewarded={}; if(!G.tutDone&&tutComplete()){ G.tutDone=true; saveG(); } }
-async function claimTutorialStep(id){ if(G.tutDone)return; const s=tutCurrent();
-  if(!s||s.id!==id||!s.done())return; const IF=claimTutorialStep._inflight||(claimTutorialStep._inflight={}); if(IF[id])return; IF[id]=1;
-  try{ const str=await Promise.resolve(grantTutReward(s.reward,s.id)); G.tutRewarded[s.id]=true;
+async function claimTutorialStep(id){ if(G.tutDone)return;
+  const group=TUTORIAL_GROUPS.find(g=>g.ids.includes(id)), cur=group&&tutGroupCurrent(group);
+  if(!cur||cur.id!==id||!cur.done())return; const IF=claimTutorialStep._inflight||(claimTutorialStep._inflight={}); if(IF[id])return; IF[id]=1;
+  try{ const s=cur, str=await Promise.resolve(grantTutReward(s.reward,s.id)); G.tutRewarded[s.id]=true;
     const finished=tutComplete(); if(finished)G.tutDone=true; saveG(); updateHubChrome(); updateMailBadges();
     bannerMsg(finished?('🎓 Tutorial complete!\n'+str):('🎁 '+s.title+' claimed!\n'+str)); renderTutorial();
   }catch(e){ bannerMsg('That reward could not be claimed yet.'); if(typeof ledgerSync==='function')ledgerSync(); }
@@ -14469,19 +14513,24 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
   let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?'🎉 All done!':'Your journey begins'}</div>
     <div style="font-size:12px;color:#8b98a9;margin-top:2px">${doneCount} / ${TUTORIAL_STEPS.length} steps complete</div>
     <div class="qbar" style="margin-top:6px"><i style="width:${Math.round(doneCount/TUTORIAL_STEPS.length*100)}%"></i></div></div>`;
-  // Start Here is one chain: once a step is claimed, the next step replaces it.
-  // This keeps the claimable current lesson first and all upcoming lessons underneath it.
-  TUTORIAL_STEPS.forEach((s,i)=>{ const claimed=!!(G.tutRewarded&&G.tutRewarded[s.id]), isCur=(cur&&cur.id===s.id), ready=isCur&&s.done();
-    if(claimed)return;
-    html+=`<div class="qcard${ready?' ready':''}">
-      <div class="qh"><div class="qt">${claimed?'✅':s.icon} ${escapeHTML(s.title)}</div></div>
-      <div class="qd">${escapeHTML(s.desc)}</div>
-      <div class="qrew" style="font-size:11px;line-height:1.35;margin:1px 0 8px">🎁 ${escapeHTML(s.rewardLabel)}</div>
-      <div class="qmeta"><span>${claimed?'<span style="color:#5ee89b;font-weight:800">Claimed</span>':(ready?'<span style="color:#ffd45e;font-weight:800">Reward ready</span>':(isCur?'Next up':'Locked'))}</span>
-        ${ready?`<button class="btn xs" data-tut-claim="${s.id}">Claim 🎁</button>`:(isCur?`<button class="btn xs" data-tut-go="${s.id}">Go →</button>`:'')}</div></div>`; });
+  const openGroups=TUTORIAL_GROUPS.map((g,index)=>({g,index,s:tutGroupCurrent(g)})).filter(x=>x.s);
+  openGroups.sort((a,z)=>(z.s.done()?1:0)-(a.s.done()?1:0)||a.index-z.index);
+  const next=openGroups[0]?.s;
+  let lastReady=null;
+  openGroups.forEach(({g,s})=>{ const ready=s.done();
+    if(ready!==lastReady){ html+=`<div style="font-size:12px;font-weight:800;color:${ready?'#ffd45e':'#aab7c9'};margin:14px 0 7px">${ready?'🎁 Rewards ready':'📍 Lessons in progress'}</div>`; lastReady=ready; }
+    html+=`<div style="font-size:12px;font-weight:900;color:#e5d4a5;margin:7px 0">Stage ${g.stage} · ${g.ids.filter(id=>G.tutRewarded?.[id]).length}/${g.ids.length} claimed</div>`;
+    g.ids.forEach(id=>{ if(G.tutRewarded?.[id])return;
+      const step=TUTORIAL_STEPS.find(x=>x.id===id), isCur=id===s.id, stepReady=isCur&&ready;
+      html+=`<div class="qcard${stepReady?' ready':''}">
+        <div class="qh"><div class="qt">${step.icon} ${escapeHTML(step.title)}</div></div>
+        <div class="qd">${escapeHTML(step.desc)}</div>
+        <div class="qrew" style="font-size:11px;line-height:1.35;margin:1px 0 8px">🎁 ${escapeHTML(step.rewardLabel)}</div>
+        <div class="qmeta"><span>${stepReady?'<span style="color:#ffd45e;font-weight:800">Reward ready</span>':(isCur?'Next up':'Locked in this stage')}</span>
+          ${stepReady?`<button class="btn xs${id===next?.id?' tut-next-glow':''}" data-tut-claim="${id}">Claim 🎁</button>`:(isCur?`<button class="btn xs${id===next?.id?' tut-next-glow':''}" data-tut-go="${id}">Go →</button>`:'')}</div></div>`; }); });
   if(G.tutDone||!cur) html+=`<div style="text-align:center;color:#8b98a9;font-size:12px;margin-top:8px">You’ve got the basics — now go build the strongest region in the realm. 🔥</div>`;
   b.innerHTML=html;
-  b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go)s.go(); });
+  b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go){ G.tutFocusStep=s.id; s.go(); setTimeout(highlightTutorialTarget,0); } });
   b.querySelectorAll('[data-tut-claim]').forEach(btn=>btn.onclick=()=>claimTutorialStep(btn.dataset.tutClaim));
 }
 // first-run prompt for brand-new accounts
@@ -14924,7 +14973,7 @@ function renderSettings(){
       <div class="dvp-god"><b>\u2694 God Mode <span class="sub">\u2014 no damage taken + every building open regardless of level</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
       <input class="dvp-filter" id="devFilter" placeholder="Filter cheats\u2026" autocomplete="off">
       <div class="dvp-sec">Currency</div>
-      <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 each shard')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
+      <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 hero fragments each')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
       <div class="dvp-sec">Progression</div>
       <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('stam30','\u29d7','+30 stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('campstage','\ud83d\uddfa','Campaign +5 stages')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
       <div class="dvp-sec">Diagnostics</div>
@@ -15265,6 +15314,15 @@ async function runAssetClear(report){
 }
 function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
+  const grant=(payload,success)=>{ done('Applying on server…');
+    api('/api/admin/led-grant','POST',payload).then(r=>{
+      if(!r||!r.ok||!r.ledger){ done('✖ Server refused — not applied'); return; }
+      adoptLedger(r.ledger);
+      if(r.devState){ G.arenaCoins=r.devState.arenaCoins|0; ACC.coins=G.arenaCoins;
+        G.arenaRank=r.devState.arenaRank|0; G.bestArenaRank=r.devState.bestArenaRank|0;
+        G.shieldItems=r.devState.shieldItems|0; }
+      saveG(); updateHubChrome(); done(success);
+    }).catch(()=>done('✖ Server unavailable — not applied')); return; };
   if(a==='dlart'){ runAssetDownload(done, null); return; }
   if(a==='clrart'){ runAssetClear(done); return; }
   if(a==='cachelog'){ let L=[]; try{ L=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); }catch(e){}
@@ -15277,9 +15335,10 @@ function devAction(a,b){
     return; }
   if(a==='intrefresh'){ loadIntegrity(); done('Refreshing reports…'); return; }
   if(a==='intall'){ INTEG.showAll=!INTEG.showAll; loadIntegrity(); done(INTEG.showAll?'Showing resolved reports too':'Showing open reports only'); return; }
-  if(a==='gold'){ api('/api/admin/led-grant','POST',{gold:100000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+100,000 gold'); }
-  else if(a==='gems'){ api('/api/admin/led-grant','POST',{gems:2000}).then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); }); done('+2,000 diamonds'); }
-  else if(a==='pieces'){ if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0}; EQ_BASE.forEach(x=>G.eqMats[x[0]]=(G.eqMats[x[0]]||0)+200); done('+200 of each equipment piece'); }
+  if(a==='gold'){ grant({gold:100000},'+100,000 gold'); return; }
+  else if(a==='gems'){ grant({gems:2000},'+2,000 diamonds'); return; }
+  else if(a==='shards'){ grant({heroFrags:Object.fromEntries(HERO_KEYS.map(k=>[k,500]))},'+500 hero fragments for every hero'); return; }
+  else if(a==='pieces'){ grant({eqMats:{cloth:200,blade:200,wood:200,ore:200}},'+200 of each equipment piece'); return; }
   /* 28 Aug (Phil: "I did force level myself in dev panel ... did it detect my jump and catch me?").
      No — nothing caught him, and nothing punished him. These buttons were simply LYING. Levels, hero
      XP, unlocks, stamina and campaign progress are all on SERVER_OWNED_SAVE_FIELDS, which the server
@@ -15299,7 +15358,10 @@ function devAction(a,b){
     Promise.all(team.map(k=>{ const cur=levelFromXP((G.heroXP&&G.heroXP[k])||0), nl=Math.min(MAX_LEVEL,cur+5);
       const need=Math.max(0,(HERO_CUM[nl]||0)-((G.heroXP&&G.heroXP[k])||0));
       return api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}); }))
-      .then(rs=>{ const last=rs[rs.length-1]; if(last&&last.ok){ adoptLedger(last.ledger); done('Squad +5 levels'); } else done('✖ server refused — not applied'); }); return; }
+      .then(async rs=>{ const last=[...rs].reverse().find(r=>r&&r.ok&&r.ledger); if(last)adoptLedger(last.ledger);
+        await ledgerSync().catch(()=>null);
+        done(rs.every(r=>r&&r.ok)?'Squad +5 levels':'Some squad levels were refused; reload to review server progress');
+      }).catch(()=>done('Server unavailable; reload to review progress')); return; }
   else if(a==='heroes'){ done('Unlocking…');
     api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else done('✖ server refused — not applied'); }); return; }
   /* v401 (4 Sep) — dev panel keeps pace with the patch (Phil: "dev panel should always be updated
@@ -15307,16 +15369,23 @@ function devAction(a,b){
      is only visible at the ends: this jumps EVERY unlocked hero straight to MAX_LEVEL. */
   else if(a==='lv100'){ const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
     done('Levelling '+keys.length+' heroes to '+MAX_LEVEL+'\u2026');
-    (async()=>{ let last=null;
+    (async()=>{ let last=null,refused=0;
       for(let i=0;i<keys.length;i+=10){ const chunk=keys.slice(i,i+10);
         const rs=await Promise.all(chunk.map(k=>{ const need=Math.max(0,(HERO_CUM[MAX_LEVEL]||0)-((G.heroXP&&G.heroXP[k])||0));
-          return need>0 ? api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}) : Promise.resolve({ok:true}); }));
-        last=rs[rs.length-1]||last; }
-      if(last&&last.ok){ if(last.ledger) adoptLedger(last.ledger); done('All '+keys.length+' heroes at level '+MAX_LEVEL); }
-      else done('\u2716 server refused \u2014 not applied'); })(); return; }
+          return need>0 ? api('/api/admin/led-grant','POST',{heroKeys:[k],heroXp:need}).catch(()=>null) : Promise.resolve({ok:true}); }));
+        refused+=rs.filter(r=>!r||!r.ok).length;
+        last=[...rs].reverse().find(r=>r&&r.ok&&r.ledger)||last;
+        if(last)adoptLedger(last.ledger);
+      }
+      await ledgerSync().catch(()=>null);
+      done(refused?'Server refused '+refused+' of '+keys.length+' hero levels; reload to review progress':'All '+keys.length+' heroes at level '+MAX_LEVEL);
+    })().catch(()=>done('Server unavailable; reload to review progress')); return; }
   else if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+5); done('Advancing campaign…');
     api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else done('✖ server refused — not applied'); }); return; }
-  else if(a==='konwu'){ G.unlocked.konwu=true; G.starLevel.konwu=MAX_STARS; G.starPip.konwu=0; {const _kl=Math.max(1,heroLevel('konwu')); G.skillLevel.konwu=[_kl,_kl,_kl,_kl];} done('KonWu unlocked & maxed — put him in your team, then battle'); }
+  else if(a==='konwu'){ done('Unlocking KonWu…');
+    api('/api/admin/led-grant','POST',{unlock:['konwu'],heroKeys:['konwu'],stars:MAX_STARS}).then(r=>{
+      if(r&&r.ok&&r.ledger){ adoptLedger(r.ledger); done('KonWu unlocked at '+MAX_STARS+'★ — put him in your team, then battle'); }
+      else done('✖ server refused — not applied'); }).catch(()=>done('✖ server unavailable — not applied')); return; }
   else if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs (server walks each board to Orange). */
     const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
     done('Maxing '+keys.length+' heroes…');
@@ -15324,12 +15393,10 @@ function devAction(a,b){
         try{ if(typeof glyphV2Sync==='function') await glyphV2Sync(); }catch(e){}
         done('All '+keys.length+' heroes: stars maxed, glyph boards ascended to Orange ('+(r.glyphsMaxed|0)+' boards). Reopen a hero to see it.'); }
       else done('✖ server refused — not applied'); }); return; }
-  else if(a==='arena'){ G.arenaRank=1; G.bestArenaRank=1; done('Arena rank set to #1'); }
-  // arena/guild coins are server-owned too and have no ledger endpoint yet: the number moves on screen
-  // but the server drops it from the stored save, so it is gone at the next sign-in. Say so.
-  else if(a==='arenacoin'){ G.arenaCoins=(G.arenaCoins||0)+5000; done('+5,000 arena coins — LOCAL ONLY, resets at next sign-in'); }
-  else if(a==='guildcoins'){ G.guildCoins=(G.guildCoins||0)+5000; done('+5,000 guild coins — LOCAL ONLY, resets at next sign-in'); }
-  else if(a==='shielditem'){ G.shieldItems=(G.shieldItems||0)+3; done('+3 protection shields'); }
+  else if(a==='arena'){ grant({arenaRank:1},'Arena rank set to #1'); return; }
+  else if(a==='arenacoin'){ grant({arenaCoins:5000},'+5,000 arena coins'); return; }
+  else if(a==='guildcoins'){ grant({guildCoins:5000},'+5,000 guild coins'); return; }
+  else if(a==='shielditem'){ grant({shieldItems:3},'+3 protection shields'); return; }
   else if(a==='givefrags'){ openDevFragGranter(b); return; }
   else if(a==='perf'){ PERF.on=!PERF.on; perfHUD(); done('Performance HUD '+(PERF.on?'ON — open a battle and screenshot it':'off')); return; }
   else if(a==='update'){ devForceUpdate(); return; }
@@ -15365,10 +15432,13 @@ function openDevFragGranter(b){
       return `<button class="btn sm secondary" data-fk="${k}" style="display:flex;align-items:center;gap:9px;justify-content:flex-start;text-align:left;padding:6px 9px">
         <span style="width:30px;flex:none;display:flex;align-items:center;justify-content:center">${heroIcon(k,28)}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}★ · ${G.unlocked[k]?'owned':'locked'}</span></span>
         <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)}🧩</span></button>`; }).join('');
-    listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
-      const um=giveHeroFrag(k,AMT); saveG(); updateHubChrome();
-      msgEl.innerHTML=`+${AMT} ${escapeHTML(t.name)} fragments (now ${heroFrag(k)})${um?` · <span style="color:#ffd45e">${um}</span>`:''}`;
-      renderList(searchEl.value); }); }
+    listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=async()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
+      el.disabled=true; msgEl.textContent='Granting '+AMT+' '+t.name+' fragments…';
+      try{ const r=await api('/api/admin/led-grant','POST',{heroFrags:{[k]:AMT}});
+        if(!r||!r.ok||!r.ledger){ msgEl.textContent='✖ Server refused — fragments not added'; el.disabled=false; return; }
+        adoptLedger(r.ledger); saveG(); updateHubChrome();
+        msgEl.textContent='+'+AMT+' '+t.name+' fragments (now '+heroFrag(k)+')'; renderList(searchEl.value);
+      }catch(e){ msgEl.textContent='✖ Server unavailable — fragments not added'; el.disabled=false; } }); }
   searchEl.oninput=()=>renderList(searchEl.value); renderList(''); setTimeout(()=>searchEl.focus(),40);
 }
 // dev: view the bug/balance report inbox
@@ -16438,7 +16508,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789492125262';
+const BUILD_ID = '1789501249269';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -16666,6 +16736,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
     requestAnimationFrame(_lift);
     setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
     if(ACC&&ACC.signedOut&&!ACC.token){ try{ show('account'); }catch(e){} }   // 2 Sep: a deliberate sign-out opens on the sign-in screen, never on a guest's town
+    else if(ACC.token&&G.tutStarted&&!G.tutDone){ try{ show('tutorial'); }catch(e){} }
   });
 }
 function setupLandscape(){
