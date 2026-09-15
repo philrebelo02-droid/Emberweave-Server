@@ -174,60 +174,60 @@
     {
      "key": "fire boar",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     },
     {
      "key": "knat",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     },
     {
      "key": "creep",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     }
    ],
    [
     {
      "key": "bug",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     },
     {
      "key": "creep",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     },
     {
      "key": "fire boar",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     },
     {
      "key": "fire boar",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     },
     {
      "key": "sootwing imp",
      "lvl": 3,
-     "hpMul": 0.9024,
-     "dmgMul": 1.0191
+     "hpMul": 0.7219,
+     "dmgMul": 0.8153
     }
    ]
   ],
@@ -277,60 +277,60 @@
     {
      "key": "orc",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     },
     {
      "key": "knat",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     },
     {
      "key": "turtle",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     },
     {
      "key": "slime",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     },
     {
      "key": "orc",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     }
    ],
    [
     {
      "key": "cinder skulk",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     },
     {
      "key": "orc",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883
+     "hpMul": 0.6382,
+     "dmgMul": 0.773
     },
     {
      "key": "tick",
      "lvl": 3,
-     "hpMul": 1.0636,
-     "dmgMul": 1.2883,
+     "hpMul": 0.6382,
+     "dmgMul": 0.773,
      "isHero": true,
      "rewardHero": true,
      "rank": 0
@@ -401,66 +401,66 @@
     {
      "key": "turtle",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "sootwing imp",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "cinder skulk",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     }
    ],
    [
     {
      "key": "fire boar",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "bug",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "orc",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     }
    ],
    [
     {
      "key": "orc",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "bug",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "fire boar",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     },
     {
      "key": "sootwing imp",
      "lvl": 4,
-     "hpMul": 1.2046,
-     "dmgMul": 1.5656
+     "hpMul": 0.8432,
+     "dmgMul": 1.0959
     }
    ]
   ],
@@ -533,72 +533,72 @@
     {
      "key": "orc",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "creep",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "cinder skulk",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     }
    ],
    [
     {
      "key": "orc",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "turtle",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "slime",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     }
    ],
    [
     {
      "key": "bug",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "knat",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "creep",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "turtle",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     },
     {
      "key": "fire boar",
      "lvl": 4,
-     "hpMul": 1.9155,
-     "dmgMul": 1.8542
+     "hpMul": 2.4901,
+     "dmgMul": 1.2979
     }
    ]
   ],
