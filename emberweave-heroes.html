@@ -611,6 +611,7 @@
   #battleCtrls.active{display:flex;}
   .ctrlBtn{pointer-events:auto;background:rgba(21,27,43,.92);color:#e6edf3;border:1px solid #33405e;border-radius:20px;padding:0 8px;font-size:12px;font-weight:800;cursor:pointer;width:92px;height:32px;box-sizing:border-box;white-space:nowrap;text-align:center;}
   .ctrlBtn.on{background:#ffd45e;color:#0b0e14;border-color:#ffd45e;}
+  .ctrlBtn.pending{background:rgba(21,27,43,.92);border-color:#ffd45e;color:#ffe49c;font-size:10px;cursor:wait;}
   #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:18;text-align:center;letter-spacing:2px;padding:20px;}
   #banner.show{display:flex;animation:pop 1.4s ease-out forwards;}
   @keyframes pop{0%{opacity:0;transform:scale(2.2);}20%{opacity:1;transform:scale(1);}72%{opacity:1;}100%{opacity:0;transform:scale(1.1);}}
@@ -3859,7 +3860,7 @@ let INPUT_LOG=[];      // what the player did, in sim-tick time — this is what
 let _inputQ=[];        // actions taken this frame, applied on the next tick boundary
 let REPLAY_IN=null;    // when set, the fight is driven by a recorded log instead of live input
 let _riIdx=0;
-function battleInputsReset(){ simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0;
+function battleInputsReset(){ autoPendingTarget=null; simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0;
   _actSeq=0; _actRejects=[]; _actSched={}; _actSent={}; _actWait=0; _actWaitFrom=0; _actWaitAt=0; _actStreamOn=false; _stallOn=false; _stallOff=false; }
 function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i++) if(units[i].uid===uid) return units[i]; return null; }
 /* record + queue one player action. Aim is stored in FIELD coordinates and by target uid — never in
@@ -3987,7 +3988,7 @@ function queueInput(inp){
 function applyInput(inp){
   /* v270: flipping AUTO is a player action too. Recording it is what lets a fight the player put on
      auto replay as the same fight — otherwise the server would run a battle where nobody ultimates. */
-  if(inp.k==='auto'){ autoUlt=!!inp.tid; try{ refreshCtrlBtns(); }catch(e){} return; }
+  if(inp.k==='auto'){ autoUlt=!!inp.tid; autoPendingTarget=null; try{ refreshCtrlBtns(); }catch(e){} return; }
   const u=unitByUid(inp.uid); if(!u||!u.alive) return;
   if(inp.k==='ult'){
     if(u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0) return;   // an illegal fire simply does not happen
@@ -4061,7 +4062,7 @@ function fuseStrike(u,tgt,clip,go,extra){
   (u._fuse||(u._fuse=[])).push({t:dur,tgt,go});
 }
 function setResultVerdict(w,s){ resultWon=!!w; if(!w){ resultStars=0; } else resultStars=(s!=null)?((s|0)||0):3; }
-let gameSpeed=1,autoUlt=false,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
+let gameSpeed=1,autoUlt=false,autoPendingTarget=null,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
 const BATTLE_PACE=0.82;
 /* --- Phase 1: deterministic battle core --- */
 const TELEPORT_SQ=300*300;   // squared world distance above which a per-tick move is a teleport, not motion — never interpolate across it
@@ -15780,7 +15781,12 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
   const forced=isAutoBattle();   // deterministic, recorded fights are 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
   if(kb) kb.style.display=forced?'':'none';   // Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
-  ab.textContent='AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':'');ab.className='ctrlBtn'+(autoUlt?' on':'')+(forced?' locked':'');ab.style.opacity=forced?'.7':'';}
+  if(forced) autoPendingTarget=null;
+  const switching=!forced && autoPendingTarget!==null;
+  ab.textContent=switching?('AUTO: SWITCHING '+(autoPendingTarget?'ON':'OFF')+'…'):('AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':''));
+  ab.className='ctrlBtn'+(autoUlt?' on':'')+(switching?' pending':'')+(forced?' locked':'');
+  ab.disabled=switching; ab.title=switching?'AUTO will change when the recorded input reaches the battle clock.':'';
+  ab.style.opacity=forced?'.7':'';}
 
 /* input */
 const AIM_HINT='';   // persistent ult hint removed (redundant, Phil); the brief drag instruction still shows while actively aiming
@@ -16255,11 +16261,11 @@ document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.ind
 document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle())return;
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
-document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle())return; const next=!autoUlt;
+document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle()||autoPendingTarget!==null)return; const next=!autoUlt;
   /* The toggle is a battle input, so it changes AUTO only when applyInput reaches its recorded tick.
      Applying it here too made the browser use AUTO for the nine receipt-delay ticks before the
      server replay did, which produced honest digest mismatches. */
-  if(state==='battle'&&!ended) queueInput({k:'auto', uid:-1, tid:(next?1:0)});
+  if(state==='battle'&&!ended){ autoPendingTarget=next; queueInput({k:'auto', uid:-1, tid:(next?1:0)}); }
   else autoUlt=next;
   refreshCtrlBtns();};
 
@@ -16407,7 +16413,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789482333265';
+const BUILD_ID = '1789484815870';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -16721,6 +16727,11 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
 
 </body>
 </html>
+
+
+
+
+
 
 
 
