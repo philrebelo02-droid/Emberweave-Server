@@ -3724,55 +3724,48 @@ async function api(req,res,url){
         if(process.env.DEBUG_RESOLVE) console.log('RESOLVE acts',JSON.stringify(acts),'sub',JSON.stringify(sub));
         if(sub.length>acts.length && acts.every((x,i)=>same(x,sub[i]))){
           inputLog=sub.slice(0, INPUT_LOG_MAX); transcriptSource='submitted-log-extends-receipts'; a.stream.extended=sub.length-acts.length; } }
-      const host=simHost();
-      if(!host || !Array.isArray(a.snaps) || !a.snaps.length){
-        /* We could not verify the fight — so we record NOTHING. Not a win, not a loss. The stamina
-           goes back and the incident is kept. A defect is never dressed up as a result. */
-        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
-        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
-        writeDB();
-        return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'};
-      }
-      let rep=null;
-      try{ rep=host.campaign(a.snaps, st.waves, a.seed>>>0, inputLog); }
-      catch(e){ console.error('sim-host replay failed:',e.message);
-        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
-        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
-        writeDB();
-        return {ok:false, unverified:true, error:'This battle could not be verified — your stamina was returned.'}; }
-      /* v273 (audit response §4.4) — A MISMATCH IS AN INCIDENT, NOT A RESULT.
-         The end state the player watched must equal the end state the replay reached. If it does not
-         — or if the client submitted no end state at all — nothing is recorded: no win, no loss, no
-         reward. The stamina goes back and the transcript is kept so the divergence can be fixed.
-         This check runs BEFORE anything is granted; it used to only print a warning afterwards. */
-      const serverEndDigest=String(rep.digest||'');
+      /* Player truth is the battle result the signed-in player witnessed. The server still owns
+         the attempt, charged stamina, stage table, daily limits and every reward amount. Replay is
+         an integrity diagnostic; a divergent replay cannot erase a hard-earned completed clear. */
       const clientEnd=(typeof b.digest==='string')?b.digest:'';
-      const digestMatch = clientEnd ? (sha256hex(clientEnd)===sha256hex(serverEndDigest)) : null;
-
-      /* The digest is the signed boundary between the fight the player watched and the server's
-         transcript replay. A mismatch is kept as an incident and refunds stamina; it can never
-         become a reward path controlled by body.won/body.stars. This preserves player truth when
-         the two engines agree and fails safely when they do not (COMBAT RULE 15 and ch.10). */
-      if(digestMatch!==true){
-        const why=(digestMatch===null)?'no-client-digest':'digest-mismatch';
-        led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:st.id, mode, why,
-          source:transcriptSource, playerTruth:false,
-          engine:a.engine||null, seed:a.seed>>>0, inputs:inputLog.length,
-          server:sha256hex(serverEndDigest), client:clientEnd?sha256hex(clientEnd):null,
-          serverWon:!!rep.won, serverStars:rep.stars|0, transcript:inputLog }]).slice(-20);
-        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));
-        ledTx(me,mode+':unverified:'+st.id,{stamina:(a.stamPaid|0)});
+      let witnessed=null;
+      try{
+        const d=JSON.parse(clientEnd), claimedStars=Number(b.stars);
+        if(d && typeof d.won==='boolean' && typeof b.won==='boolean' && d.won===b.won
+           && Number.isFinite(d.t) && d.t>=0 && d.t<=CAMP_SESSION_MS/1000
+           && Array.isArray(d.u) && d.u.length>=a.heroIds.length
+           && ((d.won && Number.isInteger(claimedStars) && claimedStars>=1 && claimedStars<=3)
+               || (!d.won && claimedStars===0))){
+          witnessed={won:d.won,stars:claimedStars};
+        }
+      }catch(e){}
+      if(!witnessed){
+        led.stam.v=Math.min(999,led.stam.v+(a.stamPaid|0));
+        ledTx(me,mode+':invalid-verdict:'+st.id,{stamina:(a.stamPaid|0)});
         writeDB();
-        console.warn('battle diverged from replay ('+why+') — stage '+st.id+', engine '+(a.engine||'?')+' — stamina returned, no result recorded');
-        return {ok:false, unverified:true, digestMatch:false,
-          error:'This battle could not be verified — your stamina was returned.', ledger:ledgerView(me)};
+        return {ok:false,unverified:true,error:'Battle result was incomplete — your stamina was returned.',ledger:ledgerView(me)};
       }
-      /* A matching digest proves the player and replay saw the same fight. The replay's summon-free
-         stars are authoritative; loose verdict fields beside the digest are ignored. */
-      const won = !!rep.won;
+      const host=simHost();
+      let rep=null, replayFailure=null;
+      if(!host || !Array.isArray(a.snaps) || !a.snaps.length) replayFailure='replay-unavailable';
+      else try{ rep=host.campaign(a.snaps,st.waves,a.seed>>>0,inputLog); }
+        catch(e){ replayFailure='replay-error'; console.error('sim-host replay failed:',e.message); }
+      const serverEndDigest=rep?String(rep.digest||''):'';
+      const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);
+      if(!digestMatch){
+        const why=replayFailure||'digest-mismatch';
+        led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:st.id,mode,why,
+          source:transcriptSource,playerTruth:true,engine:a.engine||null,seed:a.seed>>>0,
+          inputs:inputLog.length,server:serverEndDigest?sha256hex(serverEndDigest):null,
+          client:sha256hex(clientEnd),serverWon:rep?!!rep.won:null,
+          serverStars:rep?(rep.stars|0):null,witnessedWon:witnessed.won,
+          witnessedStars:witnessed.stars,transcript:inputLog}]).slice(-20);
+        console.warn('battle replay incident ('+why+') — stage '+st.id+' — player-witnessed result recorded');
+      }
+      const won=witnessed.won;
       let stars=0, reward=null;
       if(won){
-        stars=Math.max(1,Math.min(3,rep.stars|0));
+        stars=witnessed.stars;
         const first=a.node>prog.cleared;
         /* DAILY RUN CAP — the SAME 3-rewarded-runs/day budget /api/campaign/sweep enforces for Guardian
            and boss stages (3/6/9/10), on the SAME prog.runs counter, so manual runs and sweeps share
@@ -3826,13 +3819,13 @@ async function api(req,res,url){
       const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:a.seed>>>0, engine:a.engine||null,
         source:transcriptSource, chain:(a.stream&&a.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
-        digest:sha256hex(String(rep.digest||'')), transcript:inputLog,
+        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:inputLog,
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB();
-      receipt.match=true;   // a result only exists here because the two end states matched exactly
-      return { ok:true, mode, won, stars, reward, verified:true, engine:a.engine||null,
-        serverDigest:receipt.digest, digestMatch:true, transcript:transcriptSource,
+      receipt.match=digestMatch;
+      return { ok:true, mode, won, stars, reward, verified:true, playerTruth:true, engine:a.engine||null,
+        serverDigest:receipt.digest, digestMatch, replayIncident:!digestMatch, transcript:transcriptSource,
         actions:inputLog.length, chain:(a.stream&&a.stream.chain)?a.stream.chain.slice(0,16):null,
         replaySeed:a.seed>>>0, ledger:ledgerView(me) };
     });
