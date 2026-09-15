@@ -16,6 +16,8 @@ const zlib = require('zlib');   // v252 (audit P2): text responses are compresse
 const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const HERO_PROFILES=require('./hero-profiles.js');
+const HERO_PATHS=require('./hero-paths.js');
 
 const PORT = process.env.PORT || 8080;
 const GAME_FILE = path.join(__dirname, 'emberweave-heroes.html');
@@ -448,9 +450,9 @@ const GLYPH_SLOT_FAMILIES={
 // an override must never restrict, or already-socketed boards would turn illegal retroactively.
 const GLYPH_ROLE_OVERRIDES={ // heroRole (sim HERO_BASE vocabulary) -> {slotName:[families]}
   'Tank':     { bulwark:['Ironwall','Veilward','Bastion','Dawnshield','Stoneheart','Worldheart'],
+                onslaught:['Ravager','Sunder','Cataclysm','Starfire','Keenmind'],
                 spirit:['Starfire','Voidbind','Keenmind','Bastion','Worldheart'] },
   'Bruiser':  { onslaught:['Ravager','Sunder','Cataclysm','Bloodroot'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
-  'Fighter':  { onslaught:['Ravager','Sunder','Cataclysm','Hawkeye'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
   'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
   // 27 Aug (Phil): casters/supports must never be FORCED into melee/armor-pen families — their
   // offensive slots additionally accept caster families (AP/magic pen, healing, energy). Supersets.
@@ -563,48 +565,35 @@ function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
 function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
 function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
 function glyphBoard(g,hero){ if(!g.boards[hero]) g.boards[hero]={ slots:[null,null,null,null,null,null], ascensionIndex:0, ascended:{} }; return g.boards[hero]; }
-/* v232 (Phil): every board slot has EXACTLY ONE pre-chosen glyph per hero — no option lists.
-   The choice is deterministic from the hero's role (and healer flag), a per-slot ordered family
-   preference, and the current board quality; physical heroes get physical damage growth, casters
-   get AP/magic-pen/energy, supports/healers get healing/energy — HP/defense stay universal. */
-const GLYPH_PREF={
-  vitality:{ _:['Stoneheart','Worldheart'] },
-  bulwark:{ Tank:['Ironwall','Bastion','Dawnshield','Veilward'], Mage:['Veilward','Ironwall','Dawnshield'],
-            Support:['Veilward','Ironwall','Dawnshield'], _:['Ironwall','Veilward','Bastion','Dawnshield'] },
-  onslaught:{ Mage:['Starfire','Voidbind','Keenmind','Cataclysm'], 'Support:healer':['Lifebloom','Tidecall','Starfire'],
-              Support:['Starfire','Tidecall','Lifebloom'], _:['Ravager','Sunder','Cataclysm'] },
-  spirit:{ Mage:['Starfire','Voidbind','Keenmind'], 'Support:healer':['Tidecall','Starfire','Keenmind'],
-           Support:['Starfire','Keenmind','Voidbind'], Tank:['Bastion','Worldheart','Keenmind'],
-           _:['Sunder','Hawkeye','Keenmind','Starfire'] },
-  tempo:{ Assassin:['Shadepath','Sunder','Windstep'], Mage:['Windstep','Tidecall','Shadepath'],
-          'Support:healer':['Tidecall','Windstep','Shadepath'], Support:['Windstep','Tidecall','Shadepath'],
-          Tank:['Windstep','Tidecall','Shadepath'], _:['Shadepath','Windstep','Tidecall'] },
-  mastery:{ Mage:['Keenmind','Voidbind','Hawkeye'], 'Support:healer':['Lifebloom','Tidecall','Keenmind'],
-            Support:['Tidecall','Lifebloom','Keenmind'], Tank:['Bloodroot','Lifebloom','Hawkeye'],
-            Marksman:['Hawkeye','Sunder','Bloodroot'], _:['Hawkeye','Bloodroot','Lifebloom'] }
-};
-// A pre-choice must be FARMABLE all the way down: every fragment its full expanded lineage needs
-// (including every Sub-Glyph's ingredients) must belong to a family the game actually drops
-// (campaign/vault/arena/daily/pool all draw from GLYPH_FAMS). Otherwise a slot could demand a
-// fragment no stage awards — a dead end. (Ancestry-tree work, 27 Aug.)
-function glyphSupplyOK(def){ try{
-  const ex=g2ExpandIngredients(def);
-  const keys=Object.keys(ex.frags);
-  for(const sk in ex.subs){ const sd=GLYPHS.subs[sk]; if(!sd) return false; for(const i of sd.ing) keys.push(i.key); }
-  return keys.every(k=>{ const q=k.slice(0,k.lastIndexOf(' ')), f=k.slice(k.lastIndexOf(' ')+1);
-    return glyphTierFams(q).includes(f); });
-}catch(e){ return false; } }
-function glyphPreChoice(heroKey, slotIdx, qi){
-  const hb=SIM.HERO_BASE[heroKey]||{}; const role=hb.role||'Fighter'; const healer=!!hb.healer;
-  const slot=GLYPH_SLOTS[slotIdx]; const tbl=GLYPH_PREF[slot]||{};
-  const prefs=(healer&&tbl[role+':healer'])||tbl[role]||tbl._||GLYPH_SLOT_FAMILIES[slot]||[];
-  const pick=fams=>{ for(const fam of fams){
-    const cands=GLYPHS.raw.filter(d=>d.qi===qi&&d.family===fam&&glyphAllowed(slotIdx,d,role)&&glyphSupplyOK(d)).sort((a,b)=>a.id<b.id?-1:1);
-    if(cands.length) return cands[0]; } return null; };
-  return pick(prefs) || pick(GLYPH_SLOT_FAMILIES[slot]||[]) ||
-    GLYPHS.raw.filter(d=>d.qi===qi&&glyphAllowed(slotIdx,d,role)&&glyphSupplyOK(d)).sort((a,b)=>a.id<b.id?-1:1)[0] ||
-    GLYPHS.raw.filter(d=>d.qi===qi&&glyphAllowed(slotIdx,d,role)).sort((a,b)=>a.id<b.id?-1:1)[0] || null;
+/* Canonical path selection. Every hero's class, damage profile and combat row resolves to one
+   of 14 shared paths. No role/range inference and no per-hero randomization remains. */
+function glyphHeroTraits(heroKey){
+  const p=HERO_PROFILES[heroKey];
+  if(!p) throw new Error('Missing canonical hero profile: '+heroKey);
+  return {role:p.class,damage:p.damageProfile,row:p.combatRow,pathId:p.glyphPath,archetype:p.class+' '+p.damageProfile+' '+p.combatRow};
 }
+function glyphPathFamily(pathDef,slot,qi){
+  const ms=(pathDef.glyphMilestones&&pathDef.glyphMilestones[slot])||[];
+  let fam=null;
+  for(const step of ms){ const at=GLYPH_LADDER.indexOf(step[0]); if(at<=qi) fam=step[1]; }
+  return fam;
+}
+function glyphPlanForTraits(traits,qi){
+  const pathDef=HERO_PATHS[traits.pathId];
+  if(!pathDef) throw new Error('Unknown canonical glyph path: '+traits.pathId);
+  return GLYPH_SLOTS.map((slot,slotIdx)=>{
+    const fam=glyphPathFamily(pathDef,slot,qi);
+    const pick=GLYPHS.raw.find(d=>d.qi===qi&&d.family===fam&&glyphAllowed(slotIdx,d,traits.role)&&glyphSupplyOK(d));
+    if(!pick) throw new Error('Canonical glyph path is not forgeable: '+traits.pathId+' '+GLYPH_LADDER[qi]+' '+slot+' '+fam);
+    return pick;
+  });
+}
+function glyphSupplyOK(def){ try{
+  const ex=g2ExpandIngredients(def), keys=Object.keys(ex.frags);
+  for(const sk in ex.subs){ const sd=GLYPHS.subs[sk]; if(!sd)return false; for(const i of sd.ing)keys.push(i.key); }
+  return keys.every(k=>{ const q=k.slice(0,k.lastIndexOf(' ')), f=k.slice(k.lastIndexOf(' ')+1); return glyphTierFams(q).includes(f); });
+}catch(e){ return false; } }
+function glyphPreChoice(heroKey,slotIdx,qi){ return glyphPlanForTraits(glyphHeroTraits(heroKey),qi)[slotIdx]||null; }
 /* ---- Glyph Ancestry Tree (spec 27 Aug): the server derives the FULL canonical build lineage
    of a slot's one pre-chosen glyph — finished glyph at the root, virtual predecessor glyphs and
    Sub-Glyphs as branches, named fragments as the leaves. Purely a read model: nothing here (and
@@ -615,31 +604,30 @@ function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:g
 /* AUDIT (glyph-tree-cost): every `finished` ingredient used to be re-expanded IN FULL wherever it
    appeared. Measured on the live catalog the worst root (R16-18 Worldfire Cataclysm Crown) reaches
    6,514 nodes at depth 10 — roughly 1 MB of JSON per slot tap, and the client fetches this once per
-   empty slot. The walk is now bounded by a depth limit AND a node budget; anything past the bound is
-   emitted as a normal-shaped childless node with truncated:true, so an OLD CACHED CLIENT renders it
-   as a plain leaf glyph rather than breaking. 190 of 218 roots are unchanged; the worst drops to ~912
-   nodes. The BUILD COST is untouched: `totals` / `canBuild` come from g2BuildCost(), which still
-   expands the whole lineage. The depth cap also makes a cyclic recipe terminate. */
+   empty slot. The walk is bounded by a depth limit AND a node budget; anything past the bound is
+   emitted as a normal-shaped childless node with truncated:true. Finished-glyph branches remain in
+   the tree as inherited ancestry, but their fragments are not charged again: the earlier board was
+   already filled and consumed into permanent stats before this tier unlocked. */
 const GLYPH_TREE_MAX_DEPTH=6, GLYPH_TREE_MAX_NODES=900;
-function glyphTreeStub(def){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
+function glyphTreeStub(def, inherited){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
   quality:def.quality, family:def.family, strength:def.strength,
-  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], truncated:true }; }
-function glyphTreeChildren(g, def, ctx){ const kids=[];
+  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], truncated:true, inherited:!!inherited }; }
+function glyphTreeChildren(g, def, ctx, inherited){ const kids=[];
   for(const ing of def.ing){
-    if(ing.kind==='frag'){ ctx.nodes++; kids.push(glyphTreeLeaf(g, ing.key, ing.qty)); }
+    if(ing.kind==='frag'){ ctx.nodes++; kids.push(Object.assign(glyphTreeLeaf(g, ing.key, ing.qty),{inherited:!!inherited})); }
     else if(ing.kind==='sub'){ const sd=GLYPHS.subs[ing.key]; ctx.nodes++;
       kids.push({ kind:'subGlyph', key:ing.key, displayName:glyphSubName(ing.key), qty:ing.qty, virtual:true,
-        children: sd?sd.ing.map(si=>{ ctx.nodes++; return glyphTreeLeaf(g, si.key, si.qty*ing.qty); }):[] }); }
+        inherited:!!inherited, children: sd?sd.ing.map(si=>{ ctx.nodes++; return Object.assign(glyphTreeLeaf(g, si.key, si.qty*ing.qty),{inherited:!!inherited}); }):[] }); }
     else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId]; if(!fd) continue;
       if(ctx.depth<GLYPH_TREE_MAX_DEPTH && ctx.nodes<GLYPH_TREE_MAX_NODES)
-        kids.push(Object.assign(glyphTreeFinished(g, fd, ctx), {virtual:true}));
-      else { ctx.nodes++; kids.push(Object.assign(glyphTreeStub(fd), {virtual:true})); } } }
+        kids.push(Object.assign(glyphTreeFinished(g, fd, ctx, true), {virtual:true,inherited:true}));
+      else { ctx.nodes++; kids.push(Object.assign(glyphTreeStub(fd,true), {virtual:true,inherited:true})); } } }
   return kids; }
-function glyphTreeFinished(g, def, ctx){ ctx=ctx||{depth:0,nodes:0}; ctx.nodes++;
+function glyphTreeFinished(g, def, ctx, inherited){ ctx=ctx||{depth:0,nodes:0}; ctx.nodes++;
   const node={ kind:'finishedGlyph', blueprintId:def.id, name:def.name,
     quality:def.quality, family:def.family, strength:def.strength,
-    stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[] };
-  ctx.depth++; node.children=glyphTreeChildren(g, def, ctx); ctx.depth--;
+    stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], inherited:!!inherited };
+  ctx.depth++; node.children=glyphTreeChildren(g, def, ctx, inherited); ctx.depth--;
   return node; }
 /* v242: can EVERY empty slot on this board be built at once (combined cumulative cost)? */
 function glyphBuildAllPlan(g,hero,board){
@@ -687,9 +675,17 @@ function g2ExpandIngredients(def){ const frags={}, subs={};
     else if(ing.kind==='sub') subs[ing.key]=(subs[ing.key]||0)+ing.qty;
     else if(ing.kind==='finished'){ const fd=GLYPHS.byId[ing.defId]; if(fd) walk(fd); } } };
   walk(def); return {frags,subs}; }
+// Pay only this tier's new materials. Finished-glyph recipe branches document ancestry already
+// earned by filling and ascending the earlier boards; recursively charging them again made a single
+// Orange board cost 13,818-19,648 fragments despite only two fragments dropping per sweep.
+function g2CurrentIngredients(def){ const frags={}, subs={};
+  for(const ing of def.ing){
+    if(ing.kind==='frag') frags[ing.key]=(frags[ing.key]||0)+ing.qty;
+    else if(ing.kind==='sub') subs[ing.key]=(subs[ing.key]||0)+ing.qty; }
+  return {frags,subs}; }
 // Effective fragment cost: any required Sub-Glyph is built INLINE from its own fragment recipe
-// (sub stock from the pre-migration era is consumed first).
-function g2BuildCost(g, def){ const ex=g2ExpandIngredients(def); const need=Object.assign({},ex.frags); const useSubs={};
+// (sub stock from the pre-migration era is consumed first). Earlier finished glyphs are inherited.
+function g2BuildCost(g, def){ const ex=g2CurrentIngredients(def); const need=Object.assign({},ex.frags); const useSubs={};
   for(const sk in ex.subs){ const stock=(g.subGlyphs&&g.subGlyphs[sk])|0; const use=Math.min(stock, ex.subs[sk]);
     if(use>0) useSubs[sk]=use;
     const short=ex.subs[sk]-use;
@@ -2834,7 +2830,7 @@ async function api(req,res,url){
         const h=SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R, gearSkillSlot:null, gearSkill:null, extra:null});
         if(mul!==1){ h.maxHp=Math.round(h.maxHp*mul); h.hp=h.maxHp; h.atk=Math.round((h.atk||0)*mul); h.atkP=Math.round((h.atkP||0)*mul); h.atkM=Math.round((h.atkM||0)*mul); h.heal=Math.round((h.heal||0)*mul); }
         return h; };
-      const botLine=(mul)=>{ const used=new Set(); const want=[byRole('Tank'),byRole('Bruiser').concat(byRole('Fighter')),byRole('Assassin').concat(byRole('Marksman')),byRole('Mage'),byRole('Support')];
+      const botLine=(mul)=>{ const used=new Set(); const want=[byRole('Tank'),byRole('Bruiser'),byRole('Assassin').concat(byRole('Marksman')),byRole('Mage'),byRole('Support')];
         const line=[]; for(const pool of want){ let k=pick(pool.length?pool:keys), tries=0; while(used.has(k)&&tries++<20) k=pick(keys); used.add(k); line.push(botHero(k,mul)); }
         return line; };
       const linePower=l=>Math.round(l.reduce((s,h)=>s+h.maxHp/8+(h.atk||0),0));
@@ -4496,6 +4492,8 @@ const server=http.createServer((req,res)=>{
     console.error('⚠ api error:', err && err.message); return send(res,500,{error:'server error'}); });
   if(p==='/health'){ res.writeHead(200);res.end('ok');return; }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript');
+  if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
+  if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }
   if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json');
@@ -4642,3 +4640,5 @@ if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port st
 } else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
+
+
