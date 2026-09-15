@@ -18,6 +18,8 @@ const path = require('path');
 const crypto = require('crypto');
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
+const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
+const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 
 const PORT = process.env.PORT || 8080;
 const GAME_FILE = path.join(__dirname, 'emberweave-heroes.html');
@@ -451,9 +453,10 @@ const GLYPH_SLOT_FAMILIES={
 const GLYPH_ROLE_OVERRIDES={ // heroRole (sim HERO_BASE vocabulary) -> {slotName:[families]}
   'Tank':     { bulwark:['Ironwall','Veilward','Bastion','Dawnshield','Stoneheart','Worldheart'],
                 onslaught:['Ravager','Sunder','Cataclysm','Starfire','Keenmind'],
-                spirit:['Starfire','Voidbind','Keenmind','Bastion','Worldheart'] },
+                spirit:['Starfire','Voidbind','Keenmind','Bastion','Worldheart','Ironwall'] },
   'Bruiser':  { onslaught:['Ravager','Sunder','Cataclysm','Bloodroot'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
-  'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
+  'Assassin': { tempo:['Windstep','Shadepath','Tidecall','Sunder'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'],
+                onslaught:['Ravager','Sunder','Cataclysm','Starfire'] },
   // 27 Aug (Phil): casters/supports must never be FORCED into melee/armor-pen families — their
   // offensive slots additionally accept caster families (AP/magic pen, healing, energy). Supersets.
   'Mage':     { spirit:['Starfire','Voidbind','Keenmind','Cataclysm'],
@@ -461,7 +464,8 @@ const GLYPH_ROLE_OVERRIDES={ // heroRole (sim HERO_BASE vocabulary) -> {slotName
                 mastery:['Hawkeye','Lifebloom','Bloodroot','Keenmind','Voidbind'] },
   'Marksman': { mastery:['Hawkeye','Lifebloom','Bloodroot','Sunder'], spirit:['Starfire','Voidbind','Keenmind','Sunder','Hawkeye'] },
   'Support':  { vitality:['Stoneheart','Worldheart','Lifebloom'],
-                onslaught:['Ravager','Sunder','Cataclysm','Starfire','Lifebloom','Tidecall'],
+                onslaught:['Ravager','Sunder','Cataclysm','Starfire','Lifebloom','Tidecall','Windstep'],
+                spirit:['Starfire','Voidbind','Keenmind','Stoneheart'],
                 mastery:['Hawkeye','Lifebloom','Bloodroot','Tidecall','Keenmind'] }
 };
 let GLYPHS=null;
@@ -564,9 +568,9 @@ try{ if(GLYPHS){ const dead=GLYPHS.raw.filter(d=>!glyphSupplyOK(d)); if(dead.len
 function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
 function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
 function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
-function glyphBoard(g,hero){ if(!g.boards[hero]) g.boards[hero]={ slots:[null,null,null,null,null,null], ascensionIndex:0, ascended:{} }; return g.boards[hero]; }
-/* Canonical path selection. Every hero's class, damage profile and combat row resolves to one
-   of 14 shared paths. No role/range inference and no per-hero randomization remains. */
+function glyphBoard(g,hero){ if(!g.boards[hero]) g.boards[hero]={ slots:[null,null,null,null,null,null], ascensionIndex:0, ascended:{}, personalPathVersion:1 }; return g.boards[hero]; }
+/* Legacy class/profile/row route is retained only to recognize earned glyph banks during the
+   one-time personal-path migration. Current pre-choice comes from each hero's authored path. */
 function glyphHeroTraits(heroKey){
   const p=HERO_PROFILES[heroKey];
   if(!p) throw new Error('Missing canonical hero profile: '+heroKey);
@@ -593,7 +597,71 @@ function glyphSupplyOK(def){ try{
   for(const sk in ex.subs){ const sd=GLYPHS.subs[sk]; if(!sd)return false; for(const i of sd.ing)keys.push(i.key); }
   return keys.every(k=>{ const q=k.slice(0,k.lastIndexOf(' ')), f=k.slice(k.lastIndexOf(' ')+1); return glyphTierFams(q).includes(f); });
 }catch(e){ return false; } }
-function glyphPreChoice(heroKey,slotIdx,qi){ return glyphPlanForTraits(glyphHeroTraits(heroKey),qi)[slotIdx]||null; }
+function glyphPersonalPlan(heroKey,qi){
+  const h=HERO_PERSONAL_GLYPH_PATHS.heroes[heroKey],p=HERO_PROFILES[heroKey];
+  if(!h||!p||!h.tiers[qi]) throw new Error('Missing personal glyph path: '+heroKey+' '+qi);
+  return h.tiers[qi].map((family,slotIdx)=>{
+    const pick=GLYPHS.raw.find(d=>d.qi===qi&&d.family===family&&glyphAllowed(slotIdx,d,p.class)&&glyphSupplyOK(d));
+    if(!pick) throw new Error('Personal glyph path is not forgeable: '+heroKey+' '+GLYPH_LADDER[qi]+' '+GLYPH_SLOTS[slotIdx]+' '+family);
+    return pick;
+  });
+}
+function glyphPreChoice(heroKey,slotIdx,qi){ return glyphPersonalPlan(heroKey,qi)[slotIdx]||null; }
+function glyphPersonalSourcesCheck(){
+  const keys=Object.keys(HERO_PROFILES),paths=HERO_PERSONAL_GLYPH_PATHS,bonuses=HERO_ASCENSION_BONUSES;
+  if(paths.version!==1||bonuses.version!==1||Object.keys(paths.heroes).length!==keys.length||Object.keys(bonuses.heroes).length!==keys.length)
+    throw new Error('Personal glyph/ascension source roster or version mismatch');
+  const statTypes={};for(const d of GLYPHS.raw)for(const s of d.stats){
+    if(s.stat in statTypes&&statTypes[s.stat]!==s.pct)throw new Error('Glyph rating type drift: '+s.stat);
+    statTypes[s.stat]=s.pct;
+  }
+  for(const key of keys){
+    const h=paths.heroes[key],b=bonuses.heroes[key];
+    if(!h||!b||!Array.isArray(h.tiers)||h.tiers.length!==16||!Array.isArray(b.steps)||b.steps.length!==16)
+      throw new Error('Incomplete personal source: '+key);
+    for(let qi=0;qi<16;qi++){
+      if(h.tiers[qi].length!==6||glyphPersonalPlan(key,qi).length!==6)throw new Error('Incomplete personal glyph board: '+key+' '+qi);
+      const step=b.steps[qi];if(step.quality!==GLYPH_LADDER[qi]||!(step.amount>0)||statTypes[step.stat]!==step.pct)
+        throw new Error('Invalid personal ascension bonus: '+key+' '+qi);
+    }
+  }
+}
+glyphPersonalSourcesCheck();
+function glyphPersonalMigrate(u){
+  if(!u||!u.glyphs||!u.glyphs.boards) return false;
+  const g=u.glyphs;let changed=false;
+  const add=(bank,s,sign)=>{ const old=bank[s.stat]||{val:0,pct:s.pct};
+    if(old.pct!==s.pct)throw new Error('Personal glyph migration rating type drift: '+s.stat);
+    old.val=+(old.val+sign*s.val).toFixed(2);if(Math.abs(old.val)<0.001)delete bank[s.stat];else bank[s.stat]=old; };
+  for(const key of Object.keys(g.boards)){
+    const b=g.boards[key];if(!HERO_PERSONAL_GLYPH_PATHS.heroes[key]||b.personalPathVersion===1)continue;
+    const count=Math.max(0,Math.min(16,b.ascensionIndex|0)),oldBank={},newBank={};
+    for(let qi=0;qi<count;qi++){
+      for(const d of glyphPlanForTraits(glyphHeroTraits(key),qi))for(const s of d.stats)add(oldBank,s,1);
+      for(const d of glyphPersonalPlan(key,qi))for(const s of d.stats)add(newBank,s,1);
+    }
+    const plan=count<16?glyphPersonalPlan(key,count):null;
+    const missing=plan&&b.slots&&b.slots.some(iid=>iid&&(!g.finished||!g.finished[iid]||g.finished[iid].status!=='locked'));
+    if(missing){glyphAudit(g,'personal-path-migrate-skip',{hero:key,reason:'missing locked instance'});continue;}
+    if(plan)for(let slot=0;slot<6;slot++){const iid=b.slots&&b.slots[slot];if(!iid)continue;
+      const inst=g.finished[iid];
+      if(inst.definitionId!==plan[slot].id){inst.sourceDefinitionId=inst.definitionId;inst.definitionId=plan[slot].id;inst.pathMigratedAt=Date.now();}
+    }
+    const actual=b.ascended||{};
+    const exact=Object.entries(oldBank).every(([stat,v])=>(actual[stat]&&actual[stat].pct===v.pct&&(actual[stat].val||0)+0.01>=v.val));
+    if(exact){for(const [stat,v] of Object.entries(oldBank))add(actual,{stat,val:v.val,pct:v.pct},-1);
+      for(const [stat,v] of Object.entries(newBank))add(actual,{stat,val:v.val,pct:v.pct},1);
+      b.personalMigrationMode='exact-delta';
+    }else{for(const [stat,v] of Object.entries(newBank)){
+      const have=actual[stat]&&actual[stat].pct===v.pct?(actual[stat].val||0):0;
+      if(have+0.001<v.val)add(actual,{stat,val:+(v.val-have).toFixed(2),pct:v.pct},1);
+    }b.personalMigrationMode='preserve-legacy';}
+    b.ascended=actual;b.personalPathVersion=1;changed=true;
+    glyphAudit(g,'personal-path-migrate',{hero:key,to:count,mode:b.personalMigrationMode});
+  }
+  if(changed){g.revision=(g.revision|0)+1;writeDB();}
+  return changed;
+}
 /* ---- Glyph Ancestry Tree (spec 27 Aug): the server derives the FULL canonical build lineage
    of a slot's one pre-chosen glyph — finished glyph at the root, virtual predecessor glyphs and
    Sub-Glyphs as branches, named fragments as the leaves. Purely a read model: nothing here (and
@@ -644,6 +712,8 @@ function glyphBuildAllPlan(g,hero,board){
 function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprintId, locked} — internal instance ids never leave the server
   for(const h of Object.keys(g.boards||{})){ const b=g.boards[h];
     out[h]={ ascensionIndex:b.ascensionIndex, ascended:b.ascended,
+      nextAscensionBonus:(HERO_ASCENSION_BONUSES.heroes[h]&&HERO_ASCENSION_BONUSES.heroes[h].steps[b.ascensionIndex])||null,
+      personalStats:personalAscensionFlatStats({glyphs:g},h),
       levelRequired:glyphLevelGate(b.ascensionIndex),   // v257: this tier's minimum hero level
       nextTierLevelRequired:glyphLevelGate(b.ascensionIndex+1),
       slots:(b.slots||[]).map(iid=>{ if(!iid) return null; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
@@ -658,12 +728,13 @@ function glyphPruneConsumed(g){ // consumed instances are kept for the audit tra
 // one-time migration from the legacy client-owned glyph system (spec §9)
 function glyphMigrate(u){
   if(!GLYPHS) return;
-  const g=ensureGlyphs(u); if(g.migratedAt) return;
+  const g=ensureGlyphs(u); if(g.migratedAt){glyphPersonalMigrate(u);return;}
   /* 26 Aug (public flip): legacy glyphRank in saves is IGNORED — beta force-maxed it for every
      account. 27 Aug (Phil): the fragment starter pack is REMOVED — accounts start with ZERO
      fragments; the campaign's named stage drops are the only early source, so the
      farm-the-stage → build-in-slot loop matters from the very first glyph. */
   g.migratedAt=Date.now(); glyphAudit(g,'migrate',{steps:0,legacyIgnored:true,starterPack:false}); g.revision++;
+  glyphPersonalMigrate(u);
 }
 /* ============ Correction Spec v1: DIRECT-BUILD flow — helpers ============ */
 // Recursively expand a blueprint into exact named fragment + Sub-Glyph requirements.
@@ -899,6 +970,17 @@ function glyphFlatStats(u,key){
   for(const k in out) out[k]=Math.round(out[k]);
   return out;
 }
+function personalAscensionFlatStats(u,key){
+  const b=u&&u.glyphs&&u.glyphs.boards&&u.glyphs.boards[key];
+  if(!b||!HERO_ASCENSION_BONUSES.heroes[key]) return {};
+  const steps=HERO_ASCENSION_BONUSES.heroes[key].steps,bank={};
+  for(let i=0;i<Math.min(16,Math.max(0,b.ascensionIndex|0));i++){
+    const s=steps[i],a=bank[s.stat]||{val:0,pct:s.pct};a.val=+(a.val+s.amount).toFixed(2);bank[s.stat]=a;
+  }
+  // The personal bank stays independent; this only reuses the exact glyph
+  // rating bridge so the combat core receives identically typed raw ratings.
+  return glyphFlatStats({glyphs:{boards:{[key]:{ascended:bank,slots:[]}},finished:{}}},key);
+}
 // server-owned hero snapshot: level from saved XP (capped by player level), stars/pips from save, glyphs from server
 function snapshotHeroFromServer(u, key, save){
   const base=SIM.HERO_BASE[key]; if(!base) return null;
@@ -920,7 +1002,10 @@ function snapshotHeroFromServer(u, key, save){
     console.error('🚨 snapshotHeroFromServer: no ledger for account '+((u&&u.id)||'?')+' — refusing to build a snapshot from a client save');
     return null;
   }
-  const fl=glyphFlatStats(u,key);
+  glyphPersonalMigrate(u);
+  const glyphStats=glyphFlatStats(u,key), personalStats=personalAscensionFlatStats(u,key);
+  const fl=Object.assign({},glyphStats);
+  for(const stat of Object.keys(personalStats))fl[stat]=(fl[stat]||0)+personalStats[stat];
   let gf=null;
   if(typeof gearHeroFlats==='function'&&u.gear){ gf=gearHeroFlats(u,key); }
   // v242 (COMBAT CORE): the snapshot hands the core RAW TYPED RATINGS — the core owns every
@@ -1833,7 +1918,10 @@ function campaignHeroSpec(u,key){
   const led=ensureLedger(u); ledSkillImport(u);
   const base=SIM.HERO_BASE[key]; if(!base) return null;
   const h=led.hero[key]||{xp:0,stars:base.stars,pips:0,ref:0};
-  const fl=glyphFlatStats(u,key);
+  glyphPersonalMigrate(u);
+  const glyphStats=glyphFlatStats(u,key),personalStats=personalAscensionFlatStats(u,key);
+  const fl=Object.assign({},glyphStats);
+  for(const stat of Object.keys(personalStats))fl[stat]=(fl[stat]||0)+personalStats[stat];
   const gf=(typeof gearHeroFlats==='function'&&u.gear)?gearHeroFlats(u,key):null;
   const n=(a,b)=>((a|0)+((b&&b|0)||0));
   const pick=(k)=>((fl[k]|0)+((gf&&gf[k]|0)||0));
@@ -2848,7 +2936,9 @@ async function api(req,res,url){
           for(let qi=0;qi<=Math.min(15,botTier);qi++) for(let i=0;i<6;i++){ const d=glyphPreChoice(key,i,qi); if(!d) continue; for(const st of d.stats){ const c=asc[st.stat]||{val:0,pct:st.pct}; c.val=+(c.val+st.val).toFixed(2); c.pct=st.pct; asc[st.stat]=c; } } }
         return (boardCache[key]={ slots:[null,null,null,null,null,null], ascensionIndex:botTier, ascended:asc }); };
       const botHero=(key,mul)=>{ const fake={ glyphs:{ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{ [key]:botBoard(key) } } };
-        const fl=glyphFlatStats(fake,key); const R={ hpFlat:fl.hp|0, atkFlat:fl.atk|0, apowFlat:fl.apow|0, healFlat:0, armor:fl.armor|0, mr:fl.mr|0, armorPen:fl.armorPen|0, magicPen:fl.magicPen|0,
+        const fl=glyphFlatStats(fake,key),earned=personalAscensionFlatStats(fake,key);
+        for(const stat of Object.keys(earned))fl[stat]=(fl[stat]||0)+earned[stat];
+        const R={ hpFlat:fl.hp|0, atkFlat:fl.atk|0, apowFlat:fl.apow|0, healFlat:0, armor:fl.armor|0, mr:fl.mr|0, armorPen:fl.armorPen|0, magicPen:fl.magicPen|0,
           crit:fl.crit|0, critDmg:fl.critDmg|0, critRes:fl.critRes|0, energy:fl.energy|0, startEnergy:fl.startEnergy|0, regen:fl.regenRating|0, lifesteal:fl.lifesteal|0, atkSpd:fl.atkSpd|0, haste:fl.haste|0,
           eva:fl.eva|0, acc:fl.acc|0, block:fl.block|0, dmgBonus:fl.dmgBonus|0, dmgRed:fl.dmgRed|0, shieldStr:fl.shieldStr|0, ctrlHit:fl.ctrlHit|0, ctrlRes:fl.ctrlRes|0, healPow:fl.healPow|0 };
         const h=SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R, gearSkillSlot:null, gearSkill:null, extra:null});
@@ -3211,9 +3301,11 @@ async function api(req,res,url){
       const now=Date.now();
       for(const [inst,def] of insts){ inst.status='consumed'; inst.consumedAt=now;
         for(const s of def.stats){ const cur=board.ascended[s.stat]||{val:0,pct:s.pct}; cur.val=+(cur.val+s.val).toFixed(2); cur.pct=s.pct; board.ascended[s.stat]=cur; } }
+      const earnedBonus=HERO_ASCENSION_BONUSES.heroes[hero].steps[board.ascensionIndex];
       const fed=board.slots.slice(); board.slots=[null,null,null,null,null,null]; board.ascensionIndex++;
       glyphAudit(g,'ascend',{hero, to:board.ascensionIndex, fed});
-      return ok({ hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended });
+      return ok({ hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended,
+        ascensionBonus:earnedBonus, personalStats:personalAscensionFlatStats(me,hero) });
     }
     if(p==='/api/glyphs/grant'){ // dev-only test faucet (optionally targets a named account)
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -4707,5 +4799,3 @@ if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port st
 } else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
-
-

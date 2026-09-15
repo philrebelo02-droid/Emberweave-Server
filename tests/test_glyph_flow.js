@@ -81,7 +81,7 @@ const costBands={
   Grey:[2,2,2,2],Green:[3,4,5,6],'Green +1':[3,4,6,8],Blue:[4,6,9,13],
   'Blue +1':[4,6,10,16],'Blue +2':[5,8,15,24],Purple:[5,10,30,50],
   'Purple +1':[8,15,40,65],'Purple +2':[12,22,55,90],'Purple +3':[18,32,75,120],
-  Gold:[37,52,92,137],'Gold +1':[28,48,100,165],'Gold +2':[38,65,135,220],
+  Gold:[50,52,92,137],'Gold +1':[36,48,100,165],'Gold +2':[38,65,135,220],
   'Gold +3':[50,85,175,290],'Gold +4':[65,110,225,370],Orange:[80,135,275,450]};
 const strengthIndex={Feeder:0,Foundation:1,Core:2,Crown:3};
 const directCost=d=>Object.values(S.g2BuildCost(gg,d).need).reduce((a,b)=>a+b,0);
@@ -89,7 +89,7 @@ ck('ECONOMY: every glyph matches its quality and strength cost band',
    S.GLYPHS.raw.every(d=>directCost(d)===costBands[d.quality][strengthIndex[d.strength]]));
 ck('ECONOMY: every Grey hero board costs exactly 12 fragments',
    Object.keys(S.SIM.HERO_BASE).every(h=>[0,1,2,3,4,5].reduce((sum,sl)=>sum+directCost(S.glyphPreChoice(h,sl,0)),0)===12));
-ck('ECONOMY: every canonical hero path becomes more expensive across the ladder',
+ck('ECONOMY: every personal hero board becomes more expensive across the ladder',
    Object.keys(S.SIM.HERO_BASE).every(h=>{let prev=0;return S.GLYPH_LADDER.every((q,qi)=>{const n=[0,1,2,3,4,5].reduce((sum,sl)=>sum+directCost(S.glyphPreChoice(h,sl,qi)),0),ok=n>=prev;prev=n;return ok;});}));
 ck('PORTAL COVERAGE: every (tier,family) pair including Orange has a portal source',
    (()=>{ const covered=new Set();

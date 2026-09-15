@@ -1,0 +1,6905 @@
+{
+  "version": 1,
+  "heroes": {
+    "astra": {
+      "name": "Astra",
+      "kitAbilities": [
+        "Event Horizon",
+        "Starfire",
+        "Nebula",
+        "Stardust"
+      ],
+      "focus": [
+        "Ability Power",
+        "Magic Penetration",
+        "Starting Energy",
+        "Crit Damage",
+        "Haste",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Magic Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Starting Energy",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Crit Damage",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Magic Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Starting Energy",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Crit Damage",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Magic Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Starting Energy",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Crit Damage",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "aureth": {
+      "name": "Aureth",
+      "kitAbilities": [
+        "Eclipse",
+        "Sunburst",
+        "Duality",
+        "Twin Fonts"
+      ],
+      "focus": [
+        "Ability Power",
+        "Physical Attack",
+        "Healing Power",
+        "HP",
+        "Damage Reduction",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Physical Attack",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Healing Power",
+          "amount": 3.24,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Damage Reduction",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Physical Attack",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Healing Power",
+          "amount": 4.11,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Damage Reduction",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Physical Attack",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Healing Power",
+          "amount": 4.98,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    },
+    "cacklefang": {
+      "name": "Cacklefang",
+      "kitAbilities": [
+        "Crescent Stampede",
+        "Rending Return",
+        "Laughing Mark",
+        "Pack Opportunist"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Crit Chance",
+        "Starting Energy",
+        "Armor Penetration",
+        "Attack Speed",
+        "Evasion"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Crit Chance",
+          "amount": 0.62,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Starting Energy",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Attack Speed",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Evasion",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Crit Chance",
+          "amount": 0.8,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Starting Energy",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Attack Speed",
+          "amount": 1.5,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Evasion",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Crit Chance",
+          "amount": 0.97,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Starting Energy",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "calypsa": {
+      "name": "Calypsa Prismfin",
+      "kitAbilities": [
+        "Thousand-Fin Tempest",
+        "Tidal Ribbon",
+        "Fighting Current",
+        "Prismatic Scales"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Ability Power",
+        "Evasion",
+        "Attack Speed",
+        "Crit Damage",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Ability Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Evasion",
+          "amount": 0.76,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Attack Speed",
+          "amount": 1.12,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Crit Damage",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Ability Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Evasion",
+          "amount": 0.96,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Attack Speed",
+          "amount": 1.41,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Crit Damage",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Ability Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Evasion",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Attack Speed",
+          "amount": 1.75,
+          "pct": true
+        }
+      ]
+    },
+    "cardwraith": {
+      "name": "Cardwraith",
+      "kitAbilities": [
+        "Grand Reveal",
+        "Marked Deal",
+        "House Edge",
+        "Loaded Hand"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Crit Damage",
+        "Attack Speed",
+        "Armor Penetration",
+        "Haste",
+        "Evasion"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Crit Damage",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Attack Speed",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Evasion",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Crit Damage",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Attack Speed",
+          "amount": 1.37,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Evasion",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Crit Damage",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Attack Speed",
+          "amount": 1.66,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "carn": {
+      "name": "Carn",
+      "kitAbilities": [
+        "Crimson Reap",
+        "Reckless Blow",
+        "Vein Burst",
+        "Unrelenting"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Lifesteal",
+        "HP",
+        "Attack Speed",
+        "Damage Bonus",
+        "Armor"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Lifesteal",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "HP",
+          "amount": 8.64,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Attack Speed",
+          "amount": 1.12,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Damage Bonus",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Armor",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Lifesteal",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "HP",
+          "amount": 10.96,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Attack Speed",
+          "amount": 1.41,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Damage Bonus",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Armor",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Lifesteal",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "HP",
+          "amount": 13.28,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Attack Speed",
+          "amount": 1.75,
+          "pct": true
+        }
+      ]
+    },
+    "chainwheel": {
+      "name": "Chainwheel Gladiator",
+      "kitAbilities": [
+        "Lionwheel Rampage",
+        "Rim Breaker",
+        "Arena Lock",
+        "Pride's Momentum"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Block",
+        "Physical Attack",
+        "Tenacity",
+        "Damage Reduction"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Block",
+          "amount": 0.76,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Physical Attack",
+          "amount": 3.36,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Tenacity",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Damage Reduction",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Block",
+          "amount": 0.96,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Physical Attack",
+          "amount": 4.23,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Tenacity",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Damage Reduction",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Block",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Physical Attack",
+          "amount": 5.25,
+          "pct": false
+        }
+      ]
+    },
+    "meryln": {
+      "name": "Dandra",
+      "kitAbilities": [
+        "Queen's Call",
+        "Seedlight",
+        "Drowsy Sting",
+        "The Swarm Moves On"
+      ],
+      "focus": [
+        "Healing Power",
+        "Ability Power",
+        "Energy Regen",
+        "Starting Energy",
+        "Magic Resist",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Healing Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Ability Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Starting Energy",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Resist",
+          "amount": 1.74,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Healing Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Ability Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Starting Energy",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Resist",
+          "amount": 2.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Healing Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Ability Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Starting Energy",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "dawnbringer": {
+      "name": "Dawnbringer",
+      "kitAbilities": [
+        "Daybreak Judgment",
+        "Radiant Hammer",
+        "Sanctuary Guard",
+        "Unbroken Dawn"
+      ],
+      "focus": [
+        "Ability Power",
+        "Armor",
+        "Healing Power",
+        "HP",
+        "Magic Resist",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Healing Power",
+          "amount": 3.24,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Resist",
+          "amount": 1.74,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Healing Power",
+          "amount": 4.11,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Resist",
+          "amount": 2.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Healing Power",
+          "amount": 4.98,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    },
+    "deepcleft": {
+      "name": "Deepcleft",
+      "kitAbilities": [
+        "Quarry Collapse",
+        "Fault Claws",
+        "Burrow Guard",
+        "Relentless Digger"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor Penetration",
+        "Attack Speed",
+        "HP",
+        "Armor",
+        "Evasion"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Attack Speed",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Armor",
+          "amount": 1.74,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Evasion",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Attack Speed",
+          "amount": 1.37,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Armor",
+          "amount": 2.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Evasion",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Attack Speed",
+          "amount": 1.66,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    },
+    "fritz": {
+      "name": "Fritz",
+      "kitAbilities": [
+        "Thunder Shower",
+        "Storm Surge",
+        "Chain Lightning",
+        "Static Veil"
+      ],
+      "focus": [
+        "Ability Power",
+        "Evasion",
+        "Crit Damage",
+        "Haste",
+        "Magic Penetration",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Evasion",
+          "amount": 0.73,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Damage",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Haste",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Evasion",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Damage",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Haste",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Evasion",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Damage",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Haste",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "greatbrow": {
+      "name": "Greatbrow",
+      "kitAbilities": [
+        "March of the Greatbrow",
+        "Standard Crash",
+        "Rallying Ground",
+        "Unshaken Herd"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Block",
+        "Energy Regen",
+        "Physical Attack",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Block",
+          "amount": 0.76,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Energy Regen",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Physical Attack",
+          "amount": 3.48,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Block",
+          "amount": 0.96,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Energy Regen",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Physical Attack",
+          "amount": 4.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Block",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Energy Regen",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "arrears": {
+      "name": "Grimsby",
+      "kitAbilities": [
+        "Foreclosure",
+        "Overdue",
+        "Ledger Slam",
+        "Compound Interest"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor Penetration",
+        "Starting Energy",
+        "HP",
+        "Damage Bonus",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Starting Energy",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Damage Bonus",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Starting Energy",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Damage Bonus",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Starting Energy",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    },
+    "grosk": {
+      "name": "Grosk",
+      "kitAbilities": [
+        "Croc Drop",
+        "Gravemaw Pull",
+        "Hammer Fists",
+        "The Mirewall"
+      ],
+      "focus": [
+        "HP",
+        "Damage Reduction",
+        "Armor",
+        "Tenacity",
+        "Physical Attack",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Damage Reduction",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Armor",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Tenacity",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Physical Attack",
+          "amount": 3.48,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Damage Reduction",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Armor",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Tenacity",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Physical Attack",
+          "amount": 4.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Damage Reduction",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Armor",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Tenacity",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "tallow": {
+      "name": "Gruel",
+      "kitAbilities": [
+        "The Reckoning",
+        "Coinflail",
+        "Weigh the Debt",
+        "Gluttony"
+      ],
+      "focus": [
+        "HP",
+        "Damage Reduction",
+        "Lifesteal",
+        "Armor",
+        "Physical Attack",
+        "HP Regen"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Damage Reduction",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Lifesteal",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Physical Attack",
+          "amount": 3.48,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP Regen",
+          "amount": 5,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Damage Reduction",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Lifesteal",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Physical Attack",
+          "amount": 4.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP Regen",
+          "amount": 6.16,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Damage Reduction",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Lifesteal",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "hollow": {
+      "name": "Hollow",
+      "kitAbilities": [
+        "Vanishing Point",
+        "Fan of Knives",
+        "Lacerate",
+        "The Space He Isn't In"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Crit Damage",
+        "Evasion",
+        "Lifesteal",
+        "Haste",
+        "Armor Penetration"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Crit Damage",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Evasion",
+          "amount": 0.76,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Lifesteal",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Armor Penetration",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Crit Damage",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Evasion",
+          "amount": 0.96,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Lifesteal",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Armor Penetration",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Crit Damage",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Evasion",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Lifesteal",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "hurne": {
+      "name": "Hurne the Chained",
+      "kitAbilities": [
+        "Feed Them",
+        "Unchain the Dead",
+        "Call the Bone-Chanter",
+        "Packmaster"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Lifesteal",
+        "HP",
+        "Healing Power",
+        "Damage Reduction",
+        "Attack Speed"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Lifesteal",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "HP",
+          "amount": 8.64,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Healing Power",
+          "amount": 3.36,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Damage Reduction",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Attack Speed",
+          "amount": 1.25,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Lifesteal",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "HP",
+          "amount": 10.96,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Healing Power",
+          "amount": 4.23,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Damage Reduction",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Attack Speed",
+          "amount": 1.54,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Lifesteal",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "HP",
+          "amount": 13.28,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Healing Power",
+          "amount": 5.25,
+          "pct": false
+        }
+      ]
+    },
+    "ironcoil": {
+      "name": "Ironcoil",
+      "kitAbilities": [
+        "Avalanche Coil",
+        "Scale Ram",
+        "Fortress Curl",
+        "Layered Hide"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Damage Reduction",
+        "Tenacity",
+        "Magic Resist",
+        "Physical Attack"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Damage Reduction",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Tenacity",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Resist",
+          "amount": 1.74,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Physical Attack",
+          "amount": 3.75,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Damage Reduction",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Tenacity",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Resist",
+          "amount": 2.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Physical Attack",
+          "amount": 4.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Damage Reduction",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Tenacity",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "kharos": {
+      "name": "Kharos Bloomknife",
+      "kitAbilities": [
+        "Orchid Execution",
+        "Petal Sever",
+        "Bloomstep",
+        "Perfect Camouflage"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Crit Damage",
+        "Evasion",
+        "Armor Penetration",
+        "Haste",
+        "Attack Speed"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Crit Damage",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Evasion",
+          "amount": 0.76,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Attack Speed",
+          "amount": 1.25,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Crit Damage",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Evasion",
+          "amount": 0.96,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Attack Speed",
+          "amount": 1.54,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Crit Damage",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Evasion",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "kilnmask": {
+      "name": "Kilnmask Potter",
+      "kitAbilities": [
+        "Grand Kiln Shape",
+        "Glazebreaker",
+        "Sealed Vessel",
+        "Fired Clay"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor",
+        "HP",
+        "Damage Reduction",
+        "Magic Resist",
+        "Armor Penetration"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "HP",
+          "amount": 8.64,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Damage Reduction",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Resist",
+          "amount": 1.74,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Armor Penetration",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "HP",
+          "amount": 10.96,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Damage Reduction",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Resist",
+          "amount": 2.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Armor Penetration",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "HP",
+          "amount": 13.28,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Damage Reduction",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "bloatus": {
+      "name": "King Bloatus",
+      "kitAbilities": [
+        "Plague Sovereign",
+        "Toxic Breath",
+        "Swampcall",
+        "Contagion"
+      ],
+      "focus": [
+        "Ability Power",
+        "HP",
+        "Magic Resist",
+        "Starting Energy",
+        "Tenacity",
+        "Damage Reduction"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "HP",
+          "amount": 8.32,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Resist",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Starting Energy",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Tenacity",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Damage Reduction",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "HP",
+          "amount": 10.64,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Resist",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Starting Energy",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Tenacity",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Damage Reduction",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "HP",
+          "amount": 12.96,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Resist",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Starting Energy",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "konwu": {
+      "name": "KonWu",
+      "kitAbilities": [
+        "Heaven-Splitting Slam",
+        "Cleaving Arc",
+        "Phantom Step",
+        "Adamant Discipline"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Evasion",
+        "Armor",
+        "Magic Resist",
+        "Haste",
+        "Crit Damage"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Evasion",
+          "amount": 0.73,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Armor",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Crit Damage",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Evasion",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Armor",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Crit Damage",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Evasion",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Armor",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "vharn": {
+      "name": "Korvux",
+      "kitAbilities": [
+        "Falling Star",
+        "Comet Dash",
+        "Ember Cleave",
+        "Emberskin"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor Penetration",
+        "HP",
+        "Attack Speed",
+        "Damage Bonus",
+        "Evasion"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "HP",
+          "amount": 8.64,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Attack Speed",
+          "amount": 1.12,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Damage Bonus",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Evasion",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "HP",
+          "amount": 10.96,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Attack Speed",
+          "amount": 1.41,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Damage Bonus",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Evasion",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "HP",
+          "amount": 13.28,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Attack Speed",
+          "amount": 1.75,
+          "pct": true
+        }
+      ]
+    },
+    "lumi": {
+      "name": "Lumi",
+      "kitAbilities": [
+        "Radiant Nova",
+        "Dawnward",
+        "Quickening",
+        "Hush"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Starting Energy",
+        "Haste",
+        "Magic Penetration",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Starting Energy",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Haste",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Starting Energy",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Haste",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Starting Energy",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Haste",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "lysara": {
+      "name": "Lysara Moonveil",
+      "kitAbilities": [
+        "Queen of Quiet Wings",
+        "Dreamthread",
+        "Moon Cocoon",
+        "Powdered Slumber"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Energy Regen",
+        "Magic Resist",
+        "Tenacity",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Tenacity",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Tenacity",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "meridian": {
+      "name": "Meridian",
+      "kitAbilities": [
+        "Final Expedition",
+        "Golden Quill",
+        "Plumb Line",
+        "Well-Read"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Lifesteal",
+        "Attack Speed",
+        "Crit Damage",
+        "Armor Penetration",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Lifesteal",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Attack Speed",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Crit Damage",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Armor Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Lifesteal",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Attack Speed",
+          "amount": 1.37,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Crit Damage",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Armor Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Lifesteal",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Attack Speed",
+          "amount": 1.66,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Crit Damage",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "nerisse": {
+      "name": "Nerisse Bellglass",
+      "kitAbilities": [
+        "Choir of the Deep Sky",
+        "Resonant Star",
+        "Drifting Constellation",
+        "Pelagic Insight"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Magic Resist",
+        "Starting Energy",
+        "Magic Penetration",
+        "Energy Regen"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Resist",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Starting Energy",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Energy Regen",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Resist",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Starting Energy",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Energy Regen",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Resist",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Starting Energy",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "nox": {
+      "name": "Nox Quillfinger",
+      "kitAbilities": [
+        "Open Every Door",
+        "Lockpick Soul",
+        "Forbidden Key",
+        "Skeleton-Key Savant"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Energy Regen",
+        "Evasion",
+        "Crit Damage",
+        "Starting Energy",
+        "Armor Penetration"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Energy Regen",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Evasion",
+          "amount": 0.76,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Crit Damage",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Starting Energy",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Armor Penetration",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Energy Regen",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Evasion",
+          "amount": 0.96,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Crit Damage",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Starting Energy",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Armor Penetration",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Energy Regen",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Evasion",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Crit Damage",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "oakmir": {
+      "name": "Oakmir",
+      "kitAbilities": [
+        "First Spring",
+        "Mending Bloom",
+        "Rally Roots",
+        "Twin Fonts"
+      ],
+      "focus": [
+        "Healing Power",
+        "HP",
+        "Energy Regen",
+        "HP Regen",
+        "Magic Resist",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Healing Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "HP",
+          "amount": 8.32,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP Regen",
+          "amount": 4.48,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Resist",
+          "amount": 1.74,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Healing Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "HP",
+          "amount": 10.64,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP Regen",
+          "amount": 5.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Resist",
+          "amount": 2.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Healing Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "HP",
+          "amount": 12.96,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP Regen",
+          "amount": 7,
+          "pct": false
+        }
+      ]
+    },
+    "fathom": {
+      "name": "Old Maren",
+      "kitAbilities": [
+        "Maelstrom",
+        "Tide Pool",
+        "Tsunami",
+        "Deep Reserves"
+      ],
+      "focus": [
+        "Ability Power",
+        "Magic Resist",
+        "Energy Regen",
+        "HP Regen",
+        "Magic Penetration",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Magic Resist",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP Regen",
+          "amount": 4.48,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Magic Resist",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP Regen",
+          "amount": 5.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Magic Resist",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP Regen",
+          "amount": 7,
+          "pct": false
+        }
+      ]
+    },
+    "orryn": {
+      "name": "Orryn of the Spiral Deep",
+      "kitAbilities": [
+        "Ocean Without Shore",
+        "Pressure Sphere",
+        "Spiral Current",
+        "Abyssal Reserve"
+      ],
+      "focus": [
+        "Ability Power",
+        "Starting Energy",
+        "Magic Resist",
+        "Crit Damage",
+        "Magic Penetration",
+        "Haste"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Starting Energy",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Resist",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Crit Damage",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Haste",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Starting Energy",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Resist",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Crit Damage",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Haste",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Starting Energy",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Resist",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Crit Damage",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "pellucid": {
+      "name": "Pellucid Rook",
+      "kitAbilities": [
+        "Worldbreaker Fists",
+        "Meteor Knuckle",
+        "Infernal Clinch",
+        "Unmovable Mass"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Damage Reduction",
+        "Physical Attack",
+        "Tenacity",
+        "Block"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Damage Reduction",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Physical Attack",
+          "amount": 3.36,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Tenacity",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Block",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Damage Reduction",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Physical Attack",
+          "amount": 4.23,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Tenacity",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Block",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Damage Reduction",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Physical Attack",
+          "amount": 5.25,
+          "pct": false
+        }
+      ]
+    },
+    "pyroclast": {
+      "name": "Pyroclast",
+      "kitAbilities": [
+        "Crownfire",
+        "Ember Lash",
+        "Blazing Orbit",
+        "Rising Heat"
+      ],
+      "focus": [
+        "Ability Power",
+        "Damage Bonus",
+        "Haste",
+        "Crit Damage",
+        "Magic Penetration",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Damage Bonus",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Haste",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Crit Damage",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Damage Bonus",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Haste",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Crit Damage",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Damage Bonus",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Haste",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Crit Damage",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "rhukk": {
+      "name": "Rhukk",
+      "kitAbilities": [
+        "Impale Rush",
+        "Carapace",
+        "Dig In",
+        "Thick Chitin"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Magic Resist",
+        "Damage Reduction",
+        "Tenacity",
+        "Physical Attack"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Resist",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Damage Reduction",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Tenacity",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Physical Attack",
+          "amount": 3.75,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Resist",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Damage Reduction",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Tenacity",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Physical Attack",
+          "amount": 4.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Resist",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Damage Reduction",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "sprocket": {
+      "name": "Rivet",
+      "kitAbilities": [
+        "Full Arsenal",
+        "Scattergun",
+        "Smoke Bomb",
+        "Whatever's Loaded"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Attack Speed",
+        "Crit Damage",
+        "Armor Penetration",
+        "Starting Energy",
+        "Evasion"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Attack Speed",
+          "amount": 1.04,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Damage",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Starting Energy",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Evasion",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Attack Speed",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Damage",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Starting Energy",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Evasion",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Attack Speed",
+          "amount": 1.62,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Damage",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "silkcoil": {
+      "name": "Silkcoil",
+      "kitAbilities": [
+        "Serpent's Last Dance",
+        "Ribbon Fang",
+        "Hooded Feint",
+        "Venom Rhythm"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Evasion",
+        "Attack Speed",
+        "Armor Penetration",
+        "Lifesteal",
+        "Crit Damage"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Evasion",
+          "amount": 0.73,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Attack Speed",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Lifesteal",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Crit Damage",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Evasion",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Attack Speed",
+          "amount": 1.37,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Lifesteal",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Crit Damage",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Evasion",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Attack Speed",
+          "amount": 1.66,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "stormwarden": {
+      "name": "Stormwarden",
+      "kitAbilities": [
+        "Skybreak",
+        "Volt Pike",
+        "Thunder Guard",
+        "Static Charge"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor",
+        "Damage Reduction",
+        "Energy Regen",
+        "HP",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Damage Reduction",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Energy Regen",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "HP",
+          "amount": 9.28,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Damage Reduction",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Energy Regen",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "HP",
+          "amount": 12,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Damage Reduction",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Energy Regen",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "sylthaine": {
+      "name": "Sylthaine",
+      "kitAbilities": [
+        "Blizzard",
+        "Frozen Orb",
+        "Glacial Prison",
+        "Cold Snap"
+      ],
+      "focus": [
+        "Ability Power",
+        "Crit Damage",
+        "Energy Regen",
+        "Magic Resist",
+        "Magic Penetration",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Crit Damage",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Crit Damage",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Crit Damage",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "sablewick": {
+      "name": "Tessit",
+      "kitAbilities": [
+        "Hourglass",
+        "Accelerate",
+        "Sleight of Hours",
+        "Unwind"
+      ],
+      "focus": [
+        "Ability Power",
+        "Starting Energy",
+        "Haste",
+        "Magic Resist",
+        "Energy Regen",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Starting Energy",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Haste",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Energy Regen",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Starting Energy",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Haste",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Energy Regen",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Starting Energy",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Haste",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "vesper": {
+      "name": "The Annotator",
+      "kitAbilities": [
+        "Puncture",
+        "Errata",
+        "Loose Leaf",
+        "Scriptorium"
+      ],
+      "focus": [
+        "Ability Power",
+        "Energy Regen",
+        "Magic Penetration",
+        "Starting Energy",
+        "Haste",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Energy Regen",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Penetration",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Starting Energy",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Energy Regen",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Penetration",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Starting Energy",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Energy Regen",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Penetration",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Starting Energy",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "beekeeper": {
+      "name": "The Beekeeper King",
+      "kitAbilities": [
+        "Hive Mind",
+        "Hornet Cloud",
+        "Royal Nectar",
+        "Worker Swarm"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Energy Regen",
+        "Magic Penetration",
+        "HP",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "HP",
+          "amount": 9.28,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "HP",
+          "amount": 12,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "corsair": {
+      "name": "The Corsair Duelist",
+      "kitAbilities": [
+        "Dead Man's Fortune",
+        "Pistol Barrage",
+        "Grappling Hook",
+        "Pirate's Instinct"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Evasion",
+        "Crit Damage",
+        "Armor Penetration",
+        "Attack Speed",
+        "Lifesteal"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Evasion",
+          "amount": 0.73,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Damage",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Attack Speed",
+          "amount": 1.16,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Lifesteal",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Evasion",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Damage",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Attack Speed",
+          "amount": 1.5,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Lifesteal",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Evasion",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Damage",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "lastfurnace": {
+      "name": "The Last Furnace",
+      "kitAbilities": [
+        "Living Forge",
+        "Forge Strike",
+        "Chain Quench",
+        "Tempered Steel"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor",
+        "Damage Reduction",
+        "HP",
+        "Armor Penetration",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Damage Reduction",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Armor Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Damage Reduction",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Armor Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Damage Reduction",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    },
+    "librarian": {
+      "name": "The Librarian of Monsters",
+      "kitAbilities": [
+        "Final Volume",
+        "Ink Spirit",
+        "Chapter Rewrite",
+        "Living Pages"
+      ],
+      "focus": [
+        "Ability Power",
+        "Energy Regen",
+        "Crit Damage",
+        "Magic Resist",
+        "Magic Penetration",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Energy Regen",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Damage",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Energy Regen",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Damage",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Energy Regen",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Damage",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "magistrant": {
+      "name": "The Magistrant",
+      "kitAbilities": [
+        "Contempt Storm",
+        "Gag Order",
+        "Contempt",
+        "Tireless"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor Penetration",
+        "Starting Energy",
+        "Attack Speed",
+        "HP",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Starting Energy",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Attack Speed",
+          "amount": 1.12,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "HP",
+          "amount": 9.28,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Starting Energy",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Attack Speed",
+          "amount": 1.41,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "HP",
+          "amount": 12,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Starting Energy",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Attack Speed",
+          "amount": 1.75,
+          "pct": true
+        }
+      ]
+    },
+    "cathedral": {
+      "name": "The Walking Cathedral",
+      "kitAbilities": [
+        "Divine Mass",
+        "Cathedral Gates",
+        "Incense of Penance",
+        "Sacred Bells"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Armor",
+        "Magic Resist",
+        "HP",
+        "Tenacity"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Armor",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "HP",
+          "amount": 9.28,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Tenacity",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Armor",
+          "amount": 2.06,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "HP",
+          "amount": 12,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Tenacity",
+          "amount": 1.23,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Armor",
+          "amount": 2.49,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "threadseer": {
+      "name": "Threadseer",
+      "kitAbilities": [
+        "Rewrite the Pattern",
+        "Mending Stitch",
+        "Reinforced Seam",
+        "Golden Thread"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "HP",
+        "Magic Resist",
+        "Energy Regen",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "HP",
+          "amount": 8.64,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Energy Regen",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "HP",
+          "amount": 10.96,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Energy Regen",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "HP",
+          "amount": 13.28,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "tick": {
+      "name": "Tick",
+      "kitAbilities": [
+        "Flywheel",
+        "Overclock",
+        "Mainspring",
+        "Momentum Gears"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Attack Speed",
+        "Haste",
+        "Armor Penetration",
+        "Crit Damage",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Attack Speed",
+          "amount": 1.04,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Haste",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Crit Damage",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Attack Speed",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Haste",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Crit Damage",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Attack Speed",
+          "amount": 1.62,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Haste",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "umbris": {
+      "name": "Umbris",
+      "kitAbilities": [
+        "Umbral Cataclysm",
+        "Shadeburst",
+        "Creeping Rot",
+        "Lingering Dark"
+      ],
+      "focus": [
+        "Ability Power",
+        "Magic Penetration",
+        "Starting Energy",
+        "HP",
+        "Damage Bonus",
+        "Haste"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Magic Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Starting Energy",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Damage Bonus",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Haste",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Magic Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Starting Energy",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Damage Bonus",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Haste",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Magic Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Starting Energy",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    },
+    "vael": {
+      "name": "Vael",
+      "kitAbilities": [
+        "Last Stand",
+        "Warcry",
+        "Bloodthirst",
+        "Second Wind"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Physical Attack",
+        "Magic Resist",
+        "Tenacity",
+        "Healing Power"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 8,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.56,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Physical Attack",
+          "amount": 3.24,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Tenacity",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Healing Power",
+          "amount": 3.75,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 10.32,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Physical Attack",
+          "amount": 4.11,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Tenacity",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Healing Power",
+          "amount": 4.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 12.64,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 2.43,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Physical Attack",
+          "amount": 4.98,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "vaelora": {
+      "name": "Vaelora Velvetclaw",
+      "kitAbilities": [
+        "Winter Plumage",
+        "Featherfang",
+        "Whiteout Pounce",
+        "Silent Altitude"
+      ],
+      "focus": [
+        "Ability Power",
+        "Evasion",
+        "Crit Damage",
+        "Haste",
+        "Magic Penetration",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Evasion",
+          "amount": 0.73,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Damage",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Haste",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Evasion",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Damage",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Haste",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Evasion",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Damage",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Haste",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "velvetplum": {
+      "name": "Velvetplum",
+      "kitAbilities": [
+        "Imperial Plumage",
+        "Scent of Courage",
+        "Soporific Bouquet",
+        "Trail of Splendor"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Energy Regen",
+        "Magic Resist",
+        "HP",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Magic Resist",
+          "amount": 1.68,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "HP",
+          "amount": 9.28,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Magic Resist",
+          "amount": 2.12,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "HP",
+          "amount": 12,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Magic Resist",
+          "amount": 2.63,
+          "pct": false
+        }
+      ]
+    },
+    "verdantshade": {
+      "name": "Verdant Shade",
+      "kitAbilities": [
+        "Emerald Volley",
+        "Thornshot",
+        "Vine Snare",
+        "Hunter's Patience"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor Penetration",
+        "Crit Chance",
+        "Attack Speed",
+        "Accuracy",
+        "Starting Energy"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Chance",
+          "amount": 0.65,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Attack Speed",
+          "amount": 1.12,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Accuracy",
+          "amount": 0.81,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Starting Energy",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Chance",
+          "amount": 0.82,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Attack Speed",
+          "amount": 1.41,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Accuracy",
+          "amount": 1.05,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Starting Energy",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Chance",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Attack Speed",
+          "amount": 1.75,
+          "pct": true
+        }
+      ]
+    },
+    "vex": {
+      "name": "Vex",
+      "kitAbilities": [
+        "Razor Tempest",
+        "Hookline",
+        "Bleed Them Dry",
+        "Killer Instinct"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Crit Damage",
+        "Lifesteal",
+        "Armor Penetration",
+        "Evasion",
+        "Attack Speed"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Crit Damage",
+          "amount": 0.83,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Lifesteal",
+          "amount": 0.86,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Armor Penetration",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Evasion",
+          "amount": 0.81,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Attack Speed",
+          "amount": 1.25,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Crit Damage",
+          "amount": 1.06,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Lifesteal",
+          "amount": 1.1,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Armor Penetration",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Evasion",
+          "amount": 1.05,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Attack Speed",
+          "amount": 1.54,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Crit Damage",
+          "amount": 1.3,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Lifesteal",
+          "amount": 1.33,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Armor Penetration",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "veyr": {
+      "name": "Veyr Manta-Born",
+      "kitAbilities": [
+        "Event Horizon",
+        "Gravity Crescent",
+        "Abyssal Mantle",
+        "Weightless Predator"
+      ],
+      "focus": [
+        "Ability Power",
+        "Evasion",
+        "Crit Chance",
+        "Haste",
+        "Magic Penetration",
+        "Attack Speed"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Evasion",
+          "amount": 0.73,
+          "pct": true
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Crit Chance",
+          "amount": 0.65,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "Haste",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Magic Penetration",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Attack Speed",
+          "amount": 1.25,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Evasion",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Crit Chance",
+          "amount": 0.82,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Haste",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Magic Penetration",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Attack Speed",
+          "amount": 1.54,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Evasion",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Crit Chance",
+          "amount": 1,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "Haste",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "vireo": {
+      "name": "Vireo",
+      "kitAbilities": [
+        "Grand Symphony",
+        "Crescendo",
+        "Harmony",
+        "Perfect Pitch"
+      ],
+      "focus": [
+        "Ability Power",
+        "Healing Power",
+        "Magic Penetration",
+        "Energy Regen",
+        "Starting Energy",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Healing Power",
+          "amount": 3.12,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Penetration",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Energy Regen",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Starting Energy",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Healing Power",
+          "amount": 3.99,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Penetration",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Energy Regen",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Starting Energy",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Healing Power",
+          "amount": 4.86,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Penetration",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Energy Regen",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "voidweaver": {
+      "name": "Void Weaver",
+      "kitAbilities": [
+        "Event Horizon",
+        "Abyssal Needle",
+        "Gravity Knot",
+        "Dark Convergence"
+      ],
+      "focus": [
+        "Ability Power",
+        "Magic Penetration",
+        "Energy Regen",
+        "Starting Energy",
+        "Crit Damage",
+        "Haste"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Magic Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Energy Regen",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Starting Energy",
+          "amount": 1.12,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Crit Damage",
+          "amount": 0.93,
+          "pct": true
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Haste",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Magic Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Energy Regen",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Starting Energy",
+          "amount": 1.41,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Crit Damage",
+          "amount": 1.2,
+          "pct": true
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Haste",
+          "amount": 1.54,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Magic Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Energy Regen",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Starting Energy",
+          "amount": 1.75,
+          "pct": false
+        }
+      ]
+    },
+    "vulmar": {
+      "name": "Vulmar",
+      "kitAbilities": [
+        "Weight of the World",
+        "Gravity Sling",
+        "Grasping Vow",
+        "Unstepped"
+      ],
+      "focus": [
+        "Ability Power",
+        "Magic Penetration",
+        "HP",
+        "Damage Reduction",
+        "Starting Energy",
+        "Magic Resist"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Magic Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "HP",
+          "amount": 8.64,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Damage Reduction",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Starting Energy",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Magic Resist",
+          "amount": 1.88,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Magic Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "HP",
+          "amount": 10.96,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Damage Reduction",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Starting Energy",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Magic Resist",
+          "amount": 2.31,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Magic Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "HP",
+          "amount": 13.28,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Damage Reduction",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "waxenduchess": {
+      "name": "Waxen Duchess",
+      "kitAbilities": [
+        "Court of the Final Candle",
+        "Waxen Effigy",
+        "Mourning Bell",
+        "Living Tallow"
+      ],
+      "focus": [
+        "Ability Power",
+        "Magic Penetration",
+        "Haste",
+        "Crit Damage",
+        "Starting Energy",
+        "HP"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Ability Power",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Magic Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Haste",
+          "amount": 1.08,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Crit Damage",
+          "amount": 0.9,
+          "pct": true
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Starting Energy",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "HP",
+          "amount": 10,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "Ability Power",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Magic Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Haste",
+          "amount": 1.37,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Crit Damage",
+          "amount": 1.13,
+          "pct": true
+        },
+        {
+          "quality": "Gold",
+          "stat": "Starting Energy",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "HP",
+          "amount": 12.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Ability Power",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Magic Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Haste",
+          "amount": 1.66,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Crit Damage",
+          "amount": 1.4,
+          "pct": true
+        }
+      ]
+    },
+    "zahri": {
+      "name": "Zahri Sunhorn",
+      "kitAbilities": [
+        "Noonday Stampede",
+        "Solar Impalement",
+        "Mirage Herd",
+        "Desert Momentum"
+      ],
+      "focus": [
+        "Physical Attack",
+        "Armor Penetration",
+        "Attack Speed",
+        "HP",
+        "Haste",
+        "Evasion"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "Physical Attack",
+          "amount": 3,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor Penetration",
+          "amount": 1.04,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Attack Speed",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Blue",
+          "stat": "HP",
+          "amount": 8.96,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Haste",
+          "amount": 1.16,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Evasion",
+          "amount": 0.88,
+          "pct": true
+        },
+        {
+          "quality": "Purple",
+          "stat": "Physical Attack",
+          "amount": 3.87,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor Penetration",
+          "amount": 1.33,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Attack Speed",
+          "amount": 1.37,
+          "pct": true
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "HP",
+          "amount": 11.28,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Haste",
+          "amount": 1.5,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Evasion",
+          "amount": 1.08,
+          "pct": true
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "Physical Attack",
+          "amount": 4.74,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor Penetration",
+          "amount": 1.62,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Attack Speed",
+          "amount": 1.66,
+          "pct": true
+        },
+        {
+          "quality": "Orange",
+          "stat": "HP",
+          "amount": 14,
+          "pct": false
+        }
+      ]
+    }
+  }
+}

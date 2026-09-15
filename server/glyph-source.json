@@ -1447,7 +1447,7 @@
     "name": "Behemoth Glyph",
     "statFocus": "Health",
     "passiveStats": "HP +497; Tenacity +0.7%",
-    "recipeText": "34 × Gold Stoneheart Fragments + Gold Stoneheart Sub-Glyph + Greatframe Glyph + Unshaken Glyph + Platewall Glyph",
+    "recipeText": "47 × Gold Stoneheart Fragments + Gold Stoneheart Sub-Glyph + Greatframe Glyph + Unshaken Glyph + Platewall Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Gravel"
   },
@@ -1459,7 +1459,7 @@
     "name": "Bulwarking Glyph",
     "statFocus": "Armor / Block",
     "passiveStats": "Armor +19; Block +4.9%",
-    "recipeText": "34 × Gold Ironwall Fragments + Gold Ironwall Sub-Glyph + Adamantguard Glyph + Ruinmaw Glyph + Spellhide Glyph",
+    "recipeText": "47 × Gold Ironwall Fragments + Gold Ironwall Sub-Glyph + Adamantguard Glyph + Ruinmaw Glyph + Spellhide Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Iron"
   },
@@ -1471,7 +1471,7 @@
     "name": "Spellbane Glyph",
     "statFocus": "Magic Resist / Control Resist",
     "passiveStats": "Magic Resist +19; Control Resist +4.9%",
-    "recipeText": "34 × Gold Veilward Fragments + Gold Veilward Sub-Glyph + Unshaken Glyph + Novaheart Glyph + Maulclaw Glyph",
+    "recipeText": "47 × Gold Veilward Fragments + Gold Veilward Sub-Glyph + Unshaken Glyph + Novaheart Glyph + Maulclaw Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Silk"
   },
@@ -1483,7 +1483,7 @@
     "name": "Beastking Glyph",
     "statFocus": "Attack / Lifesteal",
     "passiveStats": "Physical Attack +57; Lifesteal +4.9%",
-    "recipeText": "34 × Gold Ravager Fragments + Gold Ravager Sub-Glyph + Ruinmaw Glyph + Tempest Glyph + Arcflare Glyph",
+    "recipeText": "47 × Gold Ravager Fragments + Gold Ravager Sub-Glyph + Ruinmaw Glyph + Tempest Glyph + Arcflare Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Sinew"
   },
@@ -1495,7 +1495,7 @@
     "name": "Arcanum Glyph",
     "statFocus": "Ability Power / Magic Pen",
     "passiveStats": "Ability Power +57; Magic Penetration +5",
-    "recipeText": "34 × Gold Starfire Fragments + Gold Starfire Sub-Glyph + Novaheart Glyph + Farwatch Core + Quickcharge Glyph",
+    "recipeText": "47 × Gold Starfire Fragments + Gold Starfire Sub-Glyph + Novaheart Glyph + Farwatch Core + Quickcharge Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Quartz"
   },
@@ -1507,7 +1507,7 @@
     "name": "Hurricane Glyph",
     "statFocus": "Haste / Energy",
     "passiveStats": "Haste +21; Starting Energy +10",
-    "recipeText": "34 × Gold Windstep Fragments + Gold Windstep Sub-Glyph + Tempest Glyph + Radiant Petal Core + Falconmark Glyph",
+    "recipeText": "47 × Gold Windstep Fragments + Gold Windstep Sub-Glyph + Tempest Glyph + Radiant Petal Core + Falconmark Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Feather"
   },
@@ -1639,7 +1639,7 @@
     "name": "Ymir Glyph",
     "statFocus": "Health",
     "passiveStats": "HP +560; Tenacity +0.7%",
-    "recipeText": "25 × Gold +1 Stoneheart Fragments + Gold +1 Stoneheart Sub-Glyph + Titanheart Glyph + Runeshield Glyph + Bracemail Glyph",
+    "recipeText": "33 × Gold +1 Stoneheart Fragments + Gold +1 Stoneheart Sub-Glyph + Titanheart Glyph + Runeshield Glyph + Bracemail Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Gravel"
   },
@@ -1651,7 +1651,7 @@
     "name": "Talos Glyph",
     "statFocus": "Armor / Block",
     "passiveStats": "Armor +21; Block +5.6%",
-    "recipeText": "25 × Gold +1 Ironwall Fragments + Gold +1 Ironwall Sub-Glyph + Unbreakable Glyph + Devourer Glyph + Nullweave Glyph",
+    "recipeText": "33 × Gold +1 Ironwall Fragments + Gold +1 Ironwall Sub-Glyph + Unbreakable Glyph + Devourer Glyph + Nullweave Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Iron"
   },
@@ -1663,7 +1663,7 @@
     "name": "Gleipnir Glyph",
     "statFocus": "Magic Resist / Control Resist",
     "passiveStats": "Magic Resist +21; Control Resist +5.6%",
-    "recipeText": "25 × Gold +1 Veilward Fragments + Gold +1 Veilward Sub-Glyph + Runeshield Glyph + Supernova Glyph + Gorefang Glyph",
+    "recipeText": "33 × Gold +1 Veilward Fragments + Gold +1 Veilward Sub-Glyph + Runeshield Glyph + Supernova Glyph + Gorefang Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Silk"
   },
@@ -1675,7 +1675,7 @@
     "name": "Chimera Glyph",
     "statFocus": "Attack / Lifesteal",
     "passiveStats": "Physical Attack +64; Lifesteal +5.6%",
-    "recipeText": "25 × Gold +1 Ravager Fragments + Gold +1 Ravager Sub-Glyph + Devourer Glyph + Skyrunner Glyph + Manaburn Glyph",
+    "recipeText": "33 × Gold +1 Ravager Fragments + Gold +1 Ravager Sub-Glyph + Devourer Glyph + Skyrunner Glyph + Manaburn Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Sinew"
   },
@@ -1687,7 +1687,7 @@
     "name": "Ignition Glyph",
     "statFocus": "Ability Power / Magic Pen",
     "passiveStats": "Ability Power +64; Magic Penetration +5.5",
-    "recipeText": "25 × Gold +1 Starfire Fragments + Gold +1 Starfire Sub-Glyph + Supernova Glyph + Piercing Gaze Core + Galestride Glyph",
+    "recipeText": "33 × Gold +1 Starfire Fragments + Gold +1 Starfire Sub-Glyph + Supernova Glyph + Piercing Gaze Core + Galestride Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Quartz"
   },
