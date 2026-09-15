@@ -10239,13 +10239,14 @@ function stageDropsHTML(stg,node,mode){
   // stamina/run counter on the same line. The top of the sheet stays the stage name alone.
   const gf=(stg&&stg.rewards&&stg.rewards.glyphFragments)||[];
   const randomized=!!(stg&&stg.rewards&&(stg.rewards.fragmentRolls|0)===2&&gf.length===4);
+  const vaelFirst=(mode==='normal'&&node===2&&portalCleared(mode)<2);
   const art=k=>(typeof g2artKey==='function')?g2artKey('fragment',k,13):'◆';
   const chip=(icon,name,qty,col)=>`<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
     ${icon}<span style="color:${col||'#8fe3ff'};font-size:10.5px;font-weight:700">${name}</span><span style="color:#8b98a9;font-size:10.5px">${qty}</span></span>`;
   const fchip=(f,dim)=>chip(art(f.key), escapeHTML((f.displayName||f.key).replace(/ Fragment$/,'')), '×'+f.quantity, dim?'#6f8fa5':'#8fe3ff');
   const g=gf.filter(f=>f.guaranteed!==false), b=gf.filter(f=>f.bonus);
   const chips=[];
-  (randomized?gf:(g.length?g:gf.slice(0,1))).forEach(f=>chips.push(randomized
+  (vaelFirst?[{key:'Grey Stoneheart',displayName:'Rough Gravel Fragment',quantity:2}]:randomized?gf:(g.length?g:gf.slice(0,1))).forEach(f=>chips.push(vaelFirst?fchip(f,false):randomized
     ?chip(art(f.key),escapeHTML((f.displayName||f.key).replace(/ Fragment$/,'')),'possible','#8fe3ff')
     :fchip(f,false)));
   if(node!=null && ((mode==='elite'&&stg&&stg.rewardHero)||(mode==='normal'&&isHeroRewardStage(node)))){ const hk=(stg&&stg.rewardHero)||(mode==='normal'&&eliteHeroFor(node)), h=hk&&HERO_TYPES[hk];
@@ -10254,7 +10255,7 @@ function stageDropsHTML(stg,node,mode){
   const _eb=(node!=null)&&(mode==='elite'||isEliteStage(node)||isBossStage(node));
   const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap">⧗ ${stageStamCost(node,mode)}${_eb?' · runs <span style="color:'+(stageRunsLeft(node,mode)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node,mode)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;
   return `<div style="border-top:1px solid #1c2434;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
-    <span style="font-size:9px;letter-spacing:1px;color:#6f7d90">${randomized?'2 RANDOM':'DROPS'}</span>
+    <span style="font-size:9px;letter-spacing:1px;color:#6f7d90">${vaelFirst?'FIRST CLEAR · VAEL':randomized?'2 RANDOM':'DROPS'}</span>
     ${chips.length?chips.join(''):'<span style="font-size:10.5px;color:#6f7d90">loading…</span>'}${foot}</div>`;
 }
 function toggleLinePanel(btn){ const d=btn.parentNode.querySelector('.lineDetail'); if(!d) return;
@@ -14391,9 +14392,9 @@ const TUTORIAL_STEPS=[
   {id:'win11', icon:'⚔️', title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', rewardLabel:'🪙 500 bonus Gold', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
   {id:'quest11', icon:'📜', title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', rewardLabel:'⭐ 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=1)},
   {id:'skill', icon:'✨', title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', rewardLabel:'🪙 800 bonus Gold', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
-  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'🪙 180 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'🪙 180 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 2 Rough Gravel glyph fragments for Vael', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
   {id:'quest12', icon:'📜', title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', rewardLabel:'⭐ 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=2)},
-  {id:'rune',  icon:'💠', title:'Build your first glyph', desc:'Open Heroes → choose a hero → Glyphs. Tap an empty slot and build the matching glyph. Glyph fragments come from named Campaign stages, which you can replay to farm.', rewardLabel:'💎 30 bonus Diamonds', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
+  {id:'rune',  icon:'💠', title:'Build Vael’s first glyph', desc:'Open Heroes → Vael → Glyphs. Tap his first empty slot and build Stone Glyph with the two Rough Gravel Fragments guaranteed on your first Stage 1-2 clear. Later glyphs use named Campaign stages that you can replay to farm.', rewardLabel:'💎 30 bonus Diamonds', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
   {id:'win13', icon:'🛡️', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'🪙 210 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 1 glyph fragment · 🧩 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
   {id:'quest13', icon:'📜', title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', rewardLabel:'⭐ 3 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
   {id:'wish',  icon:'⛲', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.', rewardLabel:'⛲ 1 free Gold-wish result', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
@@ -16413,7 +16414,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789484815870';
+const BUILD_ID = '1789486606573';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -16727,6 +16728,7 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
 
 </body>
 </html>
+
 
 
 
