@@ -1953,7 +1953,10 @@ const TUTORIAL_REWARDS=Object.freeze({
   win11:{gold:500}, quest11:{}, skill:{gold:800}, win12:{}, quest12:{}, rune:{gems:30},
   win13:{}, quest13:{}, wish:{}, win14:{}, quest14:{xpPotion:'minor'}, vexxp:{}, win15:{}, gemwish:{gems:140},
   signin:{stam:60}, name:{gems:20} });
-const TUTORIAL_ORDER=Object.freeze(['win11','quest11','skill','win12','quest12','rune','win13','quest13','wish','win14','quest14','vexxp','win15','gemwish']);
+const TUTORIAL_GROUPS=Object.freeze([
+  Object.freeze(['win11','quest11','skill']), Object.freeze(['win12','quest12','rune']),
+  Object.freeze(['win13','quest13','wish']), Object.freeze(['win14','quest14','vexxp']),
+  Object.freeze(['win15','gemwish'])]);
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -3332,8 +3335,8 @@ async function api(req,res,url){
     const led=ensureLedger(me); led.tut=led.tut||{};
     if(step==='vexxp'&&((led.xpPotionUsed||{}).vexMinor|0)<=(led.tutVexXpBase|0))return send(res,400,{error:'Use a Minor XP Potion on Vex after claiming the lesson potion.'});
     if(led.tut[step]) return send(res,200,{ok:true, already:true, ledger:ledgerView(me)});
-    const pos=TUTORIAL_ORDER.indexOf(step);
-    if(pos>=0 && TUTORIAL_ORDER.slice(0,pos).some(id=>!led.tut[id])) return send(res,409,{error:'Claim the previous Start Here reward first.'});
+    const group=TUTORIAL_GROUPS.find(ids=>ids.includes(step)), pos=group?group.indexOf(step):-1;
+    if(pos>0 && group.slice(0,pos).some(id=>!led.tut[id])) return send(res,409,{error:'Claim the previous reward in this Stage lesson first.'});
     led.tut[step]=Date.now();
     const out={gold:0,gems:0,stam:0,frag:null};
     if(rw.gold){ led.gold=Math.min(100000000,led.gold+rw.gold); out.gold=rw.gold; }
@@ -3408,6 +3411,25 @@ async function api(req,res,url){
     const led=ensureLedger(tgt);
     if(Array.isArray(b.unlock)) for(const k of b.unlock.map(String)){ if(SIM.HERO_BASE[k]){ led.unlocked[k]=true;
       if(!led.hero[k]) led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0}; } }
+    // Dev fragment grants must reach the same authoritative balance summon checks.
+    const grantedFrags={};
+    if(b.heroFrags&&typeof b.heroFrags==='object'&&!Array.isArray(b.heroFrags))
+      for(const [k,raw] of Object.entries(b.heroFrags)){ if(!SIM.HERO_BASE[k]) continue;
+        const qty=Math.max(0,Math.min(9999,Number(raw)|0)); if(!qty) continue;
+        const before=led.frags[k]|0; led.frags[k]=Math.min(9999,before+qty);
+        grantedFrags[k]=led.frags[k]-before; }
+    if(b.eqMats&&typeof b.eqMats==='object'&&!Array.isArray(b.eqMats)){
+      led.eqMats=led.eqMats||{};
+      for(const k of EQ_MAT_KEYS){ const qty=Math.max(0,Math.min(99999,Number(b.eqMats[k])|0));
+        if(qty) led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+qty); } }
+    if(b.guildCoins) led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+Math.max(0,b.guildCoins|0));
+    if(b.arenaCoins) tgt.coins=Math.min(ECON_CAP.arenaCoins,(tgt.coins|0)+Math.max(0,b.arenaCoins|0));
+    if(b.arenaRank===1){ const first=Object.values(DB.users).find(u=>u.id!==tgt.id&&u.rank===1);
+      if(first&&tgt.rank>1) applyResult(tgt,first,true); else tgt.rank=1;
+      tgt.bestRank=1; }
+    if(b.shieldItems){ tgt.roster=tgt.roster||{}; const save=parseSaveOf(tgt);
+      save.shieldItems=Math.min(9999,(save.shieldItems|0)+Math.max(0,b.shieldItems|0));
+      save.mtime=Date.now(); tgt.roster.__save=JSON.stringify(save); }
     if(b.stars&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue;
       const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0});
       h.stars=Math.max(SIM.HERO_BASE[k].stars,Math.min(5,b.stars|0)); }
@@ -3433,8 +3455,10 @@ async function api(req,res,url){
           board.slots=[null,null,null,null,null,null]; board.ascensionIndex++; }
         glyphAudit(gg,'ascend',{hero:k,to:board.ascensionIndex,fed:'dev-max'}); glyphsMaxed++; }
       glyphPruneConsumed(gg); gg.revision++; }
-    ledTx(tgt,'admin:grant',{});
-    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt), glyphsMaxed}); }
+    ledTx(tgt,'admin:grant',Object.keys(grantedFrags).length?{heroFrags:grantedFrags}:{});
+    writeDB(); return send(res,200,{ok:true, ledger:ledgerView(tgt), glyphsMaxed,
+      devState:{arenaCoins:tgt.coins|0,arenaRank:tgt.rank|0,bestArenaRank:tgt.bestRank!=null?(tgt.bestRank|0):5000,
+        shieldItems:parseSaveOf(tgt).shieldItems|0}}); }
 
   /* 28 Aug — skill upgrades are server-owned. They used to be a local write that the next ledger
      sync overwrote, so the gold was spent and the level came back. The server now holds led.skill,
