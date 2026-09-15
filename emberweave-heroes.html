@@ -5077,9 +5077,16 @@ function abilShot(u,o,e,color,onHit){
   try{ spawnShot(u,e,color); }catch(err){}
   if(onHit)onHit(); return false;
 }
-function densestEnemyCluster(u,R){ const foes=enemiesOf(u); if(!foes.length) return null; let best=null, bn=-1;
-  foes.forEach(e=>{ const g=foes.filter(f=>dist(e,f)<=R); if(g.length>bn){ bn=g.length; best=g; } });
-  if(!best) return null; const cx=best.reduce((a,f)=>a+f.x,0)/best.length, cy=best.reduce((a,f)=>a+f.y,0)/best.length; return {x:cx,y:cy,n:bn}; }
+function densestEnemyCluster(u,R){ const foes=enemiesOf(u); if(!foes.length) return null;
+  // A body position plus pairwise midpoints finds a circle covering the most bodies.
+  // Returning a centroid can put the spell on empty floor and miss the very pack it selected.
+  const centers=foes.map(e=>({x:e.x,y:e.y}));
+  for(let i=0;i<foes.length;i++)for(let j=i+1;j<foes.length;j++)
+    centers.push({x:(foes[i].x+foes[j].x)/2,y:(foes[i].y+foes[j].y)/2});
+  let best=null,bn=-1,bhp=-1,bd=Infinity;
+  for(const c of centers){let n=0,hp=0; for(const e of foes){if(dist(c,e)<=R){n++;hp+=e.hp||0;}}
+    const d=dist(u,c); if(n>bn||(n===bn&&(hp>bhp||(hp===bhp&&d<bd)))){best=c;bn=n;bhp=hp;bd=d;}}
+  return best?{x:best.x,y:best.y,n:bn}:null; }
 /* v579 (Phil, 12 Sep 2026: "boar shamans cast ability seems to not land on enemy or allies, its
    meant to heal or damage but it lands in a random place").
    It landed in a random place because it WAS a random place: this returned the CENTROID of the
@@ -5968,7 +5975,14 @@ function kitReady(u,ab){ const ty=ab.type;
   return dist(u,ne) <= Math.max(u.range||60, u.reach||0, crossRowCast) + bodyR(u) + bodyR(ne);   // v534: a long melee casts from its reach
 }
 const _KIT_ANYWHERE={defensive:1,lifestealbuff:1,warcry:1,selfheal:1,harmonyshield:1,heal:1,summonwarriors:1,summonshaman:1,summonmirage:1,dawnward:1,mendburst:1,duality:1,worldtree:1,own:1,mine:1,region:1};
+const AUTO_GROUND_AOE={aoeStun:1,fireball:1,gravcrush:1,eventhorizon:1,blizzard:1,umbralcata:1,swamproot:1,ashfall:1,shadeburst:1,hornetswarm:1};
 function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; const ct=castTimeFor(u,slot); u._castNow=ct;
+  // Green/Blue are automatic: ground-targeted offensive areas choose the densest pack.
+  // Self-centred and allied circles deliberately retain their authored anchors.
+  if(AUTO_GROUND_AOE[ab.type]&&!_SELF_CENTRED[ab.type]){
+    const R=ab.radius||(ab.type==='blizzard'?8*METER:3*METER), c=densestEnemyCluster(u,R);
+    if(c){u._aimWX=c.x;u._aimWY=c.y;}
+  }
   try{ waxOnCaster(u); }catch(e){}
   /* v527 - the passives that are paid out BY CASTING, not by swinging. */
   if(u.pass){ const pm=(u.passMul||1);
@@ -5995,7 +6009,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); } }
   u._castSlot=slot; doEffect(u,ab.type,ab);
   if(u._gearRepeatSpell){ const rep=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rep; doEffect(u,ab.type,ab); u._castSM=prev; }
-  u._castSlot=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
+  u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
   // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
   // and re-tagging it 4 here would relabel the PASSIVE as a skill. Leave the tag where it is.
@@ -6926,11 +6940,21 @@ function think(u,dt){
   const _ultRoot=((u._ultRootT||0)>0);
   const silenced=(u.silencedT||0)>0;   // silenced (Grosk): can't use ANY ability — only auto-attack
   // ultimate (energy): enemies + AUTO auto-fire; player fires (and aims) via portrait
-  if(!silenced && !u.t.monster && (u._castT||0)<=0 && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
-    if(auto && !ultBlockedReason(u)){   // v538: Feed Them with no pack, Vanishing Point / Final Expedition with nobody in range - hold the ult (never `return`: the kit block below must still run)
-      if(u.t.healer){const low=lowestAlly(u);if(low&&low.hp/low.maxHp<.78){castAbility(u);return;}}
-      else if(u.t.ability==='rally'){if(units.some(o=>o.alive&&o.team===u.team&&o.energy<60)){castAbility(u);return;}}
-      else if(u.target){castAbility(u);}}}   // the ult is the ONE action allowed to cut a clip short (castAbility clears the lock)
+  if(!silenced && !u.t.monster && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
+    if(auto && !ultBlockedReason(u) && (!u.t.healer||alliesOf(u).some(a=>a.hp<a.maxHp))){
+      // Every healer ult waits for the FIRST point of ally damage, then fires this tick.
+      // AUTO is immediate timing, not a healer/rally strategy planner. A ready ult may
+      // cut short a Green/Blue cast, as the ult priority already promises.
+      const ab=u.abilityOverride||u.t.ability, mode=ultAimMode(ab), aim=optimalAimField(u);
+      if(aim&&aim.tgt)u.target=aim.tgt;
+      else if(!u.target||!u.target.alive)u.target=nearestEnemy(u);
+      if(aim&&((mode==='radius'&&!_SELF_CENTRED[ab])||mode==='cone'||mode==='line')){
+        u._aimWX=aim.x;u._aimWY=aim.y;
+      }
+      if(u.target||u.t.healer||mode==='self'||mode==='allyradius'||mode==='ally'||mode==='summon'){
+        castAbility(u);return;
+      }
+    }}   // an impossible target keeps its energy; the valid ult fires this tick
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
   if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
   if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
@@ -15855,11 +15879,11 @@ function optimalAimField(u){
   const cands=foes.map(o=>({x:o.x,y:o.y}));
   for(let i=0;i<foes.length;i++)for(let j=i+1;j<foes.length;j++)
     cands.push({x:(foes[i].x+foes[j].x)/2,y:(foes[i].y+foes[j].y)/2});
-  let best=null,bs=-1;
+  let best=null,bn=-1,bhp=-1,bd=Infinity;
   for(const c of cands){ let n=0,hp=0;
-    for(const o of foes){ if(Math.hypot(o.x-c.x,o.y-c.y)<=R){ n++; hp+=o.hp; } }
-    const sc=n*1000+hp-Math.hypot(c.x-u.x,c.y-u.y)*0.01;
-    if(sc>bs){bs=sc;best=c;} }
+    for(const o of foes){ if(Math.hypot(o.x-c.x,o.y-c.y)<=R){ n++; hp+=o.hp||0; } }
+    const d=Math.hypot(c.x-u.x,c.y-u.y);
+    if(n>bn||(n===bn&&(hp>bhp||(hp===bhp&&d<bd)))){bn=n;bhp=hp;bd=d;best=c;} }
   if(!best) return null;
   let tgt=null,td=1e9;
   for(const o of foes){ const d=Math.hypot(o.x-best.x,o.y-best.y); if(d<td){td=d;tgt=o;} }
@@ -16414,7 +16438,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789486606573';
+const BUILD_ID = '1789492125262';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
