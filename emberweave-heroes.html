@@ -3517,6 +3517,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
 const DEFAULT_G = {
   gold:200, gems:0, playerXP:0, campaignCleared:0, dungeonBest:0, trophies:0, lastBless:0,
   heroXP:Object.fromEntries(HERO_KEYS.map(k=>[k,0])),          // heroes gain XP per battle
+  xpPotions:{minor:0,greater:0,major:0,superior:0}, xpPotionUsed:{},tutVexXpBase:0,
   // STARTING ROSTER: a new account owns Vael, Sylthaine and Vireo. Vex is the 4th, earned from
   // the 'Blade in the Dark' quest. Everything else is summoned with fragments or won at the pools.
   // (BETA_ALL_HEROES above is the single switch that still grants the whole roster during beta.)
@@ -7609,6 +7610,7 @@ function endBattle(won){
       document.getElementById('resultReward').innerHTML= sWon
         ? rewardPanel((r.reward&&r.reward.glyphFragments)||[], {gold:(r.reward&&r.reward.gold)||0, px:(r.reward&&r.reward.playerXp)||0, heroXp:(r.reward&&r.reward.heroXp)||0},
             'Portal '+stageCode(CUR.node)+' — repeat or sweep this stage to farm it.')
+          +(Object.entries((r.reward&&r.reward.xpPotions)||{}).filter(([,n])=>n>0).map(([tier,n])=>`<div style="margin-top:6px;color:#c9a0ff">📖 +${n} ${escapeHTML(tier[0].toUpperCase()+tier.slice(1))} Hero XP Potion${n===1?'':'s'}</div>`).join(''))
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">🧩 +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
           +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
@@ -9495,6 +9497,8 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
      it correctly, the level just never showed it. That is why Phil read as level 1 with his real
      roster intact. It was never the dev cheat and never an anti-cheat. */
   G.gold=st.gold|0; G.gems=st.gems|0; G.playerXP=st.px|0; G.xp=G.playerXP;
+  if(st.xpPotions) G.xpPotions={minor:st.xpPotions.minor|0,greater:st.xpPotions.greater|0,major:st.xpPotions.major|0,superior:st.xpPotions.superior|0};
+  if(st.xpPotionUsed) G.xpPotionUsed=Object.assign({},st.xpPotionUsed); G.tutVexXpBase=st.tutVexXpBase|0;
   // 28 Aug: the server credits guild coins on the ledger (guild raids) but adoptLedger never read
   // them back, so the reward was invisible and the local number was stripped from the save anyway.
   if(st.guildCoins!=null) G.guildCoins=st.guildCoins|0;
@@ -10192,11 +10196,17 @@ function renderRoadmap(){
       scr.scrollTop=Math.max(0, scr.scrollTop+(r.top+r.height/2)-(sr.top+sr.height/2)); };
     requestAnimationFrame(_center); const _im=map.querySelector('img'); if(_im&&!_im.complete) _im.addEventListener('load',()=>requestAnimationFrame(_center),{once:true}); setTimeout(_center,400); }
 }
-const STAGE_XP_FIRST=24, STAGE_XP_SWEEP=6;
-// player (account) XP from campaign — first-clears scale up with the global stage so deeper chapters reward more.
-function campaignPlayerXP(g,firstClear){ const elite=isEliteStage(g), boss=isBossStage(g);
-  if(firstClear){ let x=20+g*4; if(elite)x*=2; if(boss)x*=3; return Math.round(x); }
-  return elite?12:6; }
+const STAGE_XP_FIRST=30, STAGE_XP_SWEEP=6;
+// Commander and each participating hero earn the same XP: five runs on first clear, one on repeat.
+function campaignPlayerXP(g,firstClear,mode){
+  if((mode||PORTAL)==='veteran') return 0;
+  return stageStamCost(g,mode)*(firstClear?5:1); }
+function xpPotionStageText(node,mode){
+  const ch=mode==='veteran'?10:Math.ceil(node/10);
+  if(ch<=2)return 'Minor'; if(ch<=4)return 'Greater';
+  if(ch===5)return 'Greater 90% · Major 10%';
+  if(ch<=7)return 'Major'; return 'Major 90% · Superior 10%';
+}
 window.STAGE_CACHE=window.STAGE_CACHE||{};
 window.SM_KEY=window.SM_KEY||null;   // v328: identity of the stage currently shown in #stageModal (mode:node), null when closed
 window.STAGE_POWER=window.STAGE_POWER||{};   // v257: the server's own reading of YOUR power, per stage fetch
@@ -10338,12 +10348,13 @@ function openStageModal(i,mode){
       <div style="font-weight:800;font-size:18px;margin-bottom:2px">${boss?'Boss Stage '+stageCode(i):(elite?'Guardian Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:12px">${PORTAL_META[mode].icon} ${PORTAL_META[mode].label} Portal</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false)+' XP)':'('+campaignPlayerXP(i,true)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
-        ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep (instant · '+campaignPlayerXP(i,false)+' XP)':'🔒 Sweep — needs ★★★ ('+_stars+'/3)'}</button>`:''}
-        ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10 (⧗ '+(stageStamCost(i,mode)*10)+' · '+(campaignPlayerXP(i,false)*10)+' XP)':'🔒 Sweep ×10 — needs ★★★'}</button>`:''}
+        <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false,mode)+' XP)':'('+campaignPlayerXP(i,true,mode)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
+        ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep (instant · '+campaignPlayerXP(i,false,mode)+' XP)':'🔒 Sweep — needs ★★★ ('+_stars+'/3)'}</button>`:''}
+        ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10 (⧗ '+(stageStamCost(i,mode)*10)+' · '+(campaignPlayerXP(i,false,mode)*10)+' XP)':'🔒 Sweep ×10 — needs ★★★'}</button>`:''}
         <button class="btn sm secondary" id="smClose">Cancel</button>
       </div>
       <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg,i,mode)}</div>
+      <div style="font-size:11px;color:#c9a0ff;margin-top:6px">📖 One Hero XP Potion per rewarded run: ${xpPotionStageText(i,mode)}</div>
       ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
       <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px"></div>
     </div>`;
@@ -10418,13 +10429,14 @@ function sweepStage(i,times,mode){
     const eliteLine=(r.eliteFrag&&r.eliteFrag.qty)
       ? line('<span style="font-size:13px;line-height:1">'+((HERO_TYPES[r.eliteFrag.heroKey]||{}).emoji||'🧩')+'</span>',
              escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)+' Fragment', '×'+r.eliteFrag.qty, '#c9a0ff') : '';
+    const potionLine=Object.entries(r.xpPotions||{}).filter(([,n])=>n>0).map(([tier,n])=>line('📖',escapeHTML(tier[0].toUpperCase()+tier.slice(1))+' XP Potion','×'+n,'#c9a0ff')).join('');
     const spoils=[ r.gold?`<span style="color:#ffd45e">+${r.gold.toLocaleString()}g</span>`:'',
       r.px?`<span style="color:#5ee89b">+${r.px.toLocaleString()} XP</span>`:'' ].filter(Boolean)
       .map(x=>`<span style="font-size:10.5px">${x}</span>`).join('');
     const tgt=document.getElementById('smFragTarget');
     if(tgt) tgt.innerHTML=`<div style="border-top:1px solid #2b7a55;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
       <span style="font-size:9px;letter-spacing:1px;color:#5ee89b;font-weight:800">✅ SWEPT ×${r.times} — EARNED</span>
-      ${items||'<span style="font-size:10.5px;color:#6f7d90">no fragments</span>'}${eliteLine}${spoils}
+      ${items||'<span style="font-size:10.5px;color:#6f7d90">no fragments</span>'}${eliteLine}${potionLine}${spoils}
       ${um?`<span style="color:#ffd45e;font-size:10.5px">${um}</span>`:''}</div>`;
     document.getElementById('smMsg').textContent='';
     if(typeof glyphV2Sync==='function') glyphV2Sync();
@@ -13823,7 +13835,8 @@ function renderHeroDetail(){
       ['⚡ Attack Speed',S_APS+' /s'],['🔋 Energy Regen',enrStr],
       ['🎯 Type',t.range>=60?'Ranged':'Melee'],['🧭 Combat row',t.combatRow],['⚔ Class',t.role],['✦ Damage',t.damageProfile],['↗ Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
-      <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>`;
+      <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>
+      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">📖 Level ${escapeHTML(t.name)} with XP Potions</div><div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Fixed hero XP; your Commander level caps heroes.</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
   } else if(heroTab==='skills'){
     const skills=[
       {idx:0,name:t.abilityName,tier:'Grey',col:RANK_COLOR[0]},
@@ -13899,6 +13912,7 @@ function renderHeroDetail(){
   body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=+r.dataset.skill;
     r.addEventListener('dblclick',(e)=>{ if(e.target.closest('[data-skillup]'))return; e.preventDefault(); showSkillDesc(key,idx,r); });
     let _lt=0; r.addEventListener('pointerup',(e)=>{ if(e.target.closest('[data-skillup]'))return; const now=Date.now(); if(now-_lt<340){ e.preventDefault(); showSkillDesc(key,idx,r); _lt=0; } else { _lt=now; } }); });
+  body.querySelectorAll('[data-xp-potion]').forEach(btn=>btn.onclick=()=>useHeroXpPotion(key,btn.dataset.xpPotion));
   if(owned){ const hdS=body.querySelector('#hdStars'), hdSL=body.querySelector('#hdStarsLink');
     if(hdS) hdS.onclick=()=>openStarsPanel(key);
     if(hdSL) hdSL.onclick=()=>openStarsPanel(key); }
@@ -13913,18 +13927,27 @@ function renderHeroDetail(){
   if(port&&scr){ const cy=port.getBoundingClientRect().top - scr.getBoundingClientRect().top + port.offsetHeight/2;
     if(pv) pv.style.top=cy+'px'; if(nx) nx.style.top=cy+'px'; }
 }
+async function useHeroXpPotion(key,tier){
+  if(!ACC.token)return;
+  const r=await api('/api/hero/xp-potion','POST',{heroKey:key,tier,requestId:uid8()});
+  if(!(r&&r.ok)){bannerMsg((r&&r.error)||'Potion could not be used.');await ledgerSync();return;}
+  adoptLedger(r.ledger);renderHeroDetail();updateHubChrome();
+  bannerMsg('📖 '+((HERO_TYPES[key]||{}).name||key)+' gained '+r.heroXp+' XP'+(r.levelAfter>r.levelBefore?' and reached level '+r.levelAfter:'')+'!');
+  if(typeof tutReturnAfterAction==='function')tutReturnAfterAction();
+}
 function heroCycle(dir){
   const list=HERO_KEYS.filter(k=>G.unlocked[k]); if(list.length<2)return;
   let i=list.indexOf(detailHero); if(i<0)i=0;
   detailHero=list[(i+dir+list.length)%list.length];
   renderHeroDetail();
 }
+const XP_POTION_LABELS=[['minor','Minor',60],['greater','Greater',300],['major','Major',1000],['superior','Superior',2500]];
 function renderBag(){
   const b=document.getElementById('bagBody');
   // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
   const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">📖 Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}<div style="color:#8b98a9;margin-top:6px">Choose an owned hero, then use a potion on their Stats card.</div></div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Glyphs are built directly into a hero's board and locked forever — <b>Heroes → hero → Glyphs tab</b>. Named fragments drop from campaign stages, The Vault, the Daily and Arena wins.</div>
     ${st?`<div class="panel" style="margin-bottom:10px">
       ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
@@ -14367,15 +14390,16 @@ const TUTORIAL_STEPS=[
   {id:'win11', icon:'⚔️', title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', rewardLabel:'🪙 500 bonus Gold', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
   {id:'quest11', icon:'📜', title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', rewardLabel:'⭐ 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=1)},
   {id:'skill', icon:'✨', title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', rewardLabel:'🪙 800 bonus Gold', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
-  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'🪙 180 · 📖 80 Hero XP · 🎖 8 Commander XP · 💠 1 glyph fragment', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'win12', icon:'🗺️', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'🪙 180 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
   {id:'quest12', icon:'📜', title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', rewardLabel:'⭐ 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=2)},
   {id:'rune',  icon:'💠', title:'Build your first glyph', desc:'Open Heroes → choose a hero → Glyphs. Tap an empty slot and build the matching glyph. Glyph fragments come from named Campaign stages, which you can replay to farm.', rewardLabel:'💎 30 bonus Diamonds', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
-  {id:'win13', icon:'🛡️', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'🪙 210 · 📖 80 Hero XP · 🎖 8 Commander XP · 💠 1 glyph fragment · 🧩 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
+  {id:'win13', icon:'🛡️', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'🪙 210 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 1 glyph fragment · 🧩 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
   {id:'quest13', icon:'📜', title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', rewardLabel:'⭐ 3 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
   {id:'wish',  icon:'⛲', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.', rewardLabel:'⛲ 1 free Gold-wish result', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
-  {id:'win14', icon:'🗺️', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'🪙 240 · 📖 410 Hero XP · 🎖 41 Commander XP · 💠 1 glyph fragment', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
-  {id:'quest14', icon:'🦸', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', rewardLabel:'⭐ 3 Vex fragments · 🦸 Vex summon', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
-  {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'🪙 270 · 📖 800 Hero XP · 🎖 80 Commander XP · 💠 1 glyph fragment · 🔮 free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
+  {id:'win14', icon:'🗺️', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'🪙 240 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
+  {id:'quest14', icon:'🦸', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', rewardLabel:'🦸 Vex summoned · 📖 claim 1 Minor XP Potion', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{xpPotion:'minor'}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
+  {id:'vexxp', icon:'📖', title:'Level Vex with a Minor XP Potion', desc:'Open Heroes → Vex → Stats. Tap Minor XP Potion once. It gives Vex 60 hero XP and cannot level her beyond Commander level. Claim this lesson after using the potion.', rewardLabel:'✅ Vex leveled with a claimed Minor potion', go:()=>{menuReturn='home';detailHero='vex';heroTab='stats';show('heroesPanel');setTimeout(renderHeroDetail,0);}, reward:{}, done:()=>((G.xpPotionUsed||{}).vexMinor|0)>(G.tutVexXpBase|0)},
+  {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'🪙 270 · ⭐ 30 Hero XP each · 🎖 30 Commander XP · 📖 1 Minor XP Potion · 💠 2 glyph fragments · 🔮 free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
   {id:'gemwish', icon:'💎', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2★ hero and gives you your fifth hero.', rewardLabel:'🦸 guaranteed 2★ hero · 💎 140 bonus Diamonds', go:()=>show('wishing'), reward:{gems:140}, done:()=>!!G.wishGemFirstDone},
 ];
 /* v267 (80/20 §9): Getting Started rewards are granted BY THE SERVER, once per step, from its own
@@ -14391,13 +14415,13 @@ function grantTutReward(r, stepId){
       const g=res.reward||{}; if(g.frag&&g.frag.qty) giveHeroFrag(g.frag.heroKey,g.frag.qty);
       saveG(); updateHubChrome();
       const q=(res.already||!res.reward)?r:res.reward; const p=[];
-      if(q.gold)p.push('🪙 '+q.gold); if(q.gems)p.push('💎 '+q.gems); if(q.stam)p.push('⧗ '+q.stam);
+      if(q.gold)p.push('🪙 '+q.gold); if(q.gems)p.push('💎 '+q.gems); if(q.stam)p.push('⧗ '+q.stam); if(q.xpPotion)p.push('📖 '+q.xpPotion.qty+' '+q.xpPotion.tier+' XP Potion');
       const fq=(q.frag&&q.frag.qty)||(typeof q.frag==='number'?q.frag:0); if(fq)p.push('⭐ '+fq+' hero frags');
       return p.join(' · ');
     });
   }
   let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push('🪙 '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push('💎 '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
-  if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } return s.join(' · '); }
+  if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push('⭐ '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } if(r.xpPotion){G.xpPotions=G.xpPotions||{};G.xpPotions[r.xpPotion]=(G.xpPotions[r.xpPotion]|0)+1;s.push('📖 1 '+r.xpPotion+' XP Potion');} return s.join(' · '); }
 function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.every(s=>!!G.tutRewarded[s.id]); }
 function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
 function tutReady(){ if(G.tutDone) return false; const s=tutCurrent(); return !!(s&&s.done()); }
@@ -16383,7 +16407,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789439875024';
+const BUILD_ID = '1789482333265';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -46,7 +46,7 @@ const BOARD_BY_TIER=(()=>{
 function tierForLevel(lv){ let t=0; for(let i=0;i<MIN_LEVEL.length;i++) if(lv>=MIN_LEVEL[i]) t=i; return t; }
 
 /* ---- the reference line the blueprint expects at a given stage ---- */
-const ROSTER=['vael','sylthaine','vireo','fritz','tick'];
+const ROSTER=['vael','sylthaine','vireo','vex','tick'];
 function teamSizeFor(s){ return s<=3?3:(s<=6?4:5); }
 function starsFor(s){ return Math.max(1,Math.min(5,1+Math.floor((s-1)/25))); }
 /* A brand-new player owns NO glyphs. The blueprint says 1-1 and 1-2 must be clearable without any,
@@ -98,7 +98,7 @@ function fight(specs, waves, seed){
 /* Search the difficulty scalar that delivers the target experience. Higher d = harder = less HP left. */
 function tuneStage(stage, s, opts){
   opts=opts||{};
-  const specs=referenceSpecs(s, opts.tierShift||0);
+  const specs=referenceSpecs(s, opts.tierShift||0, opts.levelShift||0);
   const target=(opts.target!=null)?opts.target:targetHpFrac(s);
   const seeds=[1111,2222,3333];
   const measure=(d)=>{ const w=scaleWaves(stage.waves,d);
