@@ -3771,8 +3771,12 @@ async function api(req,res,url){
         if(first) prog.cleared=a.node;
         if(stars>(prog.stars[a.node]|0)) prog.stars[a.node]=stars;
         ledTx(me,mode+':clear:'+st.id+(first?':first':''),{gold:reward.gold,px:reward.playerXp,heroXp:reward.heroXp,xpPotions:reward.xpPotions});
-        // Ordinary Normal stages pay two distinct server-seeded fragments from their visible pool of four.
-        reward.glyphFragments=rewarded?glyphGrantNamedList(me,campaignGlyphDrops(st,1,srvSeed('campglyph-clear',me.id,mode,a.node,reqId))):[];
+        // The first 1-2 clear teaches Vael's first direct build: two Rough Gravel fragments
+        // (`Grey Stoneheart` ledger key) fulfill the Stone Glyph recipe. Repeats keep 2-from-4.
+        const glyphDropList=(mode==='normal' && a.node===2 && first)
+          ?[{key:'Grey Stoneheart',quantity:2}]
+          :campaignGlyphDrops(st,1,srvSeed('campglyph-clear',me.id,mode,a.node,reqId));
+        reward.glyphFragments=rewarded?glyphGrantNamedList(me,glyphDropList):[];
         /* GUARDIAN STAGES PAY THEIR FRAGMENT ON THIS ROUTE TOO. The DROPS panel promises x2-4 hero
            fragments on a normal-portal elite stage, and the sweep route + /api/elite/resolve both
            grant them — but manual play resolved HERE granted none, so a signed-in player got nothing,
