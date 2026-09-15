@@ -4576,7 +4576,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
-    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1))*((owned&&t.healer)?(1+(mul.healPow||0)):1))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
     gearSkill:(S&&S.gearSkill)?Object.assign({used:false},JSON.parse(JSON.stringify(S.gearSkill))):null,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
@@ -5929,7 +5929,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1;
       spawnBeeHive(u,plan,{dmg:apB*(o.dmgMul||0.14)*rm, heal:apB*(o.healMul||0.5), healPct:(o.healPct||0.02), hold:(o.hold||0.7), shield:pp});
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'symphony':{ const pp=!!(u.pass&&u.pass.perfectpitch);   /* v567 (Phil): 'it shouldnt have a range, vireo ult hits all enemy and all allies regardless of range. the downside is its only 30% of ability power heal or damage'. No distance test at all, and the heal is now a flat share of ability power - the old a.maxHp*0.35 + apB*2 term is gone. */
-      alliesOf(u).forEach(a=>{ const h=apB*(o.healMul||0.30); healUnit(a,h); if(pp){ a.shield=Math.max(a.shield,h*0.4); a.shieldT=6; } });
+      alliesOf(u).forEach(a=>{ const h=apB*(o.healMul||0.30)*(u.healPowMul||1); healUnit(a,h); if(pp){ a.shield=Math.max(a.shield,h*0.4); a.shieldT=6; } });
       enemiesOf(u).forEach(e=>{ dealDamage(u,e,apB*(o.dmgMul||0.30)*rm,'#d0a6ff','magic'); });
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     // ---- Fritz (lightning assassin) — lightning scales off ability power ----
@@ -16508,7 +16508,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789501249269';
+const BUILD_ID = '1789510975923';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
