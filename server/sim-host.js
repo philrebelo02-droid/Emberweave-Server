@@ -107,7 +107,17 @@ function load(htmlPath){
   const knownIds=new Set([...html.matchAll(/\sid=["']([^"']+)["']/g)].map(m=>m[1]));
   const sandbox=buildSandbox(knownIds);
   const ctx=vm.createContext(sandbox);
-  try{ new vm.Script(code,{filename:'emberweave-game.js'}).runInContext(ctx,{timeout:60000}); }
+  try{
+    /* The canonical hero profile and path tables are ordinary external scripts in the shipped
+       page. Load those exact local files into the same lexical VM context before the inline game
+       script, matching browser execution order and preventing the replay host from drifting. */
+    const baseDir=require('path').dirname(htmlPath);
+    for(const src of [...html.matchAll(/<script\s+src=["']\/([^"']+)["'][^>]*><\/script>/g)].map(m=>m[1])){
+      const dep=require('path').join(baseDir,src);
+      if(fs.existsSync(dep)) new vm.Script(fs.readFileSync(dep,'utf8'),{filename:src}).runInContext(ctx,{timeout:60000});
+    }
+    new vm.Script(code,{filename:'emberweave-game.js'}).runInContext(ctx,{timeout:60000});
+  }
   catch(e){ const err=new Error('sim-host: the game script threw while loading — '+e.message); err.cause=e; throw err; }
   const need=['simFightResult','simFightReplay','seedBattle','snapAllySquad','snapSquadFromSpecs','simCampaignReplay'];
   for(const n of need) if(typeof sandbox[n]!=='function') throw new Error('sim-host: '+n+' is not defined after load');

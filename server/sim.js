@@ -20,7 +20,7 @@ const HERO_BASE={
   // server silently skipped them everywhere it does `if(!SIM.HERO_BASE[k]) continue`, so they
   // could never be unlocked, summoned or granted - the dev panel's Unlock-all did nothing. ---
   cacklefang:{hp:245,dmg:36,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.0},
-  calypsa:{hp:240,dmg:36,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.1},
+  calypsa:{hp:240,dmg:36,apow:24,hybrid:true,role:'Marksman',stars:2,healer:false,atkSpeed:1.1},
   cardwraith:{hp:230,dmg:40,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:0.95},
   chainwheel:{hp:560,dmg:26,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:1.0},
   deepcleft:{hp:400,dmg:36,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.95},
@@ -37,7 +37,7 @@ const HERO_BASE={
   threadseer:{hp:220,dmg:14,apow:31,role:'Support',stars:2,healer:true,atkSpeed:1.15},
   vaelora:{hp:230,dmg:16,apow:32,role:'Mage',stars:3,healer:true,atkSpeed:1.0},
   velvetplum:{hp:250,dmg:16,apow:32,role:'Support',stars:3,healer:true,atkSpeed:1.25},
-  veyr:{hp:310,dmg:44,apow:0,role:'Assassin',stars:3,healer:false,atkSpeed:1.2},
+  veyr:{hp:310,dmg:44,apow:34,role:'Assassin',stars:3,healer:false,atkSpeed:1.2},
   zahri:{hp:320,dmg:44,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.05},
 
   konwu:{hp:380,dmg:34,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.15},
@@ -45,7 +45,7 @@ const HERO_BASE={
   vulmar:{hp:175,dmg:26,apow:30,role:'Mage',stars:3,healer:false,atkSpeed:0.85},   // v484: Vulmar gets Ability Power (casters scale off AP now)
   tick:{hp:360,dmg:28,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:1.1},
   sylthaine:{hp:150,dmg:14,apow:32,role:'Mage',stars:1,healer:false,atkSpeed:0.85},
-  aureth:{hp:460,dmg:24,apow:24,role:'Fighter',stars:3,healer:false,atkSpeed:0.9},
+  aureth:{hp:460,dmg:24,apow:24,role:'Bruiser',stars:3,healer:false,atkSpeed:0.9},
   bloatus:{hp:540,dmg:24,apow:28,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
   vireo:{hp:220,dmg:16,apow:30,role:'Support',stars:1,healer:true,atkSpeed:0.9},
   fritz:{hp:320,dmg:22,apow:30,role:'Mage',stars:2,healer:false,atkSpeed:1,armor:60,mr:90},
@@ -53,11 +53,11 @@ const HERO_BASE={
   vael:{hp:400,dmg:30,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:0.95},
   oakmir:{hp:230,dmg:16,apow:32,role:'Support',stars:3,healer:true,atkSpeed:0.85},
   rhukk:{hp:430,dmg:26,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:0.9},
-  hurne:{hp:520,dmg:32,apow:0,role:'Fighter',stars:3,healer:false,atkSpeed:0.9},
+  hurne:{hp:520,dmg:32,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:0.9},
   meridian:{hp:200,dmg:34,apow:0,role:'Marksman',stars:3,healer:false,atkSpeed:1},
   tallow:{hp:560,dmg:26,apow:0,role:'Tank',stars:2,healer:false,atkSpeed:0.85},
   astra:{hp:180,dmg:16,apow:34,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
-  magistrant:{hp:450,dmg:28,apow:0,role:'Fighter',stars:2,healer:false,atkSpeed:1},
+  magistrant:{hp:450,dmg:28,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:1},
   vharn:{hp:430,dmg:32,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:0.95},
   fathom:{hp:300,dmg:16,apow:30,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
   lumi:{hp:210,dmg:14,apow:30,role:'Support',stars:2,healer:true,atkSpeed:0.9},
@@ -71,7 +71,7 @@ const HERO_BASE={
   meryln:{hp:200,dmg:12,apow:30,role:'Support',stars:1,healer:true,atkSpeed:0.9},
   /* v332 — new heroes */
   pyroclast:{hp:185,dmg:16,apow:34,role:'Mage',stars:2,healer:false,atkSpeed:0.85},
-  stormwarden:{hp:440,dmg:30,apow:0,role:'Fighter',stars:2,healer:false,atkSpeed:1.0},
+  stormwarden:{hp:440,dmg:30,apow:0,role:'Bruiser',stars:2,healer:false,atkSpeed:1.0},
   verdantshade:{hp:210,dmg:32,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.0},
   voidweaver:{hp:175,dmg:18,apow:36,role:'Mage',stars:3,healer:false,atkSpeed:0.85},
   dawnbringer:{hp:580,dmg:24,apow:20,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
@@ -82,13 +82,20 @@ const HERO_BASE={
   corsair:{hp:220,dmg:33,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.05},
   waxenduchess:{hp:190,dmg:17,apow:35,role:'Mage',stars:3,healer:false,atkSpeed:0.85}
 };
+const HERO_PROFILES=require('../hero-profiles.js');
+for(const key of Object.keys(HERO_BASE)){
+  const p=HERO_PROFILES[key];
+  if(!p) throw new Error('Missing canonical hero profile: '+key);
+  Object.assign(HERO_BASE[key],p,{role:p.class,row:p.combatRow});
+}
+if(Object.keys(HERO_PROFILES).length!==Object.keys(HERO_BASE).length) throw new Error('Canonical hero profile count mismatch');
 /* v364: base Armor / Magic Resist by role — the SAME table and defaulting as the client's ROLE_BASE_DEF
    (emberweave-heroes.html, right after HERO_TYPES). Authored values (Fritz 60/90) are kept. */
-const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Fighter:{armor:45,mr:30}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
+const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
   Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:40}, Support:{armor:22,mr:38} };
 for(const k in HERO_BASE){ const t=HERO_BASE[k], d=ROLE_BASE_DEF[t.role]||ROLE_BASE_DEF.Bruiser; if(t.armor==null) t.armor=d.armor; if(t.mr==null) t.mr=d.mr; }
 const STAR_MULT=[1,1.15,1.35,1.6,1.9], STAR_PIPS=5, MAX_STARS=5;
-const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Fighter:2,Assassin:3,Marksman:4,Mage:5,Support:6,Control:6};
+const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Assassin:2,Marksman:3,Mage:4,Support:5,Control:5};
 
 // ---- deterministic PRNG (same mulberry32 the client uses) ----
 const CORE=require('./combat-core.js');   // v242: ONE typed deterministic combat model for every battle authority
@@ -118,7 +125,6 @@ function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0
    more of their specific stat"). Star multiplier still multiplies the level-adjusted base. */
 const ROLE_GROWTH={
   Tank    :{hp:34,dmg:0.9,apow:0.3,armor:12,mr:8},
-  Fighter :{hp:24,dmg:1.4,apow:0.6,armor:9, mr:6},
   Bruiser :{hp:22,dmg:1.6,apow:0.4,armor:8, mr:6},
   Assassin:{hp:15,dmg:2.2,apow:0.3,armor:5, mr:4},
   Marksman:{hp:13,dmg:2.0,apow:0.4,armor:4, mr:4},
@@ -201,4 +207,5 @@ function resolveTwoWaveBattle(teamSnaps, enemyWaveSnaps, seed){
   return { result:{won:true}, waveResults };
 }
 
-module.exports={ HERO_BASE, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
+module.exports={ HERO_BASE, HERO_PROFILES, mulberry32, seedFrom, heroCombatStats, makeLine, resolveLineBattle, resolveTwoWaveBattle, lineState, qualificationEstimate: resolveTwoWaveBattle, CORE };   // qualificationEstimate = the honest name: a line-model ESTIMATE for gating/qualification, not a battle replay
+

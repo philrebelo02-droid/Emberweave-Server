@@ -168,7 +168,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
   };
 }
 
-const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Fighter:2,Assassin:3,Mage:4,Marksman:4,Support:5};
+const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Assassin:2,Mage:3,Marksman:3,Support:4};
 function lineUp(units, carry){
   const out=units.filter(Boolean).slice(0,5).map((u,i)=>{ const c=Object.assign({},u);
     c.hp=carry&&carry[i]?Math.max(0,Math.min(u.maxHp,carry[i].hp|0)):u.maxHp;
