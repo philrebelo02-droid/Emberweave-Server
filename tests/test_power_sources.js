@@ -18,7 +18,9 @@ const prayer0=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:0,extra:{
 const prayer10=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:0,extra:{prayerMul:1.2}});
 ck('Prayer raises authoritative base HP by 20% at level 10',prayer10.maxHp===Math.round(prayer0.maxHp*1.2),
   'got '+prayer10.maxHp+' from '+prayer0.maxHp);
-ck('Prayer raises authoritative base Attack by 20% at level 10',prayer10.atkP===Math.round(prayer0.atkP*1.2),
+/* Each snapshot rounds once from the unrounded base, so multiplying the already rounded baseline
+   may differ by one point. That point is display rounding, not lost Prayer power. */
+ck('Prayer raises authoritative base Attack by 20% at level 10',Math.abs(prayer10.atkP-Math.round(prayer0.atkP*1.2))<=1,
   'got '+prayer10.atkP+' from '+prayer0.atkP);
 ck('Prayer does not multiply defenses',prayer10.armor===prayer0.armor && prayer10.mr===prayer0.mr);
 

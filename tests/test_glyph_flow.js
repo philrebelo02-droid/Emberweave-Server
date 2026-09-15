@@ -71,10 +71,26 @@ ck('every leaf names at least one valid stage source that offers it',
      return src.every(x=>{ const m=/^(\d+)-(\d+)$/.exec(String(x.stageId||'')); if(!m) return false;
        const st=S.portalStageOf(x.mode, (+m[1]-1)*10 + (+m[2]));
        return st && st.rewards.glyphFragments.some(f=>f.key===l.key); }); }));
-ck('flattened totals equal the sum of the tree leaves',
+ck('finished-glyph ancestry branches are explicitly inherited',
+   treeP.children.filter(c=>c.kind==='finishedGlyph').every(c=>c.inherited && leaves(c,[]).every(l=>l.inherited)));
+ck('payable totals equal only the non-inherited tree leaves',
    (()=>{ const tot=S.g2BuildCost(gg,preP).need; const acc={};
-     leaves(treeP,[]).forEach(l=>acc[l.key]=(acc[l.key]||0)+l.need);
+     leaves(treeP,[]).filter(l=>!l.inherited).forEach(l=>acc[l.key]=(acc[l.key]||0)+l.need);
      return JSON.stringify(Object.fromEntries(Object.entries(acc).sort()))===JSON.stringify(Object.fromEntries(Object.entries(tot).sort())); })());
+const costBands={
+  Grey:[2,2,2,2],Green:[3,4,5,6],'Green +1':[3,4,6,8],Blue:[4,6,9,13],
+  'Blue +1':[4,6,10,16],'Blue +2':[5,8,15,24],Purple:[5,10,30,50],
+  'Purple +1':[8,15,40,65],'Purple +2':[12,22,55,90],'Purple +3':[18,32,75,120],
+  Gold:[37,52,92,137],'Gold +1':[28,48,100,165],'Gold +2':[38,65,135,220],
+  'Gold +3':[50,85,175,290],'Gold +4':[65,110,225,370],Orange:[80,135,275,450]};
+const strengthIndex={Feeder:0,Foundation:1,Core:2,Crown:3};
+const directCost=d=>Object.values(S.g2BuildCost(gg,d).need).reduce((a,b)=>a+b,0);
+ck('ECONOMY: every glyph matches its quality and strength cost band',
+   S.GLYPHS.raw.every(d=>directCost(d)===costBands[d.quality][strengthIndex[d.strength]]));
+ck('ECONOMY: every Grey hero board costs exactly 12 fragments',
+   Object.keys(S.SIM.HERO_BASE).every(h=>[0,1,2,3,4,5].reduce((sum,sl)=>sum+directCost(S.glyphPreChoice(h,sl,0)),0)===12));
+ck('ECONOMY: every canonical hero path becomes more expensive across the ladder',
+   Object.keys(S.SIM.HERO_BASE).every(h=>{let prev=0;return S.GLYPH_LADDER.every((q,qi)=>{const n=[0,1,2,3,4,5].reduce((sum,sl)=>sum+directCost(S.glyphPreChoice(h,sl,qi)),0),ok=n>=prev;prev=n;return ok;});}));
 ck('PORTAL COVERAGE: every (tier,family) pair including Orange has a portal source',
    (()=>{ const covered=new Set();
      for(const mode of ['normal','elite','veteran']){
