@@ -13,7 +13,7 @@ const fs=require('fs'), path=require('path');
 const HOST=require('../../server/sim-host.js').load(path.join(__dirname,'../..','emberweave-heroes.html'));
 const GLYPH_SRC=JSON.parse(fs.readFileSync(path.join(__dirname,'../../server/glyph-source.json'),'utf8'));
 const LADDER=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
-const MIN_LEVEL=[1,7,13,18,24,30,36,43,50,57,65,72,79,86,93,100];
+const MIN_LEVEL=[1,5,13,18,24,30,36,43,50,57,65,72,79,86,93,100];
 
 /* ---- the reference board: six glyphs of a quality, straight out of the shipped catalog ---- */
 const STAT_FIELD={'HP':'hp','Physical Attack':'atk','Ability Power':'apow','Armor':'armor','Magic Resist':'mr',

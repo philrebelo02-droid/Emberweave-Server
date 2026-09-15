@@ -8,7 +8,7 @@ const C=JSON.parse(fs.readFileSync(path.join(__dirname,'..','server','campaign-e
 const S=Object.values(C).sort((a,b)=>a.node-b.node);
 const LADDER=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2',
   'Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
-const MIN_LEVEL={'Grey':1,'Green':7,'Green +1':13,'Blue':18,'Blue +1':24,'Blue +2':30,'Purple':36,
+const MIN_LEVEL={'Grey':1,'Green':5,'Green +1':13,'Blue':18,'Blue +1':24,'Blue +2':30,'Purple':36,
   'Purple +1':43,'Purple +2':50,'Purple +3':57,'Gold':65,'Gold +1':72,'Gold +2':79,'Gold +3':86,
   'Gold +4':93,'Orange':100};
 const BANDS=[[1,5,'Grey'],[6,10,'Green'],[11,15,'Green +1'],[16,20,'Blue'],[21,25,'Blue +1'],
@@ -118,3 +118,4 @@ ck('1-1 and 1-2 need no glyphs at all (a new account owns none)',
 
 console.log(''); console.log('PASS: '+PASS+'  FAIL: '+FAIL);
 process.exit(FAIL?1:0);
+

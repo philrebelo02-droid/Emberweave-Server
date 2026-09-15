@@ -428,7 +428,7 @@ const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
 /* v258 — Launch Progression Blueprint v1 §"Exact Glyph ascension path and level gates".
    A GLYPH TIER HAS A MINIMUM HERO LEVEL; a level-15 hero can never wear Gold. Player Level unlocks
    the hero-level ceiling, it never grants a quality for free. Index matches GLYPH_LADDER exactly. */
-const GLYPH_MIN_LEVEL=Object.freeze([1,7,13,18,24,30,36,43,50,57,65,72,79,86,93,100]);
+const GLYPH_MIN_LEVEL=Object.freeze([1,5,13,18,24,30,36,43,50,57,65,72,79,86,93,100]);
 function glyphLevelGate(i){ return GLYPH_MIN_LEVEL[Math.max(0,Math.min(GLYPH_MIN_LEVEL.length-1,i|0))]|0; }
 const GLYPH_FAMS=Object.freeze(['Stoneheart','Ironwall','Veilward','Ravager','Starfire','Windstep','Hawkeye','Lifebloom']);
 let GLYPH_TIER_FAMS={};   // filled by glyphCompile: quality -> families that exist at that tier
