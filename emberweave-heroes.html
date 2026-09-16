@@ -433,6 +433,8 @@
   .cnode{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff4cf;font-family:Georgia,serif;font-weight:900;font-size:14px;border:0;z-index:4;cursor:default;background:radial-gradient(circle at 40% 30%,#6d7885 0 12%,#303943 40%,#111820 74%);box-shadow:0 0 0 2px #252b31,0 0 0 4px #8d969d,0 0 0 5px #333a40,inset 0 0 0 2px #c8ced3,inset 0 -7px 9px #000b,0 4px 7px #000c;text-shadow:0 2px 2px #000;}
   .cnode::before{content:attr(data-code);position:absolute;left:50%;bottom:21px;transform:translateX(-50%);min-width:29px;padding:2px 4px;border-radius:4px 4px 3px 3px;background:linear-gradient(#386f91,#193e59);border:1px solid #cba754;color:#fff6d8;font:900 9px/1 Arial,sans-serif;letter-spacing:.2px;box-shadow:0 2px 4px #0009;text-shadow:0 1px 1px #000;white-space:nowrap;}
   .cnode .clbl{position:absolute;top:28px;left:50%;transform:translateX(-50%);min-width:48px;color:#ffe59a;font:850 9px/1 Arial,sans-serif;text-shadow:0 2px 3px #000,0 0 4px #000;white-space:nowrap;pointer-events:none;}
+  .cnode:not(.elite):not(.boss)::before{content:none}
+  .cnode .cstagecode{display:block;width:max-content;min-width:29px;margin:3px auto 0;padding:2px 4px;border:1px solid #cba754;border-radius:4px;background:linear-gradient(#386f91,#193e59);color:#fff6d8;font:900 9px/1 Arial,sans-serif;letter-spacing:.2px;box-shadow:0 2px 4px #0009;text-shadow:0 1px 1px #000;white-space:nowrap}
   .cnode .cIdle{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);height:36px;width:var(--idlew,28px);display:block;filter:drop-shadow(0 3px 2px #000b);pointer-events:none;z-index:2}
   .cnode:not(.elite)::after{content:"";position:absolute;inset:-10px;background:transparent;box-shadow:none}.cnode .clock{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;text-shadow:0 2px 3px #000;}
   .cnode.cleared{cursor:pointer;background:radial-gradient(circle at 38% 30%,#4b9a80 0 12%,#17614d 43%,#062f27 74%);box-shadow:0 0 0 2px #69440e,0 0 0 5px #e3b34e,0 0 0 7px #754812,inset 0 0 0 2px #ffe092,inset 0 -9px 12px #001a14aa,0 5px 9px #000b;}
@@ -1293,7 +1295,7 @@ const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1789531860446"};
 const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024]};
-const CH_NODES={"1":[[5.0,40.0],[14.0,48.5],[24.6,46.5],[34.6,43.5],[45.2,47.0],[54.8,52.5],[65.3,51.2],[74.9,56.5],[85.2,53.8],[95.0,47.0]],"2":[[5.0,39.1],[14.2,46.5],[24.8,48.3],[34.5,41.8],[45.1,40.0],[54.3,46.4],[64.6,48.5],[74.6,41.0],[85.1,43.7],[95.0,49.1]],"3":[[5.0,44.8],[15.1,40.0],[25.4,40.7],[34.2,49.0],[44.3,52.8],[54.6,49.8],[64.4,44.5],[74.4,49.0],[84.6,53.5],[95.0,50.0]],"4":[[5.0,40.7],[14.3,48.7],[24.1,54.6],[34.6,55.6],[44.2,47.2],[54.6,44.5],[64.9,48.5],[75.1,52.7],[85.6,51.8],[95.0,43.4]],"5":[[5.0,39.6],[15.2,44.0],[25.1,49.4],[35.4,53.0],[45.8,50.1],[54.8,42.6],[64.4,48.3],[74.5,53.8],[85.1,51.6],[95.0,46.0]],"6":[[5.0,40.5],[15.4,43.0],[25.2,41.4],[35.6,37.5],[45.7,41.5],[54.0,50.5],[64.1,54.2],[74.2,49.7],[84.6,46.8],[95.0,48.4]],"7":[[5.0,55.4],[15.4,56.8],[25.7,57.9],[36.0,57.5],[45.4,51.2],[54.9,43.7],[65.1,42.0],[75.2,46.1],[84.8,41.0],[95.0,37.2]],"8":[[5.0,34.5],[15.5,34.3],[24.5,43.2],[34.6,47.8],[44.9,44.4],[54.9,38.4],[64.3,45.5],[74.4,51.1],[84.9,49.5],[95.0,43.7]],"9":[[5.0,32.1],[14.4,39.5],[24.5,46.0],[35.2,45.9],[45.1,39.7],[55.6,41.7],[63.9,52.3],[74.2,54.0],[84.8,53.0],[95.0,47.8]],"10":[[5.0,43.4],[15.5,46.0],[25.5,52.3],[36.2,53.7],[46.4,49.3],[55.1,39.3],[65.6,38.0],[75.0,46.0],[84.8,52.2],[95.0,47.3]]};
+const CH_NODES={"1":[[5.0,40.0],[14.0,48.5],[24.6,46.5],[34.6,43.5],[45.2,47.0],[54.8,51.7],[65.3,52.0],[74.9,56.5],[85.2,52.3],[95.0,47.0]],"2":[[5.0,39.1],[14.2,46.5],[24.8,48.3],[34.5,41.8],[45.1,40.0],[54.3,46.4],[64.6,48.5],[74.6,41.0],[85.1,43.7],[95.0,49.1]],"3":[[5.0,44.8],[15.1,40.0],[25.4,40.7],[34.2,49.0],[44.3,52.8],[54.6,49.8],[64.4,44.5],[74.4,49.0],[84.6,53.5],[95.0,50.0]],"4":[[5.0,40.7],[14.3,48.7],[24.1,54.6],[34.6,55.6],[44.2,47.2],[54.6,44.5],[64.9,48.5],[75.1,52.7],[85.6,51.8],[95.0,43.4]],"5":[[5.0,39.6],[15.2,44.0],[25.1,49.4],[35.4,53.0],[45.8,50.1],[54.8,42.6],[64.4,48.3],[74.5,53.8],[85.1,51.6],[95.0,46.0]],"6":[[5.0,40.5],[15.4,43.0],[25.2,43.5],[35.6,37.5],[45.7,41.5],[54.0,50.5],[64.1,54.2],[74.2,49.7],[84.6,48.2],[95.0,48.4]],"7":[[5.0,55.4],[15.4,56.8],[25.7,57.9],[36.0,57.5],[45.4,51.2],[54.9,43.7],[65.1,42.0],[75.2,46.1],[84.8,41.0],[95.0,37.2]],"8":[[5.0,34.5],[15.5,34.3],[24.5,43.2],[34.6,47.8],[44.9,44.4],[54.9,38.4],[64.3,45.5],[74.4,51.1],[84.9,49.5],[95.0,43.7]],"9":[[5.0,32.1],[14.4,39.5],[24.5,46.0],[35.2,45.9],[45.1,39.7],[55.6,41.7],[63.9,52.3],[74.2,54.0],[84.8,53.0],[95.0,47.8]],"10":[[5.0,43.4],[15.5,46.0],[25.5,52.3],[36.2,53.7],[46.4,49.3],[55.1,39.3],[65.6,38.0],[75.0,46.0],[84.8,52.2],[95.0,47.3]]};
 // Six visible roadside buildings per landscape chapter. Each point is audited at that building’s foundation.
 const CH_BONUS_SITES={"1":[[14,30],[39,34],[85,34],[12,68],[44,70],[85,68]],"2":[[14,32],[47,33],[85,34],[15,69],[49,73],[84,68]],"3":[[15,31],[48,34],[85,34],[15,73],[50,74],[84,75]],"4":[[14,34],[48,34],[84,36],[15,73],[50,70],[85,70]],"5":[[14,34],[49,37],[84,37],[15,73],[50,72],[85,71]],"6":[[14,34],[49,34],[84,36],[15,75],[50,74],[85,72]],"7":[[14,38],[50,34],[84,37],[15,74],[50,72],[84,73]],"8":[[14,35],[49,34],[84,36],[15,74],[50,72],[85,73]],"9":[[14,31],[49,31],[84,35],[15,74],[50,75],[84,73]],"10":[[14,37],[49,35],[84,36],[15,74],[50,75],[85,71]]};
 const GUILD_BG=ART_BASE+"world-map/guildhall.webp",WISHPOOL_BG=ART_BASE+"world-map/wishingpool.webp",ACADEMY_BG=ART_BASE+"world-map/academy.webp",ISLAND_BG=ART_BASE+"world-map/trials.webp";
@@ -7688,7 +7690,7 @@ function endBattle(won){
       /* New-player path: after each first clear in 1-1 through 1-5, Continue opens Getting Started.
          The reward screen remains visible until the player dismisses it, then the next lesson explains
          the one system needed before the following round. Replays and later clears never interrupt. */
-      window._tutReturnAfterResult=!!(sWon && r && r.reward && r.reward.first && (r.mode||CUR.portal||'normal')==='normal' && CUR.node>=1 && CUR.node<=5 && !G.tutDone);
+      window._tutReturnAfterResult=!!(sWon && r && r.reward && r.reward.first && (r.mode||CUR.portal||'normal')==='normal' && CUR.node>=1 && CUR.node<=5 && !G.tutDone && !G.tutSkipped);
       /* v334 (Phil: "I just won a stage 1-1 and it said defeat and I lost") — an UNVERIFIED fight is
          not a defeat. The server recorded nothing and returned the stamina, so the screen must say
          that, not DEFEAT. Same for an attempt the server no longer knows (expired / restarted). */
@@ -10269,7 +10271,7 @@ function renderRoadmap(){
       const _hk=(MODE==='normal'&&elite)?eliteHeroFor(g):null, _idle=_hk&&BATTLE_ANIM[_hk]&&BATTLE_ANIM[_hk].idle;
       const _iw=_idle?Math.max(18,Math.min(34,36*_idle.fw/_idle.fh)):28;
       const face=_idle?`<canvas class="cIdle" width="${_idle.fw}" height="${_idle.fh}" data-u="${_idle.u}" data-fw="${_idle.fw}" data-fh="${_idle.fh}" data-n="${_idle.n}" data-cols="${_idle.cols||6}" data-rows="${_idle.rows||Math.ceil(_idle.n/(_idle.cols||6))}" data-fps="${Math.min(12,_idle.fps||8)}" data-ping="${_idle.pingpong?1:0}" style="--idlew:${_iw}px"></canvas>`:`<span class="clock">${clickable?(boss?'👑':(cleared?'✓':s)):'🔒'}</span>`;
-      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':(elite?'HERO FRAGMENTS':'STAGE')}${_sstH}</div>`;
+      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':(elite?'HERO FRAGMENTS':`STAGE<span class="cstagecode">${stageCode(g)}</span>`)}${_sstH}</div>`;
       if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
       if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
       _inner.appendChild(el);
@@ -14580,6 +14582,14 @@ function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.e
 function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
 function tutGroupCurrent(group){ const id=group.ids.find(k=>!G.tutRewarded?.[k]); return TUTORIAL_STEPS.find(s=>s.id===id)||null; }
 function tutReady(){ if(G.tutDone) return false; return TUTORIAL_GROUPS.some(g=>{ const s=tutGroupCurrent(g); return !!(s&&s.done()); }); }
+function skipTutorialGuide(){
+  G.tutSkipped=true; G.tutStarted=false; G.tutFocusStep=null;
+  window._tutReturnAfterResult=false;
+  document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
+  document.querySelectorAll('#tutOffer').forEach(el=>el.remove());
+  saveG(); updateHubChrome(); show('home');
+  bannerMsg('Guided tutorial skipped. Start Here remains available in the menu.');
+}
 function tutReturnAfterAction(){
   if(!G.tutStarted||G.tutDone||state==='tutorial'||state==='result'||state==='battle')return;
   setTimeout(()=>{ if(G.tutStarted&&!G.tutDone&&state!=='tutorial'&&state!=='result'&&state!=='battle')show('tutorial'); },0);
@@ -14616,9 +14626,10 @@ async function claimTutorialStep(id){ if(G.tutDone)return;
   finally{ IF[id]=0; } }
 function renderTutorial(){ checkTutorial(); const b=document.getElementById('tutorialBody'); if(!b)return;
   const doneCount=TUTORIAL_STEPS.filter(s=>G.tutRewarded&&G.tutRewarded[s.id]).length; const cur=tutCurrent();
-  let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?'🎉 All done!':'Your journey begins'}</div>
+  let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?'🎉 All done!':G.tutSkipped?'Learn at your own pace':'Your journey begins'}</div>
     <div style="font-size:12px;color:#8b98a9;margin-top:2px">${doneCount} / ${TUTORIAL_STEPS.length} steps complete</div>
-    <div class="qbar" style="margin-top:6px"><i style="width:${Math.round(doneCount/TUTORIAL_STEPS.length*100)}%"></i></div></div>`;
+    <div class="qbar" style="margin-top:6px"><i style="width:${Math.round(doneCount/TUTORIAL_STEPS.length*100)}%"></i></div>
+    ${!G.tutDone?`<button class="btn sm secondary" id="tutGuideToggle" style="margin-top:10px">${G.tutSkipped?'Resume guided tutorial':'Skip Tutorial'}</button>`:''}</div>`;
   const openGroups=TUTORIAL_GROUPS.map((g,index)=>({g,index,s:tutGroupCurrent(g)})).filter(x=>x.s);
   openGroups.sort((a,z)=>(z.s.done()?1:0)-(a.s.done()?1:0)||a.index-z.index);
   const next=openGroups[0]?.s;
@@ -14636,19 +14647,25 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
           ${stepReady?`<button class="btn xs${id===next?.id?' tut-next-glow':''}" data-tut-claim="${id}">Claim 🎁</button>`:(isCur?`<button class="btn xs${id===next?.id?' tut-next-glow':''}" data-tut-go="${id}">Go →</button>`:'')}</div></div>`; }); });
   if(G.tutDone||!cur) html+=`<div style="text-align:center;color:#8b98a9;font-size:12px;margin-top:8px">You’ve got the basics — now go build the strongest region in the realm. 🔥</div>`;
   b.innerHTML=html;
+  const toggle=b.querySelector('#tutGuideToggle'); if(toggle)toggle.onclick=()=>{
+    if(G.tutSkipped){ G.tutSkipped=false; G.tutStarted=true; saveG(); renderTutorial(); }
+    else skipTutorialGuide();
+  };
   b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go){ G.tutFocusStep=s.id; s.go(); setTimeout(highlightTutorialTarget,0); } });
   b.querySelectorAll('[data-tut-claim]').forEach(btn=>btn.onclick=()=>claimTutorialStep(btn.dataset.tutClaim));
 }
 // first-run prompt for brand-new accounts
-function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted) return; if((G.campaignCleared||0)>0) return;
+function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return; if((G.campaignCleared||0)>0) return;
   if(document.getElementById('tutOffer')) return;   // 2 Sep: renderHome runs more than once at boot — each call stacked another full-screen overlay, and every extra layer swallowed a tap
   const ov=document.createElement('div'); ov.id='tutOffer'; ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">🎓</div><div style="font-weight:800;font-size:17px;margin:6px 0">Welcome, Commander!</div>
     <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">Start here to learn one essential system before each of the first five Campaign rounds.</div>
-    <button class="btn" style="width:100%" id="tutStart">Start Here</button></div>`;
+    <button class="btn" style="width:100%" id="tutStart">Start Here</button>
+    <button class="btn secondary" style="width:100%;margin-top:8px" id="tutSkip">Skip Tutorial</button></div>`;
   document.body.appendChild(ov); const close=()=>{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); };
-  ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); }; }
+  ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); };
+  ov.querySelector('#tutSkip').onclick=skipTutorialGuide; }
 
 /* ============================ FLOATING ISLE: THREE TRIALS ============================ */
 const ISLE_FEATURES=[
@@ -16614,7 +16631,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789589442500';
+const BUILD_ID = '1789595400138';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
