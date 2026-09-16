@@ -449,7 +449,7 @@
   .cstars{display:block;text-align:center;font-size:9px;line-height:1;margin-top:2px;letter-spacing:1px}.cstars .on{color:#ffd45e;text-shadow:0 0 4px #ffc83c}.cstars .off{color:#59606b}
   .cbonus{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:50%;}.cbonus::before{content:'✦';display:grid;place-items:center;position:absolute;right:2px;top:2px;width:18px;height:18px;color:#ffe58d;font-size:16px;font-weight:900;text-shadow:0 0 5px #ffb52e,0 0 10px #ffb52e;animation:cbonusGlow 1.8s ease-in-out infinite}.cbonus span{position:absolute;left:50%;top:45px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.88);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}.cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #ffe08a;outline-offset:1px}@keyframes cbonusGlow{50%{filter:brightness(1.45);transform:scale(1.18)}}
   @media(max-width:760px), (max-height:700px) and (orientation:landscape){
-    #campaign{position:absolute!important;inset:0!important;display:block!important;padding:0!important}#campaign>.backbtn{top:4px!important;left:4px!important;padding:5px 8px!important;min-height:30px;font-size:11px;z-index:9!important}
+    #campaign.active{position:absolute!important;inset:0!important;display:block!important;padding:0!important}#campaign>.backbtn{top:4px!important;left:4px!important;padding:5px 8px!important;min-height:30px;font-size:11px;z-index:9!important}
     #portalTabs{position:absolute!important;top:3px;left:64px;right:3px;height:32px;padding:0!important;gap:3px!important;z-index:9!important;background:linear-gradient(90deg,transparent,#0b1220cc 16%,#0b1220cc 84%,transparent)}#portalTabs .btn{padding:4px 6px!important;min-height:30px!important;font-size:9px!important}
     #starTrack{position:absolute!important;top:37px;left:5px;right:5px;z-index:9;margin:0!important}#starTrack>div{padding:2px 7px!important;margin:0 auto!important;min-height:21px;max-width:390px;background:#0b1220d9!important}
     #cmapHdr{position:absolute!important;top:62px;left:0;right:0;height:31px;padding:1px 64px!important;gap:7px!important;z-index:9!important;background:linear-gradient(180deg,#08101bd9,#08101b80,transparent)}#cmapHdr .btn{padding:3px 8px!important;min-height:25px!important}
@@ -16569,7 +16569,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789545813511';
+const BUILD_ID = '1789546162867';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
