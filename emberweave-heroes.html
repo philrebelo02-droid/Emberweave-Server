@@ -448,11 +448,11 @@
   .cnode.boss .clbl{top:44px;}
   .cnode.elite{background:linear-gradient(145deg,#ead6ff 0 7%,#6e3a9e 8% 14%,rgba(39,17,66,.9) 15% 85%,#5b2c88 86% 92%,#d9b8ff 93%);box-shadow:0 4px 9px rgba(0,0,0,.55),0 0 12px rgba(201,160,255,.58);color:#f7efff;}
   .cnode.elite.current{color:#2b123e;background:linear-gradient(145deg,#fff0b5 0 7%,#9564c8 8% 14%,#d6aaff 15% 85%,#8350b4 86% 92%,#fff0b5 93%);}
-  .cbonus{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:12px;}
-  .cbonus::before{content:'◆';display:grid;place-items:center;position:absolute;inset:8px;border-radius:9px;color:#ffe59a;font-size:13px;background:rgba(45,27,8,.62);border:1px solid rgba(255,220,119,.78);box-shadow:0 0 10px rgba(255,193,64,.40);animation:cbonusGlow 1.8s ease-in-out infinite;}
-  .cbonus span{position:absolute;left:50%;top:42px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.76);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s;}
-  .cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #fff0ad;outline-offset:1px}
-  @keyframes cbonusGlow{50%{filter:brightness(1.28);box-shadow:0 0 15px rgba(255,193,64,.72)}}
+  .cbonus{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:50%;}
+  .cbonus::before{content:'✦';display:grid;place-items:center;position:absolute;right:2px;top:2px;width:18px;height:18px;color:#ffe58d;font-size:16px;font-weight:900;text-shadow:0 0 5px #ffb52e,0 0 10px #ffb52e;animation:cbonusGlow 1.8s ease-in-out infinite;}
+  .cbonus span{position:absolute;left:50%;top:45px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.82);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s;}
+  .cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #ffe08a;outline-offset:1px}
+  @keyframes cbonusGlow{50%{filter:brightness(1.45);transform:scale(1.18)}}
   @media(max-width:600px){.cnode{width:44px;height:33px}.cnode .clbl{top:35px}.cnode.boss{width:52px;height:39px}.cnode.boss .clbl{top:41px}.cbonus{width:44px;height:44px}.cbonus span{display:none}}
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
   /* world map zone */
@@ -1257,7 +1257,7 @@ const MYTHIC_BANNERS = {/*__MYTHBANNERS__*/}; // per-mythical-hero banner art OV
 const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHARED "MYTHICAL" plaque shown under ANY myth:true hero (per-hero MYTHIC_BANNERS wins if set)
 const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
-const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp",2:ART_BASE+"Campaign/ch2.webp",3:ART_BASE+"Campaign/ch3.webp",4:ART_BASE+"Campaign/ch4.webp",5:ART_BASE+"Campaign/ch5.webp",6:ART_BASE+"Campaign/ch6.webp",7:ART_BASE+"Campaign/ch7.webp",8:ART_BASE+"Campaign/ch8.webp",9:ART_BASE+"Campaign/ch9.webp",10:ART_BASE+"Campaign/ch10.webp"};
+const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789529173459",2:ART_BASE+"Campaign/ch2.webp?v=1789529173459",3:ART_BASE+"Campaign/ch3.webp?v=1789529173459",4:ART_BASE+"Campaign/ch4.webp?v=1789529173459",5:ART_BASE+"Campaign/ch5.webp?v=1789529173459",6:ART_BASE+"Campaign/ch6.webp?v=1789529173459",7:ART_BASE+"Campaign/ch7.webp?v=1789529173459",8:ART_BASE+"Campaign/ch8.webp?v=1789529173459",9:ART_BASE+"Campaign/ch9.webp?v=1789529173459",10:ART_BASE+"Campaign/ch10.webp?v=1789529173459"};
 const CH_MAP_DIMS={1:[1024,1536],2:[1088,1445],3:[1086,1448],4:[1024,1536],5:[1086,1448],6:[1086,1448],7:[1086,1448],8:[1068,1473],9:[1075,1463],10:[1147,1372]};
 const CH_NODES={1:[[47.7,91.4],[73.8,85.4],[76.9,73.4],[53.3,68.0],[30.3,61.9],[21.0,48.1],[43.0,41.9],[65.6,35.0],[72.7,21.6],[49.5,17.3]],2:[[52.3,84.7],[73.9,78.5],[77.5,67.5],[55.6,62.6],[33.3,57.8],[24.3,45.8],[45.0,38.0],[66.3,31.9],[74.9,22.7],[52.3,15.2]],3:[[46.8,91.7],[61.6,81.8],[68.7,68.5],[49.5,62.4],[28.2,58.7],[25.9,46.5],[46.4,41.3],[66.0,34.8],[66.7,23.5],[46.6,17.7]],4:[[45.2,90.4],[66.2,83.7],[72.7,69.6],[53.8,60.4],[31.4,55.9],[24.2,44.5],[43.8,33.8],[66.3,32.5],[60.2,22.0],[38.9,15.8]],5:[[43.2,92.2],[57.1,79.9],[69.1,67.9],[50.6,61.0],[31.0,55.2],[25.6,43.3],[43.8,35.0],[64.6,31.4],[66.5,21.1],[47.0,15.2]],6:[[48.1,91.0],[62.8,80.9],[68.2,68.0],[50.7,62.2],[32.8,57.2],[25.2,46.4],[40.7,37.4],[58.4,31.9],[66.1,22.7],[48.0,18.0]],7:[[37.5,94.4],[55.4,85.1],[72.3,74.3],[61.7,62.9],[41.1,57.9],[23.6,48.7],[37.3,38.7],[57.2,32.7],[63.8,21.9],[44.2,16.5]],8:[[51.0,94.6],[64.9,83.3],[50.1,74.7],[42.3,65.8],[61.2,58.6],[75.7,47.9],[60.1,40.0],[53.1,31.7],[68.0,23.4],[48.9,17.0]],9:[[49.4,95.5],[65.5,82.8],[48.3,75.3],[38.1,66.8],[58.8,59.7],[75.9,48.4],[58.8,40.1],[52.6,31.8],[65.5,22.6],[49.5,12.3]],10:[[51.0,94.8],[65.4,82.2],[45.4,75.3],[45.4,65.5],[65.5,59.0],[46.6,51.6],[34.1,45.3],[52.5,34.9],[69.0,24.9],[49.8,15.7]]};
 // Six roadside structures per painted chapter. They are live entry points for the future bonus-round system; no reward rules exist yet.
@@ -16555,7 +16555,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789529895064';
+const BUILD_ID = '1789530290927';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
