@@ -1038,25 +1038,25 @@
           "key": "fire boar",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "knat",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "orc",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "cinder skulk",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         }
       ],
       [
@@ -1064,19 +1064,19 @@
           "key": "bug",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "turtle",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "slime",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         }
       ],
       [
@@ -1084,25 +1084,25 @@
           "key": "sootwing imp",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "slime",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "creep",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392
+          "dmgMul": 4.9686
         },
         {
           "key": "vireo",
           "lvl": 5,
           "hpMul": 1.8850,
-          "dmgMul": 2.8392,
+          "dmgMul": 4.9686,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
@@ -13674,3 +13674,4 @@
     "rewardHero": "vael"
   }
 ]
+
