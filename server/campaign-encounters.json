@@ -905,31 +905,31 @@
           "key": "sootwing imp",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "creep",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "bug",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "slime",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "fire boar",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         }
       ],
       [
@@ -937,25 +937,25 @@
           "key": "fire boar",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "orc",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "bug",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "knat",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         }
       ],
       [
@@ -963,31 +963,31 @@
           "key": "orc",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "knat",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "fire boar",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "creep",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         },
         {
           "key": "bug",
           "lvl": 5,
           "hpMul": 1.0454,
-          "dmgMul": 1.5237
+          "dmgMul": 2.5903
         }
       ]
     ],
@@ -1037,72 +1037,72 @@
         {
           "key": "fire boar",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "knat",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "orc",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "cinder skulk",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         }
       ],
       [
         {
           "key": "bug",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "turtle",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "slime",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         }
       ],
       [
         {
           "key": "sootwing imp",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "slime",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "creep",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392
         },
         {
           "key": "vireo",
           "lvl": 5,
-          "hpMul": 1.3464,
-          "dmgMul": 1.8928,
+          "hpMul": 1.8850,
+          "dmgMul": 2.8392,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
@@ -1241,8 +1241,8 @@
         {
           "key": "brukk",
           "lvl": 5,
-          "hpMul": 3.3295,
-          "dmgMul": 3.7135,
+          "hpMul": 1.3318,
+          "dmgMul": 2.5995,
           "boss": true
         }
       ]
