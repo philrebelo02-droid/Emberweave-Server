@@ -11759,7 +11759,7 @@ function pushSave(){ if(!ACC.token||!_cloudReady)return; const r=rosterPayload()
   const cp=(typeof myCastlePos==='function')?myCastlePos():{x:50,y:50};
   const world={ region:myRegion(), x:cp.x, y:cp.y, level:playerLevel(),
                 power:teamPower((G.wall&&G.wall.length?G.wall:G.team).filter(Boolean).map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)}))) };
-  api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}); }
+  return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}); }
 function cloudSync(){ if(!ACC.token||_cloudTimer)return; _cloudTimer=setTimeout(()=>{ _cloudTimer=null; pushSave(); },1500); }
 function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=null; } if(ACC.token) pushSave(); }
 // permanence: when the tab is backgrounded or closed (phone app-switch included), flush the pending
@@ -14582,14 +14582,31 @@ function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.e
 function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
 function tutGroupCurrent(group){ const id=group.ids.find(k=>!G.tutRewarded?.[k]); return TUTORIAL_STEPS.find(s=>s.id===id)||null; }
 function tutReady(){ if(G.tutDone) return false; return TUTORIAL_GROUPS.some(g=>{ const s=tutGroupCurrent(g); return !!(s&&s.done()); }); }
-function skipTutorialGuide(){
-  G.tutSkipped=true; G.tutStarted=false; G.tutFocusStep=null;
-  window._tutReturnAfterResult=false;
-  document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
-  document.querySelectorAll('#tutOffer').forEach(el=>el.remove());
-  saveG(); updateHubChrome(); show('home');
-  bannerMsg('Guided tutorial skipped. Start Here remains available in the menu.');
+async function setTutorialGuideMode(skip){
+  if(setTutorialGuideMode.busy)return;
+  setTutorialGuideMode.busy=true;
+  const old={skipped:G.tutSkipped,started:G.tutStarted,focus:G.tutFocusStep};
+  try{
+    // A fresh guest/account must adopt its cloud save before this preference changes.
+    if(ACC.token){ for(let i=0;i<30&&!_cloudReady;i++)await new Promise(r=>setTimeout(r,100));
+      if(!_cloudReady)throw Error('Account save is still loading'); }
+    G.tutSkipped=!!skip; G.tutStarted=!skip; if(skip)G.tutFocusStep=null;
+    G.mtime=Date.now(); saveGLocalOnly();
+    if(ACC.token){ if(_cloudTimer){clearTimeout(_cloudTimer);_cloudTimer=null;}
+      const result=await pushSave(); if(!result||!result.ok)throw Error('Account save failed'); }
+    window._tutReturnAfterResult=false;
+    document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
+    document.querySelectorAll('#tutOffer').forEach(el=>el.remove());
+    updateHubChrome();
+    if(skip){show('home');bannerMsg('Guided tutorial skipped. Start Here remains available in the menu.');}
+    else {renderTutorial();bannerMsg('Guided tutorial resumed.');}
+  }catch(e){
+    G.tutSkipped=old.skipped; G.tutStarted=old.started; G.tutFocusStep=old.focus;
+    saveGLocalOnly(); bannerMsg('Tutorial choice was not saved. Please try again.');
+  }finally{setTutorialGuideMode.busy=false;}
 }
+function skipTutorialGuide(){ return setTutorialGuideMode(true); }
+function resumeTutorialGuide(){ return setTutorialGuideMode(false); }
 function tutReturnAfterAction(){
   if(!G.tutStarted||G.tutDone||state==='tutorial'||state==='result'||state==='battle')return;
   setTimeout(()=>{ if(G.tutStarted&&!G.tutDone&&state!=='tutorial'&&state!=='result'&&state!=='battle')show('tutorial'); },0);
@@ -14648,7 +14665,7 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
   if(G.tutDone||!cur) html+=`<div style="text-align:center;color:#8b98a9;font-size:12px;margin-top:8px">You’ve got the basics — now go build the strongest region in the realm. 🔥</div>`;
   b.innerHTML=html;
   const toggle=b.querySelector('#tutGuideToggle'); if(toggle)toggle.onclick=()=>{
-    if(G.tutSkipped){ G.tutSkipped=false; G.tutStarted=true; saveG(); renderTutorial(); }
+    if(G.tutSkipped){ resumeTutorialGuide(); }
     else skipTutorialGuide();
   };
   b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go){ G.tutFocusStep=s.id; s.go(); setTimeout(highlightTutorialTarget,0); } });
@@ -16631,7 +16648,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789595400138';
+const BUILD_ID = '1789596835845';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -16946,7 +16963,6 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
 
 </body>
 </html>
-
 
 
 
