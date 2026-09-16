@@ -3128,7 +3128,7 @@ function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!ki
     seg.push('Range '+rng(d.radius)); seg.push('Cast '+castTimeFor(fakeU,'ult')+'s');
     if(d.dur)seg.push((d.channel?'Channels ':'Lasts ')+d.dur+'s'); seg.push('Ultimate — charges with energy'); }
   else if(idx===1||idx===2){ const ab=idx===1?kit.green:kit.blue; if(!ab)return ''; const sc=scaleLabelFor(t,KIT_SCALE[ab.type]);
-    let rad=ab.radius; if(ab.type==='hookline') rad=ab.range; if(!rad && ['freeze','chainlight','stun','slow','mortal','dot','creeprot'].includes(ab.type)) rad=t.range;
+    let rad=ab.radius; if(['hookline','frozenorb'].includes(ab.type)) rad=ab.range; if(!rad && ['freeze','chainlight','stun','slow','mortal','dot','creeprot'].includes(ab.type)) rad=t.range;
     const s=fmtScale(ab.mul, ab.dps, sc); if(s)seg.push(s);
     seg.push('Range '+rng(rad)); seg.push('Cast '+castTimeFor(fakeU,idx===1?'green':'blue')+'s');
     if(ab.dur)seg.push('Lasts '+ab.dur+'s'); if(ab.cd)seg.push('Cooldown '+ab.cd+'s'); }
@@ -11430,7 +11430,7 @@ function renderRoster(){
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:'');
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp)}</span><span class="pill">⚔ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk)}</span><br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
+    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span><br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
        Two separate things were wrong with picking a hero:
@@ -16520,7 +16520,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789521952181';
+const BUILD_ID = '1789523196093';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
