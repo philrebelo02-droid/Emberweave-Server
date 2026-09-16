@@ -2787,7 +2787,7 @@ const HERO_LORE = {
    rendered as a low-poly 3D figure standing among 28 drawn heroes. His art existed all along — the
    glossary cutout — it had simply never been wired as a battle sprite. */
 const HERO_SPRITES = {"carn":"/assets/img/miscellaneous/hero-sprites-carn.webp?v=1","vesper":"/assets/img/miscellaneous/hero-sprites-vesper.webp","sablewick":"/assets/img/miscellaneous/hero-sprites-sablewick.webp","vex":"/assets/img/miscellaneous/hero-sprites-vex.webp","arrears":"/assets/img/miscellaneous/hero-sprites-arrears.webp","tallow":"/assets/img/miscellaneous/hero-sprites-tallow.webp","astra":"/assets/img/miscellaneous/hero-sprites-astra.webp","magistrant":"/assets/img/miscellaneous/hero-sprites-magistrant.webp","vharn":"/assets/img/miscellaneous/hero-sprites-vharn.webp","fathom":"/assets/img/miscellaneous/hero-sprites-fathom.webp","lumi":"/assets/img/miscellaneous/hero-sprites-lumi.webp","meryln":"/assets/img/miscellaneous/hero-sprites-meryln.webp","hollow":"/assets/img/miscellaneous/hero-sprites-hollow.webp","sprocket":"/assets/img/miscellaneous/hero-sprites-sprocket.webp","meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
-const TOWN_BG = "/assets/img/world-map/townbg2.webp";           // painted town-map background for the home base
+const TOWN_BG = "/assets/img/world-map/townbg-wide-cauldron-v1.webp";           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
 const SHOP_SOON = "/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
@@ -8825,6 +8825,18 @@ function renderHome(){
     {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
     {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67, ...lk(25)},
   ];
+  // Anchors measured against the wide city painting; all sixteen tap targets retain their destination.
+  const wideHomePositions=[
+    [20,15,28,27,19,30], [15,47,14,45,15,47],
+    [48,11,18,17,48,20], [35,20,12,14,35,29],
+    [58,15,14,20,58,27], [73,15,15,26,73,31],
+    [46,31,20,26,46,46], [61,35,13,15,61,46],
+    [75,38,14,22,75,52], [56,53,10,16,56,64],
+    [72,56,15,20,72,69], [9,70,11,25,9,82],
+    [38,68,17,23,38,83], [63,75,17,23,63,94],
+    [30,36,12,16,30,45], [28,54,12,16,28,64]
+  ];
+  hots.forEach((h,i)=>{ const p=wideHomePositions[i]; [h.x,h.y,h.w,h.h,h.lx,h.ly]=p; });
   const box=document.getElementById('townHots'); box.innerHTML='';
   hots.forEach(h=>{ const el=document.createElement('div'); el.className='hot'+(h.locked?' locked':'');
     el.style.cssText=`left:${h.x}%;top:${h.y}%;width:${h.w}%;height:${h.h}%;z-index:${h.z||2}`;
@@ -16403,7 +16415,7 @@ function _fitApp(){ try{ const app=document.getElementById('app'); if(!app) retu
     let vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight;
     const vv=window.visualViewport; if(vv&&vv.width&&vv.height){ const sc=vv.scale||1; vw=Math.min(vw, Math.round(vv.width*sc)); vh=Math.min(vh, Math.round(vv.height*sc)); }
     if(!vw||!vh) return;
-    const fillWide=state==='campaign' && vw>vh && vh<=700 && vw/vh>1.85;
+    const fillWide=(state==='campaign'||state==='home') && vw>vh && vh<=700 && vw/vh>1.85;
     const w=fillWide?vw:Math.min(vw, vh*1024/572), h=fillWide?vh:Math.min(vh, vw*572/1024);
     if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){ app.style.width=Math.floor(w)+'px'; app.style.height=Math.floor(h)+'px'; _refitAll(); } }catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
@@ -16663,7 +16675,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789598300041';
+const BUILD_ID = '1789599222327';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
