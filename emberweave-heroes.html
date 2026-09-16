@@ -714,7 +714,7 @@
   .hero-card .lvl,.lvl{background:linear-gradient(180deg,#ffd87b,#eda440);border:1px solid #ffe4a0;box-shadow:0 2px 5px rgba(0,0,0,.42);}
   .pill{background:linear-gradient(180deg,#40506d,#2b3851);border:1px solid #50627f;box-shadow:inset 0 1px rgba(255,255,255,.07);}
   @media (orientation:landscape) and (max-height:700px){
-    #stageModal .pm{box-sizing:border-box;width:calc(100% - 16px);max-width:1100px;max-height:calc(100dvh - 12px);padding:7px 10px;overflow:hidden}
+    #stageModal .pm{box-sizing:border-box;width:calc(100% - 16px);max-width:1100px;max-height:calc(100dvh - 12px);padding:7px 10px;overflow-y:auto;overflow-x:hidden}
     #stageModal .smStageCard{max-width:none;margin:0}
     #stageModal .smStageScroll{max-height:none;overflow:visible;padding:0}
     #stageModal .smStageHead{padding:5px 9px;min-height:29px}
@@ -725,7 +725,10 @@
     #stageModal #smDetails>div:first-child{padding:4px 7px!important;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:3px 8px;align-items:start}
     #stageModal .smBrief{min-width:0;line-height:1.15}
     #stageModal #smDetails>div:first-child>.smWaveGrid{grid-column:2;grid-row:1;margin:0!important}
-    #stageModal #smDetails>div:first-child>div:not(.smBrief):not(.smWaveGrid){grid-column:1/-1}
+    #stageModal #smDetails>div:first-child>div:not(.smBrief):not(.smWaveGrid){grid-column:1}
+    #stageModal #smDetails>div:first-child>div:not(.smBrief):not(.smWaveGrid):nth-last-child(2){grid-row:2;align-self:end;margin-top:2px!important}
+    #stageModal #smDetails>div:first-child>div:not(.smBrief):not(.smWaveGrid):last-child{grid-row:3;margin-top:2px!important}
+    #stageModal #smDetails>div:first-child>.smWaveGrid{grid-row:1 / span 3}
     #stageModal .smWaveGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:0!important}
     #stageModal .smWave{min-width:0;padding:4px;border:1px solid #29334a;border-radius:7px}
     #stageModal .smWaveLabel{margin-bottom:3px}
@@ -16611,7 +16614,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789573524295';
+const BUILD_ID = '1789579795104';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -16926,7 +16929,6 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
 
 </body>
 </html>
-
 
 
 
