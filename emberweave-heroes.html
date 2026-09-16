@@ -424,37 +424,31 @@
   .node .conn{position:absolute;bottom:-2px;left:50%;width:3px;height:22px;background:#33405e;transform:translateX(-50%);}
   .node.cleared .conn{background:#5ee89b;}
   /* graphic campaign trail */
-  #campaign{position:relative;overflow:hidden;}#campaign::before{content:'';position:absolute;inset:-30px;background-image:var(--campbg,none);background-size:cover;background-position:center;filter:blur(34px) brightness(.34);z-index:0;pointer-events:none;}#campaign>*{position:relative;z-index:1;}#cmapScroll{width:100%;max-width:none;margin:0;text-align:center;max-height:calc(100vh - 52px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1;}
-  /* 2 Sep (Phil: "this campaign level is too low, off screen"): #campaign is overflow:hidden and the
-     map image is as wide as the screen, so on a landscape phone the first stage sat below the fold with
-     no way to reach it. The map now scrolls inside its own box, and the existing scroll-to-current
-     code (which was writing scrollTop on a non-scrolling div) finally has something to scroll. */
-  #cmapScroll{flex:1 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative;z-index:1;overscroll-behavior:contain;}
-  #cmapScroll::after{content:none;} /* map ends with the artwork: no artificial mobile dead-space */
-  @media (max-height:520px){ #starTrack>div{padding:4px 9px !important;margin-bottom:4px !important} #cmapHdr{padding:3px 86px 3px 86px !important} }
-  #cmap{position:relative;width:min(100%,900px);margin:0 auto 10px;border-radius:14px;overflow:hidden;border:1px solid #2a3550;
-        background:linear-gradient(180deg,#a9d8ef 0%,#bfe3c7 22%,#9fd08a 45%,#7fb86a 70%,#5e964e 100%);}
+  #campaign{position:relative;overflow:hidden;}#campaign::before{content:'';position:absolute;inset:-30px;background-image:var(--campbg,none);background-size:cover;background-position:center;filter:blur(34px) brightness(.34);z-index:0;pointer-events:none;}#campaign>*{position:relative;z-index:1;}
+  #cmapScroll{flex:1 1 auto;min-height:0;width:100%;max-width:none;margin:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity;position:relative;z-index:1;touch-action:pan-x;text-align:left;}
+  #cmapScroll::after{content:none;}
+  @media (max-height:520px){#starTrack>div{padding:4px 9px!important;margin-bottom:4px!important}#cmapHdr{padding:3px 86px!important}}
+  #cmap{position:relative;width:min(1536px,100%);margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid #2a3550;background:#132019;scroll-snap-align:center;}
   #cmap svg{position:absolute;inset:0;width:100%;height:100%;}
-  .cnode{position:absolute;transform:translate(-50%,-50%);width:46px;height:34px;clip-path:polygon(12% 0,88% 0,100% 24%,100% 76%,88% 100%,12% 100%,0 76%,0 24%);display:flex;flex-direction:column;
-         align-items:center;justify-content:center;font-weight:950;font-size:13px;color:#fff8db;border:0;
-         background:linear-gradient(145deg,rgba(255,226,135,.96) 0 7%,rgba(95,60,18,.94) 8% 14%,rgba(9,18,28,.86) 15% 85%,rgba(78,49,15,.94) 86% 92%,rgba(255,218,112,.95) 93%);
-         box-shadow:0 4px 9px rgba(0,0,0,.58),0 0 8px rgba(255,205,91,.28);z-index:4;filter:drop-shadow(0 2px 2px rgba(0,0,0,.48));}
-  .cnode .clbl{position:absolute;top:36px;left:50%;transform:translateX(-50%);min-width:40px;padding:2px 5px;border:1px solid rgba(223,181,90,.48);border-radius:6px;background:linear-gradient(180deg,rgba(8,14,22,.88),rgba(16,23,32,.76));color:#f7e8bc;font-size:8px;font-weight:850;line-height:1.1;text-shadow:0 1px 2px #000;white-space:nowrap;clip-path:none;}
-  .cnode.cleared{color:#dbffe9;cursor:pointer;background:linear-gradient(145deg,#baffd4 0 7%,#246b45 8% 14%,rgba(7,48,31,.88) 15% 85%,#1d5a3a 86% 92%,#9fffc4 93%);box-shadow:0 4px 9px rgba(0,0,0,.55),0 0 9px rgba(99,255,170,.35);}
-  .cnode.justplayed{box-shadow:0 0 0 2px #9ceaff,0 0 14px #78ddff;}
-  .cnode.current{color:#2e2105;cursor:pointer;background:linear-gradient(145deg,#fff2b1 0 8%,#bb7d1d 9% 16%,#ffd96b 17% 83%,#a66710 84% 92%,#fff0a4 93%);box-shadow:0 4px 9px rgba(0,0,0,.52),0 0 15px rgba(255,207,81,.74);animation:cnpulse 1.2s infinite;text-shadow:0 1px 0 #fff4c4;}
-  .cnode.locked{color:#c9cfda;background:linear-gradient(145deg,#aeb7c5 0 7%,#4b5360 8% 14%,rgba(28,35,45,.84) 15% 85%,#404854 86% 92%,#919aa8 93%);box-shadow:0 3px 7px rgba(0,0,0,.46);}
-  .cnode.boss{width:56px;height:42px;font-size:16px;background:linear-gradient(145deg,#ffe49a 0 7%,#863316 8% 14%,rgba(65,12,8,.91) 15% 85%,#76270d 86% 92%,#ffd778 93%);box-shadow:0 4px 10px rgba(0,0,0,.6),0 0 15px rgba(255,112,48,.52);}
-  .cnode.boss .clbl{top:44px;}
-  .cnode.elite{background:linear-gradient(145deg,#ead6ff 0 7%,#6e3a9e 8% 14%,rgba(39,17,66,.9) 15% 85%,#5b2c88 86% 92%,#d9b8ff 93%);box-shadow:0 4px 9px rgba(0,0,0,.55),0 0 12px rgba(201,160,255,.58);color:#f7efff;}
-  .cnode.elite.current{color:#2b123e;background:linear-gradient(145deg,#fff0b5 0 7%,#9564c8 8% 14%,#d6aaff 15% 85%,#8350b4 86% 92%,#fff0b5 93%);}
-  .cbonus{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:50%;}
-  .cbonus::before{content:'✦';display:grid;place-items:center;position:absolute;right:2px;top:2px;width:18px;height:18px;color:#ffe58d;font-size:16px;font-weight:900;text-shadow:0 0 5px #ffb52e,0 0 10px #ffb52e;animation:cbonusGlow 1.8s ease-in-out infinite;}
-  .cbonus span{position:absolute;left:50%;top:45px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.82);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s;}
-  .cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #ffe08a;outline-offset:1px}
-  @keyframes cbonusGlow{50%{filter:brightness(1.45);transform:scale(1.18)}}
-  @media(max-width:600px){.cnode{width:44px;height:33px}.cnode .clbl{top:35px}.cnode.boss{width:52px;height:39px}.cnode.boss .clbl{top:41px}.cbonus{width:44px;height:44px}.cbonus span{display:none}}
+  .cnode{position:absolute;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:#fff4cf;font-family:Georgia,serif;font-weight:900;font-size:18px;border:0;z-index:4;cursor:default;background:radial-gradient(circle at 40% 30%,#6d7885 0 12%,#303943 40%,#111820 74%);box-shadow:0 0 0 2px #252b31,0 0 0 5px #8d969d,0 0 0 7px #333a40,inset 0 0 0 2px #c8ced3,inset 0 -10px 13px #000b,0 6px 10px #000c;text-shadow:0 2px 2px #000;}
+  .cnode::before{content:attr(data-code);position:absolute;left:50%;bottom:52px;transform:translateX(-50%);min-width:34px;padding:3px 6px;border-radius:5px 5px 3px 3px;background:linear-gradient(#386f91,#193e59);border:2px solid #cba754;color:#fff6d8;font:900 9px/1 Arial,sans-serif;letter-spacing:.2px;box-shadow:0 2px 4px #0009;text-shadow:0 1px 1px #000;white-space:nowrap;}
+  .cnode .clbl{position:absolute;top:64px;left:50%;transform:translateX(-50%);min-width:56px;color:#ffe59a;font:850 9px/1 Arial,sans-serif;text-shadow:0 2px 3px #000,0 0 4px #000;white-space:nowrap;pointer-events:none;}
+  .cnode .cportrait{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);border-radius:50%;object-fit:cover;object-position:center 18%;filter:saturate(1.05) contrast(1.04);}
+  .cnode .clock{position:absolute;inset:0;display:grid;place-items:center;font-size:19px;text-shadow:0 2px 3px #000;}
+  .cnode.cleared{cursor:pointer;background:radial-gradient(circle at 38% 30%,#4b9a80 0 12%,#17614d 43%,#062f27 74%);box-shadow:0 0 0 2px #69440e,0 0 0 5px #e3b34e,0 0 0 7px #754812,inset 0 0 0 2px #ffe092,inset 0 -9px 12px #001a14aa,0 5px 9px #000b;}
+  .cnode.current{color:#402300;cursor:pointer;background:radial-gradient(circle at 38% 28%,#fff3a6 0 12%,#f2ad26 39%,#9b4d0c 73%);box-shadow:0 0 0 2px #70400c,0 0 0 5px #ffe178,0 0 0 7px #a66516,inset 0 0 0 2px #fff4b0,inset 0 -9px 12px #8f3e0c88,0 0 18px #ffd24c,0 5px 9px #000b;animation:cnpulse 1.2s infinite;}
+  .cnode.locked{color:#aeb4bc;filter:grayscale(.45) brightness(.74);}
+  .cnode.justplayed{box-shadow:0 0 0 2px #8feaff,0 0 0 5px #e3b34e,0 0 0 7px #754812,0 0 18px #78ddff;}
+  .cnode.elite{width:64px;height:64px;box-shadow:0 0 0 2px #492763,0 0 0 5px #d6b0ff,0 0 0 8px #69408a,inset 0 0 0 2px #f0ddff,0 0 16px #a76cff99,0 6px 10px #000c;}
+  .cnode.elite::before{bottom:58px;background:linear-gradient(#704c8e,#3d2458);}
+  .cnode.elite .clbl{top:71px;}
+  .cnode.boss{width:70px;height:70px;color:#fff0cf;font-size:24px;background:radial-gradient(circle at 38% 30%,#d95b4e 0 10%,#7b1719 44%,#310708 75%);box-shadow:0 0 0 2px #71300e,0 0 0 5px #ffcb5e,0 0 0 8px #93420d,inset 0 0 0 2px #ffe49a,inset 0 -11px 14px #210000bb,0 0 20px #ff6a3788,0 6px 10px #000c;}
+  .cnode.boss::before{bottom:64px;background:linear-gradient(#9b3b29,#5c1715);}.cnode.boss .clbl{top:77px;}
+  .cstars{display:block;text-align:center;font-size:9px;line-height:1;margin-top:2px;letter-spacing:1px}.cstars .on{color:#ffd45e;text-shadow:0 0 4px #ffc83c}.cstars .off{color:#59606b}
+  .cbonus{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:50%;}.cbonus::before{content:'✦';display:grid;place-items:center;position:absolute;right:2px;top:2px;width:18px;height:18px;color:#ffe58d;font-size:16px;font-weight:900;text-shadow:0 0 5px #ffb52e,0 0 10px #ffb52e;animation:cbonusGlow 1.8s ease-in-out infinite}.cbonus span{position:absolute;left:50%;top:45px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.88);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}.cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #ffe08a;outline-offset:1px}@keyframes cbonusGlow{50%{filter:brightness(1.45);transform:scale(1.18)}}
+  @media(max-width:760px){#cmap{width:1120px;max-width:none;margin:0}#cmapScroll{scrollbar-width:thin}.cnode{width:54px;height:54px}.cnode::before{bottom:48px}.cnode .clbl{top:60px}.cnode.elite{width:60px;height:60px}.cnode.elite::before{bottom:54px}.cnode.elite .clbl{top:67px}.cnode.boss{width:66px;height:66px}.cnode.boss::before{bottom:60px}.cnode.boss .clbl{top:73px}.cbonus span{display:none}}
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
+  .smStageCard{max-width:720px;margin:0 auto;text-align:left;color:#e8edf5}.smStageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:linear-gradient(135deg,#382111,#181018);border:1px solid #9c6b31;border-radius:13px 13px 6px 6px;box-shadow:inset 0 0 0 1px #ffda7330}.smStageTitle{font:900 20px Georgia,serif;color:#ffe29a}.smStageSub{font-size:10px;color:#c9ad82;letter-spacing:.8px}.smStars{font-size:25px;letter-spacing:3px;color:#ffd45e;text-shadow:0 0 8px #ffb629}.smMeta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:7px 0}.smMeta>div{padding:7px 6px;text-align:center;border-radius:8px;background:#151c2a;border:1px solid #303d55}.smMeta span{display:block;color:#7f8da3;font-size:9px;text-transform:uppercase;letter-spacing:.7px}.smMeta b{display:block;color:#f4dfad;font-size:12px;margin-top:2px}.smWave{padding:6px 0;border-top:1px solid #29334a}.smWaveLabel{font-size:10px;font-weight:900;color:#d6bb80;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}.smEnemies{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}.smEnemy{position:relative;width:62px;text-align:center}.smEnemy img,.smEnemy>span{display:grid;place-items:center;width:52px;height:52px;margin:auto;border-radius:50%;object-fit:cover;object-position:center 18%;background:#172033;border:3px solid #8190a5;box-shadow:0 3px 7px #000b}.smEnemy b{display:block;font-size:8px;line-height:1.1;margin-top:3px;color:#dbe5f4}.smEnemy em{position:absolute;right:1px;top:35px;background:#111a;color:#fff;border:1px solid #8da0b8;border-radius:8px;padding:1px 4px;font:800 9px Arial}.smActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}.smActions .btn{min-height:44px;padding:8px 6px}.smActions .smCancel{grid-column:1/-1;min-height:30px}.smStageScroll{max-height:min(69vh,650px);overflow-y:auto;padding-right:2px}@media(max-width:560px){.smStageHead{padding:8px}.smStageTitle{font-size:16px}.smStars{font-size:19px}.smMeta{gap:4px}.smActions{grid-template-columns:1fr 1fr}.smActions .smBattle{grid-column:1/-1}.smEnemy{width:54px}.smEnemy img,.smEnemy>span{width:46px;height:46px}}
   /* world map zone */
   #wzone{position:relative;width:100%;max-width:none;margin:0;height:100%;overflow:auto;border-radius:12px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
   #worldBody{display:flex;flex-direction:column;flex:1;width:100%;min-height:0;}
@@ -1257,17 +1251,11 @@ const MYTHIC_BANNERS = {/*__MYTHBANNERS__*/}; // per-mythical-hero banner art OV
 const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHARED "MYTHICAL" plaque shown under ANY myth:true hero (per-hero MYTHIC_BANNERS wins if set)
 const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
-const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789529173459",2:ART_BASE+"Campaign/ch2.webp?v=1789529173459",3:ART_BASE+"Campaign/ch3.webp?v=1789529173459",4:ART_BASE+"Campaign/ch4.webp?v=1789529173459",5:ART_BASE+"Campaign/ch5.webp?v=1789529173459",6:ART_BASE+"Campaign/ch6.webp?v=1789529173459",7:ART_BASE+"Campaign/ch7.webp?v=1789529173459",8:ART_BASE+"Campaign/ch8.webp?v=1789529173459",9:ART_BASE+"Campaign/ch9.webp?v=1789529173459",10:ART_BASE+"Campaign/ch10.webp?v=1789529173459"};
-const CH_MAP_DIMS={1:[1024,1536],2:[1088,1445],3:[1086,1448],4:[1024,1536],5:[1086,1448],6:[1086,1448],7:[1086,1448],8:[1068,1473],9:[1075,1463],10:[1147,1372]};
-const CH_NODES={1:[[47.7,91.4],[73.8,85.4],[76.9,73.4],[53.3,68.0],[30.3,61.9],[21.0,48.1],[43.0,41.9],[65.6,35.0],[72.7,21.6],[49.5,17.3]],2:[[52.3,84.7],[73.9,78.5],[77.5,67.5],[55.6,62.6],[33.3,57.8],[24.3,45.8],[45.0,38.0],[66.3,31.9],[74.9,22.7],[52.3,15.2]],3:[[46.8,91.7],[61.6,81.8],[68.7,68.5],[49.5,62.4],[28.2,58.7],[25.9,46.5],[46.4,41.3],[66.0,34.8],[66.7,23.5],[46.6,17.7]],4:[[45.2,90.4],[66.2,83.7],[72.7,69.6],[53.8,60.4],[31.4,55.9],[24.2,44.5],[43.8,33.8],[66.3,32.5],[60.2,22.0],[38.9,15.8]],5:[[43.2,92.2],[57.1,79.9],[69.1,67.9],[50.6,61.0],[31.0,55.2],[25.6,43.3],[43.8,35.0],[64.6,31.4],[66.5,21.1],[47.0,15.2]],6:[[48.1,91.0],[62.8,80.9],[68.2,68.0],[50.7,62.2],[32.8,57.2],[25.2,46.4],[40.7,37.4],[58.4,31.9],[66.1,22.7],[48.0,18.0]],7:[[37.5,94.4],[55.4,85.1],[72.3,74.3],[61.7,62.9],[41.1,57.9],[23.6,48.7],[37.3,38.7],[57.2,32.7],[63.8,21.9],[44.2,16.5]],8:[[51.0,94.6],[64.9,83.3],[50.1,74.7],[42.3,65.8],[61.2,58.6],[75.7,47.9],[60.1,40.0],[53.1,31.7],[68.0,23.4],[48.9,17.0]],9:[[49.4,95.5],[65.5,82.8],[48.3,75.3],[38.1,66.8],[58.8,59.7],[75.9,48.4],[58.8,40.1],[52.6,31.8],[65.5,22.6],[49.5,12.3]],10:[[51.0,94.8],[65.4,82.2],[45.4,75.3],[45.4,65.5],[65.5,59.0],[46.6,51.6],[34.1,45.3],[52.5,34.9],[69.0,24.9],[49.8,15.7]]};
-// Six roadside structures per painted chapter. They are live entry points for the future bonus-round system; no reward rules exist yet.
-const CH_BONUS_SITES={
-1:[[20,84],[79,76],[21,61],[81,49],[22,34],[79,19]],2:[[22,84],[78,72],[20,60],[80,48],[22,35],[77,18]],
-3:[[19,84],[80,73],[20,59],[80,47],[21,33],[79,18]],4:[[20,84],[80,72],[19,59],[81,47],[21,33],[79,18]],
-5:[[19,84],[81,72],[20,59],[80,47],[21,33],[79,18]],6:[[20,84],[80,72],[19,59],[81,47],[21,33],[79,18]],
-7:[[20,84],[80,72],[19,59],[81,47],[21,33],[79,18]],8:[[18,84],[82,72],[19,59],[81,47],[20,33],[80,18]],
-9:[[18,84],[82,72],[19,59],[81,47],[20,33],[80,18]],10:[[18,84],[82,72],[19,59],[81,47],[20,33],[80,18]]
-};
+const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1789531860446"};
+const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024]};
+const CH_NODES={"1":[[5,53],[15,49],[25,54],[35,48],[45,53],[56,47],[67,53],[77,48],[88,52],[96,47]],"2":[[5,51],[15,55],[25,49],[35,54],[45,48],[56,52],[67,47],[77,52],[88,47],[96,51]],"3":[[5,52],[15,48],[25,53],[35,47],[45,52],[56,48],[67,53],[77,47],[88,52],[96,48]],"4":[[5,54],[15,49],[25,54],[35,48],[45,53],[56,47],[67,52],[77,48],[88,53],[96,48]],"5":[[5,52],[15,47],[25,53],[35,48],[45,54],[56,49],[67,53],[77,47],[88,52],[96,48]],"6":[[5,52],[15,48],[25,53],[35,47],[45,52],[56,48],[67,53],[77,47],[88,52],[96,48]],"7":[[5,52],[15,47],[25,53],[35,48],[45,54],[56,48],[67,52],[77,47],[88,53],[96,48]],"8":[[5,53],[15,48],[25,54],[35,49],[45,53],[56,47],[67,52],[77,48],[88,53],[96,48]],"9":[[5,52],[15,48],[25,53],[35,47],[45,52],[56,48],[67,53],[77,47],[88,52],[96,48]],"10":[[5,53],[15,48],[25,53],[35,47],[45,52],[56,48],[67,53],[77,47],[88,52],[96,48]]};
+// Six visible roadside buildings per landscape chapter. Each point is audited at that building’s foundation.
+const CH_BONUS_SITES={"1":[[15,35],[49,37],[84,34],[17,72],[51,73],[84,71]],"2":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"3":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"4":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"5":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"6":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"7":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"8":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"9":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]],"10":[[14,35],[49,36],[84,34],[16,72],[50,74],[85,71]]};
 const GUILD_BG=ART_BASE+"world-map/guildhall.webp",WISHPOOL_BG=ART_BASE+"world-map/wishingpool.webp",ACADEMY_BG=ART_BASE+"world-map/academy.webp",ISLAND_BG=ART_BASE+"world-map/trials.webp";
 const SCENE_SCRIM="linear-gradient(180deg,rgba(8,10,16,.30),rgba(8,10,16,.72))";
 function _isArt(u){return !!u&&(u.indexOf("http")===0||u.indexOf("data:")===0||u.indexOf("assets/")>=0);}
@@ -10205,7 +10193,7 @@ function renderRoadmap(){
   const _nodes=(typeof CH_NODES!=='undefined'&&CH_NODES[ch])?CH_NODES[ch]:null;
   if(_mapUrl&&_nodes){
     map.style.height=''; map.style.aspectRatio=''; map.style.background='none'; map.style.textAlign='center'; map.innerHTML='';
-    const _inner=document.createElement('div'); _inner.style.cssText='position:relative;display:inline-block;width:100%;vertical-align:top';
+    const _inner=document.createElement('div'); _inner.style.cssText='position:relative;display:block;width:100%;vertical-align:top';
     const _img=document.createElement('img'); _img.src=_mapUrl; _img.draggable=false;
     _img.style.cssText='display:block;width:100%;height:auto;-webkit-user-drag:none';
     _inner.appendChild(_img);
@@ -10223,10 +10211,12 @@ function renderRoadmap(){
       const el=document.createElement('button'); el.type='button'; el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
       el.dataset.stagePlate=String(g); el.dataset.tutStage=String(g); el.setAttribute('aria-label',`${stageCode(g)} ${cleared?'cleared':current?'available':'locked'}`);
       el.style.left=nd[0]+'%'; el.style.top=nd[1]+'%';
-      const face=cleared?'✓':(boss?'👑':(elite?'★':s));
+      el.dataset.code=stageCode(g);
       const _sst=cleared?portalStars(MODE,g):null;
       const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
-      el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
+      const _hk=(MODE==='normal'&&elite)?eliteHeroFor(g):null, _portrait=_hk&&HERO_PORTRAITS[_hk];
+      const face=_portrait?`<img class="cportrait" src="${_portrait}" alt="">`:`<span class="clock">${clickable?(boss?'👑':(cleared?'✓':s)):'🔒'}</span>`;
+      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':(elite?'HERO FRAGMENTS':'STAGE')}${_sstH}</div>`;
       if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
       if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
       _inner.appendChild(el);
@@ -10252,6 +10242,7 @@ function renderRoadmap(){
     const el=document.createElement('button'); el.type='button'; el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
     el.dataset.stagePlate=String(g); el.dataset.tutStage=String(g); el.setAttribute('aria-label',`${stageCode(g)} ${cleared?'cleared':current?'available':'locked'}`);
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
+    el.dataset.code=stageCode(g);
     const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
     const _sst=cleared?portalStars(MODE,g):null;
     const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
@@ -10267,7 +10258,7 @@ function renderRoadmap(){
       /* the node's position is a % of the map IMAGE, which has no height until it has loaded — so
          centre now, and again when the image lands (2 Sep) */
       const r=cur.getBoundingClientRect(), sr=scr.getBoundingClientRect();
-      scr.scrollTop=Math.max(0, scr.scrollTop+(r.top+r.height/2)-(sr.top+sr.height/2)); };
+      scr.scrollLeft=Math.max(0, scr.scrollLeft+(r.left+r.width/2)-(sr.left+sr.width/2)); };
     requestAnimationFrame(_center); const _im=map.querySelector('img'); if(_im&&!_im.complete) _im.addEventListener('load',()=>requestAnimationFrame(_center),{once:true}); setTimeout(_center,400); }
 }
 const STAGE_XP_FIRST=30, STAGE_XP_SWEEP=6;
@@ -10344,12 +10335,13 @@ function stageDetailHTML(stg,node){
   const waves=(stg.waves||[]);
   const nameOf=k=>{ const t=HERO_TYPES[k]; if(t&&t.name) return t.name;
     return String(k).replace(/\b\w/g,c=>c.toUpperCase()); };
+  const portraitOf=k=>(HERO_PORTRAITS&&HERO_PORTRAITS[k])||(typeof MONSTER_SPRITES!=='undefined'&&MONSTER_SPRITES[k])||(typeof GLOSSARY_ART!=='undefined'&&GLOSSARY_ART['monsters/'+String(k).replace(/ /g,'-')])||'';
   const waveRows=waves.map((w,wi)=>{
     const counts={}; w.forEach(m=>{ counts[m.key]=(counts[m.key]||0)+1; });
     const boss=w.some(m=>m.boss);
-    const list=Object.keys(counts).map(k=>{ const t=HERO_TYPES[k]||MONSTER_TYPES[k]||{};
-      return `<span style="white-space:nowrap">${escapeHTML(nameOf(k))}${counts[k]>1?(' ×'+counts[k]):''} ${roleTag(t.role,true,key)}</span>`; }).join(' ');
-    return `<div style="font-size:11px;color:#c3ccd8;margin:3px 0;line-height:1.8"><b style="color:${boss?'#ffd45e':'#8fb7ff'}">Wave ${wi+1}${boss?' 👑':''}</b> · ${list}</div>`;
+    const list=Object.keys(counts).map(k=>{ const art=portraitOf(k), n=nameOf(k);
+      return `<div class="smEnemy" title="${escapeHTML(n)}">${art?`<img src="${art}" alt="">`:`<span>${boss?'👑':'⚔️'}</span>`}<b>${escapeHTML(n)}</b>${counts[k]>1?`<em>×${counts[k]}</em>`:''}</div>`; }).join('');
+    return `<div class="smWave"><div class="smWaveLabel">${boss?'👑':'⚔️'} Wave ${wi+1}</div><div class="smEnemies">${list}</div></div>`;
   }).join('');
   // Blueprint v1: a chapter boss is a HARD player-level graduation gate; Stage 5/10 show a hint.
   const gate=(stg.bossLevelGate|0), myLv=(typeof playerLevel==='function')?playerLevel():1;
@@ -10404,7 +10396,7 @@ function openStageModal(i,mode){
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
-    if(window.SM_KEY===_smKey&&el&&document.getElementById('stageModal').classList.contains('active')) el.innerHTML=stageDropsHTML(r.stage,i,mode);
+    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=stageDropsHTML(r.stage,i,mode); }
     preloadStageArt(r.stage); } }).catch(()=>{}); }
   if(STAGE_CACHE[mode+':'+i]) preloadStageArt(STAGE_CACHE[mode+':'+i]);   // cached stage: warm the art immediately
   if(i>portalStages(mode)) return;
@@ -10418,21 +10410,21 @@ function openStageModal(i,mode){
   const _gateOK=!_gate||playerLevel()>=_gate;
   // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
   const _stars=portalStars(mode,i), _threeStar=_stars>=3;
-  body.innerHTML=`<div style="text-align:center">
-      <div style="font-size:34px">${boss?'👑':(elite?'⭐':'🗺️')}</div>
-      <div style="font-weight:800;font-size:18px;margin-bottom:2px">${boss?'Boss Stage '+stageCode(i):(elite?'Guardian Stage '+stageCode(i):'Stage '+stageCode(i))}</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:12px">${PORTAL_META[mode].icon} ${PORTAL_META[mode].label} Portal</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Battle ▶ '+(cleared?'(replay · '+campaignPlayerXP(i,false,mode)+' XP)':'('+campaignPlayerXP(i,true,mode)+' XP)'):'🔒 Reach player level '+_gate+' to challenge this boss'}</button>
-        ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep (instant · '+campaignPlayerXP(i,false,mode)+' XP)':'🔒 Sweep — needs ★★★ ('+_stars+'/3)'}</button>`:''}
-        ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10 (⧗ '+(stageStamCost(i,mode)*10)+' · '+(campaignPlayerXP(i,false,mode)*10)+' XP)':'🔒 Sweep ×10 — needs ★★★'}</button>`:''}
-        <button class="btn sm secondary" id="smClose">Cancel</button>
-      </div>
-      <div id="smFragTarget" style="margin-top:12px">${stageDropsHTML(_stg,i,mode)}</div>
-      <div style="font-size:11px;color:#c9a0ff;margin-top:6px">📖 One Hero XP Potion per rewarded run: ${xpPotionStageText(i,mode)}</div>
-      ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px">Not enough stamina.</div>'}
-      <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px"></div>
-    </div>`;
+  const _title=boss?'Boss Stage '+stageCode(i):(elite?'Guardian Stage '+stageCode(i):'Stage '+stageCode(i));
+  const _starsHTML=[0,1,2].map(x=>`<span style="color:${x<_stars?'#ffd45e':'#465064'}">★</span>`).join('');
+  body.innerHTML=`<div class="smStageCard"><div class="smStageScroll">
+    <div class="smStageHead"><div><div class="smStageSub">${PORTAL_META[mode].icon} ${PORTAL_META[mode].label.toUpperCase()} · CHAPTER ${chapterOf(i)}</div><div class="smStageTitle">${_title}</div></div><div class="smStars">${_starsHTML}</div></div>
+    <div class="smMeta"><div><span>Stamina</span><b>⧗ ${stageStamCost(i,mode)}</b></div><div><span>${_eb?'Chances':'Status'}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?'Cleared':'New')}</b></div><div><span>Reward XP</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
+    <div id="smDetails">${stageDetailHTML(_stg,i)}</div>
+    <div id="smFragTarget" style="margin-top:8px">${stageDropsHTML(_stg,i,mode)}</div>
+    <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">📖 One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run</div>
+    ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">Not enough stamina.</div>'}
+    <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Fight '+(cleared?'Again':'Now'):'🔒 Reach level '+_gate}</button>
+      ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep':'🔒 Needs ★★★'}</button>`:'<button class="btn secondary" disabled>💨 Sweep</button>'}
+      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10':'🔒 ×10'}</button>`:'<button class="btn secondary" disabled>💨 Sweep ×10</button>'}
+      <button class="btn sm secondary smCancel" id="smClose">Back to Map</button></div>
+    <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px;text-align:center"></div>
+  </div></div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
   body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i,mode))return; if(i<=portalCleared(mode) && stageRunsLeft(i,mode)<1 && !(typeof DEV!=='undefined'&&DEV.on)){ document.getElementById('smMsg').textContent='Daily limit reached for this stage (3 rewarded runs/day).'; return; }   /* dev accounts remain exempt for repeated balance testing */ G.lastStage=i; G.lastPortal=mode; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; CUR.portal=mode; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
@@ -16555,7 +16547,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789530290927';
+const BUILD_ID = '1789532187508';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
