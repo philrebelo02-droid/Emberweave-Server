@@ -453,7 +453,7 @@
     #portalTabs{position:absolute!important;top:3px;left:64px;right:3px;height:32px;padding:0!important;gap:3px!important;z-index:9!important;background:linear-gradient(90deg,transparent,#0b1220cc 16%,#0b1220cc 84%,transparent)}#portalTabs .btn{padding:4px 6px!important;min-height:30px!important;font-size:9px!important}
     #starTrack{position:absolute!important;top:37px;left:5px;right:5px;z-index:9;margin:0!important}#starTrack>div{padding:2px 7px!important;margin:0 auto!important;min-height:21px;max-width:390px;background:#0b1220d9!important}
     #cmapHdr{position:absolute!important;top:62px;left:0;right:0;height:31px;padding:1px 64px!important;gap:7px!important;z-index:9!important;background:linear-gradient(180deg,#08101bd9,#08101b80,transparent)}#cmapHdr .btn{padding:3px 8px!important;min-height:25px!important}
-    #cmapScroll{position:absolute!important;inset:0;max-height:none;height:100%;scrollbar-width:thin;padding:0;margin:0;overflow-x:auto;overflow-y:hidden}#cmap{width:1120px;max-width:none;margin:0;border-radius:0;border-top:0}.cnode{width:24px;height:24px}.cnode::before{bottom:21px}.cnode .clbl{top:28px}.cnode.elite{width:48px;height:64px;transform:translate(-50%,-100%)}.cnode.elite::before{top:0;bottom:auto}.cnode.elite .clbl{top:58px}.cnode.elite .cIdle{height:36px;bottom:8px}.cnode.boss{width:30px;height:30px}.cnode.boss::before{bottom:27px}.cnode.boss .clbl{top:36px}.cbonus span{display:none}
+    #cmapScroll{position:absolute!important;inset:0;max-height:none;height:100%;scrollbar-width:thin;padding:0;margin:0;overflow-x:auto;overflow-y:hidden}#cmap{width:max(720px,min(100vw,calc(100vh * 1.5)));width:max(720px,min(100vw,calc(100dvh * 1.5)));max-width:none;margin:0 auto;border-radius:0;border-top:0}.cnode{width:24px;height:24px}.cnode::before{bottom:21px}.cnode .clbl{top:28px}.cnode.elite{width:48px;height:64px;transform:translate(-50%,-100%)}.cnode.elite::before{top:0;bottom:auto}.cnode.elite .clbl{top:58px}.cnode.elite .cIdle{height:36px;bottom:8px}.cnode.boss{width:30px;height:30px}.cnode.boss::before{bottom:27px}.cnode.boss .clbl{top:36px}.cbonus span{display:none}
   }
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
   .smStageCard{max-width:720px;margin:0 auto;text-align:left;color:#e8edf5}.smStageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:linear-gradient(135deg,#382111,#181018);border:1px solid #9c6b31;border-radius:13px 13px 6px 6px;box-shadow:inset 0 0 0 1px #ffda7330}.smStageTitle{font:900 20px Georgia,serif;color:#ffe29a}.smStageSub{font-size:10px;color:#c9ad82;letter-spacing:.8px}.smStars{font-size:25px;letter-spacing:3px;color:#ffd45e;text-shadow:0 0 8px #ffb629}.smMeta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:7px 0}.smMeta>div{padding:7px 6px;text-align:center;border-radius:8px;background:#151c2a;border:1px solid #303d55}.smMeta span{display:block;color:#7f8da3;font-size:9px;text-transform:uppercase;letter-spacing:.7px}.smMeta b{display:block;color:#f4dfad;font-size:12px;margin-top:2px}.smWave{padding:6px 0;border-top:1px solid #29334a}.smWaveLabel{font-size:10px;font-weight:900;color:#d6bb80;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}.smEnemies{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}.smEnemy{position:relative;width:62px;text-align:center}.smEnemy img,.smEnemy>span{display:grid;place-items:center;width:52px;height:52px;margin:auto;border-radius:50%;object-fit:cover;object-position:center 18%;background:#172033;border:3px solid #8190a5;box-shadow:0 3px 7px #000b}.smEnemy b{display:block;font-size:8px;line-height:1.1;margin-top:3px;color:#dbe5f4}.smEnemy em{position:absolute;right:1px;top:35px;background:#111a;color:#fff;border:1px solid #8da0b8;border-radius:8px;padding:1px 4px;font:800 9px Arial}.smActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}.smActions .btn{min-height:44px;padding:8px 6px}.smActions .smCancel{grid-column:1/-1;min-height:30px}.smStageScroll{max-height:min(69vh,650px);overflow-y:auto;padding-right:2px}@media(max-width:560px){.smStageHead{padding:8px}.smStageTitle{font-size:16px}.smStars{font-size:19px}.smMeta{gap:4px}.smActions{grid-template-columns:1fr 1fr}.smActions .smBattle{grid-column:1/-1}.smEnemy{width:54px}.smEnemy img,.smEnemy>span{width:46px;height:46px}}
@@ -712,6 +712,31 @@
   .hero-card:active{transform:translateY(1px) scale(.985);}
   .hero-card .lvl,.lvl{background:linear-gradient(180deg,#ffd87b,#eda440);border:1px solid #ffe4a0;box-shadow:0 2px 5px rgba(0,0,0,.42);}
   .pill{background:linear-gradient(180deg,#40506d,#2b3851);border:1px solid #50627f;box-shadow:inset 0 1px rgba(255,255,255,.07);}
+  @media (orientation:landscape) and (max-height:700px){
+    #stageModal .pm{box-sizing:border-box;width:calc(100% - 16px);max-width:1100px;max-height:calc(100dvh - 12px);padding:7px 10px;overflow:hidden}
+    #stageModal .smStageCard{max-width:none;margin:0}
+    #stageModal .smStageScroll{max-height:none;overflow:visible;padding:0}
+    #stageModal .smStageHead{padding:5px 9px;min-height:29px}
+    #stageModal .smStageTitle{font-size:17px}
+    #stageModal .smStars{font-size:19px}
+    #stageModal .smMeta{margin:4px 0;gap:5px}
+    #stageModal .smMeta>div{padding:4px 5px}
+    #stageModal #smDetails>div:first-child{padding:5px 8px!important}
+    #stageModal .smWaveGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:4px!important}
+    #stageModal .smWave{min-width:0;padding:4px;border:1px solid #29334a;border-radius:7px}
+    #stageModal .smWaveLabel{margin-bottom:3px}
+    #stageModal .smEnemies{gap:3px}
+    #stageModal .smEnemy{width:40px;min-width:0}
+    #stageModal .smEnemy img,#stageModal .smEnemy>span{width:34px;height:34px;border-width:2px}
+    #stageModal .smEnemy b{font-size:7px;overflow-wrap:anywhere}
+    #stageModal .smEnemy em{top:23px;font-size:8px}
+    #stageModal .smFragSummary{display:none}
+    #stageModal #smFragTarget{margin-top:4px!important}
+    #stageModal .smActions{grid-template-columns:1.3fr 1fr 1fr .8fr;gap:5px;margin-top:5px}
+    #stageModal .smActions .btn{min-height:36px;padding:4px 5px;font-size:11px}
+    #stageModal .smActions .smCancel{grid-column:auto;min-height:36px}
+    #stageModal #smMsg{margin-top:2px!important;min-height:10px!important}
+  }
   #profileModal,#stageModal,#hudShop,#pauseModal{backdrop-filter:blur(3px);}
   #profileModal .pm,#stageModal .pm,#pauseModal .pm{background:
     radial-gradient(circle at 80% 0,rgba(108,136,201,.15),transparent 40%),
@@ -1261,7 +1286,7 @@ const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1789531860446"};
 const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024]};
-const CH_NODES={"1":[[5,37],[15,43],[25,40],[35,39],[45,46],[56,49],[67,45],[77,53],[88,44],[96,40]],"2":[[5,38],[15,45],[25,48],[35,42],[45,36],[56,39],[67,46],[77,39],[88,34],[96,45]],"3":[[5,42],[15,40],[25,44],[35,48],[45,51],[56,50],[67,46],[77,43],[88,48],[96,46]],"4":[[5,43],[15,47],[25,50],[35,48],[45,44],[56,42],[67,46],[77,49],[88,47],[96,42]],"5":[[5,38],[15,41],[25,46],[35,49],[45,51],[56,46],[67,50],[77,47],[88,51],[96,45]],"6":[[5,41],[15,44],[25,39],[35,36],[45,39],[56,44],[67,49],[77,43],[88,45],[96,41]],"7":[[5,45],[15,51],[25,53],[35,50],[45,44],[56,39],[67,37],[77,44],[88,39],[96,35]],"8":[[5,40],[15,37],[25,44],[35,46],[45,40],[56,37],[67,43],[77,48],[88,46],[96,41]],"9":[[5,31],[15,39],[25,43],[35,46],[45,43],[56,45],[67,51],[77,51],[88,46],[96,39]],"10":[[5,37],[15,45],[25,49],[35,53],[45,54],[56,47],[67,38],[77,48],[88,50],[96,43]]};
+const CH_NODES={"1":[[5,40],[15,47],[25,47],[35,44],[45,44],[56,53],[70,55],[77,57],[88,50],[96,47]],"2":[[5,38],[15,45],[25,48],[35,42],[45,36],[56,39],[67,46],[77,39],[88,34],[96,45]],"3":[[5,42],[15,40],[25,44],[35,48],[45,51],[56,50],[67,46],[77,43],[88,48],[96,46]],"4":[[5,43],[15,47],[25,50],[35,48],[45,44],[56,42],[67,46],[77,49],[88,47],[96,42]],"5":[[5,38],[15,41],[25,46],[35,49],[45,51],[56,46],[67,50],[77,47],[88,51],[96,45]],"6":[[5,41],[15,44],[25,39],[35,36],[45,39],[56,44],[67,49],[77,43],[88,45],[96,41]],"7":[[5,45],[15,51],[25,53],[35,50],[45,44],[56,39],[67,37],[77,44],[88,39],[96,35]],"8":[[5,40],[15,37],[25,44],[35,46],[45,40],[56,37],[67,43],[77,48],[88,46],[96,41]],"9":[[5,31],[15,39],[25,43],[35,46],[45,43],[56,45],[67,51],[77,51],[88,46],[96,39]],"10":[[5,37],[15,45],[25,49],[35,53],[45,54],[56,47],[67,38],[77,48],[88,50],[96,43]]};
 // Six visible roadside buildings per landscape chapter. Each point is audited at that building’s foundation.
 const CH_BONUS_SITES={"1":[[14,30],[39,34],[85,34],[12,68],[44,70],[85,68]],"2":[[14,32],[47,33],[85,34],[15,69],[49,73],[84,68]],"3":[[15,31],[48,34],[85,34],[15,73],[50,74],[84,75]],"4":[[14,34],[48,34],[84,36],[15,73],[50,70],[85,70]],"5":[[14,34],[49,37],[84,37],[15,73],[50,72],[85,71]],"6":[[14,34],[49,34],[84,36],[15,75],[50,74],[85,72]],"7":[[14,38],[50,34],[84,37],[15,74],[50,72],[84,73]],"8":[[14,35],[49,34],[84,36],[15,74],[50,72],[85,73]],"9":[[14,31],[49,31],[84,35],[15,74],[50,75],[84,73]],"10":[[14,37],[49,35],[84,36],[15,74],[50,75],[85,71]]};
 const GUILD_BG=ART_BASE+"world-map/guildhall.webp",WISHPOOL_BG=ART_BASE+"world-map/wishingpool.webp",ACADEMY_BG=ART_BASE+"world-map/academy.webp",ISLAND_BG=ART_BASE+"world-map/trials.webp";
@@ -10395,9 +10420,9 @@ function stageDetailHTML(stg,node){
       <span style="font-size:11px;font-weight:700;color:#c9a2ff">${stg.targetGlyph==='None'?'None needed yet':escapeHTML(stg.recommendedQuality)+(stg.qualityMinHeroLevel?` <span style="font-weight:400;color:#8b98a9">(hero Lv ${stg.qualityMinHeroLevel}+)</span>`:'')}</span></div>`:''}
     ${gateLine}
     ${cueLine}
-    <div style="margin-top:6px">${waveRows}</div>
-    ${frag?`<div style="margin-top:6px;font-size:11px"><span style="color:#8b98a9">${_random?'2 distinct random fragments from these 4:':'Guaranteed:'}</span><br>${frag}</div>`:''}
-    ${fragBonus?`<div style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">Bonus:</span><br>${fragBonus}</div>`:''}
+    <div class="smWaveGrid" style="margin-top:6px">${waveRows}</div>
+    ${frag?`<div class="smFragSummary" style="margin-top:6px;font-size:11px"><span style="color:#8b98a9">${_random?'2 distinct random fragments from these 4:':'Guaranteed:'}</span><br>${frag}</div>`:''}
+    ${fragBonus?`<div class="smFragSummary" style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">Bonus:</span><br>${fragBonus}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px">
       <span style="font-size:11px;color:#8b98a9">Stamina · sweep</span>
       <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${((G.stageStars&&G.stageStars[node])|0)>=3?((isEliteStage(node)||isBossStage(node))?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks at ★★★'}</span></div>
@@ -16569,7 +16594,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789556153341';
+const BUILD_ID = '1789563344509';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
