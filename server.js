@@ -1723,7 +1723,7 @@ function findOpenSession(u, sid){
    ACT_INPUT_DELAY ticks in the future: enough for the receipt to come back over a normal connection.
    If the round trip is slower than that, the client holds the simulation rather than guessing — a
    brief hitch on a bad network, never a fight that disagrees with its own record. */
-const STALL_BUDGET_MS=300*1000;        // total wall time a session may hold its clock frozen
+const STALL_BUDGET_MS=24*60*60*1000; // match the full attempt lifetime so pause/aim cannot desync the server clock
 const ACT_INPUT_DELAY=9;               // ≈300 ms of headroom at the client's real tick rate
 const SIM_HZ_SRV=30, BATTLE_PACE_SRV=0.82;   // must match the client's constants exactly
 function sessionClock(a){
@@ -1870,7 +1870,7 @@ const EQ_MAT_KEYS=Object.freeze(['cloth','blade','wood','ore']);   // the four e
 const EQ_SLOT_BASE_SRV=Object.freeze({ plate:[1,0,3,0,3,2], ranged:[2,0,0,2,2,3], caster:[2,0,0,0,0,3] });
 const EQ_CRAFT_MAT_COST=2;   // a Grey piece costs 2 of its base material
 const SERVER_BUILD='v275-server-ticks';
-const CAMP_SESSION_MS=30*60*1000;   // v273: a frozen battle session is good for 30 minutes
+const CAMP_SESSION_MS=24*60*60*1000; // a player may spend hours fighting or leave a solo battle paused
 const SKILL_MAX_SRV=100, SKILL_COST_R_SRV=1.04;  /* 12 Sep 2026 - must match the client's SKILL_MAX / SKILL_COST_R exactly. */
 const SKILL_UP_BASE_SRV=[300,220,260,400];   // mirrors the client's SKILL_UP_BASE (ult / green / blue / passive)
 const PRAYER_UNLOCK_LEVEL_SRV=40, PRAYER_MAX_SRV=200;
