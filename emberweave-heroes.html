@@ -435,26 +435,25 @@
   #cmap{position:relative;width:min(100%,900px);margin:0 auto 10px;border-radius:14px;overflow:hidden;border:1px solid #2a3550;
         background:linear-gradient(180deg,#a9d8ef 0%,#bfe3c7 22%,#9fd08a 45%,#7fb86a 70%,#5e964e 100%);}
   #cmap svg{position:absolute;inset:0;width:100%;height:100%;}
-  .cnode{position:absolute;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;
-         align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;border:2px solid rgba(236,245,255,.82);
-         background:radial-gradient(circle,rgba(18,29,42,.70) 0 47%,rgba(5,10,18,.25) 49% 66%,transparent 68%);
-         box-shadow:0 2px 9px rgba(0,0,0,.55);z-index:4;backdrop-filter:blur(1px);}
-  .cnode::after{content:'';position:absolute;inset:6px;border:1px solid rgba(255,255,255,.26);border-radius:inherit;pointer-events:none}
-  .cnode .clbl{position:absolute;top:43px;left:50%;transform:translateX(-50%);min-width:44px;padding:2px 4px;border-radius:5px;background:rgba(4,8,14,.72);font-size:8px;font-weight:800;line-height:1.1;text-shadow:0 1px 2px #000;white-space:nowrap;}
-  .cnode.cleared{border-color:#8effc0;color:#caffdf;cursor:pointer;background:radial-gradient(circle,rgba(23,105,70,.72) 0 47%,rgba(6,28,19,.28) 49% 66%,transparent 68%);}
-  .cnode.justplayed{box-shadow:0 0 0 2px #8fe3ff,0 0 14px #8fe3ff99;}
-  .cnode.current{border-color:#ffe89a;color:#fff5c9;cursor:pointer;background:radial-gradient(circle,rgba(181,126,25,.78) 0 47%,rgba(62,42,8,.30) 49% 66%,transparent 68%);animation:cnpulse 1.2s infinite;}
-  .cnode.locked{border-color:rgba(151,163,183,.58);color:#c3cad6;background:radial-gradient(circle,rgba(43,51,65,.62) 0 47%,rgba(8,12,18,.22) 49% 66%,transparent 68%);}
-  .cnode.boss{width:58px;height:58px;font-size:16px;border-color:#ffd06b;}
-  .cnode.boss .clbl{top:52px;}
-  .cnode.elite{border-color:#d7b6ff;box-shadow:0 0 12px rgba(201,160,255,.58),0 3px 9px rgba(0,0,0,.45);}
-  .cnode.elite.current,.cnode.elite.cleared{color:#f2e6ff;}
+  .cnode{position:absolute;transform:translate(-50%,-50%);width:46px;height:34px;clip-path:polygon(12% 0,88% 0,100% 24%,100% 76%,88% 100%,12% 100%,0 76%,0 24%);display:flex;flex-direction:column;
+         align-items:center;justify-content:center;font-weight:950;font-size:13px;color:#fff8db;border:0;
+         background:linear-gradient(145deg,rgba(255,226,135,.96) 0 7%,rgba(95,60,18,.94) 8% 14%,rgba(9,18,28,.86) 15% 85%,rgba(78,49,15,.94) 86% 92%,rgba(255,218,112,.95) 93%);
+         box-shadow:0 4px 9px rgba(0,0,0,.58),0 0 8px rgba(255,205,91,.28);z-index:4;filter:drop-shadow(0 2px 2px rgba(0,0,0,.48));}
+  .cnode .clbl{position:absolute;top:36px;left:50%;transform:translateX(-50%);min-width:40px;padding:2px 5px;border:1px solid rgba(223,181,90,.48);border-radius:6px;background:linear-gradient(180deg,rgba(8,14,22,.88),rgba(16,23,32,.76));color:#f7e8bc;font-size:8px;font-weight:850;line-height:1.1;text-shadow:0 1px 2px #000;white-space:nowrap;clip-path:none;}
+  .cnode.cleared{color:#dbffe9;cursor:pointer;background:linear-gradient(145deg,#baffd4 0 7%,#246b45 8% 14%,rgba(7,48,31,.88) 15% 85%,#1d5a3a 86% 92%,#9fffc4 93%);box-shadow:0 4px 9px rgba(0,0,0,.55),0 0 9px rgba(99,255,170,.35);}
+  .cnode.justplayed{box-shadow:0 0 0 2px #9ceaff,0 0 14px #78ddff;}
+  .cnode.current{color:#2e2105;cursor:pointer;background:linear-gradient(145deg,#fff2b1 0 8%,#bb7d1d 9% 16%,#ffd96b 17% 83%,#a66710 84% 92%,#fff0a4 93%);box-shadow:0 4px 9px rgba(0,0,0,.52),0 0 15px rgba(255,207,81,.74);animation:cnpulse 1.2s infinite;text-shadow:0 1px 0 #fff4c4;}
+  .cnode.locked{color:#c9cfda;background:linear-gradient(145deg,#aeb7c5 0 7%,#4b5360 8% 14%,rgba(28,35,45,.84) 15% 85%,#404854 86% 92%,#919aa8 93%);box-shadow:0 3px 7px rgba(0,0,0,.46);}
+  .cnode.boss{width:56px;height:42px;font-size:16px;background:linear-gradient(145deg,#ffe49a 0 7%,#863316 8% 14%,rgba(65,12,8,.91) 15% 85%,#76270d 86% 92%,#ffd778 93%);box-shadow:0 4px 10px rgba(0,0,0,.6),0 0 15px rgba(255,112,48,.52);}
+  .cnode.boss .clbl{top:44px;}
+  .cnode.elite{background:linear-gradient(145deg,#ead6ff 0 7%,#6e3a9e 8% 14%,rgba(39,17,66,.9) 15% 85%,#5b2c88 86% 92%,#d9b8ff 93%);box-shadow:0 4px 9px rgba(0,0,0,.55),0 0 12px rgba(201,160,255,.58);color:#f7efff;}
+  .cnode.elite.current{color:#2b123e;background:linear-gradient(145deg,#fff0b5 0 7%,#9564c8 8% 14%,#d6aaff 15% 85%,#8350b4 86% 92%,#fff0b5 93%);}
   .cbonus{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:12px;}
   .cbonus::before{content:'◆';display:grid;place-items:center;position:absolute;inset:8px;border-radius:9px;color:#ffe59a;font-size:13px;background:rgba(45,27,8,.62);border:1px solid rgba(255,220,119,.78);box-shadow:0 0 10px rgba(255,193,64,.40);animation:cbonusGlow 1.8s ease-in-out infinite;}
   .cbonus span{position:absolute;left:50%;top:42px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.76);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s;}
   .cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #fff0ad;outline-offset:1px}
   @keyframes cbonusGlow{50%{filter:brightness(1.28);box-shadow:0 0 15px rgba(255,193,64,.72)}}
-  @media(max-width:600px){.cnode{width:44px;height:44px}.cnode .clbl{top:39px}.cnode.boss{width:52px;height:52px}.cnode.boss .clbl{top:47px}.cbonus{width:44px;height:44px}.cbonus span{display:none}}
+  @media(max-width:600px){.cnode{width:44px;height:33px}.cnode .clbl{top:35px}.cnode.boss{width:52px;height:39px}.cnode.boss .clbl{top:41px}.cbonus{width:44px;height:44px}.cbonus span{display:none}}
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
   /* world map zone */
   #wzone{position:relative;width:100%;max-width:none;margin:0;height:100%;overflow:auto;border-radius:12px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
@@ -10220,8 +10219,9 @@ function renderRoadmap(){
       const _cl=portalCleared(MODE);
       const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
       const clickable=(cleared||current) && g<=PLAYABLE;
-      const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
-      el.dataset.tutStage=String(g);
+      if(_inner.querySelector(`[data-stage-plate="${g}"]`)) continue;
+      const el=document.createElement('button'); el.type='button'; el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
+      el.dataset.stagePlate=String(g); el.dataset.tutStage=String(g); el.setAttribute('aria-label',`${stageCode(g)} ${cleared?'cleared':current?'available':'locked'}`);
       el.style.left=nd[0]+'%'; el.style.top=nd[1]+'%';
       const face=cleared?'✓':(boss?'👑':(elite?'★':s));
       const _sst=cleared?portalStars(MODE,g):null;
@@ -10248,8 +10248,9 @@ function renderRoadmap(){
   pts.forEach(p=>{ const g=p.g; const _cl=portalCleared(MODE);
     const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
     const clickable=(cleared||current) && g<=PLAYABLE;
-    const el=document.createElement('div'); el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
-    el.dataset.tutStage=String(g);
+    if(map.querySelector(`[data-stage-plate="${g}"]`)) return;
+    const el=document.createElement('button'); el.type='button'; el.className='cnode '+(cleared?'cleared':current?'current':'locked')+(boss?' boss':'')+(elite?' elite':'');
+    el.dataset.stagePlate=String(g); el.dataset.tutStage=String(g); el.setAttribute('aria-label',`${stageCode(g)} ${cleared?'cleared':current?'available':'locked'}`);
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
     const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
     const _sst=cleared?portalStars(MODE,g):null;
@@ -16554,7 +16555,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789529173459';
+const BUILD_ID = '1789529895064';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
