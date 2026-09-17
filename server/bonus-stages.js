@@ -97,7 +97,7 @@ const WINDOWS    = WAVES - 1;
    other two on two and three. **That version is strictly more interesting and it is one constant.**
    Built to his words, flagged in `projects/11 - OPEN QUESTIONS FOR PHIL.md`, not guessed at silently. */
 const MAX_PER_LANE = 10;                    // Phil's number
-const MAX_HEROES   = LANES * MAX_PER_LANE;  // 30 — the literal consequence, and the line to change
+const MAX_HEROES   = 15;                    // Phil, 17 Sep 2026: "lock the ability to select a 16th hero" — the budget the comment above argued for
 const MIN_PER_LANE = 1;         // an empty lane is a fallen lane — see rulesSettled()
 const ATTEMPT_MS = 45 * 60 * 1000;
 /* SECURITY, 17 Sep - a forged /api/bonus/resolve was found accepting a client-claimed
