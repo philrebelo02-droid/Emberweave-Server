@@ -1527,7 +1527,7 @@ const BATTLE_ANIM = {
   nerisse:{
     idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=33',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,2,3,-1,-1,0,1,-5,-6,-7,-16,-21,-23,-23,-24,-24,-23,-23,-24,-23,-23,-23,-23,-23,-23,-23,-15,-6,-3,-5,-3,-3,-7,-6,-7,-9,-24,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23]},
     walk:{u:'/assets/anim/nerisse/nerisse_walk.webp?v=33',n:48,fw:260,fh:400,cols:6,rows:8,figH:380,feet:384,cx:113,fps:24,flip:true,top:4,ax:[0,-28,-41,-54,-48,-38,-34,-24,-18,-10,-20,-29,-46,-43,-36,-31,-23,-17,-8,0,2,-9,-26,-47,-57,-49,-45,-35,-31,-22,-14,-9,-20,-28,-30,-25,-16,-14,-8,-3,0,4,6,8,2,-2,-2,1]},
-    attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=33',n:23,fw:339,fh:400,cols:6,rows:8,figH:339,feet:386,cx:180,fps:11,flip:true,top:47,ax:[0,1,1,1,1,1,2,2,2,2,2,3,6,7,12,25,55,69,70,70,70,70,70],hold:1.68}   /* v576 Phil: rubberband - cells 0-22 end at full arm extension (cell 22), then snap to idle frame 0 (same plate); cells 23-47 (the hold + slow return) are not played. fps 11 so the 23-cell thrust fills her 1.8 s swing (Phil: "slower fps to match the attack speed"). hold is SIM seconds and the clip runs on WALL time (BATTLE_PACE 0.82): 1.68/0.82 = 2.05 s wall, just under 23/11 = 2.09 s, so the hold ends on cell 22 and never wraps to cell 0 */,
+    attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=33',n:23,fw:339,fh:400,cols:6,rows:8,figH:339,feet:386,cx:180,fps:17,flip:true,top:47,ax:[0,1,1,1,1,1,2,2,2,2,2,3,6,7,12,25,55,69,70,70,70,70,70],pingpong:true,rbk:2,hold:1.63},   /* v577 Phil: "the rubber band on attack is much too fast. Please make the snap back slower" - cells 0-22 run out to full arm extension (1.35 s), then pingpong BACK through the same cells at 2x (rbk:2, 0.65 s) and land on cell 0 = the idle pose. 34 frames at 17 fps = 2.0 s wall; hold 1.63 sim / 0.82 = 1.99 s so it ends on the return, never wraps. Cells 23-47 of the sheet (hold + its own slow return) are not played */
     hit:{u:'/assets/anim/nerisse/nerisse_hit.webp?v=33',n:48,fw:386,fh:400,cols:6,rows:8,figH:399,feet:400,cx:178,fps:24,flip:true,top:1,ax:[0,0,1,3,5,-3,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-7,2,13,18,18,15,5,-5,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-6,-5,-3,-1,-1,0,0,1]},
     green:{u:'/assets/anim/nerisse/nerisse_green.webp?v=33',n:48,fw:316,fh:400,cols:6,rows:8,figH:395,feet:400,cx:138,fps:24,flip:true,top:5,ax:[0,2,5,7,8,10,11,12,13,15,17,18,20,22,25,30,40,42,43,40,40,40,42,39,33,25,21,26,26,26,26,26,23,15,-7,-20,-23,-23,-23,-23,-23,-24,-24,-24,-23,-24,-23,-23],hold:0.8},
     blue:{u:'/assets/anim/nerisse/nerisse_blue.webp?v=33',n:48,fw:252,fh:400,cols:6,rows:8,figH:399,feet:401,cx:124,fps:24,flip:true,top:2,ax:[0,0,0,-1,-1,-1,-2,-3,-4,-6,-7,-7,-7,-8,-9,-9,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-8,-7,-7,-7,-6,-5,-3,-2,-2,-1,-1,0,0,0,0],hold:0.8},
@@ -4122,7 +4122,13 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
 /* How long a clip actually plays. A PINGPONG clip runs forward and then back — 0..n-1..1 — so it is
    on screen for 2n-2 steps, not n. Reading it as n made a rubberbanded swing look half as long as it
    is, which matters now that the attack hold is the clip's own length. */
-function clipDur(A){ if(!A) return 0; const st=(A.pingpong&&A.n>1)?(2*A.n-2):A.n; return st/(A.fps||16); }
+/* v577 (Phil, 17 Sep: "the rubber band on attack for nerisse is much too fast. Please make the snap back slower"):
+   a pingpong clip may carry `rbk` = how many times FASTER the return leg runs than the forward leg (1 = the plain
+   symmetric pingpong). Forward is cells 0..n-1 at fps; the return steps back rbk cells per frame and lands on cell 0.
+   ppPer() is the clip's period in frames, ppFrame() the cell for step p. Rows without `rbk` are byte-for-byte unchanged. */
+function ppPer(A){ return (A.pingpong&&A.n>1)?(A.rbk?(A.n+Math.ceil((A.n-1)/A.rbk)):(2*A.n-2)):A.n; }
+function ppFrame(A,p){ if(!(A.pingpong&&A.n>1)) return p; if(p<A.n) return p; return A.rbk?Math.max(0,(A.n-1)-Math.round((p-A.n+1)*A.rbk)):(ppPer(A)-p); }
+function clipDur(A){ if(!A) return 0; const st=ppPer(A); return st/(A.fps||16); }
 /* v524 - Phil, 8 Sep: "any hero with a passive like lumi's that has a timer like every 5 second
    or every 4 seconds ... this is the cooldown of their ability, this is considered a 'skill' so
    its put on a queue with her green and blue, it has the same priority as a skill if it has an
@@ -4196,7 +4202,9 @@ let renderer,scene,camera,groundGroup,SPH=null,CW=0,CH=0,DPR=1;
 function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSprite)x.geometry.dispose();if(x.material&&!x.isSprite){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>m.dispose());}});}
 
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
-const ZOOM_LEVELS=[1,1.25,1.5];
+const ZOOM_LEVELS=[1,1.25,1.5,2,2.5];   /* v577 (CR 0227, Phil 17 Sep: "zoom so they are around the size of a normal campaign
+                                           battle start"): bonus heroes are at BONUS_UNIT_SCALE 0.40 and a campaign-size look
+                                           measured x2.47-2.79, so the ceiling is 2.5. bonus-stages.js BONUS_ZOOM_CEILING asserts it. */
 let battleZoom=1, battlePanX=0, battlePanY=0;
 /* v586 (Phil: "same character zoomed in and out, the detail is much worse").
    The zoom is a CSS transform on the canvas — the 3D scene is NOT re-rendered larger. `zoomPR()`
@@ -4208,8 +4216,11 @@ let battleZoom=1, battlePanX=0, battlePanY=0;
    shown 1:1; zoomed out, they supersample down and the sprite keeps its detail instead of
    collapsing into a mip. QUAL.dpr still throttles the whole thing down on a device that cannot
    hold frame rate, so this is a ceiling, not a demand. */
-const ZOOM_PR_MAX=(typeof ZOOM_LEVELS!=='undefined'&&ZOOM_LEVELS.length)?ZOOM_LEVELS[ZOOM_LEVELS.length-1]:1.5;
-function zoomPR(){ return Math.min(4.5, DPR*ZOOM_PR_MAX); }
+const ZOOM_PR_MAX=1.5;   /* v577: the BASELINE buffer stays at the old 1.5x ceiling so a phone at 1x pays nothing for the new
+                            2x/2.5x steps (CR 0227 §4 costed the 2.25x fill increase; today's game-speed diagnosis says the phone
+                            has no headroom). Zoomed in past 1.5x the buffer follows the CURRENT zoom: setBattleZoom already
+                            calls resize3D() whenever zoomPR() moves, so this is one re-size per zoom step, not per frame. */
+function zoomPR(){ return Math.min(4.5, DPR*Math.max(ZOOM_PR_MAX, (typeof battleZoom==='number'?battleZoom:1))); }
 function clampPan(){
   const app=document.getElementById('app');
   const w=(app?app.clientWidth:0)||window.innerWidth, h=(app?app.clientHeight:0)||window.innerHeight;
@@ -4219,7 +4230,7 @@ function clampPan(){
 }
 function applyBattleView(){ clampPan(); const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
-function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z)));
+function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length-1],z)));   // v577 (CR 0227): the clamp is the array's last step, never a second copy of the number
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
@@ -7058,7 +7069,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1;
        is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
     const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
     if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4;   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
-      const once=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10);
+      const once=ppPer(A)/(A.fps||10);
       u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
@@ -7982,7 +7993,7 @@ function ultClipDur(u){ const set=BATTLE_ANIM[u.key]; if(!set||!heroHasAnim(u.ke
   if(!st && u.t && u.t.monster && has('cast')) st='cast';
   if(!st && has('attack')){ st='attack'; fb=true; }
   if(!st) return 0;
-  const A=set[st], once=(A.pingpong?(2*A.n-2):A.n)/(A.fps||10);
+  const A=set[st], once=ppPer(A)/(A.fps||10);
   return fb?Math.max(once,0.55):once; }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   try{ waxOnCaster(u); }catch(e){}
@@ -10104,12 +10115,12 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
             fr=Math.min(_ap,Math.round((Math.min(u._ultChanT,_wu)/_wu)*_ap)); } }
         else if(st===(u._idleClip||'idle') && (u._idleHold||0)>0 && (u._idleDur||0)>0 && A.n>1){
           /* v521 - ONE FULL idle cycle fitted into the gap (pingpong counts the return leg). */
-          const _ip=(A.pingpong&&A.n>1)?(2*A.n-2):A.n;
+          const _ip=ppPer(A);
           const _iq=Math.max(0,Math.min(0.999,1-(u._idleHold/u._idleDur)));
-          const _is=Math.floor(_iq*_ip); fr=(A.pingpong&&A.n>1)?(_is<A.n?_is:_ip-_is):_is; }
-        else if(_osFrac!==null){ const _per=(A.pingpong&&A.n>1)?(2*A.n-2):A.n, _p=Math.floor(_osFrac*_per*((u._dblSwing&&st===_atkSt)?2:1))%_per;   // one-shot: the whole clip, fitted to its hold (v534: twice through for a mirage double swing)
-          fr=(A.pingpong&&A.n>1&&_p>=A.n)?(_per-_p):_p; }   // v544: a rubberbanded one-shot runs out AND back inside its hold (the boar shaman's cast/attack) - before this the return leg was never drawn
-        else if(A.pingpong && A.n>1){ const per=2*A.n-2; let p=Math.floor(u._animAcc)%per; fr=p<A.n?p:per-p; }
+          const _is=Math.floor(_iq*_ip); fr=ppFrame(A,_is); }
+        else if(_osFrac!==null){ const _per=ppPer(A), _p=Math.floor(_osFrac*_per*((u._dblSwing&&st===_atkSt)?2:1))%_per;   // one-shot: the whole clip, fitted to its hold (v534: twice through for a mirage double swing)
+          fr=ppFrame(A,_p); }   // v544: a rubberbanded one-shot runs out AND back inside its hold (the boar shaman's cast/attack) - before this the return leg was never drawn
+        else if(A.pingpong && A.n>1){ const per=ppPer(A); let p=Math.floor(u._animAcc)%per; fr=ppFrame(A,p); }
         else fr=Math.floor(u._animAcc)%A.n;
         if(A.reverse) fr=A.n-1-fr;   // v349 (Phil: Corsair/Dawnbringer 'walk backwards'): the Hailuo clip is a backpedal — play it reversed
         // desired facing: during the wave run-in/out they actually travel, so face movement direction; in COMBAT always
@@ -10267,6 +10278,26 @@ function project(x,y,h){_v.set(wx(x),h||1.2,wz(y));_v.project(camera);return{x:(
 // the mesh, _airT lifts it, and the perspective camera makes screen-y depend on x/z too. Anything
 // pinned to the character has to come from the sprite's real world transform. (Phil: "still wrong")
 const _hv=TH?new TH.Vector3():null, _hup=TH?new TH.Vector3():null;
+const _bw0=TH?new TH.Vector3():null, _bwr=TH?new TH.Vector3():null, _bwA=TH?new TH.Vector3():null, _bwB=TH?new TH.Vector3():null;
+/* v577 (CR 0227 hunk 3) — THE BAR FOLLOWS THE CHARACTER. Phil, 17 Sep 2026: heroes to half size in the Gauntlet Split.
+   `eb` was a fixed 44 px, right only at about campaign scale; at BONUS_UNIT_SCALE 0.40 a hero is 14-21 px tall and the bar
+   was two to two and a half times wider than the character under it. Width is derived from the character's PROJECTED
+   HEIGHT (crown to feet), the only thing this file measures about the drawn body; the sprite's projected quad width is
+   used ONLY as a ceiling because `fw` is the cell and includes cloak, staff and effect margins. A campaign Tank
+   (51 px head) lands on exactly 44, so every existing mode keeps today's look. */
+const BAR_K=0.86, BAR_MIN=14;
+function barWidthFor(u, crownY){
+  const maxW=u.boss?96:44; let w=maxW;
+  const foot=project(u.rx==null?u.x:u.rx, u.ry==null?u.y:u.ry, 0.001);   // project() treats h=0 as "use 1.2" — pass a hair above the ground, not 0
+  if(foot && foot.vis) w=Math.max(BAR_MIN, Math.min(maxW, (foot.y-crownY)*BAR_K));
+  const s=u._sprRef;
+  if(s && camera && _bw0){ try{
+    s.getWorldPosition(_bw0); _bwr.setFromMatrixColumn(camera.matrixWorld,0);   // camera RIGHT, not world X
+    const half=Math.abs(s.scale.x||0)/2;
+    _bwA.copy(_bw0).addScaledVector(_bwr,-half).project(camera); _bwB.copy(_bw0).addScaledVector(_bwr,half).project(camera);
+    const quad=Math.abs(_bwB.x-_bwA.x)*0.5*CW; if(quad>1) w=Math.min(w,quad); }catch(e){} }
+  return Math.max(BAR_MIN, w);
+}
 function restHeadOff(u){            // the character's own head height, standing still
   const A=(u.anim&&(u.anim.idle||u.anim.walk))||null;
   if(A&&A.figH&&u.sprH!=null&&A.feet!=null) return u.sprH*((A.feet-(A.top||0))/A.figH);
@@ -10311,11 +10342,12 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     // small monster and at any zoom: the bar sits a few px clear of the top of the head.
     const GAP=(u.boss?13:8);
     const p={x:_p0.x, y:_p0.y-GAP, vis:true};
-    const bw=(u.boss?70:44),x=p.x-bw/2,y=p.y;
+    const _ebw=barWidthFor(u,_p0.y);   // v577 (CR 0227): bar width follows the character
+    const bw=_ebw,x=p.x-bw/2,y=p.y;
     { // over-head health bar, team-colored — sits just above the head
       // v253 (visual audit #5): one mobile scale step up — taller bars, stronger outline; a BOSS
       // gets a wider, gold-framed bar that cannot be mistaken for a normal enemy's.
-      const eb=(u.boss?96:44), eh=(u.boss?9:6), ex=p.x-eb/2, ey=p.y-(u.boss?9:6), pct=Math.max(0,Math.min(1,u.hp/u.maxHp));
+      const eb=_ebw, eh=Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
       octx.fillStyle='rgba(0,0,0,.72)'; octx.fillRect(ex-2,ey-2,eb+4,eh+4);
       octx.fillStyle=(u.team==='ally')?'#57e08a':(u.boss?'#ff4757':'#ff7a5a'); octx.fillRect(ex,ey,eb*pct,eh);
       octx.strokeStyle=u.boss?'rgba(255,212,94,.95)':'rgba(0,0,0,.85)'; octx.lineWidth=u.boss?2:1.5; octx.strokeRect(ex-1,ey-1,eb+2,eh+2); }
@@ -18554,7 +18586,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789671581920';
+const BUILD_ID = '1789674149679';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
