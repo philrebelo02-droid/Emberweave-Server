@@ -164,6 +164,11 @@ function chOf(id){ return parseInt(String(id).split('-')[0],10)||0; }
 function slotOf(id){ return parseInt(String(id).split('-')[1],10)||0; }
 function validBonusId(id){ const c=chOf(id), s=slotOf(id);
   return c>=1 && c<=CHAPTERS && BONUS_CODES.indexOf(s)>=0 && String(id)===c+'-'+s; }
+function bonusUnlockError(led,id){
+  const need=(chOf(id)-1)*10+slotOf(id);
+  const cleared=(led&&led.camp&&led.camp.cleared)|0;
+  return cleared>=need ? null : 'Clear Normal '+id+' to unlock Bonus '+id+'.';
+}
 /* site index (0-5, the order in CH_BONUS_SITES) <-> the stage code on the road */
 function codeForSite(i){ return BONUS_CODES[i]|0; }
 function siteForCode(code){ return BONUS_CODES.indexOf(code|0); }
@@ -896,6 +901,8 @@ async function handle(p, method, ctx){
   if(p==='/api/bonus/stage' && method==='GET'){
     const id = String((ctx.query&&ctx.query.get&&ctx.query.get('id'))||'');   // url.searchParams, as every other GET route here reads it
     if(!validBonusId(id)) return { status:400, body:{ok:false,error:'Unknown bonus stage.'} };
+    const locked=bonusUnlockError(led,id);
+    if(locked) return { status:403, body:{ok:false,locked:true,error:locked} };
     const ch=chOf(id), slot=slotOf(id);
     const lanes = buildLanes(ctx.CAMP_ENC, ch, slot);
     if(!lanes) return { status:400, body:{ok:false,error:'Chapter encounters unavailable.'} };
@@ -919,6 +926,8 @@ async function handle(p, method, ctx){
     const body = await ctx.body();
     const id = String(body.id||'');
     if(!validBonusId(id)) return { status:400, body:{ok:false,error:'Unknown bonus stage.'} };
+    const locked=bonusUnlockError(led,id);
+    if(locked) return { status:403, body:{ok:false,locked:true,error:locked} };
     const bad = checkSquad(body.assign, ctx.isUnlocked, id);
     if(bad) return { status:400, body:{ok:false,error:bad} };
     const ch=chOf(id), slot=slotOf(id);
@@ -979,6 +988,8 @@ async function handle(p, method, ctx){
     const body = await ctx.body();
     const a = b.att;
     if(!a || a.id !== String(body.attemptId||'')) return { status:400, body:{ok:false,error:'No matching bonus run.'} };
+    const locked=bonusUnlockError(led,a.stage);
+    if(locked) return { status:403, body:{ok:false,locked:true,error:locked} };
     if(now - (a.startedAt||0) > ATTEMPT_MS){ b.att=null; ctx.writeDB();
       return { status:400, body:{ok:false, expired:true, error:'That bonus run expired — start it again.'} }; }
 
@@ -1063,6 +1074,6 @@ module.exports = { handle, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLO
   claimList, advanceClock, buildLanes, boonOffer, starsFor, clearReward, families,
   resetFamilyCache, checkSquad, checkSquadStrict, checkSwap, laneMoveOK, lanesReachableFrom,
   CROSSING_GATE, SUMMONS_DIE_AT_WAVE_END, EVERLASTING_SUMMON_POWER, EVERLASTING_FLAG, BONUS_UNIT_SCALE, BONUS_ZOOM_CEILING, BONUS_ZOOM_LEVELS, BONUS_HUD_KEEPOUT, BONUS_HERO_FOOTPRINT,
-  BONUS_ROAD_DEPTH, BONUS_LANE_Z, BONUS_LANE_IMG_Y, BONUS_CROSSING_X, ranksFor, formationFor, validBonusId, tierFor, chOf, slotOf,
+  BONUS_ROAD_DEPTH, BONUS_LANE_Z, BONUS_LANE_IMG_Y, BONUS_CROSSING_X, ranksFor, formationFor, validBonusId, bonusUnlockError, tierFor, chOf, slotOf,
   codeForSite, siteForCode, bonusIdFor, chapterPowerRef, BONUS_POWER_MARGIN,
   TUTORIAL_BONUS, isTutorialBonus, TUTORIAL_SCRIPT, TUTORIAL_MONSTER_LVL, TUTORIAL_MONSTER_MUL, tutorialSwapPlan, rulesSettled };
