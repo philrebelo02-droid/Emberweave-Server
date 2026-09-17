@@ -451,12 +451,17 @@
   .cnode.boss.locked{filter:none}.cnode.boss .cIdle{height:var(--idleh,56px);bottom:13px}.cnode.boss::before{bottom:27px;background:linear-gradient(#9b3b29,#5c1715);}.cnode.boss .clbl{top:36px;}.cnode.boss::after{inset:-7px;}
   .cstars{display:block;text-align:center;font-size:9px;line-height:1;margin-top:2px;letter-spacing:1px}.cstars .on{color:#ffd45e;text-shadow:0 0 4px #ffc83c}.cstars .off{color:#59606b}
   .cbonus{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border:0;background:transparent;z-index:3;cursor:pointer;border-radius:50%;}.cbonus::before{content:'✦';display:grid;place-items:center;position:absolute;right:2px;top:2px;width:18px;height:18px;color:#ffe58d;font-size:16px;font-weight:900;text-shadow:0 0 5px #ffb52e,0 0 10px #ffb52e;animation:cbonusGlow 1.8s ease-in-out infinite}.cbonus span{position:absolute;left:50%;top:45px;transform:translateX(-50%);padding:2px 5px;border-radius:5px;background:rgba(4,8,14,.88);color:#ffe7aa;font-size:8px;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}.cbonus:hover span,.cbonus:focus-visible span{opacity:1}.cbonus:focus-visible{outline:2px solid #ffe08a;outline-offset:1px}@keyframes cbonusGlow{50%{filter:brightness(1.45);transform:scale(1.18)}}
+  /* The painted building, not its tiny sparkle, is the bonus-stage tap target. */
+  .cbonus{width:12%;height:18%;border-radius:14px;touch-action:manipulation}
+  .cbonus.upper{width:10%;height:22%;transform:translate(-50%,-90%)}
+  .cbonus.lower{transform:translate(-50%,-50%)}
+  .cbonus span{top:100%;opacity:1;pointer-events:none;font-size:9px;letter-spacing:.4px;text-shadow:0 1px 3px #000}
   @media(max-width:760px), (orientation:landscape){
     #campaign.active{position:absolute!important;inset:0!important;display:block!important;padding:0!important}#campaign>.backbtn{top:4px!important;left:4px!important;padding:5px 8px!important;min-height:30px;font-size:11px;z-index:9!important}
     #portalTabs{position:absolute!important;top:3px;left:64px;right:3px;height:32px;padding:0!important;gap:3px!important;z-index:9!important;background:linear-gradient(90deg,transparent,#0b1220cc 16%,#0b1220cc 84%,transparent)}#portalTabs .btn{padding:4px 6px!important;min-height:30px!important;font-size:9px!important}
     #starTrack{position:absolute!important;top:37px;left:5px;right:5px;z-index:9;margin:0!important}#starTrack>div{padding:2px 7px!important;margin:0 auto!important;min-height:21px;max-width:390px;background:#0b1220d9!important}
     #cmapHdr{position:absolute!important;top:62px;left:0;right:0;height:31px;padding:1px 64px!important;gap:7px!important;z-index:9!important;background:linear-gradient(180deg,#08101bd9,#08101b80,transparent)}#cmapHdr .btn{padding:3px 8px!important;min-height:25px!important}
-    #cmapScroll{position:absolute!important;inset:0;max-height:none;height:100%;scrollbar-width:thin;padding:0;margin:0;overflow-x:auto;overflow-y:hidden}#cmap{width:max(720px,min(100vw,calc(100vh * 1.5)));width:max(720px,min(100vw,calc(100dvh * 1.5)));max-width:none;margin:0 auto;border-radius:0;border-top:0}.cnode{width:24px;height:24px}.cnode::before{bottom:21px}.cnode .clbl{top:28px}.cnode.elite{width:48px;height:64px;transform:translate(-50%,-100%)}.cnode.elite::before{top:0;bottom:auto}.cnode.elite .clbl{top:58px}.cnode.elite .cIdle{height:36px;bottom:8px}.cnode.boss{width:30px;height:30px}.cnode.boss::before{bottom:27px}.cnode.boss .clbl{top:36px}.cbonus span{display:none}
+    #cmapScroll{position:absolute!important;inset:0;max-height:none;height:100%;scrollbar-width:thin;padding:0;margin:0;overflow-x:auto;overflow-y:hidden}#cmap{width:max(720px,min(100vw,calc(100vh * 1.5)));width:max(720px,min(100vw,calc(100dvh * 1.5)));max-width:none;margin:0 auto;border-radius:0;border-top:0}.cnode{width:24px;height:24px}.cnode::before{bottom:21px}.cnode .clbl{top:28px}.cnode.elite{width:48px;height:64px;transform:translate(-50%,-100%)}.cnode.elite::before{top:0;bottom:auto}.cnode.elite .clbl{top:58px}.cnode.boss{width:30px;height:30px}.cnode.boss::before{bottom:27px}.cnode.boss .clbl{top:36px}.cbonus span{display:block}
   }
   @media (orientation:landscape){
     #campaign.active #portalTabs{top:auto!important;bottom:5px!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:min(660px,90%);height:39px!important;padding:2px!important;gap:5px!important;background:#07121cbd!important;border-radius:11px;z-index:11!important}
@@ -3891,6 +3896,7 @@ function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (
   const w=u.sprH*(u.sprA||0.7); return (u._bodyR=Math.max(u.r||18, w*BODY_FRAC/(2*SC))); }
 
 /* --------------------------------- state ----------------------------------- */
+let FIELD_Y_MIN=80;
 let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],chains=[];
 /* v273 (audit response §5.5) — THE SIMULATION DOES NOT READ THE DOM.
    The wave-clear test used to be gated on `document.getElementById('vaultSubModal')`, so whether a
@@ -4196,6 +4202,1685 @@ function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(1.5,z
   if(camera){ camera.zoom=1; camera.updateProjectionMatrix(); }
   CW=0; resize3D(); }
 function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZoom)); i=Math.max(0,Math.min(ZOOM_LEVELS.length-1,i+dir)); setBattleZoom(ZOOM_LEVELS[i], fx, fy); }
+/* ⛔ THE WHOLE NAMESPACE MOVED: gaunt* -> gsplit*, GAUNT -> GSPLIT. 17 Sep 2026.
+
+   THE CLIENT ALREADY HAS A GAUNTLET. Twelve functions of one - `gauntStart`, `gauntFight`,
+   `gauntBank`, `gauntWaveReq`, `gauntApplyPerk`, `gauntRestore`, `gauntSave`, `gauntDay`,
+   `gauntDayKey`, `gauntRunsLeft`, `gauntEff`, `gauntWaveReward` - a daily run with waves, perks and
+   banking, plus `let _gaunt` and `G.gauntlet`. It has been there the whole time.
+
+   MY PAYLOADS DEFINED `gauntSave(L)`. The client's own `gauntSave()` is declared LATER in the file,
+   so it won. Every per-road save was silently calling the player's save-game writer instead of
+   storing the lane. Three roads shared one state and no road could ever advance a wave - and nothing
+   threw, nothing logged, and every headless test passed, because the test harness stubs a context
+   that has no client in it.
+
+   Found by running the five-wave encounter in a browser and printing `String(gauntSave)`.
+
+   Renaming only the one collision would have been the smaller change and the wrong one: the next
+   `gaunt*` function anyone adds collides again, and a reader seeing `gauntStep` beside `gauntFight`
+   reasonably assumes they are the same feature. They are not. This mode is THE GAUNTLET SPLIT, so it
+   is `gsplit*` now, and `tests/test_gauntlet_namespace.js` fails the build if any name in these
+   payloads ever matches a name the client already declares. */
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — THE CONSTANTS THE CLIENT NEEDS, MIRRORED FROM THE SERVER.
+
+   ⛔ FOUND BY THE BROWSER PROOF, AND BY NOTHING ELSE.
+   Every payload so far referenced `BONUS_UNIT_SCALE`, `MAX_PER_LANE` and `EVERLASTING_FLAG` as though
+   they were client globals. **They are not.** They live in `server/bonus-stages.js`, a Node module the
+   browser never loads. The first line of `__gauntProof` threw:
+
+       ReferenceError: BONUS_UNIT_SCALE is not defined
+
+   Every headless test passed because the test harness stubs them into the VM context. The real page
+   has no such stub. This is the exact class of defect a browser proof exists to catch, and it would
+   have thrown on the first frame of the first run.
+
+   WHY MIRRORED AND NOT FETCHED.
+   These are LAYOUT constants - the renderer needs them before a run exists, to build the roads and
+   place the units. Fetching them would make the geometry depend on a round trip and would fail open
+   if the round trip failed. So they are mirrored here, and the duplication is made safe by
+   `tests/test_gauntlet_mirror.js`, which imports the server module and asserts every value below
+   matches it. If anyone changes one side, that test goes red rather than the two silently drifting -
+   which is the only reason a mirrored constant is acceptable at all.
+
+   NOT MIRRORED, deliberately: the boon catalogue, the offers, the star ladder and the reward table.
+   Those are the run's LAW and they stay server-side, where a modified client cannot reach them.
+   ========================================================================== */
+
+const BONUS_UNIT_SCALE = 0.40;                     // server/bonus-stages.js — Phil's half size
+const MAX_PER_LANE     = 10;                       // Phil: "a lane should be able to have 10 heroes in it max"
+const BONUS_LANES      = 3;
+const BONUS_WAVES      = 5;
+const EVERLASTING_FLAG = '_boonEverlasting';       // the BREAK boon whose summons survive a window
+
+const BONUS_HERO_FOOTPRINT = Object.freeze({ width: 2.2 * BONUS_UNIT_SCALE,
+                                             depth: 1.5 * BONUS_UNIT_SCALE });
+const BONUS_LANE_Z     = Object.freeze({ top:-11.887, middle:-2.222, bottom:5.317 });
+const BONUS_LANE_IMG_Y = Object.freeze({ top:0.2087, middle:0.4507, bottom:0.7305 });
+const BONUS_ROAD_DEPTH = Object.freeze({ top:4.37, middle:2.98, bottom:2.19 });
+const BONUS_CROSSING_X = Object.freeze({
+  upper: Object.freeze([0.320, 0.443, 0.572, 0.673]),
+  lower: Object.freeze([0.300, 0.421, 0.528, 0.645])
+});
+const BONUS_ZOOM_CEILING = 2.5;
+
+/* `killSummon` is the client's own (4710) and is NOT mirrored - the purge reuses the engine's
+   function rather than reimplementing it, which is what keeps a purged summon from counting as a
+   hero death. */
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — THE SIMULTANEOUS LANE RENDERER.  Step 1 of
+   `projects/15 - THE SIMULTANEOUS LANE RENDERER - build plan.md`.
+
+   Three roads fight AT THE SAME TIME on one battlefield. `projects/13` §1: "the lanes run at the
+   same time"; §6: "three lanes resolving at once ... the tension is watching lane three while one and
+   two are on wave four."
+
+   THE WHOLE MECHANISM IS A SWAP, AND IT TOUCHES NO COMBAT CODE.
+   Fourteen functions read the global `units` to find an enemy — nearestEnemy, enemiesOf, think,
+   doEffect, aimCandidates, optimalAimField, the four _gs* helpers and four more. Adding a lane guard
+   to fourteen call sites is the change that ships with one of them missed, and the one that is missed
+   is a hero shooting across a firebreak. So none of them are touched: `units` is pointed at ONE
+   road's roster for the duration of that road's step, and all fourteen are confined at once.
+   PROVED, not assumed — `tests/test_lane_scope.js` reproduces the cross-fire on the real engine and
+   then shows six separate enemy queries confined by the swap alone.
+
+   AND THE RNG SWAPS THE SAME WAY, which removes a defect the build plan flagged as open.
+   `let _brng=null` (client 4133) and `brnd()` reads it at call time (4135). Three roads drawing from
+   ONE stream would be deterministic only while the draw ORDER never changed — so skipping a finished
+   road would break replay. Giving each road its own `_brng` makes the order irrelevant entirely.
+   That is a fix rather than a rule to remember.
+
+   SCOPING. Everything here lives behind `GSPLIT.active`, which only a bonus run sets. No other mode
+   can reach any of it, the same way the summon purge is scoped: structurally, not by a flag.
+   ========================================================================== */
+
+const GSPLIT_LANES = 3, GSPLIT_WAVES = 5;
+const GSPLIT_ROAD_NAME = ['Left Road','Middle Road','Right Road'];
+
+/* Where the three roads sit, from `projects/14a - GAUNTLET LANE GEOMETRY`:
+   image y 0.28 / 0.50 / 0.72  ->  world z -8.69 / -0.67 / +5.12  ->  field y via wz(y)=(y-700)*0.02 */
+const GSPLIT_ROAD_Y = [265, 667, 956];
+
+/* THE HORIZONTAL IS PROVISIONAL AND IS THE ONE NUMBER STILL OWED.
+   ChatGPT is validating image-x -> field-x against the live camera and field bounds. Until his
+   coordinates arrive this maps his image fractions across the field's own width, which is correct in
+   shape and unverified in scale. **Replacing this one function is the whole of that integration.** */
+function gsplitFX(imgX){ return Math.round(imgX * FW); }          // FW = 1000 (client 3881)
+
+const GSPLIT_MUSTER_X   = 0.18;
+const GSPLIT_CHECKPOINT = [0.24, 0.36, 0.48, 0.60, 0.72];
+const GSPLIT_APPROACH_X = 0.82;
+const GSPLIT_STATION_X  = [0.30, 0.42, 0.54, 0.66];               // after waves 1-4
+const GSPLIT_CROSS_DX   = 0.018;                                  // upper sits before the station, lower after
+
+const GSPLIT = { active:false, lanes:[], ground:[], stage:null, attemptId:null, script:null };
+
+/* ------------------------------------------------------------------ a road */
+function gsplitLane(i){
+  return { i, name:GSPLIT_ROAD_NAME[i], state:'walking',
+           units:[], brng:null, waveIdx:0, waves:GSPLIT_WAVES,
+           ended:false, xfer:null, heroesLost:0, boons:{} };
+}
+
+/* ---------------------------------------------------------------- the swap
+   Everything the combat loop reads as "this fight" moves in and out together. Add a field here and
+   it is per-road; forget one and three roads quietly share it — which is why the list is in one
+   place and not scattered through the step. */
+/* CORRECTED 17 Sep 03:2x - `_bacc` WAS IN THIS SWAP AND MUST NOT BE.
+   Step 1 swapped `_bacc` in and out with each road, on the assumption that it was per-fight state
+   sitting next to `_brng` on the same line (client 4133: `let _brng=null, _bacc=0, _alpha=1`).
+   IT IS NOT. `_bacc` is the RENDER LOOP'S FIXED-TICK ACCUMULATOR (16582-16584) and the source of the
+   interpolation alpha (16591). It is global, it is shared by every mode, and it is written once per
+   FRAME - not once per fight.
+
+   What the bug would have done: each road's step would overwrite the frame accumulator with that
+   road's stale copy, and the loop would leave `_bacc` holding road 2's value. The tick subtraction at
+   16584 and the interpolation alpha at 16591 would both read a number that had nothing to do with
+   this frame. Result: jittery interpolation and ticks occasionally dropped or run twice - intermittent,
+   unreportable, and found by a player rather than a test.
+
+   Caught by reading what `_bacc` is actually used for before wiring the loop hook, rather than by
+   trusting that two names on one `let` line are the same KIND of thing. Filed to GOTCHAS. */
+function gsplitLoad(L){
+  units = L.units; _brng = L.brng;
+  waveIdx = L.waveIdx; chapterWaves = L.waves;
+  ended = L.ended; waveXfer = L.xfer;
+  GSPLIT.curLane = L.i;   // 17 Sep - laneSlot() reads this to place a spawned unit on THIS road,
+                          // not wherever the campaign's single-lane formation math would put it.
+}
+function gsplitSave(L){
+  L.units = units; L.brng = _brng;
+  L.waveIdx = waveIdx; L.ended = ended; L.xfer = waveXfer;
+  GSPLIT.curLane = null;
+}
+
+/* --------------------------------------------------------------- the step
+   Called once per fixed tick in place of a single updateBattle(). `battleTime` deliberately stays
+   GLOBAL — one clock across all three roads is what makes them simultaneous rather than three fights
+   taking turns. */
+function gsplitStep(dt){
+  if(!GSPLIT.active) return;
+  for(const L of GSPLIT.lanes){
+    if(L.state!=='walking') continue;        // safe now: each road has its own RNG
+    gsplitLoad(L);
+    try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
+    gsplitSave(L);
+    if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
+    else if(!units.some(u=>u.team==='ally'&&u.alive&&!u._summon)) gsplitLaneFallen(L);
+  }
+  /* the renderer draws everyone; only the SIM was ever confined */
+  units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+}
+
+function gsplitLaneHome(L){   L.state='cleared'; bannerMsg('◆ '+L.name+' — HOME'); }
+function gsplitLaneFallen(L){ L.state='lost';    bannerMsg('◆ '+L.name+' — FALLEN'); }
+function gsplitCleared(){ return GSPLIT.lanes.filter(L=>L.state==='cleared').length; }
+function gsplitLost(){    return GSPLIT.lanes.filter(L=>L.state==='lost').length; }
+function gsplitWalking(){ return GSPLIT.lanes.filter(L=>L.state==='walking').length; }
+
+/* Phil's win rule, checked after every tick: two roads home is a win; one road lost before that ends
+   the run. */
+function gsplitVerdict(){
+  if(gsplitCleared()>=2) return 'won';
+  if(gsplitLost()>=1 && gsplitCleared()<2) return 'lost';
+  return null;
+}
+
+/* ------------------------------------------------- the eight firebreak paths
+   ChatGPT asked for these as a live overlay because Grok keeps erasing them from the bitmap. They go
+   in the 3D GROUND GROUP, not a 2D overlay: `groundGroup` already carries the field, both half-tints,
+   the centre line and the grid, each a PlaneGeometry at rotation.x = -PI/2. A screen-space strip
+   would keep a constant width while the ground under it compresses toward the far road, and would
+   slide against the road the moment a hero crossed it. In the ground group each path is foreshortened
+   by the same matrix as the heroes standing on it. */
+function gsplitBuildGround(){
+  gsplitClearGround();
+  /* The approved scene already paints each narrow north/south crossing. Projected 3D
+     strips covered the actual paths at every tested width and perspective; leave the
+     painted firebreaks visible and use the station coordinates only for movement. */
+}
+function gsplitClearGround(){
+  try{ for(const m of GSPLIT.ground){ groundGroup.remove(m);
+    if(m.geometry)m.geometry.dispose(); if(m.material)m.material.dispose(); } }catch(e){}
+  GSPLIT.ground = [];
+}
+
+/* ------------------------------------------------------------- entry / exit */
+function gsplitBegin(spec){
+  GSPLIT.active = true;
+  GSPLIT.stage = spec.id; GSPLIT.attemptId = spec.attemptId; GSPLIT.script = spec.script||null;
+  GSPLIT.lanes = [0,1,2].map(i=>{
+    const L = gsplitLane(i);
+    /* every road gets its OWN stream, seeded off the run and the road — so the order roads are
+       stepped in can never change a result, and a finished road may be skipped freely. */
+    L.brng = mulberry32((((spec.seed>>>0) ^ (i*0x9e3779b9))>>>0));
+    L.waves = GSPLIT_WAVES;
+    return L;
+  });
+  gsplitBuildGround();
+}
+function gsplitEnd(){
+  gsplitClearGround();
+  GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null;
+}
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — STEPS 2, 3 and 4.  Follows `bonus-lane-renderer-step1.js`.
+   Step 2 lane placement · Step 3 unit scale + HUD keep-out · Step 4 the four windows.
+
+   Phil, 17 Sep: "you make it the way you think i want it. and if its not good enough I will correct
+   course." So the open choices below are MADE, each one marked ~~CHOICE~~ with what it was weighed
+   against, so correcting any single one is a one-line change and not an excavation.
+
+   WHAT CHANGED SINCE STEP 1, AND WHY IT MATTERS
+   Step 1 carried `GSPLIT_ROAD_Y = [265, 667, 956]`, taken from `14a`'s ASSUMED image y 0.28/0.50/0.72,
+   and a `gsplitFX()` marked "provisional, the one number still owed" pending ChatGPT's coordinates.
+   Both are now settled by measurement instead:
+     - Phil APPROVED six Chapter 1 paintings, and their roads sit at image y 0.2087 / 0.4507 / 0.7305
+       (measured across all six, spread 0.004 on the middle road). The art is approved, so the
+       renderer moved to it - `BONUS_LANE_Z` in server/bonus-stages.js carries the derivation.
+     - The crossings are at the openings the paintings actually have, which are NOT the contract's
+       0.29/0.39/0.49/0.59 and stagger the opposite way. `BONUS_CROSSING_X` carries those.
+   Nothing here is owed by anyone any more.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- STEP 2 · placement
+   wz(y) = (y-700)*0.02  (client 3882), so field y = z*50 + 700. */
+const GSPLIT_ROAD_Y_FITTED = [106, 589, 966];      // top, middle, bottom - was [265, 667, 956]
+const GSPLIT_ROAD_Z        = [-11.887, -2.222, 5.317];
+const GSPLIT_ROAD_GROUND_W = [52.8, 43.2, 35.6];   // visible world width at each road's depth
+
+/* THE HORIZONTAL, FINALLY MEASURED RATHER THAN OWED.
+   An image fraction is a DIFFERENT world x on each road, because the camera sees 52.8 world units
+   across at the far road and 35.6 at the near one. One shared mapping would put a hero on the top
+   road and a hero on the near road at the same painted x in visibly different places - and, worse,
+   would put the two ends of a firebreak in different columns. So the mapping is per road. */
+function gsplitFieldX(imgX, lane){
+  const gw = GSPLIT_ROAD_GROUND_W[lane];
+  return Math.round(((imgX - 0.5) * gw) / SC + FW/2);      // SC=0.02, FW=1000 (client 3881)
+}
+
+/* ~~CHOICE~~ THE PLAY SPAN IS CLAMPED INTO THE FIELD.
+   At the far road, image x 0.18 maps to field x -345 and 0.82 to +1345 - the camera sees well beyond
+   the 1000-wide field, which is true of the campaign too. The four STATIONS all land inside the field
+   on every road (top 24..957, middle 111..874, bottom 144..758), so only the muster and the monster
+   approach fall outside, and only on the far road.
+   Weighed: widening FW would move every existing mode's coordinate space - absolutely not, for a
+   bonus stage. Clamping costs the far road a slightly shorter run-up, which no player can see because
+   there is nothing painted out there to compare against. */
+const GSPLIT_FIELD_PAD = 40;
+function gsplitClampX(x){ return Math.max(GSPLIT_FIELD_PAD, Math.min(FW-GSPLIT_FIELD_PAD, x)); }
+
+const GSPLIT_MUSTER_IMG   = 0.18;
+const GSPLIT_CHECKPOINT_IMG = [0.24, 0.36, 0.48, 0.60, 0.72];
+const GSPLIT_APPROACH_IMG = 0.82;
+
+function gsplitMusterX(lane){   return gsplitClampX(gsplitFieldX(GSPLIT_MUSTER_IMG, lane)); }
+function gsplitApproachX(lane){ return gsplitClampX(gsplitFieldX(GSPLIT_APPROACH_IMG, lane)); }
+function gsplitCheckpointX(lane, wave){
+  return gsplitClampX(gsplitFieldX(GSPLIT_CHECKPOINT_IMG[Math.max(0,Math.min(4,wave))], lane));
+}
+
+/* The stations, straight off the approved paintings. Server-side twins live in
+   `server/bonus-stages.js` as BONUS_CROSSING_X so the sim and the art cannot drift. */
+const GSPLIT_CROSS_IMG = {
+  upper: [0.320, 0.443, 0.572, 0.673],     // top <-> middle
+  lower: [0.300, 0.421, 0.528, 0.645]      // middle <-> bottom
+};
+function gsplitCrossX(side, station, lane){
+  return gsplitFieldX(GSPLIT_CROSS_IMG[side][station], lane);
+}
+
+/* Ranks, from the road's real world depth at Phil's 0.40 scale. `formationFor` in bonus-stages.js
+   computes the same thing server-side; this is the client half and the two must agree. */
+const GSPLIT_ROAD_DEPTH = [4.37, 2.98, 2.19];
+function gsplitRanks(lane){
+  const d = GSPLIT_ROAD_DEPTH[lane] / (1.5 * BONUS_UNIT_SCALE);
+  return Math.max(1, Math.floor(d));
+}
+function gsplitSlot(lane, idx, n){
+  const ranks = gsplitRanks(lane), cols = Math.ceil(Math.max(1,n)/ranks);
+  const r = idx % ranks, c = (idx / ranks) | 0;
+  const depthField = (1.5 * BONUS_UNIT_SCALE) / SC;          // one rank, in field units
+  const widthField = (2.2 * BONUS_UNIT_SCALE) / SC;
+  return { y: Math.round(GSPLIT_ROAD_Y_FITTED[lane] + (r - (ranks-1)/2) * depthField),
+           dx: Math.round((c - (cols-1)/2) * widthField) };
+}
+
+/* 17 Sep - THE GAP: `laneSlot()` (client ~4459) is what spawnTeam/buildEnemyWave actually call to
+   place every unit, and it has never known a Gauntlet lane exists - it always returns the SAME x/y
+   for a given team/key/index regardless of which road's swap is active. Every isolation and window
+   mechanic built on top of it (RNG, wave data, the firebreak state machine, walls) was real; the
+   actual on-screen position of a spawned unit was not. Caught by asking a real browser page for
+   three lanes' enemy coordinates after `buildEnemyWave()` and finding all three identical.
+
+   Fix is ONE hook at the top of `laneSlot()` (request 0355-derived hunk, not yet numbered), redirecting
+   to this when a Gauntlet lane is actively loaded. Ally and enemy formation both go through `laneSlot`,
+   so one hook covers both call sites. */
+function gsplitLaneSlot(team, key, i, n, keys, lane){
+  const sl = gsplitSlot(lane, i, Math.max(1, n|0));
+  const baseX = (team==='ally') ? gsplitMusterX(lane) : gsplitApproachX(lane);
+  return { x: gsplitClampX(baseX + sl.dx), y: sl.y };
+}
+
+/* ---------------------------------------------------------------- STEP 3 · scale + keep-out
+   ONE multiplier resizes every hero, monster, boss and - because effects are parented to the unit -
+   every effect with them. No art is touched; MASTER RULE 23 holds by construction.
+   `BONUS_UNIT_SCALE` is 0.40, Phil's own number ("the heros need to be half this size"). */
+function gsplitApplyScale(u){
+  if(!GSPLIT.active || !u) return;
+  u._gauntScale = BONUS_UNIT_SCALE;
+  if(typeof u.r === 'number') u.r *= BONUS_UNIT_SCALE;
+}
+
+/* ~~CHOICE~~ THE PORTRAIT BAR IS HIDDEN, NOT RESIZED.
+   It shows five ally tiles and this mode fields up to thirty across three roads, so there is no size
+   that makes it correct. Weighed against building a three-column version: that is a real piece of UI
+   and it is not what stands between Phil and playing Chapter 1. Hidden now, and the bottom band is
+   genuinely clear as a result - which is the only reason the art contract's 0.88 reserve is true. */
+function gsplitHudEnter(){
+  const pb = document.getElementById('portraitBar');
+  if(pb){ GSPLIT._pbDisplay = pb.style.display; pb.style.display = 'none'; }
+}
+function gsplitHudExit(){
+  const pb = document.getElementById('portraitBar');
+  if(pb) pb.style.display = (GSPLIT._pbDisplay || '');
+}
+
+/* ---------------------------------------------------------------- STEP 4 · the four windows
+   Five waves, so FOUR windows. At each: the boon is chosen FIRST, then an adjacent road, then the
+   hero runs and Start stays refused until every mover has landed. Phil's order, kept exactly. */
+const GSPLIT_WINDOWS = GSPLIT_WAVES - 1;
+
+/* Returns a real boolean. It used to return `GSPLIT.window && ...`, which is `null` when there is no
+   window - truthy/falsy is the same, but anything that COMPARES the result (a test, a serialiser, a
+   `===false` guard someone writes later) sees null and not false. Found by the browser proof, where
+   `open: null` came back from a check that read perfectly. */
+function gsplitWindowOpen(){
+  return !!(GSPLIT.window && GSPLIT.window.phase !== 'closed');
+}
+
+/* ~~CHOICE~~ ALL THREE ROADS STOP AT A WINDOW, INCLUDING ROADS THAT ARE AHEAD.
+   The alternative - each road taking its own window when it finishes its own wave - keeps the fiction
+   of three independent fights, but it makes a swap meaningless: you cannot move a hero to a road that
+   is on a different wave. Phil's own rules ("select the boon, then choose an adjacent lane", "Start
+   remains disabled until all movers arrive") only mean anything if the three roads are at the same
+   wave boundary at the same time. So the run is five synchronised waves, not three races. */
+function gsplitWaveBoundary(){
+  return GSPLIT.lanes.every(L => L.state !== 'walking' || L.waveIdx > GSPLIT.waveShown);
+}
+
+function gsplitOpenWindow(){
+  if(GSPLIT.waveShown >= GSPLIT_WINDOWS) return false;       // wave 5 has no window; it resolves the run
+  GSPLIT.window = { phase:'boon', station:GSPLIT.waveShown, picked:{}, movers:[] };
+  /* NO GENERATOR HERE, and the offers arrive EARLIER than I first wrote.
+     `/api/bonus/start` (server/bonus-stages.js ~828) already returns `boonOffers` as a
+     WINDOWS x LANES table for the whole run, seeded off the attempt and built from each road's actual
+     hero profile. So all twelve offers are in hand before wave 1 - there is no per-window round trip
+     to wait on, and a boon rolled on the client would be a boon a modified client can re-roll until
+     it likes the answer.
+     A road with no offer shows as having none rather than one being invented. */
+  const table = GSPLIT.boonOffers || null;
+  const row = table && table[GSPLIT.waveShown];
+  for(const L of GSPLIT.lanes){
+    if(L.state !== 'walking') continue;
+    L.offer = (row && Array.isArray(row[L.i]) && row[L.i].length) ? row[L.i] : null;
+  }
+  return true;
+}
+
+function gsplitPickBoon(lane, boonId){
+  if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'boon') return false;
+  const L = GSPLIT.lanes[lane];
+  if(!L || L.state !== 'walking' || GSPLIT.window.picked[lane]) return false;
+  GSPLIT.window.picked[lane] = boonId;
+  L.boons[boonId] = (L.boons[boonId]|0) + 1;
+  const live = GSPLIT.lanes.filter(x => x.state === 'walking');
+  if(live.every(x => GSPLIT.window.picked[x.i])) GSPLIT.window.phase = 'move';
+  return true;
+}
+
+/* Adjacent only. The far road is always two windows away - that is the rule the staggered paths
+   exist to make readable, and it is enforced here as well as drawn. */
+function gsplitCanMove(from, to){
+  if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'move') return false;
+  if(Math.abs(from - to) !== 1) return false;
+  const T = GSPLIT.lanes[to];
+  if(!T || T.state !== 'walking') return false;
+  const arriving = GSPLIT.window.movers.filter(m => m.to === to).length;
+  const leaving  = GSPLIT.window.movers.filter(m => m.from === to).length;
+  return (T.units.filter(u => u.team==='ally' && u.alive && !u._summon).length + arriving - leaving) < MAX_PER_LANE;
+}
+
+function gsplitMove(unit, from, to){
+  if(!gsplitCanMove(from, to)) return false;
+  const side = (Math.min(from,to) === 0) ? 'upper' : 'lower';
+  GSPLIT.window.movers.push({ unit, from, to, side,
+    station: GSPLIT.window.station, t: 0, arrived: false });
+  return true;
+}
+
+/* ~~CHOICE~~ START IS A QUERY, NOT A LATCH.
+   It asks the movers whether they have landed, every time it is drawn, rather than being enabled by
+   whichever code path happens to finish last. A latch is how "Start is refused until every mover has
+   arrived" becomes "Start is refused unless the last mover's callback fired", and that is a bug that
+   only shows when a hero dies mid-run. */
+function gsplitStartAllowed(){
+  if(!gsplitWindowOpen()) return true;
+  if(GSPLIT.window.phase !== 'move') return false;
+  return GSPLIT.window.movers.every(m => m.arrived || !m.unit || !m.unit.alive);
+}
+
+/* No gameplay cost - Phil, explicitly. The crossing is time on screen and nothing else: no tempo, no
+   turn, no health, and the hero arrives with everything it left with. */
+const GSPLIT_CROSS_SECONDS = 0.9;
+function gsplitStepMovers(dt){
+  if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'move') return;
+  for(const m of GSPLIT.window.movers){
+    if(m.arrived) continue;
+    m.t = Math.min(1, m.t + dt / GSPLIT_CROSS_SECONDS);
+    const u = m.unit; if(!u){ m.arrived = true; continue; }
+    const x0 = gsplitCrossX(m.side, m.station, m.from), x1 = gsplitCrossX(m.side, m.station, m.to);
+    const y0 = GSPLIT_ROAD_Y_FITTED[m.from], y1 = GSPLIT_ROAD_Y_FITTED[m.to];
+    u.x = x0 + (x1-x0)*m.t;  u.y = y0 + (y1-y0)*m.t;
+    if(m.t >= 1){ m.arrived = true; gsplitReseat(u, m.from, m.to); }
+  }
+}
+
+function gsplitReseat(u, from, to){
+  const F = GSPLIT.lanes[from], T = GSPLIT.lanes[to];
+  const i = F.units.indexOf(u); if(i >= 0) F.units.splice(i, 1);
+  /* a summoner's pack travels with it - it is the summoner's, not the road's */
+  for(const s of F.units.filter(s => s._summon && s._owner === u)){
+    F.units.splice(F.units.indexOf(s), 1); T.units.push(s);
+  }
+  T.units.push(u);
+}
+
+function gsplitCloseWindow(){
+  if(!gsplitStartAllowed()) return false;
+  GSPLIT.window = null;
+  GSPLIT.waveShown++;
+  for(const L of GSPLIT.lanes){
+    if(L.state !== 'walking') continue;
+    /* the purge, Phil's rule, EXCEPT summons carrying Everlasting - which survive at half power */
+    for(const s of L.units.filter(s => s._summon && !s[EVERLASTING_FLAG])) killSummon(s);
+    L.offer = null;
+  }
+  return true;
+}
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — LANE ISOLATION FOR AREA EFFECTS, AND THE ONCE-PER-FRAME TAIL.
+
+   PHIL, 17 Sep 2026: "treat EACH Gauntlet lane as its own SKIRMISH / Battle. During a wave, one
+   lane's units do not see, target, heal, stun, collide with, or consume another lane's units/effects."
+   And, on whole-field abilities: "RESCOPE whole-field abilities to the caster's current lane in
+   Gauntlet only ... Ignite All still hits every valid unit IN HIS SKIRMISH, never the other two."
+
+   WHY A LANE FILTER AND NOT A GEOMETRY TEST.
+   The audit showed the three roads are far enough apart that the widest authored ability (8*METER =
+   225.6 field units) cannot reach across the smallest gap (247.5). That is TRUE and it is NOT a
+   design: it is 22 field units of luck, and `Ignite All` (radius 99999) already defeats it. A rule
+   that holds because nobody has yet authored a wider ability is not isolation. So the containment
+   here is structural, and a future ability of any radius is contained by construction.
+
+   THE MECHANISM IS THE ONE THAT ALREADY WORKED, EXTENDED.
+   `units` is swapped per road, and that confines fourteen targeting functions with zero edits to any
+   of them. Every area effect in this engine resolves by iterating a GLOBAL collection and testing
+   against the GLOBAL `units`. So: give each road its own copy of those collections too, swapped in
+   and out with `units`. An effect created during road L's step lands in road L's collections, and an
+   effect resolved during road L's step can only see road L's units. Radius becomes irrelevant -
+   `Ignite All` at radius 99999 hits every unit in its own skirmish and cannot see the other two,
+   which is exactly what Phil asked for.
+
+   NO FX FUNCTION IS EDITED. Same reason as the fourteen: a filter added to ten resolvers is a filter
+   that ships with one of them missed.
+   ========================================================================== */
+
+/* The collections, split by how they are DECLARED, because that decides how they can be swapped.
+   Getting this wrong is silent: assigning to a `const` throws in strict mode and no-ops otherwise. */
+const GSPLIT_FX_LET = ['shots','particles','floatTexts','groundHazards','voidZones','chains','staffFx'];
+// client 3891: let units,shots,particles,floatTexts,groundHazards,voidZones,chains
+// client 6804: let staffFx=[]
+const GSPLIT_FX_CONST = ['_groundFx','_projFx','_bees','_beamFx','_pendingDots','_fxPlates','_statusFx'];
+// client 6504/6595/6597/6739/6761/6826/6782 - all `const [...]`, so they are refilled IN PLACE.
+
+function gsplitFxBlank(){
+  const o = {};
+  for(const k of GSPLIT_FX_LET)   o[k] = [];
+  for(const k of GSPLIT_FX_CONST) o[k] = [];
+  return o;
+}
+
+/* `const` arrays cannot be reassigned, so their contents are moved. `length=0` then `push` keeps the
+   SAME array object, which every FX function closes over. Rebuilding them per road per tick is O(n)
+   on collections that hold at most a few dozen live effects - cheaper than the collision pass that
+   already runs every tick. */
+function gsplitFxSwapIn(L){
+  for(const k of GSPLIT_FX_LET)   { try{ window[k] = L.fx[k]; }catch(e){} }
+  for(const k of GSPLIT_FX_CONST) {
+    const a = window[k]; if(!a) continue;
+    a.length = 0; for(const it of L.fx[k]) a.push(it);
+  }
+}
+function gsplitFxSwapOut(L){
+  for(const k of GSPLIT_FX_LET)   { try{ L.fx[k] = window[k]; }catch(e){} }
+  for(const k of GSPLIT_FX_CONST) { const a = window[k]; if(a) L.fx[k] = a.slice(); }
+}
+
+/* ---------------------------------------------------------------- the tail
+   `updateBattle` ends with work that is PER FRAME, not per unit - shot timers, particle integration,
+   float-text fade and ten FX updaters (client 7975-7983). Calling `updateBattle` once per road ran
+   all of it three times a tick: projectiles resolved in a third of their flight time.
+
+   So the tail is extracted into its own function and called ONCE per road per FRAME, with that road's
+   collections loaded - which advances every effect exactly once AND keeps it inside its own skirmish.
+   Two small edits to the client; the body of the tail is moved, not changed. */
+
+/* ⛔ THE WAVE SOURCE HAS TO TRAVEL WITH THE ROAD TOO. Found while building the five-wave encounter
+   proof, 17 Sep.
+
+   `buildEnemyWave()` (client ~7330) reads the authored wave list from `CUR.vwaves[waveIdx]` - one
+   global list for one fight. Three roads fighting at once need three lists, and `gsplitLoad` was
+   swapping `waveIdx` WITHOUT swapping the list it indexes into. Every road would have spawned the
+   SAME road's monsters, at its own wave number.
+
+   That is the `_bacc` mistake in a different coat: a variable was in the swap and the thing it points
+   at was not. The rule from GOTCHAS applies - read a variable's USES, not its declaration - and here
+   the use is an index into a second global.
+
+   `CUR.mode` travels with it: a road is a vault-shaped fight (pre-authored waves, same lineup every
+   attempt) for the duration of its own step, and whatever the outer mode was is restored after. */
+function gsplitLoadWaves(L){
+  GSPLIT._curMode = CUR.mode; GSPLIT._curWaves = CUR.vwaves;
+  CUR.mode = 'vault'; CUR.vwaves = L.waves3 || [];
+}
+function gsplitSaveWaves(L){
+  L.waves3 = CUR.vwaves;
+  CUR.mode = GSPLIT._curMode; CUR.vwaves = GSPLIT._curWaves;
+}
+
+function gsplitFrameTail(dt){
+  for(const L of GSPLIT.lanes){
+    gsplitLoad(L); gsplitFxSwapIn(L);
+    try{ battleFrameTail(dt); }catch(e){ try{console.error('[gauntlet tail '+L.i+']',e);}catch(_){} }
+    gsplitFxSwapOut(L); gsplitSave(L);
+  }
+  units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+}
+
+/* ------------------------------------------------- the replacement gsplitStep
+   Supersedes the gsplitStep in step 1. Same shape; the FX collections now travel with `units`, and the
+   per-frame tail is a second pass rather than three hidden ones. */
+function gsplitStep(dt){
+  if(!GSPLIT.active) return;
+  for(const L of GSPLIT.lanes){
+    if(L.state !== 'walking') continue;          // safe: each road has its own RNG
+    gsplitLoad(L); gsplitFxSwapIn(L); gsplitLoadWaves(L);
+    try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
+    gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
+    if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
+    else if(!units.some(u=>u.team==='ally'&&u.alive&&!u._summon)) gsplitLaneFallen(L);
+  }
+  gsplitFrameTail(dt);                            // once per road per FRAME, not three times per tick
+}
+
+/* A lane's effects die with the lane. Without this a cleared road's void zones keep ticking for the
+   rest of the run, invisible and paying damage to nobody - harmless today, and exactly the kind of
+   thing that becomes a leak when somebody later makes zones persist across waves. */
+function gsplitLaneEndFx(L){ L.fx = gsplitFxBlank(); }
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — THE LANES ARE WALLS, AND A CROSSING USES THE PATH.
+
+   PHIL, 17 Sep 2026: "the lanes are TRUTH and cannot be walked out of, please put a hard limit on the
+   limits heroes can walk, they cannot walk in the areas between lanes, also the firebrakes must be
+   crossed properly, they must NOT pass through the scenery that isnt firebrake when switching lanes."
+
+   TWO SEPARATE DEFECTS, AND BOTH WERE IN WHAT I HAD WRITTEN.
+
+   1. NOTHING KEPT A HERO IN ITS ROAD. The engine clamps y once, at client 7766:
+        units.forEach(u=>{ ... u.y=Math.max(80,Math.min(FD-60,u.y)); });
+      That is the FIELD's bound - 80 to 1340 - the whole battlefield. A hero pushed by a knockback, a
+      charge, a Grasping Vow pull or simple collision crowding would walk out of its road, across the
+      divider, and into the scenery between lanes. The lane was a drawing, not a wall.
+
+   2. A CROSSING HERO TOOK THE DIAGONAL. My own `gsplitStepMovers` lerped x and y together from the
+      source road to the target road, so the hero cut the corner - straight through the hedge, beside
+      the painted opening rather than along it. The firebreaks exist precisely so that a crossing is
+      visible and legible, and a diagonal ignores them.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- the walls
+   Each road's band in FIELD units, from its centre and its measured world depth. Intersected with the
+   engine's own y clamp, because that one still runs inside updateBattle and would fight this one. */
+/* ⛔ THIS FILE USED TO DECLARE `GSPLIT_FIELD_Y_MIN` HERE AND SO DOES
+   `bonus-lane-bounds-and-ground-*.js`. Two top-level `const` declarations of one name in the same
+   script is a **SyntaxError that kills the entire client**, not a shadowed variable - the page would
+   have loaded to a blank screen. Found by the browser proof; no headless test can see it, because
+   each payload parses perfectly on its own and only the CONCATENATION is invalid.
+   The bound now has ONE owner (the bounds payload) and this file reads the live value. */
+const GSPLIT_FIELD_Y_MAX = 1340;                       // client 7766, the lower clamp
+function gsplitFieldYMin(){ return (typeof FIELD_Y_MIN !== 'undefined') ? FIELD_Y_MIN : 80; }
+function gsplitLaneBand(lane){
+  const c = GSPLIT_ROAD_Y_FITTED[lane];
+  const half = (GSPLIT_ROAD_DEPTH[lane] / SC) / 2;
+  return { lo: Math.max(gsplitFieldYMin(), c - half),
+           hi: Math.min(GSPLIT_FIELD_Y_MAX, c + half) };
+}
+
+/* WORTH KNOWING BEFORE ANYONE CALLS IT A BUG: the FAR road's band runs from field y -3 to 215, and the
+   engine will not let a unit above y=80. So the top road's usable depth is 135 field units, not 218 -
+   its far third is outside the field's own bound. Ten heroes still fit (they need 4 ranks x 30 = 120),
+   but the margin there is one rank, not three. Recorded rather than silently absorbed; if it ever
+   bites, the fix is to move the far road's CENTRE down, which means repainting, which means asking
+   Phil - not quietly widening a clamp the rest of the game depends on. */
+
+function gsplitWall(u, lane){
+  if(!u || !u.alive) return;
+  if(u._gauntCrossing) return;                 // a mover is ON the path and is exempt until it lands
+  const b = gsplitLaneBand(lane);
+  if(u.y < b.lo){ u.y = b.lo; if(u.vy) u.vy = 0; }
+  else if(u.y > b.hi){ u.y = b.hi; if(u.vy) u.vy = 0; }
+}
+
+/* Applied AFTER updateBattle, so it wins over the engine's own clamp rather than racing it. Every
+   unit in the road - heroes, monsters and summons alike, because a monster shoved out of its road is
+   the same broken picture. */
+function gsplitWallLane(L){
+  for(const u of L.units) gsplitWall(u, L.i);
+}
+
+/* ------------------------------------------------- crossing, along the path
+   THREE PHASES, never a diagonal:
+     1. WALK  - along the hero's own road to the crossing's x. It stays inside its road the whole way.
+     2. CROSS - straight along the firebreak, x held EXACTLY at the path, y moving to the far road.
+     3. SEAT  - it is in the new road; the wall applies again.
+   Phase 1 uses the SOURCE road's x for the station and phase 2 walks to the TARGET road's x for it,
+   because one image fraction is a different field x on each road - the two ends of a firebreak are not
+   the same number. Interpolating x during phase 2 is what keeps the hero ON the painted path, which is
+   itself a slanted line between those two ends. */
+const GSPLIT_WALK_SPEED = 260;      // field units per second, along the road
+const GSPLIT_CROSS_SECONDS_PATH = 0.75;
+
+function gsplitBeginCross(m){
+  m.phase = 'walk';
+  m.xFrom = gsplitCrossX(m.side, m.station, m.from);
+  m.xTo   = gsplitCrossX(m.side, m.station, m.to);
+  m.yFrom = GSPLIT_ROAD_Y_FITTED[m.from];
+  m.yTo   = GSPLIT_ROAD_Y_FITTED[m.to];
+  m.t = 0;
+  if(m.unit) m.unit._gauntCrossing = true;
+}
+
+function gsplitStepMovers(dt){
+  if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'move') return;
+  for(const m of GSPLIT.window.movers){
+    if(m.arrived) continue;
+    const u = m.unit;
+    if(!u || !u.alive){ m.arrived = true; if(u) u._gauntCrossing = false; continue; }
+    if(!m.phase) gsplitBeginCross(m);
+
+    if(m.phase === 'walk'){
+      /* along its OWN road, held inside its own band - the hero never leaves the road in this phase */
+      const dx = m.xFrom - u.x, step = GSPLIT_WALK_SPEED * dt;
+      if(Math.abs(dx) <= step){ u.x = m.xFrom; m.phase = 'cross'; m.t = 0; }
+      else u.x += Math.sign(dx) * step;
+      u.y = Math.max(gsplitLaneBand(m.from).lo, Math.min(gsplitLaneBand(m.from).hi, u.y));
+      continue;
+    }
+
+    if(m.phase === 'cross'){
+      m.t = Math.min(1, m.t + dt / GSPLIT_CROSS_SECONDS_PATH);
+      /* x follows the PATH between its two ends; y crosses. The hero is on the footpath for every
+         frame of this phase, which is the whole of what Phil asked for. */
+      u.x = m.xFrom + (m.xTo - m.xFrom) * m.t;
+      u.y = m.yFrom + (m.yTo - m.yFrom) * m.t;
+      if(m.t >= 1){
+        m.phase = 'seated'; m.arrived = true;
+        u._gauntCrossing = false;
+        gsplitReseat(u, m.from, m.to);
+        gsplitWall(u, m.to);
+      }
+    }
+  }
+}
+
+/* A hero that is still walking to the path has not started crossing, and a hero mid-path has not
+   arrived. `gsplitStartAllowed` already asks the movers rather than latching, so both are covered with
+   no change there - but it is worth saying why: with three phases, "arrived" now means seated in the
+   new road, not "the animation finished". */
+
+/* ---------------------------------------------- the one line that wires it in
+   In `gsplitStep`, after `gsplitSave(L)` for each road:
+       gsplitWallLane(L);
+   and in the frame tail, after the movers step:
+       for(const L of GSPLIT.lanes) gsplitWallLane(L);
+   Applying it in BOTH places is deliberate: the combat step can push a unit out, and so can a
+   collision resolved during another road's step against a shared position. Twice is cheap; missing
+   one is a hero standing in a hedge. */
+
+/* ⛔ A ONE-FRAME HOLE, found by the browser proof.
+   `gsplitMove` used to push a mover with no phase and no `_gauntCrossing` flag, and
+   `gsplitStepMovers` set both on its first tick. Between the player's click and that tick - one
+   frame - the hero was OUT of its road's formation and NOT flagged as crossing, so `gsplitWallLane`
+   was entitled to snap it back into the road it was leaving. One frame is enough to see, and it is
+   exactly the kind of flicker that gets reported as "the hero jumped".
+   The crossing now begins at the moment of the move. `gsplitStepMovers` still calls `gsplitBeginCross`
+   defensively for any mover that somehow lacks a phase; it is now a belt, not the braces. */
+function gsplitMove(unit, from, to){
+  if(!gsplitCanMove(from, to)) return false;
+  const side = (Math.min(from, to) === 0) ? 'upper' : 'lower';
+  const m = { unit, from, to, side, station: GSPLIT.window.station, t: 0, arrived: false };
+  gsplitBeginCross(m);                       // phase + flag, NOW, not on the next tick
+  GSPLIT.window.movers.push(m);
+  return true;
+}
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — THE FAR-ROAD BOUND, AND A BUG IN MY OWN GROUND PATHS.
+
+   ChatGPT, 17 Sep: "please first investigate a Gauntlet-specific world bound/clamp that permits the
+   painted far-band while keeping the other modes' clamp unchanged; don't conclude a repaint is
+   necessary before that camera/field check."
+
+   HE WAS RIGHT AND I WAS EARLY. The check he asked for takes two readings and both say the clamp is
+   arbitrary here.
+
+   READING 1 — THERE IS NO FIELD PLANE. Client 4239-4246 builds the ground plane, both half-tints, the
+   centre line and the grid, and then:
+       groundGroup.visible=false;   // the painted battle map (#battleBg) is the ground now
+   **Nothing is drawn at field coordinates at all.** The ground is a CSS background image behind the
+   canvas. So `y >= 80` cannot be protecting a plane edge, because there is no plane.
+
+   READING 2 — IT IS NOT A CAMERA BOUND EITHER. Projected through the live camera:
+       field y   -3  ->  viewport y 0.166      (the far road's painted far edge)
+       field y   80  ->  viewport y 0.198      (where the engine stops a unit)
+       field y 1340  ->  viewport y 1.156      (the engine's LOWER clamp - OFF THE BOTTOM OF THE SCREEN)
+   The lower clamp already permits units the camera cannot show. A bound that allows an invisible unit
+   at one end is not a visibility rule at the other.
+
+   CONCLUSION: `Math.max(80, ...)` is a gameplay margin inherited from a five-hero campaign formation,
+   and the far road's painted band sits comfortably on screen and clear of `#topStatus` (0.082). A
+   Gauntlet-specific bound is safe. **No repaint.** */
+
+/* ---------------------------------------------------------------- the bound
+   The hunk in the client is ONE line - client 7766:
+       units.forEach(u=>{ ... u.y=Math.max(80,Math.min(FD-60,u.y)); });
+   becomes
+       units.forEach(u=>{ ... u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y)); });
+   with `let FIELD_Y_MIN=80;` beside the other battle globals at 3891. Every other mode keeps 80
+   because nothing else ever assigns it. The Gauntlet sets it on entry and restores it on exit -
+   NOT per lane, because a lane step must not leave a different bound behind if it throws. */
+const GSPLIT_FIELD_Y_MIN = -10;          // the far road's painted edge is field -3; -10 gives it room
+
+function gsplitBoundsEnter(){
+  GSPLIT._fieldYMin = (typeof FIELD_Y_MIN !== 'undefined') ? FIELD_Y_MIN : 80;
+  try{ FIELD_Y_MIN = GSPLIT_FIELD_Y_MIN; }catch(e){}
+}
+function gsplitBoundsExit(){
+  try{ FIELD_Y_MIN = (GSPLIT._fieldYMin != null ? GSPLIT._fieldYMin : 80); }catch(e){}
+}
+/* The per-road wall in `bonus-lane-walls-*.js` still runs and is still the real constraint - this
+   only stops the ENGINE from pulling a far-road hero down into the divider before the wall sees it.
+   With the bound lowered, `gsplitLaneBand('top')` returns its full painted depth instead of two thirds
+   of it, and the far road holds seven ranks rather than four. */
+
+/* ============================================================================
+   ⛔ AND A BUG IN MY OWN STEP 1, FOUND BY THE SAME TWO LINES.
+
+   `gsplitBuildGround()` adds the eight firebreak path meshes to `groundGroup`, with a comment arguing
+   that the ground group is the right parent because its contents are foreshortened by the same matrix
+   as the heroes standing on them. **That argument is correct and the parent is not**: `groundGroup`
+   is set `visible=false` at 4246 and never turned back on, because the painted map replaced it.
+
+   So the live crossings - the whole point of drawing them rather than baking them, the thing I told
+   ChatGPT to stop painting - WOULD NEVER HAVE APPEARED. He would have removed them from sixty maps on
+   my advice and then found nothing there.
+
+   The fix is one word: add them to `scene` instead. `groundGroup` is a Group at the origin with no
+   transform of its own, so world space is identical and the foreshortening argument still holds - it
+   was the right reasoning about the wrong object.
+   ========================================================================== */
+function gsplitBuildGround(){
+  gsplitClearGround();
+  /* Approved scene bitmaps already paint the eight narrow crossings. A scene mesh
+     projects as a broad pale rectangle and obscures those paths. */
+}
+function gsplitClearGround(){
+  try{ for(const m of GSPLIT.ground){ scene.remove(m);
+    if(m.geometry) m.geometry.dispose(); if(m.material) m.material.dispose(); } }catch(e){}
+  GSPLIT.ground = [];
+}
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — THE FIREBREAK WINDOW. Step 4's screen.
+
+   This is the last piece of logic between Phil and a playable 1-3. `bonus-lane-renderer-step2to4`
+   built the STATE MACHINE - gsplitOpenWindow, gsplitPickBoon, gsplitCanMove, gsplitMove,
+   gsplitStartAllowed, gsplitCloseWindow - and nothing drew it, so a run reached the first firebreak and
+   stopped. This draws it.
+
+   PHIL'S ORDER, KEPT EXACTLY: boon FIRST, then the adjacent-road choice, then the hero visibly runs,
+   and Start is refused until every mover has landed.
+
+   ~~CHOICE~~ ONE PANEL, THREE COLUMNS, NOT THREE PANELS.
+   The alternative is a panel per road, which is what the five-hero campaign HUD would suggest. But the
+   whole point of the window is a decision ACROSS roads - you pick this road's boon knowing what the
+   other two were offered, and you move a hero because one road is thin. Three separate panels hide
+   exactly the comparison the window exists for. Weighed against: at phone width three columns are
+   narrow. That is what the boon BLURB is for - the name reads at a glance, the blurb on tap.
+
+   ~~CHOICE~~ THE PANEL SITS IN THE HUD BAND, NOT OVER THE ROADS.
+   `BONUS_HUD_KEEPOUT.bottom` is y 0.736-1.000 and `#portraitBar` is suppressed in this mode, so that
+   band is empty and the three roads stay visible the whole time a window is open. Phil's spec is that
+   all three lanes are visible at once, including at a firebreak; a modal over the middle of the screen
+   would break that for the one moment it matters most.
+   ========================================================================== */
+
+
+/* ⛔ A NAME THAT DID NOT EXIST, and behind it an ARCHITECTURE MISTAKE.
+
+   `bonus-lane-renderer-step2to4` calls `bonusBoonOffer(stage, lane, wave, laneObj)`. The server module
+   exports `boonOffer(runSeed, lane, wave, level, profile)` - different name, different signature. It
+   would have thrown at the first firebreak: the first moment a player reaches, and the last moment
+   anyone wants to find a typo. Caught by `tests/test_gauntlet_window.js`, not by loading the page.
+
+   My first fix was a shim that called the boon table from the client. **That was the wrong fix**, and
+   writing it is what exposed the real error: the client has no business GENERATING the offer. The run
+   is the server's - `2310` mounts the subsystem, the server holds the seed and the attempt, and a
+   boon rolled on the client is a boon a modified client can re-roll until it likes the answer.
+
+   So the offer ARRIVES, and it arrives earlier than I first wrote: `/api/bonus/start`
+   (server/bonus-stages.js ~828) already returns `boonOffers` as a WINDOWS x LANES table for the whole
+   run, seeded off the attempt and built from each road's actual hero profile. All twelve offers are
+   in hand before wave 1. The client stores the table on `GSPLIT.boonOffers`, this file draws the row
+   for the current window and sends back which was picked. If an offer is missing the window says so
+   rather than inventing one - a road with no offer is a bug to see, not a gap to paper over. */
+function gsplitLaneOffer(L){
+  return (L && Array.isArray(L.offer) && L.offer.length) ? L.offer : null;
+}
+
+const GSPLIT_WIN_ID = 'gsplitWindow';
+
+function gsplitWindowCss(){
+  if(document.getElementById('gsplitWinCss')) return;
+  const st = document.createElement('style'); st.id = 'gsplitWinCss';
+  st.textContent = `
+  #${GSPLIT_WIN_ID}{position:absolute;left:0;right:0;bottom:0;z-index:40;display:none;
+    padding:4px 6px 6px;background:linear-gradient(to top,rgba(8,11,18,.96),rgba(8,11,18,.72) 70%,rgba(8,11,18,0));
+    font-family:inherit;color:#e6edf3;}
+  #${GSPLIT_WIN_ID}.show{display:block;}
+  .gw-head{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.4px;
+    color:#c9a35e;margin-bottom:4px;}
+  .gw-head .gw-step{color:#8b98a9;font-weight:600;letter-spacing:0;}
+  .gw-roads{display:flex;gap:6px;}
+  .gw-road{flex:1 1 0;min-width:0;border:1px solid #26324a;border-radius:8px;background:#0f1622;padding:5px;}
+  .gw-road.gw-done{border-color:#2f6b45;}
+  .gw-road.gw-out{opacity:.45;}
+  .gw-name{font-size:9px;font-weight:800;color:#8b98a9;margin-bottom:3px;display:flex;justify-content:space-between;}
+  /* ⛔ MEASURED IN A REAL BROWSER AND IT WAS TOO TALL. The first version showed each boon's blurb
+     under its name; at 844x390 the panel came out 213 px - it started at viewport y 0.454 and covered
+     the middle and near roads. Phil's rule is that all three lanes stay visible, including at a
+     firebreak, and that is the one moment it matters most.
+     The blurb is now revealed on the SELECTED boon only, so the panel is the name grid until a choice
+     is made and never grows past the HUD band. Nothing was removed - the text a player needs to make
+     the choice is the name, and the detail arrives when they have made it. */
+  /* SECOND MEASUREMENT: stacking three boons per road still came to 150 px (top y 0.615), which
+     covers the near road at 0.7305. The boons are a ROW inside each road's column, so the panel is
+     three rows tall in total (heading, the nine chips, the footer) instead of three plus three. */
+  .gw-boons{display:flex;gap:3px;}
+  .gw-boon{flex:1 1 0;min-width:0;display:block;text-align:center;font-size:10px;font-weight:700;
+    line-height:1.1;padding:4px 3px;border-radius:5px;border:1px solid #2a3550;background:#131c2b;
+    color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gw-boon:active{background:#1b2740;}
+    /* THIRD MEASUREMENT: in the MOVE phase the chosen boon expanded its blurb and the panel grew back
+     to 124 px (top y 0.682), which clips the near road again. The blurb is shown while CHOOSING -
+     where it informs the choice - and collapses once chosen, where it is only a reminder. */
+  .gw-boon.gw-pick{border-color:#c9a35e;background:#1d2434;}
+  .gw-road.gw-chosen .gw-boon.gw-pick{white-space:nowrap;}
+  .gw-road.gw-chosen .gw-boon.gw-pick .gw-blurb{display:none;}
+  .gw-boon .gw-blurb{display:none;font-size:9px;font-weight:500;color:#8b98a9;margin-top:2px;}
+  .gw-boon.gw-pick .gw-blurb{display:block;}
+  .gw-move{display:flex;gap:3px;margin-top:3px;align-items:stretch;}
+  .gw-chosenchip{flex:1.4 1 0;margin:0;}
+  .gw-move button{flex:1;font-size:10px;font-weight:800;padding:3px 0;border-radius:6px;
+    border:1px solid #2a3550;background:#131c2b;color:#e6edf3;}
+  .gw-move button[disabled]{opacity:.35;}
+  .gw-foot{display:flex;align-items:center;gap:8px;margin-top:4px;}
+  .gw-foot .gw-why{flex:1;font-size:10px;color:#8b98a9;}
+  #gwStart{min-width:104px;font-size:11px;font-weight:900;padding:5px 10px;border-radius:8px;
+    border:1px solid #c9a35e;background:#1d2434;color:#f0d8a8;}
+  #gwStart[disabled]{opacity:.4;border-color:#2a3550;color:#8b98a9;}`;
+  document.head.appendChild(st);
+}
+
+/* REQUIRED IN `gsplitBegin`: store the start response's table -
+     GSPLIT.boonOffers = res.boonOffers;   GSPLIT.seed = res.seed;   GSPLIT.level = res.boonLevel;
+   `gsplitOpenWindow` then reads the row for the current window. Nothing is generated client-side. */
+function gsplitWindowEl(){
+  let el = document.getElementById(GSPLIT_WIN_ID);
+  if(!el){
+    gsplitWindowCss();
+    el = document.createElement('div'); el.id = GSPLIT_WIN_ID;
+    const app = document.getElementById('app') || document.body;
+    app.appendChild(el);
+    el.addEventListener('click', gsplitWindowClick);
+  }
+  return el;
+}
+
+/* One delegated listener rather than a handler per button. The panel is rebuilt on every state
+   change, and per-button listeners on a rebuilt tree are how a dead button happens. */
+function gsplitWindowClick(e){
+  const b = e.target.closest ? e.target.closest('[data-gw]') : null;
+  if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const kind = b.getAttribute('data-gw');
+  if(kind === 'boon'){
+    gsplitPickBoon(+b.getAttribute('data-lane'), b.getAttribute('data-id'));
+    gsplitWindowDraw();
+  } else if(kind === 'move'){
+    gsplitPromptMove(+b.getAttribute('data-lane'), +b.getAttribute('data-to'));
+  } else if(kind === 'start'){
+    if(gsplitCloseWindow()) gsplitWindowDraw();
+  }
+}
+
+/* ~~CHOICE~~ THE MOVE PICKS THE REARMOST HERO, AND SAYS SO.
+   A per-hero picker at phone width, on a road holding ten sprites 17 px tall, is a fiddly tap target
+   for a decision that is almost always "thin out this road". So the button moves the hero furthest
+   back - the one least engaged - and the label names it, so the player always knows who left. If
+   Phil wants to choose the hero, this becomes a second tap and nothing else changes. */
+function gsplitRearmost(lane){
+  const L = GSPLIT.lanes[lane]; if(!L) return null;
+  const live = L.units.filter(u => u.team === 'ally' && u.alive && !u._summon);
+  if(!live.length) return null;
+  return live.reduce((a, u) => (u.x < a.x ? u : a), live[0]);
+}
+function gsplitPromptMove(from, to){
+  const u = gsplitRearmost(from);
+  if(!u) return;
+  if(gsplitMove(u, from, to)) gsplitWindowDraw();
+}
+
+function gsplitWindowDraw(){
+  const el = gsplitWindowEl();
+  if(!gsplitWindowOpen()){ el.className = ''; el.innerHTML = ''; return; }
+  const W = GSPLIT.window, station = (W.station|0) + 1;
+  const phase = W.phase;
+  let html = '<div class="gw-head">FIREBREAK ' + station + ' of 4'
+    + '<span class="gw-step">' + (phase === 'boon'
+        ? 'choose a boon for each road'
+        : 'move a hero to an adjacent road, or start') + '</span></div><div class="gw-roads">';
+
+  for(const L of GSPLIT.lanes){
+    const out = (L.state !== 'walking');
+    const picked = W.picked[L.i];
+    html += '<div class="gw-road' + (picked ? ' gw-done' : '') + (out ? ' gw-out' : '') +
+            (phase === 'move' ? ' gw-chosen' : '') + '">';
+    const n = L.units.filter(u => u.team === 'ally' && u.alive && !u._summon).length;
+    html += '<div class="gw-name"><span>' + L.name + '</span><span>' +
+            (out ? L.state.toUpperCase() : n + '/' + MAX_PER_LANE) + '</span></div>';
+
+    if(out){ html += '</div>'; continue; }
+
+    if(phase === 'boon'){
+      html += '<div class="gw-boons">';
+      for(const b of (L.offer || [])){
+        html += '<button class="gw-boon' + (picked === b.id ? ' gw-pick' : '') +
+                '" data-gw="boon" data-lane="' + L.i + '" data-id="' + b.id + '">' +
+                gsplitEsc(b.name) + '<span class="gw-blurb">' + gsplitEsc(b.blurb || '') + '</span></button>';
+      }
+      html += '</div>';
+    } else {
+      /* FOURTH MEASUREMENT: the chosen boon on its own row plus a row of move buttons came to 121 px
+         (top y 0.690), which still clips the near road's heroes - their heads sit around y 0.68. The
+         two are ONE row: the boon you took, and the two roads you can send someone to. That is also
+         the truer reading of the phase - it is one decision line per road, not two. */
+      const chosen = (L.offer || []).find(b => b.id === picked);
+      html += '<div class="gw-move"><div class="gw-boon gw-pick gw-chosenchip">' +
+              gsplitEsc(chosen ? chosen.name : '\u2014') + '</div>';
+      for(const to of [L.i - 1, L.i + 1]){
+        if(to < 0 || to > 2){ continue; }
+        const ok = gsplitCanMove(L.i, to) && !!gsplitRearmost(L.i);
+        html += '<button data-gw="move" data-lane="' + L.i + '" data-to="' + to + '"' +
+                (ok ? '' : ' disabled') + '>&rarr; ' + GSPLIT_ROAD_NAME[to].split(' ')[0] + '</button>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  /* THE START BUTTON EXPLAINS ITSELF WHEN IT IS REFUSED.
+     "Start is disabled" with no reason is the single most common way a rule becomes a bug report. */
+  const waiting = (phase === 'move') && W.movers.some(m => !m.arrived && m.unit && m.unit.alive);
+  const why = (phase === 'boon')
+      ? 'Pick a boon on every road that is still walking.'
+      : (waiting ? 'Waiting for heroes to reach the far road.' : 'Ready.');
+  html += '<div class="gw-foot"><span class="gw-why">' + why + '</span>' +
+          '<button id="gwStart" data-gw="start"' + (gsplitStartAllowed() && phase === 'move' ? '' : ' disabled') +
+          '>START WAVE ' + (station + 1) + '</button></div>';
+
+  el.innerHTML = html;
+  el.className = 'show';
+}
+
+function gsplitEsc(s){ return String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* Called every frame while a run is live: the movers advance, and Start can only become allowed
+   because a mover landed, so the panel is redrawn when that changes. Redrawing on a CHANGE rather
+   than every frame keeps the DOM still while the player is reading it. */
+function gsplitWindowTick(dt){
+  if(!GSPLIT.active) return;
+  gsplitStepMovers(dt);
+  const sig = gsplitWindowOpen()
+    ? (GSPLIT.window.phase + '|' + Object.keys(GSPLIT.window.picked).length + '|' +
+       GSPLIT.window.movers.filter(m => m.arrived).length + '|' + GSPLIT.window.movers.length)
+    : '';
+  if(sig !== GSPLIT._winSig){ GSPLIT._winSig = sig; gsplitWindowDraw(); }
+}
+
+/* The window opens when every walking road has finished the same wave - `gsplitWaveBoundary()` in
+   step 2-4. Checked once per frame from the tail, so a road that clears late still opens the same
+   window rather than a second one. */
+function gsplitWindowMaybeOpen(){
+  if(!GSPLIT.active || gsplitWindowOpen()) return;
+  if(gsplitWalking() === 0) return;
+  if(!gsplitWaveBoundary()) return;
+  if(gsplitOpenWindow()) gsplitWindowDraw();
+}
+
+function gsplitWindowHide(){
+  const el = document.getElementById(GSPLIT_WIN_ID);
+  if(el){ el.className = ''; el.innerHTML = ''; }
+  GSPLIT._winSig = '';
+}
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — ENTRY: building tap -> hero/lane pick -> real launch.
+   17 Sep 2026. This is the piece Phil asked for directly: "Phil wants the building tap to open a
+   playable bonus round." Everything before this closed the loop on lane isolation, geometry, the
+   boss and the laneSlot fix; nothing actually STARTED a run yet. This does.
+
+   Deliberately minimal UI - a working picker, not a polished one. `renderRoadmap`'s bonus markers
+   (ChatGPT's) call `openBonusModal(ch,slot)`; that contract is unchanged by this file.
+   ========================================================================== */
+
+/* Chapter 1's six approved arenas, staged 17 Sep 2026. Path convention posted to ChatGPT:
+   assets/img/Gauntlet/bonus-<ch>-<slot>.webp. Only Chapter 1 exists so far; an id with no entry here
+   falls back to the plain BATTLE_BG the rest of the game already uses, rather than a broken image. */
+const CH_BONUS_MAPS = {
+  '1-3':  ART_BASE+"Gauntlet/bonus-1-3.webp",
+  '1-4':  ART_BASE+"Gauntlet/bonus-1-4.webp",
+  '1-6':  ART_BASE+"Gauntlet/bonus-1-6.webp",
+  '1-7':  ART_BASE+"Gauntlet/bonus-1-7.webp",
+  '1-9':  ART_BASE+"Gauntlet/bonus-1-9.webp",
+  '1-10': ART_BASE+"Gauntlet/bonus-1-10.webp"
+};
+
+let GSPLIT_ENTRY = null;   // { ch, slot, id, stageInfo, squad:[keys], laneOf:{key:1|2|3} }
+
+function openBonusModal(ch, slot){
+  const id = ch+'-'+slot;
+  GSPLIT_ENTRY = { ch, slot, id, stageInfo:null, squad:[], laneOf:{} };
+  api('/api/bonus/stage?id='+encodeURIComponent(id), 'GET').then(data=>{
+    if(!data || !data.ok){ bannerMsg((data&&data.error)||'Could not open that bonus stage.'); GSPLIT_ENTRY=null; return; }
+    GSPLIT_ENTRY.stageInfo = data;
+    gsplitPickerRender();
+  });
+}
+
+function gsplitPickerClose(){
+  const el=document.getElementById('gsplitPicker'); if(el) el.remove();
+  GSPLIT_ENTRY = null;
+}
+
+function gsplitPickerRender(){
+  if(!GSPLIT_ENTRY) return;
+  let el = document.getElementById('gsplitPicker');
+  if(!el){ el=document.createElement('div'); el.id='gsplitPicker'; document.body.appendChild(el); }
+  el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(6,8,14,.94);color:#e6edf3;overflow-y:auto;padding:14px;font-family:inherit';
+  const info = GSPLIT_ENTRY.stageInfo;
+  const owned = HERO_KEYS.filter(k=>G.unlocked[k]);
+  const laneNames=['Top','Middle','Bottom'];
+  const counts=[1,2,3].map(L=>owned.filter(k=>GSPLIT_ENTRY.laneOf[k]===L).length);
+  const total=counts.reduce((a,b)=>a+b,0);
+  const heroChips = owned.map(k=>{
+    const lane=GSPLIT_ENTRY.laneOf[k]||0;
+    const t=(HERO_TYPES&&HERO_TYPES[k])||{}; const nm=t.name||k;
+    return `<button type="button" class="gsplitHero" data-k="${k}" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;
+      width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${lane?'#c9a35e':'#333'};
+      background:${lane?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer">
+      <span style="font-size:20px">${t.emoji||'❔'}</span><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</span>
+      <span style="color:#c9a35e;font-weight:800">${lane?laneNames[lane-1]:'—'}</span></button>`;
+  }).join('');
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-weight:800;font-size:15px">BONUS ${GSPLIT_ENTRY.id}${info.tier?' — '+info.tier:''}</div>
+      <button type="button" id="gsplitClose" class="btn xs secondary">✕</button>
+    </div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">
+      Tap a hero to cycle Top → Middle → Bottom → off. ${info.maxPerLane||10} per road, up to ${info.maxHeroes||30} total.
+      ${info.tutorial?'Tutorial run — one monster per wave.':''}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${heroChips || '<div style="color:#8b98a9;font-size:12px">No heroes unlocked yet.</div>'}</div>
+    <div style="display:flex;gap:10px;font-size:11px;color:#c9a35e;margin-bottom:12px">
+      <div>Top: ${counts[0]}</div><div>Middle: ${counts[1]}</div><div>Bottom: ${counts[2]}</div><div>Total: ${total}</div>
+    </div>
+    <button type="button" id="gsplitStart" class="btn" style="width:100%">START</button>
+    <div id="gsplitErr" style="color:#ff6b6b;font-size:11px;margin-top:8px"></div>`;
+  el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
+  el.querySelectorAll('.gsplitHero').forEach(b=>{
+    b.onclick = ()=>{ const k=b.dataset.k; const cur=GSPLIT_ENTRY.laneOf[k]||0;
+      const next=cur>=3?0:cur+1;
+      if(next===0) delete GSPLIT_ENTRY.laneOf[k]; else GSPLIT_ENTRY.laneOf[k]=next;
+      gsplitPickerRender(); };
+  });
+  el.querySelector('#gsplitStart').onclick = gsplitStartRun;
+}
+
+function gsplitStartRun(){
+  if(!GSPLIT_ENTRY) return;
+  const assign={1:[],2:[],3:[]};
+  Object.keys(GSPLIT_ENTRY.laneOf).forEach(k=>{ assign[GSPLIT_ENTRY.laneOf[k]].push(k); });
+  const errEl=document.getElementById('gsplitErr');
+  for(let L=1;L<=3;L++){ if(!assign[L].length && !(GSPLIT_ENTRY.stageInfo&&GSPLIT_ENTRY.stageInfo.tutorial)){
+    if(errEl) errEl.textContent='Every road needs at least one hero.'; return; } }
+  api('/api/bonus/start','POST',{id:GSPLIT_ENTRY.id, assign}).then(data=>{
+    if(!data || !data.ok){ if(errEl) errEl.textContent=(data&&data.error)||'Could not start.'; return; }
+    const assignSnap=assign, id=GSPLIT_ENTRY.id;
+    gsplitPickerClose();
+    gsplitEnterBattle(data, assignSnap, id);
+  });
+}
+
+/* THE REAL LAUNCH. Everything below this point was previously only reachable through a test
+   harness (`__gauntProof`/`__gauntEncounter`). This is the same sequence, fed real server data and
+   a real player's squad, ending in the same `show('battle')` the rest of the game already uses. */
+function gsplitEnterBattle(data, assign, id){
+  const seed = (data.attemptId||id).split('').reduce((a,c)=>((a*31+c.charCodeAt(0))>>>0), 7);
+  GSPLIT.active = true;
+  GSPLIT.stage = id;
+  GSPLIT.attemptId = data.attemptId;
+  GSPLIT.seed = seed;
+  GSPLIT.level = data.boonLevel||1;
+  GSPLIT.waveShown = 0;
+  GSPLIT.boonOffers = data.boonOffers||[];
+  GSPLIT.lanes = [0,1,2].map(i=>{
+    const L=gsplitLane(i);
+    L.brng = mulberry32(seed^(i*7919));
+    L.waves3 = data.lanes[i];
+    L.offer = null;
+    L.fx = (typeof gsplitFxBlank==='function') ? gsplitFxBlank() : {};
+    return L;
+  });
+  gsplitBoundsEnter();
+  FX_SIZE = 2*BONUS_UNIT_SCALE;
+  gsplitHudEnter();
+  gsplitBuildGround();
+  const laneHeroes = [assign[1]||[], assign[2]||[], assign[3]||[]];
+  for(let i=0;i<3;i++){
+    const L=GSPLIT.lanes[i];
+    gsplitLoad(L); gsplitFxSwapIn(L); gsplitLoadWaves(L);
+    waveIdx=0; chapterWaves=5; battleTime=0; ended=false;
+    spawnTeam(laneHeroes[i], 'ally');
+    buildEnemyWave();
+    gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
+  }
+  units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+  ended=false; battleTime=0; selected=null; aiming=null; screenFlash=0; gameSpeed=1;
+  { const bg=document.getElementById('battleBg');
+    if(bg){ const url=CH_BONUS_MAPS[id]||BATTLE_BG;
+      bg.style.backgroundImage='url('+url+')'; bg.style.backgroundSize='cover'; bg.style.backgroundPosition='center'; } }
+  show('battle');
+  bannerMsg('◆ BONUS '+id+' — THREE ROADS');
+}
+
+/* ============================================================================
+   THE GAUNTLET SPLIT — CLOSING THE LOOP: window/tick/wall wired in, a real verdict,
+   a real exit, and the one guard that stops the base engine's own victory/defeat
+   sequence from firing mid-run. 17 Sep 2026, later.
+
+   TRACED, NOT GUESSED — the base wave-advance (client `updateBattle`, ~9315 and the
+   `beginWaveWin`→`updateWaveXfer` 2s-idle path) calls `endBattle(won)` PER LANE, with
+   ZERO Gauntlet awareness. `endBattle` writes GLOBAL, non-lane-scoped state
+   (`resultWon`, `resultStars`, `resultSquadKeys`) and schedules `resultLater(...)` →
+   `show('result')` — the real campaign/vault victory screen. The win path (idle-then-
+   endBattle) turns out to be defused already, because `gsplitStep`'s own post-tick
+   check flips `L.state` to 'cleared' the SAME tick the last enemy dies — before the
+   2s idle ever completes — and a non-'walking' lane is never stepped again, so the
+   deferred `endBattle(true)` never gets a tick to fire on. The LOSS path is NOT
+   defused: `else if(a===0)endBattle(false);` fires SYNCHRONOUSLY, inside the same
+   `updateBattle(dt)` call, the instant a lane's allies are wiped — before
+   `gsplitStep`'s own check ever runs. That is the one live bug: an ally wipe in ANY
+   single lane pops the base result screen and yanks the player out of a run the other
+   two lanes are still fighting. Confirmed for real: with `CUR.mode` spoofed to
+   `'vault'` for the whole per-lane `updateBattle` call (`gsplitLoadWaves`), this exact
+   path is what printed "THE VAULT HOLDS" during Phil's own integrated preview — not a
+   Vault bug, the same unguarded `endBattle` call landing in the Vault's own branch.
+
+   The fix is the one-line guard in CR `0470`, not a client-file edit here. Everything
+   else in this file is new functions, or documented redefinitions of ones already
+   shadowed once (`gsplitLaneHome`/`gsplitLaneFallen`, `gsplitVerdict`,
+   `gsplitHudEnter`/`gsplitHudExit`, and the final `gsplitStep`) — same technique this
+   project has used throughout: a later same-named top-level `function` declaration in
+   the same script wins, so nothing here touches the held file. Load this payload LAST.
+   ========================================================================== */
+
+function gsplitLaneHome(L){
+  if(!L || L.state !== 'walking') return;
+  L.state = 'cleared';
+  bannerMsg('◆ '+L.name+' — HOME');
+}
+function gsplitLaneFallen(L){
+  if(!L || L.state !== 'walking') return;
+  L.state = 'lost';
+  bannerMsg('◆ '+L.name+' — FALLEN');
+}
+
+function gsplitEndBattle(won){
+  if(ended) return;
+  ended = true;
+  const L = GSPLIT.lanes[GSPLIT.curLane];
+  if(L){ if(won) gsplitLaneHome(L); else gsplitLaneFallen(L); }
+}
+
+function gsplitVerdict(){
+  if(gsplitLost() >= 1 && gsplitCleared() < 2) return 'lost';
+  if(gsplitWalking() > 0) return null;
+  return (gsplitCleared() >= 2) ? 'won' : 'lost';
+}
+
+function gsplitFrameTail(dt){
+  for(const L of GSPLIT.lanes){
+    if(L.waveIdx > GSPLIT.waveShown) continue;   // held at the firebreak - no residual FX/DoT tick either
+    gsplitLoad(L); gsplitFxSwapIn(L);
+    try{ battleFrameTail(dt); }catch(e){ try{console.error('[gauntlet tail '+L.i+']',e);}catch(_){} }
+    gsplitFxSwapOut(L); gsplitSave(L);
+  }
+  units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+}
+
+/* 17 Sep, real defect caught in review (not by me): gsplitCloseWindow's evidence POST was pure
+   fire-and-forget with a swallowed .catch(()=>{}), and gsplitFinish's own .catch() on a FAILED
+   /api/bonus/resolve still called gsplitShowResult(won, null) - which shows "CLEARED" with the
+   local `won` flag regardless of whether the server actually agreed. A dropped network call could
+   show a player a false CLEARED banner for zero stars and zero reward, or - worse - the server's own
+   evidence rejection (a real defense, see bonus-stages.js MIN_RESOLVE_MS) would be silently painted
+   over as a win. Two changes fix this:
+     1. Every window-evidence POST is now tracked in GSPLIT._windowEvidence (with its own bounded
+        retry - gsplitReportWindow, 3 tries, backing off) and gsplitFinish AWAITS all of them before
+        ever calling /api/bonus/resolve, so a slow-but-eventually-successful POST is not raced.
+     2. gsplitFinish never shows a result the server did not confirm. A resolve that fails - network
+        error OR the server returning ok:false - goes to gsplitFinishFailed instead of
+        gsplitShowResult, which tells the player plainly that the result was NOT confirmed, retries
+        the resolve itself (not the whole verdict) a few times, and only after those are exhausted
+        does it hand control back so the player is never stuck - see gsplitFinishFailed below. */
+function gsplitReportWindow(attemptId, windowIndex, attempt){
+  attempt = attempt || 1;
+  return api('/api/bonus/window','POST',{ attemptId, windowIndex })
+    .then(r => { if(!r || r.ok !== true) throw new Error('window evidence rejected'); return r; })
+    .catch(e => {
+      if(attempt < 3) return new Promise(res=>setTimeout(res, 400*attempt)).then(()=>gsplitReportWindow(attemptId, windowIndex, attempt+1));
+      try{ console.error('[gauntlet] window evidence failed after retries', windowIndex, e); }catch(_){}
+      /* 17 Sep, caught in review (not by me): returning {ok:false} here and stopping was a DEAD END,
+         not a recoverable failure - gsplitFinish would go on to call /resolve anyway, the server
+         would correctly refuse it as "missing window evidence" (real defense, working as designed),
+         and gsplitFinishFailed only ever retried /resolve itself - which can NEVER succeed, because
+         the missing evidence that caused the rejection is never resent. The only way out was
+         RETREAT, which forces a LOSS - turning a real, earned win into a loss purely because one
+         POST had a bad network moment. Queuing the index here, not just reporting failure, is what
+         makes it recoverable: gsplitResendMissingWindows (below) is given a real chance to fill the
+         gap, in the correct sequence, before /resolve is ever attempted or retried. */
+      if(!GSPLIT._windowRetryQueue) GSPLIT._windowRetryQueue = [];
+      if(GSPLIT._windowRetryQueue.indexOf(windowIndex) < 0) GSPLIT._windowRetryQueue.push(windowIndex);
+      return { ok:false, windowIndex, failed:true };
+    });
+}
+
+/* Resends every window index still sitting in the retry queue, IN ORDER (the server enforces a
+   strict sequence, so an out-of-order resend would just be refused again) - each one awaited before
+   the next is attempted, and removed from the queue only on real success. Safe to call repeatedly:
+   an empty queue resolves immediately, and a partial success (some windows recovered, some still
+   failing) simply leaves the still-failing ones queued for the NEXT call. This is the actual repair
+   step - /api/bonus/resolve is never the thing that fixes a missing-evidence rejection, this is. */
+function gsplitResendMissingWindows(){
+  const attemptId = GSPLIT.attemptId;
+  const queue = (GSPLIT._windowRetryQueue || []).slice().sort((a,b)=>a-b);
+  let chain = Promise.resolve();
+  queue.forEach(windowIndex => {
+    chain = chain.then(() => api('/api/bonus/window','POST',{ attemptId, windowIndex }))
+      .then(r => {
+        if(r && r.ok === true){
+          const i = GSPLIT._windowRetryQueue.indexOf(windowIndex);
+          if(i >= 0) GSPLIT._windowRetryQueue.splice(i, 1);
+        }
+      })
+      .catch(()=>{});   // still stuck - stays in the queue for the next call, not lost
+  });
+  return chain;
+}
+
+function gsplitFinish(verdict){
+  if(GSPLIT._finishing) return;
+  GSPLIT._finishing = true;
+  GSPLIT._verdictPending = verdict;   // the REAL, earned verdict - kept so a later manual retry (see
+                                       // gsplitHudEnter's RETREAT/RETRY button below) can confirm the
+                                       // actual result instead of RETREAT silently converting it to a loss
+  const won = (verdict === 'won');
+  const cleared = gsplitCleared(), lost = gsplitLost();
+  let heroesLost = 0;
+  for(const L of GSPLIT.lanes){
+    heroesLost += (L.units||[]).filter(u => u.team==='ally' && !u._summon && !u.alive).length;
+  }
+  const firstLossAfterSecondClear = won && lost >= 1;
+  const attemptId = GSPLIT.attemptId;
+  const pendingEvidence = (GSPLIT._windowEvidence || []).slice();
+  Promise.all(pendingEvidence)
+    .then(() => gsplitResendMissingWindows())   // fill any gaps BEFORE ever attempting resolve
+    .then(() => api('/api/bonus/resolve','POST',{ attemptId, lanesCleared:cleared, lanesLost:lost,
+      heroesLost, firstLossAfterSecondClear }))
+    .then(data => {
+      if(!data || data.ok !== true) return gsplitFinishFailed(won, data, null);
+      gsplitShowResult(won, data);
+    })
+    .catch(err => gsplitFinishFailed(won, null, err));
+}
+
+/* Never a false CLEARED, and never a forced loss just because a POST had a bad moment. Tells the
+   player plainly, RE-SENDS any still-missing window evidence AND THEN retries resolve (not resolve
+   alone - see gsplitResendMissingWindows above, added 17 Sep after review found the earlier version
+   could never actually recover a missing-evidence rejection), a bounded number of times, and only
+   once those are exhausted does it release _finishing - at which point the RETREAT button becomes a
+   RETRY button (gsplitHudEnter below) that re-attempts the SAME real verdict, preserving an earned
+   win, rather than immediately forcing a loss. The run is never silently abandoned, and a real win
+   is never silently downgraded, purely by a network hiccup. */
+const GSPLIT_RESOLVE_RETRY_MAX = 4;
+function gsplitFinishFailed(won, data, err, attempt){
+  attempt = attempt || 1;
+  const reason = (data && data.error) ? data.error : (err ? 'a network error' : 'an unknown server error');
+  bannerMsg('◆ Result not confirmed (' + reason + ') — retrying…');
+  if(attempt <= GSPLIT_RESOLVE_RETRY_MAX && GSPLIT.active){
+    const attemptId = GSPLIT.attemptId;
+    const cleared = gsplitCleared(), lost = gsplitLost();
+    let heroesLost = 0;
+    for(const L of GSPLIT.lanes) heroesLost += (L.units||[]).filter(u => u.team==='ally' && !u._summon && !u.alive).length;
+    const firstLossAfterSecondClear = won && lost >= 1;
+    setTimeout(() => {
+      if(!GSPLIT.active) return;
+      gsplitResendMissingWindows()
+        .then(() => api('/api/bonus/resolve','POST',{ attemptId, lanesCleared:cleared, lanesLost:lost,
+          heroesLost, firstLossAfterSecondClear }))
+        .then(d => { if(!d || d.ok !== true) return gsplitFinishFailed(won, d, null, attempt+1); gsplitShowResult(won, d); })
+        .catch(e => gsplitFinishFailed(won, null, e, attempt+1));
+    }, 800 * attempt);
+    return;
+  }
+  /* automatic retries exhausted - release _finishing so a MANUAL retry can act, but GSPLIT._verdictPending
+     stays set: the RETREAT button (gsplitHudEnter) checks it and, if present, retries the real
+     verdict first - a recovered connection still gets the actual win, never a forced loss, unless
+     the player explicitly declines that and confirms a real retreat. */
+  GSPLIT._finishing = false;
+  bannerMsg('◆ Could not confirm this run’s result with the server. Check your connection, then tap RETRY to try again.');
+}
+
+function gsplitShowResult(won, data){
+  const stageId = GSPLIT.stage;
+  const stars = (data && typeof data.stars === 'number') ? data.stars : 0;
+  const note = (data && data.starNote) ? data.starNote : (won ? 'Two roads must come home before one falls.' : '');
+  const starStr = stars ? ' '+'★'.repeat(stars)+'☆'.repeat(3-stars) : '';
+  gsplitWindowHide();
+  gsplitEnd();
+  gsplitHudExit();
+  bannerMsg((won ? '◆ BONUS '+stageId+' CLEARED'+starStr : '◆ BONUS '+stageId+' — RUN LOST') + (note?'\n'+note:''));
+  show('campaign');
+}
+
+function gsplitRetreat(){
+  if(!GSPLIT.active || GSPLIT._finishing) return;
+  for(const L of GSPLIT.lanes) if(L.state === 'walking') L.state = 'lost';
+  gsplitFinish('lost');
+}
+
+function gsplitHudEnter(){
+  GSPLIT._windowEvidence = [];        // fresh trail for this run - see gsplitCloseWindow / gsplitFinish
+  GSPLIT._windowRetryQueue = [];      // fresh - see gsplitReportWindow / gsplitResendMissingWindows
+  GSPLIT._verdictPending = null;      // fresh - see gsplitFinish / gsplitFinishFailed
+  const pb = document.getElementById('portraitBar');
+  if(pb){ GSPLIT._pbDisplay = pb.style.display; pb.style.display = 'none'; }
+  let el = document.getElementById('gsplitRetreat');
+  if(!el){
+    el = document.createElement('button');
+    el.id = 'gsplitRetreat';
+    el.type = 'button';
+    el.textContent = '↩ RETREAT';
+    el.style.cssText = 'position:fixed;top:8px;left:8px;z-index:8500;padding:6px 10px;'+
+      'border-radius:8px;border:1px solid #7a2020;background:rgba(30,8,8,.85);color:#ff9b9b;'+
+      'font-size:11px;font-weight:800;cursor:pointer';
+    /* 17 Sep - if a real verdict is sitting unconfirmed (automatic retries exhausted, see
+       gsplitFinishFailed), tapping this button retries THAT verdict for real, preserving an earned
+       win, instead of immediately forcing a loss. Only once that retry itself fails (or there is no
+       pending verdict at all - the normal mid-battle case) does it fall back to a real, confirmed
+       retreat. The label switches to RETRY so the player is never misled about which one they're doing. */
+    el.onclick = () => {
+      if(GSPLIT._verdictPending && !GSPLIT._finishing){
+        bannerMsg('◆ Retrying your result…');
+        gsplitFinish(GSPLIT._verdictPending);
+        return;
+      }
+      if(confirm('Retreat from this Gauntlet run? Any road still fighting counts as lost.')) gsplitRetreat();
+    };
+    document.body.appendChild(el);
+  }
+  el.style.display = '';
+  el.textContent = '↩ RETREAT';
+}
+function gsplitHudExit(){
+  const pb = document.getElementById('portraitBar');
+  if(pb) pb.style.display = (GSPLIT._pbDisplay || '');
+  const el = document.getElementById('gsplitRetreat');
+  if(el) el.style.display = 'none';
+}
+
+/* SECURITY 17 Sep - real per-window evidence for server/bonus-stages.js's MIN_RESOLVE_MS /
+   windowsSeen hardening (a forged instant /api/bonus/resolve was found accepting a claimed 3-lane
+   clear the moment after /start, with nothing checking a battle actually happened). Redefines the
+   base gsplitCloseWindow (bonus-lane-renderer-step2to4-031609.js) by the same shadowing technique
+   as every other function here - full reimplementation, not a call to the shadowed original -
+   adding exactly one thing: reporting this window's close to the server, in sequence, before it
+   does the same summon-purge/advance work the original always did.
+
+   UPDATED 17 Sep, same night: NOT fire-and-forget any more - the promise is tracked (pushed onto
+   GSPLIT._windowEvidence) rather than having its rejection swallowed at the call site, and does not
+   block or gate the crossing itself while in flight. A dropped POST is retried (gsplitReportWindow,
+   3 attempts with backoff) and, if still failing, queued (GSPLIT._windowRetryQueue) for
+   gsplitResendMissingWindows to repair before /api/bonus/resolve is ever attempted or retried - see
+   gsplitFinish/gsplitFinishFailed. None of this is authoritative combat verification (see the
+   server's own honest-limit note at MIN_RESOLVE_MS: this stops the ONE forge that was found, it does
+   not prove the reported outcome) - it only makes sure a genuine network hiccup can never turn a
+   real, earned win into either a false CLEARED or a forced loss. */
+function gsplitCloseWindow(){
+  if(!gsplitStartAllowed()) return false;
+  const windowIndex = GSPLIT.waveShown + 1;   // captured BEFORE the increment below - 1-based, matches server's WINDOWS count
+  if(GSPLIT.attemptId){
+    if(!GSPLIT._windowEvidence) GSPLIT._windowEvidence = [];
+    GSPLIT._windowEvidence.push(gsplitReportWindow(GSPLIT.attemptId, windowIndex));   // tracked + retried, see gsplitReportWindow/gsplitFinish
+  }
+  GSPLIT.window = null;
+  GSPLIT.waveShown++;
+  for(const L of GSPLIT.lanes){
+    if(L.state !== 'walking') continue;
+    for(const s of L.units.filter(s => s._summon && !s[EVERLASTING_FLAG])) killSummon(s);
+    L.offer = null;
+  }
+  return true;
+}
+
+function gsplitStep(dt){
+  if(!GSPLIT.active || GSPLIT._finishing) return;
+
+  if(gsplitWindowOpen()){
+    gsplitFrameTail(dt);
+    for(const L of GSPLIT.lanes) gsplitWallLane(L);
+    gsplitWindowTick(dt);
+    return;
+  }
+
+  for(const L of GSPLIT.lanes){
+    if(L.state !== 'walking') continue;
+    /* THE THIRD REAL GAP: pausing combat once a window is OPEN (above) is not the same as pausing a
+       lane the MOMENT it reaches the boundary. Without this line a fast lane's own updateBattle
+       finishes its exit march, increments waveIdx and spawns the next wave before
+       gsplitWindowMaybeOpen ever sees every lane has arrived. Held here until GSPLIT.waveShown
+       catches up (gsplitCloseWindow already increments it) - no combat ticks against the new wave
+       until the window resolves. */
+    if(L.waveIdx > GSPLIT.waveShown) continue;
+    gsplitLoad(L); gsplitFxSwapIn(L); gsplitLoadWaves(L);
+    try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
+    gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
+    if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
+    else if(!units.some(u=>u.team==='ally'&&u.alive&&!u._summon)) gsplitLaneFallen(L);
+  }
+  gsplitFrameTail(dt);
+  for(const L of GSPLIT.lanes) gsplitWallLane(L);
+  gsplitWindowMaybeOpen();
+  gsplitWindowTick(dt);
+  const v = gsplitVerdict();
+  if(v) gsplitFinish(v);
+}
+
+/* Bonus 1-3 Start Here rails. Load after the Gauntlet entry/window/flow payloads. */
+const _bonusPickerRender = gsplitPickerRender;
+gsplitPickerRender = function(){
+  const E = GSPLIT_ENTRY;
+  if(E && E.stageInfo && E.stageInfo.script && !G.tutSkipped && !E._rails){
+    const owned = HERO_KEYS.filter(k=>G.unlocked[k]).sort((a,b)=>heroPower(b)-heroPower(a));
+    E._rails = { steps:E.stageInfo.script.place.filter(p=>owned[p.rank]).map(p=>({key:owned[p.rank],lane:p.lane,say:p.say})), next:0 };
+  }
+  _bonusPickerRender();
+  const panel=document.getElementById('gsplitPicker');
+  if(panel){
+    panel.style.cssText='position:fixed;inset:0;z-index:9000;display:grid;place-items:center;'+
+      'background:rgba(5,8,16,.72);padding:clamp(8px,2vw,22px);color:#e6edf3;font-family:inherit';
+    const card=document.createElement('div'); card.className='gsplitPickerCard';
+    card.style.cssText='width:min(900px,96vw);max-height:94vh;overflow-y:auto;box-sizing:border-box;'+
+      'padding:clamp(12px,2vw,22px);border-radius:15px;border:2px solid #a47c43;'+
+      'background:linear-gradient(155deg,#263245,#111925 75%);box-shadow:0 15px 45px #000b, inset 0 1px #f1d89955';
+    while(panel.firstChild) card.appendChild(panel.firstChild);
+    panel.appendChild(card);
+    if(card.children[0] && card.children[0].firstElementChild) card.children[0].firstElementChild.style.fontSize='18px';
+    if(card.children[1]) card.children[1].style.fontSize='13px';
+    card.querySelectorAll('.gsplitHero').forEach(b=>{ b.style.width='76px'; b.style.minHeight='70px'; b.style.fontSize='12px'; });
+    const start=card.querySelector('#gsplitStart');
+    if(start){ start.style.fontSize='16px'; start.style.minHeight='48px'; }
+  }
+  if(!E || !E._rails) return;
+  const root=document.getElementById('gsplitPicker'), rails=E._rails;
+  if(!root) return;
+  const card=root.querySelector('.gsplitPickerCard');
+  if(card && card.children[1]) card.children[1].textContent='Follow the glowing heroes to place your squad on all three roads. The first firebreak will teach boons and moving lanes.';
+  const step=rails.steps[rails.next];
+  const hint=document.createElement('div'); hint.id='gsplitTutorialHint';
+  hint.style.cssText='margin:5px 0 10px;padding:9px;border:1px solid #efc671;border-radius:7px;color:#ffe5a3;font-weight:800;font-size:12px';
+  hint.textContent=step ? 'Place '+((HERO_TYPES[step.key]||{}).name||step.key)+' on the '+(['','Top','Middle','Bottom'][step.lane])+' Road. Tap the glowing hero.' : 'All roads are placed. Start the teaching run.';
+  root.querySelector('.gsplitHero')?.parentNode?.before(hint);
+  root.querySelectorAll('.gsplitHero').forEach(b=>{
+    const required=rails.steps.some(s=>s.key===b.dataset.k);
+    if(step){
+      b.disabled=b.dataset.k!==step.key;
+      if(!b.disabled){ b.style.boxShadow='0 0 12px 4px #ffd36b'; b.onclick=()=>{
+        E.laneOf[step.key]=step.lane; rails.next++; gsplitPickerRender();
+      }; }
+    }else if(required){ b.disabled=true; b.style.opacity='0.84'; }
+  });
+  const start=root.querySelector('#gsplitStart');
+  if(start){ start.disabled=!!step; if(step)start.style.opacity='0.45'; }
+};
+
+const _bonusStartRun = gsplitStartRun;
+gsplitStartRun = function(){
+  if(GSPLIT_ENTRY && GSPLIT_ENTRY._rails && GSPLIT_ENTRY._rails.next<GSPLIT_ENTRY._rails.steps.length) return;
+  GSPLIT.script = GSPLIT_ENTRY && GSPLIT_ENTRY._rails ? GSPLIT_ENTRY.stageInfo.script : null;
+  GSPLIT._tutorialSwapDone=false;
+  return _bonusStartRun();
+};
+
+function gsplitTutorialFirstWindow(){
+  return !!(GSPLIT.active && GSPLIT.script && gsplitWindowOpen() && GSPLIT.window.station===0);
+}
+const _bonusPickBoon=gsplitPickBoon;
+gsplitPickBoon=function(lane,id){
+  if(gsplitTutorialFirstWindow() && GSPLIT.window.phase==='boon'){
+    const L=GSPLIT.lanes[lane], first=L && L.offer && L.offer[GSPLIT.script.boon.index];
+    if(!first || id!==first.id) return false;
+  }
+  return _bonusPickBoon(lane,id);
+};
+const _bonusStartAllowed=gsplitStartAllowed;
+gsplitStartAllowed=function(){
+  if(gsplitTutorialFirstWindow() && GSPLIT.window.phase==='move' && !GSPLIT._tutorialSwapDone) return false;
+  return _bonusStartAllowed();
+};
+const _bonusCanMove=gsplitCanMove;
+gsplitCanMove=function(from,to){
+  if(GSPLIT._tutorialPairing && gsplitTutorialFirstWindow() &&
+     ((from===0&&to===1)||(from===1&&to===0))) return true;
+  return _bonusCanMove(from,to);
+};
+const _bonusPromptMove=gsplitPromptMove;
+gsplitPromptMove=function(from,to){
+  if(!gsplitTutorialFirstWindow()) return _bonusPromptMove(from,to);
+  if(GSPLIT.window.phase!=='move' || GSPLIT._tutorialSwapDone || from!==0 || to!==1) return;
+  const top=gsplitRearmost(0), middle=gsplitRearmost(1);
+  if(!top) return;
+  const topCount=GSPLIT.lanes[0].units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length;
+  if(topCount===1){
+    if(!GSPLIT.script.swap.exchangeIfEmpties) return;
+    if(!middle) return;
+    GSPLIT._tutorialPairing=true;
+    try{
+      const first=gsplitMove(top,0,1);
+      const second=first && gsplitMove(middle,1,0);
+      if(!second) return;
+    }finally{ GSPLIT._tutorialPairing=false; }
+  }else if(!gsplitMove(top,0,1)) return;
+  GSPLIT._tutorialSwapDone=true;
+  gsplitWindowDraw();
+};
+const _bonusWindowDraw=gsplitWindowDraw;
+gsplitWindowDraw=function(){
+  _bonusWindowDraw();
+  if(!gsplitTutorialFirstWindow()) return;
+  const root=document.getElementById('gsplitWindow');
+  if(!root) return;
+  const W=GSPLIT.window;
+  if(W.phase==='boon'){
+    root.querySelectorAll('[data-gw="boon"]').forEach(b=>{
+      const L=GSPLIT.lanes[+b.dataset.lane], first=L&&L.offer&&L.offer[GSPLIT.script.boon.index];
+      if(!first || b.dataset.id!==first.id) b.disabled=true;
+      else b.style.boxShadow='0 0 8px 2px #ffd36b';
+    });
+  }else{
+    root.querySelectorAll('[data-gw="move"]').forEach(b=>{
+      const required=b.dataset.lane==='0'&&b.dataset.to==='1';
+      b.disabled=!required || GSPLIT._tutorialSwapDone;
+      if(required&&!b.disabled) b.style.boxShadow='0 0 8px 2px #ffd36b';
+    });
+  }
+  const why=root.querySelector('.gw-why');
+  if(why && W.phase==='move' && !GSPLIT._tutorialSwapDone) why.textContent='Move the glowing Top Road hero to Middle before starting Wave 2.';
+};
+
+/* Keep the server-confirmed verdict visible after the base runner returns to Campaign.
+   Its transient banner is hidden by that screen switch and lasts only 1.5 seconds. */
+const _bonusShowResult=gsplitShowResult;
+gsplitShowResult=function(won,data){
+  const stage=GSPLIT.stage;
+  _bonusShowResult(won,data);
+  document.getElementById('gsplitResultOverlay')?.remove();
+  const overlay=document.createElement('div');
+  overlay.id='gsplitResultOverlay';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-label','Bonus stage result');
+  overlay.style.cssText='position:fixed;inset:0;z-index:9200;display:grid;place-items:center;padding:14px;background:#050a13b8';
+  const card=document.createElement('div');
+  card.style.cssText='width:min(460px,95vw);max-height:92vh;overflow:auto;box-sizing:border-box;padding:20px;text-align:center;color:#f7e6bd;background:linear-gradient(155deg,#29344b,#111925);border:2px solid #c99b55;border-radius:14px;box-shadow:0 15px 45px #000b';
+  const title=document.createElement('h2');
+  title.textContent='BONUS '+stage+(won?' CLEARED':' — RUN LOST');
+  title.style.cssText='font-size:22px;margin:0 0 10px';
+  card.appendChild(title);
+  if(won){
+    const stars=document.createElement('div');
+    const n=Math.max(0,Math.min(3,Number(data.stars)||0));
+    stars.textContent='★'.repeat(n)+'☆'.repeat(3-n);
+    stars.style.cssText='color:#ffc967;font-size:28px;letter-spacing:4px';
+    card.appendChild(stars);
+  }
+  const note=document.createElement('p');
+  note.textContent=(data&&data.starNote)|| (won?'Stage clear confirmed.':'Two roads must survive to win.');
+  note.style.cssText='font-size:13px;line-height:1.4;margin:10px 0';
+  card.appendChild(note);
+  if(won && data && data.firstClear){
+    const reward=document.createElement('p');
+    reward.textContent='First clear: '+(Array.isArray(data.granted)?data.granted.length:0)+' glyph fragment rewards. '+(data.perHour||0)+' fragments per hour now available.';
+    reward.style.cssText='font-size:13px;color:#ccebd0';
+    card.appendChild(reward);
+  }
+  const close=document.createElement('button');
+  close.type='button'; close.textContent='CONTINUE';
+  close.style.cssText='width:100%;min-height:42px;margin-top:8px;border-radius:8px;border:1px solid #d8ac59;background:linear-gradient(#ffdf8f,#f19842);color:#281c12;font-weight:900';
+  close.onclick=()=>overlay.remove();
+  card.appendChild(close); overlay.appendChild(card); document.body.appendChild(overlay);
+  close.focus();
+};
+
 function initThree(){
   SPH=new TH.SphereGeometry(0.1,6,6);
   renderer=new TH.WebGLRenderer({antialias:true,alpha:true});
@@ -4452,6 +6137,7 @@ function laneXi(i,n,team){ return 500 + (i-(n-1)/2)*150 + (team?teamXOff(team):0
 function _laneDepthOf(k){ return heroFormationDepth(k); }
 const ROWMATE_GAP_M=4.5, ROWMATE_STAGGER=0.28;   // v425: horizontal gap between heroes sharing a row (m) + depth stagger per metre of gap
 function laneSlot(team,key,i,n,keys){
+  if(typeof GSPLIT!=='undefined' && GSPLIT.active && GSPLIT.curLane!=null) return gsplitLaneSlot(team,key,i,n,keys,GSPLIT.curLane);
   const depth=_laneDepthOf(key);
   // separate row-mates left↔right by 2 m so a team with 2-3 in one row never spawns stacked.
   let rowIdx=i, rowCount=n;
@@ -5076,7 +6762,7 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
    FX_SIZE scales SPELL visuals — ground plates, billboard plates, beams (fatter), spell particle rings
    and rains — and nothing about hitboxes. v368 (Phil): "auto-attack effects aren't spells" — projectiles,
    auto-attack balls, bullets, arrows and plain hit sparks are never scaled. */
-const FX_SIZE=2;
+let FX_SIZE=2;
 const CORSAIR_BULLET_SCALE=0.22;   // v378 (Phil): "bullets roughly the width of his barrel" — was 1.3 (a third of the hero tall). Sprite height in world units; Marksman row is 3.5 tall.
 let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while one of the 3 built heroes casts, so their FX (particles, plates, staff) last twice as long; 1 for everyone else. Cast times are untouched.
 /* v313 — GENERIC ABILITY ART.
@@ -7508,6 +9194,7 @@ function grantRewards(){
 // Chapter 1 (the first 10 stages) is a tutorial: normal stages drop only GREY shards; Elite stages add a little GREEN.
 // rollDrops deleted (Correction Spec v1): no browser-generated Glyph reward exists.
 function endBattle(won){
+  if(typeof GSPLIT!=='undefined' && GSPLIT.active && GSPLIT.curLane!=null){ return gsplitEndBattle(won); }
   /* 30 Aug (Phil): "I see that I won an arena, then after the arena it said stage cleared. then defeat."
      Two defects produced that, and both are fixed here.
      (1) endBattle was RE-ENTRANT. It set `ended` but never checked it, and three of its six callers
@@ -7744,6 +9431,18 @@ function endBattle(won){
   updateHubChrome(); show('result');
 },800); }
 
+/* Once-per-road visual tail for a three-skirmish Gauntlet frame. */
+function battleFrameTail(dt){
+  shots.forEach(s=>{s.t+=dt;}); shots.filter(s=>s.t>=s.dur).forEach(s=>{if(s.onDone)s.onDone(); scene.remove(s.mesh);s.mesh.material.dispose();}); shots=shots.filter(s=>s.t<s.dur);
+  particles.forEach(p=>{p.t+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=6*dt;p.mesh.material.opacity=Math.max(0,1-p.t/p.life);});
+  particles.filter(p=>p.t>=p.life).forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=particles.filter(p=>p.t<p.life);
+  floatTexts.forEach(f=>{f.t-=dt;f.y-=(f.vy||1)*(60*dt);}); floatTexts=floatTexts.filter(f=>f.t>0);
+  updateStaffFx(dt);   // KonWu ultimate phantom-staff slams
+  updateFxPlates(dt);   // Vulmar placed effect plates
+  updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
+  updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
+  updateGroundFx(dt); updateProjFx(dt); updateBees(dt); updateBeamFx(dt); updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
+}
 function updateBattle(dt){
   /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
      return, so for the whole wave transition px/py stayed frozen at the last combat position while
@@ -7762,7 +9461,7 @@ function updateBattle(dt){
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
-    think(u,dt);if(u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
+    think(u,dt);if(u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
   // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
@@ -7773,7 +9472,7 @@ function updateBattle(dt){
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const ov=(min-d),ux=dx/d,uy=dy/d, mA=bodyR(A)*bodyR(A), mB=bodyR(B)*bodyR(B), fA=mB/(mA+mB), fB=mA/(mA+mB);   // v347: mass-weighted — a boss barely budges, the hero gives ground (was 50/50)
           A.x-=ux*ov*fA;A.y-=uy*ov*fA;B.x+=ux*ov*fB;B.y+=uy*ov*fB; } } }
-    units.forEach(u=>{if(!u.alive||u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(80,Math.min(FD-60,u.y));});
+    units.forEach(u=>{if(!u.alive||u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
   }
   // Hollow's descent + bespoke-mechanic timers. NOTE: deliberately NOT in the passive loop
   // below — that one early-returns for any unit without an unlocked purple, which would
@@ -7987,15 +9686,7 @@ function updateBattle(dt){
           if(_b) healUnit(_b,h.choir*(e.apow||0)); }
       } }); if(Math.random()<0.6)burstAt(h.x+(Math.random()*2-1)*h.r*0.6,h.y+(Math.random()*2-1)*h.r*0.6,0xff5b2a,4); }
     if(h.life<=0)groundHazards.splice(i,1); }
-  shots.forEach(s=>{s.t+=dt;}); shots.filter(s=>s.t>=s.dur).forEach(s=>{if(s.onDone)s.onDone(); scene.remove(s.mesh);s.mesh.material.dispose();}); shots=shots.filter(s=>s.t<s.dur);
-  particles.forEach(p=>{p.t+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=6*dt;p.mesh.material.opacity=Math.max(0,1-p.t/p.life);});
-  particles.filter(p=>p.t>=p.life).forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=particles.filter(p=>p.t<p.life);
-  floatTexts.forEach(f=>{f.t-=dt;f.y-=(f.vy||1)*(60*dt);}); floatTexts=floatTexts.filter(f=>f.t>0);
-  updateStaffFx(dt);   // KonWu ultimate phantom-staff slams
-  updateFxPlates(dt);   // Vulmar placed effect plates
-  updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
-  updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
-  updateGroundFx(dt); updateProjFx(dt); updateBees(dt); updateBeamFx(dt); updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
+  if(!GSPLIT.active) battleFrameTail(dt);
   units.forEach(u=>{if(!u.alive)u.deathT+=dt;});
   units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
   units=units.filter(u=>!u._gone);
@@ -10293,11 +11984,15 @@ function renderRoadmap(){
     _img.style.cssText=_wideCampaign?'position:absolute;left:50%;top:0;transform:translateX(-50%);display:block;width:auto;height:100%;max-width:none;-webkit-user-drag:none;mask-image:linear-gradient(to right,transparent,black 4%,black 96%,transparent)':'display:block;width:100%;height:auto;-webkit-user-drag:none';
     _inner.appendChild(_img);
     const _bonusSites=(typeof CH_BONUS_SITES!=='undefined'&&CH_BONUS_SITES[ch])?CH_BONUS_SITES[ch]:[];
-    _bonusSites.forEach((site,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='cbonus';
-      b.style.left=_wideX(site[0])+'%'; b.style.top=site[1]+'%'; b.setAttribute('aria-label',`Chapter ${ch} bonus round location ${i+1}`);
-      b.innerHTML=`<span>Bonus Round ${i+1}</span>`;
-      const announce=()=>bannerMsg(`◆ Chapter ${ch} bonus round location ${i+1} — minigame coming soon.`);
-      try{ wireTap(b,announce); }catch(e){ b.onclick=announce; } _inner.appendChild(b); });
+    if(MODE==='normal') _bonusSites.forEach((site,i)=>{ const slot=[3,4,6,7,9,10][i], code=ch+'-'+slot;
+      const b=document.createElement('button'); b.type='button'; b.className='cbonus '+(i<3?'upper':'lower'); b.dataset.bonusStage=code;
+      b.style.left=_wideX(site[0])+'%'; b.style.top=site[1]+'%'; b.setAttribute('aria-label',`BONUS ${code}`);
+      b.innerHTML=`<span>BONUS ${code}</span>`;
+      const open=()=>{ if(typeof openBonusModal!=='function'){
+          bannerMsg(`◆ Bonus ${code} is not available yet.`); return; }
+        try{ openBonusModal(ch,slot); }
+        catch(e){ console.error('Bonus entry failed',code,e); bannerMsg(`◆ Bonus ${code} could not open. Please try again.`); } };
+      wireTap(b,open); _inner.appendChild(b); });
     for(let s=1;s<=N;s++){ const g=first+s-1; if(g>PLAYABLE) break; const nd=_nodes[s-1]||[50,100-(s-1)*10];
       const _cl=portalCleared(MODE);
       const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
@@ -16598,7 +18293,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
       _bacc += dt * SIM_HZ * spd * ((CUR.mode==='replay')?1:BATTLE_PACE);
       let n=Math.floor(_bacc); if(n>8)n=8;   // cap-before-subtract: a frame hitch never drops steps
       _bacc-=n;
-      { const _t0=perfMark(); for(let i=0;i<n&&!ended;i++) updateBattle(SIM_STEP); if(PERF.on)PERF.sim+=performance.now()-_t0; }
+      { const _t0=perfMark(); for(let i=0;i<n&&!ended;i++){ if(GSPLIT.active) gsplitStep(SIM_STEP); else updateBattle(SIM_STEP); } if(PERF.on)PERF.sim+=performance.now()-_t0; }
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
@@ -16691,7 +18386,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789620775022';
+const BUILD_ID = '1789629068328';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
