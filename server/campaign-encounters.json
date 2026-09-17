@@ -771,76 +771,76 @@
       [
         {
           "key": "knat",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "turtle",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         }
       ],
       [
         {
           "key": "sootwing imp",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "turtle",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         }
       ],
       [
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         },
         {
           "key": "sootwing imp",
-          "lvl": 5,
-          "hpMul": 1.6016,
-          "dmgMul": 2.262
+          "lvl": 7,
+          "hpMul": 4.7611,
+          "dmgMul": 4.4942
         }
       ]
     ],
-    "targetLevel": 5,
+    "targetLevel": 7,
     "targetGlyph": "Green",
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 0,
-    "difficultyTune": 0.2201,
+    "difficultyTune": 2.8834,
     "baselineHp": 1.3023,
     "baselineDmg": 1.2293,
     "portalMode": "normal",
@@ -903,100 +903,100 @@
       [
         {
           "key": "sootwing imp",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "creep",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         }
       ],
       [
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "orc",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "knat",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         }
       ],
       [
         {
           "key": "orc",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "knat",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "creep",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         },
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 1.0454,
-          "dmgMul": 2.5903
+          "lvl": 8,
+          "hpMul": 3.9378,
+          "dmgMul": 3.6814
         }
       ]
     ],
-    "targetLevel": 5,
+    "targetLevel": 8,
     "targetGlyph": "Green",
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 0,
-    "difficultyTune": 0.2843,
+    "difficultyTune": 2.3699,
     "baselineHp": 1.3609,
     "baselineDmg": 1.2723,
     "portalMode": "normal",
@@ -1036,85 +1036,85 @@
       [
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "knat",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "orc",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "cinder skulk",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         }
       ],
       [
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "turtle",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         }
       ],
       [
         {
           "key": "sootwing imp",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "creep",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134
         },
         {
           "key": "vireo",
-          "lvl": 5,
-          "hpMul": 1.8850,
-          "dmgMul": 4.9686,
+          "lvl": 9,
+          "hpMul": 5.0135,
+          "dmgMul": 4.5134,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
         }
       ]
     ],
-    "targetLevel": 5,
+    "targetLevel": 9,
     "targetGlyph": "Green",
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 0,
-    "difficultyTune": 0.2929,
+    "difficultyTune": 2.7725,
     "baselineHp": 1.5359,
     "baselineDmg": 1.3826,
     "portalMode": "normal",
@@ -1149,110 +1149,110 @@
       [
         {
           "key": "knat",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "fire boar",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "turtle",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         }
       ],
       [
         {
           "key": "turtle",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "sootwing imp",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "orc",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         }
       ],
       [
         {
           "key": "knat",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "slime",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "bug",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "cinder skulk",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377
         },
         {
           "key": "vael",
-          "lvl": 5,
-          "hpMul": 0.6659,
-          "dmgMul": 1.061,
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
         },
         {
           "key": "brukk",
-          "lvl": 5,
-          "hpMul": 1.6648,
-          "dmgMul": 2.5995,
+          "lvl": 10,
+          "hpMul": 3.263,
+          "dmgMul": 2.8377,
           "boss": true
         }
       ]
     ],
-    "targetLevel": 5,
+    "targetLevel": 10,
     "targetGlyph": "Green",
     "recommendedQuality": "Green",
     "qualityMinHeroLevel": 5,
     "bossLevelGate": 5,
-    "difficultyTune": 0.4648,
+    "difficultyTune": 1.6651,
     "baselineHp": 1.7239,
     "baselineDmg": 1.4992,
     "portalMode": "normal",
