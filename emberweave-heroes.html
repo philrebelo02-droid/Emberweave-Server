@@ -2691,6 +2691,34 @@ async function clearAssetCache(){
   try{ for(const k in _artWarmed) delete _artWarmed[k]; }catch(e){}
   return n;
 }
+
+/* Selective sibling to clearAssetCache() above: frees BATTLE_ANIM textures for every key NOT in
+   `keepKeys`, instead of the all-or-nothing nuke. Leaves the on-disk Cache API entry alone (cheap,
+   expected to persist) -- this only frees the decoded GPU/JS texture, the thing that actually grows
+   unbounded across a session (game-speed/memory diagnosis, 17 Sep 2026). A freed key reloads cleanly
+   next time preloadBattleArt/preloadStageArt sees it, through the same _loaded/_artWarmed guards.
+   Call sites are deliberately narrow -- leaving a battle back to a menu/map (resultBtn.onclick), and
+   a whole Gauntlet run finishing (gsplitEnd) -- never mid-run, so the "instant spawn" guarantee
+   preloadBattleArt exists for is never broken for a fight still in progress. */
+function evictUnusedArt(keepKeys){
+  const keep = new Set((keepKeys||[]).filter(Boolean));
+  let freed = 0;
+  try{
+    for(const key in BATTLE_ANIM){
+      if(keep.has(key)) continue;
+      const set = BATTLE_ANIM[key];
+      if(!set || !set._loaded) continue;
+      let any = false;
+      for(const st in set){
+        if(st[0]==='_') continue;
+        const c = set[st];
+        if(c && c.tex){ if(c.tex.dispose) try{ c.tex.dispose(); }catch(_){} delete c.tex; delete c._err; any = true; }
+      }
+      if(any){ delete set._loaded; delete _artWarmed['k:'+key]; freed++; }
+    }
+  }catch(e){}
+  return freed;
+}
 function fmtMB(b){ return (b/1048576).toFixed(1)+' MB'; }
 function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
   const keys=[];
@@ -4425,6 +4453,7 @@ function gsplitBegin(spec){
 function gsplitEnd(){
   gsplitClearGround();
   GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null;
+  try{ evictUnusedArt(G.team); }catch(e){}   // game-speed/memory fix, 17 Sep 2026: whole Gauntlet run finished, not mid-run
 }
 
 /* ============================================================================
@@ -18226,7 +18255,8 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; }
   if(m==='campaign'&&window._tutReturnAfterResult){ window._tutReturnAfterResult=false; G.tutStarted=true; saveG(); show('tutorial'); return; }
-  show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign'); };
+  show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign');
+  try{ evictUnusedArt(G.team); }catch(e){} };   // game-speed/memory fix, 17 Sep 2026: leaving battle back to a menu/map
 document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
@@ -18386,7 +18416,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789650750733';
+const BUILD_ID = '1789651930357';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
