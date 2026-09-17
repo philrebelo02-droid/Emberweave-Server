@@ -1527,7 +1527,7 @@ const BATTLE_ANIM = {
   nerisse:{
     idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=33',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,2,3,-1,-1,0,1,-5,-6,-7,-16,-21,-23,-23,-24,-24,-23,-23,-24,-23,-23,-23,-23,-23,-23,-23,-15,-6,-3,-5,-3,-3,-7,-6,-7,-9,-24,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23]},
     walk:{u:'/assets/anim/nerisse/nerisse_walk.webp?v=33',n:48,fw:260,fh:400,cols:6,rows:8,figH:380,feet:384,cx:113,fps:24,flip:true,top:4,ax:[0,-28,-41,-54,-48,-38,-34,-24,-18,-10,-20,-29,-46,-43,-36,-31,-23,-17,-8,0,2,-9,-26,-47,-57,-49,-45,-35,-31,-22,-14,-9,-20,-28,-30,-25,-16,-14,-8,-3,0,4,6,8,2,-2,-2,1]},
-    attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=33',n:48,fw:339,fh:400,cols:6,rows:8,figH:339,feet:386,cx:180,fps:24,flip:true,top:47,ax:[0,1,1,1,1,1,2,2,2,2,2,3,6,7,12,25,55,69,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,69,65,39,6,-9,-14],hold:0.9},
+    attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=33',n:23,fw:339,fh:400,cols:6,rows:8,figH:339,feet:386,cx:180,fps:11,flip:true,top:47,ax:[0,1,1,1,1,1,2,2,2,2,2,3,6,7,12,25,55,69,70,70,70,70,70],hold:1.68}   /* v576 Phil: rubberband - cells 0-22 end at full arm extension (cell 22), then snap to idle frame 0 (same plate); cells 23-47 (the hold + slow return) are not played. fps 11 so the 23-cell thrust fills her 1.8 s swing (Phil: "slower fps to match the attack speed"). hold is SIM seconds and the clip runs on WALL time (BATTLE_PACE 0.82): 1.68/0.82 = 2.05 s wall, just under 23/11 = 2.09 s, so the hold ends on cell 22 and never wraps to cell 0 */,
     hit:{u:'/assets/anim/nerisse/nerisse_hit.webp?v=33',n:48,fw:386,fh:400,cols:6,rows:8,figH:399,feet:400,cx:178,fps:24,flip:true,top:1,ax:[0,0,1,3,5,-3,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-7,2,13,18,18,15,5,-5,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-6,-5,-3,-1,-1,0,0,1]},
     green:{u:'/assets/anim/nerisse/nerisse_green.webp?v=33',n:48,fw:316,fh:400,cols:6,rows:8,figH:395,feet:400,cx:138,fps:24,flip:true,top:5,ax:[0,2,5,7,8,10,11,12,13,15,17,18,20,22,25,30,40,42,43,40,40,40,42,39,33,25,21,26,26,26,26,26,23,15,-7,-20,-23,-23,-23,-23,-23,-24,-24,-24,-23,-24,-23,-23],hold:0.8},
     blue:{u:'/assets/anim/nerisse/nerisse_blue.webp?v=33',n:48,fw:252,fh:400,cols:6,rows:8,figH:399,feet:401,cx:124,fps:24,flip:true,top:2,ax:[0,0,0,-1,-1,-1,-2,-3,-4,-6,-7,-7,-7,-8,-9,-9,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-8,-7,-7,-7,-6,-5,-3,-2,-2,-1,-1,0,0,0,0],hold:0.8},
@@ -4280,6 +4280,7 @@ function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZ
 
 const BONUS_UNIT_SCALE = 0.40;                     // server/bonus-stages.js — Phil's half size
 const MAX_PER_LANE     = 10;                       // Phil: "a lane should be able to have 10 heroes in it max"
+const GSPLIT_PICK_CAP  = 15;                       // Phil, 17 Sep 2026: "The game should lock the ability to select a 16th hero." Server: MAX_HEROES.
 const BONUS_LANES      = 3;
 const BONUS_WAVES      = 5;
 const EVERLASTING_FLAG = '_boonEverlasting';       // the BREAK boon whose summons survive a window
@@ -5404,44 +5405,89 @@ function gsplitPickerRender(){
   if(!GSPLIT_ENTRY) return;
   let el = document.getElementById('gsplitPicker');
   if(!el){ el=document.createElement('div'); el.id='gsplitPicker'; document.body.appendChild(el); }
-  el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(6,8,14,.94);color:#e6edf3;overflow-y:auto;padding:14px;font-family:inherit';
-  const info = GSPLIT_ENTRY.stageInfo;
+  el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(6,8,14,.94);color:#e6edf3;overflow-y:auto;padding:12px;font-family:inherit';
+  const E=GSPLIT_ENTRY, info=E.stageInfo||{};
+  E.picked = E.picked || [];                       // ordered list of hero keys chosen on screen 1
+  E.mode   = E.mode   || 'pick';                   // 'pick' -> 'place'
+
+  const CAP = info.maxHeroes||GSPLIT_PICK_CAP, PER = info.maxPerLane||MAX_PER_LANE;
   const owned = HERO_KEYS.filter(k=>G.unlocked[k]);
-  const laneNames=['Top','Middle','Bottom'];
-  const counts=[1,2,3].map(L=>owned.filter(k=>GSPLIT_ENTRY.laneOf[k]===L).length);
-  const total=counts.reduce((a,b)=>a+b,0);
-  const heroChips = owned.map(k=>{
-    const lane=GSPLIT_ENTRY.laneOf[k]||0;
-    const t=(HERO_TYPES&&HERO_TYPES[k])||{}; const nm=t.name||k;
-    return `<button type="button" class="gsplitHero" data-k="${k}" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;
-      width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${lane?'#c9a35e':'#333'};
-      background:${lane?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer">
-      <img src="${(HERO_CARD_ART&&HERO_CARD_ART[k])||HERO_PORTRAITS[k]||''}" alt="${gsplitEsc(nm)}" style="width:54px;height:62px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</span>
-      <span style="color:#c9a35e;font-weight:800">${lane?laneNames[lane-1]:'—'}</span></button>`;
-  }).join('');
-  el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-weight:800;font-size:15px">BONUS ${GSPLIT_ENTRY.id}${info.tier?' — '+info.tier:''}</div>
-      <button type="button" id="gsplitClose" class="btn xs secondary">✕</button>
-    </div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">
-      Tap a hero to cycle Top → Middle → Bottom → off. ${info.maxPerLane||10} per road, up to ${info.maxHeroes||30} total.
-      ${info.tutorial?'Tutorial run — one monster per wave.':''}
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${heroChips || '<div style="color:#8b98a9;font-size:12px">No heroes unlocked yet.</div>'}</div>
-    <div style="display:flex;gap:10px;font-size:11px;color:#c9a35e;margin-bottom:12px">
-      <div>Top: ${counts[0]}</div><div>Middle: ${counts[1]}</div><div>Bottom: ${counts[2]}</div><div>Total: ${total}</div>
-    </div>
-    <button type="button" id="gsplitStart" class="btn" style="width:100%">START</button>
+  const nameOf = k=>((HERO_TYPES&&HERO_TYPES[k])||{}).name||k;
+  const artOf  = k=>(HERO_CARD_ART&&HERO_CARD_ART[k])||HERO_PORTRAITS[k]||'';
+  const head = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-weight:800;font-size:15px">BONUS ${E.id}${info.tier?' — '+info.tier:''}</div>
+      <button type="button" id="gsplitClose" class="btn xs secondary">✕</button></div>`;
+
+  /* ---------------- SCREEN 1 · PICK (Phil, 17 Sep: "lock the ability to select a 16th hero") ---------------- */
+  if(E.mode==='pick'){
+    const chips = owned.map(k=>{ const on=E.picked.indexOf(k)>=0;
+      return `<button type="button" class="gsplitHero" data-k="${k}" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;
+        width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${on?'#c9a35e':'#333'};
+        background:${on?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer;touch-action:manipulation">
+        <img src="${artOf(k)}" alt="${gsplitEsc(nameOf(k))}" style="width:54px;height:62px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${gsplitEsc(nameOf(k))}</span>
+        <span style="color:#c9a35e;font-weight:800">${on?'✓':'—'}</span></button>`; }).join('');
+    el.innerHTML = head + `
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Tap to choose up to <b style="color:#e6edf3">${CAP}</b> heroes. You place them on the roads next.${info.tutorial?' Tutorial run — one monster per wave.':''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${chips || '<div style="color:#8b98a9;font-size:12px">No heroes unlocked yet.</div>'}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#c9a35e;margin-bottom:10px"><div>Selected: <b>${E.picked.length}</b> / ${CAP}</div><div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
+      <button type="button" id="gsplitNext" class="btn" style="width:100%" ${E.picked.length?'':'disabled'}>NEXT — PLACE ON THE ROADS</button>`;
+    el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
+    el.querySelectorAll('.gsplitHero').forEach(b=>{ b.onclick=()=>{ const k=b.dataset.k, i=E.picked.indexOf(k);
+      if(i>=0){ E.picked.splice(i,1); delete E.laneOf[k]; }
+      else if(E.picked.length>=CAP){ const er=el.querySelector('#gsplitErr'); if(er) er.textContent=CAP+' heroes at most.'; return; }
+      else E.picked.push(k);
+      gsplitPickerRender(); }; });
+    el.querySelector('#gsplitNext').onclick = ()=>{ E.mode='place'; gsplitPickerRender(); };
+    return;
+  }
+
+  /* ---------------- SCREEN 2 · PLACE (Phil: "the screen after hero select should be battle map, I then click
+     and drag my heroes names on the bottom to their starting lane. Max cap 10 per lane.") ---------------- */
+  Object.keys(E.laneOf).forEach(k=>{ if(E.picked.indexOf(k)<0) delete E.laneOf[k]; });
+  const roads=[{L:1,name:'Top',y:BONUS_LANE_IMG_Y.top},{L:2,name:'Middle',y:BONUS_LANE_IMG_Y.middle},{L:3,name:'Bottom',y:BONUS_LANE_IMG_Y.bottom}];
+  const inRoad = L=>E.picked.filter(k=>E.laneOf[k]===L);
+  const unplaced = E.picked.filter(k=>!E.laneOf[k]);
+  const mapSrc = CH_BONUS_MAPS[E.id] || (typeof BATTLE_BG!=='undefined'?BATTLE_BG:'');
+  const chip = (k,placed)=>`<button type="button" class="gsplitChip${placed?' placed':''}" data-k="${k}" draggable="false" style="display:inline-flex;align-items:center;gap:4px;padding:${placed?'2px 6px':'5px 8px'};margin:2px;border-radius:14px;
+      border:1px solid #c9a35e;background:${placed?'rgba(20,32,49,.92)':'rgba(201,163,94,.22)'};color:#f0d8a8;font-size:${placed?'10px':'11px'};font-weight:700;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;white-space:nowrap">
+      <img src="${artOf(k)}" alt="" style="width:${placed?16:22}px;height:${placed?16:22}px;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">${gsplitEsc(nameOf(k))}</button>`;
+  const bands = roads.map(r=>{ const n=inRoad(r.L).length, full=n>=PER;
+    return `<div class="gsplitRoad" data-road="${r.L}" style="position:absolute;left:0;right:0;top:${(r.y*100-7).toFixed(2)}%;height:14%;box-sizing:border-box;
+        border:2px dashed ${full?'#ff6b6b':'#c9a35e'};border-radius:8px;background:rgba(201,163,94,.10);display:flex;flex-wrap:wrap;align-content:flex-start;gap:0;padding:2px 4px;overflow:hidden">
+        <div style="position:absolute;right:6px;top:2px;font-size:11px;font-weight:900;color:${full?'#ff6b6b':'#f0d8a8'};text-shadow:0 1px 2px #000">${r.name} ${n}/${PER}</div>
+        ${inRoad(r.L).map(k=>chip(k,true)).join('')}</div>`; }).join('');
+  el.innerHTML = head + `
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Drag a hero from the bottom onto a road (or tap the hero, then tap the road). Tap a placed hero to take them back. <b style="color:#e6edf3">${PER}</b> per road.</div>
+    <div id="gsplitMapWrap" style="position:relative;display:block;width:min(100%,calc(56vh*1.5));margin:0 auto 8px;aspect-ratio:3/2;background:#0b0f16 center/cover no-repeat;background-image:url('${mapSrc}');border-radius:8px;overflow:hidden">${bands}</div>
+    <div id="gsplitTray" style="display:flex;flex-wrap:wrap;gap:2px;min-height:38px;padding:4px;border:1px solid #333;border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:8px">${unplaced.map(k=>chip(k,false)).join('') || '<span style="color:#8b98a9;font-size:11px;padding:6px">Every chosen hero is on a road.</span>'}</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" id="gsplitBack" class="btn secondary" style="flex:0 0 auto">◀ HEROES</button>
+      <button type="button" id="gsplitStart" class="btn" style="flex:1">START</button></div>
     <div id="gsplitErr" style="color:#ff6b6b;font-size:11px;margin-top:8px"></div>`;
   el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
-  el.querySelectorAll('.gsplitHero').forEach(b=>{
-    b.onclick = ()=>{ const k=b.dataset.k; const cur=GSPLIT_ENTRY.laneOf[k]||0;
-      const next=cur>=3?0:cur+1;
-      if(next===0) delete GSPLIT_ENTRY.laneOf[k]; else GSPLIT_ENTRY.laneOf[k]=next;
-      gsplitPickerRender(); };
-  });
+  el.querySelector('#gsplitBack').onclick = ()=>{ E.mode='pick'; gsplitPickerRender(); };
   el.querySelector('#gsplitStart').onclick = gsplitStartRun;
+  const err = m=>{ const er=el.querySelector('#gsplitErr'); if(er) er.textContent=m; };
+  const place = (k,L)=>{ if(inRoad(L).length>=PER && E.laneOf[k]!==L){ err('At most '+PER+' heroes on one road.'); return false; } E.laneOf[k]=L; E._sel=null; gsplitPickerRender(); return true; };
+  const unplace = k=>{ delete E.laneOf[k]; E._sel=null; gsplitPickerRender(); };
+  /* tap-to-select fallback + pointer drag with a ghost; pointerup lands on whatever road is under the finger */
+  el.querySelectorAll('.gsplitChip').forEach(c=>{
+    const k=c.dataset.k, placed=c.classList.contains('placed'); let ghost=null, moved=false, sx=0, sy=0;
+    c.addEventListener('pointerdown',ev=>{ if(placed) return; ev.preventDefault(); moved=false; sx=ev.clientX; sy=ev.clientY;
+      try{ c.setPointerCapture(ev.pointerId); }catch(e){} });
+    c.addEventListener('pointermove',ev=>{ if(placed) return; if(!moved && Math.hypot(ev.clientX-sx,ev.clientY-sy)<6) return;
+      if(!ghost){ moved=true; ghost=c.cloneNode(true); ghost.style.cssText+=';position:fixed;pointer-events:none;z-index:9999;opacity:.9;transform:translate(-50%,-50%);margin:0'; document.body.appendChild(ghost); c.style.opacity='.35'; }
+      ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
+      el.querySelectorAll('.gsplitRoad').forEach(r=>r.style.background='rgba(201,163,94,.10)');
+      const t=document.elementFromPoint(ev.clientX,ev.clientY), r=t&&t.closest&&t.closest('.gsplitRoad'); if(r) r.style.background='rgba(201,163,94,.32)'; });
+    const finish=ev=>{ if(placed){ unplace(k); return; }
+      if(ghost){ ghost.remove(); ghost=null; c.style.opacity='';
+        const t=document.elementFromPoint(ev.clientX,ev.clientY), r=t&&t.closest&&t.closest('.gsplitRoad');
+        if(r) place(k,+r.dataset.road); else gsplitPickerRender(); }
+      else { E._sel = (E._sel===k)?null:k; el.querySelectorAll('.gsplitChip:not(.placed)').forEach(x=>x.style.boxShadow=(x.dataset.k===E._sel)?'0 0 0 2px #ffd36b':''); } };
+    c.addEventListener('pointerup',finish); c.addEventListener('pointercancel',()=>{ if(ghost){ghost.remove();ghost=null;c.style.opacity='';} });
+  });
+  el.querySelectorAll('.gsplitRoad').forEach(r=>{ r.addEventListener('click',ev=>{ if(ev.target.closest('.gsplitChip')) return; if(E._sel) place(E._sel,+r.dataset.road); }); });
 }
 
 function gsplitStartRun(){
@@ -5449,6 +5495,8 @@ function gsplitStartRun(){
   const assign={1:[],2:[],3:[]};
   Object.keys(GSPLIT_ENTRY.laneOf).forEach(k=>{ assign[GSPLIT_ENTRY.laneOf[k]].push(k); });
   const errEl=document.getElementById('gsplitErr');
+  { const left=(GSPLIT_ENTRY.picked||[]).filter(k=>!GSPLIT_ENTRY.laneOf[k]).length;
+    if(left){ if(errEl) errEl.textContent=left+' chosen hero'+(left>1?'es are':' is')+' not on a road yet.'; return; } }
   for(let L=1;L<=3;L++){ if(!assign[L].length && !(GSPLIT_ENTRY.stageInfo&&GSPLIT_ENTRY.stageInfo.tutorial)){
     if(errEl) errEl.textContent='Every road needs at least one hero.'; return; } }
   api('/api/bonus/start','POST',{id:GSPLIT_ENTRY.id, assign}).then(data=>{
@@ -5827,6 +5875,11 @@ gsplitPickerRender = function(){
     const owned = HERO_KEYS.filter(k=>G.unlocked[k]).sort((a,b)=>heroPower(b)-heroPower(a));
     E._rails = { steps:E.stageInfo.script.place.filter(p=>owned[p.rank]).map(p=>({key:owned[p.rank],lane:p.lane,say:p.say})), next:0 };
   }
+  /* v576 Phil: "everytime I click a hero it doesnt shoot me to the top. I want the screen to stay where I move it" —
+     the card below is the scrolling box and every render rebuilds it, which zeroed the scroll; keep it unless the screen changed */
+  const _oldCard=document.querySelector('#gsplitPicker .gsplitPickerCard');
+  const _mode=E ? (E.mode||'pick') : null;
+  const _keepScroll=(E && E._lastMode===_mode && _oldCard) ? _oldCard.scrollTop : 0; if(E) E._lastMode=_mode;
   _bonusPickerRender();
   const panel=document.getElementById('gsplitPicker');
   if(panel){
@@ -5843,6 +5896,7 @@ gsplitPickerRender = function(){
     card.querySelectorAll('.gsplitHero').forEach(b=>{ b.style.width='76px'; b.style.minHeight='70px'; b.style.fontSize='12px'; });
     const start=card.querySelector('#gsplitStart');
     if(start){ start.style.fontSize='16px'; start.style.minHeight='48px'; }
+    if(_keepScroll){ card.scrollTop=_keepScroll; requestAnimationFrame(()=>{ card.scrollTop=_keepScroll; }); }
   }
   if(!E || !E._rails) return;
   const root=document.getElementById('gsplitPicker'), rails=E._rails;
@@ -18500,7 +18554,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789670274654';
+const BUILD_ID = '1789671581920';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
