@@ -456,6 +456,7 @@
   .cbonus.upper{width:10%;height:22%;transform:translate(-50%,-90%)}
   .cbonus.lower{transform:translate(-50%,-50%)}
   .cbonus span{top:100%;opacity:1;pointer-events:none;font-size:9px;letter-spacing:.4px;text-shadow:0 1px 3px #000}
+  .cbonus.locked{cursor:not-allowed;filter:grayscale(.7) brightness(.75)}.cbonus.locked::before{content:'🔒';animation:none;filter:none}
   @media(max-width:760px), (orientation:landscape){
     #campaign.active{position:absolute!important;inset:0!important;display:block!important;padding:0!important}#campaign>.backbtn{top:4px!important;left:4px!important;padding:5px 8px!important;min-height:30px;font-size:11px;z-index:9!important}
     #portalTabs{position:absolute!important;top:3px;left:64px;right:3px;height:32px;padding:0!important;gap:3px!important;z-index:9!important;background:linear-gradient(90deg,transparent,#0b1220cc 16%,#0b1220cc 84%,transparent)}#portalTabs .btn{padding:4px 6px!important;min-height:30px!important;font-size:9px!important}
@@ -1524,14 +1525,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/lysara/lysara_passive.webp?v=21',n:48,fw:536,fh:517,cols:6,rows:8,figH:500,feet:506,cx:234,fps:24,flip:true,top:6,ax:[0,-6,-2,4,4,3,10,23,38,34,35,33,31,33,31,31,31,31,32,29,31,33,31,19,24,10,10,1,-1,-6,-7,-6,-6,0,3,3,11,24,24,36,35,34,31,33,32,31,31,31]}
   },
   nerisse:{
-    idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=32',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,2,3,-1,-1,0,1,-5,-6,-7,-16,-21,-23,-23,-24,-24,-23,-23,-24,-23,-23,-23,-23,-23,-23,-23,-15,-6,-3,-5,-3,-3,-7,-6,-7,-9,-24,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23]},
-    walk:{u:'/assets/anim/nerisse/nerisse_walk.webp?v=23',n:48,fw:260,fh:400,cols:6,rows:8,figH:394,feet:413,cx:114,fps:24,flip:true,top:19,ax:[0,-28,-41,-54,-48,-38,-34,-24,-18,-10,-20,-29,-46,-43,-36,-31,-23,-17,-8,0,2,-9,-26,-47,-57,-49,-45,-35,-31,-22,-14,-9,-20,-28,-30,-25,-16,-14,-8,-3,0,4,6,8,2,-2,-2,1]},
-    attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=23',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,2,1,2,2,2,2,2,2,2,3,4,7,9,14,27,62,79,79,79,79,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,80,79,79,79,79,74,46,8,-8,-14],hold:0.9},
-    hit:{u:'/assets/anim/nerisse/nerisse_hit.webp?v=23',n:48,fw:386,fh:400,cols:6,rows:8,figH:370,feet:384,cx:119,fps:24,flip:true,top:13,ax:[0,0,1,3,5,-3,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-7,2,13,18,18,15,5,-5,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-6,-5,-3,-1,-1,0,0,1]},
-    green:{u:'/assets/anim/nerisse/nerisse_green.webp?v=23',n:48,fw:316,fh:400,cols:6,rows:8,figH:371,feet:384,cx:119,fps:24,flip:true,top:13,ax:[0,2,5,7,8,10,11,12,13,15,17,18,20,22,25,30,40,42,43,40,40,40,42,39,33,25,21,26,26,26,26,26,23,15,-7,-20,-23,-23,-23,-23,-23,-24,-24,-24,-23,-24,-23,-23],hold:0.8},
-    blue:{u:'/assets/anim/nerisse/nerisse_blue.webp?v=23',n:48,fw:252,fh:400,cols:6,rows:8,figH:372,feet:386,cx:119,fps:24,flip:true,top:13,ax:[0,0,0,-1,-1,-1,-2,-3,-4,-6,-7,-7,-7,-8,-9,-9,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-8,-7,-7,-7,-6,-5,-3,-2,-2,-1,-1,0,0,0,0],hold:0.8},
-    ult:{u:'/assets/anim/nerisse/nerisse_ult.webp?v=23',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,6,11,12,12,5,-3,-14,-19,-18,-8,10,13,20,25,28,31,33,36,38,39,41,43,44,45,44,43,40,38,36,35,33,30,29,23,18,10,4,4,2,2,4,7,9,11,13,15,16]},
-    passive:{u:'/assets/anim/nerisse/nerisse_passive.webp?v=23',n:48,fw:242,fh:400,cols:6,rows:8,figH:369,feet:383,cx:119,fps:24,flip:true,top:13,ax:[0,0,0,2,3,4,5,7,9,11,12,13,13,13,13,12,12,11,11,10,8,7,4,4,2,1,1,1,1,2,4,4,5,7,8,9,10,10,11,11,12,13,13,13,13,13,13,14]}
+    idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=33',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,2,3,-1,-1,0,1,-5,-6,-7,-16,-21,-23,-23,-24,-24,-23,-23,-24,-23,-23,-23,-23,-23,-23,-23,-15,-6,-3,-5,-3,-3,-7,-6,-7,-9,-24,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23]},
+    walk:{u:'/assets/anim/nerisse/nerisse_walk.webp?v=33',n:48,fw:260,fh:400,cols:6,rows:8,figH:394,feet:413,cx:114,fps:24,flip:true,top:19,ax:[0,-28,-41,-54,-48,-38,-34,-24,-18,-10,-20,-29,-46,-43,-36,-31,-23,-17,-8,0,2,-9,-26,-47,-57,-49,-45,-35,-31,-22,-14,-9,-20,-28,-30,-25,-16,-14,-8,-3,0,4,6,8,2,-2,-2,1]},
+    attack:{u:'/assets/anim/nerisse/nerisse_attack.webp?v=33',n:48,fw:339,fh:400,cols:6,rows:8,figH:335,feet:383,cx:180,fps:24,flip:true,top:48,ax:[0,1,1,1,1,1,2,2,2,2,2,3,6,7,12,25,55,69,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,69,65,39,6,-9,-14],hold:0.9},
+    hit:{u:'/assets/anim/nerisse/nerisse_hit.webp?v=33',n:48,fw:386,fh:400,cols:6,rows:8,figH:370,feet:384,cx:119,fps:24,flip:true,top:13,ax:[0,0,1,3,5,-3,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-7,2,13,18,18,15,5,-5,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-6,-5,-3,-1,-1,0,0,1]},
+    green:{u:'/assets/anim/nerisse/nerisse_green.webp?v=33',n:48,fw:316,fh:400,cols:6,rows:8,figH:371,feet:384,cx:119,fps:24,flip:true,top:13,ax:[0,2,5,7,8,10,11,12,13,15,17,18,20,22,25,30,40,42,43,40,40,40,42,39,33,25,21,26,26,26,26,26,23,15,-7,-20,-23,-23,-23,-23,-23,-24,-24,-24,-23,-24,-23,-23],hold:0.8},
+    blue:{u:'/assets/anim/nerisse/nerisse_blue.webp?v=33',n:48,fw:252,fh:400,cols:6,rows:8,figH:372,feet:386,cx:119,fps:24,flip:true,top:13,ax:[0,0,0,-1,-1,-1,-2,-3,-4,-6,-7,-7,-7,-8,-9,-9,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-8,-7,-7,-7,-6,-5,-3,-2,-2,-1,-1,0,0,0,0],hold:0.8},
+    ult:{u:'/assets/anim/nerisse/nerisse_ult.webp?v=33',n:48,fw:337,fh:400,cols:6,rows:8,figH:301,feet:387,cx:169,fps:24,flip:true,top:86,ax:[0,5,8,9,9,4,-1,-11,-15,-9,2,7,10,12,14,14,15,18,21,23,24,25,27,28,28,28,27,25,24,22,22,21,20,18,14,13,7,2,3,2,1,2,3,5,6,7,8,9]},
+    passive:{u:'/assets/anim/nerisse/nerisse_passive.webp?v=33',n:48,fw:242,fh:400,cols:6,rows:8,figH:369,feet:383,cx:119,fps:24,flip:true,top:13,ax:[0,0,0,2,3,4,5,7,9,11,12,13,13,13,13,12,12,11,11,10,8,7,4,4,2,1,1,1,1,2,4,4,5,7,8,9,10,10,11,11,12,13,13,13,13,13,13,14]}
   },
   nox:{
     idle:{u:'/assets/anim/nox/nox_idle.webp?v=21',n:48,fw:369,fh:469,cols:6,rows:8,figH:400,feet:465,cx:178,fps:24,flip:true,top:65,pingpong:true},
@@ -3843,9 +3844,9 @@ function heroStat(key,base,which){ const t=HERO_TYPES[key], lv=heroLevel(key), s
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
 const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=20;   // City Wall opens with the Watch Tower city loop (Blueprint v1)
 // ---- Campaign: 10 chapters × 10 stages, addressed by a GLOBAL stage index g (1..100). All 10 chapters playable. ----
-const STAGES_PER_CH=10, TOTAL_CHAPTERS=11, MAX_CHAPTER=11;         // v257: chapter 11 is the Orange chapter
-const CAMPAIGN_NODES=TOTAL_CHAPTERS*STAGES_PER_CH;               // 110 authored stages
-const CAMPAIGN_PLAYABLE=MAX_CHAPTER*STAGES_PER_CH;              // 110 clearable
+const STAGES_PER_CH=10, TOTAL_CHAPTERS=10, MAX_CHAPTER=10;         // Keep navigation within the chapters actually authored on the server.
+const CAMPAIGN_NODES=TOTAL_CHAPTERS*STAGES_PER_CH;               // 100 authored stages
+const CAMPAIGN_PLAYABLE=MAX_CHAPTER*STAGES_PER_CH;              // 100 clearable
 function chapterOf(g){ return Math.floor((g-1)/STAGES_PER_CH)+1; }
 function stageInChapter(g){ return ((g-1)%STAGES_PER_CH)+1; }
 function stageCode(g){ return chapterOf(g)+'-'+stageInChapter(g); }   // e.g. "3-7"
@@ -4452,6 +4453,12 @@ function gsplitBegin(spec){
 }
 function gsplitEnd(){
   gsplitClearGround();
+  // The battle renderer owns the sprites, projectiles, and status effects. Emptying
+  // only GSPLIT.lanes left their meshes in the scene on a repeat entry.
+  units = GSPLIT.lanes.reduce((all,L)=>all.concat(L.units||[]), []);
+  clearBattle();
+  gsplitBoundsExit(); FX_SIZE=2;
+  GSPLIT.window = null; GSPLIT._winSig = ''; GSPLIT._tutorialSwapDone = false;
   GSPLIT.active = false; GSPLIT.lanes = []; GSPLIT.stage = null; GSPLIT.attemptId = null;
   try{ evictUnusedArt(G.team); }catch(e){}   // game-speed/memory fix, 17 Sep 2026: whole Gauntlet run finished, not mid-run
 }
@@ -4506,6 +4513,8 @@ function gsplitClampX(x){ return Math.max(GSPLIT_FIELD_PAD, Math.min(FW-GSPLIT_F
 const GSPLIT_MUSTER_IMG   = 0.18;
 const GSPLIT_CHECKPOINT_IMG = [0.24, 0.36, 0.48, 0.60, 0.72];
 const GSPLIT_APPROACH_IMG = 0.82;
+// Each wave meets just before its next firebreak; the final wave meets near home.
+const GSPLIT_MEET_IMG=[0.28,0.40,0.50,0.62,0.78];
 
 function gsplitMusterX(lane){   return gsplitClampX(gsplitFieldX(GSPLIT_MUSTER_IMG, lane)); }
 function gsplitApproachX(lane){ return gsplitClampX(gsplitFieldX(GSPLIT_APPROACH_IMG, lane)); }
@@ -4551,7 +4560,8 @@ function gsplitSlot(lane, idx, n){
    so one hook covers both call sites. */
 function gsplitLaneSlot(team, key, i, n, keys, lane){
   const sl = gsplitSlot(lane, i, Math.max(1, n|0));
-  const baseX = (team==='ally') ? gsplitMusterX(lane) : gsplitApproachX(lane);
+  const meet=GSPLIT_MEET_IMG[Math.max(0,Math.min(4,waveIdx|0))];
+  const baseX=gsplitClampX(gsplitFieldX(meet+(team==='ally'?-0.06:0.06),lane));
   return { x: gsplitClampX(baseX + sl.dx), y: sl.y };
 }
 
@@ -4561,8 +4571,11 @@ function gsplitLaneSlot(team, key, i, n, keys, lane){
    `BONUS_UNIT_SCALE` is 0.40, Phil's own number ("the heros need to be half this size"). */
 function gsplitApplyScale(u){
   if(!GSPLIT.active || !u) return;
+  // Keep combat footprint, collision body and artwork on the same bonus scale.
   u._gauntScale = BONUS_UNIT_SCALE;
   if(typeof u.r === 'number') u.r *= BONUS_UNIT_SCALE;
+  if(typeof u._bodyR === 'number') u._bodyR *= BONUS_UNIT_SCALE;
+  if(typeof u.sprH === 'number') u.sprH *= BONUS_UNIT_SCALE;
 }
 
 /* ~~CHOICE~~ THE PORTRAIT BAR IS HIDDEN, NOT RESIZED.
@@ -4624,11 +4637,13 @@ function gsplitOpenWindow(){
 function gsplitPickBoon(lane, boonId){
   if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'boon') return false;
   const L = GSPLIT.lanes[lane];
-  if(!L || L.state !== 'walking' || GSPLIT.window.picked[lane]) return false;
+  if(!L || L.state !== 'walking' || !(L.offer||[]).some(b=>b.id===boonId)) return false;
+  const prior=GSPLIT.window.picked[lane];
+  if(prior===boonId) return true;
+  if(prior) L.boons[prior]=Math.max(0,(L.boons[prior]|0)-1);
   GSPLIT.window.picked[lane] = boonId;
   L.boons[boonId] = (L.boons[boonId]|0) + 1;
-  const live = GSPLIT.lanes.filter(x => x.state === 'walking');
-  if(live.every(x => GSPLIT.window.picked[x.i])) GSPLIT.window.phase = 'move';
+  GSPLIT.window.preview=(L.offer||[]).find(b=>b.id===boonId)?.blurb||'';
   return true;
 }
 
@@ -4636,12 +4651,12 @@ function gsplitPickBoon(lane, boonId){
    exist to make readable, and it is enforced here as well as drawn. */
 function gsplitCanMove(from, to){
   if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'move') return false;
-  if(Math.abs(from - to) !== 1) return false;
-  const T = GSPLIT.lanes[to];
-  if(!T || T.state !== 'walking') return false;
-  const arriving = GSPLIT.window.movers.filter(m => m.to === to).length;
-  const leaving  = GSPLIT.window.movers.filter(m => m.from === to).length;
-  return (T.units.filter(u => u.team==='ally' && u.alive && !u._summon).length + arriving - leaving) < MAX_PER_LANE;
+  if(from===to || from<0 || from>2 || to<0 || to>2) return false;
+  const T=GSPLIT.lanes[to];
+  if(!T || T.state!=='walking') return false;
+  const arriving=GSPLIT.window.movers.filter(m=>m.to===to && !m.arrived).length;
+  const leaving=GSPLIT.window.movers.filter(m=>m.from===to && !m.arrived).length;
+  return T.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length+arriving-leaving < MAX_PER_LANE;
 }
 
 function gsplitMove(unit, from, to){
@@ -4897,43 +4912,42 @@ const GSPLIT_WALK_SPEED = 260;      // field units per second, along the road
 const GSPLIT_CROSS_SECONDS_PATH = 0.75;
 
 function gsplitBeginCross(m){
-  m.phase = 'walk';
-  m.xFrom = gsplitCrossX(m.side, m.station, m.from);
-  m.xTo   = gsplitCrossX(m.side, m.station, m.to);
-  m.yFrom = GSPLIT_ROAD_Y_FITTED[m.from];
-  m.yTo   = GSPLIT_ROAD_Y_FITTED[m.to];
-  m.t = 0;
-  if(m.unit) m.unit._gauntCrossing = true;
+  if(!m.route) m.route=(Math.abs(m.from-m.to)===2) ? [m.from,1,m.to] : [m.from,m.to];
+  if(m.leg==null) m.leg=0;
+  const a=m.route[m.leg], b=m.route[m.leg+1];
+  m.side=Math.min(a,b)===0?'upper':'lower';
+  m.phase='walk'; m.t=0;
+  m.xFrom=gsplitCrossX(m.side,m.station,a);
+  m.xTo=gsplitCrossX(m.side,m.station,b);
+  m.yFrom=GSPLIT_ROAD_Y_FITTED[a]; m.yTo=GSPLIT_ROAD_Y_FITTED[b];
+  if(m.unit)m.unit._gauntCrossing=true;
 }
-
 function gsplitStepMovers(dt){
-  if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'move') return;
+  if(!gsplitWindowOpen() || GSPLIT.window.phase!=='move')return;
   for(const m of GSPLIT.window.movers){
-    if(m.arrived) continue;
-    const u = m.unit;
-    if(!u || !u.alive){ m.arrived = true; if(u) u._gauntCrossing = false; continue; }
-    if(!m.phase) gsplitBeginCross(m);
-
-    if(m.phase === 'walk'){
-      /* along its OWN road, held inside its own band - the hero never leaves the road in this phase */
-      const dx = m.xFrom - u.x, step = GSPLIT_WALK_SPEED * dt;
-      if(Math.abs(dx) <= step){ u.x = m.xFrom; m.phase = 'cross'; m.t = 0; }
-      else u.x += Math.sign(dx) * step;
-      u.y = Math.max(gsplitLaneBand(m.from).lo, Math.min(gsplitLaneBand(m.from).hi, u.y));
+    if(m.arrived)continue;
+    const u=m.unit;
+    if(!u||!u.alive){m.arrived=true;if(u)u._gauntCrossing=false;continue;}
+    if(!m.phase)gsplitBeginCross(m);
+    if(m.phase==='walk'){
+      const dx=m.xFrom-u.x,step=GSPLIT_WALK_SPEED*dt;
+      if(Math.abs(dx)<=step){u.x=m.xFrom;m.phase='cross';m.t=0;}
+      else u.x+=Math.sign(dx)*step;
+      const band=gsplitLaneBand(m.route[m.leg]);
+      u.y=Math.max(band.lo,Math.min(band.hi,u.y));
       continue;
     }
-
-    if(m.phase === 'cross'){
-      m.t = Math.min(1, m.t + dt / GSPLIT_CROSS_SECONDS_PATH);
-      /* x follows the PATH between its two ends; y crosses. The hero is on the footpath for every
-         frame of this phase, which is the whole of what Phil asked for. */
-      u.x = m.xFrom + (m.xTo - m.xFrom) * m.t;
-      u.y = m.yFrom + (m.yTo - m.yFrom) * m.t;
-      if(m.t >= 1){
-        m.phase = 'seated'; m.arrived = true;
-        u._gauntCrossing = false;
-        gsplitReseat(u, m.from, m.to);
-        gsplitWall(u, m.to);
+    if(m.phase==='cross'){
+      m.t=Math.min(1,m.t+dt/GSPLIT_CROSS_SECONDS_PATH);
+      u.x=m.xFrom+(m.xTo-m.xFrom)*m.t;
+      u.y=m.yFrom+(m.yTo-m.yFrom)*m.t;
+      if(m.t>=1){
+        if(m.leg+2<m.route.length){
+          m.leg++; gsplitBeginCross(m);
+        }else{
+          m.phase='seated';m.arrived=true;u._gauntCrossing=false;
+          gsplitReseat(u,m.from,m.to);gsplitWall(u,m.to);
+        }
       }
     }
   }
@@ -5142,6 +5156,23 @@ function gsplitWindowCss(){
   .gw-move button[disabled]{opacity:.35;}
   .gw-foot{display:flex;align-items:center;gap:8px;margin-top:4px;}
   .gw-foot .gw-why{flex:1;font-size:10px;color:#8b98a9;}
+
+  #gsplitWindow.show.gw-assign{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:10px;background:rgba(5,8,15,.78);}
+  .gw-assignment{width:min(980px,100%);max-height:96%;overflow:auto;background:#142031;border:1px solid #c9a35e;border-radius:12px;padding:10px;}
+  .gw-assignhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#f0d8a8;}
+  .gw-roster{display:flex;gap:5px;overflow-x:auto;padding:8px 0;touch-action:pan-x;}
+  .gw-hero{flex:0 0 66px;min-width:0;border:1px solid #5c6a7c;background:#1b2638;border-radius:7px;color:white;padding:2px;touch-action:none;display:flex;flex-direction:column;align-items:center;font-size:9px;}
+  .gw-hero.selected{border:2px solid #ffd36b;box-shadow:0 0 8px #ffd36b;}
+  .gw-hero img{width:52px;height:58px;object-fit:cover;border-radius:4px;}
+  .gw-hero span{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gw-hero small{color:#c9a35e;}
+  .gw-destinations{display:flex;gap:6px;}
+  .gw-destination{flex:1;border:2px dashed #c9a35e;border-radius:8px;background:#19283b;color:#f0d8a8;padding:9px 3px;display:flex;flex-direction:column;}
+  .gw-destination:disabled{opacity:.4;}
+  .gw-preview{position:absolute;left:5%;right:5%;bottom:100%;display:none;font-size:11px;color:#f0d8a8;padding:5px 8px;background:#142031;border:1px solid #c9a35e;border-radius:7px;pointer-events:none;}
+  .gw-preview:not(:empty){display:block;}
+  #gwConfirm{min-width:110px;font-size:11px;font-weight:900;padding:5px 10px;border-radius:8px;border:1px solid #c9a35e;background:#1d2434;color:#f0d8a8;}
+  #gwConfirm:disabled{opacity:.4;}
   #gwStart{min-width:104px;font-size:11px;font-weight:900;padding:5px 10px;border-radius:8px;
     border:1px solid #c9a35e;background:#1d2434;color:#f0d8a8;}
   #gwStart[disabled]{opacity:.4;border-color:#2a3550;color:#8b98a9;}`;
@@ -5159,25 +5190,79 @@ function gsplitWindowEl(){
     const app = document.getElementById('app') || document.body;
     app.appendChild(el);
     el.addEventListener('click', gsplitWindowClick);
+    el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window)GSPLIT.window.dragHero=b.dataset.unit;});
+    el.addEventListener('pointerup',gsplitWindowPointerUp);
+    el.addEventListener('dragstart',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;e.dataTransfer.setData('text/plain',b.dataset.unit);}});
+    el.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('[data-gw="lane"]'))e.preventDefault();});
+    el.addEventListener('drop',e=>{const lane=e.target.closest&&e.target.closest('[data-gw="lane"]');if(lane&&GSPLIT.window){e.preventDefault();const id=e.dataTransfer.getData('text/plain')||GSPLIT.window.dragHero;GSPLIT.window.dragHero=null;gsplitAssignHero(id,+lane.dataset.lane);}});
+    el.addEventListener('dragend',()=>{if(GSPLIT.window)GSPLIT.window.dragHero=null;});
   }
   return el;
 }
 
 /* One delegated listener rather than a handler per button. The panel is rebuilt on every state
    change, and per-button listeners on a rebuilt tree are how a dead button happens. */
-function gsplitWindowClick(e){
-  const b = e.target.closest ? e.target.closest('[data-gw]') : null;
-  if(!b) return;
-  e.preventDefault(); e.stopPropagation();
-  const kind = b.getAttribute('data-gw');
-  if(kind === 'boon'){
-    gsplitPickBoon(+b.getAttribute('data-lane'), b.getAttribute('data-id'));
-    gsplitWindowDraw();
-  } else if(kind === 'move'){
-    gsplitPromptMove(+b.getAttribute('data-lane'), +b.getAttribute('data-to'));
-  } else if(kind === 'start'){
-    if(gsplitCloseWindow()) gsplitWindowDraw();
+function gsplitHeroCardId(u){
+  if(!u._bonusCardId)u._bonusCardId='b'+(GSPLIT._cardSeq=(GSPLIT._cardSeq||0)+1);
+  return u._bonusCardId;
+}
+function gsplitFindHero(id){
+  for(const L of GSPLIT.lanes)for(const u of L.units)
+    if(u.team==='ally'&&u.alive&&!u._summon&&gsplitHeroCardId(u)===id)return {u,L};
+  return null;
+}
+function gsplitAssignHero(id,to){
+  if(!gsplitWindowOpen()||GSPLIT.window.phase!=='move')return false;
+  const found=gsplitFindHero(id);
+  if(!found||GSPLIT.window.movers.some(m=>m.unit===found.u&&!m.arrived))return false;
+  const from=found.L.i;
+  if(from===to)return true;
+  // On the three-hero teaching run, moving the sole Left Road hero would
+  // empty that road. Exchange with Middle so the lesson cannot fail by design.
+  const teaching=gsplitTutorialFirstWindow()&&from===0&&to===1;
+  const exchange=teaching&&found.L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length===1;
+  const partner=exchange&&GSPLIT.lanes[1].units.find(u=>u.team==='ally'&&u.alive&&!u._summon);
+  if(exchange&&(!partner||!gsplitCanMove(1,0)))return false;
+  if(!gsplitMove(found.u,from,to))return false;
+  if(exchange&&!gsplitMove(partner,1,0)){
+    const m=GSPLIT.window.movers.pop();
+    if(m&&m.unit)m.unit._gauntCrossing=false;
+    return false;
   }
+  if(teaching)GSPLIT._tutorialSwapDone=true;
+  GSPLIT.window.selectedHero=null;
+  gsplitWindowDraw();
+  return true;
+}
+function gsplitWindowClick(e){
+  const b=e.target.closest&&e.target.closest('[data-gw]');
+  if(!b)return;
+  e.preventDefault();e.stopPropagation();
+  const kind=b.getAttribute('data-gw'),W=GSPLIT.window;
+  if(!W)return;
+  if(kind==='boon'){
+    const lane=+b.dataset.lane,id=b.dataset.id;
+    const offer=(GSPLIT.lanes[lane].offer||[]).find(x=>x.id===id);
+    W.preview=offer ? offer.blurb||'' : '';
+    gsplitPickBoon(lane,id);gsplitWindowDraw();
+  }else if(kind==='confirm'){
+    const live=GSPLIT.lanes.filter(L=>L.state==='walking');
+    if(live.every(L=>W.picked[L.i])){W.phase='move';W.selectedHero=null;gsplitWindowDraw();}
+  }else if(kind==='hero'){
+    W.selectedHero=b.dataset.unit;gsplitWindowDraw();
+  }else if(kind==='lane'){
+    if(W.selectedHero)gsplitAssignHero(W.selectedHero,+b.dataset.lane);
+  }else if(kind==='start'){
+    if(gsplitCloseWindow())gsplitWindowDraw();
+  }
+}
+function gsplitWindowPointerUp(e){
+  const W=GSPLIT.window;
+  if(!W||!W.dragHero)return;
+  const id=W.dragHero;W.dragHero=null;
+  const target=document.elementFromPoint(e.clientX,e.clientY);
+  const lane=target&&target.closest('[data-gw="lane"]');
+  if(lane)gsplitAssignHero(id,+lane.dataset.lane);
 }
 
 /* ~~CHOICE~~ THE MOVE PICKS THE REARMOST HERO, AND SAYS SO.
@@ -5198,66 +5283,50 @@ function gsplitPromptMove(from, to){
 }
 
 function gsplitWindowDraw(){
-  const el = gsplitWindowEl();
-  if(!gsplitWindowOpen()){ el.className = ''; el.innerHTML = ''; return; }
-  const W = GSPLIT.window, station = (W.station|0) + 1;
-  const phase = W.phase;
-  let html = '<div class="gw-head">FIREBREAK ' + station + ' of 4'
-    + '<span class="gw-step">' + (phase === 'boon'
-        ? 'choose a boon for each road'
-        : 'move a hero to an adjacent road, or start') + '</span></div><div class="gw-roads">';
-
-  for(const L of GSPLIT.lanes){
-    const out = (L.state !== 'walking');
-    const picked = W.picked[L.i];
-    html += '<div class="gw-road' + (picked ? ' gw-done' : '') + (out ? ' gw-out' : '') +
-            (phase === 'move' ? ' gw-chosen' : '') + '">';
-    const n = L.units.filter(u => u.team === 'ally' && u.alive && !u._summon).length;
-    html += '<div class="gw-name"><span>' + L.name + '</span><span>' +
-            (out ? L.state.toUpperCase() : n + '/' + MAX_PER_LANE) + '</span></div>';
-
-    if(out){ html += '</div>'; continue; }
-
-    if(phase === 'boon'){
-      html += '<div class="gw-boons">';
-      for(const b of (L.offer || [])){
-        html += '<button class="gw-boon' + (picked === b.id ? ' gw-pick' : '') +
-                '" data-gw="boon" data-lane="' + L.i + '" data-id="' + b.id + '">' +
-                gsplitEsc(b.name) + '<span class="gw-blurb">' + gsplitEsc(b.blurb || '') + '</span></button>';
+  const el=gsplitWindowEl();
+  if(!gsplitWindowOpen()){el.className='';el.innerHTML='';return;}
+  const W=GSPLIT.window,station=(W.station|0)+1;
+  if(W.phase==='boon'){
+    let html='<div class="gw-head">FIREBREAK '+station+' of 4 · choose one boon for each road</div><div class="gw-roads">';
+    for(const L of GSPLIT.lanes){
+      const picked=W.picked[L.i],out=L.state!=='walking';
+      html+='<div class="gw-road'+(picked?' gw-done':'')+(out?' gw-out':'')+'"><div class="gw-name">'+gsplitEsc(L.name)+'</div>';
+      if(!out){
+        html+='<div class="gw-boons">';
+        for(const b of (L.offer||[]))
+          html+='<button class="gw-boon'+(picked===b.id?' gw-pick':'')+'" data-gw="boon" data-lane="'+L.i+'" data-id="'+gsplitEsc(b.id)+'" title="'+gsplitEsc(b.blurb||'')+'" aria-label="'+gsplitEsc(b.name+': '+(b.blurb||''))+'">'+gsplitEsc(b.name)+'</button>';
+        html+='</div>';
       }
-      html += '</div>';
-    } else {
-      /* FOURTH MEASUREMENT: the chosen boon on its own row plus a row of move buttons came to 121 px
-         (top y 0.690), which still clips the near road's heroes - their heads sit around y 0.68. The
-         two are ONE row: the boon you took, and the two roads you can send someone to. That is also
-         the truer reading of the phase - it is one decision line per road, not two. */
-      const chosen = (L.offer || []).find(b => b.id === picked);
-      html += '<div class="gw-move"><div class="gw-boon gw-pick gw-chosenchip">' +
-              gsplitEsc(chosen ? chosen.name : '\u2014') + '</div>';
-      for(const to of [L.i - 1, L.i + 1]){
-        if(to < 0 || to > 2){ continue; }
-        const ok = gsplitCanMove(L.i, to) && !!gsplitRearmost(L.i);
-        html += '<button data-gw="move" data-lane="' + L.i + '" data-to="' + to + '"' +
-                (ok ? '' : ' disabled') + '>&rarr; ' + GSPLIT_ROAD_NAME[to].split(' ')[0] + '</button>';
-      }
-      html += '</div>';
+      html+='</div>';
     }
-    html += '</div>';
+    const ready=GSPLIT.lanes.filter(L=>L.state==='walking').every(L=>W.picked[L.i]);
+    html+='</div><div class="gw-preview" role="status">'+gsplitEsc(W.preview||'')+'</div>';
+    html+='<div class="gw-foot"><span class="gw-why">You can change any boon before confirming.</span><button data-gw="confirm" id="gwConfirm"'+(ready?'':' disabled')+'>CONFIRM BOONS</button></div>';
+    el.innerHTML=html;el.className='show';
+    el.querySelectorAll('[data-gw="boon"]').forEach(b=>{
+      const preview=()=>{const L=GSPLIT.lanes[+b.dataset.lane],x=(L.offer||[]).find(x=>x.id===b.dataset.id);const p=el.querySelector('.gw-preview');if(p)p.textContent=x&&x.blurb||'';};
+      b.addEventListener('pointerenter',preview);b.addEventListener('focus',preview);
+    });
+    return;
   }
-  html += '</div>';
-
-  /* THE START BUTTON EXPLAINS ITSELF WHEN IT IS REFUSED.
-     "Start is disabled" with no reason is the single most common way a rule becomes a bug report. */
-  const waiting = (phase === 'move') && W.movers.some(m => !m.arrived && m.unit && m.unit.alive);
-  const why = (phase === 'boon')
-      ? 'Pick a boon on every road that is still walking.'
-      : (waiting ? 'Waiting for heroes to reach the far road.' : 'Ready.');
-  html += '<div class="gw-foot"><span class="gw-why">' + why + '</span>' +
-          '<button id="gwStart" data-gw="start"' + (gsplitStartAllowed() && phase === 'move' ? '' : ' disabled') +
-          '>START WAVE ' + (station + 1) + '</button></div>';
-
-  el.innerHTML = html;
-  el.className = 'show';
+  const waiting=W.movers.some(m=>!m.arrived&&m.unit&&m.unit.alive);
+  let html='<div class="gw-assignment"><div class="gw-assignhead"><strong>FIREBREAK '+station+' · assign heroes</strong><span>Drag a hero to a road, or tap a hero then a road. 10 slots per road.</span></div>';
+  html+='<div class="gw-roster">';
+  for(const L of GSPLIT.lanes){
+    for(const u of L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon)){
+      const id=gsplitHeroCardId(u),moving=W.movers.some(m=>m.unit===u&&!m.arrived);
+      const art=(HERO_CARD_ART&&HERO_CARD_ART[u.key])||HERO_PORTRAITS[u.key]||'';
+      html+='<button class="gw-hero'+(W.selectedHero===id?' selected':'')+'" data-gw="hero" data-unit="'+id+'" draggable="true"'+(moving?' disabled':'')+'><img src="'+gsplitEsc(art)+'" alt=""><span>'+gsplitEsc((HERO_TYPES[u.key]||{}).name||u.key)+'</span><small>'+gsplitEsc(L.name)+'</small></button>';
+    }
+  }
+  html+='</div><div class="gw-destinations">';
+  for(const L of GSPLIT.lanes){
+    const count=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length;
+    const pending=W.movers.filter(m=>m.to===L.i&&!m.arrived).length-W.movers.filter(m=>m.from===L.i&&!m.arrived).length;
+    html+='<button data-gw="lane" data-lane="'+L.i+'" class="gw-destination"'+(L.state==='walking'?'':' disabled')+'><strong>'+gsplitEsc(L.name)+'</strong><span>'+(count+pending)+' / 10 slots</span></button>';
+  }
+  html+='</div><div class="gw-foot"><span class="gw-why">'+(waiting?'Waiting for heroes to arrive.':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Move a Top Road hero to Middle.':'Ready to start.'))+'</span><button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div></div>';
+  el.innerHTML=html;el.className='show gw-assign';
 }
 
 function gsplitEsc(s){ return String(s == null ? '' : s)
@@ -5347,7 +5416,7 @@ function gsplitPickerRender(){
     return `<button type="button" class="gsplitHero" data-k="${k}" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;
       width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${lane?'#c9a35e':'#333'};
       background:${lane?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer">
-      <span style="font-size:20px">${t.emoji||'❔'}</span><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</span>
+      <img src="${(HERO_CARD_ART&&HERO_CARD_ART[k])||HERO_PORTRAITS[k]||''}" alt="${gsplitEsc(nm)}" style="width:54px;height:62px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</span>
       <span style="color:#c9a35e;font-weight:800">${lane?laneNames[lane-1]:'—'}</span></button>`;
   }).join('');
   el.innerHTML = `
@@ -5394,13 +5463,16 @@ function gsplitStartRun(){
    harness (`__gauntProof`/`__gauntEncounter`). This is the same sequence, fed real server data and
    a real player's squad, ending in the same `show('battle')` the rest of the game already uses. */
 function gsplitEnterBattle(data, assign, id){
+  // Clear a previous fight before spawning any lane. This also handles a re-entry
+  // after an interrupted exit and prevents old sprites from sharing the new scene.
+  clearBattle();
   const seed = (data.attemptId||id).split('').reduce((a,c)=>((a*31+c.charCodeAt(0))>>>0), 7);
   GSPLIT.active = true;
   GSPLIT.stage = id;
   GSPLIT.attemptId = data.attemptId;
   GSPLIT.seed = seed;
   GSPLIT.level = data.boonLevel||1;
-  GSPLIT.waveShown = 0;
+  GSPLIT.waveShown = 0; GSPLIT._cardSeq=0;
   GSPLIT.boonOffers = data.boonOffers||[];
   GSPLIT.lanes = [0,1,2].map(i=>{
     const L=gsplitLane(i);
@@ -5706,6 +5778,8 @@ function gsplitCloseWindow(){
   GSPLIT.waveShown++;
   for(const L of GSPLIT.lanes){
     if(L.state !== 'walking') continue;
+    const meet=GSPLIT_MEET_IMG[Math.max(0,Math.min(4,GSPLIT.waveShown))];
+    for(const u of L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon)) u.homeX=gsplitClampX(gsplitFieldX(meet-0.06,L.i));
     for(const s of L.units.filter(s => s._summon && !s[EVERLASTING_FLAG])) killSummon(s);
     L.offer = null;
   }
@@ -5806,10 +5880,6 @@ function gsplitTutorialFirstWindow(){
 }
 const _bonusPickBoon=gsplitPickBoon;
 gsplitPickBoon=function(lane,id){
-  if(gsplitTutorialFirstWindow() && GSPLIT.window.phase==='boon'){
-    const L=GSPLIT.lanes[lane], first=L && L.offer && L.offer[GSPLIT.script.boon.index];
-    if(!first || id!==first.id) return false;
-  }
   return _bonusPickBoon(lane,id);
 };
 const _bonusStartAllowed=gsplitStartAllowed;
@@ -5851,10 +5921,11 @@ gsplitWindowDraw=function(){
   if(!root) return;
   const W=GSPLIT.window;
   if(W.phase==='boon'){
+    // Show the first teaching offer as a hint, while allowing the player to
+    // compare and change any of the three choices before confirming.
     root.querySelectorAll('[data-gw="boon"]').forEach(b=>{
       const L=GSPLIT.lanes[+b.dataset.lane], first=L&&L.offer&&L.offer[GSPLIT.script.boon.index];
-      if(!first || b.dataset.id!==first.id) b.disabled=true;
-      else b.style.boxShadow='0 0 8px 2px #ffd36b';
+      if(first && b.dataset.id===first.id) b.style.boxShadow='0 0 8px 2px #ffd36b';
     });
   }else{
     root.querySelectorAll('[data-gw="move"]').forEach(b=>{
@@ -6114,6 +6185,7 @@ function shadowTex(){ if(_shadowTex)return _shadowTex; const c=document.createEl
   x.fillStyle=gr; x.fillRect(0,0,64,64); _shadowTex=new TH.CanvasTexture(c); return _shadowTex; }
 // battlefield unit as a 2D sprite (the hero's cutout art) standing on the 3D field
 function buildFigure(u){
+  if(GSPLIT.active && !u._gauntScale) gsplitApplyScale(u);
   if(window._p2guard){
     /* Headless replay skips meshes and textures, but strike timing still reads clip metadata through
        u.anim (fuseStrike/clipDur). Omitting it made the server land attacks earlier than the browser.
@@ -8048,13 +8120,13 @@ const FX2_DEF={
   greatbrow_green:{u:'/assets/anim/fx/greatbrow_green.webp?v=32',n:48,fw:387,fh:453,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.328,dw:0.909}},
   grosk_blue:{u:'/assets/anim/fx/grosk_blue.webp?v=32',n:48,fw:227,fh:223,cols:6,rows:8,dur:3.92,upright:true,upSize:1.3,upExtent:0.946,upAnchor:[0.5,0.0],ro:1},
   grosk_green:{u:'/assets/anim/fx/grosk_green.webp?v=32',n:48,fw:865,fh:845,cols:6,rows:8,dur:4.38,upright:true,upSize:1.3,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
-  hollow_blue:{u:'/assets/anim/fx/hollow_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.79,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  hollow_green:{u:'/assets/anim/fx/hollow_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.75,cone:true,coneFoot:0.05},
+  hollow_blue:{u:'/assets/anim/fx/hollow_blue.webp?v=23',n:48,fw:173,fh:298,cols:6,rows:8,dur:3.79,upright:true,upSize:1.3,upExtent:0.96,upAnchor:[0.5,0.0],ro:1},
+  hollow_green:{u:'/assets/anim/fx/hollow_green.webp?v=23',n:48,fw:242,fh:353,cols:6,rows:8,dur:2.75,cone:true,coneFoot:0.05},
   fathom_green:{u:'/assets/anim/fx/fathom_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.498,dh:0.259,dw:0.916}},
   hurne_blue:{u:'/assets/anim/fx/hurne_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.627,dh:0.448,dw:0.61}},
   hurne_green:{u:'/assets/anim/fx/hurne_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.598,dh:0.245,dw:0.78}},
-  ironcoil_blue:{u:'/assets/anim/fx/ironcoil_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  ironcoil_green:{u:'/assets/anim/fx/ironcoil_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.498,dh:0.566,dw:0.909}},
+  ironcoil_blue:{u:'/assets/anim/fx/ironcoil_blue.webp?v=23',n:48,fw:480,fh:504,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.931,upAnchor:[0.5,0.0],ro:1},
+  ironcoil_green:{u:'/assets/anim/fx/ironcoil_green.webp?v=23',n:48,fw:302,fh:272,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.566,dw:0.909}},
   kharos_blue:{u:'/assets/anim/fx/kharos_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   kharos_green:{u:'/assets/anim/fx/kharos_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   kilnmask_green:{u:'/assets/anim/fx/kilnmask_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.96,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -8163,7 +8235,12 @@ const FX2_DEF={
   fathom_ult:{u:'/assets/anim/fx/fathom_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.17,disc:{cy:0.5,dh:0.425,dw:0.919}},
   greatbrow_ult:{u:'/assets/anim/fx/greatbrow_ult.webp?v=32',n:48,fw:280,fh:240,cols:6,rows:8,dur:2.29,disc:{cy:0.5,dh:0.262,dw:0.919}},
   grosk_ult:{u:'/assets/anim/fx/grosk_ult.webp?v=32',n:48,fw:573,fh:536,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.397,dw:0.894}},
-  hollow_ult:{u:'/assets/anim/fx/hollow_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  hollow_ult:{u:'/assets/anim/fx/hollow_ult.webp?v=23',n:48,fw:765,fh:712,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
+  cacklefang_ult:{u:'/assets/anim/fx/cacklefang_ult.webp?v=1',n:48,fw:822,fh:652,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.985,upAnchor:[0.5,0.0],ro:1},
+  calypsa_ult:{u:'/assets/anim/fx/calypsa_ult.webp?v=1',n:48,fw:394,fh:401,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.97,upAnchor:[0.5,0.0],ro:1},
+  chainwheel_ult:{u:'/assets/anim/fx/chainwheel_ult.webp?v=1',n:48,fw:864,fh:866,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  dawnbringer_ult:{u:'/assets/anim/fx/dawnbringer_ult.webp?v=1',n:48,fw:324,fh:296,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.963,upAnchor:[0.5,0.0],ro:1},
+  hurne_ult:{u:'/assets/anim/fx/hurne_ult.webp?v=1',n:48,fw:768,fh:768,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
   konwu_ult:{u:'/assets/anim/fx/konwu_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   lumi_ult:{u:'/assets/anim/fx/lumi_ult.webp?v=32',n:48,fw:688,fh:834,cols:6,rows:8,dur:1.04,upright:true,upSize:2.0,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
   magistrant_ult:{u:'/assets/anim/fx/magistrant_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.67,disc:{cy:0.503,dh:0.312,dw:0.844}},
@@ -8195,7 +8272,7 @@ const FX2_DEF={
   waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.21,disc:{cy:0.498,dh:0.391,dw:0.912}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_ult:{u:'/assets/anim/fx/waxenduchess_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.5,disc:{cy:0.498,dh:0.622,dw:0.919}},
-  ironcoil_ult:{u:'/assets/anim/fx/ironcoil_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.511,dh:0.553,dw:0.875}},
+  ironcoil_ult:{u:'/assets/anim/fx/ironcoil_ult.webp?v=23',n:48,fw:706,fh:750,cols:6,rows:8,dur:5.88,disc:{cy:0.511,dh:0.553,dw:0.875}},
   kilnmask_ult:{u:'/assets/anim/fx/kilnmask_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.5,disc:{cy:0.5,dh:0.569,dw:0.916}}
 };
 const _fx2Tex={};
@@ -12015,13 +12092,17 @@ function renderRoadmap(){
     const _bonusSites=(typeof CH_BONUS_SITES!=='undefined'&&CH_BONUS_SITES[ch])?CH_BONUS_SITES[ch]:[];
     if(MODE==='normal') _bonusSites.forEach((site,i)=>{ const slot=[3,4,6,7,9,10][i], code=ch+'-'+slot;
       const b=document.createElement('button'); b.type='button'; b.className='cbonus '+(i<3?'upper':'lower'); b.dataset.bonusStage=code;
-      b.style.left=_wideX(site[0])+'%'; b.style.top=site[1]+'%'; b.setAttribute('aria-label',`BONUS ${code}`);
-      b.innerHTML=`<span>BONUS ${code}</span>`;
+      const bonusLocked=portalCleared('normal')<((ch-1)*STAGES_PER_CH+slot);
+      if(bonusLocked){ b.classList.add('locked'); b.disabled=true; }
+      b.style.left=_wideX(site[0])+'%'; b.style.top=site[1]+'%';
+      b.setAttribute('aria-label',bonusLocked?`BONUS ${code} locked — clear Normal ${code} first`:`BONUS ${code}`);
+      b.title=bonusLocked?`Clear Normal ${code} to unlock Bonus ${code}`:`BONUS ${code}`;
+      b.innerHTML=`<span>BONUS ${code}${bonusLocked?' 🔒':''}</span>`;
       const open=()=>{ if(typeof openBonusModal!=='function'){
           bannerMsg(`◆ Bonus ${code} is not available yet.`); return; }
         try{ openBonusModal(ch,slot); }
         catch(e){ console.error('Bonus entry failed',code,e); bannerMsg(`◆ Bonus ${code} could not open. Please try again.`); } };
-      wireTap(b,open); _inner.appendChild(b); });
+      if(!bonusLocked) wireTap(b,open); _inner.appendChild(b); });
     for(let s=1;s<=N;s++){ const g=first+s-1; if(g>PLAYABLE) break; const nd=_nodes[s-1]||[50,100-(s-1)*10];
       const _cl=portalCleared(MODE);
       const cleared=g<=_cl, current=g===_cl+1, boss=isBossStage(g), elite=isEliteStage(g);
@@ -13018,7 +13099,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:5.88}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:5.88}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{gfx:'dawnbringer_ult',gdur:5.88}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -18416,7 +18497,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789659420147';
+const BUILD_ID = '1789665749508';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -18731,8 +18812,6 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
 
 </body>
 </html>
-
-
 
 
 
