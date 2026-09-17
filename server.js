@@ -840,6 +840,7 @@ function glyphHeroPower(u, heroKey){
    covered by the suite, so it ships ON BY DEFAULT — no Railway variable required. Set
    DUNGEON_V2_ENABLED=false to force it off. */
 const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'true')!=='false';
+let BONUS=null; try{ BONUS=require('./server/bonus-stages.js'); }catch(e){ console.error('⚠ BONUS STAGES module failed to load — the 60 bonus stages will 404:', e&&e.message); }
 let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠ DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
 
@@ -3691,6 +3692,14 @@ async function api(req,res,url){
           map:PORTALS[m].list.map(e=>({ node:e.node, id:e.id, fragment:e.rewards.glyphFragments[0],
             fragments:e.rewards.glyphFragments, fragmentRolls:e.rewards.fragmentRolls||0 })) }; }),
       fragmentSources:FRAG_SOURCES }); }
+  /* Bonus stages own only /api/bonus/*; ordinary Campaign routes remain untouched. */
+  if(BONUS && p.indexOf('/api/bonus/')===0){ if(!me)return send(res,401,{error:'auth'});
+    const led=ensureLedger(me);
+    const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
+      body:()=>body(req), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB,
+      GLYPHS, CAMP_ENC:CAMP_ENC?Object.values(CAMP_ENC.byNode):[], uid,
+      playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!led.unlocked[k] });
+    if(out) return send(res, out.status, out.body); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
