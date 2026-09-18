@@ -388,7 +388,23 @@
   .tw-detail{background:#141b2b;border:1px solid #2a3550;border-radius:12px;padding:12px 13px;margin-top:2px;}
 
   .hero-card{background:#1e2740;border:2px solid #33405e;border-radius:12px;padding:8px 6px 22px;cursor:pointer;position:relative;transition:.12s;}
-  .hero-card .hc-imgwrap{position:relative;width:100%;aspect-ratio:5/6;border-radius:8px;overflow:hidden;background:#0c0f16;margin-bottom:3px;}
+  .hero-card .hc-imgwrap{position:relative;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#0c0f16;margin-bottom:3px;}
+  .ascw{position:relative;display:block;overflow:hidden;flex:0 0 auto}
+  .ascf{position:absolute;inset:0;pointer-events:none;border:0 solid transparent;border-image-repeat:stretch;z-index:2}
+  .ascf-st{position:absolute;left:7%;right:7%;bottom:0;height:16%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:4;line-height:0}
+  .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
+  .ascf-gem svg{width:100%;height:100%;display:block}
+  .ascf-st svg{height:100%;width:auto;flex:0 1 auto;min-width:0;filter:drop-shadow(0 1px 1px #000)}
+  .ascf-myth{height:100%;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 1px 2px #000a)}
+  .hero-card .hc-lv{position:absolute;top:6%;left:6%;z-index:4;background:rgba(10,12,20,.82);color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:6px;border:1px solid rgba(255,255,255,.18);line-height:1.3}
+  .hero-card .hc-mythp{position:absolute;left:9%;right:9%;bottom:15%;height:17%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;
+    background:url('/assets/img/miscellaneous/mythical-plaque.webp') center/100% 100% no-repeat,linear-gradient(180deg,#9b5cff,#5a1fae 55%,#3a0f78);border-radius:5px;box-shadow:0 0 0 1px #e6c56a,0 0 10px rgba(185,110,255,.8)}
+  .hero-card .hc-mythp span{font-family:Georgia,serif;font-weight:900;font-size:clamp(9px,11cqw,14px);color:#fff4d6;text-shadow:0 1px 2px #2a0a4a,0 0 6px #c38bff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92%;letter-spacing:.02em}
+  .hero-card .hc-imgwrap{container-type:inline-size}
+  .hero-card .hc-info{text-align:center;min-width:0;height:30px}
+  .hero-card.hc-tile{padding:6px 6px 5px}
+  .hero-card .hc-sub{font-size:10px;font-weight:800;color:#ffd45e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+  .hero-card.locked .hc-sub{color:#9aa7ba}
   .hero-card .hc-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
   .hero-card .hc-power{position:absolute;top:3px;left:0;right:0;text-align:center;font-size:9.5px;font-weight:800;color:#ffd45e;text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;}
   .hero-card .hc-myth{display:block;width:98%;max-width:160px;height:auto;margin:1px auto -2px;filter:drop-shadow(0 1px 3px #0008);}
@@ -2561,7 +2577,7 @@ function _blDrawCard(cv, key, img, face){
     return new Promise(res=>{ const t0=Date.now();
       const poll=()=>{ const im=A.tex&&A.tex.image;
         if(im && im.width){ try{ const k=im.width/((A.cols||A.n||1)*A.fw), ky=im.height/((A.rows||1)*A.fh);
-            const fig=Math.max(1,A.feet-A.top), sh=fig*0.62, sw=sh*cv.width/cv.height, sy=Math.max(0,A.top-fig*0.05), sx=(A.cx!=null?A.cx:A.fw/2)-sw/2;
+            const fig=Math.max(1,A.feet-A.top), sh=fig*0.72, sw=sh*cv.width/cv.height, sy=Math.max(0,A.top-fig*0.05), sx=(A.cx!=null?A.cx:A.fw/2)-sw/2;
             const up=(typeof ImageBitmap!=='undefined' && im instanceof ImageBitmap);   /* bitmapLoad makes WebGL bitmaps with imageOrientation:'flipY' */
             _blPaint(cv, im, sx*k, up ? im.height-(sy+sh)*ky : sy*ky, sw*k, sh*ky, face==='right' ? !!A.flip : face==='left' ? !A.flip : false, up); res(true); }catch(e){ res(false); } return; }
         if(A._err || Date.now()-t0>14000) return res(_blDrawCard(cv, null, (typeof HERO_CARD_ART!=='undefined'&&HERO_CARD_ART[key])||'', face));
@@ -2583,7 +2599,8 @@ function showBattleLoader(spec){
   const layout = cards ? 'cards' : lanes ? 'lanes' : vs ? 'vs' : 'solo';
   const title = spec.title || battleModeTitle();
   el.className='bl-'+layout;
-  const card=(c,side)=>`<div class="bl-card${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas><div class="bl-nm">${escapeHTML(c.name||'')}</div></div>`;
+  const card=(c,side)=>{ const mine=side==='ally'&&c.key&&G.unlocked&&G.unlocked[c.key];   // v612: your heroes wear their ascension borders, stars on the frame
+    return `<div class="bl-cw"><div class="bl-card${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas>${mine?ascFrameHtml(c.key,{stars:true}):''}<div class="bl-nm">${escapeHTML(c.name||'')}</div></div></div>`; };
   const keyCards=(keys)=>(keys||[]).filter(Boolean).map(k=>({ key:k, name:_blHeroName(k) }));
   let body='', list=[];   // list: {c, face}
   if(layout==='vs'){
@@ -2618,6 +2635,9 @@ function showBattleLoader(spec){
     #battleLoader .bl-card.lit:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,230,170,.55),rgba(255,230,170,0) 60%);animation:blFlash .6s ease-out forwards;pointer-events:none}
     @keyframes blFlash{from{opacity:1}to{opacity:0}}
     #battleLoader .bl-card canvas{position:absolute;inset:0;width:100%;height:100%}
+    #battleLoader .bl-card .ascf ~ .bl-nm{bottom:11%}
+    #battleLoader .bl-cw{display:flex;flex-direction:column;align-items:center;gap:2px}
+    #battleLoader .bl-st{line-height:0;display:flex;justify-content:center} #battleLoader .bl-st svg{width:calc(var(--cw,84px)/6.5);height:auto}
     #battleLoader .bl-nm{position:absolute;left:0;right:0;bottom:0;padding:10px 3px 3px;font-size:clamp(8px,1.25vw,11px);font-weight:800;text-align:center;line-height:1.1;color:#fff3dc;text-shadow:0 1px 3px #000;
       background:linear-gradient(0deg,rgba(10,6,4,.92),rgba(10,6,4,0));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     #battleLoader .bl-side{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:44%}
@@ -2947,7 +2967,40 @@ const GHOST_CASTLE = "/assets/img/world-map/ghost-castle.webp";   // square-padd
 const CASTLE_TIERS = [1,15,30,45,60];       // kingdom-level thresholds for castles 1..5
 function castleTier(level){ let t=1; for(let i=0;i<CASTLE_TIERS.length;i++){ if(level>=CASTLE_TIERS[i]) t=i+1; } return t; }
 function playerCastleImg(){ return CASTLE_IMGS['castle'+castleTier(playerLevel())] || CASTLE_IMGS.castle1 || ''; }
-function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{}; return p?`<img src="${p}" style="width:${px}px;height:${px}px;border-radius:9px;object-fit:cover;display:block;box-shadow:0 2px 7px rgba(0,0,0,.45)">`:`<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`; }
+/* v612 - ASCENSION BORDERS (Phil, 18 Sep: "Every hero card size needs a quality boarder made for every ascension color" / "To fit
+   their card perfectly" / "Grey will just be a grey border. ... The first quality is just the color itself. +1, +2, +3 etc etc all
+   look more advanced" / "The edges would look best slightly rounded" / "At +3 and +4 the cards should start having jewelery in
+   the border inside" / "at the bottom of the hero frame there should be how many stars the hero is" / "These borders need to be
+   resizable for all hero card border sizes").
+   17 Hailuo-painted frames, one per ascension step (glyphRank 0 Grey ... 15 Orange, 16 Orange star), 3:4, exported by
+   scratchpad/frames/procframe.py to 720x960 WebP with the window cut out and the outer corners rounded. Each is drawn as a
+   9-SLICE (CSS border-image): the corners keep their shape and the edges stretch, and the border thickness is a percentage of
+   the card, so one image fits every card size - roster card, squad icon, loading-screen card. The hero's stars sit on the
+   frame's bottom plate (ASC_FRAME[i].p = the plate's box, same pixels). */
+/* v612 rev (Phil: "Go review magic rush hero card" / "And so it similar" / "Dont copy them verbatim though" / "I dont really like
+   the oval plate at the bottom" / "you took my teeth example too literally" / "Can use a wavy teeth art style" / "Be creative";
+   chose "Gem studs like Magic Rush"): SQUARE borders, no plate. Each colour has a plain border and an ornate one with a wavy trim
+   in its own motif (leaf curls, sea waves, arcane smoke, sun rays, flame tongues). The +N is counted in ember-crystal studs set
+   on the left and right edges, drawn by the game so the count is always exact; +3 and +4 studs are larger jewels. */
+const ASC_FRAME_W=720, ASC_FRAME_H=720;
+const ASC_FRAME_V=1;   // bump whenever a border file changes (the service worker keeps /assets/ across deploys)
+const ASC_FRAME=[{"s":[51,52,52,52]},{"s":[46,46,46,46]},{"s":[40,37,40,37]},{"s":[50,47,49,48]},{"s":[57,49,57,49]},{"s":[50,47,49,47]},{"s":[36,38,35,36]},{"s":[40,40,40,40]},{"s":[32,32,32,32]},{"s":[66,64,66,62]},{"s":[62,45,36,45]},{"s":[48,44,47,44]},{"s":[52,50,53,50]},{"s":[38,39,44,39]},{"s":[44,45,51,45]},{"s":[36,38,35,36]},{"s":[32,32,32,32]},{"s":[32,32,32,32]}];   // [border 0..10] -> {s:[t,r,b,l]} slice sizes in the 720x720 export
+/* v612 (Phil: "Basic is flat, +1 a nice trim, +2 a trim and wave" / "+3 and +4 ... progressively look more rich with jewelry"):
+   every step has its own painted border; nothing is drawn on top. Border files: 0 Grey, 1 Green, 2 (unused wavy green), 3 Blue,
+   4 Blue wave, 5 Purple, 6 Purple wave, 7 Gold, 8 Gold wave, 9 Orange, 10 Orange star, 11 Green trim, 12 Blue trim,
+   13 Purple trim, 14 Gold trim, 15 Purple jewels, 16 Gold jewels, 17 Gold royal jewels. */
+//            Grey Green +1  Blue +1  +2  Purple +1 +2  +3  Gold +1  +2  +3  +4  Orange Orange*
+const ASC_STEP=[0,   1,    11, 3,   12, 4,  5,     13, 6,  15, 7,   14, 8,  16, 17, 9,     10];
+function ascIndexOf(key){ try{ return Math.max(0,Math.min(16,glyphRank(key)|0)); }catch(e){ return 0; } }
+function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIndexOf(key)]|0, F=ASC_FRAME[bi]||ASC_FRAME[0], s=F.s;
+  const pc=(v,d)=>(v/d*100).toFixed(2)+'%';
+  let h=`<div class="ascf" style="border-image-source:url('/assets/img/frames/asc-${String(bi).padStart(2,'0')}.webp?v=${ASC_FRAME_V}');border-image-slice:${s[0]} ${s[1]} ${s[2]} ${s[3]} fill;border-image-width:${pc(s[0],ASC_FRAME_H)} ${pc(s[1],ASC_FRAME_W)} ${pc(s[2],ASC_FRAME_H)} ${pc(s[3],ASC_FRAME_W)}"></div>`;
+  if(o.stars){ let row=''; try{ row=starFillRow(key,20); }catch(e){} if(row) h+=`<div class="ascf-st">${row}</div>`; }   // on the bottom edge
+  return h; }
+function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
+  if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`;
+  const own=!!(typeof G!=='undefined'&&G.unlocked&&G.unlocked[key]);   /* v612: every hero icon wears its ascension border, with its stars on the border's bottom edge once it's big enough to read */
+  return `<span class="ascw" style="width:${px}px;height:${px}px;border-radius:9px;box-shadow:0 2px 7px rgba(0,0,0,.45)"><img src="${p}" style="width:100%;height:100%;object-fit:cover;display:block">${ascFrameHtml(key,{stars:own&&px>=44})}</span>`; }
 // symmetric head-shot crop of a portrait (auto-detects the figure and frames head+shoulders centered)
 const HERO_HEAD={};
 function heroHead(key,cb){
@@ -14131,7 +14184,7 @@ HERO_PORTRAITS.stormwarden='/assets/img/glossary/glossary-heroes-stormwarden.web
 HERO_PORTRAITS.verdantshade='/assets/img/glossary/glossary-heroes-verdantshade.webp?v=1'; HERO_SPRITES.verdantshade=HERO_PORTRAITS.verdantshade; GLOSSARY_ART['heroes/verdantshade']=HERO_PORTRAITS.verdantshade;
 HERO_PORTRAITS.voidweaver='/assets/img/glossary/glossary-heroes-voidweaver.webp?v=1'; HERO_SPRITES.voidweaver=HERO_PORTRAITS.voidweaver; GLOSSARY_ART['heroes/voidweaver']=HERO_PORTRAITS.voidweaver;
 HERO_CARD_ART.arrears='/assets/img/hero-cards/card-arrears.webp?v=9';
-HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=9';
+HERO_CARD_ART.astra='/assets/img/hero-cards/card-astra.webp?v=10';
 HERO_CARD_ART.aureth='/assets/img/hero-cards/card-aureth.webp?v=9';
 HERO_CARD_ART.beekeeper='/assets/img/hero-cards/card-beekeeper.webp?v=9';
 HERO_CARD_ART.bloatus='/assets/img/hero-cards/card-bloatus.webp?v=9';
@@ -14182,7 +14235,7 @@ HERO_CARD_ART.vaelora='/assets/img/hero-cards/card-vaelora.webp?v=9';
 HERO_CARD_ART.velvetplum='/assets/img/hero-cards/card-velvetplum.webp?v=9';
 HERO_CARD_ART.verdantshade='/assets/img/hero-cards/card-verdantshade.webp?v=9';
 HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=9';
-HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=9';
+HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=10';
 HERO_CARD_ART.veyr='/assets/img/hero-cards/card-veyr.webp?v=9';
 HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=9';
 HERO_CARD_ART.vireo='/assets/img/hero-cards/card-vireo.webp?v=9';
@@ -16391,7 +16444,7 @@ function renderHeroList(){
     if(ready.length && ix===owned.length) hdr('✨ READY TO SUMMON ('+ready.length+')','#5ee89b');
     if(locked.length && ix===owned.length+ready.length) hdr('STILL COLLECTING ('+locked.length+')','#6f7d90');
     const summonReady=!unlocked&&canSummon(key);
-    const card=document.createElement('div'); card.className='hero-card'+(!unlocked?' locked':'')+(summonReady?' summon-ready':'')+(myth?' mythic':'');
+    const card=document.createElement('div'); card.className='hero-card hc-tile'+(!unlocked?' locked':'')+(summonReady?' summon-ready':'')+(myth?' mythic':'');
     card.dataset.heroKey=key;
     const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
     // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
@@ -16413,13 +16466,13 @@ function renderHeroList(){
       ? `<img class="hc-img" id="rcp_${key}" src="${HERO_PORTRAITS[key]}"${_cpos?` style="object-position:center ${_cpos}"`:''}>`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:46px">${t.emoji}</div>`;
     const mythTag = (myth && MYTHICAL_BANNER && isAssetRef(MYTHICAL_BANNER)) ? `<img class="hc-myth" src="${MYTHICAL_BANNER}" alt="Mythical">` : '';
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<span class="rolebl">${t.role} · ${t.combatRow}</span>
-        <div class="hc-imgwrap">${portImg}${unlocked?`<div class="hc-power">⚔ ${heroPower(key).toLocaleString()}</div>`:''}</div>
-        ${mythTag}
-        <div style="text-align:center;min-width:0">
-          ${unlocked?`<div style="line-height:1;white-space:nowrap">${starFillRow(key,12)}</div>`:''}
-          <div class="hc-name">${t.name}</div>
-          ${unlocked?'':`<div class="stats" style="margin-top:1px;font-size:10px">${lockedLine}</div>`}
+    /* v612 (Phil: "Go review magic rush hero card" / "And so it similar"): a Magic Rush tile - one square art card for every
+       hero, the ascension border round it, Lv in the top-left, the stars ON the border's bottom edge, the mythical banner across
+       the bottom of the art; name, role and power underneath. Every card is the same size, mythical or not. */
+    card.innerHTML=`<div class="hc-imgwrap">${portImg}${myth?`<div class="hc-mythp" title="Mythical"><span>${t.name}</span></div>`:''}${ascFrameHtml(key,{stars:true})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
+        <div class="hc-info">
+          <div class="hc-name">${myth?`<span style="color:#c9a2ff;font-size:11px">✦ Mythical</span>`:t.name}</div>
+          <div class="hc-sub">${unlocked?`⚔ ${heroPower(key).toLocaleString()}`:lockedLine}</div>
         </div>`;
     card._pick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);
@@ -19534,7 +19587,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789768654000';
+const BUILD_ID = '1789773572000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20208,7 +20261,7 @@ function edNewGame(attemptId){
    never lock you out of a match you've already spent an attempt on. */
 function edPrepareMatch(){
   const ui=showBattleLoader({ title:'Emberdraft', cards:ED.players.map(p=>{ const A=edAvatarFor(p);   // v611: the 8 seats as avatar cards; each lights when its 3D model is in
-      return { img:A.pick?('/assets/img/avatars/card-'+A.id+'.webp'):'', name:p.ai?p.name:'You', me:!p.ai, ready:edLoadAvatarModel(A) }; }) }), t0=Date.now();
+      return { img:A.pick?('/assets/img/avatars/card-'+A.id+'.webp?v=2'):'', name:p.ai?p.name:'You', me:!p.ai, ready:edLoadAvatarModel(A) }; }) }), t0=Date.now();
   ED._carPre={ r:1, offers:edCarDrawOffers(1) };
   CUR={ mode:'emberdraft', edKeys:[], opp:[] };
   const keys=ED._carPre.offers.map(o=>o.key);
@@ -20353,9 +20406,12 @@ function edCarDrawOffers(r){ const offers=[];
 function edStartCarousel(){
   const r=ED.round, offers=(ED._carPre&&ED._carPre.r===r)?ED._carPre.offers:edCarDrawOffers(r); ED._carPre=null;   // the start loader draws round 1's offers early so it can load their art
   const order=edAlive().slice().sort((a,b)=>(a.hp-b.hp)||(Math.random()-0.5));
+  /* v612 (Phil: "Some ai was able to move before we were released in the start carousel"): like TFT, the OPENING carousel
+     releases everyone at once (all on full health, so a pair order would only be luck); later ones go lowest health first, in pairs */
+  const together = r<=1;
   const av=order.map((p,j)=>{ const g=ED_CAR.gates[j%ED_CAR.gates.length];
-    return { p, x:g[0], y:g[1], tx:null, ty:null, got:null, release:ED_CAR.firstAt+Math.floor(j/2)*ED_CAR.gap, face:0, want:null, moving:false }; });
-  ED.car={ offers, order, av, t:0, spin0:Math.random()*Math.PI*2, end:ED_CAR.firstAt+Math.floor((order.length-1)/2)*ED_CAR.gap+ED_CAR.grace, done:false, last:0 };
+    return { p, x:g[0], y:g[1], tx:null, ty:null, got:null, release:ED_CAR.firstAt+(together?0:Math.floor(j/2)*ED_CAR.gap), face:0, want:null, moving:false }; });
+  ED.car={ offers, order, av, t:0, spin0:Math.random()*Math.PI*2, end:ED_CAR.firstAt+(together?0:Math.floor((order.length-1)/2)*ED_CAR.gap)+ED_CAR.grace, done:false, last:0 };
   ED.phase='carousel'; ED.sel=null; ED.msg='';
   // the carousel floor: battle view with Map 9 stretched over it, no units
   CUR={ mode:'emberdraft', edKeys:[], opp:[] };
@@ -20816,11 +20872,19 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .gold{color:#ffd45e;font-weight:800} #edRoot .hp{color:#ff8b8b;font-weight:800}
 #edRoot .btnx{background:#24324d;border:1px solid #3a4f78;color:#e8edf3;border-radius:9px;padding:5px 10px;cursor:pointer;font:inherit;font-weight:700}
 #edRoot .btnx:disabled{opacity:.45} #edRoot .ready{background:#c4571a;border-color:#e0782a}
-#edRoot .sidep{top:44px;right:max(6px,env(safe-area-inset-right));width:min(30vw,210px);display:flex;flex-direction:column;gap:5px;max-height:calc(100% - 118px);overflow:auto}
+#edRoot .sidep{top:40px;right:max(6px,env(safe-area-inset-right));width:min(21vw,150px);display:flex;flex-direction:column;gap:4px;max-height:calc(100% - 112px);overflow:auto}   /* v612 Phil: "much too large, make that smaller" (was 30vw / 210px) */
+#edRoot .sidep .panel{padding:3px 6px}
+#edRoot .sidep.heroP{width:min(30vw,200px)}
+#edRoot .hpHead{display:flex;align-items:center;gap:6px;margin-bottom:3px} #edRoot .hpHead .spr{width:30px;height:38px;flex:none}
+#edRoot .hpHead b{font-size:12px;display:block;line-height:1.1} #edRoot .hpHead small{font-size:9.5px;color:#9fb0c6}
+#edRoot .hpX{margin-left:auto;background:none;border:0;color:#9fb0c6;font-size:14px;cursor:pointer;padding:0 2px}
+#edRoot .hpStats{display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;font-size:10.5px;font-variant-numeric:tabular-nums} #edRoot .hpStats span{white-space:nowrap} #edRoot .hpStats b{color:#fff}
+#edRoot .hpItems{display:flex;gap:5px;margin-top:5px} #edRoot .hpSlot{width:34px;height:34px;border-radius:7px;border:1px dashed #3a4f78;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(20,28,46,.8)} #edRoot .hpSlot.on{border:1px solid #ffd45e;box-shadow:0 0 0 1px #ffd45e}
+#edRoot .hpInfo{margin-top:5px;font-size:10.5px;line-height:1.35;border-top:1px solid #243149;padding-top:4px} #edRoot .hpInfo .t{font-weight:800;font-size:11.5px}
 #edRoot .panel{background:rgba(12,18,30,.84);border:1px solid #243149;border-radius:10px;padding:5px 7px}
-#edRoot .prow{display:flex;align-items:center;gap:5px;font-size:12px;padding:1px 0} #edRoot .prow.me{color:#ffd45e;font-weight:800} #edRoot .prow.out{opacity:.4;text-decoration:line-through}
+#edRoot .prow{display:flex;align-items:center;gap:4px;font-size:10px;padding:0;line-height:1.35} #edRoot .prow.me{color:#ffd45e;font-weight:800} #edRoot .prow.out{opacity:.4;text-decoration:line-through}
 #edRoot .hpbar{flex:1;height:5px;background:#2a1520;border-radius:3px;overflow:hidden} #edRoot .hpbar b{display:block;height:100%;background:#e0555a}
-#edRoot .syn{font-size:11.5px;padding:1px 0;color:#8b98a9} #edRoot .syn.on{color:#e8edf3} #edRoot .syn.on2{color:#ffd45e;font-weight:800}
+#edRoot .syn{font-size:10px;padding:0;color:#8b98a9;line-height:1.35} #edRoot .syn.on{color:#e8edf3} #edRoot .syn.on2{color:#ffd45e;font-weight:800}
 #edRoot .carOffer{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;flex-direction:column;align-items:center;z-index:2}
 #edRoot .carOffer .spr{width:34px;height:42px;background-color:transparent}
 #edRoot .carItem{position:absolute;top:-8px;right:-14px}
@@ -20923,14 +20987,16 @@ function edRender(){
     const px=Math.round(Math.max(18,Math.min(34, step*cv.width*1.05)));
     you.items.forEach((it,ix)=>{ const sx=cv.left+(x0+step*ix)*cv.width, sy=cv.top+lip*cv.height;
       h+=`<div class="ledgeItem ${ED.sel&&ED.sel.item===ix?'sel':''}" data-item="${ix}" title="${edEsc(edItemName(it)+' ('+edItemTier(it)+')')}" style="left:${sx}px;top:${sy}px;width:${px}px;height:${px}px">${edItemImg(it,px)}</div>`; }); }
+  const selH=(ED.sel&&ED.sel.hero)?edUnits(you).find(u=>u.id===ED.sel.hero):null, selI=(ED.sel&&ED.sel.item!=null)?you.items[ED.sel.item]:null;
+  if(selH||selI){ h+=edInfoPanel(selH,selI); } else {   // v612: a tapped hero (or ledge item) shows its stats on the right
   h+='<div class="bar sidep"><div class="panel">';
   const plist=ED.players.slice().sort((a,b)=>(b.alive-a.alive)||(b.hp-a.hp));
-  for(const p of plist) h+=`<div class="prow ${p.i===0?'me':''} ${p.alive?'':'out'}"><span style="width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${edEsc(p.name)}</span><span class="hpbar"><b style="width:${Math.max(0,p.hp)}%"></b></span><span style="width:24px;text-align:right">${Math.max(0,p.hp)}</span></div>`;
+  for(const p of plist) h+=`<div class="prow ${p.i===0?'me':''} ${p.alive?'':'out'}"><span style="width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${edEsc(p.name)}</span><span class="hpbar"><b style="width:${Math.max(0,p.hp)}%"></b></span><span style="width:24px;text-align:right">${Math.max(0,p.hp)}</span></div>`;
   h+='</div><div class="panel">';
   const roles=Object.keys(ED_SYN).filter(k=>syn[k]).sort((a,b)=>syn[b].tier-syn[a].tier||syn[b].n-syn[a].n);
   if(!roles.length) h+='<div class="syn">Field 2 or 4 heroes of one role for a bonus.</div>';
   for(const k of roles){ const s=syn[k], S=ED_SYN[k]; h+=`<div class="syn ${s.tier===2?'on2':(s.tier?'on':'')}">${S.ic} ${k} ${s.n}/${s.n>=2?4:2}${s.tier?' · '+S.d[s.tier-1]:''}</div>`; }
-  h+='</div></div>';
+  h+='</div></div>'; }
   h+=`<div class="bar msg">${edEsc(ED.msg||edSelInfo())}</div>`;
   h+='<div class="bar shopb" data-sell="1">';
   you.shop.forEach((k,ix)=>{ if(!k){ h+='<div class="card empty"></div>'; return; } const c=edCost(k);
@@ -20938,6 +21004,30 @@ function edRender(){
   h+=`<div style="display:flex;flex-direction:column;gap:3px;justify-content:center"><button class="btnx" data-a="roll">↻ 🪙2</button><button class="btnx" data-a="lock">${you.locked?'🔒':'🔓'}</button></div></div>`;
   root.innerHTML=h;
 }
+/* v612 (Phil: "When I click on a hero it should bring up their stats on the right to include their armor. Then I should be able to
+   click the armor to see its stats"): the hero panel. Its numbers are the fight's own - a throwaway unit built exactly as
+   edSpawnUnits builds one (rank multiplier, every item, your current synergies) and never added to the battle. */
+function edHeroStats(h){ try{ const u=makeUnit(h.key,'ally',0,0,ED_LEVEL,{rank:Math.max(1,Math.min(3,h.rank||1))}); const m=ED_RANK_MUL[h.rank||1]||1;
+    u.maxHp*=m; u.dmg*=m; u.apow=(u.apow||0)*m; u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); edApplySynergy(u, edSynergy(edYou())); return u; }catch(e){ return null; } }
+function edItemInfoHtml(it){ if(!it) return ''; const k=edTierMul(it.q), col=ED_TIER_COL[it.q|0]||'#9aa4b2';
+  const line=c=>(ED_COMP_TXT[c]||c).replace(/(\d+)/,n=>String(Math.round(+n*k)));
+  let h=`<div class="t" style="color:${col}">${edEsc(edItemName(it))}</div><div style="color:${col};font-size:9.5px">${edEsc(edItemTier(it))} · ×${k.toFixed(1)} stats</div>`;
+  if(it.c) h+=`<div>${edEsc(line(it.c))}</div><div style="color:#8b98a9">Component — combine two to forge a finished item.</div>`;
+  else { h+=`<div>${edEsc(line(it.a))}</div><div>${edEsc(line(it.b))}</div>`;
+    const A=ED.cat&&ED.cat[it.f]; if(A&&(A.name||A.desc)) h+=`<div style="color:#ffd45e;margin-top:2px">✦ ${edEsc(A.name||'Active')}</div>${A.desc?`<div style="color:#aab6c6">${edEsc(A.desc)}</div>`:''}`; }
+  return h; }
+function edInfoPanel(hero,item){ let h='<div class="bar sidep heroP"><div class="panel">';
+  if(hero){ const u=edHeroStats(hero), f=v=>Math.round(v||0).toLocaleString();
+    if(ED.info!=null && !(hero.items||[])[ED.info]) ED.info=null;
+    h+=`<div class="hpHead"><div class="spr" style="${edSprStyle(hero.key)}"></div><div style="min-width:0"><b>${edEsc(edName(hero.key))}</b><small>${edEsc(edRole(hero.key))} · Rank ${ED_RANK_LBL[hero.rank]||'I'}</small></div><button class="hpX" data-a="desel" aria-label="Close">✕</button></div>`;
+    if(u) h+=`<div class="hpStats"><span>❤ <b>${f(u.maxHp)}</b></span><span>⚔ <b>${f(u.dmg)}</b></span><span>⚡ <b>${(1/Math.max(0.05,u.atkInterval||1)).toFixed(2)}</b>/s</span><span>🛡 <b>${f(u.armorRating||u.armor)}</b> armor</span>`
+      +`<span>🔮 <b>${f(u.mrRating||u.mr)}</b> resist</span><span>🎯 <b>${Math.round((u.glyphCrit||u.crit||0)*100)}%</b> crit</span><span>✨ <b>${f(u.apow)}</b> power</span><span>📏 <b>${f(u.range)}</b> range</span></div>`;
+    h+=`<div class="hpItems">`; for(let i=0;i<3;i++){ const it=(hero.items||[])[i];
+      h+= it ? `<div class="hpSlot ${ED.info===i?'on':''}" data-a="ii:${i}" title="${edEsc(edItemName(it))}">${edItemImg(it,26)}</div>` : `<div class="hpSlot" style="cursor:default;opacity:.5"></div>`; }
+    h+=`</div>`;
+    h+= ED.info!=null ? `<div class="hpInfo">${edItemInfoHtml(hero.items[ED.info])}</div>` : `<div class="hpInfo" style="color:#8b98a9">${(hero.items||[]).length?'Tap an item to see its stats.':'No equipment yet — drag an item onto this hero.'}</div>`;
+  } else if(item){ h+=`<div class="hpHead"><div style="flex:none">${edItemImg(item,30)}</div><div style="min-width:0"><b>Equipment</b><small>tap a hero to equip</small></div><button class="hpX" data-a="desel" aria-label="Close">✕</button></div><div class="hpInfo" style="border:0;margin:0;padding:0">${edItemInfoHtml(item)}</div>`; }
+  return h+'</div></div>'; }
 function edSelInfo(){ const you=edYou(); if(!ED.sel) return 'Drag heroes on the field to place them · drag onto the shop to sell · drag equipment onto a hero.';
   if(ED.sel.hero){ const h=edUnits(you).find(u=>u.id===ED.sel.hero); if(!h) return ''; return edName(h.key)+' · '+edRole(h.key)+' · Rank '+ED_RANK_LBL[h.rank]+' ('+ED_RANK_KIT[h.rank]+')'+(h.items.length?' · '+h.items.map(it=>edItemName(it)+' ('+edItemTier(it)+')').join(', '):'')+' — tap a spot to move'; }
   if(ED.sel.item!=null){ const it=you.items[ED.sel.item]; if(!it) return ''; return edItemName(it)+' ('+edItemTier(it)+') · '+(it.c?ED_COMP_TXT[it.c]+' — two components make a finished item':'finished — two of the same tier make the next tier')+' · tap a hero'; }
@@ -21014,6 +21104,8 @@ function edDrop(src,at){
   ED.sel=null; edRender();
 }
 function edAction(a){
+  if(a==='desel'){ ED.sel=null; ED.info=null; return edRender(); }   // v612 hero panel
+  if(a.slice(0,3)==='ii:'){ const i=+a.slice(3); ED.info=(ED.info===i)?null:i; return edRender(); }
   if(a==='xp') return edBuyXp(); if(a==='roll') return edReroll();
   if(a==='lock'){ const p=edYou(); p.locked=!p.locked; return edRender(); }
   if(a==='ready'){ ED.msg=''; return edStartFight(); }
