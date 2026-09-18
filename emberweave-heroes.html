@@ -6097,7 +6097,7 @@ const GSPLIT_FIRE_PATH_IMG = [   // v599: TRACED off the map's dirt (straights: 
   // v600 (Phil: "bottom needs to mirrow tops angle"): the bottom road is the top road's path mirrored about the line halfway
   // between their straights (image y 0.222 / 0.730), bends included.
   [[0.8475,0.3118],[0.8407,0.3057],[0.8397,0.2885],[0.8364,0.2819],[0.8320,0.2773],[0.8283,0.2723],[0.8250,0.2673],[0.8194,0.2547],[0.8124,0.2438],[0.8034,0.2402],[0.7946,0.2353],[0.7900,0.2317],[0.5000,0.2220],[0.2100,0.2264],[0.2000,0.2279],[0.1894,0.2286],[0.1811,0.2403],[0.1713,0.2473],[0.1616,0.2572],[0.1522,0.2702],[0.1422,0.2858],[0.1337,0.3059]],
-  [[0.9400,0.4500],[0.5000,0.4500],[0.0600,0.4500]],
+  [[0.8200,0.4500],[0.5000,0.4500],[0.1800,0.4500]],   // v601 (Phil: "Shorten the mid lane fire, so monsters going top and bottom dont touch it"): between the hedge islands only, clear of both junctions
   [[0.8475,0.6402],[0.8407,0.6463],[0.8397,0.6635],[0.8364,0.6701],[0.8320,0.6747],[0.8283,0.6797],[0.8250,0.6847],[0.8194,0.6973],[0.8124,0.7082],[0.8034,0.7118],[0.7946,0.7167],[0.7900,0.7203],[0.5000,0.7300],[0.2100,0.7256],[0.2000,0.7241],[0.1894,0.7234],[0.1811,0.7117],[0.1713,0.7047],[0.1616,0.6948],[0.1522,0.6818],[0.1422,0.6662],[0.1337,0.6461]]
 ];
 const GSPLIT_MAP_ASPECT = 1678/937;   // every Chapter 1 bonus map is 1678 x 937
@@ -19370,7 +19370,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789747257535';
+const BUILD_ID = '1789747545622';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
