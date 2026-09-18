@@ -4033,8 +4033,11 @@ async function api(req,res,url){
     const ED_FREE=3, ED_PACK=3, ED_PACK_COST=[100,150], ED_STAM=[0,36,30,24,18,12,6,0,0];
     const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null};
     const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0;
+    /* v610 (Phil: "during God mode in dev panel I have unlimited tries on the mode"): God Mode is a session switch in the
+       dev panel, so the client says god:true - and it only counts for a dev account. Such a start spends no attempt. */
+    const god = b.god===true && isDev(me);
     const view=()=>({ left:Math.max(0,ED_FREE+ED_PACK*E.bought-E.used), used:E.used, bought:E.bought,
-      nextCost: E.bought<ED_PACK_COST.length ? ED_PACK_COST[E.bought] : null, pack:ED_PACK });
+      nextCost: E.bought<ED_PACK_COST.length ? ED_PACK_COST[E.bought] : null, pack:ED_PACK, god });
     if(p==='/api/emberdraft/state') return send(res,200,{ok:true, edraft:view()});
     const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/emberdraft/buy'){ const out=idem(me.id+':edbuy:'+reqId,()=>{
@@ -4045,8 +4048,8 @@ async function api(req,res,url){
         writeDB(); return {ok:true, gems:led.gems, edraft:view(), ledger:ledgerView(me)}; });
       return send(res,out.ok?200:400,out); }
     if(p==='/api/emberdraft/start'){ const out=idem(me.id+':edstart:'+reqId,()=>{
-        if(view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
-        E.used++;
+        if(!god && view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
+        if(!god) E.used++;
         E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false };
         writeDB(); return { ok:true, attemptId:E.att.id, edraft:view() }; });
       return send(res,out.ok?200:400,out); }

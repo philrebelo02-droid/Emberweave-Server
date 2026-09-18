@@ -19403,7 +19403,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789764094000';
+const BUILD_ID = '1789767453000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19894,34 +19894,171 @@ function edLoadCatalog(){ if(ED.cat) return Promise.resolve(ED.cat);
     .catch(()=>{ ED.cat={}; return ED.cat; }); }
 
 /* ------------------------------------------------------------------------------------------ the lobby (Island entry) */
+const ED_TITLE_ART='/assets/img/battlefields/emberdraft/title.webp';   // v610 Hailuo key art for the title screen (2400x1029)
+const ED_TITLE_PED={ x:0.497, y:0.636, h:0.40, ar:2400/1029 };   // where the painted pedestal's top is (image fractions) and how tall the avatar stands on it
 function openEmberdraft(){
   /* the Gauntlet is retired from the Island: a run left open there is banked, never lost */
   try{ if(typeof gauntRestore==='function'){ gauntRestore(); if(typeof _gaunt!=='undefined'&&_gaunt&&_gaunt.alive){ gauntBank(); _gaunt.alive=false; gauntSave(); } } }catch(e){}
-  const ov=isleOverlay(); ov.id='edLobby';
-  ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:17px">♟ Emberdraft</div><button class="btn sm secondary" id="edX">✕</button></div>
-    <div style="font-size:12px;color:#aab6c6;line-height:1.5;margin-bottom:12px">Draft heroes from a shared shop, merge three copies to rank them up, build equipment from components, and outlast seven rivals. Every hero fights at the same level — your collection doesn't matter here, your drafting does.</div>
-    <div id="edAtt" style="font-size:12px;color:#ffd45e;font-weight:800;text-align:center;margin-bottom:8px">&nbsp;</div>
-    <button class="btn" id="edSolo" style="width:100%;margin-bottom:8px">⚔ Solo vs AI</button>
-    <button class="btn secondary" id="edBuy" style="width:100%;margin-bottom:8px" hidden>💎 Buy 3 more attempts</button>
-    <button class="btn secondary" id="edMulti" style="width:100%;opacity:.55" disabled>👥 Multiplayer — Coming soon</button>
-    <div style="font-size:11px;color:#8b98a9;margin-top:10px;text-align:center">Place 6th or better for stamina: 6th 6 · 5th 12 · 4th 18 · 3rd 24 · 2nd 30 · 1st 36.<br>3 attempts a day — starting a match uses one.</div>`,380);
+  /* v610 - THE TITLE SCREEN (Phil: "Make a catchy main screen please. This is not good enough" / "You can use hailou to make
+     it" / "Make an option to select your avatar also"). Full screen over the island: Hailuo key art (the Ember Carousel on a
+     floating isle at dusk) with drifting embers, the logo on the left, YOUR 3D avatar idling on the painted pedestal in the
+     middle (arrows or the portrait strip pick one of the 10; saved as G.edAvatar; drag to turn it), and Play on the right.
+     Phone landscape first; a narrow screen stacks the three columns and scrolls. */
+  { const old=document.getElementById('edLobby'); if(old) old.remove(); }
+  const ov=document.createElement('div'); ov.id='edLobby'; document.body.appendChild(ov);
+  ov.innerHTML=`<style>
+    #edLobby{position:fixed;inset:0;z-index:13500;color:#f6ead8;background:#120a07 url('${ED_TITLE_ART}') center/cover no-repeat;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    #edLobby .edl-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(10,5,3,.86) 0%,rgba(10,5,3,.35) 30%,rgba(10,5,3,0) 44%,rgba(10,5,3,0) 56%,rgba(10,5,3,.35) 70%,rgba(10,5,3,.86) 100%),linear-gradient(0deg,rgba(8,4,2,.8) 0%,rgba(8,4,2,0) 30%)}
+    #edLobby canvas.edl-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    #edLobby .edl-wrap{position:relative;height:100%;display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:14px;padding:max(14px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));box-sizing:border-box}
+    #edLobby .edl-col{display:flex;flex-direction:column;justify-content:center;min-width:0}
+    #edLobby .edl-back{position:absolute;top:max(10px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:2;background:rgba(20,12,8,.7);border:1px solid #6b4a2e;color:#f0d9b5;border-radius:10px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer}
+    #edLobby .edl-logo{font-family:Georgia,"Times New Roman",serif;font-weight:900;font-size:clamp(34px,6.4vw,64px);line-height:.95;letter-spacing:.02em;margin:0;
+      background:linear-gradient(180deg,#fff6d8 0%,#ffd36b 38%,#ff8a2b 70%,#c8391a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 2px 0 #5a1c08) drop-shadow(0 0 18px rgba(255,120,40,.55))}
+    #edLobby .edl-tag{font-family:Georgia,serif;font-style:italic;font-size:clamp(13px,1.9vw,18px);color:#ffcf8a;margin:8px 0 14px;letter-spacing:.04em}
+    #edLobby .edl-chips{display:flex;flex-direction:column;gap:6px}
+    #edLobby .edl-chip{display:flex;gap:8px;align-items:center;font-size:12px;color:#ecd9bf;background:rgba(30,16,9,.62);border:1px solid rgba(255,160,80,.22);border-radius:9px;padding:5px 9px;width:max-content;max-width:100%;box-sizing:border-box}
+    #edLobby .edl-chip b{color:#ffb866}
+    #edLobby .edl-stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:4px}
+    #edLobby canvas.edl-av{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    #edLobby .edl-hit{flex:1;width:100%;touch-action:none;cursor:grab}
+    #edLobby .edl-plate{display:flex;align-items:center;gap:10px;margin-top:2px}
+    #edLobby .edl-arrow{width:34px;height:34px;border-radius:50%;border:1px solid #b9793b;background:rgba(30,16,9,.78);color:#ffd08a;font-size:15px;cursor:pointer;display:grid;place-items:center;padding:0}
+    #edLobby .edl-avname{min-width:130px;text-align:center}
+    #edLobby .edl-avname small{display:block;font-size:9.5px;letter-spacing:.16em;color:#d9a86b}
+    #edLobby .edl-avname b{font-family:Georgia,serif;font-size:19px;color:#fff1d6;text-shadow:0 2px 8px #000}
+    #edLobby .edl-strip{display:grid;grid-template-columns:repeat(10,26px);gap:4px;margin-top:6px;padding:2px}
+    #edLobby .edl-strip button{all:unset;cursor:pointer;width:26px;height:26px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,190,120,.25);opacity:.72;transition:transform .12s,opacity .12s}
+    #edLobby .edl-strip button.on{opacity:1;border-color:#ffc766;box-shadow:0 0 0 2px rgba(255,170,60,.45),0 0 12px rgba(255,140,40,.6);transform:translateY(-2px)}
+    #edLobby .edl-strip img{width:100%;height:100%;object-fit:cover;display:block}
+    #edLobby .edl-act{align-items:stretch;gap:9px;max-width:300px;justify-self:end;width:100%}
+    #edLobby .edl-pips{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:800;color:#ffd87a;min-height:20px;text-align:center}
+    #edLobby .edl-pip{width:13px;height:17px;border-radius:50% 50% 45% 45%/60% 60% 40% 40%;background:#3a2419;box-shadow:inset 0 0 0 1px #6b4a2e}
+    #edLobby .edl-pip.on{background:radial-gradient(circle at 50% 70%,#fff2b0 0%,#ffb13b 45%,#e8541c 100%);box-shadow:0 0 8px rgba(255,140,40,.8)}
+    #edLobby .edl-play{all:unset;box-sizing:border-box;text-align:center;cursor:pointer;padding:15px 12px;border-radius:14px;font-family:Georgia,serif;font-weight:900;font-size:21px;letter-spacing:.06em;color:#3a1204;
+      background:linear-gradient(180deg,#ffe29a 0%,#ffb347 45%,#f07424 100%);box-shadow:0 5px 0 #8a3510,0 10px 24px rgba(0,0,0,.5),0 0 26px rgba(255,140,40,.55);animation:edPlayGlow 2.2s ease-in-out infinite}
+    #edLobby .edl-play:active{transform:translateY(3px)}
+    #edLobby .edl-play[disabled]{filter:grayscale(.7) brightness(.7);animation:none;cursor:default}
+    #edLobby .edl-sub{all:unset;box-sizing:border-box;text-align:center;cursor:pointer;padding:9px 10px;border-radius:11px;font-weight:800;font-size:13px;color:#f3dfc2;background:rgba(30,16,9,.72);border:1px solid #6b4a2e}
+    #edLobby .edl-sub[hidden]{display:none}
+    #edLobby .edl-sub[disabled]{opacity:.55;cursor:default}
+    #edLobby .edl-fine{font-size:10.5px;color:#cdb391;text-align:center;line-height:1.45}
+    #edLobby .edl-fine b{color:#ffcf8a}
+    @keyframes edPlayGlow{0%,100%{box-shadow:0 5px 0 #8a3510,0 10px 24px rgba(0,0,0,.5),0 0 18px rgba(255,140,40,.4)}50%{box-shadow:0 5px 0 #8a3510,0 10px 24px rgba(0,0,0,.5),0 0 34px rgba(255,160,60,.85)}}
+    @media (max-width:640px){ #edLobby .edl-wrap{grid-template-columns:1fr;overflow-y:auto;padding-top:52px} #edLobby .edl-stage{min-height:300px} #edLobby .edl-act{justify-self:center} #edLobby .edl-strip{grid-template-columns:repeat(5,30px)} }
+    @media (prefers-reduced-motion:reduce){ #edLobby .edl-play{animation:none} }
+  </style>
+  <div class="edl-shade"></div><canvas class="edl-av" id="edAvCv"></canvas><canvas class="edl-fx"></canvas>
+  <button class="edl-back" id="edX">◀ Island</button>
+  <div class="edl-wrap">
+    <div class="edl-col">
+      <h1 class="edl-logo">EMBER<br>DRAFT</h1>
+      <div class="edl-tag">Draft. Merge. Outlast.</div>
+      <div class="edl-chips">
+        <div class="edl-chip">🛒 <span>Buy heroes from a <b>shared shop</b></span></div>
+        <div class="edl-chip">⭐ <span><b>Merge three</b> to rank them up</span></div>
+        <div class="edl-chip">🔥 <span>Race to the <b>Ember Carousel</b></span></div>
+        <div class="edl-chip">⚔ <span><b>Outlast seven</b> rivals</span></div>
+      </div>
+    </div>
+    <div class="edl-col edl-stage">
+      <div class="edl-hit" id="edAvHit"></div>
+      <div class="edl-plate"><button class="edl-arrow" id="edAvPrev" aria-label="Previous avatar">◀</button>
+        <div class="edl-avname"><small>YOUR AVATAR</small><b id="edAvName"></b></div>
+        <button class="edl-arrow" id="edAvNext" aria-label="Next avatar">▶</button></div>
+      <div class="edl-strip" id="edAvStrip"></div>
+    </div>
+    <div class="edl-col edl-act">
+      <div class="edl-pips" id="edAtt">&nbsp;</div>
+      <button class="edl-play" id="edSolo">⚔ PLAY VS AI</button>
+      <button class="edl-sub" id="edBuy" hidden>💎 Buy 3 more attempts</button>
+      <button class="edl-sub" id="edMulti" disabled>👥 Multiplayer — soon</button>
+      <div class="edl-fine">Place <b>6th or better</b> for stamina<br>1st 36 · 2nd 30 · 3rd 24 · 4th 18 · 5th 12 · 6th 6<br>3 attempts a day — starting a match uses one</div>
+    </div>
+  </div>`;
+  const alive=()=>document.body.contains(ov);
   ov.querySelector('#edX').onclick=()=>ov.remove();
-  /* Phil, 18 Sep: 3 attempts a day; +3 for 100 diamonds, then +3 for 150. The server counts them (/api/emberdraft/*). */
+  /* drifting embers over the art (36 glowing dots on a 2D canvas; stops with the screen; none with reduced motion) */
+  (function embers(){ const cv=ov.querySelector('canvas.edl-fx'), cx=cv.getContext('2d'); if(!cx) return;
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const R=()=>({ x:Math.random(), y:1+Math.random()*0.3, v:0.03+Math.random()*0.06, s:0.6+Math.random()*1.8, w:Math.random()*6.28, a:0.4+Math.random()*0.6 });
+    const P=[]; for(let i=0;i<36;i++){ const p=R(); p.y=Math.random(); P.push(p); }
+    let last=performance.now();
+    const f=now=>{ if(!alive()) return; const dt=Math.min(0.05,(now-last)/1000); last=now;
+      const w=cv.clientWidth, h=cv.clientHeight; if(cv.width!==w||cv.height!==h){ cv.width=w; cv.height=h; }
+      cx.clearRect(0,0,w,h); cx.globalCompositeOperation='lighter';
+      for(const p of P){ p.y-=p.v*dt; p.w+=dt*1.3; if(p.y<-0.05) Object.assign(p,R()); const x=(p.x+Math.sin(p.w)*0.01)*w, y=p.y*h, r=p.s*4;
+        const g=cx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,'rgba(255,210,120,'+p.a+')'); g.addColorStop(0.4,'rgba(255,120,40,'+(p.a*0.5)+')'); g.addColorStop(1,'rgba(255,80,20,0)');
+        cx.fillStyle=g; cx.beginPath(); cx.arc(x,y,r,0,6.283); cx.fill(); }
+      requestAnimationFrame(f); };
+    requestAnimationFrame(f); })();
+  /* your avatar in 3D, standing on the painted pedestal (its own full-screen canvas, feet placed where the pedestal lands under
+     background-size:cover); drag the middle of the screen to turn it and it eases back to face you */
+  const avCv=ov.querySelector('#edAvCv'), hit=ov.querySelector('#edAvHit'), nameEl=ov.querySelector('#edAvName'), strip=ov.querySelector('#edAvStrip');
+  const S={ rr:null, scene:null, cam:null, cur:null, want:null, yaw:0, drag:null, t:performance.now() };
+  try{ S.rr=new THREE.WebGLRenderer({ canvas:avCv, alpha:true, antialias:true }); S.rr.setClearColor(0,0); try{ S.rr.outputEncoding=THREE.sRGBEncoding; }catch(e){}
+    S.rr.setPixelRatio(Math.min(2.5,(window.devicePixelRatio||1)*1.5));
+    S.scene=new THREE.Scene(); S.scene.add(new THREE.HemisphereLight(0xfff1dc,0x4a2c1a,0.9));
+    const key=new THREE.DirectionalLight(0xffd7a8,1.0); key.position.set(3,6,6); S.scene.add(key);
+    const rim=new THREE.DirectionalLight(0xff8a3d,0.9); rim.position.set(-4,3,-5); S.scene.add(rim);
+    S.cam=new THREE.PerspectiveCamera(30,1,0.1,100); S.cam.position.set(0,2.6,6.5); S.cam.lookAt(0,0.7,0);
+  }catch(e){ S.rr=null; }
+  const setAvatar=id=>{ const A=ED_AV_PICK.find(a=>a.id===id)||ED_AV_PICK[0]; G.edAvatar=A.id; try{ saveG(); }catch(e){}
+    nameEl.textContent=A.name;
+    strip.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.av===A.id));
+    if(!S.rr) return; S.want=A.id;
+    edLoadAvatarModel(A).then(L=>{ if(!alive()||S.want!==A.id) return;
+      if(S.cur){ S.scene.remove(S.cur.m); S.cur.mixer.stopAllAction(); }
+      const m=THREE.SkeletonUtils.clone(L.g.scene); m.traverse(o=>{ if(o.isMesh) o.frustumCulled=false; });
+      m.userData.h=A.height||1.7; S.scene.add(m); S.w=0;   /* S.w=0: place and size it on the next frame */
+      const mixer=new THREE.AnimationMixer(m), clip=THREE.AnimationClip.findByName(L.g.animations,A.idle)||L.g.animations[0]; if(clip) mixer.clipAction(clip).play();
+      S.cur={ m, mixer }; S.yaw=-0.5; }).catch(()=>{}); };
+  strip.innerHTML=ED_AV_PICK.map(a=>`<button data-av="${a.id}" aria-label="${edEsc(a.name)}"><img src="${a.portrait}" alt=""></button>`).join('');
+  strip.querySelectorAll('button').forEach(b=>b.onclick=()=>setAvatar(b.dataset.av));
+  const step=d=>{ const i=ED_AV_PICK.findIndex(a=>a.id===edMyAvatarId()); setAvatar(ED_AV_PICK[(i+d+ED_AV_PICK.length)%ED_AV_PICK.length].id); };
+  ov.querySelector('#edAvPrev').onclick=()=>step(-1); ov.querySelector('#edAvNext').onclick=()=>step(1);
+  hit.addEventListener('pointerdown',e=>{ S.drag={ x:e.clientX, yaw:S.yaw }; try{ hit.setPointerCapture(e.pointerId); }catch(_){} });
+  hit.addEventListener('pointermove',e=>{ if(S.drag) S.yaw=S.drag.yaw+(e.clientX-S.drag.x)*0.012; });
+  const endDrag=()=>{ S.drag=null; }; hit.addEventListener('pointerup',endDrag); hit.addEventListener('pointercancel',endDrag);
+  if(S.rr){ const loop=now=>{ if(!alive()){ try{ if(S.cur) S.cur.mixer.stopAllAction(); S.rr.dispose(); if(S.rr.forceContextLoss) S.rr.forceContextLoss(); }catch(e){} return; }
+      const dt=Math.min(0.05,(now-S.t)/1000); S.t=now;
+      const w=avCv.clientWidth, h=avCv.clientHeight; if(w&&h&&(S.w!==w||S.h!==h)){ S.w=w; S.h=h; S.rr.setSize(w,h,false); S.cam.aspect=w/h; S.cam.updateProjectionMatrix(); edTitlePlace(S,w,h); }
+      if(S.cur){ if(!S.drag) S.yaw*=Math.pow(0.12,dt); S.cur.m.rotation.y=S.yaw; S.cur.mixer.update(dt); }
+      S.rr.render(S.scene,S.cam); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop); }
+  setAvatar(edMyAvatarId());
+  /* Phil, 18 Sep: 3 attempts a day; +3 for 100 diamonds, then +3 for 150. The server counts them (/api/emberdraft/*).
+     v610 (Phil: "during God mode in dev panel I have unlimited tries on the mode"): a dev account with God Mode on sends
+     god:true and the server starts the match without spending an attempt. */
   const signed = typeof ACC!=='undefined' && ACC.token && typeof api==='function';
+  const god = (typeof AUDIT_MODE==='function') && AUDIT_MODE();
   const attEl=ov.querySelector('#edAtt'), solo=ov.querySelector('#edSolo'), buy=ov.querySelector('#edBuy');
+  const pips=(n,max)=>{ let s=''; for(let i=0;i<max;i++) s+=`<span class="edl-pip${i<n?' on':''}"></span>`; return s; };
   const show=(v,err)=>{ if(!v){ attEl.textContent=err||''; return; }
-    attEl.textContent = v.left>0 ? `${v.left} attempt${v.left===1?'':'s'} left today` : 'No attempts left today';
-    solo.disabled = v.left<=0; solo.style.opacity = v.left<=0 ? .5 : 1;
+    if(v.god){ attEl.textContent='⚔ God Mode — unlimited attempts'; solo.disabled=false; buy.hidden=true; if(err) attEl.textContent=err; return; }
+    attEl.innerHTML = v.left>0 ? `${pips(v.left,Math.max(3,v.left))}<span style="margin-left:4px">${v.left} attempt${v.left===1?'':'s'} left today</span>`
+                               : `${pips(0,3)}<span style="margin-left:4px">No attempts left today</span>`;
+    solo.disabled = v.left<=0;
     buy.hidden = !(v.left<=0 && v.nextCost!=null); if(v.nextCost!=null) buy.textContent=`💎 ${v.nextCost} — ${v.pack} more attempts`;
     if(err) attEl.textContent=err; };
-  if(signed){ solo.disabled=true; api('/api/emberdraft/state','POST',{}).then(d=>{ solo.disabled=false; show(d&&d.edraft, d&&d.ok?'':'Could not reach the server.'); }); }
-  else attEl.textContent='Practice match — sign in to earn stamina.';
+  if(signed){ solo.disabled=true; api('/api/emberdraft/state','POST',{god}).then(d=>{ solo.disabled=false; show(d&&d.edraft, d&&d.ok?'':'Could not reach the server.'); }); }
+  else attEl.textContent='Practice match — sign in to earn stamina';
   buy.onclick=()=>{ buy.disabled=true; api('/api/emberdraft/buy','POST',{requestId:uid8()}).then(d=>{ buy.disabled=false;
     try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':((d&&d.error)||'Could not buy attempts.')); }); };
   solo.onclick=()=>{ if(!signed){ ov.remove(); edNewGame(null); return; }
-    solo.disabled=true; api('/api/emberdraft/start','POST',{requestId:uid8()}).then(d=>{
+    solo.disabled=true; api('/api/emberdraft/start','POST',{requestId:uid8(), god}).then(d=>{
       if(d&&d.ok){ ov.remove(); edNewGame(d.attemptId); } else { solo.disabled=false; show(d&&d.edraft, (d&&d.error)||'Could not start a match.'); } }); };
 }
+
+/* where the painted pedestal lands on screen under background-size:cover, then stand the model there at the painted size */
+function edTitlePlace(S,w,h){ if(!S.cur) return; const P=ED_TITLE_PED; S.cam.updateMatrixWorld();   /* the ray needs the camera's matrix before its first render */
+  let dw=w, dh=w/P.ar; if(dh<h){ dh=h; dw=h*P.ar; } const px=(w-dw)/2+P.x*dw, py=(h-dh)/2+P.y*dh, want=P.h*dh;
+  const ray=new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(px/w*2-1, -(py/h*2-1)), S.cam);
+  const hitP=new THREE.Vector3(); if(!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0), hitP)) return;
+  const m=S.cur.m; m.position.copy(hitP);
+  const pxH=s=>{ const a=hitP.clone().project(S.cam), b=hitP.clone().add(new THREE.Vector3(0,m.userData.h*s,0)).project(S.cam); return Math.abs(a.y-b.y)*h/2; };
+  let s=1; for(let i=0;i<3;i++) s*=want/Math.max(1,pxH(s)); m.scale.setScalar(s); }
 window.openEmberdraft=openEmberdraft;
 
 function edNewGame(attemptId){
@@ -19931,8 +20068,50 @@ function edNewGame(attemptId){
   { const order=ED.players.map((_,i)=>i).sort(()=>Math.random()-0.5); ED.players.forEach((p,i)=>{ p.arenaIx=order[i]; }); ED.arena=null; ED._lay=null; }   // v605: one arena per seat
   edLoadCatalog();
   ED.attemptId=attemptId||null; ED.reward=null;   // the lobby spent the attempt on the server before we got here
-  edNextRound();
+  edPrepareMatch().then(()=>{ if(ED.active && ED.round===0) edNextRound(); });
 }
+/* v610 (Phil: "emberweave draft needs a loading screen like all other things. To load art, I lag alot when it starts"):
+   the match waits behind a loading screen until the opening carousel is ready - every seat's 3D avatar (and the loader
+   scripts), the carousel floor, the four arenas, the component art, and round 1's eight offered heroes (the sheet the
+   carousel shows and their battle sheets). Like the battle loader it always finishes (15 s at most), so a dead file can
+   never lock you out of a match you've already spent an attempt on. */
+function edPrepareMatch(){
+  const ui=edShowStartLoader(), t0=Date.now();
+  ED._carPre={ r:1, offers:edCarDrawOffers(1) };
+  CUR={ mode:'emberdraft', edKeys:[], opp:[] };
+  const keys=ED._carPre.offers.map(o=>o.key);
+  const imgs=[ED_CAR.img, ...ED_ARENAS.map(a=>a.img), ...Object.keys(ED_COMP_ART).map(c=>edItemArt({c})),
+    ...keys.map(k=>{ const A=edSprA(k); return A?A.u:edPortrait(k); })].filter(Boolean);
+  const avs=[...new Set(ED.players.map(p=>edAvatarFor(p)))];
+  let done=0, sheets=0; const total=imgs.length+avs.length, W=6;   // the battle sheets count as 6 files' worth of the bar
+  const upd=()=>{ try{ ui.set((done+sheets*W)/(total+W), done, total); }catch(e){} };
+  const one=pr=>Promise.resolve(pr).then(()=>{ done++; upd(); },()=>{ done++; upd(); });
+  const img=u=>new Promise(res=>{ const im=new Image(); im.decoding='async'; im.onload=()=>{ (im.decode?im.decode():Promise.resolve()).then(res,res); }; im.onerror=res; im.src=u; });
+  const jobs=[...imgs.map(u=>one(img(u))), ...avs.map(A=>one(edLoadAvatarModel(A)))];
+  try{ jobs.push(preloadBattleArtFull(keys, null, f=>{ sheets=f; upd(); }, 14000)); }catch(e){}
+  upd();
+  return Promise.race([Promise.all(jobs), new Promise(res=>setTimeout(res,15000))])
+    .then(()=>new Promise(res=>setTimeout(res, Math.max(0, 500-(Date.now()-t0)))))
+    .then(()=>{ try{ ui.set(1,0,0); ui.close(); }catch(e){} }); }
+function edShowStartLoader(){
+  let el=document.getElementById('edLoader'); if(el) el.remove();
+  el=document.createElement('div'); el.id='edLoader';
+  el.style.cssText='position:fixed;inset:0;z-index:13500;background:radial-gradient(120% 90% at 50% 30%,#2a1a10 0%,#0b0806 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px';
+  const seats=ED.players.map(p=>({ A:edAvatarFor(p), name:p.ai?p.name:'You', me:!p.ai }));
+  const row=seats.map(s=>'<div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:64px">'
+    +'<div style="width:58px;height:58px;border-radius:12px;overflow:hidden;border:1px solid '+(s.me?'#f0c987':'#4a3526')+';background:#1a120c;box-shadow:0 6px 18px rgba(0,0,0,.45)">'
+    +(s.A.portrait?'<img src="'+s.A.portrait+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block">':'')+'</div>'
+    +'<div style="font-size:10px;color:'+(s.me?'#f0c987':'#cdbba6')+';text-align:center;line-height:1.15;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+edEsc(s.name)+'</div></div>').join('');
+  el.innerHTML='<div style="font-weight:800;letter-spacing:.14em;font-size:13px;color:#ff9f43">♟ PREPARING EMBERDRAFT</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:320px">'+row+'</div>'
+    +'<div style="width:min(78vw,420px)"><div style="height:10px;border-radius:999px;background:#1a120c;border:1px solid #4a3526;overflow:hidden">'
+    +'<div id="edlBar" style="height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#ff7a2e,#ffc766);transition:width .18s ease"></div></div>'
+    +'<div id="edlTxt" style="text-align:center;font-size:11px;color:#a8927a;margin-top:8px">Loading art…</div></div>';
+  document.body.appendChild(el);
+  return { set(f,got,total){ const b=document.getElementById('edlBar'), t=document.getElementById('edlTxt');
+      if(b) b.style.width=Math.round(Math.max(0,Math.min(1,f))*100)+'%';
+      if(t) t.textContent = total ? ('Loading art… '+Math.min(got,total)+' / '+total) : 'Ready'; },
+    close(){ const e2=document.getElementById('edLoader'); if(!e2) return; e2.style.transition='opacity .22s ease'; e2.style.opacity='0'; setTimeout(()=>{ try{ e2.remove(); }catch(_){} },240); } }; }
 function edYou(){ return ED.players[0]; }
 function edAlive(){ return ED.players.filter(p=>p.alive); }
 function edIsPve(r){ return r<=3 || r%7===0; }
@@ -20009,20 +20188,57 @@ const ED_CAR = {
   ySquash:0.62,     // vertical movement/reach counts less (the floor recedes)
   reach:0.034       // pickup distance, fractions of the view width
 };
-/* the pickable avatars (Phil: "10 pickable avatars. Each of them with idle/walk animations"). Emberkit is the first real one:
-   Hailuo concept -> Meshy image-to-3D (texture, A-pose), remesh 10k tris, humanoid rig, Idle_02 + Walking + Running,
-   slimmed from 20 MB to 1.25 MB (base colour 1024 JPEG only; scratchpad emberdraft/slim_glb.py). The robot stays as the
-   rivals' placeholder until the other nine exist. */
+/* the pickable avatars (Phil: "10 pickable avatars. Each of them with idle/walk animations" / "original designs").
+   Each one: Hailuo concept -> Meshy image-to-3D (texture, A-pose) -> remesh 10k tris -> humanoid rig (joints placed by hand)
+   -> Idle_02 + Walking + Running, slimmed from ~22 MB to ~1.3 MB (base colour 1024 JPEG only; scratchpad emberdraft/slim_glb.py).
+   Every model is 1.70 units tall with its feet at y=0. You pick yours in the lobby; each rival gets a different one.
+   The robot is only the fallback if a model fails to load. */
 const ED_AVATARS = [
-  { id:'emberkit', name:'Emberkit', url:'/assets/models/avatars/emberkit.glb', idle:'Idle_02', walk:'Running', height:1.70, tint:false },
-  { id:'robot',    name:'Placeholder', url:'/assets/models/avatars/robot-expressive.glb', idle:'Idle', walk:'Running', height:4.79, tint:true },
-];
-function edAvatarFor(p){ const id = (p && !p.ai) ? ((typeof G!=='undefined' && G.edAvatar) || 'emberkit') : 'robot'; return ED_AVATARS.find(a=>a.id===id) || ED_AVATARS[ED_AVATARS.length-1]; }
+  { id:'emberkit',    name:'Emberkit',     pick:true },
+  { id:'cinderimp',   name:'Cinder Imp',   pick:true },
+  { id:'frostowlet',  name:'Frost Owlet',  pick:true },
+  { id:'mossling',    name:'Mossling',     pick:true },
+  { id:'tidewhisker', name:'Tidewhisker',  pick:true },
+  { id:'stormhorn',   name:'Stormhorn',    pick:true },
+  { id:'shardback',   name:'Shardback',    pick:true },
+  { id:'sunscale',    name:'Sunscale',     pick:true },
+  { id:'wisplantern', name:'Wisp Lantern', pick:true },
+  { id:'cogsworth',   name:'Cogsworth',    pick:true },
+].map(a=>Object.assign(a,{ url:'/assets/models/avatars/'+a.id+'.glb', portrait:'/assets/img/avatars/'+a.id+'.webp', idle:'Idle_02', walk:'Running', height:1.70, tint:false }));
+ED_AVATARS.push({ id:'robot', name:'Placeholder', url:'/assets/models/avatars/robot-expressive.glb', idle:'Idle', walk:'Running', height:4.79, tint:true, upright:false });
+const ED_AV_PICK = ED_AVATARS.filter(a=>a.pick);
+function edMyAvatarId(){ const id=(typeof G!=='undefined' && G && G.edAvatar)||''; return ED_AV_PICK.some(a=>a.id===id) ? id : 'emberkit'; }
+function edAvatarFor(p){ let id='robot';
+  if(p && !p.ai) id=edMyAvatarId();
+  else if(p){ if(!p.avatar){   // a rival keeps one avatar for the whole match, never yours and never another rival's
+      const mine=edMyAvatarId(), used=new Set(((typeof ED!=='undefined'&&ED.players)||[]).map(q=>q.avatar).filter(Boolean));
+      let pool=ED_AV_PICK.filter(a=>a.id!==mine && !used.has(a.id)); if(!pool.length) pool=ED_AV_PICK.filter(a=>a.id!==mine);
+      p.avatar=pool[Math.floor(Math.random()*pool.length)].id; }
+    id=p.avatar; }
+  return ED_AVATARS.find(a=>a.id===id) || ED_AVATARS[ED_AVATARS.length-1]; }
+/* Phil: "why do they face down when they run". Meshy retargets its clips onto these big-headed bodies with the hips, spine,
+   neck and head bent forward (Idle a little, Running a lot), so from the carousel's 35-degree camera you saw the tops of
+   their heads. For each of those bones, take the clip's AVERAGE rotation away from the bind pose and keep only the motion
+   around it: the body stands up straight, the bob, sway and breathing stay. Legs and arms are untouched. */
+const ED_UPRIGHT_BONES = ['Hips','Spine','Spine1','Spine2','Neck','Head'];
+function edUprightClips(g){
+  const bind={}; g.scene.traverse(o=>{ if(o.isBone) bind[o.name]=o.quaternion.clone(); });
+  for(const clip of g.animations){ for(const tr of clip.tracks){
+    const dot=tr.name.lastIndexOf('.'), node=tr.name.slice(0,dot), prop=tr.name.slice(dot+1);
+    if(prop!=='quaternion' || !bind[node] || !ED_UPRIGHT_BONES.some(n=>node===n || node.endsWith(':'+n) || node.endsWith('mixamorig'+n))) continue;
+    const qb=bind[node], qbi=qb.clone().invert(), v=tr.values, n=v.length/4, d=[], m=new THREE.Quaternion(0,0,0,0);
+    for(let i=0;i<n;i++){ const di=qbi.clone().multiply(new THREE.Quaternion(v[4*i],v[4*i+1],v[4*i+2],v[4*i+3]));
+      if(i && di.dot(d[0])<0){ di.x=-di.x; di.y=-di.y; di.z=-di.z; di.w=-di.w; }
+      d.push(di); m.x+=di.x; m.y+=di.y; m.z+=di.z; m.w+=di.w; }
+    if(m.lengthSq()<1e-9) continue; m.normalize(); const mi=m.clone().invert();
+    for(let i=0;i<n;i++){ const q=qb.clone().multiply(mi).multiply(d[i]); v[4*i]=q.x; v[4*i+1]=q.y; v[4*i+2]=q.z; v[4*i+3]=q.w; } } } }
 const ED_CAR_TINT = [0xffc23d, 0x5aa9ff, 0xff6b6b, 0x7ee06b, 0xc38bff, 0xff9f43, 0x4de0d2, 0xf2f2f2];   // seat colours (you are gold)
 
-function edStartCarousel(){
-  const r=ED.round, offers=[];
+function edCarDrawOffers(r){ const offers=[];
   for(let i=0;i<8;i++){ const k=edDrawKey(r<=1?3:Math.min(9,3+Math.floor(r/3))); if(!k) continue; offers.push({ key:k, item:edRollComp(r), taken:null, by:null }); }
+  return offers; }
+function edStartCarousel(){
+  const r=ED.round, offers=(ED._carPre&&ED._carPre.r===r)?ED._carPre.offers:edCarDrawOffers(r); ED._carPre=null;   // the start loader draws round 1's offers early so it can load their art
   const order=edAlive().slice().sort((a,b)=>(a.hp-b.hp)||(Math.random()-0.5));
   const av=order.map((p,j)=>{ const g=ED_CAR.gates[j%ED_CAR.gates.length];
     return { p, x:g[0], y:g[1], tx:null, ty:null, got:null, release:ED_CAR.firstAt+Math.floor(j/2)*ED_CAR.gap, face:0, want:null, moving:false }; });
@@ -20118,7 +20334,9 @@ function edLoadAvatarModel(A){
   const pr=(async()=>{ if(typeof THREE==='undefined') throw new Error('no three');
     if(!THREE.GLTFLoader) await js('/assets/js/three-r128-GLTFLoader.js');
     if(!THREE.SkeletonUtils) await js('/assets/js/three-r128-SkeletonUtils.js');
-    const g=await new Promise((res,rej)=>new THREE.GLTFLoader().load(A.url,res,undefined,rej)); return { g, A }; })();
+    const g=await new Promise((res,rej)=>new THREE.GLTFLoader().load(A.url,res,undefined,rej));
+    if(A.upright!==false){ try{ edUprightClips(g); }catch(e){} }
+    return { g, A }; })();
   _edGltfP[A.id]=pr; pr.catch(()=>{ delete _edGltfP[A.id]; });
   return pr; }
 function edCarGfxStart(){
