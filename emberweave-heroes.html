@@ -2528,37 +2528,134 @@ function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
     setTimeout(finish, timeoutMs||12000);
   });
 }
-/* The screen itself: the squad in a row and a bar. Built and torn down per fight so it never holds
-   textures or listeners between battles. */
-function showBattleLoader(keys){
-  let el=document.getElementById('battleLoader');
-  if(el) el.remove();
+/* v611 - THE LOADING SCREEN (Phil, 18 Sep: "The load screen for heroes needs revision. Please make a legit load screen for the
+   game in hailou. It needs to be able to have all 5 of your heroes and 5 of enemy heroes for arena and world map. Needs to be
+   capable of 8 ..., 3 rows of 5 heroes for bound round, and 5 by itself for when you are doing campaign" / "The 8 line up
+   requires making hero cards for the avatars so you can see the other avatars loading in" / "I would like the hero cards to be
+   from their belly button to just above their head").
+   One screen, four layouts, picked from what it is given:
+     vs    { mine:[keys], foe:[keys], mineName, foeName } - Arena, raids, elite, dungeon, replays, Emberdraft fights
+     solo  { mine:[keys] }                                - Campaign, Vault and the rest
+     lanes { lanes:[[keys],[keys],[keys]] }               - the bonus round's three roads
+     cards { cards:[{ img, name, me, ready }] }           - the Emberdraft start: all 8 seats' avatars
+   Backgrounds are Hailuo art: 'versus' (gold vs crimson around a blazing rift) for vs, 'war camp' for everything else.
+   Every card is framed from the belly button to just above the head. A hero is drawn from frame 0 of its idle sheet (the
+   sheet's top / feet / cx say where the figure is, so every hero gets the same framing, turned to face the middle); an
+   avatar uses its cut-out card. A card starts as a dark silhouette and lights up when its own art (and, for avatars, the 3D
+   model) has loaded, so you watch the lineup load in. Built and torn down per fight; the art is drawn into small canvases,
+   so no full sheet is kept decoded by the screen. Old callers that pass a plain key array still get the solo layout. */
+const LOAD_ART={ vs:'/assets/img/loading/versus.webp', camp:'/assets/img/loading/camp.webp' };
+function battleModeTitle(){ const m=(typeof CUR!=='undefined'&&CUR&&CUR.mode)||'';
+  return ({campaign:'Campaign', arena:'Arena Duel', raid:'City Raid', elite:'Elite Guard', dungeon:'Dungeon', vault:'The Vault', replay:'Replay',
+    emberdraft:'Emberdraft', bonus:'Bonus Round', tower:'Tower', trial:'Trial'})[m] || (m ? m.charAt(0).toUpperCase()+m.slice(1) : 'Battle'); }
+function _blHeroName(k){ const t=(typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k])||(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[k]); return (t&&t.name)||k||''; }
+/* draw one card's art into its canvas. A hero with an idle sheet is drawn from the SAME texture the battle loads (its image is
+   kept on the clip once it arrives), never a second download: frame 0, framed belly button to just above the head from the
+   sheet's own figure box, turned to face the middle. Anything else is a cover-cropped card image. */
+function _blPaint(cv, src, sx,sy,sw,sh, mirror, flipV){ const W=cv.width, H=cv.height, cx=cv.getContext('2d'); cx.clearRect(0,0,W,H); cx.save();
+  if(mirror){ cx.translate(W,0); cx.scale(-1,1); } if(flipV){ cx.translate(0,H); cx.scale(1,-1); } cx.drawImage(src, sx,sy,sw,sh, 0,0,W,H); cx.restore(); }
+function _blDrawCard(cv, key, img, face){
+  const A=!img&&key&&(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[key]&&(BATTLE_ANIM[key].idle||BATTLE_ANIM[key].walk);
+  if(A && A.fw && A.top!=null && A.feet && typeof heroHasAnim==='function' && heroHasAnim(key)){
+    try{ if(!A.tex) _loadClip(A); }catch(e){}
+    return new Promise(res=>{ const t0=Date.now();
+      const poll=()=>{ const im=A.tex&&A.tex.image;
+        if(im && im.width){ try{ const k=im.width/((A.cols||A.n||1)*A.fw), ky=im.height/((A.rows||1)*A.fh);
+            const fig=Math.max(1,A.feet-A.top), sh=fig*0.62, sw=sh*cv.width/cv.height, sy=Math.max(0,A.top-fig*0.05), sx=(A.cx!=null?A.cx:A.fw/2)-sw/2;
+            const up=(typeof ImageBitmap!=='undefined' && im instanceof ImageBitmap);   /* bitmapLoad makes WebGL bitmaps with imageOrientation:'flipY' */
+            _blPaint(cv, im, sx*k, up ? im.height-(sy+sh)*ky : sy*ky, sw*k, sh*ky, face==='right' ? !!A.flip : face==='left' ? !A.flip : false, up); res(true); }catch(e){ res(false); } return; }
+        if(A._err || Date.now()-t0>14000) return res(_blDrawCard(cv, null, (typeof HERO_CARD_ART!=='undefined'&&HERO_CARD_ART[key])||'', face));
+        setTimeout(poll,120); };
+      poll(); }); }
+  const url=img || (key&&typeof HERO_CARD_ART!=='undefined'&&HERO_CARD_ART[key]) || (key&&typeof HERO_PORTRAITS!=='undefined'&&HERO_PORTRAITS[key]) || '';
+  return new Promise(res=>{ if(!url) return res(false);
+    const im=new Image(); im.decoding='async';
+    im.onload=()=>{ (im.decode?im.decode():Promise.resolve()).catch(()=>{}).then(()=>{ try{
+        const r=cv.width/cv.height, ir=im.naturalWidth/im.naturalHeight; let sx,sy,sw,sh;
+        if(ir>r){ sh=im.naturalHeight; sw=sh*r; sx=(im.naturalWidth-sw)/2; sy=0; } else { sw=im.naturalWidth; sh=sw/r; sx=0; sy=img?0:(im.naturalHeight-sh)*0.15; }
+        _blPaint(cv, im, sx,sy,sw,sh, false); res(true); }catch(e){ res(false); } }); };
+    im.onerror=()=>res(false); im.src=url; }); }
+function showBattleLoader(spec){
+  if(Array.isArray(spec)||!spec) spec={ mine:(spec||[]).slice(0,5) };
+  let el=document.getElementById('battleLoader'); if(el) el.remove();
   el=document.createElement('div'); el.id='battleLoader';
-  el.style.cssText='position:fixed;inset:0;z-index:9000;background:radial-gradient(120% 90% at 50% 30%,#141a2b 0%,#080b13 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:20px';
-  const row=(keys||[]).slice(0,6).map(k=>{
-    const t=(typeof HERO_TYPES!=='undefined')&&HERO_TYPES[k];
-    const nm=(t&&t.name)||k||'';
-    const por=(typeof HERO_PORTRAITS!=='undefined')&&HERO_PORTRAITS[k];
-    const face=por?('<img src="'+por+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block">')
-                  :('<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">'+((t&&t.emoji)||'\u2694\ufe0f')+'</div>');
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:7px;width:84px">'
-      +'<div style="width:76px;height:76px;border-radius:14px;overflow:hidden;border:1px solid #33405e;background:#0f1420;box-shadow:0 6px 18px rgba(0,0,0,.45)">'+face+'</div>'
-      +'<div style="font-size:11px;color:#cdd6e4;text-align:center;line-height:1.15;max-width:84px">'+escapeHTML(nm)+'</div></div>';
-  }).join('');
-  el.innerHTML='<div style="font-weight:800;letter-spacing:.14em;font-size:13px;color:#c9a35e">PREPARING BATTLE</div>'
-    +'<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:560px">'+row+'</div>'
-    +'<div style="width:min(78vw,420px)">'
-    +'  <div style="height:10px;border-radius:999px;background:#0f1420;border:1px solid #2a3550;overflow:hidden">'
-    +'    <div id="blBar" style="height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#c9a35e,#f0c987);transition:width .18s ease"></div></div>'
-    +'  <div id="blTxt" style="text-align:center;font-size:11px;color:#8b98a9;margin-top:8px">Loading art\u2026</div></div>';
+  const vs=!!(spec.foe&&spec.foe.length), lanes=spec.lanes&&spec.lanes.some(l=>l&&l.length), cards=spec.cards&&spec.cards.length;
+  const layout = cards ? 'cards' : lanes ? 'lanes' : vs ? 'vs' : 'solo';
+  const title = spec.title || battleModeTitle();
+  el.className='bl-'+layout;
+  const card=(c,side)=>`<div class="bl-card${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas><div class="bl-nm">${escapeHTML(c.name||'')}</div></div>`;
+  const keyCards=(keys)=>(keys||[]).filter(Boolean).map(k=>({ key:k, name:_blHeroName(k) }));
+  let body='', list=[];   // list: {c, face}
+  if(layout==='vs'){
+    const L=keyCards(spec.mine).slice(0,9), R=keyCards(spec.foe).slice(0,9);
+    L.forEach(c=>list.push({c,face:'right'})); R.forEach(c=>list.push({c,face:'left'}));
+    body=`<div class="bl-side l"><div class="bl-who">${escapeHTML(spec.mineName||'You')}</div><div class="bl-row">${L.map(c=>card(c,'ally')).join('')}</div></div>
+      <div class="bl-vstxt">VS</div>
+      <div class="bl-side r"><div class="bl-who">${escapeHTML(spec.foeName||'Enemy')}</div><div class="bl-row">${R.map(c=>card(c,'foe')).join('')}</div></div>`;
+  } else if(layout==='lanes'){
+    body=`<div class="bl-lanes">${spec.lanes.slice(0,3).map((ln,i)=>{ const cs=keyCards(ln).slice(0,5); cs.forEach(c=>list.push({c,face:'right'}));
+      return `<div class="bl-lane"><div class="bl-ln">Road ${i+1}</div><div class="bl-row">${cs.map(c=>card(c,'ally')).join('')}</div></div>`; }).join('')}</div>`;
+  } else if(layout==='cards'){
+    const cs=spec.cards.slice(0,8).map(c=>Object.assign({ big:true },c)); cs.forEach(c=>list.push({c,face:''}));
+    body=`<div class="bl-grid">${cs.map(c=>card(c,c.me?'ally':'')).join('')}</div>`;
+  } else {
+    const cs=keyCards(spec.mine).slice(0,5).map(c=>Object.assign({ big:true },c)); cs.forEach(c=>list.push({c,face:'right'}));
+    body=`<div class="bl-row bl-solo">${cs.map(c=>card(c,'ally')).join('')}</div>`;
+  }
+  el.innerHTML=`<style>
+    #battleLoader{position:fixed;inset:0;z-index:13600;background:#0b0806 url('${layout==='vs'?LOAD_ART.vs:LOAD_ART.camp}') center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));box-sizing:border-box;color:#f4e6cf;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    #battleLoader:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,.05) 0%,rgba(0,0,0,.55) 100%);pointer-events:none}
+    #battleLoader>*{position:relative}
+    #battleLoader .bl-title{font-family:Georgia,serif;font-weight:900;letter-spacing:.18em;font-size:clamp(13px,2.2vw,18px);color:#ffd690;text-shadow:0 2px 6px #000,0 0 14px rgba(255,150,60,.5);text-transform:uppercase}
+    #battleLoader .bl-mid{flex:1;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:0}
+    #battleLoader .bl-row{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--g,8px)}
+    #battleLoader .bl-card{--w:var(--cw,84px);width:var(--w);height:calc(var(--w)*4/3);position:relative;border-radius:10px;overflow:hidden;
+      background:radial-gradient(120% 90% at 50% 20%,#4a3524 0%,#1c130d 75%);box-shadow:0 0 0 1px #7a5a36,0 0 0 3px rgba(20,12,8,.9),0 8px 18px rgba(0,0,0,.6);
+      filter:brightness(.18) saturate(0);transform:translateY(6px) scale(.96);opacity:.85;transition:filter .45s ease,transform .45s cubic-bezier(.2,1.4,.4,1),opacity .3s}
+    #battleLoader .bl-card.foe{background:radial-gradient(120% 90% at 50% 20%,#4a2230 0%,#170b12 75%);box-shadow:0 0 0 1px #8a3a4a,0 0 0 3px rgba(20,8,12,.9),0 8px 18px rgba(0,0,0,.6)}
+    #battleLoader .bl-card.me{box-shadow:0 0 0 2px #ffc766,0 0 0 4px rgba(20,12,8,.9),0 0 18px rgba(255,170,60,.55)}
+    #battleLoader .bl-card.lit{filter:none;transform:none;opacity:1}
+    #battleLoader .bl-card.lit:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,230,170,.55),rgba(255,230,170,0) 60%);animation:blFlash .6s ease-out forwards;pointer-events:none}
+    @keyframes blFlash{from{opacity:1}to{opacity:0}}
+    #battleLoader .bl-card canvas{position:absolute;inset:0;width:100%;height:100%}
+    #battleLoader .bl-nm{position:absolute;left:0;right:0;bottom:0;padding:10px 3px 3px;font-size:clamp(8px,1.25vw,11px);font-weight:800;text-align:center;line-height:1.1;color:#fff3dc;text-shadow:0 1px 3px #000;
+      background:linear-gradient(0deg,rgba(10,6,4,.92),rgba(10,6,4,0));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #battleLoader .bl-side{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:44%}
+    #battleLoader .bl-who{font-family:Georgia,serif;font-weight:800;font-size:clamp(12px,1.9vw,16px);text-shadow:0 2px 6px #000}
+    #battleLoader .bl-side.l .bl-who{color:#ffd690} #battleLoader .bl-side.r .bl-who{color:#ff9aa8}
+    #battleLoader .bl-vstxt{font-family:Georgia,serif;font-weight:900;font-size:clamp(30px,6vw,56px);color:#fff5d6;text-shadow:0 0 12px #fff0b0,0 0 28px rgba(255,170,60,.9),0 3px 0 #6a2a08;letter-spacing:.02em;flex:0 0 auto}
+    #battleLoader.bl-vs .bl-card{--cw:clamp(40px,calc((39vw - 44px)/5),96px)}
+    #battleLoader.bl-vs .bl-row{flex-wrap:wrap;--g:6px;max-width:calc(var(--cw)*5 + 30px)}
+    #battleLoader.bl-solo .bl-card{--cw:clamp(60px,calc((88vw - 60px)/5),150px)}
+    #battleLoader.bl-cards .bl-grid{display:grid;grid-template-columns:repeat(4,auto);gap:10px 12px}
+    #battleLoader.bl-cards .bl-card{--cw:min(calc((100vh - 150px)/2*3/4),calc((80vw - 60px)/4),130px)}
+    #battleLoader .bl-lanes{display:flex;flex-direction:column;gap:6px}
+    #battleLoader .bl-lane{display:flex;align-items:center;gap:10px}
+    #battleLoader .bl-ln{font-family:Georgia,serif;font-weight:800;font-size:11px;color:#ffd690;width:52px;text-align:right;text-shadow:0 1px 4px #000}
+    #battleLoader.bl-lanes .bl-row{flex-wrap:nowrap;--g:6px}
+    #battleLoader.bl-lanes .bl-card{--cw:min(calc((100vh - 130px)/3*3/4 - 4px),calc((80vw - 90px)/5),96px)}
+    #battleLoader .bl-foot{width:min(78vw,460px)}
+    #battleLoader .bl-bar{height:9px;border-radius:999px;background:rgba(10,6,4,.8);border:1px solid #6b4a2e;overflow:hidden}
+    #battleLoader .bl-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#ff7a2e,#ffd27a);box-shadow:0 0 10px rgba(255,160,60,.8);transition:width .18s ease}
+    #battleLoader .bl-txt{text-align:center;font-size:10.5px;color:#e0c9a6;margin-top:5px;text-shadow:0 1px 3px #000}
+    @media (prefers-reduced-motion:reduce){ #battleLoader .bl-card{transition:none} #battleLoader .bl-card.lit:after{animation:none;opacity:0} }
+  </style>
+  <div class="bl-title">${escapeHTML(title)}</div>
+  <div class="bl-mid">${body}</div>
+  <div class="bl-foot"><div class="bl-bar"><div class="bl-fill" id="blBar"></div></div><div class="bl-txt" id="blTxt">Loading art…</div></div>`;
   document.body.appendChild(el);
+  // light each card as its own art (and, for avatars, its model) arrives - staggered a touch so they "arrive" one by one
+  const cardEls=[...el.querySelectorAll('.bl-card')];
+  list.forEach(({c,face},i)=>{ const ce=cardEls[i]; if(!ce) return; const cv=ce.querySelector('canvas');
+    Promise.all([_blDrawCard(cv, c.key, c.img, face), Promise.resolve(c.ready).catch(()=>null)])
+      .then(()=>setTimeout(()=>ce.classList.add('lit'), 60+i*45)); });
   return {
     set(f,got,total){ const b=document.getElementById('blBar'), t=document.getElementById('blTxt');
-      if(b) b.style.width=Math.round(f*100)+'%';
-      if(t) t.textContent = total ? ('Loading art\u2026 '+got+' / '+total+' sheets') : 'Ready';
-    },
+      if(b) b.style.width=Math.round(Math.max(0,Math.min(1,f))*100)+'%';
+      if(t) t.textContent = total ? ('Loading art… '+Math.min(got,total)+' / '+total) : 'Ready'; },
     close(){ const e2=document.getElementById('battleLoader'); if(!e2) return;
-      e2.style.transition='opacity .22s ease'; e2.style.opacity='0'; setTimeout(()=>{ try{e2.remove();}catch(_){} },240); }
+      e2.querySelectorAll('.bl-card').forEach(c=>c.classList.add('lit'));
+      e2.style.transition='opacity .25s ease'; e2.style.opacity='0'; setTimeout(()=>{ try{e2.remove();}catch(_){} },260); }
   };
 }
 /* v564 - ASSET LIBRARY: pre-download every sheet, and clear the cache (Phil, 10 Sep:
@@ -5974,7 +6071,7 @@ function gsplitStartRun(){
        mid-run, a hitch each time a new animation played. Same loader, same 12 s ceiling. */
     const heroKeys=[].concat(assign[1]||[],assign[2]||[],assign[3]||[]);
     const keys=heroKeys.concat(gsplitMonsterKeys(data.lanes));
-    let ui=null; try{ ui=showBattleLoader(heroKeys.slice(0,6)); }catch(e){}
+    let ui=null; try{ ui=showBattleLoader({ title:'Bonus Round', lanes:[assign[1]||[],assign[2]||[],assign[3]||[]] }); }catch(e){}   // v611: the three roads
     let went=false; const go=()=>{ if(went) return; went=true; try{ if(ui) ui.close(); }catch(e){} gsplitEnterBattle(data, assignSnap, id); };
     try{ preloadBattleArtFull(keys, CH_BONUS_MAPS[id]||null, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go); }
     catch(e){ go(); }
@@ -9843,14 +9940,20 @@ function battleKeysForMatch(){
   return _k;
 }
 let _blBusy=false;
+/* v611: which lineup the loading screen shows for this fight (see showBattleLoader) */
+function battleLoaderSpec(){ const team=(G.team||[]).slice(0,5);
+  try{ if(CUR&&CUR.mode==='emberdraft'&&CUR.edAlly) return { mine:CUR.edAlly, foe:CUR.edFoe, mineName:'You', foeName:CUR.oppName||'Rival' };
+    const foe=((CUR&&CUR.opp)||[]).map(e=>e&&(e.key||e)).filter(k=>typeof k==='string');
+    if(foe.length) return { mine:team, foe, mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:(CUR&&CUR.oppName)||'Enemy' }; }catch(e){}
+  return { mine:team }; }
 function startBattle(){
   if(_blBusy) return; 
   try{ syncActiveSquad(); }catch(e){}
   const keys=battleKeysForMatch();
   const bg=(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
-  let ui=null; try{ ui=showBattleLoader((G.team||[]).slice(0,6)); }catch(e){}
+  let ui=null; try{ ui=showBattleLoader(battleLoaderSpec()); }catch(e){}
   _blBusy=true;
-  const t0=Date.now(), MIN=520;
+  const t0=Date.now(), MIN=1100;   // v611: long enough to see the lineup light up
   const go=()=>{ _blBusy=false;
     const wait=Math.max(0, MIN-(Date.now()-t0));
     setTimeout(()=>{ try{ if(ui) ui.set(1,0,0); }catch(e){}
@@ -16234,7 +16337,20 @@ function renderGuildLobby(b){
 function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* generic PvE-style versus battle used by Arena (auto) and Raid (manual) */
+/* v611 (Phil: "all 5 of your heroes and 5 of enemy heroes for arena and world map"): versus fights now open behind the loading
+   screen too (they had none) - both squads' art is warmed first, exactly like startBattle. */
 function startVersus(enemyTeam,auto,allyKeys){
+  if(_blBusy) return;
+  const ally=((allyKeys&&allyKeys.length)?allyKeys:(G.team||[])).slice(0,9), foe=(enemyTeam||[]).map(e=>e&&e.key).filter(Boolean);
+  let ui=null; try{ ui=showBattleLoader({ mine:ally, foe, mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:(CUR&&CUR.oppName)||'Enemy' }); }catch(e){}
+  _blBusy=true; const t0=Date.now(), MIN=1100;
+  const go=()=>{ _blBusy=false; setTimeout(()=>{ try{ if(ui) ui.set(1,0,0); }catch(e){}
+      try{ _startVersusNow(enemyTeam,auto,allyKeys); }catch(e){ try{console.error(e);}catch(_){} }
+      try{ if(ui) ui.close(); }catch(e){} }, Math.max(0, MIN-(Date.now()-t0))); };
+  try{ preloadBattleArtFull(ally.concat(foe), (CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go); }
+  catch(e){ go(); }
+}
+function _startVersusNow(enemyTeam,auto,allyKeys){
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
   if(CUR&&CUR.replayAlly&&CUR.replayAlly.length){   // v2 exact replay: build BOTH teams from data exactly as the headless resolver did (laneSlot), so the replay == the recorded fight
     setupMarchTeams(CUR.replayAlly, enemyTeam, true);
@@ -18594,8 +18710,20 @@ function renderOnline(){
   body.querySelector('#joinBtn').onclick=()=>{const c=(body.querySelector('#codeIn').value||'').toUpperCase().trim();if(c.length<4){setOnlineStatus('Enter a room code.');return;}netConnect(ok=>{ok?netSend({t:'join',code:c}):setOnlineStatus('Could not reach host server.');});};
   if(NET.role==='host'&&NET.code){const link=location.origin+location.pathname+'?room='+NET.code;document.getElementById('hostInfo').innerHTML=`Room <b style="color:#ffd45e;letter-spacing:2px">${NET.code}</b><br><span style="color:#8b98a9">Share this link:</span><br><span style="word-break:break-all;color:#8fd0ff">${link}</span><br><span style="color:#8b98a9">Waiting for opponent…</span>`;}
 }
+/* v611 (Phil: "Anywhere that has a battle needs a load screen to avoid lag"): live PvP opens behind the loading screen too.
+   The host warms both squads before it starts the sim and relays 'start'; the guest (who only learns the host's squad from
+   the stream) shows its own squad over the first moments while its art warms. */
 function hostStartMatch(){
   if(OL.active&&OL.host)return;   // v327: a duplicate roster frame must never restart a live PvP match
+  if(_blBusy) return;
+  const ally=(G.team||[]).slice(0,5), foe=(OL.guestRoster||[]).map(e=>e&&e.key).filter(Boolean);
+  let ui=null; try{ ui=showBattleLoader({ title:'Live PvP', mine:ally, foe, mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:'Challenger' }); }catch(e){}
+  _blBusy=true; const t0=Date.now();
+  const go=()=>{ _blBusy=false; setTimeout(()=>{ try{ _hostStartMatchNow(); }catch(e){ try{console.error(e);}catch(_){} } try{ if(ui) ui.close(); }catch(e){} }, Math.max(0,900-(Date.now()-t0))); };
+  try{ preloadBattleArtFull(ally.concat(foe), BATTLE_BG, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 8000).then(go,go); }catch(e){ go(); }
+}
+function _hostStartMatchNow(){
+  if(OL.active&&OL.host)return;
   OL.active=true;OL.host=true;OL.byId={};CUR={mode:'online',host:true,node:0};waveXfer=null;
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult();
   spawnTeam(G.team,'ally');
@@ -18606,7 +18734,10 @@ function hostStartMatch(){
   buildPortraitBar('ally');refreshCtrlBtns();updateCounts();show('battle');document.getElementById('waveTag').textContent='🌐 LIVE PvP';
   relay({k:'start'});
 }
-function guestStartMatch(){
+function guestStartMatch(){ _guestStartMatchNow();
+  try{ const ally=(G.team||[]).slice(0,5), ui=showBattleLoader({ title:'Live PvP', mine:ally }), t0=Date.now();
+    preloadBattleArtFull(ally, BATTLE_BG, (f,got,total)=>{ try{ ui.set(f,got,total); }catch(e){} }, 6000).then(()=>setTimeout(()=>{ try{ ui.close(); }catch(e){} }, Math.max(0,700-(Date.now()-t0)))); }catch(e){} }
+function _guestStartMatchNow(){
   OL.active=true;OL.host=false;OL.byId={};CUR={mode:'online',host:false,node:0};
   clearBattle();units=[];selected=null;aiming=null;ended=false; cancelResult();show('battle');
   document.getElementById('portraitBar').dataset.mode='';document.getElementById('waveTag').textContent='🌐 LIVE PvP';
@@ -19403,7 +19534,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789767453000';
+const BUILD_ID = '1789768654000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20076,7 +20207,8 @@ function edNewGame(attemptId){
    carousel shows and their battle sheets). Like the battle loader it always finishes (15 s at most), so a dead file can
    never lock you out of a match you've already spent an attempt on. */
 function edPrepareMatch(){
-  const ui=edShowStartLoader(), t0=Date.now();
+  const ui=showBattleLoader({ title:'Emberdraft', cards:ED.players.map(p=>{ const A=edAvatarFor(p);   // v611: the 8 seats as avatar cards; each lights when its 3D model is in
+      return { img:A.pick?('/assets/img/avatars/card-'+A.id+'.webp'):'', name:p.ai?p.name:'You', me:!p.ai, ready:edLoadAvatarModel(A) }; }) }), t0=Date.now();
   ED._carPre={ r:1, offers:edCarDrawOffers(1) };
   CUR={ mode:'emberdraft', edKeys:[], opp:[] };
   const keys=ED._carPre.offers.map(o=>o.key);
@@ -20091,27 +20223,8 @@ function edPrepareMatch(){
   try{ jobs.push(preloadBattleArtFull(keys, null, f=>{ sheets=f; upd(); }, 14000)); }catch(e){}
   upd();
   return Promise.race([Promise.all(jobs), new Promise(res=>setTimeout(res,15000))])
-    .then(()=>new Promise(res=>setTimeout(res, Math.max(0, 500-(Date.now()-t0)))))
+    .then(()=>new Promise(res=>setTimeout(res, Math.max(0, 1100-(Date.now()-t0)))))
     .then(()=>{ try{ ui.set(1,0,0); ui.close(); }catch(e){} }); }
-function edShowStartLoader(){
-  let el=document.getElementById('edLoader'); if(el) el.remove();
-  el=document.createElement('div'); el.id='edLoader';
-  el.style.cssText='position:fixed;inset:0;z-index:13500;background:radial-gradient(120% 90% at 50% 30%,#2a1a10 0%,#0b0806 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px';
-  const seats=ED.players.map(p=>({ A:edAvatarFor(p), name:p.ai?p.name:'You', me:!p.ai }));
-  const row=seats.map(s=>'<div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:64px">'
-    +'<div style="width:58px;height:58px;border-radius:12px;overflow:hidden;border:1px solid '+(s.me?'#f0c987':'#4a3526')+';background:#1a120c;box-shadow:0 6px 18px rgba(0,0,0,.45)">'
-    +(s.A.portrait?'<img src="'+s.A.portrait+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block">':'')+'</div>'
-    +'<div style="font-size:10px;color:'+(s.me?'#f0c987':'#cdbba6')+';text-align:center;line-height:1.15;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+edEsc(s.name)+'</div></div>').join('');
-  el.innerHTML='<div style="font-weight:800;letter-spacing:.14em;font-size:13px;color:#ff9f43">♟ PREPARING EMBERDRAFT</div>'
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:320px">'+row+'</div>'
-    +'<div style="width:min(78vw,420px)"><div style="height:10px;border-radius:999px;background:#1a120c;border:1px solid #4a3526;overflow:hidden">'
-    +'<div id="edlBar" style="height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#ff7a2e,#ffc766);transition:width .18s ease"></div></div>'
-    +'<div id="edlTxt" style="text-align:center;font-size:11px;color:#a8927a;margin-top:8px">Loading art…</div></div>';
-  document.body.appendChild(el);
-  return { set(f,got,total){ const b=document.getElementById('edlBar'), t=document.getElementById('edlTxt');
-      if(b) b.style.width=Math.round(Math.max(0,Math.min(1,f))*100)+'%';
-      if(t) t.textContent = total ? ('Loading art… '+Math.min(got,total)+' / '+total) : 'Ready'; },
-    close(){ const e2=document.getElementById('edLoader'); if(!e2) return; e2.style.transition='opacity .22s ease'; e2.style.opacity='0'; setTimeout(()=>{ try{ e2.remove(); }catch(_){} },240); } }; }
 function edYou(){ return ED.players[0]; }
 function edAlive(){ return ED.players.filter(p=>p.alive); }
 function edIsPve(r){ return r<=3 || r%7===0; }
@@ -20184,7 +20297,7 @@ const ED_CAR = {
   firstAt:1.5,      // s before the first pair is released
   gap:3.2,          // s between pairs
   grace:8,          // s after the last release before the rest are dealt out
-  speed:0.36,       // avatar speed, fractions of the view width per second
+  speed:0.20,       // avatar speed, fractions of the view width per second (v610 Phil: "moves way too fast" - was 0.36)
   ySquash:0.62,     // vertical movement/reach counts less (the floor recedes)
   reach:0.034       // pickup distance, fractions of the view width
 };
@@ -20257,19 +20370,22 @@ function edStartCarousel(){
 /* the offer's position on the track at time t */
 function edCarOfferPos(C,i){ const T=ED_CAR.track, a=C.spin0+C.t*ED_CAR.spin+i*(Math.PI*2/Math.max(1,C.offers.length));
   return { x:T.cx+T.a*Math.cos(a), y:T.cy+T.b*Math.sin(a) }; }
-function edCarClamp(x,y){ const F=ED_CAR.floor, dx=(x-F.cx)/F.a, dy=(y-F.cy)/F.b, d=Math.hypot(dx,dy);
-  return d<=1 ? {x,y} : { x:F.cx+dx/d*F.a, y:F.cy+dy/d*F.b }; }
+/* v610 (Phil: "it should be able to click anywhere on the map to move"): the whole painted map is walkable, a small margin in
+   from its edges - no more pulling a tap back onto the inner floor oval */
+function edCarClamp(x,y){ return { x:Math.min(0.97,Math.max(0.03,x)), y:Math.min(0.95,Math.max(0.08,y)) }; }
 /* screen <-> image fraction, over the battle view */
 function edCarRect(){ const cv=(typeof renderer!=='undefined'&&renderer&&renderer.domElement)?renderer.domElement.getBoundingClientRect():null;
   return (cv&&cv.width>0)?cv:{left:0,top:0,width:innerWidth,height:innerHeight}; }
 function edCarTap(sx,sy){ const C=ED.car; if(!C||C.done) return; const R=edCarRect(), me=C.av.find(a=>!a.p.ai); if(!me) return;
-  const q=edCarClamp((sx-R.left)/R.width,(sy-R.top)/R.height); me.tx=q.x; me.ty=q.y; }
+  const q=edCarClamp((sx-R.left)/R.width,(sy-R.top)/R.height); me.tx=q.x; me.ty=q.y;
+  const root=document.getElementById('edRoot'); if(root){ const fx=document.createElement('div'); fx.className='carTapFx';   /* where you'll run to */
+    fx.style.left=(R.left+q.x*R.width)+'px'; fx.style.top=(R.top+q.y*R.height)+'px'; root.appendChild(fx); setTimeout(()=>{ try{ fx.remove(); }catch(e){} },650); } }
 function edCarStep(dt){
   const C=ED.car; if(!C||C.done) return; C.t+=dt;
   const R=edCarRect(), W=R.width||1, H=R.height||1, sq=ED_CAR.ySquash;
   const open=()=>C.offers.map((o,i)=>({o,i})).filter(z=>z.o.taken==null);
   for(const a of C.av){
-    if(a.got!=null || C.t<a.release){ a.moving=false; continue; }
+    if(C.t<a.release || (a.got!=null && a.p.ai)){ a.moving=false; continue; }   // v610: you keep running around after you grab (like TFT); rivals stop
     if(a.p.ai){ // AI: the offer it wants (a copy it owns, else the dearest hero, else the best item); switch if it goes
       let w=(a.want!=null && C.offers[a.want].taken==null)?a.want:null;
       if(w==null){ const own=edUnits(a.p).map(u=>u.key), cand=open(); if(cand.length){
@@ -20283,8 +20399,8 @@ function edCarStep(dt){
     if(d<=Math.max(1,step)){ a.x=a.tx; a.y=a.ty; if(!a.p.ai){ a.tx=a.ty=null; } a.moving=false; }
     else { a.x+=dxp/d*step/W; a.y+=dyp/d*step*sq/H; a.moving=true; a.face=Math.atan2(dxp, dyp); }
     const q=edCarClamp(a.x,a.y); a.x=q.x; a.y=q.y;
-    // touch an offer -> take it
-    for(const z of open()){ const p=edCarOfferPos(C,z.i), ddx=(p.x-a.x)*W, ddy=(p.y-a.y)*H/sq;
+    // touch an offer -> take it (one each)
+    if(a.got==null) for(const z of open()){ const p=edCarOfferPos(C,z.i), ddx=(p.x-a.x)*W, ddy=(p.y-a.y)*H/sq;
       if(Math.hypot(ddx,ddy) <= ED_CAR.reach*W){ z.o.taken=a.p.i; z.o.by=a; a.got=z.i; a.tx=a.ty=null; a.moving=false; break; } }
   }
   if(C.av.every(a=>a.got!=null) || C.t>=C.end || !open().length) edCarFinish();
@@ -20360,7 +20476,7 @@ function edCarGfxStart(){
         m.traverse(o=>{ if(o.isMesh && o.material){ o.material=o.material.clone(); if(A.tint && (/main/i.test(o.material.name||'') || (o.material.color && o.material.color.r>0.5 && o.material.color.g>0.4 && o.material.color.b<0.4))){ o.material.color.setHex(tint); try{ o.material.color.convertSRGBToLinear(); }catch(e){} } o.frustumCulled=false; } });
         const mixer=new THREE.AnimationMixer(m); const clip=n=>THREE.AnimationClip.findByName(g.animations,n);
         const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
-        idle.play(); G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false, A }); });
+        idle.play(); walk.timeScale=0.8; G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false, A }); });   // v611: slower stride for the slower avatar
       G.ok=G.av.length>0; }); }
 }
 function edCarGfxDraw(dt){
@@ -20544,7 +20660,7 @@ function edLaunchBattle(){
   else enemySpec=Object.entries(ED.opp.p.board).map(([pos,u])=>{ const [r,c]=pos.split(',').map(Number); return { u, r, c }; });
   ED.spec={ ally:allySpec, enemy:enemySpec, allySyn:edSynergy(you), enemySyn: ED.opp.pve?{}:edSynergy(ED.opp.p) };
   const keys=allySpec.map(s=>s.u.key).concat(enemySpec.map(s=>s.u.key));
-  CUR={ mode:'emberdraft', edKeys:keys, opp:[] };
+  CUR={ mode:'emberdraft', edKeys:keys, opp:[], edAlly:allySpec.map(s=>s.u.key), edFoe:enemySpec.map(s=>s.u.key), oppName: ED.opp.pve?'Monsters':((ED.opp.p&&ED.opp.p.name)||'Rival') };   // v611: the loading screen's two sides
   edHideUi();
   startBattle();
 }
@@ -20713,6 +20829,8 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .carTag{position:absolute;transform:translate(-50%,4px);font-size:10px;font-weight:800;color:#dfe7f1;text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;white-space:nowrap}
 #edRoot .carTag.me{color:#ffd45e}
 #edRoot.car .hit{cursor:pointer}
+#edRoot .carTapFx{position:absolute;width:30px;height:14px;margin:-7px 0 0 -15px;border:2px solid #ffc766;border-radius:50%;pointer-events:none;box-shadow:0 0 10px rgba(255,160,50,.8);animation:edTapFx .65s ease-out forwards;z-index:3}
+@keyframes edTapFx{from{transform:scale(.4);opacity:1}to{transform:scale(1.5);opacity:0}}
 #edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
 #edRoot .ledgeItem.sel{transform:translate(-50%,-62%) scale(1.18)}
 #edRoot .ledgeItem img,#edRoot .badge img,#edDrag img{pointer-events:none;display:block}
