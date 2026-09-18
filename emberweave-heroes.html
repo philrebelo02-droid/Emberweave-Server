@@ -4221,7 +4221,15 @@ const ZOOM_PR_MAX=1.5;   /* v577: the BASELINE buffer stays at the old 1.5x ceil
                             2x/2.5x steps (CR 0227 §4 costed the 2.25x fill increase; today's game-speed diagnosis says the phone
                             has no headroom). Zoomed in past 1.5x the buffer follows the CURRENT zoom: setBattleZoom already
                             calls resize3D() whenever zoomPR() moves, so this is one re-size per zoom step, not per frame. */
-function zoomPR(){ return Math.min(4.5, DPR*Math.max(ZOOM_PR_MAX, (typeof battleZoom==='number'?battleZoom:1))); }
+/* v588 (Phil, 18 Sep: bonus-run lag "the entire time from start to finish"). A bonus run draws up to ~45 units
+   across three roads. At 1x the buffer was DPR x 1.5 - about 15x the CSS pixels on a 2.6x phone - for the 3D
+   canvas AND the bar overlay, every frame. In a bonus run 1x renders at the screen's own resolution, zoom still
+   raises it, and the ceiling is 3.5. Every other mode keeps its look. */
+const ZOOM_PR_BONUS_MAX=3.5;
+function zoomPR(){
+  const z=(typeof battleZoom==='number'?battleZoom:1);
+  if(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) return Math.min(ZOOM_PR_BONUS_MAX, DPR*Math.max(1,z));
+  return Math.min(4.5, DPR*Math.max(ZOOM_PR_MAX, z)); }
 function clampPan(){
   const app=document.getElementById('app');
   const w=(app?app.clientWidth:0)||window.innerWidth, h=(app?app.clientHeight:0)||window.innerHeight;
@@ -4927,7 +4935,9 @@ function gsplitWallLane(L){
    because one image fraction is a different field x on each road - the two ends of a firebreak are not
    the same number. Interpolating x during phase 2 is what keeps the hero ON the painted path, which is
    itself a slanted line between those two ends. */
-const GSPLIT_WALK_SPEED = 260;      // field units per second, along the road
+const GSPLIT_WALK_SPEED = 260;      // field units per second, along the road - v588: no longer used by crossings, see gsplitCrossSpeed
+const GSPLIT_CROSS_MUL = 2;         // v588 (Phil, 18 Sep): a lane change runs at 2x the hero's own walking speed
+function gsplitCrossSpeed(u){ return GSPLIT_CROSS_MUL*Math.max(40,((u&&u.speed)||55)*MOVE_MUL); }
 /* v578 (Phil, 17 Sep): the road flow. Monsters walk in from past the right edge at this speed (field units/s);
    the heroes wait at the firebreak. After a clear the road stands still this long before the next wave is built. */
 const GSPLIT_MONSTER_IN_SPD = 880*MOVE_MUL;   // v587 Phil 18 Sep: "Monsters can run in a fast speed" - the campaign run-on speed (was 420, a walk)
@@ -4954,15 +4964,18 @@ function gsplitStepMovers(dt){
     if(!u||!u.alive){m.arrived=true;if(u)u._gauntCrossing=false;continue;}
     if(!m.phase)gsplitBeginCross(m);
     if(m.phase==='walk'){
-      const dx=m.xFrom-u.x,step=GSPLIT_WALK_SPEED*dt;
-      if(Math.abs(dx)<=step){u.x=m.xFrom;m.phase='cross';m.t=0;}
+      /* v588 (Phil, 18 Sep: "they sprint at like 5x speed. They should only move at 2x speed when running to another
+         lane"): both legs of a crossing run at TWICE this hero's own walking speed (was a flat 260 along the road and a
+         fixed 0.75 s down the firebreak - about 4x and 8x a hero's walk). */
+      const dx=m.xFrom-u.x,step=gsplitCrossSpeed(u)*dt;
+      if(Math.abs(dx)<=step){u.x=m.xFrom;m.phase='cross';m.t=0;m.yFrom=u.y;}   // v588: the crossing starts where the hero stands in the ranks - no snap to the road's centre line
       else u.x+=Math.sign(dx)*step;
       const band=gsplitLaneBand(m.route[m.leg]);
       u.y=Math.max(band.lo,Math.min(band.hi,u.y));
       continue;
     }
     if(m.phase==='cross'){
-      m.t=Math.min(1,m.t+dt/GSPLIT_CROSS_SECONDS_PATH);
+      { const len=Math.hypot(m.xTo-m.xFrom, m.yTo-m.yFrom)||1; m.t=Math.min(1,m.t+dt*gsplitCrossSpeed(u)/len); }   // v588: distance at 2x walk, not a fixed time
       u.x=m.xFrom+(m.xTo-m.xFrom)*m.t;
       u.y=m.yFrom+(m.yTo-m.yFrom)*m.t;
       if(m.t>=1){
@@ -5776,8 +5789,22 @@ function gsplitStartRun(){
     if(!data || !data.ok){ if(errEl) errEl.textContent=(data&&data.error)||'Could not start.'; return; }
     const assignSnap=assign, id=GSPLIT_ENTRY.id;
     gsplitPickerClose();
-    gsplitEnterBattle(data, assignSnap, id);
+    /* v588 (Phil, 18 Sep: "there is lag I need it smoother the entire time from start to finish"). Campaign and
+       Vault warm EVERY sheet a fight can show behind the v564 loading screen ("so when you get in the game there is
+       no lag"); bonus runs never did, so up to fifteen heroes and three roads of monsters decoded and uploaded
+       mid-run, a hitch each time a new animation played. Same loader, same 12 s ceiling. */
+    const heroKeys=[].concat(assign[1]||[],assign[2]||[],assign[3]||[]);
+    const keys=heroKeys.concat(gsplitMonsterKeys(data.lanes));
+    let ui=null; try{ ui=showBattleLoader(heroKeys.slice(0,6)); }catch(e){}
+    let went=false; const go=()=>{ if(went) return; went=true; try{ if(ui) ui.close(); }catch(e){} gsplitEnterBattle(data, assignSnap, id); };
+    try{ preloadBattleArtFull(keys, CH_BONUS_MAPS[id]||null, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go); }
+    catch(e){ go(); }
   });
+}
+function gsplitMonsterKeys(lanes){   // every monster key in every wave of every road, whatever the nesting
+  const out=new Set();
+  const walk=v=>{ if(!v) return; if(Array.isArray(v)){ v.forEach(walk); return; } if(typeof v==='object'){ if(typeof v.key==='string') out.add(v.key); for(const k in v) if(v[k]&&typeof v[k]==='object') walk(v[k]); } };
+  walk(lanes); return [...out];
 }
 
 /* THE REAL LAUNCH. Everything below this point was previously only reachable through a test
@@ -5840,6 +5867,7 @@ function gsplitEnterBattle(data, assign, id){
   /* v585: show() only raises ⏸ for campaign/dungeon/vault modes - in a bonus run it is the way to Retreat, so always */
   { const pbt=document.getElementById('pauseBtn'); if(pbt) pbt.classList.add('active'); }
   try{ refreshCtrlBtns(); }catch(e){}
+  try{ CW=0; resize3D(); }catch(e){}   // v588: apply the bonus-run render ratio (zoomPR) now that GSPLIT is active
   bannerMsg('◆ BONUS '+id+' — THREE ROADS');
 }
 
@@ -6108,6 +6136,7 @@ function gsplitHudExit(){
   ['restartBtn','exitBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display=''; });
   document.getElementById('gsplitPmRetreat')?.remove();
   try{ refreshCtrlBtns(); }catch(e){}
+  if(!GSPLIT.active){ try{ CW=0; resize3D(); }catch(e){} }   // v588: back to the normal render ratio for every other mode
 }
 
 /* SECURITY 17 Sep - real per-window evidence for server/bonus-stages.js's MIN_RESOLVE_MS /
@@ -6463,7 +6492,10 @@ function qualityTick(frameMs){
      sat on the floor for the rest of the session. That is the "mobile quality is less" report.
      Good is now AT OR NEAR VSYNC (<20ms = 50fps+), bad is REAL stutter (>33ms = under 30fps), and it
      takes ~2s of genuine stutter to shed so a battle-start hitch cannot cost resolution. */
-  if(frameMs>33){ QUAL.bad++; QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
+  /* v588: in a bonus run 24 ms (~42 fps) already counts as lag - Phil: "I need it smoother". The 20-33 ms dead band
+     left a 30-45 fps phone at full resolution for the whole run. */
+  const badMs=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) ? 24 : 33;
+  if(frameMs>badMs){ QUAL.bad++; QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
   if(QUAL.bad>=60 && QUAL.dpr>QUAL.min){                       // ~2s of genuine stutter -> shed pixels
     QUAL.dpr=Math.max(QUAL.min, +(QUAL.dpr-0.25).toFixed(2)); QUAL.bad=0; qualityApply(); }
   else if(QUAL.good>=180 && QUAL.dpr<QUAL.max){                // ~3s of healthy frames -> earn some back
@@ -18940,7 +18972,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789730361275';
+const BUILD_ID = '1789733221454';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
