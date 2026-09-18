@@ -7509,7 +7509,7 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
   try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!(_ABOVE_BAR[type]&&c&&c._sprRef); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
-    const _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
@@ -7551,7 +7551,19 @@ function applyChill(tgt){ if(!tgt||!tgt.alive)return; tgt._chillStacks=Math.min(
 function dealFrostDamage(src,tgt,amt,color,kind,silent){ const was=!!src._frostHit; src._frostHit=true; try{return dealDamage(src,tgt,amt,color,kind,silent);} finally{src._frostHit=was;} }
 function heroScaleMode(u){ const h=u&&u.t; if(!h||h.monster)return null;
   const d=h.damageProfile||'Attack'; if(d==='Hybrid')return null; return (d==='Magic'||d==='Healer')?'ap':'ad'; }
-function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1;
+/* v592 (Phil, 18 Sep: "The area should scale to the bonus area ... if grosk is 3 meters in campaign and .5 meters in
+   bonus stage the spells radius should reduce 6x"). A bonus-run unit is drawn at BONUS_UNIT_SCALE (0.28), so every
+   spatial footprint of its spells shrinks by the same factor: radius, line width, knockback distance. Sentinel radii
+   (> 30 m = "everyone") stay whole-field. Monsters' spells too - every bonus unit carries _gauntScale. */
+const GSPLIT_AREA_KEYS=['radius','width','push','gfxR','artR'];
+function gsplitAreaMul(u){ return (u && u._gauntScale) ? u._gauntScale : 1; }
+function gsplitScaleArea(u,o){
+  const S=gsplitAreaMul(u); if(S===1 || !o || o._areaScaled) return o;
+  const s=Object.assign({}, o, {_areaScaled:true});
+  for(const k of GSPLIT_AREA_KEYS){ const v=s[k]; if(typeof v==='number' && v>0 && !(k==='radius' && v>30*METER)) s[k]=v*S; }
+  return s;
+}
+function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
@@ -8009,7 +8021,7 @@ function doEffect(u,type,o){ o=o||{}; const rm=rageMul, sm=u._castSM||1;
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,D);
         a.ctrlRes=Math.min(0.85,(a.ctrlRes||0)+(o.ctrl||0.25)); a._ctrlBonusT=D; a._ctrlBonus=(o.ctrl||0.25);
         floatTexts.push({x:a.x,y:a.y-16,txt:'RALLIED',t:.9,color:'#e8c87a',vy:1,sz:11}); });
-      try{ spawnGroundFx('rallyroots',u.x,u.y,R*0.5,1.0); }catch(e){}
+      try{ window._fxPreScaled=!!o._areaScaled; spawnGroundFx('rallyroots',u.x,u.y,R*0.5,1.0); }catch(e){} finally{ window._fxPreScaled=false; }
       burstAt(u.x,u.y,0xe8c87a,16); break; }
 
     case 'atkcrush':{                                               // "grabs the strongest enemy and crushes its Attack"
@@ -8426,7 +8438,7 @@ function buffArtAll(u,o,tgt,aimCtr,type,snap){
 function kitReady(u,ab){ const ty=ab.type;
   if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
   if(ty==='hot'){const l=lowestAlly(u);return l&&l.hp/l.maxHp<0.92;}
-  if(ty==='chantzone'){ const l=lowestAlly(u); if(l&&l.hp/l.maxHp<0.9) return true; const R=ab.radius||5*METER, C=densestAllyCluster(u,R); return !!(C&&enemiesOf(u).some(e=>dist(C,e)<=R)); }   // v548: chant when someone is hurt, or when foes stand in the circle it would draw
+  if(ty==='chantzone'){ const l=lowestAlly(u); if(l&&l.hp/l.maxHp<0.9) return true; const R=(ab.radius||5*METER)*gsplitAreaMul(u), C=densestAllyCluster(u,R); return !!(C&&enemiesOf(u).some(e=>dist(C,e)<=R)); }   // v548: chant when someone is hurt, or when foes stand in the circle it would draw
   if(ty==='shield'){const l=ab.self?u:lowestAlly(u);return l&&l.shieldT<=0&&l.hp/l.maxHp<0.95;}
   if(ty==='dmgbuff'||ty==='haste'||ty==='taunt'||ty==='rally'){return !!nearestEnemy(u);}
   const ne=nearestEnemy(u); if(!ne) return false;
@@ -8450,7 +8462,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
   // Green/Blue are automatic: ground-targeted offensive areas choose the densest pack.
   // Self-centred and allied circles deliberately retain their authored anchors.
   if(AUTO_GROUND_AOE[ab.type]&&!_SELF_CENTRED[ab.type]){
-    const R=ab.radius||(ab.type==='blizzard'?8*METER:3*METER), c=densestEnemyCluster(u,R);
+    const R=(ab.radius||(ab.type==='blizzard'?8*METER:3*METER))*gsplitAreaMul(u), c=densestEnemyCluster(u,R);   // v592: bonus-run area
     if(c){u._aimWX=c.x;u._aimWY=c.y;}
   }
   try{ waxOnCaster(u); }catch(e){}
@@ -8645,7 +8657,7 @@ function updateChains(dt){ for(let i=chains.length-1;i>=0;i--){ const c=chains[i
 function spawnVoidZone(u,cx,cy,R,dur,pd,con){
   const z={x:cx,y:cy,r:R,life:dur,dur,acc:0,interval:1,team:u.team,owner:u,pd,con,t:0,wispAcc:0,disc:null,ring:null,ring2:null,gfx:null};
   // the real animated Void Zone plate laid on the ground, sized to the zone radius, looping for its lifetime
-  if(TH&&scene){ z.gfx=spawnGroundFx('voidzone',cx,cy,R,dur);
+  if(TH&&scene){ window._fxPreScaled=gsplitAreaMul(u)!==1; try{ z.gfx=spawnGroundFx('voidzone',cx,cy,R,dur); }finally{ window._fxPreScaled=false; }
     if(!z.gfx){ const R3=R*SC;   // fallback: procedural disc if the plate can't load
       const mk=(geo,color,op)=>{ const m=new TH.Mesh(geo,new TH.MeshBasicMaterial({color,transparent:true,opacity:0,side:TH.DoubleSide,depthWrite:false,depthTest:false})); m.renderOrder=-6; m.rotation.x=-Math.PI/2; scene.add(m); m._baseOp=op; return m; };
       z.disc=mk(new TH.CircleGeometry(R3,44),0x1a0b2e,0.6); z.disc.position.set(wx(cx),0.12,wz(cy));
@@ -8917,8 +8929,11 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
   /* v591 (Phil, 18 Sep: Greatbrow's "spell effects in all game modes especially bonus stage are way too big to scale"):
      a disc plate ignores FX_SIZE by design (the disc IS the circle), so in a bonus run it was drawn at full campaign
      size around 0.28-scale units. Plain plates already shrink there through FX_SIZE (2 -> 2 x BONUS_UNIT_SCALE); a disc
-     plate now gets the same factor. The HIT radius is not changed - see the v591 SHIPPED note. */
-  const _bdisc=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) ? BONUS_UNIT_SCALE : 1;
+     plate now gets the same factor. (v592: the HIT radius now shrinks too - gsplitScaleArea in doEffect.) */
+  /* v592: a radius that doEffect already shrank for the bonus run (window._fxPreScaled) must not be shrunk again */
+  const _bon=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active), _pre=!!window._fxPreScaled;
+  const _bdisc=(_bon && !_pre) ? BONUS_UNIT_SCALE : 1;
+  if(_bon && _pre && !d.disc){ w=w/BONUS_UNIT_SCALE; h=h/BONUS_UNIT_SCALE; }   // plain plate: FX_SIZE already carries the bonus factor
   if(d.disc){ w=R3*_bdisc*2/d.disc.dw; h=R3*_bdisc*2/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }
   /* v468 (Phil, Grasping Vow screenshot: "the center of the palm should line up with the character its grabbing, the size of
      the hand should be about 20% larger than a tank character"): an `upright` plate is NOT laid on the ground. It stands as a
@@ -19161,7 +19176,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789735676396';
+const BUILD_ID = '1789736359238';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
