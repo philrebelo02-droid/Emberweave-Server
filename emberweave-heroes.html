@@ -4597,12 +4597,48 @@ function gsplitLaneSlot(team, key, i, n, keys, lane){
   /* v589 (Phil, 18 Sep: "Make sure the heroes are spread not clumped in lane. Make it look natural"): heroes
      stand in a loose, staggered formation whose FRONT is the station and which extends back down the road -
      never a rigid grid centred on it. Kept inside the combat field (x >= 62) on the short first road stretch. */
+  /* v590 (Phil, 18 Sep: "Monster and heroes should both still use front, mid backrow concept"): both sides stand in
+     their game rows - front row (Tanks) at the formation's front facing the enemy, mid row behind, back row
+     (ranged / supports) behind that - each row loose and staggered across the road. */
+  const ks=(keys&&keys.length)?keys:Array.from({length:Math.max(1,n|0)},()=>key);
+  const wk=lane+':'+(waveIdx|0), colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5;
   if(team==='ally'){
-    const nat=gsplitNaturalSlots(lane, Math.max(1,n|0), baseX, (waveIdx|0)*31+lane);
-    const minX=Math.min(...nat.map(s=>s.x)), shift=Math.max(0, 62-minX);
-    const s=nat[Math.min(i,nat.length-1)]; return { x: s.x+shift, y: s.y };
+    const rows=gsplitRowSlots(lane, ks, baseX, -1, (waveIdx|0)*31+lane);
+    const minX=Math.min(...rows.map(r=>r.x)), shift=Math.max(0, 62-minX);
+    (GSPLIT._allyFront||(GSPLIT._allyFront={}))[wk]=Math.max(...rows.map(r=>r.x))+shift;   // v590: remembered so the monsters form up IN FRONT of it
+    const s=rows[Math.min(i,rows.length-1)]; return { x: s.x+shift, y: s.y };
   }
-  return { x: gsplitClampX(baseX + sl.dx), y: sl.y };
+  /* v590: the first stretch of road is short, so the heroes' formation is pushed right to stay in the field - the
+     monsters' front never lands inside it: at least two columns clear of the heroes' front row */
+  const af=GSPLIT._allyFront&&GSPLIT._allyFront[wk];
+  const eBase=(af!=null)?Math.max(baseX, af+colX*2):baseX;
+  const rows=gsplitRowSlots(lane, ks, eBase, 1, (waveIdx|0)*31+lane+500);
+  const s=rows[Math.min(i,rows.length-1)];
+  return { x: gsplitClampX(s.x), y: s.y };
+}
+
+/* v590 - FRONT / MID / BACK ROWS, THE GAME'S OWN. Row from heroFormationDepth (HERO_PROFILES for heroes, role for
+   monsters: Tank 0 - Bruiser 1.35 - Assassin 1.7 - the rest 3.4). `dir` is the way the formation extends from its
+   front: -1 for heroes (back down the road, away from the monsters), +1 for monsters. Row-mates spread across the
+   middle of the road; a crowded row adds a staggered second line inside the row. Fixed per-slot jitter. */
+const GSPLIT_ROW_OF=d=> d<0.7?0 : d<2.5?1 : 2;
+function gsplitRowSlots(lane, keys, frontX, dir, seed){
+  const n=keys.length, colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5, rowGap=colX*1.25, rankY=(1.5*BONUS_UNIT_SCALE)/SC*1.25;
+  const band=gsplitLaneBand(lane), mid=GSPLIT_ROAD_Y_FITTED[lane], maxRanks=Math.max(1,gsplitRanks(lane));
+  const rowOf=keys.map(k=>GSPLIT_ROW_OF(heroFormationDepth(k)));
+  const used=[0,1,2].filter(r=>rowOf.includes(r));                 // empty rows close up - no gap where no one stands
+  const out=new Array(n);
+  used.forEach((r,ri)=>{
+    const members=[]; rowOf.forEach((rr,ix)=>{ if(rr===r) members.push(ix); });
+    const m=members.length, ranks=Math.min(maxRanks, Math.max(1, Math.ceil(m/Math.ceil(m/Math.min(maxRanks,3)))));
+    members.forEach((ix,j)=>{
+      const rk=j%ranks, sub=(j/ranks)|0;
+      const jx=(gsplitHash01(ix,seed)-0.5)*colX*0.5, jy=(gsplitHash01(ix,seed+101)-0.5)*rankY*0.5;
+      let y=mid+(rk-(ranks-1)/2)*rankY+((sub%2)?rankY*0.5:0)+jy; y=Math.max(band.lo+4, Math.min(band.hi-4, y));
+      out[ix]={ x: Math.round(frontX + dir*(ri*rowGap + sub*colX*0.7) + jx), y: Math.round(y), row:r };
+    });
+  });
+  return out;
 }
 
 /* v589 - A NATURAL FORMATION. Columns 1.5 footprints apart running BACK from `frontX`, ranks across the middle of
@@ -4638,8 +4674,8 @@ function gsplitRegroupPlan(){
   const W=GSPLIT.window; if(!W) return; const s=Math.max(0,Math.min(3,W.station|0));
   for(const L of GSPLIT.lanes){
     if(L.state!=='walking') continue;
-    const al=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon&&u.x>-1000).sort((a,b)=>b.x-a.x);
-    const slots=gsplitNaturalSlots(L.i, al.length, gsplitRegroupFrontX(L.i,s), s*17+L.i);
+    const al=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon&&u.x>-1000);
+    const slots=gsplitRowSlots(L.i, al.map(u=>u.key), gsplitRegroupFrontX(L.i,s), -1, s*17+L.i);   // v590: regroup into front / mid / back rows
     al.forEach((u,ix)=>{ u._rgX=slots[ix].x; u._rgY=slots[ix].y; });
   }
 }
@@ -5921,7 +5957,7 @@ function gsplitEnterBattle(data, assign, id){
   GSPLIT.attemptId = data.attemptId;
   GSPLIT.seed = seed;
   GSPLIT.level = data.boonLevel||1;
-  GSPLIT.waveShown = 0; GSPLIT._cardSeq=0;
+  GSPLIT.waveShown = 0; GSPLIT._cardSeq=0; GSPLIT._allyFront={};   // v590: per-run hero fronts (gsplitLaneSlot)
   GSPLIT.boonOffers = data.boonOffers||[];
   GSPLIT.lanes = [0,1,2].map(i=>{
     const L=gsplitLane(i);
@@ -19090,7 +19126,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789734595735';
+const BUILD_ID = '1789734862081';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
