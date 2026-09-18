@@ -10178,7 +10178,7 @@ function battleFrameTail(dt){
   shots.forEach(s=>{s.t+=dt;}); shots.filter(s=>s.t>=s.dur).forEach(s=>{if(s.onDone)s.onDone(); scene.remove(s.mesh);s.mesh.material.dispose();}); shots=shots.filter(s=>s.t<s.dur);
   particles.forEach(p=>{p.t+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=6*dt;p.mesh.material.opacity=Math.max(0,1-p.t/p.life);});
   particles.filter(p=>p.t>=p.life).forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=particles.filter(p=>p.t<p.life);
-  floatTexts.forEach(f=>{f.t-=dt;f.y-=(f.vy||1)*(60*dt);}); floatTexts=floatTexts.filter(f=>f.t>0);
+  { const _ftD=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active)?BONUS_UNIT_SCALE:1; floatTexts.forEach(f=>{f.t-=dt;f.y-=(f.vy||1)*(60*dt)*_ftD;}); } floatTexts=floatTexts.filter(f=>f.t>0);   // v593: in a bonus run numbers rise a 0.28-scale distance
   updateStaffFx(dt);   // KonWu ultimate phantom-staff slams
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
@@ -10902,6 +10902,16 @@ function headScreen(u){ const s=u&&u._sprRef; if(!s) return null;
   _hv.add(_hup);
   _v.copy(_hv).project(camera);
   return {x:(_v.x*.5+.5)*CW, y:(-_v.y*.5+.5)*CH, vis:_v.z<1}; }
+/* v593 (Phil, 18 Sep: "it appears their health bars arent over their heads"): v589 anchored a bonus bar with
+   project(x, y, headHeight) so it would not bob with a swing - but that offsets along WORLD +Y, the exact mistake
+   headScreen's comment above describes: foreshortened by the camera tilt and leaning with perspective, so the bar sat
+   2-6 px low and 3-6 px to the side of a 13-20 px bonus body (on the chest, beside the head). Same steady logical
+   foot point as v589, offset along the camera's up axis like headScreen. */
+function headScreenRest(u){ if(!camera) return null;
+  _hv.set(wx(u.rx==null?u.x:u.rx), 0, wz(u.ry==null?u.y:u.ry));
+  _hup.set(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(Math.max(0.05,restHeadOff(u)));
+  _hv.add(_hup); _v.copy(_hv).project(camera);
+  return {x:(_v.x*.5+.5)*CW, y:(-_v.y*.5+.5)*CH, vis:_v.z<1}; }
 function glowUnit(u,intensity,rgb){ if(!u||!u.alive)return; const p=project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,1.0); if(!p.vis)return; const rad=(u.boss?48:30), c=rgb||'255,245,200'; const g=octx.createRadialGradient(p.x,p.y,2,p.x,p.y,rad); g.addColorStop(0,'rgba('+c+','+(0.55*intensity)+')'); g.addColorStop(0.55,'rgba('+c+','+(0.25*intensity)+')'); g.addColorStop(1,'rgba('+c+',0)'); octx.save(); octx.globalCompositeOperation='lighter'; octx.fillStyle=g; octx.beginPath(); octx.arc(p.x,p.y,rad,0,7); octx.fill(); octx.restore(); }
 let _olPrev=0, _olDt=0;
 function drawOverlay(){octx.clearRect(0,0,CW,CH);
@@ -10922,7 +10932,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     // artwork (baked into every clip). For the raven that is ~1.05x sprH; using sprH alone put the
     // bar through his body. Always measured off the IDLE clip so the bar never jumps when he
     // attacks or casts (those cells include effects far above his head).
-    const _p0=(u._gauntScale ? project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,Math.max(0.05,restHeadOff(u))) : headScreen(u))   // v589: a bonus bar rides the logical head, so it never bobs with a swing
+    const _p0=(u._gauntScale ? headScreenRest(u) : headScreen(u))   // v589: a bonus bar rides the logical head, so it never bobs with a swing (v593: along the camera's up axis)
       ||project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,(u.sprH!=null?u.sprH:(u.boss?3.2:2.0)*(u.r/18)));
     if(!_p0.vis)return;
     // the gap is set in SCREEN pixels, not world units, so it reads the same on a big boss and a
@@ -10957,20 +10967,25 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
       _ic.forEach(img=>{ octx.drawImage(img, ix-isz/2, si.y-isz, isz, isz); ix+=isz+2; }); } });
   // Magic Rush-style juicy combat text: thick-outlined, color-coded, crits are bigger with a starburst
   octx.textAlign='center'; octx.textBaseline='middle'; octx.lineJoin='round';
-  const _ftBn=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active);   // v589: bonus-run numbers float just over a 0.28-scale head, at 70% size (they still grow with zoom)
+  const _ftBn=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active);   // v589: bonus-run numbers float just over a 0.28-scale head (they still grow with zoom)
+  /* v593 (Phil, 18 Sep: "Texts are way too big also" / "Should scale the same way as heroes and spells"): v589 drew bonus
+     numbers and ability names at 70% of campaign size around 0.28-scale units, so a name plate was two heroes wide. Every
+     part of the text now takes BONUS_UNIT_SCALE, the factor the heroes and (v592) their spell areas take: font, outline,
+     name plate padding/corners, and the rise. Zooming in still grows them with the units. */
+  const _ftK=_ftBn?BONUS_UNIT_SCALE:1;
   floatTexts.forEach(f=>{const p=project(f.x,f.y,(f.hz||(f.label?3.1:1.8))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));if(!p.vis)return;   // v253: ability NAMES float higher, clear of the melee cluster
-    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*(_ftBn?0.7:1), col=f.color||'#fff';
+    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK, col=f.color||'#fff';
     octx.globalAlpha=life;
     // v253 (visual audit #5): an ability NAME gets a dark plate behind it so it never competes with
     // characters, damage numbers and FX; damage numbers keep the outlined treatment.
     if(f.label){ octx.font='900 '+sz+'px sans-serif';
-      const w=octx.measureText(f.txt).width+14, h=sz+8;
-      octx.fillStyle='rgba(8,12,20,.82)'; octx.strokeStyle='rgba(255,212,94,.55)'; octx.lineWidth=1.5;
+      const w=octx.measureText(f.txt).width+14*_ftK, h=sz+8*_ftK;
+      octx.fillStyle='rgba(8,12,20,.82)'; octx.strokeStyle='rgba(255,212,94,.55)'; octx.lineWidth=1.5*_ftK;
       const rx=p.x-w/2, ry=p.y-h/2;
-      if(octx.roundRect){ octx.beginPath(); octx.roundRect(rx,ry,w,h,6); octx.fill(); octx.stroke(); }
+      if(octx.roundRect){ octx.beginPath(); octx.roundRect(rx,ry,w,h,6*_ftK); octx.fill(); octx.stroke(); }
       else { octx.fillRect(rx,ry,w,h); octx.strokeRect(rx,ry,w,h); } }
     octx.font='900 '+sz+'px sans-serif';
-    octx.lineWidth=Math.max(3,sz*0.24); octx.strokeStyle='rgba(0,0,0,.9)'; octx.strokeText(f.txt,p.x,p.y);
+    octx.lineWidth=_ftBn?Math.max(0.6,sz*0.24):Math.max(3,sz*0.24); octx.strokeStyle='rgba(0,0,0,.9)'; octx.strokeText(f.txt,p.x,p.y);
     octx.fillStyle=col; octx.fillText(f.txt,p.x,p.y); });
   octx.globalAlpha=1; octx.textBaseline='alphabetic';
   if(screenFlash>0){octx.fillStyle=`rgba(255,212,94,${screenFlash*.4})`;octx.fillRect(0,0,CW,CH);}
@@ -13723,14 +13738,14 @@ Object.assign(KITS, {
   pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',gfxR:3*METER},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',gdur:1.6,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
   stormwarden:{green:{name:'Volt Pike',type:'piercethrow',mul:1.5,width:34,cd:7,desc:"A piercing spear thrust damages enemies in a narrow line.",pfx:'stormwarden_green_fx',pscale:2.6,gfx:'stormwarden_green',gfxR:3*METER,gdur:2.62},blue:{name:'Thunder Guard',type:'thornguard',pct:0.18,thorn:0.6,dur:5,cd:9,desc:"A defensive brace shields him and retaliates against direct attacks.",gfxAt:'self',gdur:5.29,gfx:'stormwarden_blue',gfxR:3*METER},purple:{name:'Static Charge',pass:'staticcharge',desc:"Attacks build Charge; at maximum, his next ability chains."}},
   verdantshade:{green:{name:'Thornshot',type:'shred',mul:1.55,shred:0.32,dur:5,cd:6,desc:"A piercing arrow lowers the target's armor.",pfx:'verdantshade_green_fx',pscale:2.4,gfx:'verdantshade_green',gfxR:3*METER},blue:{name:'Vine Snare',type:'swamproot',mul:0.85,root:2.2,radius:2.4*METER,cd:10,desc:"A delayed forest mark roots an advancing enemy.",gdur:1.8,gfx:'verdantshade_blue'},purple:{name:"Hunter's Patience",pass:'patience',desc:"Continuous attacks against one target gain critical chance."}},
-  voidweaver:{green:{name:'Abyssal Needle',type:'mrshred',mul:1.5,shred:0.32,dur:5,cd:6,desc:"Compressed void energy lowers enemy magic resistance.",pfx:'voidweaver_green_fx',pscale:2.2,gfx:'voidweaver_green',gfxR:3*METER},blue:{name:'Gravity Knot',type:'gravknot',mul:0.6,radius:4*METER,pull:2.2*METER,slow:3,cd:10,desc:"Nearby enemies are pulled together and slowed.",gdur:1.8,ring:0x6a3fb0,spark:0x9b5cff,gfx:'voidweaver_blue'},purple:{name:'Dark Convergence',pass:'convergence',desc:"Multi-target spells restore additional energy."}},
+  voidweaver:{green:{name:'Abyssal Needle',type:'mrshred',mul:1.5,shred:0.32,dur:5,cd:6,desc:"Compressed void energy lowers enemy magic resistance.",pfx:'voidweaver_green_fx',pscale:2.2,gfx:'voidweaver_green',gfxR:3*METER},blue:{name:'Gravity Knot',type:'gravknot',mul:0.6,radius:4*METER,pull:2.2*METER,slow:3,cd:10,desc:"Nearby enemies are pulled together and slowed.",gdur:1.8,ring:0x6a3fb0,spark:0x9b5cff,gfx:'voidweaver_blue',artR:1.7*METER},purple:{name:'Dark Convergence',pass:'convergence',desc:"Multi-target spells restore additional energy."}},
   dawnbringer:{green:{name:'Radiant Hammer',type:'atkcrush',mul:1.45,pct:0.35,stun:0.5,dur:5,cd:8,desc:"A crushing strike reduces the target's attack power.",gfxAt:'target',gdur:1.2,gfx:'dawnbringer_green',gfxR:3*METER},blue:{name:'Sanctuary Guard',type:'lastbreath',mul:1.9,dur:5,cd:10,desc:"His shield protects the weakest ally and intercepts damage.",gfxAt:'self',gdur:1.6,gfx:'dawnbringer_blue'},purple:{name:'Unbroken Dawn',pass:'unbroken',desc:"At low health he gains a shield and control resistance once per battle."}},
   cathedral:{green:{name:'Cathedral Gates',type:'aoeStun',mul:1.1,stun:1.3,radius:2.8*METER,cd:10,desc:"Slam the cathedral-door shield forward, stunning enemies in a wide arc.",gfxAt:'self',gdur:1.6,gfx:'cathedral_green'},blue:{name:'Incense of Penance',type:'incense',mul:0.4,pct:0.25,radius:5*METER,dur:6,cd:9,desc:"Release holy incense that reduces enemy damage and cleanses nearby allies.",gfxAt:'self',gdur:2.0,gfx:'cathedral_blue',gfxR:3*METER},purple:{name:'Sacred Bells',pass:'sacredbells',desc:"Every few seconds, the cathedral bells ring and grant nearby allies Armor."}},
-  lastfurnace:{green:{name:'Forge Strike',type:'cleave',mul:1.8,radius:3*METER,cd:7,desc:"Command the molten hammer to crash down and deal heavy damage.",gfxAt:'target',gdur:1.4,gfx:'lastfurnace_green'},blue:{name:'Chain Quench',type:'chainquench',mul:0.85,dps:0.35,dur:4,radius:4.5*METER,pull:2.4*METER,cd:10,desc:"Lash out with molten chains, pulling enemies together and burning them.",gfxAt:'self',gdur:1.8,gfx:'lastfurnace_blue'},purple:{name:'Tempered Steel',pass:'warden',desc:"Each successful hit hardens his armor and increases Defense."}},
+  lastfurnace:{green:{name:'Forge Strike',type:'cleave',mul:1.8,radius:3*METER,cd:7,desc:"Command the molten hammer to crash down and deal heavy damage.",gfxAt:'target',gdur:1.4,gfx:'lastfurnace_green'},blue:{name:'Chain Quench',type:'chainquench',mul:0.85,dps:0.35,dur:4,radius:4.5*METER,pull:2.4*METER,cd:10,desc:"Lash out with molten chains, pulling enemies together and burning them.",gfxAt:'self',gdur:1.8,gfx:'lastfurnace_blue',artR:1.9*METER},purple:{name:'Tempered Steel',pass:'warden',desc:"Each successful hit hardens his armor and increases Defense."}},
   beekeeper:{green:{name:'Hornet Cloud',type:'hornetswarm',n:30,dps:0.42,dur:4,radius:2.8*METER,cd:7,desc:"Send enraged hornets forward to damage and poison enemies.",gfx:'beekeeper_green',gdur:5.88},blue:{name:'Royal Nectar',type:'honeyglob',heal:0.15,hot:0.045,dur:5,cd:8,desc:"Coat allies in enchanted honey, restoring health and increasing Attack Speed.",gfx:'beekeeper_blue',gdur:5.88},purple:{name:'Worker Swarm',pass:'beeward',desc:"A small swarm continuously heals nearby allies."}},
   librarian:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,dur:16,radius:1.6*METER,cd:11,desc:"Summon a Lesser Ink Spirit that hunts enemies and can only basic attack."},blue:{name:'Chapter Rewrite',type:'chapterrewrite',mul:1.1,pct:0.30,shred:0.25,dur:6,cd:9,desc:"Rewrite an enemy's story, reducing its stats and reversing beneficial effects.",gfxAt:'target',gdur:1.6,gfx:'librarian_blue',gfxR:3*METER},purple:{name:'Living Pages',pass:'livingpages',desc:"Each spell writes a Living Page that empowers his next basic attack."}},
   corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.85,n:4,cd:6,desc:"Fire a rapid volley from both pistols, striking multiple enemies.",pfx:'bullet',pscale:CORSAIR_BULLET_SCALE,pdur:0.14,gfxAt:'muzzle',gfx:'corsair_green',gfxR:3*METER},blue:{name:'Grappling Hook',type:'grapple',mul:1.25,stun:1.1,pull:5*METER,cd:9,desc:"Launch a hook that pulls an enemy inward and stuns it.",pfx:'corsair_blue_fx',pscale:2.4,gfx:'corsair_blue',gfxR:3*METER},purple:{name:"Pirate's Instinct",pass:'instinct',desc:"Every few shots, the next attack ignores part of the target's Defense."}},
-  waxenduchess:{green:{name:'Waxen Effigy',type:'effigy',mul:1.1,stun:1.1,mark:1.18,dur:6,cd:7,desc:"Creates a wax copy of the enemy with the highest Attack. Damage dealt to the effigy transfers to that enemy, and destroying it briefly stuns them.",gfx:'waxenduchess_green',gdur:5.88},blue:{name:'Mourning Bell',type:'nova',at:'cluster',mul:1.0,radius:8*METER,cd:9,desc:"Damages all enemies and detonates every active Waxen Effigy for additional area damage.",gfx:'waxenduchess_blue',gdur:2.21},purple:{name:'Living Tallow',pass:'tallow',desc:"Enemy abilities apply wax. At three stacks, the enemy becomes encased and temporarily cannot attack or cast."}},
+  waxenduchess:{green:{name:'Waxen Effigy',type:'effigy',mul:1.1,stun:1.1,mark:1.18,dur:6,cd:7,desc:"Creates a wax copy of the enemy with the highest Attack. Damage dealt to the effigy transfers to that enemy, and destroying it briefly stuns them.",gfx:'waxenduchess_green',gdur:5.88},blue:{name:'Mourning Bell',type:'nova',at:'cluster',mul:1.0,radius:8*METER,cd:9,desc:"Damages all enemies and detonates every active Waxen Effigy for additional area damage.",gfx:'waxenduchess_blue',gdur:2.21,artR:2.6*METER},purple:{name:'Living Tallow',pass:'tallow',desc:"Enemy abilities apply wax. At three stacks, the enemy becomes encased and temporarily cannot attack or cast."}},
 });
 Object.assign(ABILITY_CAST, {pyroclast:{ult:1.0,green:0.5,blue:0.6}, stormwarden:{ult:1.0,green:0.5,blue:0.6}, verdantshade:{ult:1.0,green:0.5,blue:0.6}, voidweaver:{ult:1.0,green:0.5,blue:0.6}, dawnbringer:{ult:1.0,green:0.5,blue:0.6}, cathedral:{ult:1.0,green:0.5,blue:0.6}, lastfurnace:{ult:1.0,green:0.5,blue:0.6}, beekeeper:{ult:1.0,green:0.5,blue:0.6}, librarian:{ult:1.0,green:0.5,blue:0.6}, corsair:{ult:1.0,green:0.5,blue:0.6}, waxenduchess:{ult:1.0,green:0.5,blue:0.6}});
 Object.assign(FX2_DEF, {
@@ -19176,7 +19191,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789736359238';
+const BUILD_ID = '1789740776445';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
