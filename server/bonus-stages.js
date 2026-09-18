@@ -525,6 +525,10 @@ function starsFor(res){
   if(!res || !res.won) return 0;
   if((res.lanesCleared|0) >= LANES) return 3;          // all three lanes home
   if((res.lanesCleared|0) < 2) return 0;               // not a win at all; belt and braces
+  /* v596 (Phil, 18 Sep: "You can still clear with 2 lanes won, but its not free correct, punish them"): a road that
+     FELL caps the run at 1 star. Its monsters already march on the other two roads (client gsplitRedistribute); the cap
+     closes the empty-road trick - move every hero off a road at a firebreak, lose no heroes, keep 2 stars. */
+  if((res.lanesLost|0) >= 1) return 1;
   const sent = Math.max(0, res.heroesSent|0);
   const lost = Math.max(0, Math.min(sent, res.heroesLost|0));
   if(!sent) return 1;                                  // nothing to measure: the floor
@@ -536,9 +540,10 @@ function starExplain(res){
   const sent=Math.max(1,res&&res.heroesSent|0), lost=Math.max(0,(res&&res.heroesLost|0));
   const pct=Math.round(lost/sent*100);
   const st=starsFor(res);
-  if(!st) return 'Two roads must come home before one falls.';
+  if(!st) return 'Two roads must come home - a second fallen road ends the run.';
   if(st===3) return 'All three roads came home.';
   if(st===2) return 'Two roads home, '+pct+'% of your heroes lost — under '+Math.round(STAR_DEATH_LIMIT_2*100)+'%.';
+  if((res.lanesLost|0) >= 1) return 'Two roads home, but one road fell — its monsters marched on the others.';
   return 'Two roads home, but '+pct+'% of your heroes fell.';
 }
 
@@ -997,12 +1002,14 @@ async function handle(p, method, ctx){
     if(now - (a.startedAt||0) > ATTEMPT_MS){ b.att=null; ctx.writeDB();
       return { status:400, body:{ok:false, expired:true, error:'That bonus run expired — start it again.'} }; }
 
-    /* Phil's win rule, enforced here and not taken from the client:
-       "in order to win you must win atleast 2 lanes before you lose one". */
+    /* Phil's win rule, enforced here and not taken from the client. It WAS "in order to win you must win atleast 2
+       lanes before you lose one"; 18 Sep 2026 (v596) Phil: "You are allowed to lose 1 lane" - a fallen road ends, its
+       monsters split between the other two (client gsplitRedistribute), and two roads home is a win. A second fallen
+       road is a loss. */
     const cleared = Math.max(0, Math.min(LANES, body.lanesCleared|0));
     const lost    = Math.max(0, Math.min(LANES, body.lanesLost|0));
     if(cleared+lost > LANES) return { status:400, body:{ok:false,error:'Impossible lane count.'} };
-    const won = (cleared>=2) && (lost===0 || (body.firstLossAfterSecondClear===true));
+    const won = (cleared>=2) && (lost<=1);
 
     /* SECURITY 17 Sep - deny a forged instant clear WITHOUT consuming the attempt: b.att is left
        intact (not nulled) on either rejection, so an honest client that hit a bug can still play

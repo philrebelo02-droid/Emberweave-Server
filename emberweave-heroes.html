@@ -4402,6 +4402,11 @@ function gsplitLane(i){
    trusting that two names on one `let` line are the same KIND of thing. Filed to GOTCHAS. */
 function gsplitLoad(L){
   units = L.units; _brng = L.brng;
+  /* v596 (rig playtest): battleTime/rageMul were ONE global for three roads. updateBattle adds dt once per road per tick, so
+     with three roads fighting the clock ran 3x: the late-fight damage ramp (rageMul, after 22 s) started ~11 s in and reached
+     2.27x by 20 s, the 90 s time-out defeat fired on a ~30 s fight, and whichever road started its next wave reset the clock
+     for all three. Each road now carries its own. */
+  battleTime = L.battleTime || 0; rageMul = L.rageMul || 1;
   waveIdx = L.waveIdx; chapterWaves = L.waves;
   ended = L.ended; waveXfer = L.xfer;
   GSPLIT.curLane = L.i;   // 17 Sep - laneSlot() reads this to place a spawned unit on THIS road,
@@ -4409,6 +4414,7 @@ function gsplitLoad(L){
 }
 function gsplitSave(L){
   L.units = units; L.brng = _brng;
+  L.battleTime = battleTime; L.rageMul = rageMul;   // v596: per-road clock
   L.waveIdx = waveIdx; L.ended = ended; L.xfer = waveXfer;
   GSPLIT.curLane = null;
 }
@@ -4425,7 +4431,7 @@ function gsplitStep(dt){
     try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
     gsplitSave(L);
     if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
-    else if(!units.some(u=>u.team==='ally'&&u.alive&&!u._summon)) gsplitLaneFallen(L);
+    else if(!units.some(u=>u.team==='ally'&&u.alive&&(!u._summon||u[EVERLASTING_FLAG]))) gsplitLaneFallen(L);   // v596: Everlasting summons hold the road
   }
   /* the renderer draws everyone; only the SIM was ever confined */
   units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
@@ -4439,10 +4445,10 @@ function gsplitWalking(){ return GSPLIT.lanes.filter(L=>L.state==='walking').len
 
 /* Phil's win rule, checked after every tick: two roads home is a win; one road lost before that ends
    the run. */
-function gsplitVerdict(){
-  if(gsplitCleared()>=2) return 'won';
-  if(gsplitLost()>=1 && gsplitCleared()<2) return 'lost';
-  return null;
+function gsplitVerdict(){   // superseded by the later declaration below (v596 rule: a second fallen road loses)
+  if(gsplitLost()>=2) return 'lost';
+  if(gsplitWalking()>0) return null;
+  return (gsplitCleared()>=2) ? 'won' : 'lost';
 }
 
 /* ------------------------------------------------- the eight firebreak paths
@@ -4987,6 +4993,11 @@ function gsplitFrameTail(dt){
     gsplitFxSwapOut(L); gsplitSave(L);
   }
   units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+  /* v596: `ended` is per ROAD (gsplitLoad/Save carry it), but loop() reads the GLOBAL to decide whether to tick the sim at
+     all. A fallen road keeps ended=true, and during a firebreak it can be the last road loaded here (the others are held a
+     wave ahead), so the global stayed true and the run froze after START - found in the rig once a road could fall and
+     the run go on. The run itself ends through gsplitFinish, never through this flag. */
+  ended = false;
   gsplitFxRenderView();   // v589: every road's damage numbers on screen, not one road's
 }
 
@@ -5001,7 +5012,7 @@ function gsplitStep(dt){
     try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
     gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
     if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
-    else if(!units.some(u=>u.team==='ally'&&u.alive&&!u._summon)) gsplitLaneFallen(L);
+    else if(!units.some(u=>u.team==='ally'&&u.alive&&(!u._summon||u[EVERLASTING_FLAG]))) gsplitLaneFallen(L);   // v596: Everlasting summons hold the road
   }
   gsplitFrameTail(dt);                            // once per road per FRAME, not three times per tick
 }
@@ -5671,6 +5682,10 @@ function gsplitWindowTick(dt){
    window rather than a second one. */
 function gsplitWindowMaybeOpen(){
   if(!GSPLIT.active || gsplitWindowOpen()) return;
+  /* v596 (rig playtest, 18 Sep): a road that fell this tick decided the run, but the window check ran BEFORE the verdict,
+     so the next firebreak opened and asked for boons while /resolve was still on its way - the player picked boons for a
+     run that was already lost. A decided (or resolving) run never opens another firebreak. */
+  if(GSPLIT._finishing || gsplitVerdict()) return;
   if(gsplitWalking() === 0) return;
   if(!gsplitWaveBoundary()) return;
   if(gsplitOpenWindow()) gsplitWindowDraw();
@@ -6063,6 +6078,49 @@ function gsplitLaneFallen(L){
   if(!L || L.state !== 'walking') return;
   L.state = 'lost';
   bannerMsg('◆ '+L.name+' — FALLEN');
+  L._redistPending = true;   // v596: dealt out after every road has ticked (see the lane loop) - never from inside a road's own update
+}
+/* v596 (Phil, 18 Sep: "You are allowed to lose 1 lane" / "It should end, but the monsters that were meant to go to that
+   lane should then split evenly amongst the other 2 lanes" / "To punish people who try to leave an empty lane").
+   Every road fights the same wave number (the firebreaks sync them), so when road F falls on wave w:
+   - each monster still standing on F goes, in turn, to one of the roads still walking: LIVE (current HP, running in from
+     that road's far end) if that road is still fighting wave w, otherwise into that road's next wave;
+   - every monster of F's later waves is dealt, in turn, into the same wave of the roads still walking. */
+function gsplitRedistribute(F){
+  /* a fallen road's leftover summons (Hurne's warriors, a monster's adds) would stand on the empty road for the rest of the
+     run. Only an Everlasting summon may outlive its heroes, and a road that still has one has not fallen (v596). */
+  for(let i = F.units.length - 1; i >= 0; i--){ const u = F.units[i]; if(u.alive && u._summon){ u.alive = false; if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } F.units.splice(i, 1); } }
+  const live = GSPLIT.lanes.filter(L => L !== F && L.state === 'walking'); if(!live.length) return;
+  let turn = 0; const pick = () => live[(turn++) % live.length];
+  const w = F.waveIdx|0, last = (F.waves || (F.waves3||[]).length || 5) - 1;
+  const specOf = (u) => { const s = ((F.waves3||[])[w]||[]).find(x => x.key === u.key); return Object.assign({}, s || { key:u.key, lvl:u.lvl||1 }); };
+  /* where a newcomer stands on road T: with T's monsters (fighting or parked for the next wave), else at T's far end */
+  const spot = (T, u) => { const foes = T.units.filter(e => e !== u && e.alive && e.team === 'enemy');
+    if(foes.length){ u.x = Math.max.apply(null, foes.map(e => e.x)) + 40; u.y = foes.reduce((a,e) => a + e.y, 0) / foes.length;
+      const hx = foes.filter(e => e.homeX != null); if(hx.length) u.homeX = Math.max.apply(null, hx.map(e => e.homeX)) + 30; }
+    else { u.x = FW + GSPLIT_MONSTER_IN_OFF; }
+    u.px = u.x; u.py = u.y; u.target = null; };
+  /* a spec for wave k: queued if T has not built wave k yet, otherwise spawned onto T now (the v596 rig caught specs
+     written into a wave T had already built - they never appeared) */
+  const place = (T, s, k) => {
+    if(k > (T.waveIdx|0) && k <= last){ T.waves3 = T.waves3 || []; (T.waves3[k] = T.waves3[k] || []).push(s); return; }
+    gsplitLoad(T);
+    try{ const sl = laneSlot('enemy', s.key, 0, 1, [s.key]);
+      const u = makeUnit(s.key, 'enemy', sl.x, sl.y, s.lvl||1, {boss:!!s.boss});
+      u.maxHp = Math.round(u.maxHp*(s.hpMul||1)*(s.boss?1.15:1)); u.hp = u.maxHp; u.dmg = u.dmg*(s.dmgMul||1);
+      u.homeX = sl.x; units.push(u); buildFigure(u); spot(T, u);
+    } finally { gsplitSave(T); } };
+  for(const u of F.units.filter(e => e.alive && e.team === 'enemy' && !e._summon)){
+    const T = pick(); F.units.splice(F.units.indexOf(u), 1);
+    const fighting = T.waveIdx === w && !T.xfer && T.units.some(e => e.alive && e.team === 'enemy');
+    if(fighting || (T.waveIdx|0) > w){ T.units.push(u); spot(T, u); }            // joins T's fight, or the wave T has parked
+    else { if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } place(T, specOf(u), w + 1); }
+  }
+  for(let k = w + 1; k <= last; k++){
+    for(const s of ((F.waves3||[])[k] || [])) place(pick(), Object.assign({}, s), k);
+    if(F.waves3) F.waves3[k] = [];
+  }
+  bannerMsg('◆ '+F.name+' fell - its monsters march on the other roads');
 }
 
 function gsplitEndBattle(won){
@@ -6073,7 +6131,7 @@ function gsplitEndBattle(won){
 }
 
 function gsplitVerdict(){
-  if(gsplitLost() >= 1 && gsplitCleared() < 2) return 'lost';
+  if(gsplitLost() >= 2) return 'lost';   // v596 (Phil: "You are allowed to lose 1 lane"): only a SECOND fallen road ends the run
   if(gsplitWalking() > 0) return null;
   return (gsplitCleared() >= 2) ? 'won' : 'lost';
 }
@@ -6086,6 +6144,11 @@ function gsplitFrameTail(dt){
     gsplitFxSwapOut(L); gsplitSave(L);
   }
   units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+  /* v596: `ended` is per ROAD (gsplitLoad/Save carry it), but loop() reads the GLOBAL to decide whether to tick the sim at
+     all. A fallen road keeps ended=true, and during a firebreak it can be the last road loaded here (the others are held a
+     wave ahead), so the global stayed true and the run froze after START - found in the rig once a road could fall and
+     the run go on. The run itself ends through gsplitFinish, never through this flag. */
+  ended = false;
   gsplitFxRenderView();   // v589: every road's damage numbers on screen, not one road's
 }
 
@@ -6216,7 +6279,7 @@ function gsplitFinishFailed(won, data, err, attempt){
 function gsplitShowResult(won, data){
   const stageId = GSPLIT.stage;
   const stars = (data && typeof data.stars === 'number') ? data.stars : 0;
-  const note = (data && data.starNote) ? data.starNote : (won ? 'Two roads must come home before one falls.' : '');
+  const note = (data && data.starNote) ? data.starNote : (won ? '' : 'Two roads must come home - a second fallen road ends the run.');
   const starStr = stars ? ' '+'★'.repeat(stars)+'☆'.repeat(3-stars) : '';
   gsplitWindowHide();
   gsplitEnd();
@@ -6363,8 +6426,12 @@ function gsplitStep(dt){
     try{ updateBattle(dt); }catch(e){ try{console.error('[gauntlet lane '+L.i+']',e);}catch(_){} }
     gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
     if(!units.some(u=>u.team==='enemy'&&u.alive) && L.waveIdx>=L.waves-1) gsplitLaneHome(L);
-    else if(!units.some(u=>u.team==='ally'&&u.alive&&!u._summon)) gsplitLaneFallen(L);
+    else if(!units.some(u=>u.team==='ally'&&u.alive&&(!u._summon||u[EVERLASTING_FLAG]))) gsplitLaneFallen(L);   // v596: Everlasting summons hold the road
   }
+  /* v596: a road can fall INSIDE its own updateBattle (gsplitEndBattle), while the globals still hold that road. Spawning
+     onto another road there swapped the globals under it, and the fallen road then saved the other road's unit list as its
+     own (rig: two roads sharing one array, 42 monsters became 48). So the redistribution waits until every road has ticked. */
+  for(const L of GSPLIT.lanes) if(L._redistPending){ L._redistPending = false; try{ gsplitRedistribute(L); }catch(e){ try{console.error('[gauntlet redistribute]',e);}catch(_){} } }
   gsplitFrameTail(dt);
   for(const L of GSPLIT.lanes) gsplitWallLane(L);
   gsplitWindowMaybeOpen();
@@ -6542,7 +6609,8 @@ gsplitShowResult=function(won,data){
   card.appendChild(note);
   if(won && data && data.firstClear){
     const reward=document.createElement('p');
-    reward.textContent='First clear: '+(Array.isArray(data.granted)?data.granted.length:0)+' glyph fragment rewards. '+(data.perHour||0)+' fragments per hour now available.';
+    { const _n=Array.isArray(data.granted)?data.granted.length:0, _ph=data.perHour||0;   // v596: plurals ("1 fragments per hour")
+      reward.textContent='First clear: '+_n+' glyph fragment reward'+(_n===1?'':'s')+'. '+_ph+' fragment'+(_ph===1?'':'s')+' per hour now available.'; }
     reward.style.cssText='font-size:13px;color:#ccebd0';
     card.appendChild(reward);
   }
@@ -10466,7 +10534,9 @@ function updateBattle(dt){
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended) vaultReinforce();   // The Vault: a fallen fighter pauses the fight so the player picks a backup
-  if(!ended && !VAULT_PICK_OPEN){const a=units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
+  /* v596 (Phil, 18 Sep, on a fallen road's leftover summons: "There should only be able to stay up if they have the summon
+     boon"): in a bonus run an Everlasting summon (EVERLASTING_FLAG) holds its road like a hero; any other summon does not. */
+  if(!ended && !VAULT_PICK_OPEN){const a=units.filter(u=>u.team==='ally'&&u.alive&&(!u._summon||(GSPLIT.active&&u[EVERLASTING_FLAG]))).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
     if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); } else if(a===0)endBattle(false);}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
 
@@ -19223,7 +19293,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789742072878';
+const BUILD_ID = '1789743821982';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
