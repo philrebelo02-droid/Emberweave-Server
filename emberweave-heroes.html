@@ -7453,12 +7453,18 @@ let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while 
    Damage, timing and targeting are untouched — this is purely what the player sees. */
 const _SELF_PLATE={aoedot:1, crescendo:1};
 const _SELF_CENTRED={thundershower:1,haste:1,defensive:1,warcry:1,taunt:1,lifestealbuff:1,dmgbuff:1,rally:1,nova:1,bloodnova:1,sunburst:1,duality:1,tidalsurge:1,pullsilence:1,crescendo:1,aoedot:1,harmonyshield:1,heal:1,spdsteal:1,erratafield:0};
-const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};   // these two always drew their plate on the caster
+const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};
+/* v595 (Phil, 18 Sep: "Any 'buff' or 'debuff' abilities. Debuffs meaning bleed or poison, mortal strikes, curse applications,
+   stuff like this should just be an icon animating over head. If its a constant ticking ability such as blizzard or void
+   circle it should be populating in the map not over head"): a debuff's art is a badge over each enemy it landed on
+   (debuffArtAll), never a plate on the ground. Ticking areas (blizzard, aoedot, ashfall, erratafield ...) stay on the map. */
+const _DEBUFF_BADGE={shred:1,mrshred:1,bleedstack:1,dot:1,creeprot:1,atkcrush:1,debtmark:1,markreveal:1,chapterrewrite:1};
+function _debuffSig(e){ return [(e.dots||[]).length,(typeof _pendingDots!=='undefined'?_pendingDots.filter(p=>p.t===e).length:0),e._blStk||0,e._blT||0,e._shredT||0,e._mrShredT||0,e._atkDnT||0,e._markT||0,e._debtStk||0,e._debtDur||0]; }   // these two always drew their plate on the caster
 /* v498 (Phil, on Lumi's Dawnward: "you need to make sure no buffs or heals are on the character, should be above").
    A buff or a heal is a STATUS MARKER, not a spell landing on the ground: it must never cover the body it belongs to.
    Every type listed here draws its plate above that unit's HEALTH BAR -- same anchor the bar itself uses -- whatever
    the sheet declares. Damage abilities are deliberately absent: those still land where they land. */
-const _ABOVE_BAR={dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,defensive:1,warcry:1,dmgbuff:1,crescendo:1,
+const _ABOVE_BAR={healbuff:1,honeyglob:1,lastbreath:1,thornguard:1,dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,defensive:1,warcry:1,dmgbuff:1,crescendo:1,
   lifestealbuff:1,laststand:1,spdsteal:1,firstspring:1,regen:1,cleanse:1,bulwark:1,dawnguard:1};   /* v558: harmonyshield LEFT this list on purpose. Phil: 'this is used on the lowest health ally, any ally within 7 meters of the center of the dome is shielded also' -- that is ONE 14 m dome over one ally, not a dome per shielded ally, so it must not go through the v552 per-unit fan-out. */
 function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   if(!o||!u||typeof spawnGroundFx!=='function') return;
@@ -7515,8 +7521,8 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
   const R = (o.artR>0) ? o.artR : ((o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER));   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR. v483: artR = explicit art size (Umbris Shadeburst covered the whole screen) */
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
-  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!(_ABOVE_BAR[type]&&c&&c._sprRef); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
-    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!((_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
+    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } if(_o&&_o.m&&(_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef){ const _p=new TH.Vector3(); c._sprRef.getWorldPosition(_p); _o.followAbove=c; _o.aboveOff=_o.m.position.clone().sub(_p); }   /* v595: an over-head badge rides with its unit */ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
@@ -7596,8 +7602,10 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
      `allyBadge` keeps the ability's own plate (Greatbrow's banner planted in front of him) AND puts a small copy
      (`badgeSize` x the unit's height) over every ally the effect actually changed. */
   const _allyBadge=!_buffArt&&!!(o&&o.allyBadge&&o.gfx&&FX2_DEF[o.gfx]);
+  const _debuffArt=!_buffArt&&!!(o&&o.gfx&&FX2_DEF[o.gfx]&&_DEBUFF_BADGE[type]); let _debuffSnap=null;   /* v595 */
+  if(_debuffArt){ _debuffSnap=units.filter(a=>a.alive&&a.team!==u.team).map(a=>[a].concat(_debuffSig(a))); }
   if(_buffArt||_allyBadge){ _buffSnap=units.filter(a=>a.alive&&a.team===u.team).map(a=>[a,a.hp,a.shield||0,a.shieldT||0,a.hasteT||0,a.dmgBuffT||0,a.drT||0,a._wardT||0,(a.hots||[]).length,a._lifestealT||0,a.slow||0,a._cleanseT||0,a._bulwarkT||0,a._regenT||0]); }
-  if(!_buffArt){ _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } }   // v313 — sprite plate for any ability that declares one (v594: an allyBadge ability draws its own plate too)
+  if(!_buffArt&&!_debuffArt){ _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } }   // v313 — sprite plate for any ability that declares one (v594: an allyBadge ability draws its own plate too)
   // Slot-aware clip pick. Shared ability TYPES (nova, aoedot, heal…) are reused by many heroes,
   // so the type alone cannot name the right clip. If this cast is the hero's own green/blue and
   // their own sheet has a matching state, that clip wins; otherwise fall back to ABIL_ANIM.
@@ -8431,6 +8439,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
   }
   if(_buffArt){ try{ buffArtAll(u,o,tgt,aimCtr,type,_buffSnap); }catch(e){} }   /* v552 */
   if(_allyBadge){ try{ buffArtAll(u,o,tgt,aimCtr,type,_buffSnap,true); }catch(e){} }   /* v594 */
+  if(_debuffArt){ try{ debuffArtAll(u,o,tgt,aimCtr,type,_debuffSnap); }catch(e){} }   /* v595 */
   if(_gearSpellCrit)u._gearSpellCrit=false;
   HERO_FX_MUL=1;   // reset so nothing spawned after this call (or by other units) inherits the doubled duration
 }
@@ -8446,6 +8455,17 @@ function buffArtAll(u,o,tgt,aimCtr,type,snap,badgeOnly){
       _fxAllow=true; const fo=spawnGroundFx(o.gfx,a.x,a.y,R,life);
       if(fo&&fo.m&&a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); fo.followAbove=a; fo.aboveOff=fo.m.position.clone().sub(p); }
     }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; window._fxBadgeSize=null; } });
+}
+/* v595: badge every enemy whose debuff state this cast changed; if none changed yet (the debuff rides a projectile that
+   lands later) abilArt draws it - as a badge over the unit it lands on (_DEBUFF_BADGE in abilArt). */
+function debuffArtAll(u,o,tgt,aimCtr,type,snap){
+  const hit=[]; (snap||[]).forEach(s=>{ const a=s[0]; if(!a.alive)return; const now=_debuffSig(a); for(let i=0;i<now.length;i++){ if(now[i]!==s[i+1]){ hit.push(a); break; } } });
+  if(!hit.length){ _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } return; }
+  const life=o.gdur||1.6;
+  hit.slice(0,15).forEach(a=>{ try{ window._fxTgtH=a.sprH||null; window._fxTgtU=a._sprRef?a:null; window._fxAboveBar=!!a._sprRef; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+      _fxAllow=true; const fo=spawnGroundFx(o.gfx,a.x,a.y,1.2*METER,life);
+      if(fo&&fo.m&&a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); fo.followAbove=a; fo.aboveOff=fo.m.position.clone().sub(p); }
+    }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; } });
 }
 function kitReady(u,ab){ const ty=ab.type;
   if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
@@ -19203,7 +19223,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789741825761';
+const BUILD_ID = '1789742072878';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
