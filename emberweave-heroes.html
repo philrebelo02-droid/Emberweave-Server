@@ -19403,7 +19403,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789760321000';
+const BUILD_ID = '1789760777000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19757,15 +19757,15 @@ function edFig(h){ return ED_FIG_SCALE*Math.pow(1.1, Math.max(0,((h&&h.rank)|0)-
 const ED_ARENAS = [
   { id:'cinderforge', name:'The Cinderforge Hollow',
     img:'/assets/img/battlefields/emberdraft/cinderforge.webp', video:'/assets/img/battlefields/emberdraft/cinderforge.mp4',
-    far:{ x0:0.184, x1:0.8125, y:0.094 }, near:{ x0:0.1175, x1:0.875, y:0.764 },
+    far:{ x0:0.184, x1:0.8125, y:0.094 }, near:{ x0:0.1175, x1:0.875, y:0.764 }, lipY:0.806,
     plaza:{ farY:0.144, midY:0.428, nearY:0.711, farL:0.131, farR:0.872, nearL:0.0875, nearR:0.919 } },
   { id:'frostmere', name:'The Frostmere Reach',
     img:'/assets/img/battlefields/emberdraft/frostmere.webp', video:'/assets/img/battlefields/emberdraft/frostmere.mp4',
-    far:{ x0:0.174, x1:0.825, y:0.089 }, near:{ x0:0.109, x1:0.894, y:0.694 },
+    far:{ x0:0.174, x1:0.825, y:0.089 }, near:{ x0:0.109, x1:0.894, y:0.694 }, lipY:0.757,
     plaza:{ farY:0.156, midY:0.411, nearY:0.644, farL:0.119, farR:0.881, nearL:0.0875, nearR:0.909 } },
   { id:'tidewrack', name:'The Tidewrack Grotto',   // v606 (Phil: "Just the 3 for now")
     img:'/assets/img/battlefields/emberdraft/tidewrack.webp', video:'/assets/img/battlefields/emberdraft/tidewrack.mp4',
-    far:{ x0:0.161, x1:0.844, y:0.113 }, near:{ x0:0.1125, x1:0.884, y:0.733 },
+    far:{ x0:0.161, x1:0.844, y:0.113 }, near:{ x0:0.1125, x1:0.884, y:0.733 }, lipY:0.793,
     plaza:{ farY:0.178, midY:0.436, nearY:0.683, farL:0.103, farR:0.900, nearL:0.094, nearR:0.909 } },
 ];
 const ED_AI_NAMES = ['The Ashen Duke','Mirewitch Olga','Captain Brandt','Sister Veil','The Cinder Twins','Old Harrow','Lady Quill'];
@@ -19790,6 +19790,16 @@ const ED_FINISHED = {
  'Belt+Belt':'Siegekeeper Girdle','Belt+Ring':'Arcanist Vestment','Belt+Amulet':'Remedy Pouch','Belt+Relic':'Furnace Heart',
  'Ring+Ring':'Singularity Ring','Ring+Amulet':'Stormheart Necklace','Ring+Relic':'Orb of Reverberation',
  'Amulet+Amulet':'Harmony Pendant','Amulet+Relic':'Beacon Standard','Relic+Relic':'Worldroot Seed'};
+/* v607 (Phil, 18 Sep: "It should drop real weapons from the art we have in game. Not in a square but just the sliced out
+   weapon or armor" / "Then you collect the weapon or armor and it goes on your bench area" -> "Along the ledge lip").
+   Finished items show their own Forge art (server/gear-catalog.json id -> assets/img/gear/items/<id>.webp, transparent
+   cut-outs); a component shows a real item of its slot that is not one of the 45 finished items. The tier is a glow in the
+   tier colour around the cut-out, never a square. */
+const ED_ITEM_ART = {'Skirmisher Axe':'E03', 'Ravager Hornhelm':'E11', 'Starfall Longbow':'E06', 'Ironwall Shield':'E01', 'Apex Fang':'E66', 'Conquest Belt':'E46', 'Spark Tome':'E07', 'Windshot Pendant':'E68', 'Battle Standard':'E76', 'Warden Circlet':'E10', 'Anchorstep Greaves':'E17', 'Bastion Visor':'E09', 'Falconer Cap':'E13', 'Leyline Sash':'E45', 'Stormglass Tiara':'E15', 'Mercy Crown':'E16', 'Prism Idol':'E75', 'Pathrunner Boots':'E21', 'Scout’s Mantle':'E30', 'Silkstring Gloves':'E40', 'Chargebreaker Boots':'E19', 'Phasewalk Boots':'E23', 'Comet Slippers':'E24', 'Ranger’s Compass':'E78', 'Bulwark Cuirass':'E26', 'Stonegrip Gauntlets':'E35', 'Warhide Hauberk':'E28', 'Astral Carapace':'E27', 'Heartward Pendant':'E64', 'Aegis Totem':'E74', 'Deadeye Gloves':'E39', 'Knucklecrusher Bracers':'E37', 'Surge Band':'E60', 'Magma Claws':'E38', 'Eclipse Codex':'E81', 'Siegekeeper Girdle':'E44', 'Arcanist Vestment':'E32', 'Remedy Pouch':'E52', 'Furnace Heart':'E77', 'Singularity Ring':'E61', 'Stormheart Necklace':'E70', 'Orb of Reverberation':'E80', 'Harmony Pendant':'E72', 'Beacon Standard':'E82', 'Worldroot Seed':'E84'};
+const ED_COMP_ART = {Weapon:'E05',Helm:'E12',Boots:'E20',Armor:'E29',Gloves:'E36',Belt:'E47',Ring:'E54',Amulet:'E65',Relic:'E83'};   // Scout Crossbow (the thinnest art was unreadable at item size), Cinder Mask, Ashstride Boots, Infernal Plate, Wardweave Gloves, Scorch Cincture, Oathbound Signet, Moonstone Locket, Dream Lantern
+function edItemArt(it){ const id=it&&(it.f?ED_ITEM_ART[it.f]:ED_COMP_ART[it.c]); return id?('/assets/img/gear/items/'+id+'.webp'+(typeof GEAR_ART_V!=='undefined'?GEAR_ART_V:'')):''; }
+function edItemImg(it,px){ const col=ED_TIER_COL[(it&&it.q)|0]||'#9aa4b2', g=Math.max(2,Math.round(px/7));
+  return `<img class="edArt" src="${edItemArt(it)}" alt="" draggable="false" style="width:${px}px;height:${px}px;object-fit:contain;filter:drop-shadow(0 0 ${g}px ${col}) drop-shadow(0 0 1px ${col}) drop-shadow(0 1px 1px rgba(0,0,0,.8))">`; }
 function edPairKey(a,b){ const i=ED_COMP.indexOf(a), j=ED_COMP.indexOf(b); return i<=j ? a+'+'+b : b+'+'+a; }
 /* role synergies (the role every hero already has) — counted by DISTINCT heroes on the board */
 const ED_SYN = {
@@ -20284,7 +20294,9 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .prow{display:flex;align-items:center;gap:5px;font-size:12px;padding:1px 0} #edRoot .prow.me{color:#ffd45e;font-weight:800} #edRoot .prow.out{opacity:.4;text-decoration:line-through}
 #edRoot .hpbar{flex:1;height:5px;background:#2a1520;border-radius:3px;overflow:hidden} #edRoot .hpbar b{display:block;height:100%;background:#e0555a}
 #edRoot .syn{font-size:11.5px;padding:1px 0;color:#8b98a9} #edRoot .syn.on{color:#e8edf3} #edRoot .syn.on2{color:#ffd45e;font-weight:800}
-#edRoot .itemsb{top:44px;left:max(6px,env(safe-area-inset-left));width:34px;display:flex;flex-direction:column;gap:4px;max-height:calc(100% - 118px);overflow:auto}
+#edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
+#edRoot .ledgeItem.sel{transform:translate(-50%,-62%) scale(1.18)}
+#edRoot .ledgeItem img,#edRoot .badge img,#edDrag img{pointer-events:none;display:block}
 #edRoot .item{font-size:15px;width:30px;height:30px;border-radius:7px;background:rgba(23,33,54,.9);border:2px solid #9aa4b2;display:flex;align-items:center;justify-content:center;cursor:grab;position:relative;flex:none}
 #edRoot .item.fin::after{content:'★';position:absolute;right:-3px;top:-7px;font-size:10px;color:#ffd45e}
 #edRoot .item.sel,#edRoot .card.sel{box-shadow:0 0 0 2px #ffd45e}
@@ -20360,14 +20372,19 @@ function edRender(){
   for(const s of edSlots()) h+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${s.sx}px;top:${s.sy}px;width:${Math.max(8,s.w|0)}px;height:${Math.max(8,s.h|0)}px"></div>`;
   for(const u of units){ if(!u.alive||u._edId==null) continue; const hh=edUnits(you).find(x=>x.id===u._edId); if(!hh) continue;
     const top=edScreen(u.x,u.y,(u.sprH||1.6)*1.05);
-    h+=`<div class="badge" style="left:${top.x}px;top:${top.y}px"><b style="color:${ED_RANK_COL[hh.rank]||'#ffd45e'}">${ED_RANK_LBL[hh.rank]||''}</b>${hh.items.map(it=>{ const ch=edItemChip(it); return `<i style="border-bottom-color:${ch.col}">${ch.ic}</i>`; }).join('')}</div>`;
+    h+=`<div class="badge" style="left:${top.x}px;top:${top.y}px"><b style="color:${ED_RANK_COL[hh.rank]||'#ffd45e'}">${ED_RANK_LBL[hh.rank]||''}</b>${hh.items.map(it=>edItemImg(it,13)).join('')}</div>`;
     if(ED.sel&&ED.sel.hero===hh.id){ const f=edScreen(u.x,u.y); h+=`<div class="ring" style="left:${f.x}px;top:${f.y}px"></div>`; } }
   h+='<div class="bar topb">'
    +`<span class="pill">Round <b>${r}</b> · next: ${edIsPve(r)?'monster wave':'a rival'}</span><span class="pill gold">🪙 ${you.gold}</span>`
    +`<span class="pill">Lv <b>${you.level}</b>${you.level<9?` · ${you.xp}/${need}`:''} · ${edBoardCount(you)}/${you.level} fielded</span>`
    +`<button class="btnx" data-a="xp" ${you.level>=9?'disabled':''}>+4 XP · 🪙4</button><span class="pill hp">❤ ${Math.max(0,you.hp)}</span><span style="flex:1"></span>`
    +`<button class="btnx" data-a="quit">Leave</button><button class="btnx ready" data-a="ready">Fight ▶</button></div>`;
-  h+='<div class="bar itemsb">'+you.items.map((it,ix)=>{ const ch=edItemChip(it); return `<div class="item ${it.f?'fin':''} ${ED.sel&&ED.sel.item===ix?'sel':''}" data-item="${ix}" style="border-color:${ch.col}">${ch.ic}</div>`; }).join('')+'</div>';
+  { /* v607: your items lie along the front lip of your bench ledge, left to right, one pad-width apart */
+    const a=edArena(), cv=(renderer&&renderer.domElement)?renderer.domElement.getBoundingClientRect():{left:0,top:0,width:innerWidth,height:innerHeight};
+    const n=you.items.length, x0=a.near.x0, x1=a.near.x1, step=(x1-x0)/Math.max(ED_BENCH-1,n-1), lip=(a.lipY!=null?a.lipY:a.near.y+0.05);
+    const px=Math.round(Math.max(18,Math.min(34, step*cv.width*1.05)));
+    you.items.forEach((it,ix)=>{ const sx=cv.left+(x0+step*ix)*cv.width, sy=cv.top+lip*cv.height;
+      h+=`<div class="ledgeItem ${ED.sel&&ED.sel.item===ix?'sel':''}" data-item="${ix}" title="${edEsc(edItemName(it)+' ('+edItemTier(it)+')')}" style="left:${sx}px;top:${sy}px;width:${px}px;height:${px}px">${edItemImg(it,px)}</div>`; }); }
   h+='<div class="bar sidep"><div class="panel">';
   const plist=ED.players.slice().sort((a,b)=>(b.alive-a.alive)||(b.hp-a.hp));
   for(const p of plist) h+=`<div class="prow ${p.i===0?'me':''} ${p.alive?'':'out'}"><span style="width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${edEsc(p.name)}</span><span class="hpbar"><b style="width:${Math.max(0,p.hp)}%"></b></span><span style="width:24px;text-align:right">${Math.max(0,p.hp)}</span></div>`;
@@ -20391,7 +20408,7 @@ function edDraftHtml(){ const D=ED.draft, p=D.order[D.turn];
   let h=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="pill">Round <b>${ED.round}</b> · The Ember Draft</span><span class="pill">Lowest health picks first</span><span style="flex:1"></span><button class="btnx" data-a="quit">Leave</button></div>`;
   h+=`<div style="font-size:12px;color:#c9d4e2">${p&&!p.ai?'Your pick — each hero carries a piece of equipment.':'Waiting…'}</div><div class="grid">`;
   D.offers.forEach((o,ix)=>{ const c=edCost(o.key), ch=edItemChip(o.item), taker=o.taken!=null?ED.players[o.taken].name:'';
-    h+=`<div class="card c${c}" data-draft="${ix}" style="${o.taken!=null?'opacity:.35':''}"><div class="spr" style="${edSprStyle(o.key)}"></div><div style="min-width:0"><div class="nm">${edEsc(edName(o.key))}</div><div class="rl">${edRole(o.key)} · <span style="color:${ch.col}">${ch.ic} ${o.item.c} (${edItemTier(o.item)})</span></div>${taker?`<div class="rl">taken by ${edEsc(taker)}</div>`:''}</div></div>`; });
+    h+=`<div class="card c${c}" data-draft="${ix}" style="${o.taken!=null?'opacity:.35':''}"><div class="spr" style="${edSprStyle(o.key)}"></div><div style="min-width:0"><div class="nm">${edEsc(edName(o.key))}</div><div class="rl">${edRole(o.key)} · <span style="color:${ch.col};display:inline-flex;align-items:center;gap:3px;vertical-align:middle">${edItemImg(o.item,18)} ${o.item.c} (${edItemTier(o.item)})</span></div>${taker?`<div class="rl">taken by ${edEsc(taker)}</div>`:''}</div></div>`; });
   return h+'</div>'; }
 function edOverHtml(){ const you=edYou(); const ord=['','1st','2nd','3rd','4th','5th','6th','7th','8th'][you.place]||'';
   const rw=ED.reward; const rline = rw==null ? '' : (rw.pending ? 'Claiming your reward…' : (rw.stamina>0 ? `+${rw.stamina} stamina ⚡` : (rw.note||'No reward this time.')));
@@ -20417,7 +20434,7 @@ function edWireRoot(root){
     if(!drag.moved){ drag.moved=true; const g=document.createElement('div'); g.id='edDrag'; const you=edYou();
       if(drag.hero){ const h=edUnits(you).find(u=>u.id===drag.hero); if(h){ g.setAttribute('style', edSprCss(h.key)); const A=edSprA(h.key); g.className='spr'; if(A){ g.dataset.n=A.n; g.dataset.cols=A.cols; g.dataset.rows=A.rows; } }
         const shop=root.querySelector('.shopb'); if(shop) shop.classList.add('selling'); }
-      else { const it=you.items[drag.item]; if(it){ const ch=edItemChip(it); g.textContent=ch.ic; g.style.borderColor=ch.col; } }
+      else { const it=you.items[drag.item]; if(it){ g.innerHTML=edItemImg(it,40); g.style.border='none'; g.style.background='transparent'; } }
       document.body.appendChild(g); drag.ghost=g; }
     drag.ghost.style.left=(e.clientX-22)+'px'; drag.ghost.style.top=(e.clientY-40)+'px';
     if(drag.hero){ const s=edSlotAtScreen(e.clientX,e.clientY); markHot(s&&s.slot); } });
