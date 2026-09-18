@@ -5176,9 +5176,18 @@ function gsplitWindowCss(){
 
   #gsplitWindow.show.gw-assign{display:block;z-index:50;}
   .gw-assignment{width:100%;background:none;border:none;border-radius:0;padding:0;max-height:none;overflow:visible;}
-  .gw-assignhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#f0d8a8;}
-  .gw-roster{display:flex;gap:5px;overflow-x:auto;padding:8px 0;touch-action:pan-x;}
-  .gw-hero{flex:0 0 66px;min-width:0;border:1px solid #5c6a7c;background:#1b2638;border-radius:7px;color:white;padding:2px;touch-action:none;display:flex;flex-direction:column;align-items:center;font-size:9px;}
+  /* v584 (Phil, 17 Sep: "the start wave should be at the top not the right of the heros"): START sits
+     in this header row. It used to render INSIDE .gw-roster (the roster div was never closed), so it
+     scrolled off the right end of the hero cards. */
+  .gw-assignhead{display:flex;align-items:center;gap:8px;font-size:12px;color:#f0d8a8;}
+  .gw-assignhead strong{white-space:nowrap;}
+  .gw-assignhead .gw-why{flex:1;min-width:0;font-size:10px;color:#f0d8a8;}
+  .gw-assignhead #gwStart{flex:0 0 auto;}
+  .gw-roster{display:flex;gap:5px;overflow-x:auto;padding:8px 0;touch-action:pan-x;overscroll-behavior-x:contain;}
+  /* v584 (Phil: "I cannot click and drag right to see my selection"): pan-x, not none. A sideways
+     swipe that starts ON a card now scrolls the roster (the browser takes it and sends pointercancel);
+     an upward drag is left to us and still carries the hero to a road. */
+  .gw-hero{flex:0 0 66px;min-width:0;border:1px solid #5c6a7c;background:#1b2638;border-radius:7px;color:white;padding:2px;touch-action:pan-x;display:flex;flex-direction:column;align-items:center;font-size:9px;}
   .gw-hero.selected{border:2px solid #ffd36b;box-shadow:0 0 8px #ffd36b;}
   .gw-hero img{width:52px;height:58px;object-fit:cover;border-radius:4px;}
   .gw-hero span{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -5212,6 +5221,8 @@ function gsplitWindowEl(){
     el.addEventListener('click', gsplitWindowClick);
     el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;try{b.setPointerCapture(e.pointerId);}catch(_){}}});
     el.addEventListener('pointerup',gsplitWindowPointerUp);
+    el.addEventListener('pointercancel',()=>{if(GSPLIT.window)GSPLIT.window.dragHero=null;});   // v584: the swipe became a roster scroll
+    el.addEventListener('wheel',e=>{const r=e.target.closest&&e.target.closest('.gw-roster');if(r&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){r.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     el.addEventListener('dragstart',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;e.dataTransfer.setData('text/plain',b.dataset.unit);}});
     el.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('[data-gw="lane"]'))e.preventDefault();});
     el.addEventListener('drop',e=>{const lane=e.target.closest&&e.target.closest('[data-gw="lane"]');if(lane&&GSPLIT.window){e.preventDefault();const id=e.dataTransfer.getData('text/plain')||GSPLIT.window.dragHero;GSPLIT.window.dragHero=null;gsplitAssignHero(id,+lane.dataset.lane);}});
@@ -5330,7 +5341,9 @@ function gsplitWindowDraw(){
     return;
   }
   const waiting=W.movers.some(m=>!m.arrived&&m.unit&&m.unit.alive);
-  let html='<div class="gw-assignment"><div class="gw-assignhead"><strong>FIREBREAK '+station+' · assign heroes</strong><span>Drag a hero to a road, or tap a hero then a road. 10 slots per road.</span></div>';
+  const why=waiting?'Waiting for heroes to arrive.':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Drag the glowing hero to Middle Road.':'Drag a hero up to a road, or tap a hero then a road. 10 per road.');
+  const oldRoster=el.querySelector('.gw-roster'),rosterLeft=oldRoster?oldRoster.scrollLeft:0;   // v584: a redraw keeps the player's place
+  let html='<div class="gw-assignment"><div class="gw-assignhead"><strong>FIREBREAK '+station+' · assign heroes</strong><span class="gw-why">'+why+'</span><button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div>';
   html+='<div class="gw-roster">';
   for(const L of GSPLIT.lanes){
     for(const u of L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon)){
@@ -5339,8 +5352,9 @@ function gsplitWindowDraw(){
       html+='<button class="gw-hero'+(W.selectedHero===id?' selected':'')+'" data-gw="hero" data-unit="'+id+'" draggable="true"'+(moving?' disabled':'')+'><img src="'+gsplitEsc(art)+'" alt=""><span>'+gsplitEsc((HERO_TYPES[u.key]||{}).name||u.key)+'</span><small>'+gsplitEsc(L.name)+'</small></button>';
     }
   }
-  html+='<div class="gw-foot"><span class="gw-why">'+(waiting?'Waiting for heroes to arrive.':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Drag the glowing hero to Middle Road.':'Ready to start.'))+'</span><button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div></div>';
+  html+='</div></div>';
   el.innerHTML=html;el.className='show gw-assign';
+  const roster=el.querySelector('.gw-roster'); if(roster&&rosterLeft)roster.scrollLeft=rosterLeft;
   gsplitDrawLaneOverlays();
 }
 
@@ -6136,16 +6150,19 @@ function initThree(){
   // battle zoom input: mouse-wheel steps through levels; two-finger pinch scales then snaps to the nearest
   { const dom=window; let pd=0, pz=1;    // window so a UI overlay canvas can't swallow the gesture
     const pdist=(e)=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-    dom.addEventListener('wheel',(e)=>{ if(state!=='battle')return; e.preventDefault(); stepBattleZoom(e.deltaY<0?1:-1, e.clientX, e.clientY); },{passive:false});
+    // v584 (Phil, 17 Sep: swiping the firebreak hero tray "pans the map instead"): these listeners sit on
+    // window, so a gesture that STARTS on the firebreak panel belongs to the panel, never the camera.
+    const onPanel=(e)=>!!(e.target&&e.target.closest&&e.target.closest('#gsplitWindow'));
+    dom.addEventListener('wheel',(e)=>{ if(state!=='battle'||onPanel(e))return; e.preventDefault(); stepBattleZoom(e.deltaY<0?1:-1, e.clientX, e.clientY); },{passive:false});
     dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&e.touches.length===2){ pd=pdist(e); pz=battleZoom; } },{passive:true});
     dom.addEventListener('touchmove',(e)=>{ if(state==='battle'&&e.touches.length===2&&pd>0){ e.preventDefault(); const mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; setBattleZoom(pz*(pdist(e)/pd), mx, my); } },{passive:false});
     dom.addEventListener('touchend',(e)=>{ if(pd>0&&e.touches.length<2){ pd=0; } },{passive:true});
     // click/touch DRAG pans the battlefield while zoomed IN (>1x)
     let bdx=0,bdy=0,bpx=0,bpy=0,bdrag=false;
-    dom.addEventListener('mousedown',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming){ bdrag=true; bdx=e.clientX; bdy=e.clientY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
+    dom.addEventListener('mousedown',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&!onPanel(e)){ bdrag=true; bdx=e.clientX; bdy=e.clientY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
     dom.addEventListener('mousemove',(e)=>{ if(bdrag){ battlePanX=bpx+(e.clientX-bdx); battlePanY=bpy+(e.clientY-bdy); applyBattleView(); } },{passive:true});
     dom.addEventListener('mouseup',()=>{ bdrag=false; },{passive:true});
-    dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&e.touches.length===1){ bdrag=true; bdx=e.touches[0].clientX; bdy=e.touches[0].clientY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
+    dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&e.touches.length===1&&!onPanel(e)){ bdrag=true; bdx=e.touches[0].clientX; bdy=e.touches[0].clientY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
     dom.addEventListener('touchmove',(e)=>{ if(bdrag&&battleZoom>1&&e.touches.length===1){ battlePanX=bpx+(e.touches[0].clientX-bdx); battlePanY=bpy+(e.touches[0].clientY-bdy); applyBattleView(); } },{passive:true});
     dom.addEventListener('touchend',()=>{ bdrag=false; },{passive:true});
   }
@@ -18667,7 +18684,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789701808312';
+const BUILD_ID = '1789702374776';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
