@@ -4481,6 +4481,11 @@ function gsplitEnd(){
   // The battle renderer owns the sprites, projectiles, and status effects. Emptying
   // only GSPLIT.lanes left their meshes in the scene on a repeat entry.
   units = GSPLIT.lanes.reduce((all,L)=>all.concat(L.units||[]), []);
+  /* v589: with the per-road effect lists really separate now, hand clearBattle EVERY road's projectiles,
+     particles and plates so it disposes all of their meshes, not just the last road's */
+  try{ const all={}; for(const k of GSPLIT_FX_LET) all[k]=[].concat(...GSPLIT.lanes.map(L=>(L.fx&&L.fx[k])||[]));
+    gsplitLetSet(all);
+    for(const k of GSPLIT_FX_CONST){ const a=gsplitConstArr(k); if(!a) continue; a.length=0; for(const L of GSPLIT.lanes) for(const it of ((L.fx&&L.fx[k])||[])) a.push(it); } }catch(e){}
   clearBattle();
   gsplitBoundsExit(); FX_SIZE=2;
   GSPLIT.window = null; GSPLIT._winSig = ''; GSPLIT._tutorialSwapDone = false;
@@ -4536,7 +4541,7 @@ const GSPLIT_FIELD_PAD = 40;
 function gsplitClampX(x){ return Math.max(GSPLIT_FIELD_PAD, Math.min(FW-GSPLIT_FIELD_PAD, x)); }
 
 const GSPLIT_MUSTER_IMG   = 0.18;
-const GSPLIT_START_IMG    = 0.12;   // v587: where the heroes appear for wave 1 - the painted start of the straight, left of the field
+const GSPLIT_START_IMG    = [0.17, 0.08, 0.17];   // v587/v589: where heroes appear for wave 1 - the painted start of each road's STRAIGHT (0.12 put the top and bottom roads' heroes in the grass inside the curve)
 const GSPLIT_CHECKPOINT_IMG = [0.24, 0.36, 0.48, 0.60, 0.72];
 const GSPLIT_APPROACH_IMG = 0.82;
 // Each wave meets just before its next firebreak; the final wave meets near home.
@@ -4589,7 +4594,66 @@ function gsplitLaneSlot(team, key, i, n, keys, lane){
   const sl = gsplitSlot(lane, i, Math.max(1, n|0));
   const meet=GSPLIT_MEET_IMG[Math.max(0,Math.min(4,waveIdx|0))];
   const baseX=gsplitClampX(gsplitFieldX(meet+(team==='ally'?-0.06:0.06),lane));
+  /* v589 (Phil, 18 Sep: "Make sure the heroes are spread not clumped in lane. Make it look natural"): heroes
+     stand in a loose, staggered formation whose FRONT is the station and which extends back down the road -
+     never a rigid grid centred on it. Kept inside the combat field (x >= 62) on the short first road stretch. */
+  if(team==='ally'){
+    const nat=gsplitNaturalSlots(lane, Math.max(1,n|0), baseX, (waveIdx|0)*31+lane);
+    const minX=Math.min(...nat.map(s=>s.x)), shift=Math.max(0, 62-minX);
+    const s=nat[Math.min(i,nat.length-1)]; return { x: s.x+shift, y: s.y };
+  }
   return { x: gsplitClampX(baseX + sl.dx), y: sl.y };
+}
+
+/* v589 - A NATURAL FORMATION. Columns 1.5 footprints apart running BACK from `frontX`, ranks across the middle of
+   the road (GSPLIT_ROAD_USE), odd columns staggered by half a rank, and a fixed per-hero jitter (a hash of the
+   slot, so it is stable frame to frame and run to run - no random walk). */
+function gsplitHash01(i, s){ let h=Math.imul((i+1)|0, 374761393) ^ Math.imul((s+7)|0, 668265263); h=Math.imul(h^(h>>>13), 1274126177); return ((h^(h>>>16))>>>0)/4294967296; }
+function gsplitNaturalSlots(lane, n, frontX, seed){
+  const ranks=Math.max(1, Math.min(gsplitRanks(lane), Math.ceil(Math.sqrt(n*0.6)))), rankY=(1.5*BONUS_UNIT_SCALE)/SC*1.25, colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5;   // v589 pass 2: few ranks, spread ALONG the road (5 heroes = 2x3, not a 5-high column)
+  const band=gsplitLaneBand(lane), mid=GSPLIT_ROAD_Y_FITTED[lane], out=[];
+  for(let i=0;i<n;i++){
+    const r=i%ranks, c=(i/ranks)|0;
+    const jx=(gsplitHash01(i,seed)-0.5)*colX*0.6, jy=(gsplitHash01(i,seed+101)-0.5)*rankY*0.55;
+    const stag=(ranks>1 && (c%2)) ? rankY*0.5 : 0;
+    let y=mid+(r-(ranks-1)/2)*rankY+stag+jy; y=Math.max(band.lo+4, Math.min(band.hi-4, y));
+    out.push({ x: Math.round(frontX - c*colX + jx), y: Math.round(y) });
+  }
+  return out;
+}
+
+/* v589 - THE FIREBREAK REGROUP (Phil, 18 Sep: "The heroes should not crowd the fire brake entrance"). A wave
+   ends wherever the fight left the heroes - bunched on the monsters, often right in the firebreak mouth. When
+   a window opens, every hero on a live road walks (own walking speed, facing the way it walks) into a natural
+   formation whose front stands a clear gap BEFORE this firebreak's entrance, strongest-forward order kept by
+   current x. A hero sent across in the meantime leaves the regroup to its crossing. */
+function gsplitRegroupFrontX(lane, s){
+  const xs=[];
+  if(lane<=1) xs.push(gsplitCrossX('upper', s, lane));
+  if(lane>=1) xs.push(gsplitCrossX('lower', s, lane));
+  const colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5;
+  return Math.min(...xs) - colX*1.2;
+}
+function gsplitRegroupPlan(){
+  const W=GSPLIT.window; if(!W) return; const s=Math.max(0,Math.min(3,W.station|0));
+  for(const L of GSPLIT.lanes){
+    if(L.state!=='walking') continue;
+    const al=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon&&u.x>-1000).sort((a,b)=>b.x-a.x);
+    const slots=gsplitNaturalSlots(L.i, al.length, gsplitRegroupFrontX(L.i,s), s*17+L.i);
+    al.forEach((u,ix)=>{ u._rgX=slots[ix].x; u._rgY=slots[ix].y; });
+  }
+}
+function gsplitRegroupStep(dt){
+  const W=GSPLIT.window; if(!W) return;
+  for(const L of GSPLIT.lanes) for(const u of L.units){
+    if(u._rgX==null) continue;
+    if(!u.alive || u._gauntCrossing || W.movers.some(m=>m.unit===u&&!m.arrived)){ u._rgX=u._rgY=null; continue; }
+    const dx=u._rgX-u.x, dy=u._rgY-u.y, d=Math.hypot(dx,dy);
+    if(d<=1.5){ u.x=u._rgX; u.y=u._rgY; u._rgX=u._rgY=null; u._faceDir=1; u.target=null; continue; }
+    const mv=Math.min(d, Math.max(40,(u.speed||55)*MOVE_MUL)*dt);
+    u.x+=dx/d*mv; u.y+=dy/d*mv; u._walkT=0.25; u.target=null;
+    if(Math.abs(dx)>0.5) u._faceDir=dx>0?1:-1;
+  }
 }
 
 /* ---------------------------------------------------------------- STEP 3 · scale + keep-out
@@ -4603,6 +4667,10 @@ function gsplitApplyScale(u){
   if(typeof u.r === 'number') u.r *= BONUS_UNIT_SCALE;
   if(typeof u._bodyR === 'number') u._bodyR *= BONUS_UNIT_SCALE;
   if(typeof u.sprH === 'number') u.sprH *= BONUS_UNIT_SCALE;
+  /* v589 (Phil: "Make sure the heroes are spread not clumped in lane. Make it look natural"): bodies shrank exactly
+     with the art, so five heroes on one monster touched shoulder to shoulder and read as one pile. 1.4x personal
+     space in a bonus run; melee reach (26-30 field) still clears two bodies (~14). */
+  try{ const b=bodyR(u); u._bodyR=b*GSPLIT_BODY_SPACE; }catch(e){}
 }
 
 /* ~~CHOICE~~ THE PORTRAIT BAR IS HIDDEN, NOT RESIZED.
@@ -4729,6 +4797,11 @@ function gsplitReseat(u, from, to){
     F.units.splice(F.units.indexOf(s), 1); T.units.push(s);
   }
   T.units.push(u);
+  /* v589: the feet plate (burn/poison/...) lives in its road's effect list now that the lists are really per
+     road - it moves with the hero, or the old road would keep animating a plate for a unit it no longer has */
+  if(u._statusFx && F.fx && T.fx && F.fx._statusFx && T.fx._statusFx){
+    const j=F.fx._statusFx.indexOf(u._statusFx); if(j>=0) F.fx._statusFx.splice(j,1);
+    if(T.fx._statusFx.indexOf(u._statusFx)<0) T.fx._statusFx.push(u._statusFx); }
 }
 
 function gsplitCloseWindow(){
@@ -4791,17 +4864,42 @@ function gsplitFxBlank(){
    SAME array object, which every FX function closes over. Rebuilding them per road per tick is O(n)
    on collections that hold at most a few dozen live effects - cheaper than the collision pass that
    already runs every tick. */
+/* v589 - THE `let` HALF OF THIS SWAP WAS A NO-OP. `shots`, `particles`, `floatTexts`, `groundHazards`,
+   `voidZones`, `chains` and `staffFx` are top-level `let` bindings (client 3930 / 9027). A top-level `let` is
+   NOT a property of `window`, so `window[k] = L.fx[k]` only made a new window property the engine never
+   reads: all three roads shared ONE set of these lists, and battleFrameTail - called once per road per
+   frame - advanced them THREE times a frame. Damage numbers faded 3x fast (Phil, 18 Sep: "Add ... numbers
+   for damage" - they were there, for a third of their life), projectiles and particles ran 3x fast, and
+   ground hazards timed out 3x early while every road's updateBattle ticked all of them. The lexical names
+   are swapped directly now; the `const` half (contents moved into the same array object) was always right. */
+/* ...and the `const` half had the SAME defect: `_groundFx`, `_projFx`, `_bees`, `_beamFx`, `_pendingDots`,
+   `_fxPlates` and `_statusFxAll` are top-level `const`s (client 8752-9074), not window properties either, so
+   `window[k]` was undefined and the `if(!a) continue` skipped every one. Reached by name now. */
+function gsplitConstArr(k){ switch(k){
+  case '_groundFx': return _groundFx; case '_projFx': return _projFx; case '_bees': return _bees;
+  case '_beamFx': return _beamFx; case '_pendingDots': return _pendingDots; case '_fxPlates': return _fxPlates;
+  case '_statusFx': return _statusFxAll; } return null; }
+function gsplitLetGet(){ return { shots, particles, floatTexts, groundHazards, voidZones, chains, staffFx }; }
+function gsplitLetSet(o){ if(!o) return; shots=o.shots||[]; particles=o.particles||[]; floatTexts=o.floatTexts||[];
+  groundHazards=o.groundHazards||[]; voidZones=o.voidZones||[]; chains=o.chains||[]; staffFx=o.staffFx||[]; }
 function gsplitFxSwapIn(L){
-  for(const k of GSPLIT_FX_LET)   { try{ window[k] = L.fx[k]; }catch(e){} }
+  gsplitLetSet(L.fx);
   for(const k of GSPLIT_FX_CONST) {
-    const a = window[k]; if(!a) continue;
+    const a = gsplitConstArr(k); if(!a) continue;
     a.length = 0; for(const it of L.fx[k]) a.push(it);
   }
 }
 function gsplitFxSwapOut(L){
-  for(const k of GSPLIT_FX_LET)   { try{ L.fx[k] = window[k]; }catch(e){} }
-  for(const k of GSPLIT_FX_CONST) { const a = window[k]; if(a) L.fx[k] = a.slice(); }
+  Object.assign(L.fx, gsplitLetGet());
+  for(const k of GSPLIT_FX_CONST) { const a = gsplitConstArr(k); if(a) L.fx[k] = a.slice(); }
 }
+/* v589: the renderer draws damage numbers from the lexical `floatTexts` once per frame, after the roads -
+   give it every road's list (the objects are shared, so each still fades only in its own road's tail). */
+function gsplitFxRenderView(){
+  try{ floatTexts = [].concat(...GSPLIT.lanes.map(L=>(L.fx&&L.fx.floatTexts)||[])); }catch(e){}
+}
+/* v589: bonus-run projectiles, orbs and feet plates were drawn at campaign size beside 0.28-scale units */
+function gsplitFxMul(){ return (typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) ? BONUS_UNIT_SCALE*1.5 : 1; }
 
 /* ---------------------------------------------------------------- the tail
    `updateBattle` ends with work that is PER FRAME, not per unit - shot timers, particle integration,
@@ -4842,6 +4940,7 @@ function gsplitFrameTail(dt){
     gsplitFxSwapOut(L); gsplitSave(L);
   }
   units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+  gsplitFxRenderView();   // v589: every road's damage numbers on screen, not one road's
 }
 
 /* ------------------------------------------------- the replacement gsplitStep
@@ -4936,6 +5035,7 @@ function gsplitWallLane(L){
    the same number. Interpolating x during phase 2 is what keeps the hero ON the painted path, which is
    itself a slanted line between those two ends. */
 const GSPLIT_WALK_SPEED = 260;      // field units per second, along the road - v588: no longer used by crossings, see gsplitCrossSpeed
+const GSPLIT_BODY_SPACE = 1.4;   // v589: bonus-run collision bodies, relative to the scaled art
 const GSPLIT_CROSS_MUL = 2;         // v588 (Phil, 18 Sep): a lane change runs at 2x the hero's own walking speed
 function gsplitCrossSpeed(u){ return GSPLIT_CROSS_MUL*Math.max(40,((u&&u.speed)||55)*MOVE_MUL); }
 /* v578 (Phil, 17 Sep): the road flow. Monsters walk in from past the right edge at this speed (field units/s);
@@ -4968,6 +5068,7 @@ function gsplitStepMovers(dt){
          lane"): both legs of a crossing run at TWICE this hero's own walking speed (was a flat 260 along the road and a
          fixed 0.75 s down the firebreak - about 4x and 8x a hero's walk). */
       const dx=m.xFrom-u.x,step=gsplitCrossSpeed(u)*dt;
+      u._rgX=u._rgY=null; u._walkT=0.25; u.target=null; if(Math.abs(dx)>0.5) u._faceDir=dx>0?1:-1;   // v589: walk clip + facing while crossing (the combat tick that normally sets them is paused)
       if(Math.abs(dx)<=step){u.x=m.xFrom;m.phase='cross';m.t=0;m.yFrom=u.y;}   // v588: the crossing starts where the hero stands in the ranks - no snap to the road's centre line
       else u.x+=Math.sign(dx)*step;
       const band=gsplitLaneBand(m.route[m.leg]);
@@ -4975,14 +5076,14 @@ function gsplitStepMovers(dt){
       continue;
     }
     if(m.phase==='cross'){
-      { const len=Math.hypot(m.xTo-m.xFrom, m.yTo-m.yFrom)||1; m.t=Math.min(1,m.t+dt*gsplitCrossSpeed(u)/len); }   // v588: distance at 2x walk, not a fixed time
+      { const len=Math.hypot(m.xTo-m.xFrom, m.yTo-m.yFrom)||1; m.t=Math.min(1,m.t+dt*gsplitCrossSpeed(u)/len); } u._walkT=0.25;   // v588: distance at 2x walk, not a fixed time
       u.x=m.xFrom+(m.xTo-m.xFrom)*m.t;
       u.y=m.yFrom+(m.yTo-m.yFrom)*m.t;
       if(m.t>=1){
         if(m.leg+2<m.route.length){
           m.leg++; gsplitBeginCross(m);
         }else{
-          m.phase='seated';m.arrived=true;u._gauntCrossing=false;
+          m.phase='seated';m.arrived=true;u._gauntCrossing=false;u._faceDir=1;
           gsplitReseat(u,m.from,m.to);gsplitWall(u,m.to);
         }
       }
@@ -5848,7 +5949,7 @@ function gsplitEnterBattle(data, assign, id){
        so nobody walked. The heroes now start at the painted start of the road (image x GSPLIT_START_IMG, which is
        off-field to the left on every road: the camera shows it, the field clamp does not apply during the walk-in)
        and keep their formation's shape on the way. */
-    { const sx=gsplitFieldX(GSPLIT_START_IMG, i);
+    { const sx=gsplitFieldX(GSPLIT_START_IMG[i], i);
       const al=units.filter(u=>u.alive&&u.team==='ally'&&!u._backHunter);
       const lead=al.length?Math.min(...al.map(u=>u.homeX!=null?u.homeX:u.x)):sx;
       units.forEach(u=>{ if(!u.alive) return;
@@ -5934,6 +6035,7 @@ function gsplitFrameTail(dt){
     gsplitFxSwapOut(L); gsplitSave(L);
   }
   units = GSPLIT.lanes.reduce((a,L)=>a.concat(L.units), []);
+  gsplitFxRenderView();   // v589: every road's damage numbers on screen, not one road's
 }
 
 /* 17 Sep, real defect caught in review (not by me): gsplitCloseWindow's evidence POST was pure
@@ -6183,6 +6285,14 @@ function gsplitStep(dt){
   if(!GSPLIT.active || GSPLIT._finishing) return;
 
   if(gsplitWindowOpen()){
+    /* v589 - THE CROSSING JITTER (Phil, 18 Sep: "causes the heroes to jitter when crossing, making them look
+       glitchy and lagging"). The renderer draws rx = px + (x-px)*alpha, and px/py are snapshotted at the top
+       of updateBattle - which never runs while a firebreak is open. Every hero that moved in a window (a
+       crossing, now the regroup) was drawn swinging across a gap that grew each tick until it passed the
+       teleport limit and snapped. The v268 wave-transition fix, missing from the window path. */
+    for(const L of GSPLIT.lanes) for(const u of L.units){ u.px=u.x; u.py=u.y; }
+    if(!GSPLIT.window._regroupPlanned){ GSPLIT.window._regroupPlanned=true; gsplitRegroupPlan(); }
+    gsplitRegroupStep(dt);
     gsplitFrameTail(dt);
     for(const L of GSPLIT.lanes) gsplitWallLane(L);
     gsplitWindowTick(dt);
@@ -8384,8 +8494,8 @@ function spawnArsenalShot(from,to,idx,onHit){ if(!TH||!scene||!from||!to)return;
   const g=arsGeo(A.geo); if(!g)return;
   const mesh=new TH.Mesh(g,new TH.MeshStandardMaterial({color:A.col,emissive:A.col,emissiveIntensity:.55,roughness:.5,metalness:.6}));
   // cone/cylinder geometry runs along local +Y, so the LENGTH goes in y for those two
-  if(A.geo==='cone'||A.geo==='cyl') mesh.scale.set(A.sc[1],A.sc[0],A.sc[2]);
-  else mesh.scale.set(A.sc[0],A.sc[1],A.sc[2]);
+  if(A.geo==='cone'||A.geo==='cyl') mesh.scale.set(A.sc[1]*gsplitFxMul(),A.sc[0]*gsplitFxMul(),A.sc[2]*gsplitFxMul());
+  else mesh.scale.set(A.sc[0]*gsplitFxMul(),A.sc[1]*gsplitFxMul(),A.sc[2]*gsplitFxMul());   // v589: bonus-run size
   const sxw=wx(from.x), szw=wz(from.y), txw=wx(to.x), tzw=wz(to.y);
   if(A.aim){ mesh.rotation.z=-Math.PI/2; mesh.rotation.y=Math.atan2(-(tzw-szw),txw-sxw); }   // long axis -> travel
   mesh.position.set(sxw,1,szw); scene.add(mesh);
@@ -8420,7 +8530,7 @@ const APEX={ corsair:{fx:0.5115,fy:0.850} };
 function castOrigin(u,tx,ty){ const sh=u.sprH||3; const ap=APEX[u.key]; if(ap){ const dir=(tx>=u.x)?1:-1; return {x:u.x+dir*ap.fx*sh/SC, y:u.y, h:0.05+sh*ap.fy}; }
   const m=MUZZLE[u.key]||{fwd:0.38,h:0.52}; const sw=sh*(u.sprA||0.7); const d=Math.max(1,Math.hypot(tx-u.x,ty-u.y)); const f=(sw*m.fwd)/SC;   // sprite width is in world units; the field is world/SC
   return {x:u.x+(tx-u.x)/d*f, y:u.y+(ty-u.y)/d*f, h:0.05+sh*m.h}; }
-function spawnShot(from,to,color){const o=(from.sprH!=null)?castOrigin(from,to.x,to.y):{x:from.x,y:from.y,h:1}; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2);mesh.position.set(wx(o.x),o.h,wz(o.y));scene.add(mesh);shots.push({mesh,sx:o.x,sy:o.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL,h:o.h});}
+function spawnShot(from,to,color){const o=(from.sprH!=null)?castOrigin(from,to.x,to.y):{x:from.x,y:from.y,h:1}; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9}));mesh.scale.setScalar(1.2*gsplitFxMul());mesh.position.set(wx(o.x),o.h,wz(o.y));scene.add(mesh);shots.push({mesh,sx:o.x,sy:o.y,tx:to.x,ty:to.y,t:0,dur:.18*HERO_FX_MUL,h:o.h});}   /* v589: gsplitFxMul - bonus-run size */
 // Umbris basic-attack projectile: a violet shadow orb that departs from his HAND (a forward offset toward the
 // target, not his body center) the instant the sprite's body-ball is released — so the handoff is seamless.
 function spawnUmbrisBolt(u,t){ if(!TH||!scene)return; const d=Math.max(1,dist(u,t));
@@ -8936,11 +9046,11 @@ function _fxCheck(kind,key,x,y,caster){
     }
   }catch(e){}
 }
-function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('projectile',key,tox,toy,window._fxCaster); const PH=(fromH!=null?fromH:1.2); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
+function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('projectile',key,tox,toy,window._fxCaster); const PH=(fromH!=null?fromH:1.2*gsplitFxMul()); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
   const tex=base;
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
   fx2Hook(spr); fx2SetFrame(spr,d,0);
-  spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;   // v368 (Phil): projectiles and auto-attack balls are NOT spells — never FX_SIZE-scaled (Corsair was firing cannonballs)
+  scale*=gsplitFxMul(); spr.scale.set(scale*asp,scale,1); spr.renderOrder=994;   /* v589: in a bonus run projectiles shrink with the units */ // v368 (Phil): projectiles and auto-attack balls are NOT spells — never FX_SIZE-scaled (Corsair was firing cannonballs)
   let rot=0; try{ const a=new TH.Vector3(wx(fromx),PH,wz(fromy)).project(camera), b=new TH.Vector3(wx(tox),PH,wz(toy)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
   spr.material.rotation=rot;                                                      // front(+x) -> travel direction on screen
   spr.position.set(wx(fromx),PH,wz(fromy)); scene.add(spr);
@@ -9012,7 +9122,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
   if(!kind || (u._statusFx&&u._statusFx.kind!==kind)) _killStatusFx(u);
   if(!kind) return;
   if(!u._statusFx){ const key=STATUSFX_KEY[kind], d=FX2_DEF[key], base=fx2Tex(key); if(!base)return;
-    const tex=base; const asp=d.fw/d.fh, scl=kind==='burn'?1.5:1.7;
+    const tex=base; const asp=d.fw/d.fh, scl=(kind==='burn'?1.5:1.7)*(u._gauntScale?gsplitFxMul():1);   // v589: bonus-run feet plates at unit size
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
     fx2Hook(spr); fx2SetFrame(spr,d,0);
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); }
@@ -9022,7 +9132,7 @@ function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispos
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   killAllStatusFx(); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
-function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar(size||3.4); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
+function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar((size||3.4)*gsplitFxMul()); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
 let staffFx=[];   // KonWu ultimate: one entry per enemy, each driving a konwu_staff plate
 function spawnStaffFx(e,delay){
@@ -10663,17 +10773,23 @@ const BAR_K=0.86, BAR_MIN=14;
    view - what kept it big at 1x was the 14 px floor, wider than a bonus hero. In a bonus run the bar is the
    character's own width, floor 5 px. */
 const BAR_MIN_BONUS=5;
+const BAR_K_BONUS=0.5;   // v589: bonus bar = half the body's projected height
 function barWidthFor(u, crownY){
   const bonus=!!u._gauntScale, floor=bonus?BAR_MIN_BONUS:BAR_MIN;
   const maxW=u.boss?96:44; let w=maxW;
   const foot=project(u.rx==null?u.x:u.rx, u.ry==null?u.y:u.ry, 0.001);   // project() treats h=0 as "use 1.2" — pass a hair above the ground, not 0
   if(foot && foot.vis) w=Math.max(floor, Math.min(maxW, (foot.y-crownY)*BAR_K));
-  if(bonus){ const s=u._sprRef; if(s && camera && _bw0){ try{
-    s.getWorldPosition(_bw0); _bwr.setFromMatrixColumn(camera.matrixWorld,0);
-    const half=Math.abs(s.scale.x||0)/2;
-    _bwA.copy(_bw0).addScaledVector(_bwr,-half).project(camera); _bwB.copy(_bw0).addScaledVector(_bwr,half).project(camera);
-    const quad=Math.abs(_bwB.x-_bwA.x)*0.5*CW; if(quad>1) w=Math.min(w,quad*0.6); }catch(e){} }   // the cell carries margins; ~60% of it is the body
-    return Math.max(floor, w); }
+  /* v589 (Phil, 18 Sep: "The health bars shrink and grow constantly without zooming. Make sure it only shrinks or
+     grows by zoom" / "should not be that large"). The v587 width used the SPRITE's projected quad and the head's
+     sprite position - both change with every animation state (each state has its own cell and figure height), so
+     the bar pulsed with every swing. It now comes from the unit's LOGICAL body: its resting head height
+     (restHeadOff, one number per unit) projected at its field position. Only the zoom (a CSS scale of this whole
+     canvas) or a change of road depth moves it. Half the body height, not most of it. */
+  if(bonus){
+    const fx=u.rx==null?u.x:u.rx, fy=u.ry==null?u.y:u.ry;
+    const f0=project(fx,fy,0.001), h0=project(fx,fy,Math.max(0.05,restHeadOff(u)));
+    const bodyPx=(f0&&h0&&f0.vis)?Math.max(0,f0.y-h0.y):0;
+    return Math.max(4, Math.round(bodyPx*BAR_K_BONUS*2)/2); }
   const s=u._sprRef;
   if(s && camera && _bw0){ try{
     s.getWorldPosition(_bw0); _bwr.setFromMatrixColumn(camera.matrixWorld,0);   // camera RIGHT, not world X
@@ -10720,7 +10836,8 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     // artwork (baked into every clip). For the raven that is ~1.05x sprH; using sprH alone put the
     // bar through his body. Always measured off the IDLE clip so the bar never jumps when he
     // attacks or casts (those cells include effects far above his head).
-    const _p0=headScreen(u)||project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,(u.sprH!=null?u.sprH:(u.boss?3.2:2.0)*(u.r/18)));
+    const _p0=(u._gauntScale ? project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,Math.max(0.05,restHeadOff(u))) : headScreen(u))   // v589: a bonus bar rides the logical head, so it never bobs with a swing
+      ||project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,(u.sprH!=null?u.sprH:(u.boss?3.2:2.0)*(u.r/18)));
     if(!_p0.vis)return;
     // the gap is set in SCREEN pixels, not world units, so it reads the same on a big boss and a
     // small monster and at any zoom: the bar sits a few px clear of the top of the head.
@@ -10732,7 +10849,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     { // over-head health bar, team-colored — sits just above the head
       // v253 (visual audit #5): one mobile scale step up — taller bars, stronger outline; a BOSS
       // gets a wider, gold-framed bar that cannot be mistaken for a normal enemy's.
-      const eb=_ebw, eh=_bn?Math.max(1.5, eb*0.14):Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
+      const eb=_ebw, eh=_bn?Math.max(1.25, Math.round(eb*0.16*4)/4):Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
       const pad=_bn?1:2;
       octx.fillStyle='rgba(0,0,0,.72)'; octx.fillRect(ex-pad,ey-pad,eb+2*pad,eh+2*pad);
       octx.fillStyle=(u.team==='ally')?'#57e08a':(u.boss?'#ff4757':'#ff7a5a'); octx.fillRect(ex,ey,eb*pct,eh);
@@ -10743,7 +10860,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
       octx.strokeText('👑 '+nm,p.x,y-13); octx.fillStyle='#ffd45e'; octx.fillText('👑 '+nm,p.x,y-13); }
     if(u===selected){octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11);}
     // over-head status icons (~2 m above head): silence mask, then stun mask
-    { const si={x:p.x, y:p.y-(_bn?3:(u.boss?9:6))}, isz=_bn?Math.max(8,Math.round(_ebw*0.8)):(u.boss?32:23);   // status icons stack directly above the bar (v587: bonus icons scale with the bar)
+    { const si={x:p.x, y:p.y-(_bn?3:(u.boss?9:6))}, isz=_bn?Math.max(10,Math.round(_ebw*1.3)):(u.boss?32:23);   // status icons stack directly above the bar (v587: bonus icons scale with the bar)
       const _rdy=(img)=>img&&img.complete&&img.naturalWidth, _ic=[];
       if((u.silencedT||0)>0&&_rdy(_mrSilImg))_ic.push(_mrSilImg);
       if((u.stunned||0)>0&&_rdy(_mrStunImg))_ic.push(_mrStunImg);
@@ -10754,8 +10871,9 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
       _ic.forEach(img=>{ octx.drawImage(img, ix-isz/2, si.y-isz, isz, isz); ix+=isz+2; }); } });
   // Magic Rush-style juicy combat text: thick-outlined, color-coded, crits are bigger with a starburst
   octx.textAlign='center'; octx.textBaseline='middle'; octx.lineJoin='round';
-  floatTexts.forEach(f=>{const p=project(f.x,f.y,f.hz||(f.label?3.1:1.8));if(!p.vis)return;   // v253: ability NAMES float higher, clear of the melee cluster
-    const life=Math.min(1,f.t*2.2), sz=f.sz||16, col=f.color||'#fff';
+  const _ftBn=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active);   // v589: bonus-run numbers float just over a 0.28-scale head, at 70% size (they still grow with zoom)
+  floatTexts.forEach(f=>{const p=project(f.x,f.y,(f.hz||(f.label?3.1:1.8))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));if(!p.vis)return;   // v253: ability NAMES float higher, clear of the melee cluster
+    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*(_ftBn?0.7:1), col=f.color||'#fff';
     octx.globalAlpha=life;
     // v253 (visual audit #5): an ability NAME gets a dark plate behind it so it never competes with
     // characters, damage numbers and FX; damage numbers keep the outlined treatment.
@@ -18972,7 +19090,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789733221454';
+const BUILD_ID = '1789734595735';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
