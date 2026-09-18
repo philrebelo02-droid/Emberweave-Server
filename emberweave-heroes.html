@@ -3024,7 +3024,7 @@ const KITS={
   cardwraith:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6,gfx:'cardwraith_green',gdur:5.88},blue:{name:'House Edge',type:'haste',mul:1.32,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present.",gfx:'cardwraith_blue',gdur:5.88},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
   chainwheel:{green:{name:'Rim Breaker',type:'knockstun',mul:1.5,stun:1.2,push:1.6*METER,cd:8,desc:"Drives the bronze wheel forward, stunning the first enemy struck.",gfx:'chainwheel_green'},blue:{name:'Arena Lock',type:'taunt',dur:3.5,cd:10,desc:"Plants the wheel and forces nearby enemies to attack him.",gfx:'chainwheel_blue',gfxR:3*METER},purple:{name:"Pride's Momentum",pass:'pridemomentum',desc:"Blocking damage increases his next basic attack."}},
   deepcleft:{green:{name:'Fault Claws',type:'shred',mul:1.5,shred:0.30,dur:5,cd:6,desc:"Rips the ground with both reinforced claws, damaging and lowering enemy armor.",gfx:'deepcleft_green',gdur:5.88},blue:{name:'Burrow Guard',type:'burrowguard',dur:1.4,mul:1.7,cd:10,desc:"Digs into a defensive crouch, becoming untargetable briefly before emerging beneath the nearest attacker.",gfx:'deepcleft_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Relentless Digger',pass:'digger',desc:"Taking damage increases his Attack Speed; control effects grant twice as many stacks."}},
-  greatbrow:{green:{name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'greatbrow_green',gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'greatbrow_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
+  greatbrow:{green:{name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'greatbrow_green',artR:2.2*METER,gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'greatbrow_blue',gfxR:3*METER,artR:3.2*METER,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
   ironcoil:{green:{name:'Scale Ram',type:'knockstun',mul:1.45,stun:1.1,push:1.8*METER,cd:8,desc:"Drives both striking blocks forward, stunning the nearest enemy and pushing it backward.",gfx:'ironcoil_green',gdur:5.88},blue:{name:'Fortress Curl',type:'defensive',mul:0.35,dur:3.5,cd:9,desc:"Curls behind his plated tail, greatly reducing incoming damage before bursting back open.",gfx:'ironcoil_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Layered Hide',pass:'layered',desc:"Each direct hit hardens one scale layer; at maximum layers he becomes immune to control briefly."}},
   kilnmask:{green:{name:'Glazebreaker',type:'shred',mul:1.55,shred:0.30,dur:5,cd:6,desc:"Smashes with the pottery paddle and reduces enemy armor.",gfx:'kilnmask_green',gdur:3.96},blue:{name:'Sealed Vessel',type:'defensive',mul:0.45,dur:5,cd:9,desc:"Breaks a belt jar to gain one of several defensive glazes.",gfx:'kilnmask_blue',gfxR:3*METER,gdur:5.71},purple:{name:'Fired Clay',pass:'warden',desc:"Repeated hits harden his ceramic plates."}},
   orryn:{green:{name:'Pressure Sphere',type:'strike',mul:1.75,color:'#2f8fa8',cd:6,desc:"Crushes an enemy inside a sphere of deep-sea pressure.",gfx:'orryn_green',gdur:5.88},blue:{name:'Spiral Current',type:'ashfall',dps:0.5,dur:4,radius:3.4*METER,slow:2,nrgSlow:0.4,color:'#2f8fa8',cd:9,desc:"Sends a whirlpool through the enemy formation, slowing energy gain.",gfx:'orryn_blue',gfxR:3*METER,gdur:3.79},purple:{name:'Abyssal Reserve',pass:'abyssres',desc:"Casting stores pressure; full pressure strengthens his next spell."}},
@@ -3927,6 +3927,8 @@ function bodyR(u){ if(u._bodyR!=null) return u._bodyR; if(u.sprH==null) return (
 
 /* --------------------------------- state ----------------------------------- */
 let FIELD_Y_MIN=80;
+let FIELD_X_MAX=FW-60;   // v591: and its right edge (a bonus run relaxes it too: the top road's last firebreak is at field x 957)
+let FIELD_X_MIN=60;   // v591: the combat field's left edge - 60 everywhere; a bonus run relaxes it (gsplitBoundsEnter) so heroes can stand before the top road's first firebreak (field x 25)
 let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],chains=[];
 /* v273 (audit response §5.5) — THE SIMULATION DOES NOT READ THE DOM.
    The wave-clear test used to be gated on `document.getElementById('vaultSubModal')`, so whether a
@@ -4601,20 +4603,24 @@ function gsplitLaneSlot(team, key, i, n, keys, lane){
      their game rows - front row (Tanks) at the formation's front facing the enemy, mid row behind, back row
      (ranged / supports) behind that - each row loose and staggered across the road. */
   const ks=(keys&&keys.length)?keys:Array.from({length:Math.max(1,n|0)},()=>key);
-  const wk=lane+':'+(waveIdx|0), colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5;
+  /* v591 (Phil, 18 Sep: "The monsters seems to stop short. The heroes should be met BEFORE each fire brake. Not
+     after them. But in mid and top the heroes meet them at nearly half way to the next firebrake"). The stations
+     came from GSPLIT_MEET_IMG (0.28/0.40/0.50/0.62/0.78 ± 0.06), which sit BETWEEN firebreaks - wave 2's heroes
+     stood just past firebreak 1 and its monsters stopped past firebreak 2, so the fight happened midway. Now both
+     sides are placed off the firebreaks themselves: the heroes' front row stands just before this wave's
+     firebreak (the same point the firebreak regroup uses), and the monsters walk all the way up to meet them,
+     their front one column ahead of the heroes' - still before the firebreak. Wave 5 has no firebreak after it
+     and stands near the end of the road. Deterministic from road + wave, so both sides agree whichever is built
+     first. */
+  const w=Math.max(0,Math.min(4,waveIdx|0)), colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5;
+  const heroFront=gsplitHeroFrontX(lane, w);
   if(team==='ally'){
-    const rows=gsplitRowSlots(lane, ks, baseX, -1, (waveIdx|0)*31+lane);
-    const minX=Math.min(...rows.map(r=>r.x)), shift=Math.max(0, 62-minX);
-    (GSPLIT._allyFront||(GSPLIT._allyFront={}))[wk]=Math.max(...rows.map(r=>r.x))+shift;   // v590: remembered so the monsters form up IN FRONT of it
-    const s=rows[Math.min(i,rows.length-1)]; return { x: s.x+shift, y: s.y };
+    const rows=gsplitRowSlots(lane, ks, heroFront, -1, w*31+lane);
+    const s=rows[Math.min(i,rows.length-1)]; return { x: s.x, y: s.y };
   }
-  /* v590: the first stretch of road is short, so the heroes' formation is pushed right to stay in the field - the
-     monsters' front never lands inside it: at least two columns clear of the heroes' front row */
-  const af=GSPLIT._allyFront&&GSPLIT._allyFront[wk];
-  const eBase=(af!=null)?Math.max(baseX, af+colX*2):baseX;
-  const rows=gsplitRowSlots(lane, ks, eBase, 1, (waveIdx|0)*31+lane+500);
+  const rows=gsplitRowSlots(lane, ks, heroFront+colX*GSPLIT_MEET_GAP, 1, w*31+lane+500);
   const s=rows[Math.min(i,rows.length-1)];
-  return { x: gsplitClampX(s.x), y: s.y };
+  return { x: s.x, y: s.y };
 }
 
 /* v590 - FRONT / MID / BACK ROWS, THE GAME'S OWN. Row from heroFormationDepth (HERO_PROFILES for heroes, role for
@@ -4670,6 +4676,11 @@ function gsplitRegroupFrontX(lane, s){
   const colX=(2.2*BONUS_UNIT_SCALE)/SC*1.5;
   return Math.min(...xs) - colX*1.2;
 }
+/* v591: where a wave's heroes stand. Waves 1-4: just before firebreak w (gsplitRegroupFrontX). Wave 5: image x 0.74,
+   past the last firebreak (0.645-0.673) and short of the road's right-hand bend. */
+const GSPLIT_LAST_STATION_IMG = 0.74;
+const GSPLIT_MEET_GAP = 1.0;   // monsters' front row stands this many formation columns ahead of the heroes' front
+function gsplitHeroFrontX(lane, w){ return (w<4) ? gsplitRegroupFrontX(lane, w) : gsplitFieldX(GSPLIT_LAST_STATION_IMG, lane); }
 function gsplitRegroupPlan(){
   const W=GSPLIT.window; if(!W) return; const s=Math.max(0,Math.min(3,W.station|0));
   for(const L of GSPLIT.lanes){
@@ -5203,14 +5214,18 @@ function gsplitMove(unit, from, to){
    with `let FIELD_Y_MIN=80;` beside the other battle globals at 3891. Every other mode keeps 80
    because nothing else ever assigns it. The Gauntlet sets it on entry and restores it on exit -
    NOT per lane, because a lane step must not leave a different bound behind if it throws. */
+const GSPLIT_FIELD_X_MAX = 1500;   // v591: the top road's painted straight runs to about field x 1370
+const GSPLIT_FIELD_X_MIN = -700;   // v591: well past every road's painted start (top road straight begins near field x -370)
 const GSPLIT_FIELD_Y_MIN = -10;          // the far road's painted edge is field -3; -10 gives it room
 
 function gsplitBoundsEnter(){
   GSPLIT._fieldYMin = (typeof FIELD_Y_MIN !== 'undefined') ? FIELD_Y_MIN : 80;
   try{ FIELD_Y_MIN = GSPLIT_FIELD_Y_MIN; }catch(e){}
+  GSPLIT._fieldXMin = FIELD_X_MIN; FIELD_X_MIN = GSPLIT_FIELD_X_MIN; GSPLIT._fieldXMax = FIELD_X_MAX; FIELD_X_MAX = GSPLIT_FIELD_X_MAX;   // v591
 }
 function gsplitBoundsExit(){
   try{ FIELD_Y_MIN = (GSPLIT._fieldYMin != null ? GSPLIT._fieldYMin : 80); }catch(e){}
+  FIELD_X_MIN = (GSPLIT._fieldXMin != null ? GSPLIT._fieldXMin : 60); FIELD_X_MAX = (GSPLIT._fieldXMax != null ? GSPLIT._fieldXMax : FW-60);   // v591
 }
 /* The per-road wall in `bonus-lane-walls-*.js` still runs and is still the real constraint - this
    only stops the ENGINE from pulling a far-road hero down into the divider before the wall sees it.
@@ -5957,7 +5972,7 @@ function gsplitEnterBattle(data, assign, id){
   GSPLIT.attemptId = data.attemptId;
   GSPLIT.seed = seed;
   GSPLIT.level = data.boonLevel||1;
-  GSPLIT.waveShown = 0; GSPLIT._cardSeq=0; GSPLIT._allyFront={};   // v590: per-run hero fronts (gsplitLaneSlot)
+  GSPLIT.waveShown = 0; GSPLIT._cardSeq=0;
   GSPLIT.boonOffers = data.boonOffers||[];
   GSPLIT.lanes = [0,1,2].map(i=>{
     const L=gsplitLane(i);
@@ -5990,7 +6005,7 @@ function gsplitEnterBattle(data, assign, id){
       const lead=al.length?Math.min(...al.map(u=>u.homeX!=null?u.homeX:u.x)):sx;
       units.forEach(u=>{ if(!u.alive) return;
         if(u.team==='ally'){ if(!u._backHunter){ u.x=sx+((u.homeX!=null?u.homeX:u.x)-lead); } }
-        else if(u.team==='enemy'){ u.x=FW+GSPLIT_MONSTER_IN_OFF; }
+        else if(u.team==='enemy'){ u.x=Math.max(FW+GSPLIT_MONSTER_IN_OFF, (u.homeX!=null?u.homeX:u.x)+250); }   // v591: parked beyond its own home
         u._ax=u.x; u._ay=u.y; u.px=u.x; u.py=u.y; });
       waveXfer={phase:'enter',t:0}; }
     gsplitSaveWaves(L); gsplitFxSwapOut(L); gsplitSave(L);
@@ -7448,6 +7463,21 @@ const _ABOVE_BAR={dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,d
 function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
+  /* v591 (Phil, 18 Sep: "Effects that effect the entire battlefield should only be a buff or debuff over the enemy or
+     allies head, it shouldnt be a giant banner across the map"). A whole-field effect - a radius past 30 m (the
+     "everyone" sentinels) or an entry marked `fieldWide` - draws NO ground plate. Each unit it touches gets the
+     effect's art as a small badge over its health bar (the v498 above-bar path, sized to that unit, so it shrinks
+     with bonus-run units too): allies for a buff, enemies for a debuff, 'both' for an effect that does each. */
+  const _fw = o.fieldWide || ((o.radius>30*METER) ? (_ABOVE_BAR[type]?'allies':'enemies') : null);
+  if(_fw){
+    const who = _fw==='allies' ? alliesOf(u) : _fw==='enemies' ? enemiesOf(u) : alliesOf(u).concat(enemiesOf(u));
+    const life = o.gdur||1.6;
+    for(const t of who.slice(0,15)){ if(!t||!t.alive||!t._sprRef) continue;
+      try{ window._fxTgtH=t.sprH; window._fxTgtU=t; window._fxAboveBar=true; window._fxAtH=null;
+           spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); }catch(e){}
+      finally{ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; } }
+    return;
+  }
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
   if(type==='chantzone'&&!aimCtr){ const _cc=densestAllyCluster(u,o.radius||5*METER); if(_cc) c=_cc; }   // v548: the circle is drawn where it lands - on the ally cluster
   if(type==='harmonyshield'&&!aimCtr){ const _lo=(typeof lowestAlly==='function')?lowestAlly(u):null; if(_lo) c=_lo; }   /* v558 (Phil: 'this is used on the lowest health ally ... have the note be over the targets health bar'): the dome is centred on that ally, so the plate -- and the note anchored in it -- belongs to that unit, not the caster. Passing the UNIT (not a point) is what lets upAbove find its sprite and sit over its bar. */
@@ -8884,7 +8914,12 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
      camera than the aim point and came out flatter than the true ground circle. With `disc` we stretch the plane so the
      painted disc is exactly a 2R ground circle (it then projects like the aim ring) and slide the plane so that disc,
      not the frame, is centred on the aim. */
-  if(d.disc){ w=R3*2/d.disc.dw; h=R3*2/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }
+  /* v591 (Phil, 18 Sep: Greatbrow's "spell effects in all game modes especially bonus stage are way too big to scale"):
+     a disc plate ignores FX_SIZE by design (the disc IS the circle), so in a bonus run it was drawn at full campaign
+     size around 0.28-scale units. Plain plates already shrink there through FX_SIZE (2 -> 2 x BONUS_UNIT_SCALE); a disc
+     plate now gets the same factor. The HIT radius is not changed - see the v591 SHIPPED note. */
+  const _bdisc=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) ? BONUS_UNIT_SCALE : 1;
+  if(d.disc){ w=R3*_bdisc*2/d.disc.dw; h=R3*_bdisc*2/d.disc.dh; zoff=-(d.disc.cy-0.5)*h; }
   /* v468 (Phil, Grasping Vow screenshot: "the center of the palm should line up with the character its grabbing, the size of
      the hand should be about 20% larger than a tank character"): an `upright` plate is NOT laid on the ground. It stands as a
      billboard on the target: its height is (d.upSize||1.2) x the grabbed unit's sprite height (d.upExtent = how much of the
@@ -9770,7 +9805,7 @@ function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   units.filter(u=>u.team==='enemy'&&u.alive).forEach(u=>{ u.target=null; u.attackAnim=0; u.castAnim=0;
     u.homeX=u.x; u.homeY=u.y;
     /* v578: Gauntlet Split monsters come DOWN THE ROAD from the right edge to the heroes waiting at the firebreak */
-    if(typeof GSPLIT!=='undefined' && GSPLIT.active){ u.x=FW+GSPLIT_MONSTER_IN_OFF; u._ax=u.x; u._ay=u.y; return; }
+    if(typeof GSPLIT!=='undefined' && GSPLIT.active){ u.x=Math.max(FW+GSPLIT_MONSTER_IN_OFF, u.homeX+250); u._ax=u.x; u._ay=u.y; return; }   // v591: parked beyond its own home (wave 5 forms up past field x 1000)
     const st=monsterOffscreenStart(u.x,u.y); u.x=st.x; u.y=st.y; u._ax=st.x; u._ay=st.y; });
   units.forEach(u=>{ u.px=u.x; u.py=u.y; });   // everyone was just teleported to a spawn — no interpolation across that jump
   waveXfer={phase:'enter',t:0};
@@ -10153,7 +10188,7 @@ function updateBattle(dt){
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
-    think(u,dt);if(u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
+    think(u,dt);if(u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
   // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
@@ -10164,7 +10199,7 @@ function updateBattle(dt){
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const ov=(min-d),ux=dx/d,uy=dy/d, mA=bodyR(A)*bodyR(A), mB=bodyR(B)*bodyR(B), fA=mB/(mA+mB), fB=mA/(mA+mB);   // v347: mass-weighted — a boss barely budges, the hero gives ground (was 50/50)
           A.x-=ux*ov*fA;A.y-=uy*ov*fA;B.x+=ux*ov*fB;B.y+=uy*ov*fB; } } }
-    units.forEach(u=>{if(!u.alive||u._dropHidden)return;u.x=Math.max(60,Math.min(FW-60,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
+    units.forEach(u=>{if(!u.alive||u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
   }
   // Hollow's descent + bespoke-mechanic timers. NOTE: deliberately NOT in the passive loop
   // below — that one early-returns for any unit without an unlocked purple, which would
@@ -13728,7 +13763,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:5.88}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{gfx:'dawnbringer_ult',gdur:5.88}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies'}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:5.88}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{gfx:'dawnbringer_ult',gdur:5.88}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -19126,7 +19161,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789734862081';
+const BUILD_ID = '1789735676396';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
