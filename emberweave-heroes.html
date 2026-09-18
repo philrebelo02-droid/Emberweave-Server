@@ -4203,7 +4203,7 @@ let renderer,scene,camera,groundGroup,SPH=null,CW=0,CH=0,DPR=1;
 function disposeObj(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH&&!x.isSprite)x.geometry.dispose();if(x.material&&!x.isSprite){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>m.dispose());}});}
 
 // ---- battle camera zoom — wheel + two-finger pinch, all fights. Discrete levels; 1x = standard start. ----
-const ZOOM_LEVELS=[1,1.25,1.5,2,2.5];   /* v577 (CR 0227, Phil 17 Sep: "zoom so they are around the size of a normal campaign
+const ZOOM_LEVELS=[1,1.25,1.5,2,2.5,3,4];   /* v587 Phil 18 Sep: "I want to be able to zoom in further" - server BONUS_ZOOM_LEVELS matches */   /* v577 (CR 0227, Phil 17 Sep: "zoom so they are around the size of a normal campaign
                                            battle start"): bonus heroes are at BONUS_UNIT_SCALE 0.40 and a campaign-size look
                                            measured x2.47-2.79, so the ceiling is 2.5. bonus-stages.js BONUS_ZOOM_CEILING asserts it. */
 let battleZoom=1, battlePanX=0, battlePanY=0;
@@ -4290,7 +4290,7 @@ function stepBattleZoom(dir, fx, fy){ let i=ZOOM_LEVELS.indexOf(snapZoom(battleZ
    Those are the run's LAW and they stay server-side, where a modified client cannot reach them.
    ========================================================================== */
 
-const BONUS_UNIT_SCALE = 0.40;                     // server/bonus-stages.js — Phil's half size
+const BONUS_UNIT_SCALE = 0.28;                     // server/bonus-stages.js — v587 Phil 18 Sep: "Heroes are still too large" (was 0.40)
 const MAX_PER_LANE     = 10;                       // Phil: "a lane should be able to have 10 heroes in it max"
 const GSPLIT_PICK_CAP  = 15;                       // Phil, 17 Sep 2026: "The game should lock the ability to select a 16th hero." Server: MAX_HEROES.
 const BONUS_LANES      = 3;
@@ -4528,6 +4528,7 @@ const GSPLIT_FIELD_PAD = 40;
 function gsplitClampX(x){ return Math.max(GSPLIT_FIELD_PAD, Math.min(FW-GSPLIT_FIELD_PAD, x)); }
 
 const GSPLIT_MUSTER_IMG   = 0.18;
+const GSPLIT_START_IMG    = 0.12;   // v587: where the heroes appear for wave 1 - the painted start of the straight, left of the field
 const GSPLIT_CHECKPOINT_IMG = [0.24, 0.36, 0.48, 0.60, 0.72];
 const GSPLIT_APPROACH_IMG = 0.82;
 // Each wave meets just before its next firebreak; the final wave meets near home.
@@ -4552,8 +4553,9 @@ function gsplitCrossX(side, station, lane){
 /* Ranks, from the road's real world depth at Phil's 0.40 scale. `formationFor` in bonus-stages.js
    computes the same thing server-side; this is the client half and the two must agree. */
 const GSPLIT_ROAD_DEPTH = [4.37, 2.98, 2.19];
+const GSPLIT_ROAD_USE = 0.6;   // v587 (Phil: heroes "take up the whole road"): ranks fill the middle 60% of the depth - server BONUS_ROAD_USE
 function gsplitRanks(lane){
-  const d = GSPLIT_ROAD_DEPTH[lane] / (1.5 * BONUS_UNIT_SCALE);
+  const d = GSPLIT_ROAD_DEPTH[lane] * GSPLIT_ROAD_USE / (1.5 * BONUS_UNIT_SCALE);
   return Math.max(1, Math.floor(d));
 }
 function gsplitSlot(lane, idx, n){
@@ -4928,7 +4930,7 @@ function gsplitWallLane(L){
 const GSPLIT_WALK_SPEED = 260;      // field units per second, along the road
 /* v578 (Phil, 17 Sep): the road flow. Monsters walk in from past the right edge at this speed (field units/s);
    the heroes wait at the firebreak. After a clear the road stands still this long before the next wave is built. */
-const GSPLIT_MONSTER_IN_SPD = 420;
+const GSPLIT_MONSTER_IN_SPD = 880*MOVE_MUL;   // v587 Phil 18 Sep: "Monsters can run in a fast speed" - the campaign run-on speed (was 420, a walk)
 const GSPLIT_MONSTER_IN_OFF = 160;
 const GSPLIT_CLEAR_HOLD     = 1.0;
 const GSPLIT_CROSS_SECONDS_PATH = 0.75;
@@ -5814,9 +5816,16 @@ function gsplitEnterBattle(data, assign, id){
     buildEnemyWave();
     /* v578 (Phil): wave 1 opens the same way as every other - the heroes walk up from the muster to the first firebreak
        and wait, the monsters come down the road from the right. Homes were set by spawn/buildEnemyWave (laneSlot -> station). */
-    { const mx=gsplitMusterX(i);
+    /* v587 (Phil, 18 Sep: "Heroes should start from the beginning and walk to the firebrake when you click start"):
+       the station for wave 1 sits at the first firebreak, but the old muster was CLAMPED to field x 40 - the same spot -
+       so nobody walked. The heroes now start at the painted start of the road (image x GSPLIT_START_IMG, which is
+       off-field to the left on every road: the camera shows it, the field clamp does not apply during the walk-in)
+       and keep their formation's shape on the way. */
+    { const sx=gsplitFieldX(GSPLIT_START_IMG, i);
+      const al=units.filter(u=>u.alive&&u.team==='ally'&&!u._backHunter);
+      const lead=al.length?Math.min(...al.map(u=>u.homeX!=null?u.homeX:u.x)):sx;
       units.forEach(u=>{ if(!u.alive) return;
-        if(u.team==='ally'){ if(!u._backHunter){ u.x=Math.min(u.x, mx); } }
+        if(u.team==='ally'){ if(!u._backHunter){ u.x=sx+((u.homeX!=null?u.homeX:u.x)-lead); } }
         else if(u.team==='enemy'){ u.x=FW+GSPLIT_MONSTER_IN_OFF; }
         u._ax=u.x; u._ay=u.y; u.px=u.x; u.py=u.y; });
       waveXfer={phase:'enter',t:0}; }
@@ -9631,9 +9640,12 @@ function updateWaveXfer(dt){
       const dx=u.homeX-u.x, dy=u.homeY-u.y, d=Math.hypot(dx,dy);
       /* v578: in the Gauntlet Split the heroes take the short walk to their station and WAIT; the monsters come the whole
          length of the road at a walk, not a sprint, so the player sees them arrive (Phil: "wait for the monsters to come") */
-      const _spd=(_gs&&u.team==='enemy')?GSPLIT_MONSTER_IN_SPD:XFER_IN_SPD;
+      /* v587 (Phil, 18 Sep: "Heroes should walk up to the firebrake at normal speed not like in campaign when they run in.
+         Monsters can run in a fast speed."): in a bonus run a hero moves at its own combat walking speed, monsters at the run-on speed */
+      const _spd=_gs ? (u.team==='enemy' ? GSPLIT_MONSTER_IN_SPD : Math.max(40,(u.speed||55)*MOVE_MUL)) : XFER_IN_SPD;
       if(d>10){ allIn=false; const mv=Math.min(d, _spd*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; u._walkT=0.25; } });
-    if(allIn || waveXfer.t>(_gs?9:6)){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; u.px=u.x; u.py=u.y; }); waveXfer=null; }   // everyone in position → resume 1x combat
+    /* v587: a walk from the road's start takes the slowest hero ~10 s; 25 s is the safety net, not the pace */
+    if(allIn || waveXfer.t>(_gs?25:6)){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; u.px=u.x; u.py=u.y; }); waveXfer=null; }   // everyone in position → resume 1x combat
     return;
   }
   // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
@@ -10614,10 +10626,22 @@ const _bw0=TH?new TH.Vector3():null, _bwr=TH?new TH.Vector3():null, _bwA=TH?new 
    used ONLY as a ceiling because `fw` is the cell and includes cloak, staff and effect margins. A campaign Tank
    (51 px head) lands on exactly 44, so every existing mode keeps today's look. */
 const BAR_K=0.86, BAR_MIN=14;
+/* v587 (Phil, 18 Sep: "The health bar should be small when zoomed out to the size of the heroes and when zooming
+   in it grows with the heroes"). The overlay canvas is inside the zoom transform, so the bar already grows with the
+   view - what kept it big at 1x was the 14 px floor, wider than a bonus hero. In a bonus run the bar is the
+   character's own width, floor 5 px. */
+const BAR_MIN_BONUS=5;
 function barWidthFor(u, crownY){
+  const bonus=!!u._gauntScale, floor=bonus?BAR_MIN_BONUS:BAR_MIN;
   const maxW=u.boss?96:44; let w=maxW;
   const foot=project(u.rx==null?u.x:u.rx, u.ry==null?u.y:u.ry, 0.001);   // project() treats h=0 as "use 1.2" — pass a hair above the ground, not 0
-  if(foot && foot.vis) w=Math.max(BAR_MIN, Math.min(maxW, (foot.y-crownY)*BAR_K));
+  if(foot && foot.vis) w=Math.max(floor, Math.min(maxW, (foot.y-crownY)*BAR_K));
+  if(bonus){ const s=u._sprRef; if(s && camera && _bw0){ try{
+    s.getWorldPosition(_bw0); _bwr.setFromMatrixColumn(camera.matrixWorld,0);
+    const half=Math.abs(s.scale.x||0)/2;
+    _bwA.copy(_bw0).addScaledVector(_bwr,-half).project(camera); _bwB.copy(_bw0).addScaledVector(_bwr,half).project(camera);
+    const quad=Math.abs(_bwB.x-_bwA.x)*0.5*CW; if(quad>1) w=Math.min(w,quad*0.6); }catch(e){} }   // the cell carries margins; ~60% of it is the body
+    return Math.max(floor, w); }
   const s=u._sprRef;
   if(s && camera && _bw0){ try{
     s.getWorldPosition(_bw0); _bwr.setFromMatrixColumn(camera.matrixWorld,0);   // camera RIGHT, not world X
@@ -10668,24 +10692,26 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     if(!_p0.vis)return;
     // the gap is set in SCREEN pixels, not world units, so it reads the same on a big boss and a
     // small monster and at any zoom: the bar sits a few px clear of the top of the head.
-    const GAP=(u.boss?13:8);
+    const _bn=!!u._gauntScale;   // v587: a bonus-run unit - everything about its bar is scaled to the small body
+    const GAP=_bn?3:(u.boss?13:8);
     const p={x:_p0.x, y:_p0.y-GAP, vis:true};
     const _ebw=barWidthFor(u,_p0.y);   // v577 (CR 0227): bar width follows the character
     const bw=_ebw,x=p.x-bw/2,y=p.y;
     { // over-head health bar, team-colored — sits just above the head
       // v253 (visual audit #5): one mobile scale step up — taller bars, stronger outline; a BOSS
       // gets a wider, gold-framed bar that cannot be mistaken for a normal enemy's.
-      const eb=_ebw, eh=Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
-      octx.fillStyle='rgba(0,0,0,.72)'; octx.fillRect(ex-2,ey-2,eb+4,eh+4);
+      const eb=_ebw, eh=_bn?Math.max(1.5, eb*0.14):Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
+      const pad=_bn?1:2;
+      octx.fillStyle='rgba(0,0,0,.72)'; octx.fillRect(ex-pad,ey-pad,eb+2*pad,eh+2*pad);
       octx.fillStyle=(u.team==='ally')?'#57e08a':(u.boss?'#ff4757':'#ff7a5a'); octx.fillRect(ex,ey,eb*pct,eh);
-      octx.strokeStyle=u.boss?'rgba(255,212,94,.95)':'rgba(0,0,0,.85)'; octx.lineWidth=u.boss?2:1.5; octx.strokeRect(ex-1,ey-1,eb+2,eh+2); }
+      if(!_bn){ octx.strokeStyle=u.boss?'rgba(255,212,94,.95)':'rgba(0,0,0,.85)'; octx.lineWidth=u.boss?2:1.5; octx.strokeRect(ex-1,ey-1,eb+2,eh+2); } }
     if(u.boss){ octx.textAlign='center';
       const nm=(u.t&&u.t.name)?String(u.t.name).toUpperCase():'BOSS';
       octx.font='900 12px sans-serif'; octx.lineWidth=3.5; octx.strokeStyle='rgba(0,0,0,.9)';
       octx.strokeText('👑 '+nm,p.x,y-13); octx.fillStyle='#ffd45e'; octx.fillText('👑 '+nm,p.x,y-13); }
     if(u===selected){octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11);}
     // over-head status icons (~2 m above head): silence mask, then stun mask
-    { const si={x:p.x, y:p.y-(u.boss?9:6)}, isz=(u.boss?32:23);   // status icons stack directly above the bar
+    { const si={x:p.x, y:p.y-(_bn?3:(u.boss?9:6))}, isz=_bn?Math.max(8,Math.round(_ebw*0.8)):(u.boss?32:23);   // status icons stack directly above the bar (v587: bonus icons scale with the bar)
       const _rdy=(img)=>img&&img.complete&&img.naturalWidth, _ic=[];
       if((u.silencedT||0)>0&&_rdy(_mrSilImg))_ic.push(_mrSilImg);
       if((u.stunned||0)>0&&_rdy(_mrStunImg))_ic.push(_mrStunImg);
@@ -18914,7 +18940,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789729750557';
+const BUILD_ID = '1789730361275';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
