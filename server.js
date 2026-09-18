@@ -38,6 +38,30 @@ const _rcache={}, RCACHE_TTL=60000;   // re-fetch from GAME_URL at most once a m
 async function remoteAsset(urlPath){ const c=_rcache[urlPath]; if(c && Date.now()-c.t < RCACHE_TTL) return c;
   try{ const r=await fetch(GAME_URL+urlPath); if(!r.ok) return c||null; const buf=Buffer.from(await r.arrayBuffer()); _rcache[urlPath]={buf,ct:r.headers.get('content-type')||'application/octet-stream',t:Date.now()}; return _rcache[urlPath]; }catch(e){ return c||null; } }
 
+/* v581 — THE UPDATE-RELOAD LOOP (Phil, 18 Sep: the game kept bouncing back to the splash screen
+   for hours, and every Gauntlet/BONUS run died halfway through).
+   /play serves the emberweave-heroes.html bundled in THIS repo. /version.json had no local file,
+   so it fell through to remoteAsset() and answered with the NETLIFY copy instead. Two different
+   sources for the same fact: the moment one is deployed without the other they disagree, and they
+   did — served HTML said build 1789675778792, version.json said 1789683075000.
+   The client polls version.json every 10s and hard-reloads on ANY mismatch, so it reloaded, got
+   handed the very same HTML again, and reloaded again — forever (updLoopBlocked() only throttles
+   it to 2 reloads a minute, which is why it looked intermittent rather than constant).
+   Fix: when the HTML is bundled here, DERIVE the build id from that file. The version the client
+   is told about is then, by construction, the version it was actually served, and the two can
+   never drift again. Only when no local HTML exists (server.js deployed bare, game proxied from
+   GAME_URL) do we fall back to a local version.json and then the remote one. */
+let _localBuildId;   // undefined = not looked up yet, null = no local HTML / no BUILD_ID in it
+function localBuildId(){
+  if(_localBuildId!==undefined) return _localBuildId;
+  _localBuildId=null;
+  try{ const html=fs.readFileSync(path.join(__dirname,'emberweave-heroes.html'),'utf8');
+       const m=/const\s+BUILD_ID\s*=\s*['"]([^'"]+)['"]/.exec(html);
+       if(m) _localBuildId=m[1];
+  }catch(e){}
+  return _localBuildId;
+}
+
 /* ------------------------------- storage ---------------------------------- */
 let DB = { users:{}, byName:{}, tokens:{}, seeded:false };
 /* v251 (audit P2): OPTIONAL POSTGRESQL PERSISTENCE. Set DATABASE_URL and the world state is
@@ -2327,7 +2351,8 @@ async function api(req,res,url){
     const nyNow=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
     const nextReset=new Date(nyNow); nextReset.setHours(9,0,0,0); if(nyNow>=nextReset) nextReset.setDate(nextReset.getDate()+1);
     return send(res,200,{
-      build:(function(){ try{ return JSON.parse(fs.readFileSync(path.join(__dirname,'version.json'),'utf8')).build; }catch(e){ return null; } })(),
+      build:(function(){ const lb=localBuildId(); if(lb) return lb;   // v581: same source of truth as /version.json
+        try{ return JSON.parse(fs.readFileSync(path.join(__dirname,'version.json'),'utf8')).build; }catch(e){ return null; } })(),
       flags:{ DUNGEON_V2_ENABLED, GEAR_V2_ENABLED:(typeof GEAR_V2_ENABLED!=='undefined'?GEAR_V2_ENABLED:null),
         GUILD_WAR_V2_ENABLED:(typeof GUILD_WAR_V2_ENABLED!=='undefined'?GUILD_WAR_V2_ENABLED:null),
         GLYPH_V2:!!GLYPHS, POSTGRES:!!PG, SMTP:!!process.env.SMTP_HOST },
@@ -4663,6 +4688,8 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});
+    const lb=localBuildId();                                  // v581: the build we actually serve wins — see localBuildId()
+    if(lb){ res.end(JSON.stringify({build:lb})); return; }
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }
   if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json');
   // PWA icons live in assets/icons/ now (kept off the repo root); the public URLs stay the same.
