@@ -19403,7 +19403,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789760777000';
+const BUILD_ID = '1789762115000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19767,6 +19767,10 @@ const ED_ARENAS = [
     img:'/assets/img/battlefields/emberdraft/tidewrack.webp', video:'/assets/img/battlefields/emberdraft/tidewrack.mp4',
     far:{ x0:0.161, x1:0.844, y:0.113 }, near:{ x0:0.1125, x1:0.884, y:0.733 }, lipY:0.793,
     plaza:{ farY:0.178, midY:0.436, nearY:0.683, farL:0.103, farR:0.900, nearL:0.094, nearR:0.909 } },
+  { id:'mossgate', name:'The Mossgate Ruins',   // v608 (Phil: "Make 4 total maps that's it" / "Can use the 4 maps twice each")
+    img:'/assets/img/battlefields/emberdraft/mossgate.webp', video:'/assets/img/battlefields/emberdraft/mossgate.mp4',
+    far:{ x0:0.189, x1:0.811, y:0.091 }, near:{ x0:0.139, x1:0.854, y:0.774 }, lipY:0.822,
+    plaza:{ farY:0.156, midY:0.456, nearY:0.728, farL:0.131, farR:0.872, nearL:0.103, nearR:0.900 } },
 ];
 const ED_AI_NAMES = ['The Ashen Duke','Mirewitch Olga','Captain Brandt','Sister Veil','The Cinder Twins','Old Harrow','Lady Quill'];
 /* equipment: one component per Forge gear slot; the 9 Forge quality tiers (Phil: "items should have tiers") */
@@ -19943,7 +19947,7 @@ function edNextRound(){
     edRollShop(p);
   }
   ED.phase='plan'; ED.sel=null;
-  if(edIsDraft(r)) edStartDraft(); else { for(const p of edAlive()) if(p.ai) edAiPlan(p); edRender(); }
+  /* v609: the Ember Draft is the carousel now (edStartDraft stays as the turn-based fallback) */ if(edIsDraft(r)) edStartCarousel(); else { for(const p of edAlive()) if(p.ai) edAiPlan(p); edRender(); }
 }
 
 /* ------------------------------------------------------------------------------------------ the Ember Draft */
@@ -19971,6 +19975,185 @@ function edDraftAdvance(){
 }
 function edDraftPick(ix){ const D=ED.draft; if(!D) return; const p=D.order[D.turn]; if(!p||p.ai) return;
   const o=D.offers[ix]; if(!o||o.taken!=null) return; edDraftGive(p,o); D.turn++; edDraftAdvance(); }
+
+/* ============================================================================================================
+   v609 THE EMBER CAROUSEL (Phil, 18 Sep 2026: "During draft there will need to be 8 items that spin around the center
+   circle of the draft area players need to rush to. Same as tft" / "Just like tft you will need a avatar" / "You can click
+   to move" / "How possible is it to make 3d avatars? ... So when I click somewhere it moves as 3d"; map 9 = "#2 full oval";
+   avatars = "Placeholder, then AI 3D").
+   - The draft rounds (1 and every 6th) are now a real-time carousel on Map 9. Eight offers (a hero + a component) orbit
+     the painted track; every living player has an avatar at a gate; players are released two at a time, lowest health
+     first; you tap the floor to walk, the AI walks to the offer it wants; touching an offer takes it (it rides above
+     your avatar). When everyone has one - or time runs out - the rest are dealt out and the round goes on as before
+     (edDraftGive: hero to the bench, component to the ledge).
+   - The logic runs in IMAGE space (fractions of the painted map, stretched over the battle view like the arenas),
+     because the painting's floor and track do not share one perspective. The 3D avatars are drawn by their own
+     orthographic camera whose ground plane maps 1:1 onto the image, so a model's feet land exactly where the logic
+     puts them; height reads upward on screen.
+   - Avatar: RobotExpressive (Tomas Laulhe / Quaternius, CC0, three.js examples r128) with Idle / Walking / Running,
+     tinted per player. It is a placeholder for Phil's 10 styled avatars: anything with Idle + Walking clips drops in
+     via ED_AVATARS. GLTFLoader + SkeletonUtils are the official r128 files, vendored in assets/js.
+   - If WebGL/the model cannot load, the avatars fall back to flat markers; the rules never depend on the art.
+   ============================================================================================================ */
+const ED_CAR = {
+  img:'/assets/img/battlefields/emberdraft/carousel.webp',
+  track:{ cx:0.498, cy:0.427, a:0.199, b:0.189 },   // centre line of the dark ring the offers ride on
+  floor:{ cx:0.500, cy:0.458, a:0.455, b:0.325 },   // the walkable oval inside the wall
+  // the round platforms in front of 8 of the 9 painted gates (the top-centre gate is left empty)
+  gates:[[0.328,0.158],[0.672,0.158],[0.831,0.252],[0.905,0.461],[0.815,0.652],[0.185,0.652],[0.095,0.461],[0.169,0.252]],
+  spin:0.30,        // rad/s the offers travel round the track
+  firstAt:1.5,      // s before the first pair is released
+  gap:3.2,          // s between pairs
+  grace:8,          // s after the last release before the rest are dealt out
+  speed:0.36,       // avatar speed, fractions of the view width per second
+  ySquash:0.62,     // vertical movement/reach counts less (the floor recedes)
+  reach:0.034       // pickup distance, fractions of the view width
+};
+const ED_AVATARS = [ { id:'robot', url:'/assets/models/avatars/robot-expressive.glb', idle:'Idle', walk:'Running', height:4.79 } ];
+const ED_CAR_TINT = [0xffc23d, 0x5aa9ff, 0xff6b6b, 0x7ee06b, 0xc38bff, 0xff9f43, 0x4de0d2, 0xf2f2f2];   // seat colours (you are gold)
+
+function edStartCarousel(){
+  const r=ED.round, offers=[];
+  for(let i=0;i<8;i++){ const k=edDrawKey(r<=1?3:Math.min(9,3+Math.floor(r/3))); if(!k) continue; offers.push({ key:k, item:edRollComp(r), taken:null, by:null }); }
+  const order=edAlive().slice().sort((a,b)=>(a.hp-b.hp)||(Math.random()-0.5));
+  const av=order.map((p,j)=>{ const g=ED_CAR.gates[j%ED_CAR.gates.length];
+    return { p, x:g[0], y:g[1], tx:null, ty:null, got:null, release:ED_CAR.firstAt+Math.floor(j/2)*ED_CAR.gap, face:0, want:null, moving:false }; });
+  ED.car={ offers, order, av, t:0, spin0:Math.random()*Math.PI*2, end:ED_CAR.firstAt+Math.floor((order.length-1)/2)*ED_CAR.gap+ED_CAR.grace, done:false, last:0 };
+  ED.phase='carousel'; ED.sel=null; ED.msg='';
+  // the carousel floor: battle view with Map 9 stretched over it, no units
+  CUR={ mode:'emberdraft', edKeys:[], opp:[] };
+  ED.arena={ id:'carousel', img:ED_CAR.img, video:null }; ED._lay=null; BATTLE_MAPS.emberdraft=ED_CAR.img;
+  try{ if(state!=='battle') show('battle'); }catch(e){}
+  try{ clearBattle(); ended=true; battleTime=0; setBattleZoom(1); }catch(e){}
+  try{ applyBattleMap(); }catch(e){}
+  edCarGfxStart();
+  edRender();
+  edCarLoopStart();
+}
+/* the offer's position on the track at time t */
+function edCarOfferPos(C,i){ const T=ED_CAR.track, a=C.spin0+C.t*ED_CAR.spin+i*(Math.PI*2/Math.max(1,C.offers.length));
+  return { x:T.cx+T.a*Math.cos(a), y:T.cy+T.b*Math.sin(a) }; }
+function edCarClamp(x,y){ const F=ED_CAR.floor, dx=(x-F.cx)/F.a, dy=(y-F.cy)/F.b, d=Math.hypot(dx,dy);
+  return d<=1 ? {x,y} : { x:F.cx+dx/d*F.a, y:F.cy+dy/d*F.b }; }
+/* screen <-> image fraction, over the battle view */
+function edCarRect(){ const cv=(typeof renderer!=='undefined'&&renderer&&renderer.domElement)?renderer.domElement.getBoundingClientRect():null;
+  return (cv&&cv.width>0)?cv:{left:0,top:0,width:innerWidth,height:innerHeight}; }
+function edCarTap(sx,sy){ const C=ED.car; if(!C||C.done) return; const R=edCarRect(), me=C.av.find(a=>!a.p.ai); if(!me) return;
+  const q=edCarClamp((sx-R.left)/R.width,(sy-R.top)/R.height); me.tx=q.x; me.ty=q.y; }
+function edCarStep(dt){
+  const C=ED.car; if(!C||C.done) return; C.t+=dt;
+  const R=edCarRect(), W=R.width||1, H=R.height||1, sq=ED_CAR.ySquash;
+  const open=()=>C.offers.map((o,i)=>({o,i})).filter(z=>z.o.taken==null);
+  for(const a of C.av){
+    if(a.got!=null || C.t<a.release){ a.moving=false; continue; }
+    if(a.p.ai){ // AI: the offer it wants (a copy it owns, else the dearest hero, else the best item); switch if it goes
+      let w=(a.want!=null && C.offers[a.want].taken==null)?a.want:null;
+      if(w==null){ const own=edUnits(a.p).map(u=>u.key), cand=open(); if(cand.length){
+          const pick=cand.find(z=>own.includes(z.o.key)) || cand.slice().sort((u,v)=>edCost(v.o.key)-edCost(u.o.key)||(v.o.item.q-u.o.item.q))[0];
+          w=pick.i; } a.want=w; }
+      if(w!=null){ const q=edCarOfferPos(C,w); a.tx=q.x; a.ty=q.y; }
+    }
+    if(a.tx==null){ a.moving=false; continue; }
+    // walk in screen-ish units: x in widths, y squashed so the floor feels flat
+    const dxp=(a.tx-a.x)*W, dyp=(a.ty-a.y)*H/sq, d=Math.hypot(dxp,dyp), step=ED_CAR.speed*W*dt;
+    if(d<=Math.max(1,step)){ a.x=a.tx; a.y=a.ty; if(!a.p.ai){ a.tx=a.ty=null; } a.moving=false; }
+    else { a.x+=dxp/d*step/W; a.y+=dyp/d*step*sq/H; a.moving=true; a.face=Math.atan2(dxp, dyp); }
+    const q=edCarClamp(a.x,a.y); a.x=q.x; a.y=q.y;
+    // touch an offer -> take it
+    for(const z of open()){ const p=edCarOfferPos(C,z.i), ddx=(p.x-a.x)*W, ddy=(p.y-a.y)*H/sq;
+      if(Math.hypot(ddx,ddy) <= ED_CAR.reach*W){ z.o.taken=a.p.i; z.o.by=a; a.got=z.i; a.tx=a.ty=null; a.moving=false; break; } }
+  }
+  if(C.av.every(a=>a.got!=null) || C.t>=C.end || !open().length) edCarFinish();
+}
+function edCarFinish(){
+  const C=ED.car; if(!C||C.done) return; C.done=true;
+  const left=()=>C.offers.map((o,i)=>i).filter(i=>C.offers[i].taken==null);
+  for(const a of C.av){ if(a.got==null){ const L=left(); if(L.length){ const i=L[Math.floor(Math.random()*L.length)]; C.offers[i].taken=a.p.i; a.got=i; } } }
+  for(const a of C.av){ if(a.got!=null){ const o=C.offers[a.got]; o.taken=null; edDraftGive(a.p,o); } }
+  for(const o of C.offers) if(o.taken==null) edReturnKey(o.key);   // leftovers go back to the pool
+  setTimeout(()=>{   // a beat to see the last grab, then back to planning
+    edCarGfxStop(); ED.car=null; ED.phase='plan';
+    for(const p of edAlive()) if(p.ai) edAiPlan(p);
+    ED._fieldSig=null; edRender(); }, 700);
+}
+function edCarLoopStart(){ const C=ED.car; if(!C) return; C.last=performance.now();
+  const tick=(now)=>{ const C2=ED.car; if(!C2||C2!==C) return; const dt=Math.min(0.05,Math.max(0,(now-C2.last)/1000)); C2.last=now;
+    edCarStep(dt); edCarDraw(dt); if(!C2.done || ED.car===C2) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick); }
+
+/* ---------------- drawing: DOM offers + labels (in #edRoot), 3D avatars (own canvas) ---------------- */
+function edCarHtml(){ const C=ED.car; if(!C) return '';
+  let h='<div class="hit" data-car="1"></div><div class="bar topb"><span class="pill">🔥 The Ember Carousel</span><span class="pill" id="edCarMsg"></span><span style="flex:1"></span></div>';
+  C.offers.forEach((o,i)=>{ const ch=edItemChip(o.item);
+    h+=`<div class="carOffer" id="edCarO${i}"><div class="spr" style="${edSprStyle(o.key)}"></div><div class="carItem">${edItemImg(o.item,20)}</div><div class="carName" style="color:${ch.col}">${edEsc(edName(o.key))}</div></div>`; });
+  C.av.forEach((a,j)=>{ h+=`<div class="carTag ${a.p.ai?'':'me'}" id="edCarT${j}">${a.p.ai?edEsc(a.p.name):'You'}</div>`; });
+  return h; }
+function edCarDraw(dt){
+  const C=ED.car; if(!C) return; const R=edCarRect(), W=R.width, H=R.height;
+  const me=C.av.find(a=>!a.p.ai), msg=document.getElementById('edCarMsg');
+  if(msg){ const left=Math.max(0,Math.ceil((me?me.release:0)-C.t));
+    msg.textContent = C.done ? 'Done' : (me&&me.got!=null ? 'Got it - waiting for the others' : (left>0 ? `You're released in ${left}` : 'Go! Tap where to run')); }
+  C.offers.forEach((o,i)=>{ const el=document.getElementById('edCarO'+i); if(!el) return;
+    let p; if(o.taken!=null && o.by){ p={x:o.by.x, y:o.by.y}; el.classList.add('held'); } else if(o.taken!=null){ el.style.display='none'; return; } else p=edCarOfferPos(C,i);
+    el.style.left=(R.left+p.x*W)+'px'; el.style.top=(R.top+p.y*H)+'px'; });
+  const G=ED._carG;
+  C.av.forEach((a,j)=>{ const t=document.getElementById('edCarT'+j); if(t){ t.style.left=(R.left+a.x*W)+'px'; t.style.top=(R.top+a.y*H)+'px'; }
+    const o=a.got!=null?document.getElementById('edCarO'+a.got):null; if(o){ o.style.left=(R.left+a.x*W)+'px'; o.style.top=(R.top+a.y*H - (G&&G.headPx||46))+'px'; } });
+  if(G) edCarGfxDraw(dt);
+}
+/* the 3D layer: an orthographic camera looking down at 35 degrees; ground (X,Z) <-> image (x,y) is linear both ways */
+const ED_CAR_ELEV = 35*Math.PI/180;   // low enough to see the avatar from the front, like the hero sprites
+let _edGltfP=null;
+function edLoadAvatarModel(){
+  if(_edGltfP) return _edGltfP;
+  const js=src=>new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  _edGltfP=(async()=>{ if(typeof THREE==='undefined') throw new Error('no three');
+    if(!THREE.GLTFLoader) await js('/assets/js/three-r128-GLTFLoader.js');
+    if(!THREE.SkeletonUtils) await js('/assets/js/three-r128-SkeletonUtils.js');
+    const A=ED_AVATARS[0]; const g=await new Promise((res,rej)=>new THREE.GLTFLoader().load(A.url,res,undefined,rej)); return { g, A }; })();
+  _edGltfP.catch(()=>{ _edGltfP=null; });
+  return _edGltfP; }
+function edCarGfxStart(){
+  edCarGfxStop();
+  const G={ ok:false, headPx:46 }; ED._carG=G;
+  try{
+    const cv=document.createElement('canvas'); cv.id='edCarCv'; cv.style.cssText='position:fixed;pointer-events:none;z-index:13390';
+    document.body.appendChild(cv); G.cv=cv;
+    const rr=new THREE.WebGLRenderer({ canvas:cv, alpha:true, antialias:true }); rr.setClearColor(0x000000,0);
+    try{ rr.outputEncoding=THREE.sRGBEncoding; }catch(e){}
+    rr.setPixelRatio(Math.min(3,(window.devicePixelRatio||1)*2)); G.rr=rr;   // supersampled: the avatars are small on screen (Phil: "they seem a bit pixely")
+    G.scene=new THREE.Scene(); G.scene.add(new THREE.HemisphereLight(0xfff1dc,0x3a3028,0.85)); const dl=new THREE.DirectionalLight(0xffe2b8,0.9); dl.position.set(4,10,7); G.scene.add(dl);
+    G.cam=new THREE.OrthographicCamera(-10,10,5,-5,0.1,500); G.clock=0;
+    G.av=[];
+  }catch(e){ G.cv&&G.cv.remove(); ED._carG=null; return; }
+  edLoadAvatarModel().then(({g,A})=>{ if(ED._carG!==G) return;
+    const C=ED.car; if(!C) return;
+    C.av.forEach((a,j)=>{ const m=THREE.SkeletonUtils.clone(g.scene); const tint=a.p.ai?ED_CAR_TINT[1+(j%(ED_CAR_TINT.length-1))]:ED_CAR_TINT[0];
+      m.traverse(o=>{ if(o.isMesh && o.material){ o.material=o.material.clone(); if(/main/i.test(o.material.name||'') || (o.material.color && o.material.color.r>0.5 && o.material.color.g>0.4 && o.material.color.b<0.4)) { o.material.color.setHex(tint); try{ o.material.color.convertSRGBToLinear(); }catch(e){} } o.frustumCulled=false; } });
+      const mixer=new THREE.AnimationMixer(m); const clip=n=>THREE.AnimationClip.findByName(g.animations,n);
+      const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
+      idle.play(); G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false }); });
+    G.A=A; G.ok=true; }).catch(()=>{ /* markers only */ });
+}
+function edCarGfxDraw(dt){
+  const G=ED._carG; if(!G||!G.rr) return; const R=edCarRect();
+  if(G.cv.style.left!==R.left+'px'){ G.cv.style.left=R.left+'px'; G.cv.style.top=R.top+'px'; }
+  const w=Math.round(R.width), h=Math.round(R.height); if(G.w!==w||G.h!==h){ G.w=w; G.h=h; G.rr.setSize(w,h,true); }
+  // world units: the view is 20 wide; ground Z is squashed by sin(elev) on screen, height by cos(elev)
+  const k=w/20, sinE=Math.sin(ED_CAR_ELEV), cosE=Math.cos(ED_CAR_ELEV), halfW=10, halfH=h/(2*k);
+  const cam=G.cam; cam.left=-halfW; cam.right=halfW; cam.top=halfH; cam.bottom=-halfH; cam.updateProjectionMatrix();
+  cam.position.set(0, 100*sinE, 100*cosE); cam.lookAt(0,0,0);
+  if(G.ok){ const A=G.A, targetPx=0.07*h, s=targetPx/(A.height*cosE*k); G.headPx=targetPx+8;   // Phil: "make the avatars smaller" / "more like half what they are" (was 0.14)
+    for(const v of G.av){ const a=v.a; v.m.scale.setScalar(s);
+      v.m.position.set((a.x-0.5)*w/k, 0, (a.y-0.5)*h/(k*sinE)); v.m.rotation.y=a.face||0;
+      if(a.moving!==v.walking){ v.walking=a.moving; const from=a.moving?v.idle:v.walk, to=a.moving?v.walk:v.idle; to.reset().play(); from.crossFadeTo(to,0.18,false); }
+      v.mixer.update(dt||0.016); } }
+  G.rr.render(G.scene, cam);
+}
+function edCarGfxStop(){ const G=ED._carG; if(!G) return; ED._carG=null;
+  try{ if(G.av) G.av.forEach(v=>{ v.mixer.stopAllAction(); v.m.traverse(o=>{ if(o.isMesh&&o.material) o.material.dispose(); }); }); }catch(e){}
+  try{ G.rr&&G.rr.dispose(); G.rr&&G.rr.forceContextLoss&&G.rr.forceContextLoss(); }catch(e){}
+  try{ G.cv&&G.cv.remove(); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ shop actions (you) */
 function edBuy(ix){ const p=edYou(), k=p.shop[ix]; if(!k) return; const c=edCost(k);
@@ -20266,7 +20449,7 @@ function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, 
     ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error)||'Reward could not be claimed.'};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
     if(ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.phase==='over') edRender(); }); }
-function edQuit(){ edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
@@ -20294,6 +20477,14 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .prow{display:flex;align-items:center;gap:5px;font-size:12px;padding:1px 0} #edRoot .prow.me{color:#ffd45e;font-weight:800} #edRoot .prow.out{opacity:.4;text-decoration:line-through}
 #edRoot .hpbar{flex:1;height:5px;background:#2a1520;border-radius:3px;overflow:hidden} #edRoot .hpbar b{display:block;height:100%;background:#e0555a}
 #edRoot .syn{font-size:11.5px;padding:1px 0;color:#8b98a9} #edRoot .syn.on{color:#e8edf3} #edRoot .syn.on2{color:#ffd45e;font-weight:800}
+#edRoot .carOffer{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;flex-direction:column;align-items:center;z-index:2}
+#edRoot .carOffer .spr{width:34px;height:42px;background-color:transparent}
+#edRoot .carItem{position:absolute;top:-8px;right:-14px}
+#edRoot .carName{font-size:9px;font-weight:800;text-shadow:0 1px 2px #000,0 0 3px #000;white-space:nowrap;margin-top:-2px}
+#edRoot .carOffer.held .carName{display:none}
+#edRoot .carTag{position:absolute;transform:translate(-50%,4px);font-size:10px;font-weight:800;color:#dfe7f1;text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;white-space:nowrap}
+#edRoot .carTag.me{color:#ffd45e}
+#edRoot.car .hit{cursor:pointer}
 #edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
 #edRoot .ledgeItem.sel{transform:translate(-50%,-62%) scale(1.18)}
 #edRoot .ledgeItem img,#edRoot .badge img,#edDrag img{pointer-events:none;display:block}
@@ -20363,6 +20554,7 @@ function edRender(){
   let root=document.getElementById('edRoot'); if(!root){ root=document.createElement('div'); root.id='edRoot'; document.body.appendChild(root); edWireRoot(root); }
   root.style.display='block';
   if(ED.phase==='over'){ document.body.classList.remove('ed-plan'); root.className='full'; root.innerHTML=edOverHtml(); return; }
+  if(ED.phase==='carousel'){ document.body.classList.add('ed-plan'); /* hides the battle HUD */ root.className='car'; root.innerHTML=edCarHtml(); try{ edCarDraw(0); }catch(e){} return; }
   if(ED.phase==='draft'){ document.body.classList.remove('ed-plan'); root.className='full'; root.innerHTML=edDraftHtml(); return; }
   root.className='';
   { const you0=edYou(), sig=Object.entries(you0.board).map(([p,u])=>p+'='+u.id).sort().join('|')+'#'+you0.bench.map(u=>u?u.id:'-').join(',');
@@ -20424,6 +20616,7 @@ function edWireRoot(root){
   let drag=null;
   const markHot=(slot)=>{ root.querySelectorAll('.mark.hot').forEach(m=>m.classList.remove('hot')); if(slot){ const m=root.querySelector(`[data-mark="${slot}"]`); if(m) m.classList.add('hot'); } };
   root.addEventListener('pointerdown',e=>{
+    if(ED.phase==='carousel'){ edCarTap(e.clientX,e.clientY); return; }   // v609: tap to run
     if(ED.phase!=='plan') return;
     const itEl=e.target.closest('[data-item]');
     if(itEl){ drag={ item:+itEl.dataset.item, x:e.clientX, y:e.clientY, moved:false }; return; }
