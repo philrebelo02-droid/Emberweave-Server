@@ -4018,6 +4018,52 @@ async function api(req,res,url){
       writeDB(); return {ok:true, ledger:ledgerView(me)};
     });
     return send(res, out.ok===false?400:200, out); }
+  /* =================== v604 EMBERDRAFT (Island of Trials) ===================
+     Phil, 18 Sep 2026: "I want the rewards to be stamina. Every place they place again Ai gives them 6 stamina per rank
+     they get above 6" — 6th 6 · 5th 12 · 4th 18 · 3rd 24 · 2nd 30 · 1st 36 (7th/8th nothing).
+     "the ai version is gated at 3 attempts per day" / "If you pay 100 diamonds you can buy 3 more chances, 150 for 3 more
+     after that" — so a New-York day holds 3 free starts, +3 for 100 diamonds, +3 for 150 (9 at most). A START spends the
+     attempt (quitting does not refund it). A match against the AI is played in the browser, so the result route cannot
+     replay it: it guards with the server-issued attempt (one claim each) and a plausible length (rounds and time).
+     Multiplayer (not built yet) will add Phil's 50-diamond entry, 200 / 150 / refund prizes and its own 3 a day. */
+  if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'){
+    if(!me) return send(res,401,{error:'auth'});
+    if(req.method!=='POST') return send(res,404,{error:'emberdraft'});
+    const led=ensureLedger(me); const b=await body(req);
+    const ED_FREE=3, ED_PACK=3, ED_PACK_COST=[100,150], ED_STAM=[0,36,30,24,18,12,6,0,0];
+    const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null};
+    const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0;
+    const view=()=>({ left:Math.max(0,ED_FREE+ED_PACK*E.bought-E.used), used:E.used, bought:E.bought,
+      nextCost: E.bought<ED_PACK_COST.length ? ED_PACK_COST[E.bought] : null, pack:ED_PACK });
+    if(p==='/api/emberdraft/state') return send(res,200,{ok:true, edraft:view()});
+    const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    if(p==='/api/emberdraft/buy'){ const out=idem(me.id+':edbuy:'+reqId,()=>{
+        if(E.bought>=ED_PACK_COST.length) return {ok:false,error:'No more Emberdraft attempts can be bought today.',edraft:view()};
+        const cost=ED_PACK_COST[E.bought];
+        if((led.gems|0)<cost) return {ok:false,error:'Not enough diamonds — '+ED_PACK+' more attempts cost '+cost+'.',edraft:view()};
+        led.gems-=cost; E.bought++; ledTx(me,'emberdraft:buy-attempts',{gems:-cost});
+        writeDB(); return {ok:true, gems:led.gems, edraft:view(), ledger:ledgerView(me)}; });
+      return send(res,out.ok?200:400,out); }
+    if(p==='/api/emberdraft/start'){ const out=idem(me.id+':edstart:'+reqId,()=>{
+        if(view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
+        E.used++;
+        E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false };
+        writeDB(); return { ok:true, attemptId:E.att.id, edraft:view() }; });
+      return send(res,out.ok?200:400,out); }
+    const out=idem(me.id+':edresult:'+reqId,()=>{
+      const att=E.att; if(!att||att.id!==String(b.attemptId||'')) return {ok:false,error:'No Emberdraft match in progress.'};
+      if(att.claimed) return {ok:false,error:'This match was already claimed.'};
+      const place=b.place|0, rounds=b.rounds|0;
+      if(place<1||place>8) return {ok:false,error:'Bad placement.'};
+      att.claimed=true;
+      const stam=ED_STAM[place]||0;
+      if(!stam) { writeDB(); return {ok:true, stamina:0, note:'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
+      if(rounds<6 || Date.now()-att.startedAt < rounds*12000){ writeDB(); return {ok:true, stamina:0, note:'That match was too short to reward.', ledger:ledgerView(me)}; }
+      ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+stam);
+      ledTx(me,'emberdraft:place'+place,{stamina:stam});
+      writeDB();
+      return { ok:true, stamina:stam, edraft:view(), ledger:ledgerView(me) }; });
+    return send(res, out.ok===false?400:200, out); }
   /* =================== v250 (audit P1): PER-LOOP SERVER AUTHORITIES ===================
      Elite stages, Tower/Gauntlet/legacy-dungeon trials, quests, market fragment offers, and the
      arena daily are each their own server-verified transaction. Generic /api/tx/earn no longer
