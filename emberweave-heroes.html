@@ -4339,7 +4339,11 @@ const BONUS_ZOOM_CEILING = 2.5;
    ========================================================================== */
 
 const GSPLIT_LANES = 3, GSPLIT_WAVES = 5;
-const GSPLIT_ROAD_NAME = ['Left Road','Middle Road','Right Road'];
+/* v585: Top/Middle/Bottom - the roads run across the screen stacked top to bottom, and the hero picker, the
+   tutorial hints and the spec (projects/13) all say Top/Middle/Bottom. "Left/Right Road" named the same roads
+   two different ways inside one run. */
+const GSPLIT_ROAD_NAME = ['Top Road','Middle Road','Bottom Road'];
+const GSPLIT_ROAD_SHORT = ['Top','Middle','Bottom'];
 
 /* Where the three roads sit, from `projects/14a - GAUNTLET LANE GEOMETRY`:
    image y 0.28 / 0.50 / 0.72  ->  world z -8.69 / -0.67 / +5.12  ->  field y via wz(y)=(y-700)*0.02 */
@@ -4995,6 +4999,16 @@ function gsplitStepMovers(dt){
 function gsplitMove(unit, from, to){
   if(!gsplitCanMove(from, to)) return false;
   const side = (Math.min(from, to) === 0) ? 'upper' : 'lower';
+  /* v585 - SOFTLOCK FIX. Hollow (`_backHunter`) waits OFF-WORLD (x -9999) between waves so he can drop
+     in when the next one starts - and the firebreak opens after that next wave is built, so he is always
+     up there during a window. A crossing then "walked" him from x -9999 at road speed: it never arrived,
+     START WAVE never enabled, and the run was stuck. Found in the v585 rig. He has no walk to make:
+     change his road now; gsplitCloseWindow gives his drop point the new road's slot. */
+  if(unit && (unit.x < -1000 || unit.y < -1000)){
+    GSPLIT.window.movers.push({ unit, from, to, side, station: GSPLIT.window.station, t: 1, arrived: true, phase: 'seated' });
+    gsplitReseat(unit, from, to);
+    return true;
+  }
   const m = { unit, from, to, side, station: GSPLIT.window.station, t: 0, arrived: false };
   gsplitBeginCross(m);                       // phase + flag, NOW, not on the next tick
   GSPLIT.window.movers.push(m);
@@ -5204,7 +5218,32 @@ function gsplitWindowCss(){
   #gwConfirm:disabled{opacity:.4;}
   #gwStart{min-width:104px;font-size:11px;font-weight:900;padding:5px 10px;border-radius:8px;
     border:1px solid #c9a35e;background:#1d2434;color:#f0d8a8;}
-  #gwStart[disabled]{opacity:.4;border-color:#2a3550;color:#8b98a9;}`;
+  #gwStart[disabled]{opacity:.4;border-color:#2a3550;color:#8b98a9;}
+  /* ---- v585 MOBILE PASS (Phil, 17 Sep: "Make it more ui friendly for a mobile player") ----
+     Measured at 800x370 (a landscape phone): the move-phase panel was 151 px tall and covered the
+     Bottom Road's drop band COMPLETELY (0 px visible), so a hero could not be sent there at all. */
+  .gw-boon{min-height:34px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    font-size:11px;padding:3px 3px;touch-action:manipulation;}
+  #gwConfirm,#gwStart{min-height:34px;font-size:12px;touch-action:manipulation;}
+  .gw-roster{padding:4px 0 2px;}
+  .gw-hero{flex:0 0 56px;padding:2px 1px;position:relative;}
+  .gw-hero img{width:46px;height:46px;}
+  .gw-hero span{max-width:54px;}
+  .gw-hero small{font-size:8px;}
+  /* tap a hero: the header offers the three roads as buttons - the Bottom Road sits under this panel,
+     so a button is the only target that is always on screen */
+  .gw-dest{flex:0 0 auto;min-height:34px;min-width:74px;padding:3px 8px;border-radius:8px;border:1px solid #c9a35e;
+    background:#1d2434;color:#f0d8a8;font-size:11px;font-weight:800;line-height:1.1;touch-action:manipulation;}
+  .gw-dest small{display:block;font-size:9px;font-weight:600;color:#c9a35e;}
+  .gw-dest[disabled]{opacity:.35;border-color:#2a3550;}
+  .gw-dests{flex:1;min-width:0;display:flex;align-items:center;gap:5px;overflow-x:auto;}
+  .gw-dests > span{font-size:10px;color:#f0d8a8;white-space:nowrap;}
+  /* drag a hero: the panel fades out of the way so every road - the Bottom one too - is a drop target */
+  #gsplitWindow.gw-dragging .gw-assignment{opacity:.12;transition:opacity .12s;}
+  .gw-ghost{position:fixed;z-index:9999;pointer-events:none;width:48px;height:48px;border-radius:50%;
+    border:2px solid #ffd36b;box-shadow:0 0 12px #ffd36b;transform:translate(-50%,-60%);object-fit:cover;background:#1b2638;}
+  #gwLaneOverlays.gw-picking .gw-lane-zone[data-active]{border-color:#ffd36b;background:rgba(255,211,107,.10);}
+  .gw-lane-zone{padding:0 112px 0 10px;cursor:pointer;}   /* chips clear the x2 / AUTO column on the right */`;
   document.head.appendChild(st);
 }
 
@@ -5219,16 +5258,53 @@ function gsplitWindowEl(){
     const app = document.getElementById('app') || document.body;
     app.appendChild(el);
     el.addEventListener('click', gsplitWindowClick);
-    el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;try{b.setPointerCapture(e.pointerId);}catch(_){}}});
-    el.addEventListener('pointerup',gsplitWindowPointerUp);
-    el.addEventListener('pointercancel',()=>{if(GSPLIT.window)GSPLIT.window.dragHero=null;});   // v584: the swipe became a roster scroll
+    /* v585: ONE drag path for finger and mouse. The old one leaned on HTML5 drag-and-drop for the mouse
+       and elementFromPoint for touch - and elementFromPoint can never find the Bottom Road, because this
+       panel sits on top of it. Now a drag shows a ghost under the finger, fades the panel, and the road
+       is chosen by the finger's HEIGHT against the road bands, whatever is drawn on top. */
+    el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');const W=GSPLIT.window;
+      if(!b||!W||b.disabled)return;
+      W.dragHero=b.dataset.unit; W._drag={x:e.clientX,y:e.clientY,on:false,src:(b.querySelector('img')||{}).src||''};
+      try{b.setPointerCapture(e.pointerId);}catch(_){}});
     el.addEventListener('wheel',e=>{const r=e.target.closest&&e.target.closest('.gw-roster');if(r&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){r.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
-    el.addEventListener('dragstart',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;e.dataTransfer.setData('text/plain',b.dataset.unit);}});
-    el.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('[data-gw="lane"]'))e.preventDefault();});
-    el.addEventListener('drop',e=>{const lane=e.target.closest&&e.target.closest('[data-gw="lane"]');if(lane&&GSPLIT.window){e.preventDefault();const id=e.dataTransfer.getData('text/plain')||GSPLIT.window.dragHero;GSPLIT.window.dragHero=null;gsplitAssignHero(id,+lane.dataset.lane);}});
-    el.addEventListener('dragend',()=>{if(GSPLIT.window)GSPLIT.window.dragHero=null;});
+    // on window: a redraw can replace the captured card mid-drag, and the release must still land
+    window.addEventListener('pointermove',gsplitWindowPointerMove);
+    window.addEventListener('pointerup',gsplitWindowPointerUp);
+    window.addEventListener('pointercancel',()=>gsplitDragEnd(false));   // v584: a sideways swipe became a roster scroll
   }
   return el;
+}
+function gsplitLaneAtY(y){
+  for(const z of document.querySelectorAll('#gwLaneOverlays .gw-lane-zone[data-active]')){
+    const r=z.getBoundingClientRect(); if(y>=r.top&&y<=r.bottom) return +z.dataset.lane; }
+  return -1;
+}
+function gsplitWindowPointerMove(e){
+  const W=GSPLIT.window, d=W&&W._drag; if(!d) return;
+  if(!d.on){
+    if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<10) return;
+    d.on=true;
+    const g=document.createElement('img'); g.className='gw-ghost'; g.alt=''; if(d.src) g.src=d.src;
+    document.body.appendChild(g); d.ghost=g;
+    const el=document.getElementById(GSPLIT_WIN_ID); if(el) el.classList.add('gw-dragging');
+  }
+  d.ghost.style.left=e.clientX+'px'; d.ghost.style.top=e.clientY+'px';
+  const lane=gsplitLaneAtY(e.clientY);
+  document.querySelectorAll('#gwLaneOverlays .gw-lane-zone').forEach(z=>z.classList.toggle('gw-dz-over', +z.dataset.lane===lane));
+}
+function gsplitDragEnd(drop, e){
+  document.querySelectorAll('body > .gw-ghost').forEach(g=>g.remove());
+  const el=document.getElementById(GSPLIT_WIN_ID); if(el) el.classList.remove('gw-dragging');
+  document.querySelectorAll('#gwLaneOverlays .gw-dz-over').forEach(z=>z.classList.remove('gw-dz-over'));
+  const W=GSPLIT.window; if(!W) return;
+  const d=W._drag, id=W.dragHero; W._drag=null; W.dragHero=null;
+  if(!drop || !d || !d.on || !id || !e) return;
+  W._suppressClick=Date.now();   // the release of a drag also fires a click on the card - not a selection
+  const lane=gsplitLaneAtY(e.clientY);
+  if(lane<0) return;
+  const f=gsplitFindHero(id);
+  if(!gsplitAssignHero(id,lane) && f && f.L.i!==lane && !gsplitCanMove(f.L.i,lane))
+    bannerMsg('◆ '+GSPLIT_ROAD_NAME[lane]+' is full — 10 heroes at most.');
 }
 
 /* One delegated listener rather than a handler per button. The panel is rebuilt on every state
@@ -5280,7 +5356,8 @@ function gsplitWindowClick(e){
     const live=GSPLIT.lanes.filter(L=>L.state==='walking');
     if(live.every(L=>W.picked[L.i])){W.phase='move';W.selectedHero=null;gsplitWindowDraw();}
   }else if(kind==='hero'){
-    W.selectedHero=b.dataset.unit;gsplitWindowDraw();
+    if(W._suppressClick && Date.now()-W._suppressClick<500) return;   // v585: that was the end of a drag
+    W.selectedHero=(W.selectedHero===b.dataset.unit)?null:b.dataset.unit;gsplitWindowDraw();   // tap again to put it down
   }else if(kind==='lane'){
     if(W.selectedHero)gsplitAssignHero(W.selectedHero,+b.dataset.lane);
   }else if(kind==='start'){
@@ -5289,11 +5366,8 @@ function gsplitWindowClick(e){
 }
 function gsplitWindowPointerUp(e){
   const W=GSPLIT.window;
-  if(!W||!W.dragHero)return;
-  const id=W.dragHero;W.dragHero=null;
-  const target=document.elementFromPoint(e.clientX,e.clientY);
-  const lane=target&&target.closest('[data-gw="lane"]');
-  if(lane)gsplitAssignHero(id,+lane.dataset.lane);
+  if(!W||!W._drag)return;
+  gsplitDragEnd(true,e);
 }
 
 /* ~~CHOICE~~ THE MOVE PICKS THE REARMOST HERO, AND SAYS SO.
@@ -5341,19 +5415,33 @@ function gsplitWindowDraw(){
     return;
   }
   const waiting=W.movers.some(m=>!m.arrived&&m.unit&&m.unit.alive);
-  const why=waiting?'Waiting for heroes to arrive.':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Drag the glowing hero to Middle Road.':'Drag a hero up to a road, or tap a hero then a road. 10 per road.');
+  const why=waiting?'Waiting for heroes to cross…':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Drag the glowing hero to Middle Road.':'Drag a hero onto a road, or tap a hero.');
   const oldRoster=el.querySelector('.gw-roster'),rosterLeft=oldRoster?oldRoster.scrollLeft:0;   // v584: a redraw keeps the player's place
-  let html='<div class="gw-assignment"><div class="gw-assignhead"><strong>FIREBREAK '+station+' · assign heroes</strong><span class="gw-why">'+why+'</span><button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div>';
+  /* v585: a tapped hero turns the middle of the header into the three roads as buttons. */
+  const sel=W.selectedHero&&gsplitFindHero(W.selectedHero);
+  if(W.selectedHero&&!sel) W.selectedHero=null;
+  let mid='<span class="gw-why">'+why+'</span>';
+  if(sel){
+    mid='<div class="gw-dests"><span>Send '+gsplitEsc((HERO_TYPES[sel.u.key]||{}).name||sel.u.key)+' to</span>';
+    for(const L of GSPLIT.lanes){
+      const count=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length;
+      const pending=W.movers.filter(m=>m.to===L.i&&!m.arrived).length-W.movers.filter(m=>m.from===L.i&&!m.arrived).length;
+      const ok=L.i!==sel.L.i && L.state==='walking' && gsplitCanMove(sel.L.i,L.i);
+      mid+='<button class="gw-dest" data-gw="lane" data-lane="'+L.i+'"'+(ok?'':' disabled')+'>'+gsplitEsc(GSPLIT_ROAD_SHORT[L.i])+'<small>'+(L.i===sel.L.i?'here now':(count+pending)+'/10')+'</small></button>';
+    }
+    mid+='</div>';
+  }
+  let html='<div class="gw-assignment"><div class="gw-assignhead"><strong>FIREBREAK '+station+'</strong>'+mid+'<button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div>';
   html+='<div class="gw-roster">';
   for(const L of GSPLIT.lanes){
     for(const u of L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon)){
       const id=gsplitHeroCardId(u),moving=W.movers.some(m=>m.unit===u&&!m.arrived);
       const art=(HERO_CARD_ART&&HERO_CARD_ART[u.key])||HERO_PORTRAITS[u.key]||'';
-      html+='<button class="gw-hero'+(W.selectedHero===id?' selected':'')+'" data-gw="hero" data-unit="'+id+'" draggable="true"'+(moving?' disabled':'')+'><img src="'+gsplitEsc(art)+'" alt=""><span>'+gsplitEsc((HERO_TYPES[u.key]||{}).name||u.key)+'</span><small>'+gsplitEsc(L.name)+'</small></button>';
+      html+='<button class="gw-hero'+(W.selectedHero===id?' selected':'')+'" data-gw="hero" data-unit="'+id+'" data-lane="'+L.i+'"'+(moving?' disabled':'')+'><img src="'+gsplitEsc(art)+'" alt="" draggable="false"><span>'+gsplitEsc((HERO_TYPES[u.key]||{}).name||u.key)+'</span><small>'+(moving?'crossing…':gsplitEsc(GSPLIT_ROAD_SHORT[L.i]))+'</small></button>';
     }
   }
   html+='</div></div>';
-  el.innerHTML=html;el.className='show gw-assign';
+  el.innerHTML=html;el.className='show gw-assign'+(W._drag&&W._drag.on?' gw-dragging':'');
   const roster=el.querySelector('.gw-roster'); if(roster&&rosterLeft)roster.scrollLeft=rosterLeft;
   gsplitDrawLaneOverlays();
 }
@@ -5381,18 +5469,19 @@ function gsplitDrawLaneOverlays(){
       zone.style.boxShadow='inset 0 0 24px rgba(255,211,107,.35)';
     const chip=document.createElement('div'); chip.className='gw-lane-chip';
     chip.textContent=L.name+' · '+(count+pending)+'/10'; zone.appendChild(chip);
-    if(active){
-      zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('gw-dz-over');});
-      zone.addEventListener('dragleave',()=>zone.classList.remove('gw-dz-over'));
-      zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('gw-dz-over');
-        const id=e.dataTransfer.getData('text/plain')||(GSPLIT.window&&GSPLIT.window.dragHero);
-        if(GSPLIT.window)GSPLIT.window.dragHero=null; gsplitAssignHero(id,i);});
-      zone.addEventListener('pointerup',e=>{
-        const W2=GSPLIT.window; if(!W2||!W2.dragHero)return;
-        const id=W2.dragHero; W2.dragHero=null; gsplitAssignHero(id,i);});
-    }
+    /* v585: "tap a hero then a road" - the zones live outside #gsplitWindow, so the panel's delegated
+       click listener never saw a tap on a road and the second tap did nothing. Drops are handled by
+       gsplitDragEnd (by height), not here. */
+    if(active) zone.addEventListener('click',e=>{ const W2=GSPLIT.window; if(!W2||!W2.selectedHero) return;
+      e.preventDefault(); e.stopPropagation(); gsplitAssignHero(W2.selectedHero,i); });
     overlays.appendChild(zone);
   }
+  overlays.classList.toggle('gw-picking', !!GSPLIT.window.selectedHero);
+  /* v585: a road label the panel covers (the Bottom Road's, on a phone) shows through a disabled START and
+     reads as clutter - hide it; the same count is on the road button a tap brings up */
+  const panel=document.getElementById(GSPLIT_WIN_ID);
+  if(panel){ const pt=panel.getBoundingClientRect().top;
+    overlays.querySelectorAll('.gw-lane-chip').forEach(c=>{ if(c.getBoundingClientRect().bottom>pt-2) c.style.visibility='hidden'; }); }
 }
 
 
@@ -5460,6 +5549,28 @@ function openBonusModal(ch, slot){
   });
 }
 
+/* v585 mobile pass - the picker's layout rules. Only what inline styles cannot say: a bar pinned to the
+   bottom of the scrolling card, and a side-by-side place screen on a short landscape screen (a phone). */
+function gsplitPickerCss(){
+  if(document.getElementById('gsplitPickerCss')) return;
+  const st=document.createElement('style'); st.id='gsplitPickerCss';
+  st.textContent=`
+  #gsplitPicker .gsplitBar{position:sticky;bottom:calc(-1 * clamp(12px,2vw,22px));z-index:2;display:flex;align-items:center;gap:8px;
+    margin:6px calc(-1 * clamp(12px,2vw,22px)) calc(-1 * clamp(12px,2vw,22px));padding:8px clamp(12px,2vw,22px);
+    background:linear-gradient(to top,#111925 75%,rgba(17,25,37,.88));border-top:1px solid rgba(164,124,67,.45);}
+  #gsplitPicker .gsplitCount{flex:1;min-width:0;font-size:13px;color:#c9a35e;}
+  #gsplitPicker #gsplitNext{min-height:44px;min-width:120px;font-size:15px;width:auto;}
+  #gsplitPicker #gsplitAuto,#gsplitPicker #gsplitAutoPlace,#gsplitPicker #gsplitBack{min-height:44px;}
+  @media (orientation:landscape) and (max-height:600px){
+    #gsplitPicker .gsplitPlaceBody{display:flex;gap:10px;align-items:flex-start;}
+    #gsplitPicker #gsplitMapWrap{flex:0 0 auto;width:min(60%,calc((100vh - 130px) * 1.5)) !important;margin:0 !important;}
+    #gsplitPicker .gsplitSide{flex:1;min-width:0;display:flex;flex-direction:column;max-height:calc(100vh - 130px);}
+    #gsplitPicker #gsplitTray{flex:1 1 auto;overflow-y:auto;align-content:flex-start;margin-bottom:6px !important;}
+    #gsplitPicker #gsplitTray .gsplitChip{touch-action:pan-y !important;}   /* the map is to the LEFT: a sideways drag places, an up/down swipe scrolls */
+    #gsplitPicker .gsplitActions{flex-wrap:wrap;}
+  }`;
+  document.head.appendChild(st);
+}
 function gsplitPickerClose(){
   const el=document.getElementById('gsplitPicker'); if(el) el.remove();
   GSPLIT_ENTRY = null;
@@ -5475,9 +5586,12 @@ function gsplitPickerRender(){
   E.mode   = E.mode   || 'pick';                   // 'pick' -> 'place'
 
   const CAP = info.maxHeroes||GSPLIT_PICK_CAP, PER = info.maxPerLane||MAX_PER_LANE;
-  const owned = HERO_KEYS.filter(k=>G.unlocked[k]);
+  /* v585 mobile pass: strongest first, so the heroes a player wants are the ones on screen without scrolling */
+  const powOf = k=>{ try{ return Math.round(heroPower(k))||0; }catch(e){ return 0; } };
+  const owned = HERO_KEYS.filter(k=>G.unlocked[k]).sort((a,b)=>powOf(b)-powOf(a));
   const nameOf = k=>((HERO_TYPES&&HERO_TYPES[k])||{}).name||k;
   const artOf  = k=>(HERO_CARD_ART&&HERO_CARD_ART[k])||HERO_PORTRAITS[k]||'';
+  gsplitPickerCss();
   const head = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="font-weight:800;font-size:15px">BONUS ${E.id}${info.tier?' — '+info.tier:''}</div>
       <button type="button" id="gsplitClose" class="btn xs secondary">✕</button></div>`;
@@ -5489,12 +5603,17 @@ function gsplitPickerRender(){
         width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${on?'#c9a35e':'#333'};
         background:${on?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer;touch-action:manipulation">
         <img src="${artOf(k)}" alt="${gsplitEsc(nameOf(k))}" style="width:54px;height:62px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${gsplitEsc(nameOf(k))}</span>
-        <span style="color:#c9a35e;font-weight:800">${on?'✓':'—'}</span></button>`; }).join('');
+        <span style="color:#c9a35e;font-weight:800">${on?'✓':'⚔ '+powOf(k)}</span></button>`; }).join('');
+    /* v585: the count and NEXT ride in a bar pinned to the bottom of the card - on a landscape phone they
+       used to sit below every hero, a long scroll away. BEST picks the strongest heroes in one tap. */
     el.innerHTML = head + `
       <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Tap to choose up to <b style="color:#e6edf3">${CAP}</b> heroes. You place them on the roads next.${info.tutorial?' Tutorial run — one monster per wave.':''}</div>
       <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${chips || '<div style="color:#8b98a9;font-size:12px">No heroes unlocked yet.</div>'}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#c9a35e;margin-bottom:10px"><div>Selected: <b>${E.picked.length}</b> / ${CAP}</div><div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
-      <button type="button" id="gsplitNext" class="btn" style="width:100%" ${E.picked.length?'':'disabled'}>NEXT — PLACE ON THE ROADS</button>`;
+      <div class="gsplitBar"><div class="gsplitCount">Selected <b>${E.picked.length}</b> / ${CAP}<div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
+        <button type="button" id="gsplitAuto" class="btn secondary">BEST ${Math.min(CAP,owned.length)}</button>
+        <button type="button" id="gsplitNext" class="btn" ${E.picked.length?'':'disabled'}>NEXT ▶</button></div>`;
+    el.querySelector('#gsplitAuto').onclick = ()=>{ E.picked = owned.slice(0,CAP);
+      Object.keys(E.laneOf).forEach(k=>{ if(E.picked.indexOf(k)<0) delete E.laneOf[k]; }); gsplitPickerRender(); };
     el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
     el.querySelectorAll('.gsplitHero').forEach(b=>{ b.onclick=()=>{ const k=b.dataset.k, i=E.picked.indexOf(k);
       if(i>=0){ E.picked.splice(i,1); delete E.laneOf[k]; }
@@ -5512,25 +5631,40 @@ function gsplitPickerRender(){
   const inRoad = L=>E.picked.filter(k=>E.laneOf[k]===L);
   const unplaced = E.picked.filter(k=>!E.laneOf[k]);
   const mapSrc = CH_BONUS_MAPS[E.id] || (typeof BATTLE_BG!=='undefined'?BATTLE_BG:'');
-  const chip = (k,placed)=>`<button type="button" class="gsplitChip${placed?' placed':''}" data-k="${k}" draggable="false" style="display:inline-flex;align-items:center;gap:4px;padding:${placed?'2px 6px':'5px 8px'};margin:2px;border-radius:14px;
+  /* v585: `compact` = portrait only. A road band is ~14% of the map (about 34 px on a phone), so name chips
+     showed four heroes and hid the rest; with more than three on a road the band shows faces, all ten fit. */
+  const chip = (k,placed,compact)=>`<button type="button" class="gsplitChip${placed?' placed':''}" data-k="${k}" draggable="false" title="${gsplitEsc(nameOf(k))}" aria-label="${gsplitEsc(nameOf(k))}" style="display:inline-flex;align-items:center;gap:4px;padding:${compact?'1px':placed?'2px 6px':'5px 8px'};margin:${compact?'1px':'2px'};border-radius:14px;
       border:1px solid #c9a35e;background:${placed?'rgba(20,32,49,.92)':'rgba(201,163,94,.22)'};color:#f0d8a8;font-size:${placed?'10px':'11px'};font-weight:700;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;white-space:nowrap">
-      <img src="${artOf(k)}" alt="" style="width:${placed?16:22}px;height:${placed?16:22}px;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">${gsplitEsc(nameOf(k))}</button>`;
+      <img src="${artOf(k)}" alt="" style="width:${compact?22:placed?16:22}px;height:${compact?22:placed?16:22}px;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">${compact?'':gsplitEsc(nameOf(k))}</button>`;
   const bands = roads.map(r=>{ const n=inRoad(r.L).length, full=n>=PER;
     return `<div class="gsplitRoad" data-road="${r.L}" style="position:absolute;left:0;right:0;top:${(r.y*100-7).toFixed(2)}%;height:14%;box-sizing:border-box;
-        border:2px dashed ${full?'#ff6b6b':'#c9a35e'};border-radius:8px;background:rgba(201,163,94,.10);display:flex;flex-wrap:wrap;align-content:flex-start;gap:0;padding:2px 4px;overflow:hidden">
-        <div style="position:absolute;right:6px;top:2px;font-size:11px;font-weight:900;color:${full?'#ff6b6b':'#f0d8a8'};text-shadow:0 1px 2px #000">${r.name} ${n}/${PER}</div>
-        ${inRoad(r.L).map(k=>chip(k,true)).join('')}</div>`; }).join('');
+        border:2px dashed ${full?'#ff6b6b':'#c9a35e'};border-radius:8px;background:rgba(201,163,94,.10);display:flex;flex-wrap:wrap;align-content:center;align-items:center;gap:0;padding:2px 74px 2px 4px;overflow:hidden">
+        <div style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:900;color:${full?'#ff6b6b':'#f0d8a8'};text-shadow:0 1px 2px #000">${r.name} ${n}/${PER}</div>
+        ${inRoad(r.L).map(k=>chip(k,true,n>3)).join('')}</div>`; }).join('');
+  /* v585 mobile pass: on a landscape phone the map was 310x207 with empty space either side, and START sat
+     below the fold. Now the map takes the card's height on the left and the tray + buttons sit beside it
+     (gsplitPickerCss); portrait keeps the stacked order. AUTO spreads the unplaced heroes evenly. */
   el.innerHTML = head + `
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Drag a hero from the bottom onto a road (or tap the hero, then tap the road). Tap a placed hero to take them back. <b style="color:#e6edf3">${PER}</b> per road.</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Drag a hero onto a road, or tap a hero then a road. Tap a placed hero to take them back. <b style="color:#e6edf3">${PER}</b> per road.</div>
+    <div class="gsplitPlaceBody">
     <div id="gsplitMapWrap" style="position:relative;display:block;width:min(100%,calc(56vh*1.5));margin:0 auto 8px;aspect-ratio:3/2;background:#0b0f16 center/cover no-repeat;background-image:url('${mapSrc}');border-radius:8px;overflow:hidden">${bands}</div>
+    <div class="gsplitSide">
     <div id="gsplitTray" style="display:flex;flex-wrap:wrap;gap:2px;min-height:38px;padding:4px;border:1px solid #333;border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:8px">${unplaced.map(k=>chip(k,false)).join('') || '<span style="color:#8b98a9;font-size:11px;padding:6px">Every chosen hero is on a road.</span>'}</div>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div class="gsplitActions" style="display:flex;gap:8px;align-items:center">
       <button type="button" id="gsplitBack" class="btn secondary" style="flex:0 0 auto">◀ HEROES</button>
+      <button type="button" id="gsplitAutoPlace" class="btn secondary" style="flex:0 0 auto" ${unplaced.length?'':'disabled'}>AUTO</button>
       <button type="button" id="gsplitStart" class="btn" style="flex:1">START</button></div>
-    <div id="gsplitErr" style="color:#ff6b6b;font-size:11px;margin-top:8px"></div>`;
+    <div id="gsplitErr" style="color:#ff6b6b;font-size:11px;margin-top:8px"></div>
+    </div></div>`;
   el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
   el.querySelector('#gsplitBack').onclick = ()=>{ E.mode='pick'; gsplitPickerRender(); };
   el.querySelector('#gsplitStart').onclick = gsplitStartRun;
+  el.querySelector('#gsplitAutoPlace').onclick = ()=>{
+    // strongest first, each to the road holding the fewest - an even 5/5/5 for fifteen
+    const todo=unplaced.slice().sort((a,b)=>powOf(b)-powOf(a));
+    for(const k of todo){ const L=[1,2,3].filter(l=>inRoad(l).length<PER).sort((a,b)=>inRoad(a).length-inRoad(b).length)[0];
+      if(!L) break; E.laneOf[k]=L; }
+    E._sel=null; gsplitPickerRender(); };
   const err = m=>{ const er=el.querySelector('#gsplitErr'); if(er) er.textContent=m; };
   const place = (k,L)=>{ if(inRoad(L).length>=PER && E.laneOf[k]!==L){ err('At most '+PER+' heroes on one road.'); return false; } E.laneOf[k]=L; E._sel=null; gsplitPickerRender(); return true; };
   const unplace = k=>{ delete E.laneOf[k]; E._sel=null; gsplitPickerRender(); };
@@ -5629,6 +5763,9 @@ function gsplitEnterBattle(data, assign, id){
     if(bg){ const url=CH_BONUS_MAPS[id]||BATTLE_BG;
       bg.style.backgroundImage='url('+url+')'; bg.style.backgroundSize='cover'; bg.style.backgroundPosition='center'; } }
   show('battle');
+  /* v585: show() only raises ⏸ for campaign/dungeon/vault modes - in a bonus run it is the way to Retreat, so always */
+  { const pbt=document.getElementById('pauseBtn'); if(pbt) pbt.classList.add('active'); }
+  try{ refreshCtrlBtns(); }catch(e){}
   bannerMsg('◆ BONUS '+id+' — THREE ROADS');
 }
 
@@ -5817,7 +5954,8 @@ function gsplitFinishFailed(won, data, err, attempt){
      verdict first - a recovered connection still gets the actual win, never a forced loss, unless
      the player explicitly declines that and confirms a real retreat. */
   GSPLIT._finishing = false;
-  bannerMsg('◆ Could not confirm this run’s result with the server. Check your connection, then tap RETRY to try again.');
+  { const rb=document.getElementById('gsplitRetreat'); if(rb) rb.style.display=''; }   // v585: the button appears only now
+  bannerMsg('◆ Could not confirm this run’s result with the server. Check your connection, then tap RETRY RESULT.');
 }
 
 function gsplitShowResult(won, data){
@@ -5844,15 +5982,31 @@ function gsplitHudEnter(){
   GSPLIT._verdictPending = null;      // fresh - see gsplitFinish / gsplitFinishFailed
   const pb = document.getElementById('portraitBar');
   if(pb){ GSPLIT._pbDisplay = pb.style.display; pb.style.display = 'none'; }
+  /* v585 MOBILE PASS. The floating RETREAT sat at the viewport's top-left - exactly on top of the ⏸
+     button (Phil's 17 Sep screenshot shows it covering it), one mis-tap from ending a run, and it used a
+     native confirm(). Retreat now lives in the pause menu (⏸ → Retreat from run, with the game's own
+     uiConfirm), where Restart Stage / Quit - campaign actions that must never run inside a bonus run -
+     are hidden. The floating button only appears as RETRY RESULT once gsplitFinishFailed has run out of
+     automatic retries. Skip is hidden too: its handler steps the campaign sim over all three roads at once. */
+  { const pm=document.querySelector('#pauseModal .pm');
+    ['restartBtn','exitBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display='none'; });
+    if(pm && !document.getElementById('gsplitPmRetreat')){
+      const r=document.createElement('button'); r.id='gsplitPmRetreat'; r.type='button';
+      r.className='btn wide secondary'; r.style.marginTop='10px'; r.textContent='↩ Retreat from run';
+      r.onclick=()=>{ uiConfirm('Retreat from this run?', ['Any road still fighting counts as lost.'], 'Retreat', true)
+        .then(ok=>{ if(!ok) return; paused=false; document.getElementById('pauseModal').classList.remove('active'); gsplitRetreat(); }); };
+      pm.appendChild(r);
+    }
+    const sk=document.getElementById('skipBtn'); if(sk) sk.style.display='none'; }
   let el = document.getElementById('gsplitRetreat');
   if(!el){
     el = document.createElement('button');
     el.id = 'gsplitRetreat';
     el.type = 'button';
-    el.textContent = '↩ RETREAT';
-    el.style.cssText = 'position:fixed;top:8px;left:8px;z-index:8500;padding:6px 10px;'+
-      'border-radius:8px;border:1px solid #7a2020;background:rgba(30,8,8,.85);color:#ff9b9b;'+
-      'font-size:11px;font-weight:800;cursor:pointer';
+    el.textContent = '↻ RETRY RESULT';
+    el.style.cssText = 'position:fixed;top:56px;left:8px;z-index:8500;padding:10px 14px;min-height:40px;'+
+      'border-radius:8px;border:1px solid #c9a35e;background:rgba(20,28,43,.94);color:#ffd36b;'+
+      'font-size:12px;font-weight:800;cursor:pointer;display:none';
     /* 17 Sep - if a real verdict is sitting unconfirmed (automatic retries exhausted, see
        gsplitFinishFailed), tapping this button retries THAT verdict for real, preserving an earned
        win, instead of immediately forcing a loss. Only once that retry itself fails (or there is no
@@ -5864,18 +6018,22 @@ function gsplitHudEnter(){
         gsplitFinish(GSPLIT._verdictPending);
         return;
       }
-      if(confirm('Retreat from this Gauntlet run? Any road still fighting counts as lost.')) gsplitRetreat();
+      uiConfirm('Retreat from this run?', ['Any road still fighting counts as lost.'], 'Retreat', true).then(ok=>{ if(ok) gsplitRetreat(); });
     };
     document.body.appendChild(el);
   }
-  el.style.display = '';
-  el.textContent = '↩ RETREAT';
+  el.style.display = 'none';   // v585: shown only by gsplitFinishFailed, as RETRY RESULT
+  el.textContent = '↻ RETRY RESULT';
 }
 function gsplitHudExit(){
   const pb = document.getElementById('portraitBar');
   if(pb) pb.style.display = (GSPLIT._pbDisplay || '');
   const el = document.getElementById('gsplitRetreat');
   if(el) el.style.display = 'none';
+  /* v585: give the pause menu back to the campaign */
+  ['restartBtn','exitBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display=''; });
+  document.getElementById('gsplitPmRetreat')?.remove();
+  try{ refreshCtrlBtns(); }catch(e){}
 }
 
 /* SECURITY 17 Sep - real per-window evidence for server/bonus-stages.js's MIN_RESOLVE_MS /
@@ -5909,7 +6067,8 @@ function gsplitCloseWindow(){
     /* v578: every hero on the road (including one who just crossed) gets a proper station slot - rank and column -
        for the wave that is about to start, instead of one shared x. Same math as laneSlot() would use. */
     { const al=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon); const _w=waveIdx; waveIdx=GSPLIT.waveShown;
-      al.forEach((u,ix)=>{ const sl=gsplitLaneSlot('ally',u.key,ix,al.length,al.map(a=>a.key),L.i); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x; });
+      al.forEach((u,ix)=>{ const sl=gsplitLaneSlot('ally',u.key,ix,al.length,al.map(a=>a.key),L.i); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
+        if(u._dropHidden) u._dropHome={x:sl.x,y:sl.y}; });   // v585: Hollow drops in on the road he was sent to
       waveIdx=_w; }
     for(const s of L.units.filter(s => s._summon && !s[EVERLASTING_FLAG])) killSummon(s);
     L.offer = null;
@@ -5984,6 +6143,7 @@ gsplitPickerRender = function(){
   if(!E || !E._rails) return;
   const root=document.getElementById('gsplitPicker'), rails=E._rails;
   if(!root) return;
+  root.querySelectorAll('#gsplitAuto,#gsplitAutoPlace').forEach(b=>b.remove());   // v585: the teaching run places heroes one by one
   const card=root.querySelector('.gsplitPickerCard');
   if(card && card.children[1]) card.children[1].textContent='Follow the glowing heroes to place your squad on all three roads. The first firebreak will teach boons and moving lanes.';
   const step=rails.steps[rails.next];
@@ -6077,6 +6237,11 @@ gsplitWindowDraw=function(){
       b.disabled=!required || GSPLIT._tutorialSwapDone;
       if(required&&!b.disabled) b.style.boxShadow='0 0 8px 2px #ffd36b';
     });
+    /* v585: the hint says "the glowing hero" - make one glow. Top Road heroes, and the Middle button once one is picked up. */
+    if(!GSPLIT._tutorialSwapDone){
+      root.querySelectorAll('.gw-hero[data-lane="0"]').forEach(b=>{ b.style.boxShadow='0 0 10px 3px #ffd36b'; b.style.borderColor='#ffd36b'; });
+      root.querySelectorAll('.gw-dest[data-lane="1"]:not([disabled])').forEach(b=>{ b.style.boxShadow='0 0 10px 3px #ffd36b'; });
+    }
   }
   const why=root.querySelector('.gw-why');
   if(why && W.phase==='move' && !GSPLIT._tutorialSwapDone) why.textContent='Move the glowing Top Road hero to Middle before starting Wave 2.';
@@ -18049,7 +18214,7 @@ function isAutoBattle(){ const m=CUR&&CUR.mode;
 function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn'),kb=document.getElementById('skipBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
   const forced=isAutoBattle();   // deterministic, recorded fights are 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
-  if(kb) kb.style.display=forced?'':'none';   // Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
+  if(kb) kb.style.display=(forced && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
   if(forced) autoPendingTarget=null;
   const switching=!forced && autoPendingTarget!==null;
   ab.textContent=switching?('AUTO: SWITCHING '+(autoPendingTarget?'ON':'OFF')+'…'):('AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':''));
@@ -18529,7 +18694,7 @@ document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.ind
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
 // ⏭ Skip: fast-forward presentation only when the fight is already deterministic (Arena, World raid, Elite, replay).
-document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle())return;
+document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle()||(typeof GSPLIT!=='undefined'&&GSPLIT.active))return;
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle()||autoPendingTarget!==null)return; const next=!autoUlt;
@@ -18684,7 +18849,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789702374776';
+const BUILD_ID = '1789703541556';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
