@@ -5174,8 +5174,8 @@ function gsplitWindowCss(){
   .gw-foot{display:flex;align-items:center;gap:8px;margin-top:4px;}
   .gw-foot .gw-why{flex:1;font-size:10px;color:#8b98a9;}
 
-  #gsplitWindow.show.gw-assign{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:10px;background:rgba(5,8,15,.78);}
-  .gw-assignment{width:min(980px,100%);max-height:96%;overflow:auto;background:#142031;border:1px solid #c9a35e;border-radius:12px;padding:10px;}
+  #gsplitWindow.show.gw-assign{display:block;z-index:50;}
+  .gw-assignment{width:100%;background:none;border:none;border-radius:0;padding:0;max-height:none;overflow:visible;}
   .gw-assignhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:#f0d8a8;}
   .gw-roster{display:flex;gap:5px;overflow-x:auto;padding:8px 0;touch-action:pan-x;}
   .gw-hero{flex:0 0 66px;min-width:0;border:1px solid #5c6a7c;background:#1b2638;border-radius:7px;color:white;padding:2px;touch-action:none;display:flex;flex-direction:column;align-items:center;font-size:9px;}
@@ -5183,9 +5183,12 @@ function gsplitWindowCss(){
   .gw-hero img{width:52px;height:58px;object-fit:cover;border-radius:4px;}
   .gw-hero span{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .gw-hero small{color:#c9a35e;}
-  .gw-destinations{display:flex;gap:6px;}
-  .gw-destination{flex:1;border:2px dashed #c9a35e;border-radius:8px;background:#19283b;color:#f0d8a8;padding:9px 3px;display:flex;flex-direction:column;}
-  .gw-destination:disabled{opacity:.4;}
+  .gw-destinations{display:none;}
+  #gwLaneOverlays{position:absolute;inset:0;pointer-events:none;z-index:45;}
+  .gw-lane-zone{position:absolute;left:0;right:0;height:14%;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;pointer-events:auto;box-sizing:border-box;transition:background .15s,border-color .15s;}
+  .gw-lane-zone[data-active]{border:2px dashed rgba(201,163,94,.5);border-radius:8px;background:rgba(20,32,49,.12);}
+  .gw-lane-zone.gw-dz-over{background:rgba(201,163,94,.28)!important;border-color:#c9a35e!important;}
+  .gw-lane-chip{background:rgba(10,18,30,.82);border:1px solid rgba(201,163,94,.4);border-radius:6px;padding:3px 8px;color:#f0d8a8;font-size:10px;font-weight:700;pointer-events:none;text-shadow:0 1px 2px #000;}
   .gw-preview{position:absolute;left:5%;right:5%;bottom:100%;display:none;font-size:11px;color:#f0d8a8;padding:5px 8px;background:#142031;border:1px solid #c9a35e;border-radius:7px;pointer-events:none;}
   .gw-preview:not(:empty){display:block;}
   #gwConfirm{min-width:110px;font-size:11px;font-weight:900;padding:5px 10px;border-radius:8px;border:1px solid #c9a35e;background:#1d2434;color:#f0d8a8;}
@@ -5207,7 +5210,7 @@ function gsplitWindowEl(){
     const app = document.getElementById('app') || document.body;
     app.appendChild(el);
     el.addEventListener('click', gsplitWindowClick);
-    el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window)GSPLIT.window.dragHero=b.dataset.unit;});
+    el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;try{b.setPointerCapture(e.pointerId);}catch(_){}}});
     el.addEventListener('pointerup',gsplitWindowPointerUp);
     el.addEventListener('dragstart',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');if(b&&GSPLIT.window){GSPLIT.window.dragHero=b.dataset.unit;e.dataTransfer.setData('text/plain',b.dataset.unit);}});
     el.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('[data-gw="lane"]'))e.preventDefault();});
@@ -5336,18 +5339,48 @@ function gsplitWindowDraw(){
       html+='<button class="gw-hero'+(W.selectedHero===id?' selected':'')+'" data-gw="hero" data-unit="'+id+'" draggable="true"'+(moving?' disabled':'')+'><img src="'+gsplitEsc(art)+'" alt=""><span>'+gsplitEsc((HERO_TYPES[u.key]||{}).name||u.key)+'</span><small>'+gsplitEsc(L.name)+'</small></button>';
     }
   }
-  html+='</div><div class="gw-destinations">';
-  for(const L of GSPLIT.lanes){
-    const count=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length;
-    const pending=W.movers.filter(m=>m.to===L.i&&!m.arrived).length-W.movers.filter(m=>m.from===L.i&&!m.arrived).length;
-    html+='<button data-gw="lane" data-lane="'+L.i+'" class="gw-destination"'+(L.state==='walking'?'':' disabled')+'><strong>'+gsplitEsc(L.name)+'</strong><span>'+(count+pending)+' / 10 slots</span></button>';
-  }
-  html+='</div><div class="gw-foot"><span class="gw-why">'+(waiting?'Waiting for heroes to arrive.':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Move a Top Road hero to Middle.':'Ready to start.'))+'</span><button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div></div>';
+  html+='<div class="gw-foot"><span class="gw-why">'+(waiting?'Waiting for heroes to arrive.':(gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone?'Drag the glowing hero to Middle Road.':'Ready to start.'))+'</span><button id="gwStart" data-gw="start"'+(gsplitStartAllowed()?'':' disabled')+'>START WAVE '+(station+1)+'</button></div></div>';
   el.innerHTML=html;el.className='show gw-assign';
+  gsplitDrawLaneOverlays();
 }
 
 function gsplitEsc(s){ return String(s == null ? '' : s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function gsplitDrawLaneOverlays(){
+  const old=document.getElementById('gwLaneOverlays'); if(old)old.remove();
+  if(!gsplitWindowOpen()||!GSPLIT.window||GSPLIT.window.phase!=='move')return;
+  const app=document.getElementById('app')||document.body;
+  const overlays=document.createElement('div'); overlays.id='gwLaneOverlays';
+  app.appendChild(overlays);
+  const laneYs=[BONUS_LANE_IMG_Y.top,BONUS_LANE_IMG_Y.middle,BONUS_LANE_IMG_Y.bottom];
+  for(let i=0;i<3;i++){
+    const L=GSPLIT.lanes[i]; if(!L)continue;
+    const W=GSPLIT.window;
+    const count=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length;
+    const pending=W.movers.filter(m=>m.to===L.i&&!m.arrived).length-W.movers.filter(m=>m.from===L.i&&!m.arrived).length;
+    const active=L.state==='walking';
+    const zone=document.createElement('div');
+    zone.className='gw-lane-zone'; zone.setAttribute('data-gw','lane'); zone.setAttribute('data-lane',String(i));
+    if(active)zone.setAttribute('data-active','');
+    zone.style.top=(laneYs[i]*100-7).toFixed(2)+'%';
+    if(i===1&&typeof gsplitTutorialFirstWindow==='function'&&gsplitTutorialFirstWindow()&&!GSPLIT._tutorialSwapDone)
+      zone.style.boxShadow='inset 0 0 24px rgba(255,211,107,.35)';
+    const chip=document.createElement('div'); chip.className='gw-lane-chip';
+    chip.textContent=L.name+' · '+(count+pending)+'/10'; zone.appendChild(chip);
+    if(active){
+      zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('gw-dz-over');});
+      zone.addEventListener('dragleave',()=>zone.classList.remove('gw-dz-over'));
+      zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('gw-dz-over');
+        const id=e.dataTransfer.getData('text/plain')||(GSPLIT.window&&GSPLIT.window.dragHero);
+        if(GSPLIT.window)GSPLIT.window.dragHero=null; gsplitAssignHero(id,i);});
+      zone.addEventListener('pointerup',e=>{
+        const W2=GSPLIT.window; if(!W2||!W2.dragHero)return;
+        const id=W2.dragHero; W2.dragHero=null; gsplitAssignHero(id,i);});
+    }
+    overlays.appendChild(zone);
+  }
+}
+
 
 /* Called every frame while a run is live: the movers advance, and Start can only become allowed
    because a mover landed, so the panel is redrawn when that changes. Redrawing on a CHANGE rather
@@ -5375,6 +5408,7 @@ function gsplitWindowMaybeOpen(){
 function gsplitWindowHide(){
   const el = document.getElementById(GSPLIT_WIN_ID);
   if(el){ el.className = ''; el.innerHTML = ''; }
+  const ov=document.getElementById('gwLaneOverlays'); if(ov)ov.remove();
   GSPLIT._winSig = '';
 }
 
