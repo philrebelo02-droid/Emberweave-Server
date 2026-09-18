@@ -665,7 +665,7 @@ function lanesReachableFrom(from){
    THE LESSON: "because X is parented to Y" was a plausible sentence about an engine I had not checked
    at that point. It sat in this file as if it were measured. Every other number in this comment block
    was measured; that one was assumed, and it read exactly the same. */
-const BONUS_UNIT_SCALE = 0.40;      // Phil, 17 Sep 2026 - half of the measured 0.80
+const BONUS_UNIT_SCALE = 0.28;      // Phil, 18 Sep 2026: "Heroes are still too large they take up the whole road" (was 0.40, his half of the measured 0.80)
 
 /* THE ZOOM CEILING THIS SCALE REQUIRES, recorded here so the two cannot drift apart unnoticed.
    The client's `ZOOM_LEVELS=[1,1.25,1.5]` and `setBattleZoom`'s `Math.min(1.5, z)` are the live
@@ -674,8 +674,8 @@ const BONUS_UNIT_SCALE = 0.40;      // Phil, 17 Sep 2026 - half of the measured 
    way in sees a hero at least as large as the previous flat size. 0.40 x 2 = 0.80 exactly, so 2.0 is
    the floor of the ceiling; the change request asks for 2.5 so there is somewhere to go past parity.
    THIS CONSTANT DOES NOT CHANGE THE CLIENT. It is the number the change request carries. */
-const BONUS_ZOOM_CEILING = 2.5;
-const BONUS_ZOOM_LEVELS = Object.freeze([1, 1.25, 1.5, 2, 2.5]);
+const BONUS_ZOOM_CEILING = 4;      // Phil, 18 Sep 2026: "I want to be able to zoom in further" (was 2.5). 0.28 x 4 = 1.12 >= 0.80
+const BONUS_ZOOM_LEVELS = Object.freeze([1, 1.25, 1.5, 2, 2.5, 3, 4]);
 
 /* CAN TEN ACTUALLY STAND ON ONE ROAD? Measured, not assumed, because "ten per road" is a layout
    claim before it is a rule.
@@ -751,9 +751,13 @@ const BONUS_CROSSING_X = Object.freeze({
   upper: Object.freeze([0.320, 0.443, 0.572, 0.673]),   // top <-> middle
   lower: Object.freeze([0.300, 0.421, 0.528, 0.645])    // middle <-> bottom
 });
+/* v587 (Phil, 18 Sep: heroes "take up the whole road"): the formation uses the middle 60% of a road's depth,
+   not all of it - ranks were derived from the full depth, so a road's worth of heroes filled it edge to edge.
+   The client's gsplitRanks() uses the same factor (GSPLIT_ROAD_USE). */
+const BONUS_ROAD_USE = 0.6;
 function ranksFor(road){
   const d=BONUS_ROAD_DEPTH[road]; if(!d) return 1;
-  return Math.max(1, Math.floor(d/BONUS_HERO_FOOTPRINT.depth));
+  return Math.max(1, Math.floor(d*BONUS_ROAD_USE/BONUS_HERO_FOOTPRINT.depth));
 }
 function formationFor(road, n){
   const ranks=ranksFor(road), cols=Math.ceil(Math.max(1,n|0)/ranks);
@@ -1073,7 +1077,7 @@ module.exports = { handle, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLO
   bossFor,
   claimList, advanceClock, buildLanes, boonOffer, starsFor, clearReward, families,
   resetFamilyCache, checkSquad, checkSquadStrict, checkSwap, laneMoveOK, lanesReachableFrom,
-  CROSSING_GATE, SUMMONS_DIE_AT_WAVE_END, EVERLASTING_SUMMON_POWER, EVERLASTING_FLAG, BONUS_UNIT_SCALE, BONUS_ZOOM_CEILING, BONUS_ZOOM_LEVELS, BONUS_HUD_KEEPOUT, BONUS_HERO_FOOTPRINT,
+  CROSSING_GATE, SUMMONS_DIE_AT_WAVE_END, EVERLASTING_SUMMON_POWER, EVERLASTING_FLAG, BONUS_UNIT_SCALE, BONUS_ROAD_USE, BONUS_ZOOM_CEILING, BONUS_ZOOM_LEVELS, BONUS_HUD_KEEPOUT, BONUS_HERO_FOOTPRINT,
   BONUS_ROAD_DEPTH, BONUS_LANE_Z, BONUS_LANE_IMG_Y, BONUS_CROSSING_X, ranksFor, formationFor, validBonusId, bonusUnlockError, tierFor, chOf, slotOf,
   codeForSite, siteForCode, bonusIdFor, chapterPowerRef, BONUS_POWER_MARGIN,
   TUTORIAL_BONUS, isTutorialBonus, TUTORIAL_SCRIPT, TUTORIAL_MONSTER_LVL, TUTORIAL_MONSTER_MUL, tutorialSwapPlan, rulesSettled };
