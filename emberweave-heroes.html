@@ -19403,7 +19403,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789762115000';
+const BUILD_ID = '1789764094000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20009,7 +20009,15 @@ const ED_CAR = {
   ySquash:0.62,     // vertical movement/reach counts less (the floor recedes)
   reach:0.034       // pickup distance, fractions of the view width
 };
-const ED_AVATARS = [ { id:'robot', url:'/assets/models/avatars/robot-expressive.glb', idle:'Idle', walk:'Running', height:4.79 } ];
+/* the pickable avatars (Phil: "10 pickable avatars. Each of them with idle/walk animations"). Emberkit is the first real one:
+   Hailuo concept -> Meshy image-to-3D (texture, A-pose), remesh 10k tris, humanoid rig, Idle_02 + Walking + Running,
+   slimmed from 20 MB to 1.25 MB (base colour 1024 JPEG only; scratchpad emberdraft/slim_glb.py). The robot stays as the
+   rivals' placeholder until the other nine exist. */
+const ED_AVATARS = [
+  { id:'emberkit', name:'Emberkit', url:'/assets/models/avatars/emberkit.glb', idle:'Idle_02', walk:'Running', height:1.70, tint:false },
+  { id:'robot',    name:'Placeholder', url:'/assets/models/avatars/robot-expressive.glb', idle:'Idle', walk:'Running', height:4.79, tint:true },
+];
+function edAvatarFor(p){ const id = (p && !p.ai) ? ((typeof G!=='undefined' && G.edAvatar) || 'emberkit') : 'robot'; return ED_AVATARS.find(a=>a.id===id) || ED_AVATARS[ED_AVATARS.length-1]; }
 const ED_CAR_TINT = [0xffc23d, 0x5aa9ff, 0xff6b6b, 0x7ee06b, 0xc38bff, 0xff9f43, 0x4de0d2, 0xf2f2f2];   // seat colours (you are gold)
 
 function edStartCarousel(){
@@ -20103,16 +20111,16 @@ function edCarDraw(dt){
 }
 /* the 3D layer: an orthographic camera looking down at 35 degrees; ground (X,Z) <-> image (x,y) is linear both ways */
 const ED_CAR_ELEV = 35*Math.PI/180;   // low enough to see the avatar from the front, like the hero sprites
-let _edGltfP=null;
-function edLoadAvatarModel(){
-  if(_edGltfP) return _edGltfP;
+const _edGltfP={};
+function edLoadAvatarModel(A){
+  if(_edGltfP[A.id]) return _edGltfP[A.id];
   const js=src=>new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
-  _edGltfP=(async()=>{ if(typeof THREE==='undefined') throw new Error('no three');
+  const pr=(async()=>{ if(typeof THREE==='undefined') throw new Error('no three');
     if(!THREE.GLTFLoader) await js('/assets/js/three-r128-GLTFLoader.js');
     if(!THREE.SkeletonUtils) await js('/assets/js/three-r128-SkeletonUtils.js');
-    const A=ED_AVATARS[0]; const g=await new Promise((res,rej)=>new THREE.GLTFLoader().load(A.url,res,undefined,rej)); return { g, A }; })();
-  _edGltfP.catch(()=>{ _edGltfP=null; });
-  return _edGltfP; }
+    const g=await new Promise((res,rej)=>new THREE.GLTFLoader().load(A.url,res,undefined,rej)); return { g, A }; })();
+  _edGltfP[A.id]=pr; pr.catch(()=>{ delete _edGltfP[A.id]; });
+  return pr; }
 function edCarGfxStart(){
   edCarGfxStop();
   const G={ ok:false, headPx:46 }; ED._carG=G;
@@ -20126,14 +20134,16 @@ function edCarGfxStart(){
     G.cam=new THREE.OrthographicCamera(-10,10,5,-5,0.1,500); G.clock=0;
     G.av=[];
   }catch(e){ G.cv&&G.cv.remove(); ED._carG=null; return; }
-  edLoadAvatarModel().then(({g,A})=>{ if(ED._carG!==G) return;
-    const C=ED.car; if(!C) return;
-    C.av.forEach((a,j)=>{ const m=THREE.SkeletonUtils.clone(g.scene); const tint=a.p.ai?ED_CAR_TINT[1+(j%(ED_CAR_TINT.length-1))]:ED_CAR_TINT[0];
-      m.traverse(o=>{ if(o.isMesh && o.material){ o.material=o.material.clone(); if(/main/i.test(o.material.name||'') || (o.material.color && o.material.color.r>0.5 && o.material.color.g>0.4 && o.material.color.b<0.4)) { o.material.color.setHex(tint); try{ o.material.color.convertSRGBToLinear(); }catch(e){} } o.frustumCulled=false; } });
-      const mixer=new THREE.AnimationMixer(m); const clip=n=>THREE.AnimationClip.findByName(g.animations,n);
-      const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
-      idle.play(); G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false }); });
-    G.A=A; G.ok=true; }).catch(()=>{ /* markers only */ });
+  { const C0=ED.car; const need=[...new Set((C0?C0.av:[]).map(a=>edAvatarFor(a.p)))];
+    Promise.all(need.map(A=>edLoadAvatarModel(A).catch(()=>null))).then(list=>{ if(ED._carG!==G) return; const C=ED.car; if(!C) return;
+      const byId={}; list.forEach(x=>{ if(x) byId[x.A.id]=x; });
+      C.av.forEach((a,j)=>{ const want=edAvatarFor(a.p), L=byId[want.id]||byId['robot']||Object.values(byId)[0]; if(!L) return; const g=L.g, A=L.A;
+        const m=THREE.SkeletonUtils.clone(g.scene); const tint=a.p.ai?ED_CAR_TINT[1+(j%(ED_CAR_TINT.length-1))]:ED_CAR_TINT[0];
+        m.traverse(o=>{ if(o.isMesh && o.material){ o.material=o.material.clone(); if(A.tint && (/main/i.test(o.material.name||'') || (o.material.color && o.material.color.r>0.5 && o.material.color.g>0.4 && o.material.color.b<0.4))){ o.material.color.setHex(tint); try{ o.material.color.convertSRGBToLinear(); }catch(e){} } o.frustumCulled=false; } });
+        const mixer=new THREE.AnimationMixer(m); const clip=n=>THREE.AnimationClip.findByName(g.animations,n);
+        const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
+        idle.play(); G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false, A }); });
+      G.ok=G.av.length>0; }); }
 }
 function edCarGfxDraw(dt){
   const G=ED._carG; if(!G||!G.rr) return; const R=edCarRect();
@@ -20143,8 +20153,8 @@ function edCarGfxDraw(dt){
   const k=w/20, sinE=Math.sin(ED_CAR_ELEV), cosE=Math.cos(ED_CAR_ELEV), halfW=10, halfH=h/(2*k);
   const cam=G.cam; cam.left=-halfW; cam.right=halfW; cam.top=halfH; cam.bottom=-halfH; cam.updateProjectionMatrix();
   cam.position.set(0, 100*sinE, 100*cosE); cam.lookAt(0,0,0);
-  if(G.ok){ const A=G.A, targetPx=0.07*h, s=targetPx/(A.height*cosE*k); G.headPx=targetPx+8;   // Phil: "make the avatars smaller" / "more like half what they are" (was 0.14)
-    for(const v of G.av){ const a=v.a; v.m.scale.setScalar(s);
+  if(G.ok){ const targetPx=0.07*h; G.headPx=targetPx+8;   // Phil: "make the avatars smaller" / "more like half what they are" (was 0.14)
+    for(const v of G.av){ const a=v.a; v.m.scale.setScalar(targetPx/(v.A.height*cosE*k));
       v.m.position.set((a.x-0.5)*w/k, 0, (a.y-0.5)*h/(k*sinE)); v.m.rotation.y=a.face||0;
       if(a.moving!==v.walking){ v.walking=a.moving; const from=a.moving?v.idle:v.walk, to=a.moving?v.walk:v.idle; to.reset().play(); from.crossFadeTo(to,0.18,false); }
       v.mixer.update(dt||0.016); } }
