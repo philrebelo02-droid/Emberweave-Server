@@ -2268,7 +2268,8 @@ const FIG_WOMEN=new Set(['astra','vesper','calypsa','cacklefang','meryln','lumi'
    remaining women are remade and cut native above 500, which is the entire point of remaking them.
    Same figH-as-a-target mistake as the slicer had, living in the renderer. Nothing is upscaled by
    removing it (k is still clamped to 1), so a hero whose sheet holds less simply stays native. */
-function figCapFor(u){ return CELL_FIG_CAP; }
+function figCapFor(u){ return (typeof ED!=='undefined' && ED && ED.active) ? ED_FIG_CAP : CELL_FIG_CAP; }   // v606: Emberdraft figures are small on screen; its sheets load with a 200-px figure (edQuit clears them, so other modes reload at full size)
+const ED_FIG_CAP=200;   // a figure is ~30 css px tall on a phone (~90 device px at 3x): 200 px is still 2x the screen
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -2493,7 +2494,7 @@ function preloadBattleArt(keys, bgUrl){
     const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
     // v306: TIERED. Pass 1 gets every unit standing and walking; only then do the abilities queue.
     ANIM_TIERS.forEach(tier=>{ _ks.forEach(k=>{
-      try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k, tier); }catch(e){} }); });
+      try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k, (!tier && CUR&&CUR.mode==='emberdraft'&&typeof edClipStates==='function')?edClipStates(k):tier); }catch(e){} }); });   // v606
     _ks.forEach(k=>{
       try{ const sp=(typeof HERO_SPRITES!=='undefined')&&HERO_SPRITES[k]; if(sp&&isAssetRef(sp)){ const i2=new Image(); i2.decoding='async'; i2.src=sp; } }catch(e){}
     });
@@ -2516,7 +2517,7 @@ function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
       const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
       _ks.forEach(k=>{ try{ const sp=(typeof HERO_SPRITES!=='undefined')&&HERO_SPRITES[k]; if(sp&&isAssetRef(sp)){ const i2=new Image(); i2.decoding='async'; i2.src=sp; } }catch(e){} });
       const base=_LOADQ.n, baseDone=_LOADQ.done;
-      _ks.forEach(k=>{ try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k, null); }catch(e){} });
+      _ks.forEach(k=>{ try{ if(typeof heroHasAnim==='function' && heroHasAnim(k)) loadAnimSet(k, (CUR&&CUR.mode==='emberdraft'&&typeof edClipStates==='function')?edClipStates(k):null); }catch(e){} });   // v606
       const total=_LOADQ.n-base;
       if(total<=0){ if(onProgress) onProgress(1,0,0); return finish(); }
       const tick=(d,n)=>{ const got=d-baseDone;
@@ -6951,7 +6952,7 @@ function buildFigure(u){
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:(HERO_SPRITES[u.key]?spriteTex(u.key):null),transparent:true,depthWrite:false}));
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
   if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
-  if(heroHasAnim(u.key)){ const set=loadAnimSet(u.key); if(set&&set.idle&&set.idle.tex){ u.anim=set; u.sprA=set.idle.aspect; spr.material.map=set.idle.tex; spr.material.needsUpdate=true; } }
+  if(heroHasAnim(u.key)){ const set=loadAnimSet(u.key, u._edIdle?['idle']:(u._edStates||undefined)); /* v606: an idle-only figure (Emberdraft bench/planning) loads just its idle sheet */ if(set&&set.idle&&set.idle.tex){ u.anim=set; u.sprA=set.idle.aspect; spr.material.map=set.idle.tex; spr.material.needsUpdate=true; } }
   u.mesh=g; scene.add(g); syncMesh(u,0);
 }
 /* render one hero as a framed portrait bust -> data URL (used to pre-bake portraits) */
@@ -19402,7 +19403,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789758580000';
+const BUILD_ID = '1789760321000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19751,7 +19752,8 @@ const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 7, ED_FIGHT_LIMIT = 30, ED_START_HP 
    on each side"). */
 /* figures draw at 70% in Emberdraft so one hero stands on one bench pad (16 pads ~ 33 px apart on a phone). Art only:
    hit radius, bodies and spell areas are untouched, so combat is the same. */
-const ED_FIG_SCALE = 0.7;
+const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than that. Each upgrade increase their size 10%"
+function edFig(h){ return ED_FIG_SCALE*Math.pow(1.1, Math.max(0,((h&&h.rank)|0)-1)); }   // rank I 55%, II 60.5%, III 66.6%, big star 73.2%
 const ED_ARENAS = [
   { id:'cinderforge', name:'The Cinderforge Hollow',
     img:'/assets/img/battlefields/emberdraft/cinderforge.webp', video:'/assets/img/battlefields/emberdraft/cinderforge.mp4',
@@ -19761,6 +19763,10 @@ const ED_ARENAS = [
     img:'/assets/img/battlefields/emberdraft/frostmere.webp', video:'/assets/img/battlefields/emberdraft/frostmere.mp4',
     far:{ x0:0.174, x1:0.825, y:0.089 }, near:{ x0:0.109, x1:0.894, y:0.694 },
     plaza:{ farY:0.156, midY:0.411, nearY:0.644, farL:0.119, farR:0.881, nearL:0.0875, nearR:0.909 } },
+  { id:'tidewrack', name:'The Tidewrack Grotto',   // v606 (Phil: "Just the 3 for now")
+    img:'/assets/img/battlefields/emberdraft/tidewrack.webp', video:'/assets/img/battlefields/emberdraft/tidewrack.mp4',
+    far:{ x0:0.161, x1:0.844, y:0.113 }, near:{ x0:0.1125, x1:0.884, y:0.733 },
+    plaza:{ farY:0.178, midY:0.436, nearY:0.683, farL:0.103, farR:0.900, nearL:0.094, nearR:0.909 } },
 ];
 const ED_AI_NAMES = ['The Ashen Duke','Mirewitch Olga','Captain Brandt','Sister Veil','The Cinder Twins','Old Harrow','Lady Quill'];
 /* equipment: one component per Forge gear slot; the 9 Forge quality tiers (Phil: "items should have tiers") */
@@ -20135,7 +20141,7 @@ function edSpawnUnits(){
   const mk=(s,team,syn)=>{ const pos=edCellPos(team,s.r,s.c), h=s.u;
     /* Phil, 18 Sep: a hero starts with its Ultimate + Green; merging to rank II earns Blue, rank III earns the Purple passive.
        That is makeUnit's own quality gate (1 Green, 2 +Blue, 3 +Purple), so the Emberdraft rank IS the quality rank. */
-    const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1))}); u._edFig=ED_FIG_SCALE;
+    const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1))}); u._edFig=h.mon?ED_FIG_SCALE:edFig(h); if(!h.mon) u._edStates=edClipStates(h.key);
     if(!h.mon){ const m=ED_RANK_MUL[h.rank||1]; u.maxHp*=m; u.hp=u.maxHp; u.dmg*=m; u.apow=(u.apow||0)*m; u._edRank=h.rank||1; }
     u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it);
     edApplySynergy(u,syn);
@@ -20146,7 +20152,7 @@ function edSpawnUnits(){
   /* both benches stand on their ledges during the fight (Phil: "so you can see what they have") - figures only, never in `units`,
      so nothing targets them, they draw no bars and they never count for the result; edTick animates them, edClearDecor removes them */
   edClearDecor(); ED.decor=[];
-  const deco=(h,x,y,team)=>{ try{ const u=makeUnit(h.key,team,x,y,ED_LEVEL,{rank:2}); u._edFig=ED_FIG_SCALE; buildFigure(u); ED.decor.push(u); }catch(e){} };
+  const deco=(h,x,y,team)=>{ try{ const u=makeUnit(h.key,team,x,y,ED_LEVEL,{rank:2}); u._edFig=edFig(h); u._edIdle=true; buildFigure(u); ED.decor.push(u); }catch(e){} };
   edYou().bench.forEach((h,i)=>{ if(h){ const p=edBenchPos(i); deco(h,p.x,p.y,'ally'); } });
   if(ED.opp && !ED.opp.pve && ED.opp.p) ED.opp.p.bench.forEach((h,i)=>{ if(h&&i<ED_BENCH){ const q=edBenchPosEnemy(i); deco(h, q.x, q.y, 'enemy'); } });
   autoUlt=true;
@@ -20172,6 +20178,39 @@ function edApplySynergy(u,syn){ if(!syn) return; const role=u.t&&u.t.role, T=r=>
   if(T('Assassin')&&role==='Assassin'){ u.glyphCrit=(u.glyphCrit||0)+(T('Assassin')>=2?0.35:0.15); if(T('Assassin')>=2) u._edLeap=true; }
   if(T('Support')) u._edShield=T('Support')>=2?0.25:0.10; }
 /* called from updateBattle every tick in this mode */
+/* v606 (Phil, 18 Sep: "after like round 5 the lag was really bad"). Battle art is cached for the whole session - right for a
+   campaign squad of five, wrong here: a match shows dozens of different heroes across eight boards and benches, and each one
+   left every sheet it owns in memory. The rig measured 261 sheets for 36 heroes by round 13 (about 8.7 GB of decoded
+   pixels) and a texture count that only rose. Now the sheets of every hero that is not on your board or bench (or on the
+   field right now) are released whenever the planning field is rebuilt; a hero that comes back simply loads again. */
+/* v606: the sheets a fighter can play - its rank gates Blue (rank II) and the Purple passive (rank III), so a Rank I hero never
+   loads either (monsters and unknown keys: everything, null) */
+function edClipStates(k){
+  try{ const S=ED.spec; if(!S) return null; let rank=0, mon=false;
+    for(const x of (S.ally||[]).concat(S.enemy||[])){ if(x.u.key===k){ if(x.u.mon) mon=true; rank=Math.max(rank, x.u.rank||1); } }
+    if(mon || !rank) return null;
+    const set=BATTLE_ANIM[k]||{}; return Object.keys(set).filter(st=>st[0]!=='_' && !(st==='blue'&&rank<2) && !(st==='passive'&&rank<3));
+  }catch(e){ return null; } }
+function edEvictArt(all){
+  try{
+    /* full = heroes that fight (your board, anything on the field); idleOnly = heroes that only stand (your bench) */
+    const full=new Set(), idleOnly=new Set();
+    const you=edYou(); for(const u of Object.values(you.board)) full.add(u.key);
+    for(const u of units) if(!u._edIdle) full.add(u.key); else idleOnly.add(u.key);
+    for(const u of you.bench) if(u) idleOnly.add(u.key);
+    for(const u of (ED.decor||[])) idleOnly.add(u.key);
+    let freed=0;
+    for(const k in BATTLE_ANIM){
+      if(!all && full.has(k)) continue;
+      const set=BATTLE_ANIM[k]; if(!set) continue; let any=false; const onlyIdle=!all && idleOnly.has(k);
+      for(const st in set){ if(st[0]==='_') continue; if(onlyIdle && st==='idle') continue; const c=set[st]; if(!c || !c.tex) continue;
+        try{ const tx=c.tex, im=tx.image; tx.dispose(); if(im && typeof im.close==='function') im.close(); const i=_texReg.indexOf(tx); if(i>=0) _texReg.splice(i,1); }catch(e){}
+        c.tex=null; any=true; freed++; }
+      if(any){ set._loaded=false; try{ delete _artWarmed['k:'+k]; }catch(e){} }
+    }
+    return freed;
+  }catch(e){ return 0; }
+}
 function edClearDecor(){ for(const u of (ED.decor||[])){ try{ if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} } ED.decor=[]; }
 function edTick(dt){
   if(!ED.fighting||ended) return;
@@ -20217,7 +20256,7 @@ function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, 
     ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error)||'Reward could not be claimed.'};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
     if(ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.phase==='over') edRender(); }); }
-function edQuit(){ edClearDecor(); ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+function edQuit(){ edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
@@ -20256,9 +20295,9 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .card .nm{font-weight:800;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #edRoot .card .rl{font-size:10.5px;color:#8b98a9}
 #edRoot .spr{flex:none;width:40px;height:48px;background-repeat:no-repeat;border-radius:6px;background-color:rgba(0,0,0,.25)}
 #edRoot .msg{left:50px;right:calc(min(30vw,210px) + 16px);bottom:62px;font-size:12px;color:#dfe7f1;text-shadow:0 1px 3px #000;text-align:center;pointer-events:none}
-#edRoot .mark{position:absolute;width:30px;height:12px;margin:-6px 0 0 -15px;border-radius:50%;border:1.5px solid rgba(255,212,94,.35);background:rgba(255,212,94,.06);pointer-events:none}
-#edRoot .mark.bench{border-color:rgba(160,190,255,.35);background:rgba(160,190,255,.06)}
-#edRoot .mark.hot{border-color:#ffd45e;background:rgba(255,212,94,.28)}
+#edRoot .mark{position:absolute;transform:translate(-50%,-50%);border-radius:4px;border:1.5px solid rgba(255,190,90,.55);background:rgba(255,160,60,.07);box-shadow:0 0 7px rgba(255,160,60,.45),inset 0 0 6px rgba(255,160,60,.22);pointer-events:none}   /* v606 Phil: "square glowing place holders the dimensions of the tiles" (not circles) */
+#edRoot .mark.bench{border-color:rgba(150,200,255,.45);background:rgba(120,180,255,.06);box-shadow:0 0 6px rgba(120,180,255,.4),inset 0 0 5px rgba(120,180,255,.2)}
+#edRoot .mark.hot{border-color:#ffe08a;background:rgba(255,212,94,.3);box-shadow:0 0 14px rgba(255,200,80,.9),inset 0 0 10px rgba(255,200,80,.5)}
 #edRoot .badge{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;gap:1px;align-items:center;font-size:10px;font-weight:900;color:#ffd45e;text-shadow:0 1px 2px #000;white-space:nowrap}
 #edRoot .badge i{font-style:normal;font-size:9px;line-height:11px;min-width:11px;text-align:center;border-radius:3px;background:rgba(0,0,0,.65);border-bottom:2px solid #9aa4b2}
 #edRoot .ring{position:absolute;width:44px;height:16px;margin:-8px 0 0 -22px;border-radius:50%;border:2px solid #ffd45e;pointer-events:none}
@@ -20277,8 +20316,15 @@ setInterval(function edSprTick(){ const root=document.getElementById('edRoot'); 
 /* field ↔ screen: project() works in canvas pixels; the canvas may be letterboxed inside the window */
 function edScreen(x,y,h){ const p=project(x,y,h||0.001), cv=(renderer&&renderer.domElement); const r=cv?cv.getBoundingClientRect():{left:0,top:0,width:CW,height:CH};
   return { x:r.left+p.x*(r.width/CW), y:r.top+p.y*(r.height/CH) }; }
-function edSlots(){ const out=[]; for(let r=0;r<ED_ROWS;r++) for(let c=0;c<ED_COLS;c++){ const f=edCellPos('ally',r,c), s=edScreen(f.x,f.y); out.push({slot:'b:'+r+','+c, fx:f.x, fy:f.y, sx:s.x, sy:s.y, bench:false}); }
-  for(let i=0;i<ED_BENCH;i++){ const f=edBenchPos(i), s=edScreen(f.x,f.y); out.push({slot:'n:'+i, fx:f.x, fy:f.y, sx:s.x, sy:s.y, bench:true}); } return out; }
+function edSlots(){ const out=[], grid=[];
+  for(let r=0;r<ED_ROWS;r++){ grid.push([]); for(let c=0;c<ED_COLS;c++){ const f=edCellPos('ally',r,c), s=edScreen(f.x,f.y); grid[r].push({f,s}); } }
+  /* v606: each placeholder is the size of its tile - the gap to the neighbouring cell / pad, less a small margin */
+  for(let r=0;r<ED_ROWS;r++) for(let c=0;c<ED_COLS;c++){ const g=grid[r][c], nx=grid[r][c<ED_COLS-1?c+1:c-1].s, ny=grid[r<ED_ROWS-1?r+1:r-1][c].s;
+    out.push({slot:'b:'+r+','+c, fx:g.f.x, fy:g.f.y, sx:g.s.x, sy:g.s.y, w:Math.abs(nx.x-g.s.x)*0.45, h:Math.abs(ny.y-g.s.y)*0.9, bench:false}); }   // Phil: "The squares should be half that width"
+  const bs=[]; for(let i=0;i<ED_BENCH;i++){ const f=edBenchPos(i); bs.push({f, s:edScreen(f.x,f.y)}); }
+  for(let i=0;i<ED_BENCH;i++){ const b=bs[i], n=bs[i<ED_BENCH-1?i+1:i-1].s, w=Math.abs(n.x-b.s.x)*0.86;
+    out.push({slot:'n:'+i, fx:b.f.x, fy:b.f.y, sx:b.s.x, sy:b.s.y, w, h:w*0.95, bench:true}); }
+  return out; }
 /* rebuild the planning field: your board + bench as real animated figures; the sim stays frozen */
 function edShowField(){
   const you=edYou();
@@ -20289,7 +20335,8 @@ function edShowField(){
   clearBattle(); ended=true; battleTime=0;
   try{ setBattleZoom(1); }catch(e){}
   ED._lay=null;
-  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edFig=ED_FIG_SCALE; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
+  edEvictArt();   // v606: Phil "after like round 5 the lag was really bad" - free every sheet not needed now
+  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edFig=edFig(h); u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
   for(const [pos,h] of Object.entries(you.board)){ const [r,c]=pos.split(',').map(Number); put(h, edCellPos('ally',r,c), false); }
   you.bench.forEach((h,i)=>{ if(h) put(h, edBenchPos(i), true); });
   document.body.classList.add('ed-plan');
@@ -20310,7 +20357,7 @@ function edRender(){
     if(ED._fieldSig!==sig || state!=='battle'){ edShowField(); ED._fieldSig=sig; } }
   const you=edYou(), r=ED.round, need=ED_XP_NEED[you.level], syn=edSynergy(you);
   let h='<div class="hit" data-field="1"></div>';
-  for(const s of edSlots()) h+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${s.sx}px;top:${s.sy}px"></div>`;
+  for(const s of edSlots()) h+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${s.sx}px;top:${s.sy}px;width:${Math.max(8,s.w|0)}px;height:${Math.max(8,s.h|0)}px"></div>`;
   for(const u of units){ if(!u.alive||u._edId==null) continue; const hh=edUnits(you).find(x=>x.id===u._edId); if(!hh) continue;
     const top=edScreen(u.x,u.y,(u.sprH||1.6)*1.05);
     h+=`<div class="badge" style="left:${top.x}px;top:${top.y}px"><b style="color:${ED_RANK_COL[hh.rank]||'#ffd45e'}">${ED_RANK_LBL[hh.rank]||''}</b>${hh.items.map(it=>{ const ch=edItemChip(it); return `<i style="border-bottom-color:${ch.col}">${ch.ic}</i>`; }).join('')}</div>`;
