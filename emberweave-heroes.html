@@ -4797,9 +4797,17 @@ function gsplitPickBoon(lane, boonId){
 
 /* Adjacent only. The far road is always two windows away - that is the rule the staggered paths
    exist to make readable, and it is enforced here as well as drawn. */
+/* v602 (Phil, 18 Sep: "The middle lane losing is the most dangerous because once it loses there is no way to move players
+   across from top to bottom lane"). Every crossing between the top and bottom roads runs down the firebreak paths THROUGH
+   the middle road; once the middle road has fallen it is burning (v597), so there is no way across. */
+function gsplitCrossBlocked(from, to){
+  const M = GSPLIT.lanes && GSPLIT.lanes[1];
+  return !!(M && M.state === 'lost' && ((from === 0 && to === 2) || (from === 2 && to === 0)));
+}
 function gsplitCanMove(from, to){
   if(!gsplitWindowOpen() || GSPLIT.window.phase !== 'move') return false;
   if(from===to || from<0 || from>2 || to<0 || to>2) return false;
+  if(gsplitCrossBlocked(from, to)) return false;   // v602
   const T=GSPLIT.lanes[to];
   if(!T || T.state!=='walking') return false;
   const arriving=GSPLIT.window.movers.filter(m=>m.to===to && !m.arrived).length;
@@ -5482,8 +5490,11 @@ function gsplitDragEnd(drop, e){
   const lane=gsplitLaneAtY(e.clientY);
   if(lane<0) return;
   const f=gsplitFindHero(id);
-  if(!gsplitAssignHero(id,lane) && f && f.L.i!==lane && !gsplitCanMove(f.L.i,lane))
-    bannerMsg('◆ '+GSPLIT_ROAD_NAME[lane]+' is full — 10 heroes at most.');
+  if(!gsplitAssignHero(id,lane) && f && f.L.i!==lane && !gsplitCanMove(f.L.i,lane)){
+    const T=GSPLIT.lanes[lane];   // v602: say WHY the drop was refused, not always "full"
+    if(T && T.state==='lost') bannerMsg('◆ '+GSPLIT_ROAD_NAME[lane]+' has fallen.');
+    else if(gsplitCrossBlocked(f.L.i,lane)) bannerMsg('◆ The Middle Road is burning — no way across to the '+GSPLIT_ROAD_NAME[lane]+'.');
+    else bannerMsg('◆ '+GSPLIT_ROAD_NAME[lane]+' is full — 10 heroes at most.'); }
 }
 
 /* One delegated listener rather than a handler per button. The panel is rebuilt on every state
@@ -5606,7 +5617,7 @@ function gsplitWindowDraw(){
       const count=L.units.filter(u=>u.team==='ally'&&u.alive&&!u._summon).length;
       const pending=W.movers.filter(m=>m.to===L.i&&!m.arrived).length-W.movers.filter(m=>m.from===L.i&&!m.arrived).length;
       const ok=L.i!==sel.L.i && L.state==='walking' && gsplitCanMove(sel.L.i,L.i);
-      mid+='<button class="gw-dest" data-gw="lane" data-lane="'+L.i+'"'+(ok?'':' disabled')+'>'+gsplitEsc(GSPLIT_ROAD_SHORT[L.i])+'<small>'+(L.i===sel.L.i?'here now':(count+pending)+'/10')+'</small></button>';
+      mid+='<button class="gw-dest" data-gw="lane" data-lane="'+L.i+'"'+(ok?'':' disabled')+'>'+gsplitEsc(GSPLIT_ROAD_SHORT[L.i])+'<small>'+(L.i===sel.L.i?'here now':(L.state==='lost'?'fallen':(gsplitCrossBlocked(sel.L.i,L.i)?'cut off by fire':(count+pending)+'/10')))+'</small></button>';
     }
     mid+='</div>';
   }
@@ -19370,7 +19381,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789747545622';
+const BUILD_ID = '1789748188912';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
