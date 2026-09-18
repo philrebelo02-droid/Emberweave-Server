@@ -933,6 +933,20 @@ function eliteHeroForSrv(g){ if(!isHeroRewardStageSrv(g)) return null;
   return ELITE_SEQ_SRV[idx%ELITE_SEQ_SRV.length]; }
 const ARENA_DAILY_BANDS=[[1,1,600,30000,800],[2,2,520,27000,775],[3,3,440,24000,750],[4,4,380,21000,725],[5,5,320,19000,700],[6,6,260,17000,680],[7,7,200,15000,660],[8,8,180,14000,640],[9,10,160,12500,610],[11,20,150,11000,590],[21,30,140,10000,575],[31,40,130,9000,560],[41,50,120,8000,545],[51,70,110,7500,530],[71,100,100,7000,500],[101,150,90,6500,475],[151,200,80,6000,450],[201,300,70,5500,425],[301,400,60,5000,388],[401,500,55,4500,350],[501,700,55,4000,300],[701,1000,50,3500,260],[1001,1500,50,3300,220],[1501,2000,50,3100,180],[2001,2500,50,2900,140],[2501,3500,45,2700,100],[3501,5000,45,2500,50],[5001,15000,45,2200,30]];
 function arenaDailyRewardSrv(rank){ for(const [lo,hi,g,gold,c] of ARENA_DAILY_BANDS){ if(rank>=lo&&rank<=hi) return {gems:g,gold,coins:c}; } return {gems:0,gold:0,coins:0}; }
+/* v582 — ARENA ATTEMPTS ARE FINITE. Phil, 18 Sep 2026: "i need a big nerf to arena, gauntlet and other
+   features with unlimited attempts ... arena should be 5 attempts per day, can buy more with diamonds".
+   Until now the only arena brake was the per-day GOLD cap (ACAP below) — rank, coins, milestone
+   diamonds and glyph fragments kept flowing on an unbounded number of fights. The attempt is spent
+   where the fight is RESOLVED (/api/arena/result), never on previewing opponents, and it is spent
+   once per requestId — a replayed receipt returns the original verdict and burns nothing.
+   The two purchase numbers are Phil's to set; these are placeholders until he does. */
+const ARENA_FREE_ATTEMPTS   = 5;    // free fights per New-York day
+const ARENA_EXTRA_COST_GEMS = 20;   // diamonds per additional attempt        ← Phil to confirm
+const ARENA_EXTRA_MAX_DAY   = 5;    // additional attempts purchasable per day ← Phil to confirm
+function arenaAtt(led){ const dk=nyDayKey(); if(!led.arenaAtt||led.arenaAtt.k!==dk) led.arenaAtt={k:dk,used:0,bought:0}; return led.arenaAtt; }
+function arenaAttView(led){ const a=arenaAtt(led);
+  return { attemptsLeft:Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used), used:a.used, bought:a.bought,
+           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY }; }
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
   q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
@@ -4236,8 +4250,18 @@ async function api(req,res,url){
                  team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));
     return send(res,200,{ cities, myGuildId: me.guildId||null }); }
 
+  /* v582: buy an extra arena attempt with diamonds. Idempotent per requestId (same idem() receipt
+     pattern as every other purchase), capped per day, spent only when the diamonds actually leave. */
+  if(p==='/api/arena/buy-attempt' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':abuy:'+rid,()=>{ const led=ensureLedger(me), a=arenaAtt(led);
+      if(a.bought>=ARENA_EXTRA_MAX_DAY) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
+      if((led.gems|0)<ARENA_EXTRA_COST_GEMS) return {ok:false,error:'Not enough diamonds — an extra arena attempt costs '+ARENA_EXTRA_COST_GEMS+'.',arena:arenaAttView(led)};
+      led.gems-=ARENA_EXTRA_COST_GEMS; a.bought++; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS});
+      return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
+    return send(res,out.ok?200:400,out); }
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
-    return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc } }); }
+    return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'});
     // SPREAD opponents across %-better rank bands (mirrors client arenaTargetRanks) so you can see JUMP targets,
@@ -4263,7 +4287,7 @@ async function api(req,res,url){
     const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
     function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
     const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,u.team||[]), gems:prevGems(u.rank) }));
-    return send(res,200,{ rank:me.rank, opponents:out }); }
+    return send(res,200,{ rank:me.rank, opponents:out, arena:arenaAttView(ensureLedger(me)) }); }
 
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'arena',30,60000)) return send(res,429,{error:'Slow down — too many arena results.'});
@@ -4273,6 +4297,10 @@ async function api(req,res,url){
     const areqId=String(b.requestId||'').slice(0,48); if(!areqId) return send(res,400,{error:'requestId required'});
     const akey=me.id+':arena:'+areqId;
     DB.idem=DB.idem||{}; if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
+    // v582: finite attempts — checked AFTER the replay short-circuit so a re-sent receipt never
+    // trips the gate, and BEFORE the sim so an exhausted player costs the server nothing.
+    { const aled=ensureLedger(me), aa=arenaAtt(aled);
+      if(aa.used>=ARENA_FREE_ATTEMPTS+aa.bought) return send(res,400,{ok:false,error:'No arena attempts left today.',arena:arenaAttView(aled)}); }
     const opp=DB.users[b.oppId];
     // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
     // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
@@ -4298,6 +4326,7 @@ async function api(req,res,url){
     }
     if(!opp) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* v559: a missing opponent left won=false and fell through to the +5 consolation coins, so an unbounded string of invalid oppIds minted coins at the route limit without ever fighting. No opponent, no attempt, no payout. */
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
+    arenaAtt(ensureLedger(me)).used++;   // v582: the attempt is spent here — the fight resolved, win or lose
     let goldReward=0; if(won){ const led=ensureLedger(me);
       // per-NY-day cap on arena gold (EARN_RULES pattern): rank still moves after the cap, gold stops.
       led.earnDay=led.earnDay||{}; const adk=nyDayKey(); if(led.earnDay.k!==adk){ led.earnDay={k:adk}; }
@@ -4317,7 +4346,7 @@ async function api(req,res,url){
         me.bestRank=me.rank; me._gemFrac=(me._gemFrac||0)+d; milestoneGems=Math.floor(me._gemFrac); me._gemFrac-=milestoneGems;
         if(milestoneGems>0){ gemGain(me,milestoneGems,'arena'); led.gems=Math.min(9999999,led.gems+milestoneGems); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
-    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me) };
+    const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
     DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
     return send(res,200,aresp); }
 
