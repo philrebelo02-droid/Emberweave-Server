@@ -6158,14 +6158,29 @@ function gsplitRoadFireTick(dt){
     const i = F.i, R = gsplitFireR(i);
     if(!f.pts) f.pts = gsplitFirePath(i, R * 1.15);
     const n = f.pts.length, due = Math.min(n, Math.floor(f.t / GSPLIT_FIRE_RUSH * n) + 1);
-    if(f.i >= due) continue;
+    if(f.i >= due && !(f.i >= n && !f.bodiesDone)) continue;
     gsplitFxSwapIn(F);
     try{ while(f.i < due){ const q = f.pts[f.i];
         _fxAllow = true; let o = null; try{ o = spawnGroundFx('roadfire', q.x, q.y, R, 1e6); }finally{ _fxAllow = false; }
         if(!o) break;   // texture not ready yet - retry this patch next tick
-        f.i++; } }
+        f.i++; }
+      gsplitFireBurnBodies(F, f, R); }
     finally{ gsplitFxSwapOut(F); }
     if(f.i >= n) f.done = true; }
+}
+/* v603 (Phil, 18 Sep - asked whether the fire should burn the fallen road's bodies away: "Yes"). As the fire front passes a
+   body - a dead hero, or a monster's corpse - a short flare of the same fire sheet flashes on it and the body is hidden.
+   Bodies beyond either end of the fire (and Hollow, who can die off-field from his drop-in and so never lies down) burn
+   when the rush finishes. The unit stays in the road's list: heroesLost and the result still count it. Code particles
+   stay off (v554) - the flare is the sheet itself. */
+function gsplitFireBurnBodies(F, f, R){
+  const front = f.pts[Math.max(0, f.i - 1)], all = f.i >= f.pts.length;
+  for(const u of F.units){ if(u.alive || u._fireBurned || !u.mesh) continue;
+    if(!all && !(u.x >= front.x - R * 0.5)) continue;   // the front runs right to left: it has reached every body at or right of it
+    u._fireBurned = true;
+    if(u.x > -1000 && u.y > -1000){ _fxAllow = true; try{ spawnGroundFx('roadfire', u.x, u.y, R * 1.4, 0.9); }catch(e){} finally{ _fxAllow = false; } }
+    u.mesh.visible = false; }
+  if(all) f.bodiesDone = true;
 }
 /* v596 (Phil, 18 Sep: "You are allowed to lose 1 lane" / "It should end, but the monsters that were meant to go to that
    lane should then split evenly amongst the other 2 lanes" / "To punish people who try to leave an empty lane").
@@ -19381,7 +19396,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789748188912';
+const BUILD_ID = '1789748430685';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
