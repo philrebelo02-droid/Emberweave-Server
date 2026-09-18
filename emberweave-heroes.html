@@ -5521,6 +5521,13 @@ function gsplitPickerRender(){
   const place = (k,L)=>{ if(inRoad(L).length>=PER && E.laneOf[k]!==L){ err('At most '+PER+' heroes on one road.'); return false; } E.laneOf[k]=L; E._sel=null; gsplitPickerRender(); return true; };
   const unplace = k=>{ delete E.laneOf[k]; E._sel=null; gsplitPickerRender(); };
   /* tap-to-select fallback + pointer drag with a ghost; pointerup lands on whatever road is under the finger */
+  /* v581 — GHOST CHIPS LEAKED INTO <body>. The drag ghost lived only in a per-chip closure, and only
+     that chip's own pointerup removed it. Any re-render (place/unplace/HEROES→NEXT) rebuilds the tray
+     via innerHTML, destroying the chip and its closure while the ghost stays parked on <body> at
+     z-index 9999 — one orphan per interrupted drag, stacking at the tap point, garbling the tray, and
+     following the player into the battle and the result screen. Seen live on BONUS 1-4 (18 Sep).
+     Sweep strays on every render, and tidy on lostpointercapture so a lost capture can't strand one. */
+  document.querySelectorAll('body > .gsplitChip').forEach(g=>g.remove());
   el.querySelectorAll('.gsplitChip').forEach(c=>{
     const k=c.dataset.k, placed=c.classList.contains('placed'); let ghost=null, moved=false, sx=0, sy=0;
     c.addEventListener('pointerdown',ev=>{ if(placed) return; ev.preventDefault(); moved=false; sx=ev.clientX; sy=ev.clientY;
@@ -5535,7 +5542,8 @@ function gsplitPickerRender(){
         const t=document.elementFromPoint(ev.clientX,ev.clientY), r=t&&t.closest&&t.closest('.gsplitRoad');
         if(r) place(k,+r.dataset.road); else gsplitPickerRender(); }
       else { E._sel = (E._sel===k)?null:k; el.querySelectorAll('.gsplitChip:not(.placed)').forEach(x=>x.style.boxShadow=(x.dataset.k===E._sel)?'0 0 0 2px #ffd36b':''); } };
-    c.addEventListener('pointerup',finish); c.addEventListener('pointercancel',()=>{ if(ghost){ghost.remove();ghost=null;c.style.opacity='';} });
+    const tidy=()=>{ if(ghost){ ghost.remove(); ghost=null; } c.style.opacity=''; };   // v581: idempotent — a no-op once finish() has already run
+    c.addEventListener('pointerup',finish); c.addEventListener('pointercancel',tidy); c.addEventListener('lostpointercapture',tidy);
   });
   el.querySelectorAll('.gsplitRoad').forEach(r=>{ r.addEventListener('click',ev=>{ if(ev.target.closest('.gsplitChip')) return; if(E._sel) place(E._sel,+r.dataset.road); }); });
 }
