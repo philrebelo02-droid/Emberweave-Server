@@ -295,7 +295,8 @@
   /* pause menu */
   #pauseBtn{position:absolute;top:8px;left:8px;z-index:16;display:none;pointer-events:auto;background:rgba(21,27,43,.92);border:1px solid #33405e;color:#e6edf3;border-radius:12px;padding:6px 12px;font-size:16px;font-weight:800;cursor:pointer;}
   #pauseBtn.active{display:block;}
-  #pauseModal{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.7);}
+  /* v586 (Phil: the pause box came up "a layer behind the lines" in a bonus run): above the firebreak panel (40-50) and its road zones (45) */
+  #pauseModal{position:absolute;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.7);}
   #pauseModal.active{display:flex;}
   #pauseModal .pm{background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:22px;width:80%;max-width:320px;text-align:center;}
 
@@ -5568,8 +5569,68 @@ function gsplitPickerCss(){
     #gsplitPicker #gsplitTray{flex:1 1 auto;overflow-y:auto;align-content:flex-start;margin-bottom:6px !important;}
     #gsplitPicker #gsplitTray .gsplitChip{touch-action:pan-y !important;}   /* the map is to the LEFT: a sideways drag places, an up/down swipe scrolls */
     #gsplitPicker .gsplitActions{flex-wrap:wrap;}
-  }`;
+  }
+  #gsplitPicker .gsplitPresets{display:flex;gap:6px;align-items:stretch;margin:0 0 8px;flex-wrap:wrap;}
+  #gsplitPicker .gsplitPreset{flex:1 1 0;min-width:74px;min-height:40px;border-radius:8px;border:1px solid #c9a35e;background:#1d2434;
+    color:#f0d8a8;font-weight:800;font-size:12px;line-height:1.15;touch-action:manipulation;}
+  #gsplitPicker .gsplitPreset small{display:block;font-size:10px;font-weight:600;color:#c9a35e;}
+  #gsplitPicker .gsplitPreset[disabled]{opacity:.4;border-color:#2a3550;}
+  #gsplitPicker .gsplitPreset.saving{border-style:dashed;border-color:#ffd36b;background:rgba(255,211,107,.14);}
+  #gsplitPicker .gsplitPresetSave{flex:0 0 auto;min-height:40px;padding:0 12px;border-radius:8px;border:1px solid #6f8bb8;background:#1b2740;
+    color:#e6edf3;font-weight:800;font-size:12px;touch-action:manipulation;}
+  #gsplitPicker .gsplitPresetSave.on{border-color:#ff6b6b;color:#ffb3b3;}
+  #gsplitPicker .gsplitPresetNote{flex-basis:100%;font-size:11px;color:#9fd8a8;min-height:0;}
+  #gsplitPicker .gsplitPresetNote:empty{display:none;}`;
   document.head.appendChild(st);
+}
+
+/* v586 - LINEUP PRESETS (Phil, 18 Sep: "I would like a preset button so I can can save up to 3 presets of hero
+   line ups"). Three slots in G.bonusPresets, so they ride the cloud save to every device (the save blob keeps
+   fields the server does not own; deepMerge brings them back). A preset is the chosen heroes AND their roads.
+   Save on the PLACE screen (that is where a lineup is complete); load from PICK or PLACE. Loading drops heroes
+   the account no longer owns and respects today's caps (15 heroes, 10 per road). */
+function gsplitPresets(){
+  const a=Array.isArray(G.bonusPresets)?G.bonusPresets:[];
+  return [0,1,2].map(i=>{ const p=a[i]; return (p && Array.isArray(p.picked) && p.picked.length) ? p : null; });
+}
+function gsplitPresetRow(E){
+  const ps=gsplitPresets(), saving=!!E._saving, place=E.mode==='place';
+  if(!place && !ps.some(Boolean)) return '';        // nothing to load yet - saving happens on the road screen
+  return '<div class="gsplitPresets">'+[0,1,2].map(i=>{ const p=ps[i];
+      const n=p ? p.picked.filter(k=>G.unlocked[k]).length : 0;
+      return '<button type="button" class="gsplitPreset'+(saving?' saving':'')+'" data-p="'+i+'"'+(!p&&!saving?' disabled':'')+'>'
+        +(saving?'Save to '+(i+1):'Preset '+(i+1))+'<small>'+(p?n+' heroes':'empty')+'</small></button>'; }).join('')
+    +(place?'<button type="button" class="gsplitPresetSave'+(saving?' on':'')+'" id="gsplitPresetSave">'+(saving?'✕ Cancel':'💾 Save')+'</button>':'')
+    +'<div class="gsplitPresetNote">'+gsplitEsc(E._presetNote||'')+'</div></div>';
+}
+function gsplitPresetWire(el, E){
+  el.querySelectorAll('.gsplitPreset').forEach(b=>{ b.onclick=()=>{ const i=+b.dataset.p; if(E._saving) gsplitPresetSave(i); else gsplitPresetLoad(i); }; });
+  const sv=el.querySelector('#gsplitPresetSave');
+  if(sv) sv.onclick=()=>{ E._saving=!E._saving; E._presetNote=E._saving?'Tap a slot to save this lineup.':''; gsplitPickerRender(); };
+}
+function gsplitPresetLoad(i){
+  const E=GSPLIT_ENTRY, p=gsplitPresets()[i]; if(!E||!p) return;
+  const info=E.stageInfo||{}, CAP=info.maxHeroes||GSPLIT_PICK_CAP, PER=info.maxPerLane||MAX_PER_LANE;
+  const picked=p.picked.filter((k,ix,a)=>G.unlocked[k] && a.indexOf(k)===ix).slice(0,CAP);
+  const laneOf={}, cnt={1:0,2:0,3:0};
+  for(const k of picked){ const L=((p.laneOf||{})[k])|0; if(L>=1 && L<=3 && cnt[L]<PER){ laneOf[k]=L; cnt[L]++; } }
+  const lost=p.picked.length-picked.length;
+  E.picked=picked; E.laneOf=laneOf; E._saving=false; E._sel=null; E.mode='place';
+  E._presetNote='Preset '+(i+1)+' loaded'+(lost>0?' - '+lost+' hero'+(lost>1?'es':'')+' not available':'')+'.';
+  gsplitPickerRender();
+}
+async function gsplitPresetSave(i){
+  const E=GSPLIT_ENTRY; if(!E) return;
+  if(!E.picked || !E.picked.length){ E._presetNote='Choose heroes first.'; gsplitPickerRender(); return; }
+  const cur=gsplitPresets()[i];
+  if(cur && !(await uiConfirm('Replace Preset '+(i+1)+'?', ['It holds '+cur.picked.length+' heroes. The lineup on screen takes its place.'], 'Replace'))) return;
+  if(!Array.isArray(G.bonusPresets)) G.bonusPresets=[];
+  while(G.bonusPresets.length<3) G.bonusPresets.push(null);
+  const laneOf={}; E.picked.forEach(k=>{ if(E.laneOf[k]) laneOf[k]=E.laneOf[k]; });
+  G.bonusPresets[i]={ picked:E.picked.slice(), laneOf, t:Date.now() };
+  saveG();
+  E._saving=false; E._presetNote='Saved to Preset '+(i+1)+'.';
+  gsplitPickerRender();
 }
 function gsplitPickerClose(){
   const el=document.getElementById('gsplitPicker'); if(el) el.remove();
@@ -5608,10 +5669,12 @@ function gsplitPickerRender(){
        used to sit below every hero, a long scroll away. BEST picks the strongest heroes in one tap. */
     el.innerHTML = head + `
       <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Tap to choose up to <b style="color:#e6edf3">${CAP}</b> heroes. You place them on the roads next.${info.tutorial?' Tutorial run — one monster per wave.':''}</div>
+      ${gsplitPresetRow(E)}
       <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${chips || '<div style="color:#8b98a9;font-size:12px">No heroes unlocked yet.</div>'}</div>
       <div class="gsplitBar"><div class="gsplitCount">Selected <b>${E.picked.length}</b> / ${CAP}<div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
         <button type="button" id="gsplitAuto" class="btn secondary">BEST ${Math.min(CAP,owned.length)}</button>
         <button type="button" id="gsplitNext" class="btn" ${E.picked.length?'':'disabled'}>NEXT ▶</button></div>`;
+    gsplitPresetWire(el, E);
     el.querySelector('#gsplitAuto').onclick = ()=>{ E.picked = owned.slice(0,CAP);
       Object.keys(E.laneOf).forEach(k=>{ if(E.picked.indexOf(k)<0) delete E.laneOf[k]; }); gsplitPickerRender(); };
     el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
@@ -5649,6 +5712,7 @@ function gsplitPickerRender(){
     <div class="gsplitPlaceBody">
     <div id="gsplitMapWrap" style="position:relative;display:block;width:min(100%,calc(56vh*1.5));margin:0 auto 8px;aspect-ratio:3/2;background:#0b0f16 center/cover no-repeat;background-image:url('${mapSrc}');border-radius:8px;overflow:hidden">${bands}</div>
     <div class="gsplitSide">
+    ${gsplitPresetRow(E)}
     <div id="gsplitTray" style="display:flex;flex-wrap:wrap;gap:2px;min-height:38px;padding:4px;border:1px solid #333;border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:8px">${unplaced.map(k=>chip(k,false)).join('') || '<span style="color:#8b98a9;font-size:11px;padding:6px">Every chosen hero is on a road.</span>'}</div>
     <div class="gsplitActions" style="display:flex;gap:8px;align-items:center">
       <button type="button" id="gsplitBack" class="btn secondary" style="flex:0 0 auto">◀ HEROES</button>
@@ -5657,8 +5721,9 @@ function gsplitPickerRender(){
     <div id="gsplitErr" style="color:#ff6b6b;font-size:11px;margin-top:8px"></div>
     </div></div>`;
   el.querySelector('#gsplitClose').onclick = gsplitPickerClose;
-  el.querySelector('#gsplitBack').onclick = ()=>{ E.mode='pick'; gsplitPickerRender(); };
+  el.querySelector('#gsplitBack').onclick = ()=>{ E.mode='pick'; E._saving=false; E._presetNote=''; gsplitPickerRender(); };
   el.querySelector('#gsplitStart').onclick = gsplitStartRun;
+  gsplitPresetWire(el, E);
   el.querySelector('#gsplitAutoPlace').onclick = ()=>{
     // strongest first, each to the road holding the fewest - an even 5/5/5 for fifteen
     const todo=unplaced.slice().sort((a,b)=>powOf(b)-powOf(a));
@@ -6143,7 +6208,7 @@ gsplitPickerRender = function(){
   if(!E || !E._rails) return;
   const root=document.getElementById('gsplitPicker'), rails=E._rails;
   if(!root) return;
-  root.querySelectorAll('#gsplitAuto,#gsplitAutoPlace').forEach(b=>b.remove());   // v585: the teaching run places heroes one by one
+  root.querySelectorAll('#gsplitAuto,#gsplitAutoPlace,.gsplitPresets').forEach(b=>b.remove());   // v585/v586: the teaching run places heroes one by one
   const card=root.querySelector('.gsplitPickerCard');
   if(card && card.children[1]) card.children[1].textContent='Follow the glowing heroes to place your squad on all three roads. The first firebreak will teach boons and moving lanes.';
   const step=rails.steps[rails.next];
@@ -18849,7 +18914,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789703541556';
+const BUILD_ID = '1789729750557';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
