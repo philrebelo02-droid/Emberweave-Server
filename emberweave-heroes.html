@@ -6947,7 +6947,7 @@ function buildFigure(u){
   const g=new TH.Group();
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
   shadow.rotation.x=-Math.PI/2; shadow.position.y=.02; shadow.scale.setScalar((u.r/18)*(u.boss?1.5:1)); g.add(shadow); u.shadow=shadow;
-  const h=(u.boss?BOSS_BATTLE_H:roleBattleH(u.key))*(u.r/18)*(HERO_BATTLE_SCALE[u.key]||1); u.sprH=h; u.sprA=0.7;
+  const h=(u.boss?BOSS_BATTLE_H:roleBattleH(u.key))*(u.r/18)*(HERO_BATTLE_SCALE[u.key]||1)*(u._edFig||1); u.sprH=h; u.sprA=0.7;   // v605: _edFig = Emberdraft figure size (art only)
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:(HERO_SPRITES[u.key]?spriteTex(u.key):null),transparent:true,depthWrite:false}));
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
   if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
@@ -9819,8 +9819,10 @@ function clearBattle(){ waveXfer=null;
 // per-mode battle maps: The Vault fights on the forest-road arena; everything else keeps the default painted map
 const BATTLE_MAPS={ vault:'/assets/img/battlefields/dungeon-forest-01.webp', dungeon:'/assets/img/battlefields/dungeon-forest-01.webp' };
 function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg) return;
-  const url=(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
-  bg.style.backgroundImage='url('+url+')'; bg.style.backgroundSize='cover'; bg.style.backgroundPosition='center'; }
+  const edA=(CUR&&CUR.mode==='emberdraft'&&typeof ED!=='undefined'&&ED&&ED.arena)?ED.arena:null;   // v605 Emberdraft arenas
+  const url=(edA&&edA.img)||(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
+  bg.style.backgroundImage='url('+url+')'; bg.style.backgroundSize=edA?'100% 100%':'cover'; bg.style.backgroundPosition='center';
+  try{ if(typeof edBgVideo==='function') edBgVideo(edA); }catch(e){} }
 /* v564 - startBattle is now GATED on the art. The old body is _startBattleNow; the wrapper collects
    every key this match can possibly show (squad + every authored wave + the PvP/elite opponent),
    puts the loading screen up, waits for the queue to drain, then runs the fight. Wrapping instead of
@@ -19400,7 +19402,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789754060000';
+const BUILD_ID = '1789758580000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19737,7 +19739,29 @@ const ED_TIER_OPEN = 5;             // Rank I / II / III — "rank", because sta
 const ED_POOL_COPIES = {1:29, 2:22, 3:18};         // copies of each hero in the shared pool, by cost
 const ED_ODDS = {3:[75,25,0],4:[60,35,5],5:[45,40,15],6:[35,40,25],7:[25,40,35],8:[20,37,43],9:[15,35,50]};
 const ED_XP_NEED = {3:6, 4:10, 5:20, 6:36, 7:56, 8:80};
-const ED_BENCH = 9, ED_ROWS = 4, ED_COLS = 7, ED_FIGHT_LIMIT = 30, ED_START_HP = 100;
+const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 7, ED_FIGHT_LIMIT = 30, ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
+/* v605 (Phil, 18 Sep 2026) - the painted Emberdraft arenas: "8 different maps so that each player fights on a different map",
+   "16 per side" bench pads, "there shouldnt be wasted space on the screen", "Let the entire thing be animated".
+   Every arena is described in IMAGE fractions (0..1), measured off the 2560x1440 art (projects/EMBERDRAFT maps 18 Sep 2026,
+   V_*.jpg overlays): the 16 pads of each ledge (first/last centre + row y), and the plaza (far edge, ember line, near edge,
+   and its left/right edges at the far and near side - the plaza is a slight trapezoid). The arena is drawn STRETCHED to the
+   screen (background-size 100% 100%, video object-fit fill) so both benches and the shop-bar band always show on any
+   phone; image points become field points through the live camera (edImgToField), so every board cell and bench slot sits
+   on the painted plaza and pads. Only arenas with 16 pads counted on BOTH ledges are listed (Phil: "The ones with 16 squares
+   on each side"). */
+/* figures draw at 70% in Emberdraft so one hero stands on one bench pad (16 pads ~ 33 px apart on a phone). Art only:
+   hit radius, bodies and spell areas are untouched, so combat is the same. */
+const ED_FIG_SCALE = 0.7;
+const ED_ARENAS = [
+  { id:'cinderforge', name:'The Cinderforge Hollow',
+    img:'/assets/img/battlefields/emberdraft/cinderforge.webp', video:'/assets/img/battlefields/emberdraft/cinderforge.mp4',
+    far:{ x0:0.184, x1:0.8125, y:0.094 }, near:{ x0:0.1175, x1:0.875, y:0.764 },
+    plaza:{ farY:0.144, midY:0.428, nearY:0.711, farL:0.131, farR:0.872, nearL:0.0875, nearR:0.919 } },
+  { id:'frostmere', name:'The Frostmere Reach',
+    img:'/assets/img/battlefields/emberdraft/frostmere.webp', video:'/assets/img/battlefields/emberdraft/frostmere.mp4',
+    far:{ x0:0.174, x1:0.825, y:0.089 }, near:{ x0:0.109, x1:0.894, y:0.694 },
+    plaza:{ farY:0.156, midY:0.411, nearY:0.644, farL:0.119, farR:0.881, nearL:0.0875, nearR:0.909 } },
+];
 const ED_AI_NAMES = ['The Ashen Duke','Mirewitch Olga','Captain Brandt','Sister Veil','The Cinder Twins','Old Harrow','Lady Quill'];
 /* equipment: one component per Forge gear slot; the 9 Forge quality tiers (Phil: "items should have tiers") */
 const ED_COMP = ['Weapon','Helm','Boots','Armor','Gloves','Belt','Ring','Amulet','Relic'];
@@ -19884,6 +19908,7 @@ function edNewGame(attemptId){
   edPoolInit(); _edUid=1;
   Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[] });
   for(let i=0;i<8;i++) ED.players.push(edNewPlayer(i));
+  { const order=ED.players.map((_,i)=>i).sort(()=>Math.random()-0.5); ED.players.forEach((p,i)=>{ p.arenaIx=order[i]; }); ED.arena=null; ED._lay=null; }   // v605: one arena per seat
   edLoadCatalog();
   ED.attemptId=attemptId||null; ED.reward=null;   // the lobby spent the attempt on the server before we got here
   edNextRound();
@@ -20017,9 +20042,75 @@ function edAutoFight(a,b,ghostB){
   ED.results.push({w:W.name,l:L.name,dmg});
 }
 /* board cell → battlefield: your rows sit near the camera (field y ~880→1135), the rival's mirror at the far side */
-function edCellPos(team,r,c){ return team==='ally' ? { x:140+c*120, y:700+r*85 } : { x:860-c*120, y:500-r*85 }; }   // measured at 800x370: rows clear the top bar and the shop bar; the bench sits at y 1070
+/* v605: board cells and bench slots come from the arena art (edLayout), not fixed field numbers */
+function edCellPos(team,r,c){ const L=edLayout(); return (team==='ally'?L.ally:L.enemy)[r][c]; }
+function edArena(){ return (ED&&ED.arena)||ED_ARENAS[0]; }
+function edArenaOf(p){ return ED_ARENAS[(((p&&p.arenaIx)|0)%ED_ARENAS.length+ED_ARENAS.length)%ED_ARENAS.length]; }
+function edSetArena(a){ a=a||ED_ARENAS[0]; if(ED.arena!==a){ ED.arena=a; ED._lay=null; } BATTLE_MAPS.emberdraft=a.img; }
+/* an image point (0..1, stretched over the battle view) -> the field point that projects onto it (Newton on project(),
+   the same method as gsplitImgToField, without the cover-fit because the arena is stretched) */
+function edImgToField(ix, iy){
+  const tx=ix*CW, ty=iy*CH; let x=FW*ix, y=FD*iy;
+  for(let it=0; it<18; it++){
+    const p=project(x,y,0.001), ex=p.x-tx, ey=p.y-ty; if(Math.abs(ex)<0.05 && Math.abs(ey)<0.05) break;
+    const px=project(x+4,y,0.001), py=project(x,y+4,0.001);
+    const a=(px.x-p.x)/4, b=(py.x-p.x)/4, c=(px.y-p.y)/4, d=(py.y-p.y)/4, det=a*d-b*c;
+    if(!isFinite(det) || Math.abs(det)<1e-9) break;
+    x-=( d*ex-b*ey)/det; y-=(-c*ex+a*ey)/det;
+  }
+  return { x, y };
+}
+/* 4 rows x 7 columns per half of the plaza (row 0 = the front, by the ember line), 5% in from the plaza's side edges;
+   the enemy half is mirrored. Bench slot i = pad i of the near ledge (yours, left to right) / far ledge (theirs, right to left). */
+function edLayout(){
+  // a canvas measured before it had a size, or a camera whose aspect is stale, would throw every slot off the field
+  if(!(CW>0 && CH>0) || !camera || Math.abs((camera.aspect||0)-CW/CH)>0.01){ try{ resize3D(); }catch(e){} }
+  const a=edArena(), key=a.id+'|'+CW+'x'+CH; if(ED._lay && ED._lay.key===key) return ED._lay;
+  const P=a.plaza, lerp=(u,v,t)=>u+(v-u)*t;
+  const edges=(y)=>{ const t=(y-P.farY)/(P.nearY-P.farY); return [lerp(P.farL,P.nearL,t), lerp(P.farR,P.nearR,t)]; };
+  const cell=(iy,c)=>{ const e=edges(iy), w=e[1]-e[0], l=e[0]+w*0.05, r=e[1]-w*0.05; return edImgToField(l+(r-l)*(c+0.5)/ED_COLS, iy); };
+  const lay={ key, ally:[], enemy:[], benchA:[], benchE:[] };
+  for(let r=0;r<ED_ROWS;r++){
+    const ya=P.midY+(P.nearY-P.midY)*(r+0.5)/ED_ROWS, ye=P.midY-(P.midY-P.farY)*(r+0.5)/ED_ROWS;
+    lay.ally.push([]); lay.enemy.push([]);
+    for(let c=0;c<ED_COLS;c++){ lay.ally[r].push(cell(ya,c)); lay.enemy[r].push(cell(ye,ED_COLS-1-c)); }
+  }
+  for(let i=0;i<ED_BENCH;i++){ const t=ED_BENCH>1?i/(ED_BENCH-1):0;
+    lay.benchA.push(edImgToField(lerp(a.near.x0,a.near.x1,t), a.near.y));
+    lay.benchE.push(edImgToField(lerp(a.far.x1,a.far.x0,t), a.far.y)); }
+  /* every solved point must project back onto its image point; if the camera was mid-change it will not, and then this
+     frame uses the old fixed spots (not cached) and the planning field is rebuilt a moment later */
+  const ok=(f,ix,iy)=>{ if(!f||!isFinite(f.x)||!isFinite(f.y)) return false; const q=project(f.x,f.y,0.001); return Math.abs(q.x-ix*CW)<2 && Math.abs(q.y-iy*CH)<2; };
+  let good=CW>0&&CH>0;
+  for(let i=0;good&&i<ED_BENCH;i++){ const t=ED_BENCH>1?i/(ED_BENCH-1):0; good=ok(lay.benchA[i],lerp(a.near.x0,a.near.x1,t),a.near.y)&&ok(lay.benchE[i],lerp(a.far.x1,a.far.x0,t),a.far.y); }
+  for(let r=0;good&&r<ED_ROWS;r++) for(let c=0;good&&c<ED_COLS;c++) good=isFinite(lay.ally[r][c].x)&&isFinite(lay.enemy[r][c].x)&&Math.abs(lay.ally[r][c].x)<5000&&Math.abs(lay.enemy[r][c].y)<5000;
+  if(!good){
+    const old={ key:'fallback', ally:[], enemy:[], benchA:[], benchE:[] };
+    for(let r=0;r<ED_ROWS;r++){ old.ally.push([]); old.enemy.push([]); for(let c=0;c<ED_COLS;c++){ old.ally[r].push({x:140+c*120,y:700+r*85}); old.enemy[r].push({x:860-c*120,y:500-r*85}); } }
+    for(let i=0;i<ED_BENCH;i++){ old.benchA.push({x:60+i*58,y:1070}); old.benchE.push({x:940-i*58,y:150}); }
+    ED._lay=null; ED._layRetry=true; return old;
+  }
+  ED._lay=lay; return lay;
+}
+/* the arena's looping video over its still (the still shows until the video plays, and stays if it cannot) */
+function edBgVideo(a){
+  const bg=document.getElementById('battleBg'); if(!bg) return; let v=document.getElementById('edBgVid');
+  let reduce=false; try{ reduce=!!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
+  if(!a || !a.video || reduce){ if(v){ try{ v.pause(); }catch(e){} v.style.display='none'; } return; }
+  if(!v){ v=document.createElement('video'); v.id='edBgVid'; v.muted=true; v.defaultMuted=true; v.loop=true; v.playsInline=true;
+    v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('webkit-playsinline',''); v.preload='auto';
+    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;opacity:0;transition:opacity .35s';
+    v.addEventListener('playing',()=>{ v.style.opacity='1'; });
+    bg.appendChild(v); }
+  if(v.dataset.src!==a.video){ v.dataset.src=a.video; v.style.opacity='0'; v.src=a.video; }
+  v.style.display='block';
+  /* autoplay can be refused (iOS low-power mode, a background tab): the still stays underneath, and the first touch retries */
+  const retry=()=>{ if(v.style.display!=='none' && v.paused){ try{ const q=v.play(); if(q&&q.catch) q.catch(()=>{}); }catch(e){} } };
+  try{ const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{ document.addEventListener('pointerdown', retry, { once:true, capture:true }); }); }catch(e){}
+}
 function edLaunchBattle(){
   const you=edYou(); ED.phase='fight'; ED.fighting=true; ED._fieldSig=null;
+  edSetArena( (ED.opp && !ED.opp.pve && ED.opp.p && ED.round%2===1) ? edArenaOf(ED.opp.p) : edArenaOf(you) );   // v605: monsters on your arena; PvP home on even rounds, away on odd
   const allySpec=Object.entries(you.board).map(([pos,u])=>{ const [r,c]=pos.split(',').map(Number); return { u, r, c }; });
   let enemySpec=[];
   if(ED.opp.pve){ enemySpec=edPveSpec(ED.round); }
@@ -20040,10 +20131,11 @@ function edPveSpec(r){
 /* called from _startBattleNow (mode 'emberdraft') */
 function edSpawnUnits(){
   const S=ED.spec; if(!S) return;
+  ED._lay=null;   // v605: re-measure the arena against the battle camera
   const mk=(s,team,syn)=>{ const pos=edCellPos(team,s.r,s.c), h=s.u;
     /* Phil, 18 Sep: a hero starts with its Ultimate + Green; merging to rank II earns Blue, rank III earns the Purple passive.
        That is makeUnit's own quality gate (1 Green, 2 +Blue, 3 +Purple), so the Emberdraft rank IS the quality rank. */
-    const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1))});
+    const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1))}); u._edFig=ED_FIG_SCALE;
     if(!h.mon){ const m=ED_RANK_MUL[h.rank||1]; u.maxHp*=m; u.hp=u.maxHp; u.dmg*=m; u.apow=(u.apow||0)*m; u._edRank=h.rank||1; }
     u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it);
     edApplySynergy(u,syn);
@@ -20054,9 +20146,9 @@ function edSpawnUnits(){
   /* both benches stand on their ledges during the fight (Phil: "so you can see what they have") - figures only, never in `units`,
      so nothing targets them, they draw no bars and they never count for the result; edTick animates them, edClearDecor removes them */
   edClearDecor(); ED.decor=[];
-  const deco=(h,x,y,team)=>{ try{ const u=makeUnit(h.key,team,x,y,ED_LEVEL,{rank:2}); buildFigure(u); ED.decor.push(u); }catch(e){} };
+  const deco=(h,x,y,team)=>{ try{ const u=makeUnit(h.key,team,x,y,ED_LEVEL,{rank:2}); u._edFig=ED_FIG_SCALE; buildFigure(u); ED.decor.push(u); }catch(e){} };
   edYou().bench.forEach((h,i)=>{ if(h){ const p=edBenchPos(i); deco(h,p.x,p.y,'ally'); } });
-  if(ED.opp && !ED.opp.pve && ED.opp.p) ED.opp.p.bench.forEach((h,i)=>{ if(h) deco(h, 900-i*100, 150, 'enemy'); });
+  if(ED.opp && !ED.opp.pve && ED.opp.p) ED.opp.p.bench.forEach((h,i)=>{ if(h&&i<ED_BENCH){ const q=edBenchPosEnemy(i); deco(h, q.x, q.y, 'enemy'); } });
   autoUlt=true;
   bannerMsg('ROUND '+ED.round+'\n'+(ED.opp.pve?'Monster wave':'vs '+ED.opp.name));
 }
@@ -20125,17 +20217,18 @@ function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, 
     ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error)||'Reward could not be claimed.'};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
     if(ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.phase==='over') edRender(); }); }
-function edQuit(){ edClearDecor(); ED.active=false; ED.fighting=false; ED._fieldSig=null; const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+function edQuit(){ edClearDecor(); ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
    should also be the animations"). Planning happens ON the battlefield: every hero on your board and bench stands on
    the field as its real animated figure (makeUnit + buildFigure, sim frozen with ended=true so they idle), and you drag
    them there. The DOM overlay is only the frame around it: top bar, the players / role-bonus panel, the equipment
-   strip, the shop (whose cards play each hero's idle sheet), and ground markers for the 28 board cells and 9 bench spots. */
+   strip, the shop (whose cards play each hero's idle sheet), and ground markers for the 28 board cells and 16 bench spots. */
 function edToast(t){ ED.msg=t; edRender(); }
 function edHideUi(){ const r=document.getElementById('edRoot'); if(r) r.style.display='none'; document.body.classList.remove('ed-plan'); }
-function edBenchPos(i){ return { x:100+i*100, y:1070 }; }
+function edBenchPos(i){ return edLayout().benchA[i]; }          // v605: your ledge's pads
+function edBenchPosEnemy(i){ return edLayout().benchE[i]; }    // v605: the rival's ledge
 function edCss(){ if(document.getElementById('edCss')) return; const s=document.createElement('style'); s.id='edCss'; s.textContent=`
 body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-plan #topStatus,body.ed-plan #enemyBar,body.ed-plan #portraitBar{display:none!important}
 #edRoot{position:fixed;inset:0;z-index:13400;color:#e8edf3;font:13px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;pointer-events:none}
@@ -20190,14 +20283,17 @@ function edSlots(){ const out=[]; for(let r=0;r<ED_ROWS;r++) for(let c=0;c<ED_CO
 function edShowField(){
   const you=edYou();
   CUR={ mode:'emberdraft', edKeys:edUnits(you).map(u=>u.key), opp:[] };
+  edSetArena(edArenaOf(you));   // v605: planning happens on your own arena
   if(state!=='battle') show('battle');
   try{ applyBattleMap(); }catch(e){}
   clearBattle(); ended=true; battleTime=0;
   try{ setBattleZoom(1); }catch(e){}
-  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
+  ED._lay=null;
+  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edFig=ED_FIG_SCALE; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
   for(const [pos,h] of Object.entries(you.board)){ const [r,c]=pos.split(',').map(Number); put(h, edCellPos('ally',r,c), false); }
   you.bench.forEach((h,i)=>{ if(h) put(h, edBenchPos(i), true); });
   document.body.classList.add('ed-plan');
+  if(ED._layRetry){ ED._layRetry=false; ED._layTries=(ED._layTries|0)+1; if(ED._layTries<=8) setTimeout(()=>{ if(ED.active && ED.phase==='plan'){ ED._fieldSig=null; edRender(); } }, 250); } else ED._layTries=0;
 }
 function edUnitAtScreen(x,y){ let best=null, bd=40; for(const u of units){ if(!u.alive||u._edId==null) continue;
     const a=edScreen(u.x,u.y), b=edScreen(u.x,u.y,Math.max(0.3,(u.sprH||1.6)*0.55)); const d=Math.min(Math.hypot(a.x-x,a.y-y), Math.hypot(b.x-x,b.y-y)); if(d<bd){ bd=d; best=u; } }

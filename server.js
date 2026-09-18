@@ -4784,6 +4784,18 @@ const server=http.createServer((req,res)=>{
     // v252: art is immutable per deploy (?v= cache-busters + the service worker own invalidation),
     // so it gets a 30-day cache instead of a daily revalidation round-trip on every phone launch.
     const CC=COMPRESSIBLE.test(type)?'public, max-age=86400':'public, max-age=2592000, immutable';
+    /* v605: video answers Range requests (206). iOS Safari will not play a <video> whose server ignores Range, and
+       the Emberdraft arenas are looping videos (Phil, 18 Sep: "Let the entire thing be animated"). */
+    if(type.startsWith('video/')) return fs.readFile(path.join(__dirname,rel),(e,buf)=>{
+      if(e){ res.writeHead(404); res.end(); return; }
+      const total=buf.length, m=/^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range||'').trim()), head=req.method==='HEAD';
+      if(m && (m[1]!==''||m[2]!=='')){
+        let st, en;
+        if(m[1]===''){ st=Math.max(0,total-(+m[2])); en=total-1; } else { st=+m[1]; en=m[2]===''?total-1:Math.min(+m[2],total-1); }
+        if(!(st<=en) || st>=total){ res.writeHead(416,{'Content-Range':'bytes */'+total}); res.end(); return; }
+        res.writeHead(206,{'Content-Type':type,'Content-Length':en-st+1,'Content-Range':'bytes '+st+'-'+en+'/'+total,'Accept-Ranges':'bytes','Cache-Control':CC});
+        res.end(head?undefined:buf.subarray(st,en+1)); return; }
+      res.writeHead(200,{'Content-Type':type,'Content-Length':total,'Accept-Ranges':'bytes','Cache-Control':CC}); res.end(head?undefined:buf); });
     return fs.readFile(path.join(__dirname,rel),(e,buf)=>{
       if(!e) return sendBody(req,res,buf,type,CC,rel);
       remoteAsset('/'+rel).then(r=>{ if(!r){res.writeHead(404);res.end();return;} sendBody(req,res,r.buf,type||r.ct,CC,rel); });

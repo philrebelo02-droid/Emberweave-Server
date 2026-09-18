@@ -13,7 +13,7 @@
    cache instantly and revalidated in the background, so a genuinely changed file is picked up on
    the next open instead of never — and a ?v= bumped URL is a new key anyway, so it is fetched
    immediately. */
-const BUILD='1789754060000';
+const BUILD='1789758580000';
 const SHELL_CACHE = 'ember-shell-' + BUILD;   // versioned: wiped on every deploy
 const ASSET_CACHE = 'ember-assets-v1';        // persistent: survives deploys
 const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-512-maskable.png', '/apple-touch-icon.png', '/hero-profiles.js', '/hero-paths.js'];
@@ -44,6 +44,8 @@ self.addEventListener('fetch', (e) => {
   // ART: stale-while-revalidate out of the persistent cache. A hit returns with no network round
   // trip at all (this is what stops sprite sheets popping in on a slow phone); the refresh happens
   // afterwards and lands for the next open.
+  // v605: video is streamed with Range requests; the Cache API cannot store a 206, so let the browser fetch it directly.
+  if (isOwnAsset && /\.(mp4|webm)$/i.test(url.pathname)) return;
   if (isOwnAsset) {
     // v576 (Phil: "it should only allow me to download new content"). A ?v= URL is IMMUTABLE by
     // protocol - SHIPPING RULE 2.5 forbids reusing a version number, so a bumped asset is a new
