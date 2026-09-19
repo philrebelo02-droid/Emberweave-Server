@@ -395,10 +395,13 @@
   .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
   .ascf-gem svg{width:100%;height:100%;display:block}
   .ascf-st svg{height:100%;width:auto;flex:0 1 auto;min-width:0;filter:drop-shadow(0 1px 1px #000)}
-  .rbn{position:absolute;left:3%;right:3%;bottom:1%;height:19%;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size}
+  .rbn{position:absolute;left:0;right:0;bottom:-8%;height:36%;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size}
   .rbn span{font-family:Georgia,serif;font-weight:900;font-size:clamp(7px,9.5cqw,15px);color:#fff6e0;text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:74%;letter-spacing:.02em;line-height:1}
   .rbn-mythical span{color:#fff1c2;text-shadow:0 1px 2px #2a0a4a,0 0 6px #c38bff,0 0 2px #000}
-  .ascf-st.onb{bottom:15%;height:13%}
+  .ascf-st.onb{bottom:13%;height:12%}
+  /* v617 banners: 1000x400 art whose BAR sits in rows 120-280 (bannerize.py), so every rarity lines up; flourishes overhang */
+  .rbn span{max-width:80%} .rbn.long span{font-size:clamp(6px,7.6cqw,12px)}
+  .bl-card .rbn{height:27%;bottom:-6%} .bl-card .ascf-st.onb{bottom:10%;height:9%}
   .ascf-myth{height:100%;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 1px 2px #000a)}
   .hero-card .hc-lv{position:absolute;top:6%;left:6%;z-index:4;background:rgba(10,12,20,.82);color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:6px;border:1px solid rgba(255,255,255,.18);line-height:1.3}
   .hero-card .hc-mythp{position:absolute;left:9%;right:9%;bottom:15%;height:17%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;
@@ -3010,11 +3013,12 @@ function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIn
    Rarity = the hero's starter stars (1 Common grey, 2 Uncommon green, 3 Rare blue) or Mythical. Each rarity has a Hailuo
    banner painted with its word (assets/img/banners/<r>-word.webp) and a blank one (<r>.webp) that carries the hero's name.
    On a card the name banner sits on the frame's bottom edge with the stars on top of it. */
-const RARITY_V=1, RARITY_READY=false;   // flips to true once the Hailuo banners are in assets/img/banners
+const RARITY_V=2, RARITY_READY=true;    // flips to true once the Hailuo banners are in assets/img/banners
 function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMythic==='function'&&isMythic(key))) return 'mythical'; const st=t.stars|0; return st>=3?'rare':st===2?'uncommon':'common'; }
 function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
   const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
-  return `<div class="rbn rbn-${r}${o.word?' w':''}" style="background-image:url('${img}')">${o.word?'':`<span>${escapeHTML(o.name||t.name||key)}</span>`}</div>`; }
+  const nm=o.name||t.name||key;
+  return `<div class="rbn rbn-${r}${o.word?' w':''}${nm.length>11?' long':''}" style="background-image:url('${img}')">${o.word?'':`<span>${escapeHTML(nm)}</span>`}</div>`; }
 function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
   if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`;
   const own=!!(typeof G!=='undefined'&&G.unlocked&&G.unlocked[key]);   /* v612: every hero icon wears its ascension border, with its stars on the border's bottom edge once it's big enough to read */
@@ -14225,10 +14229,10 @@ HERO_CARD_ART.ironcoil='/assets/img/hero-cards/card-ironcoil.webp?v=11';
 HERO_CARD_ART.kharos='/assets/img/hero-cards/card-kharos.webp?v=11';
 HERO_CARD_ART.kilnmask='/assets/img/hero-cards/card-kilnmask.webp?v=10';
 HERO_CARD_ART.konwu='/assets/img/hero-cards/card-konwu.webp?v=10';
-HERO_CARD_ART.lastfurnace='/assets/img/hero-cards/card-lastfurnace.webp?v=9';
-HERO_CARD_ART.librarian='/assets/img/hero-cards/card-librarian.webp?v=9';
+HERO_CARD_ART.lastfurnace='/assets/img/hero-cards/card-lastfurnace.webp?v=10';
+HERO_CARD_ART.librarian='/assets/img/hero-cards/card-librarian.webp?v=10';
 HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=9';
-HERO_CARD_ART.lysara='/assets/img/hero-cards/card-lysara.webp?v=9';
+HERO_CARD_ART.lysara='/assets/img/hero-cards/card-lysara.webp?v=10';
 HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=9';
 HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=9';
 HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=9';
@@ -14264,12 +14268,12 @@ HERO_CARD_ART.zahri='/assets/img/hero-cards/card-zahri.webp?v=9';
 /* MIRROR CARD ART -> PORTRAITS — must stay AFTER every HERO_CARD_ART assignment above. The finished
    card art IS the portrait and the glossary tile for every hero that has one. */
 for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
-HERO_PORTRAITS.dawnbringer='/assets/img/glossary/glossary-heroes-dawnbringer.webp?v=1'; HERO_SPRITES.dawnbringer=HERO_PORTRAITS.dawnbringer; GLOSSARY_ART['heroes/dawnbringer']=HERO_PORTRAITS.dawnbringer;
-HERO_PORTRAITS.cathedral='/assets/img/glossary/glossary-heroes-cathedral.webp?v=1'; HERO_SPRITES.cathedral=HERO_PORTRAITS.cathedral; GLOSSARY_ART['heroes/cathedral']=HERO_PORTRAITS.cathedral;
-HERO_PORTRAITS.lastfurnace='/assets/img/glossary/glossary-heroes-lastfurnace.webp?v=1'; HERO_SPRITES.lastfurnace=HERO_PORTRAITS.lastfurnace; GLOSSARY_ART['heroes/lastfurnace']=HERO_PORTRAITS.lastfurnace;
-HERO_PORTRAITS.beekeeper='/assets/img/glossary/glossary-heroes-beekeeper.webp?v=1'; HERO_SPRITES.beekeeper=HERO_PORTRAITS.beekeeper; GLOSSARY_ART['heroes/beekeeper']=HERO_PORTRAITS.beekeeper;
-HERO_PORTRAITS.librarian='/assets/img/glossary/glossary-heroes-librarian.webp?v=1'; HERO_SPRITES.librarian=HERO_PORTRAITS.librarian; GLOSSARY_ART['heroes/librarian']=HERO_PORTRAITS.librarian;
-HERO_PORTRAITS.corsair='/assets/img/glossary/glossary-heroes-corsair.webp?v=1'; HERO_SPRITES.corsair=HERO_PORTRAITS.corsair; GLOSSARY_ART['heroes/corsair']=HERO_PORTRAITS.corsair;
+HERO_SPRITES.dawnbringer='/assets/img/glossary/glossary-heroes-dawnbringer.webp?v=1'; GLOSSARY_ART['heroes/dawnbringer']=HERO_PORTRAITS.dawnbringer;   // v617: portrait = the Hailuo card (this line used to reset it to the old glossary art); the battle billboard keeps the cut-out
+HERO_SPRITES.cathedral='/assets/img/glossary/glossary-heroes-cathedral.webp?v=1'; GLOSSARY_ART['heroes/cathedral']=HERO_PORTRAITS.cathedral;   // v617: portrait = the Hailuo card (this line used to reset it to the old glossary art); the battle billboard keeps the cut-out
+HERO_SPRITES.lastfurnace='/assets/img/glossary/glossary-heroes-lastfurnace.webp?v=1'; GLOSSARY_ART['heroes/lastfurnace']=HERO_PORTRAITS.lastfurnace;   // v617: portrait = the Hailuo card (this line used to reset it to the old glossary art); the battle billboard keeps the cut-out
+HERO_SPRITES.beekeeper='/assets/img/glossary/glossary-heroes-beekeeper.webp?v=1'; GLOSSARY_ART['heroes/beekeeper']=HERO_PORTRAITS.beekeeper;   // v617: portrait = the Hailuo card (this line used to reset it to the old glossary art); the battle billboard keeps the cut-out
+HERO_SPRITES.librarian='/assets/img/glossary/glossary-heroes-librarian.webp?v=1'; GLOSSARY_ART['heroes/librarian']=HERO_PORTRAITS.librarian;   // v617: portrait = the Hailuo card (this line used to reset it to the old glossary art); the battle billboard keeps the cut-out
+HERO_SPRITES.corsair='/assets/img/glossary/glossary-heroes-corsair.webp?v=1'; GLOSSARY_ART['heroes/corsair']=HERO_PORTRAITS.corsair;   // v617: portrait = the Hailuo card (this line used to reset it to the old glossary art); the battle billboard keeps the cut-out
 HERO_PORTRAITS.waxenduchess='/assets/img/glossary/glossary-heroes-waxenduchess.webp?v=1'; HERO_SPRITES.waxenduchess=HERO_PORTRAITS.waxenduchess; GLOSSARY_ART['heroes/waxenduchess']=HERO_PORTRAITS.waxenduchess;
 GLOSSARY_DATA.heroes.push({"id":"pyroclast","name":"Pyroclast"}, {"id":"stormwarden","name":"Stormwarden"}, {"id":"verdantshade","name":"Verdant Shade"}, {"id":"voidweaver","name":"Void Weaver"}, {"id":"dawnbringer","name":"Dawnbringer"}, {"id":"cathedral","name":"The Walking Cathedral"}, {"id":"lastfurnace","name":"The Last Furnace"}, {"id":"beekeeper","name":"The Beekeeper King"}, {"id":"librarian","name":"The Librarian of Monsters"}, {"id":"corsair","name":"The Corsair Duelist"}, {"id":"waxenduchess","name":"Waxen Duchess"});
 HERO_PORTRAITS['ink spirit']=GLOSSARY_ART['monsters/ink-spirit']='/assets/img/glossary/glossary-monsters-ink-spirit.webp?v=1'; HERO_PORTRAITS['ink horror']=GLOSSARY_ART['monsters/ink-horror']='/assets/img/glossary/glossary-monsters-ink-horror.webp?v=1'; HERO_SPRITES['ink spirit']=MONSTER_SPRITES['ink spirit']=HERO_PORTRAITS['ink spirit']; HERO_SPRITES['ink horror']=MONSTER_SPRITES['ink horror']=HERO_PORTRAITS['ink horror'];
@@ -19605,7 +19609,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789777494000';
+const BUILD_ID = '1789778475000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
