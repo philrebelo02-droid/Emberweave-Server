@@ -1224,14 +1224,16 @@ function buildDungeonWaves(floor){ return vaultFloorRecord(floor).waves; }
      replay that did not end in a win refuse the clear instead). A WIN clears the stage and spends a play; a LOSS
      spends nothing.
    - SWEEP: /api/province/sweep pays the best cleared stage for one play. 2 plays a day per ground (nyDayKey).
-   - Rewards: Gold = provGoldAmt(stage); Drill = PROV_GLYPH_COUNT[stage] whole glyphs forged straight into a hero's board
+   - Rewards (v664): Gold = the stage's authored `gold`; Drill = glyph FRAGMENTS — 20% of one glyph of the stage's tier
+     (per fragment type) + 5 of the tier below (provDrillFragments)
      (the only place a glyph exists since Correction Spec v1), never above the stage's ladder tier; both +12 account XP. */
 const PROV_TYPES=['gold','rune'], PROV_STAGES=12, PROV_PLAYS=2, PROV_ACCOUNT_XP=12;
 const PROV_SESSION_MS=24*60*60*1000;   // same life as a campaign session (CAMP_SESSION_MS is declared further down)
 const PROV_MIN_BATTLE_MS=+(process.env.PROV_MIN_BATTLE_MS||8000);   // three waves and two run-ons cannot finish faster
 const PROV_STRICT_REPLAY=process.env.PROV_STRICT_REPLAY==='1';
-const PROV_GLYPH_COUNT=Object.freeze([1,1,1,1,1,2,2,2,2,2,2,3]);   // whole glyphs per Drill clear / sweep, by stage
-function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }   // the Gold Province table, unchanged
+/* v664 (Phil: "And actually make it fragments not completed glyphs" / "Make the reward make sense. Like if a purple needs
+   50 fragments to make the glyph, make the sweep 10 fragments" / "And like 5 of the tier below"). */
+const PROV_FRAG_SHARE=0.2, PROV_FRAG_LOWER=5;
 let PROV_ENC=null;
 function provCompile(){
   let raw=null; try{ raw=require('./server/province-encounters.json'); }
@@ -1250,15 +1252,27 @@ function provCompile(){
           if(isB && (wi!==2 || m.key!==st.boss)) throw new Error('province-encounters: '+t+' stage '+n+' the boss belongs in wave 3');
           if(!(m.lvl>0 && m.hpMul>0 && m.dmgMul>0)) throw new Error('province-encounters: '+t+' stage '+n+' bad scaling on '+m.key); } });
       if(st.waves[2].filter(m=>m.boss).length!==1) throw new Error('province-encounters: '+t+' stage '+n+' wave 3 must hold exactly one boss');
-      return { stage:n, levelGate:st.levelGate|0, boss:st.boss, waves:st.waves }; }); }
+      if(t==='gold' && !(st.gold>0)) throw new Error('province-encounters: gold stage '+n+' needs its gold reward');   /* v664 */
+      if(t==='rune' && st.maxQuality && st.maxQuality!==GLYPH_LADDER[provTierForGate(st.levelGate)]) throw new Error('province-encounters: drill stage '+n+' tier does not follow the next-tier rule');   /* v664 */
+      return { stage:n, levelGate:st.levelGate|0, boss:st.boss, waves:st.waves, gold:st.gold|0 }; }); }
   PROV_ENC=out;
   console.log('🏯 Training Province compiled: Gold gates '+out.gold.map(x=>x.levelGate).join('/')+' · Drill gates '+out.rune.map(x=>x.levelGate).join('/'));
 }
-/* the highest ladder tier a Drill stage can forge: the tier whose hero-level gate the stage's account-level gate meets */
-function provGlyphCap(stage){ const L=PROV_ENC.rune[stage-1].levelGate; let q=0; for(let i=0;i<GLYPH_MIN_LEVEL.length;i++) if(L>=GLYPH_MIN_LEVEL[i]) q=i; return q; }
-function provReward(t,stage){ if(t==='gold') return { gold:provGoldAmt(stage), accountXp:PROV_ACCOUNT_XP };
-  const qi=provGlyphCap(stage); return { glyphs:PROV_GLYPH_COUNT[stage-1]|0, maxQuality:GLYPH_LADDER[qi], maxQi:qi, accountXp:PROV_ACCOUNT_XP }; }
+/* v664 (Phil: "The glyphs should be raised on the next tier level. So when a player reaches gold+3 they unlock the gold +2
+   sweep"): a Drill stage pays tier T and opens at the account level where tier T+1 unlocks — one tier below the highest
+   tier its gate reaches in GLYPH_MIN_LEVEL. Gates 15/18/24/…/86 → Green, Green +1, Blue … Gold +2. */
+function provTierForGate(L){ let q=0; for(let i=0;i<GLYPH_MIN_LEVEL.length;i++) if(L>=GLYPH_MIN_LEVEL[i]) q=i; return Math.max(0,q-1); }
+function provGlyphCap(stage){ return provTierForGate(PROV_ENC.rune[stage-1].levelGate); }
+function provReward(t,stage){ if(t==='gold') return { gold:PROV_ENC.gold[stage-1].gold, accountXp:PROV_ACCOUNT_XP };   /* v664: authored per stage */
+  const qi=provGlyphCap(stage), av=provFragAvg(qi);   /* v664: fragments, not glyphs */
+  return { quality:GLYPH_LADDER[qi], qi, fragments:av.share, lowerQuality:qi>0?GLYPH_LADDER[qi-1]:null, lowerFragments:qi>0?PROV_FRAG_LOWER:0,
+    glyphCost:av.cost, accountXp:PROV_ACCOUNT_XP }; }
 function provMaxStageForLevel(t,lvl){ let n=0; for(const st of PROV_ENC[t]) if(lvl>=st.levelGate) n=st.stage; return n; }
+/* v664: the stage a SWEEP pays — the best cleared stage the account's level opens today. v663 progress made under the old,
+   lower gates stays on the ledger untouched; it sweeps at the level-appropriate stage until the level catches up. */
+function provSweepStage(u,led,t,pr){ const c=pr.stage|0; return isDev(u)?c:Math.min(c, provMaxStageForLevel(t, ledPlayerLevel(led))); }
+/* v664: gates rose; this first-touch migration now caps at the v664 gates. A ground v663 already created is left as it is
+   (see provSweepStage). */
 /* led.prov[t] = {stage, day, used, lastTeam, att, migrated}. MIGRATION (v663): before this the stage lived only in the
    client save (G.prov[t].stage, earned by the old instant power check). The first time the server touches a ground it
    reads that number out of the stored cloud save and honours it — capped at the highest stage the account's level opens
@@ -1278,7 +1292,7 @@ function provLedState(u,led){
 function provPlaysLeft(u,pr){ return isDev(u)?PROV_PLAYS:Math.max(0,PROV_PLAYS-(pr.used|0)); }
 /* what rides on every ledger view (small): stage + today's plays per ground */
 function provLedgerView(u,led){ if(!PROV_ENC) return null; const P=provLedState(u,led), o={};
-  for(const t of PROV_TYPES){ const pr=P[t]; o[t]={ stage:pr.stage|0, used:pr.used|0, playsLeft:provPlaysLeft(u,pr), day:pr.day }; }
+  for(const t of PROV_TYPES){ const pr=P[t]; o[t]={ stage:pr.stage|0, sweepStage:provSweepStage(u,led,t,pr), used:pr.used|0, playsLeft:provPlaysLeft(u,pr), day:pr.day }; }   /* v664: sweepStage */
   return o; }
 /* the full table for the province screen */
 function provStateView(u,led){ const lv=ledPlayerLevel(led), v=provLedgerView(u,led), types={};
@@ -1286,55 +1300,65 @@ function provStateView(u,led){ const lv=ledPlayerLevel(led), v=provLedgerView(u,
     stages:PROV_ENC[t].map(st=>({ stage:st.stage, levelGate:st.levelGate, open:lv>=st.levelGate, boss:st.boss,
       waves:st.waves.map(w=>w.length), reward:provReward(t,st.stage) })) }); }
   return { ok:true, playerLevel:lv, plays:PROV_PLAYS, accountXp:PROV_ACCOUNT_XP, day:nyDayKey(), types }; }
-/* DRILL REWARD — whole glyphs. Since Correction Spec v1 a glyph only ever exists LOCKED into a board slot (no loose
-   inventory), so the server forges each one straight into a slot, exactly as /api/glyphs/build-in-slot would (the slot's
-   own pre-chosen blueprint, at its board's tier, hero-level gate respected) — minus the fragments. Which slot: the most
-   valuable legal one — the highest board tier at or under the stage's cap; ties go to the heroes who fought (squad
-   order), then the highest hero level. If no hero on the account can wear one (every board above the cap, full, or
-   waiting on hero level) the whole glyph is paid as its exact named materials instead, so a clear is never worth nothing. */
-function provForgeGlyphs(u,led,stage,team,tag){
-  const out={ forged:[], kits:[], revision:0 }; if(!GLYPHS) return out;
-  glyphMigrate(u); glyphFlowMigrate(u); const g=ensureGlyphs(u);
-  const cap=provGlyphCap(stage), n=PROV_GLYPH_COUNT[stage-1]|0;
+/* DRILL REWARD (v664) — glyph FRAGMENTS, per clear and per sweep (Phil: "Per sweep").
+   Phil: "And actually make it fragments not completed glyphs" / "Make the reward make sense. Like if a purple needs 50
+   fragments to make the glyph, make the sweep 10 fragments" / "And like 5 of the tier below".
+   - The stage's tier (provGlyphCap): PROV_FRAG_SHARE (20%) of what ONE glyph of that tier costs to build, per fragment
+     type it needs (g2BuildCost, Cores built inline), each rounded and at least 1.
+   - The tier below: PROV_FRAG_LOWER (5) of the main fragment of the same slot's glyph one tier down (the fragment that
+     glyph needs most). Stage 1 pays Green, so its "tier below" is Grey (Grey fragments exist: 'Grey Stoneheart' …).
+   - Which glyph: the first one the account still needs at that tier and cannot yet afford — the heroes who fought first
+     (squad order; a sweep uses the last squad that won there), then every other hero whose board has not passed the tier,
+     slots in board order. If nobody needs the tier any more, the first fighter's first glyph at that tier.
+   Paid through glyphGrantNamedList (the one live fragment path), so the Bag and the glyph builder see them at once.
+   (v663 forged whole glyphs into boards here; that path is gone.) */
+/* the painted fragment art is per board slot: a family's home slot (GLYPH_SLOT_FAMILIES), from the key '<Quality> <Family>' */
+function provFragArtSlot(key,q){ const fam=String(key).slice(String(q).length+1); for(const sl of GLYPH_SLOTS) if((GLYPH_SLOT_FAMILIES[sl]||[]).includes(fam)) return sl; return 'vitality'; }
+function provFragsFor(cost){ const o={}; for(const k in cost.need) o[k]=Math.max(1, Math.round(cost.need[k]*PROV_FRAG_SHARE)); return o; }
+let _provFragAvg={};
+/* what one sweep pays on average at a tier (all heroes' glyphs at that tier) — the number the cards show as "≈N" */
+function provFragAvg(qi){ if(_provFragAvg[qi]) return _provFragAvg[qi];
+  let n=0, share=0, cost=0;
+  for(const k of Object.keys(HERO_PERSONAL_GLYPH_PATHS.heroes||{})) for(let sl=0;sl<6;sl++){ let d=null; try{ d=glyphPreChoice(k,sl,qi); }catch(e){ d=null; }
+    if(!d) continue; const c=g2BuildCost({subGlyphs:{}},d); if(!c) continue; n++;
+    for(const key in c.need) cost+=c.need[key]; const f=provFragsFor(c); for(const key in f) share+=f[key]; }
+  return (_provFragAvg[qi]={ share:n?Math.round(share/n):0, cost:n?Math.round(cost/n):0 }); }
+function provDrillTarget(led,g,qi,team){
   const fighters=[...new Set((team||[]).map(String))].filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]);
   const everyone=Object.keys(led.unlocked).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]).sort();
-  const famSlot=f=>{ for(const sl of GLYPH_SLOTS) if((GLYPH_SLOT_FAMILIES[sl]||[]).includes(f)) return sl; return null; };
-  const option=k=>{ try{ const b=(g.boards&&g.boards[k])||{slots:[null,null,null,null,null,null],ascensionIndex:0};
-      const qi=b.ascensionIndex|0; if(qi>=GLYPH_MAX_ASC||qi>cap) return null;
-      if(ledHeroLevel(led,k)<glyphLevelGate(qi)) return null;
-      const role=(SIM.HERO_BASE[k]||{}).role;
-      for(let sl=0;sl<6;sl++){ if(b.slots&&b.slots[sl]) continue; const d=glyphPreChoice(k,sl,qi);
-        if(d&&d.qi===qi&&glyphAllowed(sl,d,role)) return { hero:k, slot:sl, def:d, qi }; }
-    }catch(e){} return null; };
-  for(let i=0;i<n;i++){ let best=null, bk=null;
-    for(const k of everyone){ const o=option(k); if(!o) continue; const fi=fighters.indexOf(k);
-      const key=[o.qi, fi>=0?1:0, fi>=0?-fi:0, ledHeroLevel(led,k)];
-      let better=!bk; if(bk) for(let j=0;j<key.length;j++){ if(key[j]!==bk[j]){ better=key[j]>bk[j]; break; } }
-      if(better){ best=o; bk=key; } }
-    if(!best) break;
-    const board=glyphBoard(g,best.hero), nid='g'+(g.seq++);
-    g.finished[nid]={ definitionId:best.def.id, status:'locked', builtAt:Date.now(), requestId:'prov:'+tag+':'+i, source:'province' };
-    board.slots[best.slot]=nid;
-    glyphAudit(g,'province-forge',{hero:best.hero,slot:best.slot,def:best.def.id,stage});
-    out.forged.push({ hero:best.hero, slot:best.slot, slotName:GLYPH_SLOTS[best.slot], artSlot:famSlot(best.def.family)||GLYPH_SLOTS[best.slot],
-      blueprintId:best.def.id, name:best.def.name, quality:best.def.quality, family:best.def.family,
-      stats:best.def.stats.map(x=>x.stat+' +'+x.val+(x.pct?'%':'')), boardFull:board.slots.every(Boolean) }); }
-  const short=n-out.forged.length, lead=fighters[0]||everyone[0];
-  if(short>0 && lead){ for(let i=0;i<short;i++){ let d=null;
-      try{ for(let j=0;j<6&&!d;j++) d=glyphPreChoice(lead,(i+j)%6,cap); }catch(e){ d=null; }
-      if(!d) continue; const cost=g2BuildCost({subGlyphs:{}},d); if(!cost) continue;
-      const rc=glyphGrantNamedList(u, Object.keys(cost.need).map(k=>({key:k,quantity:cost.need[k]})))||[];
-      out.kits.push({ blueprintId:d.id, name:d.name, quality:d.quality, family:d.family, artSlot:famSlot(d.family), fragments:rc }); } }
-  if(out.forged.length) g.revision++;
+  const order=fighters.concat(everyone.filter(k=>fighters.indexOf(k)<0));
+  const pick=(k,sl)=>{ let d=null; try{ d=glyphPreChoice(k,sl,qi); }catch(e){ d=null; } if(!d) return null;
+    const c=g2BuildCost({subGlyphs:{}},d); return c?{ hero:k, slot:sl, def:d, cost:c }:null; };
+  let first=null;
+  for(const k of order){ const b=(g.boards&&g.boards[k])||{slots:[],ascensionIndex:0}, bi=b.ascensionIndex|0; if(bi>qi) continue;
+    for(let sl=0;sl<6;sl++){ if(bi===qi && b.slots && b.slots[sl]) continue; const o=pick(k,sl); if(!o) continue;
+      if(!first) first=o;
+      if(Object.keys(o.cost.need).some(key=>(g.fragments[key]|0)<o.cost.need[key])) return o; } }
+  if(first) return first;
+  if(order[0]) for(let sl=0;sl<6;sl++){ const o=pick(order[0],sl); if(o) return o; }
+  return null; }
+function provDrillFragments(u,led,stage,team,tag){
+  const out={ fragments:[], lower:[], forGlyph:null, revision:0 }; if(!GLYPHS) return out;
+  glyphMigrate(u); glyphFlowMigrate(u); const g=ensureGlyphs(u);
+  const qi=provGlyphCap(stage), tg=provDrillTarget(led,g,qi,team); if(!tg) return out;
+  const pay=provFragsFor(tg.cost), keys=Object.keys(pay);
+  out.fragments=(glyphGrantNamedList(u, keys.map(k=>({key:k,quantity:pay[k]})))||[]).map((r,i)=>Object.assign({key:keys[i], quality:GLYPH_LADDER[qi], artSlot:provFragArtSlot(keys[i],GLYPH_LADDER[qi])},r));
+  if(qi>0){ let ld=null; try{ ld=glyphPreChoice(tg.hero,tg.slot,qi-1); }catch(e){ ld=null; }
+    const lc=ld&&g2BuildCost({subGlyphs:{}},ld);
+    if(lc){ const main=Object.keys(lc.need).sort((a,b)=>(lc.need[b]-lc.need[a])||(a<b?-1:1))[0];
+      if(main) out.lower=(glyphGrantNamedList(u,[{key:main,quantity:PROV_FRAG_LOWER}])||[]).map(r=>Object.assign({key:main, quality:GLYPH_LADDER[qi-1], artSlot:provFragArtSlot(main,GLYPH_LADDER[qi-1])},r)); } }
+  out.forGlyph={ hero:tg.hero, slot:tg.slot, slotName:GLYPH_SLOTS[tg.slot], blueprintId:tg.def.id, name:tg.def.name, quality:tg.def.quality,
+    cost:Object.keys(tg.cost.need).reduce((a,k)=>a+tg.cost.need[k],0) };
+  glyphAudit(g,'province-fragments',{ stage, hero:tg.hero, def:tg.def.id, pay, lower:out.lower.map(x=>x.key+'x'+x.quantity), tag });
   out.revision=g.revision; return out; }
 /* pay one clear / sweep: the ground's reward + 12 account XP (Phil: "Both gold and drill province gives 12exp per sweep") */
 function provGrant(u,led,t,stage,team,tag){
   const rw=provReward(t,stage), got={ type:t, stage, accountXp:rw.accountXp };
   if(t==='gold'){ led.gold=Math.min(ECON_CAP.gold,(led.gold|0)+rw.gold); got.gold=rw.gold; }
-  else { const f=provForgeGlyphs(u,led,stage,team,tag); got.glyphs=f.forged; got.glyphKits=f.kits; got.maxQuality=rw.maxQuality; got.glyphRevision=f.revision; }
+  else { const f=provDrillFragments(u,led,stage,team,tag); got.fragments=f.fragments; got.lower=f.lower; got.forGlyph=f.forGlyph; got.quality=rw.quality; got.lowerQuality=rw.lowerQuality; got.glyphRevision=f.revision; }   /* v664 */
   got.levelUps=ledAddPlayerXP(led,rw.accountXp);
   ledTx(u,'province:'+t+':'+String(tag).split(':')[0]+':'+stage,{ gold:got.gold||0, px:rw.accountXp,
-    glyphs:(got.glyphs||[]).map(x=>x.hero+':'+x.blueprintId), glyphKits:(got.glyphKits||[]).map(x=>x.blueprintId) });
+    fragments:(got.fragments||[]).concat(got.lower||[]).map(x=>x.key+'x'+x.quantity) });
   return got; }
 // server-side plausibility score of a floor's monsters (mirrors client makeUnit scale=1+0.05*(lvl-1))
 function vaultFloorScore(floor){
@@ -4352,12 +4376,14 @@ async function api(req,res,url){
         const t=String(b.type||''); if(PROV_TYPES.indexOf(t)<0) return {ok:false, error:'Unknown province.'};
         const P=provLedState(me,led), pr=P[t];
         if((pr.stage|0)<1) return {ok:false, error:'Clear Stage 1 first — sweeping repeats your best cleared stage.'};
+        const sws=provSweepStage(me,led,t,pr);   /* v664 */
+        if(sws<1) return {ok:false, error:'Your account level does not open a cleared stage yet.'};
         if(provPlaysLeft(me,pr)<=0) return {ok:false, error:'No plays left today — come back tomorrow.'};
         pr.used=(pr.used|0)+1;
         const team=(pr.lastTeam||[]).filter(k=>led.unlocked[k]);
-        const reward=provGrant(me,led,t,pr.stage|0,team,'sweep:'+reqId);
+        const reward=provGrant(me,led,t,sws,team,'sweep:'+reqId);
         writeDB();
-        return { ok:true, type:t, stage:pr.stage|0, reward, playsLeft:provPlaysLeft(me,pr), prov:provLedgerView(me,led), ledger:ledgerView(me) };
+        return { ok:true, type:t, stage:sws, cleared:pr.stage|0, reward, playsLeft:provPlaysLeft(me,pr), prov:provLedgerView(me,led), ledger:ledgerView(me) };
       }); return send(res, out.ok===false?400:200, out); }
     return send(res,404,{error:'province'});
   }

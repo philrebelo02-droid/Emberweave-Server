@@ -1,35 +1,35 @@
 {
- "version": 1,
- "tag": "v663",
+ "version": 2,
+ "tag": "v664",
  "method": "real-engine (server/sim-host.js), reference line = tools/authoring/author_campaign_real.js referenceSpecs(level) with no glyph board at stage 1 and one tier behind at stages 2-4, seeds 1111/2222/3333, AUTO ultimates, d searched in [0.25,80]",
  "levelGates": {
   "gold": [
    10,
-   12,
-   14,
-   16,
-   18,
-   20,
-   23,
-   26,
-   29,
-   32,
-   36,
-   40
+   13,
+   19,
+   25,
+   31,
+   38,
+   45,
+   52,
+   60,
+   67,
+   74,
+   81
   ],
   "rune": [
    15,
-   17,
-   19,
-   21,
-   23,
-   25,
-   28,
-   31,
-   34,
-   37,
-   41,
-   45
+   18,
+   24,
+   30,
+   36,
+   43,
+   50,
+   57,
+   65,
+   72,
+   79,
+   86
   ]
  },
  "types": {
@@ -41,6 +41,7 @@
      "levelGate": 10,
      "boss": "brukk",
      "enemyLevel": 10,
+     "gold": 700,
      "tunedFor": "a line with no glyph board at account level 10",
      "difficultyTune": 0.4537,
      "target": 0.5,
@@ -115,76 +116,77 @@
     },
     {
      "stage": 2,
-     "levelGate": 12,
+     "levelGate": 13,
      "boss": "miregor",
-     "enemyLevel": 12,
-     "tunedFor": "blueprint line one glyph tier behind at account level 12",
-     "difficultyTune": 1.1571,
+     "enemyLevel": 13,
+     "gold": 1740,
+     "tunedFor": "blueprint line one glyph tier behind at account level 13",
+     "difficultyTune": 3.3982,
      "target": 0.5,
-     "tunedHpLeft": 0.497,
-     "blueprintLineHpLeft": 0.912,
+     "tunedHpLeft": 0.521,
+     "blueprintLineHpLeft": 0.927,
      "tunedWins": 3,
      "cliff": false,
-     "fourLevelsUnderWon": true,
+     "fourLevelsUnderWon": false,
      "waves": [
       [
        {
         "key": "basalt mauler",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        },
        {
         "key": "nightcap mimic",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        },
        {
         "key": "sootwing imp",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        },
        {
         "key": "magma hound",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        },
        {
         "key": "sootwing imp",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        },
        {
         "key": "furnace gnawer",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544
        },
        {
         "key": "miregor",
-        "lvl": 12,
-        "hpMul": 1.1571,
-        "dmgMul": 1.1075,
+        "lvl": 13,
+        "hpMul": 3.3982,
+        "dmgMul": 2.3544,
         "boss": true
        }
       ]
@@ -192,14 +194,15 @@
     },
     {
      "stage": 3,
-     "levelGate": 14,
+     "levelGate": 19,
      "boss": "grommash",
-     "enemyLevel": 14,
-     "tunedFor": "blueprint line one glyph tier behind at account level 14",
-     "difficultyTune": 4.4737,
+     "enemyLevel": 19,
+     "gold": 3730,
+     "tunedFor": "blueprint line one glyph tier behind at account level 19",
+     "difficultyTune": 5.4814,
      "target": 0.45,
-     "tunedHpLeft": 0.477,
-     "blueprintLineHpLeft": 0.609,
+     "tunedHpLeft": 0.409,
+     "blueprintLineHpLeft": 0.897,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -207,61 +210,61 @@
       [
        {
         "key": "runic automaton",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        },
        {
         "key": "cinder skulk",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        },
        {
         "key": "crucible acolyte",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        },
        {
         "key": "nightcap mimic",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        },
        {
         "key": "crucible acolyte",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        },
        {
         "key": "magma hound",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902
        },
        {
         "key": "grommash",
-        "lvl": 14,
-        "hpMul": 4.4737,
-        "dmgMul": 2.8541,
+        "lvl": 19,
+        "hpMul": 5.4814,
+        "dmgMul": 3.2902,
         "boss": true
        }
       ]
@@ -269,82 +272,83 @@
     },
     {
      "stage": 4,
-     "levelGate": 16,
+     "levelGate": 25,
      "boss": "magmourn",
-     "enemyLevel": 16,
-     "tunedFor": "blueprint line one glyph tier behind at account level 16",
-     "difficultyTune": 2.884,
+     "enemyLevel": 25,
+     "gold": 6600,
+     "tunedFor": "blueprint line one glyph tier behind at account level 25",
+     "difficultyTune": 5.3555,
      "target": 0.4,
-     "tunedHpLeft": 0.405,
-     "blueprintLineHpLeft": 0.616,
+     "tunedHpLeft": 0.402,
+     "blueprintLineHpLeft": 0.879,
      "tunedWins": 3,
      "cliff": false,
-     "fourLevelsUnderWon": false,
+     "fourLevelsUnderWon": true,
      "waves": [
       [
        {
         "key": "basalt mauler",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "ironjaw raider",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "clockwork lantern",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "cinder skulk",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "clockwork lantern",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "cinder skulk",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "nightcap mimic",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371
        },
        {
         "key": "magmourn",
-        "lvl": 16,
-        "hpMul": 2.884,
-        "dmgMul": 2.0989,
+        "lvl": 25,
+        "hpMul": 5.3555,
+        "dmgMul": 3.2371,
         "boss": true
        }
       ]
@@ -352,14 +356,15 @@
     },
     {
      "stage": 5,
-     "levelGate": 18,
+     "levelGate": 31,
      "boss": "voraxis",
-     "enemyLevel": 18,
-     "tunedFor": "blueprint line at account level 18",
-     "difficultyTune": 7.7073,
+     "enemyLevel": 31,
+     "gold": 10540,
+     "tunedFor": "blueprint line at account level 31",
+     "difficultyTune": 10.4493,
      "target": 0.5,
-     "tunedHpLeft": 0.478,
-     "blueprintLineHpLeft": 0.386,
+     "tunedHpLeft": 0.795,
+     "blueprintLineHpLeft": 0.678,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -367,67 +372,67 @@
       [
        {
         "key": "runic automaton",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "furnace gnawer",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "sootwing imp",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "ironjaw raider",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "sootwing imp",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "ironjaw raider",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "cinder skulk",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684
        },
        {
         "key": "voraxis",
-        "lvl": 18,
-        "hpMul": 7.7073,
-        "dmgMul": 4.1767,
+        "lvl": 31,
+        "hpMul": 10.4493,
+        "dmgMul": 5.1684,
         "boss": true
        }
       ]
@@ -435,14 +440,15 @@
     },
     {
      "stage": 6,
-     "levelGate": 20,
+     "levelGate": 38,
      "boss": "barrowmaw",
-     "enemyLevel": 20,
-     "tunedFor": "blueprint line at account level 20",
-     "difficultyTune": 6.4134,
+     "enemyLevel": 38,
+     "gold": 16170,
+     "tunedFor": "blueprint line at account level 38",
+     "difficultyTune": 13.1896,
      "target": 0.46,
-     "tunedHpLeft": 0.549,
-     "blueprintLineHpLeft": 0.385,
+     "tunedHpLeft": 0.439,
+     "blueprintLineHpLeft": 0.587,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -450,67 +456,67 @@
       [
        {
         "key": "basalt mauler",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "magma hound",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "crucible acolyte",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "furnace gnawer",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "crucible acolyte",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "furnace gnawer",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "ironjaw raider",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "barrowmaw",
-        "lvl": 20,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725,
+        "lvl": 38,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836,
         "boss": true
        }
       ]
@@ -518,94 +524,95 @@
     },
     {
      "stage": 7,
-     "levelGate": 23,
+     "levelGate": 45,
      "boss": "orryx",
-     "enemyLevel": 23,
-     "tunedFor": "blueprint line at account level 23",
-     "difficultyTune": 5.7685,
+     "enemyLevel": 45,
+     "gold": 22600,
+     "tunedFor": "blueprint line at account level 45",
+     "difficultyTune": 11.8947,
      "target": 0.42,
-     "tunedHpLeft": 0.656,
-     "blueprintLineHpLeft": 0.844,
+     "tunedHpLeft": 0.31,
+     "blueprintLineHpLeft": 0.374,
      "tunedWins": 3,
      "cliff": false,
-     "fourLevelsUnderWon": false,
+     "fourLevelsUnderWon": true,
      "waves": [
       [
        {
         "key": "runic automaton",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "nightcap mimic",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "clockwork lantern",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "nightcap mimic",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "magma hound",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "clockwork lantern",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "magma hound",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "furnace gnawer",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "clockwork lantern",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591
        },
        {
         "key": "orryx",
-        "lvl": 23,
-        "hpMul": 5.7685,
-        "dmgMul": 3.4099,
+        "lvl": 45,
+        "hpMul": 11.8947,
+        "dmgMul": 5.6591,
         "boss": true
        }
       ]
@@ -613,94 +620,95 @@
     },
     {
      "stage": 8,
-     "levelGate": 26,
+     "levelGate": 52,
      "boss": "asterion",
-     "enemyLevel": 26,
-     "tunedFor": "blueprint line at account level 26",
-     "difficultyTune": 6.939,
+     "enemyLevel": 52,
+     "gold": 30700,
+     "tunedFor": "blueprint line at account level 52",
+     "difficultyTune": 13.1896,
      "target": 0.38,
-     "tunedHpLeft": 0.953,
-     "blueprintLineHpLeft": 0.958,
+     "tunedHpLeft": 0.478,
+     "blueprintLineHpLeft": 0.596,
      "tunedWins": 3,
-     "cliff": true,
+     "cliff": false,
      "fourLevelsUnderWon": false,
      "waves": [
       [
        {
         "key": "basalt mauler",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "cinder skulk",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "sootwing imp",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "cinder skulk",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "nightcap mimic",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "sootwing imp",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "nightcap mimic",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "magma hound",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "sootwing imp",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "asterion",
-        "lvl": 26,
-        "hpMul": 6.939,
-        "dmgMul": 3.8807,
+        "lvl": 52,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836,
         "boss": true
        }
       ]
@@ -708,210 +716,15 @@
     },
     {
      "stage": 9,
-     "levelGate": 29,
+     "levelGate": 60,
      "boss": "maelvara",
-     "enemyLevel": 29,
-     "tunedFor": "blueprint line at account level 29",
-     "difficultyTune": 6.4134,
+     "enemyLevel": 60,
+     "gold": 41520,
+     "tunedFor": "blueprint line at account level 60",
+     "difficultyTune": 14.4336,
      "target": 0.34,
-     "tunedHpLeft": 0.474,
-     "blueprintLineHpLeft": 0.557,
-     "tunedWins": 3,
-     "cliff": false,
-     "fourLevelsUnderWon": true,
-     "waves": [
-      [
-       {
-        "key": "runic automaton",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "ironjaw raider",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "crucible acolyte",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "ironjaw raider",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       }
-      ],
-      [
-       {
-        "key": "basalt mauler",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "cinder skulk",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "crucible acolyte",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "cinder skulk",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       }
-      ],
-      [
-       {
-        "key": "runic automaton",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "nightcap mimic",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "crucible acolyte",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725
-       },
-       {
-        "key": "maelvara",
-        "lvl": 29,
-        "hpMul": 6.4134,
-        "dmgMul": 3.6725,
-        "boss": true
-       }
-      ]
-     ]
-    },
-    {
-     "stage": 10,
-     "levelGate": 32,
-     "boss": "nameless admiral",
-     "enemyLevel": 32,
-     "tunedFor": "blueprint line at account level 32",
-     "difficultyTune": 8.971,
-     "target": 0.3,
-     "tunedHpLeft": 0.747,
-     "blueprintLineHpLeft": 0.259,
-     "tunedWins": 3,
-     "cliff": true,
-     "fourLevelsUnderWon": true,
-     "waves": [
-      [
-       {
-        "key": "basalt mauler",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "furnace gnawer",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "clockwork lantern",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "furnace gnawer",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       }
-      ],
-      [
-       {
-        "key": "runic automaton",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "ironjaw raider",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "clockwork lantern",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "ironjaw raider",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "sootwing imp",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       }
-      ],
-      [
-       {
-        "key": "basalt mauler",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "cinder skulk",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "clockwork lantern",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645
-       },
-       {
-        "key": "nameless admiral",
-        "lvl": 32,
-        "hpMul": 8.971,
-        "dmgMul": 4.645,
-        "boss": true
-       }
-      ]
-     ]
-    },
-    {
-     "stage": 11,
-     "levelGate": 36,
-     "boss": "irix",
-     "enemyLevel": 36,
-     "tunedFor": "blueprint line at account level 36",
-     "difficultyTune": 12.8504,
-     "target": 0.26,
-     "tunedHpLeft": 0.292,
-     "blueprintLineHpLeft": 0.163,
+     "tunedHpLeft": 0.496,
+     "blueprintLineHpLeft": 0.598,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -919,85 +732,283 @@
       [
        {
         "key": "runic automaton",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        },
        {
-        "key": "magma hound",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "key": "ironjaw raider",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        },
        {
-        "key": "sootwing imp",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "key": "crucible acolyte",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        },
        {
-        "key": "magma hound",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "key": "ironjaw raider",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        },
        {
-        "key": "furnace gnawer",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
-       },
-       {
-        "key": "sootwing imp",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
-       },
-       {
-        "key": "furnace gnawer",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "key": "cinder skulk",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        },
        {
         "key": "crucible acolyte",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
+       },
+       {
+        "key": "cinder skulk",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
+       },
+       {
+        "key": "nightcap mimic",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
+       },
+       {
+        "key": "crucible acolyte",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798
+       },
+       {
+        "key": "maelvara",
+        "lvl": 60,
+        "hpMul": 14.4336,
+        "dmgMul": 6.4798,
+        "boss": true
+       }
+      ]
+     ]
+    },
+    {
+     "stage": 10,
+     "levelGate": 67,
+     "boss": "nameless admiral",
+     "enemyLevel": 67,
+     "gold": 54260,
+     "tunedFor": "blueprint line at account level 67",
+     "difficultyTune": 19.7867,
+     "target": 0.3,
+     "tunedHpLeft": 0.309,
+     "blueprintLineHpLeft": 0.485,
+     "tunedWins": 3,
+     "cliff": false,
+     "fourLevelsUnderWon": false,
+     "waves": [
+      [
+       {
+        "key": "basalt mauler",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "furnace gnawer",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "clockwork lantern",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "furnace gnawer",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       }
+      ],
+      [
+       {
+        "key": "runic automaton",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
        },
        {
         "key": "ironjaw raider",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "clockwork lantern",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "ironjaw raider",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
        },
        {
         "key": "sootwing imp",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       }
+      ],
+      [
+       {
+        "key": "basalt mauler",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "cinder skulk",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "clockwork lantern",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809
+       },
+       {
+        "key": "nameless admiral",
+        "lvl": 67,
+        "hpMul": 19.7867,
+        "dmgMul": 8.0809,
+        "boss": true
+       }
+      ]
+     ]
+    },
+    {
+     "stage": 11,
+     "levelGate": 74,
+     "boss": "irix",
+     "enemyLevel": 74,
+     "gold": 68150,
+     "tunedFor": "blueprint line at account level 74",
+     "difficultyTune": 19.4363,
+     "target": 0.26,
+     "tunedHpLeft": 0.565,
+     "blueprintLineHpLeft": 0.502,
+     "tunedWins": 3,
+     "cliff": true,
+     "fourLevelsUnderWon": false,
+     "waves": [
+      [
+       {
+        "key": "runic automaton",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "magma hound",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "sootwing imp",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "magma hound",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       }
+      ],
+      [
+       {
+        "key": "basalt mauler",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "furnace gnawer",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "sootwing imp",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "furnace gnawer",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "crucible acolyte",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       }
+      ],
+      [
+       {
+        "key": "runic automaton",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "ironjaw raider",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
+       },
+       {
+        "key": "sootwing imp",
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805
        },
        {
         "key": "irix",
-        "lvl": 36,
-        "hpMul": 12.8504,
-        "dmgMul": 5.9737,
+        "lvl": 74,
+        "hpMul": 19.4363,
+        "dmgMul": 7.9805,
         "boss": true
        }
       ]
@@ -1005,100 +1016,101 @@
     },
     {
      "stage": 12,
-     "levelGate": 40,
+     "levelGate": 81,
      "boss": "vharok",
-     "enemyLevel": 40,
-     "tunedFor": "blueprint line at account level 40",
-     "difficultyTune": 13.9957,
+     "enemyLevel": 81,
+     "gold": 85130,
+     "tunedFor": "blueprint line at account level 81",
+     "difficultyTune": 32.2895,
      "target": 0.22,
-     "tunedHpLeft": 0.522,
-     "blueprintLineHpLeft": 0.811,
+     "tunedHpLeft": 0.65,
+     "blueprintLineHpLeft": 0.558,
      "tunedWins": 3,
      "cliff": true,
-     "fourLevelsUnderWon": true,
+     "fourLevelsUnderWon": false,
      "waves": [
       [
        {
         "key": "basalt mauler",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "nightcap mimic",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "crucible acolyte",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "nightcap mimic",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        }
       ],
       [
        {
         "key": "runic automaton",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "magma hound",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "crucible acolyte",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "magma hound",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "clockwork lantern",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        }
       ],
       [
        {
         "key": "basalt mauler",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "furnace gnawer",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "crucible acolyte",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853
        },
        {
         "key": "vharok",
-        "lvl": 40,
-        "hpMul": 13.9957,
-        "dmgMul": 6.3416,
+        "lvl": 81,
+        "hpMul": 32.2895,
+        "dmgMul": 11.3853,
         "boss": true
        }
       ]
@@ -1114,6 +1126,7 @@
      "levelGate": 15,
      "boss": "sylphice",
      "enemyLevel": 15,
+     "maxQuality": "Green",
      "tunedFor": "a line with no glyph board at account level 15",
      "difficultyTune": 0.8069,
      "target": 0.5,
@@ -1188,14 +1201,15 @@
     },
     {
      "stage": 2,
-     "levelGate": 17,
+     "levelGate": 18,
      "boss": "leviath",
-     "enemyLevel": 17,
-     "tunedFor": "blueprint line one glyph tier behind at account level 17",
-     "difficultyTune": 3.2371,
+     "enemyLevel": 18,
+     "maxQuality": "Green +1",
+     "tunedFor": "blueprint line one glyph tier behind at account level 18",
+     "difficultyTune": 3.0879,
      "target": 0.5,
-     "tunedHpLeft": 0.556,
-     "blueprintLineHpLeft": 0.477,
+     "tunedHpLeft": 0.5,
+     "blueprintLineHpLeft": 0.894,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": true,
@@ -1203,61 +1217,61 @@
       [
        {
         "key": "bonepike guard",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        },
        {
         "key": "kelp hexer",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        },
        {
         "key": "zephyr harrier",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017
        },
        {
         "key": "leviath",
-        "lvl": 17,
-        "hpMul": 3.2371,
-        "dmgMul": 2.2757,
+        "lvl": 18,
+        "hpMul": 3.0879,
+        "dmgMul": 2.2017,
         "boss": true
        }
       ]
@@ -1265,14 +1279,15 @@
     },
     {
      "stage": 3,
-     "levelGate": 19,
+     "levelGate": 24,
      "boss": "nymira",
-     "enemyLevel": 19,
-     "tunedFor": "blueprint line one glyph tier behind at account level 19",
-     "difficultyTune": 4.5228,
+     "enemyLevel": 24,
+     "maxQuality": "Blue",
+     "tunedFor": "blueprint line one glyph tier behind at account level 24",
+     "difficultyTune": 7.0183,
      "target": 0.45,
-     "tunedHpLeft": 0.569,
-     "blueprintLineHpLeft": 0.889,
+     "tunedHpLeft": 0.408,
+     "blueprintLineHpLeft": 0.635,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -1280,61 +1295,61 @@
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        },
        {
         "key": "riftling spider",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        },
        {
         "key": "skyroot dryad",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        },
        {
         "key": "mudsnap crab",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        },
        {
         "key": "saltglass siren",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        },
        {
         "key": "riftling spider",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117
        },
        {
         "key": "nymira",
-        "lvl": 19,
-        "hpMul": 4.5228,
-        "dmgMul": 2.876,
+        "lvl": 24,
+        "hpMul": 7.0183,
+        "dmgMul": 3.9117,
         "boss": true
        }
       ]
@@ -1342,14 +1357,15 @@
     },
     {
      "stage": 4,
-     "levelGate": 21,
+     "levelGate": 30,
      "boss": "wintercrag",
-     "enemyLevel": 21,
-     "tunedFor": "blueprint line one glyph tier behind at account level 21",
-     "difficultyTune": 4.9026,
+     "enemyLevel": 30,
+     "maxQuality": "Blue +1",
+     "tunedFor": "blueprint line one glyph tier behind at account level 30",
+     "difficultyTune": 11.1123,
      "target": 0.4,
-     "tunedHpLeft": 0.604,
-     "blueprintLineHpLeft": 0.945,
+     "tunedHpLeft": 0.45,
+     "blueprintLineHpLeft": 0.857,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": true,
@@ -1357,67 +1373,67 @@
       [
        {
         "key": "frostjaw troll",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "vineback boar",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "mourn moth",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        }
       ],
       [
        {
         "key": "frostjaw troll",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "reef prowler",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "storm eel",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        }
       ],
       [
        {
         "key": "frostjaw troll",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "vineback boar",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959
        },
        {
         "key": "wintercrag",
-        "lvl": 21,
-        "hpMul": 4.9026,
-        "dmgMul": 3.043,
+        "lvl": 30,
+        "hpMul": 11.1123,
+        "dmgMul": 5.3959,
         "boss": true
        }
       ]
@@ -1425,14 +1441,15 @@
     },
     {
      "stage": 5,
-     "levelGate": 23,
+     "levelGate": 36,
      "boss": "asterion",
-     "enemyLevel": 23,
-     "tunedFor": "blueprint line at account level 23",
-     "difficultyTune": 6.4496,
+     "enemyLevel": 36,
+     "maxQuality": "Blue +2",
+     "tunedFor": "blueprint line at account level 36",
+     "difficultyTune": 9.8405,
      "target": 0.5,
-     "tunedHpLeft": 0.786,
-     "blueprintLineHpLeft": 0.842,
+     "tunedHpLeft": 0.578,
+     "blueprintLineHpLeft": 0.414,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -1440,67 +1457,67 @@
       [
        {
         "key": "bonepike guard",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "wispweaver shade",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "kelp hexer",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "mudsnap crab",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558
        },
        {
         "key": "asterion",
-        "lvl": 23,
-        "hpMul": 6.4496,
-        "dmgMul": 3.687,
+        "lvl": 36,
+        "hpMul": 9.8405,
+        "dmgMul": 4.9558,
         "boss": true
        }
       ]
@@ -1508,14 +1525,15 @@
     },
     {
      "stage": 6,
-     "levelGate": 25,
+     "levelGate": 43,
      "boss": "thorneveil",
-     "enemyLevel": 25,
-     "tunedFor": "blueprint line at account level 25",
-     "difficultyTune": 6.8438,
+     "enemyLevel": 43,
+     "maxQuality": "Purple",
+     "tunedFor": "blueprint line at account level 43",
+     "difficultyTune": 10.8753,
      "target": 0.46,
-     "tunedHpLeft": 0.446,
-     "blueprintLineHpLeft": 0.775,
+     "tunedHpLeft": 0.452,
+     "blueprintLineHpLeft": 0.596,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -1523,67 +1541,67 @@
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "mudsnap crab",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "luminant orb",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "riftling spider",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "skyroot dryad",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "reef prowler",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "mudsnap crab",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151
        },
        {
         "key": "thorneveil",
-        "lvl": 25,
-        "hpMul": 6.8438,
-        "dmgMul": 3.8433,
+        "lvl": 43,
+        "hpMul": 10.8753,
+        "dmgMul": 5.3151,
         "boss": true
        }
       ]
@@ -1591,14 +1609,15 @@
     },
     {
      "stage": 7,
-     "levelGate": 28,
+     "levelGate": 50,
      "boss": "maelvara",
-     "enemyLevel": 28,
-     "tunedFor": "blueprint line at account level 28",
-     "difficultyTune": 7.3418,
+     "enemyLevel": 50,
+     "maxQuality": "Purple +1",
+     "tunedFor": "blueprint line at account level 50",
+     "difficultyTune": 13.1896,
      "target": 0.42,
-     "tunedHpLeft": 0.71,
-     "blueprintLineHpLeft": 0.708,
+     "tunedHpLeft": 0.679,
+     "blueprintLineHpLeft": 0.384,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": true,
@@ -1606,79 +1625,79 @@
       [
        {
         "key": "frostjaw troll",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "reef prowler",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "zephyr harrier",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        }
       ],
       [
        {
         "key": "frostjaw troll",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "vineback boar",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "mourn moth",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        }
       ],
       [
        {
         "key": "frostjaw troll",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "reef prowler",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "storm eel",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836
        },
        {
         "key": "maelvara",
-        "lvl": 28,
-        "hpMul": 7.3418,
-        "dmgMul": 4.037,
+        "lvl": 50,
+        "hpMul": 13.1896,
+        "dmgMul": 6.0836,
         "boss": true
        }
       ]
@@ -1686,14 +1705,15 @@
     },
     {
      "stage": 8,
-     "levelGate": 31,
+     "levelGate": 57,
      "boss": "sable vesper",
-     "enemyLevel": 31,
-     "tunedFor": "blueprint line at account level 31",
-     "difficultyTune": 6.5827,
+     "enemyLevel": 57,
+     "maxQuality": "Purple +2",
+     "tunedFor": "blueprint line at account level 57",
+     "difficultyTune": 10.7648,
      "target": 0.38,
-     "tunedHpLeft": 0.419,
-     "blueprintLineHpLeft": 0.279,
+     "tunedHpLeft": 0.414,
+     "blueprintLineHpLeft": 0.157,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -1701,79 +1721,79 @@
       [
        {
         "key": "bonepike guard",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "saltglass siren",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "mudsnap crab",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "wispweaver shade",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "riftling spider",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "kelp hexer",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772
        },
        {
         "key": "sable vesper",
-        "lvl": 31,
-        "hpMul": 6.5827,
-        "dmgMul": 3.7401,
+        "lvl": 57,
+        "hpMul": 10.7648,
+        "dmgMul": 5.2772,
         "boss": true
        }
       ]
@@ -1781,94 +1801,95 @@
     },
     {
      "stage": 9,
-     "levelGate": 34,
+     "levelGate": 65,
      "boss": "irix",
-     "enemyLevel": 34,
-     "tunedFor": "blueprint line at account level 34",
-     "difficultyTune": 6.486,
+     "enemyLevel": 65,
+     "maxQuality": "Purple +3",
+     "tunedFor": "blueprint line at account level 65",
+     "difficultyTune": 14.9956,
      "target": 0.34,
-     "tunedHpLeft": 0.395,
-     "blueprintLineHpLeft": 0.565,
+     "tunedHpLeft": 0.296,
+     "blueprintLineHpLeft": 0.343,
      "tunedWins": 3,
      "cliff": false,
-     "fourLevelsUnderWon": true,
+     "fourLevelsUnderWon": false,
      "waves": [
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "riftling spider",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "storm eel",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "reef prowler",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "mudsnap crab",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "luminant orb",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "vineback boar",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "riftling spider",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "skyroot dryad",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554
        },
        {
         "key": "irix",
-        "lvl": 34,
-        "hpMul": 6.486,
-        "dmgMul": 3.7016,
+        "lvl": 65,
+        "hpMul": 14.9956,
+        "dmgMul": 6.6554,
         "boss": true
        }
       ]
@@ -1876,100 +1897,101 @@
     },
     {
      "stage": 10,
-     "levelGate": 37,
+     "levelGate": 72,
      "boss": "barrowmaw",
-     "enemyLevel": 37,
-     "tunedFor": "blueprint line at account level 37",
-     "difficultyTune": 13.2758,
+     "enemyLevel": 72,
+     "maxQuality": "Gold",
+     "tunedFor": "blueprint line at account level 72",
+     "difficultyTune": 18.9115,
      "target": 0.3,
-     "tunedHpLeft": 0.461,
-     "blueprintLineHpLeft": 0.202,
+     "tunedHpLeft": 0.736,
+     "blueprintLineHpLeft": 0.588,
      "tunedWins": 3,
-     "cliff": false,
+     "cliff": true,
      "fourLevelsUnderWon": false,
      "waves": [
       [
        {
         "key": "frostjaw troll",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "vineback boar",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "kelp hexer",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        }
       ],
       [
        {
         "key": "frostjaw troll",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "reef prowler",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "zephyr harrier",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "wispweaver shade",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        }
       ],
       [
        {
         "key": "frostjaw troll",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "vineback boar",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "mourn moth",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829
        },
        {
         "key": "barrowmaw",
-        "lvl": 37,
-        "hpMul": 13.2758,
-        "dmgMul": 6.1114,
+        "lvl": 72,
+        "hpMul": 18.9115,
+        "dmgMul": 7.829,
         "boss": true
        }
       ]
@@ -1977,14 +1999,15 @@
     },
     {
      "stage": 11,
-     "levelGate": 41,
+     "levelGate": 79,
      "boss": "orryx",
-     "enemyLevel": 41,
-     "tunedFor": "blueprint line at account level 41",
-     "difficultyTune": 11.0373,
+     "enemyLevel": 79,
+     "maxQuality": "Gold +1",
+     "tunedFor": "blueprint line at account level 79",
+     "difficultyTune": 23.7453,
      "target": 0.26,
-     "tunedHpLeft": 0.364,
-     "blueprintLineHpLeft": 0.26,
+     "tunedHpLeft": 0.315,
+     "blueprintLineHpLeft": 0.257,
      "tunedWins": 3,
      "cliff": false,
      "fourLevelsUnderWon": false,
@@ -1992,85 +2015,85 @@
       [
        {
         "key": "bonepike guard",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "skyroot dryad",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "riftling spider",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "crystalhorn grazer",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "saltglass siren",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "mudsnap crab",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "luminant orb",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        }
       ],
       [
        {
         "key": "bonepike guard",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "graveclaw ghoul",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "wispweaver shade",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813
        },
        {
         "key": "orryx",
-        "lvl": 41,
-        "hpMul": 11.0373,
-        "dmgMul": 5.3704,
+        "lvl": 79,
+        "hpMul": 23.7453,
+        "dmgMul": 9.1813,
         "boss": true
        }
       ]
@@ -2078,100 +2101,101 @@
     },
     {
      "stage": 12,
-     "levelGate": 45,
+     "levelGate": 86,
      "boss": "nerissa",
-     "enemyLevel": 45,
-     "tunedFor": "blueprint line at account level 45",
-     "difficultyTune": 8.9678,
+     "enemyLevel": 86,
+     "maxQuality": "Gold +2",
+     "tunedFor": "blueprint line at account level 86",
+     "difficultyTune": 18.8932,
      "target": 0.22,
-     "tunedHpLeft": 0.216,
-     "blueprintLineHpLeft": 0.164,
+     "tunedHpLeft": 0.796,
+     "blueprintLineHpLeft": 0.599,
      "tunedWins": 3,
-     "cliff": false,
+     "cliff": true,
      "fourLevelsUnderWon": true,
      "waves": [
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "mudsnap crab",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "mourn moth",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "vineback boar",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "riftling spider",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "storm eel",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "reef prowler",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "zephyr harrier",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        }
       ],
       [
        {
         "key": "shellguard sentinel",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "mudsnap crab",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "luminant orb",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237
        },
        {
         "key": "nerissa",
-        "lvl": 45,
-        "hpMul": 8.9678,
-        "dmgMul": 4.6439,
+        "lvl": 86,
+        "hpMul": 18.8932,
+        "dmgMul": 7.8237,
         "boss": true
        }
       ]

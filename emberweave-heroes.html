@@ -10870,7 +10870,7 @@ function endBattle(won){
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), nm=(PROV_META[P.t]||PROV_META.gold).nm;
       setResultVerdict(sWon, sWon?(_st||null):null);
-      if(sWon && r.reward && r.reward.glyphs && r.reward.glyphs.length){ try{ glyphV2Sync(); }catch(e){} }
+      if(sWon && r.reward && r.reward.fragments && r.reward.fragments.length){ try{ glyphV2Sync(); }catch(e){} }   /* v664: Drill pays fragments */
       document.getElementById('resultTitle').textContent=sWon?('STAGE '+(P.stage|0)+' CLEARED'):(_unv?'NOT COUNTED':'DEFEAT');
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       document.getElementById('resultReward').innerHTML= sWon
@@ -10880,7 +10880,7 @@ function endBattle(won){
           +(r.replayIncident?'<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">(Your result stands — the server logged a replay difference for review.)</div>':'')
         : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This fight was not counted — nothing was spent.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`
           :`Your squad fell to ${escapeHTML(nm)} Stage ${P.stage|0}. A loss costs nothing — your plays are untouched.`);
-      document.getElementById('resultHint').textContent=sWon?((P.t==='rune')?'Forged glyphs are locked into the hero\'s board — fill all six, then Ascend.':'Sweep your best cleared stage for the same reward.'):'Same boss and waves every attempt — level up, forge glyphs, then try again.';
+      document.getElementById('resultHint').textContent=sWon?((P.t==='rune')?'Fragments go to your Bag — build the glyph from the hero\'s glyph board.':'Sweep your best cleared stage for the same reward.'):'Same boss and waves every attempt — level up, forge glyphs, then try again.';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null);   // snapshot the transcript NOW: anything that runs during the 800ms delay must not be able to blank it
@@ -18247,7 +18247,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return;
 
 /* ============================ FLOATING ISLE: THREE TRIALS ============================ */
 const ISLE_FEATURES=[
-  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — twelve boss fights each for gold and whole glyphs.', open:()=>openTrainingProvince()},
+  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — twelve boss fights each for gold and glyph fragments.', open:()=>openTrainingProvince()},
   {id:'emberdraft', ic:'♟', name:'Emberdraft',        lvl:25, desc:'Draft heroes, forge equipment, outlast seven rivals.', open:()=>openEmberdraft()},   // v604 (Phil, 18 Sep: the Gauntlet was a dead system - replaced; its code stays for banking an old run)
   {id:'tower',    ic:'🗼', name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
 ];
@@ -18285,14 +18285,22 @@ function battlePow(){ return Math.max(1, bestTeamPower()); }
    server's frozen squad and seed (/api/province/start) and resolved by /api/province/resolve, which replays the transcript
    exactly like the campaign. SWEEP is /api/province/sweep. Every reward (gold, whole glyphs forged into a hero's board,
    12 account XP) is paid by the SERVER; the browser only shows the receipt. A loss spends nothing: a play is spent only by
-   a win or a sweep. The key 'rune' is kept for the Drill ground because saves carry G.prov.rune. */
+   a win or a sweep. The key 'rune' is kept for the Drill ground because saves carry G.prov.rune.
+   v664 (Phil, 19 Sep 16:15-16:29): "Last runes unlocked should be gold +2" / "Glyphs*" / "And gold provinces 5 levels lower
+   than that" / "The glyphs should be raised on the next tier level. So when a player reaches gold+3 they unlock the gold +2
+   sweep" / "And actually make it fragments not completed glyphs" / "Make the reward make sense. Like if a purple needs 50
+   fragments to make the glyph, make the sweep 10 fragments" / "And like 5 of the tier below" / "Per sweep".
+   Drill stage n pays glyph FRAGMENTS of tier Green .. Gold +2 (one tier per stage) and opens where the NEXT tier unlocks;
+   Gold Province opens 5 levels lower. Each clear / sweep: 20% of one glyph of the stage's tier + 5 of the tier below.
+   Stages cleared under v663's lower gates are kept; a sweep pays the best cleared stage your level opens (sweepStage). */
 const PROV_STAGES=12, PROV_PLAYS=2, PROV_ACCOUNT_XP=12;
 /* mirrors of server/province-encounters.json; the server's own table wins as soon as /api/province/state answers */
-const PROV_GATE={ gold:[10,12,14,16,18,20,23,26,29,32,36,40], rune:[15,17,19,21,23,25,28,31,34,37,41,45] };
+const PROV_GATE={ gold:[10,13,19,25,31,38,45,52,60,67,74,81], rune:[15,18,24,30,36,43,50,57,65,72,79,86] };   /* v664 */
 const PROV_BOSS={ gold:['brukk','miregor','grommash','magmourn','voraxis','barrowmaw','orryx','asterion','maelvara','nameless admiral','irix','vharok'],
                   rune:['sylphice','leviath','nymira','wintercrag','asterion','thorneveil','maelvara','sable vesper','irix','barrowmaw','orryx','nerissa'] };
-const PROV_GLYPHS=[1,1,1,1,1,2,2,2,2,2,2,3];
-const PROV_GLYPH_MAXQ=['Green +1','Green +1','Blue','Blue','Blue','Blue +1','Blue +1','Blue +2','Blue +2','Purple','Purple','Purple +1'];
+const PROV_FRAG_Q=['Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2'];   /* v664: Drill fragment tier by stage */
+const PROV_GOLD=[700,1740,3730,6600,10540,16170,22600,30700,41520,54260,68150,85130];   /* v664: authored Gold Province rewards */
+const PROV_LADDER=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
 const PROV_META={ gold:{nm:'Gold Province', col:'#ffd45e'}, rune:{nm:'Drill Province', col:'#8fd0ff'} };
 let PROV_SRV=null;   // the last /api/province/state answer: the stage table + today's counts
 function provState(t){ if(!G.prov)G.prov={}; if(!G.prov[t])G.prov[t]={stage:0,day:'',used:0}; const p=G.prov[t];
@@ -18300,33 +18308,38 @@ function provState(t){ if(!G.prov)G.prov={}; if(!G.prov[t])G.prov[t]={stage:0,da
   return p; }
 /* v663: the ledger (and every province route) carries {gold:{stage,used,playsLeft,day},rune:{...}} — mirror it */
 function provAdopt(v){ if(!v||typeof v!=='object') return; for(const t of ['gold','rune']){ const s=v[t]; if(!s) continue; const p=provState(t);
-  p.stage=Math.max(0,Math.min(PROV_STAGES,s.stage|0)); p.used=s.used|0; p.left=(s.playsLeft==null)?null:(s.playsLeft|0); if(s.day) p.day=s.day; } }
+  p.stage=Math.max(0,Math.min(PROV_STAGES,s.stage|0)); p.used=s.used|0; p.left=(s.playsLeft==null)?null:(s.playsLeft|0); if(s.day) p.day=s.day;
+  p.sweep=(s.sweepStage==null)?null:Math.max(0,Math.min(p.stage,s.sweepStage|0)); } }   /* v664: the stage a sweep pays (server) */
+/* v664: the best cleared stage the account's level opens now — what a sweep pays (the server's provSweepStage) */
+function provSweepStage(t){ const p=provState(t), c=p.stage|0; if(ACC.token&&p.sweep!=null) return p.sweep;
+  let n=0; for(let s=1;s<=c;s++) if(playerLevel()>=provGate(t,s)) n=s; return n; }
 function provPlaysLeft(t){ const p=provState(t); return (ACC.token&&p.left!=null)?Math.max(0,p.left|0):Math.max(0,PROV_PLAYS-(p.used|0)); }
 function provStageRow(t,stage){ const S=PROV_SRV&&PROV_SRV.types&&PROV_SRV.types[t]; return (S&&S.stages&&S.stages[stage-1])||null; }
 function provGate(t,stage){ const r=provStageRow(t,stage); return (r&&r.levelGate)||PROV_GATE[t][stage-1]||999; }
 function provBossKey(t,stage){ const r=provStageRow(t,stage); return (r&&r.boss)||PROV_BOSS[t][stage-1]||''; }
 function provBossName(k,full){ const n=String(((typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[k])||{}).name||k); return full?n:n.split(',')[0]; }
-function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }
-function provGlyphCount(stage){ const r=provStageRow('rune',stage); return (r&&r.reward&&r.reward.glyphs)||PROV_GLYPHS[stage-1]||1; }
-function provGlyphMaxQ(stage){ const r=provStageRow('rune',stage); return (r&&r.reward&&r.reward.maxQuality)||PROV_GLYPH_MAXQ[stage-1]||'Grey'; }
+function provGoldAmt(stage){ const r=provStageRow('gold',stage); return (r&&r.reward&&r.reward.gold)||PROV_GOLD[stage-1]||0; }   /* v664: authored */
+function provFragQ(stage){ const r=provStageRow('rune',stage); return (r&&r.reward&&r.reward.quality)||PROV_FRAG_Q[stage-1]||'Green'; }
+function provFragLowerQ(stage){ const i=PROV_LADDER.indexOf(provFragQ(stage)); return i>0?PROV_LADDER[i-1]:null; }
+function provFragN(stage){ const r=provStageRow('rune',stage); return (r&&r.reward&&r.reward.fragments)||0; }   // ≈ per sweep, from the server
 function provRewardStr(t,stage){ if(t==='gold') return '🪙 '+provGoldAmt(stage).toLocaleString()+' · +'+PROV_ACCOUNT_XP+' XP';
-  const n=provGlyphCount(stage); return n+' glyph'+(n===1?'':'s')+' up to '+provGlyphMaxQ(stage)+' · +'+PROV_ACCOUNT_XP+' XP'; }
+  const n=provFragN(stage), lq=provFragLowerQ(stage);
+  return (n?'≈'+n+' ':'')+provFragQ(stage)+' fragments'+(lq?' + 5 '+lq:'')+' · +'+PROV_ACCOUNT_XP+' XP'; }
 function provRewardHTML(t,stage){ if(t==='gold') return `<span class="coins">🪙 ${provGoldAmt(stage).toLocaleString()}</span> · +${PROV_ACCOUNT_XP} XP`;
-  const n=provGlyphCount(stage), q=provGlyphMaxQ(stage);
-  return `${(typeof g2art==='function')?g2art('finished',q,'vitality',16,'display:inline-block;vertical-align:-3px'):'✦'} <b style="color:${(typeof g2col==='function')?g2col(q):'#c9a2ff'}">${n} glyph${n===1?'':'s'}</b> up to ${escapeHTML(q)} · +${PROV_ACCOUNT_XP} XP`; }
-/* one line per forged glyph (art, name, quality colour, the hero whose board it went into) */
-function provGlyphLine(gl){ const hn=escapeHTML(String((HERO_TYPES[gl.hero]||{}).name||gl.hero)), col=(typeof g2col==='function')?g2col(gl.quality):'#c9a2ff';
-  const art=(typeof g2art==='function')?g2art('finished',gl.quality,gl.artSlot||gl.slotName||'vitality',26,'display:inline-block;vertical-align:middle;margin-right:4px'):'✦';
-  return `<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 0">${art}<span><b style="color:${col}">${escapeHTML(String(gl.name||'Glyph'))}</b> <span style="color:#8b98a9;font-size:11px">${escapeHTML(String(gl.quality||''))}</span> → ${hn} <span style="color:#8b98a9;font-size:11px">(${escapeHTML(String(gl.slotName||''))})</span>${gl.boardFull?' <span style="color:#5ee89b;font-size:11px">· board full, ready to Ascend</span>':''}</span></div>`; }
+  const n=provFragN(stage), q=provFragQ(stage), lq=provFragLowerQ(stage);   /* v664: fragments of the stage's tier + 5 of the tier below */
+  return `${(typeof g2art==='function')?g2art('fragment',q,'vitality',16,'display:inline-block;vertical-align:-3px'):'✦'} <b style="color:${(typeof g2col==='function')?g2col(q):'#c9a2ff'}">${n?'≈'+n+' ':''}${escapeHTML(q)} fragments</b>${lq?` + 5 <span style="color:${(typeof g2col==='function')?g2col(lq):'#9aa2b1'}">${escapeHTML(lq)}</span>`:''} · +${PROV_ACCOUNT_XP} XP`; }
+/* v664: one line per fragment paid (its painted art, in-game name, tier colour, amount) */
+function provFragLine(f){ const col=(typeof g2col==='function')?g2col(f.quality):'#c9a2ff';
+  const art=(typeof g2art==='function')?g2art('fragment',f.quality,f.artSlot||'vitality',24,'display:inline-block;vertical-align:middle;margin-right:4px'):'✦';
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 0">${art}<span><b style="color:${col}">${escapeHTML(String(f.displayName||'Fragment'))}</b> ×${f.quantity|0} <span style="color:#8b98a9;font-size:11px">${escapeHTML(String(f.quality||''))}</span></span></div>`; }
 /* the receipt the server paid — used by the result screen and the sweep message */
 function provReceiptHTML(t,rw,compact){ if(!rw) return '';
   const xp=rw.accountXp?` · <span style="color:#9fe6ff">+${rw.accountXp|0} account XP</span>`:'';
   if(t==='gold') return `<span class="coins">🪙 +${(rw.gold|0).toLocaleString()}</span>${xp}`;
-  const gl=(rw.glyphs||[]), kits=(rw.glyphKits||[]);
-  if(compact) return (gl.length?gl.map(g=>`✦ <b style="color:${(typeof g2col==='function')?g2col(g.quality):'#c9a2ff'}">${escapeHTML(String(g.name))}</b> → ${escapeHTML(String((HERO_TYPES[g.hero]||{}).name||g.hero))}`).join(', '):'')
-    +(kits.length?(gl.length?', ':'')+kits.map(k=>`✦ materials for ${escapeHTML(String(k.name))}`).join(', '):'')+xp;
-  return `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">GLYPHS FORGED</div>`+gl.map(provGlyphLine).join('')
-    +kits.map(k=>`<div style="margin-top:4px;color:#c9a2ff">✦ Every hero's board is above ${escapeHTML(String(rw.maxQuality||''))} or waiting on hero level — here are the full materials for a ${escapeHTML(String(k.name))} instead.</div>`).join('')
+  const fr=(rw.fragments||[]).concat(rw.lower||[]), fg=rw.forGlyph;   /* v664: fragments, not glyphs */
+  if(compact) return fr.map(f=>`<b style="color:${(typeof g2col==='function')?g2col(f.quality):'#c9a2ff'}">${escapeHTML(String(f.displayName||'Fragment'))}</b> ×${f.quantity|0}`).join(', ')+xp;
+  return `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">GLYPH FRAGMENTS</div>`+fr.map(provFragLine).join('')
+    +(fg?`<div style="font-size:10.5px;color:#8b98a9;margin-top:2px">toward ${escapeHTML(String((HERO_TYPES[fg.hero]||{}).name||fg.hero))}'s ${escapeHTML(String(fg.name||'glyph'))} (${escapeHTML(String(fg.quality||''))})</div>`:'')
     +`<div style="margin-top:4px">${xp.replace(/^ · /,'')}</div>`; }
 async function provSync(){ if(!ACC.token) return null; try{ const r=await api('/api/province/state'); if(r&&r.ok){ PROV_SRV=r; provAdopt(r.types); return r; } }catch(e){} return null; }
 /* CHALLENGE: pick the squad on the normal squad screen (the campaign squad), then BATTLE → provLaunch */
@@ -18355,7 +18368,7 @@ async function provSweep(t){
   if(!ACC.token){ return {error:'Connect to sweep — Training Province rewards are paid by the server.'}; }
   const r=await api('/api/province/sweep','POST',{type:t, requestId:uid8()});
   if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
-  if(r&&r.ok&&r.reward&&r.reward.glyphs&&r.reward.glyphs.length){ try{ glyphV2Sync(); }catch(e){} }
+  if(r&&r.ok&&r.reward&&r.reward.fragments&&r.reward.fragments.length){ try{ glyphV2Sync(); }catch(e){} }   /* v664 */
   try{ updateHubChrome(); }catch(e){}
   return r||{error:'Could not reach the realm — check your connection.'}; }
 /* leave a province fight / squad screen back to the Floating Isle with the province card open */
@@ -18368,7 +18381,7 @@ function provBossCue(k){ const ch={brukk:0,miregor:1,wintercrag:2,nerissa:3,'sab
     nymira:'Nymira\'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst',
     thorneveil:'Thorneveil sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse' })[k]||null; }
 function openTrainingProvince(){ const ov=isleOverlay(); ov.classList.add('provScene');
-  const cards=[['gold','Gold Province','Battle bosses for gold'],['rune','Drill Province','Battle bosses for whole glyphs']];
+  const cards=[['gold','Gold Province','Battle bosses for gold'],['rune','Drill Province','Battle bosses for glyph fragments']];
   function paint(){
     ov.innerHTML=isleCard(`<div class="provHero" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">Training Province</div><button class="isleX" id="ipX" aria-label="Close">✕</button></div>
     <div class="provIntro">Two training grounds, twelve boss fights each. Win a stage to clear it and take its reward, then sweep your best cleared stage for the same haul. Two plays each per day — a loss costs nothing. Your account level opens the higher stages.</div>`
@@ -18384,7 +18397,7 @@ function openTrainingProvince(){ const ov=isleOverlay(); ov.classList.add('provS
 }
 function openProvince(t){ const meta={ic:'<img class="provIcS" src="'+PROV_ART[t==='rune'?'rune':'gold']+'" alt="">', nm:PROV_META[t].nm, col:PROV_META[t].col}; const ov=isleOverlay(); ov.classList.add('provScene');
   let busy=false;
-  function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), cleared=p.stage|0, next=cleared+1, maxed=cleared>=PROV_STAGES, lv=playerLevel(), pow=battlePow();
+  function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), cleared=p.stage|0, next=cleared+1, maxed=cleared>=PROV_STAGES, lv=playerLevel(), pow=battlePow(), sws=provSweepStage(t);   /* v664: sws = the stage a sweep pays */
     const gate=maxed?0:provGate(t,next), lockedLv=!maxed&&lv<gate, dev=(typeof DEV!=='undefined'&&DEV.on), bk=maxed?'':provBossKey(t,next);
     const canGo=!maxed&&(!lockedLv||dev)&&(left>0||dev)&&!!ACC.token;
     ov.innerHTML=isleCard(`<div class="provHero sm" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">${meta.ic} ${meta.nm}</div><button class="isleX" id="pvX" aria-label="Close">✕</button></div>
@@ -18392,12 +18405,12 @@ function openProvince(t){ const meta={ic:'<img class="provIcS" src="'+PROV_ART[t
       ${maxed?`<div style="text-align:center;color:#5ee89b;font-weight:800;margin:12px 0">★ All ${PROV_STAGES} stages cleared! Sweep for daily rewards.</div>`:
         `<div class="provBox" style="padding:11px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:3px">⚔ Challenge Stage ${next}</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px"><span title="${escapeHTML(provBossName(bk,true))}">👑 <b style="color:#ffd8a8">${escapeHTML(provBossName(bk))}</b></span> · 3 waves · ${provRewardHTML(t,next)}${lockedLv?` · <b style="color:#ff8b8b">opens at Lv ${gate}</b>`:''}</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px"><span title="${escapeHTML(provBossName(bk,true))}">👑 <b style="color:#ffd8a8">${escapeHTML(provBossName(bk))}</b></span> · 3 waves · per clear: ${provRewardHTML(t,next)}${lockedLv?` · <b style="color:#ff8b8b">opens at Lv ${gate}</b>`:''}</div>
           <button class="btn" id="pvGo" style="width:100%" ${canGo?'':'disabled'}>${!ACC.token?'Sign in to battle':(lockedLv&&!dev?'🔒 Lv '+gate:(left<=0&&!dev?'No plays left today':'⚔ Challenge'))}</button></div>`}
       ${cleared>0?`<div class="provBox" style="padding:11px">
-          <div style="font-weight:800;font-size:12px;margin-bottom:3px">🔁 Sweep Stage ${cleared}</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Re-earn your best cleared reward: ${provRewardHTML(t,cleared)}</div>
-          <button class="btn secondary" id="pvSweep" style="width:100%" ${(left>0||dev)&&ACC.token?'':'disabled'}>${!ACC.token?'Sign in to sweep':(left>0||dev?'🔁 Sweep (1 play)':'No plays left today')}</button></div>`:''}
+          <div style="font-weight:800;font-size:12px;margin-bottom:3px">🔁 Sweep Stage ${sws||cleared}</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${sws?`Per sweep: ${provRewardHTML(t,sws)}`:''}${sws<cleared?`${sws?' · ':''}<span style="color:#ffd8a8">Stage ${cleared} sweeps from Lv ${provGate(t,cleared)}</span>`:''}</div>
+          <button class="btn secondary" id="pvSweep" style="width:100%" ${(left>0||dev)&&ACC.token&&sws>0?'':'disabled'}>${!ACC.token?'Sign in to sweep':(sws<1?'🔒 Lv '+provGate(t,1):(left>0||dev?'🔁 Sweep (1 play)':'No plays left today'))}</button></div>`:''}
       <div id="pvMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#pvX').onclick=()=>ov.remove();
     const go=ov.querySelector('#pvGo'); if(go) go.onclick=()=>{ provChallenge(t); };
@@ -20334,7 +20347,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789849207000';
+const BUILD_ID = '1789850407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
