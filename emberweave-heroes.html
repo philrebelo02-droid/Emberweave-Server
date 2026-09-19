@@ -9851,7 +9851,7 @@ function think(u,dt){
   // NEAREST foe (the front line) — so mid holds 13 m and back holds 25 m even while heroes charge in from the side.
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
-  const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1); u.atkCd-=dt;
+  const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1)/edAtkRamp(); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp
     if(u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       if(u.pass&&u.pass.desertmom){ const _pm=(u.passMul||1); u._dmAS=Math.min(0.5*_pm,(u._dmAS||0)+0.04*_pm); u._dmPen=Math.min(120*_pm,(u._dmPen||0)+6*_pm); }   // v545 Desert Momentum: +4% attack speed, +6 penetration per auto (caps 50% / 120)
       /* v532 CRIT CLIP (Phil: "when a hero crit attacks they will do this instead of attack"; "melees from this point on
@@ -10599,7 +10599,7 @@ function updateBattle(dt){
   // frame rate — the sim's own numbers never depend on the device's frame rate again.
   pumpInputs();   // v269: a tap is applied HERE, on a tick boundary — never mid-frame
   simTick++;
-  battleTime+=dt; rageMul=battleTime>22?1+(battleTime-22)*.16:1; screenFlash=Math.max(0,screenFlash-dt);
+  battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>22?1+(battleTime-22)*.16:1);   // v636: Emberdraft ramps attack speed instead (edAtkRamp) screenFlash=Math.max(0,screenFlash-dt);
   if(CUR && CUR.mode==='emberdraft' && window.ED && ED.fighting){ edTick(dt); if(ended) return; }   // v604 Emberdraft: item actives, leaps, the 30 s draw, instant end
   if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
@@ -18978,7 +18978,7 @@ function updateBattleBanner(){ const bb=document.getElementById('battleBanner');
      The clock now counts the limit the fight actually uses. */
   const lim=(CUR&&CUR.mode==='emberdraft'&&typeof ED_FIGHT_LIMIT==='number')?ED_FIGHT_LIMIT:BATTLE_TIME_LIMIT;
   const rem=Math.max(0,lim-battleTime), m=Math.floor(rem/60), s=Math.floor(rem%60);
-  const t=document.getElementById('bbTime'); if(t){ t.textContent=m+':'+(s<10?'0'+s:s); t.classList.toggle('low',rem<=10); }
+  const t=document.getElementById('bbTime'); if(t){ const ramp=edAtkRamp(); t.textContent=m+':'+(s<10?'0'+s:s)+(ramp>1.001?' ⚡+'+Math.round((ramp-1)*100)+'%':''); t.classList.toggle('low',rem<=10); }
   const total=Math.max(1,chapterWaves||1), cur=Math.min(total,(waveIdx||0)+1);
   const pr=document.getElementById('bbProg'); if(pr) pr.textContent=cur+'/'+total; }
 // Victory screen extras: 3 gold stars + the surviving squad as hero cards (level + star badges)
@@ -19635,7 +19635,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789790798000';
+const BUILD_ID = '1789791025000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19985,6 +19985,10 @@ const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles ar
 /* figures draw at 70% in Emberdraft so one hero stands on one bench pad (16 pads ~ 33 px apart on a phone). Art only:
    hit radius, bodies and spell areas are untouched, so combat is the same. */
 const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than that. Each upgrade increase their size 10%"
+/* v636 (Phil: "at 30 second the speed of the heroes increases 5% every second until zero" / "by 10 seconds everyone has 50% increased
+   attack speed, 20 seconds 100%, basically by zero everyone is attacking at 150% attack speed, it should be decided by then"):
+   an Emberdraft fight's clock runs 0:30 -> 0:00 and every unit's attack speed rises +5% per second of fight, +150% at the end. */
+function edAtkRamp(){ return (typeof CUR!=='undefined'&&CUR&&CUR.mode==='emberdraft') ? 1+0.05*Math.min(ED_FIGHT_LIMIT, Math.max(0, battleTime||0)) : 1; }
 function edFig(h){ return ED_FIG_SCALE*(1+0.1*Math.max(0,((h&&h.rank)|0)-1)); }   // v635 (Phil: "1 star normal size, 2 star 10% increase of normal, 3 star 20%, big star 30%"): flat +10% of normal per rank, not compounding - rank I 55%, II 60.5%, III 66%, big star 71.5%
 const ED_ARENAS = [
   { id:'cinderforge', name:'The Cinderforge Hollow',
