@@ -19667,7 +19667,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789820904000';
+const BUILD_ID = '1789821658000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20050,7 +20050,25 @@ const ED_COMP_TXT = {Weapon:'+15% damage',Helm:'+25 magic resist',Boots:'+15% at
                      Belt:'+15% health',Ring:'+15% ability power',Amulet:'+15 starting energy',Relic:'+8% health and damage'};
 const ED_TIERS = ['Grey','Green','Blue','Blue +2','Purple','Purple +3','Gold +1','Gold +4','Orange'];
 const ED_TIER_COL = ['#9aa4b2','#5ee89b','#5eb9e8','#5eb9e8','#c9a2ff','#c9a2ff','#ffd45e','#ffd45e','#ff9d5e'];
-function edTierMul(q){ return 1 + 0.2*(q|0); }      // Orange (8) = 2.6x a Grey item's stats and active
+function edTierMul(q){ return 1; }   // v640: items have no tiers any more (kept so old callers read 1)
+/* v640 (Phil, 19 Sep: "Research tft our equipment system is not ok" -> decided: TFT-style). Every item has ONE fixed strength -
+   no tiers, no twin fusing, no tier gate. A finished item gives its two components' stats x1.25 plus its Forge active. The
+   best items are RADIANT (the Gold/Orange look): x2 stats and active, from rare late rewards and from merging a big star.
+   Relic is our Spatula: Relic + a component = that component's ROLE CREST (the hero counts as that role for synergies);
+   Relic + Relic = Worldroot Seed (+1 hero on the board). The item bench is a 10-slot column on the left. */
+const ED_FIN_BONUS = 1.25, ED_RADIANT_MUL = 2, ED_ITEM_BENCH = 10;
+const ED_CREST = { Weapon:'Warrior', Armor:'Tank', Belt:'Bruiser', Gloves:'Brute', Ring:'Mage', Boots:'Marksman', Helm:'Assassin', Amulet:'Support' };
+function edItemMul(it){ return (it&&it.r) ? ED_RADIANT_MUL : 1; }
+function edCrestRole(it){ if(!it||!it.f) return null; if(it.a==='Relic'&&it.b!=='Relic') return ED_CREST[it.b]||null; if(it.b==='Relic'&&it.a!=='Relic') return ED_CREST[it.a]||null; return null; }
+function edIsSeed(it){ return !!(it&&it.f&&it.a==='Relic'&&it.b==='Relic'); }
+function edItemCol(it){ if(!it) return '#cfd6df'; if(it.rm) return '#c9a2ff'; if(it.r) return '#ffb347'; if(edCrestRole(it)||edIsSeed(it)) return '#7fd8ff'; return it.f ? '#ffe2a8' : '#cfd6df'; }
+function edHeroRoles(h){ const out=[edRole(h.key)]; for(const it of (h.items||[])){ const r=edCrestRole(it); if(r && !out.includes(r)) out.push(r); } return out; }
+function edFieldCap(p){ let n=p.level; for(const u of Object.values(p.board)) for(const it of (u.items||[])) if(edIsSeed(it)) n++; return n; }
+/* the item bench holds 10; anything past that waits and moves in as soon as a slot frees (TFT's waiting orbs) */
+function edGiveItem(p,it){ if(!it) return; p.itemsWait=p.itemsWait||[]; if(p.items.length<ED_ITEM_BENCH) p.items.push(it); else p.itemsWait.push(it); }
+function edItemsFlush(p){ p.itemsWait=p.itemsWait||[]; while(p.items.length<ED_ITEM_BENCH && p.itemsWait.length) p.items.push(p.itemsWait.shift()); }
+function edRandFinished(){ const ks=Object.keys(ED_FINISHED), k=ks[edRnd(ks.length)], [a,b]=k.split('+'); return { f:ED_FINISHED[k], a, b }; }
+function edItemVal(it){ return !it?0:(it.rm?1:(it.f?(it.r?6:3):1)); }
 /* 45 finished items: two components → the Forge catalog item of that name, which keeps its active ability */
 const ED_FINISHED = {
  'Weapon+Weapon':'Skirmisher Axe','Weapon+Helm':'Ravager Hornhelm','Weapon+Boots':'Starfall Longbow','Weapon+Armor':'Ironwall Shield',
@@ -20072,7 +20090,8 @@ const ED_FINISHED = {
 const ED_ITEM_ART = {'Skirmisher Axe':'E03', 'Ravager Hornhelm':'E11', 'Starfall Longbow':'E06', 'Ironwall Shield':'E01', 'Apex Fang':'E66', 'Conquest Belt':'E46', 'Spark Tome':'E07', 'Windshot Pendant':'E68', 'Battle Standard':'E76', 'Warden Circlet':'E10', 'Anchorstep Greaves':'E17', 'Bastion Visor':'E09', 'Falconer Cap':'E13', 'Leyline Sash':'E45', 'Stormglass Tiara':'E15', 'Mercy Crown':'E16', 'Prism Idol':'E75', 'Pathrunner Boots':'E21', 'Scout’s Mantle':'E30', 'Silkstring Gloves':'E40', 'Chargebreaker Boots':'E19', 'Phasewalk Boots':'E23', 'Comet Slippers':'E24', 'Ranger’s Compass':'E78', 'Bulwark Cuirass':'E26', 'Stonegrip Gauntlets':'E35', 'Warhide Hauberk':'E28', 'Astral Carapace':'E27', 'Heartward Pendant':'E64', 'Aegis Totem':'E74', 'Deadeye Gloves':'E39', 'Knucklecrusher Bracers':'E37', 'Surge Band':'E60', 'Magma Claws':'E38', 'Eclipse Codex':'E81', 'Siegekeeper Girdle':'E44', 'Arcanist Vestment':'E32', 'Remedy Pouch':'E52', 'Furnace Heart':'E77', 'Singularity Ring':'E61', 'Stormheart Necklace':'E70', 'Orb of Reverberation':'E80', 'Harmony Pendant':'E72', 'Beacon Standard':'E82', 'Worldroot Seed':'E84'};
 const ED_COMP_ART = {Weapon:'E05',Helm:'E12',Boots:'E20',Armor:'E29',Gloves:'E36',Belt:'E47',Ring:'E54',Amulet:'E65',Relic:'E83'};   // Scout Crossbow (the thinnest art was unreadable at item size), Cinder Mask, Ashstride Boots, Infernal Plate, Wardweave Gloves, Scorch Cincture, Oathbound Signet, Moonstone Locket, Dream Lantern
 function edItemArt(it){ const id=it&&(it.f?ED_ITEM_ART[it.f]:ED_COMP_ART[it.c]); return id?('/assets/img/gear/items/'+id+'.webp'+(typeof GEAR_ART_V!=='undefined'?GEAR_ART_V:'')):''; }
-function edItemImg(it,px){ const col=ED_TIER_COL[(it&&it.q)|0]||'#9aa4b2', g=Math.max(2,Math.round(px/7));
+function edItemImg(it,px){ const col=edItemCol(it), g=Math.max(2,Math.round(px/7)*(it&&it.r?2:1));
+  if(it&&it.rm) return `<span class="edArt" style="display:block;width:${px}px;height:${px}px;font-size:${Math.round(px*0.8)}px;line-height:${px}px;text-align:center;filter:drop-shadow(0 0 ${g}px ${col})">🧲</span>`;
   return `<img class="edArt" src="${edItemArt(it)}" alt="" draggable="false" style="width:${px}px;height:${px}px;object-fit:contain;filter:drop-shadow(0 0 ${g}px ${col}) drop-shadow(0 0 1px ${col}) drop-shadow(0 1px 1px rgba(0,0,0,.8))">`; }
 function edPairKey(a,b){ const i=ED_COMP.indexOf(a), j=ED_COMP.indexOf(b); return i<=j ? a+'+'+b : b+'+'+a; }
 /* role synergies (the role every hero already has) — counted by DISTINCT heroes on the board */
@@ -20131,33 +20150,43 @@ function edMerge(p){
       same.sort((a,b)=>(a.where==='b'?0:1)-(b.where==='b'?0:1)); const keep=same[0], gone=same.slice(1,3);
       const items=[].concat(keep.u.items, gone[0].u.items, gone[1].u.items);
       for(const h of gone){ if(h.where==='b') delete p.board[h.pos]; else p.bench[h.pos]=null; }
-      keep.u.rank++; keep.u.items=items.slice(0,3); for(const it of items.slice(3)) p.items.push(it);
+      keep.u.rank++; keep.u.items=items.slice(0,3); for(const it of items.slice(3)) edGiveItem(p,it);
+      if(keep.u.rank>=4){   // v640 (Phil: "only the big stars get gold and orange"): a big star turns one of its items Radiant
+        const fin=keep.u.items.find(x=>x.f && !x.r && !edCrestRole(x) && !edIsSeed(x));
+        if(fin) fin.r=true; else edGiveItem(p, Object.assign(edRandFinished(),{r:true}));
+        if(!p.ai) edToast('★ Big star! '+(fin?fin.f+' turned Radiant.':'A Radiant item joins your item bench.')); }
       done=true; break; }
     if(!done) break;
   }
 }
-function edSynergy(p){ const seen={}, cnt={}; for(const u of Object.values(p.board)){ if(seen[u.key]) continue; seen[u.key]=1; const r=edRole(u.key); cnt[r]=(cnt[r]||0)+1; }
+function edSynergy(p){ const seen={}, cnt={}; for(const u of Object.values(p.board)){ for(const r of edHeroRoles(u)){ const id=r+'|'+u.key; if(seen[id]) continue; seen[id]=1; cnt[r]=(cnt[r]||0)+1; } }   // v640: distinct heroes per role, crests included
   const out={}; for(const r in cnt){ const s=ED_SYN[r]; if(!s) continue; const tier=cnt[r]>=s.t[1]?2:(cnt[r]>=s.t[0]?1:0); out[r]={n:cnt[r],tier}; } return out; }
 
 /* ------------------------------------------------------------------------------------------ items */
 function edRoundTierBand(r){ if(r<=6) return [0,1]; if(r<=12) return [2,3]; return [4,5]; }   // drops cap at Purple +3: Gold and Orange are upgraded on a big star
-function edRollComp(r){ const b=edRoundTierBand(r); return { c: ED_COMP[edRnd(ED_COMP.length)], q: b[0]+edRnd(b[1]-b[0]+1) }; }
-function edItemName(it){ return it.f ? it.f : it.c; }
-function edItemTier(it){ return ED_TIERS[it.q|0]; }
-function edCombine(a,b){ return { f: ED_FINISHED[edPairKey(a.c,b.c)], a:a.c, b:b.c, q: Math.floor(((a.q|0)+(b.q|0))/2) }; }
+function edRollComp(r){ return { c: ED_COMP[edRnd(ED_COMP.length)] }; }   // v640: one fixed strength - no tier band
+function edItemName(it){ if(!it) return ''; if(it.rm) return 'Remover'; const cr=edCrestRole(it); if(cr) return cr+' Crest'; return (it.r?'Radiant ':'')+(it.f ? it.f : it.c); }
+function edItemTier(it){ if(!it) return ''; return it.rm?'Tool':(it.r?'Radiant':(edCrestRole(it)?'Crest':(it.f?'Finished':'Component'))); }
+function edCombine(a,b){ return { f: ED_FINISHED[edPairKey(a.c,b.c)], a:a.c, b:b.c }; }
 /* put item `it` on hero `h`: a component joins a lone component into a finished item; two identical finished items of
    one tier become the next tier (Phil: "combined to make higher tier equipment"); three items at most */
+/* v640: the reason an equip was refused, for the toast */
+let _edEquipWhy='';
 function edEquip(h,it){
-  if(!h||!it) return false;
-  if(it.c){ const open=h.items.findIndex(x=>x.c); if(open>=0){ h.items[open]=edCombine(h.items[open],it); return true; } }
-  if((it.q|0)>ED_TIER_OPEN && (h.rank|0)<4) return false;   // Gold/Orange: big star only
-  if(it.f){ const twin=h.items.findIndex(x=>x.f===it.f && (x.q|0)===(it.q|0) && (x.q|0)<8 && ((x.q|0)<ED_TIER_OPEN || (h.rank|0)>=4)); if(twin>=0){ h.items[twin]=Object.assign({},h.items[twin],{q:(h.items[twin].q|0)+1}); return true; } }
-  if(h.items.length>=3) return false;
-  h.items.push(it); return true;
+  _edEquipWhy=''; if(!h||!it) return false;
+  if(it.rm){ _edEquipWhy='Drop the remover on a hero to take its items off.'; return false; }
+  if(it.c){ const open=h.items.findIndex(x=>x.c); if(open>=0){ const made=edCombine(h.items[open],it), cr=edCrestRole(made);
+      if(cr && edHeroRoles(Object.assign({},h,{items:h.items.filter((x,i)=>i!==open)})).includes(cr)){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing.'; return false; }
+      h.items[open]=made; return true; } }
+  const cr=edCrestRole(it); if(cr && edHeroRoles(h).includes(cr)){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing.'; return false; }
+  if(h.items.length>=3){ _edEquipWhy='That hero already carries three items.'; return false; }
+  h.items.push(it); return true;   // duplicates are fine and stack (TFT)
 }
+/* v640: the remover takes every item off a hero, intact (finished items stay finished) */
+function edRemoveItems(p,h){ if(!h||!h.items.length) return false; const free=ED_ITEM_BENCH-p.items.length; if(free<h.items.length){ edToast('Make room on the item bench first ('+h.items.length+' slots needed).'); return false; }
+  for(const it of h.items) p.items.push(it); h.items=[]; return true; }
 /* two identical finished items on the item bench also upgrade there */
-function edBenchUpgrade(p){ for(let i=0;i<p.items.length;i++){ const a=p.items[i]; if(!a||!a.f||(a.q|0)>=ED_TIER_OPEN) continue;
-    for(let j=i+1;j<p.items.length;j++){ const b=p.items[j]; if(b&&b.f===a.f&&(b.q|0)===(a.q|0)){ p.items[i]=Object.assign({},a,{q:(a.q|0)+1}); p.items.splice(j,1); return edBenchUpgrade(p); } } } }
+function edBenchUpgrade(p){ edItemsFlush(p); }   // v640: no twin fusing any more - this only moves waiting items onto the bench
 function edLoadCatalog(){ if(ED.cat) return Promise.resolve(ED.cat);
   if(typeof api!=='function' || !(typeof ACC!=='undefined'&&ACC.token)) { ED.cat={}; return Promise.resolve(ED.cat); }
   return api('/api/gear/catalog').then(d=>{ const m={}; ((d&&d.items)||[]).forEach(it=>{ m[it.name]={type:it.activeType||null,params:it.activeParams||null,name:it.active,effect:it.effect||''}; }); ED.cat=m; return m; })
@@ -20391,13 +20420,13 @@ function edStartDraft(){
 }
 function edDraftGive(p,o){ o.taken=p.i; const h=edMakeHero(o.key,1); const slot=edFreeBench(p);
   if(slot>=0){ p.bench[slot]=h; } else edReturnKey(o.key);
-  p.items.push(o.item); edMerge(p); }
+  edGiveItem(p,o.item); edMerge(p); }
 function edDraftAdvance(){
   const D=ED.draft; if(!D) return;
   while(D.turn<D.order.length){ const p=D.order[D.turn];
     const open=D.offers.filter(o=>o.taken==null); if(!open.length) break;
     if(!p.ai){ edRender(); return; }          // your pick: wait for a tap
-    const own=edUnits(p).map(u=>u.key); const pick=open.find(o=>own.includes(o.key)) || open.sort((a,b)=>edCost(b.key)-edCost(a.key)||(b.item.q-a.item.q))[0];
+    const own=edUnits(p).map(u=>u.key); const pick=open.find(o=>own.includes(o.key)) || open.sort((a,b)=>edCost(b.key)-edCost(a.key)||(edItemVal(b.item)-edItemVal(a.item)))[0];
     edDraftGive(p,pick); D.turn++; }
   for(const o of D.offers) if(o.taken==null) edReturnKey(o.key);   // leftovers go back to the pool
   ED.draft=null; ED.phase='plan';
@@ -20487,7 +20516,10 @@ function edUprightClips(g){
 const ED_CAR_TINT = [0xffc23d, 0x5aa9ff, 0xff6b6b, 0x7ee06b, 0xc38bff, 0xff9f43, 0x4de0d2, 0xf2f2f2];   // seat colours (you are gold)
 
 function edCarDrawOffers(r){ const offers=[];
-  for(let i=0;i<8;i++){ const k=edDrawKey(r<=1?3:Math.min(9,3+Math.floor(r/3))); if(!k) continue; offers.push({ key:k, item:edRollComp(r), taken:null, by:null }); }
+  for(let i=0;i<8;i++){ const k=edDrawKey(r<=1?3:Math.min(9,3+Math.floor(r/3))); if(!k) continue;
+    /* v640: components until round 18; from 18 two offers carry finished items; from 24 every offer does and one is Radiant */
+    const it = r>=24 ? Object.assign(edRandFinished(), i===0?{r:true}:{}) : (r>=18 && i<2 ? edRandFinished() : edRollComp(r));
+    offers.push({ key:k, item:it, taken:null, by:null }); }
   return offers; }
 function edStartCarousel(){
   const r=ED.round, offers=(ED._carPre&&ED._carPre.r===r)?ED._carPre.offers:edCarDrawOffers(r); ED._carPre=null;   // the start loader draws round 1's offers early so it can load their art
@@ -20531,7 +20563,7 @@ function edCarStep(dt){
     if(a.p.ai){ // AI: the offer it wants (a copy it owns, else the dearest hero, else the best item); switch if it goes
       let w=(a.want!=null && C.offers[a.want].taken==null)?a.want:null;
       if(w==null){ const own=edUnits(a.p).map(u=>u.key), cand=open(); if(cand.length){
-          const pick=cand.find(z=>own.includes(z.o.key)) || cand.slice().sort((u,v)=>edCost(v.o.key)-edCost(u.o.key)||(v.o.item.q-u.o.item.q))[0];
+          const pick=cand.find(z=>own.includes(z.o.key)) || cand.slice().sort((u,v)=>edCost(v.o.key)-edCost(u.o.key)||(edItemVal(v.o.item)-edItemVal(u.o.item)))[0];
           w=pick.i; } a.want=w; }
       if(w!=null){ const q=edCarOfferPos(C,w); a.tx=q.x; a.ty=q.y; }
     }
@@ -20652,13 +20684,13 @@ function edSellHero(h){ const p=edYou(); if(!h) return;
   for(const [pos,u] of Object.entries(p.board)) if(u===h) delete p.board[pos];
   p.bench=p.bench.map(u=>u===h?null:u);
   p.gold += edCost(h.key)*edCopies(h.rank); edReturnKey(h.key, edCopies(h.rank));
-  for(const it of h.items) p.items.push(it); edBenchUpgrade(p); ED.sel=null; edRender(); }
+  for(const it of h.items) edGiveItem(p,it); ED.sel=null; edRender(); }
 function edHeroAt(p,slot){ if(!slot) return null; if(slot[0]==='b') return p.board[slot.slice(2)]||null; if(slot[0]==='n') return p.bench[+slot.slice(2)]||null; return null; }
 function edSlotOf(p,h){ for(const [pos,u] of Object.entries(p.board)) if(u===h) return 'b:'+pos; const ix=p.bench.indexOf(h); return ix>=0?'n:'+ix:null; }
 function edPutHero(p,h,dest){   // move/swap a hero to a board cell or bench slot
   const from=edSlotOf(p,h); if(!from||from===dest) return false;
   const other=edHeroAt(p,dest);
-  if(dest[0]==='b' && from[0]==='n' && !other && edBoardCount(p)>=p.level){ edToast('Board full at level '+p.level+' — buy XP to field more.'); return false; }
+  if(dest[0]==='b' && from[0]==='n' && !other && edBoardCount(p)>=edFieldCap(p)){ edToast('Board full ('+edFieldCap(p)+') — buy XP to field more.'); return false; }
   const set=(slot,u)=>{ if(slot[0]==='b'){ if(u) p.board[slot.slice(2)]=u; else delete p.board[slot.slice(2)]; } else p.bench[+slot.slice(2)]=u; };
   set(from, other); set(dest, h); return true; }
 
@@ -20688,12 +20720,13 @@ function edAiPlan(p){
     if(!place(melee?[0,1,2,3]:[3,2,1,0],u)){ const ix=p.bench.indexOf(null); if(ix>=0) p.bench[ix]=u; } }
   /* items onto the strongest heroes */
   const heroes=fielded.slice(); p.items.sort((a,b)=>(b.f?1:0)-(a.f?1:0));
-  for(let i=0;i<p.items.length;i++){ const it=p.items[i]; for(const h of heroes){ if(edEquip(h,it)){ p.items.splice(i,1); i--; break; } } }
+  for(let i=0;i<p.items.length;i++){ const it=p.items[i]; if(it.rm) continue; for(const h of heroes){ if(edEquip(h,it)){ p.items.splice(i,1); i--; break; } } }
+  edItemsFlush(p);
 }
 
 /* ------------------------------------------------------------------------------------------ fights */
 function edPower(p){ let pw=0; const syn=edSynergy(p); let st=0; for(const r in syn) st+=syn[r].tier;
-  for(const u of Object.values(p.board)){ pw += Math.pow(edCost(u.key),1.25)*100*ED_RANK_MUL[u.rank]*(1+u.items.reduce((s,it)=>s+(it.f?0.18:0.08)*edTierMul(it.q),0)); }
+  for(const u of Object.values(p.board)){ pw += Math.pow(edCost(u.key),1.25)*100*ED_RANK_MUL[u.rank]*(1+u.items.reduce((s,it)=>s+(it.f?0.18*ED_FIN_BONUS:0.08)*edItemMul(it),0)); }
   return pw*(1+0.06*st); }
 function edPvePower(r){ return 180 + r*95; }
 function edStartFight(){
@@ -20715,7 +20748,17 @@ function edStartFight(){
   }
   edLaunchBattle();
 }
-function edPveReward(p,win){ const n=win?2:1; for(let i=0;i<n;i++) p.items.push(edRollComp(ED.round)); if(win) p.gold+=1; edBenchUpgrade(p); }
+/* v640: monster loot is the SAME for everyone, win or lose (TFT's fair loot); a loss still costs health.
+   r1-3: a component + 1 gold each · r7: 2 components · r14: a component + a remover · r21: a finished item ·
+   r28+: a finished item, 1 in 4 Radiant. Returns the text for the result line. */
+function edPveReward(p,win){ const r=ED.round|0, got=[];
+  const comp=()=>{ const c=edRollComp(r); edGiveItem(p,c); got.push(c.c); };
+  if(r<=3){ comp(); p.gold+=1; got.push('1 gold'); }
+  else if(r<14){ comp(); comp(); }
+  else if(r<21){ comp(); edGiveItem(p,{rm:true}); got.push('a Remover'); }
+  else if(r<28){ const f=edRandFinished(); edGiveItem(p,f); got.push(f.f); }
+  else { const f=edRandFinished(); if(Math.random()<0.25) f.r=true; edGiveItem(p,f); got.push((f.r?'Radiant ':'')+f.f); }
+  return got.join(', '); }
 /* A loss costs the stage's base damage + the rank of every enemy hero still standing. The base grows every 6 rounds
    (TFT-style) so a lobby of eight ends near round 30-35: at a flat 2, a test match on 18 Sep still had all seven AIs
    alive at round 27. */
@@ -20832,7 +20875,7 @@ function edSpawnUnits(){
        That is makeUnit's own quality gate (1 Green, 2 +Blue, 3 +Purple), so the Emberdraft rank IS the quality rank. */
     const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1))}); u._edFig=h.mon?ED_FIG_SCALE:edFig(h); if(!h.mon) u._edStates=edClipStates(h.key);
     if(!h.mon){ const m=ED_RANK_MUL[h.rank||1]; u.maxHp*=m; u.hp=u.maxHp; u.dmg*=m; u.apow=(u.apow||0)*m; u._edRank=h.rank||1; }
-    u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it);
+    u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); u._edRoles=edHeroRoles(h);
     edApplySynergy(u,syn);
     u.hp=u.maxHp; units.push(u); buildFigure(u); return u; };
   for(const s of S.ally) mk(s,'ally',S.allySyn);
@@ -20852,19 +20895,20 @@ function edApplyComp(u,c,k){ k=k||1;
   else if(c==='Armor') u.armorRating=(u.armorRating||0)+25*k; else if(c==='Gloves') u.glyphCrit=(u.glyphCrit||0)+0.15*k;
   else if(c==='Belt') u.maxHp*=1+0.15*k; else if(c==='Ring') u.apow=(u.apow||0)*(1+0.15*k); else if(c==='Amulet') u.energy=Math.min(95,(u.energy||0)+15*k);
   else if(c==='Relic'){ u.maxHp*=1+0.08*k; u.dmg*=1+0.08*k; } }
-function edApplyItem(u,it){ const k=edTierMul(it.q);
+function edApplyItem(u,it){ if(!it||it.rm) return; const k=edItemMul(it);
   if(it.c) return edApplyComp(u,it.c,k);
-  edApplyComp(u,it.a,k); edApplyComp(u,it.b,k);
-  const a=ED.cat&&ED.cat[it.f]; if(a&&a.type){ const pr=Object.assign({},a.params||{}); if(pr.mult) pr.mult*=k; if(pr.dmgMult) pr.dmgMult*=k; if(pr.dur) pr.dur*=Math.min(1.6,1+0.05*(it.q|0));
+  edApplyComp(u,it.a,k*ED_FIN_BONUS); edApplyComp(u,it.b,k*ED_FIN_BONUS);   // v640: a finished item beats its parts
+  if(edCrestRole(it)||edIsSeed(it)) return;   // crests and the Seed carry no active: their power is the role / the extra hero
+  const a=ED.cat&&ED.cat[it.f]; if(a&&a.type){ const pr=Object.assign({},a.params||{}); if(pr.mult) pr.mult*=k; if(pr.dmgMult) pr.dmgMult*=k; if(pr.dur&&it.r) pr.dur*=1.3;
     u._edSkills.push({ name:a.name||it.f, type:a.type, params:pr, used:false }); } }
-function edApplySynergy(u,syn){ if(!syn) return; const role=u.t&&u.t.role, T=r=>(syn[r]&&syn[r].tier)||0;
-  if(T('Tank')&&role==='Tank') u.maxHp*=T('Tank')>=2?1.4:1.2; if(T('Tank')>=2&&role!=='Tank') u.maxHp*=1.1;
-  if(T('Warrior')&&role==='Warrior') u.dmg*=T('Warrior')>=2?1.35:1.15;
-  if(T('Bruiser')&&role==='Bruiser') u.lifestealStat=(u.lifestealStat||0)+(T('Bruiser')>=2?0.25:0.10);
-  if(T('Brute')&&role==='Brute') u._edStun=T('Brute')>=2?0.20:0.10;
-  if(T('Mage')&&role==='Mage') u.apow=(u.apow||0)*(T('Mage')>=2?1.5:1.2);
-  if(T('Marksman')&&role==='Marksman') u.atkInterval/=(T('Marksman')>=2?1.45:1.2);
-  if(T('Assassin')&&role==='Assassin'){ u.glyphCrit=(u.glyphCrit||0)+(T('Assassin')>=2?0.35:0.15); if(T('Assassin')>=2) u._edLeap=true; }
+function edApplySynergy(u,syn){ if(!syn) return; const roles=u._edRoles||[u.t&&u.t.role], is=r=>roles.includes(r), T=r=>(syn[r]&&syn[r].tier)||0;   // v640: a crest makes the hero count as that role too
+  if(T('Tank')&&is('Tank')) u.maxHp*=T('Tank')>=2?1.4:1.2; if(T('Tank')>=2&&!is('Tank')) u.maxHp*=1.1;
+  if(T('Warrior')&&is('Warrior')) u.dmg*=T('Warrior')>=2?1.35:1.15;
+  if(T('Bruiser')&&is('Bruiser')) u.lifestealStat=(u.lifestealStat||0)+(T('Bruiser')>=2?0.25:0.10);
+  if(T('Brute')&&is('Brute')) u._edStun=T('Brute')>=2?0.20:0.10;
+  if(T('Mage')&&is('Mage')) u.apow=(u.apow||0)*(T('Mage')>=2?1.5:1.2);
+  if(T('Marksman')&&is('Marksman')) u.atkInterval/=(T('Marksman')>=2?1.45:1.2);
+  if(T('Assassin')&&is('Assassin')){ u.glyphCrit=(u.glyphCrit||0)+(T('Assassin')>=2?0.35:0.15); if(T('Assassin')>=2) u._edLeap=true; }
   if(T('Support')) u._edShield=T('Support')>=2?0.25:0.10; }
 /* called from updateBattle every tick in this mode */
 /* v606 (Phil, 18 Sep: "after like round 5 the lag was really bad"). Battle art is cached for the whole session - right for a
@@ -20920,7 +20964,7 @@ function edEndBattle(res){
   const survivors=units.filter(o=>o.alive&&o.team==='enemy'&&!o._summon).map(o=>({rank:o._edRank||1}));
   const mine=units.filter(o=>o.alive&&o.team==='ally'&&!o._summon).map(o=>({rank:o._edRank||1}));
   let line='';
-  if(ED.opp.pve){ edPveReward(you, won); line = won ? 'Wave cleared — 2 components and 1 gold.' : (draw ? '⏱ Time ran out — the wave held. 1 component.' : 'The wave held — 1 component.'); if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
+  if(ED.opp.pve){ const loot=edPveReward(you, won); line = (won ? 'Wave cleared' : (draw ? '⏱ Time ran out — the wave held' : 'The wave held'))+' — loot: '+loot+'.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
     else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1;
@@ -20996,6 +21040,14 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .carTapFx{position:absolute;width:30px;height:14px;margin:-7px 0 0 -15px;border:2px solid #ffc766;border-radius:50%;pointer-events:none;box-shadow:0 0 10px rgba(255,160,50,.8);animation:edTapFx .65s ease-out forwards;z-index:3}
 @keyframes edTapFx{from{transform:scale(.4);opacity:1}to{transform:scale(1.5);opacity:0}}
 #edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
+#edRoot .itemBench{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;border-radius:10px;background:rgba(10,14,22,.62);border:1px solid rgba(255,210,140,.28);pointer-events:auto}   /* v640 */
+#edRoot .ibSlot{display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);cursor:grab;touch-action:none}
+#edRoot .ibSlot.empty{cursor:default;border-style:dashed;opacity:.55}
+#edRoot .ibSlot.sel{outline:2px solid #ffd45e;box-shadow:0 0 10px rgba(255,212,94,.7)}
+#edRoot .ibSlot img,#edRoot .ibSlot .edArt{pointer-events:none}
+#edRoot .ibWait{font-size:10px;font-weight:800;color:#ffd45e}
+#edRoot .recipe{display:grid;grid-template-columns:auto 1fr;gap:1px 5px;margin-top:3px;font-size:9.5px;color:#aab6c6}
+#edRoot .recipe .own{color:#7fe0a3;font-weight:700}
 #edRoot .ledgeItem.sel{transform:translate(-50%,-62%) scale(1.18)}
 #edRoot .ledgeItem img,#edRoot .badge img,#edDrag img{pointer-events:none;display:block}
 #edRoot .item{font-size:15px;width:30px;height:30px;border-radius:7px;background:rgba(23,33,54,.9);border:2px solid #9aa4b2;display:flex;align-items:center;justify-content:center;cursor:grab;position:relative;flex:none}
@@ -21021,7 +21073,7 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edDrag{position:fixed;z-index:13450;pointer-events:none;width:44px;height:52px;border-radius:8px;background:rgba(20,29,46,.8) no-repeat;border:2px solid #ffd45e;opacity:.92;display:flex;align-items:center;justify-content:center;font-size:20px}
 #edRoot.full .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;overflow:auto}
 #edRoot.full .card{height:auto;min-height:60px}`; document.head.appendChild(s); }
-function edItemChip(it){ const col=ED_TIER_COL[it.q|0]; const ic=it.c?ED_COMP_IC[it.c]:(ED_COMP_IC[it.a]||'★'); return {col,ic}; }
+function edItemChip(it){ const col=edItemCol(it); const ic=it.c?ED_COMP_IC[it.c]:(ED_COMP_IC[it.a]||'★'); return {col,ic}; }
 /* the hero's idle sheet as a CSS sprite; edSprTick steps every .spr on screen */
 function edSprA(k){ return (typeof BATTLE_ANIM!=='undefined'&&BATTLE_ANIM[k]&&(BATTLE_ANIM[k].idle||BATTLE_ANIM[k].walk))||null; }
 function edSprCss(k){ const A=edSprA(k); if(!A) return `background-image:url('${edPortrait(k)}');background-size:cover;background-position:center`;
@@ -21101,15 +21153,18 @@ function edRender(){
     if(ED.sel&&ED.sel.hero===hh.id){ const f=edScreen(u.x,u.y); h+=`<div class="ring" style="left:${f.x}px;top:${f.y}px"></div>`; } }
   h+='<div class="bar topb">'
    +`<span class="pill">Round <b>${r}</b> · next: ${edIsPve(r)?'monster wave':'a rival'}</span><span class="pill gold">🪙 ${you.gold}</span>`
-   +`<span class="pill">Lv <b>${you.level}</b>${you.level<9?` · ${you.xp}/${need}`:''} · ${edBoardCount(you)}/${you.level} fielded</span>`
+   +`<span class="pill">Lv <b>${you.level}</b>${you.level<9?` · ${you.xp}/${need}`:''} · ${edBoardCount(you)}/${edFieldCap(you)} fielded</span>`
    +`<button class="btnx" data-a="xp" ${you.level>=9?'disabled':''}>+4 XP · 🪙4</button><span class="pill hp">❤ ${Math.max(0,you.hp)}</span><span style="flex:1"></span>`
    +`<button class="btnx" data-a="quit">Leave</button><button class="btnx ready" data-a="ready">Fight ▶</button></div>`;
-  { /* v607: your items lie along the front lip of your bench ledge, left to right, one pad-width apart */
-    const a=edArena(), cv=(renderer&&renderer.domElement)?renderer.domElement.getBoundingClientRect():{left:0,top:0,width:innerWidth,height:innerHeight};
-    const n=you.items.length, x0=a.near.x0, x1=a.near.x1, step=(x1-x0)/Math.max(ED_BENCH-1,n-1), lip=(a.lipY!=null?a.lipY:a.near.y+0.05);
-    const px=Math.round(Math.max(18,Math.min(34, step*cv.width*1.05)));
-    you.items.forEach((it,ix)=>{ const sx=cv.left+(x0+step*ix)*cv.width, sy=cv.top+lip*cv.height;
-      h+=`<div class="ledgeItem ${ED.sel&&ED.sel.item===ix?'sel':''}" data-item="${ix}" title="${edEsc(edItemName(it)+' ('+edItemTier(it)+')')}" style="left:${sx}px;top:${sy}px;width:${px}px;height:${px}px">${edItemImg(it,px)}</div>`; }); }
+  { /* v640 (Phil chose "Left side, 10 slots"): the item bench is a 10-slot column down the left edge, like TFT. Empty slots show
+       as sockets; items waiting for a free slot are counted underneath. */
+    const top=40, bot=Math.max(top+160, innerHeight-70), slot=Math.max(20,Math.min(32,Math.floor((bot-top)/ED_ITEM_BENCH)-3));
+    h+=`<div class="itemBench" style="top:${top}px;left:max(4px,env(safe-area-inset-left));width:${slot+8}px">`;
+    for(let ix=0; ix<ED_ITEM_BENCH; ix++){ const it=you.items[ix];
+      h+= it ? `<div class="ibSlot ledgeItem2 ${ED.sel&&ED.sel.item===ix?'sel':''}" data-item="${ix}" title="${edEsc(edItemName(it)+' ('+edItemTier(it)+')')}" style="width:${slot}px;height:${slot}px">${edItemImg(it,slot-4)}</div>`
+             : `<div class="ibSlot empty" style="width:${slot}px;height:${slot}px"></div>`; }
+    const w=(you.itemsWait||[]).length; if(w) h+=`<div class="ibWait">+${w}</div>`;
+    h+='</div>'; }
   const selH=(ED.sel&&ED.sel.hero)?edUnits(you).find(u=>u.id===ED.sel.hero):null, selI=(ED.sel&&ED.sel.item!=null)?you.items[ED.sel.item]:null;
   if(selH||selI){ h+=edInfoPanel(selH,selI); } else {   // v612: a tapped hero (or ledge item) shows its stats on the right
   h+='<div class="bar sidep"><div class="panel">';
@@ -21131,12 +21186,20 @@ function edRender(){
    click the armor to see its stats"): the hero panel. Its numbers are the fight's own - a throwaway unit built exactly as
    edSpawnUnits builds one (rank multiplier, every item, your current synergies) and never added to the battle. */
 function edHeroStats(h){ try{ const u=makeUnit(h.key,'ally',0,0,ED_LEVEL,{rank:Math.max(1,Math.min(3,h.rank||1))}); const m=ED_RANK_MUL[h.rank||1]||1;
-    u.maxHp*=m; u.dmg*=m; u.apow=(u.apow||0)*m; u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); edApplySynergy(u, edSynergy(edYou())); return u; }catch(e){ return null; } }
-function edItemInfoHtml(it){ if(!it) return ''; const k=edTierMul(it.q), col=ED_TIER_COL[it.q|0]||'#9aa4b2';
+    u.maxHp*=m; u.dmg*=m; u.apow=(u.apow||0)*m; u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); u._edRoles=edHeroRoles(h); edApplySynergy(u, edSynergy(edYou())); return u; }catch(e){ return null; } }
+function edItemInfoHtml(it){ if(!it) return ''; const col=edItemCol(it), k=edItemMul(it)*(it.f?ED_FIN_BONUS:1);
   const line=c=>(ED_COMP_TXT[c]||c).replace(/(\d+)/,n=>String(Math.round(+n*k)));
-  let h=`<div class="t" style="color:${col}">${edEsc(edItemName(it))}</div><div style="color:${col};font-size:9.5px">${edEsc(edItemTier(it))} · ×${k.toFixed(1)} stats</div>`;
-  if(it.c) h+=`<div>${edEsc(line(it.c))}</div><div style="color:#8b98a9">Component — combine two to forge a finished item.</div>`;
+  let h=`<div class="t" style="color:${col}">${edEsc(edItemName(it))}</div><div style="color:${col};font-size:9.5px">${edEsc(edItemTier(it))}${it.r?' · ×2 stats and active':''}</div>`;
+  if(it.rm) return h+`<div style="color:#aab6c6">Drop it on a hero to take all its items off, intact, back to the item bench.</div>`;
+  if(it.c){ h+=`<div>${edEsc(line(it.c))}</div><div style="color:#8b98a9">Put a second component on the same hero to forge:</div>`;
+    /* v640: the recipe grid - what this component makes with each of the nine; the ones you own are green */
+    const you=edYou(), own=new Set(you.items.filter(x=>x.c).map(x=>x.c)); for(const u of edUnits(you)) for(const x of (u.items||[])) if(x.c) own.add(x.c);
+    h+='<div class="recipe">'; for(const c of ED_COMP){ const f=ED_FINISHED[edPairKey(it.c,c)], cr=(it.c==='Relic'&&c!=='Relic')?ED_CREST[c]:((c==='Relic'&&it.c!=='Relic')?ED_CREST[it.c]:null);
+      h+=`<span class="${own.has(c)?'own':''}">+ ${edEsc(c)}</span><span class="${own.has(c)?'own':''}">${edEsc(cr?cr+' Crest':(it.c==='Relic'&&c==='Relic'?'Worldroot Seed (+1 hero)':f))}</span>`; }
+    return h+'</div>'; }
   else { h+=`<div>${edEsc(line(it.a))}</div><div>${edEsc(line(it.b))}</div>`;
+    const cr=edCrestRole(it); if(cr) return h+`<div style="color:#7fd8ff;margin-top:2px">✦ Counts as a ${edEsc(cr)} for synergies.</div>`;
+    if(edIsSeed(it)) return h+`<div style="color:#7fd8ff;margin-top:2px">✦ +1 hero on the board while its holder is fielded.</div>`;
     const A=ED.cat&&ED.cat[it.f], ds=A&&(A.effect||A.desc); if(A&&(A.name||ds)) h+=`<div style="color:#ffd45e;margin-top:2px">✦ ${edEsc(A.name||'Active')}</div>${ds?`<div style="color:#aab6c6">${edEsc(ds)}</div>`:''}`; }   // v638: the catalog stores the text as "effect" (edLoadCatalog) - reading "desc" showed only the name
   return h; }
 function edInfoPanel(hero,item){ let h='<div class="bar sidep heroP"><div class="panel">';
@@ -21152,8 +21215,8 @@ function edInfoPanel(hero,item){ let h='<div class="bar sidep heroP"><div class=
   } else if(item){ h+=`<div class="hpHead"><div style="flex:none">${edItemImg(item,30)}</div><div style="min-width:0"><b>Equipment</b><small>tap a hero to equip</small></div><button class="hpX" data-a="desel" aria-label="Close">✕</button></div><div class="hpInfo" style="border:0;margin:0;padding:0">${edItemInfoHtml(item)}</div>`; }
   return h+'</div></div>'; }
 function edSelInfo(){ const you=edYou(); if(!ED.sel) return 'Drag heroes on the field to place them · drag onto the shop to sell · drag equipment onto a hero.';
-  if(ED.sel.hero){ const h=edUnits(you).find(u=>u.id===ED.sel.hero); if(!h) return ''; return edName(h.key)+' · '+edRole(h.key)+' · Rank '+ED_RANK_LBL[h.rank]+' ('+ED_RANK_KIT[h.rank]+')'+(h.items.length?' · '+h.items.map(it=>edItemName(it)+' ('+edItemTier(it)+')').join(', '):'')+' — tap a spot to move'; }
-  if(ED.sel.item!=null){ const it=you.items[ED.sel.item]; if(!it) return ''; return edItemName(it)+' ('+edItemTier(it)+') · '+(it.c?ED_COMP_TXT[it.c]+' — two components make a finished item':'finished — two of the same tier make the next tier')+' · tap a hero'; }
+  if(ED.sel.hero){ const h=edUnits(you).find(u=>u.id===ED.sel.hero); if(!h) return ''; return edName(h.key)+' · '+edRole(h.key)+' · Rank '+ED_RANK_LBL[h.rank]+' ('+ED_RANK_KIT[h.rank]+')'+(h.items.length?' · '+h.items.map(it=>edItemName(it)).join(', '):'')+' — tap a spot to move'; }
+  if(ED.sel.item!=null){ const it=you.items[ED.sel.item]; if(!it) return ''; return edItemName(it)+' · '+(it.rm?'drop on a hero to take its items off':(it.c?ED_COMP_TXT[it.c]+' — two components make a finished item':'finished'))+' · tap a hero'; }
   return ''; }
 function edDraftHtml(){ const D=ED.draft, p=D.order[D.turn];
   let h=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="pill">Round <b>${ED.round}</b> · The Ember Draft</span><span class="pill">Lowest health picks first</span><span style="flex:1"></span><button class="btnx" data-a="quit">Leave</button></div>`;
@@ -21217,7 +21280,10 @@ function edWireRoot(root){
 function edDrop(src,at){
   const you=edYou(); ED.msg='';
   if(src.item!=null){ const it=you.items[src.item];
-    if(it && at.hero){ const h=edUnits(you).find(u=>u.id===at.hero); if(h && edEquip(h,it)){ you.items.splice(src.item,1); } else edToast(h && (it.q|0)>ED_TIER_OPEN && (h.rank|0)<4 ? 'Gold and Orange items need a big-star hero (merge three Rank III).' : 'That hero already carries three items.'); }
+    if(it && at.hero){ const h=edUnits(you).find(u=>u.id===at.hero);
+      if(h && it.rm){ you.items.splice(src.item,1); if(!edRemoveItems(you,h)) you.items.splice(src.item,0,it); }   // v640: the remover
+      else if(h && edEquip(h,it)){ you.items.splice(src.item,1); } else edToast(_edEquipWhy||'That hero already carries three items.'); }
+    edItemsFlush(you);
     ED.sel=null; return edRender(); }
   if(src.hero){ const h=edUnits(you).find(u=>u.id===src.hero); if(!h){ ED.sel=null; return edRender(); }
     if(at.sell){ return edSellHero(h); }
