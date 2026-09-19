@@ -405,6 +405,8 @@
   .ascf-st.onb{bottom:9.5%;height:12%}
   /* v617 banners: 1000x400 art whose BAR sits in rows 120-280 (bannerize.py), so every rarity lines up; flourishes overhang */
   .rbn span{max-width:80%} .rbn.long span{font-size:clamp(6px,7.6cqw,12px)}
+  .loreBn{position:relative;width:min(300px,86%);aspect-ratio:2.5/1;margin:-4px auto 6px}   /* v656: the Lore tab's name banner */
+  .loreBn .rbn{inset:0;bottom:0;height:100%} .loreBn .rbn span{font-size:clamp(12px,10cqw,24px)} .loreBn .rbn.long span{font-size:clamp(11px,8.2cqw,20px)}
   .bl-card .rbn{height:27%;bottom:-10.5%} .bl-card .ascf-st.onb{bottom:7.5%;height:9%}
   /* v619 (Phil: "center of the banner should be on the bottom line of the hero frame, the stars … on the very top of the banner"):
      the banner hangs half below the tile, so the tile no longer clips; the art rounds its own corners instead */
@@ -17075,8 +17077,7 @@ function renderHeroDetail(){
     const L=HERO_LORE[key]||{title:'',text:'Lore coming soon.'};
     const paras=L.text.split('\n\n').map(p=>`<p style="margin:0 0 10px">${escapeHTML(p)}</p>`).join('');
     tab=`<div class="panel" style="line-height:1.62">
-        ${myth?`<div style="text-align:center;color:#ffcf40;font-weight:800;letter-spacing:1px;font-size:11px;margin-bottom:4px">✦ MYTHICAL HERO ✦</div>`:''}
-        <div style="font-size:16px;font-weight:800;color:${myth?'#ffcf40':gi.col};text-align:center;margin-bottom:2px">${escapeHTML(t.name)}</div>
+        <div class="loreBn">${rarityBannerHtml(key)}</div>   <!-- v656 (Phil: "remove this mythical word ... Instead make their name with the banner of their quality"): the name on its rarity banner -->
         ${L.title?`<div style="font-size:12px;font-style:italic;color:#c9a35e;text-align:center;margin-bottom:12px">“${escapeHTML(L.title)}”</div>`:''}
         <div style="font-size:12.5px;color:#d3dced">${paras}</div>
         ${myth?`<div style="font-size:11px;color:#8b98a9;border-top:1px solid #2a3550;margin-top:10px;padding-top:8px">✦ Mythical heroes are obtained only through special offers.</div>`:''}
@@ -19746,7 +19747,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789839607000';
+const BUILD_ID = '1789840807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
