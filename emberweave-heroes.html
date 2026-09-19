@@ -11378,6 +11378,7 @@ function edBadgeAt(u, x, y){ let el=u._badgeEl;
 const ED_IDLE_FPS_MUL=0.6;
 let _olPrev=0, _olDt=0;
 function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
+  if(state==='battle' && typeof CUR!=='undefined' && CUR && CUR.mode==='emberdraft' && window.ED && ED.active){ try{ edAvFrame(_olDt); }catch(e){} }   /* v648: your avatar + loot orbs */
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
   { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
   updateBattleBanner();
@@ -19718,7 +19719,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789830007000';
+const BUILD_ID = '1789831207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20426,7 +20427,7 @@ window.openEmberdraft=openEmberdraft;
 
 function edNewGame(attemptId){
   edPoolInit(); _edUid=1;
-  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[], spec:null, _mutual:false, match:(ED.match|0)+1 });   // v644: + a fresh boss order and no leftovers from the last match
+  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[], spec:null, _mutual:false, match:(ED.match|0)+1, orbs:[], av:null, drops:null, pveLootAll:null, fx:[] });   // v644: + a fresh boss order and no leftovers from the last match
   for(let i=0;i<8;i++) ED.players.push(edNewPlayer(i));
   { const order=ED.players.map((_,i)=>i).sort(()=>Math.random()-0.5); ED.players.forEach((p,i)=>{ p.arenaIx=order[i]; }); ED.arena=null; ED._lay=null; }   // v605: one arena per seat
   edLoadCatalog();
@@ -20529,7 +20530,7 @@ const ED_CAR = {
   firstAt:1.5,      // s before the first pair is released
   gap:3.2,          // s between pairs
   grace:8,          // s after the last release before the rest are dealt out
-  speed:0.20,       // avatar speed, fractions of the view width per second (v610 Phil: "moves way too fast" - was 0.36)
+  speed:0.10,       // avatar speed, fractions of the view width per second (v610 Phil: "moves way too fast" - was 0.36; v648 Phil: "the avatars are too fast. cut their speed in half" - was 0.20)
   ySquash:0.62,     // vertical movement/reach counts less (the floor recedes)
   reach:0.034       // pickup distance, fractions of the view width
 };
@@ -20586,6 +20587,7 @@ function edCarDrawOffers(r){ const offers=[];
     offers.push({ key:k, item:it, taken:null, by:null }); }
   return offers; }
 function edStartCarousel(){
+  try{ edAvHide(); }catch(e){}   /* v648: the carousel draws its own avatars */
   const r=ED.round, offers=(ED._carPre&&ED._carPre.r===r)?ED._carPre.offers:edCarDrawOffers(r); ED._carPre=null;   // the start loader draws round 1's offers early so it can load their art
   const order=edAlive().slice().sort((a,b)=>(a.hp-b.hp)||(Math.random()-0.5));
   /* v612 (Phil: "Some ai was able to move before we were released in the start carousel"): like TFT, the OPENING carousel
@@ -20745,7 +20747,7 @@ function edCarGfxDraw(dt, R0){
   const k=w/20, sinE=Math.sin(ED_CAR_ELEV), cosE=Math.cos(ED_CAR_ELEV), halfW=10, halfH=h/(2*k);
   const cam=G.cam; cam.left=-halfW; cam.right=halfW; cam.top=halfH; cam.bottom=-halfH; cam.updateProjectionMatrix();
   cam.position.set(0, 100*sinE, 100*cosE); cam.lookAt(0,0,0);
-  if(G.ok){ const targetPx=0.07*h; G.headPx=targetPx+8;   // Phil: "make the avatars smaller" / "more like half what they are" (was 0.14)
+  if(G.ok){ const targetPx=ED_AV_PX*h; G.headPx=targetPx+8;   /* v648 (Phil: "increase their size 25%"): 0.07 -> 0.0875 of the view height */   // Phil: "make the avatars smaller" / "more like half what they are" (was 0.14)
     for(const v of G.av){ const a=v.a; v.m.scale.setScalar(targetPx/(v.A.height*cosE*k));
       v.m.position.set((a.x-0.5)*w/k, 0, (a.y-0.5)*h/(k*sinE)); v.m.rotation.y=a.face||0;
       if(a.moving!==v.walking){ v.walking=a.moving; const from=a.moving?v.idle:v.walk, to=a.moving?v.walk:v.idle; to.reset().play(); from.crossFadeTo(to,0.18,false); }
@@ -20756,6 +20758,85 @@ function edCarGfxStop(){ const G=ED._carG; if(!G) return; ED._carG=null;
   try{ if(G.av) G.av.forEach(v=>{ v.mixer.stopAllAction(); v.m.traverse(o=>{ if(o.isMesh&&o.material) o.material.dispose(); }); }); }catch(e){}
   try{ G.rr&&G.rr.dispose(); G.rr&&G.rr.forceContextLoss&&G.rr.forceContextLoss(); }catch(e){}
   try{ G.cv&&G.cv.remove(); }catch(e){} }
+
+/* ------------------------------------------------------------------------------------------ v648: your avatar on the board + loot orbs
+   Phil, 19 Sep 2026: "make avatars in all other screens so you can move around and collect awards" / "make monster drop items and
+   gold so you can collect". Like TFT's Little Legend: YOUR avatar stands on the arena during planning and fights; tap an orb or empty
+   ground and it walks there (fights: any tap on the field). Orbs are field points drawn on the overlay; touching one collects it.
+   Orbs never get lost: anything still on the floor is collected when the next fight starts (edCollectAll in edLaunchBattle).
+   The avatar is drawn on its OWN small canvas that follows it (not a full-screen layer), one renderer per match. */
+const ED_AV_PX = 0.0875;          // avatar height, fraction of the view height (carousel and board; v648 +25% from 0.07)
+const ED_AV_SPEED = 0.10;         // board avatar speed, fractions of the field width per second (matches the halved carousel speed)
+const ED_ORB_REACH = 48;          // field units: touching distance for a pickup
+function edScreenToField(sx,sy){ const r=edCarRect(); if(!r||!r.width) return null; const f=edImgToField((sx-r.left)/r.width,(sy-r.top)/r.height);
+  return (f && isFinite(f.x) && isFinite(f.y)) ? f : null; }
+function edTapFx(sx,sy){ const root=document.getElementById('edRoot'); if(!root||root.style.display==='none') return; const fx=document.createElement('div'); fx.className='carTapFx';
+  fx.style.left=sx+'px'; fx.style.top=sy+'px'; root.appendChild(fx); setTimeout(()=>{ try{ fx.remove(); }catch(e){} },650); }
+function edAvEnsure(){ if(!ED.av){ let f=null; try{ f=edBenchPos(ED_BENCH-1); }catch(e){} if(!f) f={x:FW*0.85,y:FD*0.8};
+    ED.av={ x:Math.min(FIELD_X_MAX,f.x+40), y:Math.max(FIELD_Y_MIN,f.y-50), tx:null, ty:null, face:0, moving:false }; } return ED.av; }
+function edAvGo(x,y){ const a=edAvEnsure(); a.tx=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,x)); a.ty=Math.max(FIELD_Y_MIN,Math.min(FD-60,y)); }
+function edDropOrb(x,y,d){ (ED.orbs||(ED.orbs=[])).push({ x:Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,x)), y:Math.max(FIELD_Y_MIN,Math.min(FD-60,y)), d, t:performance.now() }); }
+function edDropRest(){ const D=ED.drops||[]; ED.drops=null; D.forEach((d,i)=>{ let c=null; try{ c=edCellPos('enemy',1,Math.min(ED_COLS-1,3+i*2)); }catch(e){} if(!c) c={x:FW*(0.3+0.08*i),y:FD*0.35}; edDropOrb(c.x,c.y,d); }); }
+function edRenderSoon(){ clearTimeout(ED._rsT); ED._rsT=setTimeout(()=>{ if(ED.active && ED.phase==='plan') edRender(); },150); }
+function edCollectOrb(o,quiet){ const you=edYou(); edGiveDrop(you,o.d); edItemsFlush(you);
+  (ED.fx||(ED.fx=[])).push({ x:o.x, y:o.y, txt:edLootName(o.d), col:o.d.gold?'#ffd45e':(edItemCol(o.d.it)||'#9fd8ff'), t:performance.now() });
+  if(!quiet && ED.phase==='plan') edRenderSoon(); }
+function edCollectAll(){ const os=ED.orbs||[]; ED.orbs=[]; os.forEach(o=>edCollectOrb(o,true)); if(os.length && ED.phase==='plan') edRender(); }
+function edOrbAtScreen(sx,sy){ let best=null, bd=30; for(const o of (ED.orbs||[])){ const q=edScreen(o.x,o.y,0.45), d=Math.hypot(q.x-sx,q.y-sy); if(d<bd){ bd=d; best=o; } } return best; }
+function edAvStep(dt){ const a=ED.av; if(!a) return;
+  if(a.tx!=null){ const dx=a.tx-a.x, dy=a.ty-a.y, d=Math.hypot(dx,dy), step=ED_AV_SPEED*(FIELD_X_MAX-FIELD_X_MIN)*dt;
+    if(d<=Math.max(1,step)){ a.x=a.tx; a.y=a.ty; a.tx=a.ty=null; a.moving=false; } else { a.x+=dx/d*step; a.y+=dy/d*step; a.moving=true; a.face=Math.atan2(dx,dy); } }
+  else a.moving=false;
+  for(let i=(ED.orbs||[]).length-1;i>=0;i--){ const o=ED.orbs[i]; if(Math.hypot(o.x-a.x,o.y-a.y)<ED_ORB_REACH){ ED.orbs.splice(i,1); edCollectOrb(o); } } }
+const _edOrbImg={};
+function edOrbIcon(it){ const u=edItemArt(it); if(!u) return null; let im=_edOrbImg[u]; if(!im){ im=_edOrbImg[u]=new Image(); im.src=u; } return (im.complete&&im.naturalWidth)?im:null; }
+function edOrbsDraw(){ const now=performance.now();
+  for(const o of (ED.orbs||[])){ const p=project(o.x,o.y,0.45); if(!p.vis) continue; const y=p.y+Math.sin(now/330+o.x*0.013)*3, r=12, col=o.d.gold?'#ffd45e':(edItemCol(o.d.it)||'#9fd8ff');
+    octx.save(); octx.shadowColor=col; octx.shadowBlur=14; octx.fillStyle='rgba(18,12,8,.78)'; octx.beginPath(); octx.arc(p.x,y,r,0,7); octx.fill();
+    octx.shadowBlur=0; octx.lineWidth=2; octx.strokeStyle=col; octx.stroke();
+    const im=o.d.it&&!o.d.it.rm?edOrbIcon(o.d.it):null;
+    if(im) octx.drawImage(im,p.x-r*0.8,y-r*0.8,r*1.6,r*1.6);
+    else { octx.textAlign='center'; octx.textBaseline='middle'; octx.font=(r*1.2|0)+'px sans-serif'; octx.fillText(o.d.gold?'🪙':(o.d.it&&o.d.it.rm?'🧲':'◆'),p.x,y+1); }
+    octx.restore(); }
+  const fx=ED.fx||[]; for(let i=fx.length-1;i>=0;i--){ const f=fx[i], k=(now-f.t)/1100; if(k>=1){ fx.splice(i,1); continue; }
+    const p=project(f.x,f.y,0.6); octx.save(); octx.globalAlpha=1-k; octx.textAlign='center'; octx.font='800 13px sans-serif'; octx.lineWidth=3; octx.strokeStyle='rgba(0,0,0,.85)';
+    octx.strokeText(f.txt,p.x,p.y-20-k*26); octx.fillStyle=f.col; octx.fillText(f.txt,p.x,p.y-20-k*26); octx.restore(); } }
+/* the avatar's own small canvas: an orthographic camera at the carousel's 35-degree angle, framing just the model */
+function edAvGfxEnsure(){ let G=ED._avG; if(G) return G; G=ED._avG={ ok:false, S:0 };
+  try{ const cv=document.createElement('canvas'); cv.id='edAvCv'; cv.style.cssText='position:fixed;left:0;top:0;pointer-events:none;z-index:13395;will-change:transform;display:none';
+    document.body.appendChild(cv); G.cv=cv;
+    const rr=new THREE.WebGLRenderer({ canvas:cv, alpha:true, antialias:true }); rr.setClearColor(0x000000,0); try{ rr.outputEncoding=THREE.sRGBEncoding; }catch(e){}
+    rr.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); G.rr=rr;
+    G.scene=new THREE.Scene(); G.scene.add(new THREE.HemisphereLight(0xfff1dc,0x3a3028,0.85)); const dl=new THREE.DirectionalLight(0xffe2b8,0.9); dl.position.set(4,10,7); G.scene.add(dl);
+    G.cam=new THREE.OrthographicCamera(-1.1,1.1,1.6,-0.6,0.1,200); G.cam.position.set(0,60*Math.sin(ED_CAR_ELEV),60*Math.cos(ED_CAR_ELEV)); G.cam.lookAt(0,0,0);
+    edLoadAvatarModel(edAvatarFor(edYou())).catch(()=>edLoadAvatarModel(ED_AVATARS[ED_AVATARS.length-1])).then(L=>{ if(ED._avG!==G||!L) return; const g=L.g, A=L.A;
+      const m=THREE.SkeletonUtils.clone(g.scene); m.traverse(o=>{ if(o.isMesh&&o.material) o.material=o.material.clone(); }); m.scale.setScalar(1/(A.height||1.7));
+      const mixer=new THREE.AnimationMixer(m), clip=n=>THREE.AnimationClip.findByName(g.animations,n);
+      const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
+      idle.play(); walk.timeScale=0.8; G.scene.add(m); Object.assign(G,{ m, mixer, idle, walk, walking:false, ok:true });
+      try{ G.rr.compile(G.scene,G.cam); m.traverse(o=>{ const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[]; for(const mm of ms) for(const k of ['map','normalMap','emissiveMap']) if(mm[k]) G.rr.initTexture(mm[k]); }); }catch(e){} });
+  }catch(e){ try{ G.cv&&G.cv.remove(); }catch(_){} G.dead=true; }
+  return G; }
+function edAvHide(){ const G=ED._avG; if(G&&G.cv) G.cv.style.display='none'; }
+function edAvGfxStop(){ const G=ED._avG; if(!G) return; ED._avG=null;
+  try{ if(G.mixer) G.mixer.stopAllAction(); if(G.m) G.m.traverse(o=>{ if(o.isMesh&&o.material) o.material.dispose(); }); }catch(e){}
+  try{ G.rr&&G.rr.dispose(); G.rr&&G.rr.forceContextLoss&&G.rr.forceContextLoss(); }catch(e){} try{ G.cv&&G.cv.remove(); }catch(e){} }
+function edAvFrame(dt){
+  if(!(ED.active && (ED.phase==='plan'||ED.phase==='fight'))){ edAvHide(); return; }
+  edAvEnsure(); edAvStep(dt||0.016); edOrbsDraw();
+  const G=edAvGfxEnsure(); if(!G||G.dead||!G.ok) return;
+  const a=ED.av, R=edCarRect(), p=edScreen(a.x,a.y), S=Math.max(24,Math.round(ED_AV_PX*R.height*2.2/Math.cos(ED_CAR_ELEV)));
+  if(G.S!==S){ G.S=S; G.rr.setSize(S,S,true); }
+  G.cv.style.display=''; G.cv.style.transform='translate3d('+(p.x-S/2).toFixed(1)+'px,'+(p.y-S*1.6/2.2).toFixed(1)+'px,0)';
+  G.m.rotation.y=a.face||0;
+  if(a.moving!==G.walking){ G.walking=a.moving; const from=a.moving?G.idle:G.walk, to=a.moving?G.walk:G.idle; to.reset().play(); from.crossFadeTo(to,0.18,false); }
+  G.mixer.update(dt||0.016); G.rr.render(G.scene,G.cam); }
+/* fights: a tap on the field (not a button) sends the avatar there; a drag (pan / pinch) doesn't */
+if(!window._edAvTapWired){ window._edAvTapWired=true; let _d=null;
+  window.addEventListener('pointerdown',e=>{ _d=(window.ED&&ED.active&&ED.fighting&&CUR&&CUR.mode==='emberdraft')?{x:e.clientX,y:e.clientY,id:e.pointerId}:null; },true);
+  window.addEventListener('pointerup',e=>{ const d=_d; _d=null; if(!d||d.id!==e.pointerId||!(window.ED&&ED.active&&ED.fighting)) return; if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>10) return;
+    if(e.target&&e.target.closest&&e.target.closest('button,.ctrlBtn,#battleCtrls,#hud')) return;
+    const ob=edOrbAtScreen(e.clientX,e.clientY), f=ob?{x:ob.x,y:ob.y}:edScreenToField(e.clientX,e.clientY); if(f) edAvGo(f.x,f.y); },true); }
 
 /* ------------------------------------------------------------------------------------------ shop actions (you) */
 function edBuy(ix){ if(ED.phase!=='plan') return; const p=edYou(), k=p.shop[ix]; if(!k) return; const c=edCost(k);
@@ -20847,7 +20928,21 @@ function edStartFight(){
 /* v640: monster loot is the SAME for everyone, win or lose (TFT's fair loot); a loss still costs health.
    r1-3: a component + 1 gold each · r7: 2 components · r14: a component + a remover · r21: a finished item ·
    r28+: a finished item, 1 in 4 Radiant. Returns the text for the result line. */
-function edPveReward(p,win){ const r=ED.round|0, got=[];
+/* v648 (Phil: "make monster drop items and gold so you can collect"): a monster round's loot is a LIST of drops - v640's fair loot
+   (the same for everyone, win or lose) plus gold (r1-3: 1, r4-20: 2, r21+: 3, one coin per drop). You collect yours as orbs that the
+   monsters drop on the field; the AIs get theirs directly (edPveReward). */
+function edPveLoot(r){ const L=[], comp=()=>L.push({it:edRollComp(r)}), gold=n=>{ for(let i=0;i<n;i++) L.push({gold:1}); };
+  if(r<=3){ comp(); gold(1); }
+  else if(r<14){ comp(); comp(); gold(2); }
+  else if(r<21){ comp(); L.push({it:{rm:true}}); gold(2); }
+  else if(r<28){ L.push({it:edRandFinished()}); gold(3); }
+  else { const rad=Math.random()<0.25, f=edRandFinished(rad); if(rad) f.r=true; L.push({it:f}); gold(3); }
+  return L; }
+function edLootName(d){ return d.gold ? ('+'+d.gold+' gold') : edItemName(d.it); }
+function edLootSummary(L){ const g=(L||[]).reduce((s,d)=>s+(d.gold||0),0), its=(L||[]).filter(d=>d.it).map(d=>edItemName(d.it)); if(g) its.push(g+' gold'); return its.join(', '); }
+function edGiveDrop(p,d){ if(d.gold) p.gold+=d.gold; else if(d.it) edGiveItem(p,d.it); }
+function edPveReward(p,win){ const L=edPveLoot(ED.round|0); L.forEach(d=>edGiveDrop(p,d)); return edLootSummary(L); }   // v648: AIs (and anything that needs the loot applied at once)
+function edPveRewardOld(p,win){ const r=ED.round|0, got=[];   /* pre-v648 (kept for reference; not called) */
   const comp=()=>{ const c=edRollComp(r); edGiveItem(p,c); got.push(c.c); };
   if(r<=3){ comp(); p.gold+=1; got.push('1 gold'); }
   else if(r<14){ comp(); comp(); }
@@ -20943,7 +21038,8 @@ function edBgVideo(a){
   try{ const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{ document.addEventListener('pointerdown', retry, { once:true, capture:true }); }); }catch(e){}
 }
 function edLaunchBattle(){
-  const you=edYou(); ED.phase='fight'; ED.fighting=true; ED._fieldSig=null; ED._mutual=false;
+  const you=edYou(); edCollectAll(); ED.phase='fight'; ED.fighting=true; ED._fieldSig=null; ED._mutual=false;   /* v648: orbs left on the floor are collected before the next fight */
+  ED.drops = (ED.opp && ED.opp.pve) ? edPveLoot(ED.round).sort((a,b)=>(b.it?1:0)-(a.it?1:0)) : null; ED.pveLootAll = ED.drops ? ED.drops.slice() : null;
   edSetArena( (ED.opp && !ED.opp.pve && ED.opp.p && ED.round%2===1) ? edArenaOf(ED.opp.p) : edArenaOf(you) );   // v605: monsters on your arena; PvP home on even rounds, away on odd
   const allySpec=Object.entries(you.board).map(([pos,u])=>{ const [r,c]=pos.split(',').map(Number); return { u, r, c }; });
   let enemySpec=[];
@@ -21090,6 +21186,8 @@ function edTick(dt){
        sets the next one 0.8 s later. */
     if(u._edSkills&&u._edSkills.length && battleTime>=(u._edNextSk||2.5)){
       for(const sk of u._edSkills){ if(sk.used) continue; u.gearSkill=sk; try{ castGearSkill(u,true); }catch(e){} if(sk.used){ u._edNextSk=battleTime+0.8; break; } } } }
+  if(ED.drops && ED.drops.length) for(const u of units){ if(u.team!=='enemy'||u.alive||u._edDropped||u._summon) continue; u._edDropped=true;   /* v648: loot drops where a monster dies */
+    let i=0; if(u.boss){ const j=ED.drops.findIndex(d=>d.it&&d.it.f); if(j>=0) i=j; } const d=ED.drops.splice(i,1)[0]; if(d) edDropOrb(u.x,u.y,d); if(!ED.drops.length) break; }
   const heroesUp=t=>units.some(o=>o.alive&&o.team===t&&!o._summon);
   if(!heroesUp('enemy') && !heroesUp('ally')){ ED._mutual=true; return endBattle('draw'); }   // v644: both sides fell on the same tick (was a win)
   if(!heroesUp('enemy')) return endBattle(true);
@@ -21103,7 +21201,7 @@ function edEndBattle(res){
   const survivors=units.filter(o=>o.alive&&o.team==='enemy'&&!o._summon).map(o=>({rank:o._edRank||1}));
   const mine=units.filter(o=>o.alive&&o.team==='ally'&&!o._summon).map(o=>({rank:o._edRank||1}));
   let line='';
-  if(ED.opp.pve){ const loot=edPveReward(you, won); line = (won ? 'Wave cleared' : (draw ? (ED._mutual?'⚔ Both sides fell at once — the wave held':'⏱ Time ran out — the wave held') : 'The wave held'))+' — loot: '+loot+'.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
+  if(ED.opp.pve){ const loot=edLootSummary(ED.pveLootAll||[]); edDropRest();   /* v648: collected as orbs */ line = (won ? 'Wave cleared' : (draw ? (ED._mutual?'⚔ Both sides fell at once — the wave held':'⏱ Time ran out — the wave held') : 'The wave held'))+' — loot: '+loot+'. Tap the orbs to send your avatar to collect them.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
     else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; if(!draw){ you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1; }   // v644: a draw is nobody's streak
@@ -21143,7 +21241,7 @@ function edSendClaim(job, retries, done){
 function edResendClaim(){ let job=null; try{ job=JSON.parse(localStorage.getItem('ew_edClaim')||'null'); }catch(e){}
   if(!job || !job.attemptId) return Promise.resolve();
   return new Promise(res=>edSendClaim(job, 0, d=>{ try{ if(d&&d.ok&&(d.stamina|0)>0){ if(d.ledger) adoptLedger(d.ledger); updateHubChrome(); edToast('+'+d.stamina+' stamina from your last Emberdraft match'); } }catch(e){} res(); })); }
-function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); const _v=document.getElementById('edBgVid'); if(_v){ _v.removeAttribute('src'); try{ _v.load(); }catch(_){} _v.remove(); } }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} try{ edAvGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); const _v=document.getElementById('edBgVid'); if(_v){ _v.removeAttribute('src'); try{ _v.load(); }catch(_){} _v.remove(); } }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
@@ -21431,9 +21529,11 @@ function edWireRoot(root){
     const b=e.target.closest('[data-buy]'); if(b) return edBuy(+b.dataset.buy);
     const it=e.target.closest('[data-item]'); if(it){ const ix=+it.dataset.item; ED.sel=(ED.sel&&ED.sel.item===ix)?null:{item:ix}; ED.msg=''; return edRender(); }
     if(e.target.closest('[data-field]')){
+      const ob=edOrbAtScreen(e.clientX,e.clientY); if(ob){ edAvGo(ob.x,ob.y); edTapFx(e.clientX,e.clientY); return; }   /* v648: tap loot -> your avatar goes for it */
       const u=edUnitAtScreen(e.clientX,e.clientY), s=edSlotAtScreen(e.clientX,e.clientY);
       if(ED.sel){ return edDrop(ED.sel, { slot: s&&s.slot, hero: u&&u._edId }); }
       if(u){ ED.sel={hero:u._edId}; ED.msg=''; return edRender(); }
+      const f=edScreenToField(e.clientX,e.clientY); if(f){ edAvGo(f.x,f.y); edTapFx(e.clientX,e.clientY); }   /* v648: empty ground -> walk there */
     }
   });
   if(!window._edResizeWired){ window._edResizeWired=true; window.addEventListener('resize',()=>{ clearTimeout(window._edRszT); window._edRszT=setTimeout(()=>{ if(ED.active && ED.phase==='plan'){ ED._fieldSig=null; edRender(); } },150); });   /* v646: rebuild the figures too */ }   // v644: once, not once per match
