@@ -10837,7 +10837,12 @@ function updateBattle(dt){
   if(!ended) vaultReinforce();   // The Vault: a fallen fighter pauses the fight so the player picks a backup
   /* v596 (Phil, 18 Sep, on a fallen road's leftover summons: "There should only be able to stay up if they have the summon
      boon"): in a bonus run an Everlasting summon (EVERLASTING_FLAG) holds its road like a hero; any other summon does not. */
-  if(!ended && !VAULT_PICK_OPEN){const a=units.filter(u=>u.team==='ally'&&u.alive&&(!u._summon||(GSPLIT.active&&u[EVERLASTING_FLAG]))).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
+  /* v635 (Phil: "I lost from nothing, no time up, didnt lose my heroes just lost"): this is the CAMPAIGN wave check, and it read the
+     campaign's leftover waveIdx/chapterWaves inside an Emberdraft fight. Killing the last enemy after a multi-wave campaign stage
+     ran "WAVE CLEARED", sent the heroes off and spawned the campaign's NEXT wave (even its boss) into the Emberdraft fight; after a
+     one-wave stage it froze 2 s on "STAGE CLEARED". Emberdraft decides its own result in edTick (all foes down = win, all heroes
+     down = loss, 30 s = draw), so the campaign check stays out of it. */
+  if(!ended && !VAULT_PICK_OPEN && !(CUR && CUR.mode==='emberdraft')){const a=units.filter(u=>u.team==='ally'&&u.alive&&(!u._summon||(GSPLIT.active&&u[EVERLASTING_FLAG]))).length,f=units.filter(u=>u.team==='enemy'&&u.alive&&!u._summon).length;
     if(f===0){ if(waveIdx<chapterWaves-1)beginWaveExit(); else beginWaveWin(); } else if(a===0)endBattle(false);}   // wave cleared → run off & load next; FINAL wave → idle 2 s in place, then victory
 }
 
@@ -18968,7 +18973,11 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
-  const rem=Math.max(0,BATTLE_TIME_LIMIT-battleTime), m=Math.floor(rem/60), s=Math.floor(rem%60);
+  /* v635 (Phil: "I lost from nothing, no time up, didnt lose my heroes just lost"): an Emberdraft fight ends at ED_FIGHT_LIMIT (30 s) as
+     a draw that costs health, but this clock counted the 90 s campaign limit - it read 1:00 left when the fight was already over.
+     The clock now counts the limit the fight actually uses. */
+  const lim=(CUR&&CUR.mode==='emberdraft'&&typeof ED_FIGHT_LIMIT==='number')?ED_FIGHT_LIMIT:BATTLE_TIME_LIMIT;
+  const rem=Math.max(0,lim-battleTime), m=Math.floor(rem/60), s=Math.floor(rem%60);
   const t=document.getElementById('bbTime'); if(t){ t.textContent=m+':'+(s<10?'0'+s:s); t.classList.toggle('low',rem<=10); }
   const total=Math.max(1,chapterWaves||1), cur=Math.min(total,(waveIdx||0)+1);
   const pr=document.getElementById('bbProg'); if(pr) pr.textContent=cur+'/'+total; }
@@ -19626,7 +19635,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789790225000';
+const BUILD_ID = '1789790798000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19976,7 +19985,7 @@ const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles ar
 /* figures draw at 70% in Emberdraft so one hero stands on one bench pad (16 pads ~ 33 px apart on a phone). Art only:
    hit radius, bodies and spell areas are untouched, so combat is the same. */
 const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than that. Each upgrade increase their size 10%"
-function edFig(h){ return ED_FIG_SCALE*Math.pow(1.1, Math.max(0,((h&&h.rank)|0)-1)); }   // rank I 55%, II 60.5%, III 66.6%, big star 73.2%
+function edFig(h){ return ED_FIG_SCALE*(1+0.1*Math.max(0,((h&&h.rank)|0)-1)); }   // v635 (Phil: "1 star normal size, 2 star 10% increase of normal, 3 star 20%, big star 30%"): flat +10% of normal per rank, not compounding - rank I 55%, II 60.5%, III 66%, big star 71.5%
 const ED_ARENAS = [
   { id:'cinderforge', name:'The Cinderforge Hollow',
     img:'/assets/img/battlefields/emberdraft/cinderforge.webp', video:'/assets/img/battlefields/emberdraft/cinderforge.mp4',
@@ -20873,11 +20882,11 @@ function edEndBattle(res){
   const survivors=units.filter(o=>o.alive&&o.team==='enemy'&&!o._summon).map(o=>({rank:o._edRank||1}));
   const mine=units.filter(o=>o.alive&&o.team==='ally'&&!o._summon).map(o=>({rank:o._edRank||1}));
   let line='';
-  if(ED.opp.pve){ edPveReward(you, won); line = won ? 'Wave cleared — 2 components and 1 gold.' : 'The wave held — 1 component.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
+  if(ED.opp.pve){ edPveReward(you, won); line = won ? 'Wave cleared — 2 components and 1 gold.' : (draw ? '⏱ Time ran out (30 s) — the wave held. 1 component.' : 'The wave held — 1 component.'); if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
     else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1;
-      if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line='Time ran out — a draw. You lose '+d+', '+foe.name+' loses '+d2+'.'; }
+      if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line='⏱ Time ran out (30 s) with both sides standing — a draw. You lose '+d+', '+foe.name+' loses '+d2+'.'; }
       else line=foe.name+' won — you lose '+d+' health.'; } }
   ED.msg=line;
   ED._fieldSig=null;
