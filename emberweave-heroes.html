@@ -19719,7 +19719,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789831207000';
+const BUILD_ID = '1789832407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20427,7 +20427,7 @@ window.openEmberdraft=openEmberdraft;
 
 function edNewGame(attemptId){
   edPoolInit(); _edUid=1;
-  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[], spec:null, _mutual:false, match:(ED.match|0)+1, orbs:[], av:null, drops:null, pveLootAll:null, fx:[] });   // v644: + a fresh boss order and no leftovers from the last match
+  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[], spec:null, _mutual:false, match:(ED.match|0)+1, orbs:[], av:null, avF:null, drops:null, pveLootAll:null, fx:[] });   // v644: + a fresh boss order and no leftovers from the last match
   for(let i=0;i<8;i++) ED.players.push(edNewPlayer(i));
   { const order=ED.players.map((_,i)=>i).sort(()=>Math.random()-0.5); ED.players.forEach((p,i)=>{ p.arenaIx=order[i]; }); ED.arena=null; ED._lay=null; }   // v605: one arena per seat
   edLoadCatalog();
@@ -20784,9 +20784,7 @@ function edCollectOrb(o,quiet){ const you=edYou(); edGiveDrop(you,o.d); edItemsF
 function edCollectAll(){ const os=ED.orbs||[]; ED.orbs=[]; os.forEach(o=>edCollectOrb(o,true)); if(os.length && ED.phase==='plan') edRender(); }
 function edOrbAtScreen(sx,sy){ let best=null, bd=30; for(const o of (ED.orbs||[])){ const q=edScreen(o.x,o.y,0.45), d=Math.hypot(q.x-sx,q.y-sy); if(d<bd){ bd=d; best=o; } } return best; }
 function edAvStep(dt){ const a=ED.av; if(!a) return;
-  if(a.tx!=null){ const dx=a.tx-a.x, dy=a.ty-a.y, d=Math.hypot(dx,dy), step=ED_AV_SPEED*(FIELD_X_MAX-FIELD_X_MIN)*dt;
-    if(d<=Math.max(1,step)){ a.x=a.tx; a.y=a.ty; a.tx=a.ty=null; a.moving=false; } else { a.x+=dx/d*step; a.y+=dy/d*step; a.moving=true; a.face=Math.atan2(dx,dy); } }
-  else a.moving=false;
+  edAvMove(a,dt);
   for(let i=(ED.orbs||[]).length-1;i>=0;i--){ const o=ED.orbs[i]; if(Math.hypot(o.x-a.x,o.y-a.y)<ED_ORB_REACH){ ED.orbs.splice(i,1); edCollectOrb(o); } } }
 const _edOrbImg={};
 function edOrbIcon(it){ const u=edItemArt(it); if(!u) return null; let im=_edOrbImg[u]; if(!im){ im=_edOrbImg[u]=new Image(); im.src=u; } return (im.complete&&im.naturalWidth)?im:null; }
@@ -20802,14 +20800,16 @@ function edOrbsDraw(){ const now=performance.now();
     const p=project(f.x,f.y,0.6); octx.save(); octx.globalAlpha=1-k; octx.textAlign='center'; octx.font='800 13px sans-serif'; octx.lineWidth=3; octx.strokeStyle='rgba(0,0,0,.85)';
     octx.strokeText(f.txt,p.x,p.y-20-k*26); octx.fillStyle=f.col; octx.fillText(f.txt,p.x,p.y-20-k*26); octx.restore(); } }
 /* the avatar's own small canvas: an orthographic camera at the carousel's 35-degree angle, framing just the model */
-function edAvGfxEnsure(){ let G=ED._avG; if(G) return G; G=ED._avG={ ok:false, S:0 };
-  try{ const cv=document.createElement('canvas'); cv.id='edAvCv'; cv.style.cssText='position:fixed;left:0;top:0;pointer-events:none;z-index:13395;will-change:transform;display:none';
+/* v649 (Phil: "whoever you are facing yes" - show the rival's avatar too): one factory builds an avatar canvas for any player */
+function edAvGfxEnsure(){ return ED._avG || (ED._avG=edAvGfxMake(edYou())); }
+function edAvGfxMake(pl){ const G={ ok:false, S:0, pid:pl&&pl.i };
+  try{ const cv=document.createElement('canvas'); cv.id='edAvCv'+(pl&&pl.ai?'F':''); cv.style.cssText='position:fixed;left:0;top:0;pointer-events:none;z-index:13395;will-change:transform;display:none';
     document.body.appendChild(cv); G.cv=cv;
     const rr=new THREE.WebGLRenderer({ canvas:cv, alpha:true, antialias:true }); rr.setClearColor(0x000000,0); try{ rr.outputEncoding=THREE.sRGBEncoding; }catch(e){}
     rr.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); G.rr=rr;
     G.scene=new THREE.Scene(); G.scene.add(new THREE.HemisphereLight(0xfff1dc,0x3a3028,0.85)); const dl=new THREE.DirectionalLight(0xffe2b8,0.9); dl.position.set(4,10,7); G.scene.add(dl);
     G.cam=new THREE.OrthographicCamera(-1.1,1.1,1.6,-0.6,0.1,200); G.cam.position.set(0,60*Math.sin(ED_CAR_ELEV),60*Math.cos(ED_CAR_ELEV)); G.cam.lookAt(0,0,0);
-    edLoadAvatarModel(edAvatarFor(edYou())).catch(()=>edLoadAvatarModel(ED_AVATARS[ED_AVATARS.length-1])).then(L=>{ if(ED._avG!==G||!L) return; const g=L.g, A=L.A;
+    edLoadAvatarModel(edAvatarFor(pl)).catch(()=>edLoadAvatarModel(ED_AVATARS[ED_AVATARS.length-1])).then(L=>{ if(G.dead||!L) return; const g=L.g, A=L.A;
       const m=THREE.SkeletonUtils.clone(g.scene); m.traverse(o=>{ if(o.isMesh&&o.material) o.material=o.material.clone(); }); m.scale.setScalar(1/(A.height||1.7));
       const mixer=new THREE.AnimationMixer(m), clip=n=>THREE.AnimationClip.findByName(g.animations,n);
       const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
@@ -20817,20 +20817,44 @@ function edAvGfxEnsure(){ let G=ED._avG; if(G) return G; G=ED._avG={ ok:false, S
       try{ G.rr.compile(G.scene,G.cam); m.traverse(o=>{ const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[]; for(const mm of ms) for(const k of ['map','normalMap','emissiveMap']) if(mm[k]) G.rr.initTexture(mm[k]); }); }catch(e){} });
   }catch(e){ try{ G.cv&&G.cv.remove(); }catch(_){} G.dead=true; }
   return G; }
-function edAvHide(){ const G=ED._avG; if(G&&G.cv) G.cv.style.display='none'; }
-function edAvGfxStop(){ const G=ED._avG; if(!G) return; ED._avG=null;
+function edAvHide(){ for(const G of [ED._avG, ED._avF]) if(G&&G.cv) G.cv.style.display='none'; }
+function edAvGfxKill(G){ if(!G) return; G.dead=true;
   try{ if(G.mixer) G.mixer.stopAllAction(); if(G.m) G.m.traverse(o=>{ if(o.isMesh&&o.material) o.material.dispose(); }); }catch(e){}
   try{ G.rr&&G.rr.dispose(); G.rr&&G.rr.forceContextLoss&&G.rr.forceContextLoss(); }catch(e){} try{ G.cv&&G.cv.remove(); }catch(e){} }
-function edAvFrame(dt){
-  if(!(ED.active && (ED.phase==='plan'||ED.phase==='fight'))){ edAvHide(); return; }
-  edAvEnsure(); edAvStep(dt||0.016); edOrbsDraw();
-  const G=edAvGfxEnsure(); if(!G||G.dead||!G.ok) return;
-  const a=ED.av, R=edCarRect(), p=edScreen(a.x,a.y), S=Math.max(24,Math.round(ED_AV_PX*R.height*2.2/Math.cos(ED_CAR_ELEV)));
+function edAvGfxStop(){ edAvGfxKill(ED._avG); ED._avG=null; edAvGfxKill(ED._avF); ED._avF=null; ED.avF=null; }
+/* draw one avatar: its canvas follows its field point; walk / idle cross-fade */
+function edAvDraw(G,a,dt){ if(!G||G.dead||!G.ok||!a) return;
+  const R=edCarRect(), p=edScreen(a.x,a.y), S=Math.max(24,Math.round(ED_AV_PX*R.height*2.2/Math.cos(ED_CAR_ELEV)));
   if(G.S!==S){ G.S=S; G.rr.setSize(S,S,true); }
   G.cv.style.display=''; G.cv.style.transform='translate3d('+(p.x-S/2).toFixed(1)+'px,'+(p.y-S*1.6/2.2).toFixed(1)+'px,0)';
   G.m.rotation.y=a.face||0;
   if(a.moving!==G.walking){ G.walking=a.moving; const from=a.moving?G.idle:G.walk, to=a.moving?G.walk:G.idle; to.reset().play(); from.crossFadeTo(to,0.18,false); }
   G.mixer.update(dt||0.016); G.rr.render(G.scene,G.cam); }
+function edAvMove(a,dt){ if(a.tx!=null){ const dx=a.tx-a.x, dy=a.ty-a.y, d=Math.hypot(dx,dy), step=ED_AV_SPEED*(FIELD_X_MAX-FIELD_X_MIN)*dt;
+    if(d<=Math.max(1,step)){ a.x=a.tx; a.y=a.ty; a.tx=a.ty=null; a.moving=false; } else { a.x+=dx/d*step; a.y+=dy/d*step; a.moving=true; a.face=Math.atan2(dx,dy); } }
+  else a.moving=false; }
+/* the rival you face (PvP fights): it stands by THEIR bench and wanders a little, like a player idling */
+function edAvFoe(dt){ const pl=(ED.phase==='fight' && ED.opp && !ED.opp.pve && ED.opp.p) ? ED.opp.p : null;
+  if(!pl){ if(ED._avF&&ED._avF.cv) ED._avF.cv.style.display='none'; return; }
+  if(ED._avF && ED._avF.pid!==pl.i){ edAvGfxKill(ED._avF); ED._avF=null; ED.avF=null; }
+  if(!ED._avF) ED._avF=edAvGfxMake(pl);
+  const pad=i=>{ try{ return edBenchPosEnemy(i); }catch(e){ return null; } };
+  if(!ED.avF){ const f=pad(0)||{x:FW*0.2,y:FD*0.2}; ED.avF={ x:f.x, y:Math.min(FD-60,f.y+50), tx:null, ty:null, face:0, moving:false, next:battleTime+1.5 }; }
+  const a=ED.avF; if(a.tx==null && battleTime>=a.next){ const f=pad(Math.floor(Math.random()*ED_BENCH))||{x:FW*0.5,y:FD*0.2};
+    a.tx=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,f.x+(Math.random()-0.5)*80)); a.ty=Math.max(FIELD_Y_MIN,Math.min(FD-60,f.y+40+Math.random()*50)); a.next=battleTime+3+Math.random()*4; }
+  edAvMove(a,dt); if(!a.moving) a.face=0;   // idle: face the camera
+  edAvDraw(ED._avF,a,dt); }
+/* name tags over the avatars (overlay canvas coordinates) */
+function edAvTag(a,txt,col){ if(!a) return; const p=project(a.x,a.y,0.001), y=p.y-ED_AV_PX*CH-8;
+  octx.save(); octx.textAlign='center'; octx.textBaseline='bottom'; octx.font='800 11px sans-serif'; octx.lineWidth=3; octx.strokeStyle='rgba(0,0,0,.85)';
+  octx.strokeText(txt,p.x,y); octx.fillStyle=col; octx.fillText(txt,p.x,y); octx.restore(); }
+function edAvFrame(dt){
+  if(!(ED.active && (ED.phase==='plan'||ED.phase==='fight'))){ edAvHide(); return; }
+  edAvEnsure(); edAvStep(dt||0.016); edOrbsDraw();
+  edAvDraw(edAvGfxEnsure(), ED.av, dt);
+  try{ edAvFoe(dt||0.016); }catch(e){}
+  edAvTag(ED.av,'You','#ffd45e');
+  if(ED.avF && ED.opp && ED.opp.p && ED.phase==='fight') edAvTag(ED.avF, ED.opp.p.name||'Rival', '#ff9a8a'); }
 /* fights: a tap on the field (not a button) sends the avatar there; a drag (pan / pinch) doesn't */
 if(!window._edAvTapWired){ window._edAvTapWired=true; let _d=null;
   window.addEventListener('pointerdown',e=>{ _d=(window.ED&&ED.active&&ED.fighting&&CUR&&CUR.mode==='emberdraft')?{x:e.clientX,y:e.clientY,id:e.pointerId}:null; },true);
@@ -20941,7 +20965,25 @@ function edPveLoot(r){ const L=[], comp=()=>L.push({it:edRollComp(r)}), gold=n=>
 function edLootName(d){ return d.gold ? ('+'+d.gold+' gold') : edItemName(d.it); }
 function edLootSummary(L){ const g=(L||[]).reduce((s,d)=>s+(d.gold||0),0), its=(L||[]).filter(d=>d.it).map(d=>edItemName(d.it)); if(g) its.push(g+' gold'); return its.join(', '); }
 function edGiveDrop(p,d){ if(d.gold) p.gold+=d.gold; else if(d.it) edGiveItem(p,d.it); }
-function edPveReward(p,win){ const L=edPveLoot(ED.round|0); L.forEach(d=>edGiveDrop(p,d)); return edLootSummary(L); }   // v648: AIs (and anything that needs the loot applied at once)
+/* v649 (Phil: "monster gold should vary, scale to the level" / "its random, they either drop items or gold" / "just as the items should
+   scale to level" / "i mean stage"): every monster that dies rolls ONE drop - an item (45%) or gold (55%) - and both scale with the STAGE
+   (each 6 rounds: stage 1 = rounds 1-6, 2 = 7-12, 3 = 13-18, 4 = 19-24, 5 = 25-30, 6+ = 31+).
+     gold per drop: stage + 0-1 (1-2, 2-3, 3-4, 4-5, 5-6, 6-7).
+     item: finished chance 0 / 10 / 15 / 40 / 65 / 85% by stage, else a component; stage 3 also a 20% Remover; a finished item is
+           Radiant 0 / 0 / 0 / 0 / 10 / 25% by stage.
+     boss: always a finished item, Radiant 0 / 0 / 0 / 10 / 25 / 50% by stage.
+   Only kills drop. This replaces v640/v648's fixed, equal-for-everyone list (Phil's rule). */
+const ED_DROP_FIN = [0, 0, 0.10, 0.15, 0.40, 0.65, 0.85], ED_DROP_RAD = [0, 0, 0, 0, 0, 0.10, 0.25], ED_BOSS_RAD = [0, 0, 0, 0, 0.10, 0.25, 0.50];
+function edStageOf(r){ return Math.floor(Math.max(0,(r|0)-1)/6)+1; }
+function edMonDrop(r,boss){ const st=edStageOf(r), at=a=>a[Math.min(a.length-1,st)];
+  const fin=radChance=>{ const rad=Math.random()<radChance, f=edRandFinished(rad); if(rad) f.r=true; return {it:f}; };
+  if(boss) return fin(at(ED_BOSS_RAD));
+  if(Math.random()<0.45){ if(st===3 && Math.random()<0.2) return {it:{rm:true}}; if(Math.random()<at(ED_DROP_FIN)) return fin(at(ED_DROP_RAD)); return {it:edRollComp(r)}; }
+  return {gold: st+edRnd(2)}; }
+/* AIs don't fight the wave: they roll a drop for every monster on a win, for half of them (rounded up) on a loss */
+function edPveReward(p,win){ const spec=edPveSpec(ED.round|0), n=spec.length, k=win?n:Math.ceil(n/2), L=[];
+  for(let i=0;i<k;i++){ const d=edMonDrop(ED.round|0, !!(spec[i]&&spec[i].u&&spec[i].u.boss)); L.push(d); edGiveDrop(p,d); }
+  return edLootSummary(L); }   // v648: AIs (and anything that needs the loot applied at once)
 function edPveRewardOld(p,win){ const r=ED.round|0, got=[];   /* pre-v648 (kept for reference; not called) */
   const comp=()=>{ const c=edRollComp(r); edGiveItem(p,c); got.push(c.c); };
   if(r<=3){ comp(); p.gold+=1; got.push('1 gold'); }
@@ -21038,8 +21080,8 @@ function edBgVideo(a){
   try{ const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{ document.addEventListener('pointerdown', retry, { once:true, capture:true }); }); }catch(e){}
 }
 function edLaunchBattle(){
-  const you=edYou(); edCollectAll(); ED.phase='fight'; ED.fighting=true; ED._fieldSig=null; ED._mutual=false;   /* v648: orbs left on the floor are collected before the next fight */
-  ED.drops = (ED.opp && ED.opp.pve) ? edPveLoot(ED.round).sort((a,b)=>(b.it?1:0)-(a.it?1:0)) : null; ED.pveLootAll = ED.drops ? ED.drops.slice() : null;
+  const you=edYou(); edCollectAll(); ED.avF=null; ED.phase='fight'; ED.fighting=true; ED._fieldSig=null; ED._mutual=false;   /* v648: orbs left on the floor are collected before the next fight */
+  ED.drops = (ED.opp && ED.opp.pve) ? [] : null; ED.pveLootAll = ED.drops;   /* v649: what the monsters you kill drop (rolled on death) */
   edSetArena( (ED.opp && !ED.opp.pve && ED.opp.p && ED.round%2===1) ? edArenaOf(ED.opp.p) : edArenaOf(you) );   // v605: monsters on your arena; PvP home on even rounds, away on odd
   const allySpec=Object.entries(you.board).map(([pos,u])=>{ const [r,c]=pos.split(',').map(Number); return { u, r, c }; });
   let enemySpec=[];
@@ -21186,8 +21228,8 @@ function edTick(dt){
        sets the next one 0.8 s later. */
     if(u._edSkills&&u._edSkills.length && battleTime>=(u._edNextSk||2.5)){
       for(const sk of u._edSkills){ if(sk.used) continue; u.gearSkill=sk; try{ castGearSkill(u,true); }catch(e){} if(sk.used){ u._edNextSk=battleTime+0.8; break; } } } }
-  if(ED.drops && ED.drops.length) for(const u of units){ if(u.team!=='enemy'||u.alive||u._edDropped||u._summon) continue; u._edDropped=true;   /* v648: loot drops where a monster dies */
-    let i=0; if(u.boss){ const j=ED.drops.findIndex(d=>d.it&&d.it.f); if(j>=0) i=j; } const d=ED.drops.splice(i,1)[0]; if(d) edDropOrb(u.x,u.y,d); if(!ED.drops.length) break; }
+  if(ED.drops) for(const u of units){ if(u.team!=='enemy'||u.alive||u._edDropped||u._summon) continue; u._edDropped=true;   /* v648: loot drops where a monster dies; v649: each kill rolls an item or gold */
+    const d=edMonDrop(ED.round|0, !!u.boss); ED.drops.push(d); edDropOrb(u.x,u.y,d); }
   const heroesUp=t=>units.some(o=>o.alive&&o.team===t&&!o._summon);
   if(!heroesUp('enemy') && !heroesUp('ally')){ ED._mutual=true; return endBattle('draw'); }   // v644: both sides fell on the same tick (was a win)
   if(!heroesUp('enemy')) return endBattle(true);
@@ -21201,7 +21243,7 @@ function edEndBattle(res){
   const survivors=units.filter(o=>o.alive&&o.team==='enemy'&&!o._summon).map(o=>({rank:o._edRank||1}));
   const mine=units.filter(o=>o.alive&&o.team==='ally'&&!o._summon).map(o=>({rank:o._edRank||1}));
   let line='';
-  if(ED.opp.pve){ const loot=edLootSummary(ED.pveLootAll||[]); edDropRest();   /* v648: collected as orbs */ line = (won ? 'Wave cleared' : (draw ? (ED._mutual?'⚔ Both sides fell at once — the wave held':'⏱ Time ran out — the wave held') : 'The wave held'))+' — loot: '+loot+'. Tap the orbs to send your avatar to collect them.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
+  if(ED.opp.pve){ const loot=edLootSummary(ED.pveLootAll||[])||'nothing';   /* v649: what your kills dropped (collected as orbs) */ line = (won ? 'Wave cleared' : (draw ? (ED._mutual?'⚔ Both sides fell at once — the wave held':'⏱ Time ran out — the wave held') : 'The wave held'))+' — loot: '+loot+'. Tap the orbs to send your avatar to collect them.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
     else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; if(!draw){ you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1; }   // v644: a draw is nobody's streak
