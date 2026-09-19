@@ -4424,7 +4424,8 @@ function clampPan(){
 }
 function applyBattleView(){ clampPan(); const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
-function setBattleZoom(z, fx, fy){ battleZoom=snapZoom(Math.max(1,Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length-1],z)));   // v577 (CR 0227): the clamp is the array's last step, never a second copy of the number
+function setBattleZoom(z, fx, fy){ if(document.body.classList.contains('ed-plan')) z=1;   // v632 (Phil: the Emberdraft floor squares "should not be movable", like a chess board): the planning board is locked at 1x, so there is no zoom and therefore no pan; the squares are drawn over the view and stay on their pads
+  battleZoom=snapZoom(Math.max(1,Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length-1],z)));   // v577 (CR 0227): the clamp is the array's last step, never a second copy of the number
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
@@ -19623,7 +19624,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789787601000';
+const BUILD_ID = '1789789322000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
