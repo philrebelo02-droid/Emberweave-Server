@@ -44,6 +44,7 @@
   #three{z-index:1;} #overlay{z-index:2;}
   #three canvas{display:block;} #overlay{pointer-events:auto;touch-action:none;}
   /* painted battle map — sits behind the (transparent) 3D canvas; shown only during battle */
+  #edFloor{position:absolute;inset:0;z-index:0;pointer-events:none}   /* v633: Emberdraft floor squares live UNDER the 3D heroes (Phil: heroes "should be opaque and solid. Top layer of everything") */
   #battleBg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;display:none;}
 
   .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;
@@ -805,6 +806,7 @@
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
 <div id="app">
   <div id="battleBg"></div>
+  <div id="edFloor"></div>
   <div id="three"></div>
   <canvas id="overlay"></canvas>
 
@@ -4422,7 +4424,7 @@ function clampPan(){
   battlePanX=Math.max(-mx, Math.min(mx, battlePanX));
   battlePanY=Math.max(-my, Math.min(my, battlePanY));
 }
-function applyBattleView(){ clampPan(); const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
+function applyBattleView(){ clampPan(); const tf='translate('+battlePanX+'px,'+battlePanY+'px) scale('+battleZoom+')'; ['battleBg','edFloor','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.transform=tf; }); }
 function snapZoom(z){ let best=ZOOM_LEVELS[0]; for(const v of ZOOM_LEVELS){ if(Math.abs(v-z)<Math.abs(best-z)) best=v; } return best; }
 function setBattleZoom(z, fx, fy){ if(document.body.classList.contains('ed-plan')) z=1;   // v632 (Phil: the Emberdraft floor squares "should not be movable", like a chess board): the planning board is locked at 1x, so there is no zoom and therefore no pan; the squares are drawn over the view and stay on their pads
   battleZoom=snapZoom(Math.max(1,Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length-1],z)));   // v577 (CR 0227): the clamp is the array's last step, never a second copy of the number
@@ -4430,7 +4432,7 @@ function setBattleZoom(z, fx, fy){ if(document.body.classList.contains('ed-plan'
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
   if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.getBoundingClientRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
-  ['battleBg','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; } }); applyBattleView();
+  ['battleBg','edFloor','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; } }); applyBattleView();
   /* v586: keep the render buffer in step with the view. Cheap now that the ratio is constant —
      this only redoes work if QUAL has since changed the resolution under us. */
   try{ if(renderer && Math.abs(renderer.getPixelRatio()-zoomPR())>0.01){ CW=0; resize3D(); } }catch(e){}
@@ -19624,7 +19626,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789789322000';
+const BUILD_ID = '1789789646000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20886,7 +20888,7 @@ function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, 
     ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error)||'Reward could not be claimed.'};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
     if(ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.phase==='over') edRender(); }); }
-function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
@@ -20895,7 +20897,11 @@ function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxSto
    them there. The DOM overlay is only the frame around it: top bar, the players / role-bonus panel, the equipment
    strip, the shop (whose cards play each hero's idle sheet), and ground markers for the 28 board cells and 16 bench spots. */
 function edToast(t){ ED.msg=t; edRender(); }
-function edHideUi(){ const r=document.getElementById('edRoot'); if(r) r.style.display='none'; document.body.classList.remove('ed-plan'); }
+function edFloorSet(html){ const f=document.getElementById('edFloor'); if(f) f.innerHTML=html||''; }
+/* v633: window point -> the floor's own (untransformed) coordinates, so a square belongs to the battle frame and moves with it */
+function edFloorXY(x,y){ const f=document.getElementById('edFloor'); if(!f) return {x,y}; const r=f.getBoundingClientRect(), k=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1;
+  return { x:(x-r.left)/k, y:(y-r.top)/k }; }
+function edHideUi(){ const r=document.getElementById('edRoot'); if(r) r.style.display='none'; document.body.classList.remove('ed-plan'); edFloorSet(''); }
 function edBenchPos(i){ return edLayout().benchA[i]; }          // v605: your ledge's pads
 function edBenchPosEnemy(i){ return edLayout().benchE[i]; }    // v605: the rival's ledge
 function edCss(){ if(document.getElementById('edCss')) return; const s=document.createElement('style'); s.id='edCss'; s.textContent=`
@@ -20945,9 +20951,9 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .card .nm{font-weight:800;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #edRoot .card .rl{font-size:10.5px;color:#8b98a9}
 #edRoot .spr{flex:none;width:40px;height:48px;background-repeat:no-repeat;border-radius:6px;background-color:rgba(0,0,0,.25)}
 #edRoot .msg{left:50px;right:calc(min(30vw,210px) + 16px);bottom:62px;font-size:12px;color:#dfe7f1;text-shadow:0 1px 3px #000;text-align:center;pointer-events:none}
-#edRoot .mark{position:absolute;transform:translate(-50%,-50%);border-radius:4px;border:1.5px solid rgba(255,190,90,.55);background:rgba(255,160,60,.07);box-shadow:0 0 7px rgba(255,160,60,.45),inset 0 0 6px rgba(255,160,60,.22);pointer-events:none}   /* v606 Phil: "square glowing place holders the dimensions of the tiles" (not circles) */
-#edRoot .mark.bench{border-color:rgba(150,200,255,.45);background:rgba(120,180,255,.06);box-shadow:0 0 6px rgba(120,180,255,.4),inset 0 0 5px rgba(120,180,255,.2)}
-#edRoot .mark.hot{border-color:#ffe08a;background:rgba(255,212,94,.3);box-shadow:0 0 14px rgba(255,200,80,.9),inset 0 0 10px rgba(255,200,80,.5)}
+#edRoot .mark,#edFloor .mark{position:absolute;transform:translate(-50%,-50%);border-radius:4px;border:1.5px solid rgba(255,190,90,.55);background:rgba(255,160,60,.07);box-shadow:0 0 7px rgba(255,160,60,.45),inset 0 0 6px rgba(255,160,60,.22);pointer-events:none}   /* v606 Phil: "square glowing place holders the dimensions of the tiles" (not circles) */
+#edRoot .mark.bench,#edFloor .mark.bench{border-color:rgba(150,200,255,.45);background:rgba(120,180,255,.06);box-shadow:0 0 6px rgba(120,180,255,.4),inset 0 0 5px rgba(120,180,255,.2)}
+#edRoot .mark.hot,#edFloor .mark.hot{border-color:#ffe08a;background:rgba(255,212,94,.3);box-shadow:0 0 14px rgba(255,200,80,.9),inset 0 0 10px rgba(255,200,80,.5)}
 #edRoot .badge{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;gap:1px;align-items:center;font-size:10px;font-weight:900;color:#ffd45e;text-shadow:0 1px 2px #000;white-space:nowrap}
 #edRoot .badge i{font-style:normal;font-size:9px;line-height:11px;min-width:11px;text-align:center;border-radius:3px;background:rgba(0,0,0,.65);border-bottom:2px solid #9aa4b2}
 #edRoot .ring{position:absolute;width:44px;height:16px;margin:-8px 0 0 -22px;border-radius:50%;border:2px solid #ffd45e;pointer-events:none}
@@ -21000,6 +21006,7 @@ function edRender(){
   edCss();
   let root=document.getElementById('edRoot'); if(!root){ root=document.createElement('div'); root.id='edRoot'; document.body.appendChild(root); edWireRoot(root); }
   root.style.display='block';
+  if(ED.phase!=='plan') edFloorSet('');
   if(ED.phase==='over'){ document.body.classList.remove('ed-plan'); root.className='full'; root.innerHTML=edOverHtml(); return; }
   if(ED.phase==='carousel'){ document.body.classList.add('ed-plan'); /* hides the battle HUD */ root.className='car'; root.innerHTML=edCarHtml(); try{ edCarDraw(0); }catch(e){} return; }
   if(ED.phase==='draft'){ document.body.classList.remove('ed-plan'); root.className='full'; root.innerHTML=edDraftHtml(); return; }
@@ -21008,7 +21015,8 @@ function edRender(){
     if(ED._fieldSig!==sig || state!=='battle'){ edShowField(); ED._fieldSig=sig; } }
   const you=edYou(), r=ED.round, need=ED_XP_NEED[you.level], syn=edSynergy(you);
   let h='<div class="hit" data-field="1"></div>';
-  for(const s of edSlots()) h+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${s.sx}px;top:${s.sy}px;width:${Math.max(8,s.w|0)}px;height:${Math.max(8,s.h|0)}px"></div>`;
+  { let fl=''; for(const s of edSlots()){ const q=edFloorXY(s.sx,s.sy); fl+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${q.x.toFixed(1)}px;top:${q.y.toFixed(1)}px;width:${Math.max(8,s.w|0)}px;height:${Math.max(8,s.h|0)}px"></div>`; }
+    edFloorSet(fl); }   // v633: under the heroes
   for(const u of units){ if(!u.alive||u._edId==null) continue; const hh=edUnits(you).find(x=>x.id===u._edId); if(!hh) continue;
     const top=edScreen(u.x,u.y,(u.sprH||1.6)*1.05);
     h+=`<div class="badge" style="left:${top.x}px;top:${top.y}px"><b style="color:${ED_RANK_COL[hh.rank]||'#ffd45e'}">${ED_RANK_LBL[hh.rank]||''}</b>${hh.items.map(it=>edItemImg(it,13)).join('')}</div>`;
@@ -21087,7 +21095,7 @@ function edEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;
 /* one delegated pointer handler: tap-to-select / tap-to-place, or drag and drop, on the field or from the overlay */
 function edWireRoot(root){
   let drag=null;
-  const markHot=(slot)=>{ root.querySelectorAll('.mark.hot').forEach(m=>m.classList.remove('hot')); if(slot){ const m=root.querySelector(`[data-mark="${slot}"]`); if(m) m.classList.add('hot'); } };
+  const markHot=(slot)=>{ const fl=document.getElementById('edFloor')||root; fl.querySelectorAll('.mark.hot').forEach(m=>m.classList.remove('hot')); if(slot){ const m=fl.querySelector(`[data-mark="${slot}"]`); if(m) m.classList.add('hot'); } };
   root.addEventListener('pointerdown',e=>{
     if(ED.phase==='carousel'){ edCarTap(e.clientX,e.clientY); return; }   // v609: tap to run
     if(ED.phase!=='plan') return;
