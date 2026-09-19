@@ -2962,8 +2962,10 @@ const TOWN_BG = "/assets/img/world-map/townbg-wide-cauldron-v1.webp";           
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
 const SHOP_SOON = "/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
-const SPLASH_BG = "/assets/img/miscellaneous/splash.jpg";         // boot splash / loading-screen artwork (static fallback)
-const SPLASH_VID = "/assets/img/miscellaneous/splashvid.mp4";     // animated splash loop (plays over the static image)
+const SPLASH_BG = "/assets/img/miscellaneous/splash-v2.jpg";   // v624 (Phil): Aureth front, Lumi, Vex, Librarian, Pellucid; logo kept
+//         // boot splash / loading-screen artwork (static fallback)
+const SPLASH_VID = "/assets/img/miscellaneous/splashvid-v2.mp4";   // v624: Hailuo MiniMax H3 2K from the new art, face refs, exact-seam loop (exactloop.py)
+//     // animated splash loop (plays over the static image)
 const AIRSHIP_IMG = "/assets/img/world-map/airship.webp";      // NEW airship art (static, clean green-key crop; nose points left in the source)
 const AIRSHIP_SHEET = "";   // disabled → render uses the static AIRSHIP_IMG (new art is a single high-res frame, not a strip)
 const AIRSHIP_FRAMES = 16;                       // frames in the strip
@@ -14258,9 +14260,9 @@ HERO_CARD_ART.stormwarden='/assets/img/hero-cards/card-stormwarden.webp?v=10';
 HERO_CARD_ART.sylthaine='/assets/img/hero-cards/card-sylthaine.webp?v=10';
 HERO_CARD_ART.tallow='/assets/img/hero-cards/card-tallow.webp?v=10';
 HERO_CARD_ART.threadseer='/assets/img/hero-cards/card-threadseer.webp?v=10';
-HERO_CARD_ART.tick='/assets/img/hero-cards/card-tick.webp?v=9';
+HERO_CARD_ART.tick='/assets/img/hero-cards/card-tick.webp?v=10';
 HERO_CARD_ART.umbris='/assets/img/hero-cards/card-umbris.webp?v=9';
-HERO_CARD_ART.vael='/assets/img/hero-cards/card-vael.webp?v=9';
+HERO_CARD_ART.vael='/assets/img/hero-cards/card-vael.webp?v=10';
 HERO_CARD_ART.vaelora='/assets/img/hero-cards/card-vaelora.webp?v=9';
 HERO_CARD_ART.velvetplum='/assets/img/hero-cards/card-velvetplum.webp?v=9';
 HERO_CARD_ART.verdantshade='/assets/img/hero-cards/card-verdantshade.webp?v=9';
@@ -19621,7 +19623,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789781760000';
+const BUILD_ID = '1789783543000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
