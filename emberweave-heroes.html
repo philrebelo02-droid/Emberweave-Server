@@ -19719,7 +19719,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789833607000';
+const BUILD_ID = '1789834807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20260,20 +20260,48 @@ function edTierNextHtml(it){ const tab = edIsPlainBlue(it) ? ED_PURPLE : (it && 
   for(const [k,out] of rows){ const other=k.split('+').find(x=>x!==it.f)||it.f; h+=`<span>+ ${edEsc(other)}</span><span style="color:${tab===ED_GOLD?'#ffd45e':'#b57bff'}">${edEsc(out)}</span>`; }
   return h+'</div>'; }
 /* the recipe book (Phil: "the item recipes should have a item recipe book somewhere on the screen, so you can see what combines into what") */
+/* v651 (Phil: "I should also be able to click or hover to see the stats on the items in recipe book"): any book item can be rebuilt
+   whole from its name (edBookItem), its stats summed over the whole recipe tree (edItemStatMap), shown on hover (title) or on tap. */
+function edBookItem(n,t){ const find=(tab,v)=>Object.keys(tab).find(k=>tab[k]===v);
+  if(t==='c') return {c:n};
+  if(t==='G'){ const k=find(ED_GOLD,n); const [a,b]=(k||'+').split('+'); return {f:n,t:'G',parts:[edBookItem(a,'P'),edBookItem(b,'P')]}; }
+  if(t==='P'){ const k=find(ED_PURPLE,n); const [a,b]=(k||'+').split('+'); return {f:n,t:'P',parts:[edBookItem(a,'B'),edBookItem(b,'B')]}; }
+  const k=find(ED_FINISHED,n); const [a,b]=(k||'+').split('+'); return {f:n,a,b}; }
+function edItemStatMap(it,m,out){ out=out||{}; m=m||1; if(!it||it.rm) return out; if(it.c){ out[it.c]=(out[it.c]||0)+m; return out; }
+  if(it.t){ for(const q of it.parts) edItemStatMap(q,m*ED_TIER_BONUS[it.t],out); return out; }
+  const k=m*ED_FIN_BONUS*(it.r?ED_RADIANT_MUL:1); if(it.a) out[it.a]=(out[it.a]||0)+k; if(it.b) out[it.b]=(out[it.b]||0)+k; return out; }
+function edItemStatLines(it){ return Object.entries(edItemStatMap(it)).map(([c,k])=>(ED_COMP_TXT[c]||c).replace(/(\d+)/,n=>String(Math.round(+n*k)))); }
+function edItemStatText(it){ const A=it.f&&ED.cat&&ED.cat[it.f], act=(A&&A.name)?('\n✦ '+A.name+(A.effect?': '+A.effect:'')):'';
+  return edItemName(it)+' ('+edItemTier(it)+')\n'+edItemStatLines(it).join('\n')+act; }
+/* v651 (Phil: "Make it more organized than this, more alignment for items so it doesnt looks so messy"): tabs (Gold / Purple / Blue /
+   Orange) instead of one long list; every recipe is one grid row - RESULT first (bigger icon, tier colour) = part + part - so icons and
+   names sit in fixed columns; Purple grouped by class, Blue by its first component; a recipe you own both parts of gets a green bar. */
 function edBookHtml(){ const you=edYou(), own={}; const add=it=>{ if(it) { const k=it.f||it.c; if(k) own[k]=(own[k]||0)+1; } };
   you.items.forEach(add); edUnits(you).forEach(u=>(u.items||[]).forEach(add));
   const has=(a,b)=>own[a] && own[b] && (a!==b || own[a]>1);
-  const img=(it)=>edItemImg(it,20);
-  const row=(ia,ib,io,can)=>`<div class="bkRow${can?' can':''}">${img(ia)}<span class="bkN">${edEsc(ia.f||ia.c)}</span><b>+</b>${img(ib)}<span class="bkN">${edEsc(ib.f||ib.c)}</span><b>→</b>${img(io)}<span class="bkN" style="color:${edItemCol(io)}">${edEsc(edItemName(io))}</span></div>`;
-  let h='<div class="edBook"><div class="bkTop"><b>📖 Recipe book</b><span style="flex:1"></span><span class="bkKey">green = you own both parts</span><button class="btnx" data-a="book">✕</button></div>';
-  h+='<div class="bkH" style="color:#ffd45e">Gold — two Purples</div>';
-  for(const [k,g] of Object.entries(ED_GOLD)){ const [a,b]=k.split('+'); h+=row({f:a,t:'P'},{f:b,t:'P'},{f:g,t:'G'},has(a,b)); }
-  h+='<div class="bkH" style="color:#b57bff">Purple — two Blues</div>';
-  for(const cls of ['Tank','Bruiser','Assassin','Marksman','Mage','Support']){ h+=`<div class="bkC">${cls}</div>`;
-    for(const [k,pn] of Object.entries(ED_PURPLE)){ if(ED_ITEM_CLS[pn]!==cls) continue; const [a,b]=k.split('+'); h+=row({f:a},{f:b},{f:pn,t:'P'},has(a,b)); } }
-  h+='<div class="bkH" style="color:#58a6ff">Blue — two Greens (components)</div>';
-  for(const [k,f] of Object.entries(ED_FINISHED)){ const [a,b]=k.split('+'); h+=row({c:a},{c:b},{f,a,b},has(a,b)); }
-  h+='<div class="bkH" style="color:#ff9a3c">Orange — unique</div><div class="bkRow" style="opacity:1">Never crafted. Only late-stage bosses and the late carousels drop them: an Orange item is a Blue item at double strength.</div>';
+  const tab=ED.bookTab||'gold', nm=it=>edEsc(it.f||it.c);
+  const code=it=>it.c?'c':(it.t||'B'), full=it=>edBookItem(it.f||it.c,code(it)), sel=ED.bookSel||'';
+  const cell=(it,big)=>{ const key='bki:'+code(it)+':'+encodeURIComponent(it.f||it.c), tip=edEsc(edItemStatText(full(it))), on=sel===key?' on':'';
+    return `<span class="bkI${big?' bkBig':''}${on}" data-a="${key}" title="${tip}">${edItemImg(it,big?26:20)}</span>`
+      +`<span class="${big?'bkOut':'bkN'}${on}" data-a="${key}" title="${tip}"${big?` style="color:${edItemCol(it)}"`:''}>${edEsc(big?edItemName(it):(it.f||it.c))}</span>`; };
+  const row=(ia,ib,io,can)=>`<div class="bkRow${can?' can':''}">${cell(io,true)}<span class="bkEq">=</span>${cell(ia)}<span class="bkEq">+</span>${cell(ib)}</div>`;
+  const tabs=[['gold','Gold','#ffd45e'],['purple','Purple','#b57bff'],['blue','Blue','#58a6ff'],['orange','Orange','#ff9a3c']];
+  let h='<div class="edBook"><div class="bkTop"><b>📖 Recipe book</b><span style="flex:1"></span><button class="btnx" data-a="book">✕</button></div><div class="bkTabs">';
+  for(const [id,label,col] of tabs) h+=`<button class="bkTab${tab===id?' on':''}" data-a="bk:${id}" style="--c:${col}">${label}</button>`;
+  h+='</div><div class="bkKey"><span class="bkSw"></span> you own both parts</div><div class="bkList">';
+  if(tab==='gold'){ h+='<div class="bkC">Two Purples make a Gold</div>';
+    for(const cls of ['Tank','Bruiser','Assassin','Marksman','Mage','Support']){ const rs=Object.entries(ED_GOLD).filter(([k,g])=>ED_ITEM_CLS[g]===cls); if(!rs.length) continue; h+=`<div class="bkG">${cls}</div>`;
+      for(const [k,g] of rs){ const [a,b]=k.split('+'); h+=row({f:a,t:'P'},{f:b,t:'P'},{f:g,t:'G'},has(a,b)); } } }
+  else if(tab==='purple'){ h+='<div class="bkC">Two Blues make a Purple</div>';
+    for(const cls of ['Tank','Bruiser','Assassin','Marksman','Mage','Support']){ h+=`<div class="bkG">${cls}</div>`;
+      for(const [k,pn] of Object.entries(ED_PURPLE)){ if(ED_ITEM_CLS[pn]!==cls) continue; const [a,b]=k.split('+'); h+=row({f:a},{f:b},{f:pn,t:'P'},has(a,b)); } } }
+  else if(tab==='blue'){ h+='<div class="bkC">Two Greens (components) make a Blue</div>';
+    for(const c0 of ED_COMP){ const rs=Object.entries(ED_FINISHED).filter(([k])=>k.split('+')[0]===c0); if(!rs.length) continue; h+=`<div class="bkG">${edEsc(c0)}</div>`;
+      for(const [k,f] of rs){ const [a,b]=k.split('+'); h+=row({c:a},{c:b},{f,a,b},has(a,b)); } } }
+  else h+='<div class="bkC">Orange — unique</div><div class="bkNote">Orange items are never crafted and never used in a recipe. Only bosses (from stage 4) and the late carousels drop them: an Orange item is a Blue item at double strength, stats and active.</div>';
+  h+='</div>';
+  if(sel){ const [, t, n]=sel.split(':'); const it=edBookItem(decodeURIComponent(n||''),t); h+=`<div class="bkInfo"><button class="btnx bkX" data-a="bki:">✕</button>${edItemInfoHtml(it)}</div>`; }
+  else h+='<div class="bkHint">Tap an item to see its stats (hover on a computer).</div>';
   return h+'</div>'; }
 function edCombine(a,b){ return { f: ED_FINISHED[edPairKey(a.c,b.c)], a:a.c, b:b.c }; }
 /* put item `it` on hero `h`: a component joins a lone component into a finished item; two identical finished items of
@@ -21387,15 +21415,31 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 @keyframes edTapFx{from{transform:scale(.4);opacity:1}to{transform:scale(1.5);opacity:0}}
 #edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
 #edRoot .ibBook{flex:none;border:1px solid rgba(255,210,140,.45);border-radius:7px;background:rgba(40,26,12,.85);color:#ffd45e;font-size:15px;line-height:1;padding:0;cursor:pointer}
-#edRoot .edBook{position:absolute;top:40px;bottom:70px;left:calc(max(4px,env(safe-area-inset-left)) + 44px);right:8px;max-width:560px;z-index:6;overflow:auto;background:rgba(14,10,8,.95);border:1px solid #6b4a2e;border-radius:10px;padding:6px 10px;font-size:11px;color:#e8edf3;pointer-events:auto}
-#edRoot .edBook .bkTop{display:flex;align-items:center;gap:6px;position:sticky;top:-6px;background:rgba(14,10,8,.98);padding:4px 0;z-index:1}
-#edRoot .edBook .bkKey{font-size:9.5px;color:#5fd07a}
-#edRoot .edBook .bkH{font-weight:900;margin:8px 0 3px;letter-spacing:.03em}
-#edRoot .edBook .bkC{color:#aab6c6;font-size:10px;margin:4px 0 1px;text-transform:uppercase;letter-spacing:.06em}
-#edRoot .edBook .bkRow{display:flex;align-items:center;gap:3px;padding:1px 3px;border-radius:5px;opacity:.72;flex-wrap:wrap}
-#edRoot .edBook .bkRow.can{opacity:1;background:rgba(95,208,122,.14)}
-#edRoot .edBook .bkN{white-space:nowrap}
-#edRoot .edBook b{color:#8b98a9;margin:0 1px}
+#edRoot .edBook{position:absolute;top:40px;bottom:70px;left:calc(max(4px,env(safe-area-inset-left)) + 44px);right:8px;max-width:600px;z-index:6;display:flex;flex-direction:column;background:rgba(14,10,8,.96);border:1px solid #6b4a2e;border-radius:10px;padding:6px 10px 8px;font-size:11px;color:#e8edf3;pointer-events:auto}
+#edRoot .edBook .bkTop{display:flex;align-items:center;gap:6px;flex:none}
+#edRoot .edBook .bkTabs{display:flex;gap:4px;flex:none;margin:4px 0 2px}
+#edRoot .edBook .bkTab{flex:1;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:var(--c);font-weight:800;font-size:11px;border-radius:7px;padding:4px 0;cursor:pointer}
+#edRoot .edBook .bkTab.on{background:rgba(255,255,255,.12);border-color:var(--c)}
+#edRoot .edBook .bkKey{flex:none;font-size:9.5px;color:#9fb0c2;display:flex;align-items:center;gap:4px;margin:2px 0 4px}
+#edRoot .edBook .bkSw{width:4px;height:12px;border-radius:2px;background:#5fd07a;display:inline-block}
+#edRoot .edBook .bkList{flex:1;overflow:auto;padding-right:2px}
+#edRoot .edBook .bkC{color:#cfd6df;font-weight:800;margin:2px 0 4px}
+#edRoot .edBook .bkG{color:#9fb0c2;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:8px 0 3px;padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.08)}
+#edRoot .edBook .bkRow{display:grid;grid-template-columns:28px minmax(0,1.25fr) 12px 22px minmax(0,1fr) 12px 22px minmax(0,1fr);align-items:center;column-gap:4px;min-height:28px;padding:1px 4px 1px 6px;border-left:3px solid transparent;border-radius:4px}
+#edRoot .edBook .bkRow:nth-of-type(odd){background:rgba(255,255,255,.025)}
+#edRoot .edBook .bkRow.can{border-left-color:#5fd07a;background:rgba(95,208,122,.10)}
+#edRoot .edBook .bkI{display:flex;align-items:center;justify-content:center}
+#edRoot .edBook .bkOut{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#edRoot .edBook .bkN{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#cfd6df}
+#edRoot .edBook .bkEq{color:#6f7d8e;text-align:center;font-weight:800}
+#edRoot .edBook [data-a^="bki:"]{cursor:pointer}
+#edRoot .edBook .bkI.on img,#edRoot .edBook .bkI.on .edArt{outline:2px solid #ffd45e;outline-offset:1px;border-radius:4px}
+#edRoot .edBook .bkN.on,#edRoot .edBook .bkOut.on{text-decoration:underline}
+#edRoot .edBook .bkInfo{flex:none;max-height:38%;overflow:auto;margin-top:6px;padding:6px 8px;border:1px solid rgba(255,210,140,.35);border-radius:8px;background:rgba(30,20,12,.95);position:relative}
+#edRoot .edBook .bkInfo .t{font-weight:900;font-size:12px}
+#edRoot .edBook .bkInfo .bkX{position:absolute;top:4px;right:4px;padding:1px 6px}
+#edRoot .edBook .bkHint{flex:none;color:#7f8b9a;font-size:9.5px;margin-top:4px;text-align:center}
+#edRoot .edBook .bkNote{color:#cfd6df;line-height:1.45;padding:4px 2px}
 #edRoot .itemBench{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;border-radius:10px;background:rgba(10,14,22,.62);border:1px solid rgba(255,210,140,.28);pointer-events:auto}   /* v640 */
 #edRoot .ibSlot{display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);cursor:grab;touch-action:none}
 #edRoot .ibSlot.empty{cursor:default;border-style:dashed;opacity:.55}
@@ -21561,7 +21605,7 @@ function edItemInfoHtml(it){ if(!it) return ''; const col=edItemCol(it), k=edIte
     h+='<div class="recipe">'; for(const c of ED_COMP){ const f=ED_FINISHED[edPairKey(it.c,c)], cr=(it.c==='Relic'&&c!=='Relic')?ED_CREST[c]:((c==='Relic'&&it.c!=='Relic')?ED_CREST[it.c]:null);
       h+=`<span class="${own.has(c)?'own':''}">+ ${edEsc(c)}</span><span class="${own.has(c)?'own':''}">${edEsc(cr?cr+' Crest':(it.c==='Relic'&&c==='Relic'?'Worldroot Seed (+1 hero)':f))}</span>`; }
     return h+'</div>'; }
-  else { if(it.t) h+=`<div style="color:#aab6c6">Made from ${edEsc(it.parts.map(edItemName).join(' + '))} — their stats ×${ED_TIER_BONUS[it.t]}.</div>`; else h+=`<div>${edEsc(line(it.a))}</div><div>${edEsc(line(it.b))}</div>`;
+  else { if(it.t) h+=edItemStatLines(it).map(l=>`<div>${edEsc(l)}</div>`).join('')+`<div style="color:#aab6c6">Made from ${edEsc(it.parts.map(edItemName).join(' + '))} — their stats ×${ED_TIER_BONUS[it.t]}.</div>`;   /* v651: summed stats first */ else h+=`<div>${edEsc(line(it.a))}</div><div>${edEsc(line(it.b))}</div>`;
     h+=edTierNextHtml(it);
     const cr=edCrestRole(it); if(cr) return h+`<div style="color:#7fd8ff;margin-top:2px">✦ Counts as a ${edEsc(cr)} for synergies.</div>`;
     if(edIsSeed(it)) return h+`<div style="color:#7fd8ff;margin-top:2px">✦ +1 hero on the board while its holder is fielded.</div>`;
@@ -21664,6 +21708,8 @@ function edDrop(src,at){
 function edAction(a){
   if(a==='desel'){ ED.sel=null; ED.info=null; return edRender(); }   // v612 hero panel
   if(a==='book'){ ED.book=!ED.book; return edRender(); }   // v650: the recipe book
+  if(a.slice(0,3)==='bk:'){ ED.bookTab=a.slice(3); ED.bookSel=''; return edRender(); }   // v651: its tabs
+  if(a.slice(0,4)==='bki:'){ ED.bookSel=(a==='bki:'||ED.bookSel===a)?'':a; return edRender(); }   // v651: tap an item in the book for its stats
   if(a.slice(0,3)==='ii:'){ const i=+a.slice(3); ED.info=(ED.info===i)?null:i; return edRender(); }
   if(a==='xp') return edBuyXp(); if(a==='roll') return edReroll();
   if(a==='lock'){ const p=edYou(); p.locked=!p.locked; return edRender(); }
