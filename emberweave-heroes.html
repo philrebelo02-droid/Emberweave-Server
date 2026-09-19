@@ -19524,7 +19524,12 @@ function perfHUD(){
     'FPS '+(1000/(PERF.fr/n)).toFixed(0)+'   frame '+(PERF.fr/n).toFixed(1)+'ms  worst '+PERF.worst.toFixed(0)+'ms\n'+
     'sim '+(PERF.sim/n).toFixed(1)+'  draw '+(PERF.ren/n).toFixed(1)+'  overlay '+(PERF.ovl/n).toFixed(1)+'ms\n'+
     'units '+(typeof units!=='undefined'?units.length:0)+'  shots '+(typeof shots!=='undefined'?shots.length:0)+'  parts '+(typeof particles!=='undefined'?particles.length:0)+'\n'+
-    (renderer&&renderer.info?('calls '+renderer.info.render.calls+'  tex '+renderer.info.memory.textures+'  vram '+perfVRAM()+'MB'):'');
+    (renderer&&renderer.info?('calls '+renderer.info.render.calls+'  tex '+renderer.info.memory.textures+'  vram '+perfVRAM()+'MB'):'')+
+    /* v639 (Phil: "The lag is also still not ok"): the render resolution and the Emberdraft phase, so a phone screenshot says where the frame goes */
+    (()=>{ try{ const cv=renderer.domElement, dpr=(window.devicePixelRatio||1); let t='\nres '+renderer.getPixelRatio().toFixed(2)+'x  buf '+cv.width+'x'+cv.height+'  dpr '+dpr.toFixed(2)+'  q '+((typeof QUAL!=='undefined'&&QUAL.dpr)?(+QUAL.dpr).toFixed(2):'-');
+      const cc=document.getElementById('edCarCv'); if(cc) t+='\ncarousel buf '+cc.width+'x'+cc.height;
+      if(typeof ED!=='undefined'&&ED.active) t+='\nemberdraft '+ED.phase+'  round '+ED.round;
+      return t; }catch(e){ return ''; } })();
   PERF.fr=PERF.sim=PERF.ren=PERF.ovl=0; PERF.n=0; PERF.worst=0;
 }
 function perfVRAM(){ let px=0; try{ for(const k in BATTLE_ANIM){ const set=BATTLE_ANIM[k]; if(!set||!set._loaded)continue;
@@ -19662,7 +19667,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789791781000';
+const BUILD_ID = '1789820904000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19999,7 +20004,7 @@ const ED_TIER_OPEN = 5;             // Rank I / II / III — "rank", because sta
 const ED_POOL_COPIES = {1:29, 2:22, 3:18};         // copies of each hero in the shared pool, by cost
 const ED_ODDS = {3:[75,25,0],4:[60,35,5],5:[45,40,15],6:[35,40,25],7:[25,40,35],8:[20,37,43],9:[15,35,50]};
 const ED_XP_NEED = {3:6, 4:10, 5:20, 6:36, 7:56, 8:80};
-const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles are 2x too wide" -> "14 tiles, every tile a spot"): 4 x 14 half-width tiles per side */  ED_FIGHT_LIMIT = 30, ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
+const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles are 2x too wide" -> "14 tiles, every tile a spot"): 4 x 14 half-width tiles per side */  ED_FIGHT_LIMIT = 90, ED_OVERTIME = 30,   /* v639 (Phil: "The matches are too fast. Should be 90 seconds, then the last 30 seconds is the attack speed increase stage") */ ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
 /* v605 (Phil, 18 Sep 2026) - the painted Emberdraft arenas: "8 different maps so that each player fights on a different map",
    "16 per side" bench pads, "there shouldnt be wasted space on the screen", "Let the entire thing be animated".
    Every arena is described in IMAGE fractions (0..1), measured off the 2560x1440 art (projects/EMBERDRAFT maps 18 Sep 2026,
@@ -20015,7 +20020,9 @@ const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than th
 /* v636 (Phil: "at 30 second the speed of the heroes increases 5% every second until zero" / "by 10 seconds everyone has 50% increased
    attack speed, 20 seconds 100%, basically by zero everyone is attacking at 150% attack speed, it should be decided by then"):
    an Emberdraft fight's clock runs 0:30 -> 0:00 and every unit's attack speed rises +5% per second of fight, +150% at the end. */
-function edAtkRamp(){ return (typeof CUR!=='undefined'&&CUR&&CUR.mode==='emberdraft') ? 1+0.05*Math.min(ED_FIGHT_LIMIT, Math.max(0, battleTime||0)) : 1; }
+function edAtkRamp(){ if(!(typeof CUR!=='undefined'&&CUR&&CUR.mode==='emberdraft')) return 1;
+  const into=Math.max(0, Math.min(ED_OVERTIME, (battleTime||0)-(ED_FIGHT_LIMIT-ED_OVERTIME)));   // v639: 0:00-1:00 normal speed; the LAST 30 s ramp +5%/s to +150% at the buzzer
+  return 1+0.05*into; }
 function edFig(h){ return ED_FIG_SCALE*(1+0.1*Math.max(0,((h&&h.rank)|0)-1)); }   // v635 (Phil: "1 star normal size, 2 star 10% increase of normal, 3 star 20%, big star 30%"): flat +10% of normal per rank, not compounding - rank I 55%, II 60.5%, III 66%, big star 71.5%
 const ED_ARENAS = [
   { id:'cinderforge', name:'The Cinderforge Hollow',
@@ -20913,11 +20920,11 @@ function edEndBattle(res){
   const survivors=units.filter(o=>o.alive&&o.team==='enemy'&&!o._summon).map(o=>({rank:o._edRank||1}));
   const mine=units.filter(o=>o.alive&&o.team==='ally'&&!o._summon).map(o=>({rank:o._edRank||1}));
   let line='';
-  if(ED.opp.pve){ edPveReward(you, won); line = won ? 'Wave cleared — 2 components and 1 gold.' : (draw ? '⏱ Time ran out (30 s) — the wave held. 1 component.' : 'The wave held — 1 component.'); if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
+  if(ED.opp.pve){ edPveReward(you, won); line = won ? 'Wave cleared — 2 components and 1 gold.' : (draw ? '⏱ Time ran out — the wave held. 1 component.' : 'The wave held — 1 component.'); if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
     else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1;
-      if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line='⏱ Time ran out (30 s) with both sides standing — a draw. You lose '+d+', '+foe.name+' loses '+d2+'.'; }
+      if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line='⏱ Time ran out with both sides standing — a draw. You lose '+d+', '+foe.name+' loses '+d2+'.'; }
       else line=foe.name+' won — you lose '+d+' health.'; } }
   ED.msg=line;
   ED._fieldSig=null;
