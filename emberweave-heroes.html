@@ -4154,7 +4154,7 @@ function resultLater(fn,ms){ if(_resultTimer)clearTimeout(_resultTimer); var ep=
     else { _resultBusy=false; }
   }, ms); return _resultTimer; }
 function cancelResult(){ _resultEpoch++; if(_resultTimer){ clearTimeout(_resultTimer); _resultTimer=null; } _resultBusy=false; }
-function updateUnsafe(){ return state==='battle' || state==='result' || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil); }   // a final blow sets `ended` before resolve/result is safely banked; defer through the result screen and update only after Continue
+function updateUnsafe(){ return state==='battle' || state==='result' || !!_resultTimer || (_resultBusy && Date.now()<_resultBusyUntil) || !!(window.ED && ED.active); }   /* v646: never reload under an Emberdraft match (incl. its start loader, after /start spent the attempt) */   // a final blow sets `ended` before resolve/result is safely banked; defer through the result screen and update only after Continue
 /* v269 — YOUR TIMING IS THE INPUT.
    The fight advances in fixed ticks (v268), so "when you fired" is an exact tick number, not a
    wall-clock instant. Every player action is therefore QUEUED and applied at a tick boundary, and
@@ -6948,7 +6948,7 @@ function initThree(){
          and resumable (v273) — the stamina and the stage come straight back. */
   { const _cv=renderer.domElement; let _lost=false;
     _cv.addEventListener('webglcontextlost',(e)=>{ e.preventDefault(); _lost=true;
-      try{ bannerMsg('⚠ Graphics restarting — your battle is saved.'); }catch(_){}
+      try{ bannerMsg((window.ED&&ED.active) ? "⚠ Graphics restarting — this Emberdraft match can't be resumed." : '⚠ Graphics restarting — your battle is saved.'); }catch(_){}   /* v646: the Emberdraft match lives in memory only */
       try{ console.warn('[gl] context lost'); }catch(_){}
       setTimeout(()=>{ if(_lost){ try{ location.reload(); }catch(_){} } }, 4000); },false);   // never came back → reload
     _cv.addEventListener('webglcontextrestored',()=>{ _lost=false;
@@ -7036,7 +7036,7 @@ function qualityTick(frameMs){
      left a 30-45 fps phone at full resolution for the whole run. */
   const badMs=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) ? 24 : 33;
   /* v643: bad is counted in milliseconds (was frames): 60 bad frames is 2 s at 30 fps but 7.5 s at 8 fps */
-  if(frameMs>badMs){ QUAL.bad+=Math.min(frameMs,250); QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
+  if(frameMs>badMs){ QUAL.bad+=Math.min(frameMs,66); QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
   if(QUAL.bad>=2000 && QUAL.dpr>QUAL.min){                     // ~2s of genuine stutter -> shed pixels
     QUAL.dpr=Math.max(QUAL.min, +(QUAL.dpr-0.25).toFixed(2)); QUAL.bad=0; qualityApply(); }
   else if(QUAL.good>=180 && QUAL.dpr<QUAL.max){                // ~3s of healthy frames -> earn some back
@@ -7700,7 +7700,11 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
       floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'PRISM',t:.8,color:'#3aa0d8',vy:1,sz:11}); }
     return; }
   if(tgt) tgt._untouched=0;   // v527: "untouched" passives (Perfect Camouflage, Silent Altitude) read this
-  if(kind!=='true'&&(tgt.evaStat||0)>0&&brnd()<Math.max(0,tgt.evaStat-((src&&src.accStat||0)*0.003))){
+  /* v646: Steady Hands (next hits) / Hawk Eye (timed) can't miss; Astral Drift / Evasive Roll add timed dodge. With no gear
+     effect running, the condition and the RNG draws are exactly what they were (deterministic fights and the server sim agree). */
+  const _gSure=!!src&&kind!=='true'&&(((src._gearSureUntil||0)>battleTime)||((src._gearSureN||0)>0)); if(_gSure&&!((src._gearSureUntil||0)>battleTime)) src._gearSureN--;
+  const _gEva=(tgt&&(tgt._gearEvaUntil||0)>battleTime)?(tgt._gearEva||0):0;
+  if(kind!=='true'&&!_gSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.003))){
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); return; }   // Evasion vs Accuracy
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
@@ -7711,6 +7715,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   else if(kind!=='true'){ amt*=1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl); // Armor vs Armor Pen
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
+  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,src._gearNextStun); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<cc))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
@@ -11363,15 +11368,16 @@ function edDrawInsignia(c, cx, by, rank, k){
     c.lineWidth=th; c.strokeStyle=col; c.stroke(); }
   c.restore(); return H; }
 /* the planning badge (item icons) follows the bar; the overlay is in #app px, the badge in viewport px */
+let _edRenderGen=0, _edOvRect=null;   /* v646: a badge lookup happens once per edRender (heroes with no items have none); the overlay rect once per frame */
 function edBadgeAt(u, x, y){ let el=u._badgeEl;
-  if(!el||!el.isConnected){ el=u._badgeEl=document.querySelector('#edRoot .badge[data-uid="'+u._edId+'"]'); u._bx=null; if(!el) return; }
-  const r=overlay.getBoundingClientRect(), vx=r.left+x*(r.width/(CW||1)), vy=r.top+y*(r.height/(CH||1));
+  if(!el||!el.isConnected){ if(u._badgeGen===_edRenderGen) return; u._badgeGen=_edRenderGen; el=u._badgeEl=document.querySelector('#edRoot .badge[data-uid="'+u._edId+'"]'); u._bx=null; if(!el) return; }
+  const r=_edOvRect||(_edOvRect=overlay.getBoundingClientRect()), vx=r.left+x*(r.width/(CW||1)), vy=r.top+y*(r.height/(CH||1));
   if(u._bx!=null && Math.abs(u._bx-vx)<0.5 && Math.abs(u._by-vy)<0.5) return;
   u._bx=vx; u._by=vy; el.style.left=vx.toFixed(1)+'px'; el.style.top=vy.toFixed(1)+'px'; }
 /* v645 (Phil: "slow down the FPS on their idle please"): Emberdraft heroes play their idle clip at this fraction of its frame rate */
 const ED_IDLE_FPS_MUL=0.6;
 let _olPrev=0, _olDt=0;
-function drawOverlay(){octx.clearRect(0,0,CW,CH);
+function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
   { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
   updateBattleBanner();
@@ -12152,6 +12158,7 @@ function _gsNearFoe(u){ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team
 function _gsFarFoe(u){ let b=null,bd=-1; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d>bd){bd=d;b=o;} } }); return b; }
 function _gsFarCaster(u){ let b=null,bd=-1; units.forEach(o=>{ if(!o.alive||o.team===u.team)return; const role=(o.t&&o.t.role)||'', caster=role==='Mage'||role==='Support'||(o.apow||0)>(o.dmg||0); if(!caster)return; const d=Math.hypot(o.x-u.x,o.y-u.y); if(d>bd){bd=d;b=o;} }); return b||_gsFarFoe(u); }
 function _gsLowFoe(u){ let b=null,bp=2; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const p=o.hp/o.maxHp; if(p<bp){bp=p;b=o;} } }); return b; }
+function _gsNearCaster(u){ let b=null,bd=1e9; units.forEach(o=>{ if(!o.alive||o.team===u.team||o._dropHidden||o._noTarget)return; const role=(o.t&&o.t.role)||'', caster=role==='Mage'||role==='Support'||(o.apow||0)>(o.dmg||0); if(!caster)return; const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} }); return b; }   /* v646 */
 function _gsFoes(u,how,n,anchor){ const foes=units.filter(o=>o.alive&&o.team!==u.team);
   if(how==='all') return foes;
   if(how==='far'){ const t=_gsFarFoe(u); return t?[t]:[]; }
@@ -12175,7 +12182,7 @@ function castGearSkill(u,_fromTick){
   const burn=(t,frac,dur)=>{ if(t&&frac&&t.dots) pushDot(t,u.dmg*frac/(2*(dur||3)),dur||3,0.5,'#ff9a3c'); };
   switch(ty){
     case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
-    case 'stun': { const ts=_gsFoes(u,p.target==='aoe'?'aoe':(p.target==='caster'?'near':'near'),p.target==='aoe'?3:1);
+    case 'stun': { const ts=p.target==='caster' ? [_gsNearCaster(u)||_gsNearFoe(u)].filter(Boolean) : _gsFoes(u,p.target==='aoe'?'aoe':'near',p.target==='aoe'?3:1);   /* v646: Static Crown stuns the nearest CASTER */
       ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,(p.dur||0.75)); }); break; }
     case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,p.dur||1.25); break; }
     case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ t.slow=Math.max(t.slow||0,p.dur||2); if((p.pct||0)>=0.9) t.stunned=Math.max(t.stunned||0,(p.dur||1.25)*0.6); }); break; }
@@ -12192,6 +12199,10 @@ function castGearSkill(u,_fromTick){
       if(p.dr!=null){ u.drT=Math.max(u.drT||0,p.dur||3); u.drMul=Math.min(u.drMul||1,p.dr); }
       if(p.shieldPct){ u.shield=(u.shield||0)+Math.round(u.maxHp*p.shieldPct); u.shieldT=Math.max(u.shieldT||0,p.dur||3); }
       if(p.vamp){ u._gearVampPct=Math.max(u._gearVampPct||0,p.vamp); u._gearVampT=Math.max(u._gearVampT||0,p.dur||3); }
+      /* v646 (Emberdraft scan 2): evade / acc / blinkBack were in the actives table but nothing read them */
+      if(p.evade){ const _on=(u._gearEvaUntil||0)>battleTime; u._gearEva=Math.max(_on?(u._gearEva||0):0,p.evade); u._gearEvaUntil=Math.max(u._gearEvaUntil||0,battleTime+(p.dur||2)); }
+      if(p.acc) u._gearSureUntil=Math.max(u._gearSureUntil||0,battleTime+(p.dur||3));
+      if(p.blinkBack){ const f=_gsNearFoe(u); if(f){ const dx=u.x-f.x,dy=u.y-f.y,dd=Math.hypot(dx,dy)||1; u.x+=dx/dd*60; u.y+=dy/dd*60; u._ax=u.x; u._ay=u.y; } }
       if(p.who==='nearAllies'){ _gsAllies(u,'allies').forEach(w=>{ if(p.as){ w.hasteT=Math.max(w.hasteT||0,p.dur||3); w.hasteMul=Math.max(w.hasteMul||1,p.as); } }); } break; }
     case 'mark': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':(p.target==='far'?'far':'near'),5);
       ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,p.dur||2); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
@@ -12199,8 +12210,12 @@ function castGearSkill(u,_fromTick){
     case 'cleanse': { _gsAllies(u,p.who||'allies').forEach(w=>{ w.stunned=0; w.fearT=0; w.slow=0; w.silencedT=0; }); break; }
     case 'untarget': { if(p.ccImmune){ u._gearImmovableT=Math.max(u._gearImmovableT||0,p.ccImmune); } else { u._noTarget=true; u._noTargetT=(p.dur||1.5); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); } break; }   // v268: SIM-TIME countdown (was a wall-clock setTimeout that ignored pause, speed and the skip loop)
     case 'ward': { const w=_gsAllies(u,p.who||'lowest')[0]||u; w._wardT=Math.max(w._wardT||0,p.dur||2); break; }
-    case 'next': { if(p.kind==='crit')u._gearNextCrit=p.spell?'spell':'hit'; else if(p.spell)u._gearRepeatSpell=Math.max(u._gearRepeatSpell||0,Math.max(0,(p.mult||1.4)-1)); break; }
+    case 'next': { if(p.kind==='crit')u._gearNextCrit=p.spell?'spell':'hit'; else if(p.kind==='sure') u._gearSureN=(u._gearSureN||0)+(p.n||3); else if(p.kind==='stun') u._gearNextStun=Math.max(u._gearNextStun||0,p.dur||1); else if(p.spell)u._gearRepeatSpell=Math.max(u._gearRepeatSpell||0,Math.max(0,(p.mult||1.4)-1)); break; }
     case 'move': { if(p.kind==='pullAoe'){ const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ const dx=u.x-t.x,dy=u.y-t.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*60; t.y+=dy/dd*60; }); }
+      else if(p.kind==='blinkFront'){ const fr=units.filter(o=>o.alive&&o.team===u.team&&o!==u&&!o._summon&&(o.t&&(o.t.range||99)<60)), foe=_gsNearFoe(u);   /* v646: Blink Step - behind the nearest allied frontliner (was a haste) */
+        let b=null,bd=1e9; fr.forEach(o=>{ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} });
+        if(b){ const dx=foe?b.x-foe.x:0, dy=foe?b.y-foe.y:1, dd=Math.hypot(dx,dy)||1; u.x=b.x+dx/dd*45; u.y=b.y+dy/dd*45; u._ax=u.x; u._ay=u.y; }
+        else { u.hasteT=Math.max(u.hasteT||0,2); u.hasteMul=Math.max(u.hasteMul||1,1.35); } }
       else { u.hasteT=Math.max(u.hasteT||0,2); u.hasteMul=Math.max(u.hasteMul||1,1.35); if(p.cleanseSlow) u.slow=0; } break; }
     default: { u.shield=(u.shield||0)+Math.round(u.maxHp*0.12); u.shieldT=Math.max(u.shieldT||0,5); }
   }
@@ -19024,7 +19039,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
-  /* v635 (Phil: "I lost from nothing, no time up, didnt lose my heroes just lost"): an Emberdraft fight ends at ED_FIGHT_LIMIT (30 s) as
+  /* v635 (Phil: "I lost from nothing, no time up, didnt lose my heroes just lost"): an Emberdraft fight ends at ED_FIGHT_LIMIT (30 s then; 90 s since v639) as
      a draw that costs health, but this clock counted the 90 s campaign limit - it read 1:00 left when the fight was already over.
      The clock now counts the limit the fight actually uses. */
   const lim=(CUR&&CUR.mode==='emberdraft'&&typeof ED_FIGHT_LIMIT==='number')?ED_FIGHT_LIMIT:BATTLE_TIME_LIMIT;
@@ -19573,7 +19588,7 @@ let last=performance.now(), _szChk=0, _wasLive=false;
 function loop(now){let dt=(now-last)/1000;last=now;
   /* v643: during the Ember Carousel the battle scene is skipped (v637), so its frames were near-free and the governor kept
      EARNING resolution (q 1.00 -> 1.75 in one carousel) - which the buy stage then paid for at 8 FPS. Don't count those frames. */
-  if(QUAL.last && !_edCarBlank) qualityTick(now-QUAL.last);
+  if(QUAL.last && !_edCarBlank && !_edPlanPR) qualityTick(now-QUAL.last);   /* v646: nor in planning (capped at 1.5x - its cheap frames used to raise the NEXT fight's resolution) */
   { const _edp=document.body.classList.contains('ed-plan'); if(_edp!==_edPlanPR){ _edPlanPR=_edp; if(renderer){ CW=0; resize3D(); } } }   // v643: zoomPR differs in planning
   QUAL.last=now;
   if(dt>.05)dt=.05;
@@ -19703,7 +19718,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789827607000';
+const BUILD_ID = '1789828807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20033,7 +20048,7 @@ const ED_LEVEL = 30;                               // every hero fights at this 
 const ED_RANK_MUL = [0, 1, 1.8, 3.24, 5.832];   // [4] = the big star (3 x Rank III)
 const ED_RANK_COL = ['', '#5fd07a', '#58a6ff', '#b57bff', '#ffd45e'];   // Phil, 18 Sep: I Green, II Blue, III Purple — the ability each rank earns
 const ED_RANK_KIT = ['', 'Ultimate + Green', 'Ultimate + Green + Blue', 'Ultimate + Green + Blue + Purple', 'every ability · wields Gold and Orange'];
-const ED_RANK_LBL = ['', 'I', 'II', 'III', '★'];
+const ED_RANK_LBL = ['', '1 star', '2 star', '3 star', '4 star'];   /* v646 (Phil: "we will call these 1 star, 2 star, 3 star, 4 star"; the insignia shows the army rank) */
 /* Phil, 18 Sep: "only the one big stars can upgrade to gold and orange item, the orange and gold item is gated for 3stars and below heroes".
    Drops and the item bench stop at Purple +3 (tier 5); a Gold/Orange tier (6+) exists only on a big-star hero. */
 const ED_TIER_OPEN = 5;             // Rank I / II / III — "rank", because stars mean rarity here
@@ -20055,7 +20070,8 @@ const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles ar
 const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than that. Each upgrade increase their size 10%"
 /* v636 (Phil: "at 30 second the speed of the heroes increases 5% every second until zero" / "by 10 seconds everyone has 50% increased
    attack speed, 20 seconds 100%, basically by zero everyone is attacking at 150% attack speed, it should be decided by then"):
-   an Emberdraft fight's clock runs 0:30 -> 0:00 and every unit's attack speed rises +5% per second of fight, +150% at the end. */
+   an Emberdraft fight's clock runs 0:30 -> 0:00 and every unit's attack speed rises +5% per second of fight, +150% at the end.
+   [v639: the fight is 90 s and the ramp runs only in its last 30 s - see edAtkRamp] */
 function edAtkRamp(){ if(!(typeof CUR!=='undefined'&&CUR&&CUR.mode==='emberdraft')) return 1;
   const into=Math.max(0, Math.min(ED_OVERTIME, (battleTime||0)-(ED_FIGHT_LIMIT-ED_OVERTIME)));   // v639: 0:00-1:00 normal speed; the LAST 30 s ramp +5%/s to +150% at the buzzer
   return 1+0.05*into; }
@@ -20082,7 +20098,10 @@ const ED_AI_NAMES = ['The Ashen Duke','Mirewitch Olga','Captain Brandt','Sister 
 /* equipment: one component per Forge gear slot; the 9 Forge quality tiers (Phil: "items should have tiers") */
 const ED_COMP = ['Weapon','Helm','Boots','Armor','Gloves','Belt','Ring','Amulet','Relic'];
 const ED_COMP_IC = {Weapon:'⚔️',Helm:'⛑️',Boots:'👢',Armor:'🛡️',Gloves:'🧤',Belt:'🎗️',Ring:'💍',Amulet:'📿',Relic:'🗿'};
-const ED_COMP_TXT = {Weapon:'+15% damage',Helm:'+25 magic resist',Boots:'+15% attack speed',Armor:'+25 armor',Gloves:'+15% crit chance',
+/* v646 (scan 2): +25 armor / magic resist was ~+1.5% effective health against defK(30) = 1200 + 17.4 x 29 = 1705 (Belt gives +15%).
+   ED_DEF_COMP = 0.15 x defK(ED_LEVEL) = 256 -> ~13% less damage of that kind, ~+15% effective health against it. */
+const ED_DEF_COMP = 256;
+const ED_COMP_TXT = {Weapon:'+15% damage',Helm:'+256 magic resist',Boots:'+15% attack speed',Armor:'+256 armor',Gloves:'+15% crit chance',
                      Belt:'+15% health',Ring:'+15% ability power',Amulet:'+15 starting energy',Relic:'+8% health and damage'};
 const ED_TIERS = ['Grey','Green','Blue','Blue +2','Purple','Purple +3','Gold +1','Gold +4','Orange'];
 const ED_TIER_COL = ['#9aa4b2','#5ee89b','#5eb9e8','#5eb9e8','#c9a2ff','#c9a2ff','#ffd45e','#ffd45e','#ff9d5e'];
@@ -20189,7 +20208,7 @@ function edMerge(p){
       /* v644: re-pack the three copies' items through edEquip - finished items first, lone components combine, a crest the hero
          already has (or a 4th item) goes to the item bench. Before, the first three were kept as-is: two identical crests could
          sit on one hero, and two lone components stayed apart. */
-      keep.u.rank++; keep.u.items=[]; items.sort((x,y)=>((y.f&&!edCrestRole(y))?2:(y.f?1:0))-((x.f&&!edCrestRole(x))?2:(x.f?1:0)));
+      keep.u.rank++; try{ if(typeof _artWarmed!=='undefined') delete _artWarmed['k:'+keep.u.key]; }catch(e){} keep.u.items=[]; items.sort((x,y)=>((y.f&&!edCrestRole(y))?2:(y.f?1:0))-((x.f&&!edCrestRole(x))?2:(x.f?1:0)));
       for(const it of items) if(!edEquip(keep.u,it)) edGiveItem(p,it);
       if(keep.u.rank>=4){   // v640 (Phil: "only the big stars get gold and orange"): a big star turns one of its items Radiant
         const fin=keep.u.items.find(x=>x.f && !x.r && !edCrestRole(x) && !edIsSeed(x));
@@ -20209,16 +20228,17 @@ function edItemName(it){ if(!it) return ''; if(it.rm) return 'Remover'; const cr
 function edItemTier(it){ if(!it) return ''; return it.rm?'Tool':(it.r?'Radiant':(edCrestRole(it)?'Crest':(it.f?'Finished':'Component'))); }
 function edCombine(a,b){ return { f: ED_FINISHED[edPairKey(a.c,b.c)], a:a.c, b:b.c }; }
 /* put item `it` on hero `h`: a component joins a lone component into a finished item; two identical finished items of
-   one tier become the next tier (Phil: "combined to make higher tier equipment"); three items at most */
+   one tier become the next tier (Phil: "combined to make higher tier equipment"); three items at most
+   [v640: no tiers or twin upgrades any more - one fixed strength; v644/v646 changes are marked below] */
 /* v640: the reason an equip was refused, for the toast */
 let _edEquipWhy='';
 function edEquip(h,it){
   _edEquipWhy=''; if(!h||!it) return false;
   if(it.rm){ _edEquipWhy='Drop the remover on a hero to take its items off.'; return false; }
-  if(it.c){ const open=h.items.findIndex(x=>x.c); if(open>=0){ const made=edCombine(h.items[open],it), cr=edCrestRole(made);
-      if(!(cr && edHeroRoles(Object.assign({},h,{items:h.items.filter((x,i)=>i!==open)})).includes(cr))){ h.items[open]=made; return true; }
+  if(it.c){ let lastCr=null; for(let open=0; open<h.items.length; open++){ if(!h.items[open].c) continue; const made=edCombine(h.items[open],it), cr=edCrestRole(made);
+      if(!(cr && edHeroRoles(Object.assign({},h,{items:h.items.filter((x,i)=>i!==open)})).includes(cr))){ h.items[open]=made; return true; } lastCr=cr; }   /* v646: every lone component is tried, not only the first */
       /* v644: that pair would make a crest the hero already has - keep it as its own component in a free slot instead of refusing */
-      if(h.items.length>=3){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing, and all three slots are full.'; return false; } } }
+      if(lastCr && h.items.length>=3){ _edEquipWhy=edName(h.key)+' is already a '+lastCr+' - that crest would do nothing, and all three slots are full.'; return false; } }
   const cr=edCrestRole(it); if(cr && edHeroRoles(h).includes(cr)){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing.'; return false; }
   if(h.items.length>=3){ _edEquipWhy='That hero already carries three items.'; return false; }
   h.items.push(it); return true;   // duplicates are fine and stack (TFT)
@@ -20226,9 +20246,9 @@ function edEquip(h,it){
 /* v640: the remover takes every item off a hero, intact (finished items stay finished) */
 function edRemoveItems(p,h){ if(!h||!h.items.length) return false; const free=ED_ITEM_BENCH-p.items.length; if(free<h.items.length){ edToast('Make room on the item bench first ('+h.items.length+' slots needed).'); return false; }
   for(const it of h.items) p.items.push(it); h.items=[]; return true; }
-/* two identical finished items on the item bench also upgrade there */
+/* [v640: no twin upgrades any more] this only moves waiting items onto the item bench */
 function edBenchUpgrade(p){ edItemsFlush(p); }   // v640: no twin fusing any more - this only moves waiting items onto the bench
-function edLoadCatalog(){ if(ED.cat) return Promise.resolve(ED.cat);
+function edLoadCatalog(){ if(ED.cat && Object.keys(ED.cat).length) return Promise.resolve(ED.cat);   /* v646: an empty catalog (signed out / a failed fetch) is tried again next match */
   if(typeof api!=='function' || !(typeof ACC!=='undefined'&&ACC.token)) { ED.cat={}; return Promise.resolve(ED.cat); }
   return api('/api/gear/catalog').then(d=>{ const m={}; ((d&&d.items)||[]).forEach(it=>{ m[it.name]={type:it.activeType||null,params:it.activeParams||null,name:it.active,effect:it.effect||''}; }); ED.cat=m; return m; })
     .catch(()=>{ ED.cat={}; return ED.cat; }); }
@@ -20318,7 +20338,7 @@ function openEmberdraft(){
     </div>
   </div>`;
   const alive=()=>document.body.contains(ov);
-  ov.querySelector('#edX').onclick=()=>ov.remove();
+  ov.querySelector('#edX').onclick=()=>{ if(ov.dataset.busy) return; ov.remove(); };   /* v646: not while a start is in flight (the match used to open over the island) */
   /* drifting embers over the art (36 glowing dots on a 2D canvas; stops with the screen; none with reduced motion) */
   (function embers(){ const cv=ov.querySelector('canvas.edl-fx'), cx=cv.getContext('2d'); if(!cx) return;
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -20380,15 +20400,18 @@ function openEmberdraft(){
     attEl.innerHTML = v.left>0 ? `${pips(v.left,Math.max(3,v.left))}<span style="margin-left:4px">${v.left} attempt${v.left===1?'':'s'} left today</span>`
                                : `${pips(0,3)}<span style="margin-left:4px">No attempts left today</span>`;
     solo.disabled = v.left<=0;
-    buy.hidden = !(v.left<=0 && v.nextCost!=null); if(v.nextCost!=null) buy.textContent=`💎 ${v.nextCost} — ${v.pack} more attempts`;
+    buy.hidden = !(v.left<=0 && v.nextCost!=null); if(v.nextCost!=null){ buy.textContent=`💎 ${v.nextCost} — ${v.pack} more attempts`; buy.dataset.cost=v.nextCost; buy.dataset.pack=v.pack; }
     if(err) attEl.textContent=err; };
-  if(signed){ solo.disabled=true; api('/api/emberdraft/state','POST',{god}).then(d=>{ solo.disabled=false; show(d&&d.edraft, d&&d.ok?'':'Could not reach the server.'); }); }
+  const _claimP = signed ? edResendClaim() : Promise.resolve();   /* v646: a saved unclaimed reward goes first */
+  if(signed){ solo.disabled=true; _claimP.then(()=>api('/api/emberdraft/state','POST',{god})).then(d=>{ solo.disabled=false; show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,'Could not reach the server.')); }); }
   else attEl.textContent='Practice match — sign in to earn stamina';
-  buy.onclick=()=>{ buy.disabled=true; api('/api/emberdraft/buy','POST',{requestId:uid8()}).then(d=>{ buy.disabled=false;
-    try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':((d&&d.error)||'Could not buy attempts.')); }); };
+  buy.onclick=()=>gameConfirm(`Buy <b>${buy.dataset.pack||3} more Emberdraft attempts</b> for <b style="color:#c9b6ff">💎${buy.dataset.cost||''}</b>?`, ()=>{ buy.disabled=true;   /* v646: one tap spent diamonds */
+    api('/api/emberdraft/buy','POST',{requestId:uid8()}).then(d=>{ buy.disabled=false;
+    try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,'Could not buy attempts.')); }); });
   solo.onclick=()=>{ if(!signed){ ov.remove(); edNewGame(null); return; }
-    solo.disabled=true; api('/api/emberdraft/start','POST',{requestId:uid8(), god}).then(d=>{
-      if(d&&d.ok){ ov.remove(); edNewGame(d.attemptId); } else { solo.disabled=false; show(d&&d.edraft, (d&&d.error)||'Could not start a match.'); } }); };
+    solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();   /* v646: one request id until the server answers - a lost reply can't spend a second attempt */
+    _claimP.then(()=>api('/api/emberdraft/start','POST',{requestId:ov._startReq, god})).then(d=>{ delete ov.dataset.busy;
+      if(d&&d.ok){ ov._startReq=null; ov.remove(); edNewGame(d.attemptId); } else { if(!(d&&d.error==='offline')) ov._startReq=null; solo.disabled=false; show(d&&d.edraft, edNiceErr(d&&d.error,'Could not start a match.')); } }); };
 }
 
 /* where the painted pedestal lands on screen under background-size:cover, then stand the model there at the painted size */
@@ -20403,7 +20426,7 @@ window.openEmberdraft=openEmberdraft;
 
 function edNewGame(attemptId){
   edPoolInit(); _edUid=1;
-  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[] });   // v644: + a fresh boss order and no leftovers from the last match
+  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[], spec:null, _mutual:false, match:(ED.match|0)+1 });   // v644: + a fresh boss order and no leftovers from the last match
   for(let i=0;i<8;i++) ED.players.push(edNewPlayer(i));
   { const order=ED.players.map((_,i)=>i).sort(()=>Math.random()-0.5); ED.players.forEach((p,i)=>{ p.arenaIx=order[i]; }); ED.arena=null; ED._lay=null; }   // v605: one arena per seat
   edLoadCatalog();
@@ -20559,7 +20582,7 @@ const ED_CAR_TINT = [0xffc23d, 0x5aa9ff, 0xff6b6b, 0x7ee06b, 0xc38bff, 0xff9f43,
 function edCarDrawOffers(r){ const offers=[];
   for(let i=0;i<8;i++){ const k=edDrawKey(r<=1?3:Math.min(9,3+Math.floor(r/3))); if(!k) continue;
     /* v640: components until round 18; from 18 two offers carry finished items; from 24 every offer does and one is Radiant */
-    const it = r>=24 ? Object.assign(edRandFinished(), i===0?{r:true}:{}) : (r>=18 && i<2 ? edRandFinished() : edRollComp(r));
+    const it = r>=24 ? Object.assign(edRandFinished(i===0), i===0?{r:true}:{}) : (r>=18 && i<2 ? edRandFinished() : edRollComp(r));
     offers.push({ key:k, item:it, taken:null, by:null }); }
   return offers; }
 function edStartCarousel(){
@@ -20624,7 +20647,7 @@ function edCarFinish(){
   const C=ED.car; if(!C||C.done) return; C.done=true;
   const left=()=>C.offers.map((o,i)=>i).filter(i=>C.offers[i].taken==null);
   for(const a of C.av){ if(a.got==null){ const L=left(); if(L.length){ const i=L[Math.floor(Math.random()*L.length)]; C.offers[i].taken=a.p.i; a.got=i; } } }
-  for(const a of C.av){ if(a.got!=null){ const o=C.offers[a.got]; o.taken=null; edDraftGive(a.p,o); } }
+  for(const a of C.av){ if(a.got!=null){ const o=C.offers[a.got]; o.taken=null; try{ edDraftGive(a.p,o); }catch(e){ console.warn('Emberdraft: carousel give failed', e); } } }   /* v646: an error here left the carousel unfinished */
   for(const o of C.offers) if(o.taken==null) edReturnKey(o.key);   // leftovers go back to the pool
   setTimeout(()=>{   // a beat to see the last grab, then back to planning
     if(!ED.active || ED.car!==C) return;   // v644: not after Leave / a new match
@@ -20649,8 +20672,8 @@ function edCarHtml(){ const C=ED.car; if(!C) return '';
    by left/top every frame - so every frame the phone re-laid-out and repainted eight huge scaled images. Now each offer is a
    68x84 canvas that gets ONE frame drawn from the sheet already in memory (~12 fps), and offers/tags move by transform only. */
 let _edCarSprT=0;
-function edCarSprPaint(){ const now=performance.now(); if(now-_edCarSprT<80) return; _edCarSprT=now;
-  document.querySelectorAll('#edRoot canvas.carSpr').forEach(cv=>{ const k=cv.dataset.k, set=(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[k], A=set&&(set.idle||set.walk); if(!A) return;
+function edCarSprPaint(){ const now=performance.now(); if(now-_edCarSprT<40) return; _edCarSprT=now;   /* v646: 40 ms (80 dropped frames of a 14.4 fps idle) */
+  document.querySelectorAll('#edRoot canvas.carSpr, #edRoot canvas.edSpr').forEach(cv=>{ const k=cv.dataset.k, set=(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[k], A=set&&(set.idle||set.walk); if(!A) return;
     try{ if(!A.tex) _loadClip(A); }catch(e){}
     const im=A.tex&&A.tex.image; if(!im||!im.width) return;
     const cols=A.cols||A.n||1, rows=A.rows||1, n=A.n||cols*rows, i=Math.floor(now*(A.fps||14)*ED_IDLE_FPS_MUL/1000)%n, c=i%cols, r=Math.floor(i/cols);   /* v645: the clip's own fps x ED_IDLE_FPS_MUL (was a fixed 70 ms) */
@@ -20793,9 +20816,13 @@ function edAiPlan(p){
 
 /* ------------------------------------------------------------------------------------------ fights */
 function edPower(p){ let pw=0; const syn=edSynergy(p); let st=0; for(const r in syn) st+=syn[r].tier;
-  for(const u of Object.values(p.board)){ pw += Math.pow(edCost(u.key),1.25)*100*ED_RANK_MUL[u.rank]*(1+u.items.reduce((s,it)=>s+(it.f?0.18*ED_FIN_BONUS:0.08)*edItemMul(it),0)); }
+  for(const u of Object.values(p.board)){ pw += (1+0.15*(edCost(u.key)-1))*100*Math.pow(ED_RANK_MUL[u.rank],1.6)*(1+u.items.reduce((s,it)=>s+(it.f?0.18*ED_FIN_BONUS:0.08)*edItemMul(it),0)); }
   return pw*(1+0.06*st); }
-function edPvePower(r){ return 180 + r*95; }
+/* v646 (scan 2): the old bar (180 + 95 x round) sat far below any AI's edPower after round 3, so AIs never lost a wave and bosses
+   never threatened them. The bar now follows the lobby: 0.8 x the median AI board on monster rounds (a weak board loses now and
+   then - monsters are not a gate), 1.0 x on boss rounds (21+), where a median AI wins about 2 in 3 and a weak one usually loses. */
+function edPvePower(r){ const ps=edAlive().filter(p=>p.ai).map(edPower).sort((a,b)=>a-b); const med=ps.length?ps[Math.floor(ps.length/2)]:(180+95*r);
+  return med*(r>=21?1.0:0.8); }
 function edStartFight(){
   const you=edYou(); if(ED.phase!=='plan'||!you.alive) return;
   if(!edBoardCount(you)) return edToast('Place at least one hero on the board.');
@@ -20863,7 +20890,7 @@ function edImgToField(ix, iy){
   }
   return { x, y };
 }
-/* 4 rows x 7 columns per half of the plaza (row 0 = the front, by the ember line), 5% in from the plaza's side edges;
+/* 4 rows x 7 columns (ED_COLS = 14 since v634) per half of the plaza (row 0 = the front, by the ember line), 5% in from the plaza's side edges;
    the enemy half is mirrored. Bench slot i = pad i of the near ledge (yours, left to right) / far ledge (theirs, right to left). */
 function edLayout(){
   // a canvas measured before it had a size, or a camera whose aspect is stale, would throw every slot off the field
@@ -20916,7 +20943,7 @@ function edBgVideo(a){
   try{ const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{ document.addEventListener('pointerdown', retry, { once:true, capture:true }); }); }catch(e){}
 }
 function edLaunchBattle(){
-  const you=edYou(); ED.phase='fight'; ED.fighting=true; ED._fieldSig=null;
+  const you=edYou(); ED.phase='fight'; ED.fighting=true; ED._fieldSig=null; ED._mutual=false;
   edSetArena( (ED.opp && !ED.opp.pve && ED.opp.p && ED.round%2===1) ? edArenaOf(ED.opp.p) : edArenaOf(you) );   // v605: monsters on your arena; PvP home on even rounds, away on odd
   const allySpec=Object.entries(you.board).map(([pos,u])=>{ const [r,c]=pos.split(',').map(Number); return { u, r, c }; });
   let enemySpec=[];
@@ -20971,7 +20998,9 @@ function edSpawnUnits(){
     const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1)), boss:!!h.boss}); u._edFig=h.mon?ED_FIG_SCALE*(h.boss?1.6:1):edFig(h); if(!h.mon) u._edStates=edClipStates(h.key);   // v642: bosses stand larger than a big-star hero (x1.45)
     if(!h.mon){ const m=ED_RANK_MUL[h.rank||1]; u.maxHp*=m; u.hp=u.maxHp; u.dmg*=m; u.apow=(u.apow||0)*m; u._edRank=h.rank||1; }
     else { const m=edMonMul(ED.round, !!h.boss);   // v642: monster / boss strength by round
-      /* bosses come in two builds (300 hp melee, or 450 hp x1.6 AP casters); level them to one baseline so the round, not the draw, sets the fight */
+      /* bosses come in two builds (300 hp melee, or 450 hp x1.6 AP casters); level them to one baseline so the round, not the draw, sets the fight.
+         v646 note (scan 2): only the HP is levelled - `na` scales apow, which bosses don't have, so casters keep apMul 1.6. The v642
+         ED_BOSS_ADJ values were measured WITH that; evening casters out means a re-sweep (open question for Phil). */
       const bt=h.boss&&(typeof MONSTER_TYPES!=='undefined')&&MONSTER_TYPES[h.key], nh=bt?300/(bt.hp||300):1, na=bt?1/(bt.ap||1):1, adj=h.boss?edBossAdj(h.key):{hp:1,dmg:1};
       u.maxHp*=m.hp*nh*adj.hp; u.hp=u.maxHp; u.dmg*=m.dmg*adj.dmg; u.apow=(u.apow||0)*m.dmg*na*adj.dmg; }
     u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); u._edRoles=edHeroRoles(h);
@@ -20990,8 +21019,8 @@ function edSpawnUnits(){
   bannerMsg('ROUND '+ED.round+'\n'+(ED.opp.pve?'Monster wave':'vs '+ED.opp.name));
 }
 function edApplyComp(u,c,k){ k=k||1;
-  if(c==='Weapon') u.dmg*=1+0.15*k; else if(c==='Helm') u.mrRating=(u.mrRating||0)+25*k; else if(c==='Boots') u.atkInterval/=1+0.15*k;
-  else if(c==='Armor') u.armorRating=(u.armorRating||0)+25*k; else if(c==='Gloves') u.glyphCrit=(u.glyphCrit||0)+0.15*k;
+  if(c==='Weapon') u.dmg*=1+0.15*k; else if(c==='Helm') u.mrRating=(u.mrRating||0)+ED_DEF_COMP*k; else if(c==='Boots') u.atkInterval/=1+0.15*k;
+  else if(c==='Armor') u.armorRating=(u.armorRating||0)+ED_DEF_COMP*k; else if(c==='Gloves') u.glyphCrit=(u.glyphCrit||0)+0.15*k;
   else if(c==='Belt') u.maxHp*=1+0.15*k; else if(c==='Ring') u.apow=(u.apow||0)*(1+0.15*k); else if(c==='Amulet') u.energy=Math.min(95,(u.energy||0)+15*k);
   else if(c==='Relic'){ u.maxHp*=1+0.08*k; u.dmg*=1+0.08*k; } }
 function edApplyItem(u,it){ if(!it||it.rm) return; const k=edItemMul(it);
@@ -20999,6 +21028,8 @@ function edApplyItem(u,it){ if(!it||it.rm) return; const k=edItemMul(it);
   edApplyComp(u,it.a,k*ED_FIN_BONUS); edApplyComp(u,it.b,k*ED_FIN_BONUS);   // v640: a finished item beats its parts
   if(edCrestRole(it)||edIsSeed(it)) return;   // crests and the Seed carry no active: their power is the role / the extra hero
   const a=ED.cat&&ED.cat[it.f]; if(a&&a.type){ const pr=Object.assign({},a.params||{}); if(pr.mult) pr.mult*=k; if(pr.dmgMult) pr.dmgMult*=k; if(pr.dur&&it.r) pr.dur*=1.3;
+    if(it.r){ for(const f of ['pct','shieldPct','vamp','missing']) if(pr[f]) pr[f]*=k; if(pr.evade) pr.evade=Math.min(0.9,pr.evade*k); if(pr.n) pr.n=Math.round(pr.n*k);   /* v646: Radiant x2 on heals, shields, energy, buffs too (the panel promises it) */
+      for(const f of ['atk','as','speed']) if(pr[f]>1) pr[f]=1+(pr[f]-1)*k; if(pr.dr!=null && pr.dr<1) pr.dr=Math.max(0.2,1-(1-pr.dr)*k); }
     u._edSkills.push({ name:a.name||it.f, type:a.type, params:pr, used:false }); } }
 function edApplySynergy(u,syn){ if(!syn) return; const roles=u._edRoles||[u.t&&u.t.role], is=r=>roles.includes(r), T=r=>(syn[r]&&syn[r].tier)||0;   // v640: a crest makes the hero count as that role too
   if(T('Tank')&&is('Tank')) u.maxHp*=T('Tank')>=2?1.4:1.2; if(T('Tank')>=2&&!is('Tank')) u.maxHp*=1.1;
@@ -21058,7 +21089,7 @@ function edTick(dt){
     if(u._edSkills&&u._edSkills.length && battleTime>=(u._edNextSk||2.5)){
       for(const sk of u._edSkills){ if(sk.used) continue; u.gearSkill=sk; try{ castGearSkill(u,true); }catch(e){} if(sk.used){ u._edNextSk=battleTime+0.8; break; } } } }
   const heroesUp=t=>units.some(o=>o.alive&&o.team===t&&!o._summon);
-  if(!heroesUp('enemy') && !heroesUp('ally')) return endBattle('draw');   // v644: both sides fell on the same tick (was a win)
+  if(!heroesUp('enemy') && !heroesUp('ally')){ ED._mutual=true; return endBattle('draw'); }   // v644: both sides fell on the same tick (was a win)
   if(!heroesUp('enemy')) return endBattle(true);
   if(!heroesUp('ally')) return endBattle(false);
   if(battleTime>=ED_FIGHT_LIMIT) return endBattle('draw');
@@ -21070,15 +21101,15 @@ function edEndBattle(res){
   const survivors=units.filter(o=>o.alive&&o.team==='enemy'&&!o._summon).map(o=>({rank:o._edRank||1}));
   const mine=units.filter(o=>o.alive&&o.team==='ally'&&!o._summon).map(o=>({rank:o._edRank||1}));
   let line='';
-  if(ED.opp.pve){ const loot=edPveReward(you, won); line = (won ? 'Wave cleared' : (draw ? '⏱ Time ran out — the wave held' : 'The wave held'))+' — loot: '+loot+'.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
+  if(ED.opp.pve){ const loot=edPveReward(you, won); line = (won ? 'Wave cleared' : (draw ? (ED._mutual?'⚔ Both sides fell at once — the wave held':'⏱ Time ran out — the wave held') : 'The wave held'))+' — loot: '+loot+'.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
     else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; if(!draw){ you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1; }   // v644: a draw is nobody's streak
-      if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line='⏱ Time ran out with both sides standing — a draw. You lose '+d+', '+foe.name+' loses '+d2+'.'; }
+      if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line=(ED._mutual?'⚔ Both sides fell at once — a draw. You lose ':'⏱ Time ran out with both sides standing — a draw. You lose ')+d+', '+foe.name+' loses '+d2+'.'; }
       else line=foe.name+' won — you lose '+d+' health.'; } }
   ED.msg=line;
   ED._fieldSig=null;
-  setTimeout(()=>{ if(ED.active) edAfterRound(); }, 1400);   // v644: not after Leave
+  { const m=ED.match; setTimeout(()=>{ if(ED.active && ED.match===m) edAfterRound(); }, 1400); }   // v644: not after Leave; v646: nor into the NEXT match
 }
 function edAfterRound(){
   const alive=ED.players.filter(p=>p.alive);
@@ -21089,20 +21120,35 @@ function edAfterRound(){
   edNextRound();
 }
 /* Phil, 18 Sep: stamina by placement vs the AI (6th 6 ... 1st 36); the server grants it (/api/emberdraft/result) */
+function edNiceErr(e,fb){ if(!e) return fb||''; if(e==='offline') return 'No connection — check your signal and try again.'; if(e==='auth') return 'Please sign in again.'; return e; }   /* v646 */
+/* v646 (scan 2): a claim that failed (a phone offline for a moment) used to be lost: "Play again" started a new match, which
+   replaced the unclaimed one on the server. Now the claim keeps ONE request id (the server's idem() makes repeats safe), is
+   retried, and is saved; the next time the lobby opens it is sent again BEFORE a new /start. */
 function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, note: (typeof ACC!=='undefined'&&ACC.token)?'Reward could not be claimed for this match.':'Sign in to earn stamina from Emberdraft.'}; return; }
+  const job={ requestId:uid8(), attemptId:ED.attemptId, place:you.place, rounds:ED.round }, m=ED.match;
+  try{ localStorage.setItem('ew_edClaim', JSON.stringify(job)); }catch(e){}
   ED.reward={pending:true};
-  api('/api/emberdraft/result','POST',{requestId:uid8(), attemptId:ED.attemptId, place:you.place, rounds:ED.round}).then(d=>{
-    ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error)||'Reward could not be claimed.'};
+  edSendClaim(job, 3, d=>{
+    ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error==='offline') ? 'No connection — your reward is saved and will be claimed the next time you open Emberdraft.' : edNiceErr(d&&d.error,'Reward could not be claimed.')};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
-    if(ED.active && ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.active && ED.phase==='over') edRender(); }); }   // v644: the results screen came back over the island after Leave
-function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+    if(ED.active && ED.phase==='over' && ED.match===m) edRender(); }); }
+function edSendClaim(job, retries, done){
+  const again=()=>{ if(retries>0) setTimeout(()=>edSendClaim(job,retries-1,done), 2500); else done&&done({error:'offline'}); };
+  api('/api/emberdraft/result','POST',job).then(d=>{
+    const final = d && (d.ok || (d.error && d.error!=='offline' && d.error!=='auth'));   // paid, or refused for good
+    if(final){ try{ const cur=JSON.parse(localStorage.getItem('ew_edClaim')||'null'); if(cur && cur.attemptId===job.attemptId) localStorage.removeItem('ew_edClaim'); }catch(e){} return done&&done(d); }
+    if(retries>0) return again(); done&&done(d); }).catch(again); }
+function edResendClaim(){ let job=null; try{ job=JSON.parse(localStorage.getItem('ew_edClaim')||'null'); }catch(e){}
+  if(!job || !job.attemptId) return Promise.resolve();
+  return new Promise(res=>edSendClaim(job, 0, d=>{ try{ if(d&&d.ok&&(d.stamina|0)>0){ if(d.ledger) adoptLedger(d.ledger); updateHubChrome(); edToast('+'+d.stamina+' stamina from your last Emberdraft match'); } }catch(e){} res(); })); }
+function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); const _v=document.getElementById('edBgVid'); if(_v){ _v.removeAttribute('src'); try{ _v.load(); }catch(_){} _v.remove(); } }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
    should also be the animations"). Planning happens ON the battlefield: every hero on your board and bench stands on
    the field as its real animated figure (makeUnit + buildFigure, sim frozen with ended=true so they idle), and you drag
    them there. The DOM overlay is only the frame around it: top bar, the players / role-bonus panel, the equipment
-   strip, the shop (whose cards play each hero's idle sheet), and ground markers for the 28 board cells and 16 bench spots. */
+   strip, the shop (whose cards play each hero's idle sheet), and ground markers for the 28 (56 since v634) board cells and 16 bench spots. */
 function edToast(t){ ED.msg=t; edRender(); }
 function edFloorSet(html){ const f=document.getElementById('edFloor'); if(f) f.innerHTML=html||''; }
 /* v633: window point -> the floor's own (untransformed) coordinates, so a square belongs to the battle frame and moves with it */
@@ -21184,10 +21230,15 @@ function edItemChip(it){ const col=edItemCol(it); const ic=it.c?ED_COMP_IC[it.c]
 function edSprA(k){ return (typeof BATTLE_ANIM!=='undefined'&&BATTLE_ANIM[k]&&(BATTLE_ANIM[k].idle||BATTLE_ANIM[k].walk))||null; }
 function edSprCss(k){ const A=edSprA(k); if(!A) return `background-image:url('${edPortrait(k)}');background-size:cover;background-position:center`;
   return `background-image:url('${A.u}');background-size:${A.cols*100}% ${A.rows*100}%;background-position:0% 0%`; }
-function edSprStyle(k){ const A=edSprA(k); return edSprCss(k)+(A?`" data-n="${A.n}" data-cols="${A.cols}" data-rows="${A.rows}`:''); }
-setInterval(function edSprTick(){ const root=document.getElementById('edRoot'); if(!root||root.style.display==='none') return; const f=Math.floor(Date.now()/70);
-  root.querySelectorAll('.spr[data-n]').forEach(el=>{ const n=+el.dataset.n, cols=+el.dataset.cols, rows=+el.dataset.rows, i=f%n, c=i%cols, r=Math.floor(i/cols);
-    el.style.backgroundPosition=(cols>1?c/(cols-1)*100:0)+'% '+(rows>1?r/(rows-1)*100:0)+'%'; }); }, 70);
+function edSprStyle(k){ const A=edSprA(k); return edSprCss(k)+(A?`" data-n="${A.n}" data-cols="${A.cols}" data-rows="${A.rows}" data-fps="${A.fps||14}`:''); }
+/* v646 (scan 2): shop cards and the hero panel used the whole-sheet CSS sprite v641 removed from the carousel (a scaled
+   multi-thousand-px background repainted every 70 ms per card - on the buy stage Phil reported as laggy). They are small
+   canvases now, painted by edCarSprPaint at ED_IDLE_FPS_MUL; a hero with no idle sheet keeps its portrait. */
+function edSprEl(k){ return edSprA(k) ? `<canvas class="spr edSpr" data-k="${k}" width="68" height="84"></canvas>` : `<div class="spr" style="${edSprCss(k)}"></div>`; }
+setInterval(function edSprTick(){ const root=document.getElementById('edRoot'); if(!root||root.style.display==='none') return; const now=Date.now();
+  try{ if(root.querySelector('canvas.edSpr')) edCarSprPaint(); }catch(e){}
+  root.querySelectorAll('.spr[data-n]').forEach(el=>{ const n=+el.dataset.n, cols=+el.dataset.cols, rows=+el.dataset.rows, i=Math.floor(now*(+el.dataset.fps||14)*ED_IDLE_FPS_MUL/1000)%n, c=i%cols, r=Math.floor(i/cols);   /* v646: the idle pace (was a fixed 70 ms) */
+    el.style.backgroundPosition=(cols>1?c/(cols-1)*100:0)+'% '+(rows>1?r/(rows-1)*100:0)+'%'; }); }, 40);
 /* field ↔ screen: project() works in canvas pixels; the canvas may be letterboxed inside the window */
 function edScreen(x,y,h){ const p=project(x,y,h||0.001), cv=(renderer&&renderer.domElement); const r=cv?cv.getBoundingClientRect():{left:0,top:0,width:CW,height:CH};
   return { x:r.left+p.x*(r.width/CW), y:r.top+p.y*(r.height/CH) }; }
@@ -21207,11 +21258,11 @@ function edShowField(){
   edSetArena(edArenaOf(you));   // v605: planning happens on your own arena
   if(state!=='battle') show('battle');
   try{ applyBattleMap(); }catch(e){}
-  clearBattle(); ended=true; battleTime=0;
+  clearBattle(); ended=true; battleTime=0; screenFlash=0;
   try{ setBattleZoom(1); }catch(e){}
   ED._lay=null;
   edEvictArt();   // v606: Phil "after like round 5 the lag was really bad" - free every sheet not needed now
-  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); edUnpark(u,f.x,f.y); u._edFig=edFig(h); u._edRank=h.rank||1; u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
+  const put=(h,f,bench)=>{ try{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); edUnpark(u,f.x,f.y); u._edFig=edFig(h); u._edRank=h.rank||1; u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); }catch(e){ console.warn('Emberdraft: could not stand', h&&h.key, e); } };   /* v646 */
   for(const [pos,h] of Object.entries(you.board)){ const [r,c]=pos.split(',').map(Number); put(h, edCellPos('ally',r,c), false); }
   you.bench.forEach((h,i)=>{ if(h) put(h, edBenchPos(i), true); });
   document.body.classList.add('ed-plan');
@@ -21236,9 +21287,9 @@ function edUnitAtScreen(x,y){ let best=null, bd=40; for(const u of units){ if(!u
 function edSlotAtScreen(x,y){ for(const b of edBoardQuads()) if(edInQuad(b.q,x,y)) return edSlots().find(s=>s.slot===b.slot)||null;
   let best=null, bd=46; for(const s of edSlots()){ const d=Math.hypot(s.sx-x,s.sy-y); if(d<bd){ bd=d; best=s; } } return best; }
 function edRender(){
-  edCss();
+  edCss(); _edRenderGen++;
   let root=document.getElementById('edRoot'); if(!root){ root=document.createElement('div'); root.id='edRoot'; document.body.appendChild(root); edWireRoot(root); }
-  root.style.display='block';
+  root.style.display='';   /* v646: let the CSS decide (.full is flex - the results card was stuck at the top) */
   if(ED.phase!=='plan') edFloorSet('');
   if(ED.phase==='over'){ document.body.classList.remove('ed-plan'); root.className='full'; root.innerHTML=edOverHtml(); return; }
   if(ED.phase==='carousel'){ document.body.classList.add('ed-plan'); /* hides the battle HUD */ root.className='car'; root.innerHTML=edCarHtml(); try{ edCarDraw(0); }catch(e){} return; }
@@ -21284,7 +21335,7 @@ function edRender(){
   h+=`<div class="bar msg">${edEsc(ED.msg||edSelInfo())}</div>`;
   h+='<div class="bar shopb" data-sell="1">';
   you.shop.forEach((k,ix)=>{ if(!k){ h+='<div class="card empty"></div>'; return; } const c=edCost(k);
-    h+=`<div class="card c${c}" data-buy="${ix}"><div class="spr" style="${edSprStyle(k)}"></div><div style="min-width:0"><div class="nm">${edEsc(edName(k))}</div><div class="rl">${edRole(k)} · 🪙${c}</div></div></div>`; });
+    h+=`<div class="card c${c}" data-buy="${ix}">${edSprEl(k)}<div style="min-width:0"><div class="nm">${edEsc(edName(k))}</div><div class="rl">${edRole(k)} · 🪙${c}</div></div></div>`; });
   h+=`<div style="display:flex;flex-direction:column;gap:3px;justify-content:center"><button class="btnx" data-a="roll">↻ 🪙2</button><button class="btnx" data-a="lock">${you.locked?'🔒':'🔓'}</button></div></div>`;
   root.innerHTML=h;
 }
@@ -21311,7 +21362,7 @@ function edItemInfoHtml(it){ if(!it) return ''; const col=edItemCol(it), k=edIte
 function edInfoPanel(hero,item){ let h='<div class="bar sidep heroP"><div class="panel">';
   if(hero){ const u=edHeroStats(hero), f=v=>Math.round(v||0).toLocaleString();
     if(ED.info!=null && !(hero.items||[])[ED.info]) ED.info=null;
-    h+=`<div class="hpHead"><div class="spr" style="${edSprStyle(hero.key)}"></div><div style="min-width:0"><b>${edEsc(edName(hero.key))}</b><small>${edEsc(edRole(hero.key))} · Rank ${ED_RANK_LBL[hero.rank]||'I'}</small></div><button class="hpX" data-a="desel" aria-label="Close">✕</button></div>`;
+    h+=`<div class="hpHead">${edSprEl(hero.key)}<div style="min-width:0"><b>${edEsc(edName(hero.key))}</b><small>${edEsc(edRole(hero.key))} · ${ED_RANK_LBL[hero.rank]||'1 star'}</small></div><button class="hpX" data-a="desel" aria-label="Close">✕</button></div>`;
     if(u) h+=`<div class="hpStats"><span>❤ <b>${f(u.maxHp)}</b></span><span>⚔ <b>${f(u.dmg)}</b></span><span>⚡ <b>${(1/Math.max(0.05,u.atkInterval||1)).toFixed(2)}</b>/s</span><span>🛡 <b>${f(u.armorRating||u.armor)}</b> armor</span>`
       +`<span>🔮 <b>${f(u.mrRating||u.mr)}</b> resist</span><span>🎯 <b>${Math.round((u.glyphCrit||u.crit||0)*100)}%</b> crit</span><span>✨ <b>${f(u.apow)}</b> power</span><span>📏 <b>${f(u.range)}</b> range</span></div>`;
     h+=`<div class="hpItems">`; for(let i=0;i<3;i++){ const it=(hero.items||[])[i];
@@ -21321,7 +21372,7 @@ function edInfoPanel(hero,item){ let h='<div class="bar sidep heroP"><div class=
   } else if(item){ h+=`<div class="hpHead"><div style="flex:none">${edItemImg(item,30)}</div><div style="min-width:0"><b>Equipment</b><small>tap a hero to equip</small></div><button class="hpX" data-a="desel" aria-label="Close">✕</button></div><div class="hpInfo" style="border:0;margin:0;padding:0">${edItemInfoHtml(item)}</div>`; }
   return h+'</div></div>'; }
 function edSelInfo(){ const you=edYou(); if(!ED.sel) return 'Drag heroes on the field to place them · drag onto the shop to sell · drag equipment onto a hero.';
-  if(ED.sel.hero){ const h=edUnits(you).find(u=>u.id===ED.sel.hero); if(!h) return ''; return edName(h.key)+' · '+edRole(h.key)+' · Rank '+ED_RANK_LBL[h.rank]+' ('+ED_RANK_KIT[h.rank]+')'+(h.items.length?' · '+h.items.map(it=>edItemName(it)).join(', '):'')+' — tap a spot to move'; }
+  if(ED.sel.hero){ const h=edUnits(you).find(u=>u.id===ED.sel.hero); if(!h) return ''; return edName(h.key)+' · '+edRole(h.key)+' · '+ED_RANK_LBL[h.rank]+' ('+ED_RANK_KIT[h.rank]+')'+(h.items.length?' · '+h.items.map(it=>edItemName(it)).join(', '):'')+' — tap a spot to move'; }
   if(ED.sel.item!=null){ const it=you.items[ED.sel.item]; if(!it) return ''; return edItemName(it)+' · '+(it.rm?'drop on a hero to take its items off':(it.c?ED_COMP_TXT[it.c]+' — two components make a finished item':'finished'))+' · tap a hero'; }
   return ''; }
 function edDraftHtml(){ const D=ED.draft, p=D.order[D.turn];
@@ -21346,15 +21397,15 @@ function edWireRoot(root){
   root.addEventListener('pointerdown',e=>{
     if(ED.phase==='carousel'){ edCarTap(e.clientX,e.clientY); return; }   // v609: tap to run
     if(ED.phase!=='plan') return;
-    if(drag) return;   // v644: one drag at a time - a second finger used to overwrite it and strand the first ghost
+    if(drag){ if(e.pointerId!==drag.pid && Date.now()-(drag.t||0)<4000) return; if(drag.ghost) drag.ghost.remove(); drag=null; markHot(null); }   /* v644: one drag at a time; v646: a drag whose release was lost (same pointer again, or 4 s idle) is dropped, never completed */
     const itEl=e.target.closest('[data-item]');
-    if(itEl){ drag={ item:+itEl.dataset.item, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId }; return; }
-    if(e.target.closest('[data-field]')){ const u=edUnitAtScreen(e.clientX,e.clientY); if(u) drag={ hero:u._edId, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId }; }
+    if(itEl){ drag={ item:+itEl.dataset.item, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId, t:Date.now() }; return; }
+    if(e.target.closest('[data-field]')){ const u=edUnitAtScreen(e.clientX,e.clientY); if(u) drag={ hero:u._edId, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId, t:Date.now() }; }
   });
-  root.addEventListener('pointermove',e=>{ if(!drag || e.pointerId!==drag.pid) return;
+  root.addEventListener('pointermove',e=>{ if(!drag || e.pointerId!==drag.pid) return; drag.t=Date.now();
     if(!drag.moved && Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8) return;
     if(!drag.moved){ drag.moved=true; const g=document.createElement('div'); g.id='edDrag'; const you=edYou();
-      if(drag.hero){ const h=edUnits(you).find(u=>u.id===drag.hero); if(h){ g.setAttribute('style', edSprCss(h.key)); const A=edSprA(h.key); g.className='spr'; if(A){ g.dataset.n=A.n; g.dataset.cols=A.cols; g.dataset.rows=A.rows; } }
+      if(drag.hero){ const h=edUnits(you).find(u=>u.id===drag.hero); if(h){ g.setAttribute('style', edSprCss(h.key)); const A=edSprA(h.key); g.className='spr'; if(A){ g.dataset.n=A.n; g.dataset.cols=A.cols; g.dataset.rows=A.rows; g.dataset.fps=A.fps||14; } }
         const shop=root.querySelector('.shopb'); if(shop) shop.classList.add('selling'); }
       else { const it=you.items[drag.item]; if(it){ g.innerHTML=edItemImg(it,40); g.style.border='none'; g.style.background='transparent'; } }
       document.body.appendChild(g); drag.ghost=g; }
@@ -21382,7 +21433,7 @@ function edWireRoot(root){
       if(u){ ED.sel={hero:u._edId}; ED.msg=''; return edRender(); }
     }
   });
-  if(!window._edResizeWired){ window._edResizeWired=true; window.addEventListener('resize',()=>{ if(ED.active && ED.phase==='plan') setTimeout(edRender,120); }); }   // v644: once, not once per match
+  if(!window._edResizeWired){ window._edResizeWired=true; window.addEventListener('resize',()=>{ clearTimeout(window._edRszT); window._edRszT=setTimeout(()=>{ if(ED.active && ED.phase==='plan'){ ED._fieldSig=null; edRender(); } },150); });   /* v646: rebuild the figures too */ }   // v644: once, not once per match
 }
 function edDrop(src,at){
   if(ED.phase!=='plan') return;   // v644: a second finger could land a drop after Fight was tapped

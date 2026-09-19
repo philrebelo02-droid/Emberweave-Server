@@ -4067,10 +4067,10 @@ async function api(req,res,url){
          and 16 x 12 s, so a claim can no longer be made 72 s after starting. */
       const ED_MIN_ROUNDS=[0,16,16,15,14,13,12,0,0];
       if(rounds<Math.max(6,ED_MIN_ROUNDS[place]||0) || Date.now()-att.startedAt < rounds*12000){ writeDB(); return {ok:true, stamina:0, note:'That match was too short to reward.', ledger:ledgerView(me)}; }
-      ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+stam);
-      ledTx(me,'emberdraft:place'+place,{stamina:stam});
+      ledStamRegen(led); const _before=led.stam.v; led.stam.v=Math.min(999,led.stam.v+stam); const got=led.stam.v-_before;   // v646: report and record what was really added (the 999 cap)
+      ledTx(me,'emberdraft:place'+place,{stamina:got});
       writeDB();
-      return { ok:true, stamina:stam, edraft:view(), ledger:ledgerView(me) }; });
+      return { ok:true, stamina:got, note: got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : '', edraft:view(), ledger:ledgerView(me) }; });
     return send(res, out.ok===false?400:200, out); }
   /* =================== v250 (audit P1): PER-LOOP SERVER AUTHORITIES ===================
      Elite stages, Tower/Gauntlet/legacy-dungeon trials, quests, market fragment offers, and the
