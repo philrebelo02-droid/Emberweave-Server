@@ -11339,6 +11339,30 @@ function headScreenRest(u){ if(!camera) return null;
   _hv.add(_hup); _v.copy(_hv).project(camera);
   return {x:(_v.x*.5+.5)*CW, y:(-_v.y*.5+.5)*CH, vis:_v.z<1}; }
 function glowUnit(u,intensity,rgb){ if(!u||!u.alive)return; const p=project(u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,1.0); if(!p.vis)return; const rad=(u.boss?48:30), c=rgb||'255,245,200'; const g=octx.createRadialGradient(p.x,p.y,2,p.x,p.y,rad); g.addColorStop(0,'rgba('+c+','+(0.55*intensity)+')'); g.addColorStop(0.55,'rgba('+c+','+(0.25*intensity)+')'); g.addColorStop(1,'rgba('+c+',0)'); octx.save(); octx.globalCompositeOperation='lighter'; octx.fillStyle=g; octx.beginPath(); octx.arc(p.x,p.y,rad,0,7); octx.fill(); octx.restore(); }
+/* v642 (Phil: "add the heroes rank over their head, and the health bar above the rank, the ranks will be like arm ranks - PV2,
+   Corporal, Sergeant, One star General" / "But we will call these 1 star, 2 star, 3 star, 4 star"). Army insignia drawn on the
+   overlay: 1 star = one chevron (PV2), 2 star = two (Corporal), 3 star = three (Sergeant), 4 star (the big star) = a general's
+   star. Coloured by the rank's ability colour (ED_RANK_COL: green, blue, purple, gold). The names stay "N star" - no text is
+   drawn. Returns the height used, so the caller stacks the health bar above it. */
+function edDrawInsignia(c, cx, by, rank, k){
+  const col=(typeof ED_RANK_COL!=='undefined'&&ED_RANK_COL[rank])||'#ffd45e';
+  c.save(); c.lineJoin='miter'; c.lineCap='butt';
+  if(rank>=4){ const R=9*k, r=R*0.42, cy=by-R;
+    c.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r:R; c.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); } c.closePath();
+    c.shadowColor='rgba(255,212,94,.8)'; c.shadowBlur=6*k; c.fillStyle=col; c.fill(); c.shadowBlur=0;
+    c.lineWidth=1.6*k; c.strokeStyle='rgba(0,0,0,.9)'; c.stroke(); c.restore(); return 2*R; }
+  const n=Math.max(1,Math.min(3,rank|0)), w=18*k, h=6.5*k, th=3.1*k, step=5.2*k, H=h+th+(n-1)*step;
+  for(let i=0;i<n;i++){ const y=by-H+th/2+i*step;   // top chevron first, like a sleeve
+    c.beginPath(); c.moveTo(cx-w/2, y+h); c.lineTo(cx, y); c.lineTo(cx+w/2, y+h);
+    c.lineWidth=th+2.2*k; c.strokeStyle='rgba(0,0,0,.9)'; c.stroke();
+    c.lineWidth=th; c.strokeStyle=col; c.stroke(); }
+  c.restore(); return H; }
+/* the planning badge (item icons) follows the bar; the overlay is in #app px, the badge in viewport px */
+function edBadgeAt(u, x, y){ let el=u._badgeEl;
+  if(!el||!el.isConnected){ el=u._badgeEl=document.querySelector('#edRoot .badge[data-uid="'+u._edId+'"]'); u._bx=null; if(!el) return; }
+  const r=overlay.getBoundingClientRect(), vx=r.left+x*(r.width/(CW||1)), vy=r.top+y*(r.height/(CH||1));
+  if(u._bx!=null && Math.abs(u._bx-vx)<0.5 && Math.abs(u._by-vy)<0.5) return;
+  u._bx=vx; u._by=vy; el.style.left=vx.toFixed(1)+'px'; el.style.top=vy.toFixed(1)+'px'; }
 let _olPrev=0, _olDt=0;
 function drawOverlay(){octx.clearRect(0,0,CW,CH);
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
@@ -11367,6 +11391,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
     const GAP=_bn?3:(u.boss?13:8);
     const p={x:_p0.x, y:_p0.y-GAP, vis:true};
     const _ebw=barWidthFor(u,_p0.y);   // v577 (CR 0227): bar width follows the character
+    if(u._edRank && !u.boss){ const _is=Math.max(0.85,Math.min(1.6,_ebw/44)); p.y-=edDrawInsignia(octx,p.x,p.y,u._edRank,_is)+3*_is; }   // v642: Emberdraft rank insignia on the head, the bar above it
     const bw=_ebw,x=p.x-bw/2,y=p.y;
     { // over-head health bar, team-colored — sits just above the head
       // v253 (visual audit #5): one mobile scale step up — taller bars, stronger outline; a BOSS
@@ -11381,6 +11406,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH);
       octx.font='900 12px sans-serif'; octx.lineWidth=3.5; octx.strokeStyle='rgba(0,0,0,.9)';
       octx.strokeText('👑 '+nm,p.x,y-13); octx.fillStyle='#ffd45e'; octx.fillText('👑 '+nm,p.x,y-13); }
     if(u===selected){octx.strokeStyle='#ffd45e';octx.lineWidth=2;octx.strokeRect(x-2,y-2,bw+4,11);}
+    if(u._edIdle && u._edId!=null) edBadgeAt(u, p.x, p.y-12);   // v642: the planning item badge sits on top of the bar
     // over-head status icons (~2 m above head): silence mask, then stun mask
     { const si={x:p.x, y:p.y-(_bn?3:(u.boss?9:6))}, isz=_bn?Math.max(10,Math.round(_ebw*1.3)):(u.boss?32:23);   // status icons stack directly above the bar (v587: bonus icons scale with the bar)
       const _rdy=(img)=>img&&img.complete&&img.naturalWidth, _ic=[];
@@ -19667,7 +19693,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789822807000';
+const BUILD_ID = '1789824007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20023,7 +20049,7 @@ const ED_FIG_SCALE = 0.55;   // v606 Phil: "start out the heroes smaller than th
 function edAtkRamp(){ if(!(typeof CUR!=='undefined'&&CUR&&CUR.mode==='emberdraft')) return 1;
   const into=Math.max(0, Math.min(ED_OVERTIME, (battleTime||0)-(ED_FIGHT_LIMIT-ED_OVERTIME)));   // v639: 0:00-1:00 normal speed; the LAST 30 s ramp +5%/s to +150% at the buzzer
   return 1+0.05*into; }
-function edFig(h){ return ED_FIG_SCALE*(1+0.1*Math.max(0,((h&&h.rank)|0)-1)); }   // v635 (Phil: "1 star normal size, 2 star 10% increase of normal, 3 star 20%, big star 30%"): flat +10% of normal per rank, not compounding - rank I 55%, II 60.5%, III 66%, big star 71.5%
+function edFig(h){ return ED_FIG_SCALE*(1+0.15*Math.max(0,((h&&h.rank)|0)-1)); }   // v642 (Phil: "the hero size increase isnt enough per tier. try 15% increase in size per tier"): flat +15% of normal per rank, not compounding - x1, x1.15, x1.30, big star x1.45 (v635 was +10%)
 const ED_ARENAS = [
   { id:'cinderforge', name:'The Cinderforge Hollow',
     img:'/assets/img/battlefields/emberdraft/cinderforge.webp', video:'/assets/img/battlefields/emberdraft/cinderforge.mp4',
@@ -20878,11 +20904,37 @@ function edLaunchBattle(){
   edHideUi();
   startBattle();
 }
+/* v642 (Phil: "Make sure the bosses punish players slacking. But should be killable by players trying" / "the monsters shouldnt be
+   so easy you can kill them without trying" / "dont make monsters a gate for players, they arent meant to be the challenge, players are.
+   But players shouldn't kill monsters for free"). Tuned by simulation - see blueprint 13 v642. window.__MONMUL overrides for tuning. */
+function edMonMul(r, boss){ const o=(typeof window!=='undefined'&&window.__MONMUL)||null; if(o) return boss?o.boss:o.mon;
+  return boss ? ED_BOSS_MUL(r) : ED_MON_MUL(r); }
+/* Simulated against the boards an AI-driven "trying" player really has at each monster round (3 heroes at r1 ... 8 mostly Rank II
+   with 4-6 items at r21/28) and a "slacking" copy (half the board, no items). Before: every round was free - no hero lost, 92-99%
+   health left, and even the slacking board beat the r28 boss. Targets: monsters - a trying board wins but loses health or a hero,
+   a slacking board usually still wins (monsters are not a gate); bosses - trying wins, slacking loses. */
+function ED_MON_MUL(r){ return r<=1 ? { hp:2.5, dmg:6 } : r<=3 ? { hp:3, dmg:10 } : r<=7 ? { hp:3.5, dmg:13 } : r<21 ? { hp:3, dmg:10 } : r<28 ? { hp:2, dmg:4 } : { hp:2, dmg:3 }; }
+/* per-boss kit correction (a number = hp and damage, or {hp,dmg}), from sweeps of all 19 bosses at rounds 21 and 28 (trying vs
+   slacking board): a few kits hit far harder (Miregor beat the trying board) or far softer than the rest. Vharok, Sylphice (water
+   serpent) and Grommash (ogre beast) share a plain Brute block with no heavy kit - a slacking Tank + healer outlasted them to a
+   90 s draw with the boss at 7% hp, so they get damage, not health. */
+const ED_BOSS_ADJ = { 'miregor':0.7, 'orryx':0.78, 'brukk':0.75, 'monster with fireball':0.8, 'barrowmaw':0.85, 'irix':0.95, 'maelvara':0.9,
+  'ice beast':1.15, 'thorneveil':1.15, 'ogre beast':{hp:1, dmg:1.6}, 'water serpent':{hp:1.1, dmg:1.6}, 'vharok':{hp:1.1, dmg:1.6} };
+function edBossAdj(k){ const a=ED_BOSS_ADJ[k]; return a==null ? {hp:1,dmg:1} : typeof a==='number' ? {hp:a,dmg:a} : a; }
+function ED_BOSS_MUL(r){ return r<28 ? { hp:4, dmg:3 } : { hp:3, dmg:2.5 }; }
 function edPveSpec(r){
   const early=['slime','bug','creep'], mid=['orc','turtle','knat','bug'], late=['fire boar','cinder skulk','sootwing imp','orc'];
   const set = r<=3 ? early : (r<15 ? mid : late);
   const n = r===1?2:(r<=3?3:Math.min(7, 3+Math.floor(r/5)));
-  const out=[]; for(let i=0;i<n;i++){ const k=set[i%set.length]; if(!MONSTER_TYPES[k]) continue; const front=Math.ceil(n/2), row=i<front?0:2, inRow=row===0?front:n-front, j=row===0?i:i-front; out.push({ u:{ key:k, rank:1, items:[], mon:true, lvl: 6+r*2 }, r:row, c: Math.max(0,Math.min(6,Math.round(3-(inRow-1)+j*2))) }); }
+  /* v642 (Phil: "For end game encounters are you using bosses" -> "Boss + minions late"): from round 21 every monster round is one
+     of the game's bosses (a different one each time, shuffled per match) with minions - 3 at round 21, 4 from round 28. */
+  if(r>=21 && typeof BOSS_POOL!=='undefined' && BOSS_POOL.length){
+    if(!ED._bossOrder){ ED._bossOrder=BOSS_POOL.filter(k=>MONSTER_TYPES[k] && !(typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k]&&!HERO_TYPES[k].monster)).sort(()=>Math.random()-0.5); }
+    const bk=ED._bossOrder[Math.floor((r-21)/7)%ED._bossOrder.length], mid=Math.round((ED_COLS-1)/2), m=r>=28?4:3, out=[];
+    if(bk) out.push({ u:{ key:bk, rank:1, items:[], mon:true, boss:true, lvl:6+r*2 }, r:0, c:mid });
+    for(let i=0;i<m;i++){ const k=late[i%late.length]; if(!MONSTER_TYPES[k]) continue; out.push({ u:{ key:k, rank:1, items:[], mon:true, lvl:6+r*2 }, r:i<2?0:2, c:Math.max(0,Math.min(ED_COLS-1, mid+(i%2?3:-3))) }); }
+    return out; }
+  const out=[]; for(let i=0;i<n;i++){ const k=set[i%set.length]; if(!MONSTER_TYPES[k]) continue; const front=Math.ceil(n/2), row=i<front?0:2, inRow=row===0?front:n-front, j=row===0?i:i-front; out.push({ u:{ key:k, rank:1, items:[], mon:true, lvl: 6+r*2 }, r:row, c: Math.max(0,Math.min(ED_COLS-1,Math.round((ED_COLS-1)/2-(inRow-1)+j*2))) }); }   // v642: centred on the 14-wide board (it still assumed 7 columns)
   return out;
 }
 /* called from _startBattleNow (mode 'emberdraft') */
@@ -20892,8 +20944,12 @@ function edSpawnUnits(){
   const mk=(s,team,syn)=>{ const pos=edCellPos(team,s.r,s.c), h=s.u;
     /* Phil, 18 Sep: a hero starts with its Ultimate + Green; merging to rank II earns Blue, rank III earns the Purple passive.
        That is makeUnit's own quality gate (1 Green, 2 +Blue, 3 +Purple), so the Emberdraft rank IS the quality rank. */
-    const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1))}); u._edFig=h.mon?ED_FIG_SCALE:edFig(h); if(!h.mon) u._edStates=edClipStates(h.key);
+    const u=makeUnit(h.key,team,pos.x,pos.y,h.mon?h.lvl:ED_LEVEL,{rank: h.mon?2:Math.max(1,Math.min(3,h.rank||1)), boss:!!h.boss}); u._edFig=h.mon?ED_FIG_SCALE*(h.boss?1.6:1):edFig(h); if(!h.mon) u._edStates=edClipStates(h.key);   // v642: bosses stand larger than a big-star hero (x1.45)
     if(!h.mon){ const m=ED_RANK_MUL[h.rank||1]; u.maxHp*=m; u.hp=u.maxHp; u.dmg*=m; u.apow=(u.apow||0)*m; u._edRank=h.rank||1; }
+    else { const m=edMonMul(ED.round, !!h.boss);   // v642: monster / boss strength by round
+      /* bosses come in two builds (300 hp melee, or 450 hp x1.6 AP casters); level them to one baseline so the round, not the draw, sets the fight */
+      const bt=h.boss&&(typeof MONSTER_TYPES!=='undefined')&&MONSTER_TYPES[h.key], nh=bt?300/(bt.hp||300):1, na=bt?1/(bt.ap||1):1, adj=h.boss?edBossAdj(h.key):{hp:1,dmg:1};
+      u.maxHp*=m.hp*nh*adj.hp; u.hp=u.maxHp; u.dmg*=m.dmg*adj.dmg; u.apow=(u.apow||0)*m.dmg*na*adj.dmg; }
     u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); u._edRoles=edHeroRoles(h);
     edApplySynergy(u,syn);
     u.hp=u.maxHp; units.push(u); buildFigure(u); return u; };
@@ -21124,7 +21180,7 @@ function edShowField(){
   try{ setBattleZoom(1); }catch(e){}
   ED._lay=null;
   edEvictArt();   // v606: Phil "after like round 5 the lag was really bad" - free every sheet not needed now
-  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edFig=edFig(h); u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
+  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edFig=edFig(h); u._edRank=h.rank||1; u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
   for(const [pos,h] of Object.entries(you.board)){ const [r,c]=pos.split(',').map(Number); put(h, edCellPos('ally',r,c), false); }
   you.bench.forEach((h,i)=>{ if(h) put(h, edBenchPos(i), true); });
   document.body.classList.add('ed-plan');
@@ -21168,7 +21224,7 @@ function edRender(){
     edFloorSet(fl); }   // v633: under the heroes
   for(const u of units){ if(!u.alive||u._edId==null) continue; const hh=edUnits(you).find(x=>x.id===u._edId); if(!hh) continue;
     const top=edScreen(u.x,u.y,(u.sprH||1.6)*1.05);
-    h+=`<div class="badge" style="left:${top.x}px;top:${top.y}px"><b style="color:${ED_RANK_COL[hh.rank]||'#ffd45e'}">${ED_RANK_LBL[hh.rank]||''}</b>${hh.items.map(it=>edItemImg(it,13)).join('')}</div>`;
+    if(hh.items.length) h+=`<div class="badge" data-uid="${hh.id}" style="left:${top.x}px;top:${(top.y-30).toFixed(1)}px">${hh.items.map(it=>edItemImg(it,13)).join('')}</div>`;   // v642: rank is the insignia on the overlay now
     if(ED.sel&&ED.sel.hero===hh.id){ const f=edScreen(u.x,u.y); h+=`<div class="ring" style="left:${f.x}px;top:${f.y}px"></div>`; } }
   h+='<div class="bar topb">'
    +`<span class="pill">Round <b>${r}</b> · next: ${edIsPve(r)?'monster wave':'a rival'}</span><span class="pill gold">🪙 ${you.gold}</span>`
