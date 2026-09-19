@@ -2964,7 +2964,7 @@ const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png"
 const SHOP_SOON = "/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
 const SPLASH_BG = "/assets/img/miscellaneous/splash-v2.jpg";   // v624 (Phil): Aureth front, Lumi, Vex, Librarian, Pellucid; logo kept
 //         // boot splash / loading-screen artwork (static fallback)
-const SPLASH_VID = "/assets/img/miscellaneous/splashvid-v3.mp4";   // v630: back to v628 (take G at 70%) - the v629 mid-clip loop made the other heroes skip (Phil). New takes are being generated.
+const SPLASH_VID = "/assets/img/miscellaneous/splashvid-v5.mp4";   // v631: take G at 70%, full clip, slow eased ends played up to 3x faster so the motion speed is even (Phil's idea: "speed it up in her last frames") - retime.py + exactloop.py
 //     // animated splash loop (plays over the static image)
 const AIRSHIP_IMG = "/assets/img/world-map/airship.webp";      // NEW airship art (static, clean green-key crop; nose points left in the source)
 const AIRSHIP_SHEET = "";   // disabled → render uses the static AIRSHIP_IMG (new art is a single high-res frame, not a strip)
@@ -19623,7 +19623,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789787404000';
+const BUILD_ID = '1789787601000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
