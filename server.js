@@ -4061,7 +4061,12 @@ async function api(req,res,url){
       att.claimed=true;
       const stam=ED_STAM[place]||0;
       if(!stam) { writeDB(); return {ok:true, stamina:0, note:'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
-      if(rounds<6 || Date.now()-att.startedAt < rounds*12000){ writeDB(); return {ok:true, stamina:0, note:'That match was too short to reward.', ledger:ledgerView(me)}; }
+      /* v644 (bug scan): the placement is the client's word, so a placement must come with a plausible match length. Seven AIs at
+         100 health can't be knocked out early: in a rig match with an unbeatable player the first AI fell at round 18, three at
+         24, one at 25 and one at 30. Floors sit well below that (a strong player speeds it up a little); a 1st place needs 16 rounds
+         and 16 x 12 s, so a claim can no longer be made 72 s after starting. */
+      const ED_MIN_ROUNDS=[0,16,16,15,14,13,12,0,0];
+      if(rounds<Math.max(6,ED_MIN_ROUNDS[place]||0) || Date.now()-att.startedAt < rounds*12000){ writeDB(); return {ok:true, stamina:0, note:'That match was too short to reward.', ledger:ledgerView(me)}; }
       ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+stam);
       ledTx(me,'emberdraft:place'+place,{stamina:stam});
       writeDB();

@@ -10041,7 +10041,7 @@ function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg)
 function battleKeysForMatch(){
   const _k=[];
   try{
-    (G.team||[]).forEach(x=>_k.push(x));
+    if(CUR.mode!=='emberdraft') (G.team||[]).forEach(x=>_k.push(x));   // v644: Emberdraft fields only the drafted boards - the campaign squad's full sheets were loaded, uploaded and evicted every round
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
@@ -10079,7 +10079,7 @@ function _startBattleNow(){
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
   applyBattleMap();
   // v255: warm EVERY wave's art before the first frame — no more sprites appearing on wave 2
-  try{ const _k=(G.team||[]).slice();
+  try{ const _k=(CUR.mode==='emberdraft')?[]:(G.team||[]).slice();   // v644
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
@@ -10622,9 +10622,9 @@ function updateBattle(dt){
   // frame rate — the sim's own numbers never depend on the device's frame rate again.
   pumpInputs();   // v269: a tap is applied HERE, on a tick boundary — never mid-frame
   simTick++;
-  battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>22?1+(battleTime-22)*.16:1);   // v636: Emberdraft ramps attack speed instead (edAtkRamp) screenFlash=Math.max(0,screenFlash-dt);
+  battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>22?1+(battleTime-22)*.16:1); screenFlash=Math.max(0,screenFlash-dt);   // v636: Emberdraft ramps attack speed instead (edAtkRamp). v644: the flash decay had been swallowed by this comment since v636 - every mode kept a permanent gold tint after the first ally ult
   if(CUR && CUR.mode==='emberdraft' && window.ED && ED.fighting){ edTick(dt); if(ended) return; }   // v604 Emberdraft: item actives, leaps, the 30 s draw, instant end
-  if(!ended && CUR.mode!=='online' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // ⏱ time's up → defeat (Magic Rush timer)
+  if(!ended && CUR.mode!=='online' && CUR.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // v644: Emberdraft draws at ED_FIGHT_LIMIT in edTick   // ⏱ time's up → defeat (Magic Rush timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
     think(u,dt);if(u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
@@ -19701,7 +19701,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789825207000';
+const BUILD_ID = '1789826407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20101,7 +20101,7 @@ function edFieldCap(p){ let n=p.level; for(const u of Object.values(p.board)) fo
 /* the item bench holds 10; anything past that waits and moves in as soon as a slot frees (TFT's waiting orbs) */
 function edGiveItem(p,it){ if(!it) return; p.itemsWait=p.itemsWait||[]; if(p.items.length<ED_ITEM_BENCH) p.items.push(it); else p.itemsWait.push(it); }
 function edItemsFlush(p){ p.itemsWait=p.itemsWait||[]; while(p.items.length<ED_ITEM_BENCH && p.itemsWait.length) p.items.push(p.itemsWait.shift()); }
-function edRandFinished(){ const ks=Object.keys(ED_FINISHED), k=ks[edRnd(ks.length)], [a,b]=k.split('+'); return { f:ED_FINISHED[k], a, b }; }
+function edRandFinished(noRelic){ const ks=Object.keys(ED_FINISHED).filter(k=>!noRelic || !k.split('+').includes('Relic')), k=ks[edRnd(ks.length)], [a,b]=k.split('+'); return { f:ED_FINISHED[k], a, b }; }   // v644: noRelic - a Radiant reward is never a crest or the Seed
 function edItemVal(it){ return !it?0:(it.rm?1:(it.f?(it.r?6:3):1)); }
 /* 45 finished items: two components → the Forge catalog item of that name, which keeps its active ability */
 const ED_FINISHED = {
@@ -20159,7 +20159,7 @@ function edDrawKey(level){
   return null;
 }
 function edReturnKey(k,n){ if(k&&ED.pool[k]!=null) ED.pool[k]+= (n||1); }
-function edCopies(rank){ return rank===3?9:(rank===2?3:1); }
+function edCopies(rank){ return Math.pow(3, Math.max(0,(rank|0)-1)); }   // v644: 1, 3, 9, and 27 for a big star (was 1: selling a big star refunded one copy and lost 26 from the pool)
 
 /* ------------------------------------------------------------------------------------------ players */
 function edNewPlayer(i){ return { i, name: i===0 ? 'You' : ED_AI_NAMES[i-1], ai: i!==0, hp:ED_START_HP, gold:0, level:3, xp:0,
@@ -20184,10 +20184,14 @@ function edMerge(p){
       same.sort((a,b)=>(a.where==='b'?0:1)-(b.where==='b'?0:1)); const keep=same[0], gone=same.slice(1,3);
       const items=[].concat(keep.u.items, gone[0].u.items, gone[1].u.items);
       for(const h of gone){ if(h.where==='b') delete p.board[h.pos]; else p.bench[h.pos]=null; }
-      keep.u.rank++; keep.u.items=items.slice(0,3); for(const it of items.slice(3)) edGiveItem(p,it);
+      /* v644: re-pack the three copies' items through edEquip - finished items first, lone components combine, a crest the hero
+         already has (or a 4th item) goes to the item bench. Before, the first three were kept as-is: two identical crests could
+         sit on one hero, and two lone components stayed apart. */
+      keep.u.rank++; keep.u.items=[]; items.sort((x,y)=>((y.f&&!edCrestRole(y))?2:(y.f?1:0))-((x.f&&!edCrestRole(x))?2:(x.f?1:0)));
+      for(const it of items) if(!edEquip(keep.u,it)) edGiveItem(p,it);
       if(keep.u.rank>=4){   // v640 (Phil: "only the big stars get gold and orange"): a big star turns one of its items Radiant
         const fin=keep.u.items.find(x=>x.f && !x.r && !edCrestRole(x) && !edIsSeed(x));
-        if(fin) fin.r=true; else edGiveItem(p, Object.assign(edRandFinished(),{r:true}));
+        if(fin) fin.r=true; else edGiveItem(p, Object.assign(edRandFinished(true),{r:true}));
         if(!p.ai) edToast('★ Big star! '+(fin?fin.f+' turned Radiant.':'A Radiant item joins your item bench.')); }
       done=true; break; }
     if(!done) break;
@@ -20210,8 +20214,9 @@ function edEquip(h,it){
   _edEquipWhy=''; if(!h||!it) return false;
   if(it.rm){ _edEquipWhy='Drop the remover on a hero to take its items off.'; return false; }
   if(it.c){ const open=h.items.findIndex(x=>x.c); if(open>=0){ const made=edCombine(h.items[open],it), cr=edCrestRole(made);
-      if(cr && edHeroRoles(Object.assign({},h,{items:h.items.filter((x,i)=>i!==open)})).includes(cr)){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing.'; return false; }
-      h.items[open]=made; return true; } }
+      if(!(cr && edHeroRoles(Object.assign({},h,{items:h.items.filter((x,i)=>i!==open)})).includes(cr))){ h.items[open]=made; return true; }
+      /* v644: that pair would make a crest the hero already has - keep it as its own component in a free slot instead of refusing */
+      if(h.items.length>=3){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing, and all three slots are full.'; return false; } } }
   const cr=edCrestRole(it); if(cr && edHeroRoles(h).includes(cr)){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing.'; return false; }
   if(h.items.length>=3){ _edEquipWhy='That hero already carries three items.'; return false; }
   h.items.push(it); return true;   // duplicates are fine and stack (TFT)
@@ -20396,7 +20401,7 @@ window.openEmberdraft=openEmberdraft;
 
 function edNewGame(attemptId){
   edPoolInit(); _edUid=1;
-  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[] });
+  Object.assign(ED, { active:true, fighting:false, round:0, players:[], sel:null, msg:'', phase:'plan', log:[], _bossOrder:null, car:null, draft:null, opp:null, info:null, results:[] });   // v644: + a fresh boss order and no leftovers from the last match
   for(let i=0;i<8;i++) ED.players.push(edNewPlayer(i));
   { const order=ED.players.map((_,i)=>i).sort(()=>Math.random()-0.5); ED.players.forEach((p,i)=>{ p.arenaIx=order[i]; }); ED.arena=null; ED._lay=null; }   // v605: one arena per seat
   edLoadCatalog();
@@ -20620,6 +20625,7 @@ function edCarFinish(){
   for(const a of C.av){ if(a.got!=null){ const o=C.offers[a.got]; o.taken=null; edDraftGive(a.p,o); } }
   for(const o of C.offers) if(o.taken==null) edReturnKey(o.key);   // leftovers go back to the pool
   setTimeout(()=>{   // a beat to see the last grab, then back to planning
+    if(!ED.active || ED.car!==C) return;   // v644: not after Leave / a new match
     edCarGfxStop(); ED.car=null; ED.phase='plan';
     for(const p of edAlive()) if(p.ai) edAiPlan(p);
     ED._fieldSig=null; edRender(); }, 700);
@@ -20727,13 +20733,18 @@ function edCarGfxStop(){ const G=ED._carG; if(!G) return; ED._carG=null;
   try{ G.cv&&G.cv.remove(); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ shop actions (you) */
-function edBuy(ix){ const p=edYou(), k=p.shop[ix]; if(!k) return; const c=edCost(k);
+function edBuy(ix){ if(ED.phase!=='plan') return; const p=edYou(), k=p.shop[ix]; if(!k) return; const c=edCost(k);
   if(p.gold<c) return edToast('Not enough gold.');
-  const slot=edFreeBench(p); if(slot<0) return edToast('Your bench is full — sell or place a hero.');
+  const slot=edFreeBench(p);
+  if(slot<0){   // v644: a full bench still takes the 3rd copy when it merges (TFT)
+    if(edUnits(p).filter(u=>u.key===k && u.rank===1).length<2) return edToast('Your bench is full — sell or place a hero.');
+    p.gold-=c; p.shop[ix]=null; p.bench.push(edMakeHero(k,1)); edMerge(p);
+    const extra=p.bench.pop(); if(extra){ const i=p.bench.indexOf(null); if(i>=0) p.bench[i]=extra; else { p.gold+=c; edReturnKey(k); } }
+    return edRender(); }
   p.gold-=c; p.bench[slot]=edMakeHero(k,1); p.shop[ix]=null; edMerge(p); edRender(); }
-function edReroll(){ const p=edYou(); if(p.gold<2) return edToast('Refreshing costs 2 gold.'); p.gold-=2; p.locked=false; edRollShop(p); edRender(); }
-function edBuyXp(){ const p=edYou(); if(p.level>=9) return edToast('Already at the top level.'); if(p.gold<4) return edToast('4 XP costs 4 gold.'); p.gold-=4; edGainXp(p,4); edRender(); }
-function edSellHero(h){ const p=edYou(); if(!h) return;
+function edReroll(){ if(ED.phase!=='plan') return; const p=edYou(); if(p.gold<2) return edToast('Refreshing costs 2 gold.'); p.gold-=2; p.locked=false; edRollShop(p); edRender(); }
+function edBuyXp(){ if(ED.phase!=='plan') return; const p=edYou(); if(p.level>=9) return edToast('Already at the top level.'); if(p.gold<4) return edToast('4 XP costs 4 gold.'); p.gold-=4; edGainXp(p,4); edRender(); }
+function edSellHero(h){ if(ED.phase!=='plan') return; const p=edYou(); if(!h) return;
   for(const [pos,u] of Object.entries(p.board)) if(u===h) delete p.board[pos];
   p.bench=p.bench.map(u=>u===h?null:u);
   p.gold += edCost(h.key)*edCopies(h.rank); edReturnKey(h.key, edCopies(h.rank));
@@ -20743,7 +20754,7 @@ function edSlotOf(p,h){ for(const [pos,u] of Object.entries(p.board)) if(u===h) 
 function edPutHero(p,h,dest){   // move/swap a hero to a board cell or bench slot
   const from=edSlotOf(p,h); if(!from||from===dest) return false;
   const other=edHeroAt(p,dest);
-  if(dest[0]==='b' && from[0]==='n' && !other && edBoardCount(p)>=edFieldCap(p)){ edToast('Board full ('+edFieldCap(p)+') — buy XP to field more.'); return false; }
+  /* v644: a Seed holder brings its own slot */ if(dest[0]==='b' && from[0]==='n' && !other && edBoardCount(p)>=edFieldCap(p)+((h.items||[]).some(edIsSeed)?1:0)){ edToast('Board full ('+edFieldCap(p)+') — buy XP to field more.'); return false; }
   const set=(slot,u)=>{ if(slot[0]==='b'){ if(u) p.board[slot.slice(2)]=u; else delete p.board[slot.slice(2)]; } else p.bench[+slot.slice(2)]=u; };
   set(from, other); set(dest, h); return true; }
 
@@ -20761,7 +20772,8 @@ function edAiPlan(p){
   /* field the strongest, melee in front */
   const all=edUnits(p).sort((a,b)=>(b.rank*10+edCost(b.key))-(a.rank*10+edCost(a.key)));
   p.board={}; p.bench=new Array(ED_BENCH).fill(null);
-  const fielded=all.slice(0,p.level), rest=all.slice(p.level); rest.forEach((u,ix)=>{ if(ix<ED_BENCH) p.bench[ix]=u; else { p.gold+=edCost(u.key); edReturnKey(u.key,edCopies(u.rank)); } });
+  const fielded=[]; { let cap=p.level; for(const u of all){ if(fielded.length>=cap) break; fielded.push(u); if((u.items||[]).some(edIsSeed)) cap++; } }   // v644: a Seed holder brings its own slot
+  const rest=all.filter(u=>!fielded.includes(u)); rest.forEach((u,ix)=>{ if(ix<ED_BENCH) p.bench[ix]=u; else { p.gold+=edCost(u.key)*edCopies(u.rank); edReturnKey(u.key,edCopies(u.rank)); for(const it of u.items) edGiveItem(p,it); } });   // v644: paid per copy, items kept
   /* v634: the old placement capped at column 6 and wrote every 7th+ melee (or ranged) hero onto the SAME cell, silently dropping
      heroes from the AI's board. Now: melee fill from the front row back, ranged from the back row forward; within a row the cells
      go centre-out, one tile apart first (every other tile), then the tiles in between. */
@@ -20772,7 +20784,7 @@ function edAiPlan(p){
   for(const u of fielded){ const melee=(HERO_TYPES[u.key].range||0)<60;
     if(!place(melee?[0,1,2,3]:[3,2,1,0],u)){ const ix=p.bench.indexOf(null); if(ix>=0) p.bench[ix]=u; } }
   /* items onto the strongest heroes */
-  const heroes=fielded.slice(); p.items.sort((a,b)=>(b.f?1:0)-(a.f?1:0));
+  const heroes=fielded.slice(); p.items=p.items.filter(it=>!it.rm); p.items.sort((a,b)=>(b.f?1:0)-(a.f?1:0));   // v644: the AI never uses a Remover - drop it rather than let removers fill its item bench
   for(let i=0;i<p.items.length;i++){ const it=p.items[i]; if(it.rm) continue; for(const h of heroes){ if(edEquip(h,it)){ p.items.splice(i,1); i--; break; } } }
   edItemsFlush(p);
 }
@@ -20785,10 +20797,12 @@ function edPvePower(r){ return 180 + r*95; }
 function edStartFight(){
   const you=edYou(); if(ED.phase!=='plan'||!you.alive) return;
   if(!edBoardCount(you)) return edToast('Place at least one hero on the board.');
+  if(edBoardCount(you)>edFieldCap(you)) return edToast('Too many heroes on the board ('+edBoardCount(you)+'/'+edFieldCap(you)+') - move one to the bench.');   // v644: a Seed taken off (Remover or swap) used to leave the board over its cap
   const r=ED.round, alive=edAlive();
   ED.results=[];
   if(edIsPve(r)){
-    for(const p of alive) if(p.ai){ const win=edPower(p)*(0.9+Math.random()*0.3)>=edPvePower(r); edPveReward(p,win); }
+    for(const p of alive) if(p.ai){ const win=edPower(p)*(0.9+Math.random()*0.3)>=edPvePower(r); edPveReward(p,win);
+      if(!win) p.hp-=edStageDmg(r)+1+edRnd(3); }   // v644: a lost wave costs an AI health too (it cost only you; at round 15 all seven AIs were alive, one at 100)
     ED.opp={ pve:true, name:'Monster wave' };
   } else {
     const pool=alive.slice().sort(()=>Math.random()-0.5);
@@ -20810,7 +20824,7 @@ function edPveReward(p,win){ const r=ED.round|0, got=[];
   else if(r<14){ comp(); comp(); }
   else if(r<21){ comp(); edGiveItem(p,{rm:true}); got.push('a Remover'); }
   else if(r<28){ const f=edRandFinished(); edGiveItem(p,f); got.push(f.f); }
-  else { const f=edRandFinished(); if(Math.random()<0.25) f.r=true; edGiveItem(p,f); got.push((f.r?'Radiant ':'')+f.f); }
+  else { const rad=Math.random()<0.25, f=edRandFinished(rad); if(rad) f.r=true; edGiveItem(p,f); got.push((f.r?'Radiant ':'')+f.f); }
   return got.join(', '); }
 /* A loss costs the stage's base damage + the rank of every enemy hero still standing. The base grows every 6 rounds
    (TFT-style) so a lobby of eight ends near round 30-35: at a flat 2, a test match on 18 Sep still had all seven AIs
@@ -20961,13 +20975,13 @@ function edSpawnUnits(){
     u._edSkills=[]; for(const it of (h.items||[])) edApplyItem(u,it); u._edRoles=edHeroRoles(h);
     edApplySynergy(u,syn);
     u.hp=u.maxHp; units.push(u); buildFigure(u); return u; };
-  for(const s of S.ally) mk(s,'ally',S.allySyn);
-  for(const s of S.enemy) mk(s,'enemy',S.enemySyn);
+  for(const s of S.ally){ try{ mk(s,'ally',S.allySyn); }catch(e){ console.warn('Emberdraft: could not field', s&&s.u&&s.u.key, e); } }   // v644
+  for(const s of S.enemy){ try{ mk(s,'enemy',S.enemySyn); }catch(e){ console.warn('Emberdraft: could not field', s&&s.u&&s.u.key, e); } }
   for(const u of units){ if(u._edShield){ u.shield=Math.max(u.shield||0,u.maxHp*u._edShield); u.shieldT=Math.max(u.shieldT||0,10); } }
   /* both benches stand on their ledges during the fight (Phil: "so you can see what they have") - figures only, never in `units`,
      so nothing targets them, they draw no bars and they never count for the result; edTick animates them, edClearDecor removes them */
   edClearDecor(); ED.decor=[];
-  const deco=(h,x,y,team)=>{ try{ const u=makeUnit(h.key,team,x,y,ED_LEVEL,{rank:2}); u._edFig=edFig(h); u._edIdle=true; buildFigure(u); ED.decor.push(u); }catch(e){} };
+  const deco=(h,x,y,team)=>{ try{ const u=makeUnit(h.key,team,x,y,ED_LEVEL,{rank:2}); edUnpark(u,x,y); u._edFig=edFig(h); u._edIdle=true; buildFigure(u); ED.decor.push(u); }catch(e){} };
   edYou().bench.forEach((h,i)=>{ if(h){ const p=edBenchPos(i); deco(h,p.x,p.y,'ally'); } });
   if(ED.opp && !ED.opp.pve && ED.opp.p) ED.opp.p.bench.forEach((h,i)=>{ if(h&&i<ED_BENCH){ const q=edBenchPosEnemy(i); deco(h, q.x, q.y, 'enemy'); } });
   autoUlt=true;
@@ -21027,15 +21041,22 @@ function edEvictArt(all){
     return freed;
   }catch(e){ return 0; }
 }
-function edClearDecor(){ for(const u of (ED.decor||[])){ try{ if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} } ED.decor=[]; }
+/* v644: Hollow's makeUnit parks him at -9999 until his drop - on a ledge or the planning board he just stands there */
+function edUnpark(u,x,y){ if(!u||!u._dropHidden) return; u._dropHidden=false; u._dropT=0; u.x=x; u.y=y; u._ax=x; u._ay=y; u.px=x; u.py=y; }
+function edClearDecor(){ for(const u of (ED.decor||[])){ try{ if(u.mesh){ u.mesh.traverse(x=>{ if(x.isSprite && x.material){ try{ x.material.dispose(); }catch(_){} } }); scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} } ED.decor=[]; }   // v644: + sprite materials (up to 32 leaked per fight)
 function edTick(dt){
   if(!ED.fighting||ended) return;
   for(const u of (ED.decor||[])){ try{ syncMesh(u,dt); }catch(e){} }
   for(const u of units){ if(!u.alive) continue;
-    if(u._edLeap && battleTime>0.4){ u._edLeap=false; const foes=units.filter(o=>o.alive&&o.team!==u.team); if(foes.length){ const back=foes.reduce((a,b)=>(u.team==='ally'?(b.y<a.y?b:a):(b.y>a.y?b:a))); u.x=back.x+(Math.random()<0.5?-30:30); u.y=back.y+(u.team==='ally'?-30:30); u.px=u.x; u.py=u.y; u.target=back; } }
-    if(u._edSkills&&u._edSkills.length){ const nx=u._edSkills.find(s=>!s.used); const at=2.5+0.8*u._edSkills.filter(s=>s.used).length;
-      if(nx && battleTime>=at){ u.gearSkill=nx; try{ castGearSkill(u,true); }catch(e){} nx.used=true; } } }
+    if(u._edLeap && battleTime>0.4){ u._edLeap=false; const foes=enemiesOf(u); /* v644: was every live foe, including a Hollow parked off-field */ if(foes.length){ const back=foes.reduce((a,b)=>(u.team==='ally'?(b.y<a.y?b:a):(b.y>a.y?b:a))); u.x=back.x+(Math.random()<0.5?-30:30); u.y=back.y+(u.team==='ally'?-30:30); u.px=u.x; u.py=u.y; u.target=back; } }
+    /* v644: castGearSkill only marks an active used when it really casts. This used to mark it used anyway, so Heartward
+       Pendant ("below 35% health") was tried at 2.5 s at full health and never fired, and a hero stunned at its item time lost
+       the active. Now every unused active is tried each tick once the hero's next cast time is reached; the first that fires
+       sets the next one 0.8 s later. */
+    if(u._edSkills&&u._edSkills.length && battleTime>=(u._edNextSk||2.5)){
+      for(const sk of u._edSkills){ if(sk.used) continue; u.gearSkill=sk; try{ castGearSkill(u,true); }catch(e){} if(sk.used){ u._edNextSk=battleTime+0.8; break; } } } }
   const heroesUp=t=>units.some(o=>o.alive&&o.team===t&&!o._summon);
+  if(!heroesUp('enemy') && !heroesUp('ally')) return endBattle('draw');   // v644: both sides fell on the same tick (was a win)
   if(!heroesUp('enemy')) return endBattle(true);
   if(!heroesUp('ally')) return endBattle(false);
   if(battleTime>=ED_FIGHT_LIMIT) return endBattle('draw');
@@ -21050,17 +21071,17 @@ function edEndBattle(res){
   if(ED.opp.pve){ const loot=edPveReward(you, won); line = (won ? 'Wave cleared' : (draw ? '⏱ Time ran out — the wave held' : 'The wave held'))+' — loot: '+loot+'.'; if(!won){ const d=edDamage(survivors); you.hp-=d; line+=' −'+d+' health.'; } }
   else { const foe=ED.opp.p;
     if(won){ const d=edDamage(mine); foe.hp-=d; you.streak=Math.max(0,you.streak)+1; foe.streak=Math.min(0,foe.streak)-1; line='You beat '+foe.name+' — they lose '+d+' health.'; }
-    else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1;
+    else { const d=edDamage(survivors.length?survivors:[{rank:1}]); you.hp-=d; if(!draw){ you.streak=Math.min(0,you.streak)-1; foe.streak=Math.max(0,foe.streak)+1; }   // v644: a draw is nobody's streak
       if(draw){ const d2=edDamage(mine.length?mine:[{rank:1}]); foe.hp-=d2; line='⏱ Time ran out with both sides standing — a draw. You lose '+d+', '+foe.name+' loses '+d2+'.'; }
       else line=foe.name+' won — you lose '+d+' health.'; } }
   ED.msg=line;
   ED._fieldSig=null;
-  setTimeout(()=>{ edAfterRound(); }, 1400);
+  setTimeout(()=>{ if(ED.active) edAfterRound(); }, 1400);   // v644: not after Leave
 }
 function edAfterRound(){
   const alive=ED.players.filter(p=>p.alive);
   const falling=alive.filter(p=>p.hp<=0).sort((a,b)=>a.hp-b.hp);
-  let place=alive.length; for(const p of falling){ p.alive=false; p.place=place--; for(const u of edUnits(p)) edReturnKey(u.key,edCopies(u.rank)); p.board={}; p.bench=new Array(ED_BENCH).fill(null); }
+  let place=alive.length; for(const p of falling){ p.alive=false; p.place=place--; for(const u of edUnits(p)) edReturnKey(u.key,edCopies(u.rank)); for(const k of (p.shop||[])) if(k) edReturnKey(k); p.shop=[]; p.board={}; p.bench=new Array(ED_BENCH).fill(null); }   // v644: + the shop (5 copies lost per knockout before)
   const you=edYou(), left=ED.players.filter(p=>p.alive);
   if(!you.alive || (left.length===1&&left[0]===you)){ if(you.alive) you.place=1; ED.phase='over'; edClaim(); return edRender(); }
   edNextRound();
@@ -21071,8 +21092,8 @@ function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, 
   api('/api/emberdraft/result','POST',{requestId:uid8(), attemptId:ED.attemptId, place:you.place, rounds:ED.round}).then(d=>{
     ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error)||'Reward could not be claimed.'};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
-    if(ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.phase==='over') edRender(); }); }
-function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
+    if(ED.active && ED.phase==='over') edRender(); }).catch(()=>{ ED.reward={stamina:0,note:'Reward could not be claimed.'}; if(ED.active && ED.phase==='over') edRender(); }); }   // v644: the results screen came back over the island after Leave
+function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxStop(); }catch(e){} edClearDecor(); try{ edEvictArt(true); }catch(e){} ED.active=false; ED.fighting=false; ED.phase='idle'; ED._fieldSig=null; try{ edBgVideo(null); }catch(e){} const r=document.getElementById('edRoot'); if(r) r.remove(); document.body.classList.remove('ed-plan'); edFloorSet(''); try{ if(state==='battle'){ clearBattle(); } show('skyisland'); }catch(e){} }
 
 /* ------------------------------------------------------------------------------------------ UI
    v604 (Phil: "The heroes on the field should be the actual animations not a portrait" / "The heroes on the bottom
@@ -21188,7 +21209,7 @@ function edShowField(){
   try{ setBattleZoom(1); }catch(e){}
   ED._lay=null;
   edEvictArt();   // v606: Phil "after like round 5 the lag was really bad" - free every sheet not needed now
-  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); u._edFig=edFig(h); u._edRank=h.rank||1; u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
+  const put=(h,f,bench)=>{ const u=makeUnit(h.key,'ally',f.x,f.y,ED_LEVEL,{rank:2}); edUnpark(u,f.x,f.y); u._edFig=edFig(h); u._edRank=h.rank||1; u._edIdle=true; u._edId=h.id; u._edBench=bench; u.hp=u.maxHp; units.push(u); buildFigure(u); };
   for(const [pos,h] of Object.entries(you.board)){ const [r,c]=pos.split(',').map(Number); put(h, edCellPos('ally',r,c), false); }
   you.bench.forEach((h,i)=>{ if(h) put(h, edBenchPos(i), true); });
   document.body.classList.add('ed-plan');
@@ -21319,15 +21340,16 @@ function edEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;
 /* one delegated pointer handler: tap-to-select / tap-to-place, or drag and drop, on the field or from the overlay */
 function edWireRoot(root){
   let drag=null;
-  const markHot=(slot)=>{ const fl=document.getElementById('edFloor')||root; fl.querySelectorAll('.mark.hot').forEach(m=>m.classList.remove('hot')); if(slot){ const m=fl.querySelector(`[data-mark="${slot}"]`); if(m) m.classList.add('hot'); } };
+  const markHot=(slot)=>{ const fl=document.getElementById('edFloor')||root; fl.querySelectorAll('.hot').forEach(m=>m.classList.remove('hot')); /* v644: board tiles are .tile, not .mark - they stayed gold */ if(slot){ const m=fl.querySelector(`[data-mark="${slot}"]`); if(m) m.classList.add('hot'); } };
   root.addEventListener('pointerdown',e=>{
     if(ED.phase==='carousel'){ edCarTap(e.clientX,e.clientY); return; }   // v609: tap to run
     if(ED.phase!=='plan') return;
+    if(drag) return;   // v644: one drag at a time - a second finger used to overwrite it and strand the first ghost
     const itEl=e.target.closest('[data-item]');
-    if(itEl){ drag={ item:+itEl.dataset.item, x:e.clientX, y:e.clientY, moved:false }; return; }
-    if(e.target.closest('[data-field]')){ const u=edUnitAtScreen(e.clientX,e.clientY); if(u) drag={ hero:u._edId, x:e.clientX, y:e.clientY, moved:false }; }
+    if(itEl){ drag={ item:+itEl.dataset.item, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId }; return; }
+    if(e.target.closest('[data-field]')){ const u=edUnitAtScreen(e.clientX,e.clientY); if(u) drag={ hero:u._edId, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId }; }
   });
-  root.addEventListener('pointermove',e=>{ if(!drag) return;
+  root.addEventListener('pointermove',e=>{ if(!drag || e.pointerId!==drag.pid) return;
     if(!drag.moved && Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8) return;
     if(!drag.moved){ drag.moved=true; const g=document.createElement('div'); g.id='edDrag'; const you=edYou();
       if(drag.hero){ const h=edUnits(you).find(u=>u.id===drag.hero); if(h){ g.setAttribute('style', edSprCss(h.key)); const A=edSprA(h.key); g.className='spr'; if(A){ g.dataset.n=A.n; g.dataset.cols=A.cols; g.dataset.rows=A.rows; } }
@@ -21336,7 +21358,7 @@ function edWireRoot(root){
       document.body.appendChild(g); drag.ghost=g; }
     drag.ghost.style.left=(e.clientX-22)+'px'; drag.ghost.style.top=(e.clientY-40)+'px';
     if(drag.hero){ const s=edSlotAtScreen(e.clientX,e.clientY); markHot(s&&s.slot); } });
-  const finish=e=>{ if(!drag) return; const d=drag; drag=null; if(d.ghost) d.ghost.remove(); markHot(null);
+  const finish=e=>{ if(!drag || e.pointerId!==drag.pid) return; const d=drag; drag=null; if(d.ghost) d.ghost.remove(); markHot(null);   // v644: only the finger that started the drag ends it (a lifted thumb over the shop sold the hero)
     const shop=root.querySelector('.shopb'); if(shop) shop.classList.remove('selling');
     if(!d.moved) return;   // a tap: the click handler takes it
     const el=document.elementFromPoint(e.clientX,e.clientY);
@@ -21344,7 +21366,7 @@ function edWireRoot(root){
     const s=edSlotAtScreen(e.clientX,e.clientY); if(s) at.slot=s.slot;
     const u=edUnitAtScreen(e.clientX,e.clientY); if(u) at.hero=u._edId;
     edDrop(d,at); ED._suppress=Date.now(); };
-  root.addEventListener('pointerup',finish); root.addEventListener('pointercancel',()=>{ if(drag&&drag.ghost) drag.ghost.remove(); drag=null; markHot(null); });
+  root.addEventListener('pointerup',finish); root.addEventListener('pointercancel',e=>{ if(!drag || e.pointerId!==drag.pid) return; if(drag.ghost) drag.ghost.remove(); drag=null; markHot(null); const shop=root.querySelector('.shopb'); if(shop) shop.classList.remove('selling'); });
   root.addEventListener('click',e=>{
     if(ED._suppress && Date.now()-ED._suppress<300) return;
     const a=e.target.closest('[data-a]'); if(a){ return edAction(a.dataset.a); }
@@ -21358,11 +21380,12 @@ function edWireRoot(root){
       if(u){ ED.sel={hero:u._edId}; ED.msg=''; return edRender(); }
     }
   });
-  window.addEventListener('resize',()=>{ if(ED.active && ED.phase==='plan') setTimeout(edRender,120); });
+  if(!window._edResizeWired){ window._edResizeWired=true; window.addEventListener('resize',()=>{ if(ED.active && ED.phase==='plan') setTimeout(edRender,120); }); }   // v644: once, not once per match
 }
 function edDrop(src,at){
+  if(ED.phase!=='plan') return;   // v644: a second finger could land a drop after Fight was tapped
   const you=edYou(); ED.msg='';
-  if(src.item!=null){ const it=you.items[src.item];
+  if(src.item!=null){ const it=you.items[src.item]; _edEquipWhy='';
     if(it && at.hero){ const h=edUnits(you).find(u=>u.id===at.hero);
       if(h && it.rm){ you.items.splice(src.item,1); if(!edRemoveItems(you,h)) you.items.splice(src.item,0,it); }   // v640: the remover
       else if(h && edEquip(h,it)){ you.items.splice(src.item,1); } else edToast(_edEquipWhy||'That hero already carries three items.'); }
