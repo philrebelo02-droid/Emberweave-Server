@@ -11092,7 +11092,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12)*WALK_ANIM_MUL;   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8))*WALK_ANIM_MUL; }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else if(st==='idle' && u._idleFrozen){ /* v521: no room for a whole idle - hold, never half of one */ }
-        else u._animAcc=(u._animAcc||0)+dt*(A.fps||10)*((u._dblSwing&&st===_atkSt)?2:1);   // v534: mirage double swing at 2x
+        else u._animAcc=(u._animAcc||0)+dt*(A.fps||10)*((u._dblSwing&&st===_atkSt)?2:1)*((st==='idle'&&CUR&&CUR.mode==='emberdraft')?ED_IDLE_FPS_MUL:1);   // v534: mirage double swing at 2x. v645: Emberdraft idles slower (Phil: "slow down the FPS on their idle")
         // pingpong clips play forward THEN reverse (0..n-1..1) so the loop never hard-snaps back to frame 0
         let fr;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
@@ -11368,6 +11368,8 @@ function edBadgeAt(u, x, y){ let el=u._badgeEl;
   const r=overlay.getBoundingClientRect(), vx=r.left+x*(r.width/(CW||1)), vy=r.top+y*(r.height/(CH||1));
   if(u._bx!=null && Math.abs(u._bx-vx)<0.5 && Math.abs(u._by-vy)<0.5) return;
   u._bx=vx; u._by=vy; el.style.left=vx.toFixed(1)+'px'; el.style.top=vy.toFixed(1)+'px'; }
+/* v645 (Phil: "slow down the FPS on their idle please"): Emberdraft heroes play their idle clip at this fraction of its frame rate */
+const ED_IDLE_FPS_MUL=0.6;
 let _olPrev=0, _olDt=0;
 function drawOverlay(){octx.clearRect(0,0,CW,CH);
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
@@ -19049,7 +19051,7 @@ function isAutoBattle(){ const m=CUR&&CUR.mode;
 function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn'),kb=document.getElementById('skipBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
   const forced=isAutoBattle();   // deterministic, recorded fights are 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
-  if(kb) kb.style.display=(forced && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
+  if(kb) kb.style.display=(forced && !(CUR&&CUR.mode==='emberdraft') && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   /* v645 (Phil: Skip "should only be for deterministic fights like world map and arena"): never in Emberdraft */   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
   if(forced) autoPendingTarget=null;
   const switching=!forced && autoPendingTarget!==null;
   ab.textContent=switching?('AUTO: SWITCHING '+(autoPendingTarget?'ON':'OFF')+'…'):('AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':''));
@@ -19529,7 +19531,7 @@ document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.ind
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
 // ⏭ Skip: fast-forward presentation only when the fight is already deterministic (Arena, World raid, Elite, replay).
-document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle()||(typeof GSPLIT!=='undefined'&&GSPLIT.active))return;
+document.getElementById('skipBtn').onclick=()=>{ if(state!=='battle'||ended||!isAutoBattle()||(CUR&&CUR.mode==='emberdraft')||(typeof GSPLIT!=='undefined'&&GSPLIT.active))return;
   for(let i=0;i<14400 && !ended && state==='battle';i++){ updateBattle(SIM_STEP); }   // run up to ~4 min of sim instantly; endBattle fires when a side falls
   if(!ended && state==='battle') endBattle(false); };   // safety: if it somehow didn't resolve, count it as a loss
 document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle()||autoPendingTarget!==null)return; const next=!autoUlt;
@@ -19701,7 +19703,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789826407000';
+const BUILD_ID = '1789827607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20651,7 +20653,7 @@ function edCarSprPaint(){ const now=performance.now(); if(now-_edCarSprT<80) ret
   document.querySelectorAll('#edRoot canvas.carSpr').forEach(cv=>{ const k=cv.dataset.k, set=(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[k], A=set&&(set.idle||set.walk); if(!A) return;
     try{ if(!A.tex) _loadClip(A); }catch(e){}
     const im=A.tex&&A.tex.image; if(!im||!im.width) return;
-    const cols=A.cols||A.n||1, rows=A.rows||1, n=A.n||cols*rows, i=Math.floor(now/70)%n, c=i%cols, r=Math.floor(i/cols);
+    const cols=A.cols||A.n||1, rows=A.rows||1, n=A.n||cols*rows, i=Math.floor(now*(A.fps||14)*ED_IDLE_FPS_MUL/1000)%n, c=i%cols, r=Math.floor(i/cols);   /* v645: the clip's own fps x ED_IDLE_FPS_MUL (was a fixed 70 ms) */
     const kx=im.width/(cols*A.fw), ky=im.height/(rows*A.fh), up=(typeof ImageBitmap!=='undefined' && im instanceof ImageBitmap);
     const fw=A.fw*kx, fh=A.fh*ky, asp=cv.width/cv.height;   // crop the frame to the canvas shape (no stretching): keep the full height, centre the width
     let sw=fw, sh=fh, ox=0, oy=0; if(fw/fh>asp){ sw=fh*asp; ox=(fw-sw)/2; } else { sh=fw/asp; oy=0; }
