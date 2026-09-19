@@ -395,6 +395,10 @@
   .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
   .ascf-gem svg{width:100%;height:100%;display:block}
   .ascf-st svg{height:100%;width:auto;flex:0 1 auto;min-width:0;filter:drop-shadow(0 1px 1px #000)}
+  .rbn{position:absolute;left:3%;right:3%;bottom:1%;height:19%;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size}
+  .rbn span{font-family:Georgia,serif;font-weight:900;font-size:clamp(7px,9.5cqw,15px);color:#fff6e0;text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:74%;letter-spacing:.02em;line-height:1}
+  .rbn-mythical span{color:#fff1c2;text-shadow:0 1px 2px #2a0a4a,0 0 6px #c38bff,0 0 2px #000}
+  .ascf-st.onb{bottom:15%;height:13%}
   .ascf-myth{height:100%;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 1px 2px #000a)}
   .hero-card .hc-lv{position:absolute;top:6%;left:6%;z-index:4;background:rgba(10,12,20,.82);color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:6px;border:1px solid rgba(255,255,255,.18);line-height:1.3}
   .hero-card .hc-mythp{position:absolute;left:9%;right:9%;bottom:15%;height:17%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;
@@ -2601,7 +2605,7 @@ function showBattleLoader(spec){
   const title = spec.title || battleModeTitle();
   el.className='bl-'+layout;
   const card=(c,side)=>{ const mine=side==='ally'&&c.key&&G.unlocked&&G.unlocked[c.key];   // v612: your heroes wear their ascension borders, stars on the frame
-    return `<div class="bl-cw"><div class="bl-card${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas>${mine?ascFrameHtml(c.key,{stars:true}):''}<div class="bl-nm">${escapeHTML(c.name||'')}</div></div></div>`; };
+    return `<div class="bl-cw"><div class="bl-card${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas>${mine?ascFrameHtml(c.key,{stars:true,banner:RARITY_READY}):''}${(c.key&&RARITY_READY)?(mine?'':rarityBannerHtml(c.key)):`<div class="bl-nm">${escapeHTML(c.name||'')}</div>`}</div></div>`; };
   const keyCards=(keys)=>(keys||[]).filter(Boolean).map(k=>({ key:k, name:_blHeroName(k) }));
   let body='', list=[];   // list: {c, face}
   if(layout==='vs'){
@@ -2996,8 +3000,21 @@ function ascIndexOf(key){ try{ return Math.max(0,Math.min(16,glyphRank(key)|0));
 function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIndexOf(key)]|0, F=ASC_FRAME[bi]||ASC_FRAME[0], s=F.s;
   const pc=(v,d)=>(v/d*100).toFixed(2)+'%';
   let h=`<div class="ascf" style="border-image-source:url('/assets/img/frames/asc-${String(bi).padStart(2,'0')}.webp?v=${ASC_FRAME_V}');border-image-slice:${s[0]} ${s[1]} ${s[2]} ${s[3]} fill;border-image-width:${pc(s[0],ASC_FRAME_H)} ${pc(s[1],ASC_FRAME_W)} ${pc(s[2],ASC_FRAME_H)} ${pc(s[3],ASC_FRAME_W)}"></div>`;
-  if(o.stars){ let row=''; try{ row=starFillRow(key,20); }catch(e){} if(row) h+=`<div class="ascf-st">${row}</div>`; }   // on the bottom edge
+  if(o.banner) h+=rarityBannerHtml(key,{name:o.name});   // v614: the name banner on the frame's bottom edge
+  if(o.stars){ let row=''; try{ row=starFillRow(key,20); }catch(e){} if(row) h+=`<div class="ascf-st${o.banner?' onb':''}">${row}</div>`; }   // on the bottom edge (on top of the banner when there is one)
   return h; }
+/* v614 (Phil: "make the mythical banner actually good looking, make a Grey one for 1 star starter heroes, make a green one
+   for 2star starter heroes, and a Blue one for 3 star starter heroes" / "the mythical one should look much more flashy and say
+   mythical" / "these same banners need to have the option to have no word under it so you can put the heroes name under it,
+   you will fit this to their frame with the stars on top" / "then when heroes load it its part of their load in").
+   Rarity = the hero's starter stars (1 Common grey, 2 Uncommon green, 3 Rare blue) or Mythical. Each rarity has a Hailuo
+   banner painted with its word (assets/img/banners/<r>-word.webp) and a blank one (<r>.webp) that carries the hero's name.
+   On a card the name banner sits on the frame's bottom edge with the stars on top of it. */
+const RARITY_V=1, RARITY_READY=false;   // flips to true once the Hailuo banners are in assets/img/banners
+function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMythic==='function'&&isMythic(key))) return 'mythical'; const st=t.stars|0; return st>=3?'rare':st===2?'uncommon':'common'; }
+function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
+  const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
+  return `<div class="rbn rbn-${r}${o.word?' w':''}" style="background-image:url('${img}')">${o.word?'':`<span>${escapeHTML(o.name||t.name||key)}</span>`}</div>`; }
 function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
   if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`;
   const own=!!(typeof G!=='undefined'&&G.unlocked&&G.unlocked[key]);   /* v612: every hero icon wears its ascension border, with its stars on the border's bottom edge once it's big enough to read */
@@ -14190,18 +14207,18 @@ HERO_CARD_ART.aureth='/assets/img/hero-cards/card-aureth.webp?v=10';
 HERO_CARD_ART.beekeeper='/assets/img/hero-cards/card-beekeeper.webp?v=10';
 HERO_CARD_ART.bloatus='/assets/img/hero-cards/card-bloatus.webp?v=10';
 HERO_CARD_ART.cacklefang='/assets/img/hero-cards/card-cacklefang.webp?v=10';
-HERO_CARD_ART.calypsa='/assets/img/hero-cards/card-calypsa.webp?v=9';
+HERO_CARD_ART.calypsa='/assets/img/hero-cards/card-calypsa.webp?v=10';
 HERO_CARD_ART.cardwraith='/assets/img/hero-cards/card-cardwraith.webp?v=10';
 HERO_CARD_ART.carn='/assets/img/hero-cards/card-carn.webp?v=10';
 HERO_CARD_ART.cathedral='/assets/img/hero-cards/card-cathedral.webp?v=10';
-HERO_CARD_ART.chainwheel='/assets/img/hero-cards/card-chainwheel.webp?v=9';
-HERO_CARD_ART.corsair='/assets/img/hero-cards/card-corsair.webp?v=9';
-HERO_CARD_ART.dawnbringer='/assets/img/hero-cards/card-dawnbringer.webp?v=9';
-HERO_CARD_ART.deepcleft='/assets/img/hero-cards/card-deepcleft.webp?v=9';
-HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=9';
-HERO_CARD_ART.fritz='/assets/img/hero-cards/card-fritz.webp?v=9';
-HERO_CARD_ART.greatbrow='/assets/img/hero-cards/card-greatbrow.webp?v=9';
-HERO_CARD_ART.grosk='/assets/img/hero-cards/card-grosk.webp?v=9';
+HERO_CARD_ART.chainwheel='/assets/img/hero-cards/card-chainwheel.webp?v=10';
+HERO_CARD_ART.corsair='/assets/img/hero-cards/card-corsair.webp?v=10';
+HERO_CARD_ART.dawnbringer='/assets/img/hero-cards/card-dawnbringer.webp?v=10';
+HERO_CARD_ART.deepcleft='/assets/img/hero-cards/card-deepcleft.webp?v=10';
+HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=10';
+HERO_CARD_ART.fritz='/assets/img/hero-cards/card-fritz.webp?v=10';
+HERO_CARD_ART.greatbrow='/assets/img/hero-cards/card-greatbrow.webp?v=10';
+HERO_CARD_ART.grosk='/assets/img/hero-cards/card-grosk.webp?v=10';
 HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=9';
 HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=9';
 HERO_CARD_ART.ironcoil='/assets/img/hero-cards/card-ironcoil.webp?v=9';
@@ -16470,9 +16487,9 @@ function renderHeroList(){
     /* v612 (Phil: "Go review magic rush hero card" / "And so it similar"): a Magic Rush tile - one square art card for every
        hero, the ascension border round it, Lv in the top-left, the stars ON the border's bottom edge, the mythical banner across
        the bottom of the art; name, role and power underneath. Every card is the same size, mythical or not. */
-    card.innerHTML=`<div class="hc-imgwrap">${portImg}${ascFrameHtml(key,{stars:true})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
+    card.innerHTML=`<div class="hc-imgwrap">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
         <div class="hc-info">
-          <div class="hc-name${myth?' hc-mythn':''}">${t.name}</div>
+          ${RARITY_READY?'':`<div class="hc-name${myth?' hc-mythn':''}">${t.name}</div>`}
           <div class="hc-sub">${unlocked?`⚔ ${heroPower(key).toLocaleString()}`:lockedLine}</div>
         </div>`;
     card._pick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
@@ -19588,7 +19605,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789775301000';
+const BUILD_ID = '1789776561000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
