@@ -962,6 +962,22 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 #menuPanel .mitem{padding:2px 0 2px!important;gap:1px!important;font-size:10px;}
 #menuPanel .mitem .mi{width:40px!important;height:40px!important;}
 #menuPanel .mitem .menuDot{top:0;right:4px;}
+/* v660 the Floating Isle cards: gold frame, painted scene header, medallions */
+.isleCardP{box-sizing:border-box;padding:12px 14px 14px;border-style:solid;border-color:transparent;border-width:6px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 22px stretch;
+  filter:drop-shadow(0 12px 30px rgba(0,0,0,.75));color:#f3e3bd;}
+.provScene{background:linear-gradient(rgba(4,6,10,.35),rgba(4,6,10,.55)),url(/assets/img/ui/training-province.webp?v=1) center/cover no-repeat!important;}
+.provHero{position:relative;height:118px;margin:-4px -6px 10px;border-radius:8px;background:#0b0f1c center/cover no-repeat;box-shadow:inset 0 -40px 40px -10px rgba(5,7,13,.9),0 0 0 1px rgba(201,162,78,.55);}
+.provHero.sm{height:84px;}
+.provTtl{position:absolute;left:12px;bottom:8px;font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:19px;letter-spacing:1px;color:#ffe9b8;text-shadow:0 2px 4px #000,0 0 12px rgba(0,0,0,.9);display:flex;align-items:center;gap:8px;}
+.isleX{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#2a3858,#0b1122);border:2px solid #c9a24e;color:#ffe6a8;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.6);}
+.provIntro{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:11.5px;color:#d6c79f;margin-bottom:10px;line-height:1.4;}
+.provRow,.provBox{cursor:pointer;padding:9px 12px;border-style:solid;border-color:transparent;border-width:3px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 12px stretch;
+  background:radial-gradient(130% 70% at 50% 112%,rgba(255,130,40,.5),transparent 62%),linear-gradient(180deg,#2b2016 0%,#1c1712 50%,#3a1e0c 100%);box-shadow:0 4px 10px rgba(0,0,0,.45);}
+.provBox{cursor:default;margin-bottom:8px;}
+.provRow:hover{filter:brightness(1.12);} .provRow.locked{filter:saturate(.45) brightness(.8);}
+.provIc{width:52px;height:52px;flex:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));}
+.provIcS{width:30px;height:30px;vertical-align:middle;filter:drop-shadow(0 2px 3px rgba(0,0,0,.8));}
+.provNm{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:14px;color:#ffe9b8;}
 .pmhead .ttl{font-family:Georgia,'Times New Roman',serif;color:#ffe6a8;}
 
 
@@ -18122,7 +18138,8 @@ function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if
   b.querySelectorAll('[data-if]').forEach(el=>el.onclick=()=>{ const f=ISLE_FEATURES.find(x=>x.id===el.dataset.if); if(playerLevel()<f.lvl){ bannerMsg('🔒 '+f.name+' unlocks at level '+f.lvl+'.'); return; } f.open(); });
 }
 function isleOverlay(){ const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:13500;display:flex;align-items:center;justify-content:center;padding:16px'; ov.addEventListener('click',e=>{ if(e.target===ov)ov.remove(); }); document.body.appendChild(ov); return ov; }
-function isleCard(inner,max){ return `<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:16px;width:100%;max-width:${max||360}px;max-height:88vh;overflow:auto">${inner}</div>`; }
+function isleCard(inner,max){ return `<div class="isleCardP" style="width:100%;max-width:${max||360}px;max-height:88vh;overflow:auto">${inner}</div>`; }   /* v660: the gold-framed painted card (CSS .isleCardP) */
+const PROV_ART={ scene:'/assets/img/ui/training-province.webp?v=1', gold:'/assets/img/ui/mi-prov-gold.webp?v=1', rune:'/assets/img/ui/mi-prov-drill.webp?v=1' };   /* v660 */
 function battlePow(){ return Math.max(1, bestTeamPower()); }
 
 /* ---- TRAINING PROVINCE: two grounds (Gold / Rune), stages of rising difficulty, 2 plays/day, sweep cleared stages ---- */
@@ -18145,26 +18162,26 @@ function grantProvReward(t,stage){ const _p=provState(t);
   updateHubChrome(); return provRewardStr(t,stage); }
 function provChallenge(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; const next=p.stage+1; if(next>PROV_STAGES) return {maxed:true}; if(battlePow()<provReqPower(t,next)) return {weak:true}; p.used++; p.stage=next; const rw=grantProvReward(t,next); saveG(); return {win:true,stage:next,reward:rw}; }
 function provSweep(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; if(p.stage<1) return {invalid:true}; p.used++; const rw=grantProvReward(t,p.stage); saveG(); return {swept:true,stage:p.stage,reward:rw}; }
-function openTrainingProvince(){ const ov=isleOverlay();
+function openTrainingProvince(){ const ov=isleOverlay(); ov.classList.add('provScene');
   const cards=[['gold','🪙','Gold Province',10,'Battle for gold'],['rune','📖','Drill Province',15,'Battle for hero XP']];
-  ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🌀 Training Province</div><button class="btn sm secondary" id="ipX">✕</button></div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Two training grounds, each a ladder of rising difficulty. Beat a stage to earn its reward, then sweep it later for the same haul. Two plays each per day.</div>`
-    + cards.map(([t,ic,nm,rl,d])=>{ const locked=playerLevel()<rl; return `<div data-prov="${t}" style="display:flex;align-items:center;gap:12px;background:#0f1420;border:1px solid ${locked?'#242c3e':'#3a4c72'};border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;opacity:${locked?.65:1}">
-      <div style="font-size:26px">${ic}</div><div style="flex:1"><div style="font-weight:800;font-size:13px">${nm}</div><div style="font-size:10px;color:#8b98a9">${d} · Stage ${provState(t).stage}/${PROV_STAGES} · ${provPlaysLeft(t)}/${PROV_PLAYS} plays left</div></div>
+  ov.innerHTML=isleCard(`<div class="provHero" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">Training Province</div><button class="isleX" id="ipX" aria-label="Close">✕</button></div>
+    <div class="provIntro">Two training grounds, each a ladder of rising difficulty. Beat a stage to earn its reward, then sweep it later for the same haul. Two plays each per day.</div>`
+    + cards.map(([t,ic,nm,rl,d])=>{ const locked=playerLevel()<rl; return `<div data-prov="${t}" class="provRow${locked?' locked':''}" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;opacity:${locked?.65:1}">
+      <img class="provIc" src="${PROV_ART[t]}" alt=""><div style="flex:1"><div class="provNm">${nm}</div><div style="font-size:10px;color:#8b98a9">${d} · Stage ${provState(t).stage}/${PROV_STAGES} · ${provPlaysLeft(t)}/${PROV_PLAYS} plays left</div></div>
       <div style="font-size:10px;${locked?'color:#c9a35e':'color:#5ee89b'};white-space:nowrap">${locked?'🔒 Lv '+rl:'Open ▸'}</div></div>`; }).join(''));
   ov.querySelector('#ipX').onclick=()=>ov.remove();
   ov.querySelectorAll('[data-prov]').forEach(el=>el.onclick=()=>{ const t=el.dataset.prov, rl=t==='rune'?15:10; if(playerLevel()<rl){ bannerMsg('🔒 '+(t==='rune'?'Rune':'Gold')+' Province unlocks at level '+rl+'.'); return; } ov.remove(); openProvince(t); });
 }
-function openProvince(t){ const meta=t==='gold'?{ic:'🪙',nm:'Gold Province',col:'#ffd45e'}:{ic:'📖',nm:'Drill Province',col:'#8fd0ff'}; const ov=isleOverlay();
+function openProvince(t){ const meta=t==='gold'?{ic:'<img class="provIcS" src="'+PROV_ART.gold+'" alt="">',nm:'Gold Province',col:'#ffd45e'}:{ic:'<img class="provIcS" src="'+PROV_ART.rune+'" alt="">',nm:'Drill Province',col:'#8fd0ff'}; const ov=isleOverlay(); ov.classList.add('provScene');
   function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), next=p.stage+1, maxed=p.stage>=PROV_STAGES, req=maxed?0:provReqPower(t,next), pow=battlePow(), canGo=!maxed&&pow>=req&&left>0;
-    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${meta.ic} ${meta.nm}</div><button class="btn sm secondary" id="pvX">✕</button></div>
+    ov.innerHTML=isleCard(`<div class="provHero sm" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">${meta.ic} ${meta.nm}</div><button class="isleX" id="pvX" aria-label="Close">✕</button></div>
       <div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:10px">Cleared <b style="color:${meta.col}">Stage ${p.stage}/${PROV_STAGES}</b> · Plays today <b style="color:#ffd45e">${left}/${PROV_PLAYS}</b> · Your power ⚔ ${pow.toLocaleString()}</div>
       ${maxed?`<div style="text-align:center;color:#5ee89b;font-weight:800;margin:12px 0">★ All ${PROV_STAGES} stages cleared! Sweep for daily rewards.</div>`:
-        `<div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
+        `<div class="provBox" style="padding:11px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:3px">⚔ Challenge Stage ${next}</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enemy power ⚔ <b style="color:${pow>=req?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b> · Reward ${provRewardStr(t,next)}</div>
           <button class="btn" id="pvGo" style="width:100%" ${canGo?'':'disabled'}>${left<=0?'No plays left today':(pow<req?'Squad too weak':'⚔ Challenge (1 play)')}</button></div>`}
-      ${p.stage>0?`<div style="background:#0f1420;border-radius:10px;padding:11px">
+      ${p.stage>0?`<div class="provBox" style="padding:11px">
           <div style="font-weight:800;font-size:12px;margin-bottom:3px">🔁 Sweep Stage ${p.stage}</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Instantly re-earn your best cleared reward: ${provRewardStr(t,p.stage)}</div>
           <button class="btn secondary" id="pvSweep" style="width:100%" ${left>0?'':'disabled'}>${left>0?'🔁 Sweep (1 play)':'No plays left today'}</button></div>`:''}
@@ -20097,7 +20114,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789844407000';
+const BUILD_ID = '1789845607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
