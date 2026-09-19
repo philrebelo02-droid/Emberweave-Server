@@ -978,6 +978,19 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .provIc{width:52px;height:52px;flex:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));}
 .provIcS{width:30px;height:30px;vertical-align:middle;filter:drop-shadow(0 2px 3px rgba(0,0,0,.8));}
 .provNm{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:14px;color:#ffe9b8;}
+@media (max-height:560px){
+  .isleCardP{max-width:min(600px,86vw)!important;max-height:94vh!important;padding:8px 12px 10px;}
+  .provHero{height:clamp(56px,17vh,96px);margin:-2px -6px 6px;} .provHero.sm{height:clamp(46px,13vh,70px);}
+  .provTtl{font-size:17px;bottom:5px;}
+  .isleX{width:28px;height:28px;font-size:13px;top:6px;right:6px;}
+  .provIntro{font-size:11px;margin-bottom:6px;line-height:1.3;}
+  .provRow{padding:4px 10px;margin-bottom:5px!important;} .provBox{padding:7px 10px!important;margin-bottom:5px;}
+  .provIc{width:40px;height:40px;}
+  .provBox{float:left;width:calc(50% - 3px);box-sizing:border-box;min-height:96px;} #pvMsg{clear:both;padding-top:2px;}
+  .provBox + .provBox{margin-left:6px;}
+  .provBox .btn{padding:6px 8px;font-size:13px;margin-top:2px;}
+  .provBox > div:nth-child(2){font-size:10.5px!important;margin-bottom:5px!important;}
+}
 .pmhead .ttl{font-family:Georgia,'Times New Roman',serif;color:#ffe6a8;}
 
 
@@ -20114,7 +20127,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789845607000';
+const BUILD_ID = '1789846807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20185,14 +20198,13 @@ function estTimeStr(){ try{ return new Intl.DateTimeFormat('en-GB',{timeZone:'Am
 function localTimeStr(){ try{ return new Intl.DateTimeFormat(undefined,{hourCycle:'h23',hour:'2-digit',minute:'2-digit'}).format(new Date()); }catch(e){ return '--:--'; } }
 function startServerClock(){ const upd=()=>{ const el=document.getElementById('cwClock'); if(el) el.textContent='Server '+estTimeStr()+' · Local '+localTimeStr(); }; upd(); if(_serverClock)clearInterval(_serverClock); _serverClock=setInterval(upd,1000); }
 function ensureChatWidget(){ if(document.getElementById('chatWidget'))return;
-  const w=document.createElement('div'); w.id='chatWidget'; w.className='min';
-  w.innerHTML=`<div class="cw-head" id="cwHead"><span style="display:flex;align-items:center;gap:8px"><img class="cwIc" src="/assets/img/ui/mi-chat.webp?v=1" alt="">Chat<span id="cwClock" class="cw-clock">Server —:—:—</span></span><span class="cw-ctrls"><button class="cw-ic" id="cwExpand" title="Expand">⤢</button><button class="cw-ic" id="cwToggle">▲</button></span></div>
+  const w=document.createElement('div'); w.id='chatWidget'; w.className='min full';   /* v661: always the full size when open */
+  w.innerHTML=`<div class="cw-head" id="cwHead"><span style="display:flex;align-items:center;gap:8px"><img class="cwIc" src="/assets/img/ui/mi-chat.webp?v=1" alt="">Chat<span id="cwClock" class="cw-clock">Server —:—:—</span></span><span class="cw-ctrls"><button class="cw-ic" id="cwToggle">▲</button></span></div>
     <div class="cw-body"><div class="cw-tabs" id="cwTabs"></div><div class="cw-msgs" id="cwMsgs"></div>
       <div class="cw-input"><input id="cwInput" maxlength="200" placeholder="Say something…"><button class="btn sm" id="cwSend">Send</button></div></div>`;
   document.body.appendChild(w);
   startServerClock();
-  w.querySelector('#cwHead').onclick=(e)=>{ if(e.target.closest('#cwExpand'))return; const min=w.classList.toggle('min'); w.querySelector('#cwToggle').textContent=min?'▲':'▼'; if(!min)renderChat(); };
-  w.querySelector('#cwExpand').onclick=(e)=>{ e.stopPropagation(); if(w.classList.contains('min')){ w.classList.remove('min'); w.querySelector('#cwToggle').textContent='▼'; } const full=w.classList.toggle('full'); w.querySelector('#cwExpand').textContent=full?'⤡':'⤢'; renderChat(); };
+  w.querySelector('#cwHead').onclick=(e)=>{ const min=w.classList.toggle('min'); w.querySelector('#cwToggle').textContent=min?'▲':'▼'; if(!min)renderChat(); };
   renderChat();
 }
 function openWhisper(name){ if(!name||name===(G.playerName||'You'))return; if(!G.whispers)G.whispers={}; if(!G.whispers[name])G.whispers[name]=[];
