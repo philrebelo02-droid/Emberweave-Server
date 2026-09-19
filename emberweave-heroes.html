@@ -14237,20 +14237,20 @@ HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=9';
 HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=10';
 HERO_CARD_ART.ironcoil='/assets/img/hero-cards/card-ironcoil.webp?v=11';
 HERO_CARD_ART.kharos='/assets/img/hero-cards/card-kharos.webp?v=11';
-HERO_CARD_ART.kilnmask='/assets/img/hero-cards/card-kilnmask.webp?v=10';
-HERO_CARD_ART.konwu='/assets/img/hero-cards/card-konwu.webp?v=10';
+HERO_CARD_ART.kilnmask='/assets/img/hero-cards/card-kilnmask.webp?v=11';
+HERO_CARD_ART.konwu='/assets/img/hero-cards/card-konwu.webp?v=11';
 HERO_CARD_ART.lastfurnace='/assets/img/hero-cards/card-lastfurnace.webp?v=10';
 HERO_CARD_ART.librarian='/assets/img/hero-cards/card-librarian.webp?v=10';
 HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=10';
-HERO_CARD_ART.lysara='/assets/img/hero-cards/card-lysara.webp?v=10';
+HERO_CARD_ART.lysara='/assets/img/hero-cards/card-lysara.webp?v=11';
 HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=10';
 HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=10';
 HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=10';
-HERO_CARD_ART.nerisse='/assets/img/hero-cards/card-nerisse.webp?v=10';
+HERO_CARD_ART.nerisse='/assets/img/hero-cards/card-nerisse.webp?v=11';
 HERO_CARD_ART.nox='/assets/img/hero-cards/card-nox.webp?v=10';
-HERO_CARD_ART.oakmir='/assets/img/hero-cards/card-oakmir.webp?v=10';
-HERO_CARD_ART.orryn='/assets/img/hero-cards/card-orryn.webp?v=10';
-HERO_CARD_ART.pellucid='/assets/img/hero-cards/card-pellucid.webp?v=10';
+HERO_CARD_ART.oakmir='/assets/img/hero-cards/card-oakmir.webp?v=11';
+HERO_CARD_ART.orryn='/assets/img/hero-cards/card-orryn.webp?v=11';
+HERO_CARD_ART.pellucid='/assets/img/hero-cards/card-pellucid.webp?v=11';
 HERO_CARD_ART.pyroclast='/assets/img/hero-cards/card-pyroclast.webp?v=10';
 HERO_CARD_ART.rhukk='/assets/img/hero-cards/card-rhukk.webp?v=10';
 HERO_CARD_ART.sablewick='/assets/img/hero-cards/card-sablewick.webp?v=10';
@@ -14263,18 +14263,18 @@ HERO_CARD_ART.threadseer='/assets/img/hero-cards/card-threadseer.webp?v=10';
 HERO_CARD_ART.tick='/assets/img/hero-cards/card-tick.webp?v=10';
 HERO_CARD_ART.umbris='/assets/img/hero-cards/card-umbris.webp?v=10';
 HERO_CARD_ART.vael='/assets/img/hero-cards/card-vael.webp?v=10';
-HERO_CARD_ART.vaelora='/assets/img/hero-cards/card-vaelora.webp?v=10';
+HERO_CARD_ART.vaelora='/assets/img/hero-cards/card-vaelora.webp?v=11';
 HERO_CARD_ART.velvetplum='/assets/img/hero-cards/card-velvetplum.webp?v=10';
 HERO_CARD_ART.verdantshade='/assets/img/hero-cards/card-verdantshade.webp?v=10';
-HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=10';
+HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=11';
 HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=12';
-HERO_CARD_ART.veyr='/assets/img/hero-cards/card-veyr.webp?v=10';
+HERO_CARD_ART.veyr='/assets/img/hero-cards/card-veyr.webp?v=11';
 HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=10';
-HERO_CARD_ART.vireo='/assets/img/hero-cards/card-vireo.webp?v=10';
-HERO_CARD_ART.voidweaver='/assets/img/hero-cards/card-voidweaver.webp?v=10';
+HERO_CARD_ART.vireo='/assets/img/hero-cards/card-vireo.webp?v=11';
+HERO_CARD_ART.voidweaver='/assets/img/hero-cards/card-voidweaver.webp?v=11';
 HERO_CARD_ART.vulmar='/assets/img/hero-cards/card-vulmar.webp?v=10';
-HERO_CARD_ART.waxenduchess='/assets/img/hero-cards/card-waxenduchess.webp?v=10';
-HERO_CARD_ART.zahri='/assets/img/hero-cards/card-zahri.webp?v=10';
+HERO_CARD_ART.waxenduchess='/assets/img/hero-cards/card-waxenduchess.webp?v=11';
+HERO_CARD_ART.zahri='/assets/img/hero-cards/card-zahri.webp?v=11';
 /* MIRROR CARD ART -> PORTRAITS — must stay AFTER every HERO_CARD_ART assignment above. The finished
    card art IS the portrait and the glossary tile for every hero that has one. */
 for(const k in HERO_CARD_ART) HERO_PORTRAITS[k]=HERO_CARD_ART[k];
@@ -19623,7 +19623,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789785426000';
+const BUILD_ID = '1789786208000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
