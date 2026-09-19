@@ -19719,7 +19719,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789836007000';
+const BUILD_ID = '1789837207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -21560,7 +21560,7 @@ function edRender(){
    +`<span class="pill">Round <b>${r}</b> · next: ${edIsPve(r)?'monster wave':'a rival'}</span><span class="pill gold">🪙 ${you.gold}</span>`
    +`<span class="pill">Lv <b>${you.level}</b>${you.level<9?` · ${you.xp}/${need}`:''} · ${edBoardCount(you)}/${edFieldCap(you)} fielded</span>`
    +`<button class="btnx" data-a="xp" ${you.level>=9?'disabled':''}>+4 XP · 🪙4</button><span class="pill hp">❤ ${Math.max(0,you.hp)}</span><span style="flex:1"></span>`
-   +`<button class="btnx" data-a="quit">Leave</button><button class="btnx ready" data-a="ready">Fight ▶</button></div>`;
+   +`<button class="btnx" data-a="quit">Quit</button><button class="btnx ready" data-a="ready">Fight ▶</button></div>`;   /* v653 (Phil: "Make the leave button say quit") */
   { /* v640 (Phil chose "Left side, 10 slots"): the item bench is a 10-slot column down the left edge, like TFT. Empty slots show
        as sockets; items waiting for a free slot are counted underneath. */
     const top=40, bot=Math.max(top+160, innerHeight-70), slot=Math.max(20,Math.min(32,Math.floor((bot-top)/ED_ITEM_BENCH)-3));
@@ -21639,7 +21639,7 @@ function edOverHtml(){ const you=edYou(); const ord=['','1st','2nd','3rd','4th',
    <div style="font-size:40px;font-weight:900;color:${you.place===1?'#ffd45e':'#e8edf3'}">${ord} place</div>
    <div style="color:#aab6c6">${you.place===1?'Last one standing. The draft was yours.':'Knocked out in round '+ED.round+'.'}</div>
    ${rline?`<div style="color:#7fe0a3;font-weight:800">${edEsc(rline)}</div>`:''}
-   <div style="display:flex;gap:8px;justify-content:center"><button class="btnx ready" data-a="again">Play again</button><button class="btnx" data-a="quit">Leave</button></div></div>`; }
+   <div style="display:flex;gap:8px;justify-content:center"><button class="btnx ready" data-a="again">Play again</button><button class="btnx" data-a="quit">Quit</button></div></div>`; }
 function edEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* one delegated pointer handler: tap-to-select / tap-to-place, or drag and drop, on the field or from the overlay */
@@ -21716,7 +21716,12 @@ function edAction(a){
   if(a==='ready'){ ED.msg=''; return edStartFight(); }
   if(a==='again'){ edQuit(); return openEmberdraft(); }   // back through the lobby: another match spends another attempt
   if(a==='quit'){ if(ED.phase==='over') return edQuit();
-    return uiConfirm('Leave Emberdraft?','This match ends and counts as a loss. The attempt stays used.','Leave',true).then(ok=>{ if(ok) edQuit(); }); }
+    /* v653 (Phil: "the leave button doesnt work" / "Make the leave button say quit, then warn them they will lose their chance for the day if they
+       quit" / "As a confirmation"). It never worked: uiConfirm takes its body as an ARRAY of lines, and this passed a string - (body||[]).map
+       threw inside the promise, so no dialog ever appeared and nothing happened. */
+    const lines = ED.attemptId ? ['You will lose your chance for today: this match ends now, and the attempt it used is gone (quitting does not give it back).','The match counts as a loss.']
+                               : ['This practice match ends now. Nothing is lost.'];
+    return uiConfirm('Quit Emberdraft?', lines, 'Quit', true).then(ok=>{ if(ok) edQuit(); }); }
 }
 
 /* Brute synergy: a chance to stun on hit (wraps the engine's dealDamage only while a match is being fought) */
