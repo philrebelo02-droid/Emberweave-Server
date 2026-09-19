@@ -2540,10 +2540,28 @@ function preloadBattleArt(keys, bgUrl){
    This variant queues every state of every key at once and resolves when the queue drains.
    It ALWAYS resolves - a dead sheet must never lock a player out of their own battle - so there is
    a hard timeout, and the existing retryTex path keeps healing anything that missed. */
+/* v637 (Phil: "the game still lags really bad ... while fighting players"). The loader DOWNLOADED and decoded every sheet, but
+   three.js uploads a texture to the GPU only the first time it is drawn - so each hero's attack / cast / ult / hit sheet was
+   uploaded mid-fight, the moment it first played. Measured in the rig with 9 v 9: a 1.9 s first frame (30 uploads at once),
+   then an upload nearly every frame with 29 / 37 / 179 ms hitches. On a phone that is the stutter. Now every loaded sheet of
+   every fighter is pushed to the GPU (renderer.initTexture) BEHIND the loading screen, in ~10 ms slices so the loader keeps
+   animating, and the fight starts with nothing left to upload. */
+function gpuWarmKeys(keys){
+  return new Promise(res=>{
+    try{
+      if(typeof renderer==='undefined' || !renderer || typeof renderer.initTexture!=='function') return res();
+      const list=[], seen=new Set();
+      (keys||[]).filter(Boolean).forEach(k=>{ const set=(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[k]; if(!set) return;
+        for(const st in set){ if(st[0]==='_') continue; const t=set[st]&&set[st].tex; if(t && t.image && !seen.has(t)){ seen.add(t); list.push(t); } } });
+      let i=0; const step=()=>{ const t0=performance.now();
+        while(i<list.length && performance.now()-t0<10){ try{ renderer.initTexture(list[i]); }catch(e){} i++; }
+        if(i<list.length) setTimeout(step,0); else res(); };
+      step();
+    }catch(e){ res(); } }); }
 function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
   return new Promise(resolve=>{
     let off=null, done=false;
-    const finish=()=>{ if(done) return; done=true; if(off) off(); resolve(); };
+    const finish=()=>{ if(done) return; done=true; if(off) off(); gpuWarmKeys(keys).then(resolve, resolve); };
     try{
       if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
       const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
@@ -4120,7 +4138,7 @@ let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],c
    wave counted as won depended on a DOM query — something a headless server replay cannot answer the
    same way. The pause is a piece of battle state now, and the modal merely reflects it. */
 let VAULT_PICK_OPEN=false;
-let selected=null,battleTime=0,ended=false,rageMul=1;
+let selected=null,battleTime=0,ended=false,rageMul=1, _edCarBlank=false;
 /* At most ONE pending result screen. A queued result belongs to the fight that scheduled it;
    if another fight starts first, that result is stale and must never reach the screen. */
 let _resultTimer=null;
@@ -19569,6 +19587,15 @@ function loop(now){let dt=(now-last)/1000;last=now;
     }
     requestAnimationFrame(loop); return; }
   if(!_wasLive){ _wasLive=true; CW=0; }                            // re-entering: force one resize//rebuild
+  /* v637 (Phil: "the game still lags really bad. Especially during the carousel that's the worst part"). During the Ember
+     Carousel the battle scene is EMPTY (0 units) - the carousel draws its avatars on its own canvas over the arena - yet this
+     loop still rendered the full battle scene and repainted the bar overlay every frame, at up to 4.5x the screen's pixels on
+     a phone, underneath the carousel's own full-screen WebGL pass. Nothing visible changes by skipping it: one clean frame,
+     then nothing until there is something to draw. */
+  if(typeof ED!=='undefined' && ED.active && ED.phase==='carousel' && !units.length){
+    if(!_edCarBlank){ _edCarBlank=true; try{ if(octx&&overlay) octx.clearRect(0,0,overlay.width,overlay.height); }catch(e){} try{ renderer.render(scene,camera); }catch(e){} }
+    requestAnimationFrame(loop); return; }
+  _edCarBlank=false;
   if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);
     let yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):(s.h!=null?(s.h+(1-s.h)*k):1);   // v472: plain tracers leave from the hand/weapon height and settle to 1 at the target
     if(s.arc) yy=1+Math.sin(k*Math.PI)*s.arc;                                  // heavy rounds lob, darts fly flat
@@ -19635,7 +19662,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789791025000';
+const BUILD_ID = '1789791570000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20547,7 +20574,7 @@ function edCarDraw(dt){
   const G=ED._carG;
   C.av.forEach((a,j)=>{ const t=document.getElementById('edCarT'+j); if(t){ t.style.left=(R.left+a.x*W)+'px'; t.style.top=(R.top+a.y*H)+'px'; }
     const o=a.got!=null?document.getElementById('edCarO'+a.got):null; if(o){ o.style.left=(R.left+a.x*W)+'px'; o.style.top=(R.top+a.y*H - (G&&G.headPx||46))+'px'; } });
-  if(G) edCarGfxDraw(dt);
+  if(G) edCarGfxDraw(dt, R);   // v637: pass the rect - reading it again after the style writes forced a layout every frame
 }
 /* the 3D layer: an orthographic camera looking down at 35 degrees; ground (X,Z) <-> image (x,y) is linear both ways */
 const ED_CAR_ELEV = 35*Math.PI/180;   // low enough to see the avatar from the front, like the hero sprites
@@ -20587,8 +20614,8 @@ function edCarGfxStart(){
         idle.play(); walk.timeScale=0.8; G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false, A }); });   // v611: slower stride for the slower avatar
       G.ok=G.av.length>0; }); }
 }
-function edCarGfxDraw(dt){
-  const G=ED._carG; if(!G||!G.rr) return; const R=edCarRect();
+function edCarGfxDraw(dt, R0){
+  const G=ED._carG; if(!G||!G.rr) return; const R=R0||edCarRect();
   if(G.cv.style.left!==R.left+'px'){ G.cv.style.left=R.left+'px'; G.cv.style.top=R.top+'px'; }
   const w=Math.round(R.width), h=Math.round(R.height); if(G.w!==w||G.h!==h){ G.w=w; G.h=h; G.rr.setSize(w,h,true); }
   // world units: the view is 20 wide; ground Z is squashed by sin(elev) on screen, height by cos(elev)
