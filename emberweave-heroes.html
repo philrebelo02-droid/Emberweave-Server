@@ -395,13 +395,16 @@
   .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
   .ascf-gem svg{width:100%;height:100%;display:block}
   .ascf-st svg{height:100%;width:auto;flex:0 1 auto;min-width:0;filter:drop-shadow(0 1px 1px #000)}
-  .rbn{position:absolute;left:0;right:0;bottom:-8%;height:36%;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size}
+  .rbn{position:absolute;left:0;right:0;bottom:-14.5%;height:36%;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;background-size:100% 100%;background-repeat:no-repeat;container-type:inline-size}
   .rbn span{font-family:Georgia,serif;font-weight:900;font-size:clamp(7px,9.5cqw,15px);color:#fff6e0;text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:74%;letter-spacing:.02em;line-height:1}
   .rbn-mythical span{color:#fff1c2;text-shadow:0 1px 2px #2a0a4a,0 0 6px #c38bff,0 0 2px #000}
-  .ascf-st.onb{bottom:13%;height:12%}
+  .ascf-st.onb{bottom:9.5%;height:12%}
   /* v617 banners: 1000x400 art whose BAR sits in rows 120-280 (bannerize.py), so every rarity lines up; flourishes overhang */
   .rbn span{max-width:80%} .rbn.long span{font-size:clamp(6px,7.6cqw,12px)}
-  .bl-card .rbn{height:27%;bottom:-6%} .bl-card .ascf-st.onb{bottom:10%;height:9%}
+  .bl-card .rbn{height:27%;bottom:-10.5%} .bl-card .ascf-st.onb{bottom:7.5%;height:9%}
+  /* v619 (Phil: "center of the banner should be on the bottom line of the hero frame, the stars … on the very top of the banner"):
+     the banner hangs half below the tile, so the tile no longer clips; the art rounds its own corners instead */
+  .hero-card .hc-imgwrap.rb{overflow:visible;margin-bottom:9%} .hero-card .hc-imgwrap.rb .hc-img{border-radius:10px}
   .ascf-myth{height:100%;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 1px 2px #000a)}
   .hero-card .hc-lv{position:absolute;top:6%;left:6%;z-index:4;background:rgba(10,12,20,.82);color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:6px;border:1px solid rgba(255,255,255,.18);line-height:1.3}
   .hero-card .hc-mythp{position:absolute;left:9%;right:9%;bottom:15%;height:17%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;
@@ -2608,7 +2611,8 @@ function showBattleLoader(spec){
   const title = spec.title || battleModeTitle();
   el.className='bl-'+layout;
   const card=(c,side)=>{ const mine=side==='ally'&&c.key&&G.unlocked&&G.unlocked[c.key];   // v612: your heroes wear their ascension borders, stars on the frame
-    return `<div class="bl-cw"><div class="bl-card${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas>${mine?ascFrameHtml(c.key,{stars:true,banner:RARITY_READY}):''}${(c.key&&RARITY_READY)?(mine?'':rarityBannerHtml(c.key)):`<div class="bl-nm">${escapeHTML(c.name||'')}</div>`}</div></div>`; };
+    const rb=!!(c.key&&RARITY_READY);
+    return `<div class="bl-cw${rb?' rb':''}"><div class="bl-card${rb?' rb':''}${c.me?' me':''}${side?' '+side:''}"><canvas width="${c.big?240:180}" height="${c.big?320:240}"></canvas>${mine?ascFrameHtml(c.key,{stars:true,banner:RARITY_READY}):''}${(c.key&&RARITY_READY)?(mine?'':rarityBannerHtml(c.key)):`<div class="bl-nm">${escapeHTML(c.name||'')}</div>`}</div></div>`; };
   const keyCards=(keys)=>(keys||[]).filter(Boolean).map(k=>({ key:k, name:_blHeroName(k) }));
   let body='', list=[];   // list: {c, face}
   if(layout==='vs'){
@@ -2642,7 +2646,8 @@ function showBattleLoader(spec){
     #battleLoader .bl-card.lit{filter:none;transform:none;opacity:1}
     #battleLoader .bl-card.lit:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,230,170,.55),rgba(255,230,170,0) 60%);animation:blFlash .6s ease-out forwards;pointer-events:none}
     @keyframes blFlash{from{opacity:1}to{opacity:0}}
-    #battleLoader .bl-card canvas{position:absolute;inset:0;width:100%;height:100%}
+    #battleLoader .bl-card canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:10px}
+    #battleLoader .bl-card.rb{overflow:visible} #battleLoader .bl-card.lit:after{border-radius:inherit} #battleLoader .bl-cw.rb{padding-bottom:calc(var(--cw,84px)*.12)}
     #battleLoader .bl-card .ascf ~ .bl-nm{bottom:11%}
     #battleLoader .bl-cw{display:flex;flex-direction:column;align-items:center;gap:2px}
     #battleLoader .bl-st{line-height:0;display:flex;justify-content:center} #battleLoader .bl-st svg{width:calc(var(--cw,84px)/6.5);height:auto}
@@ -16491,7 +16496,7 @@ function renderHeroList(){
     /* v612 (Phil: "Go review magic rush hero card" / "And so it similar"): a Magic Rush tile - one square art card for every
        hero, the ascension border round it, Lv in the top-left, the stars ON the border's bottom edge, the mythical banner across
        the bottom of the art; name, role and power underneath. Every card is the same size, mythical or not. */
-    card.innerHTML=`<div class="hc-imgwrap">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
+    card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
         <div class="hc-info">
           ${RARITY_READY?'':`<div class="hc-name${myth?' hc-mythn':''}">${t.name}</div>`}
           <div class="hc-sub">${unlocked?`⚔ ${heroPower(key).toLocaleString()}`:lockedLine}</div>
@@ -19609,7 +19614,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789779202000';
+const BUILD_ID = '1789779477000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
