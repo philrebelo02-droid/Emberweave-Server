@@ -19667,7 +19667,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789821658000';
+const BUILD_ID = '1789822807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20599,9 +20599,24 @@ function edCarLoopStart(){ const C=ED.car; if(!C) return; C.last=performance.now
 function edCarHtml(){ const C=ED.car; if(!C) return '';
   let h='<div class="hit" data-car="1"></div><div class="bar topb"><span class="pill">🔥 The Ember Carousel</span><span class="pill" id="edCarMsg"></span><span style="flex:1"></span></div>';
   C.offers.forEach((o,i)=>{ const ch=edItemChip(o.item);
-    h+=`<div class="carOffer" id="edCarO${i}"><div class="spr" style="${edSprStyle(o.key)}"></div><div class="carItem">${edItemImg(o.item,20)}</div><div class="carName" style="color:${ch.col}">${edEsc(edName(o.key))}</div></div>`; });
+    h+=`<div class="carOffer" id="edCarO${i}"><canvas class="carSpr" data-k="${o.key}" width="68" height="84"></canvas><div class="carItem">${edItemImg(o.item,20)}</div><div class="carName" style="color:${ch.col}">${edEsc(edName(o.key))}</div></div>`; });
   C.av.forEach((a,j)=>{ h+=`<div class="carTag ${a.p.ai?'':'me'}" id="edCarT${j}">${a.p.ai?edEsc(a.p.name):'You'}</div>`; });
   return h; }
+/* v641 (Phil's phone, Performance HUD: the Ember Carousel ran at 5-6 FPS, ~180 ms a frame, with the battle render already
+   skipped). Each offer animated its hero as a CSS background sprite of the WHOLE idle sheet (thousands of px, scaled), and moved
+   by left/top every frame - so every frame the phone re-laid-out and repainted eight huge scaled images. Now each offer is a
+   68x84 canvas that gets ONE frame drawn from the sheet already in memory (~12 fps), and offers/tags move by transform only. */
+let _edCarSprT=0;
+function edCarSprPaint(){ const now=performance.now(); if(now-_edCarSprT<80) return; _edCarSprT=now;
+  document.querySelectorAll('#edRoot canvas.carSpr').forEach(cv=>{ const k=cv.dataset.k, set=(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[k], A=set&&(set.idle||set.walk); if(!A) return;
+    try{ if(!A.tex) _loadClip(A); }catch(e){}
+    const im=A.tex&&A.tex.image; if(!im||!im.width) return;
+    const cols=A.cols||A.n||1, rows=A.rows||1, n=A.n||cols*rows, i=Math.floor(now/70)%n, c=i%cols, r=Math.floor(i/cols);
+    const kx=im.width/(cols*A.fw), ky=im.height/(rows*A.fh), up=(typeof ImageBitmap!=='undefined' && im instanceof ImageBitmap);
+    const fw=A.fw*kx, fh=A.fh*ky, asp=cv.width/cv.height;   // crop the frame to the canvas shape (no stretching): keep the full height, centre the width
+    let sw=fw, sh=fh, ox=0, oy=0; if(fw/fh>asp){ sw=fh*asp; ox=(fw-sw)/2; } else { sh=fw/asp; oy=0; }
+    const sx=c*fw+ox, sy=up ? im.height-(r+1)*fh+(fh-sh-oy) : r*fh+oy;
+    try{ _blPaint(cv, im, sx, sy, sw, sh, false, up); }catch(e){} }); }
 function edCarDraw(dt){
   const C=ED.car; if(!C) return; const R=edCarRect(), W=R.width, H=R.height;
   const me=C.av.find(a=>!a.p.ai), msg=document.getElementById('edCarMsg');
@@ -20609,10 +20624,11 @@ function edCarDraw(dt){
     msg.textContent = C.done ? 'Done' : (me&&me.got!=null ? 'Got it - waiting for the others' : (left>0 ? `You're released in ${left}` : 'Go! Tap where to run')); }
   C.offers.forEach((o,i)=>{ const el=document.getElementById('edCarO'+i); if(!el) return;
     let p; if(o.taken!=null && o.by){ p={x:o.by.x, y:o.by.y}; el.classList.add('held'); } else if(o.taken!=null){ el.style.display='none'; return; } else p=edCarOfferPos(C,i);
-    el.style.left=(R.left+p.x*W)+'px'; el.style.top=(R.top+p.y*H)+'px'; });
+    el.style.transform='translate3d('+(R.left+p.x*W).toFixed(1)+'px,'+(R.top+p.y*H).toFixed(1)+'px,0) translate(-50%,-100%)'; });
   const G=ED._carG;
-  C.av.forEach((a,j)=>{ const t=document.getElementById('edCarT'+j); if(t){ t.style.left=(R.left+a.x*W)+'px'; t.style.top=(R.top+a.y*H)+'px'; }
-    const o=a.got!=null?document.getElementById('edCarO'+a.got):null; if(o){ o.style.left=(R.left+a.x*W)+'px'; o.style.top=(R.top+a.y*H - (G&&G.headPx||46))+'px'; } });
+  C.av.forEach((a,j)=>{ const t=document.getElementById('edCarT'+j); if(t){ t.style.transform='translate3d('+(R.left+a.x*W).toFixed(1)+'px,'+(R.top+a.y*H).toFixed(1)+'px,0) translate(-50%,4px)'; }
+    const o=a.got!=null?document.getElementById('edCarO'+a.got):null; if(o){ o.style.transform='translate3d('+(R.left+a.x*W).toFixed(1)+'px,'+(R.top+a.y*H - (G&&G.headPx||46)).toFixed(1)+'px,0) translate(-50%,-100%)'; } });
+  edCarSprPaint();
   if(G) edCarGfxDraw(dt, R);   // v637: pass the rect - reading it again after the style writes forced a layout every frame
 }
 /* the 3D layer: an orthographic camera looking down at 35 degrees; ground (X,Z) <-> image (x,y) is linear both ways */
@@ -20651,7 +20667,10 @@ function edCarGfxStart(){
         const mixer=new THREE.AnimationMixer(m); const clip=n=>THREE.AnimationClip.findByName(g.animations,n);
         const idle=mixer.clipAction(clip(A.idle)||g.animations[0]), walk=mixer.clipAction(clip(A.walk)||clip('Walking')||g.animations[0]);
         idle.play(); walk.timeScale=0.8; G.scene.add(m); G.av.push({ a, m, mixer, idle, walk, walking:false, A }); });   // v611: slower stride for the slower avatar
-      G.ok=G.av.length>0; }); }
+      G.ok=G.av.length>0;
+      /* v641 (Phil: "It spikes a couple of times to 600ms"): the first frame that drew the avatars compiled their shaders and uploaded
+         their textures on the spot. Do it now, while everyone still waits at the gates. */
+      try{ G.rr.compile(G.scene,G.cam); G.scene.traverse(o=>{ const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[]; for(const m of ms) for(const k of ['map','normalMap','emissiveMap']) if(m[k]) G.rr.initTexture(m[k]); }); }catch(e){} }); }
 }
 function edCarGfxDraw(dt, R0){
   const G=ED._carG; if(!G||!G.rr) return; const R=R0||edCarRect();
@@ -21029,12 +21048,12 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .prow{display:flex;align-items:center;gap:4px;font-size:10px;padding:0;line-height:1.35} #edRoot .prow.me{color:#ffd45e;font-weight:800} #edRoot .prow.out{opacity:.4;text-decoration:line-through}
 #edRoot .hpbar{flex:1;height:5px;background:#2a1520;border-radius:3px;overflow:hidden} #edRoot .hpbar b{display:block;height:100%;background:#e0555a}
 #edRoot .syn{font-size:10px;padding:0;color:#8b98a9;line-height:1.35} #edRoot .syn.on{color:#e8edf3} #edRoot .syn.on2{color:#ffd45e;font-weight:800}
-#edRoot .carOffer{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;flex-direction:column;align-items:center;z-index:2}
-#edRoot .carOffer .spr{width:34px;height:42px;background-color:transparent}
+#edRoot .carOffer{position:absolute;left:0;top:0;transform:translate(-50%,-100%);will-change:transform;pointer-events:none;display:flex;flex-direction:column;align-items:center;z-index:2}
+#edRoot .carOffer .carSpr{width:34px;height:42px;display:block}   /* v641: a small canvas per offer (was a CSS sprite of the whole idle sheet) */
 #edRoot .carItem{position:absolute;top:-8px;right:-14px}
 #edRoot .carName{font-size:9px;font-weight:800;text-shadow:0 1px 2px #000,0 0 3px #000;white-space:nowrap;margin-top:-2px}
 #edRoot .carOffer.held .carName{display:none}
-#edRoot .carTag{position:absolute;transform:translate(-50%,4px);font-size:10px;font-weight:800;color:#dfe7f1;text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;white-space:nowrap}
+#edRoot .carTag{position:absolute;left:0;top:0;will-change:transform;transform:translate(-50%,4px);font-size:10px;font-weight:800;color:#dfe7f1;text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;white-space:nowrap}
 #edRoot .carTag.me{color:#ffd45e}
 #edRoot.car .hit{cursor:pointer}
 #edRoot .carTapFx{position:absolute;width:30px;height:14px;margin:-7px 0 0 -15px;border:2px solid #ffc766;border-radius:50%;pointer-events:none;box-shadow:0 0 10px rgba(255,160,50,.8);animation:edTapFx .65s ease-out forwards;z-index:3}
