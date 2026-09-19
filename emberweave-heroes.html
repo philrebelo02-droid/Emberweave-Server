@@ -935,6 +935,33 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 #skyIslandBody .islespot>div{background:none!important;border-radius:0!important;box-shadow:none!important;border:0 solid transparent!important;border-width:0 16px!important;
   border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 16px stretch!important;padding:4px 8px!important;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));}
 #skyIslandBody .islespot>div>div:first-child{font-family:Georgia,'Times New Roman',serif;color:#ffe9b8;letter-spacing:.3px;}
+.hdrbox{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;width:auto;max-width:min(600px,calc(100% - 190px));margin:0 auto 8px;
+  padding:7px 30px 8px;box-sizing:border-box;border-style:solid;border-color:transparent;border-width:6px;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6));}
+.screen.popout .hdrbox{max-width:calc(100% - 64px);}
+.hdrbox .titlebar{margin:0!important;padding:0!important;min-height:0!important;width:auto;max-width:none;}
+.hdrbox .sub{margin:3px 0 0;max-width:520px;}
+/* v659 (Phil: "The tabs when you click on them. Isn't new art" / "Still the same boring opaque colors"): no more flat navy. Panels are
+   see-through smoked glass in the gold frame, so the painted backdrop shows through; cards and tiles are warm painted enamel - a deep
+   bronze-to-midnight gradient lit by an ember glow from below - in the gold frame. */
+.panel{border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 16px stretch!important;background:linear-gradient(180deg,rgba(10,12,22,.52),rgba(12,8,6,.62))!important;
+  -webkit-backdrop-filter:blur(3px) saturate(1.2);backdrop-filter:blur(3px) saturate(1.2);}
+.hero-card,.qcard,.mailrow,.gemcard,.si-cell{border-style:solid;border-color:transparent;border-width:3px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 12px stretch;border-radius:0;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 12px stretch!important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;
+  background:radial-gradient(130% 70% at 50% 112%,rgba(255,130,40,.62),transparent 62%),radial-gradient(100% 60% at 50% -12%,rgba(255,210,120,.20),transparent 60%),
+    linear-gradient(180deg,#2b2016 0%,#1c1712 50%,#3a1e0c 100%)!important;}
+.hero-card:hover,.qcard:hover,.gemcard:hover{filter:brightness(1.15);}
+.hero-card.selected{filter:drop-shadow(0 0 8px rgba(255,200,90,.85));}
+.qcard.ready{filter:drop-shadow(0 0 7px rgba(94,232,155,.75));}
+.qcard.done{opacity:.72;}
+.mailrow.unread{filter:drop-shadow(0 0 6px rgba(233,198,108,.6));}
+.si-cell{border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 9px stretch!important;border-width:2px;}
+.si-cell.blank{border-image:none!important;border:0!important;background:none!important;box-shadow:none!important;}
+.si-hero{background:radial-gradient(120% 90% at 0% 50%,rgba(255,170,70,.22),transparent 60%),linear-gradient(120deg,#2a1d10,#141827)!important;border:1px solid #c9a24e!important;
+  box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 1px rgba(255,230,168,.2)!important;}
+#menuPanel{grid-template-columns:repeat(2,60px)!important;gap:0 2px!important;padding:6px 5px 4px!important;}
+#menuPanel .mitem{padding:2px 0 2px!important;gap:1px!important;font-size:10px;}
+#menuPanel .mitem .mi{width:40px!important;height:40px!important;}
+#menuPanel .mitem .menuDot{top:0;right:4px;}
 .pmhead .ttl{font-family:Georgia,'Times New Roman',serif;color:#ffe6a8;}
 
 
@@ -2764,6 +2791,10 @@ function _blDrawCard(cv, key, img, face){
   /* v657 (Phil: "Hero cards all messed up in load screen. Make it their actual hero cards you already made"): a hero with painted card
      art is drawn from that card (the square Hailuo card, whole) instead of frame 0 of its idle sheet. Monsters keep the sheet framing. */
   if(!img && key && typeof HERO_CARD_ART!=='undefined' && HERO_CARD_ART[key] && typeof HERO_TYPES!=='undefined' && HERO_TYPES[key]) img=HERO_CARD_ART[key];
+  /* v659: a creature with a hand-framed glossary card gets that very card (same art, framing and background) */
+  if(!img && key && typeof GL_EYES!=='undefined' && GL_EYES[key] && typeof glPaintCard==='function'){ try{ glFill(); }catch(e){}
+    const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[key])||{}, cat=t.summonOnly?'summons':(t.isboss?'bosses':'monsters'), art=GLOSSARY_ART[cat+'/'+key]||GLOSSARY_ART['monsters/'+key]||GLOSSARY_ART['bosses/'+key];
+    if(art) return glPaintCard(cv, glArtUrl(art), false, cat, key).then(r=>!!r,()=>false); }
   const A=!img&&key&&(typeof BATTLE_ANIM!=='undefined')&&BATTLE_ANIM[key]&&(BATTLE_ANIM[key].idle||BATTLE_ANIM[key].walk);
   if(A && A.fw && A.top!=null && A.feet && typeof heroHasAnim==='function' && heroHasAnim(key)){
     try{ if(!A.tex) _loadClip(A); }catch(e){}
@@ -14694,7 +14725,7 @@ const SUMMON_CARD_BG='/assets/img/loading/summon-card-bg.webp?v=1';   /* Phil: "
    from its glossary art, as fractions of the art's width and height. The card puts the eyes at its horizontal centre, 24% from the top. */
 const GL_FRAME={"skarrn":[0.29,0.7],"skulk":[0.02,0.7],"volthex":[0.02,0.68],"cindertusk":[0.1,0.7],"ashen":[0.02,0.6],"sludgemaw":[0.05,0.8],"gnashul":[0.0,0.65],"bitwraith":[0.03,0.62],"grundle":[0.03,0.65],"vexmite":[0.25,0.8],"lost soul":[0.05,0.7],"trapjaw":[0.05,0.8],"grushak":[0.03,0.72],"blackquill":[0.5,0.8],"granith":[0.05,0.65],"nightgloom":[0.25,0.65],"mordath":[0.35,0.72],"ooznik":[0.05,0.9],"bilewretch":[0.02,0.85],"rustclank":[0.02,0.72],"shellwark":[0.38,0.85],"whisp":[0.05,0.85],"cinder skulk":[0.25,0.85],"furnace gnawer":[0.45,0.85],"sootwing imp":[0.3,0.72],"basalt mauler":[0.05,0.72],"magma hound":[0.1,0.75],"crucible acolyte":[0.05,0.65],"reef prowler":[0.12,0.8],"kelp hexer":[0.05,0.65],"shellguard sentinel":[0.2,0.72],"mudsnap crab":[0.1,0.8],"storm eel":[0.1,0.9],"saltglass siren":[0.05,0.6],"graveclaw ghoul":[0.05,0.7],"wispweaver shade":[0.03,0.65],"bonepike guard":[0.05,0.65],"rotbloom ooze":[0.05,0.9],"nightcap mimic":[0.15,0.75],"mourn moth":[0.1,0.75],"riftling spider":[0.1,0.85],"crystalhorn grazer":[0.2,0.75],"skyroot dryad":[0.1,0.7],"luminant orb":[0.05,0.9],"zephyr harrier":[0.1,0.72],"runic automaton":[0.05,0.72],"ironjaw raider":[0.05,0.7],"vineback boar":[0.2,0.8],"frostjaw troll":[0.1,0.75],"clockwork lantern":[0.03,0.75],"wintercrag":[0.1,0.8],"magmourn":[0.05,0.75],"voraxis":[0.05,0.75],"grommash":[0.05,0.8],"leviath":[0.05,0.9],"sylphice":[0.05,0.9],"vharok":[0.05,0.65],"nerissa":[0.05,0.6],"barrowmaw":[0.25,0.8],"asterion":[0.1,0.65],"maelvara":[0.1,0.7],"brukk":[0.05,0.7],"nymira":[0.05,0.65],"irix":[0.15,0.85],"miregor":[0.08,0.72],"sable vesper":[0.05,0.65],"orryx":[0.05,0.65],"thorneveil":[0.08,0.7],"nameless admiral":[0.05,0.65],"zahri mirage":[0.05,0.6],"boar warrior":[0.05,0.7],"boar shaman":[0.1,0.72],"ink spirit":[0.2,0.9],"ink horror":[0.15,0.9]};   /* top of the head and mid-thigh, fractions of the art's height */
 const GL_EYES={"skarrn":[0.74,0.38],"skulk":[0.57,0.15],"volthex":[0.6,0.1],"cindertusk":[0.68,0.38],"ashen":[0.47,0.07],"sludgemaw":[0.52,0.45],"gnashul":[0.5,0.1],"bitwraith":[0.82,0.1],"grundle":[0.35,0.15],"vexmite":[0.5,0.42],"lost soul":[0.45,0.32],"trapjaw":[0.55,0.25],"grushak":[0.6,0.21],"blackquill":[0.27,0.58],"granith":[0.45,0.22],"nightgloom":[0.38,0.32],"mordath":[0.7,0.4],"ooznik":[0.38,0.6],"bilewretch":[0.7,0.12],"rustclank":[0.48,0.15],"shellwark":[0.8,0.46],"whisp":[0.5,0.48],"cinder skulk":[0.91,0.4],"furnace gnawer":[0.9,0.51],"sootwing imp":[0.57,0.43],"basalt mauler":[0.6,0.15],"magma hound":[0.85,0.25],"crucible acolyte":[0.35,0.12],"reef prowler":[0.95,0.35],"kelp hexer":[0.43,0.12],"shellguard sentinel":[0.38,0.3],"mudsnap crab":[0.4,0.2],"storm eel":[0.9,0.3],"saltglass siren":[0.52,0.12],"graveclaw ghoul":[0.5,0.15],"wispweaver shade":[0.55,0.12],"bonepike guard":[0.25,0.17],"rotbloom ooze":[0.5,0.25],"nightcap mimic":[0.5,0.42],"mourn moth":[0.8,0.22],"riftling spider":[0.45,0.45],"crystalhorn grazer":[0.75,0.35],"skyroot dryad":[0.58,0.25],"luminant orb":[0.5,0.4],"zephyr harrier":[0.57,0.2],"runic automaton":[0.6,0.1],"ironjaw raider":[0.6,0.15],"vineback boar":[0.73,0.4],"frostjaw troll":[0.5,0.27],"clockwork lantern":[0.5,0.45],"wintercrag":[0.8,0.38],"magmourn":[0.5,0.2],"voraxis":[0.38,0.25],"grommash":[0.49,0.12],"leviath":[0.52,0.4],"sylphice":[0.75,0.2],"vharok":[0.4,0.15],"nerissa":[0.45,0.15],"barrowmaw":[0.85,0.38],"asterion":[0.52,0.25],"maelvara":[0.48,0.31],"brukk":[0.35,0.2],"nymira":[0.48,0.35],"irix":[0.71,0.25],"miregor":[0.5,0.23],"sable vesper":[0.52,0.12],"orryx":[0.69,0.15],"thorneveil":[0.5,0.22],"nameless admiral":[0.48,0.12],"zahri mirage":[0.4,0.17],"boar warrior":[0.55,0.15],"boar shaman":[0.48,0.22],"ink spirit":[0.28,0.35],"ink horror":[0.4,0.35]};
-function glPaintCard(cv, url, whole, cat, id){ Promise.all([glImg(url), glImg(cat==='summons'?SUMMON_CARD_BG:MON_CARD_BG)]).then(([im,bg])=>{ if(!im||!cv.isConnected) return;
+function glPaintCard(cv, url, whole, cat, id){ return Promise.all([glImg(url), glImg(cat==='summons'?SUMMON_CARD_BG:MON_CARD_BG)]).then(([im,bg])=>{ if(!im||!cv.isConnected) return;
   const W=cv.width, H=cv.height, ctx=cv.getContext('2d'); ctx.clearRect(0,0,W,H);
   if(bg){ const r=W/H, ir=bg.naturalWidth/bg.naturalHeight; let sw,sh; if(ir>r){ sh=bg.naturalHeight; sw=sh*r; } else { sw=bg.naturalWidth; sh=sw/r; } ctx.drawImage(bg,(bg.naturalWidth-sw)/2,(bg.naturalHeight-sh)/2,sw,sh,0,0,W,H); }
   const m=glMeasure(im), fw=m.x1-m.x0, fh=Math.max(1,m.y1-m.y0), r=W/H; let sx,sy,sw,sh;
@@ -14708,7 +14739,7 @@ function glPaintCard(cv, url, whole, cat, id){ Promise.all([glImg(url), glImg(ca
   /* a crop that runs past the art's edge must not be squeezed into the card (the browser clamps the source rect and stretches it -
      Skarrn came out shifted and widened), so draw from a padded copy of the art */
   const P=Math.ceil(Math.max(im.naturalWidth, im.naturalHeight)); if(!im._pad){ const c=document.createElement('canvas'); c.width=im.naturalWidth+2*P; c.height=im.naturalHeight+2*P; c.getContext('2d').drawImage(im,P,P); im._pad=c; }
-  ctx.save(); ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=10; ctx.drawImage(im._pad, sx+P, sy+P, sw, sh, 0, 0, W, H); ctx.restore(); }); }
+  ctx.save(); ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=10; ctx.drawImage(im._pad, sx+P, sy+P, sw, sh, 0, 0, W, H); ctx.restore(); return true; }); }
 function renderGlossary(){
   const grid=document.getElementById('glGrid'); if(!grid)return;
   document.querySelectorAll('.glTab').forEach(t=>t.classList.toggle('on',t.dataset.gtab===glTab));
@@ -14755,6 +14786,11 @@ function openGlossaryCard(cat,id){ glFill();
 function closeGlossaryCard(){ const m=document.getElementById('glModal'); if(m)m.classList.remove('open'); }
 /* v658 (Phil: "Please put a glossary button in the top right of campaign screen"): the glossary can open from the campaign map too, and
    its back button returns to where it was opened (the squad select's button keeps returning to the squad select). */
+/* v659 (Phil: "These tabs all deserve a nice header box created for them"): each screen's title (and the subtitle under it) is wrapped once
+   in a .hdrbox, a painted gold-cornered enamel box (hud-header, drawn as a nine-slice so the corners never stretch). The Floating Isle keeps
+   its title floating over the map. */
+(function(){ document.querySelectorAll('.screen').forEach(sc=>{ if(sc.id==='skyisland') return; const tb=[...sc.children].find(c=>c.classList.contains('titlebar')); if(!tb) return;
+  const box=document.createElement('div'); box.className='hdrbox'; tb.before(box); box.appendChild(tb); const sub=box.nextElementSibling; if(sub&&sub.classList.contains('sub')) box.appendChild(sub); }); })();
 function glOpenFrom(ret, label){ const b=document.querySelector('#glossary .backbtn'); if(b){ b.dataset.nav=ret; b.textContent='◀ '+label; } show('glossary'); }
 (function(){ const gb=document.getElementById('glossaryBtn'); if(gb) gb.addEventListener('click',()=>glOpenFrom('menu','Menu'));
   const cg=document.getElementById('campGlossBtn'); if(cg) cg.addEventListener('click',()=>glOpenFrom('campaign','Campaign'));
@@ -20061,7 +20097,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789843207000';
+const BUILD_ID = '1789844407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
