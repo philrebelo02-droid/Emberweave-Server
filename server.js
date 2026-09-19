@@ -1209,6 +1209,133 @@ function vaultCompile(){
 }
 function vaultFloorRecord(floor){ if(!VAULT_ENC) throw new Error('vault-encounters not compiled'); return VAULT_ENC[Math.max(1,Math.min(DUNGEON_MAX_FLOOR,floor))-1]; }
 function buildDungeonWaves(floor){ return vaultFloorRecord(floor).waves; }
+/* ==================== v663 TRAINING PROVINCE — real battles, server-owned ====================
+   Phil (19 Sep): "Both gold province and drill province should be a real battle like campaign. But it should have a
+   boss at the end of each fight. Once cleared you can sweep. Higher level gold and drill province can open at a higher
+   hero level. Drill province should reward completed glyphs not just fragments." / "Account level unlocks new available
+   gold and drill province." / "Both gold and drill province gives 12exp per sweep."
+   - Two grounds ('gold' = Gold Province, 'rune' = Drill Province; the key stays 'rune' because saves carry G.prov.rune),
+     12 stages each, AUTHORED in server/province-encounters.json (3 waves, the third a boss plus minions; tuned in the
+     real engine by prov663_author.js) and boot-validated by provCompile().
+   - Every stage opens at an ACCOUNT level (ledPlayerLevel) — levelGates in the data file.
+   - CHALLENGE: /api/province/start freezes the squad (campaign snapshots) + seed; /api/province/resolve replays the
+     player's transcript with the client's own engine (simHost().campaign) — the campaign's player-truth rule: the fight
+     on the player's screen is the result, a replay difference is logged as an incident (PROV_STRICT_REPLAY=1 makes a
+     replay that did not end in a win refuse the clear instead). A WIN clears the stage and spends a play; a LOSS
+     spends nothing.
+   - SWEEP: /api/province/sweep pays the best cleared stage for one play. 2 plays a day per ground (nyDayKey).
+   - Rewards: Gold = provGoldAmt(stage); Drill = PROV_GLYPH_COUNT[stage] whole glyphs forged straight into a hero's board
+     (the only place a glyph exists since Correction Spec v1), never above the stage's ladder tier; both +12 account XP. */
+const PROV_TYPES=['gold','rune'], PROV_STAGES=12, PROV_PLAYS=2, PROV_ACCOUNT_XP=12;
+const PROV_SESSION_MS=24*60*60*1000;   // same life as a campaign session (CAMP_SESSION_MS is declared further down)
+const PROV_MIN_BATTLE_MS=+(process.env.PROV_MIN_BATTLE_MS||8000);   // three waves and two run-ons cannot finish faster
+const PROV_STRICT_REPLAY=process.env.PROV_STRICT_REPLAY==='1';
+const PROV_GLYPH_COUNT=Object.freeze([1,1,1,1,1,2,2,2,2,2,2,3]);   // whole glyphs per Drill clear / sweep, by stage
+function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }   // the Gold Province table, unchanged
+let PROV_ENC=null;
+function provCompile(){
+  let raw=null; try{ raw=require('./server/province-encounters.json'); }
+  catch(e){ console.error('✖ server/province-encounters.json missing — Training Province is OFF ('+e.message+')'); PROV_ENC=null; return; }
+  const out={};
+  for(const t of PROV_TYPES){ const T=raw&&raw.types&&raw.types[t];
+    if(!T||!Array.isArray(T.stages)||T.stages.length!==PROV_STAGES) throw new Error('province-encounters: '+t+' needs exactly '+PROV_STAGES+' stages');
+    let lastGate=0;
+    out[t]=T.stages.map((st,i)=>{ const n=i+1;
+      if(st.stage!==n) throw new Error('province-encounters: '+t+' stage '+n+' out of order');
+      if(!(st.levelGate>lastGate)) throw new Error('province-encounters: '+t+' stage '+n+' level gate must rise'); lastGate=st.levelGate;
+      if(!Array.isArray(st.waves)||st.waves.length!==3) throw new Error('province-encounters: '+t+' stage '+n+' needs exactly three waves');
+      st.waves.forEach((w,wi)=>{ if(!Array.isArray(w)||!w.length) throw new Error('province-encounters: '+t+' stage '+n+' empty wave');
+        for(const m of w){ const isB=!!m.boss;
+          if(isB ? !VAULT_BOSS_STATS[m.key] : !VAULT_MONSTERS[m.key]) throw new Error('province-encounters: '+t+' stage '+n+' unknown '+(isB?'boss ':'monster ')+m.key);
+          if(isB && (wi!==2 || m.key!==st.boss)) throw new Error('province-encounters: '+t+' stage '+n+' the boss belongs in wave 3');
+          if(!(m.lvl>0 && m.hpMul>0 && m.dmgMul>0)) throw new Error('province-encounters: '+t+' stage '+n+' bad scaling on '+m.key); } });
+      if(st.waves[2].filter(m=>m.boss).length!==1) throw new Error('province-encounters: '+t+' stage '+n+' wave 3 must hold exactly one boss');
+      return { stage:n, levelGate:st.levelGate|0, boss:st.boss, waves:st.waves }; }); }
+  PROV_ENC=out;
+  console.log('🏯 Training Province compiled: Gold gates '+out.gold.map(x=>x.levelGate).join('/')+' · Drill gates '+out.rune.map(x=>x.levelGate).join('/'));
+}
+/* the highest ladder tier a Drill stage can forge: the tier whose hero-level gate the stage's account-level gate meets */
+function provGlyphCap(stage){ const L=PROV_ENC.rune[stage-1].levelGate; let q=0; for(let i=0;i<GLYPH_MIN_LEVEL.length;i++) if(L>=GLYPH_MIN_LEVEL[i]) q=i; return q; }
+function provReward(t,stage){ if(t==='gold') return { gold:provGoldAmt(stage), accountXp:PROV_ACCOUNT_XP };
+  const qi=provGlyphCap(stage); return { glyphs:PROV_GLYPH_COUNT[stage-1]|0, maxQuality:GLYPH_LADDER[qi], maxQi:qi, accountXp:PROV_ACCOUNT_XP }; }
+function provMaxStageForLevel(t,lvl){ let n=0; for(const st of PROV_ENC[t]) if(lvl>=st.levelGate) n=st.stage; return n; }
+/* led.prov[t] = {stage, day, used, lastTeam, att, migrated}. MIGRATION (v663): before this the stage lived only in the
+   client save (G.prov[t].stage, earned by the old instant power check). The first time the server touches a ground it
+   reads that number out of the stored cloud save and honours it — capped at the highest stage the account's level opens
+   today, so an old clear can never jump a player past a gate. Plays start fresh on the server's day. */
+function provLedState(u,led){
+  if(!led.prov||typeof led.prov!=='object') led.prov={};
+  const dk=nyDayKey();
+  for(const t of PROV_TYPES){
+    if(!led.prov[t]||typeof led.prov[t]!=='object'){
+      let fromSave=0; try{ const sv=parseSaveOf(u); fromSave=Math.max(0,Math.min(PROV_STAGES,(sv&&sv.prov&&sv.prov[t]&&sv.prov[t].stage)|0)); }catch(e){}
+      const allowed=provMaxStageForLevel(t,ledPlayerLevel(led));
+      led.prov[t]={ stage:Math.min(fromSave,allowed), day:dk, used:0, lastTeam:[], att:null, migrated:{fromSave, allowed, at:Date.now()} };
+    }
+    const pr=led.prov[t]; if(pr.day!==dk){ pr.day=dk; pr.used=0; }
+  }
+  return led.prov; }
+function provPlaysLeft(u,pr){ return isDev(u)?PROV_PLAYS:Math.max(0,PROV_PLAYS-(pr.used|0)); }
+/* what rides on every ledger view (small): stage + today's plays per ground */
+function provLedgerView(u,led){ if(!PROV_ENC) return null; const P=provLedState(u,led), o={};
+  for(const t of PROV_TYPES){ const pr=P[t]; o[t]={ stage:pr.stage|0, used:pr.used|0, playsLeft:provPlaysLeft(u,pr), day:pr.day }; }
+  return o; }
+/* the full table for the province screen */
+function provStateView(u,led){ const lv=ledPlayerLevel(led), v=provLedgerView(u,led), types={};
+  for(const t of PROV_TYPES){ types[t]=Object.assign({}, v[t], { name:t==='gold'?'Gold Province':'Drill Province',
+    stages:PROV_ENC[t].map(st=>({ stage:st.stage, levelGate:st.levelGate, open:lv>=st.levelGate, boss:st.boss,
+      waves:st.waves.map(w=>w.length), reward:provReward(t,st.stage) })) }); }
+  return { ok:true, playerLevel:lv, plays:PROV_PLAYS, accountXp:PROV_ACCOUNT_XP, day:nyDayKey(), types }; }
+/* DRILL REWARD — whole glyphs. Since Correction Spec v1 a glyph only ever exists LOCKED into a board slot (no loose
+   inventory), so the server forges each one straight into a slot, exactly as /api/glyphs/build-in-slot would (the slot's
+   own pre-chosen blueprint, at its board's tier, hero-level gate respected) — minus the fragments. Which slot: the most
+   valuable legal one — the highest board tier at or under the stage's cap; ties go to the heroes who fought (squad
+   order), then the highest hero level. If no hero on the account can wear one (every board above the cap, full, or
+   waiting on hero level) the whole glyph is paid as its exact named materials instead, so a clear is never worth nothing. */
+function provForgeGlyphs(u,led,stage,team,tag){
+  const out={ forged:[], kits:[], revision:0 }; if(!GLYPHS) return out;
+  glyphMigrate(u); glyphFlowMigrate(u); const g=ensureGlyphs(u);
+  const cap=provGlyphCap(stage), n=PROV_GLYPH_COUNT[stage-1]|0;
+  const fighters=[...new Set((team||[]).map(String))].filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]);
+  const everyone=Object.keys(led.unlocked).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]).sort();
+  const famSlot=f=>{ for(const sl of GLYPH_SLOTS) if((GLYPH_SLOT_FAMILIES[sl]||[]).includes(f)) return sl; return null; };
+  const option=k=>{ try{ const b=(g.boards&&g.boards[k])||{slots:[null,null,null,null,null,null],ascensionIndex:0};
+      const qi=b.ascensionIndex|0; if(qi>=GLYPH_MAX_ASC||qi>cap) return null;
+      if(ledHeroLevel(led,k)<glyphLevelGate(qi)) return null;
+      const role=(SIM.HERO_BASE[k]||{}).role;
+      for(let sl=0;sl<6;sl++){ if(b.slots&&b.slots[sl]) continue; const d=glyphPreChoice(k,sl,qi);
+        if(d&&d.qi===qi&&glyphAllowed(sl,d,role)) return { hero:k, slot:sl, def:d, qi }; }
+    }catch(e){} return null; };
+  for(let i=0;i<n;i++){ let best=null, bk=null;
+    for(const k of everyone){ const o=option(k); if(!o) continue; const fi=fighters.indexOf(k);
+      const key=[o.qi, fi>=0?1:0, fi>=0?-fi:0, ledHeroLevel(led,k)];
+      let better=!bk; if(bk) for(let j=0;j<key.length;j++){ if(key[j]!==bk[j]){ better=key[j]>bk[j]; break; } }
+      if(better){ best=o; bk=key; } }
+    if(!best) break;
+    const board=glyphBoard(g,best.hero), nid='g'+(g.seq++);
+    g.finished[nid]={ definitionId:best.def.id, status:'locked', builtAt:Date.now(), requestId:'prov:'+tag+':'+i, source:'province' };
+    board.slots[best.slot]=nid;
+    glyphAudit(g,'province-forge',{hero:best.hero,slot:best.slot,def:best.def.id,stage});
+    out.forged.push({ hero:best.hero, slot:best.slot, slotName:GLYPH_SLOTS[best.slot], artSlot:famSlot(best.def.family)||GLYPH_SLOTS[best.slot],
+      blueprintId:best.def.id, name:best.def.name, quality:best.def.quality, family:best.def.family,
+      stats:best.def.stats.map(x=>x.stat+' +'+x.val+(x.pct?'%':'')), boardFull:board.slots.every(Boolean) }); }
+  const short=n-out.forged.length, lead=fighters[0]||everyone[0];
+  if(short>0 && lead){ for(let i=0;i<short;i++){ let d=null;
+      try{ for(let j=0;j<6&&!d;j++) d=glyphPreChoice(lead,(i+j)%6,cap); }catch(e){ d=null; }
+      if(!d) continue; const cost=g2BuildCost({subGlyphs:{}},d); if(!cost) continue;
+      const rc=glyphGrantNamedList(u, Object.keys(cost.need).map(k=>({key:k,quantity:cost.need[k]})))||[];
+      out.kits.push({ blueprintId:d.id, name:d.name, quality:d.quality, family:d.family, artSlot:famSlot(d.family), fragments:rc }); } }
+  if(out.forged.length) g.revision++;
+  out.revision=g.revision; return out; }
+/* pay one clear / sweep: the ground's reward + 12 account XP (Phil: "Both gold and drill province gives 12exp per sweep") */
+function provGrant(u,led,t,stage,team,tag){
+  const rw=provReward(t,stage), got={ type:t, stage, accountXp:rw.accountXp };
+  if(t==='gold'){ led.gold=Math.min(ECON_CAP.gold,(led.gold|0)+rw.gold); got.gold=rw.gold; }
+  else { const f=provForgeGlyphs(u,led,stage,team,tag); got.glyphs=f.forged; got.glyphKits=f.kits; got.maxQuality=rw.maxQuality; got.glyphRevision=f.revision; }
+  got.levelUps=ledAddPlayerXP(led,rw.accountXp);
+  ledTx(u,'province:'+t+':'+String(tag).split(':')[0]+':'+stage,{ gold:got.gold||0, px:rw.accountXp,
+    glyphs:(got.glyphs||[]).map(x=>x.hero+':'+x.blueprintId), glyphKits:(got.glyphKits||[]).map(x=>x.blueprintId) });
+  return got; }
 // server-side plausibility score of a floor's monsters (mirrors client makeUnit scale=1+0.05*(lvl-1))
 function vaultFloorScore(floor){
   let s=0; for(const w of buildDungeonWaves(floor)){ for(const m of w){
@@ -2036,6 +2163,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, prayer:Math.max(0,Math.min(200,led.prayer|0)),
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
+    prov:(function(){ try{ return provLedgerView(u,led); }catch(e){ return null; } })(),   /* v663: Training Province stage + plays */
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
@@ -2072,7 +2200,7 @@ const EARN_RULES={
          stars:{max:200000,day:2000000}, city:{max:100000,day:1000000}, wish:{max:100000,day:1000000},
          quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000}, misc:{max:50000,day:500000},
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
-  heroXp:{ province:{max:20000,day:120000} },
+  /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
   guildCoins:{ march:{max:40,day:400} } };
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
@@ -2393,7 +2521,8 @@ async function api(req,res,url){
         legacySaveFields:'stripped-after-migration',
         idempotency:'durable-write-before-response',
         vault:(VAULT_SKILL_BAND>0?'estimate+skill-band':'estimate'),   // NOT yet converted — stated plainly
-        elite:'estimate', trials:'estimate'
+        elite:'estimate', trials:'estimate',
+        province:(PROV_STRICT_REPLAY?'transcript-replay-strict':'player-truth+transcript-replay')   // v663 Training Province
       },
       dailyResetET:'09:00 America/New_York', nextResetUTC:new Date(Date.now()+(nextReset-nyNow)).toISOString(),
       currencies:[
@@ -2407,7 +2536,7 @@ async function api(req,res,url){
         {id:'guildCoins', sources:['Guild raid'], sinks:['Guild shop'], caps:{}},
         {id:'heroFragments', sources:['Guardian stages, every 5th (3/day)','Market (12/day)','Quests','Wishing Pool'], sinks:['Hero summon','Star-up','Refine'], caps:{guardianPerStagePerDay:3, marketPerDay:12}}
       ],
-      dailyCaps:{ cityAttacks:20, vaultSweeps:2, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
+      dailyCaps:{ cityAttacks:20, vaultSweeps:2, trainingProvincePlays:PROV_PLAYS, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
     }); }
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
@@ -3680,6 +3809,7 @@ async function api(req,res,url){
       const led=ensureLedger(me); const what=String(b.what||''); const reason=String(b.reason||'misc').slice(0,24);
       const amt=Math.floor(+b.amount||0);
       const rules=(EARN_RULES[what]||{})[reason]; if(!rules) return {ok:false,error:'No earn rule for '+what+'/'+reason+'.'};
+      if(what==='gold' && reason==='misc' && String(b.sub||'')==='province') return {ok:false,error:'The Training Province is a real battle now — please update the game.'};   /* v663: an old cached client's instant province grant */
       if(!(amt>0&&amt<=rules.max)) return {ok:false,error:'Amount exceeds the '+reason+' rule.'};
       led.earnDay=led.earnDay||{}; const dk=nyDayKey();
       if(led.earnDay.k!==dk){ led.earnDay={k:dk}; }
@@ -4128,6 +4258,109 @@ async function api(req,res,url){
       writeDB();
       return { ok:true, stamina:got, note: [fnote, got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : ''].filter(Boolean).join(' '), edraft:view(), ledger:ledgerView(me) }; });
     return send(res, out.ok===false?400:200, out); }
+  /* =================== v663: TRAINING PROVINCE (Gold / Drill) — real battles, server-paid ===================
+     state  GET  → the stage table (gates, bosses, rewards) + today's plays
+     start  POST {type, stage, heroIds, requestId} → frozen squad snapshots + seed + the authored waves
+     resolve POST {attemptId, requestId, inputLog, digest, won, stars} → replay, clear, pay (idempotent)
+     sweep  POST {type, requestId} → pay the best cleared stage for one play (idempotent) */
+  if(p.startsWith('/api/province/')){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!PROV_ENC) return send(res,503,{error:'The Training Province is unavailable.'});
+    if(rateLimited(req,'province',60,60000)) return send(res,429,{error:'Slow down.'});
+    const led=ensureLedger(me);
+    if(p==='/api/province/state'){ const v=provStateView(me,led); writeDB(); return send(res,200,v); }
+    if(req.method!=='POST') return send(res,404,{error:'province'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const dev=isDev(me);
+    if(p==='/api/province/start'){
+      const t=String(b.type||''); if(PROV_TYPES.indexOf(t)<0) return send(res,400,{error:'Unknown province.'});
+      const P=provLedState(me,led), pr=P[t], lvl=ledPlayerLevel(led);
+      /* a retried start (same requestId) gets the same open fight back — nothing is paid to start, so a new requestId
+         simply replaces an abandoned attempt */
+      if(pr.att && pr.att.reqId===reqId && Date.now()-(pr.att.startedAt||0)<=PROV_SESSION_MS){ const a0=pr.att, st0=PROV_ENC[t][a0.stage-1];
+        return send(res,200,{ ok:true, resumed:true, attemptId:a0.id, type:t, stage:a0.stage, seed:a0.seed, snaps:a0.snaps, waves:st0.waves,
+          boss:st0.boss, levelGate:st0.levelGate, engine:a0.engine, reward:provReward(t,a0.stage) }); }
+      const stage=b.stage|0;
+      if((pr.stage|0)>=PROV_STAGES) return send(res,400,{error:'Every stage is cleared — sweep it for the daily reward.'});
+      if(stage!==(pr.stage|0)+1) return send(res,400,{error:'Challenge Stage '+((pr.stage|0)+1)+' next.', stage:pr.stage|0});
+      const st=PROV_ENC[t][stage-1];
+      if(!dev && lvl<st.levelGate) return send(res,400,{error:(t==='gold'?'Gold':'Drill')+' Province Stage '+stage+' opens at account level '+st.levelGate+' (you are '+lvl+').', levelGate:st.levelGate, playerLevel:lvl});
+      if(provPlaysLeft(me,pr)<=0) return send(res,400,{error:'No plays left today — come back tomorrow.'});
+      const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
+      if(!ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
+      const host=simHost(); let fightSnaps=null;
+      if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (province):',e.message); } }
+      const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
+      pr.att={ id:uid(), stage, heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId };
+      writeDB();
+      return send(res,200,{ ok:true, attemptId:pr.att.id, type:t, stage, seed, snaps:fightSnaps, waves:st.waves, boss:st.boss,
+        levelGate:st.levelGate, engine:pr.att.engine, reward:provReward(t,stage) }); }
+    if(p==='/api/province/resolve'){ const out=idem(me.id+':provres:'+reqId,()=>{
+        const aid=String(b.attemptId||''), P=provLedState(me,led); let t=null, pr=null, a=null;
+        for(const k of PROV_TYPES){ if(P[k].att && P[k].att.id===aid){ t=k; pr=P[k]; a=pr.att; break; } }
+        if(!a) return {ok:false, error:'No matching province battle.'};
+        pr.att=null;
+        const view=()=>provLedgerView(me,led);
+        if(Date.now()-(a.startedAt||0) > PROV_SESSION_MS){ writeDB(); return {ok:false, expired:true, error:'That battle expired — nothing was spent. Challenge the stage again.', prov:view(), ledger:ledgerView(me)}; }
+        const st=PROV_ENC[t][a.stage-1];
+        /* the verdict the player witnessed — same well-formedness rules as /api/campaign/resolve */
+        const clientEnd=(typeof b.digest==='string')?b.digest:''; let witnessed=null;
+        try{ const d=JSON.parse(clientEnd), cs=Number(b.stars);
+          if(d && typeof d.won==='boolean' && typeof b.won==='boolean' && d.won===b.won
+             && Number.isFinite(d.t) && d.t>=0 && d.t<=PROV_SESSION_MS/1000
+             && Array.isArray(d.u) && d.u.length>=a.heroIds.length
+             && ((d.won && Number.isInteger(cs) && cs>=1 && cs<=3) || (!d.won && cs===0))) witnessed={won:d.won, stars:cs};
+        }catch(e){}
+        if(!witnessed){ writeDB(); return {ok:false, unverified:true, error:'Battle result was incomplete — nothing was spent.', prov:view(), ledger:ledgerView(me)}; }
+        /* replay the player's own fight: frozen snapshots, the server's seed, the authored waves, the transcript */
+        const inputLog=sanitizeInputLog(b.inputLog), host=simHost();
+        let rep=null, replayFailure=null;
+        if(!host || !Array.isArray(a.snaps) || !a.snaps.length) replayFailure='replay-unavailable';
+        else try{ rep=host.campaign(a.snaps, st.waves, a.seed>>>0, inputLog); }
+          catch(e){ replayFailure='replay-error'; console.error('sim-host replay failed (province):',e.message); }
+        const serverEndDigest=rep?String(rep.digest||''):'';
+        const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);
+        if(!digestMatch){ const why=replayFailure||'digest-mismatch';
+          led.battleIncidents=(led.battleIncidents||[]).concat([{ t:Date.now(), stage:'province-'+t+'-'+a.stage, mode:'province:'+t, why,
+            source:'submitted-log', playerTruth:!PROV_STRICT_REPLAY, engine:a.engine||null, seed:a.seed>>>0, inputs:inputLog.length,
+            server:serverEndDigest?sha256hex(serverEndDigest):null, client:sha256hex(clientEnd), serverWon:rep?!!rep.won:null,
+            witnessedWon:witnessed.won, witnessedStars:witnessed.stars, transcript:inputLog }]).slice(-20);
+          console.warn('province replay incident ('+why+') — '+t+' stage '+a.stage); }
+        if(witnessed.won && PROV_STRICT_REPLAY && !(rep && rep.won)){ writeDB();
+          return {ok:false, unverified:true, error:'The server could not confirm this win — nothing was spent. Challenge the stage again.', prov:view(), ledger:ledgerView(me)}; }
+        if(witnessed.won && Date.now()-(a.startedAt||0) < PROV_MIN_BATTLE_MS){ writeDB();
+          return {ok:false, unverified:true, error:'That was too fast to be a real battle — nothing was spent.', prov:view(), ledger:ledgerView(me)}; }
+        const won=witnessed.won; let reward=null, dailyCapped=false;
+        if(won){
+          if(a.stage!==(pr.stage|0)+1){ writeDB(); return {ok:false, error:'That stage was already cleared on another device.', prov:view(), ledger:ledgerView(me)}; }
+          pr.stage=a.stage; pr.lastTeam=a.heroIds.slice();
+          if(provPlaysLeft(me,pr)<=0){ dailyCapped=true; ledTx(me,'province:'+t+':clear:'+a.stage+':capped',{}); }   // cleared on another device's last play meanwhile: recorded, unpaid today
+          else { pr.used=(pr.used|0)+1; reward=provGrant(me,led,t,a.stage,a.heroIds,'clear:'+reqId); }
+        } else ledTx(me,'province:'+t+':loss:'+a.stage,{});
+        led.battleReceipts=(led.battleReceipts||[]).concat([{ t:Date.now(), stage:'province-'+t+'-'+a.stage, mode:'province:'+t, node:a.stage,
+          seed:a.seed>>>0, engine:a.engine||null, source:'submitted-log', heroes:a.heroIds.slice(), inputs:inputLog.length, won,
+          stars:witnessed.stars, digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:inputLog, clientDigest:sha256hex(clientEnd), match:digestMatch }]).slice(-40);
+        writeDB();
+        return { ok:true, type:t, won, stage:a.stage, stars:witnessed.stars, cleared:pr.stage|0, reward, dailyCapped,
+          playsLeft:provPlaysLeft(me,pr), verified:true, playerTruth:true, digestMatch, replayIncident:!digestMatch,
+          serverWon:rep?!!rep.won:null, transcript:'submitted-log', actions:inputLog.length, engine:a.engine||null,
+          prov:view(), ledger:ledgerView(me) };
+      }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/province/sweep'){ const out=idem(me.id+':provsweep:'+reqId,()=>{
+        const t=String(b.type||''); if(PROV_TYPES.indexOf(t)<0) return {ok:false, error:'Unknown province.'};
+        const P=provLedState(me,led), pr=P[t];
+        if((pr.stage|0)<1) return {ok:false, error:'Clear Stage 1 first — sweeping repeats your best cleared stage.'};
+        if(provPlaysLeft(me,pr)<=0) return {ok:false, error:'No plays left today — come back tomorrow.'};
+        pr.used=(pr.used|0)+1;
+        const team=(pr.lastTeam||[]).filter(k=>led.unlocked[k]);
+        const reward=provGrant(me,led,t,pr.stage|0,team,'sweep:'+reqId);
+        writeDB();
+        return { ok:true, type:t, stage:pr.stage|0, reward, playsLeft:provPlaysLeft(me,pr), prov:provLedgerView(me,led), ledger:ledgerView(me) };
+      }); return send(res, out.ok===false?400:200, out); }
+    return send(res,404,{error:'province'});
+  }
   /* =================== v250 (audit P1): PER-LOOP SERVER AUTHORITIES ===================
      Elite stages, Tower/Gauntlet/legacy-dungeon trials, quests, market fragment offers, and the
      arena daily are each their own server-verified transaction. Generic /api/tx/earn no longer
@@ -4959,7 +5192,7 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
-campCompile(); portalCompile(); vaultCompile(); readDB(); pgInit();
+campCompile(); portalCompile(); vaultCompile(); provCompile(); readDB(); pgInit();   /* v663: provCompile — Training Province */
 const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(e){ return 0; } })();   // v327: sampled BEFORE seed()/migrations can refresh the file's mtime
 /* v327 (critical): boot used to seed + writeDB() synchronously while the PG restore was still awaiting
    two network round-trips, so `fileM` was re-sampled AFTER the debounced boot write had already touched

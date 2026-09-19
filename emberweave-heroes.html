@@ -2872,7 +2872,7 @@ function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
 const LOAD_ART={ vs:'/assets/img/loading/versus.webp', camp:'/assets/img/loading/camp.webp' };
 function battleModeTitle(){ const m=(typeof CUR!=='undefined'&&CUR&&CUR.mode)||'';
   return ({campaign:'Campaign', arena:'Arena Duel', raid:'City Raid', elite:'Elite Guard', dungeon:'Dungeon', vault:'The Vault', replay:'Replay',
-    emberdraft:'Emberdraft', bonus:'Bonus Round', tower:'Tower', trial:'Trial'})[m] || (m ? m.charAt(0).toUpperCase()+m.slice(1) : 'Battle'); }
+    emberdraft:'Emberdraft', bonus:'Bonus Round', tower:'Tower', trial:'Trial', province:((CUR&&CUR.prov&&CUR.prov.t==='rune')?'Drill Province':'Gold Province')})[m] || (m ? m.charAt(0).toUpperCase()+m.slice(1) : 'Battle'); }
 function _blHeroName(k){ const t=(typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k])||(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[k]); return (t&&t.name)||k||''; }
 /* draw one card's art into its canvas. A hero with an idle sheet is drawn from the SAME texture the battle loads (its image is
    kept on the clip once it arrives), never a second download: frame 0, framed belly button to just above the head from the
@@ -3356,7 +3356,8 @@ const RARITY_V=4, RARITY_READY=true;    // flips to true once the Hailuo banners
 function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMythic==='function'&&isMythic(key))) return 'mythical'; const st=t.stars|0; return st>=3?'rare':st===2?'uncommon':'common'; }
 function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
   const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
-  const nm=o.name||t.name||key;
+  const _mt=(typeof MONSTER_TYPES!=='undefined'&&!HERO_TYPES[key])?MONSTER_TYPES[key]:null;   /* v663: monsters on the loader carry their in-game name, never the key */
+  const nm=o.name||t.name||(_mt&&_mt.name?String(_mt.name).split(',')[0]:'')||key;
   return `<div class="rbn rbn-${r}${o.word?' w':''}${nm.length>11?' long':''}" style="background-image:url('${img}')">${o.word?'':`<span>${escapeHTML(nm)}</span>`}</div>`; }
 function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
   if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`;
@@ -7842,7 +7843,7 @@ function buildEnemyWave(){
       units.push(u); buildFigure(u); });
     return;
   }
-  if(CUR.mode==='campaign'&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){
+  if((CUR.mode==='campaign'||CUR.mode==='province')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way */
     // AUTHORED ENCOUNTER (audit C2): every attempt at this stage spawns exactly these units.
     const specs=CUR.cwaves[Math.min(waveIdx,CUR.cwaves.length-1)]||[];
     const _keys=specs.map(x=>x.key);
@@ -10188,7 +10189,7 @@ function think(u,dt){
   // NEAREST foe (the front line) — so mid holds 13 m and back holds 25 m even while heroes charge in from the side.
   const ne = u.melee ? t : (nearestEnemy(u)||t);
   const dn = dist(u,ne);
-  const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1)/edAtkRamp(); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp
+  const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1)/((typeof edAtkRamp==='function')?edAtkRamp():1); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp. v663: guarded - edAtkRamp lives in the Emberdraft <script>, which server/sim-host.js does not load, so every server replay threw "edAtkRamp is not defined"
     if(u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
       if(u.pass&&u.pass.desertmom){ const _pm=(u.passMul||1); u._dmAS=Math.min(0.5*_pm,(u._dmAS||0)+0.04*_pm); u._dmPen=Math.min(120*_pm,(u._dmPen||0)+6*_pm); }   // v545 Desert Momentum: +4% attack speed, +6 penetration per auto (caps 50% / 120)
       /* v532 CRIT CLIP (Phil: "when a hero crit attacks they will do this instead of attack"; "melees from this point on
@@ -10358,6 +10359,7 @@ function battleKeysForMatch(){
     if(CUR.mode!=='emberdraft') (G.team||[]).forEach(x=>_k.push(x));   // v644: Emberdraft fields only the drafted boards - the campaign squad's full sheets were loaded, uploaded and evicted every round
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    if(CUR.mode==='province') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     (CUR.waves||[]).forEach(w=>(w||[]).forEach(m=>m&&_k.push(m.key)));
     (CUR.edKeys||[]).forEach(k=>_k.push(k));   // v604 Emberdraft
@@ -10368,6 +10370,9 @@ let _blBusy=false;
 /* v611: which lineup the loading screen shows for this fight (see showBattleLoader) */
 function battleLoaderSpec(){ const team=(G.team||[]).slice(0,5);
   try{ if(CUR&&CUR.mode==='emberdraft'&&CUR.edAlly) return { mine:CUR.edAlly, foe:CUR.edFoe, mineName:'You', foeName:CUR.oppName||'Rival' };
+    if(CUR&&CUR.mode==='province'&&Array.isArray(CUR.cwaves)){ const bk=CUR.prov&&CUR.prov.boss, seen={}, foe=[];   /* v663: the stage's boss first, then its minions */
+      if(bk){ foe.push(bk); seen[bk]=1; } CUR.cwaves.forEach(w=>w.forEach(m=>{ if(m&&m.key&&!seen[m.key]){ seen[m.key]=1; foe.push(m.key); } }));
+      return { mine:team, foe:foe.slice(0,5), mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:'Stage '+((CUR.prov&&CUR.prov.stage)|0) }; }
     const foe=((CUR&&CUR.opp)||[]).map(e=>e&&(e.key||e)).filter(k=>typeof k==='string');
     if(foe.length) return { mine:team, foe, mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:(CUR&&CUR.oppName)||'Enemy' }; }catch(e){}
   return { mine:team }; }
@@ -10396,9 +10401,10 @@ function _startBattleNow(){
   try{ const _k=(CUR.mode==='emberdraft')?[]:(G.team||[]).slice();   // v644
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
+    if(CUR.mode==='province') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   try{ preloadAimArt(); }catch(e){}   // v537: painted aim indicators
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
@@ -10406,6 +10412,11 @@ function _startBattleNow(){
     buildEnemyWave();
     actBegin();   // v275: tell the server the battle is running, so its clock starts with ours
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
+  else if(CUR.mode==='province'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:3; waveIdx=0;   /* v663: mirrors the campaign branch step for step - the server replays it with simCampaignReplay */
+    if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
+    buildEnemyWave();
+    actBegin();   /* resets the action stream; province fights resolve from the submitted transcript (no live stream) */
+    bannerMsg(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+((CUR.prov&&CUR.prov.stage)|0)+'\nWAVE 1'); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
     if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
@@ -10489,6 +10500,7 @@ function bossCueFor(u){
   try{
     if(CUR.mode==='vault' && VAULT && VAULT.st && VAULT.st.bossRule && VAULT.st.bossRule.warn) return VAULT.st.bossRule.warn;
     if(CUR.mode==='campaign' && isBossStage(CUR.node)) return CHAPTER_BOSS_CUE[chapterOf(CUR.node)-1]||null;
+    if(CUR.mode==='province' && u && typeof provBossCue==='function'){ const c=provBossCue(u.key); if(c) return c; }   /* v663 */
   }catch(e){}
   return (u&&BOSS_CUES[u.key])||null;
 }
@@ -10850,6 +10862,26 @@ function endBattle(won){
       const atks=(V&&V.attacksLeft!=null)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">${V.attacksLeft} city attacks left today</div>`:'';
       document.getElementById('resultReward').innerHTML=badge+`<div style="margin-bottom:4px"><b>${escapeHTML(CUR.oppName||'Rival city')}</b></div>`+(sWon?loot:`<div>${escapeHTML(CUR.oppName||'They')} held their wall.</div>`)+recap+atks;
       document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
+  if(CUR.mode==='province'){ const att=CUR.attemptId, P=CUR.prov||{}; CUR.attemptId=null;   /* v663: Training Province */
+    const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
+    resultLater(async(ep)=>{ let r=null;
+      if(att&&ACC.token){ try{ r=await api('/api/province/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}); }catch(e){ r=null; } }
+      if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
+      if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
+      const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), nm=(PROV_META[P.t]||PROV_META.gold).nm;
+      setResultVerdict(sWon, sWon?(_st||null):null);
+      if(sWon && r.reward && r.reward.glyphs && r.reward.glyphs.length){ try{ glyphV2Sync(); }catch(e){} }
+      document.getElementById('resultTitle').textContent=sWon?('STAGE '+(P.stage|0)+' CLEARED'):(_unv?'NOT COUNTED':'DEFEAT');
+      document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      document.getElementById('resultReward').innerHTML= sWon
+        ? `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">${escapeHTML(nm)} · STAGE ${P.stage|0} CLEARED${r.cleared?' · '+(r.cleared|0)+'/'+PROV_STAGES:''}</div>`
+          +(r.reward?provReceiptHTML(P.t,r.reward,false):'')
+          +(r.dailyCapped?'<div style="margin-top:6px;color:#ff9a9a">Stage cleared — but today\'s two plays were already used, so it pays nothing today. Sweep it tomorrow.</div>':'')
+          +(r.replayIncident?'<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">(Your result stands — the server logged a replay difference for review.)</div>':'')
+        : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This fight was not counted — nothing was spent.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`
+          :`Your squad fell to ${escapeHTML(nm)} Stage ${P.stage|0}. A loss costs nothing — your plays are untouched.`);
+      document.getElementById('resultHint').textContent=sWon?((P.t==='rune')?'Forged glyphs are locked into the hero\'s board — fill all six, then Ascend.':'Sweep your best cleared stage for the same reward.'):'Same boss and waves every attempt — level up, forge glyphs, then try again.';
+      updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null);   // snapshot the transcript NOW: anything that runs during the 800ms delay must not be able to blank it
     const _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);   // v412: and the player's own verdict, snapshotted with it
@@ -12041,7 +12073,7 @@ function show(name){
   if(name==='temple') renderTemple();
   if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
-  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'));
+  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='province'));
   if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); const vm=document.getElementById('vaultSubModal'); if(vm) vm.remove(); VAULT_PICK_OPEN=false; }
   if(name==='heroesPanel') renderHeroList();
   if(name==='heroDetail') renderHeroDetail();
@@ -12929,6 +12961,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
       cur.cleared=Math.max(cur.cleared|0, src.cleared|0); cur.locked=src.locked||null;
       cur.stars=cur.stars||{}; for(const n in (src.stars||{})) if((src.stars[n]|0)>(cur.stars[n]|0)) cur.stars[n]=src.stars[n]|0; } }
   if(st.stamina){ G.stamina=st.stamina.v|0; G.staminaTS=Date.now(); }
+  if(st.prov){ try{ provAdopt(st.prov); }catch(e){} }   /* v663: Training Province stage + plays are server-owned */
   /* v273: equipment materials and skill levels are SERVER-OWNED now — the browser mirrors them, it
      does not mint them. (The dungeon used to roll materials locally with Math.random().) */
   /* 31 Aug — this MERGED, so a key the ledger does not report kept its local value. eqMats is stripped
@@ -14990,7 +15023,10 @@ function renderRoster(){
   { const _sub=document.getElementById('menuSub');
     const _txt = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`
       :(isVault?`First ${TEAM_SIZE} fight — the rest step in when a fighter falls (up to ${TEAM_SIZE*2} total)`:'');
-    _sub.textContent=_txt; _sub.style.display=_txt?'':'none'; }
+    _sub.textContent=_txt; _sub.style.display=_txt?'':'none';
+    if(!isWall && teamCtx==='campaign' && CUR.mode==='province' && CUR.prov){ const _P=CUR.prov;   /* v663 */
+      document.getElementById('menuTitle').textContent=((PROV_META[_P.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+(_P.stage|0);
+      _sub.textContent='Boss: '+provBossName(_P.boss||provBossKey(_P.t,_P.stage),true)+' · 3 waves · reward '+provRewardStr(_P.t,_P.stage)+' · a loss costs nothing'; _sub.style.display=''; } }
   document.getElementById('startBtn').style.display = setDef?'none':'block';
   { const _row=document.getElementById('startRow'); if(_row) _row.style.display = setDef?'none':'flex'; }
   const r=document.getElementById('roster'); r.innerHTML='';
@@ -15258,7 +15294,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
             normally sends that, and it stops running while hidden). Live PvP rooms are left alone —
             the other player is still fighting. */
          try{ if(state==='battle' && !ended && !paused && CUR.mode!=='online' && !(typeof OL!=='undefined'&&OL.active)
-                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena')){
+                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province')){
            paused=true; document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
 // load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
 // the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
@@ -18211,7 +18247,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return;
 
 /* ============================ FLOATING ISLE: THREE TRIALS ============================ */
 const ISLE_FEATURES=[
-  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — battle for gold and hero XP.', open:()=>openTrainingProvince()},
+  {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — twelve boss fights each for gold and whole glyphs.', open:()=>openTrainingProvince()},
   {id:'emberdraft', ic:'♟', name:'Emberdraft',        lvl:25, desc:'Draft heroes, forge equipment, outlast seven rivals.', open:()=>openEmberdraft()},   // v604 (Phil, 18 Sep: the Gauntlet was a dead system - replaced; its code stays for banking an old run)
   {id:'tower',    ic:'🗼', name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
 ];
@@ -18240,55 +18276,137 @@ function isleCard(inner,max){ return `<div class="isleCardP" style="width:100%;m
 const PROV_ART={ scene:'/assets/img/ui/training-province.webp?v=1', gold:'/assets/img/ui/mi-prov-gold.webp?v=1', rune:'/assets/img/ui/mi-prov-drill.webp?v=1' };   /* v660 */
 function battlePow(){ return Math.max(1, bestTeamPower()); }
 
-/* ---- TRAINING PROVINCE: two grounds (Gold / Rune), stages of rising difficulty, 2 plays/day, sweep cleared stages ---- */
-const PROV_STAGES=12, PROV_PLAYS=2;
-function provState(t){ if(!G.prov)G.prov={}; if(!G.prov[t])G.prov[t]={stage:0,day:'',used:0}; const p=G.prov[t], dk=arenaDayKey(); if(p.day!==dk){ p.day=dk; p.used=0; } return p; }
-function provPlaysLeft(t){ return Math.max(0,PROV_PLAYS-provState(t).used); }
-function provReqPower(t,stage){ const base=t==='gold'?420:640; return Math.round(base*Math.pow(1.4,stage-1)); }
+/* ---- TRAINING PROVINCE: two grounds (Gold / Drill), 12 boss fights each, 2 plays a day, sweep your best cleared stage ----
+   v663 (Phil, 19 Sep): "Both gold province and drill province should be a real battle like campaign. But it should have a
+   boss at the end of each fight. Once cleared you can sweep. Higher level gold and drill province can open at a higher hero
+   level. Drill province should reward completed glyphs not just fragments." / "Account level unlocks new available gold and
+   drill province." / "Both gold and drill province gives 12exp per sweep."
+   CHALLENGE opens the normal squad screen and a real three-wave battle whose third wave is a boss. It is fought on the
+   server's frozen squad and seed (/api/province/start) and resolved by /api/province/resolve, which replays the transcript
+   exactly like the campaign. SWEEP is /api/province/sweep. Every reward (gold, whole glyphs forged into a hero's board,
+   12 account XP) is paid by the SERVER; the browser only shows the receipt. A loss spends nothing: a play is spent only by
+   a win or a sweep. The key 'rune' is kept for the Drill ground because saves carry G.prov.rune. */
+const PROV_STAGES=12, PROV_PLAYS=2, PROV_ACCOUNT_XP=12;
+/* mirrors of server/province-encounters.json; the server's own table wins as soon as /api/province/state answers */
+const PROV_GATE={ gold:[10,12,14,16,18,20,23,26,29,32,36,40], rune:[15,17,19,21,23,25,28,31,34,37,41,45] };
+const PROV_BOSS={ gold:['brukk','miregor','grommash','magmourn','voraxis','barrowmaw','orryx','asterion','maelvara','nameless admiral','irix','vharok'],
+                  rune:['sylphice','leviath','nymira','wintercrag','asterion','thorneveil','maelvara','sable vesper','irix','barrowmaw','orryx','nerissa'] };
+const PROV_GLYPHS=[1,1,1,1,1,2,2,2,2,2,2,3];
+const PROV_GLYPH_MAXQ=['Green +1','Green +1','Blue','Blue','Blue','Blue +1','Blue +1','Blue +2','Blue +2','Purple','Purple','Purple +1'];
+const PROV_META={ gold:{nm:'Gold Province', col:'#ffd45e'}, rune:{nm:'Drill Province', col:'#8fd0ff'} };
+let PROV_SRV=null;   // the last /api/province/state answer: the stage table + today's counts
+function provState(t){ if(!G.prov)G.prov={}; if(!G.prov[t])G.prov[t]={stage:0,day:'',used:0}; const p=G.prov[t];
+  if(!ACC.token){ const dk=arenaDayKey(); if(p.day!==dk){ p.day=dk; p.used=0; } }   // signed in, the server's day and count are the count
+  return p; }
+/* v663: the ledger (and every province route) carries {gold:{stage,used,playsLeft,day},rune:{...}} — mirror it */
+function provAdopt(v){ if(!v||typeof v!=='object') return; for(const t of ['gold','rune']){ const s=v[t]; if(!s) continue; const p=provState(t);
+  p.stage=Math.max(0,Math.min(PROV_STAGES,s.stage|0)); p.used=s.used|0; p.left=(s.playsLeft==null)?null:(s.playsLeft|0); if(s.day) p.day=s.day; } }
+function provPlaysLeft(t){ const p=provState(t); return (ACC.token&&p.left!=null)?Math.max(0,p.left|0):Math.max(0,PROV_PLAYS-(p.used|0)); }
+function provStageRow(t,stage){ const S=PROV_SRV&&PROV_SRV.types&&PROV_SRV.types[t]; return (S&&S.stages&&S.stages[stage-1])||null; }
+function provGate(t,stage){ const r=provStageRow(t,stage); return (r&&r.levelGate)||PROV_GATE[t][stage-1]||999; }
+function provBossKey(t,stage){ const r=provStageRow(t,stage); return (r&&r.boss)||PROV_BOSS[t][stage-1]||''; }
+function provBossName(k,full){ const n=String(((typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[k])||{}).name||k); return full?n:n.split(',')[0]; }
 function provGoldAmt(stage){ return Math.round(600*stage*Math.pow(1.16,stage)); }
-function provXpAmt(stage){ return Math.round(70*stage*Math.pow(1.16,stage)); }   // legacy rune payouts stripped — the second ground trains hero XP now
-function provRewardStr(t,stage){ return t==='gold'?('🪙 '+provGoldAmt(stage).toLocaleString()):('📖 '+provXpAmt(stage).toLocaleString()+' hero XP'); }
-/* 31 Aug — both province grants were mirror-only: adoptLedger's next 45s sync overwrote G.gold /
-   G.heroXP with the server's number and the payout vanished, while p.used++/p.stage stayed spent.
-   Gold rides the existing gold/misc earn rule (provGoldAmt(12)~42.7k < the 50k per-tx max) so it
-   also works against a cached old server; hero XP needs the new heroXp/province rule. If the grant
-   is refused we hand the play back rather than charging for nothing. */
-function grantProvReward(t,stage){ const _p=provState(t);
-  const _settle=function(ok){ if(ok)return; try{ if(_p.used>0){ _p.used--; saveG(); } updateHubChrome(); }catch(e){} };
-  if(t==='gold'){ const _g=provGoldAmt(stage); G.gold=(G.gold||0)+_g; try{ txEarnP('gold',_g,'misc',{sub:'province',stage:stage}).then(_settle); }catch(e){} }
-  else { const _x=provXpAmt(stage); grantTeamXP(_x); try{ txEarnP('heroXp',_x,'province',{heroKeys:(G.team||[]).slice(0,10)}).then(_settle); }catch(e){} }
-  updateHubChrome(); return provRewardStr(t,stage); }
-function provChallenge(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; const next=p.stage+1; if(next>PROV_STAGES) return {maxed:true}; if(battlePow()<provReqPower(t,next)) return {weak:true}; p.used++; p.stage=next; const rw=grantProvReward(t,next); saveG(); return {win:true,stage:next,reward:rw}; }
-function provSweep(t){ const p=provState(t); if(provPlaysLeft(t)<=0) return {none:true}; if(p.stage<1) return {invalid:true}; p.used++; const rw=grantProvReward(t,p.stage); saveG(); return {swept:true,stage:p.stage,reward:rw}; }
+function provGlyphCount(stage){ const r=provStageRow('rune',stage); return (r&&r.reward&&r.reward.glyphs)||PROV_GLYPHS[stage-1]||1; }
+function provGlyphMaxQ(stage){ const r=provStageRow('rune',stage); return (r&&r.reward&&r.reward.maxQuality)||PROV_GLYPH_MAXQ[stage-1]||'Grey'; }
+function provRewardStr(t,stage){ if(t==='gold') return '🪙 '+provGoldAmt(stage).toLocaleString()+' · +'+PROV_ACCOUNT_XP+' XP';
+  const n=provGlyphCount(stage); return n+' glyph'+(n===1?'':'s')+' up to '+provGlyphMaxQ(stage)+' · +'+PROV_ACCOUNT_XP+' XP'; }
+function provRewardHTML(t,stage){ if(t==='gold') return `<span class="coins">🪙 ${provGoldAmt(stage).toLocaleString()}</span> · +${PROV_ACCOUNT_XP} XP`;
+  const n=provGlyphCount(stage), q=provGlyphMaxQ(stage);
+  return `${(typeof g2art==='function')?g2art('finished',q,'vitality',16,'display:inline-block;vertical-align:-3px'):'✦'} <b style="color:${(typeof g2col==='function')?g2col(q):'#c9a2ff'}">${n} glyph${n===1?'':'s'}</b> up to ${escapeHTML(q)} · +${PROV_ACCOUNT_XP} XP`; }
+/* one line per forged glyph (art, name, quality colour, the hero whose board it went into) */
+function provGlyphLine(gl){ const hn=escapeHTML(String((HERO_TYPES[gl.hero]||{}).name||gl.hero)), col=(typeof g2col==='function')?g2col(gl.quality):'#c9a2ff';
+  const art=(typeof g2art==='function')?g2art('finished',gl.quality,gl.artSlot||gl.slotName||'vitality',26,'display:inline-block;vertical-align:middle;margin-right:4px'):'✦';
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 0">${art}<span><b style="color:${col}">${escapeHTML(String(gl.name||'Glyph'))}</b> <span style="color:#8b98a9;font-size:11px">${escapeHTML(String(gl.quality||''))}</span> → ${hn} <span style="color:#8b98a9;font-size:11px">(${escapeHTML(String(gl.slotName||''))})</span>${gl.boardFull?' <span style="color:#5ee89b;font-size:11px">· board full, ready to Ascend</span>':''}</span></div>`; }
+/* the receipt the server paid — used by the result screen and the sweep message */
+function provReceiptHTML(t,rw,compact){ if(!rw) return '';
+  const xp=rw.accountXp?` · <span style="color:#9fe6ff">+${rw.accountXp|0} account XP</span>`:'';
+  if(t==='gold') return `<span class="coins">🪙 +${(rw.gold|0).toLocaleString()}</span>${xp}`;
+  const gl=(rw.glyphs||[]), kits=(rw.glyphKits||[]);
+  if(compact) return (gl.length?gl.map(g=>`✦ <b style="color:${(typeof g2col==='function')?g2col(g.quality):'#c9a2ff'}">${escapeHTML(String(g.name))}</b> → ${escapeHTML(String((HERO_TYPES[g.hero]||{}).name||g.hero))}`).join(', '):'')
+    +(kits.length?(gl.length?', ':'')+kits.map(k=>`✦ materials for ${escapeHTML(String(k.name))}`).join(', '):'')+xp;
+  return `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">GLYPHS FORGED</div>`+gl.map(provGlyphLine).join('')
+    +kits.map(k=>`<div style="margin-top:4px;color:#c9a2ff">✦ Every hero's board is above ${escapeHTML(String(rw.maxQuality||''))} or waiting on hero level — here are the full materials for a ${escapeHTML(String(k.name))} instead.</div>`).join('')
+    +`<div style="margin-top:4px">${xp.replace(/^ · /,'')}</div>`; }
+async function provSync(){ if(!ACC.token) return null; try{ const r=await api('/api/province/state'); if(r&&r.ok){ PROV_SRV=r; provAdopt(r.types); return r; } }catch(e){} return null; }
+/* CHALLENGE: pick the squad on the normal squad screen (the campaign squad), then BATTLE → provLaunch */
+function provChallenge(t){
+  if(!ACC.token){ bannerMsg('Connect to play — Training Province battles are verified by the server.'); return false; }
+  const p=provState(t), next=(p.stage|0)+1; if(next>PROV_STAGES) return false;
+  const gate=provGate(t,next), dev=(typeof DEV!=='undefined'&&DEV.on);
+  if(playerLevel()<gate && !dev){ bannerMsg('🔒 '+PROV_META[t].nm+' Stage '+next+' opens at account level '+gate+'.'); return false; }
+  if(provPlaysLeft(t)<=0 && !dev){ bannerMsg('No plays left today — '+PROV_META[t].nm+' resets tomorrow.'); return false; }
+  document.querySelectorAll('.provScene').forEach(n=>n.remove());
+  CUR={mode:'province', prov:{t, stage:next, boss:provBossKey(t,next)}}; teamCtx='campaign'; menuReturn='skyisland'; show('menu'); return true; }
+async function provLaunch(ctx){ const P=CUR.prov||{};
+  if(!ACC.token){ bannerMsg('Connect to play — Training Province battles are verified by the server.'); return; }
+  /* same stale-build rule as the campaign (v334): never start a server-replayed fight on an outdated engine */
+  if(online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const tm=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
+      fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(tm); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(tm); if(!d){d=true;res(true);} }); });
+    if(!_fresh){ bannerMsg('The game just updated — restarting…'); applyUpdate(); return; } }
+  const r=await api('/api/province/start','POST',{type:P.t, stage:P.stage, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
+  if(!r||!r.ok||!Array.isArray(r.waves)||!r.waves.length){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
+  if(state!=='menu' || ctx!==_startCtx()) return;   // backed out of the squad screen during the round-trip
+  CUR.attemptId=r.attemptId; CUR.cwaves=r.waves; CUR.prov.boss=r.boss||P.boss; CUR.prov.reward=r.reward||null;
+  CUR.serverSnaps=Array.isArray(r.snaps)?r.snaps:null; CUR.seed=(r.seed!=null)?(r.seed>>>0):null; CUR.engine=r.engine||null;
+  startBattle(); }
+/* SWEEP: the server pays the best cleared stage's reward for one play — no battle */
+async function provSweep(t){
+  if(!ACC.token){ return {error:'Connect to sweep — Training Province rewards are paid by the server.'}; }
+  const r=await api('/api/province/sweep','POST',{type:t, requestId:uid8()});
+  if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
+  if(r&&r.ok&&r.reward&&r.reward.glyphs&&r.reward.glyphs.length){ try{ glyphV2Sync(); }catch(e){} }
+  try{ updateHubChrome(); }catch(e){}
+  return r||{error:'Could not reach the realm — check your connection.'}; }
+/* leave a province fight / squad screen back to the Floating Isle with the province card open */
+function provBackToCard(t){ show('skyisland'); setTimeout(()=>{ try{ openProvince(t||'gold'); }catch(e){} },0); }
+/* the boss's one mechanic cue for the intro banner (in-game names only) */
+function provBossCue(k){ const ch={brukk:0,miregor:1,wintercrag:2,nerissa:3,'sable vesper':4,vharok:5,maelvara:6,orryx:7,'nameless admiral':8,irix:9};
+  if(ch[k]!=null && typeof CHAPTER_BOSS_CUE!=='undefined') return CHAPTER_BOSS_CUE[ch[k]]||null;
+  return ({ barrowmaw:'Barrowmaw breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front',
+    asterion:'Asterion throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops',
+    nymira:'Nymira\'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst',
+    thorneveil:'Thorneveil sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse' })[k]||null; }
 function openTrainingProvince(){ const ov=isleOverlay(); ov.classList.add('provScene');
-  const cards=[['gold','🪙','Gold Province',10,'Battle for gold'],['rune','📖','Drill Province',15,'Battle for hero XP']];
-  ov.innerHTML=isleCard(`<div class="provHero" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">Training Province</div><button class="isleX" id="ipX" aria-label="Close">✕</button></div>
-    <div class="provIntro">Two training grounds, each a ladder of rising difficulty. Beat a stage to earn its reward, then sweep it later for the same haul. Two plays each per day.</div>`
-    + cards.map(([t,ic,nm,rl,d])=>{ const locked=playerLevel()<rl; return `<div data-prov="${t}" class="provRow${locked?' locked':''}" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;opacity:${locked?.65:1}">
-      <img class="provIc" src="${PROV_ART[t]}" alt=""><div style="flex:1"><div class="provNm">${nm}</div><div style="font-size:10px;color:#8b98a9">${d} · Stage ${provState(t).stage}/${PROV_STAGES} · ${provPlaysLeft(t)}/${PROV_PLAYS} plays left</div></div>
+  const cards=[['gold','Gold Province','Battle bosses for gold'],['rune','Drill Province','Battle bosses for whole glyphs']];
+  function paint(){
+    ov.innerHTML=isleCard(`<div class="provHero" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">Training Province</div><button class="isleX" id="ipX" aria-label="Close">✕</button></div>
+    <div class="provIntro">Two training grounds, twelve boss fights each. Win a stage to clear it and take its reward, then sweep your best cleared stage for the same haul. Two plays each per day — a loss costs nothing. Your account level opens the higher stages.</div>`
+    + cards.map(([t,nm,d])=>{ const rl=provGate(t,1), locked=playerLevel()<rl, st=provState(t).stage|0, nx=st+1;
+      const nextLock=(!locked&&nx<=PROV_STAGES&&playerLevel()<provGate(t,nx))?` · Stage ${nx} 🔒 Lv ${provGate(t,nx)}`:'';
+      return `<div data-prov="${t}" class="provRow${locked?' locked':''}" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;opacity:${locked?.65:1}">
+      <img class="provIc" src="${PROV_ART[t]}" alt=""><div style="flex:1"><div class="provNm">${nm}</div><div style="font-size:10px;color:#8b98a9">${d} · Stage ${st}/${PROV_STAGES} · ${provPlaysLeft(t)}/${PROV_PLAYS} plays left${nextLock}</div></div>
       <div style="font-size:10px;${locked?'color:#c9a35e':'color:#5ee89b'};white-space:nowrap">${locked?'🔒 Lv '+rl:'Open ▸'}</div></div>`; }).join(''));
-  ov.querySelector('#ipX').onclick=()=>ov.remove();
-  ov.querySelectorAll('[data-prov]').forEach(el=>el.onclick=()=>{ const t=el.dataset.prov, rl=t==='rune'?15:10; if(playerLevel()<rl){ bannerMsg('🔒 '+(t==='rune'?'Rune':'Gold')+' Province unlocks at level '+rl+'.'); return; } ov.remove(); openProvince(t); });
+    ov.querySelector('#ipX').onclick=()=>ov.remove();
+    ov.querySelectorAll('[data-prov]').forEach(el=>el.onclick=()=>{ const t=el.dataset.prov, rl=provGate(t,1); if(playerLevel()<rl){ bannerMsg('🔒 '+PROV_META[t].nm+' unlocks at account level '+rl+'.'); return; } ov.remove(); openProvince(t); });
+  }
+  paint(); provSync().then(r=>{ if(r && document.body.contains(ov)) paint(); });
 }
-function openProvince(t){ const meta=t==='gold'?{ic:'<img class="provIcS" src="'+PROV_ART.gold+'" alt="">',nm:'Gold Province',col:'#ffd45e'}:{ic:'<img class="provIcS" src="'+PROV_ART.rune+'" alt="">',nm:'Drill Province',col:'#8fd0ff'}; const ov=isleOverlay(); ov.classList.add('provScene');
-  function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), next=p.stage+1, maxed=p.stage>=PROV_STAGES, req=maxed?0:provReqPower(t,next), pow=battlePow(), canGo=!maxed&&pow>=req&&left>0;
+function openProvince(t){ const meta={ic:'<img class="provIcS" src="'+PROV_ART[t==='rune'?'rune':'gold']+'" alt="">', nm:PROV_META[t].nm, col:PROV_META[t].col}; const ov=isleOverlay(); ov.classList.add('provScene');
+  let busy=false;
+  function render(msg,mc){ const p=provState(t), left=provPlaysLeft(t), cleared=p.stage|0, next=cleared+1, maxed=cleared>=PROV_STAGES, lv=playerLevel(), pow=battlePow();
+    const gate=maxed?0:provGate(t,next), lockedLv=!maxed&&lv<gate, dev=(typeof DEV!=='undefined'&&DEV.on), bk=maxed?'':provBossKey(t,next);
+    const canGo=!maxed&&(!lockedLv||dev)&&(left>0||dev)&&!!ACC.token;
     ov.innerHTML=isleCard(`<div class="provHero sm" style="background-image:url('${PROV_ART.scene}')"><div class="provTtl">${meta.ic} ${meta.nm}</div><button class="isleX" id="pvX" aria-label="Close">✕</button></div>
-      <div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:10px">Cleared <b style="color:${meta.col}">Stage ${p.stage}/${PROV_STAGES}</b> · Plays today <b style="color:#ffd45e">${left}/${PROV_PLAYS}</b> · Your power ⚔ ${pow.toLocaleString()}</div>
+      <div style="text-align:center;font-size:12px;color:#8b98a9;margin-bottom:10px">Cleared <b style="color:${meta.col}">Stage ${cleared}/${PROV_STAGES}</b> · Plays today <b style="color:#ffd45e">${left}/${PROV_PLAYS}</b> · Lv <b style="color:#9fe6ff">${lv}</b> · ⚔ ${pow.toLocaleString()}</div>
       ${maxed?`<div style="text-align:center;color:#5ee89b;font-weight:800;margin:12px 0">★ All ${PROV_STAGES} stages cleared! Sweep for daily rewards.</div>`:
         `<div class="provBox" style="padding:11px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:3px">⚔ Challenge Stage ${next}</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enemy power ⚔ <b style="color:${pow>=req?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b> · Reward ${provRewardStr(t,next)}</div>
-          <button class="btn" id="pvGo" style="width:100%" ${canGo?'':'disabled'}>${left<=0?'No plays left today':(pow<req?'Squad too weak':'⚔ Challenge (1 play)')}</button></div>`}
-      ${p.stage>0?`<div class="provBox" style="padding:11px">
-          <div style="font-weight:800;font-size:12px;margin-bottom:3px">🔁 Sweep Stage ${p.stage}</div>
-          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Instantly re-earn your best cleared reward: ${provRewardStr(t,p.stage)}</div>
-          <button class="btn secondary" id="pvSweep" style="width:100%" ${left>0?'':'disabled'}>${left>0?'🔁 Sweep (1 play)':'No plays left today'}</button></div>`:''}
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px"><span title="${escapeHTML(provBossName(bk,true))}">👑 <b style="color:#ffd8a8">${escapeHTML(provBossName(bk))}</b></span> · 3 waves · ${provRewardHTML(t,next)}${lockedLv?` · <b style="color:#ff8b8b">opens at Lv ${gate}</b>`:''}</div>
+          <button class="btn" id="pvGo" style="width:100%" ${canGo?'':'disabled'}>${!ACC.token?'Sign in to battle':(lockedLv&&!dev?'🔒 Lv '+gate:(left<=0&&!dev?'No plays left today':'⚔ Challenge'))}</button></div>`}
+      ${cleared>0?`<div class="provBox" style="padding:11px">
+          <div style="font-weight:800;font-size:12px;margin-bottom:3px">🔁 Sweep Stage ${cleared}</div>
+          <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Re-earn your best cleared reward: ${provRewardHTML(t,cleared)}</div>
+          <button class="btn secondary" id="pvSweep" style="width:100%" ${(left>0||dev)&&ACC.token?'':'disabled'}>${!ACC.token?'Sign in to sweep':(left>0||dev?'🔁 Sweep (1 play)':'No plays left today')}</button></div>`:''}
       <div id="pvMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#pvX').onclick=()=>ov.remove();
-    const go=ov.querySelector('#pvGo'); if(go) go.onclick=()=>{ const r=provChallenge(t); render(r.win?('✔ Stage '+r.stage+' cleared! '+r.reward):(r.weak?'Squad too weak — level up and return.':'No plays left today.'), r.win?'#5ee89b':'#ff8b8b'); };
-    const sw=ov.querySelector('#pvSweep'); if(sw) sw.onclick=()=>{ const r=provSweep(t); render(r.swept?('🔁 Swept Stage '+r.stage+'! '+r.reward):'No plays left today.', r.swept?'#5ee89b':'#ff8b8b'); };
+    const go=ov.querySelector('#pvGo'); if(go) go.onclick=()=>{ provChallenge(t); };
+    const sw=ov.querySelector('#pvSweep'); if(sw) sw.onclick=async()=>{ if(busy) return; busy=true; sw.disabled=true;
+      try{ const r=await provSweep(t);
+        render(r&&r.ok?('🔁 Swept Stage '+r.stage+'! '+provReceiptHTML(t,r.reward,true)):escapeHTML(String((r&&r.error)||'No plays left today.')), r&&r.ok?'#5ee89b':'#ff8b8b'); }
+      finally{ busy=false; } };
   }
-  render();
+  render(); provSync().then(r=>{ if(r && document.body.contains(ov) && !busy) render(); });
 }
 
 /* ---- THE GAUNTLET: a roguelike run. Auto-resolve waves; pick a boon every 3 waves; run ends on a loss. 3 runs/day. ---- */
@@ -19529,7 +19647,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
     return; }
-  el.innerHTML=`${CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
+  el.innerHTML=`${CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -19538,7 +19656,7 @@ function updateBattleBanner(){ const bb=document.getElementById('battleBanner');
      The clock now counts the limit the fight actually uses. */
   const lim=(CUR&&CUR.mode==='emberdraft'&&typeof ED_FIGHT_LIMIT==='number')?ED_FIGHT_LIMIT:BATTLE_TIME_LIMIT;
   const rem=Math.max(0,lim-battleTime), m=Math.floor(rem/60), s=Math.floor(rem%60);
-  const t=document.getElementById('bbTime'); if(t){ const ramp=edAtkRamp(); t.textContent=m+':'+(s<10?'0'+s:s)+(ramp>1.001?' ⚡+'+Math.round((ramp-1)*100)+'%':''); t.classList.toggle('low',rem<=10); }
+  const t=document.getElementById('bbTime'); if(t){ const ramp=(typeof edAtkRamp==='function')?edAtkRamp():1; /* v663: guarded, see doAtk */ t.textContent=m+':'+(s<10?'0'+s:s)+(ramp>1.001?' ⚡+'+Math.round((ramp-1)*100)+'%':''); t.classList.toggle('low',rem<=10); }
   const total=Math.max(1,chapterWaves||1), cur=Math.min(total,(waveIdx||0)+1);
   const pr=document.getElementById('bbProg'); if(pr) pr.textContent=cur+'/'+total; }
 // Victory screen extras: 3 gold stars + the surviving squad as hero cards (level + star badges)
@@ -19967,7 +20085,7 @@ document.addEventListener('focusout',()=>{ setTimeout(_zoomWatch,700); });
 { const _hmi=document.getElementById('heroesMenuIcon'); if(_hmi) setHead(_hmi,'konwu'); }   // v657: the Heroes entry is a painted medallion now
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
-document.getElementById('menuBack').onclick=()=>show(menuReturn);
+document.getElementById('menuBack').onclick=()=>{ if(CUR&&CUR.mode==='province'&&CUR.prov&&teamCtx==='campaign'){ provBackToCard(CUR.prov.t); return; } show(menuReturn); };   /* v663: Back from the province squad screen reopens its card */
 let _startBusy=false;
 function _startCtx(){ return CUR.mode+':'+(CUR.portal||'normal')+':'+(CUR.node|0)+':'+teamCtx; }
 document.getElementById('startBtn').onclick=async()=>{
@@ -19996,6 +20114,7 @@ async function _startBtnGo(_ctx){
   syncActiveSquad();
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
+  if(CUR.mode==='province'){ if(!G.team.length)return; await provLaunch(_ctx); return; }   /* v663: Training Province - server-frozen squad + seed + authored waves */
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; }
   if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node,CUR.portal)) return;
     // AUDIT C2: the campaign is server-resolved from AUTHORED encounters — the server locks the
@@ -20030,9 +20149,12 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   try{ if(_actStreamOn){ _actSeq++; actSend({seq:_actSeq, kind:'abandon'}); } }catch(e){}
   _actStreamOn=false;
   const _wasCamp=(CUR&&CUR.mode==='campaign'), _portal=(CUR&&CUR.portal)||'normal';
+  if(CUR&&CUR.mode==='province'){ const _pt=(CUR.prov&&CUR.prov.t)||'gold'; CUR.attemptId=null; clearBattle(); provBackToCard(_pt); return; }   /* v663: quitting a province fight spends nothing and lands back on its card */
   clearBattle();
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
-document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode; if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; }
+document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
+  if(m==='province'){ provBackToCard((CUR.prov&&CUR.prov.t)||'gold'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v663: back to the province card */
+  if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; }
   if(m==='campaign'&&window._tutReturnAfterResult){ window._tutReturnAfterResult=false; G.tutStarted=true; saveG(); show('tutorial'); return; }
   show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign');
   try{ evictUnusedArt(G.team); }catch(e){} };   // game-speed/memory fix, 17 Sep 2026: leaving battle back to a menu/map
@@ -20212,7 +20334,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789848007000';
+const BUILD_ID = '1789849207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
