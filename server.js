@@ -1136,14 +1136,14 @@ function idem(key, fn){ DB.idem=DB.idem||{}; const now=Date.now();
    is seeded by the floor number alone, so every attempt at a floor faces exactly the same
    monsters — a floor is learnable and beatable by practice, never by reroll luck. */
 const VAULT_MONSTERS={
-  'bug':{hp:110,dmg:18,role:'Mage'}, 'creep':{hp:155,dmg:16,role:'Warrior'}, 'dyrmen':{hp:155,dmg:16,role:'Warrior'},
-  'fire boar':{hp:155,dmg:16,role:'Warrior'}, 'fire skeleton':{hp:155,dmg:16,role:'Warrior'}, 'garbage mob':{hp:250,dmg:13,role:'Tank'},
-  'ghoul fiend':{hp:155,dmg:16,role:'Warrior'}, 'glitch phantom':{hp:110,dmg:18,role:'Mage'}, 'golem':{hp:250,dmg:13,role:'Tank'},
-  'knat':{hp:110,dmg:18,role:'Mage'}, 'lost soulss':{hp:110,dmg:18,role:'Mage'}, 'mimic chest':{hp:250,dmg:13,role:'Tank'},
-  'orc':{hp:155,dmg:16,role:'Warrior'}, 'raven':{hp:110,dmg:18,role:'Mage'}, 'rock golem':{hp:250,dmg:13,role:'Tank'},
-  'shadow ghoul':{hp:155,dmg:16,role:'Warrior'}, 'skeletal warrior':{hp:155,dmg:16,role:'Warrior'}, 'slime':{hp:155,dmg:16,role:'Warrior'},
-  'slug beast':{hp:220,dmg:18,role:'Warrior'}, 'tin beast':{hp:250,dmg:13,role:'Tank'}, 'turtle':{hp:250,dmg:13,role:'Tank'},
-  'whisp candle':{hp:110,dmg:18,role:'Mage'} ,
+  'skarrn':{hp:110,dmg:18,role:'Mage'}, 'skulk':{hp:155,dmg:16,role:'Warrior'}, 'volthex':{hp:155,dmg:16,role:'Warrior'},
+  'cindertusk':{hp:155,dmg:16,role:'Warrior'}, 'ashen':{hp:155,dmg:16,role:'Warrior'}, 'sludgemaw':{hp:250,dmg:13,role:'Tank'},
+  'gnashul':{hp:155,dmg:16,role:'Warrior'}, 'bitwraith':{hp:110,dmg:18,role:'Mage'}, 'grundle':{hp:250,dmg:13,role:'Tank'},
+  'vexmite':{hp:110,dmg:18,role:'Mage'}, 'lost soul':{hp:110,dmg:18,role:'Mage'}, 'trapjaw':{hp:250,dmg:13,role:'Tank'},
+  'grushak':{hp:155,dmg:16,role:'Warrior'}, 'blackquill':{hp:110,dmg:18,role:'Mage'}, 'granith':{hp:250,dmg:13,role:'Tank'},
+  'nightgloom':{hp:155,dmg:16,role:'Warrior'}, 'mordath':{hp:155,dmg:16,role:'Warrior'}, 'ooznik':{hp:155,dmg:16,role:'Warrior'},
+  'bilewretch':{hp:220,dmg:18,role:'Warrior'}, 'rustclank':{hp:250,dmg:13,role:'Tank'}, 'shellwark':{hp:250,dmg:13,role:'Tank'},
+  'whisp':{hp:110,dmg:18,role:'Mage'} ,
   /* v337 — the 28 new monsters (v331 roster) */
   'cinder skulk':{hp:155,dmg:16,role:'Warrior'},
   'furnace gnawer':{hp:155,dmg:16,role:'Warrior'},
@@ -1174,9 +1174,9 @@ const VAULT_MONSTERS={
   'frostjaw troll':{hp:250,dmg:13,role:'Tank'},
   'clockwork lantern':{hp:110,dmg:18,role:'Mage'}
 };
-const VAULT_BOSSES=['ice beast','monster with fireball','nashor beast','ogre beast','water monster','water serpent'];
+const VAULT_BOSSES=['wintercrag','magmourn','voraxis','grommash','leviath','sylphice'];
 const VAULT_MIN_BATTLE_MS=+(process.env.VAULT_MIN_BATTLE_MS||6000);   // a real two-wave fight can't finish faster than this
-const VAULT_BOSS_STATS={'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26},
+const VAULT_BOSS_STATS={'wintercrag':{hp:300,dmg:26},'magmourn':{hp:450,dmg:26},'voraxis':{hp:300,dmg:26},'grommash':{hp:300,dmg:26},'leviath':{hp:300,dmg:26},'sylphice':{hp:300,dmg:26},
   /* v337 — the 14 new bosses: Brutes 300/26, Mages 450/26 (same archetypes as the originals) */
   'vharok':{hp:300,dmg:26},'barrowmaw':{hp:300,dmg:26},'asterion':{hp:300,dmg:26},'maelvara':{hp:300,dmg:26},'brukk':{hp:300,dmg:26},'irix':{hp:300,dmg:26},'kharos':{hp:300,dmg:26},'miregor':{hp:300,dmg:26},'orryx':{hp:300,dmg:26},'nameless admiral':{hp:300,dmg:26},
   'nerissa':{hp:450,dmg:26},'nymira':{hp:450,dmg:26},'sable vesper':{hp:450,dmg:26},'thorneveil':{hp:450,dmg:26}};
@@ -2644,7 +2644,7 @@ async function api(req,res,url){
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
     const b=await body(req); const text=(b.text||'').toString().slice(0,2000); if(!text.trim()) return send(res,400,{error:'Report is empty'});
-    DB.reports=DB.reports||[]; DB.reports.push({ id:uid(), name:me.name, kind:(b.kind==='balance'?'balance':'bug'), text, meta:(b.meta||'').toString().slice(0,400), t:Date.now(), resolved:false });
+    DB.reports=DB.reports||[]; DB.reports.push({ id:uid(), name:me.name, kind:(b.kind==='balance'?'balance':'skarrn'), text, meta:(b.meta||'').toString().slice(0,400), t:Date.now(), resolved:false });
     if(DB.reports.length>1000) DB.reports=DB.reports.slice(-1000); writeDB(); return send(res,200,{ok:true}); }
   if(p==='/api/admin/reports'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const reports=(DB.reports||[]).slice().reverse().slice(0,200); return send(res,200,{reports, count:(DB.reports||[]).length}); }
@@ -4026,7 +4026,7 @@ async function api(req,res,url){
      attempt (quitting does not refund it). A match against the AI is played in the browser, so the result route cannot
      replay it: it guards with the server-issued attempt (one claim each) and a plausible length (rounds and time).
      Multiplayer (not built yet) will add Phil's 50-diamond entry, 200 / 150 / refund prizes and its own 3 a day. */
-  if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'){
+  if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'||p==='/api/emberdraft/round'){
     if(!me) return send(res,401,{error:'auth'});
     if(req.method!=='POST') return send(res,404,{error:'emberdraft'});
     const led=ensureLedger(me); const b=await body(req);
@@ -4039,6 +4039,53 @@ async function api(req,res,url){
     const view=()=>({ left:Math.max(0,ED_FREE+ED_PACK*E.bought-E.used), used:E.used, bought:E.bought,
       nextCost: E.bought<ED_PACK_COST.length ? ED_PACK_COST[E.bought] : null, pack:ED_PACK, god });
     if(p==='/api/emberdraft/state') return send(res,200,{ok:true, edraft:view()});
+    /* v657 (Phil #5: "open question but make the proper steps to prevent cheating without invalidating what people did 100%"): ROUND
+       CHECKPOINTS. After every round the client posts {attemptId, cps:[{r, hp, alive, pl, ms}]} - the round, your health after it, the
+       players still in (you included), your place if you fell, the client's time since the match began. Unsent ones ride along with the
+       next post and with the claim (those are marked late). They are kept on the attempt; the first report of a round wins and a different
+       repeat is counted in cpConflict. No idem() / ledTx here on purpose: a checkpoint is idempotent by its round and pays nothing, and
+       both force a durable full-DB write per call (30+ a match); writeDB() batches. At most 120 rounds are kept per attempt. */
+    const edCpIngest=(att,cps,late)=>{ if(!att||!Array.isArray(cps)) return; att.cp=att.cp||{}; const now=Date.now();
+      for(const c of cps.slice(0,80)){ if(!c||typeof c!=='object') continue; const r=c.r|0; if(r<1||r>200) continue;
+        const v={ hp:Math.max(-999,Math.min(999,Math.round(+c.hp||0))), alive:Math.max(0,Math.min(8,c.alive|0)), pl:Math.max(0,Math.min(8,c.pl|0)), ms:Math.max(0,Math.min(1e9,Math.round(+c.ms||0))) };
+        const o=att.cp[r]; if(o){ if(o.hp!==v.hp||o.alive!==v.alive||o.pl!==v.pl) att.cpConflict=(att.cpConflict|0)+1; continue; }
+        if(Object.keys(att.cp).length>=120) break;
+        v.at=now; if(late) v.late=1; att.cp[r]=v; } };
+    /* What a claim may not contradict. Every check is something an honest client can never produce (it sends the same numbers it plays by),
+       so a flag is evidence, and a missing checkpoint is never held against anyone: with none, today's rules decide alone.
+       FLAG - pay as claimed, and record the reasons on the attempt (att.flag), in a ledger entry (emberdraft:flag) and as a dev-panel
+       integrity report for a human to judge: health above 100 or rising between rounds; players-alive rising; a fallen round without a
+       place or a place better than the players left allow; a round reported after your knockout; a round reported twice with different
+       numbers; a round reached sooner than ED_CP_MIN_MS a round after the server-side start; a claim at a round before one already
+       reported; a claimed place worse than the players left at your last report.
+       REFUSE THE DIFFERENCE (conclusive - pay the place the attempt's own reports prove, and flag it): a claim better than the knockout
+       place a round report recorded; a claim better than the players still standing at a report from the claim's own round or later
+       (you can't be 1st at round 30 when round 30 reported 3 players in). */
+    const ED_CP_MIN_MS=4000;
+    const edCheckClaim=(att,place,rounds)=>{ const cp=att.cp||{}, rs=Object.keys(cp).map(Number).filter(r=>r>0).sort((a,b)=>a-b), flags=[]; let floor=0, prev=null, ko=null, fast=null;
+      for(const r of rs){ const c=cp[r];
+        if(c.hp>100) flags.push('round '+r+' reported '+c.hp+' health (the start is 100)');
+        if(c.hp<=0 && !c.pl) flags.push('round '+r+' reported '+c.hp+' health but no knockout');
+        if(c.pl && c.pl<c.alive+1) flags.push('round '+r+' reported place '+c.pl+' with '+c.alive+' players still in');
+        if(prev){ if(c.hp>prev.hp) flags.push('health rose '+prev.hp+' -> '+c.hp+' (round '+prev.r+' -> '+r+')');
+          if(c.alive>prev.alive) flags.push('players in rose '+prev.alive+' -> '+c.alive+' (round '+prev.r+' -> '+r+')'); }
+        if(ko) flags.push('round '+r+' reported after the knockout in round '+ko.r);
+        if(c.at-att.startedAt < r*ED_CP_MIN_MS){ if(!fast) fast={a:r, s:Math.round((c.at-att.startedAt)/1000)}; fast.b=r; }
+        if(c.pl && !ko) ko=Object.assign({r},c);
+        prev=Object.assign({r},c); }
+      if(fast) flags.push('round'+(fast.b>fast.a?'s '+fast.a+'-'+fast.b:' '+fast.a)+' reported '+fast.s+' s after the start (under '+(ED_CP_MIN_MS/1000)+' s a round)');
+      if(att.cpConflict) flags.push(att.cpConflict+' round report(s) repeated with different numbers');
+      if(ko){ if(place<ko.pl){ floor=ko.pl; flags.push('claimed place '+place+' but round '+ko.r+' reported the knockout in place '+ko.pl); } }
+      else if(prev){
+        if(rounds<=prev.r && place<prev.alive){ floor=prev.alive; flags.push('claimed place '+place+' at round '+rounds+' but round '+prev.r+' reported '+prev.alive+' players still in'); }
+        else if(rounds<prev.r) flags.push('claimed round '+rounds+' but round '+prev.r+' was already reported');
+        if(place>prev.alive) flags.push('claimed place '+place+' but only '+prev.alive+' players (you included) were left at round '+prev.r); }
+      return { flags:flags.slice(0,20), floor }; };
+    if(p==='/api/emberdraft/round'){ const att=E.att;
+      if(!att||att.id!==String(b.attemptId||'')) return send(res,400,{ok:false,error:'No Emberdraft match in progress.'});
+      if(!att.claimed){ edCpIngest(att,b.cps,false); writeDB(); }
+      const have=Object.keys(att.cp||{}).map(Number).reduce((a,x)=>Math.max(a,x),0);
+      return send(res,200,{ok:true,have}); }
     const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/emberdraft/buy'){ const out=idem(me.id+':edbuy:'+reqId,()=>{
         if(E.bought>=ED_PACK_COST.length) return {ok:false,error:'No more Emberdraft attempts can be bought today.',edraft:view()};
@@ -4057,12 +4104,19 @@ async function api(req,res,url){
     const out=idem(me.id+':edresult:'+reqId,()=>{
       const att=E.att; if(!att||att.id!==String(b.attemptId||'')) return {ok:false,error:'No Emberdraft match in progress.'};
       if(att.claimed) return {ok:false,error:'This match was already claimed.'};
-      const place=b.place|0, rounds=b.rounds|0;
-      if(place<1||place>8) return {ok:false,error:'Bad placement.'};
+      const claimed=b.place|0, rounds=b.rounds|0;
+      if(claimed<1||claimed>8) return {ok:false,error:'Bad placement.'};
       att.claimed=true;
       if(att.god){ writeDB(); return {ok:true, stamina:0, note:'God Mode match - no reward.', ledger:ledgerView(me)}; }   // v654 (Phil: "God mode should give no reward")
+      /* v657 (Phil #5): the claim against this attempt's round checkpoints (edCheckClaim). `place` is what gets paid: the claim, or the
+         worse place the attempt's own reports prove. */
+      edCpIngest(att,b.cps,true); const chk=edCheckClaim(att,claimed,rounds), place=Math.max(claimed, chk.floor|0), ORD=['','1st','2nd','3rd','4th','5th','6th','7th','8th'];
+      let fnote=''; if(chk.flags.length){ att.flag={ reasons:chk.flags, claimed, paid:place, rounds, t:Date.now() };
+        ledTx(me,'emberdraft:flag',{ stamina:0, claimed, paid:place, why:chk.flags.slice(0,4).join(' | ').slice(0,300) });
+        devReport(me,'emberdraft-flag',claimed,'Emberdraft attempt '+att.id+': claimed '+ORD[claimed]+(place!==claimed?', paid as '+ORD[place]:'')+' at round '+rounds+' - '+chk.flags.join('; '));
+        if(place!==claimed) fnote="Paid for "+ORD[place]+" place: this match's own round reports show you finished "+ORD[place]+"."; }
       const stam=ED_STAM[place]||0;
-      if(!stam) { writeDB(); return {ok:true, stamina:0, note:'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
+      if(!stam) { writeDB(); return {ok:true, stamina:0, note:fnote||'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
       /* v644 (bug scan): the placement is the client's word, so a placement must come with a plausible match length. Seven AIs at
          100 health can't be knocked out early: in a rig match with an unbeatable player the first AI fell at round 18, three at
          24, one at 25 and one at 30. Floors sit well below that (a strong player speeds it up a little); a 1st place needs 16 rounds
@@ -4072,7 +4126,7 @@ async function api(req,res,url){
       ledStamRegen(led); const _before=led.stam.v; led.stam.v=Math.min(999,led.stam.v+stam); const got=led.stam.v-_before;   // v646: report and record what was really added (the 999 cap)
       ledTx(me,'emberdraft:place'+place,{stamina:got});
       writeDB();
-      return { ok:true, stamina:got, note: got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : '', edraft:view(), ledger:ledgerView(me) }; });
+      return { ok:true, stamina:got, note: [fnote, got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : ''].filter(Boolean).join(' '), edraft:view(), ledger:ledgerView(me) }; });
     return send(res, out.ok===false?400:200, out); }
   /* =================== v250 (audit P1): PER-LOOP SERVER AUTHORITIES ===================
      Elite stages, Tower/Gauntlet/legacy-dungeon trials, quests, market fragment offers, and the

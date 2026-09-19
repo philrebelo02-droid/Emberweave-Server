@@ -34,16 +34,16 @@ function heroUnit(h,L,tf){
   return u;
 }
 const MON={
-  'bug':{hp:110,dmg:18,role:'Mage'},'creep':{hp:155,dmg:16,role:'Warrior'},'dyrmen':{hp:155,dmg:16,role:'Warrior'},
-  'fire boar':{hp:155,dmg:16,role:'Warrior'},'fire skeleton':{hp:155,dmg:16,role:'Warrior'},'garbage mob':{hp:250,dmg:13,role:'Tank'},
-  'ghoul fiend':{hp:155,dmg:16,role:'Warrior'},'glitch phantom':{hp:110,dmg:18,role:'Mage'},'golem':{hp:250,dmg:13,role:'Tank'},
-  'knat':{hp:110,dmg:18,role:'Mage'},'lost soulss':{hp:110,dmg:18,role:'Mage'},'mimic chest':{hp:250,dmg:13,role:'Tank'},
-  'orc':{hp:155,dmg:16,role:'Warrior'},'raven':{hp:110,dmg:18,role:'Mage'},'rock golem':{hp:250,dmg:13,role:'Tank'},
-  'shadow ghoul':{hp:155,dmg:16,role:'Warrior'},'skeletal warrior':{hp:155,dmg:16,role:'Warrior'},'slime':{hp:155,dmg:16,role:'Warrior'},
-  'slug beast':{hp:220,dmg:18,role:'Warrior'},'tin beast':{hp:250,dmg:13,role:'Tank'},'turtle':{hp:250,dmg:13,role:'Tank'},
-  'whisp candle':{hp:110,dmg:18,role:'Mage'},
-  'ice beast':{hp:300,dmg:26},'monster with fireball':{hp:450,dmg:26},'nashor beast':{hp:300,dmg:26},
-  'ogre beast':{hp:300,dmg:26},'water monster':{hp:300,dmg:26},'water serpent':{hp:300,dmg:26} };
+  'skarrn':{hp:110,dmg:18,role:'Mage'},'skulk':{hp:155,dmg:16,role:'Warrior'},'volthex':{hp:155,dmg:16,role:'Warrior'},
+  'cindertusk':{hp:155,dmg:16,role:'Warrior'},'ashen':{hp:155,dmg:16,role:'Warrior'},'sludgemaw':{hp:250,dmg:13,role:'Tank'},
+  'gnashul':{hp:155,dmg:16,role:'Warrior'},'bitwraith':{hp:110,dmg:18,role:'Mage'},'grundle':{hp:250,dmg:13,role:'Tank'},
+  'vexmite':{hp:110,dmg:18,role:'Mage'},'lost soul':{hp:110,dmg:18,role:'Mage'},'trapjaw':{hp:250,dmg:13,role:'Tank'},
+  'grushak':{hp:155,dmg:16,role:'Warrior'},'blackquill':{hp:110,dmg:18,role:'Mage'},'granith':{hp:250,dmg:13,role:'Tank'},
+  'nightgloom':{hp:155,dmg:16,role:'Warrior'},'mordath':{hp:155,dmg:16,role:'Warrior'},'ooznik':{hp:155,dmg:16,role:'Warrior'},
+  'bilewretch':{hp:220,dmg:18,role:'Warrior'},'rustclank':{hp:250,dmg:13,role:'Tank'},'shellwark':{hp:250,dmg:13,role:'Tank'},
+  'whisp':{hp:110,dmg:18,role:'Mage'},
+  'wintercrag':{hp:300,dmg:26},'magmourn':{hp:450,dmg:26},'voraxis':{hp:300,dmg:26},
+  'grommash':{hp:300,dmg:26},'leviath':{hp:300,dmg:26},'sylphice':{hp:300,dmg:26} };
 function monUnit(m){
   const base=MON[m.key]||{hp:200,dmg:18};
   const sc=1+0.05*((m.lvl|0||1)-1);

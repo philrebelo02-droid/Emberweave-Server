@@ -436,7 +436,7 @@ function buildLanes(CAMP_ENC, ch, slot){
         const lvl = tut ? TUTORIAL_MONSTER_LVL : m.lvl;
         /* 17 Sep, SECOND real defect in the same proof run - the level clamp above was not enough.
            `soft` picks the chapter's weakest THIRD by hpMul*dmgMul, but "weakest in chapter 1" is not
-           "weak" in absolute terms - the real authored data here (slime, Bonus 1-3) is hpMul=1.09,
+           "weak" in absolute terms - the real authored data here (Ooznik, Bonus 1-3) is hpMul=1.09,
            dmgMul=1.17, i.e. STRONGER than baseline, because chapter 1's own difficulty curve already
            climbs past 1x within the chapter. Fought one-hero-per-lane, with no reinforcement until
            the first boon and no healer support, that killed a fresh level-1 starter's lane before

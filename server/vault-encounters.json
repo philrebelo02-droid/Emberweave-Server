@@ -10,7 +10,7 @@
    "waves": [
     [
      {
-      "key": "knat",
+      "key": "vexmite",
       "lvl": 3,
       "hpMul": 9.8997,
       "dmgMul": 4.2636
@@ -22,13 +22,13 @@
       "dmgMul": 4.2636
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 3,
       "hpMul": 9.8997,
       "dmgMul": 4.2636
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 3,
       "hpMul": 9.8997,
       "dmgMul": 4.2636
@@ -36,31 +36,31 @@
     ],
     [
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 3,
       "hpMul": 11.5114,
       "dmgMul": 4.9577
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 3,
       "hpMul": 11.5114,
       "dmgMul": 4.9577
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 3,
       "hpMul": 11.5114,
       "dmgMul": 4.9577
      },
      {
-      "key": "knat",
+      "key": "vexmite",
       "lvl": 3,
       "hpMul": 11.5114,
       "dmgMul": 4.9577
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 3,
       "hpMul": 11.5114,
       "dmgMul": 4.9577
@@ -91,7 +91,7 @@
    "waves": [
     [
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 3,
       "hpMul": 7.1131,
       "dmgMul": 3.4649
@@ -103,13 +103,13 @@
       "dmgMul": 3.4649
      },
      {
-      "key": "knat",
+      "key": "vexmite",
       "lvl": 3,
       "hpMul": 7.1131,
       "dmgMul": 3.4649
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 3,
       "hpMul": 7.1131,
       "dmgMul": 3.4649
@@ -117,13 +117,13 @@
     ],
     [
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 3,
       "hpMul": 8.2702,
       "dmgMul": 4.0315
      },
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 3,
       "hpMul": 8.2702,
       "dmgMul": 4.0315
@@ -135,7 +135,7 @@
       "dmgMul": 4.0315
      },
      {
-      "key": "knat",
+      "key": "vexmite",
       "lvl": 3,
       "hpMul": 8.2702,
       "dmgMul": 4.0315
@@ -172,7 +172,7 @@
    "waves": [
     [
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 4,
       "hpMul": 8.1206,
       "dmgMul": 3.8917
@@ -190,7 +190,7 @@
       "dmgMul": 3.8917
      },
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 4,
       "hpMul": 8.1206,
       "dmgMul": 3.8917
@@ -198,31 +198,31 @@
     ],
     [
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 4,
       "hpMul": 9.4411,
       "dmgMul": 4.525
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 4,
       "hpMul": 9.4411,
       "dmgMul": 4.525
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 4,
       "hpMul": 9.4411,
       "dmgMul": 4.525
      },
      {
-      "key": "knat",
+      "key": "vexmite",
       "lvl": 4,
       "hpMul": 9.4411,
       "dmgMul": 4.525
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 4,
       "hpMul": 9.4411,
       "dmgMul": 4.525
@@ -253,13 +253,13 @@
    "waves": [
     [
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 4,
       "hpMul": 13.4175,
       "dmgMul": 5.6459
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 4,
       "hpMul": 13.4175,
       "dmgMul": 5.6459
@@ -271,7 +271,7 @@
       "dmgMul": 5.6459
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 4,
       "hpMul": 13.4175,
       "dmgMul": 5.6459
@@ -285,13 +285,13 @@
       "dmgMul": 6.5681
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 4,
       "hpMul": 15.6122,
       "dmgMul": 6.5681
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 4,
       "hpMul": 15.6122,
       "dmgMul": 6.5681
@@ -303,7 +303,7 @@
       "dmgMul": 6.5681
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 4,
       "hpMul": 15.6122,
       "dmgMul": 6.5681
@@ -334,13 +334,13 @@
    "waves": [
     [
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 5,
       "hpMul": 0.9641,
       "dmgMul": 0.965
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 5,
       "hpMul": 0.9641,
       "dmgMul": 0.965
@@ -352,7 +352,7 @@
       "dmgMul": 0.965
      },
      {
-      "key": "knat",
+      "key": "vexmite",
       "lvl": 5,
       "hpMul": 0.9641,
       "dmgMul": 0.965
@@ -360,19 +360,19 @@
     ],
     [
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 5,
       "hpMul": 1.205,
       "dmgMul": 1.2065
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 5,
       "hpMul": 1.205,
       "dmgMul": 1.2065
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 5,
       "hpMul": 1.205,
       "dmgMul": 1.2065
@@ -384,7 +384,7 @@
       "dmgMul": 1.2065
      },
      {
-      "key": "ogre beast",
+      "key": "grommash",
       "lvl": 8,
       "hpMul": 9.3532,
       "dmgMul": 5.2011,
@@ -422,19 +422,19 @@
    "waves": [
     [
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 6,
       "hpMul": 10.2895,
       "dmgMul": 4.8686
      },
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 6,
       "hpMul": 10.2895,
       "dmgMul": 4.8686
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 6,
       "hpMul": 10.2895,
       "dmgMul": 4.8686
@@ -448,13 +448,13 @@
     ],
     [
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 6,
       "hpMul": 11.9587,
       "dmgMul": 5.6633
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 6,
       "hpMul": 11.9587,
       "dmgMul": 5.6633
@@ -472,7 +472,7 @@
       "dmgMul": 5.6633
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 6,
       "hpMul": 11.9587,
       "dmgMul": 5.6633
@@ -509,13 +509,13 @@
       "dmgMul": 5.9314
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 6,
       "hpMul": 13.2963,
       "dmgMul": 5.9314
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 6,
       "hpMul": 13.2963,
       "dmgMul": 5.9314
@@ -529,7 +529,7 @@
     ],
     [
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 6,
       "hpMul": 15.4523,
       "dmgMul": 6.8958
@@ -541,19 +541,19 @@
       "dmgMul": 6.8958
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 6,
       "hpMul": 15.4523,
       "dmgMul": 6.8958
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 6,
       "hpMul": 15.4523,
       "dmgMul": 6.8958
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 6,
       "hpMul": 15.4523,
       "dmgMul": 6.8958
@@ -584,7 +584,7 @@
    "waves": [
     [
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 7,
       "hpMul": 11.0672,
       "dmgMul": 5.3007
@@ -596,13 +596,13 @@
       "dmgMul": 5.3007
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 7,
       "hpMul": 11.0672,
       "dmgMul": 5.3007
      },
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 7,
       "hpMul": 11.0672,
       "dmgMul": 5.3007
@@ -616,7 +616,7 @@
       "dmgMul": 6.1658
      },
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 7,
       "hpMul": 12.8707,
       "dmgMul": 6.1658
@@ -628,13 +628,13 @@
       "dmgMul": 6.1658
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 7,
       "hpMul": 12.8707,
       "dmgMul": 6.1658
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 7,
       "hpMul": 12.8707,
       "dmgMul": 6.1658
@@ -665,25 +665,25 @@
    "waves": [
     [
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 7,
       "hpMul": 18.6567,
       "dmgMul": 7.7644
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 7,
       "hpMul": 18.6567,
       "dmgMul": 7.7644
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 7,
       "hpMul": 18.6567,
       "dmgMul": 7.7644
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 7,
       "hpMul": 18.6567,
       "dmgMul": 7.7644
@@ -691,19 +691,19 @@
     ],
     [
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 7,
       "hpMul": 21.6955,
       "dmgMul": 9.027
      },
      {
-      "key": "bug",
+      "key": "skarrn",
       "lvl": 7,
       "hpMul": 21.6955,
       "dmgMul": 9.027
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 7,
       "hpMul": 21.6955,
       "dmgMul": 9.027
@@ -715,7 +715,7 @@
       "dmgMul": 9.027
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 7,
       "hpMul": 21.6955,
       "dmgMul": 9.027
@@ -746,19 +746,19 @@
    "waves": [
     [
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 8,
       "hpMul": 1.1875,
       "dmgMul": 1.3836
      },
      {
-      "key": "creep",
+      "key": "skulk",
       "lvl": 8,
       "hpMul": 1.1875,
       "dmgMul": 1.3836
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 8,
       "hpMul": 1.1875,
       "dmgMul": 1.3836
@@ -772,31 +772,31 @@
     ],
     [
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 8,
       "hpMul": 1.4846,
       "dmgMul": 1.7295
      },
      {
-      "key": "slime",
+      "key": "ooznik",
       "lvl": 8,
       "hpMul": 1.4846,
       "dmgMul": 1.7295
      },
      {
-      "key": "orc",
+      "key": "grushak",
       "lvl": 8,
       "hpMul": 1.4846,
       "dmgMul": 1.7295
      },
      {
-      "key": "fire boar",
+      "key": "cindertusk",
       "lvl": 8,
       "hpMul": 1.4846,
       "dmgMul": 1.7295
      },
      {
-      "key": "nashor beast",
+      "key": "voraxis",
       "lvl": 11,
       "hpMul": 11.5274,
       "dmgMul": 7.459,
@@ -840,7 +840,7 @@
       "dmgMul": 6.8879
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 9,
       "hpMul": 15.0835,
       "dmgMul": 6.8879
@@ -866,7 +866,7 @@
       "dmgMul": 8.0082
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 9,
       "hpMul": 17.549,
       "dmgMul": 8.0082
@@ -915,7 +915,7 @@
    "waves": [
     [
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 9,
       "hpMul": 18.7062,
       "dmgMul": 6.8317
@@ -941,7 +941,7 @@
     ],
     [
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 9,
       "hpMul": 21.762,
       "dmgMul": 7.9456
@@ -965,7 +965,7 @@
       "dmgMul": 7.9456
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 9,
       "hpMul": 21.762,
       "dmgMul": 7.9456
@@ -1009,13 +1009,13 @@
       "dmgMul": 6.7589
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 10,
       "hpMul": 14.1455,
       "dmgMul": 6.7589
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 10,
       "hpMul": 14.1455,
       "dmgMul": 6.7589
@@ -1035,7 +1035,7 @@
       "dmgMul": 7.8579
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 10,
       "hpMul": 16.4439,
       "dmgMul": 7.8579
@@ -1047,7 +1047,7 @@
       "dmgMul": 7.8579
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 10,
       "hpMul": 16.4439,
       "dmgMul": 7.8579
@@ -1078,7 +1078,7 @@
    "waves": [
     [
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 10,
       "hpMul": 13.0278,
       "dmgMul": 6.4583
@@ -1128,7 +1128,7 @@
       "dmgMul": 7.5108
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 10,
       "hpMul": 15.1442,
       "dmgMul": 7.5108
@@ -1177,7 +1177,7 @@
       "dmgMul": 1.206
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 11,
       "hpMul": 1.0737,
       "dmgMul": 1.206
@@ -1185,13 +1185,13 @@
     ],
     [
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 11,
       "hpMul": 1.3421,
       "dmgMul": 1.5078
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 11,
       "hpMul": 1.3421,
       "dmgMul": 1.5078
@@ -1209,7 +1209,7 @@
       "dmgMul": 1.5078
      },
      {
-      "key": "water monster",
+      "key": "leviath",
       "lvl": 14,
       "hpMul": 10.4204,
       "dmgMul": 6.501,
@@ -1253,7 +1253,7 @@
       "dmgMul": 7.8169
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 12,
       "hpMul": 16.5488,
       "dmgMul": 7.8169
@@ -1279,7 +1279,7 @@
       "dmgMul": 9.0904
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 12,
       "hpMul": 19.2458,
       "dmgMul": 9.0904
@@ -1297,7 +1297,7 @@
       "dmgMul": 9.0904
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 12,
       "hpMul": 19.2458,
       "dmgMul": 9.0904
@@ -1346,7 +1346,7 @@
       "dmgMul": 9.1887
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 12,
       "hpMul": 20.5131,
       "dmgMul": 9.1887
@@ -1360,13 +1360,13 @@
       "dmgMul": 10.6826
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 12,
       "hpMul": 23.855,
       "dmgMul": 10.6826
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 12,
       "hpMul": 23.855,
       "dmgMul": 10.6826
@@ -1409,7 +1409,7 @@
    "waves": [
     [
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 13,
       "hpMul": 22.7191,
       "dmgMul": 9.9729
@@ -1435,7 +1435,7 @@
     ],
     [
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 13,
       "hpMul": 26.4187,
       "dmgMul": 11.5972
@@ -1447,7 +1447,7 @@
       "dmgMul": 11.5972
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 13,
       "hpMul": 26.4187,
       "dmgMul": 11.5972
@@ -1459,7 +1459,7 @@
       "dmgMul": 11.5972
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 13,
       "hpMul": 26.4187,
       "dmgMul": 11.5972
@@ -1496,13 +1496,13 @@
       "dmgMul": 9.2882
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 13,
       "hpMul": 20.2155,
       "dmgMul": 9.2882
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 13,
       "hpMul": 20.2155,
       "dmgMul": 9.2882
@@ -1516,13 +1516,13 @@
     ],
     [
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 13,
       "hpMul": 23.5177,
       "dmgMul": 10.7977
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 13,
       "hpMul": 23.5177,
       "dmgMul": 10.7977
@@ -1577,7 +1577,7 @@
       "dmgMul": 1.7955
      },
      {
-      "key": "slug beast",
+      "key": "bilewretch",
       "lvl": 14,
       "hpMul": 1.4564,
       "dmgMul": 1.7955
@@ -1603,7 +1603,7 @@
       "dmgMul": 2.2446
      },
      {
-      "key": "ghoul fiend",
+      "key": "gnashul",
       "lvl": 14,
       "hpMul": 1.8205,
       "dmgMul": 2.2446
@@ -1615,13 +1615,13 @@
       "dmgMul": 2.2446
      },
      {
-      "key": "garbage mob",
+      "key": "sludgemaw",
       "lvl": 14,
       "hpMul": 1.8205,
       "dmgMul": 2.2446
      },
      {
-      "key": "monster with fireball",
+      "key": "magmourn",
       "lvl": 17,
       "hpMul": 14.1357,
       "dmgMul": 9.6809,
@@ -1659,19 +1659,19 @@
    "waves": [
     [
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 15,
       "hpMul": 19.5429,
       "dmgMul": 9.247
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 15,
       "hpMul": 19.5429,
       "dmgMul": 9.247
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 15,
       "hpMul": 19.5429,
       "dmgMul": 9.247
@@ -1691,7 +1691,7 @@
       "dmgMul": 10.7499
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 15,
       "hpMul": 22.7209,
       "dmgMul": 10.7499
@@ -1703,13 +1703,13 @@
       "dmgMul": 10.7499
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 15,
       "hpMul": 22.7209,
       "dmgMul": 10.7499
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 15,
       "hpMul": 22.7209,
       "dmgMul": 10.7499
@@ -1740,19 +1740,19 @@
    "waves": [
     [
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 15,
       "hpMul": 34.4471,
       "dmgMul": 13.8758
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 15,
       "hpMul": 34.4471,
       "dmgMul": 13.8758
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 15,
       "hpMul": 34.4471,
       "dmgMul": 13.8758
@@ -1772,7 +1772,7 @@
       "dmgMul": 16.1353
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 15,
       "hpMul": 40.0474,
       "dmgMul": 16.1353
@@ -1784,13 +1784,13 @@
       "dmgMul": 16.1353
      },
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 15,
       "hpMul": 40.0474,
       "dmgMul": 16.1353
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 15,
       "hpMul": 40.0474,
       "dmgMul": 16.1353
@@ -1839,7 +1839,7 @@
       "dmgMul": 12.7518
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 16,
       "hpMul": 30.1267,
       "dmgMul": 12.7518
@@ -1859,19 +1859,19 @@
       "dmgMul": 14.8242
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 16,
       "hpMul": 35.038,
       "dmgMul": 14.8242
      },
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 16,
       "hpMul": 35.038,
       "dmgMul": 14.8242
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 16,
       "hpMul": 35.038,
       "dmgMul": 14.8242
@@ -1902,19 +1902,19 @@
    "waves": [
     [
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 16,
       "hpMul": 28.4946,
       "dmgMul": 12.3695
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 16,
       "hpMul": 28.4946,
       "dmgMul": 12.3695
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 16,
       "hpMul": 28.4946,
       "dmgMul": 12.3695
@@ -1928,7 +1928,7 @@
     ],
     [
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 16,
       "hpMul": 33.138,
       "dmgMul": 14.3834
@@ -1952,7 +1952,7 @@
       "dmgMul": 14.3834
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 16,
       "hpMul": 33.138,
       "dmgMul": 14.3834
@@ -1983,13 +1983,13 @@
    "waves": [
     [
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 17,
       "hpMul": 2.4458,
       "dmgMul": 2.3679
      },
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 17,
       "hpMul": 2.4458,
       "dmgMul": 2.3679
@@ -2009,7 +2009,7 @@
     ],
     [
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 17,
       "hpMul": 3.0574,
       "dmgMul": 2.9605
@@ -2021,7 +2021,7 @@
       "dmgMul": 2.9605
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 17,
       "hpMul": 3.0574,
       "dmgMul": 2.9605
@@ -2033,7 +2033,7 @@
       "dmgMul": 2.9605
      },
      {
-      "key": "water serpent",
+      "key": "sylphice",
       "lvl": 20,
       "hpMul": 23.7405,
       "dmgMul": 12.7662,
@@ -2083,13 +2083,13 @@
       "dmgMul": 12.8278
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 18,
       "hpMul": 29.2997,
       "dmgMul": 12.8278
      },
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 18,
       "hpMul": 29.2997,
       "dmgMul": 12.8278
@@ -2109,7 +2109,7 @@
       "dmgMul": 14.9163
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 18,
       "hpMul": 34.0717,
       "dmgMul": 14.9163
@@ -2152,13 +2152,13 @@
    "waves": [
     [
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 18,
       "hpMul": 30.5345,
       "dmgMul": 13.3045
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 18,
       "hpMul": 30.5345,
       "dmgMul": 13.3045
@@ -2178,13 +2178,13 @@
     ],
     [
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 18,
       "hpMul": 35.4912,
       "dmgMul": 15.4735
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 18,
       "hpMul": 35.4912,
       "dmgMul": 15.4735
@@ -2196,7 +2196,7 @@
       "dmgMul": 15.4735
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 18,
       "hpMul": 35.4912,
       "dmgMul": 15.4735
@@ -2233,7 +2233,7 @@
    "waves": [
     [
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 19,
       "hpMul": 37.3529,
       "dmgMul": 15.4451
@@ -2251,7 +2251,7 @@
       "dmgMul": 15.4451
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 19,
       "hpMul": 37.3529,
       "dmgMul": 15.4451
@@ -2265,13 +2265,13 @@
       "dmgMul": 17.9594
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 19,
       "hpMul": 43.4314,
       "dmgMul": 17.9594
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 19,
       "hpMul": 43.4314,
       "dmgMul": 17.9594
@@ -2283,7 +2283,7 @@
       "dmgMul": 17.9594
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 19,
       "hpMul": 43.4314,
       "dmgMul": 17.9594
@@ -2314,19 +2314,19 @@
    "waves": [
     [
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 19,
       "hpMul": 31.9164,
       "dmgMul": 21.7454
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 19,
       "hpMul": 31.9164,
       "dmgMul": 21.7454
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 19,
       "hpMul": 31.9164,
       "dmgMul": 21.7454
@@ -2364,7 +2364,7 @@
       "dmgMul": 25.29
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 19,
       "hpMul": 37.1088,
       "dmgMul": 25.29
@@ -2409,13 +2409,13 @@
       "dmgMul": 3.306
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 20,
       "hpMul": 3.0878,
       "dmgMul": 3.306
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 20,
       "hpMul": 3.0878,
       "dmgMul": 3.306
@@ -2423,19 +2423,19 @@
     ],
     [
      {
-      "key": "dyrmen",
+      "key": "volthex",
       "lvl": 20,
       "hpMul": 3.8597,
       "dmgMul": 4.1333
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 20,
       "hpMul": 3.8597,
       "dmgMul": 4.1333
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 20,
       "hpMul": 3.8597,
       "dmgMul": 4.1333
@@ -2491,7 +2491,7 @@
       "dmgMul": 17.0598
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 21,
       "hpMul": 41.7041,
       "dmgMul": 17.0598
@@ -2503,7 +2503,7 @@
       "dmgMul": 17.0598
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 21,
       "hpMul": 41.7041,
       "dmgMul": 17.0598
@@ -2511,19 +2511,19 @@
     ],
     [
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 21,
       "hpMul": 48.502,
       "dmgMul": 19.8404
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 21,
       "hpMul": 48.502,
       "dmgMul": 19.8404
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 21,
       "hpMul": 48.502,
       "dmgMul": 19.8404
@@ -2566,13 +2566,13 @@
    "waves": [
     [
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 21,
       "hpMul": 28.9617,
       "dmgMul": 15.1621
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 21,
       "hpMul": 28.9617,
       "dmgMul": 15.1621
@@ -2584,7 +2584,7 @@
       "dmgMul": 15.1621
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 21,
       "hpMul": 28.9617,
       "dmgMul": 15.1621
@@ -2592,13 +2592,13 @@
     ],
     [
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 21,
       "hpMul": 33.6815,
       "dmgMul": 17.6295
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 21,
       "hpMul": 33.6815,
       "dmgMul": 17.6295
@@ -2655,7 +2655,7 @@
       "dmgMul": 16.7764
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 22,
       "hpMul": 33.1423,
       "dmgMul": 16.7764
@@ -2667,7 +2667,7 @@
       "dmgMul": 16.7764
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 22,
       "hpMul": 33.1423,
       "dmgMul": 16.7764
@@ -2687,7 +2687,7 @@
       "dmgMul": 19.5101
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 22,
       "hpMul": 38.5421,
       "dmgMul": 19.5101
@@ -2699,7 +2699,7 @@
       "dmgMul": 19.5101
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 22,
       "hpMul": 38.5421,
       "dmgMul": 19.5101
@@ -2738,7 +2738,7 @@
       "dmgMul": 15.7311
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 22,
       "hpMul": 36.6875,
       "dmgMul": 15.7311
@@ -2764,7 +2764,7 @@
       "dmgMul": 18.2909
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 22,
       "hpMul": 42.6634,
       "dmgMul": 18.2909
@@ -2833,7 +2833,7 @@
       "dmgMul": 3.4747
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 23,
       "hpMul": 3.807,
       "dmgMul": 3.4747
@@ -2841,13 +2841,13 @@
     ],
     [
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 23,
       "hpMul": 4.7579,
       "dmgMul": 4.3443
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 23,
       "hpMul": 4.7579,
       "dmgMul": 4.3443
@@ -2915,13 +2915,13 @@
       "dmgMul": 19.2491
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 24,
       "hpMul": 54.2451,
       "dmgMul": 19.2491
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 24,
       "hpMul": 54.2451,
       "dmgMul": 19.2491
@@ -2941,7 +2941,7 @@
       "dmgMul": 22.3811
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 24,
       "hpMul": 63.0741,
       "dmgMul": 22.3811
@@ -2953,7 +2953,7 @@
       "dmgMul": 22.3811
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 24,
       "hpMul": 63.0741,
       "dmgMul": 22.3811
@@ -2992,13 +2992,13 @@
       "dmgMul": 17.9178
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 24,
       "hpMul": 42.2306,
       "dmgMul": 17.9178
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 24,
       "hpMul": 42.2306,
       "dmgMul": 17.9178
@@ -3018,7 +3018,7 @@
       "dmgMul": 20.8368
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 24,
       "hpMul": 49.103,
       "dmgMul": 20.8368
@@ -3030,7 +3030,7 @@
       "dmgMul": 20.8368
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 24,
       "hpMul": 49.103,
       "dmgMul": 20.8368
@@ -3095,7 +3095,7 @@
     ],
     [
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 25,
       "hpMul": 38.129,
       "dmgMul": 20.5801
@@ -3119,7 +3119,7 @@
       "dmgMul": 20.5801
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 25,
       "hpMul": 38.129,
       "dmgMul": 20.5801
@@ -3152,7 +3152,7 @@
    "waves": [
     [
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 25,
       "hpMul": 43.2685,
       "dmgMul": 18.4896
@@ -3164,13 +3164,13 @@
       "dmgMul": 18.4896
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 25,
       "hpMul": 43.2685,
       "dmgMul": 18.4896
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 25,
       "hpMul": 43.2685,
       "dmgMul": 18.4896
@@ -3196,7 +3196,7 @@
       "dmgMul": 21.5014
      },
      {
-      "key": "skeletal warrior",
+      "key": "mordath",
       "lvl": 25,
       "hpMul": 50.3215,
       "dmgMul": 21.5014
@@ -3241,7 +3241,7 @@
       "dmgMul": 3.6493
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 26,
       "hpMul": 3.2354,
       "dmgMul": 3.6493
@@ -3261,7 +3261,7 @@
     ],
     [
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 26,
       "hpMul": 4.0449,
       "dmgMul": 4.5615
@@ -3279,13 +3279,13 @@
       "dmgMul": 4.5615
      },
      {
-      "key": "turtle",
+      "key": "shellwark",
       "lvl": 26,
       "hpMul": 4.0449,
       "dmgMul": 4.5615
      },
      {
-      "key": "ice beast",
+      "key": "wintercrag",
       "lvl": 29,
       "hpMul": 31.4052,
       "dmgMul": 19.6709,
@@ -3329,13 +3329,13 @@
       "dmgMul": 16.3367
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 27,
       "hpMul": 35.7483,
       "dmgMul": 16.3367
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 27,
       "hpMul": 35.7483,
       "dmgMul": 16.3367
@@ -3355,7 +3355,7 @@
       "dmgMul": 18.9976
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 27,
       "hpMul": 41.5728,
       "dmgMul": 18.9976
@@ -3367,7 +3367,7 @@
       "dmgMul": 18.9976
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 27,
       "hpMul": 41.5728,
       "dmgMul": 18.9976
@@ -3416,7 +3416,7 @@
       "dmgMul": 15.5377
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 27,
       "hpMul": 33.0055,
       "dmgMul": 15.5377
@@ -3430,19 +3430,19 @@
     ],
     [
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 27,
       "hpMul": 38.3705,
       "dmgMul": 18.0653
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 27,
       "hpMul": 38.3705,
       "dmgMul": 18.0653
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 27,
       "hpMul": 38.3705,
       "dmgMul": 18.0653
@@ -3497,7 +3497,7 @@
       "dmgMul": 14.3757
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 28,
       "hpMul": 29.3055,
       "dmgMul": 14.3757
@@ -3523,7 +3523,7 @@
       "dmgMul": 16.7169
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 28,
       "hpMul": 34.077,
       "dmgMul": 16.7169
@@ -3584,7 +3584,7 @@
       "dmgMul": 22.2213
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 28,
       "hpMul": 54.1485,
       "dmgMul": 22.2213
@@ -3610,7 +3610,7 @@
       "dmgMul": 25.8355
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 28,
       "hpMul": 62.9641,
       "dmgMul": 25.8355
@@ -3647,13 +3647,13 @@
    "waves": [
     [
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 29,
       "hpMul": 3.2953,
       "dmgMul": 3.3335
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 29,
       "hpMul": 3.2953,
       "dmgMul": 3.3335
@@ -3679,7 +3679,7 @@
       "dmgMul": 4.167
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 29,
       "hpMul": 4.1195,
       "dmgMul": 4.167
@@ -3691,7 +3691,7 @@
       "dmgMul": 4.167
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 29,
       "hpMul": 4.1195,
       "dmgMul": 4.167
@@ -3741,13 +3741,13 @@
       "dmgMul": 19.1366
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 30,
       "hpMul": 43.0684,
       "dmgMul": 19.1366
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 30,
       "hpMul": 43.0684,
       "dmgMul": 19.1366
@@ -3761,7 +3761,7 @@
     ],
     [
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 30,
       "hpMul": 50.0778,
       "dmgMul": 22.2493
@@ -3785,7 +3785,7 @@
       "dmgMul": 22.2493
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 30,
       "hpMul": 50.0778,
       "dmgMul": 22.2493
@@ -3816,7 +3816,7 @@
    "waves": [
     [
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 30,
       "hpMul": 41.1441,
       "dmgMul": 18.6292
@@ -3842,7 +3842,7 @@
     ],
     [
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 30,
       "hpMul": 47.8389,
       "dmgMul": 21.6623
@@ -3854,13 +3854,13 @@
       "dmgMul": 21.6623
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 30,
       "hpMul": 47.8389,
       "dmgMul": 21.6623
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 30,
       "hpMul": 47.8389,
       "dmgMul": 21.6623
@@ -3897,13 +3897,13 @@
    "waves": [
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 31,
       "hpMul": 36.102,
       "dmgMul": 17.0908
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 31,
       "hpMul": 36.102,
       "dmgMul": 17.0908
@@ -3929,7 +3929,7 @@
       "dmgMul": 19.8703
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 31,
       "hpMul": 41.9854,
       "dmgMul": 19.8703
@@ -3947,7 +3947,7 @@
       "dmgMul": 19.8703
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 31,
       "hpMul": 41.9854,
       "dmgMul": 19.8703
@@ -3980,7 +3980,7 @@
    "waves": [
     [
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 31,
       "hpMul": 39.7328,
       "dmgMul": 25.264
@@ -3998,7 +3998,7 @@
       "dmgMul": 25.264
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 31,
       "hpMul": 39.7328,
       "dmgMul": 25.264
@@ -4012,7 +4012,7 @@
       "dmgMul": 29.3772
      },
      {
-      "key": "whisp candle",
+      "key": "whisp",
       "lvl": 31,
       "hpMul": 46.2069,
       "dmgMul": 29.3772
@@ -4030,7 +4030,7 @@
       "dmgMul": 29.3772
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 31,
       "hpMul": 46.2069,
       "dmgMul": 29.3772
@@ -4069,7 +4069,7 @@
       "dmgMul": 3.8072
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 32,
       "hpMul": 3.1827,
       "dmgMul": 3.8072
@@ -4107,7 +4107,7 @@
       "dmgMul": 4.7587
      },
      {
-      "key": "mimic chest",
+      "key": "trapjaw",
       "lvl": 32,
       "hpMul": 3.9782,
       "dmgMul": 4.7587
@@ -4183,7 +4183,7 @@
       "dmgMul": 31.8684
      },
      {
-      "key": "fire skeleton",
+      "key": "ashen",
       "lvl": 33,
       "hpMul": 80.6925,
       "dmgMul": 31.8684
@@ -4238,7 +4238,7 @@
       "dmgMul": 24.994
      },
      {
-      "key": "fire skeleton",
+      "key": "ashen",
       "lvl": 33,
       "hpMul": 60.4377,
       "dmgMul": 24.994
@@ -4264,7 +4264,7 @@
       "dmgMul": 29.0667
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 33,
       "hpMul": 70.2781,
       "dmgMul": 29.0667
@@ -4325,7 +4325,7 @@
       "dmgMul": 29.8154
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 34,
       "hpMul": 63.0239,
       "dmgMul": 29.8154
@@ -4446,7 +4446,7 @@
       "dmgMul": 33.2188
      },
      {
-      "key": "fire skeleton",
+      "key": "ashen",
       "lvl": 34,
       "hpMul": 83.9029,
       "dmgMul": 33.2188
@@ -4491,7 +4491,7 @@
       "dmgMul": 3.8398
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 35,
       "hpMul": 3.7582,
       "dmgMul": 3.8398
@@ -4517,7 +4517,7 @@
       "dmgMul": 4.7998
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 35,
       "hpMul": 4.6973,
       "dmgMul": 4.7998
@@ -4757,7 +4757,7 @@
     ],
     [
      {
-      "key": "fire skeleton",
+      "key": "ashen",
       "lvl": 37,
       "hpMul": 86.3588,
       "dmgMul": 34.5114
@@ -4775,7 +4775,7 @@
       "dmgMul": 34.5114
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 37,
       "hpMul": 86.3588,
       "dmgMul": 34.5114
@@ -4824,13 +4824,13 @@
       "dmgMul": 29.9303
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 37,
       "hpMul": 72.3578,
       "dmgMul": 29.9303
      },
      {
-      "key": "fire skeleton",
+      "key": "ashen",
       "lvl": 37,
       "hpMul": 72.3578,
       "dmgMul": 29.9303
@@ -4838,7 +4838,7 @@
     ],
     [
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 37,
       "hpMul": 84.1419,
       "dmgMul": 34.8011
@@ -4927,13 +4927,13 @@
       "dmgMul": 4.1878
      },
      {
-      "key": "fire skeleton",
+      "key": "ashen",
       "lvl": 38,
       "hpMul": 3.105,
       "dmgMul": 4.1878
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 38,
       "hpMul": 3.105,
       "dmgMul": 4.1878
@@ -4995,13 +4995,13 @@
       "dmgMul": 25.9556
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 39,
       "hpMul": 60.2085,
       "dmgMul": 25.9556
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 39,
       "hpMul": 60.2085,
       "dmgMul": 25.9556
@@ -5033,7 +5033,7 @@
       "dmgMul": 30.1797
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 39,
       "hpMul": 70.0117,
       "dmgMul": 30.1797
@@ -5064,7 +5064,7 @@
    "waves": [
     [
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 39,
       "hpMul": 62.8198,
       "dmgMul": 23.1356
@@ -5082,7 +5082,7 @@
       "dmgMul": 23.1356
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 39,
       "hpMul": 62.8198,
       "dmgMul": 23.1356
@@ -5114,7 +5114,7 @@
       "dmgMul": 26.9036
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 39,
       "hpMul": 73.0464,
       "dmgMul": 26.9036
@@ -5158,7 +5158,7 @@
       "dmgMul": 28.8339
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 40,
       "hpMul": 69.1436,
       "dmgMul": 28.8339
@@ -5172,7 +5172,7 @@
     ],
     [
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 40,
       "hpMul": 80.4134,
       "dmgMul": 33.526
@@ -5245,7 +5245,7 @@
       "dmgMul": 29.1306
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 40,
       "hpMul": 70.7162,
       "dmgMul": 29.1306
@@ -5259,7 +5259,7 @@
       "dmgMul": 33.8745
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 40,
       "hpMul": 82.2229,
       "dmgMul": 33.8745
@@ -5277,7 +5277,7 @@
       "dmgMul": 33.8745
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 40,
       "hpMul": 82.2229,
       "dmgMul": 33.8745
@@ -5309,13 +5309,13 @@
    "waves": [
     [
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 41,
       "hpMul": 8.2127,
       "dmgMul": 6.9247
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 41,
       "hpMul": 8.2127,
       "dmgMul": 6.9247
@@ -5347,7 +5347,7 @@
       "dmgMul": 8.6567
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 41,
       "hpMul": 10.2656,
       "dmgMul": 8.6567
@@ -5409,13 +5409,13 @@
       "dmgMul": 28.6245
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 42,
       "hpMul": 67.2897,
       "dmgMul": 28.6245
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 42,
       "hpMul": 67.2897,
       "dmgMul": 28.6245
@@ -5435,7 +5435,7 @@
       "dmgMul": 33.286
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 42,
       "hpMul": 78.2323,
       "dmgMul": 33.286
@@ -5516,7 +5516,7 @@
       "dmgMul": 36.0228
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 42,
       "hpMul": 87.1104,
       "dmgMul": 36.0228
@@ -5642,13 +5642,13 @@
    "waves": [
     [
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 43,
       "hpMul": 53.4882,
       "dmgMul": 24.662
      },
      {
-      "key": "raven",
+      "key": "blackquill",
       "lvl": 43,
       "hpMul": 53.4882,
       "dmgMul": 24.662
@@ -5668,7 +5668,7 @@
     ],
     [
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 43,
       "hpMul": 62.1957,
       "dmgMul": 28.6751
@@ -5729,7 +5729,7 @@
       "dmgMul": 6.5858
      },
      {
-      "key": "rock golem",
+      "key": "granith",
       "lvl": 44,
       "hpMul": 4.3899,
       "dmgMul": 6.5858
@@ -5819,13 +5819,13 @@
       "dmgMul": 22.772
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 45,
       "hpMul": 47.2213,
       "dmgMul": 22.772
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 45,
       "hpMul": 47.2213,
       "dmgMul": 22.772
@@ -5845,13 +5845,13 @@
       "dmgMul": 26.4769
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 45,
       "hpMul": 54.9091,
       "dmgMul": 26.4769
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 45,
       "hpMul": 54.9091,
       "dmgMul": 26.4769
@@ -5900,7 +5900,7 @@
       "dmgMul": 21.661
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 45,
       "hpMul": 43.75,
       "dmgMul": 21.661
@@ -5912,7 +5912,7 @@
       "dmgMul": 21.661
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 45,
       "hpMul": 43.75,
       "dmgMul": 21.661
@@ -5920,7 +5920,7 @@
     ],
     [
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 45,
       "hpMul": 50.8702,
       "dmgMul": 25.1876
@@ -5932,7 +5932,7 @@
       "dmgMul": 25.1876
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 45,
       "hpMul": 50.8702,
       "dmgMul": 25.1876
@@ -5993,7 +5993,7 @@
       "dmgMul": 25.397
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 46,
       "hpMul": 54.6239,
       "dmgMul": 25.397
@@ -6025,7 +6025,7 @@
       "dmgMul": 29.5287
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 46,
       "hpMul": 63.5129,
       "dmgMul": 29.5287
@@ -6056,7 +6056,7 @@
    "waves": [
     [
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 46,
       "hpMul": 63.3505,
       "dmgMul": 28.2714
@@ -6074,7 +6074,7 @@
       "dmgMul": 28.2714
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 46,
       "hpMul": 63.3505,
       "dmgMul": 28.2714
@@ -6088,7 +6088,7 @@
       "dmgMul": 32.8742
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 46,
       "hpMul": 73.6583,
       "dmgMul": 32.8742
@@ -6100,13 +6100,13 @@
       "dmgMul": 32.8742
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 46,
       "hpMul": 73.6583,
       "dmgMul": 32.8742
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 46,
       "hpMul": 73.6583,
       "dmgMul": 32.8742
@@ -6137,19 +6137,19 @@
    "waves": [
     [
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 47,
       "hpMul": 6.6016,
       "dmgMul": 6.1685
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 47,
       "hpMul": 6.6016,
       "dmgMul": 6.1685
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 47,
       "hpMul": 6.6016,
       "dmgMul": 6.1685
@@ -6163,7 +6163,7 @@
     ],
     [
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 47,
       "hpMul": 8.252,
       "dmgMul": 7.7113
@@ -6231,7 +6231,7 @@
       "dmgMul": 24.5825
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 48,
       "hpMul": 51.3612,
       "dmgMul": 24.5825
@@ -6257,7 +6257,7 @@
       "dmgMul": 28.5841
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 48,
       "hpMul": 59.7259,
       "dmgMul": 28.5841
@@ -6269,7 +6269,7 @@
       "dmgMul": 28.5841
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 48,
       "hpMul": 59.7259,
       "dmgMul": 28.5841
@@ -6306,7 +6306,7 @@
    "waves": [
     [
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 48,
       "hpMul": 54.7135,
       "dmgMul": 25.7821
@@ -6318,13 +6318,13 @@
       "dmgMul": 25.7821
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 48,
       "hpMul": 54.7135,
       "dmgMul": 25.7821
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 48,
       "hpMul": 54.7135,
       "dmgMul": 25.7821
@@ -6338,7 +6338,7 @@
       "dmgMul": 29.9812
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 48,
       "hpMul": 63.6245,
       "dmgMul": 29.9812
@@ -6356,7 +6356,7 @@
       "dmgMul": 29.9812
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 48,
       "hpMul": 63.6245,
       "dmgMul": 29.9812
@@ -6387,7 +6387,7 @@
    "waves": [
     [
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 49,
       "hpMul": 72.2416,
       "dmgMul": 31.4282
@@ -6419,7 +6419,7 @@
       "dmgMul": 36.5441
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 49,
       "hpMul": 84.0046,
       "dmgMul": 36.5441
@@ -6431,7 +6431,7 @@
       "dmgMul": 36.5441
      },
      {
-      "key": "golem",
+      "key": "grundle",
       "lvl": 49,
       "hpMul": 84.0046,
       "dmgMul": 36.5441
@@ -6468,7 +6468,7 @@
    "waves": [
     [
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 49,
       "hpMul": 62.0764,
       "dmgMul": 28.3526
@@ -6480,7 +6480,7 @@
       "dmgMul": 28.3526
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 49,
       "hpMul": 62.0764,
       "dmgMul": 28.3526
@@ -6518,7 +6518,7 @@
       "dmgMul": 32.9707
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 49,
       "hpMul": 72.1814,
       "dmgMul": 32.9707
@@ -6567,7 +6567,7 @@
       "dmgMul": 6.2469
      },
      {
-      "key": "tin beast",
+      "key": "rustclank",
       "lvl": 50,
       "hpMul": 7.2832,
       "dmgMul": 6.2469
@@ -6581,7 +6581,7 @@
       "dmgMul": 7.8091
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 50,
       "hpMul": 9.1041,
       "dmgMul": 7.8091
@@ -6644,7 +6644,7 @@
       "dmgMul": 30.0296
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 51,
       "hpMul": 66.7501,
       "dmgMul": 30.0296
@@ -6664,7 +6664,7 @@
     ],
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 51,
       "hpMul": 77.6134,
       "dmgMul": 34.9205
@@ -6682,7 +6682,7 @@
       "dmgMul": 34.9205
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 51,
       "hpMul": 77.6134,
       "dmgMul": 34.9205
@@ -6719,13 +6719,13 @@
    "waves": [
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 51,
       "hpMul": 75.5706,
       "dmgMul": 32.8655
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 51,
       "hpMul": 75.5706,
       "dmgMul": 32.8655
@@ -6751,13 +6751,13 @@
       "dmgMul": 38.2149
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 51,
       "hpMul": 87.8689,
       "dmgMul": 38.2149
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 51,
       "hpMul": 87.8689,
       "dmgMul": 38.2149
@@ -6818,7 +6818,7 @@
       "dmgMul": 39.4349
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 52,
       "hpMul": 97.6018,
       "dmgMul": 39.4349
@@ -6838,7 +6838,7 @@
       "dmgMul": 45.8573
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 52,
       "hpMul": 113.5,
       "dmgMul": 45.8573
@@ -6850,7 +6850,7 @@
       "dmgMul": 45.8573
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 52,
       "hpMul": 113.5,
       "dmgMul": 45.8573
@@ -6881,7 +6881,7 @@
    "waves": [
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 52,
       "hpMul": 77.5602,
       "dmgMul": 33.685
@@ -6913,7 +6913,7 @@
       "dmgMul": 39.1673
      },
      {
-      "key": "glitch phantom",
+      "key": "bitwraith",
       "lvl": 52,
       "hpMul": 90.1925,
       "dmgMul": 39.1673
@@ -6925,13 +6925,13 @@
       "dmgMul": 39.1673
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 52,
       "hpMul": 90.1925,
       "dmgMul": 39.1673
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 52,
       "hpMul": 90.1925,
       "dmgMul": 39.1673
@@ -6968,13 +6968,13 @@
       "dmgMul": 8.4707
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 53,
       "hpMul": 9.9072,
       "dmgMul": 8.4707
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 53,
       "hpMul": 9.9072,
       "dmgMul": 8.4707
@@ -6994,7 +6994,7 @@
       "dmgMul": 10.5897
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 53,
       "hpMul": 12.384,
       "dmgMul": 10.5897
@@ -7006,7 +7006,7 @@
       "dmgMul": 10.5897
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 53,
       "hpMul": 12.384,
       "dmgMul": 10.5897
@@ -7050,7 +7050,7 @@
    "waves": [
     [
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 54,
       "hpMul": 73.8834,
       "dmgMul": 32.765
@@ -7068,7 +7068,7 @@
       "dmgMul": 32.765
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 54,
       "hpMul": 73.8834,
       "dmgMul": 32.765
@@ -7082,7 +7082,7 @@
       "dmgMul": 38.0973
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 54,
       "hpMul": 85.9146,
       "dmgMul": 38.0973
@@ -7094,7 +7094,7 @@
       "dmgMul": 38.0973
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 54,
       "hpMul": 85.9146,
       "dmgMul": 38.0973
@@ -7149,7 +7149,7 @@
       "dmgMul": 32.8592
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 54,
       "hpMul": 73.8801,
       "dmgMul": 32.8592
@@ -7157,7 +7157,7 @@
     ],
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 54,
       "hpMul": 85.9081,
       "dmgMul": 38.2103
@@ -7175,7 +7175,7 @@
       "dmgMul": 38.2103
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 54,
       "hpMul": 85.9081,
       "dmgMul": 38.2103
@@ -7218,7 +7218,7 @@
       "dmgMul": 36.8075
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 55,
       "hpMul": 86.4908,
       "dmgMul": 36.8075
@@ -7230,7 +7230,7 @@
       "dmgMul": 36.8075
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 86.4908,
       "dmgMul": 36.8075
@@ -7238,13 +7238,13 @@
     ],
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 100.5702,
       "dmgMul": 42.7976
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 55,
       "hpMul": 100.5702,
       "dmgMul": 42.7976
@@ -7256,7 +7256,7 @@
       "dmgMul": 42.7976
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 100.5702,
       "dmgMul": 42.7976
@@ -7293,7 +7293,7 @@
    "waves": [
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 75.0382,
       "dmgMul": 33.4226
@@ -7305,7 +7305,7 @@
       "dmgMul": 33.4226
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 75.0382,
       "dmgMul": 33.4226
@@ -7325,13 +7325,13 @@
       "dmgMul": 38.865
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 87.252,
       "dmgMul": 38.865
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 55,
       "hpMul": 87.252,
       "dmgMul": 38.865
@@ -7374,13 +7374,13 @@
    "waves": [
     [
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 56,
       "hpMul": 8.9232,
       "dmgMul": 9.1173
      },
      {
-      "key": "lost soulss",
+      "key": "lost soul",
       "lvl": 56,
       "hpMul": 8.9232,
       "dmgMul": 9.1173
@@ -7412,13 +7412,13 @@
       "dmgMul": 11.3973
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 56,
       "hpMul": 11.1541,
       "dmgMul": 11.3973
      },
      {
-      "key": "shadow ghoul",
+      "key": "nightgloom",
       "lvl": 56,
       "hpMul": 11.1541,
       "dmgMul": 11.3973

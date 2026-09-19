@@ -95,10 +95,11 @@ function extractGameScript(html){
   const opens=[...html.matchAll(/^<script>/gm)].map(m=>m.index);
   const closes=[...html.matchAll(/^<\/script>/gm)].map(m=>m.index);
   if(!opens.length) throw new Error('sim-host: no <script> block found in the client');
-  const start=opens[opens.length-1]+'<script>'.length;
-  const end=closes[closes.length-1];
-  if(!(end>start)) throw new Error('sim-host: could not bound the game script block');
-  return html.slice(start,end);
+  /* v658: the game block is the one that defines the sim. Since v604 the LAST block is Emberdraft's, and taking it broke load()
+     ("simFightResult is not defined"), which silently switched server-side campaign verification off. */
+  for(const o of opens){ const st=o+'<script>'.length, en=closes.find(c=>c>st); if(!(en>st)) continue;
+    const body=html.slice(st,en); if(/function simFightResult\s*\(/.test(body)) return body; }
+  throw new Error('sim-host: no script block defines simFightResult');
 }
 
 function load(htmlPath){
