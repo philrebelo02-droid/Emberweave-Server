@@ -19719,7 +19719,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789832407000';
+const BUILD_ID = '1789833607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20114,17 +20114,18 @@ function edTierMul(q){ return 1; }   // v640: items have no tiers any more (kept
    Relic + Relic = Worldroot Seed (+1 hero on the board). The item bench is a 10-slot column on the left. */
 const ED_FIN_BONUS = 1.25, ED_RADIANT_MUL = 2, ED_ITEM_BENCH = 10;
 const ED_CREST = { Weapon:'Warrior', Armor:'Tank', Belt:'Bruiser', Gloves:'Brute', Ring:'Mage', Boots:'Marksman', Helm:'Assassin', Amulet:'Support' };
-function edItemMul(it){ return (it&&it.r) ? ED_RADIANT_MUL : 1; }
+function edItemMul(it){ return (it&&it.r) ? ED_RADIANT_MUL : ((it&&it.t) ? ED_TIER_ACT[it.t] : 1); }   /* v650: Purple / Gold actives are stronger */
 function edCrestRole(it){ if(!it||!it.f) return null; if(it.a==='Relic'&&it.b!=='Relic') return ED_CREST[it.b]||null; if(it.b==='Relic'&&it.a!=='Relic') return ED_CREST[it.a]||null; return null; }
 function edIsSeed(it){ return !!(it&&it.f&&it.a==='Relic'&&it.b==='Relic'); }
-function edItemCol(it){ if(!it) return '#cfd6df'; if(it.rm) return '#c9a2ff'; if(it.r) return '#ffb347'; if(edCrestRole(it)||edIsSeed(it)) return '#7fd8ff'; return it.f ? '#ffe2a8' : '#cfd6df'; }
+function edItemCol(it){ if(!it) return '#cfd6df'; if(it.rm) return '#c9a2ff'; const t=edTierOf(it);   /* v650: the ladder's colours */
+  if(t==='orange') return '#ff9a3c'; if(t==='gold') return '#ffd45e'; if(t==='purple') return '#b57bff'; if(edCrestRole(it)||edIsSeed(it)) return '#7fd8ff'; if(t==='blue') return '#58a6ff'; return '#5fd07a'; }
 function edHeroRoles(h){ const out=[edRole(h.key)]; for(const it of (h.items||[])){ const r=edCrestRole(it); if(r && !out.includes(r)) out.push(r); } return out; }
 function edFieldCap(p){ let n=p.level; for(const u of Object.values(p.board)) for(const it of (u.items||[])) if(edIsSeed(it)) n++; return n; }
 /* the item bench holds 10; anything past that waits and moves in as soon as a slot frees (TFT's waiting orbs) */
 function edGiveItem(p,it){ if(!it) return; p.itemsWait=p.itemsWait||[]; if(p.items.length<ED_ITEM_BENCH) p.items.push(it); else p.itemsWait.push(it); }
 function edItemsFlush(p){ p.itemsWait=p.itemsWait||[]; while(p.items.length<ED_ITEM_BENCH && p.itemsWait.length) p.items.push(p.itemsWait.shift()); }
 function edRandFinished(noRelic){ const ks=Object.keys(ED_FINISHED).filter(k=>!noRelic || !k.split('+').includes('Relic')), k=ks[edRnd(ks.length)], [a,b]=k.split('+'); return { f:ED_FINISHED[k], a, b }; }   // v644: noRelic - a Radiant reward is never a crest or the Seed
-function edItemVal(it){ return !it?0:(it.rm?1:(it.f?(it.r?6:3):1)); }
+function edItemVal(it){ return !it?0:(it.rm?1:(it.t==='G'?12:(it.t==='P'?6:(it.f?(it.r?6:3):1)))); }
 /* 45 finished items: two components → the Forge catalog item of that name, which keeps its active ability */
 const ED_FINISHED = {
  'Weapon+Weapon':'Skirmisher Axe','Weapon+Helm':'Ravager Hornhelm','Weapon+Boots':'Starfall Longbow','Weapon+Armor':'Ironwall Shield',
@@ -20211,10 +20212,7 @@ function edMerge(p){
          sit on one hero, and two lone components stayed apart. */
       keep.u.rank++; try{ if(typeof _artWarmed!=='undefined') delete _artWarmed['k:'+keep.u.key]; }catch(e){} keep.u.items=[]; items.sort((x,y)=>((y.f&&!edCrestRole(y))?2:(y.f?1:0))-((x.f&&!edCrestRole(x))?2:(x.f?1:0)));
       for(const it of items) if(!edEquip(keep.u,it)) edGiveItem(p,it);
-      if(keep.u.rank>=4){   // v640 (Phil: "only the big stars get gold and orange"): a big star turns one of its items Radiant
-        const fin=keep.u.items.find(x=>x.f && !x.r && !edCrestRole(x) && !edIsSeed(x));
-        if(fin) fin.r=true; else edGiveItem(p, Object.assign(edRandFinished(true),{r:true}));
-        if(!p.ai) edToast('★ Big star! '+(fin?fin.f+' turned Radiant.':'A Radiant item joins your item bench.')); }
+      if(keep.u.rank>=4 && !p.ai) edToast('★ 4 star! It can now carry a 4th item.');   /* v650 (Phil: "4 star now unlocks a 4th item slot") - a merge no longer makes a Radiant */
       done=true; break; }
     if(!done) break;
   }
@@ -20226,22 +20224,76 @@ function edSynergy(p){ const seen={}, cnt={}; for(const u of Object.values(p.boa
 function edRoundTierBand(r){ if(r<=6) return [0,1]; if(r<=12) return [2,3]; return [4,5]; }   // drops cap at Purple +3: Gold and Orange are upgraded on a big star
 function edRollComp(r){ return { c: ED_COMP[edRnd(ED_COMP.length)] }; }   // v640: one fixed strength - no tier band
 function edItemName(it){ if(!it) return ''; if(it.rm) return 'Remover'; const cr=edCrestRole(it); if(cr) return cr+' Crest'; return (it.r?'Radiant ':'')+(it.f ? it.f : it.c); }
-function edItemTier(it){ if(!it) return ''; return it.rm?'Tool':(it.r?'Radiant':(edCrestRole(it)?'Crest':(it.f?'Finished':'Component'))); }
+/* v650 (Phil, 19 Sep 2026: "Every gold item in this game has a pair of purple items that create it. any purple item has a pair of blue
+   items that create it, any blue item has a pair of green items that make it" / "Radiant is orange items" / "orange items are unique,
+   cannot be combined into, can only drop off late stage bosses and carousels" / "they are specific to class or hero, a mage can equip
+   a tank item if you want" / "4 star now unlocks a 4th item slot"). THE ITEM LADDER:
+     Green = the 9 components; Blue = a finished item (2 Greens, ED_FINISHED); Purple = one specific pair of Blues (ED_PURPLE, 24);
+     Gold = one specific pair of Purples (ED_GOLD, 12); Orange = the Radiant items (it.r) - unique, never crafted, never an ingredient.
+   Purple / Gold are the 36 Forge catalog items Emberdraft didn't use, 4 Purples + 2 Golds per class, themed by the catalog's roles
+   (ED_ITEM_CLS); any hero can wear any of them. Recipes were generated from the catalog (scratchpad recipes650.js) - the full table is
+   in blueprint 13 v650. Combining happens on a hero (like components): a matching pair on one hero becomes the next tier at once. */
+const ED_PURPLE = {"Anchorstep Greaves+Astral Carapace":"Runebound Scepter","Bastion Visor+Bulwark Cuirass":"Fluxwalk Sabatons","Heartward Pendant+Ironwall Shield":"Wardweave Gloves","Leyline Sash+Siegekeeper Girdle":"Barrier Loop","Apex Fang+Arcanist Vestment":"Cinder Mask","Chargebreaker Boots+Comet Slippers":"Ashstride Boots","Conquest Belt+Harmony Pendant":"Infernal Plate","Knucklecrusher Bracers+Magma Claws":"Scorch Cincture","Deadeye Gloves+Falconer Cap":"Ember Pike","Mercy Crown+Phasewalk Boots":"Farshot Cloak","Remedy Pouch+Singularity Ring":"Ammunition Harness","Skirmisher Axe+Spark Tome":"Ruin Loop","Pathrunner Boots+Scout’s Mantle":"Scout Crossbow","Silkstring Gloves+Starfall Longbow":"Eaglecrest Hood","Stormglass Tiara+Windshot Pendant":"Silentstep Shoes","Deadeye Gloves+Pathrunner Boots":"Quiver Belt","Stormheart Necklace+Surge Band":"Voidweave Robe","Arcanist Vestment+Comet Slippers":"Spellweaver Gloves","Phasewalk Boots+Singularity Ring":"Starchannel Mitts","Spark Tome+Stormglass Tiara":"Aether Sash","Astral Carapace+Harmony Pendant":"Sunlit Censer","Heartward Pendant+Magma Claws":"Sanctuary Treads","Mercy Crown+Remedy Pouch":"Seraphic Robe","Stormheart Necklace+Windshot Pendant":"Guardian Wraps"};
+const ED_GOLD = {"Fluxwalk Sabatons+Runebound Scepter":"Oathbound Signet","Barrier Loop+Wardweave Gloves":"Moonstone Locket","Ashstride Boots+Cinder Mask":"Fighter’s Seal","Infernal Plate+Scorch Cincture":"Ignition Charm","Ember Pike+Farshot Cloak":"Sniper’s Loop","Ammunition Harness+Ruin Loop":"Ballista Scope","Eaglecrest Hood+Scout Crossbow":"Aiming Band","Quiver Belt+Silentstep Shoes":"Horizon Locket","Spellweaver Gloves+Voidweave Robe":"Mana Conduit","Aether Sash+Starchannel Mitts":"Celestial Charm","Sanctuary Treads+Sunlit Censer":"Renewal Signet","Guardian Wraps+Seraphic Robe":"Quiet Star Necklace"};
+const ED_ITEM_CLS = {"Runebound Scepter":"Tank","Fluxwalk Sabatons":"Tank","Wardweave Gloves":"Tank","Barrier Loop":"Tank","Oathbound Signet":"Tank","Moonstone Locket":"Tank","Cinder Mask":"Bruiser","Ashstride Boots":"Bruiser","Infernal Plate":"Bruiser","Scorch Cincture":"Bruiser","Fighter’s Seal":"Bruiser","Ignition Charm":"Bruiser","Ember Pike":"Assassin","Farshot Cloak":"Assassin","Ammunition Harness":"Assassin","Ruin Loop":"Assassin","Sniper’s Loop":"Assassin","Ballista Scope":"Assassin","Scout Crossbow":"Marksman","Eaglecrest Hood":"Marksman","Silentstep Shoes":"Marksman","Quiver Belt":"Marksman","Aiming Band":"Marksman","Horizon Locket":"Marksman","Voidweave Robe":"Mage","Spellweaver Gloves":"Mage","Starchannel Mitts":"Mage","Aether Sash":"Mage","Mana Conduit":"Mage","Celestial Charm":"Mage","Sunlit Censer":"Support","Sanctuary Treads":"Support","Seraphic Robe":"Support","Guardian Wraps":"Support","Renewal Signet":"Support","Quiet Star Necklace":"Support"};
+Object.assign(ED_ITEM_ART, {"Runebound Scepter":"E02","Fluxwalk Sabatons":"E18","Wardweave Gloves":"E36","Barrier Loop":"E55","Oathbound Signet":"E54","Moonstone Locket":"E65","Cinder Mask":"E12","Ashstride Boots":"E20","Infernal Plate":"E29","Scorch Cincture":"E47","Fighter’s Seal":"E56","Ignition Charm":"E67","Ember Pike":"E04","Farshot Cloak":"E31","Ammunition Harness":"E49","Ruin Loop":"E57","Sniper’s Loop":"E59","Ballista Scope":"E79","Scout Crossbow":"E05","Eaglecrest Hood":"E14","Silentstep Shoes":"E22","Quiver Belt":"E48","Aiming Band":"E58","Horizon Locket":"E69","Voidweave Robe":"E33","Spellweaver Gloves":"E41","Starchannel Mitts":"E42","Aether Sash":"E51","Mana Conduit":"E50","Celestial Charm":"E71","Sunlit Censer":"E08","Sanctuary Treads":"E25","Seraphic Robe":"E34","Guardian Wraps":"E43","Renewal Signet":"E62","Quiet Star Necklace":"E73"});
+const ED_TIER_BONUS = { P:1.1, G:1.15 };   // stat multiplier on the parts, per step up the ladder
+const ED_TIER_ACT = { P:1.25, G:1.5 };     // the item's own active is this much stronger
+function edTierKey(a,b){ return [a,b].sort().join('+'); }
+function edTierOf(it){ if(!it) return ''; if(it.rm) return 'tool'; if(it.r) return 'orange'; if(it.t==='G') return 'gold'; if(it.t==='P') return 'purple'; if(it.f) return 'blue'; return 'green'; }
+function edIsPlainBlue(it){ return !!(it && it.f && !it.t && !it.r && !edCrestRole(it) && !edIsSeed(it)); }
+function edTierUp(x,y){
+  if(edIsPlainBlue(x) && edIsPlainBlue(y)){ const n=ED_PURPLE[edTierKey(x.f,y.f)]; if(n) return { f:n, t:'P', parts:[x,y] }; }
+  if(x && y && x.t==='P' && y.t==='P' && !x.r && !y.r){ const n=ED_GOLD[edTierKey(x.f,y.f)]; if(n) return { f:n, t:'G', parts:[x,y] }; }
+  return null; }
+function edTierSettle(h){ for(let again=true, guard=0; again && guard<6; guard++){ again=false;
+    for(let i=0;i<h.items.length && !again;i++) for(let j=i+1;j<h.items.length;j++){ const up=edTierUp(h.items[i],h.items[j]); if(up){ h.items[i]=up; h.items.splice(j,1); again=true; break; } } } }
+function edItemCap(h){ return (h && h.rank>=4) ? 4 : 3; }
+function edItemPow(it){ if(!it||it.rm) return 0; if(it.t) return (edItemPow(it.parts[0])+edItemPow(it.parts[1]))*ED_TIER_BONUS[it.t]+0.05; return (it.f?0.18*ED_FIN_BONUS:0.08)*(it.r?ED_RADIANT_MUL:1); }
+function edApplyTierStats(u,it,m){ if(!it) return; if(it.t){ const b=ED_TIER_BONUS[it.t]; for(const q of it.parts) edApplyTierStats(u,q,m*b); } else if(it.f){ edApplyComp(u,it.a,m*ED_FIN_BONUS); edApplyComp(u,it.b,m*ED_FIN_BONUS); } else if(it.c) edApplyComp(u,it.c,m); }
+function edItemTier(it){ if(!it) return ''; if(it.rm) return 'Tool'; if(it.r) return 'Orange · unique'; if(edCrestRole(it)) return 'Blue · Crest';
+  const t={green:'Green',blue:'Blue',purple:'Purple',gold:'Gold'}[edTierOf(it)]||'', c=ED_ITEM_CLS[it.f]; return c ? t+' · '+c+' item' : t; }
+/* what an item combines into next (for the item panel) */
+function edTierNextHtml(it){ const tab = edIsPlainBlue(it) ? ED_PURPLE : (it && it.t==='P' && !it.r ? ED_GOLD : null); if(!tab) return '';
+  const rows=Object.entries(tab).filter(([k])=>k.split('+').includes(it.f)); if(!rows.length) return '';
+  let h='<div style="color:#8b98a9;margin-top:3px">Put this with, on the same hero:</div><div class="recipe">';
+  for(const [k,out] of rows){ const other=k.split('+').find(x=>x!==it.f)||it.f; h+=`<span>+ ${edEsc(other)}</span><span style="color:${tab===ED_GOLD?'#ffd45e':'#b57bff'}">${edEsc(out)}</span>`; }
+  return h+'</div>'; }
+/* the recipe book (Phil: "the item recipes should have a item recipe book somewhere on the screen, so you can see what combines into what") */
+function edBookHtml(){ const you=edYou(), own={}; const add=it=>{ if(it) { const k=it.f||it.c; if(k) own[k]=(own[k]||0)+1; } };
+  you.items.forEach(add); edUnits(you).forEach(u=>(u.items||[]).forEach(add));
+  const has=(a,b)=>own[a] && own[b] && (a!==b || own[a]>1);
+  const img=(it)=>edItemImg(it,20);
+  const row=(ia,ib,io,can)=>`<div class="bkRow${can?' can':''}">${img(ia)}<span class="bkN">${edEsc(ia.f||ia.c)}</span><b>+</b>${img(ib)}<span class="bkN">${edEsc(ib.f||ib.c)}</span><b>→</b>${img(io)}<span class="bkN" style="color:${edItemCol(io)}">${edEsc(edItemName(io))}</span></div>`;
+  let h='<div class="edBook"><div class="bkTop"><b>📖 Recipe book</b><span style="flex:1"></span><span class="bkKey">green = you own both parts</span><button class="btnx" data-a="book">✕</button></div>';
+  h+='<div class="bkH" style="color:#ffd45e">Gold — two Purples</div>';
+  for(const [k,g] of Object.entries(ED_GOLD)){ const [a,b]=k.split('+'); h+=row({f:a,t:'P'},{f:b,t:'P'},{f:g,t:'G'},has(a,b)); }
+  h+='<div class="bkH" style="color:#b57bff">Purple — two Blues</div>';
+  for(const cls of ['Tank','Bruiser','Assassin','Marksman','Mage','Support']){ h+=`<div class="bkC">${cls}</div>`;
+    for(const [k,pn] of Object.entries(ED_PURPLE)){ if(ED_ITEM_CLS[pn]!==cls) continue; const [a,b]=k.split('+'); h+=row({f:a},{f:b},{f:pn,t:'P'},has(a,b)); } }
+  h+='<div class="bkH" style="color:#58a6ff">Blue — two Greens (components)</div>';
+  for(const [k,f] of Object.entries(ED_FINISHED)){ const [a,b]=k.split('+'); h+=row({c:a},{c:b},{f,a,b},has(a,b)); }
+  h+='<div class="bkH" style="color:#ff9a3c">Orange — unique</div><div class="bkRow" style="opacity:1">Never crafted. Only late-stage bosses and the late carousels drop them: an Orange item is a Blue item at double strength.</div>';
+  return h+'</div>'; }
 function edCombine(a,b){ return { f: ED_FINISHED[edPairKey(a.c,b.c)], a:a.c, b:b.c }; }
 /* put item `it` on hero `h`: a component joins a lone component into a finished item; two identical finished items of
    one tier become the next tier (Phil: "combined to make higher tier equipment"); three items at most
    [v640: no tiers or twin upgrades any more - one fixed strength; v644/v646 changes are marked below] */
 /* v640: the reason an equip was refused, for the toast */
 let _edEquipWhy='';
-function edEquip(h,it){
+/* v650: a matching pair on one hero climbs the ladder at once (Blue+Blue -> Purple, Purple+Purple -> Gold); the cap is edItemCap */
+function edEquip(h,it){ _edEquipWhy=''; if(!h||!it) return false;
+  if(!it.c && !it.rm) for(let j=0;j<h.items.length;j++){ const up=edTierUp(h.items[j],it); if(up){ h.items[j]=up; edTierSettle(h); return true; } }
+  const ok=edEquip0(h,it); if(ok) edTierSettle(h); return ok; }
+function edEquip0(h,it){
   _edEquipWhy=''; if(!h||!it) return false;
   if(it.rm){ _edEquipWhy='Drop the remover on a hero to take its items off.'; return false; }
   if(it.c){ let lastCr=null; for(let open=0; open<h.items.length; open++){ if(!h.items[open].c) continue; const made=edCombine(h.items[open],it), cr=edCrestRole(made);
       if(!(cr && edHeroRoles(Object.assign({},h,{items:h.items.filter((x,i)=>i!==open)})).includes(cr))){ h.items[open]=made; return true; } lastCr=cr; }   /* v646: every lone component is tried, not only the first */
       /* v644: that pair would make a crest the hero already has - keep it as its own component in a free slot instead of refusing */
-      if(lastCr && h.items.length>=3){ _edEquipWhy=edName(h.key)+' is already a '+lastCr+' - that crest would do nothing, and all three slots are full.'; return false; } }
+      if(lastCr && h.items.length>=edItemCap(h)){ _edEquipWhy=edName(h.key)+' is already a '+lastCr+' - that crest would do nothing, and all three slots are full.'; return false; } }
   const cr=edCrestRole(it); if(cr && edHeroRoles(h).includes(cr)){ _edEquipWhy=edName(h.key)+' is already a '+cr+' - that crest would do nothing.'; return false; }
-  if(h.items.length>=3){ _edEquipWhy='That hero already carries three items.'; return false; }
+  if(h.items.length>=edItemCap(h)){ _edEquipWhy='That hero already carries '+edItemCap(h)+' items.'+(edItemCap(h)<4?' A 4 star can carry 4.':''); return false; }
   h.items.push(it); return true;   // duplicates are fine and stack (TFT)
 }
 /* v640: the remover takes every item off a hero, intact (finished items stay finished) */
@@ -20921,7 +20973,7 @@ function edAiPlan(p){
 
 /* ------------------------------------------------------------------------------------------ fights */
 function edPower(p){ let pw=0; const syn=edSynergy(p); let st=0; for(const r in syn) st+=syn[r].tier;
-  for(const u of Object.values(p.board)){ pw += (1+0.15*(edCost(u.key)-1))*100*Math.pow(ED_RANK_MUL[u.rank],1.6)*(1+u.items.reduce((s,it)=>s+(it.f?0.18*ED_FIN_BONUS:0.08)*edItemMul(it),0)); }
+  for(const u of Object.values(p.board)){ pw += (1+0.15*(edCost(u.key)-1))*100*Math.pow(ED_RANK_MUL[u.rank],1.6)*(1+u.items.reduce((s,it)=>s+edItemPow(it),0)); }
   return pw*(1+0.06*st); }
 /* v646 (scan 2): the old bar (180 + 95 x round) sat far below any AI's edPower after round 3, so AIs never lost a wave and bosses
    never threatened them. The bar now follows the lobby: 0.8 x the median AI board on monster rounds (a weak board loses now and
@@ -20973,7 +21025,7 @@ function edGiveDrop(p,d){ if(d.gold) p.gold+=d.gold; else if(d.it) edGiveItem(p,
            Radiant 0 / 0 / 0 / 0 / 10 / 25% by stage.
      boss: always a finished item, Radiant 0 / 0 / 0 / 10 / 25 / 50% by stage.
    Only kills drop. This replaces v640/v648's fixed, equal-for-everyone list (Phil's rule). */
-const ED_DROP_FIN = [0, 0, 0.10, 0.15, 0.40, 0.65, 0.85], ED_DROP_RAD = [0, 0, 0, 0, 0, 0.10, 0.25], ED_BOSS_RAD = [0, 0, 0, 0, 0.10, 0.25, 0.50];
+const ED_DROP_FIN = [0, 0, 0.10, 0.15, 0.40, 0.65, 0.85], ED_DROP_RAD = [0, 0, 0, 0, 0, 0, 0] /* v650: Orange only from bosses and carousels (Phil) */, ED_BOSS_RAD = [0, 0, 0, 0, 0.10, 0.25, 0.50];
 function edStageOf(r){ return Math.floor(Math.max(0,(r|0)-1)/6)+1; }
 function edMonDrop(r,boss){ const st=edStageOf(r), at=a=>a[Math.min(a.length-1,st)];
   const fin=radChance=>{ const rad=Math.random()<radChance, f=edRandFinished(rad); if(rad) f.r=true; return {it:f}; };
@@ -21163,7 +21215,7 @@ function edApplyComp(u,c,k){ k=k||1;
   else if(c==='Relic'){ u.maxHp*=1+0.08*k; u.dmg*=1+0.08*k; } }
 function edApplyItem(u,it){ if(!it||it.rm) return; const k=edItemMul(it);
   if(it.c) return edApplyComp(u,it.c,k);
-  edApplyComp(u,it.a,k*ED_FIN_BONUS); edApplyComp(u,it.b,k*ED_FIN_BONUS);   // v640: a finished item beats its parts
+  if(it.t) edApplyTierStats(u,it,1); else { edApplyComp(u,it.a,k*ED_FIN_BONUS); edApplyComp(u,it.b,k*ED_FIN_BONUS); }   // v640: a finished item beats its parts; v650: Purple / Gold = their parts x ED_TIER_BONUS
   if(edCrestRole(it)||edIsSeed(it)) return;   // crests and the Seed carry no active: their power is the role / the extra hero
   const a=ED.cat&&ED.cat[it.f]; if(a&&a.type){ const pr=Object.assign({},a.params||{}); if(pr.mult) pr.mult*=k; if(pr.dmgMult) pr.dmgMult*=k; if(pr.dur&&it.r) pr.dur*=1.3;
     if(it.r){ for(const f of ['pct','shieldPct','vamp','missing']) if(pr[f]) pr[f]*=k; if(pr.evade) pr.evade=Math.min(0.9,pr.evade*k); if(pr.n) pr.n=Math.round(pr.n*k);   /* v646: Radiant x2 on heals, shields, energy, buffs too (the panel promises it) */
@@ -21334,6 +21386,16 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .carTapFx{position:absolute;width:30px;height:14px;margin:-7px 0 0 -15px;border:2px solid #ffc766;border-radius:50%;pointer-events:none;box-shadow:0 0 10px rgba(255,160,50,.8);animation:edTapFx .65s ease-out forwards;z-index:3}
 @keyframes edTapFx{from{transform:scale(.4);opacity:1}to{transform:scale(1.5);opacity:0}}
 #edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
+#edRoot .ibBook{flex:none;border:1px solid rgba(255,210,140,.45);border-radius:7px;background:rgba(40,26,12,.85);color:#ffd45e;font-size:15px;line-height:1;padding:0;cursor:pointer}
+#edRoot .edBook{position:absolute;top:40px;bottom:70px;left:calc(max(4px,env(safe-area-inset-left)) + 44px);right:8px;max-width:560px;z-index:6;overflow:auto;background:rgba(14,10,8,.95);border:1px solid #6b4a2e;border-radius:10px;padding:6px 10px;font-size:11px;color:#e8edf3;pointer-events:auto}
+#edRoot .edBook .bkTop{display:flex;align-items:center;gap:6px;position:sticky;top:-6px;background:rgba(14,10,8,.98);padding:4px 0;z-index:1}
+#edRoot .edBook .bkKey{font-size:9.5px;color:#5fd07a}
+#edRoot .edBook .bkH{font-weight:900;margin:8px 0 3px;letter-spacing:.03em}
+#edRoot .edBook .bkC{color:#aab6c6;font-size:10px;margin:4px 0 1px;text-transform:uppercase;letter-spacing:.06em}
+#edRoot .edBook .bkRow{display:flex;align-items:center;gap:3px;padding:1px 3px;border-radius:5px;opacity:.72;flex-wrap:wrap}
+#edRoot .edBook .bkRow.can{opacity:1;background:rgba(95,208,122,.14)}
+#edRoot .edBook .bkN{white-space:nowrap}
+#edRoot .edBook b{color:#8b98a9;margin:0 1px}
 #edRoot .itemBench{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;border-radius:10px;background:rgba(10,14,22,.62);border:1px solid rgba(255,210,140,.28);pointer-events:auto}   /* v640 */
 #edRoot .ibSlot{display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);cursor:grab;touch-action:none}
 #edRoot .ibSlot.empty{cursor:default;border-style:dashed;opacity:.55}
@@ -21459,11 +21521,13 @@ function edRender(){
        as sockets; items waiting for a free slot are counted underneath. */
     const top=40, bot=Math.max(top+160, innerHeight-70), slot=Math.max(20,Math.min(32,Math.floor((bot-top)/ED_ITEM_BENCH)-3));
     h+=`<div class="itemBench" style="top:${top}px;left:max(4px,env(safe-area-inset-left));width:${slot+8}px">`;
+    h+=`<button class="ibBook" data-a="book" title="Recipe book" style="width:${slot}px;height:${slot}px">📖</button>`;   /* v650: the recipe book */
     for(let ix=0; ix<ED_ITEM_BENCH; ix++){ const it=you.items[ix];
       h+= it ? `<div class="ibSlot ledgeItem2 ${ED.sel&&ED.sel.item===ix?'sel':''}" data-item="${ix}" title="${edEsc(edItemName(it)+' ('+edItemTier(it)+')')}" style="width:${slot}px;height:${slot}px">${edItemImg(it,slot-4)}</div>`
              : `<div class="ibSlot empty" style="width:${slot}px;height:${slot}px"></div>`; }
     const w=(you.itemsWait||[]).length; if(w) h+=`<div class="ibWait">+${w}</div>`;
     h+='</div>'; }
+  if(ED.book) h+=edBookHtml();
   const selH=(ED.sel&&ED.sel.hero)?edUnits(you).find(u=>u.id===ED.sel.hero):null, selI=(ED.sel&&ED.sel.item!=null)?you.items[ED.sel.item]:null;
   if(selH||selI){ h+=edInfoPanel(selH,selI); } else {   // v612: a tapped hero (or ledge item) shows its stats on the right
   h+='<div class="bar sidep"><div class="panel">';
@@ -21497,7 +21561,8 @@ function edItemInfoHtml(it){ if(!it) return ''; const col=edItemCol(it), k=edIte
     h+='<div class="recipe">'; for(const c of ED_COMP){ const f=ED_FINISHED[edPairKey(it.c,c)], cr=(it.c==='Relic'&&c!=='Relic')?ED_CREST[c]:((c==='Relic'&&it.c!=='Relic')?ED_CREST[it.c]:null);
       h+=`<span class="${own.has(c)?'own':''}">+ ${edEsc(c)}</span><span class="${own.has(c)?'own':''}">${edEsc(cr?cr+' Crest':(it.c==='Relic'&&c==='Relic'?'Worldroot Seed (+1 hero)':f))}</span>`; }
     return h+'</div>'; }
-  else { h+=`<div>${edEsc(line(it.a))}</div><div>${edEsc(line(it.b))}</div>`;
+  else { if(it.t) h+=`<div style="color:#aab6c6">Made from ${edEsc(it.parts.map(edItemName).join(' + '))} — their stats ×${ED_TIER_BONUS[it.t]}.</div>`; else h+=`<div>${edEsc(line(it.a))}</div><div>${edEsc(line(it.b))}</div>`;
+    h+=edTierNextHtml(it);
     const cr=edCrestRole(it); if(cr) return h+`<div style="color:#7fd8ff;margin-top:2px">✦ Counts as a ${edEsc(cr)} for synergies.</div>`;
     if(edIsSeed(it)) return h+`<div style="color:#7fd8ff;margin-top:2px">✦ +1 hero on the board while its holder is fielded.</div>`;
     const A=ED.cat&&ED.cat[it.f], ds=A&&(A.effect||A.desc); if(A&&(A.name||ds)) h+=`<div style="color:#ffd45e;margin-top:2px">✦ ${edEsc(A.name||'Active')}</div>${ds?`<div style="color:#aab6c6">${edEsc(ds)}</div>`:''}`; }   // v638: the catalog stores the text as "effect" (edLoadCatalog) - reading "desc" showed only the name
@@ -21598,6 +21663,7 @@ function edDrop(src,at){
 }
 function edAction(a){
   if(a==='desel'){ ED.sel=null; ED.info=null; return edRender(); }   // v612 hero panel
+  if(a==='book'){ ED.book=!ED.book; return edRender(); }   // v650: the recipe book
   if(a.slice(0,3)==='ii:'){ const i=+a.slice(3); ED.info=(ED.info===i)?null:i; return edRender(); }
   if(a==='xp') return edBuyXp(); if(a==='roll') return edReroll();
   if(a==='lock'){ const p=edYou(); p.locked=!p.locked; return edRender(); }
