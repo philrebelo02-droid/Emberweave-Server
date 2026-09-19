@@ -3013,7 +3013,7 @@ function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIn
    Rarity = the hero's starter stars (1 Common grey, 2 Uncommon green, 3 Rare blue) or Mythical. Each rarity has a Hailuo
    banner painted with its word (assets/img/banners/<r>-word.webp) and a blank one (<r>.webp) that carries the hero's name.
    On a card the name banner sits on the frame's bottom edge with the stars on top of it. */
-const RARITY_V=2, RARITY_READY=true;    // flips to true once the Hailuo banners are in assets/img/banners
+const RARITY_V=3, RARITY_READY=true;    // flips to true once the Hailuo banners are in assets/img/banners
 function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMythic==='function'&&isMythic(key))) return 'mythical'; const st=t.stars|0; return st>=3?'rare':st===2?'uncommon':'common'; }
 function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
   const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
@@ -14231,11 +14231,11 @@ HERO_CARD_ART.kilnmask='/assets/img/hero-cards/card-kilnmask.webp?v=10';
 HERO_CARD_ART.konwu='/assets/img/hero-cards/card-konwu.webp?v=10';
 HERO_CARD_ART.lastfurnace='/assets/img/hero-cards/card-lastfurnace.webp?v=10';
 HERO_CARD_ART.librarian='/assets/img/hero-cards/card-librarian.webp?v=10';
-HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=9';
+HERO_CARD_ART.lumi='/assets/img/hero-cards/card-lumi.webp?v=10';
 HERO_CARD_ART.lysara='/assets/img/hero-cards/card-lysara.webp?v=10';
-HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=9';
-HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=9';
-HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=9';
+HERO_CARD_ART.magistrant='/assets/img/hero-cards/card-magistrant.webp?v=10';
+HERO_CARD_ART.meridian='/assets/img/hero-cards/card-meridian.webp?v=10';
+HERO_CARD_ART.meryln='/assets/img/hero-cards/card-meryln.webp?v=10';
 HERO_CARD_ART.nerisse='/assets/img/hero-cards/card-nerisse.webp?v=9';
 HERO_CARD_ART.nox='/assets/img/hero-cards/card-nox.webp?v=9';
 HERO_CARD_ART.oakmir='/assets/img/hero-cards/card-oakmir.webp?v=9';
@@ -19609,7 +19609,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789778475000';
+const BUILD_ID = '1789779202000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
