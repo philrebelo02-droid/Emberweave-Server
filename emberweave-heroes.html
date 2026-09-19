@@ -14346,7 +14346,7 @@ HERO_CARD_ART.vaelora='/assets/img/hero-cards/card-vaelora.webp?v=11';
 HERO_CARD_ART.velvetplum='/assets/img/hero-cards/card-velvetplum.webp?v=10';
 HERO_CARD_ART.verdantshade='/assets/img/hero-cards/card-verdantshade.webp?v=10';
 HERO_CARD_ART.vesper='/assets/img/hero-cards/card-vesper.webp?v=11';
-HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=12';
+HERO_CARD_ART.vex='/assets/img/hero-cards/card-vex.webp?v=13';
 HERO_CARD_ART.veyr='/assets/img/hero-cards/card-veyr.webp?v=11';
 HERO_CARD_ART.vharn='/assets/img/hero-cards/card-vharn.webp?v=10';
 HERO_CARD_ART.vireo='/assets/img/hero-cards/card-vireo.webp?v=11';
@@ -16529,28 +16529,51 @@ function _startVersusNow(enemyTeam,auto,allyKeys){
   gameSpeed=1; refreshCtrlBtns();
 }
 let heroSort='power';   // roster sort for OWNED heroes: 'power' | 'level' | 'stars'
+/* v655 (Phil, Heroes panel: "When I click the sort drop down, I dont like this panel. Make it an actual drop down. Also add class type and
+   rarity as a filter"). The native <select> opened the phone's full-screen radio sheet; ewDropdown is an in-game menu that opens under
+   its button and closes on any other tap. Class and Rarity filter every group (owned, ready to summon, still collecting). */
+let heroClassF='all', heroRarF='all';
+function ewDropdown(label, opts, val, onPick){   // opts: [[value, text], ...]
+  if(!document.getElementById('ewDDcss')){ const st=document.createElement('style'); st.id='ewDDcss'; st.textContent=
+    '.ewDD{position:relative;display:flex;align-items:center;gap:6px}.ewDDl{font-size:11px;color:#8b98a9;white-space:nowrap}'
+   +'.ewDDb{background:#0f1420;color:#e6edf3;border:1px solid #33405e;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;display:flex;gap:8px;align-items:center;justify-content:space-between;min-width:88px}'
+   +'.ewDDb.open{border-color:#ffd45e}.ewDDc{color:#8b98a9;font-size:10px}'
+   +'.ewDDm{position:absolute;right:0;top:calc(100% + 4px);z-index:60;min-width:100%;background:#121a2a;border:1px solid #3a4c72;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.65);padding:4px;max-height:260px;overflow:auto}'
+   +'.ewDDo{padding:7px 10px;border-radius:6px;font-size:12px;color:#cdd6e4;cursor:pointer;white-space:nowrap}.ewDDo:hover{background:rgba(255,255,255,.06)}'
+   +'.ewDDo.on{color:#ffd45e;font-weight:800;background:rgba(255,212,94,.08)}';
+    document.head.appendChild(st);
+    document.addEventListener('click',()=>{ document.querySelectorAll('.ewDDm').forEach(m=>m.hidden=true); document.querySelectorAll('.ewDDb.open').forEach(b=>b.classList.remove('open')); }); }
+  const cur=opts.find(o=>o[0]===val)||opts[0], w=document.createElement('div'); w.className='ewDD';
+  w.innerHTML=(label?`<span class="ewDDl">${escapeHTML(label)}</span>`:'')+`<button type="button" class="ewDDb">${escapeHTML(cur[1])}<span class="ewDDc">▾</span></button>`
+    +`<div class="ewDDm" hidden>${opts.map(o=>`<div class="ewDDo${o[0]===cur[0]?' on':''}" data-v="${escapeHTML(o[0])}">${escapeHTML(o[1])}</div>`).join('')}</div>`;
+  const b=w.querySelector('.ewDDb'), m=w.querySelector('.ewDDm');
+  b.onclick=e=>{ e.stopPropagation(); const willOpen=m.hidden; document.querySelectorAll('.ewDDm').forEach(x=>x.hidden=true); document.querySelectorAll('.ewDDb.open').forEach(x=>x.classList.remove('open')); m.hidden=!willOpen; b.classList.toggle('open',willOpen); };
+  m.onclick=e=>{ const o=e.target.closest('.ewDDo'); if(!o) return; e.stopPropagation(); m.hidden=true; b.classList.remove('open'); if(o.dataset.v!==cur[0]) onPick(o.dataset.v); };
+  return w; }
 function renderHeroList(){
   const r=document.getElementById('heroList'); r.innerHTML='';
   wireRosterTaps(r);   // 30 Aug: same drift-cancels-click defect as the squad roster — these are .hero-card too
   // sort control (spans the full grid width)
   const sortBar=document.createElement('div');
-  sortBar.style.cssText='grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0 2px 2px';
-  sortBar.innerHTML=`<span style="font-size:11px;color:#8b98a9">Sort owned by</span>
-    <select id="heroSortSel" style="background:#0f1420;color:#e6edf3;border:1px solid #33405e;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer">
-      <option value="power">Total Power</option><option value="level">Level</option><option value="stars">Stars</option></select>`;
+  sortBar.style.cssText='grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px 12px;margin:0 2px 2px;position:relative;z-index:5';
+  const ROLE_ORDER=['Tank','Bruiser','Assassin','Marksman','Mage','Support'], roles=[...new Set(HERO_KEYS.map(k=>(HERO_TYPES[k]||{}).role).filter(Boolean))].sort((a,b)=>(ROLE_ORDER.indexOf(a)+99*(ROLE_ORDER.indexOf(a)<0))-(ROLE_ORDER.indexOf(b)+99*(ROLE_ORDER.indexOf(b)<0))||a.localeCompare(b));
+  sortBar.appendChild(ewDropdown('Class', [['all','All classes'], ...roles.map(x=>[x,x])], heroClassF, v=>{ heroClassF=v; renderHeroList(); }));
+  sortBar.appendChild(ewDropdown('Rarity', [['all','All rarities'],['common','Common'],['uncommon','Uncommon'],['rare','Rare'],['mythical','Mythical']], heroRarF, v=>{ heroRarF=v; renderHeroList(); }));
+  sortBar.appendChild(ewDropdown('Sort owned by', [['power','Total Power'],['level','Level'],['stars','Stars']], heroSort, v=>{ heroSort=v; renderHeroList(); }));
   r.appendChild(sortBar);
-  const sel=sortBar.querySelector('#heroSortSel'); sel.value=heroSort; sel.onchange=()=>{ heroSort=sel.value; renderHeroList(); };
+  const pass=k=>(heroClassF==='all' || (HERO_TYPES[k]||{}).role===heroClassF) && (heroRarF==='all' || heroRarity(k)===heroRarF);   // v655 filters
   // owned/summoned heroes first (by the chosen sort), then locked heroes (closest-to-summon first)
   const sv=(k)=> heroSort==='level'?heroLevel(k) : heroSort==='stars'?(heroStars(k)*100+starPips(k)) : heroPower(k);
   // 27 Aug (Phil): three groups, always in this order — the heroes you own, then the ones you can
   // summon RIGHT NOW, then everyone still short of fragments (closest first).
   const own=k=>!!(G.unlocked&&G.unlocked[k]);
-  const owned=HERO_KEYS.filter(own).sort((a,b)=>sv(b)-sv(a));
-  const ready=HERO_KEYS.filter(k=>!own(k)&&canSummon(k)).sort((a,b)=>summonCost(a)-summonCost(b));
-  const locked=HERO_KEYS.filter(k=>!own(k)&&!canSummon(k)).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
+  const owned=HERO_KEYS.filter(k=>own(k)&&pass(k)).sort((a,b)=>sv(b)-sv(a));
+  const ready=HERO_KEYS.filter(k=>!own(k)&&canSummon(k)&&pass(k)).sort((a,b)=>summonCost(a)-summonCost(b));
+  const locked=HERO_KEYS.filter(k=>!own(k)&&!canSummon(k)&&pass(k)).sort((a,b)=>(heroFrag(b)/summonCost(b))-(heroFrag(a)/summonCost(a)));
   const hdr=(txt,col)=>r.appendChild(Object.assign(document.createElement('div'),
     {style:'grid-column:1/-1;font-size:9px;letter-spacing:1px;color:'+col+';margin:10px 2px 0',textContent:txt}));
   if(owned.length) hdr('YOUR HEROES ('+owned.length+')','#8b98a9');
+  if(!owned.length && !ready.length && !locked.length) hdr('NO HEROES MATCH THESE FILTERS','#8b98a9');
   [...owned,...ready,...locked].forEach((key,ix)=>{ const t=HERO_TYPES[key],unlocked=own(key),myth=isMythic(key);
     if(ready.length && ix===owned.length) hdr('✨ READY TO SUMMON ('+ready.length+')','#5ee89b');
     if(locked.length && ix===owned.length+ready.length) hdr('STILL COLLECTING ('+locked.length+')','#6f7d90');
@@ -19723,7 +19746,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789838407000';
+const BUILD_ID = '1789839607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
