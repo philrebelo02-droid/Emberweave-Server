@@ -19626,7 +19626,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789789646000';
+const BUILD_ID = '1789790225000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -19963,7 +19963,7 @@ const ED_TIER_OPEN = 5;             // Rank I / II / III — "rank", because sta
 const ED_POOL_COPIES = {1:29, 2:22, 3:18};         // copies of each hero in the shared pool, by cost
 const ED_ODDS = {3:[75,25,0],4:[60,35,5],5:[45,40,15],6:[35,40,25],7:[25,40,35],8:[20,37,43],9:[15,35,50]};
 const ED_XP_NEED = {3:6, 4:10, 5:20, 6:36, 7:56, 8:80};
-const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 7, ED_FIGHT_LIMIT = 30, ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
+const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles are 2x too wide" -> "14 tiles, every tile a spot"): 4 x 14 half-width tiles per side */  ED_FIGHT_LIMIT = 30, ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
 /* v605 (Phil, 18 Sep 2026) - the painted Emberdraft arenas: "8 different maps so that each player fights on a different map",
    "16 per side" bench pads, "there shouldnt be wasted space on the screen", "Let the entire thing be animated".
    Every arena is described in IMAGE fractions (0..1), measured off the 2560x1440 art (projects/EMBERDRAFT maps 18 Sep 2026,
@@ -20630,9 +20630,15 @@ function edAiPlan(p){
   const all=edUnits(p).sort((a,b)=>(b.rank*10+edCost(b.key))-(a.rank*10+edCost(a.key)));
   p.board={}; p.bench=new Array(ED_BENCH).fill(null);
   const fielded=all.slice(0,p.level), rest=all.slice(p.level); rest.forEach((u,ix)=>{ if(ix<ED_BENCH) p.bench[ix]=u; else { p.gold+=edCost(u.key); edReturnKey(u.key,edCopies(u.rank)); } });
-  let fc=1, bc=1;
+  /* v634: the old placement capped at column 6 and wrote every 7th+ melee (or ranged) hero onto the SAME cell, silently dropping
+     heroes from the AI's board. Now: melee fill from the front row back, ranged from the back row forward; within a row the cells
+     go centre-out, one tile apart first (every other tile), then the tiles in between. */
+  const order=(()=>{ const mid=(ED_COLS-1)/2, cols=[...Array(ED_COLS).keys()];
+    const spaced=cols.filter(c=>c%2===Math.round(mid)%2).sort((a,b)=>Math.abs(a-mid)-Math.abs(b-mid)), between=cols.filter(c=>!spaced.includes(c)).sort((a,b)=>Math.abs(a-mid)-Math.abs(b-mid));
+    return spaced.concat(between); })();
+  const place=(rows,u)=>{ for(const r of rows) for(const c of order){ const k=r+','+c; if(!p.board[k]){ p.board[k]=u; return true; } } return false; };
   for(const u of fielded){ const melee=(HERO_TYPES[u.key].range||0)<60;
-    if(melee){ p.board['0,'+Math.min(6,fc)]=u; fc+= (fc<6?1:0); } else { p.board['3,'+Math.min(6,bc)]=u; bc+=(bc<6?1:0); } }
+    if(!place(melee?[0,1,2,3]:[3,2,1,0],u)){ const ix=p.bench.indexOf(null); if(ix>=0) p.bench[ix]=u; } }
   /* items onto the strongest heroes */
   const heroes=fielded.slice(); p.items.sort((a,b)=>(b.f?1:0)-(a.f?1:0));
   for(let i=0;i<p.items.length;i++){ const it=p.items[i]; for(const h of heroes){ if(edEquip(h,it)){ p.items.splice(i,1); i--; break; } } }
@@ -20704,6 +20710,10 @@ function edLayout(){
   // a canvas measured before it had a size, or a camera whose aspect is stale, would throw every slot off the field
   if(!(CW>0 && CH>0) || !camera || Math.abs((camera.aspect||0)-CW/CH)>0.01){ try{ resize3D(); }catch(e){} }
   const a=edArena(), key=a.id+'|'+CW+'x'+CH; if(ED._lay && ED._lay.key===key) return ED._lay;
+  /* v634: project() reads the camera's matrices, which three.js only refreshes when a frame renders. Before the first frame
+     they are stale, every solved point missed its image point, the fallback grid was used, and once the 8 retries ran out the
+     heroes stayed on the fallback spots, off their tiles. Refresh them here, before solving. */
+  try{ camera.updateProjectionMatrix(); camera.updateMatrixWorld(true); }catch(e){}
   const P=a.plaza, lerp=(u,v,t)=>u+(v-u)*t;
   const edges=(y)=>{ const t=(y-P.farY)/(P.nearY-P.farY); return [lerp(P.farL,P.nearL,t), lerp(P.farR,P.nearR,t)]; };
   const cell=(iy,c)=>{ const e=edges(iy), w=e[1]-e[0], l=e[0]+w*0.05, r=e[1]-w*0.05; return edImgToField(l+(r-l)*(c+0.5)/ED_COLS, iy); };
@@ -20724,7 +20734,7 @@ function edLayout(){
   for(let r=0;good&&r<ED_ROWS;r++) for(let c=0;good&&c<ED_COLS;c++) good=isFinite(lay.ally[r][c].x)&&isFinite(lay.enemy[r][c].x)&&Math.abs(lay.ally[r][c].x)<5000&&Math.abs(lay.enemy[r][c].y)<5000;
   if(!good){
     const old={ key:'fallback', ally:[], enemy:[], benchA:[], benchE:[] };
-    for(let r=0;r<ED_ROWS;r++){ old.ally.push([]); old.enemy.push([]); for(let c=0;c<ED_COLS;c++){ old.ally[r].push({x:140+c*120,y:700+r*85}); old.enemy[r].push({x:860-c*120,y:500-r*85}); } }
+    for(let r=0;r<ED_ROWS;r++){ old.ally.push([]); old.enemy.push([]); for(let c=0;c<ED_COLS;c++){ old.ally[r].push({x:140+c*60,y:700+r*85}); old.enemy[r].push({x:920-c*60,y:500-r*85}); } }
     for(let i=0;i<ED_BENCH;i++){ old.benchA.push({x:60+i*58,y:1070}); old.benchE.push({x:940-i*58,y:150}); }
     ED._lay=null; ED._layRetry=true; return old;
   }
@@ -20953,6 +20963,10 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .msg{left:50px;right:calc(min(30vw,210px) + 16px);bottom:62px;font-size:12px;color:#dfe7f1;text-shadow:0 1px 3px #000;text-align:center;pointer-events:none}
 #edRoot .mark,#edFloor .mark{position:absolute;transform:translate(-50%,-50%);border-radius:4px;border:1.5px solid rgba(255,190,90,.55);background:rgba(255,160,60,.07);box-shadow:0 0 7px rgba(255,160,60,.45),inset 0 0 6px rgba(255,160,60,.22);pointer-events:none}   /* v606 Phil: "square glowing place holders the dimensions of the tiles" (not circles) */
 #edRoot .mark.bench,#edFloor .mark.bench{border-color:rgba(150,200,255,.45);background:rgba(120,180,255,.06);box-shadow:0 0 6px rgba(120,180,255,.4),inset 0 0 5px rgba(120,180,255,.2)}
+#edFloor .edBoard{position:absolute;inset:0;overflow:visible}
+#edFloor .tile{stroke:rgba(255,196,110,.42);stroke-width:1;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(255,160,60,.35))}
+#edFloor .tile.lt{fill:rgba(255,226,170,.17)} #edFloor .tile.dk{fill:rgba(30,16,6,.30)}
+#edFloor .tile.hot{fill:rgba(255,212,94,.42);stroke:#ffe08a;stroke-width:2}   /* v634: the checkerboard (Phil: "checker board style with the painted squares") */
 #edRoot .mark.hot,#edFloor .mark.hot{border-color:#ffe08a;background:rgba(255,212,94,.3);box-shadow:0 0 14px rgba(255,200,80,.9),inset 0 0 10px rgba(255,200,80,.5)}
 #edRoot .badge{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;gap:1px;align-items:center;font-size:10px;font-weight:900;color:#ffd45e;text-shadow:0 1px 2px #000;white-space:nowrap}
 #edRoot .badge i{font-style:normal;font-size:9px;line-height:11px;min-width:11px;text-align:center;border-radius:3px;background:rgba(0,0,0,.65);border-bottom:2px solid #9aa4b2}
@@ -20998,10 +21012,24 @@ function edShowField(){
   document.body.classList.add('ed-plan');
   if(ED._layRetry){ ED._layRetry=false; ED._layTries=(ED._layTries|0)+1; if(ED._layTries<=8) setTimeout(()=>{ if(ED.active && ED.phase==='plan'){ ED._fieldSig=null; edRender(); } }, 250); } else ED._layTries=0;
 }
+/* v634 (Phil: "There is 1 tile distance between each tile" / "it should be like check pattern, checker board style with the painted
+   squares"): the board is drawn as a full checkerboard ON THE FLOOR. Each cell's four corners come from the same image-space grid
+   edLayout uses for its centre (plaza midY..nearY in ED_ROWS bands, the plaza edges inset 5% in ED_COLS columns), mapped through
+   the canvas rect - the arena image is stretched over exactly that rect - so the tiles meet edge to edge in true perspective. */
+function edBoardQuads(){ const a=edArena(), P=a&&a.plaza; if(!P) return [];
+  const cv=(renderer&&renderer.domElement); const R=cv?cv.getBoundingClientRect():{left:0,top:0,width:CW,height:CH};
+  const lerp=(u,v,t)=>u+(v-u)*t, edges=(y)=>{ const t=(y-P.farY)/(P.nearY-P.farY); return [lerp(P.farL,P.nearL,t), lerp(P.farR,P.nearR,t)]; };
+  const pt=(k,j)=>{ const iy=P.midY+(P.nearY-P.midY)*k/ED_ROWS, e=edges(iy), w=e[1]-e[0], l=e[0]+w*0.05, r=e[1]-w*0.05, ix=l+(r-l)*j/ED_COLS;
+    return { x:R.left+ix*R.width, y:R.top+iy*R.height }; };
+  const out=[]; for(let r=0;r<ED_ROWS;r++) for(let c=0;c<ED_COLS;c++) out.push({ slot:'b:'+r+','+c, r, c, q:[pt(r,c),pt(r,c+1),pt(r+1,c+1),pt(r+1,c)] });
+  return out; }
+function edInQuad(q,x,y){ let ins=false; for(let i=0,j=q.length-1;i<q.length;j=i++){ const a=q[i], b=q[j];
+    if(((a.y>y)!==(b.y>y)) && (x < (b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x)) ins=!ins; } return ins; }
 function edUnitAtScreen(x,y){ let best=null, bd=40; for(const u of units){ if(!u.alive||u._edId==null) continue;
     const a=edScreen(u.x,u.y), b=edScreen(u.x,u.y,Math.max(0.3,(u.sprH||1.6)*0.55)); const d=Math.min(Math.hypot(a.x-x,a.y-y), Math.hypot(b.x-x,b.y-y)); if(d<bd){ bd=d; best=u; } }
   return best; }
-function edSlotAtScreen(x,y){ let best=null, bd=46; for(const s of edSlots()){ const d=Math.hypot(s.sx-x,s.sy-y); if(d<bd){ bd=d; best=s; } } return best; }
+function edSlotAtScreen(x,y){ for(const b of edBoardQuads()) if(edInQuad(b.q,x,y)) return edSlots().find(s=>s.slot===b.slot)||null;
+  let best=null, bd=46; for(const s of edSlots()){ const d=Math.hypot(s.sx-x,s.sy-y); if(d<bd){ bd=d; best=s; } } return best; }
 function edRender(){
   edCss();
   let root=document.getElementById('edRoot'); if(!root){ root=document.createElement('div'); root.id='edRoot'; document.body.appendChild(root); edWireRoot(root); }
@@ -21015,7 +21043,10 @@ function edRender(){
     if(ED._fieldSig!==sig || state!=='battle'){ edShowField(); ED._fieldSig=sig; } }
   const you=edYou(), r=ED.round, need=ED_XP_NEED[you.level], syn=edSynergy(you);
   let h='<div class="hit" data-field="1"></div>';
-  { let fl=''; for(const s of edSlots()){ const q=edFloorXY(s.sx,s.sy); fl+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${q.x.toFixed(1)}px;top:${q.y.toFixed(1)}px;width:${Math.max(8,s.w|0)}px;height:${Math.max(8,s.h|0)}px"></div>`; }
+  { let fl='<svg class="edBoard" width="100%" height="100%">'; for(const b of edBoardQuads()){ const pts=b.q.map(p=>{ const f=edFloorXY(p.x,p.y); return f.x.toFixed(1)+','+f.y.toFixed(1); }).join(' ');
+      fl+=`<polygon class="tile ${(b.r+b.c)%2?'dk':'lt'}" data-mark="${b.slot}" points="${pts}"/>`; }
+    fl+='</svg>';
+    for(const s of edSlots()){ if(!s.bench) continue; const q=edFloorXY(s.sx,s.sy); fl+=`<div class="mark ${s.bench?'bench':''}" data-mark="${s.slot}" style="left:${q.x.toFixed(1)}px;top:${q.y.toFixed(1)}px;width:${Math.max(8,s.w|0)}px;height:${Math.max(8,s.h|0)}px"></div>`; }
     edFloorSet(fl); }   // v633: under the heroes
   for(const u of units){ if(!u.alive||u._edId==null) continue; const hh=edUnits(you).find(x=>x.id===u._edId); if(!hh) continue;
     const top=edScreen(u.x,u.y,(u.sprH||1.6)*1.05);
