@@ -11355,17 +11355,21 @@ function glowUnit(u,intensity,rgb){ if(!u||!u.alive)return; const p=project(u.rx
    star. Coloured by the rank's ability colour (ED_RANK_COL: green, blue, purple, gold). The names stay "N star" - no text is
    drawn. Returns the height used, so the caller stacks the health bar above it. */
 function edDrawInsignia(c, cx, by, rank, k){
-  const col=(typeof ED_RANK_COL!=='undefined'&&ED_RANK_COL[rank])||'#ffd45e';
+  /* v654: Emberweave styling - each mark is filled with a gradient from a light tint to the tier colour, edged in dark bronze, with a soft glow */
+  const col=(typeof ED_RANK_COL!=='undefined'&&ED_RANK_COL[rank])||'#ffd45e', edge='rgba(38,22,8,.95)';
+  const tint=(hex,t)=>{ const n=parseInt(hex.slice(1),16), r=n>>16&255, g=n>>8&255, b=n&255, m=v=>Math.round(v+(255-v)*t); return 'rgb('+m(r)+','+m(g)+','+m(b)+')'; };
   c.save(); c.lineJoin='miter'; c.lineCap='butt';
   if(rank>=4){ const R=9*k, r=R*0.42, cy=by-R;
+    const gr=c.createLinearGradient(cx,cy-R,cx,cy+R); gr.addColorStop(0,tint(col,0.55)); gr.addColorStop(1,col);
     c.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r:R; c.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); } c.closePath();
-    c.shadowColor='rgba(255,212,94,.8)'; c.shadowBlur=6*k; c.fillStyle=col; c.fill(); c.shadowBlur=0;
-    c.lineWidth=1.6*k; c.strokeStyle='rgba(0,0,0,.9)'; c.stroke(); c.restore(); return 2*R; }
+    c.shadowColor=col; c.shadowBlur=7*k; c.fillStyle=gr; c.fill(); c.shadowBlur=0;
+    c.lineWidth=1.6*k; c.strokeStyle=edge; c.stroke(); c.restore(); return 2*R; }
   const n=Math.max(1,Math.min(3,rank|0)), w=18*k, h=6.5*k, th=3.1*k, step=5.2*k, H=h+th+(n-1)*step;
   for(let i=0;i<n;i++){ const y=by-H+th/2+i*step;   // top chevron first, like a sleeve
+    const gr=c.createLinearGradient(cx,y-th,cx,y+h+th); gr.addColorStop(0,tint(col,0.5)); gr.addColorStop(1,col);
     c.beginPath(); c.moveTo(cx-w/2, y+h); c.lineTo(cx, y); c.lineTo(cx+w/2, y+h);
-    c.lineWidth=th+2.2*k; c.strokeStyle='rgba(0,0,0,.9)'; c.stroke();
-    c.lineWidth=th; c.strokeStyle=col; c.stroke(); }
+    c.lineWidth=th+2.2*k; c.strokeStyle=edge; c.stroke();
+    c.shadowColor=col; c.shadowBlur=4*k; c.lineWidth=th; c.strokeStyle=gr; c.stroke(); c.shadowBlur=0; }
   c.restore(); return H; }
 /* the planning badge (item icons) follows the bar; the overlay is in #app px, the badge in viewport px */
 let _edRenderGen=0, _edOvRect=null;   /* v646: a badge lookup happens once per edRender (heroes with no items have none); the overlay rect once per frame */
@@ -19719,7 +19723,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789837207000';
+const BUILD_ID = '1789838407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -20047,13 +20051,13 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
 window.ED = { active:false, fighting:false };
 const ED_LEVEL = 30;                               // every hero fights at this level
 const ED_RANK_MUL = [0, 1, 1.8, 3.24, 5.832];   // [4] = the big star (3 x Rank III)
-const ED_RANK_COL = ['', '#5fd07a', '#58a6ff', '#b57bff', '#ffd45e'];   // Phil, 18 Sep: I Green, II Blue, III Purple — the ability each rank earns
+const ED_RANK_COL = ['', '#5ee89b', '#4aa3ff', '#b98bff', '#ffd45e'];   /* v654 (Phil: "make them more emberweave style colors green 1 chevron, blue 2 chevron, purple 3 chevron, gold 1 star"): the game's own quality palette (G2_LCOL) */   // Phil, 18 Sep: I Green, II Blue, III Purple — the ability each rank earns
 const ED_RANK_KIT = ['', 'Ultimate + Green', 'Ultimate + Green + Blue', 'Ultimate + Green + Blue + Purple', 'every ability · wields Gold and Orange'];
 const ED_RANK_LBL = ['', '1 star', '2 star', '3 star', '4 star'];   /* v646 (Phil: "we will call these 1 star, 2 star, 3 star, 4 star"; the insignia shows the army rank) */
 /* Phil, 18 Sep: "only the one big stars can upgrade to gold and orange item, the orange and gold item is gated for 3stars and below heroes".
    Drops and the item bench stop at Purple +3 (tier 5); a Gold/Orange tier (6+) exists only on a big-star hero. */
 const ED_TIER_OPEN = 5;             // Rank I / II / III — "rank", because stars mean rarity here
-const ED_POOL_COPIES = {1:29, 2:22, 3:18};         // copies of each hero in the shared pool, by cost
+const ED_POOL_COPIES = {1:48, 2:37, 3:30};   /* v654 (Phil: "bigger pool follow the same style as tft pool"): TFT's 29/22/18 x ~1.65 - a 4 star (27 copies) is now reachable at every cost */         // copies of each hero in the shared pool, by cost
 const ED_ODDS = {3:[75,25,0],4:[60,35,5],5:[45,40,15],6:[35,40,25],7:[25,40,35],8:[20,37,43],9:[15,35,50]};
 const ED_XP_NEED = {3:6, 4:10, 5:20, 6:36, 7:56, 8:80};
 const ED_BENCH = 16, ED_ROWS = 4, ED_COLS = 14,   /* v634 (Phil: "These tiles are 2x too wide" -> "14 tiles, every tile a spot"): 4 x 14 half-width tiles per side */  ED_FIGHT_LIMIT = 90, ED_OVERTIME = 30,   /* v639 (Phil: "The matches are too fast. Should be 90 seconds, then the last 30 seconds is the attack speed increase stage") */ ED_START_HP = 100;   // v605: bench 9 -> 16 (Phil: "Its 16 per side" / "So you can get about 16 heroes")
@@ -20103,7 +20107,7 @@ const ED_COMP_IC = {Weapon:'⚔️',Helm:'⛑️',Boots:'👢',Armor:'🛡️',G
    ED_DEF_COMP = 0.15 x defK(ED_LEVEL) = 256 -> ~13% less damage of that kind, ~+15% effective health against it. */
 const ED_DEF_COMP = 256;
 const ED_COMP_TXT = {Weapon:'+15% damage',Helm:'+256 magic resist',Boots:'+15% attack speed',Armor:'+256 armor',Gloves:'+15% crit chance',
-                     Belt:'+15% health',Ring:'+15% ability power',Amulet:'+15 starting energy',Relic:'+8% health and damage'};
+                     Belt:'+15% health',Ring:'+15% ability power (ability-power heroes only)',Amulet:'+15 starting energy',Relic:'+8% health and damage'};
 const ED_TIERS = ['Grey','Green','Blue','Blue +2','Purple','Purple +3','Gold +1','Gold +4','Orange'];
 const ED_TIER_COL = ['#9aa4b2','#5ee89b','#5eb9e8','#5eb9e8','#c9a2ff','#c9a2ff','#ffd45e','#ffd45e','#ff9d5e'];
 function edTierMul(q){ return 1; }   // v640: items have no tiers any more (kept so old callers read 1)
@@ -20113,12 +20117,12 @@ function edTierMul(q){ return 1; }   // v640: items have no tiers any more (kept
    Relic is our Spatula: Relic + a component = that component's ROLE CREST (the hero counts as that role for synergies);
    Relic + Relic = Worldroot Seed (+1 hero on the board). The item bench is a 10-slot column on the left. */
 const ED_FIN_BONUS = 1.25, ED_RADIANT_MUL = 2, ED_ITEM_BENCH = 10;
-const ED_CREST = { Weapon:'Warrior', Armor:'Tank', Belt:'Bruiser', Gloves:'Brute', Ring:'Mage', Boots:'Marksman', Helm:'Assassin', Amulet:'Support' };
+const ED_CREST = { Weapon:'Bruiser', Armor:'Tank', Belt:'Bruiser', Gloves:'Assassin', Ring:'Mage', Boots:'Marksman', Helm:'Assassin', Amulet:'Support' };   /* v654: only the 6 real classes (Warrior -> Bruiser, Brute -> Assassin for the crit Gloves) */
 function edItemMul(it){ return (it&&it.r) ? ED_RADIANT_MUL : ((it&&it.t) ? ED_TIER_ACT[it.t] : 1); }   /* v650: Purple / Gold actives are stronger */
 function edCrestRole(it){ if(!it||!it.f) return null; if(it.a==='Relic'&&it.b!=='Relic') return ED_CREST[it.b]||null; if(it.b==='Relic'&&it.a!=='Relic') return ED_CREST[it.a]||null; return null; }
 function edIsSeed(it){ return !!(it&&it.f&&it.a==='Relic'&&it.b==='Relic'); }
 function edItemCol(it){ if(!it) return '#cfd6df'; if(it.rm) return '#c9a2ff'; const t=edTierOf(it);   /* v650: the ladder's colours */
-  if(t==='orange') return '#ff9a3c'; if(t==='gold') return '#ffd45e'; if(t==='purple') return '#b57bff'; if(edCrestRole(it)||edIsSeed(it)) return '#7fd8ff'; if(t==='blue') return '#58a6ff'; return '#5fd07a'; }
+  if(t==='orange') return '#ff9d5e'; if(t==='gold') return '#ffd45e'; if(t==='purple') return '#b98bff'; if(edCrestRole(it)||edIsSeed(it)) return '#7fd8ff'; if(t==='blue') return '#4aa3ff'; return '#5ee89b'; }   /* v654: Emberweave's palette */
 function edHeroRoles(h){ const out=[edRole(h.key)]; for(const it of (h.items||[])){ const r=edCrestRole(it); if(r && !out.includes(r)) out.push(r); } return out; }
 function edFieldCap(p){ let n=p.level; for(const u of Object.values(p.board)) for(const it of (u.items||[])) if(edIsSeed(it)) n++; return n; }
 /* the item bench holds 10; anything past that waits and moves in as soon as a slot frees (TFT's waiting orbs) */
@@ -20154,9 +20158,7 @@ function edPairKey(a,b){ const i=ED_COMP.indexOf(a), j=ED_COMP.indexOf(b); retur
 /* role synergies (the role every hero already has) — counted by DISTINCT heroes on the board */
 const ED_SYN = {
  Tank:{ic:'🛡️', t:[2,4], d:['Tanks +20% health','Tanks +40% health, the team +10%']},
- Warrior:{ic:'⚔️', t:[2,4], d:['Warriors +15% damage','Warriors +35% damage']},
- Bruiser:{ic:'🩸', t:[2,4], d:['Bruisers 10% lifesteal','Bruisers 25% lifesteal']},
- Brute:{ic:'💥', t:[2,4], d:['Brutes: 10% stun on hit','Brutes: 20% stun on hit']},
+ Bruiser:{ic:'🩸', t:[2,4], d:['Bruisers 10% lifesteal, +10% damage','Bruisers 25% lifesteal, +25% damage, 10% stun on hit']},   /* v654 (Phil: "Those are meant to be bruisers not brute"): Warrior + Brute folded into Bruiser */
  Mage:{ic:'🔮', t:[2,4], d:['Mages +20% ability power','Mages +50% ability power']},
  Marksman:{ic:'🏹', t:[2,4], d:['Marksmen +20% attack speed','Marksmen +45% attack speed']},
  Assassin:{ic:'🗡️', t:[2,4], d:['Assassins +15% crit chance','Assassins +35% crit, leap to the back line']},
@@ -20237,7 +20239,7 @@ const ED_PURPLE = {"Anchorstep Greaves+Astral Carapace":"Runebound Scepter","Bas
 const ED_GOLD = {"Fluxwalk Sabatons+Runebound Scepter":"Oathbound Signet","Barrier Loop+Wardweave Gloves":"Moonstone Locket","Ashstride Boots+Cinder Mask":"Fighter’s Seal","Infernal Plate+Scorch Cincture":"Ignition Charm","Ember Pike+Farshot Cloak":"Sniper’s Loop","Ammunition Harness+Ruin Loop":"Ballista Scope","Eaglecrest Hood+Scout Crossbow":"Aiming Band","Quiver Belt+Silentstep Shoes":"Horizon Locket","Spellweaver Gloves+Voidweave Robe":"Mana Conduit","Aether Sash+Starchannel Mitts":"Celestial Charm","Sanctuary Treads+Sunlit Censer":"Renewal Signet","Guardian Wraps+Seraphic Robe":"Quiet Star Necklace"};
 const ED_ITEM_CLS = {"Runebound Scepter":"Tank","Fluxwalk Sabatons":"Tank","Wardweave Gloves":"Tank","Barrier Loop":"Tank","Oathbound Signet":"Tank","Moonstone Locket":"Tank","Cinder Mask":"Bruiser","Ashstride Boots":"Bruiser","Infernal Plate":"Bruiser","Scorch Cincture":"Bruiser","Fighter’s Seal":"Bruiser","Ignition Charm":"Bruiser","Ember Pike":"Assassin","Farshot Cloak":"Assassin","Ammunition Harness":"Assassin","Ruin Loop":"Assassin","Sniper’s Loop":"Assassin","Ballista Scope":"Assassin","Scout Crossbow":"Marksman","Eaglecrest Hood":"Marksman","Silentstep Shoes":"Marksman","Quiver Belt":"Marksman","Aiming Band":"Marksman","Horizon Locket":"Marksman","Voidweave Robe":"Mage","Spellweaver Gloves":"Mage","Starchannel Mitts":"Mage","Aether Sash":"Mage","Mana Conduit":"Mage","Celestial Charm":"Mage","Sunlit Censer":"Support","Sanctuary Treads":"Support","Seraphic Robe":"Support","Guardian Wraps":"Support","Renewal Signet":"Support","Quiet Star Necklace":"Support"};
 Object.assign(ED_ITEM_ART, {"Runebound Scepter":"E02","Fluxwalk Sabatons":"E18","Wardweave Gloves":"E36","Barrier Loop":"E55","Oathbound Signet":"E54","Moonstone Locket":"E65","Cinder Mask":"E12","Ashstride Boots":"E20","Infernal Plate":"E29","Scorch Cincture":"E47","Fighter’s Seal":"E56","Ignition Charm":"E67","Ember Pike":"E04","Farshot Cloak":"E31","Ammunition Harness":"E49","Ruin Loop":"E57","Sniper’s Loop":"E59","Ballista Scope":"E79","Scout Crossbow":"E05","Eaglecrest Hood":"E14","Silentstep Shoes":"E22","Quiver Belt":"E48","Aiming Band":"E58","Horizon Locket":"E69","Voidweave Robe":"E33","Spellweaver Gloves":"E41","Starchannel Mitts":"E42","Aether Sash":"E51","Mana Conduit":"E50","Celestial Charm":"E71","Sunlit Censer":"E08","Sanctuary Treads":"E25","Seraphic Robe":"E34","Guardian Wraps":"E43","Renewal Signet":"E62","Quiet Star Necklace":"E73"});
-const ED_TIER_BONUS = { P:1.1, G:1.15 };   // stat multiplier on the parts, per step up the ladder
+const ED_TIER_BONUS = { P:0.85, G:0.85 };   // stat multiplier on the parts, per step up the ladder. v654 (Phil: "the items should not be broken, but they should be strong. There should be incentive to climb with items"): was 1.1 / 1.15 (a Tank Gold gave ~49% less physical damage from one slot). Now a Purple = 1.7 Blues and a Gold = 2.9 Blues of stats in ONE slot, plus the freed slots and a 1.25x / 1.5x active
 const ED_TIER_ACT = { P:1.25, G:1.5 };     // the item's own active is this much stronger
 function edTierKey(a,b){ return [a,b].sort().join('+'); }
 function edTierOf(it){ if(!it) return ''; if(it.rm) return 'tool'; if(it.r) return 'orange'; if(it.t==='G') return 'gold'; if(it.t==='P') return 'purple'; if(it.f) return 'blue'; return 'green'; }
@@ -20248,6 +20250,8 @@ function edTierUp(x,y){
   return null; }
 function edTierSettle(h){ for(let again=true, guard=0; again && guard<6; guard++){ again=false;
     for(let i=0;i<h.items.length && !again;i++) for(let j=i+1;j<h.items.length;j++){ const up=edTierUp(h.items[i],h.items[j]); if(up){ h.items[i]=up; h.items.splice(j,1); again=true; break; } } } }
+function edHasComp(it,c){ return !!it && (it.c===c || it.a===c || it.b===c || (Array.isArray(it.parts) && it.parts.some(q=>edHasComp(q,c)))); }
+function edAttackHero(h){ const t=h&&HERO_TYPES[h.key]; return !!t && t.damageProfile==='Attack'; }   // v654: abilities scale on attack damage - Ring does little
 function edItemCap(h){ return (h && h.rank>=4) ? 4 : 3; }
 function edItemPow(it){ if(!it||it.rm) return 0; if(it.t) return (edItemPow(it.parts[0])+edItemPow(it.parts[1]))*ED_TIER_BONUS[it.t]+0.05; return (it.f?0.18*ED_FIN_BONUS:0.08)*(it.r?ED_RADIANT_MUL:1); }
 function edApplyTierStats(u,it,m){ if(!it) return; if(it.t){ const b=ED_TIER_BONUS[it.t]; for(const q of it.parts) edApplyTierStats(u,q,m*b); } else if(it.f){ edApplyComp(u,it.a,m*ED_FIN_BONUS); edApplyComp(u,it.b,m*ED_FIN_BONUS); } else if(it.c) edApplyComp(u,it.c,m); }
@@ -20995,7 +20999,7 @@ function edAiPlan(p){
     if(!place(melee?[0,1,2,3]:[3,2,1,0],u)){ const ix=p.bench.indexOf(null); if(ix>=0) p.bench[ix]=u; } }
   /* items onto the strongest heroes */
   const heroes=fielded.slice(); p.items=p.items.filter(it=>!it.rm); p.items.sort((a,b)=>(b.f?1:0)-(a.f?1:0));   // v644: the AI never uses a Remover - drop it rather than let removers fill its item bench
-  for(let i=0;i<p.items.length;i++){ const it=p.items[i]; if(it.rm) continue; for(const h of heroes){ if(edEquip(h,it)){ p.items.splice(i,1); i--; break; } } }
+  for(let i=0;i<p.items.length;i++){ const it=p.items[i]; if(it.rm) continue; for(const h of heroes){ if(edHasComp(it,'Ring') && edAttackHero(h)) continue; if(edEquip(h,it)){ p.items.splice(i,1); i--; break; } } }   /* v654: no Ring items on attack heroes */
   edItemsFlush(p);
 }
 
@@ -21251,9 +21255,7 @@ function edApplyItem(u,it){ if(!it||it.rm) return; const k=edItemMul(it);
     u._edSkills.push({ name:a.name||it.f, type:a.type, params:pr, used:false }); } }
 function edApplySynergy(u,syn){ if(!syn) return; const roles=u._edRoles||[u.t&&u.t.role], is=r=>roles.includes(r), T=r=>(syn[r]&&syn[r].tier)||0;   // v640: a crest makes the hero count as that role too
   if(T('Tank')&&is('Tank')) u.maxHp*=T('Tank')>=2?1.4:1.2; if(T('Tank')>=2&&!is('Tank')) u.maxHp*=1.1;
-  if(T('Warrior')&&is('Warrior')) u.dmg*=T('Warrior')>=2?1.35:1.15;
-  if(T('Bruiser')&&is('Bruiser')) u.lifestealStat=(u.lifestealStat||0)+(T('Bruiser')>=2?0.25:0.10);
-  if(T('Brute')&&is('Brute')) u._edStun=T('Brute')>=2?0.20:0.10;
+  if(T('Bruiser')&&is('Bruiser')){ u.lifestealStat=(u.lifestealStat||0)+(T('Bruiser')>=2?0.25:0.10); u.dmg*=T('Bruiser')>=2?1.25:1.10; if(T('Bruiser')>=2) u._edStun=0.10; }   // v654: Warrior + Brute folded in
   if(T('Mage')&&is('Mage')) u.apow=(u.apow||0)*(T('Mage')>=2?1.5:1.2);
   if(T('Marksman')&&is('Marksman')) u.atkInterval/=(T('Marksman')>=2?1.45:1.2);
   if(T('Assassin')&&is('Assassin')){ u.glyphCrit=(u.glyphCrit||0)+(T('Assassin')>=2?0.35:0.15); if(T('Assassin')>=2) u._edLeap=true; }
@@ -21414,6 +21416,8 @@ body.ed-plan #hud,body.ed-plan #battleCtrls,body.ed-plan #battleBanner,body.ed-p
 #edRoot .carTapFx{position:absolute;width:30px;height:14px;margin:-7px 0 0 -15px;border:2px solid #ffc766;border-radius:50%;pointer-events:none;box-shadow:0 0 10px rgba(255,160,50,.8);animation:edTapFx .65s ease-out forwards;z-index:3}
 @keyframes edTapFx{from{transform:scale(.4);opacity:1}to{transform:scale(1.5);opacity:0}}
 #edRoot .ledgeItem{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none}
+#edRoot .sideTab{position:absolute;top:40px;right:max(6px,env(safe-area-inset-right));z-index:4;border:1px solid rgba(255,210,140,.45);border-radius:9px;background:rgba(14,10,8,.85);color:#ffd45e;font-weight:800;font-size:12px;padding:5px 9px;cursor:pointer;pointer-events:auto}
+#edRoot .sideFold{position:absolute;top:-2px;left:-22px;width:20px;height:26px;border:1px solid rgba(255,210,140,.4);border-radius:7px 0 0 7px;background:rgba(14,10,8,.85);color:#ffd45e;font-size:12px;padding:0;cursor:pointer;pointer-events:auto}
 #edRoot .ibBook{flex:none;border:1px solid rgba(255,210,140,.45);border-radius:7px;background:rgba(40,26,12,.85);color:#ffd45e;font-size:15px;line-height:1;padding:0;cursor:pointer}
 #edRoot .edBook{position:absolute;top:40px;bottom:70px;left:calc(max(4px,env(safe-area-inset-left)) + 44px);right:8px;max-width:600px;z-index:6;display:flex;flex-direction:column;background:rgba(14,10,8,.96);border:1px solid #6b4a2e;border-radius:10px;padding:6px 10px 8px;font-size:11px;color:#e8edf3;pointer-events:auto}
 #edRoot .edBook .bkTop{display:flex;align-items:center;gap:6px;flex:none}
@@ -21573,8 +21577,9 @@ function edRender(){
     h+='</div>'; }
   if(ED.book) h+=edBookHtml();
   const selH=(ED.sel&&ED.sel.hero)?edUnits(you).find(u=>u.id===ED.sel.hero):null, selI=(ED.sel&&ED.sel.item!=null)?you.items[ED.sel.item]:null;
-  if(selH||selI){ h+=edInfoPanel(selH,selI); } else {   // v612: a tapped hero (or ledge item) shows its stats on the right
-  h+='<div class="bar sidep"><div class="panel">';
+  if(ED.sideMin==null) ED.sideMin = innerHeight<450;   /* v654 (Phil: collapsible side panels): starts folded on a short (phone) screen */
+  if(selH||selI){ h+=edInfoPanel(selH,selI); } else if(ED.sideMin){ h+='<button class="sideTab" data-a="side" title="Players and synergies">👥 ◂</button>'; } else {   // v612: a tapped hero (or ledge item) shows its stats on the right
+  h+='<div class="bar sidep"><button class="sideFold" data-a="side" title="Fold away">▸</button><div class="panel">';
   const plist=ED.players.slice().sort((a,b)=>(b.alive-a.alive)||(b.hp-a.hp));
   for(const p of plist) h+=`<div class="prow ${p.i===0?'me':''} ${p.alive?'':'out'}"><span style="width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${edEsc(p.name)}</span><span class="hpbar"><b style="width:${Math.max(0,p.hp)}%"></b></span><span style="width:24px;text-align:right">${Math.max(0,p.hp)}</span></div>`;
   h+='</div><div class="panel">';
@@ -21695,7 +21700,7 @@ function edDrop(src,at){
   if(src.item!=null){ const it=you.items[src.item]; _edEquipWhy='';
     if(it && at.hero){ const h=edUnits(you).find(u=>u.id===at.hero);
       if(h && it.rm){ you.items.splice(src.item,1); if(!edRemoveItems(you,h)) you.items.splice(src.item,0,it); }   // v640: the remover
-      else if(h && edEquip(h,it)){ you.items.splice(src.item,1); } else edToast(_edEquipWhy||'That hero already carries three items.'); }
+      else if(h && edEquip(h,it)){ you.items.splice(src.item,1); if(edHasComp(it,'Ring') && edAttackHero(h)) edToast('Ring boosts ability power - '+edName(h.key)+"'s abilities scale on attack damage, so it does little here."); } else edToast(_edEquipWhy||'That hero already carries three items.'); }
     edItemsFlush(you);
     ED.sel=null; return edRender(); }
   if(src.hero){ const h=edUnits(you).find(u=>u.id===src.hero); if(!h){ ED.sel=null; return edRender(); }
@@ -21708,6 +21713,7 @@ function edDrop(src,at){
 function edAction(a){
   if(a==='desel'){ ED.sel=null; ED.info=null; return edRender(); }   // v612 hero panel
   if(a==='book'){ ED.book=!ED.book; return edRender(); }   // v650: the recipe book
+  if(a==='side'){ ED.sideMin=!ED.sideMin; return edRender(); }   // v654: fold / unfold the players + synergies panel
   if(a.slice(0,3)==='bk:'){ ED.bookTab=a.slice(3); ED.bookSel=''; return edRender(); }   // v651: its tabs
   if(a.slice(0,4)==='bki:'){ ED.bookSel=(a==='bki:'||ED.bookSel===a)?'':a; return edRender(); }   // v651: tap an item in the book for its stats
   if(a.slice(0,3)==='ii:'){ const i=+a.slice(3); ED.info=(ED.info===i)?null:i; return edRender(); }
@@ -21724,7 +21730,16 @@ function edAction(a){
     return uiConfirm('Quit Emberdraft?', lines, 'Quit', true).then(ok=>{ if(ok) edQuit(); }); }
 }
 
-/* Brute synergy: a chance to stun on hit (wraps the engine's dealDamage only while a match is being fought) */
+/* v654 (Phil: the back button "yes do that"): the phone's back button used to leave the app mid-match in every mode. A history entry
+   is kept on top; Back lands on it and asks first - in Emberdraft it is the Quit confirmation, anywhere else "Leave Emberweave?". */
+if(!window._ewBackWired){ window._ewBackWired=true; let _leaving=false;
+  try{ history.pushState({ewTrap:1},''); }catch(e){}
+  window.addEventListener('popstate',()=>{ if(_leaving) return; try{ history.pushState({ewTrap:1},''); }catch(e){}
+    if(window.ED && ED.active && ED.phase!=='over'){ try{ edAction('quit'); }catch(e){} return; }
+    if(document.getElementById('uiConfirmWrap')) return;
+    uiConfirm('Leave Emberweave?', ['Your progress is saved.'], 'Leave', true).then(ok=>{ if(ok){ _leaving=true; history.go(-2); } }); }); }
+
+/* Bruiser (was Brute) synergy: a chance to stun on hit (wraps the engine's dealDamage only while a match is being fought) */
 (function(){ if(typeof dealDamage!=='function') return; const _dd=dealDamage;
   dealDamage=function(src,tgt,amt,color,kind,silent){ const r=_dd.apply(this,arguments);
     try{ if(ED.fighting && src && src._edStun && tgt && tgt.alive && tgt.team!==src.team && brnd()<src._edStun) tgt.stunned=Math.max(tgt.stunned||0,0.6); }catch(e){}

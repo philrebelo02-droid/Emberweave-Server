@@ -4048,9 +4048,10 @@ async function api(req,res,url){
         writeDB(); return {ok:true, gems:led.gems, edraft:view(), ledger:ledgerView(me)}; });
       return send(res,out.ok?200:400,out); }
     if(p==='/api/emberdraft/start'){ const out=idem(me.id+':edstart:'+reqId,()=>{
+        if(!god && ledPlayerLevel(led)<25) return {ok:false, error:'Emberdraft opens at level 25.', edraft:view()};   // v654 (Phil: "yes"): the client's Island gate, checked here too (same XP table as the client's playerLevel)
         if(!god && view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
         if(!god) E.used++;
-        E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false };
+        E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false, god:!!god };   // v654: remember a God-mode start
         writeDB(); return { ok:true, attemptId:E.att.id, edraft:view() }; });
       return send(res,out.ok?200:400,out); }
     const out=idem(me.id+':edresult:'+reqId,()=>{
@@ -4059,6 +4060,7 @@ async function api(req,res,url){
       const place=b.place|0, rounds=b.rounds|0;
       if(place<1||place>8) return {ok:false,error:'Bad placement.'};
       att.claimed=true;
+      if(att.god){ writeDB(); return {ok:true, stamina:0, note:'God Mode match - no reward.', ledger:ledgerView(me)}; }   // v654 (Phil: "God mode should give no reward")
       const stam=ED_STAM[place]||0;
       if(!stam) { writeDB(); return {ok:true, stamina:0, note:'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
       /* v644 (bug scan): the placement is the client's word, so a placement must come with a plausible match length. Seven AIs at
