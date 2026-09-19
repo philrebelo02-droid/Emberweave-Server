@@ -4138,7 +4138,7 @@ let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],c
    wave counted as won depended on a DOM query — something a headless server replay cannot answer the
    same way. The pause is a piece of battle state now, and the modal merely reflects it. */
 let VAULT_PICK_OPEN=false;
-let selected=null,battleTime=0,ended=false,rageMul=1, _edCarBlank=false;
+let selected=null,battleTime=0,ended=false,rageMul=1, _edCarBlank=false, _edPlanPR=false;
 /* At most ONE pending result screen. A queued result belongs to the fight that scheduled it;
    if another fight starts first, that result is stale and must never reach the screen. */
 let _resultTimer=null;
@@ -4434,6 +4434,10 @@ const ZOOM_PR_BONUS_MAX=3.5;
 function zoomPR(){
   const z=(typeof battleZoom==='number'?battleZoom:1);
   if(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) return Math.min(ZOOM_PR_BONUS_MAX, DPR*Math.max(1,z));
+  /* v643 (Phil's HUD recording, 19 Sep: buy stage 8 FPS, 123 ms frames with sim 0.0 / draw 0.3 / overlay 0.2 - pure pixel fill at
+     res 2.63x, buf 1790x1000). The planning board is locked at 1x zoom, so the 1.5x pinch-zoom headroom only costs fill there:
+     cap it at 1.5x total, the resolution that ran 35-56 fps before. */
+  if(document.body.classList.contains('ed-plan')) return Math.min(1.5, DPR*ZOOM_PR_MAX);
   return Math.min(4.5, DPR*Math.max(ZOOM_PR_MAX, z)); }
 function clampPan(){
   const app=document.getElementById('app');
@@ -7031,8 +7035,9 @@ function qualityTick(frameMs){
   /* v588: in a bonus run 24 ms (~42 fps) already counts as lag - Phil: "I need it smoother". The 20-33 ms dead band
      left a 30-45 fps phone at full resolution for the whole run. */
   const badMs=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active) ? 24 : 33;
-  if(frameMs>badMs){ QUAL.bad++; QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
-  if(QUAL.bad>=60 && QUAL.dpr>QUAL.min){                       // ~2s of genuine stutter -> shed pixels
+  /* v643: bad is counted in milliseconds (was frames): 60 bad frames is 2 s at 30 fps but 7.5 s at 8 fps */
+  if(frameMs>badMs){ QUAL.bad+=Math.min(frameMs,250); QUAL.good=0; } else if(frameMs<20){ QUAL.good++; QUAL.bad=0; } else { return; }
+  if(QUAL.bad>=2000 && QUAL.dpr>QUAL.min){                     // ~2s of genuine stutter -> shed pixels
     QUAL.dpr=Math.max(QUAL.min, +(QUAL.dpr-0.25).toFixed(2)); QUAL.bad=0; qualityApply(); }
   else if(QUAL.good>=180 && QUAL.dpr<QUAL.max){                // ~3s of healthy frames -> earn some back
     QUAL.dpr=Math.min(QUAL.max, +(QUAL.dpr+0.25).toFixed(2)); QUAL.good=0; qualityApply(); }
@@ -19564,7 +19569,10 @@ function perfVRAM(){ let px=0; try{ for(const k in BATTLE_ANIM){ const set=BATTL
 /* loop */
 let last=performance.now(), _szChk=0, _wasLive=false;
 function loop(now){let dt=(now-last)/1000;last=now;
-  if(QUAL.last) qualityTick(now-QUAL.last);
+  /* v643: during the Ember Carousel the battle scene is skipped (v637), so its frames were near-free and the governor kept
+     EARNING resolution (q 1.00 -> 1.75 in one carousel) - which the buy stage then paid for at 8 FPS. Don't count those frames. */
+  if(QUAL.last && !_edCarBlank) qualityTick(now-QUAL.last);
+  { const _edp=document.body.classList.contains('ed-plan'); if(_edp!==_edPlanPR){ _edPlanPR=_edp; if(renderer){ CW=0; resize3D(); } } }   // v643: zoomPR differs in planning
   QUAL.last=now;
   if(dt>.05)dt=.05;
   if(PERF.on){ const _f=(now-(PERF._last||now)); PERF._last=now; PERF.fr+=_f; PERF.n++; if(_f>PERF.worst)PERF.worst=_f;
@@ -19693,7 +19701,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789824007000';
+const BUILD_ID = '1789825207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
