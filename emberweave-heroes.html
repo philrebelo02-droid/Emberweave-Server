@@ -19718,7 +19718,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789828807000';
+const BUILD_ID = '1789830007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -21062,6 +21062,8 @@ function edEvictArt(all){
     for(const u of units) if(!u._edIdle) full.add(u.key); else idleOnly.add(u.key);
     for(const u of you.bench) if(u) idleOnly.add(u.key);
     for(const u of (ED.decor||[])) idleOnly.add(u.key);
+    for(const k of (you.shop||[])) if(k) idleOnly.add(k);   /* v647: the shop cards (canvases since v646) paint from these idle sheets - freeing them blanked the shop until each re-decoded */
+    if(ED.sel && ED.sel.hero){ const sh=edUnits(you).find(u=>u.id===ED.sel.hero); if(sh) idleOnly.add(sh.key); }
     let freed=0;
     for(const k in BATTLE_ANIM){
       if(!all && full.has(k)) continue;
@@ -21338,6 +21340,7 @@ function edRender(){
     h+=`<div class="card c${c}" data-buy="${ix}">${edSprEl(k)}<div style="min-width:0"><div class="nm">${edEsc(edName(k))}</div><div class="rl">${edRole(k)} · 🪙${c}</div></div></div>`; });
   h+=`<div style="display:flex;flex-direction:column;gap:3px;justify-content:center"><button class="btnx" data-a="roll">↻ 🪙2</button><button class="btnx" data-a="lock">${you.locked?'🔒':'🔓'}</button></div></div>`;
   root.innerHTML=h;
+  _edCarSprT=0; try{ edCarSprPaint(); }catch(e){}   /* v647 (Phil: "when i click a hero for anything, all other displayed heroes pictures dissapear in shop"): the rebuilt shop canvases start blank - paint them now, not up to 40 ms later */
 }
 /* v612 (Phil: "When I click on a hero it should bring up their stats on the right to include their armor. Then I should be able to
    click the armor to see its stats"): the hero panel. Its numbers are the fight's own - a throwaway unit built exactly as
