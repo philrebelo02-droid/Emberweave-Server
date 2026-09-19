@@ -14233,7 +14233,7 @@ HERO_CARD_ART.fathom='/assets/img/hero-cards/card-fathom.webp?v=11';
 HERO_CARD_ART.fritz='/assets/img/hero-cards/card-fritz.webp?v=10';
 HERO_CARD_ART.greatbrow='/assets/img/hero-cards/card-greatbrow.webp?v=10';
 HERO_CARD_ART.grosk='/assets/img/hero-cards/card-grosk.webp?v=10';
-HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=9';
+HERO_CARD_ART.hollow='/assets/img/hero-cards/card-hollow.webp?v=10';
 HERO_CARD_ART.hurne='/assets/img/hero-cards/card-hurne.webp?v=10';
 HERO_CARD_ART.ironcoil='/assets/img/hero-cards/card-ironcoil.webp?v=11';
 HERO_CARD_ART.kharos='/assets/img/hero-cards/card-kharos.webp?v=11';
@@ -19623,7 +19623,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789786208000';
+const BUILD_ID = '1789786509000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
