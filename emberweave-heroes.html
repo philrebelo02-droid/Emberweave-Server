@@ -17071,18 +17071,24 @@ async function renderGuildRaid(el){
   const d=await api('/api/guild/raid'); if(gen!==_raidGen||state!=='guild'||guildTab!=='raid') return; { const _n=document.getElementById('gTabBody'); if(_n) el=_n; }
   if(!d||d.error||!d.raid){ el.innerHTML='<div class="panel" style="text-align:center;padding:18px">Could not load the raid — try again.</div>'; return; }
   const r=d.raid, pct=Math.round(r.hp/r.max*100);
-  const medal=['🥇','🥈','🥉','4.','5.'];
-  el.innerHTML=`<div class="panel" style="text-align:center">
+  const medal=['🥇','🥈','🥉','4.','5.','6.','7.','8.','9.','10.'];
+  /* v671: one row of the Boss Contribution board - rank, name, share bar, per cent, damage. */
+  const contribRow=(t,i)=>`<div style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:8px;margin-bottom:4px;background:rgba(10,14,22,.55);border:1px solid #242c3e"><span style="width:24px;flex:none;font-size:11px;color:#c9b78d">${medal[i]||(i+1)+'.'}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">${escapeHTML(t.name)}</span><span style="flex:none;width:70px"><span style="display:block;height:7px;border-radius:4px;background:#241a12;overflow:hidden"><i style="display:block;height:100%;width:${Math.max(2,Math.min(100,t.pct||0))}%;background:linear-gradient(90deg,#ffbf69,#e0483f)"></i></span></span><span style="flex:none;width:44px;text-align:right;font-size:11px;font-weight:800;color:#ffbf69">${(t.pct||0).toFixed(1)}%</span><span style="flex:none;width:60px;text-align:right;font-size:10.5px;color:#9ad">${(t.dmg||0).toLocaleString()}</span></div>`;
+  el.innerHTML=`<div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+    <div class="panel" style="text-align:center;flex:1 1 300px;min-width:min(100%,300px)">
       <canvas id="gbBossArt" width="220" height="150" style="width:190px;height:130px;display:block;margin:0 auto 2px"></canvas>
       <div style="font-weight:800;font-size:16px">${escapeHTML(r.name)}</div>
       <div style="font-size:11px;color:#ffd45e;margin:1px 0 8px">Guild Raid Boss · Tier ${r.level}</div>
       <div style="height:16px;background:#3a1e1e;border-radius:8px;overflow:hidden;position:relative"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#e0483f,#ff7a5e);transition:width .4s"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000">${r.hp.toLocaleString()} / ${r.max.toLocaleString()} HP</div></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000" id="gbHpTxt">${r.hp.toLocaleString()} / ${r.max.toLocaleString()} HP · ${pct}%</div></div>
       <div style="display:flex;justify-content:space-around;margin-top:10px;font-size:11px">
         <div><div style="color:#8b98a9">Your damage</div><div style="font-weight:800;color:#ffbf69">${r.yourDmg.toLocaleString()}</div></div>
         <div><div style="color:#8b98a9">Guild total</div><div style="font-weight:800;color:#9ad">${r.guildDmg.toLocaleString()}</div></div>
         <div><div style="color:#8b98a9">Bosses felled</div><div style="font-weight:800;color:#5ee89b">${r.kills||0}</div></div></div></div>
-    ${(r.top&&r.top.length)?('<div style="font-size:10px;color:#8b98a9;margin:2px 2px 6px">Top damage on this boss</div>'+r.top.map((t,i)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 9px;background:#0f1420;border-radius:7px;margin-bottom:4px"><span>${medal[i]||''} ${escapeHTML(t.name)}</span><span style="color:#ffbf69;font-weight:700">${t.dmg.toLocaleString()}</span></div>`).join('')):''}
+    <div class="panel" style="flex:1 1 300px;min-width:min(100%,300px);padding:10px 10px 8px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><span style="font-weight:800;font-size:12.5px;letter-spacing:.5px;color:#ffe9b8">BOSS CONTRIBUTION</span><span style="font-size:9.5px;color:#8b98a9">live</span></div>
+      <div id="gbBoard">${(r.top&&r.top.length)?r.top.map(contribRow).join(''):'<div style="font-size:11px;color:#8b98a9;text-align:center;padding:12px 0">Nobody has struck this boss yet.</div>'}</div>
+    </div></div>
     <div style="font-size:10px;color:#8b98a9;text-align:center;margin:6px 0 8px">Your whole guild chips this boss down together — same HP for everyone. The killing blow pays the most.</div>
     <button class="btn" id="gbAssault" style="width:100%" ${r.attemptsLeft<=0?'disabled':''}>${r.attemptsLeft>0?`⚔ Fight the boss  ·  ${r.attemptsLeft} left today`:'⏳ No assaults left — back tomorrow'}</button>
     <div id="gbMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px"></div>`;
@@ -17090,6 +17096,21 @@ async function renderGuildRaid(el){
      glossary shows, drawn from his own art, not an emoji. */
   { const cv=el.querySelector('#gbBossArt');
     if(cv && r.bossKey && typeof _blDrawCard==='function'){ try{ _blDrawCard(cv, r.bossKey, null, null); }catch(e){} } }
+  /* v671 - LIVE. While the raid tab is open the board re-reads the raid every 4 seconds and
+     updates the bar and the ranking in place. It stops as soon as the tab or screen changes, and
+     a stale poll from an older render can never paint over a newer one (the _raidGen check). */
+  if(window._raidPoll){ clearInterval(window._raidPoll); window._raidPoll=null; }
+  window._raidPoll=setInterval(async()=>{
+    if(state!=='guild'||guildTab!=='raid'||gen!==_raidGen){ clearInterval(window._raidPoll); window._raidPoll=null; return; }
+    const live=await api('/api/guild/raid');
+    if(!live||!live.raid||state!=='guild'||guildTab!=='raid'||gen!==_raidGen) return;
+    const q=live.raid, p2=Math.round(q.hp/q.max*100), host=document.getElementById('gTabBody')||el;
+    const txt=host.querySelector('#gbHpTxt');
+    if(txt){ txt.textContent=q.hp.toLocaleString()+' / '+q.max.toLocaleString()+' HP · '+p2+'%';
+      const fill=txt.previousElementSibling; if(fill) fill.style.width=p2+'%'; }
+    const board=host.querySelector('#gbBoard');
+    if(board) board.innerHTML=(q.top&&q.top.length)?q.top.map(contribRow).join(''):'<div style="font-size:11px;color:#8b98a9;text-align:center;padding:12px 0">Nobody has struck this boss yet.</div>';
+  }, 4000);
   const btn=el.querySelector('#gbAssault'); if(btn) btn.onclick=()=>{
     /* v666 (Phil): a raid attempt is a real battle now — 5 fighters + 5 backups, 90 seconds, and the
        damage the squad deals comes off the boss's pool. The button opens the squad screen; BATTLE
@@ -20500,7 +20521,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789857607000';
+const BUILD_ID = '1789858807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

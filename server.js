@@ -4872,7 +4872,10 @@ async function api(req,res,url){
           gg.raid.max=want; gg.raid.hp=Math.max(1,Math.round(want*frac)); } }
       const dk=new Date().toISOString().slice(0,10); if(gg.raid.day!==dk){ gg.raid.day=dk; gg.raid.used={}; } return gg.raid; }
     function raidView(gg){ const r=ensureRaid(gg); const gd=Object.values(r.contrib).reduce((a,b)=>a+b,0);
-      const top=Object.entries(r.contrib).map(([id,dmg])=>({name:nameOf(id),dmg})).sort((a,b)=>b.dmg-a.dmg).slice(0,5);
+      /* v671: the Boss Contribution board ranks everyone who has hit this boss, biggest first, with
+         the share of the damage done to him so far. Ten rows is enough for a guild board on a phone. */
+      const top=Object.entries(r.contrib).map(([id,dmg])=>({id, name:nameOf(id), dmg,
+        pct: gd>0 ? Math.round(1000*dmg/gd)/10 : 0 })).sort((a,b)=>b.dmg-a.dmg).slice(0,10);
       const bb=raidBossFor(r.level);
       return { level:r.level, max:r.max, hp:r.hp, kills:r.kills, yourDmg:r.contrib[me.id]||0, guildDmg:gd,
         attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:bb.name, bossKey:bb.key, attemptsMax:RAID_ATT }; }
