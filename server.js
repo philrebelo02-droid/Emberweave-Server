@@ -3180,7 +3180,7 @@ async function api(req,res,url){
       if(warEntrant(t,myGid)) return send(res,400,{error:'Already registered.'});
       const probe=warQualifyGuild(myGuildObj);   // display-only preview; AUTHORITY is the Monday-lock recompute (audit C8)
       if(!probe.lines.length) return send(res,400,{error:'No eligible members.'});
-      t.entrants.push({ guildId:myGid, name:myGuildObj.name, registeredAt:warNow(),
+      t.entrants.push({ guildId:myGid, name:myGuildObj.name, banner:myGuildObj.banner||null, registeredAt:warNow(),
         lines:probe.lines, powerPool:probe.powerPool, indicative:true });
       t.version++; writeDB();
       return send(res,200,{ok:true, powerPool:probe.powerPool, lines:probe.lines.length, note:'Qualification is recalculated for every registered guild at the Monday lock.'});
@@ -5213,6 +5213,41 @@ async function api(req,res,url){
     const rankOf = id => { const u=DB.users[id]; return u?u.rank:99999; };
     const isOnline = id => { const u=DB.users[id]; return !!(u && (Date.now()-(u.lastSeen||0) < 5*60000)); };
     const capWords = s => s.replace(/\b\w/g,c=>c.toUpperCase());
+    /* v769 - GUILD BANNERS. Three indices the client draws from, or one uploaded picture that
+       overrides them. Stored as numbers so a banner costs eight bytes and redraws at any size. */
+    const BANNER_SHAPES=20, BANNER_EMBLEMS=20, BANNER_COLORS=20;
+    const BANNER_IMG_MAX=44000;          /* the route's body cap is 64 KB; the client sends ~3-10 KB */
+    /* the magic numbers of the four raster types we accept. SVG is deliberately absent: an <svg>
+       can carry a <script>, and this string is served into other players' browsers. */
+    const BANNER_MAGIC={ 'image/png':[0x89,0x50,0x4E,0x47], 'image/jpeg':[0xFF,0xD8,0xFF],
+                         'image/gif':[0x47,0x49,0x46,0x38], 'image/webp':[0x52,0x49,0x46,0x46] };
+    function bannerValidate(raw){
+      if(raw===null) return {ok:true, banner:null};            /* clearing it is allowed */
+      if(!raw || typeof raw!=='object') return {error:'Bad banner.'};
+      const out={};
+      const idx=(v,max,name)=>{ const n=parseInt(v,10);
+        if(!Number.isFinite(n)||n<0||n>=max) return null; return n; };
+      const sh=idx(raw.shape,BANNER_SHAPES), em=idx(raw.emblem,BANNER_EMBLEMS), co=idx(raw.color,BANNER_COLORS);
+      if(sh===null||em===null||co===null) return {error:'Pick a shape, an emblem and a colour.'};
+      out.shape=sh; out.emblem=em; out.color=co; out.img=null;
+
+      if(raw.img){
+        const src=String(raw.img);
+        if(src.length>BANNER_IMG_MAX) return {error:'That picture is too large \u2014 keep it under 40 KB.'};
+        const m=/^data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/=]+)$/.exec(src);
+        if(!m) return {error:'Use a PNG, JPEG, GIF or WebP picture.'};
+        const type=m[1];
+        let buf=null;
+        try{ buf=Buffer.from(m[2],'base64'); }catch(e){ return {error:'That picture could not be read.'}; }
+        if(!buf || buf.length<16) return {error:'That picture could not be read.'};
+        /* the declared type must match the actual bytes - a payload cannot claim to be a PNG */
+        const want=BANNER_MAGIC[type]||[];
+        for(let i=0;i<want.length;i++) if(buf[i]!==want[i]) return {error:'That file is not really a '+type.split('/')[1].toUpperCase()+'.'};
+        if(type==='image/webp' && !(buf[8]===0x57&&buf[9]===0x45&&buf[10]===0x42&&buf[11]===0x50)) return {error:'That file is not really a WEBP.'};
+        out.img=src;
+      }
+      return {ok:true, banner:out};
+    }
     function guildView(g){
       /* v750 (Phil: "Ranking should be your guild members ranked by power") - the roster carries
          POWER now. serverTeamPower is the same server-computed number the arena and the world map
@@ -5225,7 +5260,8 @@ async function api(req,res,url){
         return {id,name:nameOf(id),rank:rankOf(id),online:isOnline(id),leader:id===g.leader,power,lines}; })
         .sort((a,b)=>(b.leader?1:0)-(a.leader?1:0) || (b.online?1:0)-(a.online?1:0) || a.rank-b.rank);
       const youLeader = g.leader===me.id;
-      return { id:g.id, name:g.name, level:g.level||1, exp:g.exp||0, expNeed:gExpNeed(g.level||1),
+      return { id:g.id, name:g.name, banner:g.banner||null,   /* v769 */
+        level:g.level||1, exp:g.exp||0, expNeed:gExpNeed(g.level||1),
         motd:g.motd||'', leader:g.leader, leaderName:nameOf(g.leader), cap:gCap(g),
         members:mem, count:mem.length, youLeader,
         requests: youLeader ? (g.reqs||[]).map(r=>({id:r.id,name:nameOf(r.id),rank:rankOf(r.id),t:r.t})) : [],
@@ -5378,7 +5414,7 @@ async function api(req,res,url){
     if(p==='/api/guild/cancelRequest'){ const g=findGuild(b.guildId); if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB(); } return send(res,200,{ok:true}); }
 
     const g=myGuild();
-    if(['/api/guild/approve','/api/guild/deny','/api/guild/kick','/api/guild/transfer','/api/guild/disband','/api/guild/motd'].includes(p)){
+    if(['/api/guild/approve','/api/guild/deny','/api/guild/kick','/api/guild/transfer','/api/guild/disband','/api/guild/motd','/api/guild/banner'].includes(p)){
       if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(g.leader!==me.id) return send(res,403,{error:'Only the guild leader can do that.'});
     }
@@ -5400,6 +5436,14 @@ async function api(req,res,url){
       g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()});
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/motd'){ g.motd=(b.motd||'').toString().replace(/[<>]/g,'').slice(0,160); writeDB(); return send(res,200,{ guild:guildView(g) }); }
+    /* v769 (Phil: "so that we can set Guild banners") - the leader's choice, validated before it is
+       assigned: a rejected banner leaves the guild's current one untouched. */
+    if(p==='/api/guild/banner'){
+      const v=bannerValidate(b.banner===null?null:(b.banner||{}));
+      if(!v.ok) return send(res,400,{error:v.error});
+      if(v.banner===null) delete g.banner; else g.banner=v.banner;
+      g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()});
+      writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
       delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
 

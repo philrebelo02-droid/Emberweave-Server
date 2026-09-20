@@ -1555,6 +1555,16 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrkCup2 .ico{font-size:34px;filter:drop-shadow(0 0 10px rgba(255,205,110,.9));line-height:1;}
 .skyBrkCup2 .who{font-size:9px;font-weight:800;color:#ffe9b8;max-width:96px;text-align:center;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* v769 - the banner picker */
+.gbPick{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:5px;
+  max-height:104px;overflow-y:auto;padding:4px;border:1px solid #2a3550;border-radius:8px;
+  background:rgba(10,14,22,.6);}
+.gbOpt{width:100%;aspect-ratio:1;border:1px solid #2a3550;border-radius:7px;background:rgba(16,22,34,.9);
+  cursor:pointer;padding:2px;display:flex;align-items:center;justify-content:center;}
+.gbOpt.on{border-color:#f0cf78;box-shadow:0 0 0 1px rgba(240,207,120,.5) inset;}
+.gbOpt svg{display:block;width:100%;height:100%;}
+.gbLbl{font-size:10px;color:#8b98a9;margin:10px 0 4px;font-weight:800;letter-spacing:.4px;}
+.gBanner{display:block;}
 /* one guild in the tree */
 .skyBrkTeam{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 5px;border-radius:6px;
   border:1px solid #3a2f1c;background:linear-gradient(180deg,rgba(28,22,14,.95),rgba(15,13,10,.95));
@@ -15111,6 +15121,102 @@ function skyEditTeamOpen(){
   if(el) skyTeamLoad();
   return el;
 }
+/* ============================ v769 - GUILD BANNERS ============================
+   Phil: "Make 20 Banners shapes, 20 default banner types and 20 colors the guild leader can choose
+   from. also give another option to important a picture as their banner".
+
+   All three are DRAWN, not painted: heraldry is geometry, so twenty shapes x twenty emblems x
+   twenty colourways is 8,000 banners that cost eight bytes each, redraw crisply from a 24px roster
+   row to a 200px preview, and recolour instantly. No art generation, no credits, no assets.
+
+   A banner is {shape, emblem, color, img}. An uploaded picture overrides the three. */
+
+/* THE SHAPES - the silhouette of the cloth, in a 100x100 box. */
+const GUILD_BANNER_SHAPES=[
+  'M10 6 H90 V78 L50 96 L10 78 Z',                        /* heater shield */
+  'M10 6 H90 V70 Q50 100 10 70 Z',                        /* round-bottom shield */
+  'M12 6 H88 V64 Q50 94 12 64 Z',                         /* wide shield */
+  'M10 6 H90 V94 L50 74 L10 94 Z',                        /* swallowtail */
+  'M14 6 H86 V94 L50 62 L14 94 Z',                        /* deep swallowtail */
+  'M10 6 H90 V88 H10 Z',                                  /* square gonfalon */
+  'M10 6 H90 V82 L74 94 L50 82 L26 94 L10 82 Z',          /* triple tail */
+  'M10 6 H90 L74 50 L90 94 H10 L26 50 Z',                 /* hourglass pennon */
+  'M10 6 H90 V50 L50 94 L10 50 Z',                        /* kite */
+  'M50 4 L92 34 L76 92 H24 L8 34 Z',                      /* pentagon */
+  'M50 4 L90 26 V74 L50 96 L10 74 V26 Z',                 /* hexagon */
+  'M10 6 H90 V94 H10 Z',                                  /* banner square */
+  'M10 6 H90 V60 Q50 78 50 96 Q50 78 10 60 Z',            /* forked tongue */
+  'M20 6 H80 Q92 6 92 20 V80 Q92 94 80 94 H20 Q8 94 8 80 V20 Q8 6 20 6 Z',   /* rounded */
+  'M10 14 Q50 2 90 14 V80 Q50 96 10 80 Z',                /* bowed cloth */
+  'M6 6 H94 L82 52 L94 94 H6 L18 52 Z',                   /* chevron pennon */
+  'M50 2 L96 50 L50 98 L4 50 Z',                          /* lozenge */
+  'M10 6 H90 V66 L50 96 L10 66 Z M0 0',                   /* long heater */
+  'M16 4 H84 V40 Q84 84 50 96 Q16 84 16 40 Z',            /* tapered shield */
+  'M8 8 H92 V70 Q92 86 74 90 L50 96 L26 90 Q8 86 8 70 Z'  /* bordered shield */
+];
+
+/* THE EMBLEMS - the charge on the field. Ordinaries first (which is what most real arms are),
+   then simple charges. Drawn to sit inside the shape without clipping. */
+const GUILD_BANNER_EMBLEMS=[
+  'M42 14 H58 V86 H42 Z',                                                     /* pale */
+  'M14 42 H86 V58 H14 Z',                                                     /* fess */
+  'M42 14 H58 V86 H42 Z M14 42 H86 V58 H14 Z',                                /* cross */
+  'M18 26 L30 14 L82 66 L70 78 Z M70 14 L82 26 L30 78 L18 66 Z',              /* saltire */
+  'M50 18 L84 62 H68 L50 38 L32 62 H16 Z',                                    /* chevron */
+  'M16 16 L84 50 L16 84 Z',                                                    /* pile */
+  'M50 16 L61 40 L87 43 L68 61 L73 86 L50 74 L27 86 L32 61 L13 43 L39 40 Z',  /* mullet (star) */
+  'M50 22 A28 28 0 1 0 50 78 A22 22 0 1 1 50 22 Z',                           /* crescent */
+  'M50 20 A30 30 0 1 1 49.9 20 Z',                                            /* roundel */
+  'M50 16 C64 34 78 44 78 60 A28 28 0 0 1 22 60 C22 44 36 34 50 16 Z',        /* flame */
+  'M30 20 H70 V32 H60 V72 H40 V32 H30 Z M34 72 H66 V82 H34 Z',                /* tower */
+  'M50 12 L57 46 L50 84 L43 46 Z M32 44 H68 V52 H32 Z',                       /* sword */
+  'M26 22 H50 A26 26 0 0 1 50 74 H26 Z M26 44 H50 A6 6 0 0 0 50 32 H26 Z',    /* axe head */
+  'M20 30 H80 L72 46 H28 Z M28 50 H72 L64 66 H36 Z M36 70 H64 L56 84 H44 Z',  /* bend of bars */
+  'M50 14 L86 50 L50 86 L14 50 Z M50 32 L68 50 L50 68 L32 50 Z',              /* voided lozenge */
+  'M22 22 H44 V44 H22 Z M56 22 H78 V44 H56 Z M22 56 H44 V78 H22 Z M56 56 H78 V78 H56 Z', /* quarters */
+  'M50 14 C70 30 72 56 50 86 C28 56 30 30 50 14 Z',                           /* leaf */
+  'M34 16 H66 L60 40 H76 L50 88 L24 40 H40 Z',                                /* tree/arrow */
+  'M16 50 Q33 20 50 50 Q67 80 84 50',                                         /* serpentine */
+  'M50 10 L62 34 H86 L66 50 L74 76 L50 62 L26 76 L34 50 L14 34 H38 Z'         /* eight-point star */
+];
+
+/* THE COLOURWAYS - field, trim and charge. Heraldic pairings rather than a rainbow: a charge must
+   read against its field, which is the whole point of a tincture rule. */
+const GUILD_BANNER_COLORS=[
+  ['#8b1e1e','#f0cf78','#f7e6b6'], ['#123a6b','#d8e2ef','#ffffff'],
+  ['#1d5c33','#f0cf78','#fff4d6'], ['#4a1d6b','#e0c2ff','#ffffff'],
+  ['#1a1a1f','#f0cf78','#ffe9b8'], ['#b5651d','#2a1a0b','#fff1d8'],
+  ['#0d5c66','#9ef0e6','#ffffff'], ['#6b1d45','#ffd1e6','#ffffff'],
+  ['#3a4a1d','#d6e89a','#ffffff'], ['#5c2f0d','#e8b77a','#fff1d8'],
+  ['#1d2f5c','#8ab6f0','#ffffff'], ['#6b6b1d','#f5f0a0','#2a2a1a'],
+  ['#2f1d5c','#b79ef0','#ffffff'], ['#7a1a1a','#2a2a2f','#f7e6b6'],
+  ['#0f3d2a','#7ef0b0','#ffffff'], ['#5c1d1d','#f0a07a','#fff1d8'],
+  ['#20242e','#6fa8dc','#e8f0ff'], ['#4a3a0d','#ffd45e','#2a1f0a'],
+  ['#3d0d3d','#f07ad8','#ffffff'], ['#0a2a3d','#f0cf78','#ffffff']
+];
+
+/* Draw one. `px` is the rendered size; the art is resolution-independent so this only sets the box.
+   An uploaded picture replaces the emblem and the field but keeps the SHAPE, which is what stops a
+   custom banner being an unframed square photo among a set of shields. */
+function guildBannerSVG(banner, px){
+  px=px||36;
+  const b=banner||{};
+  const sh=GUILD_BANNER_SHAPES[(b.shape|0)%GUILD_BANNER_SHAPES.length]||GUILD_BANNER_SHAPES[0];
+  const em=GUILD_BANNER_EMBLEMS[(b.emblem|0)%GUILD_BANNER_EMBLEMS.length]||GUILD_BANNER_EMBLEMS[0];
+  const col=GUILD_BANNER_COLORS[(b.color|0)%GUILD_BANNER_COLORS.length]||GUILD_BANNER_COLORS[0];
+  const uid='gb'+Math.random().toString(36).slice(2,9);
+  const stroke=(em===GUILD_BANNER_EMBLEMS[18]);   /* the serpentine is a line, not a fill */
+  const inner = b.img
+    ? '<image href="'+escapeHTML(b.img)+'" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>'
+    : '<rect x="0" y="0" width="100" height="100" fill="'+col[0]+'"/>'
+      +'<path d="'+em+'" fill="'+(stroke?'none':col[2])+'"'
+        +(stroke?(' stroke="'+col[2]+'" stroke-width="9" stroke-linecap="round"'):'')+'/>';
+  return '<svg class="gBanner" width="'+px+'" height="'+px+'" viewBox="0 0 100 100" aria-hidden="true">'
+    +'<defs><clipPath id="'+uid+'"><path d="'+sh+'"/></clipPath></defs>'
+    +'<g clip-path="url(#'+uid+')">'+inner+'</g>'
+    +'<path d="'+sh+'" fill="none" stroke="'+col[1]+'" stroke-width="5" stroke-linejoin="round"/>'
+    +'</svg>';
+}
 /* v716 - who owns a line. The simulator names its defenders "Somebody \u00b7 line 2", so the owner is
    the name with that suffix taken off; a live war has a memberId and does not need this. */
 function skyOwnerOf(d){ return String((d&&d.name)||'').replace(/\s*\u00b7\s*line\s*\d+\s*$/i,'') || '?'; }
@@ -19763,10 +19869,94 @@ function openGuildManage(){ const g=GS.guild; if(!g)return; const s=modalShell()
   s.body.innerHTML=`<div style="font-weight:800;margin-bottom:8px">&#128737; Manage &lt;${escapeHTML(g.name)}&gt;</div>
     <div style="font-size:11px;color:#8b98a9;margin-bottom:4px">Message of the day</div>
     <div style="display:flex;gap:6px;margin-bottom:14px"><input id="gmMotd" maxlength="160" value="${escapeHTML(g.motd||'')}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3"><button class="btn sm" id="gmMotdSave">Save</button></div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:4px">Guild banner</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+      <span id="gmBanPrev">${guildBannerSVG(g.banner,44)}</span>
+      <button class="btn sm" id="gmBanner" style="flex:1">&#127988; Change banner</button></div>
     <button class="btn secondary" id="gmDisband" style="width:100%;color:#ff9b9b">&#128165; Disband Guild</button>
     <div style="font-size:10px;color:#6f7d90;margin-top:8px">To step down and leave, first make another member the leader (tap their name in the roster).</div>`;
   s.body.querySelector('#gmMotdSave').onclick=async()=>{ const v=s.body.querySelector('#gmMotd').value; const d=await guildAct('motd',{motd:v}); if(!(d&&d.error))bannerMsg('&#128220; MOTD updated'); if(state==='guild')renderGuild(); };
+  s.body.querySelector('#gmBanner').onclick=()=>{ s.close(); openGuildBanner(); };
   s.body.querySelector('#gmDisband').onclick=()=>{ s.close(); gameConfirm('Disband &lt;'+escapeHTML(g.name)+'&gt; permanently? Every member will be removed.',async()=>{ const d=await api('/api/guild/disband','POST',{}); if(d&&d.ok){ GS.guild=null; syncLocalGuild(); guildTab='chat'; renderGuild(); } }); };
+}
+/* v769 (Phil: "so that we can set Guild banners ... also give another option to important a picture
+   as their banner") - THE PICKER. Twenty of each, a live preview, and an import.
+   The import redraws the chosen file to 128x128 on a canvas and re-encodes it before it leaves the
+   browser: a 4 MB photo becomes a few kilobytes and fits the route's 64 KB body cap without the
+   player ever meeting the cap. It is cropped square from the centre so a landscape photo is not
+   squashed. The server re-checks the bytes whatever the file picker allowed. */
+function openGuildBanner(){
+  const g=GS.guild; if(!g) return;
+  const cur=Object.assign({shape:0,emblem:0,color:0,img:null}, g.banner||{});
+  const s=modalShell();
+  const row=(kind,n)=>{ let out='';
+    for(let i=0;i<n;i++){
+      const b=Object.assign({},cur); b[kind]=i; if(kind!=='img') b.img=cur.img;
+      out+='<button class="gbOpt" data-k="'+kind+'" data-i="'+i+'">'+guildBannerSVG(b,34)+'</button>'; }
+    return '<div class="gbPick" data-row="'+kind+'">'+out+'</div>'; };
+
+  const draw=()=>{
+    const p=s.body.querySelector('#gbPrev'); if(p) p.innerHTML=guildBannerSVG(cur,120);
+    s.body.querySelectorAll('.gbOpt').forEach(o=>{
+      const k=o.dataset.k, i=+o.dataset.i;
+      o.classList.toggle('on', (cur[k]|0)===i);
+      const b=Object.assign({},cur); b[k]=i;
+      o.innerHTML=guildBannerSVG(b,34); });
+    const rm=s.body.querySelector('#gbClear'); if(rm) rm.style.display=cur.img?'':'none';
+  };
+
+  s.body.innerHTML='<div style="font-weight:800;margin-bottom:8px">\uD83C\uDFF4 Guild banner</div>'
+    +'<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px">'
+      +'<span id="gbPrev">'+guildBannerSVG(cur,120)+'</span>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
+        +'<button class="btn sm secondary" id="gbImport">\uD83D\uDDBC Import a picture</button>'
+        +'<button class="btn sm secondary" id="gbClear" style="display:none;color:#ff9b9b">Remove picture</button>'
+        +'<input type="file" id="gbFile" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">'
+      +'</div></div>'
+    +'<div class="gbLbl">SHAPE</div>'+row('shape',GUILD_BANNER_SHAPES.length)
+    +'<div class="gbLbl">EMBLEM</div>'+row('emblem',GUILD_BANNER_EMBLEMS.length)
+    +'<div class="gbLbl">COLOUR</div>'+row('color',GUILD_BANNER_COLORS.length)
+    +'<button class="btn" id="gbSave" style="width:100%;margin-top:12px">Save banner</button>';
+
+  s.body.querySelectorAll('.gbOpt').forEach(o=>{ o.onclick=()=>{ cur[o.dataset.k]=+o.dataset.i; draw(); }; });
+
+  const file=s.body.querySelector('#gbFile');
+  s.body.querySelector('#gbImport').onclick=()=>file.click();
+  s.body.querySelector('#gbClear').onclick=()=>{ cur.img=null; draw(); };
+  file.onchange=()=>{
+    const f=file.files&&file.files[0]; if(!f) return;
+    if(!/^image\/(png|jpeg|gif|webp)$/.test(f.type)){ bannerMsg('\u26a0 Use a PNG, JPEG, GIF or WebP picture.'); return; }
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const im=new Image();
+      im.onload=()=>{
+        /* square crop from the centre, then 128x128 - a landscape photo is cropped, never squashed */
+        const S=128, side=Math.min(im.width,im.height);
+        const c=document.createElement('canvas'); c.width=c.height=S;
+        const x=c.getContext('2d');
+        x.drawImage(im,(im.width-side)/2,(im.height-side)/2,side,side,0,0,S,S);
+        let out=''; try{ out=c.toDataURL('image/webp',0.82); }catch(e){ out=''; }
+        if(!/^data:image\/webp/.test(out)){ try{ out=c.toDataURL('image/jpeg',0.82); }catch(e){ out=''; } }
+        if(!out){ bannerMsg('\u26a0 That picture could not be read.'); return; }
+        if(out.length>40000){ try{ out=c.toDataURL('image/jpeg',0.6); }catch(e){} }
+        if(out.length>44000){ bannerMsg('\u26a0 That picture is too detailed \u2014 try a simpler one.'); return; }
+        cur.img=out; draw();
+      };
+      im.onerror=()=>bannerMsg('\u26a0 That picture could not be read.');
+      im.src=fr.result;
+    };
+    fr.onerror=()=>bannerMsg('\u26a0 That picture could not be read.');
+    fr.readAsDataURL(f);
+  };
+
+  s.body.querySelector('#gbSave').onclick=async()=>{
+    const d=await api('/api/guild/banner','POST',{banner:cur});
+    if(d&&d.error){ bannerMsg('\u26a0 '+d.error); return; }
+    if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); }
+    s.close(); bannerMsg('\uD83C\uDFF4 Banner set.');
+    if(state==='guild') renderGuild();
+  };
+  draw();
 }
 let guildTab='chat'; let _gChatDraft=''; let _gWasFocused=false; let _raidGen=0;
 function renderGuild(){
@@ -19790,7 +19980,7 @@ function renderGuild(){
       return `<button data-gt="${t[0]}" class="gTab${on?' on':''}">${ico}<span class="gLbl">${t[2]}${t[0]==='requests'?reqBadge:''}</span></button>`; }).join('')
     +`</div>`;
   b.innerHTML=`<div class="gHead">
-      <div class="gName">&lt;${escapeHTML(g.name)}&gt; <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${g.level}</span> <span style="font-size:10px;color:#c9b78d">${g.count}/${g.cap}</span></div>
+      <div class="gName" style="display:flex;align-items:center;gap:7px">${guildBannerSVG(g.banner,26)}<span>&lt;${escapeHTML(g.name)}&gt;</span> <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${g.level}</span> <span style="font-size:10px;color:#c9b78d">${g.count}/${g.cap}</span></div>
       <div style="display:flex;gap:6px">${(typeof AUDIT_MODE==='function'&&AUDIT_MODE()&&guildTab==='war')?`<button class="btn sm" style="background:linear-gradient(#ff9f43,#c4661a);color:#1a0d00" onclick="skySimOpen()">⚔ Simulate</button>`:''}<button class="btn sm secondary" id="gLeave">${g.youLeader?'Manage':'Leave'}</button></div></div>
     ${tabBar}
     <div id="gTabBody"></div>`;
@@ -23404,7 +23594,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789929607000';
+const BUILD_ID = '1789930807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
