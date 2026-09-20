@@ -14273,7 +14273,27 @@ function skyBoardHTML(r, opts){
      its last line actually dies. That is Phil's "NEVER announce early victory" rule. */
   const fresh=(c)=>({ ...c, alive:(c&&c.total)|0, destroyed:false });
   const you0=(r&&r.you&&r.you.citadels)||[], foe0=(r&&r.foe&&r.foe.citadels)||[];
-  const you=opts.fresh?you0.map(fresh):you0, foe=opts.fresh?foe0.map(fresh):foe0;
+  /* v777 (Phil: "sometimes the number goes 2 then 1 then zero then 1 then 2 then zero") - A BOARD
+     REBUILT DURING A REPLAY IS DRAWN AT THE REPLAY'S OWN POINT. There used to be two answers only:
+     `fresh`, every tower full, which is right for the opening frame; and the raw citadels, which
+     are the server's FINISHED war. A rebuild in the middle - which is what switching lanes does,
+     through renderSkyfall - took `fresh` and snapped every disc back to its full garrison, and the
+     replay then counted it down again. Twice through that and the number reads 2, 1, 0, 1, 2, 0.
+     Measured on the rig: you:0 went 0 > 12 > 11 > 10 ... while skyGarSync raised nothing at all.
+     skyLaneCutoff is the same cutoff every other piece of mid-replay state reads, and it needs no
+     special case for the opening frame: a lane that has not marched has a cutoff of -1, its tally
+     is empty, and skyLineAlive counts every line in it as alive - which is `fresh`, arrived at
+     honestly. A tower is drawn fallen only when the log says its last line is dead, so a line that
+     is out on the road still holds its tower (Phil's v677 rule, and his own correction). */
+  const atCut=(c,lane)=>{ try{
+      const tal=skyLiveTally(r, skyLaneCutoff(r, lane|0));
+      const defs=(c&&c.defenders)||[];
+      let al=0; for(const d of defs) if(skyLineAlive(d, tal)) al++;
+      return { ...c, alive:al, destroyed:(defs.length>0 && al===0) };
+    }catch(e){ return c; } };
+  const live=!!opts.live;
+  const you=live?you0.map(atCut):(opts.fresh?you0.map(fresh):you0);
+  const foe=live?foe0.map(atCut):(opts.fresh?foe0.map(fresh):foe0);
   const marches=(r&&r.log&&r.log.length)|0;
   /* v700: while a simulation is running the HUD carries ITS controls - the speed bar and End -
      in place of the live-war buttons. Everything else on the board is identical, which is what
@@ -14414,7 +14434,9 @@ function renderSkyfall(data){
      `isPrep` on the tower panel, which was silently refusing tower moves on a war in prep. */
   if(!skySimSandbox()){ try{ SKYSIM.marching=false; SKYSIM.marched=false; }catch(e){} }
   SKYFALL_VIEW=r;
-  b.innerHTML=skyBoardHTML(r, {fresh: !!(SKYSIM && SKYSIM.running)});
+  /* v777 - `live`, not `fresh`. A running replay draws at its own point; `fresh` was resetting
+     every disc to a full garrison on every rebuild. */
+  b.innerHTML=skyBoardHTML(r, {live: !!(SKYSIM && SKYSIM.running)});
   const stage=b.querySelector('#skyStage');
   skyWireBoard(stage, r);
 }
@@ -15349,6 +15371,12 @@ function skyTowerFall(stage, tw, lane){
      tower is what falls and the fire only appears once it has landed; it was just too quick at
      1100ms to read as a fall at all. Still divided by the replay speed - at x20 a full 3s fall
      would swallow the lane - with the 150ms floor keeping it visible rather than skipped. */
+  /* v776c - THREE SECONDS, as Phil asked at v755b and confirmed again here ("no thats good").
+     I had cut this to 600ms and he said to leave it. Measured on the rig: the fall already BEGINS
+     0ms after the last line dies, so the fall was never the late part - what was late was a tower
+     whose trigger depended on a log flag while its disc was counted from the log itself. That is
+     fixed in skyGarSync, which drops the tower off the count. The duration is the animation Phil
+     wants, not a delay. */
   const SKY_FALL_MS = 3000;
   const dur=Math.max(150, Math.round(SKY_FALL_MS/sp));
   tw.style.transition='transform '+dur+'ms cubic-bezier(.45,.05,.75,.35)';
@@ -15456,6 +15484,12 @@ function skyGarSync(stage, r, lane){
       for(const d of defs){ if(skyLineAlive(d, tal)) alive++; }
       const el=stage.querySelector('#skyGar-'+side+'-'+(lane|0)); if(!el) continue;
       const tot=(+el.dataset.total)|0 || defs.length;
+      /* v776d - the tower does NOT fall off this count, and must not. A marching line is out of
+         its tower and still alive, so a disc can honestly read zero while that tower's last line
+         is on the bridge - Phil: "that means 1 hero is on the road". Dropping the tower here would
+         fell it out from under a line still fighting, against his v677 rule: "until that last line
+         dies, do not trigger the fallen tower". The fall belongs to the log's own fell/aFell/
+         captured, which are set when a line DIES. Measured: it already fires 0ms after that. */
       if((+el.dataset.alive|0)===alive) continue;          /* nothing to redraw */
       el.dataset.alive=alive;
       if(alive<=0) el.classList.add('fallen');
@@ -16034,9 +16068,12 @@ function skySimRender(){ const card=document.getElementById('skySimCard'); if(!c
       ${r.you.yourLines.length?`<div style="font-size:10px;color:#8b98a9;margin-top:6px">Your lines: ${r.you.yourLines.map(l=>'L'+l.line+' ⚡'+l.power+' ('+l.heroes.map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')+')').join(' · ')}</div>`:'<div style="font-size:10px;color:#ff8b8b;margin-top:6px">You own fewer than 5 heroes — your side is all bots.</div>'}
       <div style="font-size:9px;color:#8b98a9;margin:8px 0 3px">BATTLE LOG (🟢 your side marches · 🔴 bot guild marches · highlighted = your lines)</div>
       <div style="max-height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #1b2438;border-radius:10px;padding:4px 8px;background:#0f1420;font-size:10px">${logRows}</div>`; }
+  /* v776 - this comment used to live INSIDE the template literal below, between two divs, so the
+     panel printed "/* v763 - the power is REPORTED, never set... *\/" on screen for the player to
+     read. Confirmed on the rig in card.innerText. The note it was making: the power is REPORTED,
+     never set - it is whatever the build above produces, read back off the board the server
+     returned. */
   card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px;color:#ff9f43">⚔ God Mode — War Simulator</b><button class="btn sm secondary" onclick="this.closest('.gmodal-ov').remove()">✕</button></div>
-  /* v763 - the power is REPORTED, never set: it is whatever the build above produces, read back
-     off the board the server returned. */
     <div style="font-size:10px;color:#8b98a9;margin-top:2px">A sandbox Skyfall match: you + bot allies vs a bot guild, fought with the real war rules and the real sim. Nothing is recorded. The bot's power is not a setting — it is what its level, skills, quality, equipment and research add up to.</div>${bpLine}${params}${res}`; }
 async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRender();
   const r=await api('/api/guild-war/sim','POST',Object.assign({seed:'sim'+Date.now()},SKYSIM.p)); SKYSIM.busy=false;
@@ -16063,7 +16100,9 @@ async function skySimReplay(r){
   show('skyfall');
   renderSkyfall(r);
   await new Promise(res=>setTimeout(res, 120));
-  const stage = document.getElementById('skyStage');
+  /* v776 - a LET. Moving lines between towers in prep calls renderSkyfall, which replaces this
+     element; holding the one we started with is how the war ended up playing on a detached board. */
+  let stage = document.getElementById('skyStage');
   if(!stage){ SKYSIM.running=false; return; }
   skyLayoutBoard(stage);
 
@@ -16099,14 +16138,26 @@ async function skySimReplay(r){
     /* v703 (Phil): Begin the march is centred on the bottom edge of the board, not tucked into the
        running-commentary line in the corner. */
     const ev=document.getElementById('skyEvent'); if(ev) ev.textContent='';
-    { const old=stage.querySelector('.skyBegin'); if(old) old.remove();
+    /* v776 (Phil: "when i switched lanes, the start button dissapeared" / "now im stuck in prep")
+       - THE BUTTON BELONGS TO WHICHEVER BOARD IS ON SCREEN. Switching lanes calls renderSkyfall,
+       which replaces #skyStage, and this button used to go into the detached copy with it. The
+       loop then waited three minutes for a flag only that button could set and force-marched the
+       war onto a board nobody could see. It is rebuilt whenever the board is. */
+    const mkBegin=(st)=>{ if(!st) return;
+      const old=st.querySelector('.skyBegin'); if(old) old.remove();
       const bb=document.createElement('button');
       bb.className='btn skyBegin';
       bb.textContent='\uD83D\uDEA9 Begin the march';
-      bb.onclick=()=>{ SKYSIM.marching=true; bb.remove(); skyMarchVis(stage); };
-      stage.appendChild(bb); }
+      bb.onclick=()=>{ SKYSIM.marching=true; bb.remove(); };
+      st.appendChild(bb); };
     SKYSIM.marching=false;
-    for(let w=0; w<3000 && !SKYSIM.marching && !stopped(); w++) await new Promise(d=>setTimeout(d,60));
+    mkBegin(stage);
+    for(let w=0; w<3000 && !SKYSIM.marching && !stopped(); w++){
+      await new Promise(d=>setTimeout(d,60));
+      const live=document.getElementById('skyStage');
+      if(live && live!==stage){ stage=live; try{ skyLayoutBoard(stage); }catch(e){} }
+      if(!SKYSIM.marching && stage && !stage.querySelector('.skyBegin')) mkBegin(stage);
+    }
     SKYSIM.marching=true;
     { const bb=stage.querySelector('.skyBegin'); if(bb) bb.remove(); }
     skyMarchVis(stage);
@@ -23667,7 +23718,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789935607000';
+const BUILD_ID = '1789936807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
