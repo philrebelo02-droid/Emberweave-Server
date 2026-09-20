@@ -1198,9 +1198,13 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 /* v674 THE SKYFALL WAR STAGE (Phil: "I want the actual Skyfall tournament art to come up") */
 /* v697 SKYFALL AS ITS OWN SCREEN - a thin title bar, then the board takes the rest.
    Phil: "the entire thing should fit to phone screen". */
-#skyfall{padding:6px 8px 8px;}
-#skyfall .titlebar{margin:0 0 5px;min-height:0;}
-#skyfall .titlebar h1{font-size:15px;letter-spacing:1.6px;margin:0;padding:3px 0;}
+/* v701 (Phil: "Remove the sky fall banner up top and push the ui up to save space") - the board
+   IS the screen. The title plaque is gone and the padding is trimmed to a hairline, so the map
+   starts at the top of the display. The back button floats over the sky in the corner. */
+#skyfall{padding:2px 4px 4px;}
+#skyfall .titlebar{display:none;}
+#skyfall .hdrbox{display:none;}   /* the wrapper the titlebar sits in - hiding only the titlebar left its 27px behind */
+#skyfall .backbtn{z-index:30;}
 #skyfall>#skyfallBody{flex:1;min-height:0;width:100%;display:flex;}
 #skyfallBody .skyStage{flex:1;min-height:0;aspect-ratio:auto;width:100%;}
 /* v694 THE WAR HUD - Magic Rush's alliance-war layout in our painted kit */
@@ -1241,13 +1245,20 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyStatus .dot{color:#6f7d90;}
 .skyStatus b{color:#ffe9b8;font-family:Georgia,'Times New Roman',serif;font-size:12px;}
 .skyStatus .sv{color:#7ef0b0;font-weight:800;}
-.skyHudBtns{position:absolute;right:8px;top:8px;display:flex;gap:5px;}
+/* v701 (Phil: "put the rank bracket schedule on the right as a column not line") */
+.skyHudBtns{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;align-items:stretch;}
+.skyHudBtns button{text-align:center;}
 .skyHudBtns button, .skyEditTeam{border:1px solid #3a2f1c;border-radius:9px;padding:5px 11px;cursor:pointer;
   font-size:11px;font-weight:800;color:#f0dcae;letter-spacing:.2px;white-space:nowrap;
   background:linear-gradient(180deg,#8a6420 0%,#5a3f12 55%,#3d2a0b 100%);
   box-shadow:inset 0 1px 0 rgba(255,225,160,.28),0 3px 8px rgba(0,0,0,.5);}
 .skyHudBtns button:hover, .skyEditTeam:hover{filter:brightness(1.14);}
 .skyEditTeam{position:absolute;right:8px;bottom:8px;padding:7px 16px;font-size:12px;}
+/* v700: the sim's phase and running commentary live ON the board now that there is no modal */
+.skyPhase{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:7;pointer-events:none;
+  font-size:12px;font-weight:900;color:#ffd45e;text-shadow:0 1px 3px #000,0 0 8px #000;white-space:nowrap;}
+.skyEvent{position:absolute;left:8px;bottom:8px;max-width:58%;z-index:7;pointer-events:none;
+  font-size:10px;color:#e3ecf7;text-shadow:0 1px 3px #000,0 0 6px #000;}
 /* the garrison count that hangs under every platform */
 .skyGarrison{position:absolute;transform:translate(-50%,0);z-index:4;pointer-events:none;
   padding:1px 7px;border-radius:7px;white-space:nowrap;
@@ -13600,7 +13611,7 @@ function skyMatchHTML(m, canOfficer){
 }
 /* v374 (Phil): GOD MODE war simulator — a sandbox Skyfall match, 20 vs 20 players × 3 lines of five,
    bot allies on your side, a bot guild across the bridges. Results + a scrolling battle log. Dev only. */
-const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1,stage:'prep'}, r:null, busy:false, skipReplay:false, speed:1, sel:null, marching:false};
+const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1,stage:'prep'}, r:null, busy:false, skipReplay:false, speed:1, sel:null, marching:false, running:false};
 /* v674 - the middle of the bridge. Phil wants a Hailuo SEAMLESS clashing-swords loop here; it is not
    made yet (his credits, his call). Point SKY_CLASH_LOOP at the sheet when it exists and it plays in
    place of the drawn placeholder - nothing else changes. */
@@ -13657,6 +13668,17 @@ function skyLanes(){
 function skyBoardHTML(r){
   const you=(r&&r.you&&r.you.citadels)||[], foe=(r&&r.foe&&r.foe.citadels)||[];
   const marches=(r&&r.log&&r.log.length)|0;
+  /* v700: while a simulation is running the HUD carries ITS controls - the speed bar and End -
+     in place of the live-war buttons. Everything else on the board is identical, which is what
+     Phil asked for: "exactly like the real thing just with a couple more buttons".
+     Built here rather than inline: nesting a template literal inside another broke the parse. */
+  const hudBtns = SKYSIM.running
+    ? '<div class="skySpeed" id="skySpeedBar">'
+      + SKYSIM_SPEEDS.map(v=>'<button data-sp="'+v+'" class="'+(SKYSIM.speed===v?'on':'')+'" onclick="skySimSetSpeed('+v+')">'+v+'\u00d7</button>').join('')
+      + '</div><button onclick="skySimEnd()">\u23f9 End</button>'
+    : '<button id="skyBracket">Bracket</button>'
+      + '<button id="skySchedule">Schedule</button>'
+      + '<button id="skyRank">Rank</button>';
   const clashInner = SKY_CLASH_LOOP
     ? `<img src="${SKY_CLASH_LOOP}" alt="">`
     : `<span class="skyClashPh">\u2694\uFE0F</span>`;
@@ -13681,11 +13703,10 @@ function skyBoardHTML(r){
           <span class="dot">\u00b7</span> <span id="skyClock">${new Date().toLocaleTimeString()}</span>
           <span class="dot">\u00b7</span> ${marches} marches
         </div>
-        <div class="skyHudBtns">
-          <button id="skyBracket">Bracket</button>
-          <button id="skySchedule">Schedule</button>
-          <button id="skyRank">Rank</button>
+        <div class="skyHudBtns">${hudBtns}</div>
         </div>
+        <div id="skyPhase" class="skyPhase"></div>
+        <div id="skyEvent" class="skyEvent"></div>
         <button class="skyEditTeam" id="skyEditTeam">\u2694 Edit Team</button>
       </div>
       <button class="skyClash" id="skyClash" onclick="skyClashOpen()" title="the bridge"><span class="skyClashRing"></span>${clashInner}</button>
@@ -13920,7 +13941,8 @@ async function skySimWatch(n){
 function skySimSetSpeed(v){ SKYSIM.speed=v;
   const bar=document.getElementById('skySpeedBar'); if(!bar) return;
   bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on', (+b.dataset.sp)===v)); }
-function skySimEnd(){ SKYSIM.skipReplay=true; SKYSIM.marching=false; }
+function skySimEnd(){ SKYSIM.skipReplay=true; SKYSIM.marching=false; SKYSIM.running=false;
+  try{ const st=document.getElementById('skyStage'); if(st) renderSkyfall(SKYFALL_VIEW); }catch(e){} }
 /* Phil: "when i click on a tower it should be able to see all the allies lines in it, in order from
    weakest player at the tower, to strongest at the bottom." Ascending power, top to bottom. */
 function skySimTower(side,i){
@@ -13985,30 +14007,17 @@ async function skySimReplay(r){
   const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
   card.style.maxWidth='920px';
   const you=(r.you&&r.you.citadels)||[], foe=(r.foe&&r.foe.citadels)||[];
-  /* The five towers run down each edge of the bridge; every march travels from its tower to the
-     middle, which is where the clash sits. These are percentages of the stage, so the whole thing
-     scales with the art on a phone. */
-  const TY=[9,25.5,42,58.5,75];
-  const tower=(c,i,mine)=>`<button class="skyTw ${mine?'mine':'foe'}${(c&&c.destroyed)?' dead':''}" data-key="${mine?'you':'foe'}:${i}"
-      id="skyTw${mine?'A':'B'}${i}" style="top:${TY[i]}%" onclick="skySimTower('${mine?'you':'foe'}',${i})">
-      <span class="skyTwIco">${(c&&c.destroyed)?'\uD83D\uDCA5':'\uD83C\uDFF0'}</span>
-      <span class="skyTwNm" style="color:${mine?'#7ef0b0':'#ff9aa6'}">${escapeHTML((c&&c.name)||('Lane '+(i+1)))}</span>
-      <span class="skyTwSub">${(c&&c.alive)|0}/${(c&&c.total)|0} lines</span></button>`;
-  const clashInner = SKY_CLASH_LOOP
-    ? `<img src="${SKY_CLASH_LOOP}" alt="">`
-    : `<span class="skyClashPh">\u2694\uFE0F</span>`;
-  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-      <b style="font-size:14px;color:#ff9f43">\u2694 Skyfall War</b>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <div class="skySpeed" id="skySpeedBar">${SKYSIM_SPEEDS.map(v=>`<button data-sp="${v}" class="${SKYSIM.speed===v?'on':''}" onclick="skySimSetSpeed(${v})">${v}\u00d7</button>`).join('')}</div>
-        <button class="btn sm secondary" onclick="skySimEnd()">\u23f9 End Sim</button></div></div>
-    <div id="skyPhase" style="margin:7px 0 6px;text-align:center;font-size:12px;font-weight:900;color:#ffd45e">\uD83D\uDCCB PREP \u2014 the guilds take their towers</div>
-    ${skyBoardHTML(r)}
-    <div id="skyEvent" style="height:34px;padding-top:7px;text-align:center;font-size:10.5px;color:#c3ccd8">Tap any tower to see the lines holding it \u2014 weakest at the top.</div>
-    ${(SKY_CLASH_LOOP&&SKY_WAR_MAP)?'':`<div style="font-size:9px;color:#8b98a9;text-align:center">drawn board \u2014 the painted Skyfall war map${SKY_CLASH_LOOP?'':' and the seamless clash loop'} ${SKY_CLASH_LOOP?'is':'are'} not made yet</div>`}`;
+  /* v700 - no modal. The war plays on the Skyfall SCREEN, so there is exactly one #skyStage and the
+     board fits the phone because the screen does. */
+  SKYSIM.running = true;
+  { const ov = card.closest('.gmodal-ov'); if(ov) ov.remove(); }
+  show('skyfall');
+  renderSkyfall(r);
+  await new Promise(res=>setTimeout(res, 120));
+  const stage = document.getElementById('skyStage');
+  if(!stage){ SKYSIM.running=false; return; }
+  skyLayoutBoard(stage);
 
-  const stage=document.getElementById('skyStage');
-  skyWireBoard(stage, r);
   /* One pause that reads the speed LIVE, so Phil can change 1x -> 20x mid-war and it takes effect on
      the very next beat rather than at the end. */
   const pause=ms=>new Promise(done=>setTimeout(done, Math.max(8, ms/Math.max(1,SKYSIM.speed))));
@@ -14033,14 +14042,18 @@ async function skySimReplay(r){
     const tw=document.getElementById('skyTw'+(mine?'A':'B')+i);
     if(tw){ tw.classList.add('act'); }
     const ln=document.getElementById('skyLn'+(mine?'A':'B')+i); if(ln) ln.classList.add('hot');
+    /* v700: the token travels the lane's REAL bridge, from the marching tower to the one it is
+       attacking, instead of the old fixed rows the modal used. */
+    const LN=skyLanes()[i]||{a:{x:20,y:50},b:{x:80,y:50}};
+    const from=mine?LN.a:LN.b, to=mine?LN.b:LN.a;
     const tok=document.createElement('div');
     tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
-    tok.style.top=(TY[i]+3)+'%'; tok.style.left=mine?'16%':'80%'; tok.style.opacity='1';
+    tok.style.left=from.x+'%'; tok.style.top=from.y+'%'; tok.style.opacity='1';
     stage.appendChild(tok);
     const trav=Math.max(10, BEAT/Math.max(1,SKYSIM.speed));
     void tok.offsetWidth;
     tok.style.transition='left '+trav+'ms linear, top '+trav+'ms linear, opacity .12s';
-    tok.style.left='47%'; tok.style.top='45%';
+    tok.style.left=to.x+'%'; tok.style.top=to.y+'%';
     const ev=document.getElementById('skyEvent');
     if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
     SKYSIM.cur=r.log.indexOf(e); if(SKYSIM.hubOn) skyHubRender();   /* v675: the hub follows the war */
@@ -21319,7 +21332,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789879207000';
+const BUILD_ID = '1789880407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
