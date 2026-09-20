@@ -1688,6 +1688,13 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyPlaceRow .pw{flex:none;color:#ffbf69;font-weight:800;}
 .skyPlaceRow .tick{flex:none;width:12px;text-align:right;color:#7ef0b0;font-weight:800;}
 .skyPlaceNote{font-size:8px;color:#6f7d90;padding:3px 3px 0;}
+/* v772 - the button is pinned above the scrolling list, not inside it */
+.skyPlaceTop{flex:none;margin:2px 0 4px;}
+.skyPlaceTop button{width:100%;border:1px solid #8a6420;border-radius:8px;padding:6px 10px;cursor:pointer;
+  background:linear-gradient(180deg,#8a6420,#3d2a0b);color:#fff4d6;font-size:11px;font-weight:800;
+  letter-spacing:.3px;}
+.skyPlaceTop button:hover{filter:brightness(1.12);}
+.skyPlaceTop button[disabled]{opacity:.5;cursor:default;filter:none;}
 .skyPlaceAll{border:1px solid #8a6420;border-radius:6px;padding:1px 9px;cursor:pointer;
   background:linear-gradient(180deg,#8a6420,#3d2a0b);color:#fff4d6;font-size:9px;font-weight:800;}
 .skyPlaceAll[disabled]{opacity:.45;cursor:default;}
@@ -14484,9 +14491,11 @@ function skyTowerPanel(stage, side, lane, data, opts){
         mineLines.push({ line:(typeof d.line==='number')?d.line:null, name:d.name,
           power:d.power|0, at:ci, atName:cc.name||('Lane '+(ci+1)) }); }));
     }
-    if(!mineLines.length) return '';
+    /* v772 - NEVER RETURN NOTHING. With no match running the board has no list of your lines, and
+       hiding the control there is hiding it exactly when it is being looked for. The rows are shown
+       when they are known; the button is shown always and the server answers why if it cannot. */
     mineLines.sort((x,y)=>(x.line|0)-(y.line|0));
-    const away=mineLines.filter(x=>x.at!==(lane|0)).length;
+    const away=mineLines.length?mineLines.filter(x=>x.at!==(lane|0)).length:1;
     /* v764d - your lines are LISTED so you can see where they stand, but they move together:
        one button, all of them. Splitting a player across towers is not a thing. */
     const rows=mineLines.map((x,li)=>{
@@ -14499,12 +14508,25 @@ function skyTowerPanel(stage, side, lane, data, opts){
         +'<span class="tick">'+(here?'\u2713':'')+'</span>'
         +'</div>'; }).join('');
     const allHere=(away===0);
+    if(!mineLines.length) return '';      /* the ROWS need lines; the button above does not */
     return '<div class="skyPlace">'
       +'<div class="skyPlaceHd"><span>\u2694 YOUR '+mineLines.length+' LINE'+(mineLines.length===1?'':'S')+'</span><span class="sp"></span>'
-        +'<button class="skyPlaceAll" data-place="all"'+(allHere?' disabled':'')+'>'
-        +(allHere?'All here':'Place them here')+'</button></div>'
+        +(allHere?'<span style="font-size:9px;color:#7ef0b0;font-weight:800">ALL HERE</span>':'')
+      +'</div>'
       +rows
       +'</div>'; })();
+
+  /* v772 - the button itself, pinned at the top of the popup on your own towers. */
+  const placeTopHTML=(function(){
+    if(side!=='you') return '';
+    const cits=((data.you)||{}).citadels||[];
+    const yours=((data.you)||{}).yours;
+    let allHere=false;
+    if(Array.isArray(yours)&&yours.length) allHere=yours.every(y=>(y.lane|0)===(lane|0) && y.lane!=null);
+    else { const mine=[]; cits.forEach((cc,ci)=>(cc.defenders||[]).forEach(d=>{ if(d&&d.you) mine.push(ci); }));
+           allHere=!!mine.length && mine.every(ci=>ci===(lane|0)); }
+    return '<div class="skyPlaceTop"><button data-place="all"'+(allHere?' disabled':'')+'>'
+      +(allHere?'\u2694 Your lines are here':'\u2694 Place Lines Here')+'</button></div>'; })();
 
   const listHTML=(players.length?players.map((p,pi)=>{
         const head='<div class="skyPlayerHd"><span class="ord">'+(pi+1)+'</span>'
@@ -14557,6 +14579,12 @@ function skyTowerPanel(stage, side, lane, data, opts){
   const open=stage.querySelector('.skyTowerPanel');
   const key=side+':'+lane;
   if(open && open.dataset.key===key){
+    const top=open.querySelector('.skyPlaceTop');
+    if(top){ const fresh=document.createElement('div'); fresh.innerHTML=placeTopHTML;
+      const rep2=fresh.firstElementChild; if(rep2) top.replaceWith(rep2); else top.remove(); }
+    else if(placeTopHTML){ const fresh=document.createElement('div'); fresh.innerHTML=placeTopHTML;
+      const add=fresh.firstElementChild;
+      const lst=open.querySelector('.skyTowerList'); if(add&&lst) lst.parentNode.insertBefore(add,lst); }
     const sub=open.querySelector('.sub'), list=open.querySelector('.skyTowerList');
     if(sub) sub.innerHTML=subHTML;
     if(list){ const keep=list.scrollTop; list.innerHTML=bodyHTML; list.scrollTop=keep; }
@@ -14573,6 +14601,7 @@ function skyTowerPanel(stage, side, lane, data, opts){
     +'<h4>'+escapeHTML(c.name||('Lane '+(lane+1)))+'</h4>'
     +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'
     +'<div class="sub">'+subHTML+'</div>'
+    +placeTopHTML
     +'<div class="skyTowerList">'+bodyHTML+'</div>';
   stage.appendChild(el);
   skyTowerPanelWire(el, stage, side, lane, data, opts);
@@ -23619,7 +23648,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789932007000';
+const BUILD_ID = '1789933207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
