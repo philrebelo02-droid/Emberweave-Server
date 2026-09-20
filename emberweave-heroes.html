@@ -15675,6 +15675,9 @@ async function skySimReplay(r){
         if(e.aDown) drop(mine?'you':'foe', i);
         if(e.dDown) drop(mine?'foe':'you', i);
         if(e.captured||e.fell) fell(mine?'foe':'you', i);
+        /* v754 - the attacker's own citadel can be the one that empties. Without its own flag the
+           board cannot tell which of the two towers went down, and the one at 0/12 stayed up. */
+        if(e.aFell) fell(mine?'you':'foe', i);
       }
       /* v751 - who is left standing at the centre. A line leaves the front only by dying or by
          retiring on its fifth kill; anything else and it is still out there for the next fight, so
@@ -22956,7 +22959,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789916407000';
+const BUILD_ID = '1789917607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

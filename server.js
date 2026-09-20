@@ -3298,6 +3298,11 @@ async function api(req,res,url){
       let citadelFell=false;
       /* v677 (Phil): "until that last line dies, do not trigger the fallen tower" */
       if(!foe.defenders.some(warStanding)){ foe.destroyed=true; citadelFell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
+      /* v754 - and the attacker's OWN citadel, which empties when its marches keep failing. Checked
+         here too or a tower sits at 0 defenders, still standing, for the rest of the war. */
+      let yourCitadelFell=false;
+      if(!mine.destroyed && !mine.defenders.some(warStanding)){ mine.destroyed=true; yourCitadelFell=true;
+        m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:null}); }
       m.eventLog.push({t:warNow(),e:'ASSAULT',lane,a:me.id,d:defender.memberId,won:r.won});
       const finished=false;                      /* v676: only the bell finishes a war */
       m.version++; writeDB();
@@ -3430,7 +3435,15 @@ async function api(req,res,url){
         else { attacker.alive=false; defender.kills=(defender.kills|0)+1; }
         /* v677 (Phil): the tower falls ONLY when its last line is DEAD. A line that has spent its
            five marches still stands in the way. Nothing is announced early. */
+        /* v754 (Phil: "a building hit 0/12 but stayed up instead of falling") - BOTH citadels are
+           checked. A line dies just as easily attacking as defending, so a side whose marches keep
+           failing empties its OWN tower; only the defender's was ever tested, and that tower stood
+           over an empty plate until someone marched into it - which never happens if the other side
+           has no fit lines left. The v677 rule is untouched and is the test used: the tower falls
+           only when its last line is DEAD, and a line that has spent its five marches still stands
+           in the way. */
         let fell=false; if(!foe.defenders.some(standing)){ foe.destroyed=true; fell=true; }
+        let aFell=false; if(!mine.destroyed && !mine.defenders.some(standing)){ mine.destroyed=true; aFell=true; }
         const hpLeft=st=>Math.round(100*st.reduce((s,x)=>s+(x.alive?x.hp:0),0)/Math.max(1,st.reduce((s,x)=>s+x.maxHp,0)));
         /* v726 - the two line-ups, so the battle report can draw the fight rather than describe
            it. Key, level and stars are all a hero card needs. */
@@ -3439,6 +3452,7 @@ async function api(req,res,url){
           aTeam:team(attacker.lineSnapshot), dTeam:team(defender.lineSnapshot),
           aKills:attacker.kills|0, dKills:defender.kills|0,
           aRetired:(attacker.kills|0)>=WAR_KILL_CAP, dRetired:(defender.kills|0)>=WAR_KILL_CAP,
+          aFell,   /* v754 - the ATTACKER's own citadel was emptied by this fight */
           aDown:attacker.alive===false, dDown:defender.alive===false});
         return true; };
       /* v676 (Phil) - EVERY LANE IS FOUGHT OUT. "all 5 lines fight until one side is zero until the
