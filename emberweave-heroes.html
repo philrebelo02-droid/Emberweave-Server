@@ -1245,9 +1245,17 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyStatus .dot{color:#6f7d90;}
 .skyStatus b{color:#ffe9b8;font-family:Georgia,'Times New Roman',serif;font-size:12px;}
 .skyStatus .sv{color:#7ef0b0;font-weight:800;}
-/* v701 (Phil: "put the rank bracket schedule on the right as a column not line") */
-.skyHudBtns{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;align-items:stretch;}
+/* v701 (Phil: "put the rank bracket schedule on the right as a column not line"), then v707
+   ("Make the buttons on the right a drop down") - the three became one, because the enemy's first
+   tower now hangs into the corner they used to fill. */
+.skyHudBtns{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;align-items:stretch;z-index:8;}
 .skyHudBtns button{text-align:center;}
+.skyMenuBtn{white-space:nowrap;}
+.skyMenuCar{font-size:9px;opacity:.75;display:inline-block;transition:transform .15s;}
+.skyMenuBtn.open .skyMenuCar{transform:rotate(180deg);}
+.skyMenu{display:flex;flex-direction:column;gap:4px;padding:4px;border-radius:10px;
+  background:rgba(8,12,20,.9);border:1px solid #6b5628;box-shadow:0 6px 16px rgba(0,0,0,.6);}
+.skyMenu[hidden]{display:none!important;}
 /* v703: the speeds run three across, so the bar stops reaching under the status plaque */
 .skyEndBtn{align-self:end;min-width:64px;}
 /* Begin the march sits centred on the bottom edge, where a thumb reaches it either-handed */
@@ -1264,11 +1272,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   font-size:12px;font-weight:900;color:#ffd45e;text-shadow:0 1px 3px #000,0 0 8px #000;white-space:nowrap;}
 .skyEvent{position:absolute;left:8px;bottom:8px;max-width:58%;z-index:7;pointer-events:none;
   font-size:10px;color:#e3ecf7;text-shadow:0 1px 3px #000,0 0 6px #000;}
-/* v705 (Phil: "Put it left of the tower platforms" / "In our ui") - the garrison count hangs off
-   each platform's LEFT edge as a small Emberweave plaque: the board's own dark ground, gold rule and
-   serif numerals, with the lane's side colour picked out on the inside edge. Same kit as .skyStatus,
-   a quarter of the size. Its exact x is pinned inside the frame by skyGarFit() after layout. */
-.skyGarrison{position:absolute;transform:translate(-100%,-50%);z-index:4;pointer-events:none;
+/* v707 (Phil: "put the troop numbers of the lane on the actual platform now") - with the tower
+   lifted clear, the disc's face is empty and it is the lane's own count that belongs on it. The
+   plaque keeps the kit it got in v705: the board's dark ground, gold rule and serif numerals, with
+   the lane's side colour picked out on the inside edge. skyGarFit() still guards the frame. */
+.skyGarrison{position:absolute;transform:translate(-50%,-50%);z-index:4;pointer-events:none;
   display:flex;align-items:center;white-space:nowrap;
   padding:1px 5px;border-radius:7px;
   background:linear-gradient(180deg,rgba(14,18,28,.9),rgba(6,9,15,.9));
@@ -13717,9 +13725,12 @@ function skyBoardHTML(r, opts){
     ? '<div class="skySpeed" id="skySpeedBar">'
       + SKYSIM_SPEEDS.map(v=>'<button data-sp="'+v+'" class="'+(SKYSIM.speed===v?'on':'')+'" onclick="skySimSetSpeed('+v+')">'+v+'\u00d7</button>').join('')
       + '</div><button class="skyEndBtn" onclick="skySimEnd()">\u23f9 End</button>'
-    : '<button id="skyBracket">Bracket</button>'
-      + '<button id="skySchedule">Schedule</button>'
-      + '<button id="skyRank">Rank</button>';
+    : '<button id="skyMenuBtn" class="skyMenuBtn">\u2630 War <span class="skyMenuCar">\u25be</span></button>'
+      + '<div class="skyMenu" id="skyMenu" hidden>'
+      +   '<button id="skyBracket">Bracket</button>'
+      +   '<button id="skySchedule">Schedule</button>'
+      +   '<button id="skyRank">Rank</button>'
+      + '</div>';
   const clashInner = SKY_CLASH_LOOP
     ? `<img src="${SKY_CLASH_LOOP}" alt="">`
     : `<span class="skyClashPh">\u2694\uFE0F</span>`;
@@ -13732,7 +13743,7 @@ function skyBoardHTML(r, opts){
             style="left:${p.x}%;top:${p.y}%;width:${SKY_PLAT_R}%;aspect-ratio:1;background-image:url('${SKY_ART_PLATFORM}')"
             title="${escapeHTML((c&&c.name)||('Lane '+(L.i+1)))}"></div>`;
         const garr=(c,p,cls,side)=>{ const al=(c&&c.alive)|0, tot=(c&&c.total)|0, dead=!!(c&&c.destroyed);
-          return `<div class="skyGarrison ${cls}${dead?' fallen':''}" id="skyGar-${side}-${L.i}" data-alive="${al}" data-total="${tot}" style="left:calc(${p.x}% - ${SKY_PLAT_R/2 + 0.6}%);top:${p.y}%">${skyGarText(dead?0:al,tot)}</div>`; };
+          return `<div class="skyGarrison ${cls}${dead?' fallen':''}" id="skyGar-${side}-${L.i}" data-alive="${al}" data-total="${tot}" style="left:${p.x}%;top:${p.y}%">${skyGarText(dead?0:al,tot)}</div>`; };
         /* The tower carries the same data-key as its platform, so clicking either opens the same
            garrison. Position and size are left to skyLayoutBoard, which measures them. */
         const twr=(c,cls,key,side)=>{ const dead=!!(c&&c.destroyed);
@@ -13772,6 +13783,15 @@ function skyWireBoard(stage, r){
        window._skyRO=new ResizeObserver(()=>skyLayoutBoard(stage)); window._skyRO.observe(stage); }catch(e){}
   { const q=id=>stage.querySelector('#'+id);
     const nyi=(what)=>()=>bannerMsg(what+' \u2014 not open yet.');
+    /* v707 - one button opens the list; picking anything closes it again, and so does a click
+       anywhere else on the board. */
+    { const mb=q('skyMenuBtn'), mn=q('skyMenu');
+      if(mb && mn){
+        const close=()=>{ mn.hidden=true; mb.classList.remove('open'); };
+        mb.onclick=(e)=>{ e.stopPropagation(); mn.hidden=!mn.hidden; mb.classList.toggle('open', !mn.hidden); };
+        mn.onclick=()=>close();
+        stage.addEventListener('click', (e)=>{ if(!mn.hidden && !mb.contains(e.target) && !mn.contains(e.target)) close(); });
+      } }
     if(q('skyBracket'))  q('skyBracket').onclick  = nyi('Battle bracket');
     if(q('skySchedule')) q('skySchedule').onclick = nyi('Schedule');
     if(q('skyRank'))     q('skyRank').onclick     = nyi('Rankings');
@@ -13901,19 +13921,21 @@ function skyLayoutBoard(stage){
      that is 66.7px against a 60.6px platform; the frame allows 1.43, which Phil called too big. */
   { const lanes=skyLanes();
     const plat=SKY_PLAT_R/100*W;
-    /* How far the tower's base sinks past the platform's centre. Hung any higher and the art reads
-       as two objects - a small keep and a big empty plate beneath it. At the centre the disc
-       becomes the ring the citadel hangs in, which is what it is. */
-    const SINK=0.02;
+    /* v707 (Phil: "they should be higher to signify floating" / "A little bit lower") - how far
+       the tower's base is LIFTED above the platform's centre, in platform-widths. At 0.50 the base
+       clears the disc entirely and the two read as unrelated objects; at 0.35 the island's
+       underside clears the top of the disc, you see sky beneath it, and the tower still plainly
+       belongs to that lane. */
+    const LIFT=0.35;
     let topY=Infinity;
     for(const L of lanes) topY=Math.min(topY, L.a.y/100*H, L.b.y/100*H);
-    const th=Math.max(20, Math.min(plat*1.10, topY + plat*SINK - 3));
+    const th=Math.max(20, Math.min(plat*1.10, topY - plat*LIFT - 3));
     for(const L of lanes){
       for(const pair of [['you',L.a],['foe',L.b]]){
         const el=stage.querySelector('#skyTower-'+pair[0]+'-'+L.i); if(!el) continue;
         el.style.height=th+'px';
         el.style.left=(pair[1].x/100*W)+'px';
-        el.style.top=(pair[1].y/100*H + plat*SINK)+'px';
+        el.style.top=(pair[1].y/100*H - plat*LIFT)+'px';
       }
     }
   }
@@ -21440,7 +21462,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789884007000';
+const BUILD_ID = '1789885207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
