@@ -4836,17 +4836,34 @@ async function api(req,res,url){
       {key:'kharos',name:'Kharos, Hourglass Sentinel'}, {key:'miregor',name:'Miregor, King of the Briar March'},
       {key:'sable vesper',name:'Sable Vesper, Choir of Crows'}, {key:'orryx',name:'Orryx, the Glass Minotaur'},
       {key:'thorneveil',name:'Thorneveil, Warden of the Ash Grove'}, {key:'nameless admiral',name:'The Nameless Admiral'}];
-    const raidBossFor=lvl=>RAID_BOSSES[(((lvl||1)-1)%RAID_BOSSES.length+RAID_BOSSES.length)%RAID_BOSSES.length];
+    const raidBossBase=lvl=>RAID_BOSSES[(((lvl||1)-1)%RAID_BOSSES.length+RAID_BOSSES.length)%RAID_BOSSES.length];
+    /* An Elite tier wears the same boss and the same art, named for what he is. */
+    const raidBossFor=lvl=>{ const b=raidBossBase(lvl); return ((lvl|0)>20)?{key:b.key, name:'Elite '+b.name}:b; };
     const RAID_SESSION_MS=10*60*1000;   /* an open raid fight is good for 10 minutes */
     /* v666 — sized from MEASURED damage, not a guess. A five-hero Lv50 squad with a full bench of
        five deals ~65k in one 90-second fight (rig, sim-host); Lv20 ~18k; Lv80 ~150k. At 3 attempts a
        day a ten-member guild of Lv50s therefore produces ~2M a day. The old curve (80k x 1.6^) died
        to a single attempt at tier 1 and reached 601M by tier 20, which no guild could ever finish. */
-    const bossMax=lvl=>Math.round(150000*Math.pow(1.28,(lvl||1)-1));
+    /* v670 (Phil: "a guild shouldnt be able to get the first boss down on day 1"). Measured: an
+       8-member guild in light gear at 3 fights a day does ~180k against tier 1, so 400,000 takes
+       them about two days, and a longer haul for a weaker guild. */
+    const bossMax=lvl=>Math.round(400000*Math.pow(1.28,(lvl||1)-1));
     /* v668 — HIS HIDE. Measured, not guessed (see the header of raid668.py): at 14,000 a level-7
        squad in green gear does ~900 in a whole 90-second fight while a geared level-50 squad does
        ~35,000, because mitigation is def/(def+K) and penetration is flat. It thickens 12% a tier. */
-    const bossHide=lvl=>Math.round(14000*Math.pow(1.12,(lvl||1)-1));
+    const bossHide=lvl=>Math.round(30000*Math.pow(1.12,(lvl||1)-1));
+    /* v670 (Phil): the boss's own level is 15 at tier 1 and climbs by 4 a tier, stopping at 65. */
+    /* v670 (Phil) — THE LADDER.
+         Tiers 1-20  : the twenty bosses. Level 15 at tier 1, +4 a tier, stopping at 65.
+         Tier 21+    : "once the 20 Boss stage is Done they Unlock Elite raid boss" — the same twenty
+                       come back as ELITE, starting at level 70 and climbing 3 a tier to 100.
+       Difficulty is not only hide: Phil, "increase the bosses damage not just mitigation" — his hits
+       grow 12% a tier, and an Elite swings half again as hard on top of that. */
+    const raidIsElite=tier=>((tier|0)>20);
+    const raidBossLvl=tier=>{ const t=Math.max(1,tier|0);
+      return t<=20 ? Math.min(65, 15+4*(t-1)) : Math.min(100, 70+3*(t-21)); };
+    const bossDmgMul=tier=>{ const t=Math.max(1,tier|0);
+      return Math.min(9, (1+0.12*(t-1)) * (raidIsElite(t)?1.5:1)); };
     function ensureRaid(gg){ if(!gg.raid){ gg.raid={level:1,max:bossMax(1),hp:bossMax(1),kills:0,contrib:{},used:{},day:''}; }
       /* v668: the pool was re-sized (tier 1 is 150,000 now). A guild already part-way through a boss
          keeps the FRACTION it had chewed off, so nobody loses or gains progress in the change. */
@@ -5016,7 +5033,7 @@ async function api(req,res,url){
       /* a retried start with the same requestId hands back the same open fight (nothing is charged twice) */
       if(open && open.reqId===reqId && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps,
-          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier)}, engine:open.engine, raid:raidView(g) });
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       if(r.hp<=0) return send(res,400,{error:'This boss is already down — the next tier is spawning.'});
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
@@ -5031,13 +5048,13 @@ async function api(req,res,url){
       /* THE BOSS ENTERS WITH WHAT HE HAS LEFT (Phil). Early tiers that is far more than a squad can
          chew through in 90 seconds; on the last run of a tier someone lands a real killing blow. His
          level rises with the tier so his damage keeps pace with the guilds fighting him. */
-      const bossLvl=Math.max(1, Math.min(200, 10+((r.level||1)-1)*3));   /* +3 a tier: he hits harder as the guild climbs, without outpacing them */
+      const bossLvl=raidBossLvl(r.level);
       r.used[me.id]=((r.used[me.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
       r.att[me.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
         startedAt:Date.now(), reqId, tier:r.level, bossKey:bb.key, bossHp:r.hp, bossLvl };
       writeDB();
       return send(res,200,{ ok:true, attemptId:r.att[me.id].id, seed, snaps:fightSnaps, engine:r.att[me.id].engine,
-        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level)}, raid:raidView(g) }); }
+        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level), dmgMul:bossDmgMul(r.level)}, raid:raidView(g) }); }
     if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
       const out=idem(me.id+':graidres:'+reqId,()=>{
@@ -5049,7 +5066,7 @@ async function api(req,res,url){
         /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
            the frozen squad, seed and boss with the game's own battle code (sim-host). */
         const host=simHost(); let dmg=null, incident=null;
-        const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1)};
+        const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1)};
         if(host && a.snaps && typeof host.raid==='function'){
           try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, Array.isArray(b.inputLog)?b.inputLog.slice(0,400):[]); dmg=Math.max(0, rr.dmg|0); }
           catch(e){ incident='raid-replay-error: '+e.message; }

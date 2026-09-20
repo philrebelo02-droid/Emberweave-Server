@@ -7595,7 +7595,7 @@ function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
   const keep=REPLAY_IN;
   ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
   const B=bossSpec||{};
-  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0)}]],
+  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]],
        raid:{key:B.key, tier:B.tier|0, hp:Math.max(1,B.hp|0)},
        backups:allySnaps.slice(TEAM_SIZE).map(s=>s.key), backupSnaps:allySnaps.slice(TEAM_SIZE),
        manualReplay:!!manual, headless:true};
@@ -12476,7 +12476,7 @@ async function raidLaunch(){
   CUR={mode:'graid', attemptId:st.attemptId, seed:(st.seed!=null?(st.seed>>>0):null), serverSnaps:_sn,
        backupSnaps:_sn?_sn.slice(TEAM_SIZE):null,   /* the bench fights with the SERVER's numbers too */
        backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,B.hp|0), lvl:Math.max(1,B.lvl|0)},
-       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0)}]], engine:st.engine||null};
+       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]], engine:st.engine||null};
   startBattle();
 }
 /* The damage this fight has done to the raid boss: what he came in with, minus what he has left.
@@ -20500,7 +20500,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789856407000';
+const BUILD_ID = '1789857607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
