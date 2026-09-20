@@ -14099,7 +14099,12 @@ function skyMatchHTML(m, canOfficer){
 }
 /* v374 (Phil): GOD MODE war simulator — a sandbox Skyfall match, 20 vs 20 players × 3 lines of five,
    bot allies on your side, a bot guild across the bridges. Results + a scrolling battle log. Dev only. */
-const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1,stage:'prep'}, r:null, busy:false, skipReplay:false, speed:1, sel:null, marching:false, running:false};
+/* v763 - the bot is described by progression a player could have, never by a scalar. allyMul and
+   foeMul are gone: they multiplied a finished bot's hp and damage by a number nothing in the game
+   produces, so two different builds with the same multiplier came out identical. */
+const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,
+  botSkill:1,botGear:'',botTemper:0,botAcad:0,stage:'prep'},
+  r:null, busy:false, skipReplay:false, speed:1, sel:null, marching:false, running:false};
 /* v674 - the middle of the bridge. Phil wants a Hailuo SEAMLESS clashing-swords loop here; it is not
    made yet (his credits, his call). Point SKY_CLASH_LOOP at the sheet when it exists and it plays in
    place of the drawn placeholder - nothing else changes. */
@@ -15663,12 +15668,19 @@ function skySimOpen(){ if(!SKYSIM.p.botLevel) SKYSIM.p.botLevel=playerLevel();
   const card=document.createElement('div'); card.id='skySimCard'; card.style.cssText='background:#141b2b;border:1px solid #ff9f43;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:88vh;overflow:auto;position:relative';
   ov.appendChild(card); document.body.appendChild(ov); ov.onclick=(e)=>{ if(e.target===ov) ov.remove(); }; skySimRender(); }
 function skySimRender(){ const card=document.getElementById('skySimCard'); if(!card) return; const P=SKYSIM.p, r=SKYSIM.r;
+  /* v763 - the power is REPORTED, never set: it is whatever the build produces, read back off the
+     board the server returned. */
+  const bpLine=(r&&r.botPower)?`<div style="font-size:10px;color:#8b98a9;margin:3px 0 0">That build fought at ⚔ <b style="color:#ffbf69">${(r.botPower.foe|0).toLocaleString()}</b> for the bot guild · your side ⚔ <b style="color:#9ad">${(r.botPower.you|0).toLocaleString()}</b></div>`:'';
   const ladder=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange','Orange (all banked)'];
   const num=(k,label,min,max,step)=>`<label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">${label}<input type="number" min="${min}" max="${max}" step="${step||1}" value="${P[k]}" style="width:100%;background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px 7px;font-size:12px" onchange="SKYSIM.p.${k}=+this.value"></label>`;
   const params=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">
       ${num('players','Players per side',1,30)}${num('linesPer','Lines per player',1,7)}${num('botLevel','Bot hero level',1,100)}
+      ${num('botSkill','Bot skill level',1,100)}${num('botAcad','Bot academy level',0,60)}${num('botTemper','Bot gear temper',0,30)}
       <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Bot glyph tier<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.botTier=+this.value">${ladder.map((q,i)=>`<option value="${i}" ${P.botTier===i?'selected':''}>${q}</option>`).join('')}</select></label>
-      ${num('botStars','Bot stars',1,5)}${num('foeMul','Enemy power ×',0.2,5,0.1)}
+      ${num('botStars','Bot stars',1,5)}
+      <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Bot equipment<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.botGear=this.value">${
+        ['','Grey','Green','Blue','Blue +2','Purple','Purple +3','Gold +1','Gold +4','Orange']
+          .map(q=>`<option value="${q}" ${P.botGear===q?'selected':''}>${q||'None'}</option>`).join('')}</select></label>
       <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Stage<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.stage=this.value">${['prep','march'].map(q=>`<option value="${q}" ${(P.stage||'prep')===q?'selected':''}>${q==='prep'?'Prep':'March'}</option>`).join('')}</select></label></div>
     <button class="btn" style="width:100%;${SKYSIM.busy?'opacity:.5':''}" ${SKYSIM.busy?'disabled':''} onclick="skySimRun()">${SKYSIM.busy?'⏳ Fighting…':'⚔ Run the war'}</button>`;
   let res='';
@@ -15683,7 +15695,9 @@ function skySimRender(){ const card=document.getElementById('skySimCard'); if(!c
       <div style="font-size:9px;color:#8b98a9;margin:8px 0 3px">BATTLE LOG (🟢 your side marches · 🔴 bot guild marches · highlighted = your lines)</div>
       <div style="max-height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #1b2438;border-radius:10px;padding:4px 8px;background:#0f1420;font-size:10px">${logRows}</div>`; }
   card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px;color:#ff9f43">⚔ God Mode — War Simulator</b><button class="btn sm secondary" onclick="this.closest('.gmodal-ov').remove()">✕</button></div>
-    <div style="font-size:10px;color:#8b98a9;margin-top:2px">A sandbox Skyfall match: you + bot allies vs a bot guild, fought with the real war rules and the real sim. Nothing is recorded.</div>${params}${res}`; }
+  /* v763 - the power is REPORTED, never set: it is whatever the build above produces, read back
+     off the board the server returned. */
+    <div style="font-size:10px;color:#8b98a9;margin-top:2px">A sandbox Skyfall match: you + bot allies vs a bot guild, fought with the real war rules and the real sim. Nothing is recorded. The bot's power is not a setting — it is what its level, skills, quality, equipment and research add up to.</div>${bpLine}${params}${res}`; }
 async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRender();
   const r=await api('/api/guild-war/sim','POST',Object.assign({seed:'sim'+Date.now()},SKYSIM.p)); SKYSIM.busy=false;
   if(!r||r.error){ bannerMsg((r&&r.error)||'Simulation failed.'); }
@@ -23215,7 +23229,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789926007000';
+const BUILD_ID = '1789927207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

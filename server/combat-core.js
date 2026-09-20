@@ -163,6 +163,9 @@ function buildUnit(key, base, mul, defScale, r, extra){
     ctrlRes:Math.min(CONV.ctrlResCap,(r.ctrlRes||0)*CONV.ctrlResPerPt),
     healPow:(r.healPow||0)*0.004,
     kit:KITS[key]||extra.kit||DEFAULT_KIT,
+    /* v762 - the four skill levels, and the multiplier the ultimate fires at. */
+    skillLv:(Array.isArray(extra.skillLv)&&extra.skillLv.length===4)?extra.skillLv.slice():[1,1,1,1],
+    ultMul:skillMul(Array.isArray(extra.skillLv)?extra.skillLv[0]:1),
     gearSkillSlot:extra.gearSkillSlot||null, gearSkill:extra.gearSkill||null,
     shieldPool:0, _stunR:0, _skipR:0, _buffR:0, _buffMul:1, _drR:0, _markR:0, _markMul:1, _gearSkillUsed:false
   };
@@ -233,9 +236,25 @@ function grantShield(log, round, side, src, tgt, amt){
   return a;
 }
 
+/* v762 (Phil: "skill level directly increases the scale of skills") - SKILL LEVELS SCALE THE KIT.
+   They reached this file for the first time in v762: `skillLv` appeared nowhere in it, so every
+   war fight was resolved as though every skill sat at level 1 and a player's upgrades did nothing.
+   The curve is the client's, to the digit - SKILL_STEP 0.0135, x2.337 at level 100 - and it lives
+   here because this file owns the formulas both sides share.
+   Slot 0 is the ultimate, which is the only ability this resolver has; 1/2/3 are the client's
+   green, blue and passive and have nothing to scale here. They ride along on the unit so a future
+   resolver can use them, and they change nothing today. */
+const SKILL_STEP=0.0135;
+function skillMul(lv){ return 1+(Math.max(1,(lv|0)||1)-1)*SKILL_STEP; }
+
 /* ---- kit executor: the hero's authored ultimate ---- */
 function fireKit(rnd, log, round, side, u, own, foe, variance){
   const k=u.kit||DEFAULT_KIT;
+  /* v762 - the skill level multiplies the MAGNITUDE of the ultimate, which is what the client's
+     _castSM does. Control effects (stun length, shape, target count) are untouched: the client
+     scales magnitude only, and a stun that grew with level would be a balance change nobody asked
+     for. */
+  const SM=u.ultMul||1;
   const targetsFor=shape=>{ const alive=aliveList(foe); if(!alive.length) return [];
     if(shape==='lowest'){ const w=weakestAlive(foe); return w?[w]:[]; }
     if(shape==='aoe') return alive.slice(0,Math.max(1,k.n||3));
@@ -245,14 +264,14 @@ function fireKit(rnd, log, round, side, u, own, foe, variance){
     const roll=rnd(); const ch=Math.max(0.15, 0.55+(u.ctrlHit||0)-(t.ctrlRes||0));
     if(roll<ch) t._stunR=Math.max(t._stunR||0, Math.max(1,Math.round(k.stun*(1-(t.ctrlRes||0))))); };
   if(k.kind==='heal'){ const who=k.who==='allies'?aliveList(own):[weakestAlive(own)].filter(Boolean);
-    for(const w of who) applyHeal(log,round,side,u,w,u.heal*(k.coef||1.1)*variance(),true); return; }
-  if(k.kind==='shieldTeam'){ for(const w of aliveList(own)) grantShield(log,round,side,u,w,w.maxHp*(k.pct||0.2)); return; }
+    for(const w of who) applyHeal(log,round,side,u,w,u.heal*(k.coef||1.1)*SM*variance(),true); return; }
+  if(k.kind==='shieldTeam'){ for(const w of aliveList(own)) grantShield(log,round,side,u,w,w.maxHp*(k.pct||0.2)*SM); return; }
   if(k.kind==='hybrid'){ for(const t of targetsFor(k.shape||'aoe')){
-      applyDamage(rnd,log,round,side,u,t,u.atkP*(k.coef||1.2)*variance(),'phys',{ult:true});
-      applyDamage(rnd,log,round,side,u,t,u.atkM*(k.coef||1.2)*variance(),'magic',{ult:true}); tryStun(t); } return; }
+      applyDamage(rnd,log,round,side,u,t,u.atkP*(k.coef||1.2)*SM*variance(),'phys',{ult:true});
+      applyDamage(rnd,log,round,side,u,t,u.atkM*(k.coef||1.2)*SM*variance(),'magic',{ult:true}); tryStun(t); } return; }
   const kind=k.kind==='magic'?'magic':'phys';
   const line=kind==='magic'?u.atkM:u.atkP;
-  for(const t of targetsFor(k.shape||'nuke')){ applyDamage(rnd,log,round,side,u,t,line*(k.coef||2.2)*variance(),kind,{ult:true}); tryStun(t); }
+  for(const t of targetsFor(k.shape||'nuke')){ applyDamage(rnd,log,round,side,u,t,line*(k.coef||2.2)*SM*variance(),kind,{ult:true}); tryStun(t); }
 }
 
 /* ---- gear actives (unchanged semantics, typed executor) ---- */
@@ -328,5 +347,5 @@ function resolveBattle(a, b, seed){
   return { won, rounds:round, aState:state(a), bState:state(b), log };
 }
 
-module.exports={ mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
+module.exports={ skillMul, SKILL_STEP, mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
   applyDamage, applyHeal, grantShield, state };

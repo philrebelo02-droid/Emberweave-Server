@@ -1073,7 +1073,10 @@ function snapshotHeroFromServer(u, key, save){
   if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
   const prayerMul=1+Math.max(0,Math.min(200,u.led.prayer|0))*0.02;
   return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill,
-    extra:Object.assign({prayerMul},AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{})});
+    /* v762 - THE SKILL LEVELS TRAVEL WITH THE HERO. They were on the client snapshot only, so a
+       war line fought as though every skill were level 1 however much the player had spent. */
+    extra:Object.assign({prayerMul, skillLv:ledSkillArr(u.led,key).slice()},
+      AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{})});
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -3333,7 +3336,42 @@ async function api(req,res,url){
       const players=Math.max(1,Math.min(30,parseInt(b.players,10)||20)), linesPer=Math.max(1,Math.min(WAR_LINES_MAX,parseInt(b.linesPer,10)||3));
       const botLevel=Math.max(1,Math.min(D_MAX_LEVEL,parseInt(b.botLevel,10)||ledPlayerLevel(ensureLedger(me))));
       const botTier=Math.max(0,Math.min(16,parseInt(b.botTier,10)||0)), botStars=Math.max(1,Math.min(5,parseInt(b.botStars,10)||3));
-      const allyMul=Math.max(0.2,Math.min(5,parseFloat(b.allyMul)||1)), foeMul=Math.max(0.2,Math.min(5,parseFloat(b.foeMul)||1));
+      /* v763 (Phil: "enemy power shouldnt be a option, the power should automatically be
+         calculated off your adjustment of hero level / skill level / quality / equipment / academy
+         level" and "all other combat multipliers we choose") - THE SCALARS ARE GONE. A bot is built
+         from progression a player could actually have, and its power is whatever that produces. */
+      const botSkill=Math.max(1,Math.min(100,parseInt(b.botSkill,10)||1));
+      const botAcad =Math.max(0,Math.min(TECH_MAX_SRV,parseInt(b.botAcad,10)||0));
+      const GEAR_Q=(GEARCAT&&GEARCAT.byQuality)?Object.keys(GEARCAT.byQuality):[];
+      const botGear=(typeof b.botGear==='string' && GEAR_Q.includes(b.botGear))?b.botGear:'';
+      const botTemper=Math.max(0,Math.min((GEARCAT&&GEARCAT.meta&&GEARCAT.meta.temper.max)||30,parseInt(b.botTemper,10)||0));
+
+      /* A FULL SET AT ONE QUALITY, from the real catalog: the item of that quality in each of the
+         nine slots, summed, through the same temper multiplier gearHeroFlats applies. A quality
+         that has no item for a slot simply leaves it empty, which is honest - nothing is
+         fabricated to fill it. */
+      const botGearFlats=(()=>{
+        const out={hp:0,atk:0,apow:0,heal:0,armor:0,mr:0,armorPen:0,magicPen:0,crit:0,critDmg:0,critRes:0,
+          energy:0,regenRating:0,haste:0,atkSpd:0,moveSpd:0,range:0,lifesteal:0,eva:0,acc:0,block:0,
+          dmgBonus:0,dmgRed:0,shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0};
+        if(!botGear||!GEARCAT) return out;
+        const tmul=1+((GEARCAT.meta.temper.passivePerTemper||0)*botTemper);
+        const bySlot={};
+        for(const d of (GEARCAT.byQuality[botGear]||[])) if(!bySlot[d.slot]) bySlot[d.slot]=d;
+        for(const sl in bySlot){ const def=bySlot[sl];
+          for(const st in def.stats){ const v=def.stats[st]*tmul;
+            if(st==='regen') out.regenRating+=v; else if(st in out) out[st]+=v; } }
+        return out; })();
+
+      /* The academy, through its own maths: a bot at research level N gets exactly what a player at
+         research level N gets, because this is ensureAcad's shape fed to techTotalSrv. */
+      const botAcadCombat=(()=>{
+        if(!botAcad) return null;
+        const A={lv:{academy:botAcad,atk:botAcad,hp:botAcad,ap:botAcad,def:botAcad,armor:botAcad,mr:botAcad,crit:botAcad,critres:botAcad}};
+        return { atkFlat:Math.round(techTotalSrv(A,'atk')), hpFlat:Math.round(techTotalSrv(A,'hp')),
+          armorRating:techTotalSrv(A,'armor'), mrRating:techTotalSrv(A,'mr'),
+          critFrac:techTotalSrv(A,'crit')/100, critResFrac:techTotalSrv(A,'critres')/100,
+          dmgRedFrac:techTotalSrv(A,'def')/100, apMul:1+techTotalSrv(A,'ap')/100 }; })();
       const seedBase=String(b.seed||('sim'+Date.now()));
       let rng=SIM.mulberry32(SIM.seedFrom(seedBase));
       const keys=Object.keys(SIM.HERO_BASE);
@@ -3344,15 +3382,31 @@ async function api(req,res,url){
       const botBoard=(key)=>{ if(boardCache[key]) return boardCache[key]; const asc={}; if(GLYPHS&&typeof glyphPreChoice==='function'){
           for(let qi=0;qi<=Math.min(15,botTier);qi++) for(let i=0;i<6;i++){ const d=glyphPreChoice(key,i,qi); if(!d) continue; for(const st of d.stats){ const c=asc[st.stat]||{val:0,pct:st.pct}; c.val=+(c.val+st.val).toFixed(2); c.pct=st.pct; asc[st.stat]=c; } } }
         return (boardCache[key]={ slots:[null,null,null,null,null,null], ascensionIndex:botTier, ascended:asc }); };
-      const botHero=(key,mul)=>{ const fake={ glyphs:{ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{ [key]:botBoard(key) } } };
+      const botHero=(key)=>{ const fake={ glyphs:{ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{ [key]:botBoard(key) } } };
         const fl=glyphFlatStats(fake,key),earned=personalAscensionFlatStats(fake,key);
         for(const stat of Object.keys(earned))fl[stat]=(fl[stat]||0)+earned[stat];
-        const R={ hpFlat:fl.hp|0, atkFlat:fl.atk|0, apowFlat:fl.apow|0, healFlat:0, armor:fl.armor|0, mr:fl.mr|0, armorPen:fl.armorPen|0, magicPen:fl.magicPen|0,
-          crit:fl.crit|0, critDmg:fl.critDmg|0, critRes:fl.critRes|0, energy:fl.energy|0, startEnergy:fl.startEnergy|0, regen:fl.regenRating|0, lifesteal:fl.lifesteal|0, atkSpd:fl.atkSpd|0, haste:fl.haste|0,
-          eva:fl.eva|0, acc:fl.acc|0, block:fl.block|0, dmgBonus:fl.dmgBonus|0, dmgRed:fl.dmgRed|0, shieldStr:fl.shieldStr|0, ctrlHit:fl.ctrlHit|0, ctrlRes:fl.ctrlRes|0, healPow:fl.healPow|0 };
-        const h=SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R, gearSkillSlot:null, gearSkill:null, extra:null});
-        if(mul!==1){ h.maxHp=Math.round(h.maxHp*mul); h.hp=h.maxHp; h.atk=Math.round((h.atk||0)*mul); h.atkP=Math.round((h.atkP||0)*mul); h.atkM=Math.round((h.atkM||0)*mul); h.heal=Math.round((h.heal||0)*mul); }
-        return h; };
+        /* v763 - GEAR AND ACADEMY GO WHERE A REAL HERO'S GO. This is the same assembly
+           snapshotHeroFromServer does for a player: the glyph board's flats, plus the gear set's
+           flats, plus the academy's two flat lines, handed to the core as RAW typed ratings so the
+           core owns every conversion. A bot built this way is a player build, not a scaled one. */
+        const gb=botGearFlats;
+        const R={ hpFlat:(fl.hp|0)+(gb.hp|0), atkFlat:(fl.atk|0)+(gb.atk|0), apowFlat:(fl.apow|0)+(gb.apow|0), healFlat:(gb.heal|0),
+          armor:(fl.armor|0)+(gb.armor|0), mr:(fl.mr|0)+(gb.mr|0), armorPen:(fl.armorPen|0)+(gb.armorPen|0), magicPen:(fl.magicPen|0)+(gb.magicPen|0),
+          crit:(fl.crit|0)+(gb.crit|0), critDmg:(fl.critDmg|0)+(gb.critDmg|0), critRes:(fl.critRes|0)+(gb.critRes|0),
+          energy:(fl.energy|0)+(gb.energy|0), startEnergy:(fl.startEnergy|0)+(gb.startEnergy|0), regen:(fl.regenRating|0)+(gb.regenRating|0),
+          lifesteal:(fl.lifesteal|0)+(gb.lifesteal|0), atkSpd:(fl.atkSpd|0)+(gb.atkSpd|0), haste:(fl.haste|0)+(gb.haste|0),
+          moveSpd:(gb.moveSpd|0), range:(gb.range|0),
+          eva:(fl.eva|0)+(gb.eva|0), acc:(fl.acc|0)+(gb.acc|0), block:(fl.block|0)+(gb.block|0),
+          dmgBonus:(fl.dmgBonus|0)+(gb.dmgBonus|0), dmgRed:(fl.dmgRed|0)+(gb.dmgRed|0), shieldStr:(fl.shieldStr|0)+(gb.shieldStr|0),
+          ctrlHit:(fl.ctrlHit|0)+(gb.ctrlHit|0), ctrlRes:(fl.ctrlRes|0)+(gb.ctrlRes|0), healPow:(fl.healPow|0)+(gb.healPow|0) };
+        const AC=botAcadCombat;
+        if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
+        /* v762 - and the skill level, which now scales the ultimate in the resolver. */
+        const extra=Object.assign({ skillLv:[botSkill,botSkill,botSkill,botSkill] },
+          AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac,
+              critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{});
+        return SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R,
+          gearSkillSlot:null, gearSkill:null, extra}); };
       /* v733 (Phil: "each line heroes are unique. They cannot be used multiple times like you did" /
          "All 7 lines requires 35 unique heroes") - THIS is the one he was looking at. botLine() built
          one line at a time with a `used` set that lived for that line only, so a bot's seven lines
@@ -3362,29 +3416,29 @@ async function api(req,res,url){
          and the thinnest pool (Support, 10) is deeper than WAR_LINES_MAX, so the role shape always
          survives; the fallback to any unused hero is there for a hero table that ever gets thinner,
          and keeps uniqueness even then. */
-      const botLines=(n,mul)=>{
+      const botLines=(n)=>{
         const pools=[byRole('Tank'),byRole('Bruiser'),byRole('Assassin').concat(byRole('Marksman')),byRole('Mage'),byRole('Support')];
         const used=new Set();
         const draw=(pool)=>{ let free=pool.filter(k=>!used.has(k));
           if(!free.length) free=keys.filter(k=>!used.has(k));
           const k=free.length?free[Math.floor(rng()*free.length)]:pick(keys);
           used.add(k); return k; };
-        const out=[]; for(let i=0;i<n;i++) out.push(pools.map(p=>botHero(draw(p),mul)));
+        const out=[]; for(let i=0;i<n;i++) out.push(pools.map(p=>botHero(draw(p))));
         return out; };
       const linePower=l=>Math.round(l.reduce((s,h)=>s+h.maxHp/8+(h.atk||0),0));
       // Phil's own lines: his roster sorted by power, chunked into linesPer lines of five
       const save=parseSaveOf(me), rled=ensureLedger(me);
       const mine=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(me,k,save)).filter(Boolean).sort((a,c)=>(c.maxHp/8+c.atk)-(a.maxHp/8+a.atk));
       const myLines=[]; for(let i=0;i<linesPer;i++){ const chunk=mine.slice(i*5,i*5+5); if(chunk.length===5) myLines.push(chunk); }
-      const mkSide=(name,isMine,mul)=>{ const side={ guildId:name, name, players:[], citadels:WAR_LANES.map((l,i)=>({lane:i,key:l.key,name:l.name,destroyed:false,defenders:[]})) };
+      const mkSide=(name,isMine)=>{ const side={ guildId:name, name, players:[], citadels:WAR_LANES.map((l,i)=>({lane:i,key:l.key,name:l.name,destroyed:false,defenders:[]})) };
         for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally bot '+pi:'Enemy bot '+(pi+1));
-          const lines=you&&myLines.length?myLines:botLines(linesPer,mul);
+          const lines=you&&myLines.length?myLines:botLines(linesPer);
           side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
         // place: player by player, line by line, round-robin across the five citadels
         let lane=0; for(const pl of side.players) for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
           side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, kills:0, power:L.power }); lane++; }
         side.power=side.players.reduce((s,pl)=>s+pl.lines.reduce((x,l)=>x+l.power,0),0); return side; };
-      const A=mkSide('Your side',true,allyMul), B=mkSide('Bot guild',false,foeMul);
+      const A=mkSide('Your side',true), B=mkSide('Bot guild',false);
       const captureN=Math.max(0,parseInt(b.captureN,10)||0);   /* v675: watch one march */
       const m={ id:'gwsim_'+uid(), sides:{A,B}, log:[], winner:null, why:null, assaults:0 };
       const destroyedOf=side=>side.citadels.filter(c=>c.destroyed).length;
@@ -3482,7 +3536,11 @@ async function api(req,res,url){
         yourLines:side.players.filter(pl=>pl.you).flatMap(pl=>pl.lines.map((l,i)=>({line:i+1,power:l.power,heroes:l.heroes.map(h=>h.key)}))) });
       if(captureN){ if(!m.capture) return send(res,404,{error:'That march is not in this war.'});
         return send(res,200,{ ok:true, seed:seedBase, fight:m.capture, won:(m.log.find(e=>e.n===captureN)||{}).won }); }
-      return send(res,200,{ ok:true, seed:seedBase, params:{players,linesPer,botLevel,botTier,botStars,allyMul,foeMul}, winner:m.winner, why:m.why, draw:!!m.draw, towers:m.towers, assaults:m.assaults, you:view(A), foe:view(B), log:m.log });
+      /* v763 - the response reports the BUILD, and the side powers it produced. Power is read off
+         the board rather than set, which is the whole point of dropping the multipliers. */
+      return send(res,200,{ ok:true, seed:seedBase,
+        params:{players,linesPer,botLevel,botTier,botStars,botSkill,botAcad,botGear,botTemper},
+        botPower:{ you:A.power|0, foe:B.power|0 }, winner:m.winner, why:m.why, draw:!!m.draw, towers:m.towers, assaults:m.assaults, you:view(A), foe:view(B), log:m.log });
     }
     if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
