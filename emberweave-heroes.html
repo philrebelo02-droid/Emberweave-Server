@@ -12940,7 +12940,16 @@ function show(name){
   if(name==='online') renderOnline();
   if(name==='account') renderAccount();
   if(name==='arena') renderArena();
-  if(name==='skyfall') renderSkyfall();
+  /* v758 (Phil: "the fight ending again ended the war") - DO NOT REBUILD A RUNNING WAR'S BOARD.
+     renderSkyfall rewrites #skyfallBody, which replaces #skyStage and everything inside it. The
+     five lane loops survive a watched fight (v757b pauses rather than aborts them), but every
+     element they hold - garrison counters, towers, swords, dotted runs - becomes a detached node,
+     so the war plays on into a board that is no longer on screen while the visible one sits at its
+     opening state. That is why coming back showed stage MARCH with every tower at a full 12/12.
+     The Skyfall screen is not torn down by opening a battle (#skyStage survives it), so a running
+     war has nothing to rebuild: show the screen it left, still being played. */
+  if(name==='skyfall'){ let live=false; try{ live=!!(SKYSIM&&SKYSIM.running&&document.getElementById('skyStage')); }catch(e){}
+    if(!live) renderSkyfall(); }
   if(name==='arenaShop') renderArenaShop();
   if(name==='market') renderMarket();
   if(name==='shadymarket') renderShadyMarket();
@@ -22869,6 +22878,11 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   _actStreamOn=false;
   const _wasCamp=(CUR&&CUR.mode==='campaign'), _portal=(CUR&&CUR.portal)||'normal';
   if(CUR&&CUR.mode==='province'){ const _pt=(CUR.prov&&CUR.prov.t)||'gold'; CUR.attemptId=null; clearBattle(); provBackToCard(_pt); return; }   /* v663: quitting a province fight spends nothing and lands back on its card */
+  /* v758 - QUIT leaves a replay the same way CONTINUE does. resultBtn routes mode 'replay' through
+     _replayReturn, which is what clears the Skyfall pause; this one did not, so skipping out of a
+     watched march left every lane frozen with nothing left to release them. */
+  if(CUR&&CUR.mode==='replay'){ const rr=_replayReturn; _replayReturn=null; clearBattle();
+    if(rr){ try{ rr(); return; }catch(e){} } show('home'); return; }
   clearBattle();
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
@@ -23054,7 +23068,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789921207000';
+const BUILD_ID = '1789922407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
