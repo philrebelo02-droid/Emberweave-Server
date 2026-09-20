@@ -4828,12 +4828,16 @@ async function api(req,res,url){
        invented names that used to live here are gone. Adding a boss later is one line. */
     const RAID_BOSSES=[
       {key:'wintercrag',name:'Wintercrag'}, {key:'magmourn',name:'Magmourn'}, {key:'voraxis',name:'Voraxis'},
-      {key:'grommash',name:'Grommash'}, {key:'leviath',name:'Leviath'}, {key:'sylphice',name:'Sylphice'},
+      {key:'grommash',name:'Grommash'}, {key:'leviath',name:'Leviath'},
       {key:'vharok',name:'Vharok, Kiln-Heart Tyrant'}, {key:'nerissa',name:'Nerissa, Crown of the Drowned'},
       {key:'barrowmaw',name:'Barrowmaw, Ossuary Devourer'}, {key:'asterion',name:'Asterion, Mirror Warden'},
       {key:'maelvara',name:'Maelvara, Stormnest Matriarch'}, {key:'brukk',name:'Brukk, Master of the Black Kiln'},
       {key:'nymira',name:'Nymira, the Sunken Bloom'}, {key:'irix',name:'Irix, the Sky-Shard Roc'},
-      {key:'kharos',name:'Kharos, Hourglass Sentinel'}, {key:'miregor',name:'Miregor, King of the Briar March'},
+      {key:'kharos',name:'Kharos, Hourglass Sentinel'},
+      /* v673 (Phil): Sylphice HEALS HERSELF back to full inside 90 seconds (measured). She belongs
+         where a guild can out-damage the heal, so she sits at tier 15, not tier 6. The other
+         self-healers: Nerissa t7, Nymira t12, Thorneveil t19; Voraxis ~24% and Asterion ~8% partial. */
+      {key:'sylphice',name:'Sylphice'}, {key:'miregor',name:'Miregor, King of the Briar March'},
       {key:'sable vesper',name:'Sable Vesper, Choir of Crows'}, {key:'orryx',name:'Orryx, the Glass Minotaur'},
       {key:'thorneveil',name:'Thorneveil, Warden of the Ash Grove'}, {key:'nameless admiral',name:'The Nameless Admiral'}];
     const raidBossBase=lvl=>RAID_BOSSES[(((lvl||1)-1)%RAID_BOSSES.length+RAID_BOSSES.length)%RAID_BOSSES.length];

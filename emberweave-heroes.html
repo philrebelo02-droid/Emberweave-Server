@@ -1076,6 +1076,24 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #chatWidget .cw-clock{border-color:#5a4a26!important;}
 .hero-card .pill{background:linear-gradient(180deg,#3a2a12,#1a1208)!important;border:1px solid #7a5f2a!important;color:#ffe9b8!important;}
 .glCard .glName{background:linear-gradient(0deg,rgba(14,9,5,.96),rgba(14,9,5,0))!important;}
+/* v673 GUILD HALL on the painted kit (Phil: "guild hall and all tabs need new Ui fix", "and the tab icons") */
+.gTabStrip{display:flex;gap:4px;margin-bottom:12px;padding:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  border-style:solid;border-color:transparent;border-width:5px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch;
+  box-shadow:0 5px 14px rgba(0,0,0,.45);}
+.gTab{flex:1 0 auto;min-width:56px;border:1px solid #3a2f1c;border-radius:10px;padding:6px 8px 5px;cursor:pointer;
+  background:radial-gradient(130% 80% at 50% 118%,rgba(255,130,40,.20),transparent 62%),linear-gradient(180deg,#241b12 0%,#17130f 60%,#241608 100%);
+  color:#c9b78d;display:flex;flex-direction:column;align-items:center;gap:3px;transition:filter .12s,background .12s;}
+.gTab:hover{filter:brightness(1.15);}
+.gTab.on{background:linear-gradient(180deg,#8a6420,#3d2a0b);border-color:#f0cf78;color:#fff4d6;box-shadow:0 0 0 1px rgba(240,207,120,.35),0 3px 10px rgba(0,0,0,.5);}
+.gTab .gIco{width:22px;height:22px;display:block;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.7));}
+.gTab .gGly{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;
+  border-radius:50%;background:radial-gradient(circle at 50% 35%,#3a2a12,#180f06);box-shadow:inset 0 0 0 1px #6b5628;}
+.gTab .gLbl{font-size:9.5px;letter-spacing:.2px;font-weight:600;}
+.gTab.on .gLbl{font-weight:800;}
+.gHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:7px 11px;
+  border-style:solid;border-color:transparent;border-width:4px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 15px stretch;
+  color:#f3e3bd;}
+.gHead .gName{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:15px;color:#ffe9b8;}
 .pmhead .ttl{font-family:Georgia,'Times New Roman',serif;color:#ffe6a8;}
 
 
@@ -16928,16 +16946,21 @@ function renderGuild(){
   if(!ACC.token){ b.innerHTML=`<div class="panel" style="text-align:center;max-width:420px;margin:0 auto"><div style="font-size:38px">&#127984;</div><div style="font-weight:800;font-size:17px;margin:6px 0">Guilds are multiplayer</div><div style="font-size:12px;color:#8b98a9;margin-bottom:12px">Sign in to create a real guild or join one with players on other devices.</div><button class="btn" id="gSignIn">Sign In / Register</button></div>`; const si=b.querySelector('#gSignIn'); if(si)si.onclick=()=>show('account'); return; }
   const g=GS.guild;
   if(!g){ renderGuildLobby(b); return; }
+  /* v673: each tab carries its painted icon where one exists; the rest keep a glyph on a painted
+     disc until their medallions are made (war, raid, embassy, level). */
+  const GTAB_ART={ chat:'/assets/img/ui/mi-chat.webp?v=1', requests:'/assets/img/ui/mi-mail.webp?v=1',
+    contribute:'/assets/img/ui/hud-gold.webp?v=1', shop:'/assets/img/ui/mi-bag.webp?v=1' };
   const tabs=[['chat','&#128172;','Chat'],['contribute','&#127873;','Contribute'],['embassy','&#127963;','Embassy'],['war','&#9876;','War'],['raid','&#128050;','Raid'],['level','&#128200;','Level'],['shop','&#128737;','Shop']];
   if(g.youLeader) tabs.splice(1,0,['requests','&#128233;','Requests']);
   if(!tabs.some(t=>t[0]===guildTab)) guildTab='chat';
   const reqBadge=(g.youLeader&&g.pendingReqCount)?` <span style="background:#e0483f;color:#fff;border-radius:9px;padding:0 5px;font-size:9px;font-weight:800">${g.pendingReqCount}</span>`:'';
-  const tabBar=`<div style="display:flex;gap:3px;margin-bottom:12px;background:#0c111d;border:1px solid #212b40;border-radius:13px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch">`
-    +tabs.map(t=>{ const on=guildTab===t[0]; const bg=on?'linear-gradient(165deg,#33477a,#1d2940)':'transparent'; const col=on?'#ffffff':'#7f8da9'; const sh=on?'inset 0 0 0 1px #4f6aa0, 0 2px 8px rgba(0,0,0,.35)':'none';
-      return `<button data-gt="${t[0]}" style="flex:1 0 auto;min-width:52px;border:none;border-radius:9px;padding:7px 8px 6px;cursor:pointer;background:${bg};color:${col};box-shadow:${sh};display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .12s"><span style="font-size:16px;line-height:1">${t[1]}</span><span style="font-size:9.5px;font-weight:${on?'800':'600'};letter-spacing:.2px">${t[2]}${t[0]==='requests'?reqBadge:''}</span></button>`; }).join('')
+  const tabBar=`<div class="gTabStrip">`
+    +tabs.map(t=>{ const on=guildTab===t[0]; const art=GTAB_ART[t[0]];
+      const ico=art?`<img class="gIco" src="${art}" alt="">`:`<span class="gGly">${t[1]}</span>`;
+      return `<button data-gt="${t[0]}" class="gTab${on?' on':''}">${ico}<span class="gLbl">${t[2]}${t[0]==='requests'?reqBadge:''}</span></button>`; }).join('')
     +`</div>`;
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-weight:800;font-size:15px">&lt;${escapeHTML(g.name)}&gt; <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${g.level}</span> <span style="font-size:10px;color:#8b98a9">${g.count}/${g.cap}</span></div>
+  b.innerHTML=`<div class="gHead">
+      <div class="gName">&lt;${escapeHTML(g.name)}&gt; <span style="font-size:11px;color:#ffd45e;font-weight:700">Lv ${g.level}</span> <span style="font-size:10px;color:#c9b78d">${g.count}/${g.cap}</span></div>
       <div style="display:flex;gap:6px">${(typeof AUDIT_MODE==='function'&&AUDIT_MODE()&&guildTab==='war')?`<button class="btn sm" style="background:linear-gradient(#ff9f43,#c4661a);color:#1a0d00" onclick="skySimOpen()">⚔ Simulate</button>`:''}<button class="btn sm secondary" id="gLeave">${g.youLeader?'Manage':'Leave'}</button></div></div>
     ${tabBar}
     <div id="gTabBody"></div>`;
@@ -20521,7 +20544,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789860007000';
+const BUILD_ID = '1789861207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
