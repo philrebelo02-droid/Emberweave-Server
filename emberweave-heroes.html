@@ -1495,8 +1495,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 /* v720 - a FIXED height. With max-height alone the panel resized itself around whatever the body
    happened to hold, and a live lane gains and loses rows every few seconds - so the thing you were
    reaching for moved while you reached. */
-.skyHub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;width:min(94%,430px);
-  height:min(90%,330px);display:flex;flex-direction:column;padding:2px 6px 8px;
+/* v746 - the live fight puts two five-card line-ups side by side, which does not fit 430px. */
+.skyHub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;width:min(97%,748px);
+  height:min(94%,340px);display:flex;flex-direction:column;padding:2px 6px 8px;
   border-style:solid;border-color:transparent;border-width:14px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 20px stretch;box-shadow:0 12px 34px rgba(0,0,0,.65);}
 .skyHubTabs{display:flex;gap:4px;margin:6px 0 7px;}
 /* v732 - the tabs are the game's own plaque, nine-sliced, like every other bar in Emberweave */
@@ -1542,6 +1543,80 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skyBrkCup .lbl{font-size:7.5px;color:#8b98a9;letter-spacing:.3px;}
 .skyBrkRound{font-size:7.5px;color:#6f7d90;text-align:center;letter-spacing:.4px;margin-bottom:1px;}
+/* ================= v746 - THE LIVE FIGHT (Phil's "Top Lane in Battle" reference) =================
+   Band 1 the two guilds, band 2 the fight itself, band 3 the queue waiting to step up. Every class
+   here is sky-prefixed: the stylesheet is global and a bare name is how the crossed swords lost
+   their taps (see .hot / .skyHot, v745). */
+.skyLF{display:flex;flex-direction:column;gap:5px;min-height:0;}
+/* band 1 - guild vs guild */
+.skyLFGuilds{flex:none;display:flex;align-items:stretch;gap:0;border-radius:9px;overflow:hidden;
+  border:1px solid #3a2f1c;}
+.skyLFG{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:5px 9px;}
+.skyLFG.mine{background:linear-gradient(90deg,rgba(28,52,92,.95),rgba(16,30,54,.9));justify-content:flex-start;}
+.skyLFG.foe{background:linear-gradient(270deg,rgba(92,30,30,.95),rgba(54,18,18,.9));justify-content:flex-end;text-align:right;}
+.skyLFG .crest{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;background:rgba(0,0,0,.4);box-shadow:0 0 0 2px rgba(255,205,110,.55);}
+.skyLFG .gn{display:block;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#ffe9b8;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyLFG .tl{display:block;font-size:9px;color:#c9b78d;}
+.skyLFG .tl b{color:#ffbf69;}
+.skyLFVs{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#2a2114,#15110b);}
+.skyLFVs .sw{font-size:15px;filter:drop-shadow(0 0 6px rgba(255,190,90,.9));line-height:1;}
+.skyLFVs .vs{font-family:Georgia,'Times New Roman',serif;font-size:11px;font-weight:800;color:#ffd45e;line-height:1.1;}
+/* band 2 - the fight */
+.skyLFNow{flex:none;display:flex;align-items:stretch;gap:0;border-radius:9px;overflow:hidden;
+  border:1px solid #6b5628;}
+.skyLFSide{flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:5px 7px;}
+.skyLFSide.mine{background:linear-gradient(90deg,rgba(22,44,78,.96),rgba(13,26,48,.92));}
+.skyLFSide.foe{background:linear-gradient(270deg,rgba(78,24,24,.96),rgba(46,14,14,.92));flex-direction:row-reverse;}
+.skyLFWho{flex:none;width:86px;min-width:0;display:flex;align-items:center;gap:5px;}
+.skyLFSide.foe .skyLFWho{flex-direction:row-reverse;text-align:right;}
+.skyLFPort{position:relative;flex:none;width:30px;height:30px;border-radius:50%;overflow:hidden;
+  box-shadow:0 0 0 2px rgba(255,205,110,.6);}
+.skyLFPort>.ascw{width:100%!important;height:100%!important;border-radius:50%!important;}
+.skyLFNm{min-width:0;line-height:1.2;}
+.skyLFNm .n{display:block;font-size:9.5px;font-weight:700;color:#e6edf3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyLFNm .lv{display:block;font-size:8px;color:#ffbf69;font-weight:800;}
+.skyLFTeam{flex:1;min-width:0;display:flex;gap:3px;justify-content:center;}
+.skyLFCard{position:relative;flex:0 0 34px;width:34px;aspect-ratio:1;}
+.skyLFCard>.ascw{width:100%!important;height:100%!important;border-radius:6px!important;}
+.skyLFCard .clv{position:absolute;left:1px;top:1px;z-index:4;padding:0 2px;border-radius:3px;
+  background:rgba(6,9,15,.88);color:#ffe9b8;font-size:7px;font-weight:800;line-height:1.3;}
+.skyLFClock{flex:none;width:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#2a2114,#15110b);padding:3px 2px;}
+.skyLFClock .lbl{font-size:8px;letter-spacing:.5px;color:#ffbf69;font-weight:800;}
+.skyLFClock .t{font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#ffe9b8;line-height:1.15;}
+.skyLFClock .sub{font-size:8px;color:#8b98a9;}
+.skyLFClock .verdict{font-size:9px;font-weight:800;}
+.skyLFClock .verdict.win{color:#5ee89b;} .skyLFClock .verdict.loss{color:#ff8b8b;}
+/* band 3 - the queue */
+.skyLFWaitHd{flex:none;font-size:9px;letter-spacing:.5px;color:#c9b78d;font-weight:800;padding:1px 2px;}
+.skyLFWait{flex:1;min-height:0;display:flex;gap:7px;overflow:hidden;}
+.skyLFCol{flex:1;min-width:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:3px;}
+.skyLFRow{flex:none;display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:7px;
+  background:rgba(16,22,34,.9);border:1px solid #2a3550;}
+.skyLFRow.mine{border-color:#2c5f96;}
+.skyLFRow.foe{border-color:#7a3030;flex-direction:row-reverse;text-align:right;}
+.skyLFRow.you{box-shadow:0 0 0 1px rgba(255,205,110,.5) inset;}
+.skyLFRow .av{position:relative;flex:none;width:22px;height:22px;border-radius:50%;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,205,110,.45);}
+.skyLFRow .av>.ascw{width:100%!important;height:100%!important;border-radius:50%!important;}
+.skyLFRow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:9.5px;color:#e6edf3;}
+.skyLFRow .pw{flex:none;font-size:9px;font-weight:800;color:#ffbf69;}
+.skyLFRow .nx{flex:none;font-size:7.5px;font-weight:800;color:#ffd45e;letter-spacing:.3px;}
+.skyLFEmpty{font-size:9.5px;color:#8b98a9;padding:8px 2px;text-align:center;}
+/* v747 - clear the Guild button, which overlaps the hub's corner now that it is full width */
+.skyHubHd{padding-left:92px;}
+/* v746c - a waiting row opens to show its five heroes */
+.skyLFRow{cursor:pointer;}
+.skyLFRow .cv{flex:none;font-size:8px;color:#6f7d90;}
+.skyLFOpen{flex:none;display:flex;gap:3px;justify-content:center;padding:4px 6px 5px;margin:-2px 0 3px;
+  border:1px solid #2a3550;border-top:0;border-radius:0 0 7px 7px;background:rgba(10,14,22,.85);}
+.skyLFOpen.mine{border-color:#2c5f96;} .skyLFOpen.foe{border-color:#7a3030;}
+.skyLFOpen .skyLFCard{flex:0 0 30px;width:30px;}
 /* v730b - the Rank and Schedule panels share the bracket's frame, scrolling inside it */
 .skyBrkList{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .skyRankRow{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:7px;margin-bottom:3px;
@@ -1552,12 +1627,54 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyRankRow .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6edf3;font-weight:700;}
 .skyRankRow .ln{flex:none;color:#8b98a9;font-size:9px;}
 .skyRankRow .pw{flex:none;width:62px;text-align:right;color:#ffbf69;font-weight:800;}
-.skySchRow{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:7px;margin-bottom:3px;
-  background:rgba(16,22,34,.9);border:1px solid #2a3550;font-size:9.5px;}
-.skySchRow.now{border-color:#8a6420;background:linear-gradient(180deg,#3d2c0d,#1d1608);}
-.skySchRow .rd{flex:none;width:30px;font-family:Georgia,'Times New Roman',serif;font-weight:800;color:#ffe9b8;}
-.skySchRow .when{flex:1;min-width:0;color:#c9b78d;}
-.skySchRow .tag{flex:none;font-size:8.5px;font-weight:800;color:#7ef0b0;}
+/* v749 (Phil: "schedule looks sloppy, need to reduce size and make it more like a schedule") -
+   a timetable: one row per round, one column per moment of the war day. The panel is cut to it. */
+.skyBrk[data-kind="sched"]{left:auto;width:min(96%,486px);bottom:auto;max-height:94%;}
+.skySchTbl{width:100%;border-collapse:collapse;font-size:9.5px;}
+.skySchTbl th{font-size:8px;letter-spacing:.5px;color:#8b98a9;font-weight:800;text-align:left;
+  padding:0 5px 3px;border-bottom:1px solid #2a3550;white-space:nowrap;}
+.skySchTbl td{padding:4px 5px;color:#c9b78d;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.skySchTbl tr.now td{background:linear-gradient(180deg,rgba(61,44,13,.95),rgba(29,22,8,.95));color:#ffe9b8;}
+.skySchTbl tr.now td:first-child{border-radius:6px 0 0 6px;}
+.skySchTbl tr.now td:last-child{border-radius:0 6px 6px 0;}
+.skySchTbl td.rd{font-family:Georgia,'Times New Roman',serif;font-weight:800;color:#ffe9b8;}
+.skySchTbl td.bell{color:#ffbf69;font-weight:800;}
+.skySchTbl td.tag{color:#7ef0b0;font-weight:800;font-size:8.5px;text-align:right;}
+.skySchFoot{font-size:8.5px;color:#6f7d90;padding:4px 4px 1px;line-height:1.5;border-top:1px solid #2a3550;margin-top:4px;}
+/* v750 - RANKING: the guild's members by power, cut to its own size like the schedule */
+.skyBrk[data-kind="rank"]{left:auto;width:min(96%,430px);bottom:auto;max-height:94%;}
+.skyRkTbl{width:100%;border-collapse:collapse;font-size:10px;}
+.skyRkTbl th{font-size:8px;letter-spacing:.5px;color:#8b98a9;font-weight:800;text-align:left;
+  padding:0 5px 3px;border-bottom:1px solid #2a3550;white-space:nowrap;}
+.skyRkTbl td{padding:4px 5px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#c9b78d;}
+.skyRkTbl tr.you td{background:linear-gradient(180deg,rgba(22,44,78,.95),rgba(13,26,48,.95));color:#bfe0ff;}
+.skyRkTbl tr.you td:first-child{border-radius:6px 0 0 6px;}
+.skyRkTbl tr.you td:last-child{border-radius:0 6px 6px 0;}
+.skyRkTbl td.pos{width:22px;text-align:center;font-family:Georgia,'Times New Roman',serif;font-weight:800;color:#ffe9b8;}
+.skyRkTbl td.pos.t1{color:#ffd45e;} .skyRkTbl td.pos.t2{color:#d8e2ef;} .skyRkTbl td.pos.t3{color:#e0a46a;}
+.skyRkTbl td.who{width:100%;overflow:hidden;text-overflow:ellipsis;color:#e6edf3;font-weight:700;}
+.skyRkTbl td.who .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;background:#4a5163;}
+.skyRkTbl td.who .dot.on{background:#57d977;}
+.skyRkTbl td.ld{font-size:8px;color:#ffd45e;font-weight:800;}
+.skyRkTbl td.ln{text-align:right;color:#8b98a9;}
+.skyRkTbl td.pw{text-align:right;color:#ffbf69;font-weight:800;}
+/* v750 - THE CALENDAR: four weeks, war days marked, today ringed */
+.skyCal{margin-top:4px;border-top:1px solid #2a3550;padding-top:4px;}
+.skyCalHd{font-size:8px;letter-spacing:.5px;color:#8b98a9;font-weight:800;margin-bottom:4px;}
+.skyCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.skyCalDow{font-size:7.5px;color:#6f7d90;text-align:center;font-weight:800;letter-spacing:.3px;}
+/* v750 - a fixed low row, not a square: at aspect-ratio 1 across 7 columns of a 486px panel each
+   cell came out ~60px tall and only two of the four weeks fitted. */
+.skyCalDay{position:relative;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#6f7d90;background:rgba(16,22,34,.75);border:1px solid #232d44;font-variant-numeric:tabular-nums;}
+.skyCalDay.war{color:#ffe9b8;background:linear-gradient(180deg,#3d2c0d,#1d1608);border-color:#8a6420;font-weight:800;}
+.skyCalDay.reg{color:#9ad;background:rgba(22,44,78,.8);border-color:#2c5f96;}
+.skyCalDay.today{box-shadow:0 0 0 2px #f0cf78, 0 0 7px rgba(240,207,120,.55);}
+.skyCalDay.pastm{opacity:.35;}
+.skyCalKey{display:flex;gap:10px;font-size:8px;color:#6f7d90;margin-top:3px;align-items:center;}
+.skyCalKey i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:-1px;}
+.skyCalKey .kw{background:linear-gradient(180deg,#3d2c0d,#1d1608);border:1px solid #8a6420;}
+.skyCalKey .kr{background:rgba(22,44,78,.9);border:1px solid #2c5f96;}
 /* v731 - EDIT TEAM, one row per troop: power, five cards, then its controls. */
 /* v736 (Phil: "Just make it 1 row") - seven troops straight down, each with its own Adjust and
    Disband beside it. The panel is cut to the row's measured width (419.5px of content) instead of
@@ -14111,7 +14228,9 @@ function skyWireBoard(stage, r){
     const isPrep = (skyStageNow()==='PREP');   /* v741 - the match decides, not a leftover flag */
     const sandbox = skySimSandbox();
     let officer=false;
-    try{ officer = !!(GUILD && (GUILD.youLeader || GUILD.youOfficer)); }catch(e){ officer=false; }
+    /* v750 - this said GUILD, which does not exist here; the reference threw on every tower tap
+       and the catch quietly made everyone a non-officer. The guild view lives on GS.guild. */
+    try{ officer = !!(typeof GS!=='undefined' && GS.guild && GS.guild.youLeader); }catch(e){ officer=false; }
     skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && (sandbox || officer), live:false}); }; });
 }
 /* v697 - THE SKYFALL SCREEN. Draws the board from whatever war data is to hand: the live
@@ -14364,23 +14483,52 @@ function skyPanelFrame(titleHTML, bodyHTML, cls){
    The ORDER is deliberately the opposite of a tower's: a tower lists weakest-first because that is
    the order it fights in; a ranking lists strongest-first because that is what a ranking is. */
 function skyRankOpen(){
-  let r=null; try{ r=SKYSIM.view||SKYSIM.r; }catch(e){}
-  const cits=((r&&r.you)||{}).citadels||[];
-  const by={};
-  for(const c of cits) for(const d of (c.defenders||[])){
-    const k=String(d.memberId||skyOwnerOf(d));
-    (by[k]=by[k]||{name:skyOwnerOf(d), you:!!d.you, power:0, lines:0});
-    by[k].power+=(d.power|0); by[k].lines++; }
-  const rows=Object.values(by).sort((a,b)=>b.power-a.power);
-  const body='<div class="skyBrkList">'+(rows.length?rows.map((p,i)=>
-      '<div class="skyRankRow'+(p.you?' you':'')+'">'
-      +'<span class="pos">'+(i+1)+'</span>'
-      +'<span class="who">'+escapeHTML(p.name)+'</span>'
-      +'<span class="ln">'+p.lines+' line'+(p.lines===1?'':'s')+'</span>'
-      +'<span class="pw">\u2694'+p.power.toLocaleString()+'</span></div>').join('')
-    :'<div style="font-size:10px;color:#8b98a9;padding:10px 2px;text-align:center">No lines are committed yet.</div>')+'</div>';
-  return skyPanelFrame('<b>\u2694 Guild Ranking</b><span class="sub">'+rows.length+' member'
-      +(rows.length===1?'':'s')+' \u00b7 by committed power</span>', body, 'rank');
+  /* v750 (Phil: "Ranking should be your guild members ranked by power", "ranking also looks bad") -
+     THE GUILD, not the board. This used to be built from the war board, so with no war running it
+     had nothing to read and said "0 members" inside a full-stage box. A guild and its members exist
+     whether or not a war is on; the war only adds how many lines each member has committed. */
+  let g=null; try{ g=(typeof GS!=='undefined'&&GS.guild)||null; }catch(e){}
+  let meId=null; try{ meId=(ACC&&ACC.id)||null; }catch(e){}
+  try{ if(!meId && typeof G!=='undefined' && G.id) meId=G.id; }catch(e){}
+
+  /* how many lines each member has actually committed to the war, when there is one */
+  const committed={};
+  try{ const r=SKYSIM.view||SKYSIM.r;
+    for(const c of (((r&&r.you)||{}).citadels||[]))
+      for(const d of (c.defenders||[])){
+        const k=String(d.memberId||skyOwnerOf(d));
+        committed[k]=(committed[k]||0)+1; } }catch(e){}
+
+  const rows=(((g||{}).members)||[]).map(m=>({
+      id:m.id, name:m.name||'?', power:m.power|0,
+      lines:(committed[m.id]!=null?committed[m.id]:(m.lines|0)),
+      online:!!m.online, leader:!!m.leader,
+      you: (meId && m.id===meId) || false }))
+    .sort((a,b)=>b.power-a.power);
+
+  let body;
+  if(!g){
+    body='<div class="skyBrkList" style="overflow:visible"><div class="skyLFEmpty">'
+      +'You are not in a guild \u2014 join one to see its ranking.</div></div>';
+  } else if(!rows.length){
+    body='<div class="skyBrkList" style="overflow:visible"><div class="skyLFEmpty">'
+      +'This guild has no members yet.</div></div>';
+  } else {
+    const tot=rows.reduce((s,x)=>s+x.power,0);
+    body='<div class="skyBrkList" style="overflow:visible"><table class="skyRkTbl">'
+      +'<tr><th></th><th>MEMBER</th><th></th><th style="text-align:right">LINES</th><th style="text-align:right">POWER</th></tr>'
+      +rows.map((x,k)=>'<tr class="'+(x.you?'you':'')+'">'
+        +'<td class="pos'+(k===0?' t1':k===1?' t2':k===2?' t3':'')+'">'+(k+1)+'</td>'
+        +'<td class="who"><span class="dot'+(x.online?' on':'')+'"></span>'+escapeHTML(x.name)+'</td>'
+        +'<td class="ld">'+(x.leader?'LEADER':'')+'</td>'
+        +'<td class="ln">'+x.lines+'</td>'
+        +'<td class="pw">\u2694'+x.power.toLocaleString()+'</td></tr>').join('')
+      +'</table>'
+      +'<div class="skySchFoot">'+rows.length+' member'+(rows.length===1?'':'s')
+      +' \u00b7 guild power \u2694'+tot.toLocaleString()
+      +'. LINES is how many five-hero lines that member brings to a Skyfall.</div></div>';
+  }
+  return skyPanelFrame('<b>\u2694 Guild Ranking</b><span class="sub">by power</span>', body, 'rank');
 }
 /* v730b - the week, read off the server's own schedule rather than a copy written here. */
 function skySchedOpen(){
@@ -14388,22 +14536,95 @@ function skySchedOpen(){
   const t=st.tournament||{};
   const now=t.now||Date.now();
   const rounds=t.bracket||[];
-  const fmt=(ms)=>{ if(!ms) return '\u2014';
-    try{ return new Date(ms).toLocaleString('en-US',{timeZone:'America/New_York',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}); }
-    catch(e){ return new Date(ms).toISOString().slice(5,16).replace('T',' '); } };
-  const rows=rounds.map(rd=>{ const sc=rd.schedule||{};
-    const live = now>=(sc.planningOpensAt||0) && now<(sc.resultsUntil||0);
-    return '<div class="skySchRow'+(live?' now':'')+'">'
-      +'<span class="rd">'+escapeHTML(rd.name||'')+'</span>'
-      +'<span class="when">prep '+fmt(sc.planningOpensAt)+' \u00b7 lock '+fmt(sc.lockAt)
-        +' \u00b7 bell '+fmt(sc.endsAt)+'<br><span style="color:#8b98a9">reports until '+fmt(sc.resultsUntil)+'</span></span>'
-      +(live?'<span class="tag">NOW</span>':'')+'</div>'; }).join('');
-  const body='<div class="skyBrkList">'+(rows||
-    '<div style="font-size:10px;color:#8b98a9;padding:10px 2px;text-align:center">The bracket has not been drawn yet.</div>')
-    +'<div style="font-size:9px;color:#6f7d90;padding:6px 2px 2px;line-height:1.6">'
-    +'Every war day runs 02:00 \u2192 02:00 ET. Prep opens at 02:00 and lines can be moved; '
-    +'they lock at 18:00; the last bell is 20:00; the lane reports stand until 02:00, then the board '
-    +'resets for the next day.</div></div>';
+  /* two formats: a war day's moments are just a time, and the ROUND column carries the day. Running
+     the weekday into every cell is what made four timestamps read as a paragraph. */
+  const ET={timeZone:'America/New_York'};
+  const hhmm=(ms)=>{ if(!ms) return '\u2014';
+    try{ return new Date(ms).toLocaleString('en-US',Object.assign({},ET,{hour:'2-digit',minute:'2-digit',hour12:false})); }
+    catch(e){ return new Date(ms).toISOString().slice(11,16); } };
+  const day=(ms)=>{ if(!ms) return '';
+    try{ return new Date(ms).toLocaleString('en-US',Object.assign({},ET,{weekday:'short'})); }
+    catch(e){ return ''; } };
+
+  let head='', rowsHTML='', foot='';
+  if(rounds.length){
+    rowsHTML=rounds.map(rd=>{ const sc=rd.schedule||{};
+      const live = now>=(sc.planningOpensAt||0) && now<(sc.resultsUntil||0);
+      return '<tr class="'+(live?'now':'')+'">'
+        +'<td class="rd">'+escapeHTML(rd.name||'')+'</td>'
+        +'<td>'+escapeHTML(day(sc.planningOpensAt))+'</td>'
+        +'<td>'+hhmm(sc.planningOpensAt)+'</td>'
+        +'<td>'+hhmm(sc.lockAt)+'</td>'
+        +'<td class="bell">'+hhmm(sc.endsAt)+'</td>'
+        +'<td>'+escapeHTML(day(sc.resultsUntil))+' '+hhmm(sc.resultsUntil)+'</td>'
+        +'<td class="tag">'+(live?'NOW':'')+'</td></tr>'; }).join('');
+    head='<tr><th>ROUND</th><th>DAY</th><th>PREP</th><th>LOCK</th><th>BELL</th><th>REPORTS UNTIL</th><th></th></tr>';
+    foot='Prep opens the board for line placement and reveals your opponent. Lines lock at the LOCK '
+        +'time; the last bell ends the fighting; the lane reports stand until the next prep.';
+  } else {
+    /* v749 - never an empty panel. Before the bracket is drawn is exactly when a player wants to
+       know when the war runs, and the war DAY is always known - it is the same every day. */
+    const H=(n)=>String(n).padStart(2,'0')+':00';
+    const PREP=(typeof WAR_PREP_OPENS_H==='number')?WAR_PREP_OPENS_H:2;
+    const LOCK=(typeof WAR_LOCK_H==='number')?WAR_LOCK_H:18;
+    const BELL=(typeof WAR_BELL_H==='number')?WAR_BELL_H:20;
+    let hourNow=-1; try{ hourNow=+new Date(now).toLocaleString('en-US',Object.assign({},ET,{hour:'2-digit',hour12:false})); }catch(e){}
+    const band=[
+      {t:H(PREP), n:'Prep opens', d:'the board reopens \u2014 place your lines, your opponent is revealed', a:PREP, b:LOCK},
+      {t:H(LOCK), n:'Lines lock', d:'no more placement; the towers stand as they are', a:LOCK, b:BELL},
+      {t:H(BELL), n:'Last bell',  d:'the fighting ends', a:BELL, b:24+PREP},
+      {t:H(PREP), n:'Reports close', d:'the lane reports come down and the board resets', a:-1, b:-1}
+    ];
+    rowsHTML=band.map(x=>{
+      const live = x.a>=0 && hourNow>=0 && ((hourNow>=x.a && hourNow<x.b) || (hourNow+24>=x.a && hourNow+24<x.b));
+      return '<tr class="'+(live?'now':'')+'">'
+        +'<td class="rd">'+x.t+'</td>'
+        +'<td class="'+(x.n==='Last bell'?'bell':'')+'" style="color:#ffe9b8">'+x.n+'</td>'
+        +'<td style="white-space:normal">'+x.d+'</td>'
+        +'<td class="tag">'+(live?'NOW':'')+'</td></tr>'; }).join('');
+    head='<tr><th>TIME</th><th>WHAT</th><th>MEANS</th><th></th></tr>';
+    foot='Every war day, 02:00 \u2192 02:00 ET. This week\u2019s bracket is not drawn yet \u2014 rounds appear here with their dates.';
+  }
+
+  /* v750 (Phil: "A calendar would be nice also") - four weeks from the start of this one, with the
+     war days marked and today ringed, so "when is the next war" is answered by looking. A round's
+     day is taken from its own schedule where the bracket exists; otherwise it falls back to the
+     week's shape, which is fixed: registration Sat-Mon, the rounds Tue-Fri. */
+  const cal=(function(){
+    const dk=(ms)=>{ try{ return new Date(ms).toLocaleDateString('en-CA',ET); }catch(e){ return ''; } };
+    const warDays={}, regDays={};
+    for(const rd of rounds){ const k=dk((rd.schedule||{}).planningOpensAt); if(k) warDays[k]=true; }
+    const todayKey=dk(now);
+    const todayDow=(function(){ try{
+        return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(
+          new Date(now).toLocaleString('en-US',Object.assign({},ET,{weekday:'short'}))); }catch(e){ return new Date(now).getDay(); } })();
+    /* start on the Sunday of this week, four weeks across */
+    const start=new Date(now - todayDow*86400000);
+    const cells=[];
+    for(let n=0;n<28;n++){
+      const d=new Date(start.getTime()+n*86400000);
+      const k=dk(d.getTime());
+      const dow=(todayDow+n-todayDow+ (start.getDay()) )%7;
+      const wd=(start.getDay()+n)%7;                      /* 0 Sun .. 6 Sat */
+      const isWar = warDays[k] || (!rounds.length && wd>=2 && wd<=5);   /* Tue-Fri fight */
+      const isReg = regDays[k] || (!rounds.length && (wd===6||wd===0||wd===1)); /* Sat-Mon register */
+      const num=(function(){ try{ return new Date(d).toLocaleDateString('en-US',Object.assign({},ET,{day:'numeric'})); }catch(e){ return d.getDate(); } })();
+      cells.push('<div class="skyCalDay'+(isWar?' war':(isReg?' reg':''))+(k===todayKey?' today':'')+'">'+num+'</div>');
+    }
+    return '<div class="skyCal"><div class="skyCalHd">NEXT FOUR WEEKS</div>'
+      +'<div class="skyCalGrid">'
+        +['S','M','T','W','T','F','S'].map(d=>'<div class="skyCalDow">'+d+'</div>').join('')
+        +cells.join('')
+      +'</div>'
+      +'<div class="skyCalKey"><span><i class="kw"></i>war day</span>'
+        +'<span><i class="kr"></i>registration</span>'
+        +'<span>today is ringed</span></div></div>';
+  })();
+
+  const body='<div class="skyBrkList" style="overflow:visible">'
+    +'<table class="skySchTbl">'+head+rowsHTML+'</table>'
+    +'<div class="skySchFoot">'+foot+'</div>'
+    +cal+'</div>';
   return skyPanelFrame('<b>\u2694 Schedule</b><span class="sub">all times ET</span>', body, 'sched');
 }
 /* v730c (Phil: "Edit team is your individual line edit. Not editing the guild's line placement /
@@ -14830,9 +15051,25 @@ const SKY_FIGHT_CAP_S   = 90;
    the short lane is crossed in 1.9s and the long one in 2.8s instead of 2.9s and 4.1s. */
 const SKY_WALK_PX_S  = 112.5;
 const SKY_WALK_MAX_F = 0.45;   /* ...but never more than this much of the fight (see below) */
+/* v752 (Phil: "each match should be 20-90 seconds max. when i hit x20 speed a lane should be
+   losing a line every 1-4 seconds") - HOW LONG THE BOARD SPENDS ON ONE FIGHT.
+   The server's round counts are log-distributed: over 106 measured fights they ran 2 / 16 / 29 /
+   76 / 300 (min, p25, median, p75, p90), where 300 is its stalemate cap. Multiplying by a flat
+   1.5s and clipping at 90 therefore put 28% of the war exactly on the ceiling and sent 19 of 106
+   past in under 20 seconds.
+   The range is MAPPED onto the band instead of clipped by it, on a log curve to match how the
+   rounds are actually spread - so the crowded middle uses the middle of the band rather than
+   piling on the ends. Every fight is 20-90s by construction, which makes a line lost every 1.0-4.5
+   seconds at x20.
+   The round count itself is untouched: the server resolved the fight and the report still prints
+   its real rounds. This only decides how long the board shows it. */
+const SKY_FIGHT_MIN_S = 20;
+const SKY_ROUNDS_LO = 2, SKY_ROUNDS_HI = 300;   /* the server's own floor and stalemate cap */
 function skyFightMs(e){
   const rounds = Math.max(1, (e && e.rounds) | 0 || 8);
-  return Math.min(SKY_FIGHT_CAP_S, rounds * SKY_SEC_PER_ROUND) * 1000;
+  const r = Math.min(SKY_ROUNDS_HI, Math.max(SKY_ROUNDS_LO, rounds));
+  const t = Math.log(r / SKY_ROUNDS_LO) / Math.log(SKY_ROUNDS_HI / SKY_ROUNDS_LO);
+  return Math.round((SKY_FIGHT_MIN_S + (SKY_FIGHT_CAP_S - SKY_FIGHT_MIN_S) * t) * 1000);
 }
 /* v675 - THE CLASH HUB.
    Phil wanted the middle of the bridge to be the thing you click: the fight happening right now at
@@ -14845,7 +15082,9 @@ function skyClashOpen(lane){ const hub=document.getElementById('skyHub'); if(!hu
   if(SKYSIM.hubOn && SKYSIM.hubLane===l){ SKYSIM.hubOn=false; hub.hidden=true; return; }
   SKYSIM.hubLane=l; SKYSIM.hubOn=true; hub.hidden=false;
   SKYSIM.hubTab=SKYSIM.hubTab||'live'; skyHubRender(); }
-function skyHubTab(t){ SKYSIM.hubTab=t; SKYSIM.openFight=null; skyHubRender(); }
+function skyHubTab(t){ SKYSIM.hubTab=t; SKYSIM.openFight=null; SKYSIM.openLine=null; skyHubRender(); }
+/* v746c - open one waiting line at a time; tapping the open one closes it */
+function skyLinePick(nm){ SKYSIM.openLine=(SKYSIM.openLine===nm?null:nm); skyHubRender(); }
 function skyHubPick(n){ SKYSIM.openFight=(SKYSIM.openFight===n?null:n); skyHubRender(); }
 /* The war is resolved before a single frame is drawn, so the state "right now" is the state after
    the marches already played. It is COUNTED from the log prefix, never estimated: every entry names
@@ -14878,8 +15117,15 @@ function skyHubRender(){
      the same fight, and showing the war's would be showing another lane's. */
   const cutoff=(typeof SKYSIM.cur==='number')?SKYSIM.cur:(r.log.length-1);
   let i=-1;
-  for(let k=0;k<r.log.length && k<=cutoff;k++) if(inLane(r.log[k])) i=k;
-  if(i<0) i=cutoff;
+  /* v748 - A LANE FOLLOWS ITS OWN MARCH, not the war's. SKYSIM.cur is whichever fight started most
+     recently ANYWHERE, and the five lanes do not keep step: deriving this lane's fight from it
+     overshoots for a lane that is behind, so the panel showed a LATER fight of this lane than the
+     one being played - and with it a result that had not happened yet. The replay records each
+     lane's own current entry, so use it whenever the lane has marched. */
+  const ownCur=(LANE===null)?null:((SKYSIM.laneCur||{})[LANE]);
+  if(typeof ownCur==="number" && ownCur>=0){ i=ownCur; }
+  else { for(let k=0;k<r.log.length && k<=cutoff;k++) if(inLane(r.log[k])) i=k;
+         if(i<0) i=cutoff; }
   const laneName=(()=>{ try{
       const c=((r.you||{}).citadels||[])[LANE]; if(c&&c.name) return c.name;
       const e=laneLog[0]; if(e&&e.laneName) return e.laneName;
@@ -14944,29 +15190,143 @@ function skyHubRender(){
 
   let body='';
   if(tab==='live'){
+    /* v746 (Phil's "Top Lane in Battle" reference): "All alliance and enemy lines lines up.
+       Strongest bottom weakest top. / On the top it shows current ally v[s] current enemy. /
+       Everytime a line wins it stays, the next loser line comes up to face the winner / Keeps
+       bumping up the list."
+       Three bands: the two guilds, the fight, then the queue waiting to step up. */
     const e=r.log[i];
-    body+='<div class="skyNow"><div style="font-size:9.5px;letter-spacing:.5px;color:#ffbf69;font-weight:800;margin-bottom:5px">'
-      +(SKYSIM.marching&&i<r.log.length-1?'FIGHTING NOW':'LAST FIGHT')+'</div>'
-      +(e?fightRow(e,true):'<div style="font-size:10.5px;color:#8b98a9">The towers have not marched yet.</div>')+'</div>';
     const tal=skyLiveTally(r,i);
-    const stand=(cits,cls,label)=>{
+    /* v747/v748 - "in battle" means THIS LANE's fight is still running, not merely that the war
+       is. The verdict is withheld until it finishes, because the cursor is set when a fight starts.
+       Asked per lane: a war-wide cursor points at whichever lane moved last, so it answered for the
+       wrong lane and let the verdict out early. */
+    const laneKey = (LANE===null)?null:LANE;
+    const laneCur = (laneKey===null) ? SKYSIM.cur : ((SKYSIM.laneCur||{})[laneKey]);
+    const laneDone = (laneKey===null) ? SKYSIM.curDone : ((SKYSIM.laneDone||{})[laneKey]);
+    const fighting = (laneDone===false) && (i===laneCur);
+
+    /* YOUR SIDE IS ALWAYS LEFT (v726). Side A is your guild, so on a B fight you are the defender;
+       reading the log in order would put the enemy on the left on half the rows. */
+    const yoursAttacked = e ? (e.side==='A') : true;
+    const meName = e ? (yoursAttacked?e.a:e.d) : null;
+    const meTeam = e ? (yoursAttacked?e.aTeam:e.dTeam) : null;
+    const mePow  = e ? (yoursAttacked?e.aPower:e.dPower) : 0;
+    const foName = e ? (yoursAttacked?e.d:e.a) : null;
+    const foTeam = e ? (yoursAttacked?e.dTeam:e.aTeam) : null;
+    const foPow  = e ? (yoursAttacked?e.dPower:e.aPower) : 0;
+    const youWon = e ? (yoursAttacked?!!e.won:!e.won) : false;
+
+    const lvOf=team=>{ let m=0; for(const h of (team||[])) if((h.l|0)>m) m=h.l|0; return m; };
+    const leadOf=team=>{ const t=(team||[])[0]; return t?t.k:null; };
+
+    /* every line still standing in this lane, weakest first - the order they will fight in */
+    const standing=(cits)=>{
       const rows=[];
-      (cits||[]).forEach((c,ci)=>(c.defenders||[]).forEach(d=>{
-        const t=tal[d.name]||{kills:0,hp:100,dead:false};
-        if(t.dead) return;                     /* only death removes a line from the tower */
-        rows.push({name:d.name,power:d.power||0,hp:t.hp,kills:t.kills,you:d.you,lane:c.name||('Lane '+(ci+1))}); }));
-      rows.sort((a,b)=>a.power-b.power);
-      return '<div style="font-size:9.5px;letter-spacing:.4px;font-weight:800;margin:7px 2px 4px" class="'+cls+'">'+label+' \u2014 '+rows.length+' line'+(rows.length===1?'':'s')+' still standing <span style="color:#8b98a9;font-weight:600">(kills banked / '+MAXF+')</span></div>'
-        +(rows.length?rows.map(x=>'<div class="skyPopRow'+(x.you?' you':'')+'">'
-          +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHTML(x.name)+'</span>'
-          +'<span style="flex:none;width:52px;text-align:right;color:#8b98a9;font-size:9.5px">'+escapeHTML(x.lane)+'</span>'
-          +'<span style="flex:none;width:56px;text-align:right;color:#ffbf69;font-weight:800">\u26a1'+x.power.toLocaleString()+'</span>'
-          +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+(x.hp|0)+'%</span>'
-          +'<span style="flex:none;width:34px;text-align:right;color:'+(x.kills>=MAXF?'#ffd45e':'#c9b78d')+'" title="kills banked">'+x.kills+'/'+MAXF+'</span></div>').join('')
-          :'<div style="font-size:10px;color:#8b98a9;padding:6px 2px">Nothing left standing.</div>'); };
-    const mine=(r.you||{}).citadels||[], theirs=(r.foe||{}).citadels||[];
-    const only=cits=>LANE===null?cits:cits.filter((c,ci)=>ci===LANE);
-    body+=stand(only(mine),'skySideA','YOUR SIDE')+stand(only(theirs),'skySideB','BOT GUILD');
+      (cits||[]).forEach((c,ci)=>{ if(LANE!==null && ci!==LANE) return;
+        (c.defenders||[]).forEach(d=>{
+          const t=tal[d.name]||{kills:0,hp:100,dead:false};
+          if(t.dead) return;                       /* only death takes a line out of the tower */
+          rows.push({name:d.name, power:d.power|0, you:!!d.you, heroes:d.heroes||[],
+                     lead:((d.heroes||[])[0])||null, hp:t.hp, kills:t.kills}); }); });
+      rows.sort((a,b)=>a.power-b.power);           /* weakest at the TOP - Phil's order, and the war's */
+      return rows; };
+
+    const mineAll=standing((r.you||{}).citadels), foeAll=standing((r.foe||{}).citadels);
+    /* the two in the ring are shown above, so the queue is everyone else */
+    const queue=(rows,nm)=>rows.filter(x=>x.name!==nm);
+    const mineQ=queue(mineAll,meName), foeQ=queue(foeAll,foName);
+
+    /* ---- band 1: the two guilds ---- */
+    const gName=(o,fb)=>escapeHTML((o&&o.name)||fb);
+    body+='<div class="skyLF">'
+      +'<div class="skyLFGuilds">'
+        +'<div class="skyLFG mine"><span class="crest">\u2694</span><span style="min-width:0">'
+          +'<span class="gn">'+gName(r.you,'Your side')+'</span>'
+          +'<span class="tl">Lines left: <b>'+mineAll.length+'</b></span></span></div>'
+        +'<div class="skyLFVs"><span class="sw">\u2694</span><span class="vs">VS</span></div>'
+        +'<div class="skyLFG foe"><span style="min-width:0">'
+          +'<span class="gn">'+gName(r.foe,'Bot guild')+'</span>'
+          +'<span class="tl">Lines left: <b>'+foeAll.length+'</b></span></span>'
+          +'<span class="crest">\u2694</span></div>'
+      +'</div>';
+
+    /* ---- band 2: the fight ---- */
+    const cards=(team)=>'<div class="skyLFTeam">'+((team||[]).slice(0,5).map(h=>
+        '<div class="skyLFCard">'+heroIcon(h.k,34)+(h.l?('<span class="clv">'+(h.l|0)+'</span>'):'')+'</div>'
+      ).join('')||'<span style="font-size:9px;color:#8b98a9">no line-up recorded</span>')+'</div>';
+    const who=(nm,team,pw)=>'<div class="skyLFWho">'
+      +'<div class="skyLFPort">'+(leadOf(team)?heroIcon(leadOf(team),30):'')+'</div>'
+      +'<div class="skyLFNm"><span class="n">'+escapeHTML(nm||'\u2014')+'</span>'
+      +'<span class="lv">'+(lvOf(team)?('Lv'+lvOf(team)):('\u2694'+(pw|0).toLocaleString()))+'</span></div></div>';
+    /* the clock is DERIVED - a fight's length is its rounds at SKY_SEC_PER_ROUND, the same number
+       the replay spends playing it - not a number invented for the panel. */
+    /* v752 - the same length the BOARD spends on this fight, so the clock and the replay agree */
+    const full=Math.max(1, Math.round(skyFightMs(e)/1000));
+    /* while it is being fought the clock COUNTS UP, the way the reference's does; once it is over
+       it rests on the fight's own length. Neither number is invented - both come from the round
+       count the server resolved. */
+    const startedAt = (laneKey===null) ? SKYSIM.curStart : ((SKYSIM.laneStart||{})[laneKey]);
+    const elapsed=Math.max(0, Math.round((Date.now()-(startedAt||Date.now()))/1000));
+    const secs = fighting ? Math.min(full, elapsed) : full;
+    const mmss=(n)=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+
+    if(e){
+      body+='<div class="skyLFNow">'
+        +'<div class="skyLFSide mine">'+who(meName,meTeam,mePow)+cards(meTeam)+'</div>'
+        +'<div class="skyLFClock">'
+          +'<span class="lbl">'+(fighting?'IN BATTLE':'LAST FIGHT')+'</span>'
+          +'<span class="t">'+mmss(secs)+'</span>'
+          +(e.captured
+            ? '<span class="sub">undefended</span>'
+            : (fighting
+                ? '<span class="sub" style="color:#ffd45e">fighting\u2026</span>'
+                : '<span class="verdict '+(youWon?'win':'loss')+'">'+(youWon?'Victory':'Defeat')+'</span>'))
+          +'<span class="sub">#'+e.n+((e.captured||fighting)?'':(' \u00b7 '+(e.rounds|0)+'r'))+'</span>'
+        +'</div>'
+        +'<div class="skyLFSide foe">'+who(foName,foTeam,foPow)+cards(foTeam)+'</div>'
+      +'</div>';
+    } else {
+      body+='<div class="skyLFNow"><div class="skyLFEmpty" style="flex:1">The towers have not marched yet.</div></div>';
+    }
+
+    /* ---- band 3: the queue, weakest at the top ---- */
+    /* "Everytime a line wins it stays, the next loser line comes up to face the winner" - the war
+       already works that way (a line holds the front while it keeps winning, to the five-kill cap),
+       so the queue simply shortens under the fight as lines fall. The top row of each column is
+       marked NEXT because it is genuinely who steps up. */
+    /* v746c (Phil: "the player lines under the live can be clicked to see what the hero line up
+       is") - a waiting row opens to its five heroes. Levels come from the log wherever that line
+       has already fought, because aTeam/dTeam carry {k,l,s}; a line that has not fought yet still
+       has its hero KEYS on the citadel, so the cards draw either way and the level badge is simply
+       absent until there is a real number for it. */
+    const teamOfLine=(nm)=>{
+      for(let k=Math.min(i,r.log.length-1);k>=0;k--){ const x=r.log[k]; if(!x) continue;
+        if(x.a===nm && x.aTeam && x.aTeam.length) return x.aTeam;
+        if(x.d===nm && x.dTeam && x.dTeam.length) return x.dTeam; }
+      return null; };
+    const lineCards=(x,cls)=>{
+      const t=teamOfLine(x.name);
+      const list = t ? t.slice(0,5).map(h=>({k:h.k,l:h.l|0}))
+                     : (x.heroes||[]).slice(0,5).map(k=>({k:k,l:0}));
+      if(!list.length) return '';
+      return '<div class="skyLFOpen '+cls+'">'+list.map(h=>'<div class="skyLFCard">'
+        +heroIcon(h.k,30)+(h.l?('<span class="clv">'+h.l+'</span>'):'')+'</div>').join('')+'</div>'; };
+
+    const qcol=(rows,cls)=>'<div class="skyLFCol">'+(rows.length?rows.map((x,k)=>{
+        const open=SKYSIM.openLine===x.name;
+        return '<div class="skyLFRow '+cls+(x.you?' you':'')+'" data-line="'+escapeHTML(x.name)+'">'
+        +'<span class="av">'+(x.lead?heroIcon(x.lead,22):'')+'</span>'
+        +'<span class="nm">'+escapeHTML(x.name)+'</span>'
+        +(k===0?'<span class="nx">NEXT</span>':'')
+        +'<span class="pw">\u2694'+x.power.toLocaleString()+'</span>'
+        +'<span class="cv">'+(open?'\u25b2':'\u25bc')+'</span>'
+        +'</div>'+(open?lineCards(x,cls):''); }).join('')
+      :'<div class="skyLFEmpty">Nothing waiting.</div>')+'</div>';
+
+    body+='<div class="skyLFWaitHd">WAITING TROOPS \u2014 weakest steps up first</div>'
+      +'<div class="skyLFWait">'+qcol(mineQ,'mine')+qcol(foeQ,'foe')+'</div>'
+      +'</div>';
   } else {
     const past=r.log.slice(0,i+1).filter(inLane).reverse();   /* Phil: "from more recent down to last at the bottom" */
     /* v726 - Records IS the battle report now. A fight that carries its line-ups is drawn as a
@@ -14984,20 +15344,31 @@ function skyHubRender(){
      carried across so a records list does not jump back to the top several times a second. */
   const shellKey=(LANE===null?'all':LANE)+'|'+tab;
   const oldBody=hub.querySelector('.skyHubBody');
+  /* v746c - the rows carry their name in a data attribute rather than an inline onclick, because a
+     line's name can contain a quote; they are bound after every injection, and the body is
+     re-injected on every tick of the replay. */
+  const bindLines=(root)=>{ if(!root) return;
+    root.querySelectorAll('.skyLFRow[data-line]').forEach(n=>{
+      n.onclick=()=>skyLinePick(n.dataset.line); }); };
   if(hub.dataset.shell===shellKey && oldBody){
     const keep=oldBody.scrollTop;
     oldBody.innerHTML=body;
     oldBody.scrollTop=keep;
+    bindLines(oldBody);
     return;
   }
   hub.dataset.shell=shellKey;
-  hub.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+  /* v747 - the hub reaches the top-left corner at 748px wide, where the Guild button sits, so the
+     title needs to start clear of it. */
+  hub.innerHTML='<div class="skyHubHd" style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
     +'<b style="font-size:12px;color:#ffe9b8;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\u2694 '
       +escapeHTML(laneName)+(LANE===null?'':(live?' \u2014 in battle':' \u2014 lane report'))+'</b>'
     +'<button class="btn xs secondary" style="font-size:9px;flex:none" onclick="skyClashOpen('+(LANE===null?'':LANE)+')">close</button></div>'
     +'<div class="skyHubTabs"><button class="'+(tab==='live'?'on':'')+'" onclick="skyHubTab(\'live\')">Live</button>'
     +'<button class="'+(tab==='records'?'on':'')+'" onclick="skyHubTab(\'records\')">Records</button></div>'
-    +'<div class="skyHubBody">'+body+'</div>'; }
+    +'<div class="skyHubBody">'+body+'</div>';
+  bindLines(hub.querySelector('.skyHubBody'));   /* v746c - and on the FIRST render, not only re-injections */
+}
 /* Phil: "you can Click a play button to watch the fight in live time. its all deterministic".
    It is: the same seed and the same parameters re-run the identical war on the server, which hands
    back only THAT march's two lines as they stood when they met. The client then plays them. */
@@ -15079,7 +15450,8 @@ async function skySimReplay(r){
   const card=document.getElementById('skySimCard'); if(!card||!r||!Array.isArray(r.log)) return;
   SKYSIM.skipReplay=false; SKYSIM.sel=null; SKYSIM.view=r; SKYSIM.speed=SKYSIM.speed||1;
   SKYSIM.marched=false;                          /* v722 - a new war has not marched yet */
-  SKYSIM.cur=-1; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null;
+  SKYSIM.cur=-1; SKYSIM.curDone=true; SKYSIM.openLine=null; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null;
+  SKYSIM.laneCur={}; SKYSIM.laneDone={}; SKYSIM.laneStart={};
   const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
   card.style.maxWidth='920px';
   const you=(r.you&&r.you.citadels)||[], foe=(r.foe&&r.foe.citadels)||[];
@@ -15161,6 +15533,10 @@ async function skySimReplay(r){
   r.log.forEach((e,idx)=>{ queues[Math.max(0,Math.min(4,e.lane|0))].push({e,idx}); });
 
   const runLane = async (i)=>{
+    /* v751 (Phil: "if a players line didnt die, you dont need to send another walking hero to
+       fight. its line is still at the fight spot fighting") - who is STANDING at this lane's centre
+       on each side. A line that won is still out there; only a side whose line changed walks. */
+    const atCentre={you:null, foe:null};
     for(const {e,idx} of queues[i]){
       if(stopped()) return;
       const mine=e.side==='A';
@@ -15186,18 +15562,32 @@ async function skySimReplay(r){
         stage.appendChild(tk);
         return {el:tk, from:fromPt};
       };
-      const marchers=[ walker(mine?LN.a:LN.b, mine,  e.a, mine) ];
-      /* the line being attacked walks out of the tower opposite - unless nobody is home, which is
-         what `captured` means */
-      if(!e.captured) marchers.push( walker(mine?LN.b:LN.a, !mine, e.d, !mine) );
+      /* v751 - the two lines in THIS fight, named per board side rather than per attacker. */
+      const youLine = mine ? e.a : e.d;
+      const foeLine = e.captured ? null : (mine ? e.d : e.a);
+      const youWalks = atCentre.you !== youLine;
+      const foeWalks = !e.captured && atCentre.foe !== foeLine;
+
+      const marchers=[];
+      if(youWalks) marchers.push( walker(LN.a, true,  youLine, true) );
+      if(foeWalks) marchers.push( walker(LN.b, false, foeLine, false) );
       const FIGHT=skyFightMs(e);
       const WALKMS=walkMs(i, FIGHT);
-      { const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.add('skyHot'); }
+      /* the dotted run is the WALK, so it belongs to whoever is actually walking */
+      if(youWalks){ const ml=lineOf('you', i); if(ml) ml.classList.add('skyHot'); }
+      if(foeWalks){ const ml=lineOf('foe', i); if(ml) ml.classList.add('skyHot'); }
       const ev=document.getElementById('skyEvent');
       if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
       /* the hub follows whichever fight started most recently; a lane's own battles are read by
          tapping that lane's swords. */
-      SKYSIM.cur=idx; if(SKYSIM.hubOn) skyHubRender();
+      /* v747/v748 - the fight has STARTED, not finished. Until its pause returns the Live panel
+         must not read this entry's verdict: that is the result of the fight being watched.
+         Recorded PER LANE - five lanes march at once, so a single war-wide cursor describes some
+         other lane's fight and cannot answer "is THIS one still going". */
+      SKYSIM.cur=idx; SKYSIM.curDone=false; SKYSIM.curStart=Date.now();
+      SKYSIM.laneCur=SKYSIM.laneCur||{}; SKYSIM.laneDone=SKYSIM.laneDone||{}; SKYSIM.laneStart=SKYSIM.laneStart||{};
+      SKYSIM.laneCur[i]=idx; SKYSIM.laneDone[i]=false; SKYSIM.laneStart[i]=Date.now();
+      if(SKYSIM.hubOn) skyHubRender();
       /* v723 - an open tower follows the war too, so a player falls off its list as his last line
          dies rather than when the panel is next opened. */
       { const op=stage.querySelector('.skyTowerPanel');
@@ -15212,7 +15602,14 @@ async function skySimReplay(r){
          the swords go up. Each walk interval goes with its walker; one left running on a detached
          node is a leak that only shows after a long war. */
       for(const m2 of marchers){ skyStopWalk(m2.el); m2.el.remove(); }
-      { const c=clashOf(i); if(c){ c.classList.remove('skyHot'); void c.offsetWidth; c.classList.add('skyHot'); } }
+      /* v751 (Phil: "the swords remain on the lane until the entire lane is depleted, from the
+         moment the first fight starts. not becaus a fight is done") - crossed swords mean THIS
+         FRONT IS LIVE. They go up on the lane's first fight and stay; v727's `spent` takes them off
+         when the lane runs out. Re-triggering the animation on every bout is what made a lane with
+         fighting left to do show a clear bridge between fights. */
+      { const c=clashOf(i); if(c && !c.classList.contains('skyHot')) c.classList.add('skyHot'); }
+      /* the walk is over, so its dotted runs come down */
+      for(const sd of ['you','foe']){ const ml=lineOf(sd, i); if(ml) ml.classList.remove('skyHot'); }
       /* The swords are still crossed. This is the fight itself, and it has to be over before
          anything is reported: no line comes off a count and no tower is touched until this
          returns. */
@@ -15220,6 +15617,10 @@ async function skySimReplay(r){
         +' \u00b7 ' + Math.round(FIGHT/1000) + 's';
       await pause(Math.max(0, FIGHT-WALKMS));
       if(stopped()) return;
+      /* v747/v748 - the fighting is over, so the verdict may be shown now and not before. */
+      SKYSIM.curDone=true;
+      SKYSIM.laneDone=SKYSIM.laneDone||{}; SKYSIM.laneDone[i]=true;
+      if(SKYSIM.hubOn) skyHubRender();
       /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and
          a tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early:
          the server's final state is never drawn, only replayed. */
@@ -15239,8 +15640,14 @@ async function skySimReplay(r){
         if(e.dDown) drop(mine?'foe':'you', i);
         if(e.captured||e.fell) fell(mine?'foe':'you', i);
       }
-      { const c=clashOf(i); if(c) c.classList.remove('skyHot');
-        const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.remove('skyHot'); }
+      /* v751 - who is left standing at the centre. A line leaves the front only by dying or by
+         retiring on its fifth kill; anything else and it is still out there for the next fight, so
+         it must not be walked out again. The swords are NOT taken down here - they belong to the
+         lane, and the lane is not finished. */
+      { const youDown = mine ? (e.aDown||e.aRetired) : (e.dDown||e.dRetired);
+        const foeDown = mine ? (e.dDown||e.dRetired) : (e.aDown||e.aRetired);
+        atCentre.you = youDown ? null : youLine;
+        atCentre.foe = (e.captured || foeDown) ? null : foeLine; }
     }
     /* v727 - this lane has no fights left. Its dotted runs and its swords come off the board, which
        is how you see at a glance which fronts are still live. */
@@ -15256,7 +15663,9 @@ async function skySimReplay(r){
     ph2.style.color=won?'#5ee89b':'#ff8b8b';
     const ev=document.getElementById('skyEvent');
     if(ev) ev.textContent='Tap any tower, or the bridge, to see how it finished.';
-    SKYSIM.marching=false; SKYSIM.cur=r.log.length-1; if(SKYSIM.hubOn) skyHubRender();
+    SKYSIM.marching=false; SKYSIM.cur=r.log.length-1; SKYSIM.curDone=true;
+    SKYSIM.laneDone={0:true,1:true,2:true,3:true,4:true};   /* the war is over: nothing is still running */
+    if(SKYSIM.hubOn) skyHubRender();
     await pause(700); }
 }
 function skyPanelHTML(){
@@ -22511,7 +22920,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789914007000';
+const BUILD_ID = '1789915207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

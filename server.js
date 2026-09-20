@@ -5093,7 +5093,15 @@ async function api(req,res,url){
     const isOnline = id => { const u=DB.users[id]; return !!(u && (Date.now()-(u.lastSeen||0) < 5*60000)); };
     const capWords = s => s.replace(/\b\w/g,c=>c.toUpperCase());
     function guildView(g){
-      const mem=(g.members||[]).map(id=>({id,name:nameOf(id),rank:rankOf(id),online:isOnline(id),leader:id===g.leader}))
+      /* v750 (Phil: "Ranking should be your guild members ranked by power") - the roster carries
+         POWER now. serverTeamPower is the same server-computed number the arena and the world map
+         rank by; a client-uploaded figure is never trusted. `lines` is how many war lines that
+         member's roster can field, which is what they would bring to a Skyfall. */
+      const mem=(g.members||[]).map(id=>{ const u=DB.users[id];
+        let power=0, lines=0;
+        try{ power=serverTeamPower((u&&Array.isArray(u.wall)&&u.wall.length?u.wall:((u&&u.team)||[])), u)|0; }catch(e){}
+        try{ lines=(u&&!u.isNpc)?buildRegisteredLines(u).length:0; }catch(e){}
+        return {id,name:nameOf(id),rank:rankOf(id),online:isOnline(id),leader:id===g.leader,power,lines}; })
         .sort((a,b)=>(b.leader?1:0)-(a.leader?1:0) || (b.online?1:0)-(a.online?1:0) || a.rank-b.rank);
       const youLeader = g.leader===me.id;
       return { id:g.id, name:g.name, level:g.level||1, exp:g.exp||0, expNeed:gExpNeed(g.level||1),
