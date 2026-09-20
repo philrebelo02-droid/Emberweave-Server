@@ -1209,11 +1209,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #skyfallBody .skyStage{flex:1;min-height:0;aspect-ratio:auto;width:100%;}
 /* v694 THE WAR HUD - Magic Rush's alliance-war layout in our painted kit */
 /* v695 the tower panel - who is standing in this tower */
-.skyTowerPanel{position:absolute;z-index:9;width:min(88%,330px);max-height:86%;overflow-y:auto;
-  -webkit-overflow-scrolling:touch;padding:9px 10px;border-radius:12px;
+/* v723 - a FIXED height, and the list scrolls inside it. With max-height alone the panel resized
+   every time a line died, which throws whatever you are reading up the screen. */
+.skyTowerPanel{position:absolute;z-index:9;width:min(88%,330px);height:min(86%,318px);
+  display:flex;flex-direction:column;padding:9px 10px;border-radius:12px;
   background:rgba(8,12,20,.96);border:1px solid #6b5628;box-shadow:0 12px 30px rgba(0,0,0,.65);}
 .skyTowerPanel h4{margin:0 0 2px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#ffe9b8;}
 .skyTowerPanel .sub{font-size:9.5px;color:#8b98a9;margin-bottom:7px;}
+.skyTowerList{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .skyLine{display:flex;align-items:center;gap:6px;font-size:10.5px;padding:4px 6px;border-radius:7px;
   margin-bottom:4px;background:rgba(18,24,38,.85);border:1px solid #242c3e;}
 .skyLine.you{background:rgba(255,191,105,.13);border-color:#7a5f2a;}
@@ -1406,8 +1409,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    was showing march lines and crossed swords before a single line had moved, which says a war is
    happening when none is. They are built with the lane and hidden until the stage says MARCH. */
 .skyMarchLine,.skyLaneClash{display:none;}
+/* a march line shows movement, so it belongs to the march itself... */
 .skyStage.marching .skyMarchLine{display:block;}
-.skyStage.marching .skyLaneClash{display:flex;}
+/* ...but the swords are the lane's report button, and a report is most wanted once the fighting
+   has stopped. v722: they arrive with the first march and they stay. */
+.skyStage.fought .skyLaneClash{display:flex;}
 /* NB: no display here. It is owned by the pair of rules above - a display:flex left in this block
    would sit AFTER the hide rule at the same specificity and win, which is exactly why the swords
    were still on the board all through PREP. */
@@ -13855,7 +13861,7 @@ function skyBoardHTML(r, opts){
       <div class="skyHud">
         <div class="skyStatus">
           <b>\u2694 Skyfall War</b>
-          <span class="dot">\u00b7</span> Stage <span class="sv">${SKYSIM.marching?'MARCH':'PREP'}</span>
+          <span class="dot">\u00b7</span> Stage <span class="sv" id="skyStagePill">${SKYSIM.marching?'MARCH':'PREP'}</span>
           <span class="dot">\u00b7</span> <span id="skyClock">${new Date().toLocaleTimeString()}</span>
           <span class="dot">\u00b7</span> ${marches} marches
         </div>
@@ -13931,15 +13937,28 @@ let SKYFALL_VIEW=null;
 const WAR_LANE_NAMES=['Iron Gate','Storm Watch','Crown Spire','Verdant Sanctuary','Rift Tower'];
 function skyTowerPanel(stage, side, lane, data, opts){
   opts=opts||{};
-  stage.querySelectorAll('.skyTowerPanel').forEach(p=>p.remove());
   const cit=((side==='you'?data.you:data.foe)||{}).citadels||[];
   const c=cit[lane]||{};
   /* weakest first - the order the engine actually sends them in */
   /* v696 - GROUP BY PLAYER. Phil: total each ally's committed lines, put the LOWEST total at the
      top, and keep that ally's lines together. This is the order the tower actually fights in, so
      what is read here is what will happen. */
+  /* v723 - WHO IS STILL IN THIS TOWER, counted from the log prefix. c.defenders[].alive is the
+     state after the LAST march of the war, so reading it mid-war shows the ending. skyLiveTally
+     replays the log up to the fight that has actually happened, which is what the lane report
+     already does, so the two can never disagree. */
+  const tally=(function(){ try{ return skyLiveTally(data, (typeof SKYSIM.cur==='number')?SKYSIM.cur:((data.log||[]).length-1)); }catch(e){ return {}; } })();
+  const liveOf=d=>{ const t=tally[d&&d.name];
+    if(!t) return {alive:d?(d.alive!==false):true, hp:(d&&d.hpPct!=null)?d.hpPct:100, kills:(d&&d.kills)|0};
+    return {alive:!t.dead, hp:t.hp, kills:t.kills|0}; };
+  let standing=0;
   const byMember={};
-  for(const d of (c.defenders||[])){
+  for(const d0 of (c.defenders||[])){
+    const st=liveOf(d0);
+    if(!st.alive) continue;                       /* a dead line leaves the tower, and so does a
+                                                     player whose last line dies with it */
+    standing++;
+    const d=Object.assign({}, d0, {alive:true, hpPct:st.hp, kills:st.kills});
     /* v716 - the KEY drops the " \u00b7 line 2" suffix too, not just the name shown. The simulator
        sends no memberId, so keying on the raw name made one player holding three lines look like
        three players holding one - and "move all his lines" had nothing to move all of. */
@@ -13952,16 +13971,9 @@ function skyTowerPanel(stage, side, lane, data, opts){
   const canMove = !!opts.canMove && side==='you';
   const L=skyLanes()[lane]||{a:{x:50,y:50}};
   const onLeft = L.a.x < 50;
-  const el=document.createElement('div');
-  el.className='skyTowerPanel';
-  el.style.top='50%'; el.style.transform='translateY(-50%)';
-  el.style[onLeft?'left':'right']='6%';
-  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
-    +'<h4>'+escapeHTML(c.name||('Lane '+(lane+1)))+'</h4>'
-    +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'
-    +'<div class="sub">'+(c.destroyed?'FALLEN \u00b7 ':'')+((c.alive|0)+'/'+(c.total|0))+' lines standing \u00b7 weakest ally fights first'
-    +(canMove?' \u00b7 <span style="color:#7ef0b0">you may move them</span>':'')+'</div>'
-    +(players.length?players.map((p,pi)=>{
+  const subHTML=((standing===0)?'FALLEN \u00b7 ':'')+standing+'/'+((c.total|0))+' lines standing \u00b7 weakest ally fights first'
+    +(canMove?' \u00b7 <span style="color:#7ef0b0">you may move them</span>':'');
+  const listHTML=(players.length?players.map((p,pi)=>{
         const head='<div class="skyPlayerHd"><span class="ord">'+(pi+1)+'</span>'
           +'<span class="who">'+escapeHTML(p.name||p.key)+'</span>'
           +'<span class="tot" title="total power of all their lines">\u2694'+p.total.toLocaleString()+'</span></div>';
@@ -13982,8 +13994,37 @@ function skyTowerPanel(stage, side, lane, data, opts){
         return '<div class="skyPlayer'+(p.you?' you':'')+'">'+head+rows+mv+'</div>';
       }).join('')
       :'<div style="font-size:10px;color:#8b98a9;padding:8px 0;text-align:center">Nothing holds this tower.</div>');
+
+  /* v723 - refresh in place if this very tower is already open: only the sub-line and the list
+     change, the frame does not move, and the scroll stays where the reader left it. */
+  const open=stage.querySelector('.skyTowerPanel');
+  const key=side+':'+lane;
+  if(open && open.dataset.key===key){
+    const sub=open.querySelector('.sub'), list=open.querySelector('.skyTowerList');
+    if(sub) sub.innerHTML=subHTML;
+    if(list){ const keep=list.scrollTop; list.innerHTML=listHTML; list.scrollTop=keep; }
+    skyTowerPanelWire(open, stage, side, lane, data, opts);
+    return open;
+  }
+  stage.querySelectorAll('.skyTowerPanel').forEach(p=>p.remove());
+  const el=document.createElement('div');
+  el.className='skyTowerPanel';
+  el.dataset.key=key;
+  el.style.top='50%'; el.style.transform='translateY(-50%)';
+  el.style[onLeft?'left':'right']='6%';
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<h4>'+escapeHTML(c.name||('Lane '+(lane+1)))+'</h4>'
+    +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'
+    +'<div class="sub">'+subHTML+'</div>'
+    +'<div class="skyTowerList">'+listHTML+'</div>';
   stage.appendChild(el);
-  el.querySelector('[data-close]').onclick=()=>el.remove();
+  skyTowerPanelWire(el, stage, side, lane, data, opts);
+  return el;
+}
+/* v723 - the panel's buttons, hung again after every in-place refresh: the rows they live on are
+   replaced, so a handler bound once would be bound to a node that is no longer in the document. */
+function skyTowerPanelWire(el, stage, side, lane, data, opts){
+  const cl=el.querySelector('[data-close]'); if(cl) cl.onclick=()=>el.remove();
   /* one control per PLAYER - Phil: "If you move 1 player, it moves all his lines". The server's
      assign route carries every line that member owns across intact. */
   el.querySelectorAll('[data-mv]').forEach(b=>{ b.onclick=async()=>{
@@ -14136,9 +14177,22 @@ function skyGarFit(el){ if(!el) return;
    it, so nothing can leave a dotted line behind after a war ends. */
 function skyMarchVis(stage){
   if(!stage) return;
-  let on=false;
-  try{ on = !!(SKYSIM && SKYSIM.marching); }catch(e){ on=false; }
+  let on=false, fought=false;
+  try{ on = !!(SKYSIM && SKYSIM.marching);
+       /* v722 - once a war has marched it has marched. The swords are how a lane's Live and
+          Records are opened, so they outlive the fighting; only the dotted lines come off. */
+       if(on) SKYSIM.marched=true;
+       fought = on || !!(SKYSIM && SKYSIM.marched);
+  }catch(e){ on=false; fought=false; }
   stage.classList.toggle('marching', on);
+  stage.classList.toggle('fought', fought);
+  /* v723 (Phil: "the stage needs to switch from prep to battle") - the pill is written once by
+     skyBoardHTML and the board is not rebuilt when the march begins, so it sat on PREP while the
+     line under it announced the march. This is the one place that knows the stage changed. */
+  { const pill=stage.querySelector('#skyStagePill');
+    if(pill){ const want=on?'MARCH':(fought?'DONE':'PREP');
+      if(pill.textContent!==want) pill.textContent=want;
+      pill.style.color = on?'#ffd45e' : (fought?'#8b98a9':'#7ef0b0'); } }
   if(!on) stage.querySelectorAll('.skyMarchLine.hot,.skyLaneClash.hot').forEach(el=>el.classList.remove('hot'));
 }
 function skyLayoutBoard(stage){
@@ -14443,6 +14497,7 @@ async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRend
 async function skySimReplay(r){
   const card=document.getElementById('skySimCard'); if(!card||!r||!Array.isArray(r.log)) return;
   SKYSIM.skipReplay=false; SKYSIM.sel=null; SKYSIM.view=r; SKYSIM.speed=SKYSIM.speed||1;
+  SKYSIM.marched=false;                          /* v722 - a new war has not marched yet */
   SKYSIM.cur=-1; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null;
   const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
   card.style.maxWidth='920px';
@@ -14553,6 +14608,11 @@ async function skySimReplay(r){
       /* the hub follows whichever fight started most recently; a lane's own battles are read by
          tapping that lane's swords. */
       SKYSIM.cur=idx; if(SKYSIM.hubOn) skyHubRender();
+      /* v723 - an open tower follows the war too, so a player falls off its list as his last line
+         dies rather than when the panel is next opened. */
+      { const op=stage.querySelector('.skyTowerPanel');
+        if(op && op.dataset.key){ const kp=op.dataset.key.split(':');
+          skyTowerPanel(stage, kp[0], kp[1]|0, r, {canMove:false, live:false}); } }
       await pause(WALKMS, t=>{
         tok.style.left=(from.x+(to.x-from.x)*t)+'%';
         tok.style.top =(from.y+(to.y-from.y)*t)+'%'; });
@@ -21854,7 +21914,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789899607000';
+const BUILD_ID = '1789902007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
