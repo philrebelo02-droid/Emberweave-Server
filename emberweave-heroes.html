@@ -1308,6 +1308,28 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   animation:skyBob var(--bobDur,4s) ease-in-out var(--bobDelay,0s) infinite;
   filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));transition:filter .15s,opacity .25s;}
 @media (prefers-reduced-motion: reduce){ .skyTower{animation:none;} }
+/* v709 - the fall. A falling tower is not drifting any more, so the bob is turned off outright
+   rather than layered under the drop; the easing accelerates, because it is falling. */
+.skyTower.falling{animation:none!important;}
+/* and once it is down it stays down: no bob on a ruin resting on its platform */
+.skyTower.down{animation:none!important;}
+@keyframes skyThud{
+  0%  {transform:translate(-50%,-100%) scale(1,1);}
+  35% {transform:translate(-50%,-100%) scale(1.07,0.9);}
+  70% {transform:translate(-50%,-100%) scale(0.98,1.02);}
+  100%{transform:translate(-50%,-100%) scale(1,1);}
+}
+.skyTower.landed{animation:skyThud var(--thudDur,260ms) ease-out 1;}
+/* the dust it throws up, a ring on the platform's face that opens and fades */
+.skyDust{position:absolute;transform:translate(-50%,-50%);z-index:3;pointer-events:none;
+  border-radius:50%;border:2px solid rgba(232,214,178,.85);
+  box-shadow:0 0 14px rgba(180,150,100,.55) inset;
+  animation:skyDustPop var(--dustDur,520ms) ease-out 1 forwards;}
+@keyframes skyDustPop{
+  0%  {opacity:0;   transform:translate(-50%,-50%) scale(.25);}
+  25% {opacity:.95; transform:translate(-50%,-50%) scale(.6);}
+  100%{opacity:0;   transform:translate(-50%,-50%) scale(1.5);}
+}
 .skyTower:hover{filter:drop-shadow(0 0 10px rgba(255,214,120,.8)) drop-shadow(0 5px 8px rgba(0,0,0,.55));}
 .skyTower.down{filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));}
 .skyBridge{position:absolute;transform-origin:0 50%;z-index:1;pointer-events:none;
@@ -13904,6 +13926,51 @@ function skyTowerPanel(stage, side, lane, data, opts){
 /* The count reads "12<i>/20</i>" - lines standing in full serif, the garrison it was in dimmer
    behind the slash, so the number that matters is the one the eye lands on. */
 function skyGarText(al,tot){ return al+'<i>/'+tot+'</i>'; }
+/* v709 (Phil: "make the png fall slowly, and then when it hits the platform it turns into the tower
+   on fire animation") - the one beat on this board worth watching. The citadel stops drifting, then
+   sinks onto its own platform, accelerating and tilting; only on the landing does it become the
+   ruin, with a thud and a ring of dust.
+   The drop is a fraction of the platform, not a fixed number of pixels, so it lands on the disc at
+   any screen size, and its duration is divided by the simulator's speed - at 20x a full second per
+   tower would stall the war. The art swap runs off a timer rather than transitionend so that a
+   replay torn down mid-fall still leaves the board in the right state. */
+function skyTowerFall(stage, tw, lane){
+  if(!tw) return;
+  tw.classList.add('falling');
+  const W=stage.clientWidth||1, plat=SKY_PLAT_R/100*W;
+  const drop=plat*0.45;                       /* from where it hovers down onto the disc's face */
+  const tilt=(lane%2?1:-1)*(3+lane);          /* it does not come down square */
+  const sp=Math.max(1,(SKYSIM&&SKYSIM.speed)|0||1);
+  const dur=Math.max(150, Math.round(1100/sp));
+  tw.style.transition='transform '+dur+'ms cubic-bezier(.45,.05,.75,.35)';
+  requestAnimationFrame(()=>{ tw.style.transform=
+    'translate(-50%,-100%) translateY('+drop.toFixed(1)+'px) rotate('+tilt+'deg)'; });
+  setTimeout(()=>{
+    if(!tw.isConnected) return;
+    tw.src=skyTowerArt(lane, true);
+    tw.classList.remove('falling'); tw.classList.add('down');
+    tw.style.transition=''; tw.style.transform='';
+    /* a landed tower rests ON the disc, and skyLayoutBoard is the one place that decides where a
+       tower sits - so it is asked again rather than having its answer patched here, which would be
+       undone by the next resize. */
+    skyLayoutBoard(stage);
+    /* the thud, and the dust it throws up off the platform's face */
+    const thud=Math.max(90, Math.round(260/sp));
+    tw.style.setProperty('--thudDur', thud+'ms');
+    tw.classList.add('landed');
+    setTimeout(()=>{ try{ tw.classList.remove('landed'); }catch(e){} }, thud+40);
+    const r=tw.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+    const d=document.createElement('div');
+    d.className='skyDust';
+    const dd=Math.max(180, Math.round(520/sp));
+    d.style.setProperty('--dustDur', dd+'ms');
+    d.style.width=plat*0.9+'px'; d.style.height=plat*0.30+'px';
+    d.style.left=((r.left+r.right)/2-sr.left)+'px';
+    d.style.top=(r.bottom-sr.top-plat*0.10)+'px';
+    stage.appendChild(d);
+    setTimeout(()=>{ try{ d.remove(); }catch(e){} }, dd+60);
+  }, dur);
+}
 /* Hanging the plaque off the platform's left edge puts the innermost lane of the left V within a
    few pixels of the frame, and a three-digit garrison is wider than a two. So the fit is measured,
    not guessed: whatever the text, the plaque is pushed back inside the stage. */
@@ -13950,7 +14017,11 @@ function skyLayoutBoard(stage){
         el.style.height=th+'px';
         el.style.setProperty('--bobAmp', (th*0.045).toFixed(2)+'px');
         el.style.left=(pair[1].x/100*W)+'px';
-        el.style.top=(pair[1].y/100*H - plat*LIFT)+'px';
+        /* v709 - a tower that has fallen rests on its disc instead of hovering over it, and it is
+           the same 0.45 platform-widths it dropped through. Kept here so a resize cannot put a
+           burnt-out ruin back up in the air. */
+        const landed=el.classList.contains('down')?plat*0.45:0;
+        el.style.top=(pair[1].y/100*H - plat*LIFT + landed)+'px';
       }
     }
   }
@@ -14207,7 +14278,8 @@ async function skySimReplay(r){
         if(plat) plat.classList.add('down');
         /* the tower becomes its burning twin on the beat its last line dies - never before */
         const tw=stage.querySelector('#skyTower-'+side+'-'+lane);
-        if(tw && !tw.classList.contains('down')){ tw.classList.add('down'); tw.src=skyTowerArt(lane|0, true); } };
+        if(tw && !tw.classList.contains('down') && !tw.classList.contains('falling')) skyTowerFall(stage, tw, lane|0);
+      };
       if(e.aDown) drop(mine?'you':'foe', i);
       if(e.dDown) drop(mine?'foe':'you', i);
       if(e.captured||e.fell) fell(mine?'foe':'you', i);
@@ -21477,7 +21549,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789886407000';
+const BUILD_ID = '1789887607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
