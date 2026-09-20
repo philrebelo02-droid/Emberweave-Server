@@ -12329,7 +12329,7 @@ function fxFor(type,u,tgt,o){ o=o||{}; const T=(tgt&&tgt.alive)?tgt:u;
 }
 
 /* =============================== HUB / UI ================================= */
-const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','forge','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings','watchtower'];
+const SCREENS=['home','campaign','menu','glossary','tech','wall','world','online','account','arena','arenaShop','market','wishing','dungeon','forge','elite','guild','temple','heroesPanel','heroDetail','bag','settings','quest','signin','tutorial','skyisland','mail','result','shadymarket','rankings','watchtower','skyfall'];   /* v702: a screen NOT in this list is never deactivated by show(), so it stays painted over whatever comes next — which is why Base from the Guild Hall landed back on Skyfall */
 let state='home', detailHero=null, heroTab='stats', eqSlotSel=0, bagSel=null, menuReturn='campaign', teamCtx='campaign', skClipIdx=0;
 /* ==================== INTEGRITY DESK (dev only) ====================
    Phil's rule, 30 Aug: report, never roll back. A spike files a report; a human reads a week of the
@@ -21332,7 +21332,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789880407000';
+const BUILD_ID = '1789881607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
