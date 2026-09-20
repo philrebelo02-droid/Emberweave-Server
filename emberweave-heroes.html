@@ -14946,7 +14946,16 @@ function glOpenFrom(ret, label){ const b=document.querySelector('#glossary .back
 // ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
 function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
 function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?G.squads[k]:[]; const f=a.filter(x=>typeof x==='string'&&!!HERO_TYPES[x]); if(f.length!==a.length||G.squads[k]!==a) G.squads[k]=f; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
-function syncActiveSquad(){ const k=squadModeKey(); G.team=squadFor(k).slice(); }   // call right before a battle so all G.team readers use this mode's squad
+/* v665: a squad entry the player cannot pick (a hero they no longer own, or a key dropped from the
+   roster) still filled a slot - the screen showed 4 selected and refused the 5th, and the fight would
+   not start. Every read of a squad prunes to owned heroes and de-duplicates, so a stuck save heals. */
+function heroOwned(k){ return !!(k && HERO_TYPES[k] && G.unlocked && G.unlocked[k]); }
+function pruneSquadArr(arr){ if(!Array.isArray(arr)) return arr;
+  let w=0; const seen=Object.create(null);
+  for(let i=0;i<arr.length;i++){ const k=arr[i]; if(heroOwned(k) && !seen[k]){ seen[k]=1; arr[w++]=k; } }
+  if(w!==arr.length){ arr.length=w; try{ saveG(); }catch(e){} }
+  return arr; }
+function syncActiveSquad(){ const k=squadModeKey(); G.team=pruneSquadArr(squadFor(k)).slice(); }   // call right before a battle so all G.team readers use this mode's squad
 // Re-render the squad list WITHOUT losing your place: the list order is fixed (by power), so a pick
 // only repaints the highlight. Preserving scrollTop stops the list jumping under your thumb.
 /* Tap handling for the squad list, attached ONCE to the persistent #roster container.
@@ -15014,6 +15023,7 @@ function renderRoster(){
   const isWall = isWallCtx(teamCtx);
   const setDef = (isWall||teamCtx==='arena');   // defense contexts: no BATTLE button
   const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:(teamCtx==='arenaAtk'?squadFor('arenaAtk'):squadFor(squadModeKey())));
+  pruneSquadArr(teamArr);   /* v665: drop entries the roster cannot show, so the pick cap matches what you see */
   const wallTitle = isWall?('SET WALL — LINE '+WALL_NUM[teamCtx]):'';
   const isVault = !isWall && CUR.mode==='vault', pickCap = isVault?TEAM_SIZE*2:TEAM_SIZE;   // The Vault: 5 fighters + up to 5 backups
   document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':(CUR.mode==='campaign'?'STAGE '+stageCode(CUR.node):(isVault?'THE VAULT — 5 FIGHT + 5 BACKUP':'CHOOSE YOUR SQUAD')))));
@@ -20108,7 +20118,9 @@ document.getElementById('startBtn').onclick=async()=>{
      flag + button disable; the landing re-checks the screen and stage before starting. */
   if(_startBusy) return; _startBusy=true;
   const _sb=document.getElementById('startBtn'); if(_sb) _sb.disabled=true;
-  try{ await _startBtnGo(_startCtx()); }catch(e){ console.error('startBtn',e); }
+  try{ await _startBtnGo(_startCtx()); }
+  catch(e){ console.error('startBtn',e);   /* v665: a throw here used to leave a gold button doing nothing at all */
+    try{ bannerMsg('Could not start the fight — '+((e&&e.message)||'unknown error')); }catch(_){} }
   finally{ _startBusy=false; if(_sb) _sb.disabled=false; }
 };
 async function _startBtnGo(_ctx){
@@ -20347,7 +20359,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789850407000';
+const BUILD_ID = '1789851607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
