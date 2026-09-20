@@ -1335,9 +1335,6 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBridge{position:absolute;transform-origin:0 50%;z-index:1;pointer-events:none;
   background-repeat:repeat-x;background-size:auto 100%;
   filter:drop-shadow(0 5px 8px rgba(0,0,0,.4));}
-.skyLaneLbl{position:absolute;transform:translate(-50%,-50%);z-index:3;pointer-events:none;
-  font-size:9px;font-weight:800;letter-spacing:.3px;white-space:nowrap;
-  color:#fff4d6;text-shadow:0 1px 3px #000,0 0 6px #000;}
 .skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:0;overflow:hidden;
   background-size:cover;background-position:center;
   border-style:solid;border-color:transparent;border-width:7px;
@@ -1393,8 +1390,17 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 @keyframes skyClashSpin{0%,100%{transform:rotate(-13deg) scale(1)}50%{transform:rotate(13deg) scale(1.13)}}
 /* v712 - ONE CLASH PER LANE, on its own bridge's midpoint. The old single .skyClash sat in the
    middle of the stage, which is not where any of the five fights happen. */
+/* v715 (Phil: "the dotted lines and swords shouldnt appear until march stage") - a board in PREP
+   was showing march lines and crossed swords before a single line had moved, which says a war is
+   happening when none is. They are built with the lane and hidden until the stage says MARCH. */
+.skyMarchLine,.skyLaneClash{display:none;}
+.skyStage.marching .skyMarchLine{display:block;}
+.skyStage.marching .skyLaneClash{display:flex;}
+/* NB: no display here. It is owned by the pair of rules above - a display:flex left in this block
+   would sit AFTER the hide rule at the same specificity and win, which is exactly why the swords
+   were still on the board all through PREP. */
 .skyLaneClash{position:absolute;transform:translate(-50%,-50%);z-index:6;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  align-items:center;justify-content:center;cursor:pointer;
   border:0;background:none;padding:0;opacity:.62;transition:opacity .18s,filter .18s;}
 .skyLaneClash:hover{opacity:1;}
 .skyLaneClash.hot{opacity:1;}
@@ -13826,9 +13832,10 @@ function skyBoardHTML(r, opts){
         return lane+plat(L.a,'mine','you:'+L.i,yc)+plat(L.b,'foe','foe:'+L.i,fc)
           +twr(yc,'mine','you:'+L.i,'you')+twr(fc,'foe','foe:'+L.i,'foe')
           +garr(yc,L.a,'mine','you')+garr(fc,L.b,'foe','foe')
-          /* v712 - the name comes off the midpoint, because the midpoint is now where the two
-             lines actually meet and the swords go there. */
-          +`<div class="skyLaneLbl" id="skyLL-${L.i}" style="left:${L.mid.x}%;top:${L.mid.y}%;color:#ffe9b8">${escapeHTML((yc&&yc.name)||('Lane '+(L.i+1)))}</div>`;
+          /* v715 (Phil: "can remove the names of the towers from the center") - the bridge carries
+             no name at all now. The tower it belongs to is the label, and tapping the swords says
+             which lane you are looking at. */
+          ;
       }).join('')}
       <div class="skyHud">
         <div class="skyStatus">
@@ -13875,13 +13882,18 @@ function skyWireBoard(stage, r){
       window._skyClockT=setInterval(()=>{ const e=document.getElementById('skyClock');
         if(!e){ clearInterval(window._skyClockT); window._skyClockT=null; return; }
         e.textContent=new Date().toLocaleTimeString(); }, 1000); } }
-  /* anyone may read a tower; only an officer in PREP is offered the move controls */
+  /* Anyone may read a tower. Moving lines is PREP only either way - once the march begins the
+     lines are committed - but who may do it depends on where you are: a live war needs an officer,
+     which is Phil's rule, and a simulator has no officers to be, so there prep alone is the gate.
+     v716 (Phil: "during prep stage i should be able to edit team / click on the towers and move
+     peoples tower lines to the tower i choose"). */
   stage.querySelectorAll('.skyPlat,.skyTower').forEach(p=>{ p.onclick=()=>{
     const [side,i]=(p.dataset.key||'').split(':');
     const isPrep = !SKYSIM.marching;
+    const sandbox = !!(SKYSIM && SKYSIM.running);
     let officer=false;
     try{ officer = !!(GUILD && (GUILD.youLeader || GUILD.youOfficer)); }catch(e){ officer=false; }
-    skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && officer, live:false}); }; });
+    skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && (sandbox || officer), live:false}); }; });
 }
 /* v697 - THE SKYFALL SCREEN. Draws the board from whatever war data is to hand: the live
    tournament when the guild is in one, otherwise an empty board so the screen is still readable.
@@ -13913,8 +13925,11 @@ function skyTowerPanel(stage, side, lane, data, opts){
      what is read here is what will happen. */
   const byMember={};
   for(const d of (c.defenders||[])){
-    const k=String(d.memberId||d.name||'?');
-    (byMember[k]=byMember[k]||{key:k, name:(d.name||'').replace(/\s*\u00b7\s*line\s*\d+\s*$/i,''), you:!!d.you, total:0, lines:[]});
+    /* v716 - the KEY drops the " \u00b7 line 2" suffix too, not just the name shown. The simulator
+       sends no memberId, so keying on the raw name made one player holding three lines look like
+       three players holding one - and "move all his lines" had nothing to move all of. */
+    const k=String(d.memberId||skyOwnerOf(d)||'?');
+    (byMember[k]=byMember[k]||{key:k, name:skyOwnerOf(d), you:!!d.you, total:0, lines:[]});
     byMember[k].total+=(d.power|0); byMember[k].lines.push(d);
   }
   const players=Object.values(byMember).sort((a,b)=> a.total-b.total || (a.key<b.key?-1:1));
@@ -13935,8 +13950,10 @@ function skyTowerPanel(stage, side, lane, data, opts){
         const head='<div class="skyPlayerHd"><span class="ord">'+(pi+1)+'</span>'
           +'<span class="who">'+escapeHTML(p.name||p.key)+'</span>'
           +'<span class="tot" title="total power of all their lines">\u2694'+p.total.toLocaleString()+'</span></div>';
-        const rows=p.lines.map(d=>'<div class="skyLine'+(d.alive?'':' down')+'">'
-          +'<span class="nm">'+(d.alive?'':'\u2620 ')+'line '+((d.line|0)+1)+'</span>'
+        /* v716 - number the lines by their place in THIS player's set. The simulator's
+           defenders carry no line index, so (d.line|0)+1 printed "line 1" on every row. */
+        const rows=p.lines.map((d,li)=>'<div class="skyLine'+(d.alive?'':' down')+'">'
+          +'<span class="nm">'+(d.alive?'':'\u2620 ')+'line '+((typeof d.line==='number')?(d.line+1):(li+1))+'</span>'
           +'<span style="flex:none;color:#ffbf69">\u2694'+((d.power|0).toLocaleString())+'</span>'
           +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+((d.hpPct|0))+'%</span>'
           +'<span style="flex:none;width:26px;text-align:right;color:#c9b78d" title="kills banked">'+((d.kills|0))+'/5</span>'
@@ -13956,10 +13973,44 @@ function skyTowerPanel(stage, side, lane, data, opts){
      assign route carries every line that member owns across intact. */
   el.querySelectorAll('[data-mv]').forEach(b=>{ b.onclick=async()=>{
     const who=b.dataset.mv, to=+b.dataset.lane;
-    if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); }
-    else bannerMsg('All of their lines move to lane '+(to+1)+' \u2014 sandbox only, nothing is recorded.');
-    el.remove(); }; });
+    if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); el.remove(); return; }
+    /* v716 - the sandbox moves them for real. It is the same rule as the live route: every line
+       that member owns travels together. */
+    const n=skyMoveMember(data, side, lane|0, to, who);
+    el.remove();
+    if(!n){ bannerMsg('There was nothing of theirs left in that tower.'); return; }
+    const nm=((((side==='foe'?data.foe:data.you)||{}).citadels||[])[to]||{}).name||('lane '+(to+1));
+    bannerMsg('\u2694 '+n+' line'+(n===1?'':'s')+' move to '+nm+'.');
+    renderSkyfall(data);
+    const st2=document.getElementById('skyStage');
+    if(st2) skyTowerPanel(st2, side, to, data, opts); }; });
   return el;
+}
+/* v716 - who owns a line. The simulator names its defenders "Somebody \u00b7 line 2", so the owner is
+   the name with that suffix taken off; a live war has a memberId and does not need this. */
+function skyOwnerOf(d){ return String((d&&d.name)||'').replace(/\s*\u00b7\s*line\s*\d+\s*$/i,'') || '?'; }
+/* v716 (Phil: "click on the towers and move peoples tower lines to the tower i choose") - the move
+   itself. Every line that member holds in this tower goes to the chosen one, both towers are
+   recounted, and the board is redrawn from the data that was just changed - so the numbers on the
+   discs are the numbers you made. Prep only: once the march starts the lines are committed. */
+function skyMoveMember(r, side, fromLane, toLane, key){
+  if(!r||fromLane===toLane) return 0;
+  const cits=((side==='foe'?r.foe:r.you)||{}).citadels||[];
+  const from=cits[fromLane], to=cits[toLane];
+  if(!from||!to) return 0;
+  const owns=d=>String(d.memberId||skyOwnerOf(d))===String(key);
+  const moving=(from.defenders||[]).filter(owns);
+  if(!moving.length) return 0;
+  from.defenders=(from.defenders||[]).filter(d=>!owns(d));
+  to.defenders=(to.defenders||[]).concat(moving);
+  for(const c of [from,to]){
+    c.total=(c.defenders||[]).length;
+    c.alive=(c.defenders||[]).filter(d=>d.alive!==false).length;
+    /* a tower nobody holds is not a fallen tower - it is an open one, and the war engine treats it
+       that way. Moving the last line out must not paint it as destroyed. */
+    if(c.total>0) c.destroyed=false;
+  }
+  return moving.length;
 }
 /* The count reads "12<i>/20</i>" - lines standing in full serif, the garrison it was in dimmer
    behind the slash, so the number that matters is the one the eye lands on. */
@@ -14020,8 +14071,18 @@ function skyGarFit(el){ if(!el) return;
   const over=(sr.left+3)-r.left;
   if(over>0) el.style.marginLeft=over+'px';
 }
+/* v715 - the march furniture is only on the board while the board is marching. One place decides
+   it, so nothing can leave a dotted line behind after a war ends. */
+function skyMarchVis(stage){
+  if(!stage) return;
+  let on=false;
+  try{ on = !!(SKYSIM && SKYSIM.marching); }catch(e){ on=false; }
+  stage.classList.toggle('marching', on);
+  if(!on) stage.querySelectorAll('.skyMarchLine.hot,.skyLaneClash.hot').forEach(el=>el.classList.remove('hot'));
+}
 function skyLayoutBoard(stage){
   if(!stage) return;
+  skyMarchVis(stage);
   const W=stage.clientWidth, H=stage.clientHeight;
   if(!W||!H) return;
   for(const L of skyLanes()){
@@ -14069,21 +14130,14 @@ function skyLayoutBoard(stage){
      is not a knowable percentage of the height and a line hung by percentages misses the bridge. */
   { const plat=SKY_PLAT_R/100*W;
     /* The five midpoints are 41-50px apart on a phone, so a clash much bigger than this starts
-       touching the lanes either side of it. */
-    const cs=Math.max(24, plat*0.58);
+       touching the lanes either side of it. v715: 20% smaller again, at Phil's word. */
+    const cs=Math.max(20, plat*0.58*0.80);
     for(const L of skyLanes()){
       const mx=L.mid.x/100*W, my=L.mid.y/100*H;
       const lc=stage.querySelector('#skyLC-'+L.i);
       if(lc){ lc.style.width=cs+'px'; lc.style.height=cs+'px';
               lc.style.left=mx+'px'; lc.style.top=my+'px'; }
-      /* the name comes off the midpoint and sits above the swords, clear of the bridge */
-      const ll=stage.querySelector('#skyLL-'+L.i);
-      /* v714b - the name cannot go above its own midpoint: the lanes are closer together than the
-         clash is wide, so it would land on the lane above's swords. It goes a quarter of the way
-         along its own bridge instead, where the span is empty, and lifts just clear of the deck. */
-      if(ll){ const ax=L.a.x/100*W, ay=L.a.y/100*H;
-              ll.style.left=(ax+(mx-ax)*0.52)+'px';
-              ll.style.top=(ay+(my-ay)*0.52-11)+'px'; }
+
       for(const pair of [['you',L.a],['foe',L.b]]){
         const el=stage.querySelector('#skyML-'+pair[0]+'-'+L.i); if(!el) continue;
         const px=pair[1].x/100*W, py=pair[1].y/100*H;
@@ -14144,7 +14198,26 @@ function skyLiveTally(r, upto){
   return t; }
 function skyHubRender(){
   const hub=document.getElementById('skyHub'), r=SKYSIM.view||SKYSIM.r; if(!hub||!r) return;
-  const tab=SKYSIM.hubTab||'live', i=(typeof SKYSIM.cur==='number')?SKYSIM.cur:(r.log.length-1);
+  const tab=SKYSIM.hubTab||'live';
+  /* v715 (Phil: "each sword should have its own lane report") - the hub belongs to whichever lane's
+     swords were tapped. Everything below is filtered to it: its fights, its records, and the lines
+     still standing in its own two towers. A null lane keeps the old whole-board view, which is what
+     anything that opens the hub without naming a lane still gets. */
+  const LANE=(typeof SKYSIM.hubLane==='number')?SKYSIM.hubLane:null;
+  const inLane=e=>LANE===null||((e.lane|0)===LANE);
+  const laneLog=r.log.filter(inLane);
+  /* the war's clock is SKYSIM.cur, an index into the WHOLE log; this lane's clock is the last of
+     its own fights that has happened by then. With five lanes running side by side those are not
+     the same fight, and showing the war's would be showing another lane's. */
+  const cutoff=(typeof SKYSIM.cur==='number')?SKYSIM.cur:(r.log.length-1);
+  let i=-1;
+  for(let k=0;k<r.log.length && k<=cutoff;k++) if(inLane(r.log[k])) i=k;
+  if(i<0) i=cutoff;
+  const laneName=(()=>{ try{
+      const c=((r.you||{}).citadels||[])[LANE]; if(c&&c.name) return c.name;
+      const e=laneLog[0]; if(e&&e.laneName) return e.laneName;
+    }catch(err){}
+    return LANE===null?'THE BRIDGE':('Lane '+((LANE|0)+1)); })();
   const MAXF=5;
   const side=e=>e.side==='A'?'skySideA':'skySideB';
   const fightRow=(e,live)=>{
@@ -14190,15 +14263,21 @@ function skyHubRender(){
           +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+(x.hp|0)+'%</span>'
           +'<span style="flex:none;width:34px;text-align:right;color:'+(x.kills>=MAXF?'#ffd45e':'#c9b78d')+'" title="kills banked">'+x.kills+'/'+MAXF+'</span></div>').join('')
           :'<div style="font-size:10px;color:#8b98a9;padding:6px 2px">Nothing left standing.</div>'); };
-    body+=stand((r.you||{}).citadels,'skySideA','YOUR SIDE')+stand((r.foe||{}).citadels,'skySideB','BOT GUILD');
+    const mine=(r.you||{}).citadels||[], theirs=(r.foe||{}).citadels||[];
+    const only=cits=>LANE===null?cits:cits.filter((c,ci)=>ci===LANE);
+    body+=stand(only(mine),'skySideA','YOUR SIDE')+stand(only(theirs),'skySideB','BOT GUILD');
   } else {
-    const past=r.log.slice(0,i+1).reverse();   /* Phil: "from more recent down to last at the bottom" */
+    const past=r.log.slice(0,i+1).filter(inLane).reverse();   /* Phil: "from more recent down to last at the bottom" */
     body+=past.length?past.map(e=>fightRow(e,false)).join('')
       :'<div style="font-size:10.5px;color:#8b98a9;text-align:center;padding:14px 0">No fights yet.</div>';
   }
-  hub.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
-    +'<b style="font-size:12px;color:#ffe9b8">\u2694 THE BRIDGE</b>'
-    +'<button class="btn xs secondary" style="font-size:9px" onclick="skyClashOpen()">close</button></div>'
+  /* the board carries no lane names any more, so the title is where you find out which lane you
+     tapped - and whether it is still fighting. */
+  const live=!!SKYSIM.marching && LANE!==null && laneLog.some(e=>r.log.indexOf(e)>i);
+  hub.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+    +'<b style="font-size:12px;color:#ffe9b8;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\u2694 '
+      +escapeHTML(laneName)+(LANE===null?'':(live?' \u2014 in battle':' \u2014 lane report'))+'</b>'
+    +'<button class="btn xs secondary" style="font-size:9px;flex:none" onclick="skyClashOpen('+(LANE===null?'':LANE)+')">close</button></div>'
     +'<div class="skyHubTabs"><button class="'+(tab==='live'?'on':'')+'" onclick="skyHubTab(\'live\')">Live</button>'
     +'<button class="'+(tab==='records'?'on':'')+'" onclick="skyHubTab(\'records\')">Records</button></div>'
     +'<div class="skyHubBody">'+body+'</div>'; }
@@ -14327,12 +14406,13 @@ async function skySimReplay(r){
       const bb=document.createElement('button');
       bb.className='btn skyBegin';
       bb.textContent='\uD83D\uDEA9 Begin the march';
-      bb.onclick=()=>{ SKYSIM.marching=true; bb.remove(); };
+      bb.onclick=()=>{ SKYSIM.marching=true; bb.remove(); skyMarchVis(stage); };
       stage.appendChild(bb); }
     SKYSIM.marching=false;
     for(let w=0; w<3000 && !SKYSIM.marching && !stopped(); w++) await new Promise(d=>setTimeout(d,60));
     SKYSIM.marching=true;
     { const bb=stage.querySelector('.skyBegin'); if(bb) bb.remove(); }
+    skyMarchVis(stage);
   }
   if(stopped()) return;
   const ph=document.getElementById('skyPhase');
@@ -21669,7 +21749,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789891207000';
+const BUILD_ID = '1789893607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
