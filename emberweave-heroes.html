@@ -1613,6 +1613,25 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyLFRow .pw{flex:none;font-size:9px;font-weight:800;color:#ffbf69;}
 .skyLFRow .nx{flex:none;font-size:7.5px;font-weight:800;color:#ffd45e;letter-spacing:.3px;}
 .skyLFEmpty{font-size:9.5px;color:#8b98a9;padding:8px 2px;text-align:center;}
+/* v761b - a tower's line, drawn like the live fight's row: portrait, level, five cards, power */
+.skyTwLine{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:7px;margin-bottom:3px;
+  background:rgba(16,22,34,.85);border:1px solid #2a3550;}
+.skyTwLine.down{opacity:.45;}
+.skyTwLine .who{flex:none;width:58px;min-width:0;display:flex;align-items:center;gap:4px;}
+.skyTwLine .av{position:relative;flex:none;width:26px;height:26px;border-radius:50%;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,205,110,.5);}
+.skyTwLine .av>.ascw{width:100%!important;height:100%!important;border-radius:50%!important;}
+.skyTwLine .lbl{min-width:0;line-height:1.15;}
+.skyTwLine .lbl .n{display:block;font-size:8.5px;color:#c9b78d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyTwLine .lbl .lv{display:block;font-size:8px;color:#ffbf69;font-weight:800;}
+.skyTwCards{flex:1;min-width:0;display:flex;gap:3px;}
+.skyTwCard{position:relative;flex:0 0 30px;width:30px;aspect-ratio:1;}
+.skyTwCard>.ascw{width:100%!important;height:100%!important;border-radius:6px!important;}
+.skyTwCard .clv{position:absolute;left:1px;top:1px;z-index:4;padding:0 2px;border-radius:3px;
+  background:rgba(6,9,15,.88);color:#ffe9b8;font-size:7px;font-weight:800;line-height:1.3;}
+.skyTwMeta{flex:none;text-align:right;line-height:1.2;}
+.skyTwMeta .pw{display:block;font-size:9.5px;font-weight:800;color:#ffbf69;}
+.skyTwMeta .sub{display:block;font-size:8px;color:#8b98a9;}
 /* v747 - clear the Guild button, which overlaps the hub's corner now that it is full width */
 .skyHubHd{padding-left:92px;}
 /* v746c - a waiting row opens to show its five heroes */
@@ -14335,9 +14354,21 @@ function skyTowerPanel(stage, side, lane, data, opts){
      state after the LAST march of the war, so reading it mid-war shows the ending. skyLiveTally
      replays the log up to the fight that has actually happened, which is what the lane report
      already does, so the two can never disagree. */
-  const tally=(function(){ try{ return skyLiveTally(data, (typeof SKYSIM.cur==='number')?SKYSIM.cur:((data.log||[]).length-1)); }catch(e){ return {}; } })();
+  /* v761 (Phil: "the tower is meant to show all the lines left for allies") - THIS LANE'S CLOCK.
+     This read SKYSIM.cur, the war-wide cursor, which is whichever fight started most recently
+     ANYWHERE; the five lanes do not keep step, so a lane that was behind had its tally replayed
+     past its own position over other lanes' fights, and its own lines were counted dead before it
+     had reached the entry that killed them. The tower then hid lines that were still standing -
+     "1/12" under a disc reading 2/12. Same fault as v748 in the lane report, in the place that was
+     missed. The replay records each lane's own cursor; the war-wide one is only a fallback for a
+     lane that has not marched yet. */
+  /* v761b - the cutoff is needed twice: once for who is standing, once for the hero levels, and
+     they must be the SAME point in the log or the panel would read levels from a fight this lane
+     has not played yet. */
+  const tallyUpto=skyLaneCutoff(data, lane);
+  const tally=(function(){ try{ return skyLiveTally(data, tallyUpto); }catch(e){ return {}; } })();
   const liveOf=d=>{ const t=tally[d&&d.name];
-    if(!t) return {alive:d?(d.alive!==false):true, hp:(d&&d.hpPct!=null)?d.hpPct:100, kills:(d&&d.kills)|0};
+    if(!t) return {alive:skyLineAlive(d, tally), hp:(d&&d.hpPct!=null)?d.hpPct:100, kills:(d&&d.kills)|0};
     return {alive:!t.dead, hp:t.hp, kills:t.kills|0}; };
   let standing=0;
   const byMember={};
@@ -14367,12 +14398,35 @@ function skyTowerPanel(stage, side, lane, data, opts){
           +'<span class="tot" title="total power of all their lines">\u2694'+p.total.toLocaleString()+'</span></div>';
         /* v716 - number the lines by their place in THIS player's set. The simulator's
            defenders carry no line index, so (d.line|0)+1 printed "line 1" on every row. */
-        const rows=p.lines.map((d,li)=>'<div class="skyLine'+(d.alive?'':' down')+'">'
-          +'<span class="nm">'+(d.alive?'':'\u2620 ')+'line '+((typeof d.line==='number')?(d.line+1):(li+1))+'</span>'
-          +'<span style="flex:none;color:#ffbf69">\u2694'+((d.power|0).toLocaleString())+'</span>'
-          +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+((d.hpPct|0))+'%</span>'
-          +'<span style="flex:none;width:26px;text-align:right;color:#c9b78d" title="kills banked">'+((d.kills|0))+'/5</span>'
-          +'</div>').join('');
+        /* v761b (Phil: "it should show heroe card like this with power") - the live fight's row.
+           Cards come from the citadel's own hero KEYS so a line that has never fought still draws;
+           levels come from the log where that line HAS fought (aTeam/dTeam carry {k,l,s}) and are
+           left off until there is a real number, exactly as the waiting-troop rows do. */
+        const lvlsFor=(nm)=>{ try{ const lg=(data.log)||[];
+            for(let k=Math.min(tallyUpto, lg.length-1); k>=0; k--){ const x=lg[k]; if(!x) continue;
+              if(x.a===nm && x.aTeam && x.aTeam.length) return x.aTeam;
+              if(x.d===nm && x.dTeam && x.dTeam.length) return x.dTeam; } }catch(e){}
+          return null; };
+        const rows=p.lines.map((d,li)=>{
+          const team=lvlsFor(d.name);
+          const keys=((d.heroes)||[]).slice(0,5);
+          const list = (team && team.length) ? team.slice(0,5).map(h=>({k:h.k,l:h.l|0}))
+                     : keys.map(k=>({k:k,l:0}));
+          const lead=(list[0]||{}).k||null;
+          const topLv=list.reduce((m,h)=>Math.max(m,h.l|0),0);
+          const cards=list.length
+            ? list.map(h=>'<div class="skyTwCard">'+heroIcon(h.k,30)
+                +(h.l?('<span class="clv">'+h.l+'</span>'):'')+'</div>').join('')
+            : '<span style="font-size:8.5px;color:#8b98a9;align-self:center">no line-up recorded</span>';
+          return '<div class="skyTwLine'+(d.alive?'':' down')+'">'
+            +'<div class="who"><span class="av">'+(lead?heroIcon(lead,26):'')+'</span>'
+              +'<span class="lbl"><span class="n">'+(d.alive?'':'\u2620 ')
+                +'line '+((typeof d.line==='number')?(d.line+1):(li+1))+'</span>'
+              +(topLv?('<span class="lv">Lv'+topLv+'</span>'):'')+'</span></div>'
+            +'<div class="skyTwCards">'+cards+'</div>'
+            +'<div class="skyTwMeta"><span class="pw">\u2694'+((d.power|0).toLocaleString())+'</span>'
+              +'<span class="sub">'+((d.hpPct|0))+'% \u00b7 '+((d.kills|0))+'/5</span></div>'
+          +'</div>'; }).join('');
         let mv='';
         if(canMove){
           mv='<div class="skyMoveRow"><span style="font-size:9px;color:#8b98a9;align-self:center">move all to</span>';
@@ -15004,6 +15058,65 @@ function skyStageNow(){
   let m=null; try{ m=(typeof SKY!=='undefined'&&SKY.st&&SKY.st.match)||null; }catch(e){}
   if(!m) return 'PREP';
   return m.state==='live' ? 'MARCH' : (m.state==='finished' ? 'DONE' : 'PREP');
+}
+/* v761d - HOW FAR THIS LANE HAS ACTUALLY GOT. laneCur is the entry a lane is CURRENTLY PLAYING,
+   so counting up to and including it counts the death in a fight still being watched - a line
+   would leave its tower before the board played it, which is the standing rule broken and is the
+   one-line disagreement between a panel and its disc. laneDone already says whether that entry has
+   resolved (v747/v748), so while it has not, the count stops at the entry before.
+   Everything that reads the war's state mid-replay goes through here, which is what keeps the disc
+   and the tower panel identical: they are the same calculation over the same prefix. */
+/* v761e - IS THIS LINE STILL STANDING? While a replay is running the log is the truth and it is
+   complete, so a line that no PLAYED entry has killed is alive. Falling back to d.alive there reads
+   the state after the last march of the whole war - the ending - which is the very thing v723 took
+   out of the tower panel. Outside a replay there is no march to follow and d.alive is all there is. */
+function skyLineAlive(d, tally){
+  const t=tally && tally[d&&d.name];
+  if(t) return !t.dead;
+  try{ if(SKYSIM && SKYSIM.running) return true; }catch(e){}
+  return d ? (d.alive!==false) : true;
+}
+function skyLaneCutoff(r, lane){
+  try{
+    const cur=(SKYSIM.laneCur||{})[lane|0];
+    if(typeof cur==='number' && cur>=0){
+      const done=(SKYSIM.laneDone||{})[lane|0];
+      return (done===false) ? (cur-1) : cur;
+    }
+  }catch(e){}
+  /* v761d - A LANE THAT HAS NOT MARCHED HAS SEEN NOTHING. Falling back to the end of the log here
+     counted the WHOLE war for a lane that had not started, so a tower showed its final garrison
+     before a single line had moved - the ending, revealed on the opening frame. While a replay is
+     running that lane's cutoff is -1; only outside a replay, where there is no march to follow, is
+     the full log the right answer. */
+  try{ if(SKYSIM && SKYSIM.running) return -1; }catch(e){}
+  try{ return (((r&&r.log)||[]).length-1); }
+  catch(e){ return -1; }
+}
+/* v761c - THE GARRISON DISCS, READ RATHER THAN COUNTED.
+   The discs used to be a running total: one drop() per death, decrementing a number in a data
+   attribute. Measured on a live war, lane 2 had 5 lines, 5 played entries containing 5 deaths, and
+   a disc still claiming 1 alive - a single missed decrement is permanent, because nothing ever
+   re-reads the truth. This recomputes both of a lane's discs from skyLiveTally at that lane's own
+   cursor: the same function, cutoff and log prefix the tower panel uses, so the disc and the panel
+   are the same calculation and cannot drift apart. */
+function skyGarSync(stage, r, lane){
+  if(!stage||!r) return;
+  try{
+    const tal=skyLiveTally(r, skyLaneCutoff(r, lane));
+    for(const side of ['you','foe']){
+      const cit=(((side==='you'?r.you:r.foe)||{}).citadels||[])[lane|0]; if(!cit) continue;
+      const defs=cit.defenders||[];
+      let alive=0;
+      for(const d of defs){ if(skyLineAlive(d, tal)) alive++; }
+      const el=stage.querySelector('#skyGar-'+side+'-'+(lane|0)); if(!el) continue;
+      const tot=(+el.dataset.total)|0 || defs.length;
+      if((+el.dataset.alive|0)===alive) continue;          /* nothing to redraw */
+      el.dataset.alive=alive;
+      if(alive<=0) el.classList.add('fallen');
+      el.innerHTML=skyGarText(alive,tot); skyGarFit(el);
+    }
+  }catch(e){}
 }
 /* v715 - the march furniture is only on the board while the board is marching. One place decides
    it, so nothing can leave a dotted line behind after a war ends. */
@@ -15778,6 +15891,9 @@ async function skySimReplay(r){
         };
         if(e.aDown) drop(mine?'you':'foe', i);
         if(e.dDown) drop(mine?'foe':'you', i);
+        /* v761c - and then the two discs are READ back from the log, so a decrement that was
+           skipped for any reason cannot leave the board permanently out by one. */
+        skyGarSync(stage, r, i);
         if(e.captured||e.fell) fell(mine?'foe':'you', i);
         /* v754 - the attacker's own citadel can be the one that empties. Without its own flag the
            board cannot tell which of the two towers went down, and the one at 0/12 stayed up. */
@@ -23099,7 +23215,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789924807000';
+const BUILD_ID = '1789926007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
