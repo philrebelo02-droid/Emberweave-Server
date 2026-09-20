@@ -14061,6 +14061,9 @@ let SKY={ st:null, busy:false, assignSel:null, lane:null };   // lane = bridge v
    dimmed, 💥). The roster rows stay as supporting UI, as specified. */
 const SKY_BRIDGE_BG='/assets/img/battlefields/guild-war-skybridge-01.webp';
 function skyOpenLane(i){ SKY.lane=(SKY.lane===i?null:i); renderGuild(); }
+/* v774 - lines read weakest to strongest, top to bottom, wherever they are listed. */
+function skyByPower(defs){ return (defs||[]).slice()
+  .sort((a,b)=>(((a.power|0)-(b.power|0)) || ((a.line|0)-(b.line|0)))); }
 function skyBridgeHTML(m,i){
   const lanes=m.lanes||[], you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
   const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
@@ -14070,7 +14073,7 @@ function skyBridgeHTML(m,i){
     return `<div style="position:absolute;top:6%;${mine?'left:3%':'right:3%'};width:31%;text-align:${mine?'left':'right'}">
       <div style="font-size:26px;display:inline-block;${dead?'transform:rotate('+(mine?'-14':'14')+'deg) translateY(9px);opacity:.55;filter:grayscale(.7)':''}">${dead?'💥':''}🏰</div>
       <div style="font-size:10px;font-weight:800;color:${dead?'#ff8b8b':(mine?'#5ee89b':'#ff8b8b')};text-shadow:0 1px 3px #000">${dead?'FALLEN — ':''}${mine?'YOUR':'ENEMY'} ${escapeHTML(lanes[i]?lanes[i].name:'')}</div>
-      ${(c?c.defenders:[]).map(d=>chip(d,mine)).join('')||'<div style="font-size:9px;color:#999;text-shadow:0 1px 2px #000">— undefended —</div>'}
+      ${skyByPower(c?c.defenders:[]).map(d=>chip(d,mine)).join('')||'<div style="font-size:9px;color:#999;text-shadow:0 1px 2px #000">— undefended —</div>'}
     </div>`; };
   return `<div class="panel" style="padding:0;overflow:hidden">
     <div style="position:relative;width:100%;aspect-ratio:16/9;background:url('${SKY_BRIDGE_BG}') center/cover;border-radius:10px">
@@ -14133,7 +14136,7 @@ function skyMatchHTML(m, canOfficer){
   const lanes=m.lanes||[];
   const laneRow=(i)=>{
     const you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
-    const defHTML=(c,mine)=>c?c.defenders.map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?'🛡':'💀'} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+d.assaultsLeft+' orders)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
+    const defHTML=(c,mine)=>c?skyByPower(c.defenders).map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?'🛡':'💀'} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+d.assaultsLeft+' orders)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
     const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
     return `<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:6px">
       <div style="flex:1;background:${you&&you.destroyed?'#1a0f0f':'#0f1a14'};border:1px solid ${you&&you.destroyed?'#5a2b2b':'#2b7a55'};border-radius:8px;padding:5px 7px;${you&&you.destroyed?'opacity:.55':''}">${you&&you.destroyed?'💥 ':''}${defHTML(you,true)}</div>
@@ -14461,7 +14464,9 @@ function skyTowerPanel(stage, side, lane, data, opts){
     byMember[k].total+=(d.power|0); byMember[k].lines.push(d);
   }
   const players=Object.values(byMember).sort((a,b)=> a.total-b.total || (a.key<b.key?-1:1));
-  for(const p of players) p.lines.sort((x,y)=>(x.line|0)-(y.line|0));
+  /* v774 - by POWER, not by line index. Weakest at the top is the order the tower fights in, so
+     the top of a player's list is the line that steps up next. */
+  for(const p of players) p.lines.sort((x,y)=>((x.power|0)-(y.power|0)) || ((x.line|0)-(y.line|0)));
   const canMove = !!opts.canMove && side==='you';
   const L=skyLanes()[lane]||{a:{x:50,y:50}};
   const onLeft = L.a.x < 50;
@@ -14496,7 +14501,8 @@ function skyTowerPanel(stage, side, lane, data, opts){
     /* v772 - NEVER RETURN NOTHING. With no match running the board has no list of your lines, and
        hiding the control there is hiding it exactly when it is being looked for. The rows are shown
        when they are known; the button is shown always and the server answers why if it cannot. */
-    mineLines.sort((x,y)=>(x.line|0)-(y.line|0));
+    /* v774 - weakest first here too, so your own lines read in the order they will fight */
+    mineLines.sort((x,y)=>((x.power|0)-(y.power|0)) || ((x.line|0)-(y.line|0)));
     const away=mineLines.length?mineLines.filter(x=>x.at!==(lane|0)).length:1;
     /* v764d - your lines are LISTED so you can see where they stand, but they move together:
        one button, all of them. Splitting a player across towers is not a thing. */
@@ -15102,7 +15108,16 @@ function skyTeamBodyHTML(){
   }
 
   /* ---- the list of lines ---- */
-  const rows=SKYTEAM.lines.map((L,i)=>{
+  /* v774 - weakest at the top. The server deals heroes strongest-first, so the stored order put
+     the strongest line at the top of the one screen where lines are built - backwards.
+     SKYTEAM.lines is the array that gets POSTed and its ORDER becomes each line's index on the
+     server, so sorting the array itself would renumber a player's lines every time they opened
+     this screen. It is sorted for DISPLAY only, and every row keeps its ORIGINAL index so Adjust
+     and Disband still act on the line the player pointed at. */
+  const order=SKYTEAM.lines.map((L,i)=>i)
+    .sort((a,b)=>(skyTeamPower(SKYTEAM.lines[a])-skyTeamPower(SKYTEAM.lines[b])) || (a-b));
+  const rows=order.map((i)=>{
+    const L=SKYTEAM.lines[i];
     const keys=L.slice(0,5); while(keys.length<5) keys.push(null);
     return '<div class="skyTroop you'+(i===SKYTEAM.sel?' sel':'')+'" data-i="'+i+'">'
       +'<div class="skyTroopPw"><span class="lbl">POWER</span><span class="val">'
@@ -23652,7 +23667,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789934407000';
+const BUILD_ID = '1789935607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -1720,7 +1720,9 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
        expands into ALL of that member's lines; `seen` stops one being hydrated twice if a member
        somehow sits in two citadels. */
     const seen=new Set();
-    const hydrate=(L)=>({ memberId:L.memberId, line:L.line|0, name:L.name,
+    /* v774 - `power` comes along. The client orders every list of lines weakest-to-strongest by
+       it, and dropping it here made that sort a no-op in every real war. */
+    const hydrate=(L)=>({ memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
       lineSnapshot:JSON.parse(JSON.stringify(L.heroes)),
       hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true });
     for(const c of side.citadels){
@@ -1807,9 +1809,17 @@ function warMatchOfGuild(t,gid){ if(!t.rounds) return null;
    could not tell a player which lines were his own, and the tower's placement list was empty in
    every real war. `line` travels too: a member owns several since v733, and placing or naming one
    needs its index. */
+/* v774 - a line's power, for the lists that order themselves by it. Stored on the defender since
+   v774; computed from the snapshot for every match locked before this deploy, by the same formula
+   buildRegisteredLines uses. A placeholder that is not hydrated yet has neither, and is honestly 0. */
+function warDefPower(d){
+  if(d && typeof d.power==='number') return d.power|0;
+  const sn=(d&&d.lineSnapshot)||null; if(!Array.isArray(sn)||!sn.length) return 0;
+  return Math.round(sn.reduce((x,h)=>x+((h.maxHp||0)/8)+(h.atk||0),0));
+}
 function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
   return { guildId:gid, name:s.name, citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
-    defenders:c.defenders.map(d=>({ memberId:d.memberId, line:d.line|0,
+    defenders:c.defenders.map(d=>({ memberId:d.memberId, line:d.line|0, power:warDefPower(d),
       you:(meId!=null && String(d.memberId)===String(meId)),
       name:d.name||nameOfUser(d.memberId), alive:d.alive!==false,
       hpPct:d.hpState?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
