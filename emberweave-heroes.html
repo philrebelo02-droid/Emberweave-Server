@@ -1077,6 +1077,54 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .hero-card .pill{background:linear-gradient(180deg,#3a2a12,#1a1208)!important;border:1px solid #7a5f2a!important;color:#ffe9b8!important;}
 .glCard .glName{background:linear-gradient(0deg,rgba(14,9,5,.96),rgba(14,9,5,0))!important;}
 /* v673 GUILD HALL on the painted kit (Phil: "guild hall and all tabs need new Ui fix", "and the tab icons") */
+/* v679 THE ARENA on Magic Rush's shape (Phil: "Make my arena building look like magic rush arena") */
+.arTop{display:flex;gap:9px;align-items:stretch;margin-bottom:9px;}
+.arMedal{flex:0 0 108px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;
+  padding:9px 6px 8px;border-radius:12px;
+  background:linear-gradient(180deg,#8d2020 0%,#651414 42%,#3d0d0d 100%);
+  box-shadow:inset 0 0 0 1px rgba(240,207,120,.34),0 5px 14px rgba(0,0,0,.5);position:relative;}
+.arMedal::after{content:'';position:absolute;left:0;right:0;bottom:-11px;height:12px;
+  background:linear-gradient(180deg,#3d0d0d,#2a0909);
+  clip-path:polygon(0 0,100% 0,100% 55%,50% 100%,0 55%);}
+.arMedalArt{width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));}
+.arLeague{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:12.5px;letter-spacing:.3px;}
+.arRankLbl{font-size:9px;color:#e8c9a0;margin-top:5px;}
+.arRankNo{font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:21px;color:#ffe9b8;line-height:1;}
+.arDef{flex:1;min-width:0;display:flex;flex-direction:column;padding:8px 9px;
+  border-style:solid;border-color:transparent;border-width:5px;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch;}
+.arDefHead{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap;}
+.arDefTtl{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:13px;color:#ffe9b8;flex:1;min-width:0;}
+.arDefRow{display:flex;gap:5px;}
+.arHero{flex:1 1 0;min-width:0;aspect-ratio:1;border-radius:9px;overflow:hidden;position:relative;
+  border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);}
+.arHero>*{width:100%;height:100%;}
+.arHeroLv{position:absolute;left:2px;top:2px;font-size:8.5px;font-weight:800;color:#fff4d6;
+  background:rgba(8,10,16,.8);border-radius:4px;padding:0 3px;line-height:1.4;}
+.arHero.empty{display:flex;align-items:center;justify-content:center;color:#6b5628;font-size:16px;}
+.arTabs{display:flex;gap:5px;margin-bottom:9px;}
+.arTabs button{flex:1;min-width:0;border:1px solid #3a2f1c;border-radius:10px;padding:7px 4px;cursor:pointer;
+  font-size:11px;font-weight:800;color:#f0dcae;letter-spacing:.2px;
+  background:linear-gradient(180deg,#8a6420 0%,#5a3f12 55%,#3d2a0b 100%);
+  box-shadow:inset 0 1px 0 rgba(255,225,160,.28),0 3px 8px rgba(0,0,0,.45);}
+.arTabs button:hover{filter:brightness(1.13);}
+.arBar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding:6px 10px;
+  border-radius:10px;background:rgba(10,14,22,.55);border:1px solid #2b2418;}
+.arBarL{font-size:11px;color:#c9b78d;}
+.arBarL b{color:#ffd45e;}
+.arOpps{display:flex;gap:7px;flex-wrap:wrap;}
+.arOpp{flex:0 1 calc(33.333% - 5px);min-width:92px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 6px;border-radius:12px;
+  border-style:solid;border-color:transparent;border-width:5px;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 16px stretch;}
+.arOppArt{width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;position:relative;
+  border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);}
+.arOppArt>*{width:100%;height:100%;}
+.arOppStat{display:flex;align-items:center;justify-content:center;gap:4px;font-size:10.5px;font-weight:800;width:100%;}
+.arOppNm{font-size:10.5px;font-weight:700;color:#e9dcc0;max-width:100%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;text-align:center;}
+.arOpp .btn{width:100%;padding:5px 4px;font-size:11px;}
+@media(max-width:360px){ .arMedal{flex:0 0 92px;} .arOpp{min-width:84px;} }
 /* v674 THE SKYFALL WAR STAGE (Phil: "I want the actual Skyfall tournament art to come up") */
 .skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:300px;overflow:hidden;
   background-size:cover;background-position:center;
@@ -15874,6 +15922,34 @@ function arenaLeaderboard(){ if(ACC.token&&ARENA.ladder&&ARENA.ladder.length) re
     list.push({rank,name:NPC_NAMES[ni]+' '+ARENA_SURNAMES[si],power,region:ZONES[REGION_KEYS[seed%4]].name});
   }
   return list; }
+/* v679 - a COSMETIC league band read off the rank the player already holds, so the arena can wear
+   a medal the way Magic Rush's does. rankTier() below only ever named ranks 1, 2 and 3. This changes
+   no reward, no matchmaking and no maths - it is a name and a colour. */
+function arenaLeague(rank){ const r=Math.max(1,rank|0);
+  if(r===1)      return {name:'Champion', col:'#ffe9b8', art:'/assets/img/ui/hud-shield.webp?v=1'};
+  if(r<=10)      return {name:'Master',   col:'#ffd45e', art:'/assets/img/ui/hud-shield.webp?v=1'};
+  if(r<=50)      return {name:'Diamond',  col:'#9fe8ff', art:'/assets/img/ui/hud-shield.webp?v=1'};
+  if(r<=200)     return {name:'Gold',     col:'#ffd45e', art:'/assets/img/ui/hud-shield.webp?v=1'};
+  if(r<=1000)    return {name:'Silver',   col:'#d6dfec', art:'/assets/img/ui/hud-shield.webp?v=1'};
+  return               {name:'Bronze',   col:'#e0a06a', art:'/assets/img/ui/hud-shield.webp?v=1'}; }
+/* v679 - the Rules button on the arena board. The text was already on the screen as small print
+   under the opponents; it now has somewhere to live. */
+function arenaRules(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:13000;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.onclick=(e)=>{ if(e.target===ov) ov.remove(); };
+  ov.innerHTML='<div style="width:100%;max-width:400px;padding:14px;border-radius:14px;background:rgba(9,13,22,.97);border:1px solid #6b5628;box-shadow:0 12px 34px rgba(0,0,0,.65)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+    +'<b style="font-family:Georgia,serif;font-size:15px;color:#ffe9b8">Arena Rules</b>'
+    +'<button class="btn sm secondary" onclick="this.closest(\'div\').parentNode.remove()">\u2715</button></div>'
+    +'<div style="font-size:12px;color:#c9b78d;line-height:1.55">'
+    +'<p style="margin:0 0 8px">Every arena fight is <b style="color:#ffd45e">fully automatic</b>. Power comes from your heroes\u2019 levels, their quality, their glyphs and your prayer \u2014 not from anything you do during the fight.</p>'
+    +'<p style="margin:0 0 8px">Beat an opponent ranked <b style="color:#ffd45e">above you</b> and you take their place. Lose and nothing is taken from you.</p>'
+    +'<p style="margin:0 0 8px">Your <b style="color:#ffd45e">Defenders</b> hold your rank while you are away. Set them with Adjust \u2014 they fight on their own.</p>'
+    +'<p style="margin:0 0 8px">A <b style="color:#ffd45e">daily reward</b> pays out on your rank each day, resetting at 09:00 ET.</p>'
+    +'<p style="margin:0">\u{1F48E} on an opponent is the first-time diamond bounty for beating them.</p>'
+    +'</div></div>';
+  document.body.appendChild(ov); }
 function rankTier(rank){ return rank===1?{name:'Gold',medal:'🥇',col:'#ffd45e'}:rank===2?{name:'Silver',medal:'🥈',col:'#c8d2e0'}:rank===3?{name:'Bronze',medal:'🥉',col:'#e0a06a'}:null; }
 function _rkRow(e){ const t=rankTier(e.rank), medal=t?t.medal:'#'+e.rank, col=t?t.col:'#8b98a9';
   return `<div style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #1f2740;${e.me||e.you?'background:rgba(255,212,94,.12);border-radius:8px':''}">
@@ -16005,25 +16081,55 @@ function renderArena(){ const b=document.getElementById('arenaBody');
       <div style="font-weight:800;font-size:12px;color:${e.me?'#ffd45e':'#e6edf3'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(e.name)}${e.me?' ·YOU':''}</div>
       <div style="font-size:10px;color:#8fe3ff">${e.power.toLocaleString()}</div>
       <div style="height:${h};background:linear-gradient(${t.col},#2a3550);border-radius:6px 6px 0 0;margin-top:4px;border:1px solid #33405e;border-bottom:none"></div></div>`; };
-  b.innerHTML=`<div class="panel" style="text-align:center">
-      <div style="font-size:13px;color:#8b98a9">Your rank</div><div style="font-size:34px;font-weight:900;color:#ffd45e">#${G.arenaRank}</div>
-      <div style="font-size:12px;color:#8b98a9">power <b style="color:#8fe3ff">${myPower.toLocaleString()}</b> · <span style="color:#ffd45e">🎟️ ${G.arenaCoins||0} arena coins</span></div>
-      <div class="row" style="justify-content:center;gap:6px;margin-top:8px"><button class="btn sm secondary" id="arenaShopBtn">🛒 Arena Shop</button><button class="btn sm secondary" id="arenaReportsBtn">📜 Reports</button></div>
+  /* v679 - Magic Rush's arena shape: the medal and rank down the left, the defenders beside them,
+     four buttons, the day's counter, and the opponents as cards side by side. */
+  const lg=arenaLeague(G.arenaRank);
+  const defKeys=(G.arenaDef||[]).slice(0,5);
+  const defPower=teamPower(defKeys.filter(Boolean).map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})));
+  const defCell=(k)=>{ if(!k) return `<div class="arHero empty">\u2014</div>`;
+    return `<div class="arHero" title="${escapeHTML((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,64)}<span class="arHeroLv">Lv${heroLevel(k)}</span></div>`; };
+  const oppCard=(o,i)=>{ const lead=(o.team&&o.team[0])||null;
+    const gems=(typeof o.gems==='number')?o.gems:previewWinGems(o.rank);
+    return `<div class="arOpp">
+      <div class="arOppArt">${lead?heroIcon(lead.key,96):''}${lead?`<span class="arHeroLv">Lv${lead.level}</span>`:''}</div>
+      <div class="arOppStat"><span style="color:#c9b78d">\u2691</span><span style="color:#ffd45e">#${o.rank}</span></div>
+      <div class="arOppStat"><span style="color:#c9b78d">\u26a1</span><span style="color:#9fe8ff">${(o.power||0).toLocaleString()}</span></div>
+      <div class="arOppNm">${escapeHTML(o.name)}</div>
+      ${gems>0?`<div style="font-size:9.5px;color:#c9b6ff;font-weight:800">\u{1F48E} +${gems}</div>`:''}
+      <button class="btn sm" data-opp="${i}">Challenge</button></div>`; };
+  b.innerHTML=`<div class="arTop">
+      <div class="arMedal">
+        <img class="arMedalArt" src="${lg.art}" alt="">
+        <div class="arLeague" style="color:${lg.col}">${lg.name}</div>
+        <div class="arRankLbl">My rank</div><div class="arRankNo">#${G.arenaRank}</div>
+      </div>
+      <div class="arDef">
+        <div class="arDefHead">
+          <span class="arDefTtl">Defenders</span>
+          <span style="font-size:11px;color:#c9b78d">\u26a1 <b style="color:#ffd45e">${defPower.toLocaleString()}</b></span>
+          <button class="btn xs" id="setArenaDef" style="padding:3px 9px;font-size:10.5px">Adjust</button>
+        </div>
+        <div class="arDefRow">${[0,1,2,3,4].map(i=>defCell(defKeys[i])).join('')}</div>
+        <div style="font-size:9.5px;color:#8b98a9;margin-top:6px">They hold your rank while you are away.</div>
+      </div>
     </div>
-    <div class="panel">
-      <div style="font-weight:700;text-align:center;margin-bottom:8px">🏆 Server Top 3</div>
-      <div style="display:flex;align-items:flex-end;gap:8px;max-width:340px;margin:0 auto">${pcol(top3[1],'44px')}${pcol(top3[0],'64px')}${pcol(top3[2],'32px')}</div>
-      <button class="btn secondary" id="arenaRankings" style="margin-top:10px;width:100%">📋 Rankings — Top 100</button>
+    <div class="arTabs">
+      <button id="arenaRulesBtn">Rules</button>
+      <button id="arenaRankings">Ranking</button>
+      <button id="arenaReportsBtn">Record</button>
+      <button id="arenaShopBtn">Shop</button>
     </div>
-    <div class="panel"><div style="font-weight:700;margin-bottom:4px">🎁 Daily Rank Reward</div>
-      <div style="font-size:12px;color:#8b98a9;margin-bottom:8px">Each day (resets 09:00 ET), based on your rank (#${G.arenaRank}): <b style="color:#c9b6ff">💎 ${daily.gems}</b> · <b style="color:#ffd45e">🪙 ${daily.gold.toLocaleString()}</b> · <b style="color:#ffd45e">🎟️ ${daily.coins}</b></div>
+    <div class="arBar">
+      <div class="arBarL">Free refreshes today <b>${arenaRefreshLeft()}/${ARENA_FREE_REFRESH}</b>
+        <span style="color:#6f7d90">\u00b7</span> <span style="color:#ffd45e">\u{1F39F}\uFE0F ${G.arenaCoins||0}</span></div>
+      <button class="btn sm secondary" id="arenaRefresh" style="padding:4px 12px">Refresh</button>
+    </div>
+    <div class="arOpps" id="arenaOpps"></div>
+    <div class="panel" style="margin-top:10px"><div style="font-weight:700;margin-bottom:4px">\u{1F381} Daily Rank Reward</div>
+      <div style="font-size:12px;color:#8b98a9;margin-bottom:8px">Each day (resets 09:00 ET), based on your rank (#${G.arenaRank}): <b style="color:#c9b6ff">\u{1F48E} ${daily.gems}</b> \u00b7 <b style="color:#ffd45e">\u{1FA99} ${daily.gold.toLocaleString()}</b> \u00b7 <b style="color:#ffd45e">\u{1F39F}\uFE0F ${daily.coins}</b></div>
       <button class="btn" id="claimDaily" ${dready?'':'disabled'}>${dready?'Claim Daily Reward':'Next in <span id="dailyLeft">'+fmtDur(dleft)+'</span>'}</button>
-      <div id="dailyMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>
-    <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">🛡️ Your Auto-Defense</div><button class="btn sm secondary" id="setArenaDef">Change</button></div>
-      <div class="row" style="justify-content:center;gap:6px">${G.arenaDef.map(k=>`<div style="width:44px;height:44px;border-radius:9px;overflow:hidden;border:1px solid #2a3550">${heroIcon(k,44)}</div>`).join('')}</div>
-      <div style="font-size:11px;color:#6f7d90;margin-top:6px;text-align:center">This team defends your rank when other players challenge you.</div></div>
-    <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">⚔️ Opponents — challenge to climb</div><button class="btn xs secondary" id="arenaRefresh">🔄 Refresh · ${arenaRefreshLeft()} free</button></div><div id="arenaOpps"></div>
-      <div style="font-size:11px;color:#6f7d90;margin-top:8px">Arena is 100% auto — power comes from hero levels, quality, glyphs & prayer. Beat someone ranked above you to take their spot. 💎 shows first-time diamonds you'd earn.</div></div>`;
+      <div id="dailyMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>`;
+  b.querySelector('#arenaRulesBtn').onclick=arenaRules;
   const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.disabled=arenaRefreshLeft()<=0; _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg('No free arena refreshes left today.'); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
   b.querySelector('#setArenaDef').onclick=()=>{ teamCtx='arena'; menuReturn='arena'; show('menu'); };
   b.querySelector('#arenaShopBtn').onclick=()=>show('arenaShop');
@@ -16044,15 +16150,11 @@ function renderArena(){ const b=document.getElementById('arenaBody');
       .catch(()=>{ bannerMsg('Connection lost — the daily is still yours to claim.'); }); }
     else _finish();
   };
-  const el=b.querySelector('#arenaOpps'); el.innerHTML='';
-  if(!opps.length){ el.innerHTML=`<div style="text-align:center;padding:14px 8px;color:#ffd45e;font-weight:700">👑 You're Rank #1 — no one left to challenge!</div><div style="text-align:center;font-size:11px;color:#8b98a9">Defend your throne and claim the daily reward.</div>`; }
-  opps.forEach(o=>{ const row=document.createElement('div'); row.style='padding:8px 0;border-bottom:1px solid #222b40';
-    const gemsPossible=(typeof o.gems==='number')?o.gems:previewWinGems(o.rank);
-    const preview=o.team.map(e=>`<div style="width:34px;height:34px;border-radius:7px;overflow:hidden;border:1px solid #2a3550;position:relative" title="${HERO_TYPES[e.key].name} Lv ${e.level}">${heroIcon(e.key,34)}<span style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.75);color:#fff;font-size:8px;padding:0 2px;border-radius:3px">${e.level}</span></div>`).join('');
-    row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:700">${escapeHTML(o.name)} ${o.isNpc?'<span style="font-size:10px;color:#6f7d90">NPC</span>':'<span style="font-size:10px;color:#5ee89b">● player</span>'}</div><div style="font-size:10px;color:#8b98a9">Rank #${o.rank} · power ${o.power.toLocaleString()}</div></div><div style="text-align:right">${gemsPossible>0?`<div style="font-size:11px;color:#c9b6ff;font-weight:700;margin-bottom:3px">💎 +${gemsPossible}</div>`:''}<button class="btn sm">Challenge ▶</button></div></div>
-      <div style="display:flex;gap:5px;margin-top:6px">${preview}</div>`;
-    row.querySelector('button').onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); };   // choose your attacking composition first
-    el.appendChild(row); });
+  const el=b.querySelector('#arenaOpps');
+  if(!opps.length){ el.innerHTML=`<div style="flex:1;text-align:center;padding:14px 8px"><div style="color:#ffd45e;font-weight:700">\u{1F451} You're Rank #1 \u2014 no one left to challenge!</div><div style="font-size:11px;color:#8b98a9">Defend your throne and claim the daily reward.</div></div>`; }
+  else el.innerHTML=opps.map(oppCard).join('');
+  el.querySelectorAll('[data-opp]').forEach(btn=>{ const o=opps[+btn.dataset.opp]; if(!o) return;
+    btn.onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); }; });
 }
 function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id,oppPower:o.power||0};
   CUR.arenaSnap=snapAllySquad((G.team||[]).filter(Boolean)); CUR.arenaFoe=trimTeam(o.team||[]);   // capture both squads (resolved) for a watchable report
@@ -20836,7 +20938,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789864807000';
+const BUILD_ID = '1789866007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
