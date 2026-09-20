@@ -14465,8 +14465,10 @@ function skyTowerPanel(stage, side, lane, data, opts){
   const canMove = !!opts.canMove && side==='you';
   const L=skyLanes()[lane]||{a:{x:50,y:50}};
   const onLeft = L.a.x < 50;
-  /* v766 - the count alone. The rest was prose telling the reader what the list already shows. */
-  const subHTML=((standing===0)?'FALLEN \u00b7 ':'')+standing+'/'+((c.total|0));
+  /* v773 (Phil: "also remove the Fallen 0/0 hint") - there is no sub-line. "FALLEN . 0/0" on a
+     tower that merely has nothing in it yet announces a disaster that has not happened, and the
+     garrison disc on the board already carries the count. */
+  const subHTML='';
   /* v764b (Phil: "When a player clicks a tower, they need to have the ability to 'place lines' in
      the tower") - YOUR lines and where they stand. Only your own side, only in prep: the same
      window the server's place route enforces. A line already here says HERE and cannot be moved to
@@ -14579,14 +14581,13 @@ function skyTowerPanel(stage, side, lane, data, opts){
   const open=stage.querySelector('.skyTowerPanel');
   const key=side+':'+lane;
   if(open && open.dataset.key===key){
+    /* v773 - replaced in place at the BOTTOM, so a label change never moves the list */
     const top=open.querySelector('.skyPlaceTop');
     if(top){ const fresh=document.createElement('div'); fresh.innerHTML=placeTopHTML;
       const rep2=fresh.firstElementChild; if(rep2) top.replaceWith(rep2); else top.remove(); }
     else if(placeTopHTML){ const fresh=document.createElement('div'); fresh.innerHTML=placeTopHTML;
-      const add=fresh.firstElementChild;
-      const lst=open.querySelector('.skyTowerList'); if(add&&lst) lst.parentNode.insertBefore(add,lst); }
-    const sub=open.querySelector('.sub'), list=open.querySelector('.skyTowerList');
-    if(sub) sub.innerHTML=subHTML;
+      const add=fresh.firstElementChild; if(add) open.appendChild(add); }
+    const list=open.querySelector('.skyTowerList');
     if(list){ const keep=list.scrollTop; list.innerHTML=bodyHTML; list.scrollTop=keep; }
     skyTowerPanelWire(open, stage, side, lane, data, opts);
     return open;
@@ -14600,9 +14601,12 @@ function skyTowerPanel(stage, side, lane, data, opts){
   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
     +'<h4>'+escapeHTML(c.name||('Lane '+(lane+1)))+'</h4>'
     +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'
-    +'<div class="sub">'+subHTML+'</div>'
-    +placeTopHTML
-    +'<div class="skyTowerList">'+bodyHTML+'</div>';
+    /* v773 - no sub-line at all; an empty div would still take its margin */
+    /* v773 (Phil: "put the place lines here on the bottom / so that it doesnt make the tab
+       bounce") - BELOW the list. Its label changes between states and it is absent on an enemy
+       tower, so anything above the list made every row jump when it changed. */
+    +'<div class="skyTowerList">'+bodyHTML+'</div>'
+    +placeTopHTML;
   stage.appendChild(el);
   skyTowerPanelWire(el, stage, side, lane, data, opts);
   return el;
@@ -23648,7 +23652,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789933207000';
+const BUILD_ID = '1789934407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
