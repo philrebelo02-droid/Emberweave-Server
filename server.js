@@ -1524,12 +1524,30 @@ function warWeekAnchor(now){ // most recent Saturday 00:00 ET (DST-exact)
   return sat+etOffsetMs(sat+off);                 // offset AT the anchor (handles a DST flip mid-week)
 }
 function warWeekKey(now){ const d=new Date(warWeekAnchor(now)); return d.toISOString().slice(0,10); }
+/* v728 (Phil): "The reports of the lanes stay up until 0200 in the morning then the lanes reset to
+   prepare prep stage for the next day. Starting 0200 players can re place their lines in the
+   towers."
+   The war day runs 02:00 -> 02:00, not midnight to midnight:
+       02:00  prep opens, lines can be moved, the opponent is revealed
+       18:00  lines lock
+       20:00  the last bell - fighting is over
+       20:00 -> 02:00  the lane reports stand, so a guild can read what happened
+       02:00  the board resets into the next day's prep
+   RESULTS_UNTIL_H is the whole rule: the reports window is exactly the gap between one day's last
+   bell and the next day's planning open, so moving this one number moves both halves together and
+   they cannot drift apart. */
+const WAR_PREP_OPENS_H  = 2;    // ET, the hour the board resets into prep
+const WAR_LOCK_H        = 18;   // ET, lines lock
+const WAR_BELL_H        = 20;   // ET, fighting ends
 function warSchedule(anchor){ const D=86400000, H=3600000;
   return { registrationOpensAt:anchor, registrationLocksAt:anchor+2*D,           // Sat 00:00 → Mon 00:00 ET
     rounds:[0,1,2,3].map(i=>({ name:WAR_ROUND_NAMES[i],
-      planningOpensAt:anchor+(3+i)*D,                                            // AUDIT: Tue/Wed/Thu/Fri 00:00 ET — opponents reveal at planning open, NOT when the Monday bracket is computed
-      lockAt:anchor+(3+i)*D+18*H,                                                // Tue–Fri 6 PM ET
-      endsAt:anchor+(3+i)*D+20*H })) };                                          // Tue–Fri 8 PM ET
+      planningOpensAt:anchor+(3+i)*D+WAR_PREP_OPENS_H*H,                         // Tue–Fri 02:00 ET — prep opens, lines may be re-placed, opponents reveal here and NOT when the Monday bracket is computed
+      lockAt:anchor+(3+i)*D+WAR_LOCK_H*H,                                        // Tue–Fri 6 PM ET
+      endsAt:anchor+(3+i)*D+WAR_BELL_H*H,                                        // Tue–Fri 8 PM ET
+      /* the reports stand from this round's bell until the NEXT day's prep opens; on the last
+         round there is no next day, so they stand a full 24h before the bracket is done with. */
+      resultsUntil:anchor+(4+i)*D+WAR_PREP_OPENS_H*H })) };
 }
 function warTierOfGuild(t,gid){
   if(!gid) return 'participant';
@@ -1592,7 +1610,7 @@ function warNewMatch(t, roundIndex, aEnt, bEnt){
     unplaced:(ent?ent.lines.map(l=>l.memberId):[]) });
   const m={ id:'gwm_'+uid(), tournamentId:t.id, roundIndex, state:'planning',
     aGuildId:aEnt?aEnt.guildId:null, bGuildId:bEnt?bEnt.guildId:null,
-    revealAt:t.schedule[roundIndex].planningOpensAt,   // opponent hidden + placement closed before this
+    revealAt:t.schedule[roundIndex].planningOpensAt,   // opponent hidden + placement closed before this (v728: 02:00 ET, so line re-placement opens exactly when the previous day's reports come down)
     planningEndsAt:t.schedule[roundIndex].lockAt, startsAt:t.schedule[roundIndex].lockAt, endsAt:t.schedule[roundIndex].endsAt,
     winnerGuildId:null, sides:{}, assaults:{}, eventLog:[], version:0 };
   if(aEnt) m.sides[aEnt.guildId]=mkSide(aEnt);
@@ -1696,10 +1714,14 @@ function warSideView(m,gid,full){ const s=m.sides[gid]; if(!s) return null;
 }
 function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
 function warMatchView(t,m,meGid){
-  const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (Tue+ 00:00 ET)
+  const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (v728: Tue+ 02:00 ET)
   const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
     revealAt:m.revealAt||0, preReveal, lockedAt:m.lockedAt||0,
     planningEndsAt:m.planningEndsAt, startsAt:m.startsAt, endsAt:m.endsAt, winnerGuildId:m.winnerGuildId,
+    /* v728 - when this board's reports come down, and when it next opens for line placement. The
+       client needs both to show the right thing between the bell and 02:00. */
+    resultsUntil:((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
+    nextPrepOpensAt:((t.schedule[(m.roundIndex|0)+1]||{}).planningOpensAt)||((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
     you:warSideView(m,meGid), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
     lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
   if(m.state==='planning' && v.you){ // officer placement roster: every registered member + current lane
