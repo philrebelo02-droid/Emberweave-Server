@@ -7966,7 +7966,12 @@ function damage(u,a,c,noEnergy,crit){
     u.hasteMul=Math.max(u.hasteMul||1,1+0.035*pm*u._digStk); u.hasteT=Math.max(u.hasteT||0,4); }
   if(u.pass&&u.pass.pridemomentum&&u.shield>0){ u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1+0.22*(u.passMul||1)); u.dmgBuffT=Math.max(u.dmgBuffT||0,4); }
   if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
-  a=Math.max(0,a); u.hp-=a; u.flash=.14; if(!noEnergy)u.energy=Math.min(100,u.energy+7*(((u._nrgSlowT||0)>0)?(1-(u._nrgSlowPct||0.4)):1));   // v527: Spiral Current / Venom Rhythm slow the charge
+  a=Math.max(0,a); u.hp-=a; u.flash=.14;
+  /* v669 — THE RAID METER. A guild raid credits CUMULATIVE damage dealt, not the boss's missing HP.
+     Sylphice heals herself back to full inside 90 seconds, so an HP-at-the-end meter scored a whole
+     squad's run as zero (found in the rig). Every point that lands is counted here, once, on the
+     one line that actually removes a boss's health. */
+  if(u._raidBoss) u._raidDmgTaken=(u._raidDmgTaken||0)+Math.max(0,Math.min(a,(u.hp+a))); if(!noEnergy)u.energy=Math.min(100,u.energy+7*(((u._nrgSlowT||0)>0)?(1-(u._nrgSlowPct||0.4)):1));   // v527: Spiral Current / Venom Rhythm slow the charge
   // v253 (visual audit #5): restrained, TYPED damage colours — physical warm, magical cool,
   // healing green, shields pale gold. Crits stay bigger and brighter within their own family.
   if(Math.round(a)>0){ const _k=u._lastHitKind||'phys';
@@ -12480,7 +12485,11 @@ function raidDamageDone(){
   const b=units.find(u=>u.team==='enemy'&&u._raidBoss);
   if(!b) return 0;
   const start=Math.max(1, b._raidStartHp|0);
-  return Math.max(0, Math.min(start, Math.round(start-(b.alive?Math.max(0,b.hp):0))));
+  /* v669: cumulative damage dealt, capped at the pool he walked in with — a boss that heals or
+     shields cannot erase the squad's work, and an overkill cannot take more than he had. */
+  const dealt=Math.round(b._raidDmgTaken||0);
+  const byHp=Math.round(start-(b.alive?Math.max(0,b.hp):0));
+  return Math.max(0, Math.min(start, Math.max(dealt, byHp)));
 }
 async function vaultDevJump(toBoss){   // v362 (Phil): God Mode only — set the Vault floor server-side, then launch; optionally skip straight to the final wave
   if(!(typeof AUDIT_MODE==='function'&&AUDIT_MODE())) return;
@@ -20491,7 +20500,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789855207000';
+const BUILD_ID = '1789856407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
