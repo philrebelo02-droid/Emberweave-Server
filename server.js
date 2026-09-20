@@ -1592,6 +1592,29 @@ function getTournament(){
   }
   return DB.tournaments.current;
 }
+/* v740 - THE GATE EVERY SAVED LINE-UP PASSES THROUGH. The client is never trusted: this re-checks
+   ownership against the server's own ledger, the five-per-line shape, the line count, and Phil's
+   unique-hero rule across the whole set. A save that fails changes nothing at all - it is validated
+   into a fresh array and only assigned once the whole thing is known good. */
+function warLinesValidate(u, raw){
+  const rled=ensureLedger(u);
+  if(!Array.isArray(raw)) return {error:'Bad line-up.'};
+  if(raw.length>WAR_LINES_MAX) return {error:'You can field at most '+WAR_LINES_MAX+' lines.'};
+  const seen=new Set(), out=[];
+  for(const line of raw){
+    if(!Array.isArray(line)||line.length!==5) return {error:'Every line needs exactly 5 heroes.'};
+    const keys=[];
+    for(const k of line){
+      const key=String(k||'');
+      if(!SIM.HERO_BASE[key]) return {error:'That is not a hero.'};
+      if(!rled.unlocked[key]) return {error:'You do not own '+((SIM.HERO_BASE[key]||{}).name||key)+'.'};
+      if(seen.has(key)) return {error:((SIM.HERO_BASE[key]||{}).name||key)+' is on two lines \u2014 a hero can only stand on one.'};
+      seen.add(key); keys.push(key);
+    }
+    out.push(keys);
+  }
+  return {ok:true, lines:out};
+}
 /* v733 (Phil: "each line heroes are unique. They cannot be used multiple times" / "All 7 lines
    requires 35 unique heroes") - a member's OWNED heroes are dealt into lines of five, strongest
    first. The deal comes off one sorted list of distinct owned heroes, so a hero cannot land on two
@@ -1600,15 +1623,53 @@ function getTournament(){
 function buildRegisteredLines(u){
   const save=parseSaveOf(u);
   const rled=ensureLedger(u);   // AUDIT v229 (P0): only heroes this member actually OWNS count toward war power
+  const mk=(heroes,i)=>({ memberId:u.id, line:i, name:u.name+' \u00b7 line '+(i+1),
+    heroes, power:Math.round(heroes.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) });
+
+  /* v740 - THE MEMBER'S OWN CHOICE WINS, when they have made one. Re-checked against the ledger on
+     every read rather than trusted from when it was saved, and a hero that somehow appears twice is
+     dropped rather than fielded twice - the rule holds even against a stored line-up that predates
+     it. A line that cannot be filled with five valid heroes is skipped, and if nothing survives we
+     fall through to the automatic deal below. */
+  if(Array.isArray(u.warLines) && u.warLines.length){
+    const out=[], seen=new Set();
+    for(const line of u.warLines){
+      if(out.length>=WAR_LINES_MAX) break;
+      if(!Array.isArray(line)) continue;
+      const heroes=[];
+      for(const k of line){
+        if(!SIM.HERO_BASE[k] || !rled.unlocked[k] || seen.has(k)) continue;
+        const h=snapshotHeroFromServer(u,k,save); if(!h) continue;
+        seen.add(k); heroes.push(h);
+      }
+      if(heroes.length===5) out.push(mk(heroes,out.length));
+    }
+    if(out.length) return out;
+  }
+
+  /* no choice made (or none of it survives): the automatic deal, strongest first, five at a time */
   const all=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
   all.sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk));
   const out=[];
-  for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5){
-    const heroes=all.slice(i,i+5);
-    out.push({ memberId:u.id, line:out.length, name:u.name+' \u00b7 line '+(out.length+1),
-      heroes, power:Math.round(heroes.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) });
-  }
+  for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5) out.push(mk(all.slice(i,i+5), out.length));
   return out;
+}
+/* v740 - what the Edit Team screen draws: the member's lines and the owned heroes not on any of
+   them, with every card's real level and stars so the panel never has to guess. */
+function warLinesView(u, editable, why){
+  const save=parseSaveOf(u), rled=ensureLedger(u);
+  const card=(h)=>({ key:h.key, level:h.level|0, stars:h.stars|0, pips:h.pips|0,
+    power:Math.round(h.maxHp/8+(h.atk||0)) });
+  const lines=buildRegisteredLines(u);
+  const onALine=new Set();
+  for(const L of lines) for(const h of L.heroes) onALine.add(h.key);
+  const bench=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]&&!onALine.has(k))
+    .map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean)
+    .sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk)).map(card);
+  return { ok:true, cap:WAR_LINES_MAX, chosen:!!(Array.isArray(u.warLines)&&u.warLines.length),
+    owned:onALine.size+bench.length,
+    lines:lines.map(L=>({ line:L.line|0, power:L.power, heroes:L.heroes.map(card) })),
+    bench, editable:!!editable, why:why||'' };
 }
 /* a member's single strongest line, for callers that only want the one */
 function buildRegisteredLine(u){ const ls=buildRegisteredLines(u);
@@ -3094,6 +3155,18 @@ async function api(req,res,url){
     if(p==='/api/guild-war/match'){ const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m) return send(res,200,{match:null});
       return send(res,200,{match:warMatchView(t,m,myGid)}); }
+    /* v740 - Edit Team reads this, not the board. The board shows what is COMMITTED to a citadel;
+       this screen edits what you will bring, which is a different thing and exists before a match
+       does. Lines may be changed until your match locks - the same window as line placement. */
+    /* v742 fix - this branch sits ABOVE the `if(req.method!=='POST')` guard, so without a method
+       check of its own it answered POSTs too and the save route below was unreachable: every save
+       came back ok and changed nothing, including the ones that should have been refused. */
+    if(p==='/api/guild-war/lines' && req.method!=='POST'){
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      const locked=!!(m && m.state!=='planning');
+      return send(res,200, warLinesView(me, !locked,
+        locked?('Your lines locked when the war began \u2014 they reopen at the next prep.'):''));
+    }
     if(req.method!=='POST') return send(res,404,{error:'guild-war'});
     const b=await body(req);
 
@@ -3115,6 +3188,29 @@ async function api(req,res,url){
       const i=t.entrants.findIndex(e=>e.guildId===myGid); if(i<0) return send(res,400,{error:'Not registered.'});
       t.entrants.splice(i,1); t.version++; writeDB(); return send(res,200,{ok:true});
     }
+    /* v740 (Phil: "I cannot click adjust or disband on any line. I cannot click add line or save")
+       - SAVE. Validation is the authority: the client's array is re-checked against the ledger for
+       ownership, shape, count and the unique-hero rule, and a rejected save leaves the stored
+       line-up exactly as it was.
+       An empty array clears the choice and hands the member back to the automatic deal. */
+    if(p==='/api/guild-war/lines'){
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      if(m && m.state!=='planning') return send(res,400,{error:'Your lines locked when the war began \u2014 they reopen at the next prep.'});
+      const raw=b.lines;
+      if(Array.isArray(raw) && raw.length===0){ delete me.warLines; writeDB();
+        return send(res,200, warLinesView(me, true, '')); }
+      const v=warLinesValidate(me, raw);
+      if(!v.ok) return send(res,400,{error:v.error});
+      me.warLines=v.lines;
+      /* the entrant snapshot is indicative until the lock recomputes it, but leaving it stale means
+         a member saves a line-up and the roster still shows the old one. Refresh it while the
+         bracket is still open; after that warLockMatch rebuilds from warQualifyGuild anyway. */
+      try{ const ent=warEntrant(t,myGid);
+        if(ent && t.state==='registration' && myGuildObj){ const probe=warQualifyGuild(myGuildObj);
+          ent.lines=probe.lines; ent.powerPool=probe.powerPool; t.version++; } }catch(e){}
+      writeDB();
+      return send(res,200, warLinesView(me, true, ''));
+    }
     if(p==='/api/guild-war/assign'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
@@ -3133,7 +3229,12 @@ async function api(req,res,url){
       for(const c of side.citadels){ const keep=[];
         for(const d of c.defenders){ if(d.memberId===memberId) moving.push(d); else keep.push(d); }
         c.defenders=keep; }
-      side.unplaced=(side.unplaced||[]).filter(x=>x!==memberId);
+      /* v740 - v733 made these {memberId, line} objects and this filter still compared them to a
+         bare id, so it never matched: an assigned member stayed in `unplaced` and the lock's auto-
+         spread pushed them into a lane a second time. The `seen` set stopped a true duplicate, but
+         whichever entry hydrated first won, so an officer's placement could be silently overridden.
+         Reads both shapes. */
+      side.unplaced=(side.unplaced||[]).filter(x=>String((x&&typeof x==='object')?x.memberId:x)!==memberId);
       if(moving.length) side.citadels[lane].defenders.push(...moving);
       else side.citadels[lane].defenders.push({memberId});   /* not yet hydrated: placeholder, as before */
       m.version++; writeDB();

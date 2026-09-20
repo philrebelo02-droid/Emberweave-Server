@@ -1557,6 +1557,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    Disband beside it. The panel is cut to the row's measured width (419.5px of content) instead of
    the row being stretched to the panel's, which is what removes the empty space for good. */
 .skyBrk[data-kind="team"]{left:auto;width:460px;}
+/* v743 - the picker keeps the SAME 460px panel as the list. Widening it to fit the bench left a
+   622px box holding 430px of content, which is the empty space Phil already rejected once. The
+   bench wraps inside the width it has; the panel drops its fixed height so a short bench does not
+   sit in a void either. */
+.skyBrk[data-kind="team"].picking{bottom:auto;max-height:94%;}
 .skyTroopGrid{display:flex;flex-direction:column;gap:5px;}
 .skyTroop{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:9px;cursor:pointer;
   background:linear-gradient(180deg,rgba(28,22,14,.95),rgba(15,13,10,.95));border:1px solid #3a2f1c;}
@@ -1571,6 +1576,37 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyTroopPick b{color:#ffe9b8;}
 .skyTroopNote{flex:none;font-size:8.5px;color:#6f7d90;padding:3px 2px 0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyTroopNote.bad{color:#ff9a9a;}
+.skyTroopNote.good{color:#7ef0b0;}
+/* v742 - the buttons do things now, so they need an enabled look as well as a disabled one */
+.skyTroopBtns button.warn{border-color:#7a3030;background:linear-gradient(180deg,#6b2a2a,#3d1414);color:#ffd9d9;}
+.skyTroopBtns button.go{border-color:#8a6420;background:linear-gradient(180deg,#8a6420,#3d2a0b);color:#fff4d6;}
+/* THE PICKER - the line's five slots, then every owned hero not standing on a line. */
+.skyPick{flex:1;min-height:0;display:flex;flex-direction:column;gap:5px;}
+.skyPickRow{flex:none;display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:9px;
+  background:linear-gradient(180deg,rgba(28,22,14,.95),rgba(15,13,10,.95));border:1px solid #6b5628;}
+.skyPickSlots{flex:none;display:flex;gap:3px;}
+.skyPickSlot{position:relative;width:52px;height:52px;border-radius:7px;cursor:pointer;}
+.skyPickSlot.on{box-shadow:0 0 0 2px #f0cf78, 0 0 8px rgba(240,207,120,.6);}
+/* v744 - who is standing in the slot you picked, in the space the five slots do not use */
+.skyPickWho{flex:1;min-width:0;padding-left:4px;line-height:1.35;}
+.skyPickWho .nm{display:block;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#ffe9b8;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyPickWho .rl{display:block;font-size:8.5px;color:#8b98a9;letter-spacing:.3px;}
+.skyPickWho .pw{display:block;font-size:9.5px;color:#ffbf69;font-weight:800;}
+.skyPickWho .sw{display:block;font-size:8px;color:#6f7d90;margin-top:1px;}
+.skyPickSlot>.ascw{width:100%!important;height:100%!important;border-radius:7px!important;}
+.skyPickHd{flex:none;display:flex;align-items:center;gap:8px;font-size:9.5px;color:#c9b78d;}
+.skyPickHd b{font-family:Georgia,'Times New Roman',serif;font-size:11.5px;color:#ffe9b8;}
+.skyPickHd .sp{flex:1;}
+.skyBench{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px;align-content:start;padding-right:2px;}
+.skyBenchCard{position:relative;aspect-ratio:1;cursor:pointer;border-radius:7px;}
+.skyBenchCard>.ascw{width:100%!important;height:100%!important;border-radius:7px!important;}
+.skyBenchCard .clv{position:absolute;left:1px;top:1px;z-index:4;padding:0 2px;border-radius:4px;
+  background:rgba(6,9,15,.85);color:#ffe9b8;font-size:7.5px;font-weight:800;line-height:1.35;}
+.skyBenchCard.dim{opacity:.35;cursor:default;}
+.skyBenchEmpty{grid-column:1/-1;font-size:10px;color:#8b98a9;padding:12px 2px;text-align:center;}
 /* v736 (Phil: "I dont want the cards grown.. The size they are now is good") - 52px, as it was.
    The void beside them is closed by narrowing the PANEL onto the row, not by growing these. */
 .skyTroopCard{position:relative;flex:0 0 52px;width:52px;aspect-ratio:1;}
@@ -14008,7 +14044,7 @@ function skyBoardHTML(r, opts){
       <div class="skyHud">
         <div class="skyStatus">
           <b>\u2694 Skyfall War</b>
-          <span class="dot">\u00b7</span> Stage <span class="sv" id="skyStagePill">${SKYSIM.marching?'MARCH':'PREP'}</span>
+          <span class="dot">\u00b7</span> Stage <span class="sv" id="skyStagePill">${skyStageNow()}</span>
           <span class="dot">\u00b7</span> <span id="skyClock">${new Date().toLocaleTimeString()}</span>
           <span class="dot">\u00b7</span> ${marches} marches
         </div>
@@ -14066,8 +14102,8 @@ function skyWireBoard(stage, r){
     { const lane=(i|0);
       if(stage.querySelector('#skyLC-'+lane+'.spent')){
         SKYSIM.hubTab='records'; skyClashOpen(lane); return; } }
-    const isPrep = !SKYSIM.marching;
-    const sandbox = !!(SKYSIM && SKYSIM.running);
+    const isPrep = (skyStageNow()==='PREP');   /* v741 - the match decides, not a leftover flag */
+    const sandbox = skySimSandbox();
     let officer=false;
     try{ officer = !!(GUILD && (GUILD.youLeader || GUILD.youOfficer)); }catch(e){ officer=false; }
     skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && (sandbox || officer), live:false}); }; });
@@ -14084,6 +14120,10 @@ function renderSkyfall(data){
     foe:{citadels:(m&&m.foe&&m.foe.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))},
     log:[]
   };
+  /* v741 - anything drawn while no sim is running is the REAL board, so the simulator's leftovers
+     go before it is built. This is the belt to skyStageNow's braces: it stops a stale flag reaching
+     `isPrep` on the tower panel, which was silently refusing tower moves on a war in prep. */
+  if(!skySimSandbox()){ try{ SKYSIM.marching=false; SKYSIM.marched=false; }catch(e){} }
   SKYFALL_VIEW=r;
   b.innerHTML=skyBoardHTML(r, {fresh: !!(SKYSIM && SKYSIM.running)});
   const stage=b.querySelector('#skyStage');
@@ -14367,71 +14407,203 @@ function skySchedOpen(){
    five OWNED heroes (buildRegisteredLine) and there is no route to choose them. Changing that needs
    a route, storage on the user and an ownership check - a feature, not a button. Showing a line the
    player cannot actually change, without saying so, would be worse than the stub it replaces. */
-function skyEditTeamOpen(){
+/* v742 - EDIT TEAM. The edit buffer: nothing here is saved until Save is pressed, so a mistake is
+   undone by reloading rather than by another write. `bench` is owned-minus-everything-on-a-line,
+   which is what makes Phil's unique-hero rule unbreakable from the UI - a hero already standing
+   somewhere is simply not in the list you can pick from. */
+const SKYTEAM={ lines:[], bench:[], meta:{}, cap:7, editable:true, why:'', dirty:false,
+  sel:0, pick:null, slot:0, msg:'', bad:false, ro:false, loading:false };
+
+function skyTeamPower(keys){ let n=0; for(const k of keys) n+=((SKYTEAM.meta[k]||{}).power|0); return n; }
+function skyTeamOnLine(){ const s=new Set(); for(const L of SKYTEAM.lines) for(const k of L) s.add(k); return s; }
+
+/* read the server's answer into the buffer */
+function skyTeamIngest(j){
+  SKYTEAM.meta={};
+  const take=(c)=>{ if(c&&c.key) SKYTEAM.meta[c.key]={level:c.level|0,stars:c.stars|0,power:c.power|0}; };
+  (j.lines||[]).forEach(L=>(L.heroes||[]).forEach(take));
+  (j.bench||[]).forEach(take);
+  SKYTEAM.lines=(j.lines||[]).map(L=>(L.heroes||[]).map(h=>h.key));
+  SKYTEAM.bench=(j.bench||[]).map(h=>h.key);
+  SKYTEAM.cap=j.cap||7; SKYTEAM.editable=!!j.editable; SKYTEAM.why=j.why||'';
+  SKYTEAM.dirty=false; SKYTEAM.ro=false; SKYTEAM.pick=null;
+  SKYTEAM.sel=Math.min(SKYTEAM.sel, Math.max(0,SKYTEAM.lines.length-1));
+}
+
+/* the fallback: no server answer (the simulator, or no war), so show the board read-only and say so */
+function skyTeamFromBoard(){
   let r=null; try{ r=SKYSIM.view||SKYSIM.r; }catch(e){}
   const cits=((r&&r.you)||{}).citadels||[];
-  /* YOUR lines only - this panel is the individual line edit, never the guild's placement. */
   const mine=[];
-  cits.forEach((c,ci)=>(c.defenders||[]).forEach(d=>{ if(d&&d.you) mine.push({d, lane:c.name||('Lane '+(ci+1))}); }));
-  mine.sort((x,y)=>(y.d.power|0)-(x.d.power|0));
+  cits.forEach(c=>(c.defenders||[]).forEach(d=>{ if(d&&d.you) mine.push(d); }));
+  mine.sort((a,b)=>(b.power|0)-(a.power|0));
+  SKYTEAM.meta={};
+  SKYTEAM.lines=mine.map(d=>{ const ks=((d.heroes)||[]).slice(0,5);
+    const each=Math.round((d.power|0)/Math.max(1,ks.length));
+    ks.forEach(k=>{ let lv=0; try{ lv=heroLevel?heroLevel(k):0; }catch(e){}
+      SKYTEAM.meta[k]={level:lv,stars:0,power:each}; });
+    return ks; });
+  SKYTEAM.bench=[]; SKYTEAM.cap=(typeof WAR_LINES_MAX==='number')?WAR_LINES_MAX:7;
+  SKYTEAM.editable=false; SKYTEAM.ro=true; SKYTEAM.dirty=false; SKYTEAM.pick=null;
+  SKYTEAM.why='This is the simulator\u2019s board \u2014 your real lines are edited in a live war.';
+}
 
-  const cap=(function(){ try{ return (typeof WAR_LINES_MAX==='number')?WAR_LINES_MAX:7; }catch(e){ return 7; } })();
+async function skyTeamLoad(){
+  SKYTEAM.loading=true; skyTeamRender();
+  let j=null;
+  try{ j=await api('/api/guild-war/lines'); }catch(e){ j=null; }
+  SKYTEAM.loading=false;
+  if(j && j.ok) skyTeamIngest(j); else skyTeamFromBoard();
+  SKYTEAM.msg=''; SKYTEAM.bad=false;
+  skyTeamRender();
+}
 
-  /* v733/v734 - the rule, read off the board rather than asserted. A hero may stand on one line and
-     one line only, so the distinct count must equal five times the number of lines; if it ever did
-     not, this line would say so instead of the panel quietly showing a hero twice. */
-  const seen={}; let slots=0, dupes=0;
-  for(const x of mine) for(const k of ((x.d.heroes)||[])){ slots++; if(seen[k]) dupes++; else seen[k]=1; }
-  const uniq=Object.keys(seen).length;
+/* ------------------------------------------------------------------ the actions */
+function skyTeamAdjust(i){ if(!SKYTEAM.editable) return; if(!SKYTEAM.lines[i]) return;
+  SKYTEAM.pick=i; SKYTEAM.slot=0; SKYTEAM.msg=''; SKYTEAM.bad=false; skyTeamRender(); }
 
-  const card=(k)=>{ if(!k) return '<div class="skyTroopCard gap"></div>';
-    let lv=0; try{ lv=heroLevel?heroLevel(k):0; }catch(e){ lv=0; }
-    return '<div class="skyTroopCard">'+heroIcon(k,48)+(lv?('<span class="clv">'+lv+'</span>'):'')+'</div>'; };
+function skyTeamDisband(i){ if(!SKYTEAM.editable) return;
+  const L=SKYTEAM.lines[i]; if(!L) return;
+  SKYTEAM.bench=SKYTEAM.bench.concat(L).sort((a,b)=>((SKYTEAM.meta[b]||{}).power|0)-((SKYTEAM.meta[a]||{}).power|0));
+  SKYTEAM.lines.splice(i,1);
+  SKYTEAM.sel=Math.max(0,Math.min(SKYTEAM.sel, SKYTEAM.lines.length-1));
+  SKYTEAM.dirty=true; SKYTEAM.msg='Line disbanded \u2014 not saved yet.'; SKYTEAM.bad=false;
+  skyTeamRender(); }
 
-  /* v735 - the reference's row: power, the five cards, then that troop's own two controls. */
-  const row=(x,i)=>{ const keys=((x.d.heroes)||[]).slice(0,5);
-    while(keys.length<5) keys.push(null);
-    return '<div class="skyTroop you'+(i===0?' sel':'')+'" data-i="'+i+'" title="'+escapeHTML(x.lane)+'">'
+function skyTeamAddLine(){ if(!SKYTEAM.editable) return;
+  if(SKYTEAM.lines.length>=SKYTEAM.cap){ SKYTEAM.msg='You can field at most '+SKYTEAM.cap+' lines.'; SKYTEAM.bad=true; return skyTeamRender(); }
+  if(SKYTEAM.bench.length<5){ SKYTEAM.msg='You need 5 heroes off a line to make another \u2014 you have '+SKYTEAM.bench.length+'.'; SKYTEAM.bad=true; return skyTeamRender(); }
+  SKYTEAM.lines.push(SKYTEAM.bench.slice(0,5));
+  SKYTEAM.bench=SKYTEAM.bench.slice(5);
+  SKYTEAM.sel=SKYTEAM.lines.length-1;
+  SKYTEAM.dirty=true; SKYTEAM.msg='Line added \u2014 not saved yet.'; SKYTEAM.bad=false;
+  skyTeamRender(); }
+
+/* swap a bench hero into the selected slot; the one it replaces goes back to the bench */
+function skyTeamPut(key){ const i=SKYTEAM.pick; if(i==null) return;
+  const L=SKYTEAM.lines[i]; if(!L) return;
+  const slot=Math.max(0,Math.min(4,SKYTEAM.slot|0));
+  const out=L[slot];
+  const bi=SKYTEAM.bench.indexOf(key); if(bi<0) return;
+  SKYTEAM.bench.splice(bi,1);
+  L[slot]=key;
+  if(out) SKYTEAM.bench.push(out);
+  SKYTEAM.bench.sort((a,b)=>((SKYTEAM.meta[b]||{}).power|0)-((SKYTEAM.meta[a]||{}).power|0));
+  SKYTEAM.slot=Math.min(4,slot+1);            /* walk along the line as you pick */
+  SKYTEAM.dirty=true; SKYTEAM.msg=''; SKYTEAM.bad=false;
+  skyTeamRender(); }
+
+async function skyTeamSave(){ if(!SKYTEAM.editable||!SKYTEAM.dirty) return;
+  SKYTEAM.msg='Saving\u2026'; SKYTEAM.bad=false; skyTeamRender();
+  let j=null;
+  try{ j=await api('/api/guild-war/lines','POST',{lines:SKYTEAM.lines}); }catch(e){ j=null; }
+  if(j && j.ok){ skyTeamIngest(j); SKYTEAM.msg='Saved.'; SKYTEAM.bad=false; }
+  else { SKYTEAM.msg=(j&&j.error)?j.error:'Could not save \u2014 nothing was changed.'; SKYTEAM.bad=true; }
+  skyTeamRender(); }
+
+/* ------------------------------------------------------------------ drawing */
+function skyTeamCard(k, cls){
+  if(!k) return '<div class="'+(cls||'skyTroopCard')+' gap"></div>';
+  const lv=((SKYTEAM.meta[k]||{}).level)|0;
+  return '<div class="'+(cls||'skyTroopCard')+'" data-k="'+escapeHTML(k)+'" title="'+escapeHTML(((typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k])||{}).name||k)+'">'
+    +heroIcon(k,48)+(lv?('<span class="clv">'+lv+'</span>'):'')+'</div>';
+}
+
+/* v744 - the selected slot, written out. It fills the 148px the five slots leave and answers the
+   question the picker could not: who am I about to replace? */
+function skyTeamWhoHTML(k){
+  if(!k) return '<div class="skyPickWho"><span class="nm">\u2014</span>'
+    +'<span class="rl">empty slot</span></div>';
+  const t=((typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k])||{});
+  const m=SKYTEAM.meta[k]||{};
+  return '<div class="skyPickWho">'
+    +'<span class="nm">'+escapeHTML(t.name||k)+'</span>'
+    +'<span class="rl">'+escapeHTML((t.role||'').toUpperCase())+(m.level?(' \u00b7 LV '+m.level):'')+'</span>'
+    +'<span class="pw">\u2694 '+((m.power|0).toLocaleString())+'</span>'
+    +'<span class="sw">tap a hero below to swap</span></div>';
+}
+function skyTeamBodyHTML(){
+  if(SKYTEAM.loading) return '<div class="skyBrkList"><div class="skyBenchEmpty">Loading your lines\u2026</div></div>';
+
+  /* ---- the picker ---- */
+  if(SKYTEAM.pick!=null){
+    const i=SKYTEAM.pick, L=SKYTEAM.lines[i]||[];
+    const slots=L.map((k,si)=>'<div class="skyPickSlot'+(si===(SKYTEAM.slot|0)?' on':'')+'" data-slot="'+si+'">'
+      +heroIcon(k,48)+'</div>').join('');
+    const free=SKYTEAM.bench.map(k=>skyTeamCard(k,'skyBenchCard')).join('');
+    return '<div class="skyPick">'
+      +'<div class="skyPickHd"><b>Adjust line '+(i+1)+'</b>'
+        +'<span>power '+skyTeamPower(L).toLocaleString()+'</span>'
+        +'<span class="sp"></span>'
+        +'<span>tap a slot, then a hero below</span>'
+        +'<div class="skyTroopBtns" style="flex-direction:row"><button data-act="back">Done</button></div></div>'
+      +'<div class="skyPickRow"><div class="skyPickSlots">'+slots+'</div>'
+        +skyTeamWhoHTML(L[Math.max(0,Math.min(4,SKYTEAM.slot|0))])+'</div>'
+      +'<div class="skyBench">'+(free||'<div class="skyBenchEmpty">Every hero you own is already on a line.</div>')+'</div>'
+      +'</div>';
+  }
+
+  /* ---- the list of lines ---- */
+  const rows=SKYTEAM.lines.map((L,i)=>{
+    const keys=L.slice(0,5); while(keys.length<5) keys.push(null);
+    return '<div class="skyTroop you'+(i===SKYTEAM.sel?' sel':'')+'" data-i="'+i+'">'
       +'<div class="skyTroopPw"><span class="lbl">POWER</span><span class="val">'
-        +((x.d.power|0).toLocaleString())+'</span></div>'
-      +'<div class="skyTroopTeam">'+keys.map(card).join('')+'</div>'
+        +skyTeamPower(L).toLocaleString()+'</span></div>'
+      +'<div class="skyTroopTeam">'+keys.map(k=>skyTeamCard(k)).join('')+'</div>'
       +'<div class="skyTroopBtns">'
-        +'<button disabled title="Needs a server route - your line is built from your five strongest owned heroes">Adjust</button>'
-        +'<button disabled title="Needs a server route">Disband</button>'
-      +'</div></div>'; };
+        +'<button data-act="adjust" data-i="'+i+'"'+(SKYTEAM.editable?'':' disabled')+'>Adjust</button>'
+        +'<button class="warn" data-act="disband" data-i="'+i+'"'+(SKYTEAM.editable?'':' disabled')+'>Disband</button>'
+      +'</div></div>';
+  }).join('');
 
-  const body='<div class="skyBrkList"><div class="skyTroopGrid">'
-    +(mine.length?mine.map(row).join('')
-      :'<div style="grid-column:1/-1;font-size:10px;color:#8b98a9;padding:10px 2px;text-align:center">You have no lines in this war.</div>')
+  const canAdd=SKYTEAM.editable && SKYTEAM.lines.length<SKYTEAM.cap && SKYTEAM.bench.length>=5;
+  const note = SKYTEAM.msg ? SKYTEAM.msg
+    : (SKYTEAM.why || (SKYTEAM.dirty ? 'Unsaved changes \u2014 press Save to commit them.'
+        : 'Adjust swaps heroes on a line. A hero can only stand on one line, so the bench is what is left.'));
+
+  return '<div class="skyBrkList"><div class="skyTroopGrid">'
+    +(rows||'<div class="skyBenchEmpty">You have no lines yet \u2014 press Add Line.</div>')
     +'</div></div>'
-    /* v734 - the controls left the rows (they cost 64.5px of every one) and act on the line you
-       select, which is what freed the width that used to sit empty beside the cards. */
     +'<div class="skyTroopFoot">'
-      +'<span>Lines: <span class="n">'+mine.length+'/'+cap+'</span></span>'
-      +'<span class="skyTroopPick">selected: <b id="skyTroopSel">'+(mine.length?('line 1 \u00b7 '+escapeHTML(mine[0].lane)):'\u2014')+'</b></span>'
+      +'<span>Lines: <span class="n">'+SKYTEAM.lines.length+'/'+SKYTEAM.cap+'</span></span>'
+      +'<span class="skyTroopPick">bench: <b>'+SKYTEAM.bench.length+'</b></span>'
       +'<span class="sp"></span>'
       +'<div class="skyTroopBtns" style="flex-direction:row">'
-        +'<button disabled title="Needs a server route">Add Line</button>'
-        +'<button disabled title="Nothing to save until a line can be changed">Save</button>'
+        +'<button data-act="add"'+(canAdd?'':' disabled')+'>Add Line</button>'
+        +'<button class="go" data-act="save"'+((SKYTEAM.editable&&SKYTEAM.dirty)?'':' disabled')+'>Save</button>'
       +'</div></div>'
-    +'<div class="skyTroopNote">Adjust / Disband / Add Line / Save need a server route \u2014 not wired. '
-      +'To move allies between towers, tap a tower during prep.</div>';
+    +'<div class="skyTroopNote'+(SKYTEAM.bad?' bad':(SKYTEAM.msg==='Saved.'?' good':''))+'">'+escapeHTML(note)+'</div>';
+}
 
-  /* v739 (Phil: "7 lines 35 heroes no reuse is just a redundant note" / "a waste of space and
-     redundant for players that did more than 5 seconds of skyfall") - the header says nothing when
-     the rule is being kept, which is always. It only speaks if a hero ever DID stand on two lines,
-     so the check is still on screen without costing a line of the panel to say "working". */
-  const el=skyPanelFrame('<b>\u2694 Edit Team</b>'
-    +(dupes?('<span class="sub" style="color:#ff9a9a">'+dupes+' hero'+(dupes===1?'':'es')+' REUSED across your lines</span>'):'')
-    , body, 'team');
+/* redraw inside the frame that is already open, so scroll and position are not thrown away */
+function skyTeamRender(){
+  const el=document.querySelector('#skyStage .skyBrk[data-kind="team"]'); if(!el) return;
+  const hd=el.querySelector('.skyBrkHd');
+  while(el.lastChild && el.lastChild!==hd) el.removeChild(el.lastChild);
+  el.insertAdjacentHTML('beforeend', skyTeamBodyHTML());
+  el.classList.toggle('picking', SKYTEAM.pick!=null);
+  try{ skyLayoutBoard(document.getElementById('skyStage')); }catch(e){}
 
-  /* pick a line: the footer follows the row you tapped */
-  if(el){ const sel=el.querySelector('#skyTroopSel');
-    el.querySelectorAll('.skyTroop').forEach(node=>{ node.onclick=()=>{
-      el.querySelectorAll('.skyTroop').forEach(o=>o.classList.remove('sel'));
-      node.classList.add('sel');
-      const i=node.dataset.i|0;
-      if(sel) sel.textContent='line '+(i+1)+' \u00b7 '+((mine[i]||{}).lane||''); }; }); }
+  el.querySelectorAll('[data-act]').forEach(btn=>{ if(btn.disabled) return;
+    const act=btn.dataset.act, i=btn.dataset.i|0;
+    btn.onclick=(ev)=>{ ev.stopPropagation();
+      if(act==='adjust') return skyTeamAdjust(i);
+      if(act==='disband') return skyTeamDisband(i);
+      if(act==='add') return skyTeamAddLine();
+      if(act==='save') return skyTeamSave();
+      if(act==='back'){ SKYTEAM.pick=null; return skyTeamRender(); } }; });
+
+  el.querySelectorAll('.skyPickSlot').forEach(n=>{ n.onclick=()=>{ SKYTEAM.slot=n.dataset.slot|0; skyTeamRender(); }; });
+  el.querySelectorAll('.skyBench .skyBenchCard').forEach(n=>{ n.onclick=()=>skyTeamPut(n.dataset.k); });
+  el.querySelectorAll('.skyTroop').forEach(n=>{ n.onclick=()=>{ SKYTEAM.sel=n.dataset.i|0; skyTeamRender(); }; });
+}
+
+/* v731/v734/v736 (Phil: "Edit team is your individual line edit. Not editing the guild's line
+   placement / You click towers to move allies") - this panel never touches WHERE a line stands;
+   that is the tower panel, and it stays there. */
+function skyEditTeamOpen(){
+  const el=skyPanelFrame('<b>\u2694 Edit Team</b>', '<div class="skyBrkList"></div>', 'team');
+  if(el) skyTeamLoad();
   return el;
 }
 /* v716 - who owns a line. The simulator names its defenders "Somebody \u00b7 line 2", so the owner is
@@ -14519,12 +14691,25 @@ function skyGarFit(el){ if(!el) return;
   const over=(sr.left+3)-r.left;
   if(over>0) el.style.marginLeft=over+'px';
 }
+/* v741 (Phil: "when I end simulation and enter the real sky fall. It says im still in March stage")
+   - WHOSE STAGE IS THIS? Inside a sandbox run the simulator's own flag is the truth, because there
+   is no server match behind it. Outside one the stage comes from the match the SERVER reports, so a
+   flag the client failed to clear cannot describe a real war. An abandoned replay used to leave
+   SKYSIM.marching true - the loop exits the moment #skyStage goes away and never reaches the reset -
+   and the next real board inherited MARCH. */
+function skySimSandbox(){ try{ return !!(SKYSIM && SKYSIM.running); }catch(e){ return false; } }
+function skyStageNow(){
+  if(skySimSandbox()){ try{ return SKYSIM.marching?'MARCH':'PREP'; }catch(e){ return 'PREP'; } }
+  let m=null; try{ m=(typeof SKY!=='undefined'&&SKY.st&&SKY.st.match)||null; }catch(e){}
+  if(!m) return 'PREP';
+  return m.state==='live' ? 'MARCH' : (m.state==='finished' ? 'DONE' : 'PREP');
+}
 /* v715 - the march furniture is only on the board while the board is marching. One place decides
    it, so nothing can leave a dotted line behind after a war ends. */
 function skyMarchVis(stage){
   if(!stage) return;
   let on=false, fought=false;
-  try{ on = !!(SKYSIM && SKYSIM.marching);
+  try{ on = skySimSandbox() ? !!(SKYSIM && SKYSIM.marching) : (skyStageNow()==='MARCH');
        /* v722 - once a war has marched it has marched. The swords are how a lane's Live and
           Records are opened, so they outlive the fighting; only the dotted lines come off. */
        if(on) SKYSIM.marched=true;
@@ -14536,7 +14721,9 @@ function skyMarchVis(stage){
      skyBoardHTML and the board is not rebuilt when the march begins, so it sat on PREP while the
      line under it announced the march. This is the one place that knows the stage changed. */
   { const pill=stage.querySelector('#skyStagePill');
-    if(pill){ const want=on?'MARCH':(fought?'DONE':'PREP');
+    /* v741 - outside a sandbox the match decides; DONE is a finished war, not merely one that has
+       already marched, so a real board in prep after a past war still reads PREP. */
+    if(pill){ const want=skySimSandbox() ? (on?'MARCH':(fought?'DONE':'PREP')) : skyStageNow();
       if(pill.textContent!==want) pill.textContent=want;
       pill.style.color = on?'#ffd45e' : (fought?'#8b98a9':'#7ef0b0'); } }
   if(!on) stage.querySelectorAll('.skyMarchLine.hot,.skyLaneClash.hot').forEach(el=>el.classList.remove('hot'));
@@ -22318,7 +22505,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789911607000';
+const BUILD_ID = '1789912807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
