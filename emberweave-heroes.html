@@ -15478,13 +15478,14 @@ function skyHubRender(){
    back only THAT march's two lines as they stood when they met. The client then plays them. */
 async function skySimWatch(n){
   const r=SKYSIM.view||SKYSIM.r; if(!r) return;
-  /* v757b - PAUSE, not skip. skipReplay is the abort flag: stopped() reads it and every lane's loop
-     RETURNS, so the war was over the moment you watched a single march and the board sat on DONE.
-     Pausing holds every lane where it stands; clearing it lets them carry on. */
-  SKYSIM.paused=true;
+  /* v759 (Phil: "should keep going while im in") - the war is LEFT RUNNING. It must not touch
+     skipReplay, which is the abort flag - stopped() reads it and every lane's loop returns, which
+     is what used to end the war the moment you watched one march - and it no longer pauses either.
+     The lanes keep marching behind the battle screen, and v758 stops the board being rebuilt
+     underneath them, so you come back to the war as it now stands. */
   bannerMsg('\u25b6 Loading march #'+n+'\u2026');
   const q=await api('/api/guild-war/sim','POST',Object.assign({seed:r.seed,captureN:n},SKYSIM.p));
-  if(!q||q.error||!q.fight){ SKYSIM.paused=false; bannerMsg((q&&q.error)||'That fight could not be loaded.'); return; }
+  if(!q||q.error||!q.fight){ bannerMsg((q&&q.error)||'That fight could not be loaded.'); return; }
   const f=q.fight;
   /* v756 - THE HEALTH THEY ARRIVED WITH. The capture records each line's hpState as it stood when
      the two met, and a line that has already fought arrives damaged. Replaying both at full health
@@ -15498,7 +15499,7 @@ async function skySimWatch(n){
     if(st && typeof st.energy==='number') c.energy=st.energy;
     return c; });
   const mineSnap=withHp(f.a.snaps, f.a.hp), foeSnap=withHp(f.d.snaps, f.d.hp);
-  if(!mineSnap.length||!foeSnap.length){ SKYSIM.paused=false; bannerMsg('That fight has no lines to play.'); return; }
+  if(!mineSnap.length||!foeSnap.length){ bannerMsg('That fight has no lines to play.'); return; }
   if(!mineSnap.length||!foeSnap.length){ bannerMsg('That fight has no lines to play.'); return; }
   /* v756 - back to the board you were watching, not the Guild Hall.
      v757b - and the war picks up from where it was held, whether you watched it out or skipped. */
@@ -15506,6 +15507,13 @@ async function skySimWatch(n){
     SKYSIM.paused=false;
     try{ show('skyfall');
       if(!SKYSIM.running) renderSkyfall(SKYFALL_VIEW);   /* a war still running redraws itself */
+      /* v759 (Phil: "the clock stopped when i got out of the battle") - RESTART THE TICKER. It
+         clears its own interval when #skyLFClockT goes away, which is what stops a closed panel
+         leaking a timer, and bindLines restarts it whenever the hub body is injected - but v758
+         deliberately does not re-render a running war's board on the way back, so nothing injects
+         it and nothing would restart the clock. The reading itself is right: the war kept running
+         while the battle was up, so the wall-clock elapsed is the fight's real elapsed. */
+      skyClockStart();
     }catch(e){ show('guild'); renderGuild(); } };
   watchBattle({ v:2, seed:(f.seed>>>0), mineSnap, foe:foeSnap, won:!!q.won,
     oppName:f.d.name||'the enemy line' }); }
@@ -15604,11 +15612,11 @@ async function skySimReplay(r){
     const total=Math.max(0, ms); let done=0;
     if(step) step(0);
     while(done<total && !stopped()){
-      /* v757b (Phil: "if i watch a battle and am done watching the battle shouldnt end when im out
-         it should be continuing in real time while i was watching") - PAUSED IS NOT STOPPED. While
-         a watched fight is on screen this waits in place and spends no fight-time, so the war is
-         held exactly where it stood rather than skipped or fast-forwarded. The loop stays alive
-         inside here, which is the whole point: skipReplay would have returned out of it. */
+      /* v757b/v759 (Phil: "should keep going while im in") - the war is NOT held while a fight is
+         being watched. It keeps marching behind the battle screen and he comes back to wherever it
+         has reached. SKYSIM.paused is left readable for anything that wants to hold the board, but
+         watching no longer sets it - and it is emphatically not skipReplay, which would return out
+         of this loop and end the war outright. */
       if(SKYSIM.paused){ await new Promise(d=>setTimeout(d, 120)); continue; }
       const sp=Math.max(1, SKYSIM.speed||1);
       const chunk=Math.min(total-done, SLICE*sp);   // SLICE of wall clock, in fight-time
@@ -23068,7 +23076,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789922407000';
+const BUILD_ID = '1789923607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
