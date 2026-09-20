@@ -1272,21 +1272,19 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   font-size:12px;font-weight:900;color:#ffd45e;text-shadow:0 1px 3px #000,0 0 8px #000;white-space:nowrap;}
 .skyEvent{position:absolute;left:8px;bottom:8px;max-width:58%;z-index:7;pointer-events:none;
   font-size:10px;color:#e3ecf7;text-shadow:0 1px 3px #000,0 0 6px #000;}
-/* v707 (Phil: "put the troop numbers of the lane on the actual platform now") - with the tower
-   lifted clear, the disc's face is empty and it is the lane's own count that belongs on it. The
-   plaque keeps the kit it got in v705: the board's dark ground, gold rule and serif numerals, with
-   the lane's side colour picked out on the inside edge. skyGarFit() still guards the frame. */
+/* v708 (Phil: "Remove the black boarder and just make the troop numbers black") - the plaque was
+   there to hold the number off the sky when it hung beside the platform. On the disc's pale stone
+   it was a black box sitting on good art, so the count is now painted straight onto the stone: black
+   serif numerals with a faint light edge under them so they never sink into the texture. A fallen
+   lane goes dark red - the red border was what said "this tower is gone", and a 0 alone would not.
+   skyGarFit() still guards the frame. */
 .skyGarrison{position:absolute;transform:translate(-50%,-50%);z-index:4;pointer-events:none;
-  display:flex;align-items:center;white-space:nowrap;
-  padding:1px 5px;border-radius:7px;
-  background:linear-gradient(180deg,rgba(14,18,28,.9),rgba(6,9,15,.9));
-  border:1px solid #6b5628;border-left-width:3px;box-shadow:0 2px 6px rgba(0,0,0,.55);
-  font-family:Georgia,'Times New Roman',serif;font-size:10px;font-weight:700;
-  color:#ffe9b8;text-shadow:0 1px 2px #000;}
-.skyGarrison i{font-style:normal;font-size:8.5px;color:#9d8c66;}
-.skyGarrison.mine{border-left-color:#2b7a55;}
-.skyGarrison.foe{border-left-color:#7a2b46;}
-.skyGarrison.fallen{border-color:#5a2b2b;border-left-color:#c0392b;color:#ff8b8b;}
+  display:flex;align-items:baseline;white-space:nowrap;
+  font-family:Georgia,'Times New Roman',serif;font-size:12px;font-weight:700;
+  color:#0b0b0e;text-shadow:0 1px 0 rgba(255,255,255,.5),0 0 3px rgba(255,255,255,.35);}
+.skyGarrison i{font-style:normal;font-size:9.5px;color:#3d3d44;}
+.skyGarrison.fallen{color:#7d1016;}
+.skyGarrison.fallen i{color:#8d4a4a;}
 /* v690 the board's own pieces */
 .skyBoardSky{position:absolute;inset:0;background-size:cover;background-position:center;}
 .skyPlat{position:absolute;transform:translate(-50%,-50%);z-index:2;pointer-events:auto;cursor:pointer;
@@ -1297,10 +1295,19 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyPlat.foe{--laneCol:#ff9aa6;}
 .skyPlat.down{filter:grayscale(.75) brightness(.62) drop-shadow(0 6px 10px rgba(0,0,0,.45));}
 /* v706 - a tower hangs over its platform. Its box is written in pixels by skyLayoutBoard, so all
-   this rule does is say where the box's anchor point is: bottom centre, on the platform. */
+   this rule does is say where the box's anchor point is: bottom centre, on the platform.
+   v708 (Phil: "add a natural Bob to the floating towers") - and it drifts. The keyframes carry the
+   anchoring translate themselves, because an animated transform replaces the static one outright.
+   Period, phase and swing direction come in as custom properties, one set per tower. */
+@keyframes skyBob{
+  0%,100%{transform:translate(-50%,-100%) translateY(calc(var(--bobAmp,3px) * -1)) rotate(var(--bobRot,1deg));}
+  50%    {transform:translate(-50%,-100%) translateY(var(--bobAmp,3px)) rotate(calc(var(--bobRot,1deg) * -1));}
+}
 .skyTower{position:absolute;transform:translate(-50%,-100%);z-index:3;
-  width:auto;pointer-events:auto;cursor:pointer;
+  width:auto;pointer-events:auto;cursor:pointer;will-change:transform;
+  animation:skyBob var(--bobDur,4s) ease-in-out var(--bobDelay,0s) infinite;
   filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));transition:filter .15s,opacity .25s;}
+@media (prefers-reduced-motion: reduce){ .skyTower{animation:none;} }
 .skyTower:hover{filter:drop-shadow(0 0 10px rgba(255,214,120,.8)) drop-shadow(0 5px 8px rgba(0,0,0,.55));}
 .skyTower.down{filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));}
 .skyBridge{position:absolute;transform-origin:0 50%;z-index:1;pointer-events:none;
@@ -13747,8 +13754,15 @@ function skyBoardHTML(r, opts){
         /* The tower carries the same data-key as its platform, so clicking either opens the same
            garrison. Position and size are left to skyLayoutBoard, which measures them. */
         const twr=(c,cls,key,side)=>{ const dead=!!(c&&c.destroyed);
+          /* v708 - every tower drifts on its own clock. The numbers are derived from the lane and
+             the side rather than Math.random, so a tower bobs the same way every time the board is
+             drawn; ten towers sharing one period would read as a machine, not as weather. */
+          const n=L.i*2+(side==='foe'?1:0);
+          const dur=(3.4+((n*37)%13)/10).toFixed(2), del=(((n*53)%21)/10).toFixed(2);
+          const rot=(n%2?1:-1)*(0.7+((n*29)%6)/10);
           return `<img class="skyTower ${cls}${dead?' down':''}" id="skyTower-${side}-${L.i}"
             data-key="${key}" data-lane="${L.i}" alt="" draggable="false"
+            style="--bobDur:${dur}s;--bobDelay:${del}s;--bobRot:${rot.toFixed(2)}deg"
             src="${skyTowerArt(L.i, dead)}"
             title="${escapeHTML((c&&c.name)||('Lane '+(L.i+1)))}">`; };
         return plat(L.a,'mine','you:'+L.i,yc)+plat(L.b,'foe','foe:'+L.i,fc)
@@ -13934,6 +13948,7 @@ function skyLayoutBoard(stage){
       for(const pair of [['you',L.a],['foe',L.b]]){
         const el=stage.querySelector('#skyTower-'+pair[0]+'-'+L.i); if(!el) continue;
         el.style.height=th+'px';
+        el.style.setProperty('--bobAmp', (th*0.045).toFixed(2)+'px');
         el.style.left=(pair[1].x/100*W)+'px';
         el.style.top=(pair[1].y/100*H - plat*LIFT)+'px';
       }
@@ -21462,7 +21477,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789885207000';
+const BUILD_ID = '1789886407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
