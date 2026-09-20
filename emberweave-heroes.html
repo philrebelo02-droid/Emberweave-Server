@@ -8307,7 +8307,23 @@ function buildUnitFromSnapshot(s,team,x,y){
 function setupMarchTeams(allySnaps, foeTeam, render){
   units=[];
   (allySnaps||[]).forEach((s,i)=>{ const sl=laneSlot('ally',s.key,i,allySnaps.length,allySnaps.map(z=>z.key)); const u=buildUnitFromSnapshot(s,'ally',sl.x,sl.y); u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
-  (foeTeam||[]).forEach((f,i)=>{ const sl=laneSlot('enemy',f.key,i,foeTeam.length,foeTeam.map(z=>z.key)); const u=makeUnit(f.key,'enemy',sl.x,sl.y,f.level||1,{owned:false,rank:f.rank||0}); u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
+  /* v756 (Phil: "its probably deterministic in a bad way" / "these 5 heroes ended up losing") -
+     THE ENEMY IS BUILT FROM ITS SNAPSHOT TOO, when it has one.
+     The ally line was built through buildUnitFromSnapshot - exact maxHp, dmg, ratings, passives -
+     while the enemy went through makeUnit(key, level), which recomputes a hero from BASE stats and
+     knows nothing about that line's glyphs, stars, gear or refines. Measured on one captured march:
+     the enemy's bloatus was maxHp 5038 in the snapshot the server fought with, and spawned here at
+     2546. The seed was the same and the code deterministic; it was deterministically playing a
+     DIFFERENT fight, because one of the two line-ups was not the one that fought - so a line that
+     lost the recorded march walked it in the replay.
+     A foe entry that carries a real snapshot (it has maxHp) now takes the same path as the ally.
+     Anything that is not a snapshot - a generated raider, a mine garrison - still goes through
+     makeUnit, so every other caller of setupMarchTeams behaves exactly as before. */
+  (foeTeam||[]).forEach((f,i)=>{ const sl=laneSlot('enemy',f.key,i,foeTeam.length,foeTeam.map(z=>z.key));
+    const isSnap = f && typeof f.maxHp === 'number' && f.maxHp > 0;
+    const u = isSnap ? buildUnitFromSnapshot(f,'enemy',sl.x,sl.y)
+                     : makeUnit(f.key,'enemy',sl.x,sl.y,f.level||1,{owned:false,rank:f.rank||0});
+    u.homeX=sl.x;u.homeY=sl.y;u.laneX=sl.x; units.push(u); if(render)buildFigure(u); });
 }
 /* v269 — replay a recorded INPUT LOG against a seed and return the same end-state digest.
    This is the client half of "your fight is the record": the log says WHEN each ultimate fired, in
@@ -15436,9 +15452,21 @@ async function skySimWatch(n){
   const q=await api('/api/guild-war/sim','POST',Object.assign({seed:r.seed,captureN:n},SKYSIM.p));
   if(!q||q.error||!q.fight){ bannerMsg((q&&q.error)||'That fight could not be loaded.'); return; }
   const f=q.fight;
-  const mineSnap=(f.a.snaps||[]).slice(), foeSnap=(f.d.snaps||[]).slice();
+  /* v756 - THE HEALTH THEY ARRIVED WITH. The capture records each line's hpState as it stood when
+     the two met, and a line that has already fought arrives damaged. Replaying both at full health
+     is the same class of error as rebuilding the enemy from base stats: it is not the fight that
+     happened. The snapshot is copied before the hp is written into it so the recorded state is
+     never mutated - a shared reference here is what made a second replay of one fight diverge. */
+  const withHp=(snaps,hp)=>(snaps||[]).map((h,i)=>{
+    const c=Object.assign({}, h);
+    const st=(hp||[])[i];
+    if(st && typeof st.hp==='number'){ c.maxHp=h.maxHp; c.hp=Math.max(0, Math.min(h.maxHp, st.hp)); }
+    if(st && typeof st.energy==='number') c.energy=st.energy;
+    return c; });
+  const mineSnap=withHp(f.a.snaps, f.a.hp), foeSnap=withHp(f.d.snaps, f.d.hp);
   if(!mineSnap.length||!foeSnap.length){ bannerMsg('That fight has no lines to play.'); return; }
-  _replayReturn=()=>{ show('guild'); renderGuild(); };
+  /* v756 - back to the board you were watching, not the Guild Hall */
+  _replayReturn=()=>{ try{ show('skyfall'); renderSkyfall(SKYFALL_VIEW); }catch(e){ show('guild'); renderGuild(); } };
   watchBattle({ v:2, seed:(f.seed>>>0), mineSnap, foe:foeSnap, won:!!q.won,
     oppName:f.d.name||'the enemy line' }); }
 function skySimSetSpeed(v){ SKYSIM.speed=v;
@@ -18720,7 +18748,14 @@ function newFightSeed(){ return ((Math.floor(Math.random()*4294967296))>>>0); } 
 let _replayReturn=null;   // where to go after a replay's result screen is dismissed (set by whoever opened the replay)
 function watchBattle(meta){ if(!meta)return;
   if(meta.v>=2 && meta.mineSnap && meta.mineSnap.length && (meta.foe||[]).length){
-    CUR={mode:'replay', seed:(meta.seed>>>0), replayWon:!!meta.won, oppName:meta.oppName||'the enemy', replayAlly:meta.mineSnap};
+    /* v756b - the FOE's snapshot is carried too. trimTeam (below) cuts every hero down to
+       {key, level, rank} for callers that only have that much - an arena opponent, a generated
+       raider, a mine garrison - but a recorded fight knows the exact line that fought, and rebuilding
+       it from a key and a level is how the replay ended up playing a different fight. The trimmed
+       team still goes to startVersus for the loader and the art preload; the full snapshots ride on
+       CUR, exactly as the ally's already do. */
+    CUR={mode:'replay', seed:(meta.seed>>>0), replayWon:!!meta.won, oppName:meta.oppName||'the enemy',
+         replayAlly:meta.mineSnap, replayFoe:(meta.foe||[]).slice()};
     startVersus(trimTeam(meta.foe), true, meta.mineSnap.map(s=>s.key)); return; }
   if(!(meta.mine||[]).length||!(meta.foe||[]).length)return;
   CUR={mode:'replay', replayWon:!!meta.won, oppName:meta.oppName||'the enemy'};
@@ -19648,7 +19683,9 @@ function startVersus(enemyTeam,auto,allyKeys){
 function _startVersusNow(enemyTeam,auto,allyKeys){
   clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
   if(CUR&&CUR.replayAlly&&CUR.replayAlly.length){   // v2 exact replay: build BOTH teams from data exactly as the headless resolver did (laneSlot), so the replay == the recorded fight
-    setupMarchTeams(CUR.replayAlly, enemyTeam, true);
+    /* v756b - BOTH means both. enemyTeam here has been through trimTeam and is only keys and
+       levels; CUR.replayFoe is the line the server actually fought with. */
+    setupMarchTeams(CUR.replayAlly, (CUR.replayFoe&&CUR.replayFoe.length)?CUR.replayFoe:enemyTeam, true);
   } else {
     spawnTeam((allyKeys&&allyKeys.length)?allyKeys:G.team,'ally');
     const slots=formationSlots('enemy',enemyTeam.length);
@@ -22980,7 +23017,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789918807000';
+const BUILD_ID = '1789920007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
