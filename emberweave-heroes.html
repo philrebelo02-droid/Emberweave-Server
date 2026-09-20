@@ -14417,10 +14417,13 @@ function skyEditTeamOpen(){
     +'<div class="skyTroopNote">Adjust / Disband / Add Line / Save need a server route \u2014 not wired. '
       +'To move allies between towers, tap a tower during prep.</div>';
 
-  const el=skyPanelFrame('<b>\u2694 Edit Team</b><span class="sub">'+mine.length+' line'+(mine.length===1?'':'s')
-    +' \u00b7 '+uniq+' unique hero'+(uniq===1?'':'es')
-    +(dupes?(' \u00b7 <span style="color:#ff9a9a">'+dupes+' REUSED</span>'):(slots?' \u00b7 none reused':''))
-    +'</span>', body, 'team');
+  /* v739 (Phil: "7 lines 35 heroes no reuse is just a redundant note" / "a waste of space and
+     redundant for players that did more than 5 seconds of skyfall") - the header says nothing when
+     the rule is being kept, which is always. It only speaks if a hero ever DID stand on two lines,
+     so the check is still on screen without costing a line of the panel to say "working". */
+  const el=skyPanelFrame('<b>\u2694 Edit Team</b>'
+    +(dupes?('<span class="sub" style="color:#ff9a9a">'+dupes+' hero'+(dupes===1?'':'es')+' REUSED across your lines</span>'):'')
+    , body, 'team');
 
   /* pick a line: the footer follows the row you tapped */
   if(el){ const sel=el.querySelector('#skyTroopSel');
@@ -22315,7 +22318,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789910407000';
+const BUILD_ID = '1789911607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
