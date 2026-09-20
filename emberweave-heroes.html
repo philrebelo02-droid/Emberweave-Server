@@ -1077,6 +1077,45 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .hero-card .pill{background:linear-gradient(180deg,#3a2a12,#1a1208)!important;border:1px solid #7a5f2a!important;color:#ffe9b8!important;}
 .glCard .glName{background:linear-gradient(0deg,rgba(14,9,5,.96),rgba(14,9,5,0))!important;}
 /* v673 GUILD HALL on the painted kit (Phil: "guild hall and all tabs need new Ui fix", "and the tab icons") */
+/* v674 THE SKYFALL WAR STAGE (Phil: "I want the actual Skyfall tournament art to come up") */
+.skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:300px;border-radius:12px;overflow:hidden;
+  background-size:cover;background-position:center;box-shadow:inset 0 0 90px rgba(4,8,16,.72);}
+.skyStage::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(64% 54% at 50% 48%,transparent 40%,rgba(5,9,18,.55) 100%);}
+.skyTw{position:absolute;width:29%;border:0;padding:0;background:none;cursor:pointer;z-index:3;
+  display:flex;flex-direction:column;gap:0;line-height:1.15;text-shadow:0 2px 4px rgba(0,0,0,.95);}
+.skyTw.mine{left:2%;align-items:flex-start;text-align:left;}
+.skyTw.foe{right:2%;align-items:flex-end;text-align:right;}
+.skyTw:hover .skyTwNm{color:#ffe9b8;}
+.skyTwIco{font-size:26px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.9));transition:transform .2s,filter .2s,opacity .2s;}
+.skyTw.dead .skyTwIco{opacity:.5;filter:grayscale(1) drop-shadow(0 3px 5px #000);}
+.skyTwNm{font-size:10px;font-weight:800;letter-spacing:.2px;transition:color .15s;}
+.skyTwSub{font-size:9px;color:#cbd6e6;font-weight:600;}
+.skyTw.sel .skyTwNm{color:#ffd45e;}
+.skyTw.act .skyTwIco{transform:scale(1.16);filter:drop-shadow(0 0 9px #ffd45e);}
+.skyMarch{position:absolute;z-index:4;font-size:15px;opacity:0;pointer-events:none;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.95));will-change:left,top,opacity;}
+.skyClash{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:5;width:96px;height:96px;
+  display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.25;transition:opacity .18s;}
+.skyClash.hot{opacity:1;}
+.skyClash img,.skyClash canvas{width:100%;height:100%;object-fit:contain;}
+.skyClashPh{font-size:40px;filter:drop-shadow(0 0 10px rgba(255,190,90,.75));animation:skyClashSpin 1.5s ease-in-out infinite;}
+.skyClash.hot .skyClashPh{animation-duration:.42s;}
+@keyframes skyClashSpin{0%,100%{transform:rotate(-13deg) scale(1)}50%{transform:rotate(13deg) scale(1.13)}}
+.skyClashRing{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,196,96,.55);opacity:0;}
+.skyClash.hot .skyClashRing{animation:skyClashRing .5s ease-out;}
+@keyframes skyClashRing{0%{transform:scale(.35);opacity:.95}100%{transform:scale(1.5);opacity:0}}
+.skySpeed{display:flex;gap:3px;align-items:center;flex-wrap:wrap;}
+.skySpeed button{border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);color:#c9b78d;
+  border-radius:7px;padding:3px 7px;font-size:10.5px;font-weight:800;cursor:pointer;min-width:30px;}
+.skySpeed button.on{background:linear-gradient(180deg,#8a6420,#3d2a0b);border-color:#f0cf78;color:#fff4d6;}
+.skyPop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:min(86%,330px);
+  max-height:84%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:9px 10px;border-radius:12px;
+  background:rgba(9,13,22,.95);border:1px solid #6b5628;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+.skyPopRow{display:flex;align-items:center;gap:7px;font-size:10.5px;padding:4px 6px;border-radius:7px;
+  margin-bottom:3px;background:rgba(18,24,38,.8);border:1px solid #242c3e;}
+.skyPopRow.you{background:rgba(255,191,105,.13);border-color:#7a5f2a;}
+.skyPopRow.down{opacity:.45;}
 .gTabStrip{display:flex;gap:4px;margin-bottom:12px;padding:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;
   border-style:solid;border-color:transparent;border-width:5px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch;
   box-shadow:0 5px 14px rgba(0,0,0,.45);}
@@ -13311,7 +13350,38 @@ function skyMatchHTML(m, canOfficer){
 }
 /* v374 (Phil): GOD MODE war simulator — a sandbox Skyfall match, 20 vs 20 players × 3 lines of five,
    bot allies on your side, a bot guild across the bridges. Results + a scrolling battle log. Dev only. */
-const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1}, r:null, busy:false, skipReplay:false};
+const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyMul:1,foeMul:1,stage:'prep'}, r:null, busy:false, skipReplay:false, speed:1, sel:null, marching:false};
+/* v674 - the middle of the bridge. Phil wants a Hailuo SEAMLESS clashing-swords loop here; it is not
+   made yet (his credits, his call). Point SKY_CLASH_LOOP at the sheet when it exists and it plays in
+   place of the drawn placeholder - nothing else changes. */
+const SKY_CLASH_LOOP='';
+const SKYSIM_SPEEDS=[1,2,4,8,12,16,20];
+function skySimSetSpeed(v){ SKYSIM.speed=v;
+  const bar=document.getElementById('skySpeedBar'); if(!bar) return;
+  bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on', (+b.dataset.sp)===v)); }
+function skySimEnd(){ SKYSIM.skipReplay=true; SKYSIM.marching=false; }
+/* Phil: "when i click on a tower it should be able to see all the allies lines in it, in order from
+   weakest player at the tower, to strongest at the bottom." Ascending power, top to bottom. */
+function skySimTower(side,i){
+  const r=SKYSIM.r||SKYSIM.view; const pop=document.getElementById('skyTowerPop'); if(!r||!pop) return;
+  const key=side+':'+i;
+  if(SKYSIM.sel===key){ SKYSIM.sel=null; pop.hidden=true; document.querySelectorAll('.skyTw.sel').forEach(t=>t.classList.remove('sel')); return; }
+  SKYSIM.sel=key;
+  document.querySelectorAll('.skyTw.sel').forEach(t=>t.classList.remove('sel'));
+  const btn=document.querySelector('.skyTw[data-key="'+key+'"]'); if(btn) btn.classList.add('sel');
+  const c=(((side==='you'?r.you:r.foe)||{}).citadels||[])[i]||{};
+  const rows=(c.defenders||[]).slice().sort((a,b)=>(a.power||0)-(b.power||0));
+  pop.hidden=false;
+  pop.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    +'<b style="font-size:11.5px;color:'+(side==='you'?'#7ef0b0':'#ff9aa6')+'">'+escapeHTML(c.name||('Lane '+(i+1)))+'</b>'
+    +'<button class="btn xs secondary" style="font-size:9px" onclick="skySimTower(\''+side+'\','+i+')">close</button></div>'
+    +'<div style="font-size:9px;color:#8b98a9;margin-bottom:5px">'+(c.destroyed?'FALLEN \u00b7 ':'')+(c.alive|0)+'/'+(c.total|0)+' lines alive \u00b7 weakest first</div>'
+    +(rows.length?rows.map((d,n)=>'<div class="skyPopRow'+(d.you?' you':'')+(d.alive?'':' down')+'">'
+        +'<span style="width:16px;flex:none;color:#8b98a9">'+(n+1)+'</span>'
+        +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(d.alive?'':'\u2620 ')+escapeHTML(d.name||'')+'</span>'
+        +'<span style="flex:none;width:58px;text-align:right;color:#ffbf69;font-weight:800">\u26a1'+(d.power||0).toLocaleString()+'</span>'
+        +'<span style="flex:none;width:34px;text-align:right;color:#9ad">'+(d.hpPct|0)+'%</span></div>').join('')
+      :'<div style="font-size:10px;color:#8b98a9;text-align:center;padding:10px 0">No lines hold this tower.</div>'); }
 function skySimOpen(){ if(!SKYSIM.p.botLevel) SKYSIM.p.botLevel=playerLevel();
   const ov=document.createElement('div'); ov.className='gmodal-ov'; ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.45);z-index:12000;display:flex;align-items:center;justify-content:flex-end;padding:16px;padding-right:max(16px,4vw)';
   const card=document.createElement('div'); card.id='skySimCard'; card.style.cssText='background:#141b2b;border:1px solid #ff9f43;border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:88vh;overflow:auto;position:relative';
@@ -13322,7 +13392,8 @@ function skySimRender(){ const card=document.getElementById('skySimCard'); if(!c
   const params=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">
       ${num('players','Players per side',1,30)}${num('linesPer','Lines per player',1,5)}${num('botLevel','Bot hero level',1,100)}
       <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Bot glyph tier<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.botTier=+this.value">${ladder.map((q,i)=>`<option value="${i}" ${P.botTier===i?'selected':''}>${q}</option>`).join('')}</select></label>
-      ${num('botStars','Bot stars',1,5)}${num('foeMul','Enemy power ×',0.2,5,0.1)}</div>
+      ${num('botStars','Bot stars',1,5)}${num('foeMul','Enemy power ×',0.2,5,0.1)}
+      <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Stage<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.stage=this.value">${['prep','march'].map(q=>`<option value="${q}" ${(P.stage||'prep')===q?'selected':''}>${q==='prep'?'Prep':'March'}</option>`).join('')}</select></label></div>
     <button class="btn" style="width:100%;${SKYSIM.busy?'opacity:.5':''}" ${SKYSIM.busy?'disabled':''} onclick="skySimRun()">${SKYSIM.busy?'⏳ Fighting…':'⚔ Run the war'}</button>`;
   let res='';
   if(r){ const won=r.winner==='A';
@@ -13348,32 +13419,89 @@ async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRend
    beats before revealing the existing detailed result. Skip only skips presentation. */
 async function skySimReplay(r){
   const card=document.getElementById('skySimCard'); if(!card||!r||!Array.isArray(r.log)) return;
-  SKYSIM.skipReplay=false;
-  const lanes=(r.you&&r.you.citadels)||[];
-  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px;color:#ff9f43">⚔ Skyfall War Simulation</b><button class="btn sm secondary" onclick="SKYSIM.skipReplay=true">Skip replay</button></div>
-    <div id="skyReplayPhase" style="margin:8px 0;text-align:center;font-size:12px;font-weight:900;color:#ffd45e">📋 PREPARATION — armies take their citadels</div>
-    <div id="skyReplayField" style="padding:7px;border:1px solid #293752;border-radius:12px;background:linear-gradient(180deg,#15243a,#0c1422)">${lanes.map((c,i)=>`<div id="skyReplayLane${i}" style="position:relative;height:54px;margin:5px 0;border:1px solid #263752;border-radius:9px;overflow:hidden;background:linear-gradient(90deg,rgba(34,122,85,.2),rgba(70,95,130,.16),rgba(122,43,70,.2));transition:box-shadow .12s,border-color .12s">
-      <div id="skyReplayA${i}" style="position:absolute;left:7px;top:6px;font-size:22px">🏰</div><div style="position:absolute;left:36px;top:7px;font-size:9px;color:#5ee89b">YOUR<br><b>${c.total||0} lines</b></div>
-      <div style="position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:8px;color:#8b98a9">${escapeHTML(c.name||('Lane '+(i+1)))}</div>
-      <div id="skyReplayToken${i}" style="position:absolute;left:12%;top:26px;font-size:18px;opacity:0;transition:left .055s linear;filter:drop-shadow(0 2px 3px #000)">⚔️</div>
-      <div id="skyReplayB${i}" style="position:absolute;right:7px;top:6px;font-size:22px">🏰</div><div style="position:absolute;right:36px;top:7px;text-align:right;font-size:9px;color:#ff8b8b">ENEMY<br><b>${((r.foe.citadels||[])[i]||{}).total||0} lines</b></div>
-      <div id="skyReplayClash${i}" style="position:absolute;left:50%;top:25px;transform:translateX(-50%) scale(.3);font-size:21px;opacity:0;transition:transform .08s,opacity .08s">💥</div></div>`).join('')}</div>
-    <div id="skyReplayEvent" style="height:38px;padding-top:8px;text-align:center;font-size:10px;color:#c3ccd8">Officers lock five battle lines across the skybridges.</div>`;
-  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-  await pause(1100); if(SKYSIM.skipReplay||!document.getElementById('skyReplayPhase')) return;
-  document.getElementById('skyReplayPhase').textContent='🚩 MARCH & FIGHT — the Skyfall assault begins';
-  const beat=Math.max(58,Math.min(150,Math.floor(12000/Math.max(1,r.log.length))));
-  for(const e of r.log){
-    if(SKYSIM.skipReplay||!document.getElementById('skyReplayPhase')) break;
-    const i=Math.max(0,Math.min(4,e.lane|0)), row=document.getElementById('skyReplayLane'+i), tok=document.getElementById('skyReplayToken'+i), clash=document.getElementById('skyReplayClash'+i);
-    row.style.borderColor=e.side==='A'?'#5ee89b':'#ff8b8b'; row.style.boxShadow='0 0 12px '+(e.side==='A'?'#5ee89b55':'#ff6b8b55');
-    tok.textContent=e.side==='A'?'⚔️➜':'⬅⚔️'; tok.style.transition='none'; tok.style.left=e.side==='A'?'12%':'82%'; tok.style.opacity='1'; void tok.offsetWidth; tok.style.transition='left '+beat+'ms linear'; tok.style.left=e.side==='A'?'76%':'18%';
-    document.getElementById('skyReplayEvent').textContent='#'+e.n+' · '+e.laneName+' · '+e.a+(e.captured?' captures an open citadel':(' clashes with '+e.d));
-    await pause(beat); clash.style.opacity='1'; clash.style.transform='translateX(-50%) scale(1.2)';
-    if(e.captured||e.fell){ const castle=document.getElementById((e.side==='A'?'skyReplayB':'skyReplayA')+i); castle.textContent='💥'; castle.style.filter='grayscale(1)'; castle.style.transform='rotate('+(e.side==='A'?'14':'-14')+'deg)'; }
-    await pause(Math.max(28,Math.floor(beat*.55))); tok.style.opacity='0'; clash.style.opacity='0'; clash.style.transform='translateX(-50%) scale(.3)'; row.style.boxShadow='none';
+  SKYSIM.skipReplay=false; SKYSIM.sel=null; SKYSIM.view=r; SKYSIM.speed=SKYSIM.speed||1;
+  const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
+  card.style.maxWidth='920px';
+  const you=(r.you&&r.you.citadels)||[], foe=(r.foe&&r.foe.citadels)||[];
+  /* The five towers run down each edge of the bridge; every march travels from its tower to the
+     middle, which is where the clash sits. These are percentages of the stage, so the whole thing
+     scales with the art on a phone. */
+  const TY=[9,25.5,42,58.5,75];
+  const tower=(c,i,mine)=>`<button class="skyTw ${mine?'mine':'foe'}${(c&&c.destroyed)?' dead':''}" data-key="${mine?'you':'foe'}:${i}"
+      id="skyTw${mine?'A':'B'}${i}" style="top:${TY[i]}%" onclick="skySimTower('${mine?'you':'foe'}',${i})">
+      <span class="skyTwIco">${(c&&c.destroyed)?'\uD83D\uDCA5':'\uD83C\uDFF0'}</span>
+      <span class="skyTwNm" style="color:${mine?'#7ef0b0':'#ff9aa6'}">${escapeHTML((c&&c.name)||('Lane '+(i+1)))}</span>
+      <span class="skyTwSub">${(c&&c.alive)|0}/${(c&&c.total)|0} lines</span></button>`;
+  const clashInner = SKY_CLASH_LOOP
+    ? `<img src="${SKY_CLASH_LOOP}" alt="">`
+    : `<span class="skyClashPh">\u2694\uFE0F</span>`;
+  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <b style="font-size:14px;color:#ff9f43">\u2694 Skyfall War</b>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <div class="skySpeed" id="skySpeedBar">${SKYSIM_SPEEDS.map(v=>`<button data-sp="${v}" class="${SKYSIM.speed===v?'on':''}" onclick="skySimSetSpeed(${v})">${v}\u00d7</button>`).join('')}</div>
+        <button class="btn sm secondary" onclick="skySimEnd()">\u23f9 End Sim</button></div></div>
+    <div id="skyPhase" style="margin:7px 0 6px;text-align:center;font-size:12px;font-weight:900;color:#ffd45e">\uD83D\uDCCB PREP \u2014 the guilds take their towers</div>
+    <div class="skyStage" id="skyStage" style="background-image:url('${SKY_BRIDGE_BG}')">
+      ${you.map((c,i)=>tower(c,i,true)).join('')}
+      ${foe.map((c,i)=>tower(c,i,false)).join('')}
+      <div class="skyClash" id="skyClash"><span class="skyClashRing"></span>${clashInner}</div>
+      <div id="skyTowerPop" class="skyPop" hidden></div>
+    </div>
+    <div id="skyEvent" style="height:34px;padding-top:7px;text-align:center;font-size:10.5px;color:#c3ccd8">Tap any tower to see the lines holding it \u2014 weakest at the top.</div>
+    ${SKY_CLASH_LOOP?'':`<div style="font-size:9px;color:#8b98a9;text-align:center">centre art: placeholder \u2014 the Hailuo seamless clash loop is not made yet</div>`}`;
+
+  const stage=document.getElementById('skyStage');
+  /* One pause that reads the speed LIVE, so Phil can change 1x -> 20x mid-war and it takes effect on
+     the very next beat rather than at the end. */
+  const pause=ms=>new Promise(done=>setTimeout(done, Math.max(8, ms/Math.max(1,SKYSIM.speed))));
+  const stopped=()=>SKYSIM.skipReplay||!document.getElementById('skyStage');
+
+  if((SKYSIM.p.stage||'prep')==='prep'){
+    const ev=document.getElementById('skyEvent');
+    ev.innerHTML=`<button class="btn sm" onclick="SKYSIM.marching=true">\uD83D\uDEA9 Begin the march</button>`;
+    SKYSIM.marching=false;
+    for(let w=0; w<3000 && !SKYSIM.marching && !stopped(); w++) await new Promise(d=>setTimeout(d,60));
   }
-  const phase=document.getElementById('skyReplayPhase'); if(phase){ const won=r.winner==='A'; phase.textContent=(won?'🏆 YOUR SIDE WINS — ':'💀 BOT GUILD WINS — ')+r.why; phase.style.color=won?'#5ee89b':'#ff8b8b'; await pause(SKYSIM.skipReplay?80:900); }
+  if(stopped()) return;
+  const ph=document.getElementById('skyPhase');
+  if(ph){ ph.textContent='\uD83D\uDEA9 MARCH \u2014 the towers send their lines to the bridge'; }
+
+  const clash=document.getElementById('skyClash');
+  const BEAT=430;                                   // one march at 1x; the speed bar divides this
+  for(const e of r.log){
+    if(stopped()) break;
+    const i=Math.max(0,Math.min(4,e.lane|0)), mine=e.side==='A';
+    const tw=document.getElementById('skyTw'+(mine?'A':'B')+i);
+    if(tw){ tw.classList.add('act'); }
+    const tok=document.createElement('div');
+    tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
+    tok.style.top=(TY[i]+3)+'%'; tok.style.left=mine?'16%':'80%'; tok.style.opacity='1';
+    stage.appendChild(tok);
+    const trav=Math.max(10, BEAT/Math.max(1,SKYSIM.speed));
+    void tok.offsetWidth;
+    tok.style.transition='left '+trav+'ms linear, top '+trav+'ms linear, opacity .12s';
+    tok.style.left='47%'; tok.style.top='45%';
+    const ev=document.getElementById('skyEvent');
+    if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
+    await pause(BEAT);
+    if(tw) tw.classList.remove('act');
+    tok.remove();
+    if(clash){ clash.classList.remove('hot'); void clash.offsetWidth; clash.classList.add('hot'); }
+    if(e.captured||e.fell){
+      const fallen=document.getElementById('skyTw'+(mine?'B':'A')+i);
+      if(fallen){ fallen.classList.add('dead'); const ic=fallen.querySelector('.skyTwIco'); if(ic) ic.textContent='\uD83D\uDCA5'; }
+    }
+    await pause(BEAT*0.34);
+    if(clash) clash.classList.remove('hot');
+  }
+  if(clash) clash.classList.remove('hot');
+  const ph2=document.getElementById('skyPhase');
+  if(ph2){ const won=r.winner==='A';
+    ph2.textContent=(won?'\uD83C\uDFC6 YOUR SIDE WINS \u2014 ':'\uD83D\uDC80 BOT GUILD WINS \u2014 ')+r.why;
+    ph2.style.color=won?'#5ee89b':'#ff8b8b';
+    const ev=document.getElementById('skyEvent');
+    if(ev) ev.textContent='Tap any tower to see how its lines finished \u2014 weakest at the top.';
+    await pause(700); }
 }
 function skyPanelHTML(){
   const s=SKY.st, t=s.tournament;
@@ -20544,7 +20672,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789861207000';
+const BUILD_ID = '1789862407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
