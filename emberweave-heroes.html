@@ -14032,6 +14032,17 @@ function skyLayoutBoard(stage){
    drawn from the UI kit; point SKY_WAR_MAP at the art and it sits behind the same furniture. */
 const SKY_WAR_MAP='';
 const SKYSIM_SPEEDS=[1,2,4,8,12,16,20];
+/* v711 - HOW LONG A FIGHT TAKES. The war is resolved by combat-core, so a fight's length is its
+   round count, which the server already records on every log entry. 1080 fights measured out of
+   that engine: median 8 rounds, p75 12, p90 21, and a tail that reaches the 300-round stalemate
+   cap in even matchups. At 1.5s a round that is a 12s median fight and a 31.5s p90, clamped to the
+   90s BATTLE_TIME_LIMIT - a lane fight cannot outlast an arena fight. */
+const SKY_SEC_PER_ROUND = 1.5;
+const SKY_FIGHT_CAP_S   = 90;
+function skyFightMs(e){
+  const rounds = Math.max(1, (e && e.rounds) | 0 || 8);
+  return Math.min(SKY_FIGHT_CAP_S, rounds * SKY_SEC_PER_ROUND) * 1000;
+}
 /* v675 - THE CLASH HUB.
    Phil wanted the middle of the bridge to be the thing you click: the fight happening right now at
    the top, the lines still standing under it, and a Records tab holding every fight so far, newest
@@ -14237,7 +14248,10 @@ async function skySimReplay(r){
   if(ph){ ph.textContent='\uD83D\uDEA9 MARCH \u2014 the towers send their lines to the bridge'; }
 
   const clash=document.getElementById('skyClash');
-  const BEAT=430;                                   // one march at 1x; the speed bar divides this
+  /* v711: there is no fixed beat any more. Each march is given the real length of its own fight -
+     the walk out to the bridge is a fixed slice of it and the clash holds the rest, so a grind
+     looks like a grind and a rout is over before you settle. */
+  const WALK=0.28;                                  // of the fight: the march out to the bridge
   for(const e of r.log){
     if(stopped()) break;
     const i=Math.max(0,Math.min(4,e.lane|0)), mine=e.side==='A';
@@ -14252,18 +14266,24 @@ async function skySimReplay(r){
     tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
     tok.style.left=from.x+'%'; tok.style.top=from.y+'%'; tok.style.opacity='1';
     stage.appendChild(tok);
-    const trav=Math.max(10, BEAT/Math.max(1,SKYSIM.speed));
+    const FIGHT=skyFightMs(e);
+    const trav=Math.max(10, (FIGHT*WALK)/Math.max(1,SKYSIM.speed));
     void tok.offsetWidth;
     tok.style.transition='left '+trav+'ms linear, top '+trav+'ms linear, opacity .12s';
     tok.style.left=to.x+'%'; tok.style.top=to.y+'%';
     const ev=document.getElementById('skyEvent');
     if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
     SKYSIM.cur=r.log.indexOf(e); if(SKYSIM.hubOn) skyHubRender();   /* v675: the hub follows the war */
-    await pause(BEAT);
+    await pause(FIGHT*WALK);
     if(tw) tw.classList.remove('act');
     if(ln) ln.classList.remove('hot');
     tok.remove();
     if(clash){ clash.classList.remove('hot'); void clash.offsetWidth; clash.classList.add('hot'); }
+    /* The swords are still crossed. This is the fight itself, and it has to be over before anything
+       is reported: no line comes off a count and no tower is touched until this pause returns. */
+    if(ev && !e.captured) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+' vs '+e.d
+      +' \u00b7 ' + Math.round(FIGHT/1000) + 's';
+    await pause(FIGHT*(1-WALK));
     /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and a
        tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early: the
        server's final state is never drawn, only replayed. */
@@ -14284,7 +14304,6 @@ async function skySimReplay(r){
       if(e.dDown) drop(mine?'foe':'you', i);
       if(e.captured||e.fell) fell(mine?'foe':'you', i);
     }
-    await pause(BEAT*0.34);
     if(clash) clash.classList.remove('hot');
   }
   if(clash) clash.classList.remove('hot');
@@ -21549,7 +21568,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789887607000';
+const BUILD_ID = '1789888807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
