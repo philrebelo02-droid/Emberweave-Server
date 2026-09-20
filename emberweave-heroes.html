@@ -8280,7 +8280,29 @@ function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, bo
   critRes:u.critRes||0, energyReg:u.energyReg||0, energy:u.energy, ctrlRes:u.ctrlRes||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
     immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null,
     gearSkill:u.gearSkill?JSON.parse(JSON.stringify(u.gearSkill)):null }; }
+/* v757 - IS THIS THE CLIENT'S SNAPSHOT OR THE SERVER'S? They are different objects and only one of
+   them can be copied field-for-field onto a unit.
+   The client's (snapUnitResolved) carries dmg / range / r / melee / atkInterval / combatDist /
+   skillLv / pass. The server's lineSnapshot carries atk / atkP / atkM / moveSpd / armor / mr / kit
+   and has NONE of those ten, so copying it wholesale assigned `undefined` to every one - a unit
+   with no dmg hits for nothing and one with no r has no radius. `speed` is on both and means
+   different things (0.85 attacks/sec server, 55 movement client), so even the overlap corrupts.
+   A server snapshot is told apart by having atk and no dmg. */
+function isServerSnapshot(s){ return !!(s && s.dmg==null && typeof s.atk==='number'); }
+/* v757 - the server's line, made playable. makeUnit builds a complete valid hero from the table at
+   that level; only the fields that genuinely mean the same thing on both sides are taken from the
+   snapshot. Nothing is guessed, and nothing is left undefined.
+   The replay is NOT bit-identical to the server's resolution - the two resolvers are separate
+   implementations - but it is the right five heroes at the health they met with, which is what the
+   screen is for. Reconciling the two engines is a bigger job and is recorded as open. */
+function buildUnitFromServerSnapshot(s,team,x,y){
+  const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank||0,boss:s.boss});
+  if(typeof s.maxHp==='number' && s.maxHp>0){ u.maxHp=s.maxHp; u.hp=(typeof s.hp==='number')?Math.max(0,Math.min(s.maxHp,s.hp)):s.maxHp; }
+  if(typeof s.energy==='number') u.energy=s.energy;
+  return u;
+}
 function buildUnitFromSnapshot(s,team,x,y){
+  if(isServerSnapshot(s)) return buildUnitFromServerSnapshot(s,team,x,y);
   const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank,boss:s.boss});   // structure + kit abilities by rank
   u.maxHp=u.hp=s.maxHp; u.dmg=s.dmg; u.range=s.range; u.speed=s.speed; u.atkInterval=s.atkInterval; u.combatDist=s.combatDist; u.r=s.r; u.melee=s.melee; u.reach=s.reach||0;
   u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.defRating=s.defRating||0; u.penRating=s.penRating||0;
@@ -15447,10 +15469,13 @@ function skyHubRender(){
    back only THAT march's two lines as they stood when they met. The client then plays them. */
 async function skySimWatch(n){
   const r=SKYSIM.view||SKYSIM.r; if(!r) return;
-  SKYSIM.skipReplay=true;                        /* stop the war while we watch one fight */
+  /* v757b - PAUSE, not skip. skipReplay is the abort flag: stopped() reads it and every lane's loop
+     RETURNS, so the war was over the moment you watched a single march and the board sat on DONE.
+     Pausing holds every lane where it stands; clearing it lets them carry on. */
+  SKYSIM.paused=true;
   bannerMsg('\u25b6 Loading march #'+n+'\u2026');
   const q=await api('/api/guild-war/sim','POST',Object.assign({seed:r.seed,captureN:n},SKYSIM.p));
-  if(!q||q.error||!q.fight){ bannerMsg((q&&q.error)||'That fight could not be loaded.'); return; }
+  if(!q||q.error||!q.fight){ SKYSIM.paused=false; bannerMsg((q&&q.error)||'That fight could not be loaded.'); return; }
   const f=q.fight;
   /* v756 - THE HEALTH THEY ARRIVED WITH. The capture records each line's hpState as it stood when
      the two met, and a line that has already fought arrives damaged. Replaying both at full health
@@ -15464,9 +15489,15 @@ async function skySimWatch(n){
     if(st && typeof st.energy==='number') c.energy=st.energy;
     return c; });
   const mineSnap=withHp(f.a.snaps, f.a.hp), foeSnap=withHp(f.d.snaps, f.d.hp);
+  if(!mineSnap.length||!foeSnap.length){ SKYSIM.paused=false; bannerMsg('That fight has no lines to play.'); return; }
   if(!mineSnap.length||!foeSnap.length){ bannerMsg('That fight has no lines to play.'); return; }
-  /* v756 - back to the board you were watching, not the Guild Hall */
-  _replayReturn=()=>{ try{ show('skyfall'); renderSkyfall(SKYFALL_VIEW); }catch(e){ show('guild'); renderGuild(); } };
+  /* v756 - back to the board you were watching, not the Guild Hall.
+     v757b - and the war picks up from where it was held, whether you watched it out or skipped. */
+  _replayReturn=()=>{
+    SKYSIM.paused=false;
+    try{ show('skyfall');
+      if(!SKYSIM.running) renderSkyfall(SKYFALL_VIEW);   /* a war still running redraws itself */
+    }catch(e){ show('guild'); renderGuild(); } };
   watchBattle({ v:2, seed:(f.seed>>>0), mineSnap, foe:foeSnap, won:!!q.won,
     oppName:f.d.name||'the enemy line' }); }
 function skySimSetSpeed(v){ SKYSIM.speed=v;
@@ -15536,7 +15567,7 @@ async function skySimReplay(r){
   SKYSIM.skipReplay=false; SKYSIM.sel=null; SKYSIM.view=r; SKYSIM.speed=SKYSIM.speed||1;
   SKYSIM.marched=false;                          /* v722 - a new war has not marched yet */
   SKYSIM.cur=-1; SKYSIM.curDone=true; SKYSIM.openLine=null; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null;
-  SKYSIM.laneCur={}; SKYSIM.laneDone={}; SKYSIM.laneStart={};
+  SKYSIM.laneCur={}; SKYSIM.laneDone={}; SKYSIM.laneStart={}; SKYSIM.paused=false;
   const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
   card.style.maxWidth='920px';
   const you=(r.you&&r.you.citadels)||[], foe=(r.foe&&r.foe.citadels)||[];
@@ -15564,6 +15595,12 @@ async function skySimReplay(r){
     const total=Math.max(0, ms); let done=0;
     if(step) step(0);
     while(done<total && !stopped()){
+      /* v757b (Phil: "if i watch a battle and am done watching the battle shouldnt end when im out
+         it should be continuing in real time while i was watching") - PAUSED IS NOT STOPPED. While
+         a watched fight is on screen this waits in place and spends no fight-time, so the war is
+         held exactly where it stood rather than skipped or fast-forwarded. The loop stays alive
+         inside here, which is the whole point: skipReplay would have returned out of it. */
+      if(SKYSIM.paused){ await new Promise(d=>setTimeout(d, 120)); continue; }
       const sp=Math.max(1, SKYSIM.speed||1);
       const chunk=Math.min(total-done, SLICE*sp);   // SLICE of wall clock, in fight-time
       await new Promise(d=>setTimeout(d, Math.max(8, chunk/sp)));
@@ -23017,7 +23054,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789920007000';
+const BUILD_ID = '1789921207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
