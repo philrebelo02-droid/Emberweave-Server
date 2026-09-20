@@ -261,6 +261,10 @@
   .gmem .on{background:#57d977;} .gmem .off{background:#4a5163;}
   .gmem .mn{font-weight:600;} .gmem .off-txt{color:#5b6577;}
   @media(max-width:560px){ #guildWrap{flex-direction:column;height:auto;} #gChatCol{height:52vh;} #gRosterCol{flex:none;max-width:none;height:26vh;} }
+  /* v745 - THIS IS THE HUB'S BUILDING HOTSPOT and the name is unscoped, so anything else that
+     calls itself .hot inherits pointer-events:none from here. The Skyfall board did exactly that
+     and its crossed swords could not be tapped; the board moved to .skyHot. Do not reuse this
+     name on another screen - scope a new one. */
   .hot{position:absolute;transform:translate(-50%,-50%);z-index:2;pointer-events:none;}
   /* shaped clickable area tracing the building silhouette */
   .hit{position:absolute;inset:0;pointer-events:auto;cursor:pointer;transition:.12s;}
@@ -1358,7 +1362,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
              radial-gradient(1.2px 1.2px at 58% 80%,#cfe0ff,transparent 60%);}
 .skyLines{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .skyLines path{fill:none;stroke:rgba(214,178,104,.30);stroke-width:1.4;stroke-linecap:round;transition:stroke .18s,stroke-width .18s;}
-.skyLines path.hot{stroke:rgba(255,214,120,.95);stroke-width:2.6;}
+.skyLines path.skyHot{stroke:rgba(255,214,120,.95);stroke-width:2.6;}
 .skyLines path.dead{stroke:rgba(120,96,70,.16);stroke-dasharray:4 5;}
 .skyHold{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:2;width:120px;height:120px;
   border-radius:50%;pointer-events:none;
@@ -1399,10 +1403,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.25;transition:opacity .18s;
   border:0;background:none;padding:0;}
 .skyClash:hover{opacity:1;}
-.skyClash.hot{opacity:1;}
+.skyClash.skyHot{opacity:1;}
 .skyClash img,.skyClash canvas{width:100%;height:100%;object-fit:contain;}
 .skyClashPh{font-size:40px;filter:drop-shadow(0 0 10px rgba(255,190,90,.75));animation:skyClashSpin 1.5s ease-in-out infinite;}
-.skyClash.hot .skyClashPh{animation-duration:.42s;}
+.skyClash.skyHot .skyClashPh{animation-duration:.42s;}
 @keyframes skyClashSpin{0%,100%{transform:rotate(-13deg) scale(1)}50%{transform:rotate(13deg) scale(1.13)}}
 /* v712 - ONE CLASH PER LANE, on its own bridge's midpoint. The old single .skyClash sat in the
    middle of the stage, which is not where any of the five fights happen. */
@@ -1422,7 +1426,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    reach the centre and taken down when the fight ends, rather than standing on the board for the
    whole march. A lane that has finished hands its report to its tower (v727), so nothing is lost
    by them not being there. */
-.skyStage.marching .skyLaneClash.hot{display:flex;}
+/* v745 - .skyHot, not .hot: the hub's unscoped .hot carries pointer-events:none and was making
+   these buttons untappable. See the note on .hot itself. */
+.skyStage.marching .skyLaneClash.skyHot{display:flex;}
 /* NB: no display here. It is owned by the pair of rules above - a display:flex left in this block
    would sit AFTER the hide rule at the same specificity and win, which is exactly why the swords
    were still on the board all through PREP. */
@@ -1444,7 +1450,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   transition:filter .18s;}
 .skyLaneClash:hover img{
   filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 6px rgba(255,214,140,.8));}
-.skyLaneClash.hot img{
+.skyLaneClash.skyHot img{
   filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 9px rgba(255,205,115,1));}
 /* the placeholder is a blade, and it has to read on white cloud as well as on open sky, so it
    carries its own dark edge rather than relying on the art behind it */
@@ -1452,7 +1458,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   text-shadow:0 1px 2px #000,0 0 7px rgba(0,0,0,.85);
   filter:drop-shadow(0 0 8px rgba(255,190,90,.9));
   animation:skyClashSpin 1.6s ease-in-out infinite;}
-.skyLaneClash.hot .ph{animation-duration:.4s;filter:drop-shadow(0 0 12px rgba(255,214,120,1));}
+.skyLaneClash.skyHot .ph{animation-duration:.4s;filter:drop-shadow(0 0 12px rgba(255,214,120,1));}
 /* THE MARCH LINE - a dotted run from a tower to the middle of its own bridge. It is a repeating
    gradient, not a dotted border: a border cannot be animated, so the crawl was doing nothing. */
 .skyMarchLine{position:absolute;transform-origin:0 50%;z-index:3;pointer-events:none;height:3px;
@@ -1463,10 +1469,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   opacity:.72;transition:opacity .2s;}
 .skyMarchLine.mine{--dotCol:rgba(150,255,200,.95);}
 .skyMarchLine.foe{--dotCol:rgba(255,176,188,.95);}
-.skyMarchLine.hot{opacity:1;animation:skyDash .5s linear infinite;}
+.skyMarchLine.skyHot{opacity:1;animation:skyDash .5s linear infinite;}
 @keyframes skyDash{from{background-position:0 0}to{background-position:12px 0}}
 .skyClashRing{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,196,96,.55);opacity:0;}
-.skyClash.hot .skyClashRing{animation:skyClashRing .5s ease-out;}
+.skyClash.skyHot .skyClashRing{animation:skyClashRing .5s ease-out;}
 @keyframes skyClashRing{0%{transform:scale(.35);opacity:.95}100%{transform:scale(1.5);opacity:0}}
 /* v703: three across (Phil), so the bar cannot run under the status plaque */
 .skySpeed{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;align-items:center;}
@@ -14726,7 +14732,7 @@ function skyMarchVis(stage){
     if(pill){ const want=skySimSandbox() ? (on?'MARCH':(fought?'DONE':'PREP')) : skyStageNow();
       if(pill.textContent!==want) pill.textContent=want;
       pill.style.color = on?'#ffd45e' : (fought?'#8b98a9':'#7ef0b0'); } }
-  if(!on) stage.querySelectorAll('.skyMarchLine.hot,.skyLaneClash.hot').forEach(el=>el.classList.remove('hot'));
+  if(!on) stage.querySelectorAll('.skyMarchLine.skyHot,.skyLaneClash.skyHot').forEach(el=>el.classList.remove('skyHot'));
 }
 function skyLayoutBoard(stage){
   if(!stage) return;
@@ -15186,7 +15192,7 @@ async function skySimReplay(r){
       if(!e.captured) marchers.push( walker(mine?LN.b:LN.a, !mine, e.d, !mine) );
       const FIGHT=skyFightMs(e);
       const WALKMS=walkMs(i, FIGHT);
-      { const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.add('hot'); }
+      { const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.add('skyHot'); }
       const ev=document.getElementById('skyEvent');
       if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
       /* the hub follows whichever fight started most recently; a lane's own battles are read by
@@ -15206,7 +15212,7 @@ async function skySimReplay(r){
          the swords go up. Each walk interval goes with its walker; one left running on a detached
          node is a leak that only shows after a long war. */
       for(const m2 of marchers){ skyStopWalk(m2.el); m2.el.remove(); }
-      { const c=clashOf(i); if(c){ c.classList.remove('hot'); void c.offsetWidth; c.classList.add('hot'); } }
+      { const c=clashOf(i); if(c){ c.classList.remove('skyHot'); void c.offsetWidth; c.classList.add('skyHot'); } }
       /* The swords are still crossed. This is the fight itself, and it has to be over before
          anything is reported: no line comes off a count and no tower is touched until this
          returns. */
@@ -15233,8 +15239,8 @@ async function skySimReplay(r){
         if(e.dDown) drop(mine?'foe':'you', i);
         if(e.captured||e.fell) fell(mine?'foe':'you', i);
       }
-      { const c=clashOf(i); if(c) c.classList.remove('hot');
-        const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.remove('hot'); }
+      { const c=clashOf(i); if(c) c.classList.remove('skyHot');
+        const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.remove('skyHot'); }
     }
     /* v727 - this lane has no fights left. Its dotted runs and its swords come off the board, which
        is how you see at a glance which fronts are still live. */
@@ -15243,7 +15249,7 @@ async function skySimReplay(r){
     }
   };
   await Promise.all([0,1,2,3,4].map(runLane));
-  stage.querySelectorAll('.skyLaneClash.hot,.skyMarchLine.hot').forEach(el=>el.classList.remove('hot'));
+  stage.querySelectorAll('.skyLaneClash.skyHot,.skyMarchLine.skyHot').forEach(el=>el.classList.remove('skyHot'));
   const ph2=document.getElementById('skyPhase');
   if(ph2){ const won=r.winner==='A';
     ph2.textContent=(won?'\uD83C\uDFC6 YOUR SIDE WINS \u2014 ':'\uD83D\uDC80 BOT GUILD WINS \u2014 ')+r.why;
@@ -22505,7 +22511,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789912807000';
+const BUILD_ID = '1789914007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
