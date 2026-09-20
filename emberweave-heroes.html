@@ -1524,27 +1524,37 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrkHd b{font-family:Georgia,'Times New Roman',serif;font-size:12.5px;color:#ffe9b8;
   text-shadow:0 1px 2px #000,0 0 8px rgba(255,205,110,.35);}
 .skyBrkHd .sub{font-size:9px;color:#8b98a9;}
-/* v765 - THE TREE. A column spaces its matches EVENLY (space-around on the match, not on every
-   name), so a match in the next round sits opposite the gap between the two that feed it - which is
-   what lets the eye follow a seed inward. */
-.skyBrkBody{flex:1;min-height:0;display:flex;align-items:stretch;gap:0;overflow:hidden;}
-.skyBrkCol{display:flex;flex-direction:column;justify-content:space-around;min-width:0;flex:1 1 0;
-  padding:0 9px;}
-.skyBrkCol.cup{flex:0 0 auto;width:74px;justify-content:center;padding:0;}
-/* ONE MATCH: two guilds and the rule that carries the winner onward. The bracket shape is a
-   three-sided border - down the pair, and out toward the next round. */
-.skyBrkM{position:relative;display:flex;flex-direction:column;gap:2px;}
-.skyBrkM::after{content:'';position:absolute;top:25%;bottom:25%;width:8px;
-  border:1px solid rgba(240,207,120,.45);pointer-events:none;}
-.skyBrkCol.L .skyBrkM::after{right:-9px;border-left:0;border-radius:0 5px 5px 0;}
-.skyBrkCol.R .skyBrkM::after{left:-9px;border-right:0;border-radius:5px 0 0 5px;}
-/* and the short spur from that bracket into the next column */
-.skyBrkM::before{content:'';position:absolute;top:50%;height:1px;width:9px;
-  background:rgba(240,207,120,.45);pointer-events:none;}
-.skyBrkCol.L .skyBrkM::before{right:-18px;}
-.skyBrkCol.R .skyBrkM::before{left:-18px;}
-/* the last column before the cup needs no spur - the cup is the join */
-.skyBrkCol.sf .skyBrkM::before{display:none;}
+/* v768 - THE REFERENCE'S SHAPE. Sixteen crests around the outside - eight along the top, eight
+   along the bottom - every path converging inward on one cup in the middle. Only the ENTRANTS are
+   drawn as nodes; the later rounds are junctions where two paths meet, which is why the panel holds
+   sixteen names instead of twenty-eight. */
+.skyBrkBody{flex:1;min-height:0;position:relative;overflow:hidden;}
+.skyBrkSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+/* one entrant: its crest and its name */
+.skyBrkNode{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+  align-items:center;gap:1px;width:74px;}
+.skyBrkNode .crest{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:15px;background:linear-gradient(180deg,#2a2114,#15110b);
+  box-shadow:0 0 0 2px rgba(240,207,120,.65),0 2px 5px rgba(0,0,0,.6);}
+.skyBrkNode .nm{font-size:8.5px;line-height:1.2;color:#c9b78d;max-width:74px;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyBrkNode .sd{position:absolute;top:-3px;left:50%;transform:translateX(-22px);
+  font-size:7px;font-weight:800;color:#8b98a9;}
+.skyBrkNode.won .crest{box-shadow:0 0 0 2px #ffd45e,0 0 9px rgba(255,205,110,.75);}
+.skyBrkNode.won .nm{color:#ffe9b8;font-weight:700;}
+.skyBrkNode.out .crest{filter:grayscale(1);opacity:.5;}
+.skyBrkNode.out .nm{color:#6f7d90;text-decoration:line-through;}
+.skyBrkNode.you .nm{color:#bfe0ff;}
+.skyBrkNode.you .crest{box-shadow:0 0 0 2px #2c5f96,0 0 8px rgba(70,140,220,.6);}
+/* a junction where two paths meet */
+.skyBrkJoin{position:absolute;width:7px;height:7px;transform:translate(-50%,-50%) rotate(45deg);
+  background:linear-gradient(180deg,#8a6420,#3d2a0b);box-shadow:0 0 0 1px rgba(240,207,120,.6);}
+/* the cup the whole diagram points at */
+.skyBrkCup2{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+  align-items:center;gap:1px;}
+.skyBrkCup2 .ico{font-size:34px;filter:drop-shadow(0 0 10px rgba(255,205,110,.9));line-height:1;}
+.skyBrkCup2 .who{font-size:9px;font-weight:800;color:#ffe9b8;max-width:96px;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* one guild in the tree */
 .skyBrkTeam{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 5px;border-radius:6px;
   border:1px solid #3a2f1c;background:linear-gradient(180deg,rgba(28,22,14,.95),rgba(15,13,10,.95));
@@ -14645,46 +14655,88 @@ function skyBracketOpen(){
   const rounds=t.bracket||[];
   const myGid=(function(){ try{ return (G.guild&&G.guild.id)||null; }catch(e){ return null; } })();
 
-  /* a round's matches, split into the half of the tree they belong to */
-  const half=(ri, side)=>{ const rd=rounds[ri]; if(!rd) return [];
-    const ms=rd.matches||[]; const n=ms.length; const cut=Math.ceil(n/2);
-    return side==='L'?ms.slice(0,cut):ms.slice(cut); };
+  /* v768 (Phil: "your brackets are nothing like this") - THE REFERENCE'S SHAPE.
+     Sixteen guilds around the OUTSIDE - eight along the top, eight along the bottom - and every
+     path converging inward on one cup in the middle. Only the entrants are drawn; the later rounds
+     are junctions where two paths meet, not repeated boxes.
+     The geometry is COMPUTED: a parent sits at the mean x of its two children and each round steps
+     a fixed fraction closer to the cup, so the tree is right for any draw and nothing is placed by
+     hand. */
+  const CX=50;                       /* the cup, in % of the panel */
+  const CY=50;
+  const ROW_Y=11;                    /* how far in from the edge the crests sit */
+  const STEPS=[0.34,0.60,0.82];      /* R16 join, QF join, SF join - as a fraction of the way in */
 
-  const teamHTML=(who, m)=>{
-    if(!who) return '<div class="skyBrkTeam empty"><span class="sd">\u2013</span><span class="nm">\u2014</span></div>';
+  /* the eight guilds along one edge, in bracket order, from the round that has them */
+  const edgeTeams=(half)=>{
+    const r0=rounds[0]; const out=[];
+    const ms=(r0&&r0.matches)||[];
+    const cut=Math.ceil(ms.length/2);
+    const slice=(half==='top')?ms.slice(0,cut):ms.slice(cut);
+    for(let k=0;k<4;k++){ const m=slice[k]||null; out.push({m, who:m&&m.a}, {m, who:m&&m.b}); }
+    return out; };
+
+  /* did this guild win the match it is in? */
+  const stateOf=(m,who)=>{
+    if(!who) return '';
     const decided=!!(m&&m.winnerGuildId);
-    const won=decided && m.winnerGuildId===who.guildId;
-    const out=decided && !won;
-    const you=myGid && who.guildId===myGid;
-    return '<div class="skyBrkTeam'+(won?' won':'')+(out?' out':'')+(you?' you':'')+'">'
-      +'<span class="sd">'+(who.seed||'\u2013')+'</span>'
-      +'<span class="nm">'+escapeHTML(who.name||'?')+'</span></div>'; };
+    if(!decided) return (myGid&&who.guildId===myGid)?'you':'';
+    const won=m.winnerGuildId===who.guildId;
+    return (won?'won':'out')+((myGid&&who.guildId===myGid)?' you':''); };
 
-  /* v765 - one column of the tree. Each MATCH is a unit that carries its own connector, and the
-     column spaces the matches rather than the names, so a match lines up with the gap between the
-     two that feed it. */
-  const colHTML=(ri, side)=>{
-    const ms=half(ri, side);
-    const label=((rounds[ri]||{}).name)||['R16','QF','SF','F'][ri]||'';
-    const want=Math.max(1, 4>>ri);      /* 4 matches per half at R16, then 2, then 1 */
-    let rows='';
-    for(let k=0;k<want;k++){ const m=ms[k]||null;
-      rows+='<div class="skyBrkM">'+teamHTML(m&&m.a, m)+teamHTML(m&&m.b, m)+'</div>'; }
-    const cls='skyBrkCol '+side+(ri===2?' sf':'');
-    return '<div class="'+cls+'"><div class="skyBrkRound">'+escapeHTML(label)+'</div>'+rows+'</div>'; };
+  const nodes=[], joins=[], paths=[];
+
+  const buildHalf=(half)=>{
+    const dir=(half==='top')?1:-1;
+    const edgeY=(half==='top')?ROW_Y:(100-ROW_Y);
+    const teams=edgeTeams(half);
+    /* the eight crests, spread across the width */
+    let level=teams.map((t,i)=>{
+      const x=(i+0.5)*(100/8);
+      nodes.push({x, y:edgeY, t});
+      return {x, y:edgeY}; });
+    /* then three rounds of joining, each stepping closer to the cup */
+    for(let r=0;r<3;r++){
+      const y=edgeY + (CY-edgeY)*STEPS[r];
+      const next=[];
+      for(let i=0;i<level.length;i+=2){
+        const a=level[i], b=level[i+1]||level[i];
+        const x=(a.x+b.x)/2;
+        /* an elbow from each child: out to the joining row, then across to the parent */
+        paths.push('M '+a.x+' '+a.y+' L '+a.x+' '+y+' L '+x+' '+y);
+        paths.push('M '+b.x+' '+b.y+' L '+b.x+' '+y+' L '+x+' '+y);
+        joins.push({x, y});
+        next.push({x, y}); }
+      level=next; }
+    /* and the half's survivor runs into the cup */
+    const fin=level[0];
+    if(fin) paths.push('M '+fin.x+' '+fin.y+' L '+CX+' '+fin.y+' L '+CX+' '+(CY+dir*-9));
+  };
+  buildHalf('top'); buildHalf('bottom');
 
   const champ=(function(){ if(!t.championGuildId) return null;
-    const e=(t.entrants||[]).find(x=>x.guildId===t.championGuildId); return e||null; })();
+    return (t.entrants||[]).find(x=>x.guildId===t.championGuildId)||null; })();
 
-  const body='<div class="skyBrkBody">'
-      +colHTML(0,'L')+colHTML(1,'L')+colHTML(2,'L')
-      +'<div class="skyBrkCol cup"><div class="skyBrkCup">'
-        +'<span class="ico">\uD83C\uDFC6</span>'
-        +'<span class="who">'+(champ?escapeHTML(champ.name):'\u2014')+'</span>'
-        +'<span class="lbl">'+(champ?'CHAMPION':'FINAL')+'</span></div></div>'
-      +colHTML(2,'R')+colHTML(1,'R')+colHTML(0,'R')
+  const svg='<svg class="skyBrkSvg" viewBox="0 0 100 100" preserveAspectRatio="none">'
+    +paths.map(d=>'<path d="'+d+'" fill="none" stroke="rgba(240,207,120,.45)" stroke-width="0.35"'
+      +' vector-effect="non-scaling-stroke" stroke-linejoin="round"/>').join('')
+    +'</svg>';
+
+  const nodeHTML=nodes.map(n=>{
+    const who=n.t.who, cls=stateOf(n.t.m, who);
+    return '<div class="skyBrkNode '+cls+'" style="left:'+n.x+'%;top:'+n.y+'%">'
+      +'<span class="crest">\u2694</span>'
+      +'<span class="nm">'+escapeHTML(who?(who.name||'?'):'\u2014')+'</span>'
+      +'</div>'; }).join('');
+
+  const joinHTML=joins.map(j=>'<div class="skyBrkJoin" style="left:'+j.x+'%;top:'+j.y+'%"></div>').join('');
+
+  const cupHTML='<div class="skyBrkCup2" style="left:'+CX+'%;top:'+CY+'%">'
+    +'<span class="ico">\uD83C\uDFC6</span>'
+    +(champ?('<span class="who">'+escapeHTML(champ.name)+'</span>'):'')
     +'</div>';
-  /* v767 - no subtitle. The tree says it is a knockout and the names say who is in it. */
+
+  const body='<div class="skyBrkBody">'+svg+joinHTML+nodeHTML+cupHTML+'</div>';
   return skyPanelFrame('<b>\u2694 Battle Bracket</b>', body, 'bracket');
 }
 /* v730b - one frame, three panels. Bracket, Rank and Schedule all open in the same box and close
@@ -23352,7 +23404,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789928407000';
+const BUILD_ID = '1789929607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
