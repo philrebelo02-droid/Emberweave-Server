@@ -1087,8 +1087,12 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #arena .titlebar{margin:0 0 5px;min-height:0;}
 #arena .titlebar h1{font-size:15px;letter-spacing:1.5px;margin:0;padding:3px 0;}
 #arena>#arenaBody{flex:1;min-height:0;display:flex;}
+/* v688 (Phil, on desktop: "now the enemy line doesnt go up") - the rows GROUP at the top. With
+   space-between the opponents were pinned to the floor of a tall screen, leaving a canyon between
+   them and the defenders. On a phone the board fills the height anyway, so this reads the same
+   there and only fixes the big screen. */
 .arWrap{display:flex;flex-direction:column;gap:6px;width:100%;flex:1;min-height:0;
-  justify-content:space-between;}
+  justify-content:flex-start;}
 .arTop{display:flex;gap:7px;align-items:stretch;flex:0 0 auto;}
 /* Phil: "lower the opponents down to touch the bottom" */
 .arBot{display:flex;gap:7px;align-items:stretch;flex:0 0 auto;}
@@ -21031,7 +21035,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789873207000';
+const BUILD_ID = '1789874407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
