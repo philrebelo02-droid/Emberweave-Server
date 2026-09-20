@@ -1391,6 +1391,33 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyClashPh{font-size:40px;filter:drop-shadow(0 0 10px rgba(255,190,90,.75));animation:skyClashSpin 1.5s ease-in-out infinite;}
 .skyClash.hot .skyClashPh{animation-duration:.42s;}
 @keyframes skyClashSpin{0%,100%{transform:rotate(-13deg) scale(1)}50%{transform:rotate(13deg) scale(1.13)}}
+/* v712 - ONE CLASH PER LANE, on its own bridge's midpoint. The old single .skyClash sat in the
+   middle of the stage, which is not where any of the five fights happen. */
+.skyLaneClash{position:absolute;transform:translate(-50%,-50%);z-index:6;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border:0;background:none;padding:0;opacity:.62;transition:opacity .18s,filter .18s;}
+.skyLaneClash:hover{opacity:1;}
+.skyLaneClash.hot{opacity:1;}
+.skyLaneClash img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;pointer-events:none;}
+/* the placeholder is a blade, and it has to read on white cloud as well as on open sky, so it
+   carries its own dark edge rather than relying on the art behind it */
+.skyLaneClash .ph{font-size:min(34px,7.4vw);line-height:1;
+  text-shadow:0 1px 2px #000,0 0 7px rgba(0,0,0,.85);
+  filter:drop-shadow(0 0 8px rgba(255,190,90,.9));
+  animation:skyClashSpin 1.6s ease-in-out infinite;}
+.skyLaneClash.hot .ph{animation-duration:.4s;filter:drop-shadow(0 0 12px rgba(255,214,120,1));}
+/* THE MARCH LINE - a dotted run from a tower to the middle of its own bridge. It is a repeating
+   gradient, not a dotted border: a border cannot be animated, so the crawl was doing nothing. */
+.skyMarchLine{position:absolute;transform-origin:0 50%;z-index:3;pointer-events:none;height:3px;
+  --dotCol:rgba(255,242,214,.95);
+  background-image:repeating-linear-gradient(90deg,var(--dotCol) 0 5px,rgba(0,0,0,0) 5px 12px);
+  background-size:12px 100%;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.85));
+  opacity:.72;transition:opacity .2s;}
+.skyMarchLine.mine{--dotCol:rgba(150,255,200,.95);}
+.skyMarchLine.foe{--dotCol:rgba(255,176,188,.95);}
+.skyMarchLine.hot{opacity:1;animation:skyDash .5s linear infinite;}
+@keyframes skyDash{from{background-position:0 0}to{background-position:12px 0}}
 .skyClashRing{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,196,96,.55);opacity:0;}
 .skyClash.hot .skyClashRing{animation:skyClashRing .5s ease-out;}
 @keyframes skyClashRing{0%{transform:scale(.35);opacity:.95}100%{transform:scale(1.5);opacity:0}}
@@ -13683,6 +13710,11 @@ const SKY_ART_BRIDGE   = '/assets/img/battlefields/skyfall/bridge.webp?v=1';
 /* v706 - the five towers, in lane order, each with the burning twin it becomes when its last line
    dies. Named by the lane they hold, so the art and the board can never drift apart. */
 const SKY_TOWER_KEYS = ['irongate','stormwatch','crownspire','verdant','rift'];
+/* v712 - the seamless sword-clash loop that plays on every bridge midpoint. It is rendered on a
+   black ground and composited with mix-blend-mode:screen, so the black drops out without a mask
+   and the sparks light the sky behind them. Empty until the clip is in; the placeholder is a
+   swinging blade, so the board reads correctly either way. */
+const SKY_ART_CLASH = '';
 function skyTowerArt(i, dead){
   return '/assets/img/battlefields/skyfall/'+(dead?'ruin':'tower')+'-'
     +(SKY_TOWER_KEYS[i]||SKY_TOWER_KEYS[0])+'.webp?v=1';
@@ -13760,9 +13792,6 @@ function skyBoardHTML(r, opts){
       +   '<button id="skySchedule">Schedule</button>'
       +   '<button id="skyRank">Rank</button>'
       + '</div>';
-  const clashInner = SKY_CLASH_LOOP
-    ? `<img src="${SKY_CLASH_LOOP}" alt="">`
-    : `<span class="skyClashPh">\u2694\uFE0F</span>`;
   return `<div class="skyStage" id="skyStage">
       <div class="skyBoardSky" style="background-image:url('${SKY_ART_SKY}')"></div>
       ${skyLanes().map(L=>`<div class="skyBridge" id="skyBr${L.i}" style="background-image:url('${SKY_ART_BRIDGE}')"></div>`).join('')}
@@ -13787,10 +13816,19 @@ function skyBoardHTML(r, opts){
             style="--bobDur:${dur}s;--bobDelay:${del}s;--bobRot:${rot.toFixed(2)}deg"
             src="${skyTowerArt(L.i, dead)}"
             title="${escapeHTML((c&&c.name)||('Lane '+(L.i+1)))}">`; };
-        return plat(L.a,'mine','you:'+L.i,yc)+plat(L.b,'foe','foe:'+L.i,fc)
+        /* v712 - the lane's own furniture: a dotted run in from each tower and the clash where
+           the two runs meet. Both are positioned in pixels by skyLayoutBoard. */
+        const lane=`<div class="skyMarchLine mine" id="skyML-you-${L.i}"></div>
+          <div class="skyMarchLine foe" id="skyML-foe-${L.i}"></div>
+          <button class="skyLaneClash" id="skyLC-${L.i}" data-lane="${L.i}"
+            onclick="skyClashOpen(${L.i})" title="${escapeHTML((yc&&yc.name)||('Lane '+(L.i+1)))}"
+            >${SKY_ART_CLASH?`<img src="${SKY_ART_CLASH}" alt="">`:`<span class="ph">\u2694\uFE0F</span>`}</button>`;
+        return lane+plat(L.a,'mine','you:'+L.i,yc)+plat(L.b,'foe','foe:'+L.i,fc)
           +twr(yc,'mine','you:'+L.i,'you')+twr(fc,'foe','foe:'+L.i,'foe')
           +garr(yc,L.a,'mine','you')+garr(fc,L.b,'foe','foe')
-          +`<div class="skyLaneLbl" style="left:${L.mid.x}%;top:${L.mid.y}%;color:#ffe9b8">${escapeHTML((yc&&yc.name)||('Lane '+(L.i+1)))}</div>`;
+          /* v712 - the name comes off the midpoint, because the midpoint is now where the two
+             lines actually meet and the swords go there. */
+          +`<div class="skyLaneLbl" id="skyLL-${L.i}" style="left:${L.mid.x}%;top:${L.mid.y}%;color:#ffe9b8">${escapeHTML((yc&&yc.name)||('Lane '+(L.i+1)))}</div>`;
       }).join('')}
       <div class="skyHud">
         <div class="skyStatus">
@@ -13805,7 +13843,7 @@ function skyBoardHTML(r, opts){
         <div id="skyEvent" class="skyEvent"></div>
         <button class="skyEditTeam" id="skyEditTeam">\u2694 Edit Team</button>
       </div>
-      <button class="skyClash" id="skyClash" onclick="skyClashOpen()" title="the bridge"><span class="skyClashRing"></span>${clashInner}</button>
+
       <div id="skyTowerPop" class="skyPop" hidden></div>
       <div id="skyHub" class="skyHub" hidden></div>
     </div>`;
@@ -14025,6 +14063,38 @@ function skyLayoutBoard(stage){
       }
     }
   }
+  /* v712 - THE ATTACK SCENE, measured. Each lane gets a dotted run in from each of its two towers
+     and a clash where those runs meet, which is the bridge's own midpoint. Like the bridges, these
+     are set in pixels: .skyStage does not hold the aspect it declares, so a percentage of the width
+     is not a knowable percentage of the height and a line hung by percentages misses the bridge. */
+  { const plat=SKY_PLAT_R/100*W;
+    /* The five midpoints are 41-50px apart on a phone, so a clash much bigger than this starts
+       touching the lanes either side of it. */
+    const cs=Math.max(24, plat*0.58);
+    for(const L of skyLanes()){
+      const mx=L.mid.x/100*W, my=L.mid.y/100*H;
+      const lc=stage.querySelector('#skyLC-'+L.i);
+      if(lc){ lc.style.width=cs+'px'; lc.style.height=cs+'px';
+              lc.style.left=mx+'px'; lc.style.top=my+'px'; }
+      /* the name comes off the midpoint and sits above the swords, clear of the bridge */
+      const ll=stage.querySelector('#skyLL-'+L.i);
+      /* v714b - the name cannot go above its own midpoint: the lanes are closer together than the
+         clash is wide, so it would land on the lane above's swords. It goes a quarter of the way
+         along its own bridge instead, where the span is empty, and lifts just clear of the deck. */
+      if(ll){ const ax=L.a.x/100*W, ay=L.a.y/100*H;
+              ll.style.left=(ax+(mx-ax)*0.52)+'px';
+              ll.style.top=(ay+(my-ay)*0.52-11)+'px'; }
+      for(const pair of [['you',L.a],['foe',L.b]]){
+        const el=stage.querySelector('#skyML-'+pair[0]+'-'+L.i); if(!el) continue;
+        const px=pair[1].x/100*W, py=pair[1].y/100*H;
+        const dx=mx-px, dy=my-py;
+        const len=Math.max(0, Math.sqrt(dx*dx+dy*dy)-cs*0.45);   /* stop short of the swords */
+        el.style.left=px+'px'; el.style.top=py+'px';
+        el.style.width=len+'px';
+        el.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI)+'deg)';
+      }
+    }
+  }
   for(const g of stage.querySelectorAll('.skyGarrison')) skyGarFit(g);
 }
 /* The painted Skyfall WAR MAP does not exist yet either - guild-war-skybridge-01 is the ARENA you
@@ -14047,9 +14117,13 @@ function skyFightMs(e){
    Phil wanted the middle of the bridge to be the thing you click: the fight happening right now at
    the top, the lines still standing under it, and a Records tab holding every fight so far, newest
    first. The two tabs swap back and forth without disturbing the war running behind them. */
-function skyClashOpen(){ const hub=document.getElementById('skyHub'); if(!hub) return;
-  SKYSIM.hubOn=!SKYSIM.hubOn; hub.hidden=!SKYSIM.hubOn;
-  if(SKYSIM.hubOn){ SKYSIM.hubTab=SKYSIM.hubTab||'live'; skyHubRender(); } }
+/* v712 - a clash belongs to a lane now, so opening one opens THAT lane's battles. Clicking the
+   lane that is already open closes it again. */
+function skyClashOpen(lane){ const hub=document.getElementById('skyHub'); if(!hub) return;
+  const l=(lane==null)?null:(lane|0);
+  if(SKYSIM.hubOn && SKYSIM.hubLane===l){ SKYSIM.hubOn=false; hub.hidden=true; return; }
+  SKYSIM.hubLane=l; SKYSIM.hubOn=true; hub.hidden=false;
+  SKYSIM.hubTab=SKYSIM.hubTab||'live'; skyHubRender(); }
 function skyHubTab(t){ SKYSIM.hubTab=t; SKYSIM.openFight=null; skyHubRender(); }
 function skyHubPick(n){ SKYSIM.openFight=(SKYSIM.openFight===n?null:n); skyHubRender(); }
 /* The war is resolved before a single frame is drawn, so the state "right now" is the state after
@@ -14223,10 +14297,27 @@ async function skySimReplay(r){
   if(!stage){ SKYSIM.running=false; return; }
   skyLayoutBoard(stage);
 
-  /* One pause that reads the speed LIVE, so Phil can change 1x -> 20x mid-war and it takes effect on
-     the very next beat rather than at the end. */
-  const pause=ms=>new Promise(done=>setTimeout(done, Math.max(8, ms/Math.max(1,SKYSIM.speed))));
   const stopped=()=>SKYSIM.skipReplay||!document.getElementById('skyStage');
+  /* v713 - THE PAUSE READS THE SPEED LIVE, AND THIS TIME IT MEANS IT. The old one divided by the
+     speed once, when it scheduled its timeout; with v711's real fight lengths that left a single
+     pause running up to 90 seconds at whatever speed it started at, so pressing 20x did nothing
+     until the fight ended. It now spends the fight in slices of roughly an eighth of a second of
+     wall clock and re-reads the speed on each one.
+     `step` is handed the fraction elapsed, so whatever is moving on screen moves on these same
+     slices - a CSS transition cannot, because its duration is fixed the moment it is set. */
+  const SLICE=120;                                  // ms of wall clock per re-read
+  const pause=async(ms, step)=>{
+    const total=Math.max(0, ms); let done=0;
+    if(step) step(0);
+    while(done<total && !stopped()){
+      const sp=Math.max(1, SKYSIM.speed||1);
+      const chunk=Math.min(total-done, SLICE*sp);   // SLICE of wall clock, in fight-time
+      await new Promise(d=>setTimeout(d, Math.max(8, chunk/sp)));
+      done+=chunk;
+      if(step) step(Math.min(1, done/total));
+    }
+    if(step) step(1);
+  };
 
   if((SKYSIM.p.stage||'prep')==='prep'){
     /* v703 (Phil): Begin the march is centred on the bottom edge of the board, not tucked into the
@@ -14247,66 +14338,76 @@ async function skySimReplay(r){
   const ph=document.getElementById('skyPhase');
   if(ph){ ph.textContent='\uD83D\uDEA9 MARCH \u2014 the towers send their lines to the bridge'; }
 
-  const clash=document.getElementById('skyClash');
+  /* v712: the clash that lights up is the one on THIS lane's bridge, not a single one in the
+     middle of the stage. */
+  const clashOf=i=>stage.querySelector('#skyLC-'+i);
+  const lineOf=(side,i)=>stage.querySelector('#skyML-'+side+'-'+i);
   /* v711: there is no fixed beat any more. Each march is given the real length of its own fight -
      the walk out to the bridge is a fixed slice of it and the clash holds the rest, so a grind
      looks like a grind and a rout is over before you settle. */
   const WALK=0.28;                                  // of the fight: the march out to the bridge
-  for(const e of r.log){
-    if(stopped()) break;
-    const i=Math.max(0,Math.min(4,e.lane|0)), mine=e.side==='A';
-    const tw=document.getElementById('skyTw'+(mine?'A':'B')+i);
-    if(tw){ tw.classList.add('act'); }
-    const ln=document.getElementById('skyLn'+(mine?'A':'B')+i); if(ln) ln.classList.add('hot');
-    /* v700: the token travels the lane's REAL bridge, from the marching tower to the one it is
-       attacking, instead of the old fixed rows the modal used. */
-    const LN=skyLanes()[i]||{a:{x:20,y:50},b:{x:80,y:50}};
-    const from=mine?LN.a:LN.b, to=mine?LN.b:LN.a;
-    const tok=document.createElement('div');
-    tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
-    tok.style.left=from.x+'%'; tok.style.top=from.y+'%'; tok.style.opacity='1';
-    stage.appendChild(tok);
-    const FIGHT=skyFightMs(e);
-    const trav=Math.max(10, (FIGHT*WALK)/Math.max(1,SKYSIM.speed));
-    void tok.offsetWidth;
-    tok.style.transition='left '+trav+'ms linear, top '+trav+'ms linear, opacity .12s';
-    tok.style.left=to.x+'%'; tok.style.top=to.y+'%';
-    const ev=document.getElementById('skyEvent');
-    if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
-    SKYSIM.cur=r.log.indexOf(e); if(SKYSIM.hubOn) skyHubRender();   /* v675: the hub follows the war */
-    await pause(FIGHT*WALK);
-    if(tw) tw.classList.remove('act');
-    if(ln) ln.classList.remove('hot');
-    tok.remove();
-    if(clash){ clash.classList.remove('hot'); void clash.offsetWidth; clash.classList.add('hot'); }
-    /* The swords are still crossed. This is the fight itself, and it has to be over before anything
-       is reported: no line comes off a count and no tower is touched until this pause returns. */
-    if(ev && !e.captured) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+' vs '+e.d
-      +' \u00b7 ' + Math.round(FIGHT/1000) + 's';
-    await pause(FIGHT*(1-WALK));
-    /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and a
-       tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early: the
-       server's final state is never drawn, only replayed. */
-    { const drop=(side,lane)=>{ const el=stage.querySelector('#skyGar-'+side+'-'+lane); if(!el) return;
-        if(el.classList.contains('fallen')) return;
-        const tot=(+el.dataset.total)|0; let al=(+el.dataset.alive)|0;
-        al=Math.max(0, al-1); el.dataset.alive=al; el.innerHTML=skyGarText(al,tot); skyGarFit(el); };
-      const fell=(side,lane)=>{ const el=stage.querySelector('#skyGar-'+side+'-'+lane); if(!el) return;
-        el.classList.add('fallen'); el.dataset.alive=0;
-        el.innerHTML=skyGarText(0,(+el.dataset.total)|0); skyGarFit(el);
-        const plat=stage.querySelector('.skyPlat[data-key="'+side+':'+lane+'"]');
-        if(plat) plat.classList.add('down');
-        /* the tower becomes its burning twin on the beat its last line dies - never before */
-        const tw=stage.querySelector('#skyTower-'+side+'-'+lane);
-        if(tw && !tw.classList.contains('down') && !tw.classList.contains('falling')) skyTowerFall(stage, tw, lane|0);
-      };
-      if(e.aDown) drop(mine?'you':'foe', i);
-      if(e.dDown) drop(mine?'foe':'you', i);
-      if(e.captured||e.fell) fell(mine?'foe':'you', i);
+  /* v714 (Phil: "all 5 towers should be fighting at the same time / on their own time") - the log
+     is dealt into one queue per lane and the five are run side by side. Within a lane the order is
+     exactly the server's; across lanes nothing is synchronised, so a lane that draws three grinds
+     falls behind a lane that draws three routs. The war ends when the last lane does. */
+  const queues=[[],[],[],[],[]];
+  r.log.forEach((e,idx)=>{ queues[Math.max(0,Math.min(4,e.lane|0))].push({e,idx}); });
+
+  const runLane = async (i)=>{
+    for(const {e,idx} of queues[i]){
+      if(stopped()) return;
+      const mine=e.side==='A';
+      const LN=skyLanes()[i]||{a:{x:20,y:50},b:{x:80,y:50}};
+      const from=mine?LN.a:LN.b, to=mine?LN.b:LN.a;
+      const tok=document.createElement('div');
+      tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
+      tok.style.left=from.x+'%'; tok.style.top=from.y+'%'; tok.style.opacity='1';
+      tok.style.transition='opacity .12s';
+      stage.appendChild(tok);
+      const FIGHT=skyFightMs(e);
+      { const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.add('hot'); }
+      const ev=document.getElementById('skyEvent');
+      if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
+      /* the hub follows whichever fight started most recently; a lane's own battles are read by
+         tapping that lane's swords. */
+      SKYSIM.cur=idx; if(SKYSIM.hubOn) skyHubRender();
+      await pause(FIGHT*WALK, t=>{
+        tok.style.left=(from.x+(to.x-from.x)*t)+'%';
+        tok.style.top =(from.y+(to.y-from.y)*t)+'%'; });
+      tok.remove();
+      { const c=clashOf(i); if(c){ c.classList.remove('hot'); void c.offsetWidth; c.classList.add('hot'); } }
+      /* The swords are still crossed. This is the fight itself, and it has to be over before
+         anything is reported: no line comes off a count and no tower is touched until this
+         returns. */
+      if(ev && !e.captured) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+' vs '+e.d
+        +' \u00b7 ' + Math.round(FIGHT/1000) + 's';
+      await pause(FIGHT*(1-WALK));
+      if(stopped()) return;
+      /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and
+         a tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early:
+         the server's final state is never drawn, only replayed. */
+      { const drop=(side,lane)=>{ const el=stage.querySelector('#skyGar-'+side+'-'+lane); if(!el) return;
+          if(el.classList.contains('fallen')) return;
+          const tot=(+el.dataset.total)|0; let al=(+el.dataset.alive)|0;
+          al=Math.max(0, al-1); el.dataset.alive=al; el.innerHTML=skyGarText(al,tot); skyGarFit(el); };
+        const fell=(side,lane)=>{ const el=stage.querySelector('#skyGar-'+side+'-'+lane); if(!el) return;
+          el.classList.add('fallen'); el.dataset.alive=0;
+          el.innerHTML=skyGarText(0,(+el.dataset.total)|0); skyGarFit(el);
+          const plat=stage.querySelector('.skyPlat[data-key="'+side+':'+lane+'"]');
+          if(plat) plat.classList.add('down');
+          const tw2=stage.querySelector('#skyTower-'+side+'-'+lane);
+          if(tw2 && !tw2.classList.contains('down') && !tw2.classList.contains('falling')) skyTowerFall(stage, tw2, lane|0);
+        };
+        if(e.aDown) drop(mine?'you':'foe', i);
+        if(e.dDown) drop(mine?'foe':'you', i);
+        if(e.captured||e.fell) fell(mine?'foe':'you', i);
+      }
+      { const c=clashOf(i); if(c) c.classList.remove('hot');
+        const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.remove('hot'); }
     }
-    if(clash) clash.classList.remove('hot');
-  }
-  if(clash) clash.classList.remove('hot');
+  };
+  await Promise.all([0,1,2,3,4].map(runLane));
+  stage.querySelectorAll('.skyLaneClash.hot,.skyMarchLine.hot').forEach(el=>el.classList.remove('hot'));
   const ph2=document.getElementById('skyPhase');
   if(ph2){ const won=r.winner==='A';
     ph2.textContent=(won?'\uD83C\uDFC6 YOUR SIDE WINS \u2014 ':'\uD83D\uDC80 BOT GUILD WINS \u2014 ')+r.why;
@@ -21568,7 +21669,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789888807000';
+const BUILD_ID = '1789891207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
