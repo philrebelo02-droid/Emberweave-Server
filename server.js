@@ -4999,7 +4999,9 @@ async function api(req,res,url){
     if(p==='/api/guild/raid/assault'){ return send(res,400,{error:'The guild raid is a real battle now — reload the game to fight the boss.'}); }
     if(p==='/api/guild/raid/start' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'graidstart',20,60000)) return send(res,429,{error:'Slow down.'});
-      const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+      /* the guild block already read the body once for every POST (see 'const b=await body(req)'
+         above) - reading it a second time here never resolves and the request hangs forever. */
+      const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
       const r=ensureRaid(g); r.att=r.att||{};
       const open=r.att[me.id];
       /* a retried start with the same requestId hands back the same open fight (nothing is charged twice) */
@@ -5028,7 +5030,7 @@ async function api(req,res,url){
       return send(res,200,{ ok:true, attemptId:r.att[me.id].id, seed, snaps:fightSnaps, engine:r.att[me.id].engine,
         boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl}, raid:raidView(g) }); }
     if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
-      const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+      const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
       const out=idem(me.id+':graidres:'+reqId,()=>{
         const r=ensureRaid(g); r.att=r.att||{};
         const a=r.att[me.id];
