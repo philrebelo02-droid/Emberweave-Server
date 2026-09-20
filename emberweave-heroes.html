@@ -1196,7 +1196,76 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   .arDefRow{justify-content:center;}
 }
 /* v674 THE SKYFALL WAR STAGE (Phil: "I want the actual Skyfall tournament art to come up") */
-.skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:300px;overflow:hidden;
+/* v697 SKYFALL AS ITS OWN SCREEN - a thin title bar, then the board takes the rest.
+   Phil: "the entire thing should fit to phone screen". */
+#skyfall{padding:6px 8px 8px;}
+#skyfall .titlebar{margin:0 0 5px;min-height:0;}
+#skyfall .titlebar h1{font-size:15px;letter-spacing:1.6px;margin:0;padding:3px 0;}
+#skyfall>#skyfallBody{flex:1;min-height:0;width:100%;display:flex;}
+#skyfallBody .skyStage{flex:1;min-height:0;aspect-ratio:auto;width:100%;}
+/* v694 THE WAR HUD - Magic Rush's alliance-war layout in our painted kit */
+/* v695 the tower panel - who is standing in this tower */
+.skyTowerPanel{position:absolute;z-index:9;width:min(88%,330px);max-height:86%;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;padding:9px 10px;border-radius:12px;
+  background:rgba(8,12,20,.96);border:1px solid #6b5628;box-shadow:0 12px 30px rgba(0,0,0,.65);}
+.skyTowerPanel h4{margin:0 0 2px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#ffe9b8;}
+.skyTowerPanel .sub{font-size:9.5px;color:#8b98a9;margin-bottom:7px;}
+.skyLine{display:flex;align-items:center;gap:6px;font-size:10.5px;padding:4px 6px;border-radius:7px;
+  margin-bottom:4px;background:rgba(18,24,38,.85);border:1px solid #242c3e;}
+.skyLine.you{background:rgba(255,191,105,.13);border-color:#7a5f2a;}
+.skyLine.down{opacity:.45;}
+/* v696: a player's block - their lines sit together under one header and move together */
+.skyPlayer{border:1px solid #2b3550;border-radius:9px;padding:5px 6px 3px;margin-bottom:6px;
+  background:rgba(12,17,28,.7);}
+.skyPlayer.you{border-color:#7a5f2a;background:rgba(255,191,105,.09);}
+.skyPlayerHd{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:10.5px;}
+.skyPlayerHd .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-weight:800;color:#ffe9b8;}
+.skyPlayerHd .tot{flex:none;color:#ffbf69;font-weight:800;}
+.skyPlayerHd .ord{flex:none;width:16px;color:#8b98a9;}
+.skyLine .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyMoveRow{display:flex;gap:3px;margin:2px 0 6px 6px;}
+.skyMoveRow button{border:1px solid #3a2f1c;border-radius:6px;padding:2px 7px;cursor:pointer;
+  font-size:9.5px;font-weight:800;color:#f0dcae;
+  background:linear-gradient(180deg,#8a6420,#3d2a0b);}
+.skyMoveRow button[disabled]{opacity:.35;cursor:default;}
+.skyHud{position:absolute;inset:0;z-index:6;pointer-events:none;}
+.skyHud>*{pointer-events:auto;}
+.skyStatus{position:absolute;left:8px;top:8px;max-width:46%;padding:7px 10px;border-radius:10px;
+  background:rgba(8,12,20,.78);border:1px solid #6b5628;box-shadow:0 4px 12px rgba(0,0,0,.5);
+  font-size:10.5px;color:#c9b78d;line-height:1.5;}
+.skyStatus b{color:#ffe9b8;font-family:Georgia,'Times New Roman',serif;font-size:12px;}
+.skyStatus .sv{color:#7ef0b0;font-weight:800;}
+.skyHudBtns{position:absolute;right:8px;top:8px;display:flex;gap:5px;}
+.skyHudBtns button, .skyEditTeam{border:1px solid #3a2f1c;border-radius:9px;padding:5px 11px;cursor:pointer;
+  font-size:11px;font-weight:800;color:#f0dcae;letter-spacing:.2px;white-space:nowrap;
+  background:linear-gradient(180deg,#8a6420 0%,#5a3f12 55%,#3d2a0b 100%);
+  box-shadow:inset 0 1px 0 rgba(255,225,160,.28),0 3px 8px rgba(0,0,0,.5);}
+.skyHudBtns button:hover, .skyEditTeam:hover{filter:brightness(1.14);}
+.skyEditTeam{position:absolute;right:8px;bottom:8px;padding:7px 16px;font-size:12px;}
+/* the garrison count that hangs under every platform */
+.skyGarrison{position:absolute;transform:translate(-50%,0);z-index:4;pointer-events:none;
+  padding:1px 7px;border-radius:7px;white-space:nowrap;
+  background:rgba(8,12,20,.8);border:1px solid #4a3d22;
+  font-size:9.5px;font-weight:800;color:#ffe9b8;text-shadow:0 1px 2px #000;}
+.skyGarrison.mine{border-color:#2b7a55;}
+.skyGarrison.foe{border-color:#7a2b46;}
+.skyGarrison.fallen{border-color:#5a2b2b;color:#ff8b8b;}
+/* v690 the board's own pieces */
+.skyBoardSky{position:absolute;inset:0;background-size:cover;background-position:center;}
+.skyPlat{position:absolute;transform:translate(-50%,-50%);z-index:2;pointer-events:auto;cursor:pointer;
+  background-size:contain;background-repeat:no-repeat;background-position:center;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));transition:filter .15s;}
+.skyPlat:hover{filter:drop-shadow(0 0 10px rgba(255,214,120,.8)) drop-shadow(0 6px 10px rgba(0,0,0,.45));}
+.skyPlat.mine{--laneCol:#7ef0b0;}
+.skyPlat.foe{--laneCol:#ff9aa6;}
+.skyBridge{position:absolute;transform-origin:0 50%;z-index:1;pointer-events:none;
+  background-repeat:repeat-x;background-size:auto 100%;
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.4));}
+.skyLaneLbl{position:absolute;transform:translate(-50%,-50%);z-index:3;pointer-events:none;
+  font-size:9px;font-weight:800;letter-spacing:.3px;white-space:nowrap;
+  color:#fff4d6;text-shadow:0 1px 3px #000,0 0 6px #000;}
+.skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:0;overflow:hidden;
   background-size:cover;background-position:center;
   border-style:solid;border-color:transparent;border-width:7px;
   border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 22px stretch;}
@@ -1469,6 +1538,13 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <div id="eliteBody" style="width:100%;max-width:540px"></div>
   </div>
   <!-- GUILD HALL -->
+  <!-- SKYFALL (the guild war board - its own screen, v697) -->
+  <div class="screen hub" id="skyfall">
+    <button class="btn secondary sm backbtn" data-nav="guild">◀ Guild</button>
+    <div class="titlebar"><h1>SKYFALL</h1></div>
+    <div id="skyfallBody"></div>
+  </div>
+
   <div class="screen hub" id="guild">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
     <div class="titlebar"><h1>GUILD HALL</h1></div>
@@ -12384,6 +12460,7 @@ function show(name){
   if(name==='online') renderOnline();
   if(name==='account') renderAccount();
   if(name==='arena') renderArena();
+  if(name==='skyfall') renderSkyfall();
   if(name==='arenaShop') renderArenaShop();
   if(name==='market') renderMarket();
   if(name==='shadymarket') renderShadyMarket();
@@ -13518,6 +13595,213 @@ const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyM
    made yet (his credits, his call). Point SKY_CLASH_LOOP at the sheet when it exists and it plays in
    place of the drawn placeholder - nothing else changes. */
 const SKY_CLASH_LOOP='';
+/* v690 - THE BOARD'S PIECES. Phil: "Plant the platforms in game and use the bridge to attach the
+   platforms". The map is no longer one painted picture; it is a sky, ten platforms and five
+   bridges, placed by the client. */
+const SKY_ART_SKY      = '/assets/img/battlefields/skyfall/sky.webp?v=1';
+const SKY_ART_PLATFORM = '/assets/img/battlefields/skyfall/platform.webp?v=1';
+const SKY_ART_BRIDGE   = '/assets/img/battlefields/skyfall/bridge.webp?v=1';
+
+/* THE LANE TABLE - percentages of the stage, and the only place the composition lives.
+   Phil's rules, as numbers:
+     - five a side, evenly stepped                         (the +4 / +12 step below)
+     - the diagonal runs bottom-left to top-right          (BRIDGE_V has a negative dy)
+     - nothing near the frame edge                         (see the margin check in the comment)
+     - headroom above every platform for its hovering tower
+   A platform is PLAT_R% of the stage WIDTH across. With A0 at x=13 the left edge sits at 13-6.5=6.5%,
+   and B4 at x=77 puts the right edge at 83.5% - clear of both sides. Vertically A4 ends at
+   82+10.4=92.4% and B0 starts at 16-10.4=5.6%, both inside. */
+const SKY_PLAT_R = 8;
+const SKY_LANE_BOW = 12;   /* v691: how far the middle lanes bow outward, % of stage width */                       /* platform width, % of stage width */
+const SKY_LANE_A0 = {x:18, y:38};            /* your row starts here */
+const SKY_LANE_STEP = {x:0, y:13};           /* and steps this much per lane */
+const SKY_BRIDGE_V = {x:56, y:-12};          /* across the gap: right and UP = bottom-left to top-right */
+function skyLanes(){
+  const out=[];
+  for(let i=0;i<5;i++){
+    /* v691 - THE LAZY Vs. The ends of each row stay where they are and the middle bows outward,
+       so the left row reads as "<" and the right as ">". Weight is 0, 1/2, 1, 1/2, 0. */
+    const bow=SKY_LANE_BOW*(1-Math.abs(i-2)/2);
+    const a={x:SKY_LANE_A0.x+SKY_LANE_STEP.x*i-bow, y:SKY_LANE_A0.y+SKY_LANE_STEP.y*i};
+    /* v693 (Phil: "Lanes are not parallel to each other now") - the enemy row mirrors the V, which
+       makes each lane cross a DIFFERENT horizontal distance. Adding a constant dy to that would give
+       every lane a different angle, which is what fanned them. So the bridge keeps a constant SLOPE
+       instead of a constant vector: dy is scaled to dx. Every bridge then sits at the same angle and
+       only their lengths differ - the V on each side, and parallel lanes. */
+    const span=SKY_BRIDGE_V.x+2*bow;
+    const b={x:a.x+span, y:a.y+span*(SKY_BRIDGE_V.y/SKY_BRIDGE_V.x)};
+    out.push({i, a, b, mid:{x:(a.x+b.x)/2, y:(a.y+b.y)/2}});
+  }
+  return out;
+}
+/* The stage is 16:10, so a percentage vector's on-screen angle is NOT its arithmetic angle. Each
+   bridge is therefore measured in PIXELS after layout: real length, real rotation. */
+/* v695 - WHO IS IN THIS TOWER.
+   Phil: "Anyone can click towers to see whay lines are in what tower" and, in the prep stage only,
+   "an officer of the guild can click to towers to move allies to whatever tower he wants".
+   Reading is open to everyone. Moving is offered only to an officer in prep - and the server
+   refuses it regardless, so the check here is courtesy, not security. */
+/* v697 - THE BOARD, BUILT ONCE AND SHARED. It used to live inline inside skySimReplay, which is
+   why Skyfall could only ever be a modal over the Guild Hall. Both the screen and the simulator
+   now call these two. `r` is any object carrying {you:{citadels},foe:{citadels},log}. */
+function skyBoardHTML(r){
+  const you=(r&&r.you&&r.you.citadels)||[], foe=(r&&r.foe&&r.foe.citadels)||[];
+  const marches=(r&&r.log&&r.log.length)|0;
+  const clashInner = SKY_CLASH_LOOP
+    ? `<img src="${SKY_CLASH_LOOP}" alt="">`
+    : `<span class="skyClashPh">\u2694\uFE0F</span>`;
+  return `<div class="skyStage" id="skyStage">
+      <div class="skyBoardSky" style="background-image:url('${SKY_ART_SKY}')"></div>
+      ${skyLanes().map(L=>`<div class="skyBridge" id="skyBr${L.i}" style="background-image:url('${SKY_ART_BRIDGE}')"></div>`).join('')}
+      ${skyLanes().map(L=>{
+        const yc=(you[L.i]||{}), fc=(foe[L.i]||{});
+        const plat=(p,cls,key,c)=>`<div class="skyPlat ${cls}" data-key="${key}"
+            style="left:${p.x}%;top:${p.y}%;width:${SKY_PLAT_R}%;aspect-ratio:1;background-image:url('${SKY_ART_PLATFORM}')"
+            title="${escapeHTML((c&&c.name)||('Lane '+(L.i+1)))}"></div>`;
+        const garr=(c,p,cls)=>{ const al=(c&&c.alive)|0, tot=(c&&c.total)|0, dead=!!(c&&c.destroyed);
+          return `<div class="skyGarrison ${cls}${dead?' fallen':''}" style="left:${p.x}%;top:calc(${p.y}% + ${SKY_PLAT_R*0.52}vw)">${dead?'FALLEN':al+'/'+tot}</div>`; };
+        return plat(L.a,'mine','you:'+L.i,yc)+plat(L.b,'foe','foe:'+L.i,fc)
+          +garr(yc,L.a,'mine')+garr(fc,L.b,'foe')
+          +`<div class="skyLaneLbl" style="left:${L.mid.x}%;top:${L.mid.y}%;color:#ffe9b8">${escapeHTML((yc&&yc.name)||('Lane '+(L.i+1)))}</div>`;
+      }).join('')}
+      <div class="skyHud">
+        <div class="skyStatus">
+          <b>\u2694 Skyfall War</b><br>
+          Stage <span class="sv">${SKYSIM.marching?'MARCH':'PREP'}</span>
+          \u00b7 <span id="skyClock">${new Date().toLocaleTimeString()}</span><br>
+          ${marches} marches on record
+        </div>
+        <div class="skyHudBtns">
+          <button id="skyBracket">Bracket</button>
+          <button id="skySchedule">Schedule</button>
+          <button id="skyRank">Rank</button>
+        </div>
+        <button class="skyEditTeam" id="skyEditTeam">\u2694 Edit Team</button>
+      </div>
+      <button class="skyClash" id="skyClash" onclick="skyClashOpen()" title="the bridge"><span class="skyClashRing"></span>${clashInner}</button>
+      <div id="skyTowerPop" class="skyPop" hidden></div>
+      <div id="skyHub" class="skyHub" hidden></div>
+    </div>`;
+}
+function skyWireBoard(stage, r){
+  if(!stage) return;
+  /* the bridges are measured from the stage's real pixel size, and re-measured whenever it changes */
+  skyLayoutBoard(stage);
+  requestAnimationFrame(()=>skyLayoutBoard(stage));
+  try{ if(window._skyRO) window._skyRO.disconnect();
+       window._skyRO=new ResizeObserver(()=>skyLayoutBoard(stage)); window._skyRO.observe(stage); }catch(e){}
+  { const q=id=>stage.querySelector('#'+id);
+    const nyi=(what)=>()=>bannerMsg(what+' \u2014 not open yet.');
+    if(q('skyBracket'))  q('skyBracket').onclick  = nyi('Battle bracket');
+    if(q('skySchedule')) q('skySchedule').onclick = nyi('Schedule');
+    if(q('skyRank'))     q('skyRank').onclick     = nyi('Rankings');
+    if(q('skyEditTeam')) q('skyEditTeam').onclick = ()=>bannerMsg('Edit Team \u2014 arrange your citadels from the War tab.');
+    const clk=q('skyClock');
+    if(clk){ if(window._skyClockT) clearInterval(window._skyClockT);
+      window._skyClockT=setInterval(()=>{ const e=document.getElementById('skyClock');
+        if(!e){ clearInterval(window._skyClockT); window._skyClockT=null; return; }
+        e.textContent=new Date().toLocaleTimeString(); }, 1000); } }
+  /* anyone may read a tower; only an officer in PREP is offered the move controls */
+  stage.querySelectorAll('.skyPlat').forEach(p=>{ p.onclick=()=>{
+    const [side,i]=(p.dataset.key||'').split(':');
+    const isPrep = !SKYSIM.marching;
+    let officer=false;
+    try{ officer = !!(GUILD && (GUILD.youLeader || GUILD.youOfficer)); }catch(e){ officer=false; }
+    skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && officer, live:false}); }; });
+}
+/* v697 - THE SKYFALL SCREEN. Draws the board from whatever war data is to hand: the live
+   tournament when the guild is in one, otherwise an empty board so the screen is still readable.
+   The simulator hands its own result straight in. */
+function renderSkyfall(data){
+  const b=document.getElementById('skyfallBody'); if(!b) return;
+  const st=(typeof SKY!=='undefined'&&SKY.st)||{};
+  const m=st.match||null;
+  const r = data || SKYFALL_VIEW || {
+    you:{citadels:(m&&m.you&&m.you.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))},
+    foe:{citadels:(m&&m.foe&&m.foe.citadels)||WAR_LANE_NAMES.map((n,i)=>({lane:i,name:n,alive:0,total:0,defenders:[]}))},
+    log:[]
+  };
+  SKYFALL_VIEW=r;
+  b.innerHTML=skyBoardHTML(r);
+  const stage=b.querySelector('#skyStage');
+  skyWireBoard(stage, r);
+}
+let SKYFALL_VIEW=null;
+const WAR_LANE_NAMES=['Iron Gate','Storm Watch','Crown Spire','Verdant Sanctuary','Rift Tower'];
+function skyTowerPanel(stage, side, lane, data, opts){
+  opts=opts||{};
+  stage.querySelectorAll('.skyTowerPanel').forEach(p=>p.remove());
+  const cit=((side==='you'?data.you:data.foe)||{}).citadels||[];
+  const c=cit[lane]||{};
+  /* weakest first - the order the engine actually sends them in */
+  /* v696 - GROUP BY PLAYER. Phil: total each ally's committed lines, put the LOWEST total at the
+     top, and keep that ally's lines together. This is the order the tower actually fights in, so
+     what is read here is what will happen. */
+  const byMember={};
+  for(const d of (c.defenders||[])){
+    const k=String(d.memberId||d.name||'?');
+    (byMember[k]=byMember[k]||{key:k, name:(d.name||'').replace(/\s*\u00b7\s*line\s*\d+\s*$/i,''), you:!!d.you, total:0, lines:[]});
+    byMember[k].total+=(d.power|0); byMember[k].lines.push(d);
+  }
+  const players=Object.values(byMember).sort((a,b)=> a.total-b.total || (a.key<b.key?-1:1));
+  for(const p of players) p.lines.sort((x,y)=>(x.line|0)-(y.line|0));
+  const canMove = !!opts.canMove && side==='you';
+  const L=skyLanes()[lane]||{a:{x:50,y:50}};
+  const onLeft = L.a.x < 50;
+  const el=document.createElement('div');
+  el.className='skyTowerPanel';
+  el.style.top='50%'; el.style.transform='translateY(-50%)';
+  el.style[onLeft?'left':'right']='6%';
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<h4>'+escapeHTML(c.name||('Lane '+(lane+1)))+'</h4>'
+    +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'
+    +'<div class="sub">'+(c.destroyed?'FALLEN \u00b7 ':'')+((c.alive|0)+'/'+(c.total|0))+' lines standing \u00b7 weakest ally fights first'
+    +(canMove?' \u00b7 <span style="color:#7ef0b0">you may move them</span>':'')+'</div>'
+    +(players.length?players.map((p,pi)=>{
+        const head='<div class="skyPlayerHd"><span class="ord">'+(pi+1)+'</span>'
+          +'<span class="who">'+escapeHTML(p.name||p.key)+'</span>'
+          +'<span class="tot" title="total power of all their lines">\u2694'+p.total.toLocaleString()+'</span></div>';
+        const rows=p.lines.map(d=>'<div class="skyLine'+(d.alive?'':' down')+'">'
+          +'<span class="nm">'+(d.alive?'':'\u2620 ')+'line '+((d.line|0)+1)+'</span>'
+          +'<span style="flex:none;color:#ffbf69">\u2694'+((d.power|0).toLocaleString())+'</span>'
+          +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+((d.hpPct|0))+'%</span>'
+          +'<span style="flex:none;width:26px;text-align:right;color:#c9b78d" title="kills banked">'+((d.kills|0))+'/5</span>'
+          +'</div>').join('');
+        let mv='';
+        if(canMove){
+          mv='<div class="skyMoveRow"><span style="font-size:9px;color:#8b98a9;align-self:center">move all to</span>';
+          for(let t=0;t<5;t++) mv+='<button data-mv="'+escapeHTML(p.key)+'" data-lane="'+t+'"'+(t===lane?' disabled':'')+'>'+(t+1)+'</button>';
+          mv+='</div>';
+        }
+        return '<div class="skyPlayer'+(p.you?' you':'')+'">'+head+rows+mv+'</div>';
+      }).join('')
+      :'<div style="font-size:10px;color:#8b98a9;padding:8px 0;text-align:center">Nothing holds this tower.</div>');
+  stage.appendChild(el);
+  el.querySelector('[data-close]').onclick=()=>el.remove();
+  /* one control per PLAYER - Phil: "If you move 1 player, it moves all his lines". The server's
+     assign route carries every line that member owns across intact. */
+  el.querySelectorAll('[data-mv]').forEach(b=>{ b.onclick=async()=>{
+    const who=b.dataset.mv, to=+b.dataset.lane;
+    if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); }
+    else bannerMsg('All of their lines move to lane '+(to+1)+' \u2014 sandbox only, nothing is recorded.');
+    el.remove(); }; });
+  return el;
+}
+function skyLayoutBoard(stage){
+  if(!stage) return;
+  const W=stage.clientWidth, H=stage.clientHeight;
+  if(!W||!H) return;
+  for(const L of skyLanes()){
+    const el=stage.querySelector('#skyBr'+L.i); if(!el) continue;
+    const ax=L.a.x/100*W, ay=L.a.y/100*H, bx=L.b.x/100*W, by=L.b.y/100*H;
+    const dx=bx-ax, dy=by-ay;
+    const len=Math.sqrt(dx*dx+dy*dy), ang=Math.atan2(dy,dx)*180/Math.PI;
+    const thick=Math.max(10, SKY_PLAT_R/100*W*0.30);
+    el.style.left=ax+'px'; el.style.top=(ay-thick/2)+'px';
+    el.style.width=len+'px'; el.style.height=thick+'px';
+    el.style.transform='rotate('+ang+'deg)';
+  }
+}
 /* The painted Skyfall WAR MAP does not exist yet either - guild-war-skybridge-01 is the ARENA you
    watch a fight in (Phil, 19 Sep: "this is the battle map"). Until the map is painted the board is
    drawn from the UI kit; point SKY_WAR_MAP at the art and it sits behind the same furniture. */
@@ -13657,7 +13941,7 @@ function skySimRender(){ const card=document.getElementById('skySimCard'); if(!c
   const ladder=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange','Orange (all banked)'];
   const num=(k,label,min,max,step)=>`<label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">${label}<input type="number" min="${min}" max="${max}" step="${step||1}" value="${P[k]}" style="width:100%;background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px 7px;font-size:12px" onchange="SKYSIM.p.${k}=+this.value"></label>`;
   const params=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0">
-      ${num('players','Players per side',1,30)}${num('linesPer','Lines per player',1,5)}${num('botLevel','Bot hero level',1,100)}
+      ${num('players','Players per side',1,30)}${num('linesPer','Lines per player',1,7)}${num('botLevel','Bot hero level',1,100)}
       <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Bot glyph tier<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.botTier=+this.value">${ladder.map((q,i)=>`<option value="${i}" ${P.botTier===i?'selected':''}>${q}</option>`).join('')}</select></label>
       ${num('botStars','Bot stars',1,5)}${num('foeMul','Enemy power ×',0.2,5,0.1)}
       <label style="display:flex;flex-direction:column;gap:2px;font-size:10px;color:#8b98a9">Stage<select style="background:#0f1420;border:1px solid #33405e;border-radius:8px;color:#e6edf3;padding:5px;font-size:12px" onchange="SKYSIM.p.stage=this.value">${['prep','march'].map(q=>`<option value="${q}" ${(P.stage||'prep')===q?'selected':''}>${q==='prep'?'Prep':'March'}</option>`).join('')}</select></label></div>
@@ -13709,23 +13993,12 @@ async function skySimReplay(r){
         <div class="skySpeed" id="skySpeedBar">${SKYSIM_SPEEDS.map(v=>`<button data-sp="${v}" class="${SKYSIM.speed===v?'on':''}" onclick="skySimSetSpeed(${v})">${v}\u00d7</button>`).join('')}</div>
         <button class="btn sm secondary" onclick="skySimEnd()">\u23f9 End Sim</button></div></div>
     <div id="skyPhase" style="margin:7px 0 6px;text-align:center;font-size:12px;font-weight:900;color:#ffd45e">\uD83D\uDCCB PREP \u2014 the guilds take their towers</div>
-    <div class="skyStage" id="skyStage"${SKY_WAR_MAP?` style="background-image:url('${SKY_WAR_MAP}')"`:''}>
-      ${SKY_WAR_MAP?'':'<div class="skyStageSky"></div>'}
-      <svg class="skyLines" id="skyLines" viewBox="0 0 100 100" preserveAspectRatio="none">
-        ${TY.map((y,i)=>`<path id="skyLnA${i}" d="M 17 ${y+4} Q 33 ${(y+4+47)/2} 47 47"></path>`).join('')}
-        ${TY.map((y,i)=>`<path id="skyLnB${i}" d="M 83 ${y+4} Q 67 ${(y+4+47)/2} 53 47"></path>`).join('')}
-      </svg>
-      <div class="skyHold"></div>
-      ${you.map((c,i)=>tower(c,i,true)).join('')}
-      ${foe.map((c,i)=>tower(c,i,false)).join('')}
-      <button class="skyClash" id="skyClash" onclick="skyClashOpen()" title="the bridge"><span class="skyClashRing"></span>${clashInner}</button>
-      <div id="skyTowerPop" class="skyPop" hidden></div>
-      <div id="skyHub" class="skyHub" hidden></div>
-    </div>
+    ${skyBoardHTML(r)}
     <div id="skyEvent" style="height:34px;padding-top:7px;text-align:center;font-size:10.5px;color:#c3ccd8">Tap any tower to see the lines holding it \u2014 weakest at the top.</div>
     ${(SKY_CLASH_LOOP&&SKY_WAR_MAP)?'':`<div style="font-size:9px;color:#8b98a9;text-align:center">drawn board \u2014 the painted Skyfall war map${SKY_CLASH_LOOP?'':' and the seamless clash loop'} ${SKY_CLASH_LOOP?'is':'are'} not made yet</div>`}`;
 
   const stage=document.getElementById('skyStage');
+  skyWireBoard(stage, r);
   /* One pause that reads the speed LIVE, so Phil can change 1x -> 20x mid-war and it takes effect on
      the very next beat rather than at the end. */
   const pause=ms=>new Promise(done=>setTimeout(done, Math.max(8, ms/Math.max(1,SKYSIM.speed))));
@@ -13788,7 +14061,8 @@ function skyPanelHTML(){
   const s=SKY.st, t=s.tournament;
   let head=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
     <b style="font-size:14px">☁️ Skyfall Tournament</b><span class="pill" style="font-size:9px">${t.state==='registration'?'📝 Registration open':t.state==='bracket'?'⚔️ Round '+((t.roundIndex||0)+1):'🏁 Finished'}</span></div>
-    <div style="font-size:10px;color:#8b98a9;margin-top:3px">Weekly guild knockout — register Sat–Mon, fight Tue–Fri 6–8 PM ET across five citadels.</div>`;
+    <div style="font-size:10px;color:#8b98a9;margin-top:3px">Weekly guild knockout — register Sat–Mon, fight Tue–Fri 6–8 PM ET across five citadels.</div>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="show('skyfall')">☁️ Enter the Skyfall</button>`;
   if(t.state==='registration'){
     head+=`<div style="font-size:11px;margin-top:6px">Locks at <b>${skyWhen(t.registrationLocksAt)}</b> · ${t.entrants.length} guild${t.entrants.length===1?'':'s'} registered</div>
       ${s.registered?`<div style="color:#5ee89b;font-size:12px;margin-top:6px">✓ Your guild is registered — Power Pool <b>${s.yourPowerPool}</b></div>`
@@ -20749,7 +21023,7 @@ function _fitApp(){ try{ const app=document.getElementById('app'); if(!app) retu
     let vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight;
     const vv=window.visualViewport; if(vv&&vv.width&&vv.height){ const sc=vv.scale||1; vw=Math.min(vw, Math.round(vv.width*sc)); vh=Math.min(vh, Math.round(vv.height*sc)); }
     if(!vw||!vh) return;
-    const fillWide=(state==='campaign'||state==='home'||state==='skyisland'||state==='arena') && vw>vh && vh<=700 && vw/vh>1.85;   /* v658: + the Floating Isle. v683: + the Arena — Phil, 20 Sep: "you also have more space to work with than you thought... not sure why you have black boarders on the sides" / "make the art stretch the screen so the arena has more room". The 1024:572 lock was letterboxing his 780x360 phone down to 644px and painting the remaining 68px a side black. */
+    const fillWide=(state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall') && vw>vh && vh<=700 && vw/vh>1.85;   /* v658: + the Floating Isle. v683: + the Arena — Phil, 20 Sep: "you also have more space to work with than you thought... not sure why you have black boarders on the sides" / "make the art stretch the screen so the arena has more room". The 1024:572 lock was letterboxing his 780x360 phone down to 644px and painting the remaining 68px a side black. */
     const w=fillWide?vw:Math.min(vw, vh*1024/572), h=fillWide?vh:Math.min(vh, vw*572/1024);
     if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){ app.style.width=Math.floor(w)+'px'; app.style.height=Math.floor(h)+'px'; _refitAll(); } }catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
@@ -21035,7 +21309,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789875607000';
+const BUILD_ID = '1789876807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

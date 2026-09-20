@@ -1509,6 +1509,9 @@ const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Sto
    winning, retires at five kills, and the next line takes over. WAR_ASSAULTS_PER_LINE stays as the
    live war's per-member march allowance; WAR_KILL_CAP is the new rule. */
 const WAR_ASSAULTS_PER_LINE=5;
+/* v694 (Phil): "Edit team on the right allows you to add up to 7 lines of your own" - a member may
+   commit up to SEVEN lines to the war. It was capped at five. */
+const WAR_LINES_MAX=7;
 const WAR_KILL_CAP=5;
 const WAR_ROUND_NAMES=['R16','QF','SF','F'];
 
@@ -3053,9 +3056,18 @@ async function api(req,res,url){
       if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
       const ent=warEntrant(t,myGid);
       if(!ent||!ent.lines.some(l=>l.memberId===memberId)) return send(res,400,{error:'That member has no registered line.'});
-      for(const c of side.citadels){ c.defenders=c.defenders.filter(d=>d.memberId!==memberId); }
+      /* v696 (Phil: "If you move 1 player, it moves all his lines") - MOVE the member's lines, do
+         not replace them. This used to strip every defender belonging to the member and push a
+         single bare {memberId} placeholder. With one line each that was harmless; now a member may
+         commit up to WAR_LINES_MAX lines, so it silently DELETED the rest of them along with their
+         HP, kills and snapshots. The lines are carried across intact. */
+      const moving=[];
+      for(const c of side.citadels){ const keep=[];
+        for(const d of c.defenders){ if(d.memberId===memberId) moving.push(d); else keep.push(d); }
+        c.defenders=keep; }
       side.unplaced=(side.unplaced||[]).filter(x=>x!==memberId);
-      side.citadels[lane].defenders.push({memberId});
+      if(moving.length) side.citadels[lane].defenders.push(...moving);
+      else side.citadels[lane].defenders.push({memberId});   /* not yet hydrated: placeholder, as before */
       m.version++; writeDB();
       return send(res,200,{ok:true, match:warMatchView(t,m,myGid)});
     }
@@ -3079,10 +3091,17 @@ async function api(req,res,url){
       /* v678: a line retires at five kills. */
       if((attacker.kills|0)>=WAR_KILL_CAP) return send(res,400,{error:'Your line has taken its '+WAR_KILL_CAP+' kills and is retired.'});
       m.assaults=m.assaults||{};
-      let defender=null;
-      for(const d of foe.defenders){ if(!warFresh(d)) continue; if(!defender||(d.power|0)<(defender.power|0)) defender=d; }
+      /* v696 (Phil): the tower queues by MEMBER - each member's committed lines are totalled, the
+         lowest total goes first, and a member's own lines stay together. Same rule as the simulator. */
+      const warTotals=cit=>{ const t={}; for(const d of cit.defenders) t[d.memberId]=(t[d.memberId]||0)+(d.power|0); return t; };
+      const warPick=(cit,ok)=>{ const tot=warTotals(cit); let best=null,bt=0,bid='',bl=0;
+        for(const d of cit.defenders){ if(!ok(d)) continue;
+          const t=tot[d.memberId]||0, id=String(d.memberId||''), ln=d.line|0;
+          if(!best || t<bt || (t===bt && (id<bid || (id===bid && ln<bl)))){ best=d; bt=t; bid=id; bl=ln; } }
+        return best; };
+      let defender = warPick(foe, warFresh);
       if(!defender){   /* v678 fix: the tower is out of kills - what stands there is overrun, not fought */
-        let spent=null; for(const d of foe.defenders){ if(!warStanding(d)) continue; if(!spent||(d.power|0)<(spent.power|0)) spent=d; }
+        const spent = warPick(foe, warStanding);
         if(spent){ spent.alive=false; m.assaults[me.id]=(m.assaults[me.id]||0)+1; attacker.fights=(attacker.fights|0)+1;
           let fell=false; if(!foe.defenders.some(warStanding)){ foe.destroyed=true; fell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
           m.eventLog.push({t:warNow(),e:'OVERRUN',lane,a:me.id,d:spent.memberId});
@@ -3137,7 +3156,7 @@ async function api(req,res,url){
        line, first to 3 citadels, tiebreak) using SIM.resolveLineBattle. Dev only. */
     if(p==='/api/guild-war/sim'){
       if(!isDev(me)) return send(res,403,{error:'dev only'});
-      const players=Math.max(1,Math.min(30,parseInt(b.players,10)||20)), linesPer=Math.max(1,Math.min(5,parseInt(b.linesPer,10)||3));
+      const players=Math.max(1,Math.min(30,parseInt(b.players,10)||20)), linesPer=Math.max(1,Math.min(WAR_LINES_MAX,parseInt(b.linesPer,10)||3));
       const botLevel=Math.max(1,Math.min(D_MAX_LEVEL,parseInt(b.botLevel,10)||ledPlayerLevel(ensureLedger(me))));
       const botTier=Math.max(0,Math.min(16,parseInt(b.botTier,10)||0)), botStars=Math.max(1,Math.min(5,parseInt(b.botStars,10)||3));
       const allyMul=Math.max(0.2,Math.min(5,parseFloat(b.allyMul)||1)), foeMul=Math.max(0.2,Math.min(5,parseFloat(b.foeMul)||1));
