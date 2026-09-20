@@ -1378,12 +1378,15 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyTw.act{border-color:#ffd45e;box-shadow:0 0 14px rgba(255,196,96,.45);}
 .skyTw.act .skyTwIco{transform:scale(1.16);filter:drop-shadow(0 0 9px #ffd45e);}
 /* v717 - the marching figure: the line's own hero, walking, with the player's name under him. */
+/* v718 - the box is the SPRITE's box, and --foot is how far the figure has to drop for its boots
+   to reach the lane's line. The name is hung below out of the flow: while it was in the column it
+   was the name's bottom that sat on the road and the hero walked a name-height above it. */
 .skyMarch{position:absolute;z-index:4;opacity:0;pointer-events:none;
-  transform:translate(-50%,-100%);
-  display:flex;flex-direction:column;align-items:center;gap:1px;
+  transform:translate(-50%, calc(-100% + var(--foot, 0px)));
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.95));will-change:left,top,opacity;}
-.skyMarchSprite{background-repeat:no-repeat;image-rendering:auto;}
-.skyMarchName{font-size:8.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;
+.skyMarchSprite{display:block;background-repeat:no-repeat;image-rendering:auto;}
+.skyMarchName{position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  margin-top:1px;font-size:8.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;
   color:#fff4d6;text-shadow:0 1px 2px #000,0 0 5px #000;max-width:84px;overflow:hidden;
   text-overflow:ellipsis;}
 .skyMarch.mine .skyMarchName{color:#c9ffe0;}
@@ -14020,6 +14023,11 @@ function skyWalkSprite(el, hk, h, faceRight){
   const cols=A.cols||A.n, rows=A.rows||1, fps=A.fps||12;
   const asp=(A.fw&&A.fh)?(A.fw/A.fh):0.75;
   el.style.width=Math.round(h*asp)+'px'; el.style.height=Math.round(h)+'px';
+  /* v718 - where the boots are in the frame, as a fraction of it. Anchoring the frame's bottom to
+     the road would leave every hero hovering by a different amount of empty air. */
+  const footGap=(A.feet&&A.fh)?Math.max(0,(1-(A.feet/A.fh))*h):0;
+  const host=el.parentNode&&el.parentNode.classList&&el.parentNode.classList.contains('skyMarch')?el.parentNode:el;
+  host.style.setProperty('--foot', footGap.toFixed(1)+'px');
   el.style.backgroundImage="url('"+A.u+"')";
   el.style.backgroundSize=(cols*100)+'% '+(rows*100)+'%';
   /* A.flip is the sheet's own correction to make it face RIGHT; marching the other way mirrors it
@@ -14496,11 +14504,11 @@ async function skySimReplay(r){
       tok.className='skyMarch '+(mine?'mine':'foe');
       { const hk=skyMarchHeroKey(r, mine, i, e.a);
         const sp=document.createElement('div'); sp.className='skyMarchSprite';
-        const plat=SKY_PLAT_R/100*(stage.clientWidth||1);
-        if(hk) skyWalkSprite(sp, hk, Math.max(18, plat*0.62), mine);
         const nm=document.createElement('div'); nm.className='skyMarchName';
         nm.textContent=skyOwnerOf({name:e.a});
-        tok.appendChild(sp); tok.appendChild(nm); }
+        tok.appendChild(sp); tok.appendChild(nm);
+        const plat=SKY_PLAT_R/100*(stage.clientWidth||1);
+        if(hk) skyWalkSprite(sp, hk, Math.max(18, plat*0.62), mine); }
       tok.style.left=from.x+'%'; tok.style.top=from.y+'%'; tok.style.opacity='1';
       tok.style.transition='opacity .12s';
       stage.appendChild(tok);
@@ -21812,7 +21820,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789894807000';
+const BUILD_ID = '1789896007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
