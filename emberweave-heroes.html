@@ -1457,8 +1457,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    paints as an empty dark bar across the board (Phil: "Why is there a random black line in the
    middle"). Anything here that sets display needs its own [hidden] rule. */
 .skyHub[hidden], .skyPop[hidden], .skyTowerPanel[hidden]{display:none!important;}
+/* v720 - a FIXED height. With max-height alone the panel resized itself around whatever the body
+   happened to hold, and a live lane gains and loses rows every few seconds - so the thing you were
+   reaching for moved while you reached. */
 .skyHub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;width:min(94%,430px);
-  max-height:90%;display:flex;flex-direction:column;padding:9px 10px;border-radius:12px;
+  height:min(90%,330px);display:flex;flex-direction:column;padding:9px 10px;border-radius:12px;
   background:rgba(8,12,20,.96);border:1px solid #6b5628;box-shadow:0 12px 34px rgba(0,0,0,.65);}
 .skyHubTabs{display:flex;gap:4px;margin:6px 0 7px;}
 .skyHubTabs button{flex:1;border:1px solid #3a2f1c;border-radius:8px;padding:5px 6px;font-size:11px;font-weight:800;
@@ -14221,6 +14224,13 @@ const SKYSIM_SPEEDS=[1,2,4,8,12,16,20];
    90s BATTLE_TIME_LIMIT - a lane fight cannot outlast an arena fight. */
 const SKY_SEC_PER_ROUND = 1.5;
 const SKY_FIGHT_CAP_S   = 90;
+/* v719 (Phil: "please make them all walk at the same speed") - one pace for every marching hero, in
+   stage-pixels per second at 1x. It is a pace and not a fraction of the fight because the five
+   bridges are different lengths: measured on the phone, lane 0 is 217px from tower to midpoint and
+   lane 2 is 310px, so a fixed fraction made the long lane's hero walk half again as fast. 75px/s
+   puts a typical march at about three seconds, which is where the old 28%-of-a-median-fight sat. */
+const SKY_WALK_PX_S  = 75;
+const SKY_WALK_MAX_F = 0.45;   /* ...but never more than this much of the fight (see below) */
 function skyFightMs(e){
   const rounds = Math.max(1, (e && e.rounds) | 0 || 8);
   return Math.min(SKY_FIGHT_CAP_S, rounds * SKY_SEC_PER_ROUND) * 1000;
@@ -14332,6 +14342,19 @@ function skyHubRender(){
   /* the board carries no lane names any more, so the title is where you find out which lane you
      tapped - and whether it is still fighting. */
   const live=!!SKYSIM.marching && LANE!==null && laneLog.some(e=>r.log.indexOf(e)>i);
+  /* v720 - the shell (title, tabs) is built once per lane+tab; after that only the BODY changes.
+     Rebuilding the whole panel destroyed the tab buttons under the finger reaching for them, and it
+     happens on every march start - which since v714 is five lanes at once. The body's scroll is
+     carried across so a records list does not jump back to the top several times a second. */
+  const shellKey=(LANE===null?'all':LANE)+'|'+tab;
+  const oldBody=hub.querySelector('.skyHubBody');
+  if(hub.dataset.shell===shellKey && oldBody){
+    const keep=oldBody.scrollTop;
+    oldBody.innerHTML=body;
+    oldBody.scrollTop=keep;
+    return;
+  }
+  hub.dataset.shell=shellKey;
   hub.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
     +'<b style="font-size:12px;color:#ffe9b8;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\u2694 '
       +escapeHTML(laneName)+(LANE===null?'':(live?' \u2014 in battle':' \u2014 lane report'))+'</b>'
@@ -14483,7 +14506,16 @@ async function skySimReplay(r){
   /* v711: there is no fixed beat any more. Each march is given the real length of its own fight -
      the walk out to the bridge is a fixed slice of it and the clash holds the rest, so a grind
      looks like a grind and a rout is over before you settle. */
-  const WALK=0.28;                                  // of the fight: the march out to the bridge
+  /* v719 - how long this hero's walk takes: his own lane's length at the shared pace. Capped, so a
+     short fight is never all walking - on a rout the hero steps out briskly rather than still being
+     on the bridge when the fight he is walking to has finished. */
+  const walkMs=(lane, fightMs)=>{
+    const L=skyLanes()[lane]; if(!L) return fightMs*0.28;
+    const W=stage.clientWidth||1, H=stage.clientHeight||1;
+    const dx=(L.mid.x-L.a.x)/100*W, dy=(L.mid.y-L.a.y)/100*H;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    return Math.min(fightMs*SKY_WALK_MAX_F, (dist/SKY_WALK_PX_S)*1000);
+  };
   /* v714 (Phil: "all 5 towers should be fighting at the same time / on their own time") - the log
      is dealt into one queue per lane and the five are run side by side. Within a lane the order is
      exactly the server's; across lanes nothing is synchronised, so a lane that draws three grinds
@@ -14513,13 +14545,14 @@ async function skySimReplay(r){
       tok.style.transition='opacity .12s';
       stage.appendChild(tok);
       const FIGHT=skyFightMs(e);
+      const WALKMS=walkMs(i, FIGHT);
       { const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.add('hot'); }
       const ev=document.getElementById('skyEvent');
       if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
       /* the hub follows whichever fight started most recently; a lane's own battles are read by
          tapping that lane's swords. */
       SKYSIM.cur=idx; if(SKYSIM.hubOn) skyHubRender();
-      await pause(FIGHT*WALK, t=>{
+      await pause(WALKMS, t=>{
         tok.style.left=(from.x+(to.x-from.x)*t)+'%';
         tok.style.top =(from.y+(to.y-from.y)*t)+'%'; });
       /* v717 (Phil: "when it reaches the sword, it disspears") - he arrives and the swords start.
@@ -14532,7 +14565,7 @@ async function skySimReplay(r){
          returns. */
       if(ev && !e.captured) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+' vs '+e.d
         +' \u00b7 ' + Math.round(FIGHT/1000) + 's';
-      await pause(FIGHT*(1-WALK));
+      await pause(Math.max(0, FIGHT-WALKMS));
       if(stopped()) return;
       /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and
          a tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early:
@@ -21820,7 +21853,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789896007000';
+const BUILD_ID = '1789898407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
