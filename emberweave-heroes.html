@@ -1102,12 +1102,18 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .arDefHead{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:nowrap;}
 .arDefTtl{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:13px;color:#ffe9b8;flex:none;}
 .arDefSp{flex:1;min-width:0;}
-.arDefRow{display:flex;gap:5px;}
-.arHero{flex:1 1 0;min-width:0;height:56px;border-radius:9px;overflow:hidden;position:relative;
+.arDefRow{display:flex;gap:5px;justify-content:space-between;}
+/* Phil: "the defender line needs to fit better" - the five tiles share the panel width evenly and
+   stay square, so the portrait fills each one edge to edge with nothing left over. */
+.arHero{flex:0 1 auto;width:54px;height:54px;border-radius:9px;overflow:hidden;position:relative;
   border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);}
-.arHero>*{width:100%;height:100%;object-fit:cover;}
-.arHeroLv{position:absolute;left:2px;top:2px;font-size:8.5px;font-weight:800;color:#fff4d6;
-  background:rgba(8,10,16,.8);border-radius:4px;padding:0 3px;line-height:1.4;}
+/* heroIcon() hands back a span carrying an INLINE fixed width and height, so it has to be overridden
+   with !important or the portrait sits in a 64px box inside a wider tile with dead space beside it. */
+.arHero>*, .arOppArt>*{width:100%!important;height:100%!important;display:block;}
+.arHero img, .arOppArt img{width:100%;height:100%;object-fit:cover;display:block;}
+/* the level sat under the ascension frame, which ate its first character ("Lv26" read as "726") */
+.arHeroLv{position:absolute;left:3px;bottom:2px;top:auto;z-index:4;font-size:8.5px;font-weight:800;
+  color:#fff4d6;background:rgba(8,10,16,.85);border-radius:4px;padding:0 3px;line-height:1.45;}
 .arHero.empty{display:flex;align-items:center;justify-content:center;color:#6b5628;font-size:16px;}
 /* the button row */
 .arTabs{display:flex;gap:5px;}
@@ -1127,27 +1133,28 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 16px stretch;text-align:center;}
 .arDayLbl{font-size:9.5px;color:#c9b78d;line-height:1.2;}
 .arDayNo{font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:17px;color:#7ef0b0;line-height:1;}
-.arOpps{flex:1;min-width:0;display:flex;gap:6px;}
-.arOpp{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px;padding:6px 6px;
+.arOpps{flex:1;min-width:0;display:flex;gap:5px;}
+/* v682: five across gives each card about 79 CSS px on Phil's phone, which is far too narrow for a
+   portrait beside its numbers - they were being ellipsised to "#." and "2.". The card is vertical
+   and compact instead: art, the two numbers, the name, Challenge. */
+.arOpp{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px;padding:5px 4px;
   border-style:solid;border-color:transparent;border-width:5px;
-  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 16px stretch;}
-.arOppTop{display:flex;gap:6px;align-items:center;min-width:0;}
-.arOppArt{flex:0 0 52px;width:52px;height:52px;border-radius:9px;overflow:hidden;position:relative;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 14px stretch;}
+.arOppArt{width:100%;height:38px;border-radius:8px;overflow:hidden;position:relative;
   border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);}
-.arOppArt>*{width:100%;height:100%;object-fit:cover;}
-.arOppNums{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
-.arOppNum{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;min-width:0;}
-.arOppNum span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.arOppNm{font-size:10.5px;font-weight:700;color:#e9dcc0;overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap;text-align:center;}
-.arOpp .btn{width:100%;padding:4px;font-size:10.5px;}
+.arOppNum{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;
+  font-weight:800;white-space:nowrap;}
+.arOppNm{font-size:9.5px;font-weight:700;color:#e9dcc0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;text-align:center;max-width:100%;}
+.arOpp .btn{width:100%;padding:3px 2px;font-size:10px;}
 /* a narrow phone has height to spare and no width, so it stacks instead */
 @media(max-width:600px){
   .arTop,.arBot{flex-direction:column;}
-  .arMedal,.arDay{flex:none;width:100%;flex-direction:row;justify-content:center;gap:10px;}
+  .arMedal,.arDay{flex:none;width:100%;flex-direction:row;justify-content:center;gap:10px;flex-wrap:wrap;}
   .arNext{margin-top:0;}
   .arOpps{flex-wrap:wrap;}
-  .arOpp{flex:0 1 calc(50% - 3px);}
+  .arOpp{flex:0 1 calc(33.333% - 4px);}
+  .arDefRow{justify-content:center;}
 }
 /* v674 THE SKYFALL WAR STAGE (Phil: "I want the actual Skyfall tournament art to come up") */
 .skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:300px;overflow:hidden;
@@ -16114,14 +16121,9 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   const oppCard=(o,i)=>{ const lead=(o.team&&o.team[0])||null;
     const gems=(typeof o.gems==='number')?o.gems:previewWinGems(o.rank);
     return `<div class="arOpp">
-      <div class="arOppTop">
-        <div class="arOppArt">${lead?heroIcon(lead.key,64):''}${lead?`<span class="arHeroLv">Lv${lead.level}</span>`:''}</div>
-        <div class="arOppNums">
-          <div class="arOppNum"><span style="color:#c9b78d">\u265b</span><span style="color:#ffd45e">#${o.rank}</span></div>
-          <div class="arOppNum"><span style="color:#c9b78d">\u2694</span><span style="color:#9fe8ff">${(o.power||0).toLocaleString()}</span></div>
-          ${gems>0?`<div class="arOppNum"><span style="color:#c9b78d">\u{1F48E}</span><span style="color:#c9b6ff">+${gems}</span></div>`:''}
-        </div>
-      </div>
+      <div class="arOppArt">${lead?heroIcon(lead.key,64):''}${lead?`<span class="arHeroLv">Lv${lead.level}</span>`:''}</div>
+      <div class="arOppNum"><span style="color:#ffd45e">#${o.rank}</span></div>
+      <div class="arOppNum"><span style="color:#c9b78d">\u2694</span><span style="color:#9fe8ff">${(o.power||0).toLocaleString()}</span>${gems>0?`<span style="color:#c9b6ff">\u{1F48E}${gems}</span>`:''}</div>
       <div class="arOppNm">${escapeHTML(o.name)}</div>
       <button class="btn sm" data-opp="${i}">Challenge</button></div>`; };
   b.innerHTML=`<div class="arWrap">
@@ -20987,7 +20989,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789867207000';
+const BUILD_ID = '1789868407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
