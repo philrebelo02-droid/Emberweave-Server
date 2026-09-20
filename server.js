@@ -1508,8 +1508,14 @@ function warNow(){ const off=Number(DB.warTimeOffset)||0; return Date.now()+off;
 // offset at any instant via Intl (built into Node, DST-proof, no deps): positive ms behind UTC.
 const _etFmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12:false,
   year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+/* v784 - FLOOR THE BASIS TO WHOLE SECONDS. The parts this subtracts are formatted down to
+   SECONDS, so `t - Date.UTC(...)` returned the true offset PLUS t's own millisecond component.
+   warWeekAnchor folds that into the week anchor, and every round time is measured from the anchor -
+   so a tournament's schedule carried the millisecond it happened to be created at, and two
+   computations of the same week disagreed by up to 999ms. The audit measured 1-33ms of drift
+   across ten weeks. */
 function etOffsetMs(t){ const g={}; for(const p of _etFmt.formatToParts(new Date(t))) g[p.type]=p.value;
-  return t-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
+  return Math.floor(t/1000)*1000-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
 function nyDayKey(t){ const off=etOffsetMs(t||Date.now()); return new Date((t||Date.now())-off).toISOString().slice(0,10); }
 const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
 /* v678 (Phil): "each individual line has a 5 cap ... if 20 lines are in a tower, that means this
