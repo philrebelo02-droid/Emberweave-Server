@@ -20180,7 +20180,7 @@ function renderGuild(){
      disc until their medallions are made (war, raid, embassy, level). */
   const GTAB_ART={ chat:'/assets/img/ui/mi-chat.webp?v=1', requests:'/assets/img/ui/mi-mail.webp?v=1',
     contribute:'/assets/img/ui/hud-gold.webp?v=1', shop:'/assets/img/ui/mi-bag.webp?v=1' };
-  const tabs=[['chat','&#128172;','Chat'],['contribute','&#127873;','Contribute'],['embassy','&#127963;','Embassy'],['war','&#9876;','War'],['raid','&#128050;','Raid'],['level','&#128200;','Level'],['shop','&#128737;','Shop']];
+  const tabs=[['chat','&#128172;','Chat'],['contribute','&#127873;','Contribute'],['embassy','&#127963;','Embassy'],['war','&#9876;','Skyfall']   /* v782 - the tab's NAME, not its key: 'war' is what mail kinds and routing match on */,['raid','&#128050;','Raid'],['level','&#128200;','Level'],['shop','&#128737;','Shop']];
   if(g.youLeader) tabs.splice(1,0,['requests','&#128233;','Requests']);
   if(!tabs.some(t=>t[0]===guildTab)) guildTab='chat';
   const reqBadge=(g.youLeader&&g.pendingReqCount)?` <span style="background:#e0483f;color:#fff;border-radius:9px;padding:0 5px;font-size:9px;font-weight:800">${g.pendingReqCount}</span>`:'';
@@ -23804,7 +23804,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789940407000';
+const BUILD_ID = '1789941607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
