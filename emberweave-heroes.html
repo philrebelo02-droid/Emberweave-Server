@@ -7595,7 +7595,7 @@ function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
   const keep=REPLAY_IN;
   ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
   const B=bossSpec||{};
-  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0)}]],
+  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0)}]],
        raid:{key:B.key, tier:B.tier|0, hp:Math.max(1,B.hp|0)},
        backups:allySnaps.slice(TEAM_SIZE).map(s=>s.key), backupSnaps:allySnaps.slice(TEAM_SIZE),
        manualReplay:!!manual, headless:true};
@@ -7890,6 +7890,12 @@ function buildEnemyWave(){
       /* v666: an ABSOLUTE hp on the spec wins over every multiplier — the guild raid boss walks in
          carrying exactly the pool HP his guild has left him, which is the whole point of the mode. */
       if(m.hp){ u.maxHp=Math.max(1,Math.round(m.hp)); u.hp=u.maxHp; }
+      /* v668: a raid boss carries a HIDE rating. Mitigation is def/(def+K) with flat penetration,
+         so thick hide barely troubles a geared squad that brings penetration and big hits, while a
+         low-level green squad bounces off it — which is exactly Phil's ask: under level 15 should
+         barely budge him. It scales with the tier, so he stays worth fighting as guilds grow. */
+      if(m.def){ u.armorRating=(u.armorRating||0)+m.def; u.mrRating=(u.mrRating||0)+m.def;
+        u.armor=(u.armor||0)+m.def; u.mr=(u.mr||0)+m.def; u.defRating=(u.armorRating||0)+(u.mrRating||0); }
       units.push(u); buildFigure(u); });
     return;
   }
@@ -10949,7 +10955,7 @@ function endBattle(won){
           +`<div style="font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px">${dealt.toLocaleString()} damage</div>`
           +(fell?`<div style="color:#ffd45e;font-weight:700">💥 Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!</div>`
                  +`<div style="margin-top:3px">🪙 ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · 💎 ${((r.reward&&r.reward.gems)|0)} · 🏅 ${((r.reward&&r.reward.guildCoins)|0)}</div>`
-             :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins</div>`)
+             :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins <span style="color:#8b98a9;font-size:10.5px">· spend them in the Guild Shop</span></div>`)
           +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
       document.getElementById('resultHint').textContent='Your whole guild chips the same boss down — every run counts, and the killing blow pays the most.';
@@ -12465,7 +12471,7 @@ async function raidLaunch(){
   CUR={mode:'graid', attemptId:st.attemptId, seed:(st.seed!=null?(st.seed>>>0):null), serverSnaps:_sn,
        backupSnaps:_sn?_sn.slice(TEAM_SIZE):null,   /* the bench fights with the SERVER's numbers too */
        backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,B.hp|0), lvl:Math.max(1,B.lvl|0)},
-       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0)}]], engine:st.engine||null};
+       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0)}]], engine:st.engine||null};
   startBattle();
 }
 /* The damage this fight has done to the raid boss: what he came in with, minus what he has left.
@@ -17058,7 +17064,7 @@ async function renderGuildRaid(el){
   const r=d.raid, pct=Math.round(r.hp/r.max*100);
   const medal=['🥇','🥈','🥉','4.','5.'];
   el.innerHTML=`<div class="panel" style="text-align:center">
-      <div style="font-size:34px">🐲</div>
+      <canvas id="gbBossArt" width="220" height="150" style="width:190px;height:130px;display:block;margin:0 auto 2px"></canvas>
       <div style="font-weight:800;font-size:16px">${escapeHTML(r.name)}</div>
       <div style="font-size:11px;color:#ffd45e;margin:1px 0 8px">Guild Raid Boss · Tier ${r.level}</div>
       <div style="height:16px;background:#3a1e1e;border-radius:8px;overflow:hidden;position:relative"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#e0483f,#ff7a5e);transition:width .4s"></div>
@@ -17071,6 +17077,10 @@ async function renderGuildRaid(el){
     <div style="font-size:10px;color:#8b98a9;text-align:center;margin:6px 0 8px">Your whole guild chips this boss down together — same HP for everyone. The killing blow pays the most.</div>
     <button class="btn" id="gbAssault" style="width:100%" ${r.attemptsLeft<=0?'disabled':''}>${r.attemptsLeft>0?`⚔ Fight the boss  ·  ${r.attemptsLeft} left today`:'⏳ No assaults left — back tomorrow'}</button>
     <div id="gbMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px"></div>`;
+  /* v668 (Phil: "please use its boss monster card for the picture") — the same painted card the
+     glossary shows, drawn from his own art, not an emoji. */
+  { const cv=el.querySelector('#gbBossArt');
+    if(cv && r.bossKey && typeof _blDrawCard==='function'){ try{ _blDrawCard(cv, r.bossKey, null, null); }catch(e){} } }
   const btn=el.querySelector('#gbAssault'); if(btn) btn.onclick=()=>{
     /* v666 (Phil): a raid attempt is a real battle now — 5 fighters + 5 backups, 90 seconds, and the
        damage the squad deals comes off the boss's pool. The button opens the squad screen; BATTLE
@@ -20481,7 +20491,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789854007000';
+const BUILD_ID = '1789855207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -4842,8 +4842,17 @@ async function api(req,res,url){
        five deals ~65k in one 90-second fight (rig, sim-host); Lv20 ~18k; Lv80 ~150k. At 3 attempts a
        day a ten-member guild of Lv50s therefore produces ~2M a day. The old curve (80k x 1.6^) died
        to a single attempt at tier 1 and reached 601M by tier 20, which no guild could ever finish. */
-    const bossMax=lvl=>Math.round(250000*Math.pow(1.35,(lvl||1)-1));
+    const bossMax=lvl=>Math.round(150000*Math.pow(1.28,(lvl||1)-1));
+    /* v668 — HIS HIDE. Measured, not guessed (see the header of raid668.py): at 14,000 a level-7
+       squad in green gear does ~900 in a whole 90-second fight while a geared level-50 squad does
+       ~35,000, because mitigation is def/(def+K) and penetration is flat. It thickens 12% a tier. */
+    const bossHide=lvl=>Math.round(14000*Math.pow(1.12,(lvl||1)-1));
     function ensureRaid(gg){ if(!gg.raid){ gg.raid={level:1,max:bossMax(1),hp:bossMax(1),kills:0,contrib:{},used:{},day:''}; }
+      /* v668: the pool was re-sized (tier 1 is 150,000 now). A guild already part-way through a boss
+         keeps the FRACTION it had chewed off, so nobody loses or gains progress in the change. */
+      { const want=bossMax(gg.raid.level||1);
+        if((gg.raid.max|0)!==want){ const frac=Math.max(0,Math.min(1,(gg.raid.hp||0)/Math.max(1,gg.raid.max||1)));
+          gg.raid.max=want; gg.raid.hp=Math.max(1,Math.round(want*frac)); } }
       const dk=new Date().toISOString().slice(0,10); if(gg.raid.day!==dk){ gg.raid.day=dk; gg.raid.used={}; } return gg.raid; }
     function raidView(gg){ const r=ensureRaid(gg); const gd=Object.values(r.contrib).reduce((a,b)=>a+b,0);
       const top=Object.entries(r.contrib).map(([id,dmg])=>({name:nameOf(id),dmg})).sort((a,b)=>b.dmg-a.dmg).slice(0,5);
@@ -5007,7 +5016,7 @@ async function api(req,res,url){
       /* a retried start with the same requestId hands back the same open fight (nothing is charged twice) */
       if(open && open.reqId===reqId && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps,
-          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl}, engine:open.engine, raid:raidView(g) });
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       if(r.hp<=0) return send(res,400,{error:'This boss is already down — the next tier is spawning.'});
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
@@ -5028,7 +5037,7 @@ async function api(req,res,url){
         startedAt:Date.now(), reqId, tier:r.level, bossKey:bb.key, bossHp:r.hp, bossLvl };
       writeDB();
       return send(res,200,{ ok:true, attemptId:r.att[me.id].id, seed, snaps:fightSnaps, engine:r.att[me.id].engine,
-        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl}, raid:raidView(g) }); }
+        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level)}, raid:raidView(g) }); }
     if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
       const out=idem(me.id+':graidres:'+reqId,()=>{
@@ -5040,7 +5049,7 @@ async function api(req,res,url){
         /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
            the frozen squad, seed and boss with the game's own battle code (sim-host). */
         const host=simHost(); let dmg=null, incident=null;
-        const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true};
+        const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1)};
         if(host && a.snaps && typeof host.raid==='function'){
           try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, Array.isArray(b.inputLog)?b.inputLog.slice(0,400):[]); dmg=Math.max(0, rr.dmg|0); }
           catch(e){ incident='raid-replay-error: '+e.message; }
