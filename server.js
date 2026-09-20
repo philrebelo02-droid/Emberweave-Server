@@ -1504,9 +1504,12 @@ function etOffsetMs(t){ const g={}; for(const p of _etFmt.formatToParts(new Date
   return t-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
 function nyDayKey(t){ const off=etOffsetMs(t||Date.now()); return new Date((t||Date.now())-off).toISOString().slice(0,10); }
 const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
-/* v675 (Phil): "each fight can win, MAX 5 fights before its retired and the next one should
-   fight." Five, and a FIGHT counts whether the line attacked or defended. */
+/* v678 (Phil): "each individual line has a 5 cap ... if 20 lines are in a tower, that means this
+   tower is capable of killing 100 lines". The cap counts KILLS: a line holds the front while it keeps
+   winning, retires at five kills, and the next line takes over. WAR_ASSAULTS_PER_LINE stays as the
+   live war's per-member march allowance; WAR_KILL_CAP is the new rule. */
 const WAR_ASSAULTS_PER_LINE=5;
+const WAR_KILL_CAP=5;
 const WAR_ROUND_NAMES=['R16','QF','SF','F'];
 
 function warWeekAnchor(now){ // most recent Saturday 00:00 ET (DST-exact)
@@ -1618,12 +1621,14 @@ function warSurvivorHpPct(side){ let hp=0,max=0;
   return max?hp/max:0; }
 function warDestroyedCount(m,gid){ const opp=Object.keys(m.sides).find(x=>x!==gid); return opp?m.sides[opp].citadels.filter(c=>c.destroyed).length:0; }
 function warFinishMatch(t,m,winnerGid,why){ m.state='finished'; m.winnerGuildId=winnerGid; m.version++; m.eventLog.push({t:warNow(),e:'FINISHED',winner:winnerGid,why}); }
-function warTiebreak(t,m){ // destroyed → surviving HP% → power at lock → higher seed. No coin flip.
+/* v676 (Phil): "the only win condition is 3/5+ towers won wins." Towers decide it. The
+   surviving-HP step is gone - warSurvivorHpPct skipped dead lines, so a guild that was wiped out in
+   three lanes scored HIGHER than one worn down across five, which is the opposite of what it read
+   as. Only a dead-level tower count falls through, and then to power at lock, never to a coin. */
+function warTiebreak(t,m){
   const [ga,gb]=Object.keys(m.sides);
   const da=warDestroyedCount(m,ga), db=warDestroyedCount(m,gb);
   if(da!==db) return warFinishMatch(t,m, da>db?ga:gb, 'citadels');
-  const ha=warSurvivorHpPct(m.sides[ga]), hb=warSurvivorHpPct(m.sides[gb]);
-  if(Math.abs(ha-hb)>1e-9) return warFinishMatch(t,m, ha>hb?ga:gb, 'hp');
   const pa=(warEntrant(t,ga)||{}).powerPool||0, pb=(warEntrant(t,gb)||{}).powerPool||0;
   if(pa!==pb) return warFinishMatch(t,m, pa>pb?ga:gb, 'power');
   const sa=(warEntrant(t,ga)||{}).seed||99, sb=(warEntrant(t,gb)||{}).seed||99;
@@ -3067,15 +3072,30 @@ async function api(req,res,url){
       if(foe.destroyed) return send(res,400,{error:'That citadel is already destroyed.'});
       const attacker=mine.defenders.find(d=>d.memberId===me.id&&d.alive!==false);
       if(!attacker) return send(res,400,{error:'Your line is not deployed (alive) in this citadel.'});
+      /* v677: five is the cap on MARCHING. A line defends for as long as it lives, and the weakest
+         living line is the one that meets the march - the simulator's rule, and Magic Rush's. */
+      const warStanding=d=>d.alive!==false;
+      const warFresh=d=>d.alive!==false && (d.kills|0)<WAR_KILL_CAP;
+      /* v678: a line retires at five kills. */
+      if((attacker.kills|0)>=WAR_KILL_CAP) return send(res,400,{error:'Your line has taken its '+WAR_KILL_CAP+' kills and is retired.'});
       m.assaults=m.assaults||{};
-      if((m.assaults[me.id]||0)>=WAR_ASSAULTS_PER_LINE) return send(res,400,{error:'No assault orders left for your line.'});
-      const defender=foe.defenders.find(d=>d.alive!==false);
+      let defender=null;
+      for(const d of foe.defenders){ if(!warFresh(d)) continue; if(!defender||(d.power|0)<(defender.power|0)) defender=d; }
+      if(!defender){   /* v678 fix: the tower is out of kills - what stands there is overrun, not fought */
+        let spent=null; for(const d of foe.defenders){ if(!warStanding(d)) continue; if(!spent||(d.power|0)<(spent.power|0)) spent=d; }
+        if(spent){ spent.alive=false; m.assaults[me.id]=(m.assaults[me.id]||0)+1; attacker.fights=(attacker.fights|0)+1;
+          let fell=false; if(!foe.defenders.some(warStanding)){ foe.destroyed=true; fell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
+          m.eventLog.push({t:warNow(),e:'OVERRUN',lane,a:me.id,d:spent.memberId});
+          m.version++; writeDB();
+          return send(res,200,{ ok:true, won:true, overrun:true, citadelFell:fell, finished:false, match:warMatchView(t,m,myGid) }); } }
       m.assaults[me.id]=(m.assaults[me.id]||0)+1;   // every attack spends an order, win or lose
+      attacker.fights=(attacker.fights|0)+1;
       if(!defender){ // undefended citadel: the march captures it without a fight (still costs an order)
         foe.destroyed=true; m.eventLog.push({t:warNow(),e:'CITADEL_CAPTURED',lane,by:me.id});
-        let finished=false; if(warDestroyedCount(m,myGid)>=3){ warFinishMatch(t,m,myGid,'citadels'); finished=true; }
+        /* v676: the war does NOT end the moment a third tower falls - "to include if 3 towers already
+           go down". Every lane keeps fighting to the bell, and the towers are counted there. */
         m.version++; writeDB();
-        return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished, match:warMatchView(t,m,myGid) }); }
+        return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid) }); }
       const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
       const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState);
       const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState);
@@ -3084,13 +3104,14 @@ async function api(req,res,url){
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
       attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
       defender.hpState=mapBack(defender.lineSnapshot, r.bState);
-      if(!r.aState.some(x=>x.alive)) attacker.alive=false;
-      if(!r.bState.some(x=>x.alive)) defender.alive=false;
+      /* v678: the march settles it - the loser's line is eliminated, the winner banks a kill */
+      if(r.won){ defender.alive=false; attacker.kills=(attacker.kills|0)+1; }
+      else { attacker.alive=false; defender.kills=(defender.kills|0)+1; }
       let citadelFell=false;
-      if(!foe.defenders.some(d=>d.alive!==false)){ foe.destroyed=true; citadelFell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
+      /* v677 (Phil): "until that last line dies, do not trigger the fallen tower" */
+      if(!foe.defenders.some(warStanding)){ foe.destroyed=true; citadelFell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
       m.eventLog.push({t:warNow(),e:'ASSAULT',lane,a:me.id,d:defender.memberId,won:r.won});
-      let finished=false;
-      if(warDestroyedCount(m,myGid)>=3){ warFinishMatch(t,m,myGid,'citadels'); finished=true; }
+      const finished=false;                      /* v676: only the bell finishes a war */
       m.version++; writeDB();
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
@@ -3153,29 +3174,42 @@ async function api(req,res,url){
           side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
         // place: player by player, line by line, round-robin across the five citadels
         let lane=0; for(const pl of side.players) for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
-          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, power:L.power }); lane++; }
+          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, kills:0, power:L.power }); lane++; }
         side.power=side.players.reduce((s,pl)=>s+pl.lines.reduce((x,l)=>x+l.power,0),0); return side; };
       const A=mkSide('Your side',true,allyMul), B=mkSide('Bot guild',false,foeMul);
       const captureN=Math.max(0,parseInt(b.captureN,10)||0);   /* v675: watch one march */
       const m={ id:'gwsim_'+uid(), sides:{A,B}, log:[], winner:null, why:null, assaults:0 };
       const destroyedOf=side=>side.citadels.filter(c=>c.destroyed).length;
-      const survivorHp=side=>{ let hp=0,max=0; for(const c of side.citadels) for(const d of c.defenders){ if(d.alive===false) continue; for(let i=0;i<d.lineSnapshot.length;i++){ hp+=(d.hpState[i]||{}).hp||0; max+=d.lineSnapshot[i].maxHp||0; } } return max?hp/max:0; };
       /* v675 - Phil's five-fight rule. A line is FIT while it is alive and has fought fewer than
          five times; once it hits five it is retired and the next line in the tower steps up, on
          attack and on defence alike. */
-      const fit=d=>d.alive!==false && (d.fights|0)<WAR_ASSAULTS_PER_LINE;
-      /* Magic Rush's Alliance War sends troops in weakest-first, and that is the order Phil asked the
-         tower list to read in. nextUp() picks the weakest line still fit; ties keep their placed
-         order so the run stays deterministic. */
-      const nextUp=cit=>{ let best=null;
-        for(const d of cit.defenders){ if(!fit(d)) continue; if(!best||(d.power|0)<(best.power|0)) best=d; }
+      /* v678 (Phil) - FIVE KILLS. "each individual line has a 5 cap" - a line holds the front while
+         it keeps winning, to a maximum of five kills, and is then retired. Twenty lines in a tower
+         can kill a hundred. A retired line is still alive and still stands in the way. */
+      const standing=d=>d.alive!==false;
+      const canMarch=d=>d.alive!==false && (d.kills|0)<WAR_KILL_CAP;
+      /* weakest-first, both ways: Magic Rush's Alliance War order, and the order Phil asked the tower
+         list to read in. Ties keep their placed order, so the run stays deterministic. */
+      const weakest=(cit,ok)=>{ let best=null;
+        for(const d of cit.defenders){ if(!ok(d)) continue; if(!best||(d.power|0)<(best.power|0)) best=d; }
         return best||null; };
       const march=(atkSide,defSide,lane,tag)=>{ const mine=atkSide.citadels[lane], foe=defSide.citadels[lane];
         if(mine.destroyed||foe.destroyed) return false;
-        const attacker=nextUp(mine); if(!attacker) return false;
+        const attacker=weakest(mine,canMarch); if(!attacker) return false;
         attacker.orders--; attacker.fights=(attacker.fights|0)+1; m.assaults++;
-        const defender=nextUp(foe);
-        if(!defender){ foe.destroyed=true; m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,captured:true}); return true; }
+        /* the weakest line that can still take a kill meets the march. */
+        const defender=weakest(foe,canMarch);
+        /* v678 fix: the tower has spent every one of its kills. What is left is alive but finished,
+           so it is overrun where it stands - no fight, no kill banked against the cap. The tower
+           still does not fall until the last of them is gone. */
+        if(!defender){ const spent=weakest(foe,standing);
+          if(spent){ spent.alive=false;
+            const wiped=!foe.defenders.some(standing); if(wiped) foe.destroyed=true;
+            m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,
+              d:spent.name,dPower:spent.power,won:true,overrun:true,fell:wiped,you:!!(attacker.you||spent.you),
+              aKills:attacker.kills|0,dKills:spent.kills|0,dDown:true});
+            return true; } }
+        if(!defender){ foe.destroyed=true; m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,captured:true}); return true; }   /* only ever an EMPTY tower - everything in it is dead */
         const seed=SIM.seedFrom(seedBase+':'+m.assaults+':'+lane);
         /* v675: if the client asked to watch this exact march, freeze the two lines AS THEY STAND
            NOW - before the blow lands - so what it plays is the fight that actually happened. */
@@ -3185,34 +3219,49 @@ async function api(req,res,url){
             d:{ name:defender.name, you:!!defender.you, power:defender.power, snaps:defender.lineSnapshot, hp:defender.hpState } }; }
         const r=SIM.resolveLineBattle(SIM.makeLine(attacker.lineSnapshot,attacker.hpState), SIM.makeLine(defender.lineSnapshot,defender.hpState), seed);
         const mapBack=(snap,state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
-        defender.fights=(defender.fights|0)+1;   /* v675: defending is a fight too */
         attacker.hpState=mapBack(attacker.lineSnapshot,r.aState); defender.hpState=mapBack(defender.lineSnapshot,r.bState);
-        if(!r.aState.some(x=>x.alive)) attacker.alive=false; if(!r.bState.some(x=>x.alive)) defender.alive=false;
-        /* the tower falls when nothing in it can still fight - every line dead or retired */
-        let fell=false; if(!foe.defenders.some(fit)){ foe.destroyed=true; fell=true; }
+        /* v678: a march settles it. The loser's line is eliminated and the winner banks a kill, to a
+           maximum of five - "this tower is capable of killing 100 lines". The old resolver let both
+           walk away, which is why no tower ever fell. */
+        if(r.won){ defender.alive=false; attacker.kills=(attacker.kills|0)+1; }
+        else { attacker.alive=false; defender.kills=(defender.kills|0)+1; }
+        /* v677 (Phil): the tower falls ONLY when its last line is DEAD. A line that has spent its
+           five marches still stands in the way. Nothing is announced early. */
+        let fell=false; if(!foe.defenders.some(standing)){ foe.destroyed=true; fell=true; }
         const hpLeft=st=>Math.round(100*st.reduce((s,x)=>s+(x.alive?x.hp:0),0)/Math.max(1,st.reduce((s,x)=>s+x.maxHp,0)));
         m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,d:defender.name,dPower:defender.power,won:r.won,rounds:r.rounds,aHp:hpLeft(r.aState),dHp:hpLeft(r.bState),fell,you:!!(attacker.you||defender.you),
-          aFights:attacker.fights,dFights:defender.fights,aRetired:(attacker.fights|0)>=WAR_ASSAULTS_PER_LINE,dRetired:(defender.fights|0)>=WAR_ASSAULTS_PER_LINE});
+          aKills:attacker.kills|0, dKills:defender.kills|0,
+          aRetired:(attacker.kills|0)>=WAR_KILL_CAP, dRetired:(defender.kills|0)>=WAR_KILL_CAP,
+          aDown:attacker.alive===false, dDown:defender.alive===false});
         return true; };
-      // the live window: both guilds march, lane by lane, until one holds three citadels or nobody can move
+      /* v676 (Phil) - EVERY LANE IS FOUGHT OUT. "all 5 lines fight until one side is zero until the
+         end. to include if 3 towers already go down." No early exit at three: the loop runs until no
+         lane on either side can move, and only then are the towers counted. */
       let guard=0, moved=true;
-      while(!m.winner&&moved&&guard++<4000){ moved=false;
-        for(let lane=0;lane<5&&!m.winner;lane++){
-          if(march(A,B,lane,'A')) moved=true; if(destroyedOf(B)>=3){ m.winner='A'; m.why='three citadels'; break; }
-          if(march(B,A,lane,'B')) moved=true; if(destroyedOf(A)>=3){ m.winner='B'; m.why='three citadels'; break; } } }
-      if(!m.winner){ const dA=destroyedOf(B), dB=destroyedOf(A);   // tiebreak: destroyed → surviving HP% → power
-        if(dA!==dB){ m.winner=dA>dB?'A':'B'; m.why='more citadels destroyed at the bell'; }
-        else { const hA=survivorHp(A), hB=survivorHp(B); if(Math.abs(hA-hB)>1e-6){ m.winner=hA>hB?'A':'B'; m.why='surviving defender HP at the bell'; } else { m.winner=A.power>=B.power?'A':'B'; m.why='power at lock'; } } }
+      while(moved&&guard++<4000){ moved=false;
+        for(let lane=0;lane<5;lane++){
+          if(march(A,B,lane,'A')) moved=true;
+          if(march(B,A,lane,'B')) moved=true; } }
+      /* v677: a lane where both sides ran out of marches ends with BOTH towers standing. Nobody is
+         handed it - a tower is only ever taken by killing what is in it. */
+      /* v676 - THE ONLY WIN CONDITION: towers won. Three of five takes it; the surviving-HP tiebreak
+         is gone (it skipped dead lines, so losing your army outright scored BETTER than being worn
+         down, which was never what it was meant to measure). */
+      { const tA=destroyedOf(B), tB=destroyedOf(A);
+        m.towers={A:tA,B:tB};
+        if(tA!==tB){ m.winner=tA>tB?'A':'B'; m.why=Math.max(tA,tB)>=3?(Math.max(tA,tB)+' of 5 towers'):('more towers held ('+tA+'–'+tB+')'); }
+        else { m.winner='A'; m.why='the towers finished level at '+tA+'–'+tB+' — the challenge is held'; m.draw=true; } }
       const view=side=>({ name:side.name, power:side.power, players:side.players.length, lines:side.players.reduce((s,pl)=>s+pl.lines.length,0),
         citadels:side.citadels.map(c=>({lane:c.lane,name:c.name,destroyed:c.destroyed,alive:c.defenders.filter(d=>d.alive!==false).length,total:c.defenders.length,
           defenders:c.defenders.map(d=>({name:d.name,you:d.you,alive:d.alive!==false,power:d.power,orders:d.orders,
-            fights:d.fights|0, retired:(d.fights|0)>=WAR_ASSAULTS_PER_LINE, fightsLeft:Math.max(0,WAR_ASSAULTS_PER_LINE-(d.fights|0)),
+            fights:d.fights|0, kills:d.kills|0, retired:(d.kills|0)>=WAR_KILL_CAP && d.alive!==false,
+            killsLeft:Math.max(0,WAR_KILL_CAP-(d.kills|0)),
             heroes:(d.lineSnapshot||[]).map(h=>h.key),
             hpPct:Math.round(100*d.hpState.reduce((s,x)=>s+x.hp,0)/Math.max(1,d.lineSnapshot.reduce((s,h)=>s+h.maxHp,0)))})) })),
         yourLines:side.players.filter(pl=>pl.you).flatMap(pl=>pl.lines.map((l,i)=>({line:i+1,power:l.power,heroes:l.heroes.map(h=>h.key)}))) });
       if(captureN){ if(!m.capture) return send(res,404,{error:'That march is not in this war.'});
         return send(res,200,{ ok:true, seed:seedBase, fight:m.capture, won:(m.log.find(e=>e.n===captureN)||{}).won }); }
-      return send(res,200,{ ok:true, seed:seedBase, params:{players,linesPer,botLevel,botTier,botStars,allyMul,foeMul}, winner:m.winner, why:m.why, assaults:m.assaults, you:view(A), foe:view(B), log:m.log });
+      return send(res,200,{ ok:true, seed:seedBase, params:{players,linesPer,botLevel,botTier,botStars,allyMul,foeMul}, winner:m.winner, why:m.why, draw:!!m.draw, towers:m.towers, assaults:m.assaults, you:view(A), foe:view(B), log:m.log });
     }
     if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
       if(!isDev(me)) return send(res,403,{error:'forbidden'});

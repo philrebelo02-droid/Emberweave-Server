@@ -13420,10 +13420,16 @@ function skyHubPick(n){ SKYSIM.openFight=(SKYSIM.openFight===n?null:n); skyHubRe
    its two lines and leaves their HP, and a line is out when it is wiped or has had its five fights. */
 function skyLiveTally(r, upto){
   const t={};
-  const touch=nm=>t[nm]||(t[nm]={fights:0,hp:100,dead:false});
+  const touch=nm=>t[nm]||(t[nm]={kills:0,hp:100,dead:false});
   for(let k=0;k<=upto && k<r.log.length;k++){ const e=r.log[k]; if(!e) continue;
-    if(e.a){ const x=touch(e.a); x.fights++; if(typeof e.aHp==='number'){ x.hp=e.aHp; if(e.aHp<=0) x.dead=true; } }
-    if(e.d){ const x=touch(e.d); x.fights++; if(typeof e.dHp==='number'){ x.hp=e.dHp; if(e.dHp<=0) x.dead=true; } } }
+    if(e.a){ const x=touch(e.a);
+      if(typeof e.aKills==='number') x.kills=e.aKills;
+      if(typeof e.aHp==='number') x.hp=e.aHp;
+      if(e.aDown) x.dead=true; }
+    if(e.d){ const x=touch(e.d);
+      if(typeof e.dKills==='number') x.kills=e.dKills;
+      if(typeof e.dHp==='number') x.hp=e.dHp;
+      if(e.dDown) x.dead=true; } }
   return t; }
 function skyHubRender(){
   const hub=document.getElementById('skyHub'), r=SKYSIM.view||SKYSIM.r; if(!hub||!r) return;
@@ -13443,9 +13449,10 @@ function skyHubRender(){
     return head+'<div style="padding:6px 8px 8px;margin:-2px 0 5px;border:1px solid #6b5628;border-top:0;border-radius:0 0 8px 8px;background:rgba(10,14,22,.8)">'
       +'<div style="font-size:10px;color:#8b98a9;margin-bottom:5px">'+escapeHTML(e.laneName||'')
       +(e.captured?'':' \u00b7 \u26a1'+(e.aPower||0).toLocaleString()+' vs \u26a1'+(e.dPower||0).toLocaleString()
-        +' \u00b7 '+(e.rounds||0)+' rounds \u00b7 HP left '+(e.aHp|0)+'% / '+(e.dHp|0)+'%'
-        +' \u00b7 fights '+(e.aFights||'?')+'/'+MAXF+' vs '+(e.dFights||'?')+'/'+MAXF
-        +((e.aRetired||e.dRetired)?' \u00b7 <span style="color:#ffd45e">a line retires</span>':''))+'</div>'
+        +(e.overrun?' \u00b7 <span style="color:#ffd45e">the tower had no kills left \u2014 overrun where it stood</span>'
+          :' \u00b7 '+(e.rounds||0)+' rounds \u00b7 HP left '+(e.aHp|0)+'% / '+(e.dHp|0)+'%')
+        +' \u00b7 kills '+(e.aKills|0)+'/'+MAXF+' vs '+(e.dKills|0)+'/'+MAXF
+        +((e.aRetired||e.dRetired)?' \u00b7 <span style="color:#ffd45e">a line takes its fifth and retires</span>':''))+'</div>'
       +(e.captured?'<div style="font-size:10px;color:#8b98a9">Nothing defended it \u2014 there is no fight to watch.</div>'
         :'<button class="btn sm" style="width:100%" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 Play this fight</button>')
       +'</div>'; };
@@ -13460,17 +13467,17 @@ function skyHubRender(){
     const stand=(cits,cls,label)=>{
       const rows=[];
       (cits||[]).forEach((c,ci)=>(c.defenders||[]).forEach(d=>{
-        const t=tal[d.name]||{fights:0,hp:100,dead:false};
-        if(t.dead||t.fights>=MAXF) return;
-        rows.push({name:d.name,power:d.power||0,hp:t.hp,fights:t.fights,you:d.you,lane:c.name||('Lane '+(ci+1))}); }));
+        const t=tal[d.name]||{kills:0,hp:100,dead:false};
+        if(t.dead) return;                     /* only death removes a line from the tower */
+        rows.push({name:d.name,power:d.power||0,hp:t.hp,kills:t.kills,you:d.you,lane:c.name||('Lane '+(ci+1))}); }));
       rows.sort((a,b)=>a.power-b.power);
-      return '<div style="font-size:9.5px;letter-spacing:.4px;font-weight:800;margin:7px 2px 4px" class="'+cls+'">'+label+' \u2014 '+rows.length+' line'+(rows.length===1?'':'s')+' still able to fight</div>'
+      return '<div style="font-size:9.5px;letter-spacing:.4px;font-weight:800;margin:7px 2px 4px" class="'+cls+'">'+label+' \u2014 '+rows.length+' line'+(rows.length===1?'':'s')+' still standing <span style="color:#8b98a9;font-weight:600">(kills banked / '+MAXF+')</span></div>'
         +(rows.length?rows.map(x=>'<div class="skyPopRow'+(x.you?' you':'')+'">'
           +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHTML(x.name)+'</span>'
           +'<span style="flex:none;width:52px;text-align:right;color:#8b98a9;font-size:9.5px">'+escapeHTML(x.lane)+'</span>'
           +'<span style="flex:none;width:56px;text-align:right;color:#ffbf69;font-weight:800">\u26a1'+x.power.toLocaleString()+'</span>'
           +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+(x.hp|0)+'%</span>'
-          +'<span style="flex:none;width:30px;text-align:right;color:#c9b78d">'+x.fights+'/'+MAXF+'</span></div>').join('')
+          +'<span style="flex:none;width:34px;text-align:right;color:'+(x.kills>=MAXF?'#ffd45e':'#c9b78d')+'" title="kills banked">'+x.kills+'/'+MAXF+'</span></div>').join('')
           :'<div style="font-size:10px;color:#8b98a9;padding:6px 2px">Nothing left standing.</div>'); };
     body+=stand((r.you||{}).citadels,'skySideA','YOUR SIDE')+stand((r.foe||{}).citadels,'skySideB','BOT GUILD');
   } else {
@@ -13543,7 +13550,7 @@ function skySimRender(){ const card=document.getElementById('skySimCard'); if(!c
     const cit=(side,mine)=>side.citadels.map(c=>`<div style="font-size:9px;padding:3px 5px;border-radius:6px;margin-bottom:3px;background:${c.destroyed?'#2a1212':(mine?'#0f1a14':'#1a0f14')};border:1px solid ${c.destroyed?'#5a2b2b':(mine?'#2b7a55':'#7a2b46')};${c.destroyed?'opacity:.6':''}">${c.destroyed?'💥 ':'🏰 '}<b>${c.name}</b> <span style="color:#8b98a9">${c.alive}/${c.total} lines alive</span></div>`).join('');
     const logRows=r.log.map(e=>e.captured?`<div style="padding:3px 0;border-bottom:1px solid #1b2438;color:#ffd45e">#${e.n} ${e.side==='A'?'🟢':'🔴'} ${e.laneName}: <b>${escapeHTML(e.a)}</b> marches into an EMPTY citadel — captured!</div>`
       :`<div style="padding:3px 0;border-bottom:1px solid #1b2438;${e.you?'background:rgba(255,212,94,.06)':''}">#${e.n} ${e.side==='A'?'🟢':'🔴'} <span style="color:#8b98a9">${e.laneName}</span> · <b style="color:${e.side==='A'?'#5ee89b':'#ff8b8b'}">${escapeHTML(e.a)}</b> <span style="color:#6f7d90">(⚡${e.aPower})</span> vs <b style="color:${e.side==='A'?'#ff8b8b':'#5ee89b'}">${escapeHTML(e.d)}</b> <span style="color:#6f7d90">(⚡${e.dPower})</span> → ${e.won?'<span style="color:#5ee89b">attacker wins</span>':'<span style="color:#ff8b8b">driven back</span>'} <span style="color:#6f7d90">${e.rounds} rounds · HP left ${e.aHp}% / ${e.dHp}%</span>${e.fell?' <b style="color:#ffd45e">💥 citadel falls</b>':''}</div>`).join('');
-    res=`<div style="margin-top:10px;text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?'🏆 YOUR SIDE WINS':'💀 BOT GUILD WINS'} <span style="font-size:10px;color:#8b98a9;font-weight:500">— ${escapeHTML(r.why)} · ${r.assaults} marches · seed ${escapeHTML(String(r.seed))}</span></div>
+    res=`<div style="margin-top:10px;text-align:center;font-weight:900;font-size:15px;color:${r.draw?'#ffd45e':(won?'#5ee89b':'#ff8b8b')}">${r.draw?'⚔ THE CHALLENGE IS HELD':(won?'🏆 YOUR SIDE WINS':'💀 BOT GUILD WINS')} <span style="font-size:10px;color:#8b98a9;font-weight:500">— ${escapeHTML(r.why)}${r.towers?` · towers ${r.towers.A}–${r.towers.B}`:''} · ${r.assaults} marches · seed ${escapeHTML(String(r.seed))}</span></div>
       <div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1"><div style="font-size:9px;color:#5ee89b;margin-bottom:3px">YOUR SIDE · ⚡${r.you.power} · ${r.you.players} players · ${r.you.lines} lines</div>${cit(r.you,true)}</div>
         <div style="flex:1"><div style="font-size:9px;color:#ff8b8b;margin-bottom:3px">BOT GUILD · ⚡${r.foe.power} · ${r.foe.players} players · ${r.foe.lines} lines</div>${cit(r.foe,false)}</div></div>
       ${r.you.yourLines.length?`<div style="font-size:10px;color:#8b98a9;margin-top:6px">Your lines: ${r.you.yourLines.map(l=>'L'+l.line+' ⚡'+l.power+' ('+l.heroes.map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')+')').join(' · ')}</div>`:'<div style="font-size:10px;color:#ff8b8b;margin-top:6px">You own fewer than 5 heroes — your side is all bots.</div>'}
@@ -20829,7 +20836,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789863607000';
+const BUILD_ID = '1789864807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
