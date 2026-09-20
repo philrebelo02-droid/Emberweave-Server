@@ -4860,8 +4860,13 @@ async function api(req,res,url){
        Difficulty is not only hide: Phil, "increase the bosses damage not just mitigation" — his hits
        grow 12% a tier, and an Elite swings half again as hard on top of that. */
     const raidIsElite=tier=>((tier|0)>20);
+    /* v672 (Phil) — THE LEVEL LADDER, his numbers exactly.
+         Normal tiers 1-20 : 15 and two levels a boss, so 15, 17, 19 ... 53.
+         Elite tiers 21-40 : 56, then 57-60 one at a time, then 62-70 in twos, then 73-100 in threes. */
+    const RAID_ELITE_LVLS=[56,57,58,59,60, 62,64,66,68,70, 73,76,79,82,85,88,91,94,97,100];
     const raidBossLvl=tier=>{ const t=Math.max(1,tier|0);
-      return t<=20 ? Math.min(65, 15+4*(t-1)) : Math.min(100, 70+3*(t-21)); };
+      if(t<=20) return 15+2*(t-1);
+      return RAID_ELITE_LVLS[Math.min(t-21, RAID_ELITE_LVLS.length-1)]; };
     const bossDmgMul=tier=>{ const t=Math.max(1,tier|0);
       return Math.min(9, (1+0.12*(t-1)) * (raidIsElite(t)?1.5:1)); };
     function ensureRaid(gg){ if(!gg.raid){ gg.raid={level:1,max:bossMax(1),hp:bossMax(1),kills:0,contrib:{},used:{},day:''}; }
