@@ -1592,22 +1592,38 @@ function getTournament(){
   }
   return DB.tournaments.current;
 }
-function buildRegisteredLine(u){ // best legal five-hero line from SERVER-owned data
+/* v733 (Phil: "each line heroes are unique. They cannot be used multiple times" / "All 7 lines
+   requires 35 unique heroes") - a member's OWNED heroes are dealt into lines of five, strongest
+   first. The deal comes off one sorted list of distinct owned heroes, so a hero cannot land on two
+   of that member's lines: 35 owned is exactly 7 lines, 34 is 6 lines with 4 spare. The rule is a
+   property of how a line is built, not a check run afterwards, so nothing can route around it. */
+function buildRegisteredLines(u){
   const save=parseSaveOf(u);
   const rled=ensureLedger(u);   // AUDIT v229 (P0): only heroes this member actually OWNS count toward war power
   const all=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
   all.sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk));
-  const line=all.slice(0,5);
-  return { memberId:u.id, name:u.name, heroes:line, power:Math.round(line.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) };
+  const out=[];
+  for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5){
+    const heroes=all.slice(i,i+5);
+    out.push({ memberId:u.id, line:out.length, name:u.name+' \u00b7 line '+(out.length+1),
+      heroes, power:Math.round(heroes.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) });
+  }
+  return out;
+}
+/* a member's single strongest line, for callers that only want the one */
+function buildRegisteredLine(u){ const ls=buildRegisteredLines(u);
+  return ls[0]||{ memberId:u.id, line:0, name:u.name, heroes:[], power:0 };
 }
 function warQualifyGuild(g){
-  const lines=(g.members||[]).map(id=>DB.users[id]).filter(u=>u&&!u.isNpc).map(buildRegisteredLine);
+  /* v733 - a member brings every line their roster can fill, not just their best five */
+  const lines=(g.members||[]).map(id=>DB.users[id]).filter(u=>u&&!u.isNpc).flatMap(buildRegisteredLines);
   return { guildId:g.id, name:g.name, lines, powerPool:lines.reduce((s,l)=>s+l.power,0) };
 }
 function warNewMatch(t, roundIndex, aEnt, bEnt){
   const mkSide=ent=>({ guildId:ent?ent.guildId:null, name:ent?ent.name:'— bye —',
     citadels:WAR_LANES.map((l,i)=>({ lane:i, key:l.key, destroyed:false, defenders:[] })),
-    unplaced:(ent?ent.lines.map(l=>l.memberId):[]) });
+    /* v733 - a member owns several lines now, so an unplaced entry names memberId AND line index */
+    unplaced:(ent?ent.lines.map(l=>({memberId:l.memberId, line:l.line|0})):[]) });
   const m={ id:'gwm_'+uid(), tournamentId:t.id, roundIndex, state:'planning',
     aGuildId:aEnt?aEnt.guildId:null, bGuildId:bEnt?bEnt.guildId:null,
     revealAt:t.schedule[roundIndex].planningOpensAt,   // opponent hidden + placement closed before this (v728: 02:00 ET, so line re-placement opens exactly when the previous day's reports come down)
@@ -1630,11 +1646,28 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
     const ent=gobj?warQualifyGuild(gobj):warEntrant(t,gid); if(!ent) continue;
     // auto-place any member the leader never assigned, round-robin across lanes
     let lane=0;
-    for(const mid of (side.unplaced||[])){ side.citadels[lane%5].defenders.push({memberId:mid}); lane++; }
+    /* v733 - unplaced entries carry their line index (an older board stored a bare id; both read) */
+    for(const x of (side.unplaced||[])){ const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
+      side.citadels[lane%5].defenders.push({memberId:e.memberId, line:e.line}); lane++; }
     side.unplaced=[];
-    for(const c of side.citadels){ c.defenders=c.defenders.map(d=>{ const line=ent.lines.find(l=>l.memberId===d.memberId);
-      return line?{ memberId:d.memberId, name:line.name, lineSnapshot:JSON.parse(JSON.stringify(line.heroes)),
-        hpState:line.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true }:null; }).filter(Boolean); } }
+    /* v733 - a defender is matched on memberId AND line index. This used to take
+       ent.lines.find(l=>l.memberId===d.memberId) - the FIRST line - which would have silently
+       dropped every line after a member's first at the 18:00 lock. An entry with no line index
+       expands into ALL of that member's lines; `seen` stops one being hydrated twice if a member
+       somehow sits in two citadels. */
+    const seen=new Set();
+    const hydrate=(L)=>({ memberId:L.memberId, line:L.line|0, name:L.name,
+      lineSnapshot:JSON.parse(JSON.stringify(L.heroes)),
+      hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true });
+    for(const c of side.citadels){
+      const out=[];
+      for(const d of c.defenders){
+        const mine=(d.line==null) ? ent.lines.filter(l=>l.memberId===d.memberId)
+                                  : ent.lines.filter(l=>l.memberId===d.memberId && (l.line|0)===(d.line|0));
+        for(const L of mine){ const tag=L.memberId+':'+(L.line|0);
+          if(seen.has(tag)) continue; seen.add(tag); out.push(hydrate(L)); }
+      }
+      c.defenders=out; } }
   m.state='live'; m.version++; m.eventLog.push({t:warNow(),e:'WAR_LOCKED'});
 }
 function warSurvivorHpPct(side){ let hp=0,max=0;
@@ -1727,7 +1760,7 @@ function warMatchView(t,m,meGid){
   if(m.state==='planning' && v.you){ // officer placement roster: every registered member + current lane
     const ent=warEntrant(t,meGid), side=m.sides[meGid];
     if(ent&&side){ const laneOf={}; side.citadels.forEach(c=>c.defenders.forEach(d=>{laneOf[d.memberId]=c.lane;}));
-      v.you.roster=ent.lines.map(l=>({memberId:l.memberId,name:l.name,power:l.power,
+      v.you.roster=ent.lines.map(l=>({memberId:l.memberId,line:l.line|0,name:l.name,power:l.power,
         lane:(l.memberId in laneOf)?laneOf[l.memberId]:null})); } }
   return v;
 }
@@ -3040,6 +3073,19 @@ async function api(req,res,url){
       return send(res,200,{ enabled:true, tournament:{ id:t.id, weekKey:t.weekKey, state:t.state,
           registrationOpensAt:t.registrationOpensAt, registrationLocksAt:t.registrationLocksAt,
           entrants:t.entrants.map(e=>({guildId:e.guildId,name:e.name,seed:e.seed,powerPool:e.powerPool,lines:e.lines.length})),
+          /* v730 - THE BRACKET. Who plays whom and who won, which the client needs to draw the
+             tree and had no way to know: entrants says who is in, not how they are paired.
+             Names and seeds are resolved here because the entrant list is the only place they
+             exist and it is in scope right now. */
+          bracket:(t.rounds||[]).map((rd,ri)=>({
+            name:rd.name, index:ri,
+            schedule:(t.schedule||[])[ri]||null,
+            matches:(rd.matchIds||[]).map(mid=>{ const mm=t.matches[mid]; if(!mm) return null;
+              const who=g=>{ if(!g) return null; const e=warEntrant(t,g);
+                return { guildId:g, name:(e&&e.name)||'?', seed:(e&&e.seed)||0 }; };
+              return { id:mm.id, state:mm.state, a:who(mm.aGuildId), b:who(mm.bGuildId),
+                       winnerGuildId:mm.winnerGuildId||null,
+                       towers:mm.towers||null }; }).filter(Boolean) })),
           roundIndex:t.roundIndex||0, championGuildId:t.championGuildId||null, now:warNow() },
         registered:!!ent, yourPowerPool:ent?ent.powerPool:null, canRegister:isLeaderOrOfficer,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
@@ -3201,9 +3247,24 @@ async function api(req,res,url){
         const h=SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R, gearSkillSlot:null, gearSkill:null, extra:null});
         if(mul!==1){ h.maxHp=Math.round(h.maxHp*mul); h.hp=h.maxHp; h.atk=Math.round((h.atk||0)*mul); h.atkP=Math.round((h.atkP||0)*mul); h.atkM=Math.round((h.atkM||0)*mul); h.heal=Math.round((h.heal||0)*mul); }
         return h; };
-      const botLine=(mul)=>{ const used=new Set(); const want=[byRole('Tank'),byRole('Bruiser'),byRole('Assassin').concat(byRole('Marksman')),byRole('Mage'),byRole('Support')];
-        const line=[]; for(const pool of want){ let k=pick(pool.length?pool:keys), tries=0; while(used.has(k)&&tries++<20) k=pick(keys); used.add(k); line.push(botHero(k,mul)); }
-        return line; };
+      /* v733 (Phil: "each line heroes are unique. They cannot be used multiple times like you did" /
+         "All 7 lines requires 35 unique heroes") - THIS is the one he was looking at. botLine() built
+         one line at a time with a `used` set that lived for that line only, so a bot's seven lines
+         could field the same hero seven times.
+         A bot now deals its whole roster in one go: one pool per role, drawn without replacement
+         across ALL of that player's lines, so seven lines is 35 distinct heroes. Sixty heroes exist
+         and the thinnest pool (Support, 10) is deeper than WAR_LINES_MAX, so the role shape always
+         survives; the fallback to any unused hero is there for a hero table that ever gets thinner,
+         and keeps uniqueness even then. */
+      const botLines=(n,mul)=>{
+        const pools=[byRole('Tank'),byRole('Bruiser'),byRole('Assassin').concat(byRole('Marksman')),byRole('Mage'),byRole('Support')];
+        const used=new Set();
+        const draw=(pool)=>{ let free=pool.filter(k=>!used.has(k));
+          if(!free.length) free=keys.filter(k=>!used.has(k));
+          const k=free.length?free[Math.floor(rng()*free.length)]:pick(keys);
+          used.add(k); return k; };
+        const out=[]; for(let i=0;i<n;i++) out.push(pools.map(p=>botHero(draw(p),mul)));
+        return out; };
       const linePower=l=>Math.round(l.reduce((s,h)=>s+h.maxHp/8+(h.atk||0),0));
       // Phil's own lines: his roster sorted by power, chunked into linesPer lines of five
       const save=parseSaveOf(me), rled=ensureLedger(me);
@@ -3211,7 +3272,7 @@ async function api(req,res,url){
       const myLines=[]; for(let i=0;i<linesPer;i++){ const chunk=mine.slice(i*5,i*5+5); if(chunk.length===5) myLines.push(chunk); }
       const mkSide=(name,isMine,mul)=>{ const side={ guildId:name, name, players:[], citadels:WAR_LANES.map((l,i)=>({lane:i,key:l.key,name:l.name,destroyed:false,defenders:[]})) };
         for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally bot '+pi:'Enemy bot '+(pi+1));
-          const lines=you&&myLines.length?myLines:Array.from({length:linesPer},()=>botLine(mul));
+          const lines=you&&myLines.length?myLines:botLines(linesPer,mul);
           side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
         // place: player by player, line by line, round-robin across the five citadels
         let lane=0; for(const pl of side.players) for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
