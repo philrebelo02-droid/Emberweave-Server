@@ -1659,11 +1659,27 @@ function warLinesValidate(u, raw){
    first. The deal comes off one sorted list of distinct owned heroes, so a hero cannot land on two
    of that member's lines: 35 owned is exactly 7 lines, 34 is 6 lines with 4 spare. The rule is a
    property of how a line is built, not a check run afterwards, so nothing can route around it. */
+/* v785 (Phil: "skill level should raise power") - a hero's skill factor: the mean of the four
+   slots on the game's own curve (SKILL_STEP 0.0135, x2.337 at level 100). All four slots scale
+   their effects from v785, so all four are strength. Every slot at 1 returns exactly 1, so nobody
+   who has bought no skills sees their power move. */
+function heroSkillFactor(h){
+  try{
+    const a=(h&&Array.isArray(h.skillLv))?h.skillLv:[1,1,1,1];
+    const mul=SIM.CORE.skillMul;
+    let t=0; for(let i=0;i<4;i++) t+=mul(a[i]||1);
+    return t/4;
+  }catch(e){ return 1; }
+}
+/* v785 - THE ONE POWER FORMULA. A line's power is the sum of its heroes' power, and both are
+   computed from here so they cannot drift apart. */
+function heroPower(h){ return ((h.maxHp||0)/8 + (h.atk||0)) * heroSkillFactor(h); }
 function buildRegisteredLines(u){
   const save=parseSaveOf(u);
   const rled=ensureLedger(u);   // AUDIT v229 (P0): only heroes this member actually OWNS count toward war power
   const mk=(heroes,i)=>({ memberId:u.id, line:i, name:u.name+' \u00b7 line '+(i+1),
-    heroes, power:Math.round(heroes.reduce((s,h)=>s+h.maxHp/8+h.atk,0)) });
+    /* v785 - skill level is part of power now */
+    heroes, power:Math.round(heroes.reduce((s,h)=>s+heroPower(h),0)) });
 
   /* v740 - THE MEMBER'S OWN CHOICE WINS, when they have made one. Re-checked against the ledger on
      every read rather than trusted from when it was saved, and a hero that somehow appears twice is
@@ -1688,7 +1704,7 @@ function buildRegisteredLines(u){
 
   /* no choice made (or none of it survives): the automatic deal, strongest first, five at a time */
   const all=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
-  all.sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk));
+  all.sort((a,b)=>heroPower(b)-heroPower(a));                     /* v785 - skill counts here too */
   const out=[];
   for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5) out.push(mk(all.slice(i,i+5), out.length));
   return out;
@@ -1698,13 +1714,15 @@ function buildRegisteredLines(u){
 function warLinesView(u, editable, why){
   const save=parseSaveOf(u), rled=ensureLedger(u);
   const card=(h)=>({ key:h.key, level:h.level|0, stars:h.stars|0, pips:h.pips|0,
-    power:Math.round(h.maxHp/8+(h.atk||0)) });
+    /* v785 - the same formula the line uses, so a line's power is the sum of its cards */
+    skillLv:(Array.isArray(h.skillLv)?h.skillLv.slice():[1,1,1,1]),
+    power:Math.round(heroPower(h)) });
   const lines=buildRegisteredLines(u);
   const onALine=new Set();
   for(const L of lines) for(const h of L.heroes) onALine.add(h.key);
   const bench=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]&&!onALine.has(k))
     .map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean)
-    .sort((a,b)=>(b.maxHp/8+b.atk)-(a.maxHp/8+a.atk)).map(card);
+    .sort((a,b)=>heroPower(b)-heroPower(a)).map(card);            /* v785 */
   return { ok:true, cap:WAR_LINES_MAX, chosen:!!(Array.isArray(u.warLines)&&u.warLines.length),
     owned:onALine.size+bench.length,
     lines:lines.map(L=>({ line:L.line|0, power:L.power, heroes:L.heroes.map(card) })),

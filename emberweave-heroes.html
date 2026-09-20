@@ -9214,7 +9214,36 @@ function gsplitScaleArea(u,o){
   for(const k of GSPLIT_AREA_KEYS){ const v=s[k]; if(typeof v==='number' && v>0 && !(k==='radius' && v>30*METER)) s[k]=v*S; }
   return s;
 }
+/* v786 (Phil: "their bonus damage, heals, shields, armor, magic resist, stun time, fear time,
+   taunt time it all increase per level") - THE MAGNITUDES THAT ARE NOT DAMAGE.
+   _castSM only ever reached dB and apB below, so a skill's damage scaled with its level and its
+   stun, shield, heal-percent and damage-reduction did not. Measured before this: stun 17 reads and
+   0 scaled, silence 10 and 0, shred 6 and 0, slow 7 and 0, shield 2 and 0, dr 2 and 0.
+   Scaled once, here, so no call site can double-apply it and no new ability can forget.
+   NOT in the table, on purpose: `mul`/`dps`/`burn`/`hps` and anything else derived from dB or apB,
+   which already scale - including them would square the multiplier; `tauntChance`/`eva`/`crit`,
+   which are probabilities, where 2.337x is a guarantee rather than a bigger skill; and
+   `radius`/`n`/`angle`/`range`, which are shape, not magnitude.
+   The fractions are clamped: an authored 0.40 damage reduction would otherwise reach 0.93 at
+   level 100, and a skill must not approach immunity. */
+const SKILL_SCALE_KEYS=['stun','fear','tauntDur','sleep','freeze','root','silence','slow',
+  'shield','shieldPct','healPct','healMul','regen','shred','bleed'];
+const SKILL_SCALE_FRAC={dr:0.85, allyDr:0.85, thorn:0.85, slowPct:0.90};
+function skillScaleOpts(o, sm){
+  if(!o || !(sm>1)) return o;
+  let out=null;
+  for(const k of SKILL_SCALE_KEYS){
+    const v=o[k]; if(typeof v!=='number' || !v) continue;
+    out=out||Object.assign({},o); out[k]=v*sm;
+  }
+  for(const k in SKILL_SCALE_FRAC){
+    const v=o[k]; if(typeof v!=='number' || !v) continue;
+    out=out||Object.assign({},o); out[k]=Math.min(SKILL_SCALE_FRAC[k], v*sm);
+  }
+  return out||o;
+}
 function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
+  o=skillScaleOpts(o, sm);   /* v786 - before a single case reads it */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
@@ -23814,7 +23843,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789944007000';
+const BUILD_ID = '1789945207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
