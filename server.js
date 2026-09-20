@@ -1565,6 +1565,23 @@ function warSchedule(anchor){ const D=86400000, H=3600000;
          round there is no next day, so they stand a full 24h before the bracket is done with. */
       resultsUntil:anchor+(4+i)*D+WAR_PREP_OPENS_H*H })) };
 }
+/* v779b - an ET stamp for a message a player reads, e.g. "Tue 02:00 ET". The war runs on ET and
+   every deadline in it is quoted in ET, so a refusal that names a time has to use the same clock. */
+function warWhenET(ms){
+  try{
+    const f=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false});
+    const g={}; for(const p of f.formatToParts(new Date(ms))) g[p.type]=p.value;
+    return g.weekday+' '+g.hour+':'+g.minute+' ET';
+  }catch(e){ return 'the next prep'; }
+}
+/* v779b - the next moment this guild may place lines, or 0 if there is none left this week */
+function warNextPlacementAt(t){
+  try{
+    const now=warNow();
+    for(const r of (t.schedule||[])) if(r && now < r.planningOpensAt) return r.planningOpensAt;
+  }catch(e){}
+  return 0;
+}
 function warTierOfGuild(t,gid){
   if(!gid) return 'participant';
   if(t.championGuildId===gid) return 'champion';
@@ -1721,19 +1738,22 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
   for(const gid of Object.keys(m.sides)){ const side=m.sides[gid];
     const gobj=(DB.guilds||{})[gid];
     const ent=gobj?warQualifyGuild(gobj):warEntrant(t,gid); if(!ent) continue;
-    // auto-place any member the leader never assigned, round-robin across lanes
-    /* v775 (measured: a player who never placed came out of the lock holding line1@lane0
-       line2@lane1 line3@lane2 line4@lane3 line5@lane4) - THE LANE STEPS ONCE PER MEMBER, NOT ONCE
-       PER LINE. Phil's rule is absolute: "there is no splitting up a players lines in multiple
-       towers". This counter moved on every line, so the default path - nobody touches the board -
-       split every player across all five towers. The first lane a member is given is the lane all
-       of that member's lines go to. */
-    let lane=0; const spreadTo={};
-    /* v733 - unplaced entries carry their line index (an older board stored a bare id; both read) */
-    for(const x of (side.unplaced||[])){ const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
-      const who=String(e.memberId);
-      if(spreadTo[who]==null){ spreadTo[who]=lane%5; lane++; }
-      side.citadels[spreadTo[who]].defenders.push({memberId:e.memberId, line:e.line}); }
+    /* v778 (Phil: "players need to place their lines in towers, its not automatic. if a player
+       forgets to put their lines in before lines lock phase too bad they lose their chance to
+       fight and their guild has one less player") - THERE IS NO AUTO-PLACEMENT.
+       The lock used to spread anyone who had not placed round-robin across the five towers; v775
+       fixed that spread so it at least kept a member together, and Phil's answer is that it should
+       not happen at all. Placing is the player's job and 18:00 is the deadline.
+       What is still unplaced is RECORDED rather than silently dropped - a guild has to be able to
+       see that it went into the round a player short, or the penalty is invisible. */
+    { const missed=[], who=new Set();
+      for(const x of (side.unplaced||[])){ const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
+        missed.push({memberId:e.memberId, line:(e.line==null?null:(e.line|0))});
+        who.add(String(e.memberId)); }
+      side.missed=missed;
+      side.missedMembers=[...who];
+      if(missed.length) m.eventLog.push({t:warNow(), e:'NO_SHOW', members:who.size, lines:missed.length});
+    }
     side.unplaced=[];
     /* v733 - a defender is matched on memberId AND line index. This used to take
        ent.lines.find(l=>l.memberId===d.memberId) - the FIRST line - which would have silently
@@ -1768,8 +1788,11 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
       for(const L of (ent.lines||[])){
         const tag=L.memberId+':'+(L.line|0);
         if(held.has(tag)) continue;
-        const ci=(laneOf[L.memberId]!=null)?laneOf[L.memberId]:((lane++)%5);
-        laneOf[L.memberId]=ci;
+        /* v778 - only for a member who actually PLACED. A line gained during planning joins the
+           tower its owner already stands in; a member who placed nothing has no tower to join, and
+           a late line must not become a back door into a war they did not turn up for. */
+        const ci=laneOf[L.memberId];
+        if(ci==null) continue;
         side.citadels[ci].defenders.push(hydrate(L)); held.add(tag);
         m.eventLog.push({t:warNow(),e:'LATE_LINE',member:L.memberId,line:L.line|0,lane:ci}); } } }
   m.state='live'; m.version++; m.eventLog.push({t:warNow(),e:'WAR_LOCKED'});
@@ -1856,7 +1879,12 @@ function warDefPower(d){
   return Math.round(sn.reduce((x,h)=>x+((h.maxHp||0)/8)+(h.atk||0),0));
 }
 function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
-  return { guildId:gid, name:s.name, citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
+  /* v778 - how many of your own did not place before the lock. The penalty has to be visible or it
+     is just a guild quietly fighting a player short with no idea why. */
+  return { guildId:gid, name:s.name,
+    missedMembers:((s.missedMembers||[]).length)|0,
+    missedLines:((s.missed||[]).length)|0,
+    citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
     /* v775 - THE FIELDS THE CLIENT ACTUALLY READS. Confirmed off the wire, this object used to be
        exactly {memberId, line, power, you, name, alive, hpPct, assaultsLeft} - while the client
        reads `d.heroes` in four places and `d.kills` in two. So a real war drew "no line-up
@@ -3342,8 +3370,16 @@ async function api(req,res,url){
     }
     if(p==='/api/guild-war/assign'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
-      if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
-      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Planning opens at the round reveal — come back then.'});
+      /* v779b - name the hour. Since v778 nobody is placed for you and missing the 18:00 lock costs
+         you the round, so "no match in planning" on its own is the least useful true thing this
+         route could say. */
+      if(!m||m.state!=='planning'){
+        const nxt=warNextPlacementAt(t);
+        if(m && m.state==='live') return send(res,400,{error:'The fighting has started — lines locked at 18:00 ET. They reopen at '+(nxt?warWhenET(nxt):'the next prep')+'.'});
+        if(t.state==='registration') return send(res,400,{error:'The bracket is not set yet — line placement opens '+(nxt?warWhenET(nxt):'once the rounds begin')+'.'});
+        return send(res,400,{error: nxt?('No round is in planning — placement opens '+warWhenET(nxt)+'.'):'No match in planning.'});
+      }
+      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.'});
       if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can arrange citadels.'});
       const side=m.sides[myGid]; const memberId=String(b.memberId||''); const lane=parseInt(b.lane,10);
       if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});

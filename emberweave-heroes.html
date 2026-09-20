@@ -14415,7 +14415,11 @@ function skyWireBoard(stage, r){
     /* v750 - this said GUILD, which does not exist here; the reference threw on every tower tap
        and the catch quietly made everyone a non-officer. The guild view lives on GS.guild. */
     try{ officer = !!(typeof GS!=='undefined' && GS.guild && GS.guild.youLeader); }catch(e){ officer=false; }
-    skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && (sandbox || officer), live:false}); }; });
+    /* v779 (Phil: "i cannot place my lines in towers") - LIVE IS `NOT SANDBOX`. This said
+       live:false unconditionally, so on a real war the Place Lines Here button took the sandbox
+       branch - skyPlaceMine, which shuffles a local object and posts nothing - and real placement
+       has never once reached /api/guild-war/place. The server owns the rule and the reason. */
+    skyTowerPanel(stage, side, i|0, r, {canMove: isPrep && (sandbox || officer), live: !sandbox}); }; });
 }
 /* v697 - THE SKYFALL SCREEN. Draws the board from whatever war data is to hand: the live
    tournament when the guild is in one, otherwise an empty board so the screen is still readable.
@@ -23718,7 +23722,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789938007000';
+const BUILD_ID = '1789939207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
