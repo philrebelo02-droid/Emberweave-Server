@@ -1498,7 +1498,12 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
    Railway variable required. Set GUILD_WAR_V2_ENABLED=false to force it off. */
 const GUILD_WAR_V2_ENABLED = String(process.env.GUILD_WAR_V2_ENABLED||'true')!=='false';
 function warEnabledFor(u){ return !!SIM && (GUILD_WAR_V2_ENABLED || isDev(u)); }
-function warNow(){ return Date.now()+((DB.warTimeOffset|0)||0); }   // dev time-warp for lifecycle tests
+/* v775 - NOT `|0`. That is a 32-bit truncation, and the offset is milliseconds: anything past
+   24.8 days wrapped to a large negative and threw the war clock months into the past. The ten-week
+   audit walked straight into it at week 3 - the week key went backwards and every tournament after
+   opened already finished with no entrants. Dev-only, but this is the tool the lifecycle is tested
+   with, and it lied rather than refusing. */
+function warNow(){ const off=Number(DB.warTimeOffset)||0; return Date.now()+off; }
 // AUDIT (26 Aug, high): the old ET_OFFSET_MS=4h constant broke every winter. Exact America/New_York
 // offset at any instant via Intl (built into Node, DST-proof, no deps): positive ms behind UTC.
 const _etFmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12:false,
@@ -1526,7 +1531,12 @@ function warWeekAnchor(now){ // most recent Saturday 00:00 ET (DST-exact)
   const sat=Date.UTC(et.getUTCFullYear(),et.getUTCMonth(),et.getUTCDate()-back);
   return sat+etOffsetMs(sat+off);                 // offset AT the anchor (handles a DST flip mid-week)
 }
-function warWeekKey(now){ const d=new Date(warWeekAnchor(now)); return d.toISOString().slice(0,10); }
+/* v775b - THE WEEK TURNS AT 02:00, NOT MIDNIGHT. The anchor stays Saturday 00:00 because every
+   round time is measured from it, but which WEEK you are in is read two hours later - so the
+   Friday final's reports, which stand until Saturday 02:00 by their own resultsUntil, are still
+   there when a player looks. Measured before this: at 01:59 on Saturday the board already showed
+   the next week, ten weeks out of ten. */
+function warWeekKey(now){ const d=new Date(warWeekAnchor(now-WAR_PREP_OPENS_H*3600000)); return d.toISOString().slice(0,10); }
 /* v728 (Phil): "The reports of the lanes stay up until 0200 in the morning then the lanes reset to
    prepare prep stage for the next day. Starting 0200 players can re place their lines in the
    towers."
@@ -1543,7 +1553,10 @@ const WAR_PREP_OPENS_H  = 2;    // ET, the hour the board resets into prep
 const WAR_LOCK_H        = 18;   // ET, lines lock
 const WAR_BELL_H        = 20;   // ET, fighting ends
 function warSchedule(anchor){ const D=86400000, H=3600000;
-  return { registrationOpensAt:anchor, registrationLocksAt:anchor+2*D,           // Sat 00:00 → Mon 00:00 ET
+  /* v775b - registration opens at 02:00 with the week, not at midnight. It used to claim Saturday
+     00:00 while the previous week's tournament was still the current one until 02:00, so for two
+     hours the board advertised a registration window that could not be entered. */
+  return { registrationOpensAt:anchor+WAR_PREP_OPENS_H*H, registrationLocksAt:anchor+2*D,   // Sat 02:00 → Mon 00:00 ET
     rounds:[0,1,2,3].map(i=>({ name:WAR_ROUND_NAMES[i],
       planningOpensAt:anchor+(3+i)*D+WAR_PREP_OPENS_H*H,                         // Tue–Fri 02:00 ET — prep opens, lines may be re-placed, opponents reveal here and NOT when the Monday bracket is computed
       lockAt:anchor+(3+i)*D+WAR_LOCK_H*H,                                        // Tue–Fri 6 PM ET
@@ -1709,10 +1722,18 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
     const gobj=(DB.guilds||{})[gid];
     const ent=gobj?warQualifyGuild(gobj):warEntrant(t,gid); if(!ent) continue;
     // auto-place any member the leader never assigned, round-robin across lanes
-    let lane=0;
+    /* v775 (measured: a player who never placed came out of the lock holding line1@lane0
+       line2@lane1 line3@lane2 line4@lane3 line5@lane4) - THE LANE STEPS ONCE PER MEMBER, NOT ONCE
+       PER LINE. Phil's rule is absolute: "there is no splitting up a players lines in multiple
+       towers". This counter moved on every line, so the default path - nobody touches the board -
+       split every player across all five towers. The first lane a member is given is the lane all
+       of that member's lines go to. */
+    let lane=0; const spreadTo={};
     /* v733 - unplaced entries carry their line index (an older board stored a bare id; both read) */
     for(const x of (side.unplaced||[])){ const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
-      side.citadels[lane%5].defenders.push({memberId:e.memberId, line:e.line}); lane++; }
+      const who=String(e.memberId);
+      if(spreadTo[who]==null){ spreadTo[who]=lane%5; lane++; }
+      side.citadels[spreadTo[who]].defenders.push({memberId:e.memberId, line:e.line}); }
     side.unplaced=[];
     /* v733 - a defender is matched on memberId AND line index. This used to take
        ent.lines.find(l=>l.memberId===d.memberId) - the FIRST line - which would have silently
@@ -1733,7 +1754,24 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
         for(const L of mine){ const tag=L.memberId+':'+(L.line|0);
           if(seen.has(tag)) continue; seen.add(tag); out.push(hydrate(L)); }
       }
-      c.defenders=out; } }
+      c.defenders=out; }
+    /* v775b - A LINE GAINED DURING PLANNING. `side.unplaced` was built when the match was made on
+       Monday and never revisited, so a player who unlocked five more heroes on Tuesday fielded a
+       line the board had never heard of and it was dropped without a word. Measured: 4 lines held,
+       3 reached the board. Anything in the guild's CURRENT entrant that nothing hydrated joins the
+       tower that member already stands in - never a different one, because a member's lines stay
+       together - and only takes a fresh lane if they hold none at all. */
+    { const held=new Set(), laneOf={};
+      side.citadels.forEach((c,ci)=>c.defenders.forEach(d=>{
+        held.add(d.memberId+':'+(d.line|0));
+        if(laneOf[d.memberId]==null) laneOf[d.memberId]=ci; }));
+      for(const L of (ent.lines||[])){
+        const tag=L.memberId+':'+(L.line|0);
+        if(held.has(tag)) continue;
+        const ci=(laneOf[L.memberId]!=null)?laneOf[L.memberId]:((lane++)%5);
+        laneOf[L.memberId]=ci;
+        side.citadels[ci].defenders.push(hydrate(L)); held.add(tag);
+        m.eventLog.push({t:warNow(),e:'LATE_LINE',member:L.memberId,line:L.line|0,lane:ci}); } } }
   m.state='live'; m.version++; m.eventLog.push({t:warNow(),e:'WAR_LOCKED'});
 }
 function warSurvivorHpPct(side){ let hp=0,max=0;
@@ -1819,9 +1857,22 @@ function warDefPower(d){
 }
 function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
   return { guildId:gid, name:s.name, citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
+    /* v775 - THE FIELDS THE CLIENT ACTUALLY READS. Confirmed off the wire, this object used to be
+       exactly {memberId, line, power, you, name, alive, hpPct, assaultsLeft} - while the client
+       reads `d.heroes` in four places and `d.kills` in two. So a real war drew "no line-up
+       recorded" against every line in the tower panel, a kill counter frozen at 0/5, and a
+       marching figure with no hero. None of it was missing data: the heroes are `d.lineSnapshot`
+       and the kills are `d.kills`, both sitting on the defender. They were simply never sent.
+       Same fault as the `power` fixed in v774, same cause - the client was built against the
+       SIMULATOR's view, which carries all of this, so it all looked right on a rig. The shape
+       below is the simulator's, field for field, because that is what the client already reads. */
     defenders:c.defenders.map(d=>({ memberId:d.memberId, line:d.line|0, power:warDefPower(d),
       you:(meId!=null && String(d.memberId)===String(meId)),
       name:d.name||nameOfUser(d.memberId), alive:d.alive!==false,
+      heroes:(d.lineSnapshot||[]).map(h=>h.key),
+      kills:d.kills|0, fights:d.fights|0,
+      retired:((d.kills|0)>=WAR_KILL_CAP && d.alive!==false),
+      killsLeft:Math.max(0,WAR_KILL_CAP-(d.kills|0)),
       hpPct:d.hpState?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
       assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) })), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
 }
@@ -3329,7 +3380,17 @@ async function api(req,res,url){
       const mine=m.sides[myGid].citadels[lane], foe=m.sides[oppGid].citadels[lane];
       if(mine.destroyed) return send(res,400,{error:'Your '+WAR_LANES[lane].name+' has fallen — no marches from it.'});
       if(foe.destroyed) return send(res,400,{error:'That citadel is already destroyed.'});
-      const attacker=mine.defenders.find(d=>d.memberId===me.id&&d.alive!==false);
+      /* v775 (measured: the attacker went 663 -> 568 -> 568 -> 441, strongest first) - THE
+         WEAKEST LIVING LINE MARCHES. This took the FIRST living line in the citadel's array, which
+         is hydration order, which is `ent.lines` order - and `buildRegisteredLines` deals heroes
+         STRONGEST first, so line 0 is a player's STRONGEST line. The board has listed these
+         weakest-first since v774 and the server was sending the opposite one.
+         A line that has taken its five kills no longer blocks the rest: it is stepped over, and
+         only if EVERY living line of yours is retired does the retirement message below fire. */
+      const mineAlive=mine.defenders
+        .filter(d=>d.memberId===me.id && d.alive!==false)
+        .sort((x,y)=>((x.power|0)-(y.power|0)) || ((x.line|0)-(y.line|0)));
+      const attacker=mineAlive.find(d=>(d.kills|0)<WAR_KILL_CAP) || mineAlive[0];
       if(!attacker) return send(res,400,{error:'Your line is not deployed (alive) in this citadel.'});
       /* v677: five is the cap on MARCHING. A line defends for as long as it lives, and the weakest
          living line is the one that meets the march - the simulator's rule, and Magic Rush's. */
@@ -3341,10 +3402,15 @@ async function api(req,res,url){
       /* v696 (Phil): the tower queues by MEMBER - each member's committed lines are totalled, the
          lowest total goes first, and a member's own lines stay together. Same rule as the simulator. */
       const warTotals=cit=>{ const t={}; for(const d of cit.defenders) t[d.memberId]=(t[d.memberId]||0)+(d.power|0); return t; };
-      const warPick=(cit,ok)=>{ const tot=warTotals(cit); let best=null,bt=0,bid='',bl=0;
+      /* v775 (measured: the defender went 663 -> 561 -> 561 -> 494 -> 405 -> 374, strongest
+         first) - the member with the lowest TOTAL still steps up first, which is Phil's rule, but
+         WITHIN that member it is now the weakest LINE. The tie-break used to be the lowest line
+         index, and line 0 is the strongest line, so the tower always answered with its best. */
+      const warPick=(cit,ok)=>{ const tot=warTotals(cit); let best=null,bt=0,bp=0,bid='',bl=0;
         for(const d of cit.defenders){ if(!ok(d)) continue;
-          const t=tot[d.memberId]||0, id=String(d.memberId||''), ln=d.line|0;
-          if(!best || t<bt || (t===bt && (id<bid || (id===bid && ln<bl)))){ best=d; bt=t; bid=id; bl=ln; } }
+          const t=tot[d.memberId]||0, p=d.power|0, id=String(d.memberId||''), ln=d.line|0;
+          if(!best || t<bt || (t===bt && (p<bp || (p===bp && (id<bid || (id===bid && ln<bl))))))
+            { best=d; bt=t; bp=p; bid=id; bl=ln; } }
         return best; };
       let defender = warPick(foe, warFresh);
       if(!defender){   /* v678 fix: the tower is out of kills - what stands there is overrun, not fought */
@@ -3627,7 +3693,10 @@ async function api(req,res,url){
     }
     if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
-      DB.warTimeOffset=(parseInt(b.offsetMs,10)|0)||0; writeDB();
+      /* v775 - stored as a full number, clamped to a decade either way; `|0` wrapped past 24.8 days */
+      { const raw=Number(b.offsetMs); const lim=10*365*86400000;
+        DB.warTimeOffset=Number.isFinite(raw)?Math.max(-lim,Math.min(lim,Math.round(raw))):0; }
+      writeDB();
       const t2=warAdvance(getTournament());
       return send(res,200,{ok:true, offset:DB.warTimeOffset, state:t2.state, now:warNow()});
     }
