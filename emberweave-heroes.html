@@ -1591,6 +1591,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyLFClock .sub{font-size:8px;color:#8b98a9;}
 .skyLFClock .verdict{font-size:9px;font-weight:800;}
 .skyLFClock .verdict.win{color:#5ee89b;} .skyLFClock .verdict.loss{color:#ff8b8b;}
+/* v753b - watch THIS fight, the one you are looking at */
+.skyLFWatch{margin-top:3px;border:1px solid #2f6b3d;border-radius:6px;padding:2px 9px;cursor:pointer;
+  background:linear-gradient(180deg,#2a6b37,#17401f);color:#e9ffe9;font-size:9px;font-weight:800;
+  white-space:nowrap;}
+.skyLFWatch:hover{filter:brightness(1.15);}
 /* band 3 - the queue */
 .skyLFWaitHd{flex:none;font-size:9px;letter-spacing:.5px;color:#c9b78d;font-weight:800;padding:1px 2px;}
 .skyLFWait{flex:1;min-height:0;display:flex;gap:7px;overflow:hidden;}
@@ -15079,12 +15084,32 @@ function skyFightMs(e){
    lane that is already open closes it again. */
 function skyClashOpen(lane){ const hub=document.getElementById('skyHub'); if(!hub) return;
   const l=(lane==null)?null:(lane|0);
-  if(SKYSIM.hubOn && SKYSIM.hubLane===l){ SKYSIM.hubOn=false; hub.hidden=true; return; }
+  if(SKYSIM.hubOn && SKYSIM.hubLane===l){ SKYSIM.hubOn=false; hub.hidden=true; skyClockStop(); return; }
   SKYSIM.hubLane=l; SKYSIM.hubOn=true; hub.hidden=false;
   SKYSIM.hubTab=SKYSIM.hubTab||'live'; skyHubRender(); }
 function skyHubTab(t){ SKYSIM.hubTab=t; SKYSIM.openFight=null; SKYSIM.openLine=null; skyHubRender(); }
 /* v746c - open one waiting line at a time; tapping the open one closes it */
 function skyLinePick(nm){ SKYSIM.openLine=(SKYSIM.openLine===nm?null:nm); skyHubRender(); }
+/* v753 (Phil: "the in battle timer doesnt count while this screen is open") - skyHubRender only
+   runs when the replay ticks it, at a fight's start and at its end, so the clock sat on 00:00 for
+   the whole fight. This rewrites ONE text node twice a second instead of re-rendering the panel,
+   which would fight the records list's scroll and rebind every row for nothing. It stops itself as
+   soon as the element leaves the document. */
+function skyClockStop(){ try{ if(SKYSIM.clockT){ clearInterval(SKYSIM.clockT); SKYSIM.clockT=null; } }catch(e){} }
+function skyClockStart(){
+  skyClockStop();
+  const tick=()=>{
+    const el=document.getElementById('skyLFClockT');
+    if(!el || !el.isConnected){ skyClockStop(); return; }
+    const start=+el.dataset.start||0, full=+el.dataset.full||0;
+    if(!start){ skyClockStop(); return; }                 /* not a running fight */
+    const n=Math.max(0, Math.min(full, Math.round((Date.now()-start)/1000)));
+    const t=String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+    if(el.textContent!==t) el.textContent=t;
+  };
+  tick();
+  SKYSIM.clockT=setInterval(tick, 500);
+}
 function skyHubPick(n){ SKYSIM.openFight=(SKYSIM.openFight===n?null:n); skyHubRender(); }
 /* The war is resolved before a single frame is drawn, so the state "right now" is the state after
    the marches already played. It is COUNTED from the log prefix, never estimated: every entry names
@@ -15276,13 +15301,21 @@ function skyHubRender(){
         +'<div class="skyLFSide mine">'+who(meName,meTeam,mePow)+cards(meTeam)+'</div>'
         +'<div class="skyLFClock">'
           +'<span class="lbl">'+(fighting?'IN BATTLE':'LAST FIGHT')+'</span>'
-          +'<span class="t">'+mmss(secs)+'</span>'
+          /* v753 - the clock ticks itself; it carries the two numbers the ticker needs so it does
+             not depend on this render's closure. */
+          +'<span class="t" id="skyLFClockT"'
+            +(fighting?(' data-start="'+(startedAt||Date.now())+'" data-full="'+full+'"'):'')
+            +'>'+mmss(secs)+'</span>'
           +(e.captured
             ? '<span class="sub">undefended</span>'
             : (fighting
                 ? '<span class="sub" style="color:#ffd45e">fighting\u2026</span>'
                 : '<span class="verdict '+(youWon?'win':'loss')+'">'+(youWon?'Victory':'Defeat')+'</span>'))
           +'<span class="sub">#'+e.n+((e.captured||fighting)?'':(' \u00b7 '+(e.rounds|0)+'r'))+'</span>'
+          /* v753b - the fight you are looking at is the one you could not open until now. The
+             replay is deterministic: the server re-runs that march from the same seed and hands
+             back the two lines as they stood when they met, so this is the fight that happened. */
+          +(e.captured?'':'<button class="skyLFWatch" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 Watch</button>')
         +'</div>'
         +'<div class="skyLFSide foe">'+who(foName,foTeam,foPow)+cards(foTeam)+'</div>'
       +'</div>';
@@ -15349,7 +15382,10 @@ function skyHubRender(){
      re-injected on every tick of the replay. */
   const bindLines=(root)=>{ if(!root) return;
     root.querySelectorAll('.skyLFRow[data-line]').forEach(n=>{
-      n.onclick=()=>skyLinePick(n.dataset.line); }); };
+      n.onclick=()=>skyLinePick(n.dataset.line); });
+    /* v753 - and restart the clock, because the node it writes into was just replaced */
+    const ck=root.querySelector('#skyLFClockT');
+    if(ck && ck.dataset.start) skyClockStart(); else skyClockStop(); };
   if(hub.dataset.shell===shellKey && oldBody){
     const keep=oldBody.scrollTop;
     oldBody.innerHTML=body;
@@ -22920,7 +22956,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789915207000';
+const BUILD_ID = '1789916407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
