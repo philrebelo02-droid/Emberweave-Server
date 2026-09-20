@@ -1564,6 +1564,23 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .gbOpt.on{border-color:#f0cf78;box-shadow:0 0 0 1px rgba(240,207,120,.5) inset;}
 .gbOpt svg{display:block;width:100%;height:100%;}
 .gbLbl{font-size:10px;color:#8b98a9;margin:10px 0 4px;font-weight:800;letter-spacing:.4px;}
+/* v780 - the crop window. The frame is fixed and the picture moves under it. */
+.gbCropWrap{display:flex;flex-direction:column;align-items:center;gap:7px;}
+.gbCrop{position:relative;width:168px;height:168px;border-radius:10px;overflow:hidden;
+  background:#0a0e16;box-shadow:0 0 0 1px #2a3550;touch-action:none;cursor:grab;}
+.gbCrop.drag{cursor:grabbing;}
+.gbCrop img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;
+  pointer-events:none;image-rendering:auto;}
+/* the corners of what will be kept, drawn over the picture so the edge is never in doubt */
+.gbCropMask{position:absolute;inset:0;pointer-events:none;
+  box-shadow:0 0 0 1px rgba(240,207,120,.85) inset;border-radius:10px;}
+.gbCropMask::before,.gbCropMask::after{content:'';position:absolute;left:0;right:0;height:1px;
+  background:rgba(255,255,255,.14);}
+.gbCropMask::before{top:33.33%;} .gbCropMask::after{top:66.66%;}
+.gbCropZoom{width:168px;}
+.gbCropZoom input{width:100%;accent-color:#f0cf78;}
+.gbCropBtns{display:flex;gap:6px;width:168px;}
+.gbCropBtns button{flex:1;}
 .gBanner{display:block;}
 /* one guild in the tree */
 .skyBrkTeam{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 5px;border-radius:6px;
@@ -14811,8 +14828,10 @@ function skyBracketOpen(){
 
   const nodeHTML=nodes.map(n=>{
     const who=n.t.who, cls=stateOf(n.t.m, who);
+    /* v781 - the guild's own banner, not a sword. Sixteen guilds used to draw sixteen identical
+       crests because the banner never left the server. */
     return '<div class="skyBrkNode '+cls+'" style="left:'+n.x+'%;top:'+n.y+'%">'
-      +'<span class="crest">\u2694</span>'
+      +'<span class="crest">'+((who&&who.banner)?guildBannerSVG(who.banner,30):'\u2694')+'</span>'
       +'<span class="nm">'+escapeHTML(who?(who.name||'?'):'\u2014')+'</span>'
       +'</div>'; }).join('');
 
@@ -15831,14 +15850,15 @@ function skyHubRender(){
     const gName=(o,fb)=>escapeHTML((o&&o.name)||fb);
     body+='<div class="skyLF">'
       +'<div class="skyLFGuilds">'
-        +'<div class="skyLFG mine"><span class="crest">\u2694</span><span style="min-width:0">'
+        /* v781 - each side wears its own banner */
+        +'<div class="skyLFG mine"><span class="crest">'+(((r.you||{}).banner)?guildBannerSVG(r.you.banner,26):'\u2694')+'</span><span style="min-width:0">'
           +'<span class="gn">'+gName(r.you,'Your side')+'</span>'
           +'<span class="tl">Lines left: <b>'+mineAll.length+'</b></span></span></div>'
         +'<div class="skyLFVs"><span class="sw">\u2694</span><span class="vs">VS</span></div>'
         +'<div class="skyLFG foe"><span style="min-width:0">'
           +'<span class="gn">'+gName(r.foe,'Bot guild')+'</span>'
           +'<span class="tl">Lines left: <b>'+foeAll.length+'</b></span></span>'
-          +'<span class="crest">\u2694</span></div>'
+          +'<span class="crest">'+(((r.foe||{}).banner)?guildBannerSVG(r.foe.banner,26):'\u2694')+'</span></div>'
       +'</div>';
 
     /* ---- band 2: the fight ---- */
@@ -20000,9 +20020,12 @@ function openGuildManage(){ const g=GS.guild; if(!g)return; const s=modalShell()
    browser: a 4 MB photo becomes a few kilobytes and fits the route's 64 KB body cap without the
    player ever meeting the cap. It is cropped square from the centre so a landscape photo is not
    squashed. The server re-checks the bytes whatever the file picker allowed. */
-function openGuildBanner(){
+/* v780b - `seed` is a banner to open on instead of the guild's stored one. The cropper uses it to
+   hand back the crop you just chose without this function having to rebuild and re-bind its own
+   rows. */
+function openGuildBanner(seed){
   const g=GS.guild; if(!g) return;
-  const cur=Object.assign({shape:0,emblem:0,color:0,img:null}, g.banner||{});
+  const cur=Object.assign({shape:0,emblem:0,color:0,img:null}, g.banner||{}, seed||{});
   const s=modalShell();
   /* v771 (Phil: "when i imported an icon it changed all the banners") - a swatch shows what THAT
      option looks like, so it is always drawn WITHOUT the imported picture. A picture covers the
@@ -20051,31 +20074,90 @@ function openGuildBanner(){
   const file=s.body.querySelector('#gbFile');
   s.body.querySelector('#gbImport').onclick=()=>file.click();
   s.body.querySelector('#gbClear').onclick=()=>{ cur.img=null; draw(); };
+  /* v780 (Phil: "let you crop the part of the picture you want to use") - the picture comes in
+     whole and YOU choose the square. It used to take the centre and give you no say, so a crest in
+     a corner was simply cut off. */
   file.onchange=()=>{
     const f=file.files&&file.files[0]; if(!f) return;
     if(!/^image\/(png|jpeg|gif|webp)$/.test(f.type)){ bannerMsg('\u26a0 Use a PNG, JPEG, GIF or WebP picture.'); return; }
     const fr=new FileReader();
     fr.onload=()=>{
       const im=new Image();
-      im.onload=()=>{
-        /* square crop from the centre, then 128x128 - a landscape photo is cropped, never squashed */
-        const S=128, side=Math.min(im.width,im.height);
-        const c=document.createElement('canvas'); c.width=c.height=S;
-        const x=c.getContext('2d');
-        x.drawImage(im,(im.width-side)/2,(im.height-side)/2,side,side,0,0,S,S);
-        let out=''; try{ out=c.toDataURL('image/webp',0.82); }catch(e){ out=''; }
-        if(!/^data:image\/webp/.test(out)){ try{ out=c.toDataURL('image/jpeg',0.82); }catch(e){ out=''; } }
-        if(!out){ bannerMsg('\u26a0 That picture could not be read.'); return; }
-        if(out.length>40000){ try{ out=c.toDataURL('image/jpeg',0.6); }catch(e){} }
-        if(out.length>44000){ bannerMsg('\u26a0 That picture is too detailed \u2014 try a simpler one.'); return; }
-        cur.img=out; draw();
-      };
+      im.onload=()=>{ if(!im.width||!im.height){ bannerMsg('\u26a0 That picture could not be read.'); return; }
+        gbOpenCrop(im); };
       im.onerror=()=>bannerMsg('\u26a0 That picture could not be read.');
       im.src=fr.result;
     };
     fr.onerror=()=>bannerMsg('\u26a0 That picture could not be read.');
     fr.readAsDataURL(f);
+    file.value='';                      /* so choosing the same file twice still fires */
   };
+
+  /* THE CROPPER. A fixed square window with the picture moving under it - one drag anywhere beats
+     two precise corners on a phone - and a slider for zoom so it cannot fight the page's scroll.
+     The geometry is written once and read twice, for the preview and for the cut, so what is in
+     the window IS what is saved:
+         base = max(F/iw, F/ih)     the scale at which the picture just covers the window
+         k    = base * zoom
+         ox,oy                      the picture's top-left relative to the window, clamped to
+                                    [F - iw*k, 0] so no edge can ever come into view
+         source = (-ox/k, -oy/k, F/k, F/k)   the same numbers read backwards
+  */
+  function gbOpenCrop(im){
+    const F=168;                                   /* the window, in CSS px - matches .gbCrop */
+    const base=Math.max(F/im.width, F/im.height);
+    let zoom=1, k=base*0;                          /* k set by apply() */
+    let ox=0, oy=0;
+    const host=s.body;
+    host.innerHTML='<div style="font-weight:800;margin-bottom:8px">\uD83D\uDDBC Choose the part to use</div>'
+      +'<div class="gbCropWrap">'
+        +'<div class="gbCrop" id="gbCropBox"><img id="gbCropImg" alt=""><div class="gbCropMask"></div></div>'
+        +'<div class="gbCropZoom"><input type="range" id="gbCropZ" min="100" max="400" value="100"></div>'
+        +'<div class="gbCropBtns">'
+          +'<button class="btn sm secondary" id="gbCropCancel">Cancel</button>'
+          +'<button class="btn sm" id="gbCropOk">Use this</button>'
+        +'</div>'
+      +'</div>';
+    const box=host.querySelector('#gbCropBox'), img=host.querySelector('#gbCropImg');
+    img.src=im.src;
+    const clamp=()=>{ const w=im.width*k, h=im.height*k;
+      ox=Math.min(0, Math.max(F-w, ox)); oy=Math.min(0, Math.max(F-h, oy)); };
+    const apply=()=>{ k=base*zoom; clamp();
+      img.style.width=(im.width*k)+'px'; img.style.height=(im.height*k)+'px';
+      img.style.transform='translate('+ox+'px,'+oy+'px)'; };
+    /* open centred on the middle of the picture, which is the old behaviour as a starting point */
+    k=base*zoom; ox=(F-im.width*k)/2; oy=(F-im.height*k)/2; apply();
+
+    let id=null, px=0, py=0;
+    box.addEventListener('pointerdown', e=>{ id=e.pointerId; px=e.clientX; py=e.clientY;
+      box.classList.add('drag'); try{ box.setPointerCapture(id); }catch(err){} });
+    box.addEventListener('pointermove', e=>{ if(id===null||e.pointerId!==id) return;
+      ox+=e.clientX-px; oy+=e.clientY-py; px=e.clientX; py=e.clientY; apply(); e.preventDefault(); });
+    const up=e=>{ if(id===null) return; box.classList.remove('drag');
+      try{ box.releasePointerCapture(id); }catch(err){} id=null; };
+    box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+
+    host.querySelector('#gbCropZ').oninput=function(){
+      /* zoom about the CENTRE of the window, so the thing you are looking at stays put */
+      const old=k, nz=(+this.value)/100;
+      const cx=(F/2-ox)/old, cy=(F/2-oy)/old;
+      zoom=nz; k=base*zoom;
+      ox=F/2-cx*k; oy=F/2-cy*k; apply(); };
+
+    host.querySelector('#gbCropCancel').onclick=()=>{ s.close(); openGuildBanner(cur); };
+    host.querySelector('#gbCropOk').onclick=()=>{
+      const S=128, c=document.createElement('canvas'); c.width=c.height=S;
+      const x=c.getContext('2d');
+      const sx=-ox/k, sy=-oy/k, sw=F/k, sh=F/k;
+      try{ x.drawImage(im, sx, sy, sw, sh, 0, 0, S, S); }
+      catch(e){ bannerMsg('\u26a0 That picture could not be read.'); return; }
+      let out=''; try{ out=c.toDataURL('image/webp',0.82); }catch(e){ out=''; }
+      if(!/^data:image\/webp/.test(out)){ try{ out=c.toDataURL('image/jpeg',0.82); }catch(e){ out=''; } }
+      if(!out){ bannerMsg('\u26a0 That picture could not be read.'); return; }
+      if(out.length>40000){ try{ out=c.toDataURL('image/jpeg',0.6); }catch(e){} }
+      if(out.length>44000){ bannerMsg('\u26a0 That picture is too detailed \u2014 try a simpler one.'); return; }
+      cur.img=out; s.close(); openGuildBanner(cur); };
+  }
 
   s.body.querySelector('#gbSave').onclick=async()=>{
     const d=await api('/api/guild/banner','POST',{banner:cur});
@@ -23722,7 +23804,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789939207000';
+const BUILD_ID = '1789940407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

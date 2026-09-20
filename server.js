@@ -1711,7 +1711,10 @@ function buildRegisteredLine(u){ const ls=buildRegisteredLines(u);
 function warQualifyGuild(g){
   /* v733 - a member brings every line their roster can fill, not just their best five */
   const lines=(g.members||[]).map(id=>DB.users[id]).filter(u=>u&&!u.isNpc).flatMap(buildRegisteredLines);
-  return { guildId:g.id, name:g.name, lines, powerPool:lines.reduce((s,l)=>s+l.power,0) };
+  /* v781 - the banner comes with it. Entrants are rebuilt from scratch at the Monday lock, so
+     without this the banner registration stored was thrown away before the bracket was even
+     drawn. */
+  return { guildId:g.id, name:g.name, banner:g.banner||null, lines, powerPool:lines.reduce((s,l)=>s+l.power,0) };
 }
 function warNewMatch(t, roundIndex, aEnt, bEnt){
   const mkSide=ent=>({ guildId:ent?ent.guildId:null, name:ent?ent.name:'— bye —',
@@ -1882,6 +1885,8 @@ function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
   /* v778 - how many of your own did not place before the lock. The penalty has to be visible or it
      is just a guild quietly fighting a player short with no idea why. */
   return { guildId:gid, name:s.name,
+    /* v781 - read from the guild itself so it is current even for a match locked days ago */
+    banner:(((DB.guilds||{})[gid]||{}).banner)||null,
     missedMembers:((s.missedMembers||[]).length)|0,
     missedLines:((s.missed||[]).length)|0,
     citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
@@ -3249,7 +3254,8 @@ async function api(req,res,url){
       const ent=myGid?warEntrant(t,myGid):null; const m=myGid?warMatchOfGuild(t,myGid):null;
       return send(res,200,{ enabled:true, tournament:{ id:t.id, weekKey:t.weekKey, state:t.state,
           registrationOpensAt:t.registrationOpensAt, registrationLocksAt:t.registrationLocksAt,
-          entrants:t.entrants.map(e=>({guildId:e.guildId,name:e.name,seed:e.seed,powerPool:e.powerPool,lines:e.lines.length})),
+          /* v781 - and its banner, or every guild in the tournament is drawn as the same sword */
+          entrants:t.entrants.map(e=>({guildId:e.guildId,name:e.name,banner:e.banner||null,seed:e.seed,powerPool:e.powerPool,lines:e.lines.length})),
           /* v730 - THE BRACKET. Who plays whom and who won, which the client needs to draw the
              tree and had no way to know: entrants says who is in, not how they are paired.
              Names and seeds are resolved here because the entrant list is the only place they
@@ -3259,7 +3265,8 @@ async function api(req,res,url){
             schedule:(t.schedule||[])[ri]||null,
             matches:(rd.matchIds||[]).map(mid=>{ const mm=t.matches[mid]; if(!mm) return null;
               const who=g=>{ if(!g) return null; const e=warEntrant(t,g);
-                return { guildId:g, name:(e&&e.name)||'?', seed:(e&&e.seed)||0 }; };
+                /* v781 - the crest on a bracket node is this guild's banner */
+                return { guildId:g, name:(e&&e.name)||'?', banner:(e&&e.banner)||null, seed:(e&&e.seed)||0 }; };
               return { id:mm.id, state:mm.state, a:who(mm.aGuildId), b:who(mm.bGuildId),
                        winnerGuildId:mm.winnerGuildId||null,
                        towers:mm.towers||null }; }).filter(Boolean) })),
@@ -5520,7 +5527,7 @@ async function api(req,res,url){
     if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
       const list=Object.values(DB.guilds)
         .filter(g=> !q || (g.name||'').toLowerCase().includes(q))
-        .map(g=>({id:g.id,name:g.name,level:g.level||1,count:(g.members||[]).length,cap:gCap(g),
+        .map(g=>({id:g.id,name:g.name,banner:g.banner||null,level:g.level||1,count:(g.members||[]).length,cap:gCap(g),
                   leaderName:nameOf(g.leader),requested:(g.reqs||[]).some(r=>r.id===me.id)}))
         .sort((a,b)=> b.count-a.count).slice(0,40);
       return send(res,200,{ guilds:list, mine: me.guildId||null }); }
