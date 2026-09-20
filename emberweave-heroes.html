@@ -14468,21 +14468,33 @@ function skyTowerPanel(stage, side, lane, data, opts){
     if(side!=='you') return '';
     if(skyStageNow()!=='PREP') return '';
     const cits=((data.you)||{}).citadels||[];
-    const mineLines=[];
-    cits.forEach((cc,ci)=>(cc.defenders||[]).forEach(d=>{ if(d&&d.you)
-      mineLines.push({ line:(typeof d.line==='number')?d.line:null, name:d.name,
-        power:d.power|0, at:ci, atName:cc.name||('Lane '+(ci+1)) }); }));
+    const laneName=(ci)=>((cits[ci]||{}).name)||('Lane '+((ci|0)+1));
+    let mineLines=[];
+    /* v770 - the board's own list: every line you own, placed or not. A line that has never been
+       placed is on no citadel, so scanning the towers could never find it - and that is exactly
+       the state you are in the first time you open one. */
+    const yours=((data.you)||{}).yours;
+    if(Array.isArray(yours) && yours.length){
+      mineLines=yours.map(y=>({ line:y.line|0, power:y.power|0,
+        at:(y.lane==null?null:(y.lane|0)),
+        atName:(y.lane==null)?'not placed':laneName(y.lane) }));
+    } else {
+      /* the sandbox marks its own defenders and has no unplaced list, so scanning is right there */
+      cits.forEach((cc,ci)=>(cc.defenders||[]).forEach(d=>{ if(d&&d.you)
+        mineLines.push({ line:(typeof d.line==='number')?d.line:null, name:d.name,
+          power:d.power|0, at:ci, atName:cc.name||('Lane '+(ci+1)) }); }));
+    }
     if(!mineLines.length) return '';
     mineLines.sort((x,y)=>(x.line|0)-(y.line|0));
     const away=mineLines.filter(x=>x.at!==(lane|0)).length;
     /* v764d - your lines are LISTED so you can see where they stand, but they move together:
        one button, all of them. Splitting a player across towers is not a thing. */
     const rows=mineLines.map((x,li)=>{
-      const here=(x.at===(lane|0));
+      const here=(x.at!=null && x.at===(lane|0));
       const idx=(x.line!=null)?x.line:li;
       return '<div class="skyPlaceRow">'
         +'<span class="nm">line '+(idx+1)+'</span>'
-        +'<span class="at">'+(here?'here':escapeHTML(x.atName))+'</span>'
+        +'<span class="at"'+((x.at==null)?' style="color:#ffd45e"':'')+'>'+(here?'here':escapeHTML(x.atName))+'</span>'
         +'<span class="pw">\u2694'+x.power.toLocaleString()+'</span>'
         +'<span class="tick">'+(here?'\u2713':'')+'</span>'
         +'</div>'; }).join('');
@@ -19889,9 +19901,13 @@ function openGuildBanner(){
   const g=GS.guild; if(!g) return;
   const cur=Object.assign({shape:0,emblem:0,color:0,img:null}, g.banner||{});
   const s=modalShell();
+  /* v771 (Phil: "when i imported an icon it changed all the banners") - a swatch shows what THAT
+     option looks like, so it is always drawn WITHOUT the imported picture. A picture covers the
+     field, so including it made all sixty swatches identical and the emblem and colour rows
+     useless. The big preview is where the real banner, picture and all, is shown. */
   const row=(kind,n)=>{ let out='';
     for(let i=0;i<n;i++){
-      const b=Object.assign({},cur); b[kind]=i; if(kind!=='img') b.img=cur.img;
+      const b=Object.assign({},cur,{img:null}); b[kind]=i;
       out+='<button class="gbOpt" data-k="'+kind+'" data-i="'+i+'">'+guildBannerSVG(b,34)+'</button>'; }
     return '<div class="gbPick" data-row="'+kind+'">'+out+'</div>'; };
 
@@ -19900,22 +19916,31 @@ function openGuildBanner(){
     s.body.querySelectorAll('.gbOpt').forEach(o=>{
       const k=o.dataset.k, i=+o.dataset.i;
       o.classList.toggle('on', (cur[k]|0)===i);
-      const b=Object.assign({},cur); b[k]=i;
+      const b=Object.assign({},cur,{img:null}); b[k]=i;      /* v771 - never the picture */
       o.innerHTML=guildBannerSVG(b,34); });
     const rm=s.body.querySelector('#gbClear'); if(rm) rm.style.display=cur.img?'':'none';
+    const th=s.body.querySelector('#gbThumb');
+    if(th) th.innerHTML=cur.img
+      ? '<img src="'+escapeHTML(cur.img)+'" alt="" style="width:44px;height:44px;border-radius:7px;object-fit:cover;box-shadow:0 0 0 1px #2a3550">'
+      : '<span style="font-size:9.5px;color:#6f7d90">none</span>';
   };
 
   s.body.innerHTML='<div style="font-weight:800;margin-bottom:8px">\uD83C\uDFF4 Guild banner</div>'
-    +'<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px">'
-      +'<span id="gbPrev">'+guildBannerSVG(cur,120)+'</span>'
-      +'<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
-        +'<button class="btn sm secondary" id="gbImport">\uD83D\uDDBC Import a picture</button>'
-        +'<button class="btn sm secondary" id="gbClear" style="display:none;color:#ff9b9b">Remove picture</button>'
-        +'<input type="file" id="gbFile" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">'
-      +'</div></div>'
+    +'<div style="display:flex;justify-content:center;margin-bottom:4px"><span id="gbPrev">'+guildBannerSVG(cur,120)+'</span></div>'
     +'<div class="gbLbl">SHAPE</div>'+row('shape',GUILD_BANNER_SHAPES.length)
     +'<div class="gbLbl">EMBLEM</div>'+row('emblem',GUILD_BANNER_EMBLEMS.length)
     +'<div class="gbLbl">COLOUR</div>'+row('color',GUILD_BANNER_COLORS.length)
+    /* v771 - the import is its own section, with what is loaded shown beside it. */
+    +'<div class="gbLbl">IMPORT</div>'
+    +'<div style="display:flex;gap:8px;align-items:center;padding:6px;border:1px solid #2a3550;'
+      +'border-radius:8px;background:rgba(10,14,22,.6)">'
+      +'<span id="gbThumb" style="flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center"></span>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:5px">'
+        +'<button class="btn sm secondary" id="gbImport">\uD83D\uDDBC Import a picture</button>'
+        +'<button class="btn sm secondary" id="gbClear" style="display:none;color:#ff9b9b">Remove picture</button>'
+      +'</div>'
+      +'<input type="file" id="gbFile" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">'
+    +'</div>'
     +'<button class="btn" id="gbSave" style="width:100%;margin-top:12px">Save banner</button>';
 
   s.body.querySelectorAll('.gbOpt').forEach(o=>{ o.onclick=()=>{ cur[o.dataset.k]=+o.dataset.i; draw(); }; });
@@ -23594,7 +23619,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789930807000';
+const BUILD_ID = '1789932007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

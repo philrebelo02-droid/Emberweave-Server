@@ -1803,14 +1803,20 @@ function warAdvance(t){ // lazy state machine, called on every /api/guild-war re
 function warMatchOfGuild(t,gid){ if(!t.rounds) return null;
   for(let ri=t.rounds.length-1;ri>=0;ri--){ for(const mid of t.rounds[ri].matchIds){ const m=t.matches[mid];
     if(m.aGuildId===gid||m.bGuildId===gid) return m; } } return null; }
-function warSideView(m,gid,full){ const s=m.sides[gid]; if(!s) return null;
+/* v770 - `meId` is the caller, so a defender can say whether it is THEIRS. Without it the board
+   could not tell a player which lines were his own, and the tower's placement list was empty in
+   every real war. `line` travels too: a member owns several since v733, and placing or naming one
+   needs its index. */
+function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
   return { guildId:gid, name:s.name, citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
-    defenders:c.defenders.map(d=>({ memberId:d.memberId, name:d.name||nameOfUser(d.memberId), alive:d.alive!==false,
+    defenders:c.defenders.map(d=>({ memberId:d.memberId, line:d.line|0,
+      you:(meId!=null && String(d.memberId)===String(meId)),
+      name:d.name||nameOfUser(d.memberId), alive:d.alive!==false,
       hpPct:d.hpState?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
       assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) })), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
 }
 function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
-function warMatchView(t,m,meGid){
+function warMatchView(t,m,meGid,meId){
   const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (v728: Tue+ 02:00 ET)
   const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
     revealAt:m.revealAt||0, preReveal, lockedAt:m.lockedAt||0,
@@ -1819,8 +1825,26 @@ function warMatchView(t,m,meGid){
        client needs both to show the right thing between the bell and 02:00. */
     resultsUntil:((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
     nextPrepOpensAt:((t.schedule[(m.roundIndex|0)+1]||{}).planningOpensAt)||((t.schedule[m.roundIndex]||{}).resultsUntil)||0,
-    you:warSideView(m,meGid), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
+    you:warSideView(m,meGid,false,meId), foe:preReveal?null:warSideView(m, Object.keys(m.sides).find(g=>g!==meGid)),
     lanes:WAR_LANES, version:m.version, eventLog:(m.eventLog||[]).slice(-30) };
+  /* v770 (Phil: "still cannot place my lines in a tower") - YOUR OWN LINES, wherever they are.
+     Built from the ENTRANT - the registered lines the lock will hydrate - rather than from what
+     happens to be on the board, because a line that has never been placed is on no citadel at all;
+     it sits in `unplaced`, which the board only ever reported as a number. That is precisely the
+     state a player is in when they first open a tower, so it was the one case the panel could not
+     help with. */
+  if(meId!=null && v.you){
+    try{
+      const ent=warEntrant(t,meGid), side=m.sides[meGid];
+      const mineLines=(ent?ent.lines:[]).filter(l=>String(l.memberId)===String(meId));
+      const laneOfLine={};
+      (side?side.citadels:[]).forEach((c,ci)=>(c.defenders||[]).forEach(d=>{
+        if(String(d.memberId)===String(meId)) laneOfLine[d.line|0]=ci; }));
+      v.you.yours=mineLines.map(l=>({ line:l.line|0, power:l.power|0,
+        lane:(laneOfLine[l.line|0]!=null)?laneOfLine[l.line|0]:null }));
+      v.you.canPlace = (m.state==='planning' && warNow()>=(m.revealAt||0));
+    }catch(e){}
+  }
   if(m.state==='planning' && v.you){ // officer placement roster: every registered member + current lane
     const ent=warEntrant(t,meGid), side=m.sides[meGid];
     if(ent&&side){ const laneOf={}; side.citadels.forEach(c=>c.defenders.forEach(d=>{laneOf[d.memberId]=c.lane;}));
@@ -3153,11 +3177,11 @@ async function api(req,res,url){
           roundIndex:t.roundIndex||0, championGuildId:t.championGuildId||null, now:warNow() },
         registered:!!ent, yourPowerPool:ent?ent.powerPool:null, canRegister:isLeaderOrOfficer,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
-        match:m?warMatchView(t,m,myGid):null });
+        match:m?warMatchView(t,m,myGid,me.id):null });
     }
     if(p==='/api/guild-war/match'){ const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m) return send(res,200,{match:null});
-      return send(res,200,{match:warMatchView(t,m,myGid)}); }
+      return send(res,200,{match:warMatchView(t,m,myGid,me.id)}); }
     /* v740 - Edit Team reads this, not the board. The board shows what is COMMITTED to a citadel;
        this screen edits what you will bring, which is a different thing and exists before a match
        does. Lines may be changed until your match locks - the same window as line placement. */
@@ -3253,7 +3277,7 @@ async function api(req,res,url){
       if(!moving.length) return send(res,400,{error:'There was nothing of yours to place.'});
       side.citadels[lane].defenders.push(...moving);
       m.version++; writeDB();
-      return send(res,200,{ ok:true, moved:moving.length, lane, match:warMatchView(t,m,myGid) });
+      return send(res,200,{ ok:true, moved:moving.length, lane, match:warMatchView(t,m,myGid,me.id) });
     }
     if(p==='/api/guild-war/assign'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
@@ -3282,7 +3306,7 @@ async function api(req,res,url){
       if(moving.length) side.citadels[lane].defenders.push(...moving);
       else side.citadels[lane].defenders.push({memberId});   /* not yet hydrated: placeholder, as before */
       m.version++; writeDB();
-      return send(res,200,{ok:true, match:warMatchView(t,m,myGid)});
+      return send(res,200,{ok:true, match:warMatchView(t,m,myGid,me.id)});
     }
     if(p==='/api/guild-war/assault'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
@@ -3319,7 +3343,7 @@ async function api(req,res,url){
           let fell=false; if(!foe.defenders.some(warStanding)){ foe.destroyed=true; fell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
           m.eventLog.push({t:warNow(),e:'OVERRUN',lane,a:me.id,d:spent.memberId});
           m.version++; writeDB();
-          return send(res,200,{ ok:true, won:true, overrun:true, citadelFell:fell, finished:false, match:warMatchView(t,m,myGid) }); } }
+          return send(res,200,{ ok:true, won:true, overrun:true, citadelFell:fell, finished:false, match:warMatchView(t,m,myGid,me.id) }); } }
       m.assaults[me.id]=(m.assaults[me.id]||0)+1;   // every attack spends an order, win or lose
       attacker.fights=(attacker.fights|0)+1;
       if(!defender){ // undefended citadel: the march captures it without a fight (still costs an order)
@@ -3327,7 +3351,7 @@ async function api(req,res,url){
         /* v676: the war does NOT end the moment a third tower falls - "to include if 3 towers already
            go down". Every lane keeps fighting to the bell, and the towers are counted there. */
         m.version++; writeDB();
-        return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid) }); }
+        return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
       const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
       const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState);
       const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState);
@@ -3353,7 +3377,7 @@ async function api(req,res,url){
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
         result:{ aState:r.aState, bState:r.bState, rounds:r.rounds },
-        match:warMatchView(t,m,myGid) });
+        match:warMatchView(t,m,myGid,me.id) });
     }
     if(p==='/api/guild-war/claim-reward'){
       if(t.state==='finished') warEscrowRewards(t);   // idempotent; also settles a bracket that finished before this build
