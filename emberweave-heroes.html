@@ -1377,8 +1377,17 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyTw.sel .skyTwNm{color:#ffd45e;}
 .skyTw.act{border-color:#ffd45e;box-shadow:0 0 14px rgba(255,196,96,.45);}
 .skyTw.act .skyTwIco{transform:scale(1.16);filter:drop-shadow(0 0 9px #ffd45e);}
-.skyMarch{position:absolute;z-index:4;font-size:15px;opacity:0;pointer-events:none;
+/* v717 - the marching figure: the line's own hero, walking, with the player's name under him. */
+.skyMarch{position:absolute;z-index:4;opacity:0;pointer-events:none;
+  transform:translate(-50%,-100%);
+  display:flex;flex-direction:column;align-items:center;gap:1px;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.95));will-change:left,top,opacity;}
+.skyMarchSprite{background-repeat:no-repeat;image-rendering:auto;}
+.skyMarchName{font-size:8.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;
+  color:#fff4d6;text-shadow:0 1px 2px #000,0 0 5px #000;max-width:84px;overflow:hidden;
+  text-overflow:ellipsis;}
+.skyMarch.mine .skyMarchName{color:#c9ffe0;}
+.skyMarch.foe  .skyMarchName{color:#ffd2d8;}
 .skyClash{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:5;width:96px;height:96px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.25;transition:opacity .18s;
   border:0;background:none;padding:0;}
@@ -13986,6 +13995,47 @@ function skyTowerPanel(stage, side, lane, data, opts){
     if(st2) skyTowerPanel(st2, side, to, data, opts); }; });
   return el;
 }
+/* v717 - WHICH HERO MARCHES. The log entry names the line; the citadel it marched out of lists its
+   defenders, and each of those carries the hero keys of the five on that line. The first is the one
+   on that player's card, which is the figure Phil wants on the bridge. */
+function skyMarchHeroKey(r, mine, lane, lineName){
+  try{
+    const cits=((mine? r.you : r.foe)||{}).citadels||[];
+    const d=((cits[lane]||{}).defenders||[]).find(x=>x&&x.name===lineName);
+    const k=d&&d.heroes&&d.heroes[0];
+    if(k && BATTLE_ANIM[k] && BATTLE_ANIM[k].walk) return k;
+    /* the line's lead hero may have no walk sheet yet - take the first on it that does, so a
+       march never falls back to a blank square. */
+    for(const h of ((d&&d.heroes)||[])) if(BATTLE_ANIM[h]&&BATTLE_ANIM[h].walk) return h;
+  }catch(e){}
+  for(const k of Object.keys(BATTLE_ANIM)) if(BATTLE_ANIM[k].walk) return k;
+  return null;
+}
+/* Steps a walk sheet's grid in the DOM - the same arithmetic startHeroIdleAnims uses for the
+   hero-unlock popup, pointed at .walk. The interval is hung on the element so removing the figure
+   can stop it; an interval left running on a detached node is a leak that only shows up after a
+   long war. */
+function skyWalkSprite(el, hk, h, faceRight){
+  const A=BATTLE_ANIM[hk]&&BATTLE_ANIM[hk].walk; if(!A||!A.u) return;
+  const cols=A.cols||A.n, rows=A.rows||1, fps=A.fps||12;
+  const asp=(A.fw&&A.fh)?(A.fw/A.fh):0.75;
+  el.style.width=Math.round(h*asp)+'px'; el.style.height=Math.round(h)+'px';
+  el.style.backgroundImage="url('"+A.u+"')";
+  el.style.backgroundSize=(cols*100)+'% '+(rows*100)+'%';
+  /* A.flip is the sheet's own correction to make it face RIGHT; marching the other way mirrors it
+     again, so the hero always walks the way he is going. */
+  const sx=(A.flip?-1:1)*(faceRight?1:-1);
+  el.style.transform='scaleX('+sx+')';
+  let i=0;
+  const step=()=>{ const c=i%cols, rw=Math.floor(i/cols)%rows;
+    el.style.backgroundPosition=(cols>1?(c/(cols-1))*100:0)+'% '+(rows>1?(rw/(rows-1))*100:0)+'%';
+    i=(i+1)%A.n; };
+  step();
+  el._walkIv=setInterval(step, 1000/fps);
+}
+function skyStopWalk(tok){ try{
+  tok.querySelectorAll('.skyMarchSprite').forEach(sp=>{ if(sp._walkIv){ clearInterval(sp._walkIv); sp._walkIv=null; } });
+}catch(e){} }
 /* v716 - who owns a line. The simulator names its defenders "Somebody \u00b7 line 2", so the owner is
    the name with that suffix taken off; a live war has a memberId and does not need this. */
 function skyOwnerOf(d){ return String((d&&d.name)||'').replace(/\s*\u00b7\s*line\s*\d+\s*$/i,'') || '?'; }
@@ -14437,10 +14487,20 @@ async function skySimReplay(r){
     for(const {e,idx} of queues[i]){
       if(stopped()) return;
       const mine=e.side==='A';
-      const LN=skyLanes()[i]||{a:{x:20,y:50},b:{x:80,y:50}};
-      const from=mine?LN.a:LN.b, to=mine?LN.b:LN.a;
+      const LN=skyLanes()[i]||{a:{x:20,y:50},b:{x:80,y:50},mid:{x:50,y:50}};
+      const from=mine?LN.a:LN.b;
+      /* v717 - he walks to the SWORDS, not past them to the far tower. The two lines meet in the
+         middle; that is what the clash on the midpoint is. */
+      const to=LN.mid;
       const tok=document.createElement('div');
-      tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
+      tok.className='skyMarch '+(mine?'mine':'foe');
+      { const hk=skyMarchHeroKey(r, mine, i, e.a);
+        const sp=document.createElement('div'); sp.className='skyMarchSprite';
+        const plat=SKY_PLAT_R/100*(stage.clientWidth||1);
+        if(hk) skyWalkSprite(sp, hk, Math.max(18, plat*0.62), mine);
+        const nm=document.createElement('div'); nm.className='skyMarchName';
+        nm.textContent=skyOwnerOf({name:e.a});
+        tok.appendChild(sp); tok.appendChild(nm); }
       tok.style.left=from.x+'%'; tok.style.top=from.y+'%'; tok.style.opacity='1';
       tok.style.transition='opacity .12s';
       stage.appendChild(tok);
@@ -14454,7 +14514,10 @@ async function skySimReplay(r){
       await pause(FIGHT*WALK, t=>{
         tok.style.left=(from.x+(to.x-from.x)*t)+'%';
         tok.style.top =(from.y+(to.y-from.y)*t)+'%'; });
-      tok.remove();
+      /* v717 (Phil: "when it reaches the sword, it disspears") - he arrives and the swords start.
+         The walk interval goes with him; one left running on a detached node is a leak that only
+         shows after a long war. */
+      skyStopWalk(tok); tok.remove();
       { const c=clashOf(i); if(c){ c.classList.remove('hot'); void c.offsetWidth; c.classList.add('hot'); } }
       /* The swords are still crossed. This is the fight itself, and it has to be over before
          anything is reported: no line comes off a count and no tower is touched until this
@@ -21749,7 +21812,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789893607000';
+const BUILD_ID = '1789894807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
