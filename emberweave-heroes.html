@@ -20703,7 +20703,7 @@ function _fitApp(){ try{ const app=document.getElementById('app'); if(!app) retu
     let vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight;
     const vv=window.visualViewport; if(vv&&vv.width&&vv.height){ const sc=vv.scale||1; vw=Math.min(vw, Math.round(vv.width*sc)); vh=Math.min(vh, Math.round(vv.height*sc)); }
     if(!vw||!vh) return;
-    const fillWide=(state==='campaign'||state==='home'||state==='skyisland') && vw>vh && vh<=700 && vw/vh>1.85;   /* v658: + the Floating Isle */
+    const fillWide=(state==='campaign'||state==='home'||state==='skyisland'||state==='arena') && vw>vh && vh<=700 && vw/vh>1.85;   /* v658: + the Floating Isle. v683: + the Arena — Phil, 20 Sep: "you also have more space to work with than you thought... not sure why you have black boarders on the sides" / "make the art stretch the screen so the arena has more room". The 1024:572 lock was letterboxing his 780x360 phone down to 644px and painting the remaining 68px a side black. */
     const w=fillWide?vw:Math.min(vw, vh*1024/572), h=fillWide?vh:Math.min(vh, vw*572/1024);
     if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){ app.style.width=Math.floor(w)+'px'; app.style.height=Math.floor(h)+'px'; _refitAll(); } }catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
@@ -20989,7 +20989,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789868407000';
+const BUILD_ID = '1789869607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
