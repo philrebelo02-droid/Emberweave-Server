@@ -245,6 +245,10 @@ function grantShield(log, round, side, src, tgt, amt){
    green, blue and passive and have nothing to scale here. They ride along on the unit so a future
    resolver can use them, and they change nothing today. */
 const SKILL_STEP=0.0135;
+/* v787 - control loses one percentage point of its chance for every level the SKILL is below the
+   TARGET. Phil's figures: a level 70 skill on a level 70 hero always lands; a level 1 skill on a
+   level 100 hero lands 1 time in 100. */
+const CC_MISS_PER_LEVEL=0.01;
 function skillMul(lv){ return 1+(Math.max(1,(lv|0)||1)-1)*SKILL_STEP; }
 
 /* ---- kit executor: the hero's authored ultimate ---- */
@@ -260,8 +264,19 @@ function fireKit(rnd, log, round, side, u, own, foe, variance){
     if(shape==='aoe') return alive.slice(0,Math.max(1,k.n||3));
     if(shape==='cleave') return alive.slice(0,Math.max(1,k.n||2));
     return [alive[0]]; };
+  /* v787 (Phil: "a level 1 stun has a 1% chance of stunning a level 100 hero") - THE SKILL'S LEVEL
+     DECIDES WHETHER CONTROL LANDS. This roll knew nothing about levels, so in a war a level 1 stun
+     and a level 100 stun landed equally often - the same class of gap as v762, where skill levels
+     did not reach this file at all. The level term MULTIPLIES the existing ctrlHit/ctrlRes model
+     rather than replacing it, so the ratings a player has built still matter, and it can only ever
+     reduce: a skill at or above the target's level multiplies by 1. */
+  const ccLevelMul=t=>{
+    const lv=((u.skillLv&&u.skillLv[0])|0)||((u.level|0)||1);
+    const tl=((t&&t.level)|0)||((u.level|0)||1);
+    return Math.max(0, Math.min(1, 1-Math.max(0, tl-lv)*CC_MISS_PER_LEVEL));
+  };
   const tryStun=t=>{ if(!k.stun) { rnd(); return; }
-    const roll=rnd(); const ch=Math.max(0.15, 0.55+(u.ctrlHit||0)-(t.ctrlRes||0));
+    const roll=rnd(); const ch=Math.max(0.15, 0.55+(u.ctrlHit||0)-(t.ctrlRes||0))*ccLevelMul(t);
     if(roll<ch) t._stunR=Math.max(t._stunR||0, Math.max(1,Math.round(k.stun*(1-(t.ctrlRes||0))))); };
   if(k.kind==='heal'){ const who=k.who==='allies'?aliveList(own):[weakestAlive(own)].filter(Boolean);
     for(const w of who) applyHeal(log,round,side,u,w,u.heal*(k.coef||1.1)*SM*variance(),true); return; }
@@ -347,5 +362,5 @@ function resolveBattle(a, b, seed){
   return { won, rounds:round, aState:state(a), bState:state(b), log };
 }
 
-module.exports={ skillMul, SKILL_STEP, mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
+module.exports={ skillMul, SKILL_STEP, CC_MISS_PER_LEVEL, mulberry32, seedFrom, defToDR, defK, CONV, KITS, buildUnit, lineUp, resolveBattle,
   applyDamage, applyHeal, grantShield, state };

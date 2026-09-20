@@ -9242,6 +9242,31 @@ function skillScaleOpts(o, sm){
   }
   return out||o;
 }
+/* v787 (Phil: "a level 1 stun has a 1% chance of stunning a level 100 hero") - CONTROL HAS TO
+   LAND FIRST. Nothing in this engine ever rolled for it: a stun, silence, fear, sleep or slow was
+   written straight onto the target the moment the ability resolved, whatever the levels involved.
+       chance = 1 - max(0, targetLevel - skillLevel) * 0.01
+   Equal levels, or a skill above the target, always lands. A level 1 skill against a level 100
+   hero lands 1 time in 100, which is Phil's own figure.
+   _castLv is the level of the SLOT that fired, set beside _castSM. Anything with no skill level -
+   a monster, a boss, a gear proc - uses the caster's own level instead, so a level 70 boss still
+   controls a level 70 hero at 100% and nothing that worked before gets worse.
+   This decides IF the control lands; ctrlRes still shortens one that does. */
+const CC_MISS_PER_LEVEL = 0.01;
+function ccChanceFor(u, t){
+  const lv = ((u && u._castLv) | 0) || ((u && u.level) | 0) || 1;
+  const tl = ((t && t.level) | 0) || 1;
+  return Math.max(0, Math.min(1, 1 - Math.max(0, tl - lv) * CC_MISS_PER_LEVEL));
+}
+function ccApply(u, t, field, dur){
+  if(!t || !(dur > 0)) return false;
+  if(Math.random() >= ccChanceFor(u, t)){
+    try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
+    return false;
+  }
+  t[field] = Math.max(t[field] || 0, dur);
+  return true;
+}
 function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
   o=skillScaleOpts(o, sm);   /* v786 - before a single case reads it */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
@@ -9310,13 +9335,13 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       if(o.mark&&_list.length){ const m=_list[0]; m._markT=Math.max(m._markT||0,o.markDur||6); m._markMul=Math.max(m._markMul||1,o.mark);
         floatTexts.push({x:m.x,y:m.y-8,txt:'MARKED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }
       break;}
-    case 'nova':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)e.slow=Math.max(e.slow||0,2);
+    case 'nova':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
       if(o.push&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
       if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a');}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a'); if(o.stun)e.stunned=Math.max(e.stunned||0,o.stun); } } });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.5)*rm,'#ffa657'); if(o.burn)pushDot(e,_sD*(o.burnDps||0.35)*sm,o.burnDur||3,1,'#ff6a3a'); if(o.stun)ccApply(u,e,'stunned',o.stun); } } });
       ringBurst(u.x,u.y,0xffa657,10); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,10); break; }
     case 'fireball':{const ctr=aimCtr||tgt;if(!ctr)break;enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||95)){dealDamage(u,e,dB*(o.mul||2.2)*rm,'#b98bff');}});burstAt(ctr.x,ctr.y,0xb98bff,24);break;}
     case 'fireorb':{ if(!tgt)break; const dmgAmt=dB*(o.mul||2.6)*rm, R=o.radius||58, atk=u, tx=tgt.x, ty=tgt.y;
@@ -9331,8 +9356,8 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
         for(let i=0;i<6;i++){ const e=es[i%Math.max(1,es.length)]||prime; const ex=e.x, ey=e.y;
           try{ spawnArsenalShot(u,e,i,()=>arsenalImpact(i,ex,ey)); }catch(err){} }
         // and every rider at once, on the primary
-        prime.stunned=Math.max(prime.stunned||0,0.4*pm);
-        prime.slow=Math.max(prime.slow||0,1.5*pm);
+        ccApply(u,prime,'stunned',0.4*pm);
+        ccApply(u,prime,'slow',1.5*pm);
         pushDot(prime,_sD*0.18*pm,3,1,'#c0392b');
         enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm,'#ffa657'); });
         dealDamage(u,prime,_sD*0.40*pm,'#ffe08a');
@@ -9346,15 +9371,15 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
       floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
       ringBurst(C.x,C.y,0x4aa8d8,22); break; }
-    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');e.stunned=Math.max(e.stunned||0,o.stun||2);
+    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
       /* v529 - an aoeStun may also SILENCE. The Magistrant's "Gag Order" was a plain stun: the name
          promised a silencing and the panel just said "slams an area". */
-      if(o.silence){ e.silencedT=Math.max(e.silencedT||0,o.silence); e._castT=0; e.castAnim=0; }}});
+      if(o.silence){ ccApply(u,e,'silencedT',o.silence); e._castT=0; e.castAnim=0; }}});
       if(o.silence)floatTexts.push({x:ctr.x,y:ctr.y-16,txt:'ORDER',t:1.0,color:'#8fd0ff',vy:1,sz:12});
       burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
     case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'monkSlam':{ const ctr=u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to EVERY enemy within 15 m of KonWu himself (Phil); a phantom Ruyi slams each
-      let di=0; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||15*METER)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); e.stunned=Math.max(e.stunned||0,o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
+      let di=0; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||15*METER)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); ccApply(u,e,'stunned',o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
         if(typeof spawnStaffFx==='function') spawnStaffFx(e, di*0.13); di++; } });
       burstAt(ctr.x,ctr.y,0xffcf40,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     case 'burst':{if(!tgt)break;dealDamage(u,tgt,dB*3*rm,'#ff8fb0');spawnShot(u,tgt,'#ff8fb0');break;}
@@ -9389,8 +9414,8 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       u._voidT=rel*cd2*BATTLE_PACE; u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'aoedot':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(C.x,C.y,0xffa657,14);break;}
-    case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');tgt.stunned=Math.max(tgt.stunned||0,o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
-    case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');tgt.slow=Math.max(tgt.slow||0,2);break;}
+    case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');ccApply(u,tgt,'stunned',o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
+    case 'slow':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#a0d0ff');ccApply(u,tgt,'slow',2);break;}
     case 'mortal':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1.2)*rm,'#c0392b');tgt.mortalT=o.dur||5;floatTexts.push({x:tgt.x,y:tgt.y,txt:'-heal',t:.7,color:'#c0392b',vy:1.2});break;}
     case 'heal':{if(u.key==='oakmir')spawnGroundFx('rallyroots',u.x,u.y,2.2*METER,1.0);alliesOf(u).forEach(a=>healFrom(u,a,a.maxHp*(o.mul||.9)*sm));burstAt(u.x,u.y,0x5ee89b,16);break;}
     case 'finalsurvey':{ const bd=_sD*(o.bleedPct||0.10)*sm, md=o.mortalDur||3, bdur=o.bleedDur||3;
@@ -9403,8 +9428,8 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'FINAL EXPEDITION',t:1.2,color:'#d9b26a',vy:1,sz:14});
       ringBurst(u.x,u.y,0xd9b26a,18); break; }
     case 'riftpuncture':{ const fz=o.freeze||1, si=o.silence||1;
-      enemiesOf(u).forEach(e=>{ if(!e.alive)return; e.stunned=Math.max(e.stunned||0,fz);
-        e.silencedT=Math.max(e.silencedT||0,fz+si); burstAt(e.x,e.y,0xc9a227,12); });
+      enemiesOf(u).forEach(e=>{ if(!e.alive)return; ccApply(u,e,'stunned',fz);
+        ccApply(u,e,'silencedT',fz+si); burstAt(e.x,e.y,0xc9a227,12); });
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PUNCTURE',t:1.2,color:'#c9a227',vy:1,sz:15});
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xc9a227,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'triplecleave':{ const hits=o.hits||3, R=o.radius||3*METER, mul=o.mul||1.2;
@@ -9451,7 +9476,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
     // ---- Old Maren: a wave that physically SHOVES the enemy line backwards. ----
     case 'tidalsurge':{ const R=o.radius||3.4*METER, push=o.push||1.6*METER;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
-        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); e.slow=Math.max(e.slow||0,o.slow||2.5);
+        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',o.slow||2.5);
         if(!e.immovable&&!((e._gearImmovableT||0)>0)){ const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1;
           e.x=Math.max(60,Math.min(FW-60,e.x+dx/L*push)); e.y=Math.max(80,Math.min(FD-60,e.y+dy/L*push));
           e._ax=e.x; e._ay=e.y; } });
@@ -9550,7 +9575,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
 
     // ---- Dandra: the sting slows their hands. Sting an already-stung foe and they SLEEP. ----
     case 'drowsy':{ if(!tgt)break; dealDamage(u,tgt,apB*(o.mul||0.5)*rm,'#f2d84a','magic');
-      if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; tgt.stunned=Math.max(tgt.stunned||0,sl); tgt._sleepT=sl; tgt._stungT=0;
+      if((tgt._stungT||0)>0){ const sl=o.sleep||1.6; ccApply(u,tgt,'stunned',sl); tgt._sleepT=sl; tgt._stungT=0;
         burstAt(tgt.x,tgt.y,0xf2d84a,16); floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'ASLEEP',t:1.2,color:'#f2d84a',vy:1,sz:13}); }
       else { tgt._stungT=o.stung||6; tgt.hasteMul=Math.min(tgt.hasteMul||1,1-(o.slowPct||0.3)); tgt.hasteT=Math.max(tgt.hasteT||0,o.stung||6);
         pushDot(tgt,_sA*(o.dps||0.25)*sm,4,1,'#f2d84a');
@@ -9620,7 +9645,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       const tg2=foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const lx=Math.max(60,Math.min(FW-60,tg2.x)), ly=Math.max(110,Math.min(FD-60,tg2.y));   /* v493: charge radius 2.6->5 m, so the landing clamp moves in to keep the wider blast fully in frame */
       ringBurst(u.x,u.y,0xff8844,12); u.x=lx; u.y=ly; u._ax=lx; u._ay=ly; u.attackAnim=.2;
-      const R=o.radius||2.4*METER; enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<R){ dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf40'); if(o.stun)e.stunned=Math.max(e.stunned||0,o.stun); } });
+      const R=o.radius||2.4*METER; enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<R){ dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
       burstAt(lx,ly,0xffcf40,20); break; }
     /* v534 NOONDAY STAMPEDE (Zahri) - Phil, 9 Sep: "a line aimed up that can go up to 20 meter, when you use it she charges to the
        last target of that line hitting anyone along the way"; "its not an instant ability, it knocks anyone left and right of the path
@@ -9651,7 +9676,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
     case 'warcry':{ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=o.dur||6;   // self attack buff + a brief fear (short stun) on nearby heroes
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
-      const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ e.fearT=Math.max(e.fearT||0,o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
+      const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ ccApply(u,e,'fearT',o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
     case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
     case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; if(o.heal) healFrom(u,u,u.maxHp*o.heal);   /* v538 (Phil): +15% self heal */ ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
@@ -9682,7 +9707,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
 
     case 'knockstun':{ if(!tgt)break;                               // "stunning ... and pushing it backward"
       dealDamage(u,tgt,dB*(o.mul||1.4)*rm,o.color||'#ffd08a');
-      tgt.stunned=Math.max(tgt.stunned||0,(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
+      ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
       if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){
         const dx=(tgt.x-u.x)||1, L=Math.abs(dx)||1, push=o.push||(1.6*METER);
         tgt.x+=Math.sign(dx)*push; tgt._ax=tgt.x; tgt._airT=Math.max(tgt._airT||0,0.35); }
@@ -9697,7 +9722,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       const R=o.radius||3*METER; let n=0;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return; n++;
         dealDamage(u,e,dB*(o.mul||1.2)*rm,o.color||'#c8a45a');
-        e._castT=0; e.castAnim=0; e.silencedT=Math.max(e.silencedT||0,o.silence||1.2); });
+        e._castT=0; e.castAnim=0; ccApply(u,e,'silencedT',o.silence||1.2); });
       burstAt(u.x,u.y,0xc8a45a,16); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'INTERRUPT',t:.9,color:'#c8a45a',vy:1,sz:12}); break; }
 
     case 'banner':{                                                 // "grant nearby allies armor, attack speed, and control resistance"
@@ -9715,7 +9740,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       if(!best)break;
       dealDamage(u,best,dB*(o.mul||1.5)*rm,o.color||'#ff9a6a');
       best._atkDnPct=Math.max(best._atkDnPct||0,o.pct||0.35); best._atkDnT=Math.max(best._atkDnT||0,o.dur||5);
-      best.stunned=Math.max(best.stunned||0,(o.stun||0.5)*(1-(best.ctrlRes||0)));
+      ccApply(u,best,'stunned',(o.stun||0.5)*(1-(best.ctrlRes||0)));
       floatTexts.push({x:best.x,y:best.y-8,txt:'−attack',t:.9,color:'#ff9a6a',vy:1.2,sz:12});
       ringBurst(best.x,best.y,0xff9a6a,12); break; }
 
@@ -9730,7 +9755,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       _picks.forEach(best=>{
         dealDamage(u,best,dB*(o.mul||1.2)*rm,o.color||'#c9a6ff');
         const take=Math.min(best.energy||0,o.steal||30); best.energy=Math.max(0,(best.energy||0)-take); _tot+=take;
-        if(_mu){ best.silencedT=Math.max(best.silencedT||0,o.muSilence||1.6); best._castT=0; best.castAnim=0; }
+        if(_mu){ ccApply(u,best,'silencedT',o.muSilence||1.6); best._castT=0; best.castAnim=0; }
         floatTexts.push({x:best.x,y:best.y-8,txt:'−'+Math.round(take)+' energy',t:.9,color:'#c9a6ff',vy:1.2,sz:11}); });
       u.energy=Math.min(100,(u.energy||0)+_tot*(o.keep||1));
       if(!_mu) u._keys=Math.min(o.maxKeys||5,(u._keys||0)+1);
@@ -9760,7 +9785,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
          CONSTELLATION over the caster; this floated SILENCED over the target only. Name the cast. */
       floatTexts.push({x:u.x,y:u.y-16,txt:String(o.name||'RESONANT STAR').toUpperCase(),t:1.0,color:'#8fd8ff',vy:1,sz:11});
       dealDamage(u,tgt,apB*(o.mul||1.3)*rm,o.color||'#8fd8ff','magic');
-      tgt.silencedT=Math.max(tgt.silencedT||0,o.silence||2.2); tgt._castT=0; tgt.castAnim=0;
+      ccApply(u,tgt,'silencedT',o.silence||2.2); tgt._castT=0; tgt.castAnim=0;
       floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'SILENCED',t:.9,color:'#8fd8ff',vy:1.2,sz:12});
       if(u.range>60)spawnShot(u,tgt,u.t.color); break; }
 
@@ -9774,8 +9799,8 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
     case 'sleepbouquet':{                                           // "puts the highest-energy enemy to sleep"
       let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; if((e.energy||0)>bv){bv=e.energy||0;best=e;} });
       if(!best)break;
-      best._sleepT=o.sleep||2.0; best.stunned=Math.max(best.stunned||0,(o.sleep||2.0)*(1-(best.ctrlRes||0)));
-      best.slow=Math.max(best.slow||0,o.slow||2);
+      best._sleepT=o.sleep||2.0; ccApply(u,best,'stunned',(o.sleep||2.0)*(1-(best.ctrlRes||0)));
+      ccApply(u,best,'slow',o.slow||2);
       floatTexts.push({x:best.x,y:best.y-10,txt:'ASLEEP',t:1.1,color:'#c9b6ff',vy:1,sz:13});
       ringBurst(best.x,best.y,0x9b7fd0,12); break; }
 
@@ -9871,7 +9896,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
     case 'quietwings':{                                             // ULT: "putting enemies to sleep while empowering allies"
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
         const sl=(o.sleep||2.2)*(1-(e.ctrlRes||0));
-        e._sleepT=sl; e.stunned=Math.max(e.stunned||0,sl); e.slow=Math.max(e.slow||0,3);
+        e._sleepT=sl; ccApply(u,e,'stunned',sl); ccApply(u,e,'slow',3);
         burstAt(e.x,e.y,0x9b7fd0,10); });
       alliesOf(u).forEach(a=>{ if(!a.alive)return;
         a.dmgBuffMul=Math.max(a.dmgBuffMul||1,o.buff||1.3); a.dmgBuffT=Math.max(a.dmgBuffT||0,o.dur||8);
@@ -9885,7 +9910,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       let pool=0;
       enemiesOf(u).forEach(e=>{ if(!e.alive)return;
         const lock=(o.lock||1.6)*(_mu?1:(1-(e.ctrlRes||0)));
-        e.stunned=Math.max(e.stunned||0,lock); e.silencedT=Math.max(e.silencedT||0,lock);
+        ccApply(u,e,'stunned',lock); ccApply(u,e,'silencedT',lock);
         const take=Math.min(e.energy||0,o.steal||35); e.energy=Math.max(0,(e.energy||0)-take); pool+=take;
         ringBurst(e.x,e.y,0x6b3f8f,12); });
       enemiesOf(u).forEach(e=>{ if(!e.alive)return; dealDamage(u,e,(u.apow||u.dmg)*(o.mul||0.9)*sm*(1+pool/100)*rm,'#c9a6ff','magic'); });
@@ -9901,7 +9926,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
         if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
           const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.2*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
-        e.slow=Math.max(e.slow||0,o.slow||3);
+        ccApply(u,e,'slow',o.slow||3);
         if(o.mul) dealDamage(u,e,apB*(o.mul||0.6)*rm,o.color||'#9b5cff','magic'); });
       ringBurst(u.x,u.y,0x6a3fb0,18); if(n)floatTexts.push({x:u.x,y:u.y-16,txt:'KNOT',t:.9,color:'#9b5cff',vy:1,sz:12}); break; }
 
@@ -9956,7 +9981,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){
         const dx=u.x-tgt.x, dy=u.y-tgt.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.75,o.pull||5*METER);
         tgt.x+=dx/L*pull; tgt.y+=dy/L*pull; tgt._ax=tgt.x; tgt._ay=tgt.y; tgt.pullT=Math.max(tgt.pullT||0,0.35); }
-      tgt.stunned=Math.max(tgt.stunned||0,(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
+      ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
       if(u.range>60)spawnShot(u,tgt,u.t.color);
       floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'HOOKED',t:.9,color:'#d8b06a',vy:1.2,sz:12}); break; }
 
@@ -9967,11 +9992,11 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       const cx=Math.max(60,Math.min(FW-60,best.x)), cy=Math.max(80,Math.min(FD-60,best.y));
       u.x=cx; u.y=cy; u._ax=cx; u._ay=cy; u._airT=0.80*HERO_FX_MUL;   // he lands here (hang-time scaled to match the doubled slam clip)
       const dmg=u.maxHp*(o.hpMul||0.40)*rm*sm;
-      foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); e.stunned=Math.max(e.stunned||0,o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
+      foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); ccApply(u,e,'stunned',o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
       if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||5); a._mwDrPct=o.allyDr; a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'⬛ THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ e.silencedT=Math.max(e.silencedT||0,dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,dur); e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,dur); e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } });
       /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX ... i asked you to use
          her own"). This burst was hardcoded gold-brown, which is Grosk's palette — he is the other
          hero on `pullsilence` — so Void Weaver's Gravity Knot painted his colours over her own
@@ -9981,7 +10006,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
         ringBurst(u.x,u.y,c1,16); burstAt(u.x,u.y,c2,14); } break; }
     case 'punchflurry':{ const tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,dB*(o.mul||0.30)*rm,'#e0b070');
-        if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); tg.silencedT=Math.max(tg.silencedT||0,o.tauntDur||2); } }
+        if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); ccApply(u,tg,'silencedT',o.tauntDur||2); } }
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
     // ---- Vulmar (gravity) ----
     case 'eventhorizon':{ /* v339 (Phil): Void Weaver's OWN ult — was sharing Vulmar's gravcrush. A singularity at the
@@ -9993,13 +10018,13 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil};
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'gravcrush':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER;
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); e.stunned=Math.max(e.stunned||0,o.stun||1.0); } });
+      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:ctr.x,y:ctr.y,alive:true}; e.pullT=Math.max(e.pullT||0,0.3); e.pullStop=null; e.pullSpeed=null; } dealDamage(u,e,dB*(o.mul||2.0)*rm,'#b06bff'); ccApply(u,e,'stunned',o.stun||1.0); } });
       ringBurst(ctr.x,ctr.y,0x8B5CF6,26); burstAt(ctr.x,ctr.y,0xff5b6b,18);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     case 'gravsling':{ const foes=enemiesOf(u); if(!foes.length)break;
       const proj=foes.slice().sort((a,b)=>dist(u,a)-dist(u,b))[0]; const others=foes.filter(e=>e!==proj);
       const anvil=others.length?others.slice().sort((a,b)=>dist(proj,a)-dist(proj,b))[0]:null;
-      dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); proj.stunned=Math.max(proj.stunned||0,0.6);
-      if(anvil){ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); anvil.stunned=Math.max(anvil.stunned||0,0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
+      dealDamage(u,proj,dB*(o.mul||1.0)*rm,'#b06bff'); ccApply(u,proj,'stunned',0.6);
+      if(anvil){ if(!proj.immovable&&!((proj._gearImmovableT||0)>0)){ proj.x=anvil.x+(proj.x>=anvil.x?24:-24); proj.y=anvil.y; proj._ax=proj.x; proj._ay=proj.y; } dealDamage(u,anvil,dB*(o.splashMul||0.5)*rm,'#b06bff'); ccApply(u,anvil,'stunned',0.5); ringBurst(anvil.x,anvil.y,0x8B5CF6,16); }
       burstAt(proj.x,proj.y,0x8B5CF6,14); break; }
     case 'tendrilpull':{ const foes=enemiesOf(u); if(!foes.length)break;   // Grasping Vow: yank the FARTHEST foe on the field to within 10 m of Vulmar over the ~3 s drag
       let pullFoes=foes;
@@ -10020,7 +10045,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       const _hand=(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].dur)||o.dur||3;
       const dur=_hand, stopD=(o.stop||10)*METER;
       if(!tg2.immovable&&!((tg2._gearImmovableT||0)>0)){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(1,(dist(u,tg2)-stopD))/(dur*0.97); tg2._pullGhost=true; }   // no speed floor: near or far, the trip lasts exactly one hand-close // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
-      if(o.silence)tg2.silencedT=Math.max(tg2.silencedT||0,dur); tg2.stunned=Math.max(tg2.stunned||0,dur);   // rooted for the whole drag so it can't walk back out
+      if(o.silence)ccApply(u,tg2,'silencedT',dur); ccApply(u,tg2,'stunned',dur);   // rooted for the whole drag so it can't walk back out
       ringBurst(u.x,u.y,0x8B5CF6,14); break; }
     // ---- Tick (clockwork bruiser) ----
     case 'flywheel':{ const R=o.radius||3*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf6a'); }); ringBurst(u.x,u.y,0xffcf40,22); burstAt(u.x,u.y,0xffe08a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
@@ -10032,19 +10057,19 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       const dx=tg2.x-u.x, dy=tg2.y-u.y, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len, W=o.width||34;
       inRange.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, along=rx*ux+ry*uy;
         if(along<-12||along>len+24||Math.abs(rx*uy-ry*ux)>W)return;
-        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); e.slow=Math.max(e.slow||0,2.5); if(u.pass&&u.pass.coldsnap)applyChill(e);
+        dealFrostDamage(u,e,apB*(o.mul||1.1)*rm,'#9fe0ff','magic'); ccApply(u,e,'slow',2.5); if(u.pass&&u.pass.coldsnap)applyChill(e);
         burstAt(e.x,e.y,0xcfeeff,8);
       });
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
-      dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); tgt.stunned=Math.max(tgt.stunned||0,o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
+      dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
     case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y;
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
     case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a','magic'); }); alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healFrom(u,a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
     case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
-    case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff','magic'); e.stunned=Math.max(e.stunned||0,0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
+    case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff','magic'); ccApply(u,e,'stunned',0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     // ---- King Bloatus (poison tank) — poison scales off ability power ----
     case 'toxbreath':{ const reach=15*METER, pd=apB*(o.dps||0.5), con=!!(u.pass&&u.pass.contagion);
       // aim at the FURTHEST enemy within 15m (that is Bloatus's target); everyone along the line gets hit.
@@ -10056,7 +10081,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
         if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: without the colour the spread test never matched and Contagion never fired
       floatTexts.push({x:u.x,y:u.y-12,txt:'TOXIC BREATH',t:.9,color:'#a6e05a',vy:1,sz:12}); break; }
     case 'swamproot':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; const R=o.radius||2.4*METER;
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); e.stunned=Math.max(e.stunned||0,o.root||2); floatTexts.push({x:e.x,y:e.y-8,txt:'ROOTED',t:.8,color:'#8fbf3f',vy:1,sz:12}); } });
+      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); ccApply(u,e,'stunned',o.root||2); floatTexts.push({x:e.x,y:e.y-8,txt:'ROOTED',t:.8,color:'#8fbf3f',vy:1,sz:12}); } });
       ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); break; }
     case 'plaguesov':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
@@ -10238,8 +10263,8 @@ function ultClipDur(u){ const set=BATTLE_ANIM[u.key]; if(!set||!heroHasAnim(u.ke
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   try{ waxOnCaster(u); }catch(e){}
   u._animLockT=0;   // the ult outranks everything: it is the one action allowed to cut a clip short
-  u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
-  u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castNow=0; u._castT=_ct;
+  u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); u._castLv=((u.skillLv&&u.skillLv[0])|0)||1;   /* v787 */ const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
+  u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castLv=0; u._castNow=0; u._castT=_ct;
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
   u._ultChanT=0;   // v525: clock for the wind-up / hold-at-apex / return of a CHANNELLED ult
@@ -11151,8 +11176,8 @@ function think(u,dt){
       }
     }}   // an impossible target keeps its energy; the valid ult fires this tick
   // rank-unlocked auto actives (Green/Blue) on their own cooldowns
-  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1);castKit(u,u.greenAb);u._castSM=1;u.greenCd=u.greenAb.cd;}}
-  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1);castKit(u,u.blueAb);u._castSM=1;u.blueCd=u.blueAb.cd;}}
+  if(!silenced && u.greenAb){u.greenCd-=dt;if(u.greenCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.greenAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[1])||1); u._castLv=((u.skillLv&&u.skillLv[1])|0)||1;   /* v787 */castKit(u,u.greenAb);u._castSM=1; u._castLv=0;u.greenCd=u.greenAb.cd;}}
+  if(!silenced && u.blueAb){u.blueCd-=dt;if(u.blueCd<=0&&!_ultRoot&&(u._castT||0)<=0&&(u._recentAtk||0)<=0&&kitReady(u,u.blueAb)){u._castSM=skillMul((u.skillLv&&u.skillLv[2])||1); u._castLv=((u.skillLv&&u.skillLv[2])|0)||1;   /* v787 */castKit(u,u.blueAb);u._castSM=1; u._castLv=0;u.blueCd=u.blueAb.cd;}}
   if(u.forcedTargetT>0 && u.forcedTarget && u.forcedTarget.alive) u.target=u.forcedTarget;   // taunt override
   else u.target=nearestEnemy(u);   // EVERYONE always attacks the CLOSEST living enemy — never marches forward to reach a far assigned target
   const t=u.target;if(!t)return;const d=dist(u,t);
@@ -23843,7 +23868,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789945207000';
+const BUILD_ID = '1789946407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
