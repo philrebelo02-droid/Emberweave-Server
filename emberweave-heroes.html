@@ -1215,7 +1215,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 /* v695 the tower panel - who is standing in this tower */
 /* v723 - a FIXED height, and the list scrolls inside it. With max-height alone the panel resized
    every time a line died, which throws whatever you are reading up the screen. */
-.skyTowerPanel{position:absolute;z-index:9;width:min(88%,330px);height:min(86%,318px);
+/* v766/v767 - over the Guild back button, and 96% of the board's height rather than 86%.
+   The stylesheet says .backbtn is z-index 22 in two places; it COMPUTES to 30, because a later
+   rule wins. 24 was therefore still underneath. Measured from the live element rather than read
+   out of the CSS - the same lesson as the .hot collision in v745. */
+.skyTowerPanel{position:absolute;z-index:32;width:min(88%,330px);height:96%;
   display:flex;flex-direction:column;padding:2px 6px 8px;
   border-style:solid;border-color:transparent;border-width:14px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 20px stretch;box-shadow:0 12px 30px rgba(0,0,0,.65);}
 .skyTowerPanel h4{margin:0 0 2px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:#ffe9b8;
@@ -1520,13 +1524,31 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrkHd b{font-family:Georgia,'Times New Roman',serif;font-size:12.5px;color:#ffe9b8;
   text-shadow:0 1px 2px #000,0 0 8px rgba(255,205,110,.35);}
 .skyBrkHd .sub{font-size:9px;color:#8b98a9;}
-.skyBrkBody{flex:1;min-height:0;display:flex;align-items:stretch;gap:2px;overflow:auto;}
-.skyBrkCol{display:flex;flex-direction:column;justify-content:space-around;gap:2px;min-width:0;flex:1 1 0;}
-.skyBrkCol.cup{flex:0 0 auto;width:58px;justify-content:center;}
+/* v765 - THE TREE. A column spaces its matches EVENLY (space-around on the match, not on every
+   name), so a match in the next round sits opposite the gap between the two that feed it - which is
+   what lets the eye follow a seed inward. */
+.skyBrkBody{flex:1;min-height:0;display:flex;align-items:stretch;gap:0;overflow:hidden;}
+.skyBrkCol{display:flex;flex-direction:column;justify-content:space-around;min-width:0;flex:1 1 0;
+  padding:0 9px;}
+.skyBrkCol.cup{flex:0 0 auto;width:74px;justify-content:center;padding:0;}
+/* ONE MATCH: two guilds and the rule that carries the winner onward. The bracket shape is a
+   three-sided border - down the pair, and out toward the next round. */
+.skyBrkM{position:relative;display:flex;flex-direction:column;gap:2px;}
+.skyBrkM::after{content:'';position:absolute;top:25%;bottom:25%;width:8px;
+  border:1px solid rgba(240,207,120,.45);pointer-events:none;}
+.skyBrkCol.L .skyBrkM::after{right:-9px;border-left:0;border-radius:0 5px 5px 0;}
+.skyBrkCol.R .skyBrkM::after{left:-9px;border-right:0;border-radius:5px 0 0 5px;}
+/* and the short spur from that bracket into the next column */
+.skyBrkM::before{content:'';position:absolute;top:50%;height:1px;width:9px;
+  background:rgba(240,207,120,.45);pointer-events:none;}
+.skyBrkCol.L .skyBrkM::before{right:-18px;}
+.skyBrkCol.R .skyBrkM::before{left:-18px;}
+/* the last column before the cup needs no spur - the cup is the join */
+.skyBrkCol.sf .skyBrkM::before{display:none;}
 /* one guild in the tree */
-.skyBrkTeam{display:flex;align-items:center;gap:3px;min-width:0;padding:2px 4px;border-radius:6px;
+.skyBrkTeam{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 5px;border-radius:6px;
   border:1px solid #3a2f1c;background:linear-gradient(180deg,rgba(28,22,14,.95),rgba(15,13,10,.95));
-  font-size:8.5px;line-height:1.25;}
+  font-size:9.5px;line-height:1.3;}
 .skyBrkTeam .sd{flex:none;width:13px;text-align:center;color:#8b98a9;font-weight:800;}
 .skyBrkTeam .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:#c9b78d;font-weight:700;}
@@ -1542,7 +1564,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrkCup .who{font-size:8.5px;font-weight:800;color:#ffe9b8;text-align:center;max-width:56px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skyBrkCup .lbl{font-size:7.5px;color:#8b98a9;letter-spacing:.3px;}
-.skyBrkRound{font-size:7.5px;color:#6f7d90;text-align:center;letter-spacing:.4px;margin-bottom:1px;}
+.skyBrkRound{font-size:8px;color:#8b98a9;text-align:center;letter-spacing:.6px;font-weight:800;
+  margin-bottom:4px;flex:none;}
+.skyBrkCup .ico{font-size:30px;}
 /* ================= v746 - THE LIVE FIGHT (Phil's "Top Lane in Battle" reference) =================
    Band 1 the two guilds, band 2 the fight itself, band 3 the queue waiting to step up. Every class
    here is sky-prefixed: the stylesheet is global and a bare name is how the crossed swords lost
@@ -1632,6 +1656,21 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyTwMeta{flex:none;text-align:right;line-height:1.2;}
 .skyTwMeta .pw{display:block;font-size:9.5px;font-weight:800;color:#ffbf69;}
 .skyTwMeta .sub{display:block;font-size:8px;color:#8b98a9;}
+/* v764b - PLACE LINES: your own lines, and where each one stands */
+.skyPlace{margin:4px 0 2px;padding:5px 6px;border-radius:9px;
+  background:linear-gradient(180deg,rgba(22,44,78,.92),rgba(13,26,48,.92));border:1px solid #2c5f96;}
+.skyPlaceHd{display:flex;align-items:center;gap:6px;font-size:9px;color:#9ad;font-weight:800;
+  letter-spacing:.4px;margin-bottom:4px;}
+.skyPlaceHd .sp{flex:1;}
+.skyPlaceRow{display:flex;align-items:center;gap:6px;padding:2px 3px;font-size:9.5px;}
+.skyPlaceRow .nm{flex:none;width:52px;color:#e6edf3;}
+.skyPlaceRow .at{flex:1;min-width:0;color:#8b98a9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyPlaceRow .pw{flex:none;color:#ffbf69;font-weight:800;}
+.skyPlaceRow .tick{flex:none;width:12px;text-align:right;color:#7ef0b0;font-weight:800;}
+.skyPlaceNote{font-size:8px;color:#6f7d90;padding:3px 3px 0;}
+.skyPlaceAll{border:1px solid #8a6420;border-radius:6px;padding:1px 9px;cursor:pointer;
+  background:linear-gradient(180deg,#8a6420,#3d2a0b);color:#fff4d6;font-size:9px;font-weight:800;}
+.skyPlaceAll[disabled]{opacity:.45;cursor:default;}
 /* v747 - clear the Guild button, which overlaps the hub's corner now that it is full width */
 .skyHubHd{padding-left:92px;}
 /* v746c - a waiting row opens to show its five heroes */
@@ -1704,6 +1743,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    Disband beside it. The panel is cut to the row's measured width (419.5px of content) instead of
    the row being stretched to the panel's, which is what removes the empty space for good. */
 .skyBrk[data-kind="team"]{left:auto;width:460px;}
+/* v767 - the BRACKET is the one panel that wants the whole board: sixteen names across seven
+   columns, and every pixel taken off the sides comes out of a guild name. It goes edge to edge and
+   sits over the Guild button (which computes to z-index 30), like the tower panel. */
+.skyBrk[data-kind="bracket"]{left:1.5%;right:1.5%;top:2%;bottom:2%;z-index:32;}
 /* v743 - the picker keeps the SAME 460px panel as the list. Widening it to fit the bench left a
    622px box holding 430px of content, which is the empty space Phil already rejected once. The
    bench wraps inside the width it has; the panel drops its fixed height so a short bench does not
@@ -13725,7 +13768,7 @@ function heroGearTabHTML(key){
   return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ✨ Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0">${cells}</div>
     ${detail}
-    <div style="font-size:10px;color:#6f7d90;margin-top:6px;text-align:center">Tap a ＋ to see the build tree. <span style="color:#5ee89b">Green</span> = you can make it now. One Gear Active per hero, chosen before battle. Equipped gear is bound to that hero for good.</div>`;
+    `;   /* v767 - the how-to paragraph is gone (Phil: "these little notes all around are useless") */
 }
 function forgeTab(t){ FORGE.tab=t; renderForge(); }
 function forgeQ(i){ FORGE.q=i; renderForge(); }
@@ -14395,8 +14438,42 @@ function skyTowerPanel(stage, side, lane, data, opts){
   const canMove = !!opts.canMove && side==='you';
   const L=skyLanes()[lane]||{a:{x:50,y:50}};
   const onLeft = L.a.x < 50;
-  const subHTML=((standing===0)?'FALLEN \u00b7 ':'')+standing+'/'+((c.total|0))+' lines standing \u00b7 weakest ally fights first'
-    +(canMove?' \u00b7 <span style="color:#7ef0b0">you may move them</span>':'');
+  /* v766 - the count alone. The rest was prose telling the reader what the list already shows. */
+  const subHTML=((standing===0)?'FALLEN \u00b7 ':'')+standing+'/'+((c.total|0));
+  /* v764b (Phil: "When a player clicks a tower, they need to have the ability to 'place lines' in
+     the tower") - YOUR lines and where they stand. Only your own side, only in prep: the same
+     window the server's place route enforces. A line already here says HERE and cannot be moved to
+     where it already is. */
+  const placeHTML=(function(){
+    if(side!=='you') return '';
+    if(skyStageNow()!=='PREP') return '';
+    const cits=((data.you)||{}).citadels||[];
+    const mineLines=[];
+    cits.forEach((cc,ci)=>(cc.defenders||[]).forEach(d=>{ if(d&&d.you)
+      mineLines.push({ line:(typeof d.line==='number')?d.line:null, name:d.name,
+        power:d.power|0, at:ci, atName:cc.name||('Lane '+(ci+1)) }); }));
+    if(!mineLines.length) return '';
+    mineLines.sort((x,y)=>(x.line|0)-(y.line|0));
+    const away=mineLines.filter(x=>x.at!==(lane|0)).length;
+    /* v764d - your lines are LISTED so you can see where they stand, but they move together:
+       one button, all of them. Splitting a player across towers is not a thing. */
+    const rows=mineLines.map((x,li)=>{
+      const here=(x.at===(lane|0));
+      const idx=(x.line!=null)?x.line:li;
+      return '<div class="skyPlaceRow">'
+        +'<span class="nm">line '+(idx+1)+'</span>'
+        +'<span class="at">'+(here?'here':escapeHTML(x.atName))+'</span>'
+        +'<span class="pw">\u2694'+x.power.toLocaleString()+'</span>'
+        +'<span class="tick">'+(here?'\u2713':'')+'</span>'
+        +'</div>'; }).join('');
+    const allHere=(away===0);
+    return '<div class="skyPlace">'
+      +'<div class="skyPlaceHd"><span>\u2694 YOUR '+mineLines.length+' LINE'+(mineLines.length===1?'':'S')+'</span><span class="sp"></span>'
+        +'<button class="skyPlaceAll" data-place="all"'+(allHere?' disabled':'')+'>'
+        +(allHere?'All here':'Place them here')+'</button></div>'
+      +rows
+      +'</div>'; })();
+
   const listHTML=(players.length?players.map((p,pi)=>{
         const head='<div class="skyPlayerHd"><span class="ord">'+(pi+1)+'</span>'
           +'<span class="who">'+escapeHTML(p.name||p.key)+'</span>'
@@ -14441,6 +14518,7 @@ function skyTowerPanel(stage, side, lane, data, opts){
         return '<div class="skyPlayer'+(p.you?' you':'')+'">'+head+rows+mv+'</div>';
       }).join('')
       :'<div style="font-size:10px;color:#8b98a9;padding:8px 0;text-align:center">Nothing holds this tower.</div>');
+  const bodyHTML=placeHTML+listHTML;
 
   /* v723 - refresh in place if this very tower is already open: only the sub-line and the list
      change, the frame does not move, and the scroll stays where the reader left it. */
@@ -14449,7 +14527,7 @@ function skyTowerPanel(stage, side, lane, data, opts){
   if(open && open.dataset.key===key){
     const sub=open.querySelector('.sub'), list=open.querySelector('.skyTowerList');
     if(sub) sub.innerHTML=subHTML;
-    if(list){ const keep=list.scrollTop; list.innerHTML=listHTML; list.scrollTop=keep; }
+    if(list){ const keep=list.scrollTop; list.innerHTML=bodyHTML; list.scrollTop=keep; }
     skyTowerPanelWire(open, stage, side, lane, data, opts);
     return open;
   }
@@ -14458,12 +14536,12 @@ function skyTowerPanel(stage, side, lane, data, opts){
   el.className='skyTowerPanel';
   el.dataset.key=key;
   el.style.top='50%'; el.style.transform='translateY(-50%)';
-  el.style[onLeft?'left':'right']='6%';
+  el.style[onLeft?'left':'right']='1.5%';   /* v766 - hard to the edge, over the Guild button */
   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
     +'<h4>'+escapeHTML(c.name||('Lane '+(lane+1)))+'</h4>'
     +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'
     +'<div class="sub">'+subHTML+'</div>'
-    +'<div class="skyTowerList">'+listHTML+'</div>';
+    +'<div class="skyTowerList">'+bodyHTML+'</div>';
   stage.appendChild(el);
   skyTowerPanelWire(el, stage, side, lane, data, opts);
   return el;
@@ -14474,6 +14552,26 @@ function skyTowerPanelWire(el, stage, side, lane, data, opts){
   const cl=el.querySelector('[data-close]'); if(cl) cl.onclick=()=>el.remove();
   /* one control per PLAYER - Phil: "If you move 1 player, it moves all his lines". The server's
      assign route carries every line that member owns across intact. */
+  /* v764c - PLACE YOUR OWN LINES. A live war goes through the member's own route; the sandbox
+     moves them locally so it behaves the same. */
+  el.querySelectorAll('[data-place]').forEach(b=>{ if(b.disabled) return; b.onclick=async()=>{
+    if(opts.live){
+      b.disabled=true;
+      const body={lane:(lane|0)};
+      let q=null; try{ q=await api('/api/guild-war/place','POST',body); }catch(e){}
+      if(!q||q.error){ b.disabled=false; bannerMsg((q&&q.error)||'Could not place that line.'); return; }
+      bannerMsg('\u2694 '+q.moved+' line'+(q.moved===1?'':'s')+' placed.');
+      el.remove();
+      try{ if(typeof skyRefreshMatch==='function') skyRefreshMatch(); }catch(e){}
+      return;
+    }
+    const n=skyPlaceMine(data, lane|0, null);
+    el.remove();
+    if(!n){ bannerMsg('There was nothing of yours to place.'); return; }
+    bannerMsg('\u2694 '+n+' line'+(n===1?'':'s')+' placed.');
+    renderSkyfall(data);
+    const st3=document.getElementById('skyStage');
+    if(st3) skyTowerPanel(st3, side, lane|0, data, opts); }; });
   el.querySelectorAll('[data-mv]').forEach(b=>{ b.onclick=async()=>{
     const who=b.dataset.mv, to=+b.dataset.lane;
     if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); el.remove(); return; }
@@ -14562,16 +14660,18 @@ function skyBracketOpen(){
       +'<span class="sd">'+(who.seed||'\u2013')+'</span>'
       +'<span class="nm">'+escapeHTML(who.name||'?')+'</span></div>'; };
 
-  /* one column of the tree: every match in this half of this round, both sides stacked */
+  /* v765 - one column of the tree. Each MATCH is a unit that carries its own connector, and the
+     column spaces the matches rather than the names, so a match lines up with the gap between the
+     two that feed it. */
   const colHTML=(ri, side)=>{
     const ms=half(ri, side);
     const label=((rounds[ri]||{}).name)||['R16','QF','SF','F'][ri]||'';
     const want=Math.max(1, 4>>ri);      /* 4 matches per half at R16, then 2, then 1 */
     let rows='';
     for(let k=0;k<want;k++){ const m=ms[k]||null;
-      rows+='<div style="display:flex;flex-direction:column;gap:1px">'
-        +teamHTML(m&&m.a, m)+teamHTML(m&&m.b, m)+'</div>'; }
-    return '<div class="skyBrkCol"><div class="skyBrkRound">'+escapeHTML(label)+'</div>'+rows+'</div>'; };
+      rows+='<div class="skyBrkM">'+teamHTML(m&&m.a, m)+teamHTML(m&&m.b, m)+'</div>'; }
+    const cls='skyBrkCol '+side+(ri===2?' sf':'');
+    return '<div class="'+cls+'"><div class="skyBrkRound">'+escapeHTML(label)+'</div>'+rows+'</div>'; };
 
   const champ=(function(){ if(!t.championGuildId) return null;
     const e=(t.entrants||[]).find(x=>x.guildId===t.championGuildId); return e||null; })();
@@ -14584,8 +14684,8 @@ function skyBracketOpen(){
         +'<span class="lbl">'+(champ?'CHAMPION':'FINAL')+'</span></div></div>'
       +colHTML(2,'R')+colHTML(1,'R')+colHTML(0,'R')
     +'</div>';
-  return skyPanelFrame('<b>\u2694 Battle Bracket</b><span class="sub">'
-    +((t.entrants||[]).length)+' of 16 guilds \u00b7 single elimination</span>', body, 'bracket');
+  /* v767 - no subtitle. The tree says it is a knockout and the names say who is in it. */
+  return skyPanelFrame('<b>\u2694 Battle Bracket</b>', body, 'bracket');
 }
 /* v730b - one frame, three panels. Bracket, Rank and Schedule all open in the same box and close
    each other, so two can never be stacked on the board at once. */
@@ -14651,10 +14751,10 @@ function skyRankOpen(){
         +'<td class="pw">\u2694'+x.power.toLocaleString()+'</td></tr>').join('')
       +'</table>'
       +'<div class="skySchFoot">'+rows.length+' member'+(rows.length===1?'':'s')
-      +' \u00b7 guild power \u2694'+tot.toLocaleString()
-      +'. LINES is how many five-hero lines that member brings to a Skyfall.</div></div>';
+      +' \u00b7 guild power \u2694'+tot.toLocaleString()+'</div></div>';
   }
-  return skyPanelFrame('<b>\u2694 Guild Ranking</b><span class="sub">by power</span>', body, 'rank');
+  /* v767 - no subtitle: the POWER column already says what the list is sorted by. */
+  return skyPanelFrame('<b>\u2694 Guild Ranking</b>', body, 'rank');
 }
 /* v730b - the week, read off the server's own schedule rather than a copy written here. */
 function skySchedOpen(){
@@ -14749,7 +14849,6 @@ function skySchedOpen(){
 
   const body='<div class="skyBrkList" style="overflow:visible">'
     +'<table class="skySchTbl">'+head+rowsHTML+'</table>'
-    +'<div class="skySchFoot">'+foot+'</div>'
     +cal+'</div>';
   return skyPanelFrame('<b>\u2694 Schedule</b><span class="sub">all times ET</span>', body, 'sched');
 }
@@ -14888,7 +14987,6 @@ function skyTeamBodyHTML(){
       +'<div class="skyPickHd"><b>Adjust line '+(i+1)+'</b>'
         +'<span>power '+skyTeamPower(L).toLocaleString()+'</span>'
         +'<span class="sp"></span>'
-        +'<span>tap a slot, then a hero below</span>'
         +'<div class="skyTroopBtns" style="flex-direction:row"><button data-act="back">Done</button></div></div>'
       +'<div class="skyPickRow"><div class="skyPickSlots">'+slots+'</div>'
         +skyTeamWhoHTML(L[Math.max(0,Math.min(4,SKYTEAM.slot|0))])+'</div>'
@@ -14925,7 +15023,9 @@ function skyTeamBodyHTML(){
         +'<button data-act="add"'+(canAdd?'':' disabled')+'>Add Line</button>'
         +'<button class="go" data-act="save"'+((SKYTEAM.editable&&SKYTEAM.dirty)?'':' disabled')+'>Save</button>'
       +'</div></div>'
-    +'<div class="skyTroopNote'+(SKYTEAM.bad?' bad':(SKYTEAM.msg==='Saved.'?' good':''))+'">'+escapeHTML(note)+'</div>';
+    /* v766 - only a real message (an error, or "Saved.") earns a line. The standing explanation of
+       what is not wired lives on the disabled buttons' own titles, read when they are reached. */
+    +(SKYTEAM.msg?('<div class="skyTroopNote'+(SKYTEAM.bad?' bad':(SKYTEAM.msg==='Saved.'?' good':''))+'">'+escapeHTML(SKYTEAM.msg)+'</div>'):'');
 }
 
 /* redraw inside the frame that is already open, so scroll and position are not thrown away */
@@ -14966,6 +15066,28 @@ function skyOwnerOf(d){ return String((d&&d.name)||'').replace(/\s*\u00b7\s*line
    itself. Every line that member holds in this tower goes to the chosen one, both towers are
    recounted, and the board is redrawn from the data that was just changed - so the numbers on the
    discs are the numbers you made. Prep only: once the march starts the lines are committed. */
+/* v764c - move YOUR OWN line into a tower, in the sandbox. skyMoveMember below carries every line
+   a member holds in one tower, which is the officer's rule ("move 1 player, it moves all his
+   lines"); placing needs the finer move, so this carries exactly the line asked for - or all of
+   yours when `which` is null - from wherever each one stands. */
+function skyPlaceMine(r, toLane, which){
+  if(!r) return 0;
+  const cits=((r.you)||{}).citadels||[];
+  const dest=cits[toLane|0]; if(!dest) return 0;
+  const moving=[];
+  cits.forEach((c,ci)=>{ const keep=[];
+    for(const d of (c.defenders||[])){
+      const idx=(typeof d.line==='number')?d.line:null;
+      const mine=!!(d&&d.you) && (which===null || which===undefined || idx===which);
+      if(mine && ci!==(toLane|0)) moving.push(d); else keep.push(d); }
+    c.defenders=keep; });
+  if(!moving.length) return 0;
+  dest.defenders.push(...moving);
+  /* the counts on the discs are derived from the citadels, so both ends are recounted */
+  for(const c of cits){ c.total=(c.defenders||[]).length;
+    c.alive=(c.defenders||[]).filter(d=>d.alive!==false).length; }
+  return moving.length;
+}
 function skyMoveMember(r, side, fromLane, toLane, key){
   if(!r||fromLane===toLane) return 0;
   const cits=((side==='foe'?r.foe:r.you)||{}).citadels||[];
@@ -15544,7 +15666,7 @@ function skyHubRender(){
         +'</div>'+(open?lineCards(x,cls):''); }).join('')
       :'<div class="skyLFEmpty">Nothing waiting.</div>')+'</div>';
 
-    body+='<div class="skyLFWaitHd">WAITING TROOPS \u2014 weakest steps up first</div>'
+    body+='<div class="skyLFWaitHd">WAITING TROOPS</div>'
       +'<div class="skyLFWait">'+qcol(mineQ,'mine')+qcol(foeQ,'foe')+'</div>'
       +'</div>';
   } else {
@@ -20394,7 +20516,7 @@ function renderHeroDetail(){
       ['🎯 Type',t.range>=60?'Ranged':'Melee'],['🧭 Combat row',t.combatRow],['⚔ Class',t.role],['✦ Damage',t.damageProfile],['↗ Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>
-      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">📖 Level ${escapeHTML(t.name)} with XP Potions</div><div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Fixed hero XP; your Commander level caps heroes.</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
+      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">📖 Level ${escapeHTML(t.name)} with XP Potions</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
   } else if(heroTab==='skills'){
     const skills=[
       {idx:0,name:t.abilityName,tier:'Grey',col:RANK_COLOR[0]},
@@ -20419,7 +20541,8 @@ function renderHeroDetail(){
         </div>`:''}
       </div>`; }).join('');
     const clipBox=hasClips?`<div class="sk-clipwrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div><div id="skClip">${skillClipHTML(key,skClipIdx)}</div><div class="sk-cliphint">${MOBILE?'Tap':'Hover'} a skill to preview its ability</div></div>`:'';
-    tab=`<div class="panel">${clipBox}${rows}<div style="font-size:10px;color:#6f7d90;margin-top:8px">${hasClips?(MOBILE?'Tap':'Hover')+' a skill to watch its ability clip. ':''}<b>Double-tap</b> a skill to read its full description. Spend gold on ＋ to level it up. Raise <b>Quality</b> (Glyphs tab) to unlock more skills.</div></div>`;
+    /* v767 (Phil: "these little notes all around are useless") - the how-to paragraph is gone. */
+    tab=`<div class="panel">${clipBox}${rows}</div>`;
   } else if(heroTab==='glyphs'){
     tab=glyphV2Tab(key);   // GLYPH v2 — the ONLY glyph system (legacy stripped, 26 Aug)
   } else if(heroTab==='equip'){
@@ -23229,7 +23352,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789927207000';
+const BUILD_ID = '1789928407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

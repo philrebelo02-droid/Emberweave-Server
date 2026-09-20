@@ -3214,6 +3214,47 @@ async function api(req,res,url){
       writeDB();
       return send(res,200, warLinesView(me, true, ''));
     }
+    /* v764 (Phil: "When a player clicks a tower, they need to have the ability to 'place lines' in
+       the tower") - THE MEMBER'S OWN DOOR. assign is the officer's and refuses anyone without rank;
+       this one needs no rank because it can only ever move the CALLER's lines - the memberId comes
+       from the session and is never read from the body, so no request exists that moves somebody
+       else's. Every other rule is assign's: planning only, never before the reveal, same bounds.
+       v764d (Phil: "There is no splitting up lines, a player must place all in 1 lane") - it moves
+       EVERY line the caller owns, always. That is the same rule the officer's assign route already
+       followed from the other side (v696: "If you move 1 player, it moves all his lines"); there
+       was never a reason for a member's own placement to differ. There is deliberately no `line`
+       selector: a parameter that is accepted and ignored is how a caller ends up believing it
+       worked. */
+    if(p==='/api/guild-war/place'){
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
+      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Planning opens at the round reveal \u2014 come back then.'});
+      const side=m.sides[myGid]; if(!side) return send(res,400,{error:'You are not in this war.'});
+      const lane=parseInt(b.lane,10);
+      if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
+      if(side.citadels[lane].destroyed) return send(res,400,{error:'That citadel has fallen.'});
+      const ent=warEntrant(t,myGid);
+      const mine=(ent?ent.lines:[]).filter(l=>l.memberId===me.id);
+      if(!mine.length) return send(res,400,{error:'You have no registered lines in this war.'});
+
+      /* every line of the caller's, wherever it stands - and nobody else's */
+      const wants=(d)=>String(d.memberId)===String(me.id);
+      const moving=[];
+      for(const c of side.citadels){ const keep=[];
+        for(const d of c.defenders){ if(wants(d)) moving.push(d); else keep.push(d); }
+        c.defenders=keep; }
+      /* and any of them that were never placed at all */
+      side.unplaced=(side.unplaced||[]).filter(x=>{
+        const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
+        const isMine=String(e.memberId)===String(me.id);
+        if(isMine) moving.push({memberId:me.id, line:(e.line==null?null:(e.line|0))});
+        return !isMine; });
+
+      if(!moving.length) return send(res,400,{error:'There was nothing of yours to place.'});
+      side.citadels[lane].defenders.push(...moving);
+      m.version++; writeDB();
+      return send(res,200,{ ok:true, moved:moving.length, lane, match:warMatchView(t,m,myGid) });
+    }
     if(p==='/api/guild-war/assign'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
@@ -3434,9 +3475,13 @@ async function api(req,res,url){
         for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally bot '+pi:'Enemy bot '+(pi+1));
           const lines=you&&myLines.length?myLines:botLines(linesPer);
           side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
-        // place: player by player, line by line, round-robin across the five citadels
-        let lane=0; for(const pl of side.players) for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
-          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, kills:0, power:L.power }); lane++; }
+        /* v764d (Phil: "there is no splitting up a players lines in multiple towers") - a PLAYER
+           is placed, not a line. The round-robin used to step per LINE, so one player's seven lines
+           landed in five different towers - the very thing the rule forbids, sitting in the
+           simulator the whole time. It steps per player now: all of that player's lines go to the
+           same citadel, and the next player starts the next one. */
+        let lane=0; for(const pl of side.players){ for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
+          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, kills:0, power:L.power }); } lane++; }
         side.power=side.players.reduce((s,pl)=>s+pl.lines.reduce((x,l)=>x+l.power,0),0); return side; };
       const A=mkSide('Your side',true), B=mkSide('Bot guild',false);
       const captureN=Math.max(0,parseInt(b.captureN,10)||0);   /* v675: watch one march */
@@ -3528,7 +3573,11 @@ async function api(req,res,url){
         else { m.winner='A'; m.why='the towers finished level at '+tA+'–'+tB+' — the challenge is held'; m.draw=true; } }
       const view=side=>({ name:side.name, power:side.power, players:side.players.length, lines:side.players.reduce((s,pl)=>s+pl.lines.length,0),
         citadels:side.citadels.map(c=>({lane:c.lane,name:c.name,destroyed:c.destroyed,alive:c.defenders.filter(d=>d.alive!==false).length,total:c.defenders.length,
-          defenders:c.defenders.map(d=>({name:d.name,you:d.you,alive:d.alive!==false,power:d.power,orders:d.orders,
+          /* v764 - the LINE INDEX. The sim has carried it on every defender since v733 but never
+             sent it, so the board could only number lines by their position in a list and nothing
+             could act on a specific one - placing a single line matched on a field that was always
+             undefined. */
+          defenders:c.defenders.map(d=>({name:d.name,you:d.you,line:d.line|0,alive:d.alive!==false,power:d.power,orders:d.orders,
             fights:d.fights|0, kills:d.kills|0, retired:(d.kills|0)>=WAR_KILL_CAP && d.alive!==false,
             killsLeft:Math.max(0,WAR_KILL_CAP-(d.kills|0)),
             heroes:(d.lineSnapshot||[]).map(h=>h.key),
