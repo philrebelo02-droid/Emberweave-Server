@@ -1078,25 +1078,54 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .glCard .glName{background:linear-gradient(0deg,rgba(14,9,5,.96),rgba(14,9,5,0))!important;}
 /* v673 GUILD HALL on the painted kit (Phil: "guild hall and all tabs need new Ui fix", "and the tab icons") */
 /* v674 THE SKYFALL WAR STAGE (Phil: "I want the actual Skyfall tournament art to come up") */
-.skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:300px;border-radius:12px;overflow:hidden;
-  background-size:cover;background-position:center;box-shadow:inset 0 0 90px rgba(4,8,16,.72);}
+.skyStage{position:relative;width:100%;aspect-ratio:16/10;min-height:300px;overflow:hidden;
+  background-size:cover;background-position:center;
+  border-style:solid;border-color:transparent;border-width:7px;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 22px stretch;}
 .skyStage::after{content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(64% 54% at 50% 48%,transparent 40%,rgba(5,9,18,.55) 100%);}
-.skyTw{position:absolute;width:29%;border:0;padding:0;background:none;cursor:pointer;z-index:3;
-  display:flex;flex-direction:column;gap:0;line-height:1.15;text-shadow:0 2px 4px rgba(0,0,0,.95);}
+  background:radial-gradient(58% 50% at 50% 47%,rgba(255,176,86,.10),transparent 68%);}
+/* the sky the citadels hang in - painted, not photographed */
+.skyStageSky{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 50% 112%,rgba(255,150,60,.14),transparent 60%),
+             linear-gradient(180deg,#0f1930 0%,#132038 42%,#1b1a2c 72%,#241a18 100%);}
+.skyStageSky::before{content:'';position:absolute;inset:0;opacity:.5;
+  background:radial-gradient(1.4px 1.4px at 14% 22%,#cfe0ff,transparent 60%),
+             radial-gradient(1.2px 1.2px at 72% 14%,#b9d0ff,transparent 60%),
+             radial-gradient(1.6px 1.6px at 38% 68%,#e6d4ff,transparent 60%),
+             radial-gradient(1.1px 1.1px at 86% 58%,#cfe0ff,transparent 60%),
+             radial-gradient(1.3px 1.3px at 26% 44%,#ffe9c0,transparent 60%),
+             radial-gradient(1.2px 1.2px at 58% 80%,#cfe0ff,transparent 60%);}
+.skyLines{position:absolute;inset:0;z-index:1;pointer-events:none;}
+.skyLines path{fill:none;stroke:rgba(214,178,104,.30);stroke-width:1.4;stroke-linecap:round;transition:stroke .18s,stroke-width .18s;}
+.skyLines path.hot{stroke:rgba(255,214,120,.95);stroke-width:2.6;}
+.skyLines path.dead{stroke:rgba(120,96,70,.16);stroke-dasharray:4 5;}
+.skyHold{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:2;width:120px;height:120px;
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 50% 42%,rgba(255,196,110,.20),rgba(40,26,14,.40) 58%,transparent 72%);
+  box-shadow:inset 0 0 0 1px rgba(226,186,110,.35),inset 0 0 22px rgba(255,170,70,.18);}
+.skyTw{position:absolute;width:31%;cursor:pointer;z-index:3;line-height:1.2;
+  display:flex;flex-direction:column;gap:1px;padding:5px 7px;border-radius:9px;
+  border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12 0%,#17130f 62%,#241608 100%);
+  box-shadow:0 3px 10px rgba(0,0,0,.55);transition:border-color .15s,box-shadow .15s,filter .15s;}
+.skyTw:hover{filter:brightness(1.14);}
 .skyTw.mine{left:2%;align-items:flex-start;text-align:left;}
 .skyTw.foe{right:2%;align-items:flex-end;text-align:right;}
 .skyTw:hover .skyTwNm{color:#ffe9b8;}
 .skyTwIco{font-size:26px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.9));transition:transform .2s,filter .2s,opacity .2s;}
-.skyTw.dead .skyTwIco{opacity:.5;filter:grayscale(1) drop-shadow(0 3px 5px #000);}
+.skyTw.dead{opacity:.62;border-color:#5a3030;background:linear-gradient(180deg,#2a1414,#160d0d);}
+.skyTw.dead .skyTwIco{opacity:.55;filter:grayscale(1);}
 .skyTwNm{font-size:10px;font-weight:800;letter-spacing:.2px;transition:color .15s;}
 .skyTwSub{font-size:9px;color:#cbd6e6;font-weight:600;}
+.skyTw.sel{border-color:#f0cf78;box-shadow:0 0 0 1px rgba(240,207,120,.4),0 4px 12px rgba(0,0,0,.6);}
 .skyTw.sel .skyTwNm{color:#ffd45e;}
+.skyTw.act{border-color:#ffd45e;box-shadow:0 0 14px rgba(255,196,96,.45);}
 .skyTw.act .skyTwIco{transform:scale(1.16);filter:drop-shadow(0 0 9px #ffd45e);}
 .skyMarch{position:absolute;z-index:4;font-size:15px;opacity:0;pointer-events:none;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.95));will-change:left,top,opacity;}
 .skyClash{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:5;width:96px;height:96px;
-  display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.25;transition:opacity .18s;}
+  display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.25;transition:opacity .18s;
+  border:0;background:none;padding:0;}
+.skyClash:hover{opacity:1;}
 .skyClash.hot{opacity:1;}
 .skyClash img,.skyClash canvas{width:100%;height:100%;object-fit:contain;}
 .skyClashPh{font-size:40px;filter:drop-shadow(0 0 10px rgba(255,190,90,.75));animation:skyClashSpin 1.5s ease-in-out infinite;}
@@ -1116,6 +1145,23 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   margin-bottom:3px;background:rgba(18,24,38,.8);border:1px solid #242c3e;}
 .skyPopRow.you{background:rgba(255,191,105,.13);border-color:#7a5f2a;}
 .skyPopRow.down{opacity:.45;}
+/* v675 the clash hub - the current fight, the lines still standing, and every fight so far */
+.skyHub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;width:min(94%,430px);
+  max-height:90%;display:flex;flex-direction:column;padding:9px 10px;border-radius:12px;
+  background:rgba(8,12,20,.96);border:1px solid #6b5628;box-shadow:0 12px 34px rgba(0,0,0,.65);}
+.skyHubTabs{display:flex;gap:4px;margin:6px 0 7px;}
+.skyHubTabs button{flex:1;border:1px solid #3a2f1c;border-radius:8px;padding:5px 6px;font-size:11px;font-weight:800;
+  cursor:pointer;background:linear-gradient(180deg,#241b12,#17130f);color:#c9b78d;}
+.skyHubTabs button.on{background:linear-gradient(180deg,#8a6420,#3d2a0b);border-color:#f0cf78;color:#fff4d6;}
+.skyHubBody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.skyNow{border:1px solid #7a5f2a;border-radius:10px;padding:8px;margin-bottom:8px;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(255,150,50,.16),transparent 70%),rgba(16,22,34,.9);}
+.skyFight{display:flex;align-items:center;gap:6px;font-size:10.5px;padding:5px 6px;border-radius:7px;
+  margin-bottom:3px;background:rgba(16,21,33,.85);border:1px solid #232c40;cursor:pointer;}
+.skyFight:hover{border-color:#6b5628;}
+.skyFight.you{background:rgba(255,191,105,.12);border-color:#7a5f2a;}
+.skySideA{color:#5ee89b;font-weight:700;}
+.skySideB{color:#ff8b8b;font-weight:700;}
 .gTabStrip{display:flex;gap:4px;margin-bottom:12px;padding:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;
   border-style:solid;border-color:transparent;border-width:5px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch;
   box-shadow:0 5px 14px rgba(0,0,0,.45);}
@@ -13355,7 +13401,104 @@ const SKYSIM={p:{players:20,linesPer:3,botLevel:null,botTier:10,botStars:4,allyM
    made yet (his credits, his call). Point SKY_CLASH_LOOP at the sheet when it exists and it plays in
    place of the drawn placeholder - nothing else changes. */
 const SKY_CLASH_LOOP='';
+/* The painted Skyfall WAR MAP does not exist yet either - guild-war-skybridge-01 is the ARENA you
+   watch a fight in (Phil, 19 Sep: "this is the battle map"). Until the map is painted the board is
+   drawn from the UI kit; point SKY_WAR_MAP at the art and it sits behind the same furniture. */
+const SKY_WAR_MAP='';
 const SKYSIM_SPEEDS=[1,2,4,8,12,16,20];
+/* v675 - THE CLASH HUB.
+   Phil wanted the middle of the bridge to be the thing you click: the fight happening right now at
+   the top, the lines still standing under it, and a Records tab holding every fight so far, newest
+   first. The two tabs swap back and forth without disturbing the war running behind them. */
+function skyClashOpen(){ const hub=document.getElementById('skyHub'); if(!hub) return;
+  SKYSIM.hubOn=!SKYSIM.hubOn; hub.hidden=!SKYSIM.hubOn;
+  if(SKYSIM.hubOn){ SKYSIM.hubTab=SKYSIM.hubTab||'live'; skyHubRender(); } }
+function skyHubTab(t){ SKYSIM.hubTab=t; SKYSIM.openFight=null; skyHubRender(); }
+function skyHubPick(n){ SKYSIM.openFight=(SKYSIM.openFight===n?null:n); skyHubRender(); }
+/* The war is resolved before a single frame is drawn, so the state "right now" is the state after
+   the marches already played. It is COUNTED from the log prefix, never estimated: every entry names
+   its two lines and leaves their HP, and a line is out when it is wiped or has had its five fights. */
+function skyLiveTally(r, upto){
+  const t={};
+  const touch=nm=>t[nm]||(t[nm]={fights:0,hp:100,dead:false});
+  for(let k=0;k<=upto && k<r.log.length;k++){ const e=r.log[k]; if(!e) continue;
+    if(e.a){ const x=touch(e.a); x.fights++; if(typeof e.aHp==='number'){ x.hp=e.aHp; if(e.aHp<=0) x.dead=true; } }
+    if(e.d){ const x=touch(e.d); x.fights++; if(typeof e.dHp==='number'){ x.hp=e.dHp; if(e.dHp<=0) x.dead=true; } } }
+  return t; }
+function skyHubRender(){
+  const hub=document.getElementById('skyHub'), r=SKYSIM.view||SKYSIM.r; if(!hub||!r) return;
+  const tab=SKYSIM.hubTab||'live', i=(typeof SKYSIM.cur==='number')?SKYSIM.cur:(r.log.length-1);
+  const MAXF=5;
+  const side=e=>e.side==='A'?'skySideA':'skySideB';
+  const fightRow=(e,live)=>{
+    const open=SKYSIM.openFight===e.n;
+    const head='<div class="skyFight'+(e.you?' you':'')+'" onclick="skyHubPick('+e.n+')">'
+      +'<span style="width:34px;flex:none;color:#8b98a9">#'+e.n+'</span>'
+      +'<span style="flex:1;min-width:0"><span class="'+side(e)+'">'+escapeHTML(e.a||'')+'</span>'
+      +(e.captured?' <span style="color:#ffd45e">walks into an open tower</span>'
+        :' <span style="color:#6f7d90">vs</span> '+escapeHTML(e.d||''))+'</span>'
+      +(e.captured?'':'<span style="flex:none;width:62px;text-align:right;color:'+(e.won?'#5ee89b':'#ff8b8b')+';font-weight:800">'+(e.won?'won':'held')+'</span>')
+      +'</div>';
+    if(!open) return head;
+    return head+'<div style="padding:6px 8px 8px;margin:-2px 0 5px;border:1px solid #6b5628;border-top:0;border-radius:0 0 8px 8px;background:rgba(10,14,22,.8)">'
+      +'<div style="font-size:10px;color:#8b98a9;margin-bottom:5px">'+escapeHTML(e.laneName||'')
+      +(e.captured?'':' \u00b7 \u26a1'+(e.aPower||0).toLocaleString()+' vs \u26a1'+(e.dPower||0).toLocaleString()
+        +' \u00b7 '+(e.rounds||0)+' rounds \u00b7 HP left '+(e.aHp|0)+'% / '+(e.dHp|0)+'%'
+        +' \u00b7 fights '+(e.aFights||'?')+'/'+MAXF+' vs '+(e.dFights||'?')+'/'+MAXF
+        +((e.aRetired||e.dRetired)?' \u00b7 <span style="color:#ffd45e">a line retires</span>':''))+'</div>'
+      +(e.captured?'<div style="font-size:10px;color:#8b98a9">Nothing defended it \u2014 there is no fight to watch.</div>'
+        :'<button class="btn sm" style="width:100%" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 Play this fight</button>')
+      +'</div>'; };
+
+  let body='';
+  if(tab==='live'){
+    const e=r.log[i];
+    body+='<div class="skyNow"><div style="font-size:9.5px;letter-spacing:.5px;color:#ffbf69;font-weight:800;margin-bottom:5px">'
+      +(SKYSIM.marching&&i<r.log.length-1?'FIGHTING NOW':'LAST FIGHT')+'</div>'
+      +(e?fightRow(e,true):'<div style="font-size:10.5px;color:#8b98a9">The towers have not marched yet.</div>')+'</div>';
+    const tal=skyLiveTally(r,i);
+    const stand=(cits,cls,label)=>{
+      const rows=[];
+      (cits||[]).forEach((c,ci)=>(c.defenders||[]).forEach(d=>{
+        const t=tal[d.name]||{fights:0,hp:100,dead:false};
+        if(t.dead||t.fights>=MAXF) return;
+        rows.push({name:d.name,power:d.power||0,hp:t.hp,fights:t.fights,you:d.you,lane:c.name||('Lane '+(ci+1))}); }));
+      rows.sort((a,b)=>a.power-b.power);
+      return '<div style="font-size:9.5px;letter-spacing:.4px;font-weight:800;margin:7px 2px 4px" class="'+cls+'">'+label+' \u2014 '+rows.length+' line'+(rows.length===1?'':'s')+' still able to fight</div>'
+        +(rows.length?rows.map(x=>'<div class="skyPopRow'+(x.you?' you':'')+'">'
+          +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHTML(x.name)+'</span>'
+          +'<span style="flex:none;width:52px;text-align:right;color:#8b98a9;font-size:9.5px">'+escapeHTML(x.lane)+'</span>'
+          +'<span style="flex:none;width:56px;text-align:right;color:#ffbf69;font-weight:800">\u26a1'+x.power.toLocaleString()+'</span>'
+          +'<span style="flex:none;width:30px;text-align:right;color:#9ad">'+(x.hp|0)+'%</span>'
+          +'<span style="flex:none;width:30px;text-align:right;color:#c9b78d">'+x.fights+'/'+MAXF+'</span></div>').join('')
+          :'<div style="font-size:10px;color:#8b98a9;padding:6px 2px">Nothing left standing.</div>'); };
+    body+=stand((r.you||{}).citadels,'skySideA','YOUR SIDE')+stand((r.foe||{}).citadels,'skySideB','BOT GUILD');
+  } else {
+    const past=r.log.slice(0,i+1).reverse();   /* Phil: "from more recent down to last at the bottom" */
+    body+=past.length?past.map(e=>fightRow(e,false)).join('')
+      :'<div style="font-size:10.5px;color:#8b98a9;text-align:center;padding:14px 0">No fights yet.</div>';
+  }
+  hub.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<b style="font-size:12px;color:#ffe9b8">\u2694 THE BRIDGE</b>'
+    +'<button class="btn xs secondary" style="font-size:9px" onclick="skyClashOpen()">close</button></div>'
+    +'<div class="skyHubTabs"><button class="'+(tab==='live'?'on':'')+'" onclick="skyHubTab(\'live\')">Live</button>'
+    +'<button class="'+(tab==='records'?'on':'')+'" onclick="skyHubTab(\'records\')">Records</button></div>'
+    +'<div class="skyHubBody">'+body+'</div>'; }
+/* Phil: "you can Click a play button to watch the fight in live time. its all deterministic".
+   It is: the same seed and the same parameters re-run the identical war on the server, which hands
+   back only THAT march's two lines as they stood when they met. The client then plays them. */
+async function skySimWatch(n){
+  const r=SKYSIM.view||SKYSIM.r; if(!r) return;
+  SKYSIM.skipReplay=true;                        /* stop the war while we watch one fight */
+  bannerMsg('\u25b6 Loading march #'+n+'\u2026');
+  const q=await api('/api/guild-war/sim','POST',Object.assign({seed:r.seed,captureN:n},SKYSIM.p));
+  if(!q||q.error||!q.fight){ bannerMsg((q&&q.error)||'That fight could not be loaded.'); return; }
+  const f=q.fight;
+  const mineSnap=(f.a.snaps||[]).slice(), foeSnap=(f.d.snaps||[]).slice();
+  if(!mineSnap.length||!foeSnap.length){ bannerMsg('That fight has no lines to play.'); return; }
+  _replayReturn=()=>{ show('guild'); renderGuild(); };
+  watchBattle({ v:2, seed:(f.seed>>>0), mineSnap, foe:foeSnap, won:!!q.won,
+    oppName:f.d.name||'the enemy line' }); }
 function skySimSetSpeed(v){ SKYSIM.speed=v;
   const bar=document.getElementById('skySpeedBar'); if(!bar) return;
   bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on', (+b.dataset.sp)===v)); }
@@ -13420,6 +13563,7 @@ async function skySimRun(){ if(SKYSIM.busy) return; SKYSIM.busy=true; skySimRend
 async function skySimReplay(r){
   const card=document.getElementById('skySimCard'); if(!card||!r||!Array.isArray(r.log)) return;
   SKYSIM.skipReplay=false; SKYSIM.sel=null; SKYSIM.view=r; SKYSIM.speed=SKYSIM.speed||1;
+  SKYSIM.cur=-1; SKYSIM.hubOn=false; SKYSIM.hubTab='live'; SKYSIM.openFight=null;
   const ov=card.closest('.gmodal-ov'); if(ov) ov.style.justifyContent='center';
   card.style.maxWidth='920px';
   const you=(r.you&&r.you.citadels)||[], foe=(r.foe&&r.foe.citadels)||[];
@@ -13441,14 +13585,21 @@ async function skySimReplay(r){
         <div class="skySpeed" id="skySpeedBar">${SKYSIM_SPEEDS.map(v=>`<button data-sp="${v}" class="${SKYSIM.speed===v?'on':''}" onclick="skySimSetSpeed(${v})">${v}\u00d7</button>`).join('')}</div>
         <button class="btn sm secondary" onclick="skySimEnd()">\u23f9 End Sim</button></div></div>
     <div id="skyPhase" style="margin:7px 0 6px;text-align:center;font-size:12px;font-weight:900;color:#ffd45e">\uD83D\uDCCB PREP \u2014 the guilds take their towers</div>
-    <div class="skyStage" id="skyStage" style="background-image:url('${SKY_BRIDGE_BG}')">
+    <div class="skyStage" id="skyStage"${SKY_WAR_MAP?` style="background-image:url('${SKY_WAR_MAP}')"`:''}>
+      ${SKY_WAR_MAP?'':'<div class="skyStageSky"></div>'}
+      <svg class="skyLines" id="skyLines" viewBox="0 0 100 100" preserveAspectRatio="none">
+        ${TY.map((y,i)=>`<path id="skyLnA${i}" d="M 17 ${y+4} Q 33 ${(y+4+47)/2} 47 47"></path>`).join('')}
+        ${TY.map((y,i)=>`<path id="skyLnB${i}" d="M 83 ${y+4} Q 67 ${(y+4+47)/2} 53 47"></path>`).join('')}
+      </svg>
+      <div class="skyHold"></div>
       ${you.map((c,i)=>tower(c,i,true)).join('')}
       ${foe.map((c,i)=>tower(c,i,false)).join('')}
-      <div class="skyClash" id="skyClash"><span class="skyClashRing"></span>${clashInner}</div>
+      <button class="skyClash" id="skyClash" onclick="skyClashOpen()" title="the bridge"><span class="skyClashRing"></span>${clashInner}</button>
       <div id="skyTowerPop" class="skyPop" hidden></div>
+      <div id="skyHub" class="skyHub" hidden></div>
     </div>
     <div id="skyEvent" style="height:34px;padding-top:7px;text-align:center;font-size:10.5px;color:#c3ccd8">Tap any tower to see the lines holding it \u2014 weakest at the top.</div>
-    ${SKY_CLASH_LOOP?'':`<div style="font-size:9px;color:#8b98a9;text-align:center">centre art: placeholder \u2014 the Hailuo seamless clash loop is not made yet</div>`}`;
+    ${(SKY_CLASH_LOOP&&SKY_WAR_MAP)?'':`<div style="font-size:9px;color:#8b98a9;text-align:center">drawn board \u2014 the painted Skyfall war map${SKY_CLASH_LOOP?'':' and the seamless clash loop'} ${SKY_CLASH_LOOP?'is':'are'} not made yet</div>`}`;
 
   const stage=document.getElementById('skyStage');
   /* One pause that reads the speed LIVE, so Phil can change 1x -> 20x mid-war and it takes effect on
@@ -13461,6 +13612,7 @@ async function skySimReplay(r){
     ev.innerHTML=`<button class="btn sm" onclick="SKYSIM.marching=true">\uD83D\uDEA9 Begin the march</button>`;
     SKYSIM.marching=false;
     for(let w=0; w<3000 && !SKYSIM.marching && !stopped(); w++) await new Promise(d=>setTimeout(d,60));
+    SKYSIM.marching=true;
   }
   if(stopped()) return;
   const ph=document.getElementById('skyPhase');
@@ -13473,6 +13625,7 @@ async function skySimReplay(r){
     const i=Math.max(0,Math.min(4,e.lane|0)), mine=e.side==='A';
     const tw=document.getElementById('skyTw'+(mine?'A':'B')+i);
     if(tw){ tw.classList.add('act'); }
+    const ln=document.getElementById('skyLn'+(mine?'A':'B')+i); if(ln) ln.classList.add('hot');
     const tok=document.createElement('div');
     tok.className='skyMarch'; tok.textContent=mine?'\u2694\u279c':'\u2b05\u2694';
     tok.style.top=(TY[i]+3)+'%'; tok.style.left=mine?'16%':'80%'; tok.style.opacity='1';
@@ -13483,13 +13636,16 @@ async function skySimReplay(r){
     tok.style.left='47%'; tok.style.top='45%';
     const ev=document.getElementById('skyEvent');
     if(ev) ev.textContent='#'+e.n+' \u00b7 '+e.laneName+' \u00b7 '+e.a+(e.captured?' marches into an open tower':(' meets '+e.d));
+    SKYSIM.cur=r.log.indexOf(e); if(SKYSIM.hubOn) skyHubRender();   /* v675: the hub follows the war */
     await pause(BEAT);
     if(tw) tw.classList.remove('act');
+    if(ln) ln.classList.remove('hot');
     tok.remove();
     if(clash){ clash.classList.remove('hot'); void clash.offsetWidth; clash.classList.add('hot'); }
     if(e.captured||e.fell){
       const fallen=document.getElementById('skyTw'+(mine?'B':'A')+i);
       if(fallen){ fallen.classList.add('dead'); const ic=fallen.querySelector('.skyTwIco'); if(ic) ic.textContent='\uD83D\uDCA5'; }
+      const fl=document.getElementById('skyLn'+(mine?'B':'A')+i); if(fl) fl.classList.add('dead');
     }
     await pause(BEAT*0.34);
     if(clash) clash.classList.remove('hot');
@@ -13500,7 +13656,8 @@ async function skySimReplay(r){
     ph2.textContent=(won?'\uD83C\uDFC6 YOUR SIDE WINS \u2014 ':'\uD83D\uDC80 BOT GUILD WINS \u2014 ')+r.why;
     ph2.style.color=won?'#5ee89b':'#ff8b8b';
     const ev=document.getElementById('skyEvent');
-    if(ev) ev.textContent='Tap any tower to see how its lines finished \u2014 weakest at the top.';
+    if(ev) ev.textContent='Tap any tower, or the bridge, to see how it finished.';
+    SKYSIM.marching=false; SKYSIM.cur=r.log.length-1; if(SKYSIM.hubOn) skyHubRender();
     await pause(700); }
 }
 function skyPanelHTML(){
@@ -20672,7 +20829,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789862407000';
+const BUILD_ID = '1789863607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

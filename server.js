@@ -1504,7 +1504,9 @@ function etOffsetMs(t){ const g={}; for(const p of _etFmt.formatToParts(new Date
   return t-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
 function nyDayKey(t){ const off=etOffsetMs(t||Date.now()); return new Date((t||Date.now())-off).toISOString().slice(0,10); }
 const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
-const WAR_ASSAULTS_PER_LINE=3;
+/* v675 (Phil): "each fight can win, MAX 5 fights before its retired and the next one should
+   fight." Five, and a FIGHT counts whether the line attacked or defended. */
+const WAR_ASSAULTS_PER_LINE=5;
 const WAR_ROUND_NAMES=['R16','QF','SF','F'];
 
 function warWeekAnchor(now){ // most recent Saturday 00:00 ET (DST-exact)
@@ -3151,26 +3153,46 @@ async function api(req,res,url){
           side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
         // place: player by player, line by line, round-robin across the five citadels
         let lane=0; for(const pl of side.players) for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
-          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, power:L.power }); lane++; }
+          side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, power:L.power }); lane++; }
         side.power=side.players.reduce((s,pl)=>s+pl.lines.reduce((x,l)=>x+l.power,0),0); return side; };
       const A=mkSide('Your side',true,allyMul), B=mkSide('Bot guild',false,foeMul);
+      const captureN=Math.max(0,parseInt(b.captureN,10)||0);   /* v675: watch one march */
       const m={ id:'gwsim_'+uid(), sides:{A,B}, log:[], winner:null, why:null, assaults:0 };
       const destroyedOf=side=>side.citadels.filter(c=>c.destroyed).length;
       const survivorHp=side=>{ let hp=0,max=0; for(const c of side.citadels) for(const d of c.defenders){ if(d.alive===false) continue; for(let i=0;i<d.lineSnapshot.length;i++){ hp+=(d.hpState[i]||{}).hp||0; max+=d.lineSnapshot[i].maxHp||0; } } return max?hp/max:0; };
+      /* v675 - Phil's five-fight rule. A line is FIT while it is alive and has fought fewer than
+         five times; once it hits five it is retired and the next line in the tower steps up, on
+         attack and on defence alike. */
+      const fit=d=>d.alive!==false && (d.fights|0)<WAR_ASSAULTS_PER_LINE;
+      /* Magic Rush's Alliance War sends troops in weakest-first, and that is the order Phil asked the
+         tower list to read in. nextUp() picks the weakest line still fit; ties keep their placed
+         order so the run stays deterministic. */
+      const nextUp=cit=>{ let best=null;
+        for(const d of cit.defenders){ if(!fit(d)) continue; if(!best||(d.power|0)<(best.power|0)) best=d; }
+        return best||null; };
       const march=(atkSide,defSide,lane,tag)=>{ const mine=atkSide.citadels[lane], foe=defSide.citadels[lane];
         if(mine.destroyed||foe.destroyed) return false;
-        const attacker=mine.defenders.find(d=>d.alive!==false&&d.orders>0); if(!attacker) return false;
-        attacker.orders--; m.assaults++;
-        const defender=foe.defenders.find(d=>d.alive!==false);
-        if(!defender){ foe.destroyed=true; m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,captured:true}); return true; }
+        const attacker=nextUp(mine); if(!attacker) return false;
+        attacker.orders--; attacker.fights=(attacker.fights|0)+1; m.assaults++;
+        const defender=nextUp(foe);
+        if(!defender){ foe.destroyed=true; m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,captured:true}); return true; }
         const seed=SIM.seedFrom(seedBase+':'+m.assaults+':'+lane);
+        /* v675: if the client asked to watch this exact march, freeze the two lines AS THEY STAND
+           NOW - before the blow lands - so what it plays is the fight that actually happened. */
+        if(captureN && m.assaults===captureN){
+          m.capture={ n:m.assaults, seed, lane, laneName:WAR_LANES[lane].name, side:tag,
+            a:{ name:attacker.name, you:!!attacker.you, power:attacker.power, snaps:attacker.lineSnapshot, hp:attacker.hpState },
+            d:{ name:defender.name, you:!!defender.you, power:defender.power, snaps:defender.lineSnapshot, hp:defender.hpState } }; }
         const r=SIM.resolveLineBattle(SIM.makeLine(attacker.lineSnapshot,attacker.hpState), SIM.makeLine(defender.lineSnapshot,defender.hpState), seed);
         const mapBack=(snap,state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
+        defender.fights=(defender.fights|0)+1;   /* v675: defending is a fight too */
         attacker.hpState=mapBack(attacker.lineSnapshot,r.aState); defender.hpState=mapBack(defender.lineSnapshot,r.bState);
         if(!r.aState.some(x=>x.alive)) attacker.alive=false; if(!r.bState.some(x=>x.alive)) defender.alive=false;
-        let fell=false; if(!foe.defenders.some(d=>d.alive!==false)){ foe.destroyed=true; fell=true; }
+        /* the tower falls when nothing in it can still fight - every line dead or retired */
+        let fell=false; if(!foe.defenders.some(fit)){ foe.destroyed=true; fell=true; }
         const hpLeft=st=>Math.round(100*st.reduce((s,x)=>s+(x.alive?x.hp:0),0)/Math.max(1,st.reduce((s,x)=>s+x.maxHp,0)));
-        m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,d:defender.name,dPower:defender.power,won:r.won,rounds:r.rounds,aHp:hpLeft(r.aState),dHp:hpLeft(r.bState),fell,you:!!(attacker.you||defender.you)});
+        m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,d:defender.name,dPower:defender.power,won:r.won,rounds:r.rounds,aHp:hpLeft(r.aState),dHp:hpLeft(r.bState),fell,you:!!(attacker.you||defender.you),
+          aFights:attacker.fights,dFights:defender.fights,aRetired:(attacker.fights|0)>=WAR_ASSAULTS_PER_LINE,dRetired:(defender.fights|0)>=WAR_ASSAULTS_PER_LINE});
         return true; };
       // the live window: both guilds march, lane by lane, until one holds three citadels or nobody can move
       let guard=0, moved=true;
@@ -3183,8 +3205,13 @@ async function api(req,res,url){
         else { const hA=survivorHp(A), hB=survivorHp(B); if(Math.abs(hA-hB)>1e-6){ m.winner=hA>hB?'A':'B'; m.why='surviving defender HP at the bell'; } else { m.winner=A.power>=B.power?'A':'B'; m.why='power at lock'; } } }
       const view=side=>({ name:side.name, power:side.power, players:side.players.length, lines:side.players.reduce((s,pl)=>s+pl.lines.length,0),
         citadels:side.citadels.map(c=>({lane:c.lane,name:c.name,destroyed:c.destroyed,alive:c.defenders.filter(d=>d.alive!==false).length,total:c.defenders.length,
-          defenders:c.defenders.map(d=>({name:d.name,you:d.you,alive:d.alive!==false,power:d.power,orders:d.orders,hpPct:Math.round(100*d.hpState.reduce((s,x)=>s+x.hp,0)/Math.max(1,d.lineSnapshot.reduce((s,h)=>s+h.maxHp,0)))})) })),
+          defenders:c.defenders.map(d=>({name:d.name,you:d.you,alive:d.alive!==false,power:d.power,orders:d.orders,
+            fights:d.fights|0, retired:(d.fights|0)>=WAR_ASSAULTS_PER_LINE, fightsLeft:Math.max(0,WAR_ASSAULTS_PER_LINE-(d.fights|0)),
+            heroes:(d.lineSnapshot||[]).map(h=>h.key),
+            hpPct:Math.round(100*d.hpState.reduce((s,x)=>s+x.hp,0)/Math.max(1,d.lineSnapshot.reduce((s,h)=>s+h.maxHp,0)))})) })),
         yourLines:side.players.filter(pl=>pl.you).flatMap(pl=>pl.lines.map((l,i)=>({line:i+1,power:l.power,heroes:l.heroes.map(h=>h.key)}))) });
+      if(captureN){ if(!m.capture) return send(res,404,{error:'That march is not in this war.'});
+        return send(res,200,{ ok:true, seed:seedBase, fight:m.capture, won:(m.log.find(e=>e.n===captureN)||{}).won }); }
       return send(res,200,{ ok:true, seed:seedBase, params:{players,linesPer,botLevel,botTier,botStars,allyMul,foeMul}, winner:m.winner, why:m.why, assaults:m.assaults, you:view(A), foe:view(B), log:m.log });
     }
     if(p==='/api/guild-war/debug-warp'){   // dev-only lifecycle testing: shift server war-time
