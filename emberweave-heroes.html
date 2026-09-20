@@ -1231,9 +1231,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyMoveRow button[disabled]{opacity:.35;cursor:default;}
 .skyHud{position:absolute;inset:0;z-index:6;pointer-events:none;}
 .skyHud>*{pointer-events:auto;}
-.skyStatus{position:absolute;left:8px;top:8px;max-width:46%;padding:7px 10px;border-radius:10px;
+/* v699 (Phil: "make the announcement at the top in the middle so it doesnt block the tower") -
+   centred and laid out on ONE line, so it sits in the empty sky above the board instead of over
+   the leftmost platform. */
+.skyStatus{position:absolute;left:50%;top:6px;transform:translateX(-50%);max-width:52%;
+  padding:5px 12px;border-radius:10px;display:flex;align-items:center;gap:8px;white-space:nowrap;
   background:rgba(8,12,20,.78);border:1px solid #6b5628;box-shadow:0 4px 12px rgba(0,0,0,.5);
-  font-size:10.5px;color:#c9b78d;line-height:1.5;}
+  font-size:10.5px;color:#c9b78d;line-height:1.4;}
+.skyStatus .dot{color:#6f7d90;}
 .skyStatus b{color:#ffe9b8;font-family:Georgia,'Times New Roman',serif;font-size:12px;}
 .skyStatus .sv{color:#7ef0b0;font-weight:800;}
 .skyHudBtns{position:absolute;right:8px;top:8px;display:flex;gap:5px;}
@@ -13671,10 +13676,10 @@ function skyBoardHTML(r){
       }).join('')}
       <div class="skyHud">
         <div class="skyStatus">
-          <b>\u2694 Skyfall War</b><br>
-          Stage <span class="sv">${SKYSIM.marching?'MARCH':'PREP'}</span>
-          \u00b7 <span id="skyClock">${new Date().toLocaleTimeString()}</span><br>
-          ${marches} marches on record
+          <b>\u2694 Skyfall War</b>
+          <span class="dot">\u00b7</span> Stage <span class="sv">${SKYSIM.marching?'MARCH':'PREP'}</span>
+          <span class="dot">\u00b7</span> <span id="skyClock">${new Date().toLocaleTimeString()}</span>
+          <span class="dot">\u00b7</span> ${marches} marches
         </div>
         <div class="skyHudBtns">
           <button id="skyBracket">Bracket</button>
@@ -21314,7 +21319,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789878007000';
+const BUILD_ID = '1789879207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
