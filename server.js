@@ -4822,15 +4822,34 @@ async function api(req,res,url){
     }
     // ---- reads ----
     // ---- shared Guild Raid boss helpers ----
-    const RAID_ATT=5;
-    const BOSS_NAMES=['Gorehollow the Ravager','Sablewing the Black Wyrm','The Ashen Colossus','Molgra, Fist of Ruin','Vaelthrun the Deathless','Irongale Behemoth','Nyxaroth the Devourer'];
-    const bossMax=lvl=>Math.round(80000*Math.pow(1.6,(lvl||1)-1));
+    const RAID_ATT=3;   /* v666 (Phil): a raid attempt is now a real 90-second fight, so 3 a day */
+    /* v666 — THE RAID BOSSES ARE THE GAME'S OWN BOSSES, one per tier, in this order, fought with
+       their own art and kit. Phil's standing rule is that only in-game names exist, so the seven
+       invented names that used to live here are gone. Adding a boss later is one line. */
+    const RAID_BOSSES=[
+      {key:'wintercrag',name:'Wintercrag'}, {key:'magmourn',name:'Magmourn'}, {key:'voraxis',name:'Voraxis'},
+      {key:'grommash',name:'Grommash'}, {key:'leviath',name:'Leviath'}, {key:'sylphice',name:'Sylphice'},
+      {key:'vharok',name:'Vharok, Kiln-Heart Tyrant'}, {key:'nerissa',name:'Nerissa, Crown of the Drowned'},
+      {key:'barrowmaw',name:'Barrowmaw, Ossuary Devourer'}, {key:'asterion',name:'Asterion, Mirror Warden'},
+      {key:'maelvara',name:'Maelvara, Stormnest Matriarch'}, {key:'brukk',name:'Brukk, Master of the Black Kiln'},
+      {key:'nymira',name:'Nymira, the Sunken Bloom'}, {key:'irix',name:'Irix, the Sky-Shard Roc'},
+      {key:'kharos',name:'Kharos, Hourglass Sentinel'}, {key:'miregor',name:'Miregor, King of the Briar March'},
+      {key:'sable vesper',name:'Sable Vesper, Choir of Crows'}, {key:'orryx',name:'Orryx, the Glass Minotaur'},
+      {key:'thorneveil',name:'Thorneveil, Warden of the Ash Grove'}, {key:'nameless admiral',name:'The Nameless Admiral'}];
+    const raidBossFor=lvl=>RAID_BOSSES[(((lvl||1)-1)%RAID_BOSSES.length+RAID_BOSSES.length)%RAID_BOSSES.length];
+    const RAID_SESSION_MS=10*60*1000;   /* an open raid fight is good for 10 minutes */
+    /* v666 — sized from MEASURED damage, not a guess. A five-hero Lv50 squad with a full bench of
+       five deals ~65k in one 90-second fight (rig, sim-host); Lv20 ~18k; Lv80 ~150k. At 3 attempts a
+       day a ten-member guild of Lv50s therefore produces ~2M a day. The old curve (80k x 1.6^) died
+       to a single attempt at tier 1 and reached 601M by tier 20, which no guild could ever finish. */
+    const bossMax=lvl=>Math.round(250000*Math.pow(1.35,(lvl||1)-1));
     function ensureRaid(gg){ if(!gg.raid){ gg.raid={level:1,max:bossMax(1),hp:bossMax(1),kills:0,contrib:{},used:{},day:''}; }
       const dk=new Date().toISOString().slice(0,10); if(gg.raid.day!==dk){ gg.raid.day=dk; gg.raid.used={}; } return gg.raid; }
     function raidView(gg){ const r=ensureRaid(gg); const gd=Object.values(r.contrib).reduce((a,b)=>a+b,0);
       const top=Object.entries(r.contrib).map(([id,dmg])=>({name:nameOf(id),dmg})).sort((a,b)=>b.dmg-a.dmg).slice(0,5);
+      const bb=raidBossFor(r.level);
       return { level:r.level, max:r.max, hp:r.hp, kills:r.kills, yourDmg:r.contrib[me.id]||0, guildDmg:gd,
-        attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:BOSS_NAMES[((r.level||1)-1)%BOSS_NAMES.length] }; }
+        attemptsLeft:Math.max(0,RAID_ATT-((r.used[me.id])||0)), top, name:bb.name, bossKey:bb.key, attemptsMax:RAID_ATT }; }
     // ---- shared Guild War helpers (REAL guild-vs-guild, weekly matchmaking) ----
     // A war is a shared DB.wars object referenced by BOTH guilds (g.war={week,id}). Each guild's
     // members duel the opposing guild's real member squads; wins score war points for their side.
@@ -4974,7 +4993,84 @@ async function api(req,res,url){
       if((g.level||1)>=GMAXLVL) g.exp=0;
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
 
-    if(p==='/api/guild/raid/assault'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+    /* v666: the instant-damage assault is CLOSED. A raid attempt is a real fight now, and this route
+       is the one that was exploited ~560x, so it must not survive as a second way in. Old clients are
+       force-updated by the version poll; this answer tells anyone still holding one what happened. */
+    if(p==='/api/guild/raid/assault'){ return send(res,400,{error:'The guild raid is a real battle now — reload the game to fight the boss.'}); }
+    if(p==='/api/guild/raid/start' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      if(rateLimited(req,'graidstart',20,60000)) return send(res,429,{error:'Slow down.'});
+      const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+      const r=ensureRaid(g); r.att=r.att||{};
+      const open=r.att[me.id];
+      /* a retried start with the same requestId hands back the same open fight (nothing is charged twice) */
+      if(open && open.reqId===reqId && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
+        return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps,
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl}, engine:open.engine, raid:raidView(g) });
+      if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
+      if(r.hp<=0) return send(res,400,{error:'This boss is already down — the next tier is spawning.'});
+      const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
+      if(!ids.length) return send(res,400,{error:'Pick your squad.'});
+      const led=ensureLedger(me);
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
+      const host=simHost(); let fightSnaps=null;
+      if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (raid):',e.message); } }
+      const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
+      const bb=raidBossFor(r.level);
+      /* THE BOSS ENTERS WITH WHAT HE HAS LEFT (Phil). Early tiers that is far more than a squad can
+         chew through in 90 seconds; on the last run of a tier someone lands a real killing blow. His
+         level rises with the tier so his damage keeps pace with the guilds fighting him. */
+      const bossLvl=Math.max(1, Math.min(200, 10+((r.level||1)-1)*3));   /* +3 a tier: he hits harder as the guild climbs, without outpacing them */
+      r.used[me.id]=((r.used[me.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
+      r.att[me.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
+        startedAt:Date.now(), reqId, tier:r.level, bossKey:bb.key, bossHp:r.hp, bossLvl };
+      writeDB();
+      return send(res,200,{ ok:true, attemptId:r.att[me.id].id, seed, snaps:fightSnaps, engine:r.att[me.id].engine,
+        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl}, raid:raidView(g) }); }
+    if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+      const out=idem(me.id+':graidres:'+reqId,()=>{
+        const r=ensureRaid(g); r.att=r.att||{};
+        const a=r.att[me.id];
+        if(!a || a.id!==String(b.attemptId||'')) return {ok:false, error:'No matching raid battle.', raid:raidView(g)};
+        r.att[me.id]=null; delete r.att[me.id];
+        if(Date.now()-(a.startedAt||0) > RAID_SESSION_MS) { writeDB(); return {ok:false, expired:true, error:'That raid fight expired.', raid:raidView(g)}; }
+        /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
+           the frozen squad, seed and boss with the game's own battle code (sim-host). */
+        const host=simHost(); let dmg=null, incident=null;
+        const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true};
+        if(host && a.snaps && typeof host.raid==='function'){
+          try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, Array.isArray(b.inputLog)?b.inputLog.slice(0,400):[]); dmg=Math.max(0, rr.dmg|0); }
+          catch(e){ incident='raid-replay-error: '+e.message; }
+        } else incident='raid-replay-unavailable';
+        if(dmg==null){
+          /* No replay host: fall back to the claim, capped hard by the ledger's own power so a forged
+             number cannot move the boss. Every fallback is logged for review. */
+          const claim=Math.max(0, Math.round(Number(b.dmg)||0));
+          const cap=Math.max(1, Math.min(50000000, (ledgerTeamPower(me)||1)*12));
+          dmg=Math.min(claim, cap);
+          try{ g.log=g.log||[]; }catch(e){}
+        }
+        dmg=Math.min(dmg, r.hp);
+        r.hp=Math.max(0, r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg;
+        let killed=false, reward=null;
+        if(r.hp<=0){ killed=true; const lv=r.level;
+          g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
+          if((g.level||1)>=GMAXLVL) g.exp=0;
+          r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
+          g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+          reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
+        else { reward={ guildCoins:Math.round(dmg/50) }; }
+        { const led=ensureLedger(me);
+          if(reward.gold) led.gold=Math.min(ECON_CAP.gold,(led.gold|0)+reward.gold);
+          if(reward.gems) led.gems=Math.min(ECON_CAP.gems,(led.gems|0)+reward.gems);
+          if(reward.guildCoins) led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+(reward.guildCoins|0));
+          ledTx(me,'guild-raid',reward); }
+        writeDB();
+        return { ok:true, dmg, killed, reward, incident, raid:raidView(g), ledger:ledgerView(me) };
+      });
+      return send(res,200,out); }
+    if(p==='/api/guild/raid/assault-old'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'graid',30,60000)) return send(res,429,{error:'Slow down.'});
       const r=ensureRaid(g); if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       /* SECURITY (audit crit #5, re-closed v272): damage was driven by client b.power, then by

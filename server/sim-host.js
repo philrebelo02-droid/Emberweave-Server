@@ -120,7 +120,7 @@ function load(htmlPath){
     new vm.Script(code,{filename:'emberweave-game.js'}).runInContext(ctx,{timeout:60000});
   }
   catch(e){ const err=new Error('sim-host: the game script threw while loading — '+e.message); err.cause=e; throw err; }
-  const need=['simFightResult','simFightReplay','seedBattle','snapAllySquad','snapSquadFromSpecs','simCampaignReplay'];
+  const need=['simFightResult','simFightReplay','seedBattle','snapAllySquad','snapSquadFromSpecs','simCampaignReplay','simRaidReplay'];   /* v666: the guild raid boss is replayed here too */
   for(const n of need) if(typeof sandbox[n]!=='function') throw new Error('sim-host: '+n+' is not defined after load');
   return {
     ctx, sandbox,
@@ -142,6 +142,13 @@ function load(htmlPath){
       const won=sandbox.simCampaignReplay(allySnaps, cwaves, seed>>>0, inputLog||[], true);
       return { won:!!won, stars:sandbox._p2stars|0, alive:sandbox._p2alive|0, total:sandbox._p2total|0,
         hpFrac:+(sandbox._p2hpf||0), digest:sandbox._p2digest||null };
+    },
+    /* v666 — THE GUILD RAID: replay the player's transcript against the frozen squad, seed and boss,
+       and report the damage the squad actually did. The route applies THIS number to the boss pool,
+       never the one the browser claimed. */
+    raid(allySnaps, bossSpec, seed, inputLog){
+      const dmg=sandbox.simRaidReplay(allySnaps, bossSpec, seed>>>0, inputLog||[], true);
+      return { dmg:Math.max(0, Math.round(Number(dmg)||0)), digest:sandbox._p2digest||null };
     },
     auto(allySnaps, foeTeam, seed){
       const won=sandbox.simFightResult(allySnaps, foeTeam, seed>>>0);

@@ -7583,6 +7583,42 @@ function simFightReplay(allyKeys, foeTeam, seed, inputLog, manual){
    server froze, the seed the server issued, and the player's own action transcript. Campaign is a
    multi-wave fight, so this is the entry the server uses; simFightResult stays the single-wave
    resolver used by marches and arena. Returns the win flag; window._p2digest carries the end state. */
+/* v666 — THE RAID REPLAY. The server hands back the frozen squad, the seed, the boss spec and the
+   player's transcript, and this replays that exact fight headlessly and reports the damage done to
+   the boss. It mirrors the raid branch of _startBattleNow() step for step: any step this skips is a
+   step where the server's damage stops being the player's damage. */
+function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
+  const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
+  const svAuto=autoUlt;
+  window._p2guard=true;
+  REPLAY_IN=Array.isArray(inputLog)?inputLog.slice().sort((a,b)=>a[0]-b[0]):null;
+  const keep=REPLAY_IN;
+  ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
+  const B=bossSpec||{};
+  CUR={mode:'raid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0)}]],
+       raid:{key:B.key, tier:B.tier|0, hp:Math.max(1,B.hp|0)},
+       backups:allySnaps.slice(TEAM_SIZE).map(s=>s.key), backupSnaps:allySnaps.slice(TEAM_SIZE),
+       manualReplay:!!manual, headless:true};
+  if(manual) autoUlt=false;
+  try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){}
+  waveXfer=null; chapterWaves=1; waveIdx=0;
+  seedBattle(seed);
+  units=[];
+  spawnTeamFromSnaps(allySnaps.slice(0,TEAM_SIZE));
+  units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });
+  buildEnemyWave();
+  units.forEach(u=>{ if(u.team==='enemy'){ u._raidBoss=true; u._raidStartHp=u.maxHp; } });
+  beginWaveEnter();
+  REPLAY_IN=keep; _riIdx=0;
+  for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
+  const dmg=raidDamageDone();
+  window._p2raidDmg=dmg;
+  /* put the live battle back exactly as it was found */
+  units=sv.units; state=sv.state; ended=sv.ended; CUR=sv.CUR; battleTime=sv.battleTime; gameSpeed=sv.gameSpeed;
+  waveXfer=sv.waveXfer; chapterWaves=sv.chapterWaves; waveIdx=sv.waveIdx; autoUlt=svAuto;
+  REPLAY_IN=null; window._p2guard=false;
+  return dmg;
+}
 function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
   const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};
   const svAuto=autoUlt;
@@ -7843,7 +7879,7 @@ function buildEnemyWave(){
       units.push(u); buildFigure(u); });
     return;
   }
-  if((CUR.mode==='campaign'||CUR.mode==='province')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way */
+  if((CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='raid')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way. v666: so does the guild raid */
     // AUTHORED ENCOUNTER (audit C2): every attempt at this stage spawns exactly these units.
     const specs=CUR.cwaves[Math.min(waveIdx,CUR.cwaves.length-1)]||[];
     const _keys=specs.map(x=>x.key);
@@ -7851,6 +7887,9 @@ function buildEnemyWave(){
       const u=makeUnit(m.key,'enemy',sl.x,sl.y,m.lvl||1,{boss:!!m.boss,rank:m.isHero?(m.rank==null?0:m.rank):0});
       u.maxHp=Math.max(1,Math.round(u.maxHp*(m.hpMul||1))); u.hp=u.maxHp; u.dmg*=(m.dmgMul||1);
       if(m.boss){ u.maxHp=Math.round(u.maxHp*1.15); u.hp=u.maxHp; }
+      /* v666: an ABSOLUTE hp on the spec wins over every multiplier — the guild raid boss walks in
+         carrying exactly the pool HP his guild has left him, which is the whole point of the mode. */
+      if(m.hp){ u.maxHp=Math.max(1,Math.round(m.hp)); u.hp=u.maxHp; }
       units.push(u); buildFigure(u); });
     return;
   }
@@ -10360,6 +10399,7 @@ function battleKeysForMatch(){
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='province') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
+    if(CUR.mode==='raid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     (CUR.waves||[]).forEach(w=>(w||[]).forEach(m=>m&&_k.push(m.key)));
     (CUR.edKeys||[]).forEach(k=>_k.push(k));   // v604 Emberdraft
@@ -10402,6 +10442,7 @@ function _startBattleNow(){
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='province') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
+    if(CUR.mode==='raid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
   clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
@@ -10422,6 +10463,13 @@ function _startBattleNow(){
     if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
     buildEnemyWave();
     bannerMsg('🏛️ THE VAULT — FLOOR '+CUR.floor+'\nWAVE '+(waveIdx+1)+(CUR.devWave2?' (DEV)':'')); beginWaveEnter(); }
+  else if(CUR.mode==='raid'){ autoUlt=false; chapterWaves=1; waveIdx=0;   /* v666: the guild raid boss — one wave, one boss, 90 seconds */
+    if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps.slice(0,TEAM_SIZE)); else spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
+    units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only the five who walked in can call a backup — never summons
+    buildEnemyWave();
+    units.forEach(u=>{ if(u.team==='enemy'){ u._raidBoss=true; u._raidStartHp=u.maxHp; } });
+    actBegin();   // the transcript the server replays
+    bannerMsg('GUILD RAID\n'+((CUR.raid&&CUR.raid.name)||'The boss')); beginWaveEnter(); }
   else if(CUR.mode==='emberdraft'){ chapterWaves=1; waveIdx=0; edSpawnUnits(); }   // v604 Emberdraft: both boards placed exactly as drafted
   else { chapterWaves=1; waveIdx=0; spawnTeam(G.team,'ally');
     const _opp0=(CUR.opp||[]).filter(e=>e&&HERO_TYPES[e.key]); const _opp=_opp0.length?_opp0:[{key:'grosk',level:1,rank:0}];   // drop stale/removed hero keys from opponent teams (old NPC/arena data); never spawn an empty enemy squad
@@ -10439,6 +10487,30 @@ function vaultReinforce(){ if(CUR.mode!=='vault'||!CUR.backups||!CUR.backups.len
   if(VAULT_PICK_OPEN || document.getElementById('vaultSubModal')) return;   // a choice is already on screen
   const d=units.find(u=>u.team==='ally'&&!u.alive&&u._vaultFighter&&!u._summon&&HERO_TYPES[u.key]&&!u._vaultReplaced);
   if(d) vaultOpenSubPicker(d);
+}
+/* v666 — THE GUILD RAID'S SUBSTITUTION. Automatic and deterministic: the next backup in the squad
+   order walks on the moment a fighter falls, built from the server's frozen snapshot when there is
+   one. No modal and no pause, because the server replays this same fight headlessly to decide the
+   damage — anything that needs a human answer would make the two runs diverge. */
+function raidReinforce(){
+  if(CUR.mode!=='raid') return;
+  if(waveXfer) return;
+  const bench=CUR.backupSnaps||CUR.backups;
+  if(!bench||!bench.length) return;
+  const d=units.find(u=>u.team==='ally'&&!u.alive&&u._vaultFighter&&!u._summon&&HERO_TYPES[u.key]&&!u._vaultReplaced);
+  if(!d) return;
+  d._vaultReplaced=true;
+  const next=bench.shift();
+  const key=(next&&next.key)||next;
+  if(Array.isArray(CUR.backups)){ const i=CUR.backups.indexOf(key); if(i>=0) CUR.backups.splice(i,1); }
+  const sl=laneSlot('ally',key,0,1,[key]);
+  const px=(isFinite(d.x)&&d.x>-200&&d.x<1800)?d.x:sl.x, py=(isFinite(d.y)&&d.y>-200&&d.y<1800)?d.y:sl.y;
+  const u=(next&&next.key)?buildUnitFromSnapshot(next,'ally',px,py):makeUnit(key,'ally',px,py,null,{owned:true});
+  u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x; u._vaultFighter=true;
+  units.push(u); buildFigure(u);
+  if(u.mesh) u.mesh.visible=true;
+  try{ floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[key]||{}).name||key)+' steps in!',t:1.4,color:'#c9a2ff',vy:1,sz:12}); burstAt(u.x,u.y,0xc9a2ff,14); }catch(e){}
+  try{ buildPortraitBar(); refreshCtrlBtns(); updateCounts(); }catch(e){}
 }
 function vaultOpenSubPicker(dead){
   paused=true;
@@ -10862,6 +10934,26 @@ function endBattle(won){
       const atks=(V&&V.attacksLeft!=null)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">${V.attacksLeft} city attacks left today</div>`:'';
       document.getElementById('resultReward').innerHTML=badge+`<div style="margin-bottom:4px"><b>${escapeHTML(CUR.oppName||'Rival city')}</b></div>`+(sWon?loot:`<div>${escapeHTML(CUR.oppName||'They')} held their wall.</div>`)+recap+atks;
       document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
+  if(CUR.mode==='raid' && CUR.attemptId){ const att=CUR.attemptId, RB=CUR.raid||{}; CUR.attemptId=null;   /* v666: guild raid boss */
+    const _log=(INPUT_LOG||[]).slice(0,400), _dmg=raidDamageDone(), _killed=!units.some(u=>u.team==='enemy'&&u._raidBoss&&u.alive);
+    resultLater(async(ep)=>{ let r=null;
+      try{ r=await api('/api/guild/raid/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, dmg:_dmg}); }catch(e){ r=null; }
+      if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
+      if(r&&r.ledger) adoptLedger(r.ledger);
+      const ok=!!(r&&r.ok), dealt=ok?(r.dmg|0):_dmg, fell=!!(r&&r.killed);
+      setResultVerdict(fell||dealt>0, null);
+      document.getElementById('resultTitle').textContent=fell?'BOSS FELLED':(dealt>0?'DAMAGE DEALT':'NO DAMAGE');
+      document.getElementById('resultTitle').className='result-big '+((fell||dealt>0)?'win':'lose');
+      document.getElementById('resultReward').innerHTML = ok
+        ? `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">${escapeHTML(RB.name||'RAID BOSS')} · TIER ${RB.tier|0}</div>`
+          +`<div style="font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px">${dealt.toLocaleString()} damage</div>`
+          +(fell?`<div style="color:#ffd45e;font-weight:700">💥 Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!</div>`
+                 +`<div style="margin-top:3px">🪙 ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · 💎 ${((r.reward&&r.reward.gems)|0)} · 🏅 ${((r.reward&&r.reward.guildCoins)|0)}</div>`
+             :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins</div>`)
+          +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
+        : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
+      document.getElementById('resultHint').textContent='Your whole guild chips the same boss down — every run counts, and the killing blow pays the most.';
+      updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='province'){ const att=CUR.attemptId, P=CUR.prov||{}; CUR.attemptId=null;   /* v663: Training Province */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
@@ -11203,7 +11295,7 @@ function updateBattle(dt){
   units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
   units=units.filter(u=>!u._gone);
   updateCounts();
-  if(!ended) vaultReinforce();   // The Vault: a fallen fighter pauses the fight so the player picks a backup
+  if(!ended){ if(CUR.mode==='raid') raidReinforce(); else vaultReinforce(); }   // The Vault pauses for the player's pick; the guild raid substitutes automatically (v666)
   /* v596 (Phil, 18 Sep, on a fallen road's leftover summons: "There should only be able to stay up if they have the summon
      boon"): in a bonus run an Everlasting summon (EVERLASTING_FLAG) holds its road like a hero; any other summon does not. */
   /* v635 (Phil: "I lost from nothing, no time up, didnt lose my heroes just lost"): this is the CAMPAIGN wave check, and it read the
@@ -12357,6 +12449,33 @@ function vaultPickerHTML(){
     </div>`;
 }
 function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); }
+/* v666 — THE GUILD RAID. The server freezes the squad, the seed and the boss (whose HP is whatever
+   the guild has left him), the browser fights that exact fight, and /resolve replays the transcript
+   and takes ITS damage figure. The boss is one authored wave of one unit. */
+function raidSelectHeroes(){ CUR={mode:'raid'}; teamCtx='campaign'; menuReturn='guild'; show('menu'); }
+async function raidLaunch(){
+  const sq=squadFor('raid').slice(0,TEAM_SIZE*2);
+  if(!sq.length) return;
+  if(!ACC.token){ bannerMsg('Sign in to raid with your guild.'); return; }
+  const st=await api('/api/guild/raid/start','POST',{heroIds:sq, requestId:uid8()});
+  if(!st||st.error){ bannerMsg((st&&st.error)||'Could not reach the realm.'); return; }
+  if(st.none){ bannerMsg('No assaults left today — back tomorrow.'); return; }
+  const B=st.boss||{};
+  const _sn=Array.isArray(st.snaps)?st.snaps:null;
+  CUR={mode:'raid', attemptId:st.attemptId, seed:(st.seed!=null?(st.seed>>>0):null), serverSnaps:_sn,
+       backupSnaps:_sn?_sn.slice(TEAM_SIZE):null,   /* the bench fights with the SERVER's numbers too */
+       backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,B.hp|0), lvl:Math.max(1,B.lvl|0)},
+       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0)}]], engine:st.engine||null};
+  startBattle();
+}
+/* The damage this fight has done to the raid boss: what he came in with, minus what he has left.
+   Read the same way live and in the headless replay, so the server's number and the player's match. */
+function raidDamageDone(){
+  const b=units.find(u=>u.team==='enemy'&&u._raidBoss);
+  if(!b) return 0;
+  const start=Math.max(1, b._raidStartHp|0);
+  return Math.max(0, Math.min(start, Math.round(start-(b.alive?Math.max(0,b.hp):0))));
+}
 async function vaultDevJump(toBoss){   // v362 (Phil): God Mode only — set the Vault floor server-side, then launch; optionally skip straight to the final wave
   if(!(typeof AUDIT_MODE==='function'&&AUDIT_MODE())) return;
   const el=document.getElementById('vaultDevFloor'); const f=Math.max(1,Math.min(100,parseInt(el&&el.value,10)||0));
@@ -14944,7 +15063,7 @@ function glOpenFrom(ret, label){ const b=document.querySelector('#glossary .back
   document.querySelectorAll('.glTab').forEach(t=>t.addEventListener('click',()=>{ glTab=t.dataset.gtab; renderGlossary(); }));
   const m=document.getElementById('glModal'); if(m) m.addEventListener('click',(ev)=>{ if(ev.target.id==='glModal') closeGlossaryCard(); }); })();
 // ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
-function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }
+function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='raid')?'raid':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }   /* v666: the guild raid picks its own 5 fighters + 5 backups */
 function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?G.squads[k]:[]; const f=a.filter(x=>typeof x==='string'&&!!HERO_TYPES[x]); if(f.length!==a.length||G.squads[k]!==a) G.squads[k]=f; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
 /* v665: a squad entry the player cannot pick (a hero they no longer own, or a key dropped from the
    roster) still filled a slot - the screen showed 4 selected and refused the 5th, and the fight would
@@ -15025,14 +15144,16 @@ function renderRoster(){
   const teamArr = isWall?wallArr(teamCtx):(teamCtx==='arena'?G.arenaDef:(teamCtx==='arenaAtk'?squadFor('arenaAtk'):squadFor(squadModeKey())));
   pruneSquadArr(teamArr);   /* v665: drop entries the roster cannot show, so the pick cap matches what you see */
   const wallTitle = isWall?('SET WALL — LINE '+WALL_NUM[teamCtx]):'';
-  const isVault = !isWall && CUR.mode==='vault', pickCap = isVault?TEAM_SIZE*2:TEAM_SIZE;   // The Vault: 5 fighters + up to 5 backups
-  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':(CUR.mode==='campaign'?'STAGE '+stageCode(CUR.node):(isVault?'THE VAULT — 5 FIGHT + 5 BACKUP':'CHOOSE YOUR SQUAD')))));
+  const isVault = !isWall && CUR.mode==='vault', isRaid = !isWall && CUR.mode==='raid';   /* v666 */
+  const pickCap = (isVault||isRaid)?TEAM_SIZE*2:TEAM_SIZE;   // The Vault and the guild raid: 5 fighters + up to 5 backups
+  document.getElementById('menuTitle').textContent = isWall?wallTitle:(teamCtx==='arena'?'SET ARENA DEFENSE':(teamCtx==='arenaAtk'?'ARENA — CHOOSE ATTACKERS':(CUR.mode==='pvp'?'RAID SQUAD':(CUR.mode==='campaign'?'STAGE '+stageCode(CUR.node):(isVault?'THE VAULT — 5 FIGHT + 5 BACKUP':(isRaid?'GUILD RAID — 5 FIGHT + 5 BACKUP':'CHOOSE YOUR SQUAD'))))));
   // 28 Aug (Phil): "remove the choose 5 heroes and level of the enemy prompt". The line only says
   // again what the BATTLE button and the stage already say. Wall and Vault keep theirs — those two
   // explain a rule you cannot see anywhere else (which line fights when, fighters vs backups).
   { const _sub=document.getElementById('menuSub');
     const _txt = isWall?`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`
-      :(isVault?`First ${TEAM_SIZE} fight — the rest step in when a fighter falls (up to ${TEAM_SIZE*2} total)`:'');
+      :(isVault?`First ${TEAM_SIZE} fight — the rest step in when a fighter falls (up to ${TEAM_SIZE*2} total)`
+      :(isRaid?`First ${TEAM_SIZE} fight the boss — the rest step in as they fall · 90 seconds · all damage counts`:''));
     _sub.textContent=_txt; _sub.style.display=_txt?'':'none';
     if(!isWall && teamCtx==='campaign' && CUR.mode==='province' && CUR.prov){ const _P=CUR.prov;   /* v663 */
       document.getElementById('menuTitle').textContent=((PROV_META[_P.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+(_P.stage|0);
@@ -16948,15 +17069,14 @@ async function renderGuildRaid(el){
         <div><div style="color:#8b98a9">Bosses felled</div><div style="font-weight:800;color:#5ee89b">${r.kills||0}</div></div></div></div>
     ${(r.top&&r.top.length)?('<div style="font-size:10px;color:#8b98a9;margin:2px 2px 6px">Top damage on this boss</div>'+r.top.map((t,i)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 9px;background:#0f1420;border-radius:7px;margin-bottom:4px"><span>${medal[i]||''} ${escapeHTML(t.name)}</span><span style="color:#ffbf69;font-weight:700">${t.dmg.toLocaleString()}</span></div>`).join('')):''}
     <div style="font-size:10px;color:#8b98a9;text-align:center;margin:6px 0 8px">Your whole guild chips this boss down together — same HP for everyone. The killing blow pays the most.</div>
-    <button class="btn" id="gbAssault" style="width:100%" ${r.attemptsLeft<=0?'disabled':''}>${r.attemptsLeft>0?`⚔ Assault the boss  ·  ${r.attemptsLeft} left today`:'⏳ No assaults left — back tomorrow'}</button>
+    <button class="btn" id="gbAssault" style="width:100%" ${r.attemptsLeft<=0?'disabled':''}>${r.attemptsLeft>0?`⚔ Fight the boss  ·  ${r.attemptsLeft} left today`:'⏳ No assaults left — back tomorrow'}</button>
     <div id="gbMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px"></div>`;
-  const btn=el.querySelector('#gbAssault'); if(btn) btn.onclick=async()=>{ btn.disabled=true; const res=await api('/api/guild/raid/assault','POST',{power:bestTeamPower()}); const live=document.getElementById('gTabBody')||el; const msg=live.querySelector('#gbMsg')||el.querySelector('#gbMsg'); const btn2=live.querySelector('#gbAssault')||btn;
-    if(!res||res.error){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent=(res&&res.error)||'Failed — try again.'; } if(btn2)btn2.disabled=false; return; }
-    if(res.none){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent='No assaults left today — back tomorrow.'; } return; }
-    if(res.reward){ if(res.reward.guildCoins)G.guildCoins=(G.guildCoins||0)+res.reward.guildCoins; if(res.reward.gold)G.gold=(G.gold||0)+res.reward.gold; if(res.reward.gems)G.gems=(G.gems||0)+res.reward.gems; saveG(); if(typeof updateHubChrome==='function')updateHubChrome(); }
-    if(res.killed){ if(msg){ msg.style.color='#ffd45e'; msg.innerHTML=`💥 <b>KILLING BLOW!</b> Tier ${res.reward.tier} down · 🪙 ${res.reward.gold.toLocaleString()} · 💎 ${res.reward.gems}`; } if(typeof bannerMsg==='function')bannerMsg('💥 Guild boss felled! It respawns stronger.'); }
-    else { if(msg){ msg.style.color='#5ee89b'; msg.textContent='⚔ You hit for '+res.dmg.toLocaleString()+'!'; } }
-    setTimeout(()=>{ const n=document.getElementById('gTabBody'); if(n&&guildTab==='raid'&&state==='guild') renderGuildRaid(n); },res.killed?2600:1000); };
+  const btn=el.querySelector('#gbAssault'); if(btn) btn.onclick=()=>{
+    /* v666 (Phil): a raid attempt is a real battle now — 5 fighters + 5 backups, 90 seconds, and the
+       damage the squad deals comes off the boss's pool. The button opens the squad screen; BATTLE
+       there calls /api/guild/raid/start, which freezes the squad, the seed and the boss. */
+    if(r.attemptsLeft<=0) return;
+    raidSelectHeroes(); };
 }
 function renderGuildContribute(el){
   const c=G.guildContribs;   // re-roll stale offers so saved games pick up the current reward rates
@@ -20139,6 +20259,7 @@ async function _startBtnGo(_ctx){
   syncActiveSquad();
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
+  if(CUR.mode==='raid'){ if(!squadFor('raid').length)return; await raidLaunch(); return; }   /* v666: the guild raid boss */
   if(CUR.mode==='province'){ if(!G.team.length)return; await provLaunch(_ctx); return; }   /* v663: Training Province - server-frozen squad + seed + authored waves */
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; }
   if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node,CUR.portal)) return;
@@ -20179,6 +20300,7 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
   if(m==='province'){ provBackToCard((CUR.prov&&CUR.prov.t)||'gold'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v663: back to the province card */
+  if(m==='raid'){ guildTab='raid'; show('guild'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v666: back to the guild raid tab */
   if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; }
   if(m==='campaign'&&window._tutReturnAfterResult){ window._tutReturnAfterResult=false; G.tutStarted=true; saveG(); show('tutorial'); return; }
   show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign');
@@ -20359,7 +20481,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789851607000';
+const BUILD_ID = '1789852807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
