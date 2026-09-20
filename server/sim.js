@@ -162,6 +162,10 @@ function heroCombatStats(key, opts){
   const R=opts.ratings || (opts.glyph?{hpFlat:opts.glyph.hp|0,atkFlat:opts.glyph.atk|0,apowFlat:opts.glyph.apow|0,healFlat:opts.glyph.heal|0}:{});
   const u=CORE.buildUnit(key, bl, mul, defScale, R, Object.assign({level:level, gearSkillSlot:opts.gearSkillSlot||null, gearSkill:opts.gearSkill||null}, opts.extra||{}));
   u.level=level;
+  /* v726 - the star rating travels with the unit. heroCombatStats knows it (it is what builds the
+     star multiplier) but was throwing it away, and the war log needs it to draw a hero card with
+     the right ascension frame. */
+  u.stars=stars; u.pips=pips;
   // legacy aliases: scores (vaultTeamScore), plausibility gates, and views read these
   u.atk=Math.max(u.atkP,u.atkM);
   u.dr=(CORE.defToDR(u.armor,level)+CORE.defToDR(u.mr,level))/2;

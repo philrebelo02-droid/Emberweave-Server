@@ -1409,6 +1409,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
    was showing march lines and crossed swords before a single line had moved, which says a war is
    happening when none is. They are built with the lane and hidden until the stage says MARCH. */
 .skyMarchLine,.skyLaneClash{display:none;}
+/* v727 (Phil: "when a lane is done fighting the dotted lines and swords dissappear from that lane /
+   Showing the fighting for that lane is done") - a lane that has run out of fights clears its own
+   furniture, so a glance at the board says which fronts are still live. */
+.skyMarchLine.spent,.skyLaneClash.spent{display:none!important;}
 /* a march line shows movement, so it belongs to the march itself... */
 .skyStage.marching .skyMarchLine{display:block;}
 /* ...but the swords are the lane's report button, and a report is most wanted once the fighting
@@ -1417,12 +1421,26 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 /* NB: no display here. It is owned by the pair of rules above - a display:flex left in this block
    would sit AFTER the hide rule at the same specificity and win, which is exactly why the swords
    were still on the board all through PREP. */
+/* v726 - THE CLASH IS KEYED, so it composites normally: no blend mode, no stacking-context trap.
+   The first pass leaned on mix-blend-mode:screen because the clip is on black - but screen makes
+   everything translucent in proportion to its brightness, and this sky is white cloud, so steel
+   blades washed out against it. It was fragile too: an ancestor's opacity created a stacking
+   context, isolated the blend, and the whole thing rendered as black rectangles. */
 .skyLaneClash{position:absolute;transform:translate(-50%,-50%);z-index:6;
   align-items:center;justify-content:center;cursor:pointer;
-  border:0;background:none;padding:0;opacity:.62;transition:opacity .18s,filter .18s;}
-.skyLaneClash:hover{opacity:1;}
-.skyLaneClash.hot{opacity:1;}
-.skyLaneClash img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;pointer-events:none;}
+  border:0;background:none;padding:0;}
+/* EVERY LANE'S SWORDS ARE THE SAME SIZE (Phil: "Why are some swords larger than others"). I had
+   made the fighting lane scale up, which was my own idea and not asked for - a lane that is busy
+   should not be a different size from one that is not. A hot lane is marked by its glow instead.
+   The blades are OPAQUE and carry their own dark edge, because thin steel on white cloud has
+   nothing to read against otherwise. */
+.skyLaneClash img{width:100%;height:100%;object-fit:contain;pointer-events:none;opacity:1;
+  filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 1px 2px rgba(0,0,0,.75));
+  transition:filter .18s;}
+.skyLaneClash:hover img{
+  filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 6px rgba(255,214,140,.8));}
+.skyLaneClash.hot img{
+  filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 9px rgba(255,205,115,1));}
 /* the placeholder is a blade, and it has to read on white cloud as well as on open sky, so it
    carries its own dark edge rather than relying on the art behind it */
 .skyLaneClash .ph{font-size:min(34px,7.4vw);line-height:1;
@@ -1474,6 +1492,37 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   cursor:pointer;background:linear-gradient(180deg,#241b12,#17130f);color:#c9b78d;}
 .skyHubTabs button.on{background:linear-gradient(180deg,#8a6420,#3d2a0b);border-color:#f0cf78;color:#fff4d6;}
 .skyHubBody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+/* v726 - A FIGHT AS A ROW, the way Phil's Magic Rush reference lays it out: each side's line-up
+   facing the other across the verdict, with the watch button in the middle. */
+.skyBout{display:flex;align-items:stretch;gap:5px;margin-bottom:6px;}
+.skyBoutSide{flex:1;min-width:0;border-radius:9px;padding:5px 6px;display:flex;flex-direction:column;gap:4px;}
+.skyBoutSide.mine{background:linear-gradient(180deg,rgba(22,44,78,.92),rgba(13,26,48,.92));border:1px solid #2c5f96;}
+.skyBoutSide.foe {background:linear-gradient(180deg,rgba(78,26,30,.92),rgba(46,15,18,.92));border:1px solid #8d3540;}
+.skyBoutHd{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;min-width:0;}
+.skyBoutHd .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyBoutSide.mine .nm{color:#bfe0ff;}
+.skyBoutSide.foe  .nm{color:#ffc9cf;}
+.skyBoutHd .lv{flex:none;font-family:Georgia,'Times New Roman',serif;color:#ffe9b8;}
+/* the five cards share the row evenly and shrink together, so a line never wraps to two rows */
+.skyBoutTeam{display:flex;gap:3px;align-items:flex-end;}
+.skyBoutCard{position:relative;flex:1 1 0;min-width:0;aspect-ratio:1;}
+.skyBoutCard>.ascw{width:100%!important;height:100%!important;border-radius:6px!important;}
+.skyBoutCard .clv{position:absolute;left:1px;bottom:1px;z-index:4;padding:0 2px;border-radius:4px;
+  background:rgba(6,9,15,.85);color:#ffe9b8;font-size:7.5px;font-weight:800;line-height:1.35;}
+.skyBoutMid{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;}
+.skyBoutVerdict{font-family:Georgia,'Times New Roman',serif;font-size:11px;font-weight:800;
+  letter-spacing:.3px;text-shadow:0 1px 2px #000;}
+.skyBoutVerdict.win{color:#ffd45e;}
+.skyBoutVerdict.loss{color:#ff8b8b;}
+.skyBoutNo{font-size:8.5px;color:#8b98a9;}
+.skyBoutWatch{border:1px solid #2f6b3d;border-radius:7px;padding:2px 7px;cursor:pointer;
+  background:linear-gradient(180deg,#2a6b37,#17401f);color:#e9ffe9;font-size:10px;font-weight:800;}
+.skyBoutWatch:disabled{opacity:.4;cursor:default;}
+@media (max-width:430px){
+  .skyBout{flex-wrap:wrap;}
+  .skyBoutMid{width:100%;order:3;flex-direction:row;justify-content:center;gap:8px;}
+}
 .skyNow{border:1px solid #7a5f2a;border-radius:10px;padding:8px;margin-bottom:8px;
   background:radial-gradient(120% 90% at 50% 0%,rgba(255,150,50,.16),transparent 70%),rgba(16,22,34,.9);}
 .skyFight{display:flex;align-items:center;gap:6px;font-size:10.5px;padding:5px 6px;border-radius:7px;
@@ -13739,9 +13788,11 @@ const SKY_ART_BRIDGE   = '/assets/img/battlefields/skyfall/bridge.webp?v=1';
 const SKY_TOWER_KEYS = ['irongate','stormwatch','crownspire','verdant','rift'];
 /* v712 - the seamless sword-clash loop that plays on every bridge midpoint. It is rendered on a
    black ground and composited with mix-blend-mode:screen, so the black drops out without a mask
-   and the sparks light the sky behind them. Empty until the clip is in; the placeholder is a
-   swinging blade, so the board reads correctly either way. */
-const SKY_ART_CLASH = '';
+   and the sparks light the sky behind them. v726: the clip is in - Phil's 19 Sep sword render,
+   cropped to the blades, watermark painted to black (which screen blending then erases outright)
+   and crossfaded into a seamless loop. */
+const SKY_ART_CLASH = '/assets/img/battlefields/skyfall/clash-loop.webp?v=2';
+const SKY_CLASH_AR  = 420/190;   /* the keyed clip's own aspect - the swords cross wide */
 function skyTowerArt(i, dead){
   return '/assets/img/battlefields/skyfall/'+(dead?'ruin':'tower')+'-'
     +(SKY_TOWER_KEYS[i]||SKY_TOWER_KEYS[0])+'.webp?v=1';
@@ -13910,6 +13961,15 @@ function skyWireBoard(stage, r){
      peoples tower lines to the tower i choose"). */
   stage.querySelectorAll('.skyPlat,.skyTower').forEach(p=>{ p.onclick=()=>{
     const [side,i]=(p.dataset.key||'').split(':');
+    /* v727 (Phil: "From that point the battle results switch to the lane tower so you can watch the
+       fights from there") - once a lane has finished, its swords are gone, and with them the button
+       that opened its report. So the TOWER takes that job: tapping either end of a spent lane opens
+       that lane's battle results. A lane still fighting keeps the garrison panel, which is what you
+       want while there is still something to move. Read at click time, because a lane becomes spent
+       while these handlers are already bound. */
+    { const lane=(i|0);
+      if(stage.querySelector('#skyLC-'+lane+'.spent')){
+        SKYSIM.hubTab='records'; skyClashOpen(lane); return; } }
     const isPrep = !SKYSIM.marching;
     const sandbox = !!(SKYSIM && SKYSIM.running);
     let officer=false;
@@ -14249,8 +14309,13 @@ function skyLayoutBoard(stage){
     const cs=Math.max(20, plat*0.58*0.80);
     for(const L of skyLanes()){
       const mx=L.mid.x/100*W, my=L.mid.y/100*H;
+      /* v726 - the clash box takes the CLIP's aspect, not a square. The swords cross along the
+         bridge, so a square box would letterbox them into a third of the height available. Only
+         the width grows: the lanes are 41-50px apart vertically and the height is what has to
+         stay clear of them. */
       const lc=stage.querySelector('#skyLC-'+L.i);
-      if(lc){ lc.style.width=cs+'px'; lc.style.height=cs+'px';
+      if(lc){ const ar=SKY_CLASH_AR;
+              lc.style.height=cs+'px'; lc.style.width=(cs*ar)+'px';
               lc.style.left=mx+'px'; lc.style.top=my+'px'; }
 
       for(const pair of [['you',L.a],['foe',L.b]]){
@@ -14343,6 +14408,40 @@ function skyHubRender(){
     return LANE===null?'THE BRIDGE':('Lane '+((LANE|0)+1)); })();
   const MAXF=5;
   const side=e=>e.side==='A'?'skySideA':'skySideB';
+  /* v726 - one fight, drawn. Phil's reference: each side's five cards facing the other across the
+     verdict. The cards come from the log's own aTeam/dTeam, so a hundred rows cost no extra calls.
+     A war resolved before this field existed simply has no cards, and the row still reads. */
+  const boutTeam=(team)=>{
+    const t=(team||[]).slice(0,5);
+    if(!t.length) return '';
+    return '<div class="skyBoutTeam">'+t.map(h=>'<div class="skyBoutCard">'
+      +heroIcon(h.k, 40)
+      +(h.l?('<span class="clv">'+(h.l|0)+'</span>'):'')
+      +'</div>').join('')+'</div>'; };
+  const boutSide=(cls,name,team,lvl)=>'<div class="skyBoutSide '+cls+'">'
+      +'<div class="skyBoutHd"><span class="nm">'+escapeHTML(name||'')+'</span>'
+      +(lvl?'<span class="lv">Lv'+lvl+'</span>':'')+'</div>'
+      +boutTeam(team)+'</div>';
+  const topLv=team=>{ let m=0; for(const h of (team||[])) if((h.l|0)>m) m=h.l|0; return m; };
+  const bout=(e)=>{
+    /* v726 - YOUR SIDE IS ALWAYS ON THE LEFT, whoever marched. Side A is your guild, so on an A
+       fight you are the attacker and on a B fight you are the defender; drawing them in log order
+       put the enemy in the left, blue box on half the rows. The verdict reads from your side too -
+       the attacker losing IS your victory when the attacker is theirs. */
+    const yoursAttacked=e.side==='A';
+    const youWon = yoursAttacked ? !!e.won : !e.won;
+    const yourName = yoursAttacked ? e.a : e.d, yourTeam = yoursAttacked ? e.aTeam : e.dTeam;
+    const foeName  = yoursAttacked ? e.d : e.a, foeTeam  = yoursAttacked ? e.dTeam : e.aTeam;
+    const left =boutSide('mine', yourName, yourTeam, topLv(yourTeam));
+    const right=boutSide('foe',  foeName,  foeTeam,  topLv(foeTeam));
+    const canWatch=!e.captured;
+    const mid='<div class="skyBoutMid">'
+      +'<span class="skyBoutNo">#'+e.n+'</span>'
+      +'<span class="skyBoutVerdict '+(youWon?'win':'loss')+'">'+(youWon?'Victory':'Defeat')+'</span>'
+      +(canWatch?'<button class="skyBoutWatch" onclick="event.stopPropagation();skySimWatch('+e.n+')">\u25b6 Watch</button>'
+                :'<span class="skyBoutNo">undefended</span>')
+      +'</div>';
+    return '<div class="skyBout">'+left+mid+right+'</div>'; };
   const fightRow=(e,live)=>{
     const open=SKYSIM.openFight===e.n;
     const head='<div class="skyFight'+(e.you?' you':'')+'" onclick="skyHubPick('+e.n+')">'
@@ -14391,7 +14490,10 @@ function skyHubRender(){
     body+=stand(only(mine),'skySideA','YOUR SIDE')+stand(only(theirs),'skySideB','BOT GUILD');
   } else {
     const past=r.log.slice(0,i+1).filter(inLane).reverse();   /* Phil: "from more recent down to last at the bottom" */
-    body+=past.length?past.map(e=>fightRow(e,false)).join('')
+    /* v726 - Records IS the battle report now. A fight that carries its line-ups is drawn as a
+       row; one from an older war, before the server recorded them, falls back to the text line so
+       history stays readable. */
+    body+=past.length?past.map(e=>((e.aTeam&&e.aTeam.length)||(e.dTeam&&e.dTeam.length))?bout(e):fightRow(e,false)).join('')
       :'<div style="font-size:10.5px;color:#8b98a9;text-align:center;padding:14px 0">No fights yet.</div>';
   }
   /* the board carries no lane names any more, so the title is where you find out which lane you
@@ -14649,6 +14751,11 @@ async function skySimReplay(r){
       }
       { const c=clashOf(i); if(c) c.classList.remove('hot');
         const ml=lineOf(mine?'you':'foe', i); if(ml) ml.classList.remove('hot'); }
+    }
+    /* v727 - this lane has no fights left. Its dotted runs and its swords come off the board, which
+       is how you see at a glance which fronts are still live. */
+    if(!stopped()){
+      for(const el of [lineOf('you',i), lineOf('foe',i), clashOf(i)]) if(el) el.classList.add('spent');
     }
   };
   await Promise.all([0,1,2,3,4].map(runLane));
@@ -21914,7 +22021,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789904407000';
+const BUILD_ID = '1789906807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

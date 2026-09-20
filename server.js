@@ -3248,7 +3248,11 @@ async function api(req,res,url){
            five marches still stands in the way. Nothing is announced early. */
         let fell=false; if(!foe.defenders.some(standing)){ foe.destroyed=true; fell=true; }
         const hpLeft=st=>Math.round(100*st.reduce((s,x)=>s+(x.alive?x.hp:0),0)/Math.max(1,st.reduce((s,x)=>s+x.maxHp,0)));
+        /* v726 - the two line-ups, so the battle report can draw the fight rather than describe
+           it. Key, level and stars are all a hero card needs. */
+        const team=snaps=>(snaps||[]).slice(0,5).map(h=>({k:h.key, l:h.level|0, s:h.stars|0}));
         m.log.push({n:m.assaults,side:tag,lane,laneName:WAR_LANES[lane].name,a:attacker.name,aPower:attacker.power,d:defender.name,dPower:defender.power,won:r.won,rounds:r.rounds,aHp:hpLeft(r.aState),dHp:hpLeft(r.bState),fell,you:!!(attacker.you||defender.you),
+          aTeam:team(attacker.lineSnapshot), dTeam:team(defender.lineSnapshot),
           aKills:attacker.kills|0, dKills:defender.kills|0,
           aRetired:(attacker.kills|0)>=WAR_KILL_CAP, dRetired:(defender.kills|0)>=WAR_KILL_CAP,
           aDown:attacker.alive===false, dDown:defender.alive===false});
