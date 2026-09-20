@@ -1248,6 +1248,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 /* v701 (Phil: "put the rank bracket schedule on the right as a column not line") */
 .skyHudBtns{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;align-items:stretch;}
 .skyHudBtns button{text-align:center;}
+/* v703: the speeds run three across, so the bar stops reaching under the status plaque */
+.skyEndBtn{align-self:end;min-width:64px;}
+/* Begin the march sits centred on the bottom edge, where a thumb reaches it either-handed */
+.skyBegin{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:8;
+  padding:8px 24px;font-size:13px;font-weight:800;white-space:nowrap;}
 .skyHudBtns button, .skyEditTeam{border:1px solid #3a2f1c;border-radius:9px;padding:5px 11px;cursor:pointer;
   font-size:11px;font-weight:800;color:#f0dcae;letter-spacing:.2px;white-space:nowrap;
   background:linear-gradient(180deg,#8a6420 0%,#5a3f12 55%,#3d2a0b 100%);
@@ -1259,14 +1264,21 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   font-size:12px;font-weight:900;color:#ffd45e;text-shadow:0 1px 3px #000,0 0 8px #000;white-space:nowrap;}
 .skyEvent{position:absolute;left:8px;bottom:8px;max-width:58%;z-index:7;pointer-events:none;
   font-size:10px;color:#e3ecf7;text-shadow:0 1px 3px #000,0 0 6px #000;}
-/* the garrison count that hangs under every platform */
-.skyGarrison{position:absolute;transform:translate(-50%,0);z-index:4;pointer-events:none;
-  padding:1px 7px;border-radius:7px;white-space:nowrap;
-  background:rgba(8,12,20,.8);border:1px solid #4a3d22;
-  font-size:9.5px;font-weight:800;color:#ffe9b8;text-shadow:0 1px 2px #000;}
-.skyGarrison.mine{border-color:#2b7a55;}
-.skyGarrison.foe{border-color:#7a2b46;}
-.skyGarrison.fallen{border-color:#5a2b2b;color:#ff8b8b;}
+/* v705 (Phil: "Put it left of the tower platforms" / "In our ui") - the garrison count hangs off
+   each platform's LEFT edge as a small Emberweave plaque: the board's own dark ground, gold rule and
+   serif numerals, with the lane's side colour picked out on the inside edge. Same kit as .skyStatus,
+   a quarter of the size. Its exact x is pinned inside the frame by skyGarFit() after layout. */
+.skyGarrison{position:absolute;transform:translate(-100%,-50%);z-index:4;pointer-events:none;
+  display:flex;align-items:center;white-space:nowrap;
+  padding:1px 5px;border-radius:7px;
+  background:linear-gradient(180deg,rgba(14,18,28,.9),rgba(6,9,15,.9));
+  border:1px solid #6b5628;border-left-width:3px;box-shadow:0 2px 6px rgba(0,0,0,.55);
+  font-family:Georgia,'Times New Roman',serif;font-size:10px;font-weight:700;
+  color:#ffe9b8;text-shadow:0 1px 2px #000;}
+.skyGarrison i{font-style:normal;font-size:8.5px;color:#9d8c66;}
+.skyGarrison.mine{border-left-color:#2b7a55;}
+.skyGarrison.foe{border-left-color:#7a2b46;}
+.skyGarrison.fallen{border-color:#5a2b2b;border-left-color:#c0392b;color:#ff8b8b;}
 /* v690 the board's own pieces */
 .skyBoardSky{position:absolute;inset:0;background-size:cover;background-position:center;}
 .skyPlat{position:absolute;transform:translate(-50%,-50%);z-index:2;pointer-events:auto;cursor:pointer;
@@ -1275,6 +1287,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyPlat:hover{filter:drop-shadow(0 0 10px rgba(255,214,120,.8)) drop-shadow(0 6px 10px rgba(0,0,0,.45));}
 .skyPlat.mine{--laneCol:#7ef0b0;}
 .skyPlat.foe{--laneCol:#ff9aa6;}
+.skyPlat.down{filter:grayscale(.75) brightness(.62) drop-shadow(0 6px 10px rgba(0,0,0,.45));}
+/* v706 - a tower hangs over its platform. Its box is written in pixels by skyLayoutBoard, so all
+   this rule does is say where the box's anchor point is: bottom centre, on the platform. */
+.skyTower{position:absolute;transform:translate(-50%,-100%);z-index:3;
+  width:auto;pointer-events:auto;cursor:pointer;
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));transition:filter .15s,opacity .25s;}
+.skyTower:hover{filter:drop-shadow(0 0 10px rgba(255,214,120,.8)) drop-shadow(0 5px 8px rgba(0,0,0,.55));}
+.skyTower.down{filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));}
 .skyBridge{position:absolute;transform-origin:0 50%;z-index:1;pointer-events:none;
   background-repeat:repeat-x;background-size:auto 100%;
   filter:drop-shadow(0 5px 8px rgba(0,0,0,.4));}
@@ -1337,8 +1357,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyClashRing{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,196,96,.55);opacity:0;}
 .skyClash.hot .skyClashRing{animation:skyClashRing .5s ease-out;}
 @keyframes skyClashRing{0%{transform:scale(.35);opacity:.95}100%{transform:scale(1.5);opacity:0}}
-.skySpeed{display:flex;gap:3px;align-items:center;flex-wrap:wrap;}
-.skySpeed button{border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);color:#c9b78d;
+/* v703: three across (Phil), so the bar cannot run under the status plaque */
+.skySpeed{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;align-items:center;}
+.skySpeed button{min-width:0;border:1px solid #3a2f1c;background:linear-gradient(180deg,#241b12,#17130f);color:#c9b78d;
   border-radius:7px;padding:3px 7px;font-size:10.5px;font-weight:800;cursor:pointer;min-width:30px;}
 .skySpeed button.on{background:linear-gradient(180deg,#8a6420,#3d2a0b);border-color:#f0cf78;color:#fff4d6;}
 .skyPop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:min(86%,330px);
@@ -13622,6 +13643,13 @@ const SKY_CLASH_LOOP='';
 const SKY_ART_SKY      = '/assets/img/battlefields/skyfall/sky.webp?v=1';
 const SKY_ART_PLATFORM = '/assets/img/battlefields/skyfall/platform.webp?v=1';
 const SKY_ART_BRIDGE   = '/assets/img/battlefields/skyfall/bridge.webp?v=1';
+/* v706 - the five towers, in lane order, each with the burning twin it becomes when its last line
+   dies. Named by the lane they hold, so the art and the board can never drift apart. */
+const SKY_TOWER_KEYS = ['irongate','stormwatch','crownspire','verdant','rift'];
+function skyTowerArt(i, dead){
+  return '/assets/img/battlefields/skyfall/'+(dead?'ruin':'tower')+'-'
+    +(SKY_TOWER_KEYS[i]||SKY_TOWER_KEYS[0])+'.webp?v=1';
+}
 
 /* THE LANE TABLE - percentages of the stage, and the only place the composition lives.
    Phil's rules, as numbers:
@@ -13635,6 +13663,11 @@ const SKY_ART_BRIDGE   = '/assets/img/battlefields/skyfall/bridge.webp?v=1';
 const SKY_PLAT_R = 8;
 const SKY_LANE_BOW = 12;   /* v691: how far the middle lanes bow outward, % of stage width */                       /* platform width, % of stage width */
 const SKY_LANE_A0 = {x:18, y:38};            /* your row starts here */
+/* v705 (Phil: "move the entire platform bridge formation a hair right without ruining it").
+   Added to A only - B is derived from A, so the two Vs, every bridge length and every bridge
+   angle are untouched and the whole formation slides as one piece. Measured: the leftmost
+   platform edge goes 2%->5% and the rightmost 90%->93%, so it is centred, not merely moved. */
+const SKY_SHIFT_X = 4;
 const SKY_LANE_STEP = {x:0, y:13};           /* and steps this much per lane */
 const SKY_BRIDGE_V = {x:56, y:-12};          /* across the gap: right and UP = bottom-left to top-right */
 function skyLanes(){
@@ -13643,7 +13676,7 @@ function skyLanes(){
     /* v691 - THE LAZY Vs. The ends of each row stay where they are and the middle bows outward,
        so the left row reads as "<" and the right as ">". Weight is 0, 1/2, 1, 1/2, 0. */
     const bow=SKY_LANE_BOW*(1-Math.abs(i-2)/2);
-    const a={x:SKY_LANE_A0.x+SKY_LANE_STEP.x*i-bow, y:SKY_LANE_A0.y+SKY_LANE_STEP.y*i};
+    const a={x:SKY_SHIFT_X+SKY_LANE_A0.x+SKY_LANE_STEP.x*i-bow, y:SKY_LANE_A0.y+SKY_LANE_STEP.y*i};
     /* v693 (Phil: "Lanes are not parallel to each other now") - the enemy row mirrors the V, which
        makes each lane cross a DIFFERENT horizontal distance. Adding a constant dy to that would give
        every lane a different angle, which is what fanned them. So the bridge keeps a constant SLOPE
@@ -13665,8 +13698,16 @@ function skyLanes(){
 /* v697 - THE BOARD, BUILT ONCE AND SHARED. It used to live inline inside skySimReplay, which is
    why Skyfall could only ever be a modal over the Guild Hall. Both the screen and the simulator
    now call these two. `r` is any object carrying {you:{citadels},foe:{citadels},log}. */
-function skyBoardHTML(r){
-  const you=(r&&r.you&&r.you.citadels)||[], foe=(r&&r.foe&&r.foe.citadels)||[];
+function skyBoardHTML(r, opts){
+  opts=opts||{};
+  /* v704 (Phil: "when I start the fight why is there already fallen towers / They should start out
+     both sides filled up") - the server returns the FINAL state of the war, so drawing it straight
+     gives the ending away before the first march. With fresh:true every tower opens full and
+     nothing is fallen; the replay then moves the numbers, and a tower shows FALLEN only on the beat
+     its last line actually dies. That is Phil's "NEVER announce early victory" rule. */
+  const fresh=(c)=>({ ...c, alive:(c&&c.total)|0, destroyed:false });
+  const you0=(r&&r.you&&r.you.citadels)||[], foe0=(r&&r.foe&&r.foe.citadels)||[];
+  const you=opts.fresh?you0.map(fresh):you0, foe=opts.fresh?foe0.map(fresh):foe0;
   const marches=(r&&r.log&&r.log.length)|0;
   /* v700: while a simulation is running the HUD carries ITS controls - the speed bar and End -
      in place of the live-war buttons. Everything else on the board is identical, which is what
@@ -13675,7 +13716,7 @@ function skyBoardHTML(r){
   const hudBtns = SKYSIM.running
     ? '<div class="skySpeed" id="skySpeedBar">'
       + SKYSIM_SPEEDS.map(v=>'<button data-sp="'+v+'" class="'+(SKYSIM.speed===v?'on':'')+'" onclick="skySimSetSpeed('+v+')">'+v+'\u00d7</button>').join('')
-      + '</div><button onclick="skySimEnd()">\u23f9 End</button>'
+      + '</div><button class="skyEndBtn" onclick="skySimEnd()">\u23f9 End</button>'
     : '<button id="skyBracket">Bracket</button>'
       + '<button id="skySchedule">Schedule</button>'
       + '<button id="skyRank">Rank</button>';
@@ -13690,10 +13731,18 @@ function skyBoardHTML(r){
         const plat=(p,cls,key,c)=>`<div class="skyPlat ${cls}" data-key="${key}"
             style="left:${p.x}%;top:${p.y}%;width:${SKY_PLAT_R}%;aspect-ratio:1;background-image:url('${SKY_ART_PLATFORM}')"
             title="${escapeHTML((c&&c.name)||('Lane '+(L.i+1)))}"></div>`;
-        const garr=(c,p,cls)=>{ const al=(c&&c.alive)|0, tot=(c&&c.total)|0, dead=!!(c&&c.destroyed);
-          return `<div class="skyGarrison ${cls}${dead?' fallen':''}" style="left:${p.x}%;top:calc(${p.y}% + ${SKY_PLAT_R*0.52}vw)">${dead?'FALLEN':al+'/'+tot}</div>`; };
+        const garr=(c,p,cls,side)=>{ const al=(c&&c.alive)|0, tot=(c&&c.total)|0, dead=!!(c&&c.destroyed);
+          return `<div class="skyGarrison ${cls}${dead?' fallen':''}" id="skyGar-${side}-${L.i}" data-alive="${al}" data-total="${tot}" style="left:calc(${p.x}% - ${SKY_PLAT_R/2 + 0.6}%);top:${p.y}%">${skyGarText(dead?0:al,tot)}</div>`; };
+        /* The tower carries the same data-key as its platform, so clicking either opens the same
+           garrison. Position and size are left to skyLayoutBoard, which measures them. */
+        const twr=(c,cls,key,side)=>{ const dead=!!(c&&c.destroyed);
+          return `<img class="skyTower ${cls}${dead?' down':''}" id="skyTower-${side}-${L.i}"
+            data-key="${key}" data-lane="${L.i}" alt="" draggable="false"
+            src="${skyTowerArt(L.i, dead)}"
+            title="${escapeHTML((c&&c.name)||('Lane '+(L.i+1)))}">`; };
         return plat(L.a,'mine','you:'+L.i,yc)+plat(L.b,'foe','foe:'+L.i,fc)
-          +garr(yc,L.a,'mine')+garr(fc,L.b,'foe')
+          +twr(yc,'mine','you:'+L.i,'you')+twr(fc,'foe','foe:'+L.i,'foe')
+          +garr(yc,L.a,'mine','you')+garr(fc,L.b,'foe','foe')
           +`<div class="skyLaneLbl" style="left:${L.mid.x}%;top:${L.mid.y}%;color:#ffe9b8">${escapeHTML((yc&&yc.name)||('Lane '+(L.i+1)))}</div>`;
       }).join('')}
       <div class="skyHud">
@@ -13733,7 +13782,7 @@ function skyWireBoard(stage, r){
         if(!e){ clearInterval(window._skyClockT); window._skyClockT=null; return; }
         e.textContent=new Date().toLocaleTimeString(); }, 1000); } }
   /* anyone may read a tower; only an officer in PREP is offered the move controls */
-  stage.querySelectorAll('.skyPlat').forEach(p=>{ p.onclick=()=>{
+  stage.querySelectorAll('.skyPlat,.skyTower').forEach(p=>{ p.onclick=()=>{
     const [side,i]=(p.dataset.key||'').split(':');
     const isPrep = !SKYSIM.marching;
     let officer=false;
@@ -13753,7 +13802,7 @@ function renderSkyfall(data){
     log:[]
   };
   SKYFALL_VIEW=r;
-  b.innerHTML=skyBoardHTML(r);
+  b.innerHTML=skyBoardHTML(r, {fresh: !!(SKYSIM && SKYSIM.running)});
   const stage=b.querySelector('#skyStage');
   skyWireBoard(stage, r);
 }
@@ -13818,6 +13867,20 @@ function skyTowerPanel(stage, side, lane, data, opts){
     el.remove(); }; });
   return el;
 }
+/* The count reads "12<i>/20</i>" - lines standing in full serif, the garrison it was in dimmer
+   behind the slash, so the number that matters is the one the eye lands on. */
+function skyGarText(al,tot){ return al+'<i>/'+tot+'</i>'; }
+/* Hanging the plaque off the platform's left edge puts the innermost lane of the left V within a
+   few pixels of the frame, and a three-digit garrison is wider than a two. So the fit is measured,
+   not guessed: whatever the text, the plaque is pushed back inside the stage. */
+function skyGarFit(el){ if(!el) return;
+  const stage=el.closest('.skyStage'); if(!stage) return;
+  el.style.marginLeft='0px';
+  const sr=stage.getBoundingClientRect(), r=el.getBoundingClientRect();
+  if(!r.width) return;
+  const over=(sr.left+3)-r.left;
+  if(over>0) el.style.marginLeft=over+'px';
+}
 function skyLayoutBoard(stage){
   if(!stage) return;
   const W=stage.clientWidth, H=stage.clientHeight;
@@ -13832,6 +13895,29 @@ function skyLayoutBoard(stage){
     el.style.width=len+'px'; el.style.height=thick+'px';
     el.style.transform='rotate('+ang+'deg)';
   }
+  /* v706 - THE FLOATING TOWERS, measured. The tallest a tower may be is whatever clears the frame
+     above the HIGHEST platform on the board, since every lane shares one height; capped at 1.10
+     platform-widths so a tower never dwarfs its own platform. Measured on Phil's phone (772x354)
+     that is 66.7px against a 60.6px platform; the frame allows 1.43, which Phil called too big. */
+  { const lanes=skyLanes();
+    const plat=SKY_PLAT_R/100*W;
+    /* How far the tower's base sinks past the platform's centre. Hung any higher and the art reads
+       as two objects - a small keep and a big empty plate beneath it. At the centre the disc
+       becomes the ring the citadel hangs in, which is what it is. */
+    const SINK=0.02;
+    let topY=Infinity;
+    for(const L of lanes) topY=Math.min(topY, L.a.y/100*H, L.b.y/100*H);
+    const th=Math.max(20, Math.min(plat*1.10, topY + plat*SINK - 3));
+    for(const L of lanes){
+      for(const pair of [['you',L.a],['foe',L.b]]){
+        const el=stage.querySelector('#skyTower-'+pair[0]+'-'+L.i); if(!el) continue;
+        el.style.height=th+'px';
+        el.style.left=(pair[1].x/100*W)+'px';
+        el.style.top=(pair[1].y/100*H + plat*SINK)+'px';
+      }
+    }
+  }
+  for(const g of stage.querySelectorAll('.skyGarrison')) skyGarFit(g);
 }
 /* The painted Skyfall WAR MAP does not exist yet either - guild-war-skybridge-01 is the ARENA you
    watch a fight in (Phil, 19 Sep: "this is the battle map"). Until the map is painted the board is
@@ -14024,11 +14110,19 @@ async function skySimReplay(r){
   const stopped=()=>SKYSIM.skipReplay||!document.getElementById('skyStage');
 
   if((SKYSIM.p.stage||'prep')==='prep'){
-    const ev=document.getElementById('skyEvent');
-    ev.innerHTML=`<button class="btn sm" onclick="SKYSIM.marching=true">\uD83D\uDEA9 Begin the march</button>`;
+    /* v703 (Phil): Begin the march is centred on the bottom edge of the board, not tucked into the
+       running-commentary line in the corner. */
+    const ev=document.getElementById('skyEvent'); if(ev) ev.textContent='';
+    { const old=stage.querySelector('.skyBegin'); if(old) old.remove();
+      const bb=document.createElement('button');
+      bb.className='btn skyBegin';
+      bb.textContent='\uD83D\uDEA9 Begin the march';
+      bb.onclick=()=>{ SKYSIM.marching=true; bb.remove(); };
+      stage.appendChild(bb); }
     SKYSIM.marching=false;
     for(let w=0; w<3000 && !SKYSIM.marching && !stopped(); w++) await new Promise(d=>setTimeout(d,60));
     SKYSIM.marching=true;
+    { const bb=stage.querySelector('.skyBegin'); if(bb) bb.remove(); }
   }
   if(stopped()) return;
   const ph=document.getElementById('skyPhase');
@@ -14062,10 +14156,24 @@ async function skySimReplay(r){
     if(ln) ln.classList.remove('hot');
     tok.remove();
     if(clash){ clash.classList.remove('hot'); void clash.offsetWidth; clash.classList.add('hot'); }
-    if(e.captured||e.fell){
-      const fallen=document.getElementById('skyTw'+(mine?'B':'A')+i);
-      if(fallen){ fallen.classList.add('dead'); const ic=fallen.querySelector('.skyTwIco'); if(ic) ic.textContent='\uD83D\uDCA5'; }
-      const fl=document.getElementById('skyLn'+(mine?'B':'A')+i); if(fl) fl.classList.add('dead');
+    /* v704 - the board keeps up with the war. A line that dies comes off its tower's count, and a
+       tower shows FALLEN only on the beat the log says it fell. Nothing is revealed early: the
+       server's final state is never drawn, only replayed. */
+    { const drop=(side,lane)=>{ const el=stage.querySelector('#skyGar-'+side+'-'+lane); if(!el) return;
+        if(el.classList.contains('fallen')) return;
+        const tot=(+el.dataset.total)|0; let al=(+el.dataset.alive)|0;
+        al=Math.max(0, al-1); el.dataset.alive=al; el.innerHTML=skyGarText(al,tot); skyGarFit(el); };
+      const fell=(side,lane)=>{ const el=stage.querySelector('#skyGar-'+side+'-'+lane); if(!el) return;
+        el.classList.add('fallen'); el.dataset.alive=0;
+        el.innerHTML=skyGarText(0,(+el.dataset.total)|0); skyGarFit(el);
+        const plat=stage.querySelector('.skyPlat[data-key="'+side+':'+lane+'"]');
+        if(plat) plat.classList.add('down');
+        /* the tower becomes its burning twin on the beat its last line dies - never before */
+        const tw=stage.querySelector('#skyTower-'+side+'-'+lane);
+        if(tw && !tw.classList.contains('down')){ tw.classList.add('down'); tw.src=skyTowerArt(lane|0, true); } };
+      if(e.aDown) drop(mine?'you':'foe', i);
+      if(e.dDown) drop(mine?'foe':'you', i);
+      if(e.captured||e.fell) fell(mine?'foe':'you', i);
     }
     await pause(BEAT*0.34);
     if(clash) clash.classList.remove('hot');
@@ -21332,7 +21440,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789881607000';
+const BUILD_ID = '1789884007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
