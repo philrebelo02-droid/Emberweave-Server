@@ -1784,13 +1784,23 @@ function unitCardPower(s,key){
   const mitig=Math.min(0.85,(SIM.CORE.defToDR(s.armor,lv)+SIM.CORE.defToDR(s.mr,lv))/2 + dr);
   const ehp=(s.maxHp||0)/Math.max(0.15,1-mitig);
   const apW=(base.role==='Mage'||base.role==='Support')?1.5:0.5;
+  /* v812 - A HERO WITH NO ABILITY LINE HAS NO ABILITY POWER, whatever their level.
+     `ROLE_GROWTH` grants every role a little apow per level - a Tank gets +0.3 - so `baseAtLevel`
+     hands `buildUnit` an apow for a hero whose kit has none, and the unit comes out with an atkM.
+     Grosk at level 19: 5.4 grown apow, atkM 7. The CARD asks the question of the hero's BASE type
+     ("does this kit use ability power at all?"), so it reads 0 - and the two disagreed by up to
+     5.5%, growing with level, which is why every hero matched at level 1.
+     The card is the truth (Phil), so the price asks the card's question. Combat is untouched: the
+     unit that fights still carries that atkM, which is its own question for Phil - see the open
+     note in `11 - OPEN QUESTIONS`. */
+  const hasAbilityLine=((SIM.HERO_BASE[key]||{}).apow||0)>0;
   const crit=Math.min(0.6,s.crit||0);
   const baseSpd=(base.atkSpeed||1);
   /* the core stored speed = baseSpd * (1 + atkSpdRating*0.004); the card wants that same bracket
      over its own swing interval */
   const rating=baseSpd>0?((s.speed||baseSpd)/baseSpd):1;
   const sw=1/Math.max(0.05, swingIntervalOf(base)/Math.max(0.01,rating));
-  const dps=Math.max(1,((s.atkP||0)+apW*(s.atkM||0))*sw
+  const dps=Math.max(1,((s.atkP||0)+apW*(hasAbilityLine?(s.atkM||0):0))*sw
     *(1+crit*(s.critDmg||0.6))*(s.dmgBonus||1)*(1+0.25*(s.energyReg||0)));
   return POWER_K*Math.sqrt(ehp*dps);
 }
