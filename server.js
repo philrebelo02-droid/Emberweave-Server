@@ -3481,6 +3481,36 @@ async function api(req,res,url){
       m.version++; writeDB();
       return send(res,200,{ok:true, match:warMatchView(t,m,myGid,me.id)});
     }
+    /* v802 (Phil: "officers need the ability to move the ENTIRE lane to another tower") - every
+       defender standing in one tower carried to another in one action. Moving a single player is
+       /assign and still is; this is the same authority over a whole tower, because an officer with
+       fifteen players in Iron Gate should not have to do it fifteen times.
+       Phil's one-tower rule needs no check here: a player's lines are already all in one tower, so
+       carrying the tower carries each player's set together. */
+    if(p==='/api/guild-war/move-lane'){
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      /* the same refusal /assign gives, word for word - two routes with one rule should not
+         disagree about how they explain it */
+      if(!m||m.state!=='planning'){
+        const nxt=warNextPlacementAt(t);
+        if(m && m.state==='live') return send(res,400,{error:'The fighting has started \u2014 lines locked at 18:00 ET. They reopen at '+(nxt?warWhenET(nxt):'the next prep')+'.'});
+        if(t.state==='registration') return send(res,400,{error:'The bracket is not set yet \u2014 line placement opens '+(nxt?warWhenET(nxt):'once the rounds begin')+'.'});
+        return send(res,400,{error: nxt?('No round is in planning \u2014 placement opens '+warWhenET(nxt)+'.'):'No match in planning.'});
+      }
+      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Placement for this round opens '+warWhenET(m.revealAt)+'.'});
+      if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can arrange citadels.'});
+      const side=m.sides[myGid]; if(!side) return send(res,400,{error:'You are not in this war.'});
+      const from=parseInt(b.from,10), to=parseInt(b.to,10);
+      if(!(from>=0&&from<5)||!(to>=0&&to<5)) return send(res,400,{error:'Bad lane.'});
+      if(from===to) return send(res,400,{error:'They are already in '+WAR_LANES[to].name+'.'});
+      if(side.citadels[to].destroyed) return send(res,400,{error:WAR_LANES[to].name+' has fallen.'});
+      const moving=(side.citadels[from].defenders||[]);
+      if(!moving.length) return send(res,400,{error:'Nothing holds '+WAR_LANES[from].name+'.'});
+      side.citadels[from].defenders=[];
+      side.citadels[to].defenders.push(...moving);
+      m.version++; writeDB();
+      return send(res,200,{ok:true, moved:moving.length, from, to, match:warMatchView(t,m,myGid,me.id)});
+    }
     if(p==='/api/guild-war/assault'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m||m.state!=='live') return send(res,400,{error:'No live match.'});

@@ -1520,6 +1520,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrk{position:absolute;top:3%;bottom:3%;left:120px;right:2%;z-index:9;display:flex;flex-direction:column;
   padding:2px 6px 8px;border-style:solid;border-color:transparent;border-width:14px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 20px stretch;box-shadow:0 12px 34px rgba(0,0,0,.7);}
 .skyBrkHd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
+/* v802 - the lane move sits under the whole list, ruled off from the per-player rows above it */
+.skyMoveLane{margin-top:6px;padding-top:6px;border-top:1px solid #2a3550;}
 /* v801 - one finished tournament per row: the week, the champion's crest and name, who they beat
    and the tower score, and how many guilds were in it. */
 .skyHistRow{display:flex;align-items:center;gap:7px;padding:4px 6px;border-bottom:1px solid #1b2438;font-size:10.5px;}
@@ -14373,6 +14375,30 @@ async function skyStatus(){ const r=await api('/api/guild-war/status'); SKY.st=(
 function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
 function skyLaneIcon(i){ return ['🛡️','⚡','👑','🌿','🔮'][i]||'🏰'; }
 async function skyRegister(){ const r=await api('/api/guild-war/register','POST',{}); if(r&&r.error)bannerMsg(r.error); else bannerMsg('⚔️ Registered! Power Pool: '+(r.powerPool||0)); await skyStatus(); renderGuild(); }
+/* v802 - MOVE THE WHOLE TOWER. Mirrors skyAssign: the route does the moving, the screen redraws
+   from what comes back. */
+async function skyMoveLaneLive(from,to){
+  const r=await api('/api/guild-war/move-lane','POST',{from,to});
+  if(r&&r.error){ bannerMsg(r.error); await skyStatus(); renderGuild(); return 0; }
+  const n=(r&&r.moved)|0;
+  bannerMsg('\u2694 '+n+' line'+(n===1?'':'s')+' move to '+(WAR_LANE_NAMES[to]||('lane '+(to+1)))+'.');
+  await skyStatus(); renderGuild(); return n;
+}
+/* v802 - and the sandbox does the same thing locally, so the simulator behaves like the war.
+   Mirrors skyMoveMember, minus the owner filter: this carries everyone. */
+function skyMoveLane(r, side, fromLane, toLane){
+  if(!r||fromLane===toLane) return 0;
+  const cits=((side==='foe'?r.foe:r.you)||{}).citadels||[];
+  const from=cits[fromLane], to=cits[toLane];
+  if(!from||!to) return 0;
+  const moving=(from.defenders||[]);
+  if(!moving.length) return 0;
+  from.defenders=[];
+  to.defenders=(to.defenders||[]).concat(moving);
+  for(const c of [from,to]){ c.total=(c.defenders||[]).length;
+    c.alive=(c.defenders||[]).filter(d=>d.alive!==false).length; }
+  return moving.length;
+}
 async function skyAssign(memberId,lane){ const r=await api('/api/guild-war/assign','POST',{memberId,lane}); if(r&&r.error)bannerMsg(r.error); await skyStatus(); renderGuild(); }
 async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
   const r=await api('/api/guild-war/assault','POST',{fromLane:lane}); SKY.busy=false;
@@ -14877,13 +14903,22 @@ function skyTowerPanel(stage, side, lane, data, opts){
           +'</div>'; }).join('');
         let mv='';
         if(canMove){
-          mv='<div class="skyMoveRow"><span style="font-size:9px;color:#8b98a9;align-self:center">move all to</span>';
+          /* v802 - "there should be a move player button and a Move lane button". This is the
+             per-player one, now named for what it moves; the whole tower is below the list. */
+          mv='<div class="skyMoveRow"><span style="font-size:9px;color:#8b98a9;align-self:center">Move player</span>';
           for(let t=0;t<5;t++) mv+='<button data-mv="'+escapeHTML(p.key)+'" data-lane="'+t+'"'+(t===lane?' disabled':'')+'>'+(t+1)+'</button>';
           mv+='</div>';
         }
         return '<div class="skyPlayer'+(p.you?' you':'')+'">'+head+rows+mv+'</div>';
       }).join('')
-      :'<div style="font-size:10px;color:#8b98a9;padding:8px 0;text-align:center">Nothing holds this tower.</div>');
+      :'<div style="font-size:10px;color:#8b98a9;padding:8px 0;text-align:center">Nothing holds this tower.</div>')
+      /* v802 - and the whole tower at once, under the last player, for an officer who would
+         otherwise move fifteen of them one at a time */
+      +((canMove && players.length)
+        ? ('<div class="skyMoveRow skyMoveLane"><span style="font-size:9px;color:#ffd45e;align-self:center;font-weight:800">Move lane</span>'
+           + [0,1,2,3,4].map(t=>'<button data-mvlane="'+t+'"'+(t===lane?' disabled':'')+'>'+(t+1)+'</button>').join('')
+           + '</div>')
+        : '');
   const bodyHTML=placeHTML+listHTML;
 
   /* v723 - refresh in place if this very tower is already open: only the sub-line and the list
@@ -14947,6 +14982,18 @@ function skyTowerPanelWire(el, stage, side, lane, data, opts){
     renderSkyfall(data);
     const st3=document.getElementById('skyStage');
     if(st3) skyTowerPanel(st3, side, lane|0, data, opts); }; });
+  /* v802 - the whole tower travels; same shape as the per-player mover above it */
+  el.querySelectorAll('[data-mvlane]').forEach(b=>{ if(b.disabled) return; b.onclick=async()=>{
+    const to=+b.dataset.mvlane;
+    if(opts.live){ b.disabled=true; await skyMoveLaneLive(lane|0, to); el.remove(); return; }
+    const n=skyMoveLane(data, side, lane|0, to);
+    el.remove();
+    if(!n){ bannerMsg('Nothing holds this tower.'); return; }
+    const nm=((((side==='foe'?data.foe:data.you)||{}).citadels||[])[to]||{}).name||('lane '+(to+1));
+    bannerMsg('\u2694 '+n+' line'+(n===1?'':'s')+' move to '+nm+'.');
+    renderSkyfall(data);
+    const st4=document.getElementById('skyStage');
+    if(st4) skyTowerPanel(st4, side, to, data, opts); }; });
   el.querySelectorAll('[data-mv]').forEach(b=>{ b.onclick=async()=>{
     const who=b.dataset.mv, to=+b.dataset.lane;
     if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); el.remove(); return; }
@@ -24102,7 +24149,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789956007000';
+const BUILD_ID = '1789957207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
