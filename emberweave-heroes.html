@@ -9495,8 +9495,15 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
          five seconds whether Nerisse was stunned, silenced, feared or dead, so the counterplay her
          short 8m reach is meant to buy did not exist. `channel` is set here and nowhere else: a
          burning patch is fire-and-forget on purpose, a song is not. */
+      /* v798 (Phil: "a timer starting at 1.5 seconds then around .5 it reapplies back to 1.5") -
+         `acc` STARTS AT THE INTERVAL so the first tick lands on the next frame. The gate is
+         `acc+=dt; if(acc>=interval)`, so with acc:0 the first tick came a full second after she
+         began - her five-second channel did nothing for its first second, no silence and no heal,
+         because the same tick pays both. Only the choir: a burning patch that takes a beat to
+         catch is a different ability, and changing every hazard is a balance change nobody asked
+         for. */
       groundHazards.push({x:C.x,y:C.y,r:R,dmg:0,team:u.team,
-        interval:o.tick||1.0,acc:0,life:o.dur||5,
+        interval:o.tick||1.0,acc:(o.tick||1.0),life:o.dur||5,
         owner:u, channel:true,
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
       floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
@@ -24049,7 +24056,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789952407000';
+const BUILD_ID = '1789953607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
