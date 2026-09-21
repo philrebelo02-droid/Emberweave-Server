@@ -14374,6 +14374,21 @@ async function skyMarchAnim(i){ if(SKY.busy)return;
 async function skyStatus(){ const r=await api('/api/guild-war/status'); SKY.st=(r&&r.enabled)?r:{enabled:false}; return SKY.st; }
 function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
 function skyLaneIcon(i){ return ['🛡️','⚡','👑','🌿','🔮'][i]||'🏰'; }
+/* v803 - the placement block off the status payload: the window, the tower this member holds and
+   the lines it covers. Null in the sandbox, which has no schedule and is always open. */
+function skyPlacement(){
+  try{ if(skySimSandbox()) return null; }catch(e){}
+  try{ return (SKY.st&&SKY.st.placement)||null; }catch(e){ return null; }
+}
+/* v803 - YOUR LINES AND WHERE THEY STAND, with or without a board. A live match knows (it can see
+   which citadel they are in); for the three days of Phil's window before the bracket is drawn there
+   is no match, and the standing pick is the whole answer. */
+function skyYourLines(data){
+  const fromBoard=((data&&data.you)||{}).yours;
+  if(Array.isArray(fromBoard)&&fromBoard.length) return fromBoard;
+  const pl=skyPlacement(); if(!pl||!Array.isArray(pl.lines)) return null;
+  return pl.lines.map(l=>({ line:l.line|0, power:l.power|0, lane:(pl.lane==null)?null:(pl.lane|0) }));
+}
 async function skyRegister(){ const r=await api('/api/guild-war/register','POST',{}); if(r&&r.error)bannerMsg(r.error); else bannerMsg('⚔️ Registered! Power Pool: '+(r.powerPool||0)); await skyStatus(); renderGuild(); }
 /* v802 - MOVE THE WHOLE TOWER. Mirrors skyAssign: the route does the moving, the screen redraws
    from what comes back. */
@@ -14817,7 +14832,7 @@ function skyTowerPanel(stage, side, lane, data, opts){
     /* v770 - the board's own list: every line you own, placed or not. A line that has never been
        placed is on no citadel, so scanning the towers could never find it - and that is exactly
        the state you are in the first time you open one. */
-    const yours=((data.you)||{}).yours;
+    const yours=skyYourLines(data);
     if(Array.isArray(yours) && yours.length){
       mineLines=yours.map(y=>({ line:y.line|0, power:y.power|0,
         at:(y.lane==null?null:(y.lane|0)),
@@ -14855,16 +14870,26 @@ function skyTowerPanel(stage, side, lane, data, opts){
       +'</div>'; })();
 
   /* v772 - the button itself, pinned at the top of the popup on your own towers. */
+  /* v803 (Phil: "place lines here button is broken now" / "i should be able to place my lines
+     still") - AND IT KNOWS WHETHER IT CAN ACT. The button was never wired wrong; Phil was looking
+     at sign-up week, where there is no board, so there was nothing for it to move and no way to
+     say so. Placement is now the member's own standing pick, which exists with or without a
+     board, and the button reads the window rather than the match. */
   const placeTopHTML=(function(){
     if(side!=='you') return '';
     const cits=((data.you)||{}).citadels||[];
-    const yours=((data.you)||{}).yours;
+    const yours=skyYourLines(data);
     let allHere=false;
     if(Array.isArray(yours)&&yours.length) allHere=yours.every(y=>(y.lane|0)===(lane|0) && y.lane!=null);
     else { const mine=[]; cits.forEach((cc,ci)=>(cc.defenders||[]).forEach(d=>{ if(d&&d.you) mine.push(ci); }));
            allHere=!!mine.length && mine.every(ci=>ci===(lane|0)); }
-    return '<div class="skyPlaceTop"><button data-place="all"'+(allHere?' disabled':'')+'>'
-      +(allHere?'\u2694 Your lines are here':'\u2694 Place Lines Here')+'</button></div>'; })();
+    const pl=skyPlacement();
+    const open=pl?!!pl.open:true;              /* the sandbox has no schedule and is always open */
+    const label = !open
+      ? (pl&&pl.opensAt ? ('\u23F3 Towers open '+skyWhen(pl.opensAt)) : '\u23F3 Placement is closed')
+      : (allHere ? '\u2694 Your lines are here' : '\u2694 Place Lines Here');
+    return '<div class="skyPlaceTop"><button data-place="all"'+((allHere||!open)?' disabled':'')+'>'
+      +escapeHTML(label)+'</button></div>'; })();
 
   const listHTML=(players.length?players.map((p,pi)=>{
         const head='<div class="skyPlayerHd"><span class="ord">'+(pi+1)+'</span>'
@@ -14970,7 +14995,11 @@ function skyTowerPanelWire(el, stage, side, lane, data, opts){
       const body={lane:(lane|0)};
       let q=null; try{ q=await api('/api/guild-war/place','POST',body); }catch(e){}
       if(!q||q.error){ b.disabled=false; bannerMsg((q&&q.error)||'Could not place that line.'); return; }
-      bannerMsg('\u2694 '+q.moved+' line'+(q.moved===1?'':'s')+' placed.');
+      /* v803 - for most of Phil's window there is no board yet, so nothing MOVES: the tower is a
+         pick the member holds until the bracket is drawn. Saying "0 lines placed" there reads as a
+         failure of the thing that just succeeded. */
+      bannerMsg(q.standing ? ('\u2694 '+(q.note||'Your tower is set.'))
+              : ('\u2694 '+q.moved+' line'+(q.moved===1?'':'s')+' placed.'));
       el.remove();
       try{ if(typeof skyRefreshMatch==='function') skyRefreshMatch(); }catch(e){}
       return;
@@ -24149,7 +24178,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789957207000';
+const BUILD_ID = '1789959607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -1581,6 +1581,27 @@ function warWhenET(ms){
   }catch(e){ return 'the next prep'; }
 }
 /* v779b - the next moment this guild may place lines, or 0 if there is none left this week */
+/* v803 (Phil: "tuesday-friday 0200-1800 players should be able to place their lines. saturday 0200
+   until tuesday 1800 is my new window i can place my lines") - WHEN A TOWER CAN BE PICKED.
+   Round 1's window reaches back to the hour sign-up opens, three days before the bracket is drawn,
+   so for most of it there is no board to write on - which is exactly why a placement is now a
+   choice held on the member and read when the board is built. Later rounds are their own day.
+       Sat 02:00 -> Tue 18:00      sign-up, the Monday bracket, round 1
+       Wed/Thu/Fri 02:00 -> 18:00  one per round
+   Returns the window that is open now, or the next one; `open` says which. */
+function warPlaceWindow(t){
+  /* `t.schedule` is the ROUNDS array (t.schedule=sch.rounds at creation) and the registration
+     stamps live on the tournament itself - the two halves of warSchedule end up in two places. */
+  const now=warNow(), rounds=(t&&t.schedule)||[];
+  if(!rounds.length||!t.registrationOpensAt) return {open:false, opensAt:0, closesAt:0};
+  const wins=[{a:t.registrationOpensAt, b:rounds[0].lockAt}]
+    .concat(rounds.slice(1).map(r=>({a:r.planningOpensAt, b:r.lockAt})));
+  for(const w of wins){
+    if(now>=w.a && now<w.b) return {open:true, opensAt:w.a, closesAt:w.b};
+    if(now<w.a) return {open:false, opensAt:w.a, closesAt:w.b};
+  }
+  return {open:false, opensAt:0, closesAt:0};   /* after Friday 18:00 - not again this week */
+}
 function warNextPlacementAt(t){
   try{
     const now=warNow();
@@ -1778,6 +1799,25 @@ function warQualifyGuild(g){
      drawn. */
   return { guildId:g.id, name:g.name, banner:g.banner||null, lines, powerPool:lines.reduce((s,l)=>s+l.power,0) };
 }
+/* v803b (Phil: "make sure if i click register, this power number increases everytime someone
+   increases their power") - THE POOL AS IT STANDS RIGHT NOW.
+   `warQualifyGuild` walks every member and rebuilds every line from their heroes, so it already
+   answers this; it is what the Monday seeding and the 18:00 lock both use. The only stale copy in
+   the system was the one on screen. There is no event to increment on - power is a sum over levels,
+   stars, pips, skills, gear, glyphs and research - so it is recomputed.
+   Memoised for 15 seconds per guild, because that walk is not free for a guild of 60 and status is
+   polled. `warPoolForget` drops it when membership changes, so a join or a kick shows at once. */
+const WAR_POOL_CACHE = new Map();
+const WAR_POOL_TTL_MS = 15000;
+function warPoolForget(gid){ WAR_POOL_CACHE.delete(String(gid)); }
+function warLivePool(g){
+  if(!g) return null;
+  const k=String(g.id), hit=WAR_POOL_CACHE.get(k), now=Date.now();
+  if(hit && (now-hit.t)<WAR_POOL_TTL_MS) return hit.q;
+  let q=null; try{ q=warQualifyGuild(g); }catch(e){ return hit?hit.q:null; }
+  WAR_POOL_CACHE.set(k,{t:now,q});
+  return q;
+}
 function warNewMatch(t, roundIndex, aEnt, bEnt){
   const mkSide=ent=>({ guildId:ent?ent.guildId:null, name:ent?ent.name:'— bye —',
     citadels:WAR_LANES.map((l,i)=>({ lane:i, key:l.key, destroyed:false, defenders:[] })),
@@ -1811,6 +1851,23 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
        not happen at all. Placing is the player's job and 18:00 is the deadline.
        What is still unplaced is RECORDED rather than silently dropped - a guild has to be able to
        see that it went into the round a player short, or the penalty is invisible. */
+    /* v803 - A TOWER PICKED BEFORE THE BOARD EXISTED. Phil's window opens at sign-up, three days
+       before this side had citadels to write on, so the pick was held on the member instead. This
+       is where it lands: anyone still unplaced who HAS picked a tower takes it now.
+       This is not the auto-spread v778 removed and it is not a back door into a war nobody turned
+       up for - nothing is chosen for anybody. A member who never picked a tower is still unplaced
+       below, still recorded in `side.missed`, still a NO_SHOW. */
+    { const still=[];
+      for(const x of (side.unplaced||[])){
+        const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
+        const u=DB.users[e.memberId];
+        const ln=(u&&u.skyLane!=null)?(u.skyLane|0):null;
+        if(ln!=null && ln>=0 && ln<5 && !side.citadels[ln].destroyed){
+          side.citadels[ln].defenders.push({memberId:e.memberId, line:(e.line==null?null:(e.line|0))});
+          m.eventLog.push({t:warNow(),e:'STANDING_LANE',member:e.memberId,lane:ln});
+        } else still.push(x);
+      }
+      side.unplaced=still; }
     { const missed=[], who=new Set();
       for(const x of (side.unplaced||[])){ const e=(x&&typeof x==='object')?x:{memberId:x, line:null};
         missed.push({memberId:e.memberId, line:(e.line==null?null:(e.line|0))});
@@ -1943,7 +2000,30 @@ function warDefPower(d){
   const sn=(d&&d.lineSnapshot)||null; if(!Array.isArray(sn)||!sn.length) return 0;
   return Math.round(sn.reduce((x,h)=>x+((h.maxHp||0)/8)+(h.atk||0),0));
 }
+/* v803c (Phil: "the lines in skyfall towers should automatically adjust based on the players
+   increase" / "they shouldnt have to refresh them to fix that") - ONE MEMBER'S LINES AS THEY STAND.
+   The same builder registration, the Monday seeding and the 18:00 lock all use, so a tower in
+   planning and the war that follows it are reading one source. Memoised 15s per member: both
+   guilds are walked on every match view. */
+const WAR_LINES_CACHE = new Map();
+const WAR_LINES_TTL_MS = 15000;
+function warLiveLines(uid){
+  const k=String(uid), hit=WAR_LINES_CACHE.get(k), now=Date.now();
+  if(hit && (now-hit.t)<WAR_LINES_TTL_MS) return hit.v;
+  const u=DB.users[k]; let v=[];
+  try{ v=u?buildRegisteredLines(u):[]; }catch(e){ return hit?hit.v:[]; }
+  WAR_LINES_CACHE.set(k,{t:now,v});
+  return v;
+}
 function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
+  /* v803c - live only while the round is in PLANNING. After the lock `lineSnapshot` is what
+     fights, and a board still re-reading the player would be showing a line that is not in the
+     battle. Live until the lock, frozen after it - the boundary the war itself uses. */
+  const planning=(m.state==='planning');
+  const liveOf=(d)=>{ if(!planning) return null;
+    try{ const ls=warLiveLines(d.memberId);
+      return ls.find(L=>(L.line|0)===(d.line|0)) || (d.line==null?ls[0]:null) || null;
+    }catch(e){ return null; } };
   /* v778 - how many of your own did not place before the lock. The penalty has to be visible or it
      is just a guild quietly fighting a player short with no idea why. */
   return { guildId:gid, name:s.name,
@@ -1961,15 +2041,17 @@ function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
        Same fault as the `power` fixed in v774, same cause - the client was built against the
        SIMULATOR's view, which carries all of this, so it all looked right on a rig. The shape
        below is the simulator's, field for field, because that is what the client already reads. */
-    defenders:c.defenders.map(d=>({ memberId:d.memberId, line:d.line|0, power:warDefPower(d),
+    defenders:c.defenders.map(d=>{ const lv=liveOf(d); return { memberId:d.memberId, line:d.line|0,
+      /* v803c - what that line is worth RIGHT NOW while the round is in planning */
+      power:lv?(lv.power|0):warDefPower(d),
       you:(meId!=null && String(d.memberId)===String(meId)),
-      name:d.name||nameOfUser(d.memberId), alive:d.alive!==false,
-      heroes:(d.lineSnapshot||[]).map(h=>h.key),
+      name:d.name||(lv&&lv.name)||nameOfUser(d.memberId), alive:d.alive!==false,
+      heroes:(lv?lv.heroes:(d.lineSnapshot||[])).map(h=>h.key),
       kills:d.kills|0, fights:d.fights|0,
       retired:((d.kills|0)>=WAR_KILL_CAP && d.alive!==false),
       killsLeft:Math.max(0,WAR_KILL_CAP-(d.kills|0)),
-      hpPct:d.hpState?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
-      assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) })), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
+      hpPct:(d.hpState&&Array.isArray(d.lineSnapshot))?Math.round(100*d.hpState.reduce((x,h,i)=>x+Math.max(0,h.hp),0)/Math.max(1,d.lineSnapshot.reduce((x,h)=>x+h.maxHp,0))):100,
+      assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) }; }), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
 }
 function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
 function warMatchView(t,m,meGid,meId){
@@ -2004,7 +2086,10 @@ function warMatchView(t,m,meGid,meId){
   if(m.state==='planning' && v.you){ // officer placement roster: every registered member + current lane
     const ent=warEntrant(t,meGid), side=m.sides[meGid];
     if(ent&&side){ const laneOf={}; side.citadels.forEach(c=>c.defenders.forEach(d=>{laneOf[d.memberId]=c.lane;}));
-      v.you.roster=ent.lines.map(l=>({memberId:l.memberId,line:l.line|0,name:l.name,power:l.power,
+      /* v803c - the officer's roster reads live too, for the same reason the towers do */
+      v.you.roster=ent.lines.map(l=>({memberId:l.memberId,line:l.line|0,name:l.name,
+        power:(function(){ try{ const x=warLiveLines(l.memberId).find(L=>(L.line|0)===(l.line|0));
+          return x?(x.power|0):l.power; }catch(e){ return l.power; } })(),
         lane:(l.memberId in laneOf)?laneOf[l.memberId]:null})); } }
   return v;
 }
@@ -3333,7 +3418,25 @@ async function api(req,res,url){
                        winnerGuildId:mm.winnerGuildId||null,
                        towers:mm.towers||null }; }).filter(Boolean) })),
           roundIndex:t.roundIndex||0, championGuildId:t.championGuildId||null, now:warNow() },
-        registered:!!ent, yourPowerPool:ent?ent.powerPool:null, canRegister:isLeaderOrOfficer,
+        /* v803 - PLACEMENT, WHICH OUTLIVES ANY ONE BOARD. The window, the tower this member holds,
+           and the lines it applies to - all readable with no match running, which is most of the
+           window Phil asked for. */
+        placement:(function(){ const w=warPlaceWindow(t);
+          return { open:w.open, opensAt:w.opensAt, closesAt:w.closesAt,
+            lane:(me.skyLane==null)?null:(me.skyLane|0),
+            lines:(function(){ try{ return buildRegisteredLines(me)
+              .map(L=>({ line:L.line|0, power:L.power|0 })); }catch(e){ return []; } })() }; })(),
+        registered:!!ent,
+        /* v803b - live while the bracket is still open. Once it is drawn the entrant IS the
+           recomputed authority, so that is the right number to show from then on. */
+        yourPowerPool:(function(){
+          if(!ent) return null;
+          if(t.state!=='registration'||!myGuildObj) return ent.powerPool;
+          const q=warLivePool(myGuildObj); if(!q) return ent.powerPool;
+          if(q.powerPool!==ent.powerPool || (q.lines||[]).length!==(ent.lines||[]).length){
+            ent.lines=q.lines; ent.powerPool=q.powerPool; t.version++; writeDB(); }
+          return q.powerPool; })(),
+        canRegister:isLeaderOrOfficer,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
         match:m?warMatchView(t,m,myGid,me.id):null });
     }
@@ -3415,16 +3518,32 @@ async function api(req,res,url){
        selector: a parameter that is accepted and ignored is how a caller ends up believing it
        worked. */
     if(p==='/api/guild-war/place'){
-      const m=myGid?warMatchOfGuild(t,myGid):null;
-      if(!m||m.state!=='planning') return send(res,400,{error:'No match in planning.'});
-      if(warNow()<(m.revealAt||0)) return send(res,400,{error:'Planning opens at the round reveal \u2014 come back then.'});
-      const side=m.sides[myGid]; if(!side) return send(res,400,{error:'You are not in this war.'});
       const lane=parseInt(b.lane,10);
       if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
+      /* v803 - THE WINDOW IS THE GATE, not the existence of a board. For most of round 1's window
+         there is no match at all, and that is the state Phil was in when the button did nothing. */
+      const win=warPlaceWindow(t);
+      if(!win.open) return send(res,400,{error: win.opensAt
+        ? ('Towers lock at 18:00 \u2014 they open again '+warWhenET(win.opensAt)+'.')
+        : 'Placement is closed for this week.'});
+      /* the choice itself, held on the member and read whenever a board is built. It is set even
+         with no war running: that is the whole point of a window that starts at sign-up. */
+      const had=(me.skyLane==null)?null:(me.skyLane|0);
+      me.skyLane=lane;
+      const m=myGid?warMatchOfGuild(t,myGid):null;
+      /* no board yet - the pick stands and the Monday bracket will honour it */
+      if(!m||m.state!=='planning'){
+        writeDB();
+        return send(res,200,{ ok:true, lane, moved:0, standing:true, wasLane:had,
+          note:'Your tower is set. Your lines take it when the board is drawn.' });
+      }
+      const side=m.sides[myGid]; if(!side){ writeDB(); return send(res,200,{ok:true, lane, moved:0, standing:true}); }
       if(side.citadels[lane].destroyed) return send(res,400,{error:'That citadel has fallen.'});
       const ent=warEntrant(t,myGid);
       const mine=(ent?ent.lines:[]).filter(l=>l.memberId===me.id);
-      if(!mine.length) return send(res,400,{error:'You have no registered lines in this war.'});
+      if(!mine.length){ writeDB();
+        return send(res,200,{ ok:true, lane, moved:0, standing:true,
+          note:'Your tower is set. Your lines take it when your guild enters.' }); }
 
       /* every line of the caller's, wherever it stands - and nobody else's */
       const wants=(d)=>String(d.memberId)===String(me.id);
@@ -5667,7 +5786,8 @@ async function api(req,res,url){
       if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(g.leader!==me.id) return send(res,403,{error:'Only the guild leader can do that.'});
     }
-    if(p==='/api/guild/approve'){ const tid=b.id; g.reqs=g.reqs||[];
+    /* v803b - the pool is memoised per guild; membership is the one input that must not wait */
+    if(p==='/api/guild/approve'){ const tid=b.id; g.reqs=g.reqs||[]; warPoolForget(g.id);
       if(!g.reqs.some(r=>r.id===tid)) return send(res,400,{error:'No such request.'});
       const tu=DB.users[tid]; if(!tu){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB(); return send(res,400,{error:'That player no longer exists.'}); }
       if(tu.guildId){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB(); return send(res,400,{error:'That player already joined a guild.'}); }
@@ -5677,6 +5797,7 @@ async function api(req,res,url){
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/deny'){ g.reqs=(g.reqs||[]).filter(r=>r.id!==b.id); writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/kick'){ if(b.id===me.id) return send(res,400,{error:'Use Leave instead.'});
+      warPoolForget(g.id);
       if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
       g.members=g.members.filter(x=>x!==b.id); const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
       g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()});
@@ -5697,6 +5818,7 @@ async function api(req,res,url){
       delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
 
     if(p==='/api/guild/leave'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+      warPoolForget(g.id);
       if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
       g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
       if((g.members||[]).length===0){ delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
