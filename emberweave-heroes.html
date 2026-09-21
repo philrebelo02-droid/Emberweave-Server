@@ -5006,9 +5006,14 @@ const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) 
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return heroPower(key)+glyphPowerFor(key); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
-  const hp   = heroStat(key,t.hp,'hp')*m.hp + heroFlatHp(key) + (typeof techTotal==='function'?techTotal('hp'):0);
-  const atkP = heroStat(key,t.dmg,'dmg')*m.atk + heroFlatAtk(key) + (typeof techTotal==='function'?techTotal('atk'):0);
-  const atkM = (t.apow||0)>0 ? heroStat(key,t.apow,'apow')*(typeof abilityPowerMul==='function'?abilityPowerMul():1) + heroFlatApow(key) : 0;
+  /* v807 - ROUND WHERE THE FIGHT ROUNDS. `buildUnit` rounds HP and attack to whole points before
+     anything reads them, so those are the numbers the hero actually fights with; pricing the raw
+     fractions put the card half a percent off the same hero priced anywhere else. Same order too -
+     the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
+  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techTotal==='function'?techTotal('hp'):0);
+  const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techTotal==='function'?techTotal('atk'):0);
+  const atkM = (t.apow||0)>0 ? Math.round((Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key))
+                 *(typeof abilityPowerMul==='function'?abilityPowerMul():1)) : 0;
   const armor= heroStat(key,t.armor||0,'armor') + (typeof techTotal==='function'?techTotal('armor'):0) + (tt.armor||0)*3;
   const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techTotal==='function'?techTotal('mr'):0)    + (tt.mr||0)*3;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
@@ -18819,7 +18824,8 @@ let _cloudReady=false;
 function pushSave(){ if(!ACC.token||!_cloudReady)return; const r=rosterPayload(); r.__save=JSON.stringify(G);
   const cp=(typeof myCastlePos==='function')?myCastlePos():{x:50,y:50};
   const world={ region:myRegion(), x:cp.x, y:cp.y, level:playerLevel(),
-                power:teamPower((G.wall&&G.wall.length?G.wall:G.team).filter(Boolean).map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)}))) };
+                /* v805 - your own heroes: the card */
+                power:myTeamPower((G.wall&&G.wall.length?G.wall:G.team).filter(Boolean)) };
   return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}); }
 function cloudSync(){ if(!ACC.token||_cloudTimer)return; _cloudTimer=setTimeout(()=>{ _cloudTimer=null; pushSave(); },1500); }
 function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=null; } if(ACC.token) pushSave(); }
@@ -18911,12 +18917,44 @@ function seededTeam(seed){ const arr=[]; const lv=Math.max(1,playerLevel()); for
 /* v403: NPC/arena team power uses the same combat-value shape as heroPower — geometric mean of what
    the unit survives and what it deals — instead of `hp + dmg*4`, where the HP term alone decided the
    number and a tank-heavy NPC line read as far stronger than it fights. */
-function teamPower(team){ let p=0; (team||[]).forEach(e=>{ const t=e&&HERO_TYPES[e.key]; if(!t) return;
+/* v805 - AN ESTIMATE FOR A TEAM THAT IS NOT YOURS. This counts base stats at level and a rank
+   multiplier and NOTHING else - no glyphs, gear, temper, academy, prayer, skills or refinement -
+   because for an NPC, a bot or a scouted opponent the client holds only {key, level, rank} and
+   there is no account behind it to read any of that from. It was called `teamPower` and was being
+   used for the player's own heroes too, which is how a bench worth 5,391 read 3,647.
+   It is NOT on the same scale as a card and must never be compared with one. A real player's power
+   belongs to the server, computed off THEIR card. */
+/* v809 - THE CARD'S OWN FORMULA, on a hero nobody has invested in. An NPC, a world-map bot or a
+   scouted rival has no account behind them - no ledger, no glyph board, no gear - so this is what
+   their card WOULD read: base stats at their level, their star multiplier, and nothing else. Same
+   formula as `heroPower`, same scale, so a bot and a player can finally be compared.
+   It replaces a different formula that weighted attack and ability power flat and ignored crit,
+   crit damage, damage bonus and the AP role weighting, and came out about 30% light. */
+function cardPowerFor(key, level, stars){
+  const t=HERO_TYPES[key]; if(!t) return 0;
+  const lv=Math.max(1,level|0), b=baseAtLevel(t,lv), sm=starMultFrom(stars||t.stars||1,0,0);
+  const hp=Math.round(b.hp*sm), atkP=Math.round(b.dmg*sm);
+  const atkM=(b.apow||0)>0?Math.round(b.apow*sm):0;
+  const armor=(b.armor||0)*sm, mr=(b.mr||0)*sm;
+  const mitig=Math.min(0.85,(defToDR(armor,lv)+defToDR(mr,lv))/2 + (t.dr||0));
+  const ehp=hp/Math.max(0.15,1-mitig);
+  const apW=(t.role==='Mage'||t.role==='Support')?1.5:0.5;
+  const sw=1/Math.max(0.05,swingInterval(t));
+  const dps=Math.max(1,(atkP+apW*atkM)*sw*(1+0*0.6));
+  return Math.round(POWER_K*Math.sqrt(ehp*dps));
+}
+function estimateTeamPower(team){ let p=0;
+  (team||[]).forEach(e=>{ if(e&&e.key) p+=cardPowerFor(e.key, e.level||1, e.rank||0); });
+  return Math.round(p); }
+function _estimateTeamPowerOld(team){ let p=0; (team||[]).forEach(e=>{ const t=e&&HERO_TYPES[e.key]; if(!t) return;
   const lv=e.level||1, b=baseAtLevel(t,lv), qm=1+(e.rank||0)*0.12;
   const mitig=Math.min(0.85,(defToDR(b.armor*qm,lv)+defToDR(b.mr*qm,lv))/2);
   const ehp=(b.hp*qm)/Math.max(0.15,1-mitig);
   const dps=Math.max(1,(b.dmg+b.apow)*qm/Math.max(0.05,swingInterval(t)));
   p+=5.2*Math.sqrt(ehp*dps); }); return Math.round(p); }
+/* the old name, kept pointing at the estimate so an unconverted caller is still an ESTIMATE rather
+   than a crash - every call site that fields your own bench was converted in v805. */
+function teamPower(team){ return estimateTeamPower(team); }
 // arena spread: 4 opponents at %-better rank bands so you jump ranks instead of climbing 1 at a time.
 // the spread widens as you climb (per the tier rules), and the top 10 all reach toward rank 1.
 function arenaBandBonus(me){ let b=0;
@@ -18948,7 +18986,7 @@ function localCities(n){ const out=[]; for(let i=0;i<n;i++){ const seed=(i*29+pl
 // ---- Arena leaderboard: the server's top 100 (you slot in at your rank if you're in the top 100) ----
 const ARENA_SURNAMES=['Stormcaller','Ironhand','Nightblade','Emberheart','Frostborn','Dawnbreaker','Grimfell','Ashwood','Ravenscar','Duskbane','Wyrmbane','Silvermark'];
 function arenaLeaderboard(){ if(ACC.token&&ARENA.ladder&&ARENA.ladder.length) return ARENA.ladder; const list=[];
-  const myPower=teamPower(G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})));
+  const myPower=myTeamPower(G.team);   /* v805 - your own heroes: the card */
   const P1=Math.max(6000, myPower*2);   // #1 power anchor; ladder strictly descends by rank
   for(let rank=1;rank<=100;rank++){
     if(rank===G.arenaRank){ list.push({rank,name:(G.playerName||'You'),power:myPower,me:true,region:(ZONES[myRegion()]?ZONES[myRegion()].name:'')}); continue; }
@@ -19104,7 +19142,7 @@ async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false
   catch(e){} finally{ ARENA.fetchingLad=false; } return true; }
 function renderArena(){ const b=document.getElementById('arenaBody');
   if(ACC.token){ if(ARENA.oppsRank!==G.arenaRank||!ARENA.opps){ arenaSync().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } if(!ARENA.ladder){ arenaSyncLadder().then(ok=>{ if(ok&&state==='arena') renderArena(); }); } }
-  const myPower=teamPower(G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})));
+  const myPower=myTeamPower(G.team);   /* v805 - your own heroes: the card */
   if(!G.arenaOpps||G.arenaOpps.rank!==G.arenaRank||!G.arenaOpps.list) genArenaOpps();
   const opps=G.arenaOpps.list;
   const daily=arenaDailyReward(G.arenaRank), dready=arenaDailyReady(), dleft=arenaDailyLeft();
@@ -19119,7 +19157,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   /* v681 - Phil's reference, row for row. */
   const lg=arenaLeague(G.arenaRank);
   const defKeys=(G.arenaDef||[]).slice(0,5);
-  const defPower=teamPower(defKeys.filter(Boolean).map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})));
+  const defPower=myTeamPower(defKeys.filter(Boolean));   /* v805 - your own heroes: the card */
   const defCell=(k)=>{ if(!k) return `<div class="arHero empty">\u2014</div>`;
     return `<div class="arHero" title="${escapeHTML((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,64)}<span class="arHeroLv">Lv${heroLevel(k)}</span></div>`; };
   /* an opponent card: portrait, its rank and power beside it, the name, then Challenge */
@@ -19651,7 +19689,18 @@ function marchOutMs(ctype,tx,ty){ const per=(ctype==='defend')?MARCH_MS_PER_SQUA
   return Math.max(1000,Math.round(ms)); }
 function activeMarches(){ if(!G.marches)G.marches=[]; return G.marches; }
 function committedHeroes(){ const s=new Set(); const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); return s; }
-function marchPower(heroes){ return teamPower(heroes.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)}))); }
+/* v805 (Phil: "have everything in the game that uses a real hero off your bench calculate directly
+   off your hero cards") - YOUR OWN HEROES, STRAIGHT OFF THEIR CARDS.
+   `heroPower(key)` is the card, and the card is the only formula in the game that counts everything
+   that adds power: base stats, stars with pips and refinement, glyph slots, the board's ascension
+   bank, the server's personal-ascension bank, equipment, temper, gear resonance, academy research,
+   the ability-power research line, prayer, and skill levels.
+   Every feature that fields heroes off your bench comes through here, so a hero is worth the same
+   on the world map, in a mine, on the wall, in the campaign, the province, the tower and the
+   gauntlet as the number written on their card. */
+function myHeroPower(k){ try{ return heroPower(k)|0; }catch(e){ return 0; } }
+function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHeroPower(k); } return p; }
+function marchPower(heroes){ return myTeamPower(heroes); }
 function marchVerb(ct){ return ct==='attack'?'⚔ Attacking':ct==='group'?'⚔ Group attacking':ct==='defend'?'🛡 Defending':'🔭 Scouting'; }
 function startMarch(ctype,c,heroes){
   const out=marchOutMs(ctype,c.x,c.y), t=Date.now();
@@ -19962,7 +20011,13 @@ var MINE_SRV_MAX=15;   // must match the per-haul clamp in server.js /api/world/
 function mineSignedIn(){ try{ return !!(typeof ACC!=='undefined' && ACC && ACC.token); }catch(e){ return false; } }
 function mineYieldShown(res,level){ var y=mineYield(res,level); return mineSignedIn()?Math.min(MINE_SRV_MAX,y):y; }   // what the SERVER will actually grant per haul
 function mineYield(res,level){ return Math.round((40+level*55) * (1 + (level-1)*0.18) * (typeof embassyMineMul==='function'?embassyMineMul():1)); }   // L1≈95 … L5≈ ~610 (× guild Embassy bonus)
-function mineReqPower(level){ return Math.round(300*Math.pow(1.75,level-1)); }               // L1 300 … L5 ~2750
+/* v809 - POWER_SCALE is the measured gap between the old reading and the card for a hero carrying
+   NOTHING: 1.33x at level 1 rising to 1.51x at 100 across the whole roster, median 1.4276
+   (`Pipeline tools/power-scale.js`). Every gate tuned against the old number is multiplied by it,
+   so a player who has invested in nothing stands exactly where they stood - and everything anyone
+   HAS built into their heroes now counts toward passing a gate that never counted any of it. */
+const POWER_SCALE=1.4276;
+function mineReqPower(level){ return Math.round(300*Math.pow(1.75,level-1)*POWER_SCALE); }   // L1 428 … L5 ~3926
 function mineReqLevel(level){ return [1,8,16,26,36,44,52,58][level-1]||1; }                    // hero-level gate per tier (1-8)
 function mineGatherMs(level){ return (20+level*18)*60000; }                                   // L1 38min … L5 110min gathering
 // each mine is guarded by 5 monsters (deterministic per node) — you must beat them to mine it
@@ -22330,7 +22385,7 @@ function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
 /* ---- TOWER OF TRIALS (the Ascendant Spire): a permanent power ladder. Beat a floor to advance; best floor is
         recorded forever. Elite floors (every 5th) are tougher Wardens; every 10th pays diamonds. Once-daily tribute. ---- */
 function towerState(){ if(!G.tower)G.tower={floor:0,trib:''}; return G.tower; }
-function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)); if(floor%5===0)r=Math.round(r*1.3); return r; }
+function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)*POWER_SCALE); if(floor%5===0)r=Math.round(r*1.3); return r; }   /* v809 - on the card's scale */
 function towerFloorReward(floor){ let gold=Math.round(400*floor*Math.pow(1.08,floor)); if(gold>190000)gold=190000; let s='🪙 '+gold.toLocaleString(); let gg=gold;
   if(floor%2===0){ const bg=200+floor*25; gg+=bg; s+=' · 🪙 +'+bg+' bonus'; }
   if(gg>0){ if(gg>200000)gg=200000; G.gold=(G.gold||0)+gg; try{ txEarn('gold',gg,'tower'); }catch(e){} }
@@ -23474,7 +23529,10 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     let mine=0, theirs=Math.round(CUR.oppPower||0);
     try{ const allies=(typeof units!=='undefined'?units.filter(u=>u.team==='ally'):[]).map(u=>({key:u.key,level:u.level||1,rank:u.rank||0}));
       const roster=allies.length?allies:(G.team||[]).filter(Boolean).map(k=>({key:k,level:(typeof heroLevel==='function'?heroLevel(k):1),rank:0}));
-      mine=roster.length?teamPower(roster):0; }catch(e){ mine=0; }
+      /* v805 - your own heroes read their cards; a roster rebuilt from live units keeps the
+         estimate, since those carry no account behind them */
+      mine=roster.length?(roster.every(e=>e&&e.key&&G.unlocked&&G.unlocked[e.key])
+        ? myTeamPower(roster.map(e=>e.key)) : estimateTeamPower(roster)):0; }catch(e){ mine=0; }
     try{ if(!theirs&&typeof CUR.opp!=='undefined'&&Array.isArray(CUR.opp)) theirs=teamPower(CUR.opp.map(e=>({key:e.key,level:e.level||1,rank:e.rank||0}))); }catch(e){}
     const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
@@ -24197,7 +24255,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789961407000';
+const BUILD_ID = '1789966807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

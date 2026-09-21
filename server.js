@@ -403,20 +403,29 @@ function sanitizeRoster(arr){
   }
   return out;
 }
+/* v808 - a hero's card, memoised. The leaderboard prices up to 500 accounts at five heroes each on
+   one request and every one of those is a full snapshot: level, stars, pips, refinement, glyphs,
+   personal ascension, gear, temper, resonance, academy, prayer and skill levels resolved into a
+   unit. 15 seconds is short enough that a player sees their own change almost at once and long
+   enough that a leaderboard page is priced once rather than 2,500 times. */
+const CARD_POWER_CACHE = new Map();
+const CARD_POWER_TTL_MS = 15000;
+function cardPowerForget(uid){ const p=String(uid)+'|'; for(const k of CARD_POWER_CACHE.keys()) if(k.startsWith(p)) CARD_POWER_CACHE.delete(k); }
+function cardPower(u, key){
+  if(!u||!key) return 0;
+  const ck=String(u.id)+'|'+key, hit=CARD_POWER_CACHE.get(ck), now=Date.now();
+  if(hit && (now-hit.t)<CARD_POWER_TTL_MS) return hit.v;
+  let v=0; try{ v=heroCardPower(u,key); }catch(e){ return hit?hit.v:0; }
+  CARD_POWER_CACHE.set(ck,{t:now,v});
+  return v;
+}
 function ledgerTeamPower(u){
   const led=ensureLedger(u);
   const keys=Array.isArray(u.team)?u.team.map(h=>h&&h.key).filter(k=>k&&led.unlocked[k]).slice(0,5):[];
   const use=keys.length?keys:Object.keys(led.unlocked).slice(0,5);
+  /* v808 - the card, the same number the player is looking at */
   let p=0;
-  for(const k of use){
-    const h=led.hero[k]; if(!h) continue;
-    const lvl=ledHeroLevel(led,k);
-    const base=SIM.HERO_BASE[k]||{stars:1};
-    const stars=Math.max(base.stars||1, Math.min(5, h.stars|0));
-    p += lvl*14 + stars*70 + 60;
-    if(u.glyphs) p += glyphHeroPower(u,k);
-    if(u.gear) p += gearHeroPower(u,k);
-  }
+  for(const k of use) p += cardPower(u,k);
   return Math.round(p);
 }
 /* v328 — A STORED ROSTER LINE HAS NO LEVEL AND NO RANK. sanitizeRoster():337 writes bare {key}, so
@@ -437,7 +446,25 @@ function hydrateRoster(u, arr){
     out.push({ key:k, level:ledHeroLevel(led,k)||1, rank:Math.max(base.stars||1, Math.min(5, h.stars|0)) }); }
   return out;
 }
-function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0; team=hydrateRoster(owner, team); let p=0; for(const h of team){ p += (h.level||1)*14 + (h.rank||0)*70 + 60; if(owner&&owner.glyphs) p += glyphHeroPower(owner, h.key); if(owner&&owner.gear) p += gearHeroPower(owner, h.key); } return Math.round(p); }
+/* v808 - a team is the sum of its heroes' CARDS. An account with no ledger behind it (an NPC bot
+   with a seeded {key,level,rank} roster) has no card to read, so those keep the old estimate -
+   v809 puts the bots themselves back on this scale. */
+function serverTeamPower(team, owner){ if(!Array.isArray(team))return 0;
+  team=hydrateRoster(owner, team);
+  let p=0;
+  const real=!!(owner && owner.led && owner.led.hero);
+  for(const h of team){
+    if(real){ p += cardPower(owner, h.key); continue; }
+    /* v809 - an NPC has no account to read a card from, so this IS their card: the same formula on
+       base stats at their level and star rank, which is what a card reads for a hero nobody has
+       invested in. Mirrors the client's `cardPowerFor`, so a bot and a player are comparable. */
+    try{ const b=SIM.HERO_BASE[h.key];
+      if(b){ p += Math.round(unitCardPower(SIM.heroCombatStats(h.key,
+        {level:Math.max(1,h.level|0)||1, stars:Math.max(b.stars||1,Math.min(5,h.rank|0))}), h.key)); continue; }
+    }catch(e){}
+    p += (h.level||1)*14 + (h.rank||0)*70 + 60;
+  }
+  return Math.round(p); }
 /* ==================== GLYPH ASCENSION v2 — server-authoritative ====================
    The browser NEVER computes a craft result, passive value, socket result, or promotion.
    Catalog: server/glyph-source.json (218 finished-glyph definitions). Recipes are compiled
@@ -1021,8 +1048,12 @@ function personalAscensionFlatStats(u,key){
   return glyphFlatStats({glyphs:{boards:{[key]:{ascended:bank,slots:[]}},finished:{}}},key);
 }
 // server-owned hero snapshot: level from saved XP (capped by player level), stars/pips from save, glyphs from server
-function snapshotHeroFromServer(u, key, save){
+function snapshotHeroFromServer(u, key, save, sOpts){
   const base=SIM.HERO_BASE[key]; if(!base) return null;
+  /* v806 - the CARD puts no glyph or personal-ascension flat through its formula (v480's
+     `_powerNoGlyph`); a board counts as its TIER instead, added afterwards. The power reader asks
+     for the same unit the card is priced off. Combat never passes this. */
+  const noGlyphStats=!!(sOpts&&sOpts.noGlyphStats);
   // AUDIT C1: progression comes from the SERVER-owned ledger, never from the uploaded save blob.
   // v267 (release gate 1): migrate FIRST, so the legacy save-blob branch below can never be the
   // source of a live snapshot — it survives only as an unreachable safety net.
@@ -1042,7 +1073,8 @@ function snapshotHeroFromServer(u, key, save){
     return null;
   }
   glyphPersonalMigrate(u);
-  const glyphStats=glyphFlatStats(u,key), personalStats=personalAscensionFlatStats(u,key);
+  const glyphStats=noGlyphStats?{}:glyphFlatStats(u,key);
+  const personalStats=noGlyphStats?{}:personalAscensionFlatStats(u,key);
   const fl=Object.assign({},glyphStats);
   for(const stat of Object.keys(personalStats))fl[stat]=(fl[stat]||0)+personalStats[stat];
   let gf=null;
@@ -1732,13 +1764,56 @@ function heroSkillFactor(h){
 }
 /* v785 - THE ONE POWER FORMULA. A line's power is the sum of its heroes' power, and both are
    computed from here so they cannot drift apart. */
-function heroPower(h){ return ((h.maxHp||0)/8 + (h.atk||0)) * heroSkillFactor(h); }
+/* v806 (Phil: "these hero cards are truth for all features") - THE HERO CARD'S OWN FORMULA.
+   Power is the geometric mean of what a hero survives and what a hero deals (v403), and it is the
+   only calculation in the game that counts everything that adds power: base stats, stars with pips
+   and refinement, equipment, temper, gear resonance, academy research, the ability-power line,
+   prayer, skill levels, and a glyph board's tier.
+   `ROLE_SWING` is the CARD's swing table, deliberately - the combat core keeps its own per-hero
+   `atkSpeed` for the fight itself, and this is a price, not a simulation. The atkSpeed RATING still
+   counts, carried in as the ratio the core applied. */
+const POWER_K=5.2;
+const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
+function swingIntervalOf(b){ return (b&&b.swing!=null)?b.swing:((ROLE_SWING[b&&b.role])||1.0); }
+/* priced off a unit built WITHOUT glyph flats - see heroCardPower */
+function unitCardPower(s,key){
+  if(!s) return 0;
+  const base=SIM.HERO_BASE[key]||{};
+  const lv=s.level||1;
+  const dr=Math.min(0.6,(s.dmgRed||0)+(base.dr||0));
+  const mitig=Math.min(0.85,(SIM.CORE.defToDR(s.armor,lv)+SIM.CORE.defToDR(s.mr,lv))/2 + dr);
+  const ehp=(s.maxHp||0)/Math.max(0.15,1-mitig);
+  const apW=(base.role==='Mage'||base.role==='Support')?1.5:0.5;
+  const crit=Math.min(0.6,s.crit||0);
+  const baseSpd=(base.atkSpeed||1);
+  /* the core stored speed = baseSpd * (1 + atkSpdRating*0.004); the card wants that same bracket
+     over its own swing interval */
+  const rating=baseSpd>0?((s.speed||baseSpd)/baseSpd):1;
+  const sw=1/Math.max(0.05, swingIntervalOf(base)/Math.max(0.01,rating));
+  const dps=Math.max(1,((s.atkP||0)+apW*(s.atkM||0))*sw
+    *(1+crit*(s.critDmg||0.6))*(s.dmgBonus||1)*(1+0.25*(s.energyReg||0)));
+  return POWER_K*Math.sqrt(ehp*dps);
+}
+/* v806 - ONE HERO, PRICED EXACTLY AS THEIR CARD PRICES THEM. */
+function heroCardPower(u,key){
+  if(!u||!SIM.HERO_BASE[key]) return 0;
+  let p=0;
+  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true}),key); }catch(e){ return 0; }
+  try{ const sk=ledSkillArr(u.led,key)||[]; for(let i=0;i<4;i++) p+=Math.max(0,((sk[i]|0)||1)-1)*20; }catch(e){}
+  try{ p+=glyphHeroPower(u,key); }catch(e){}
+  return Math.round(p);
+}
+/* the line's own heroes are already resolved units - price them the same way. The skill bonus and
+   the glyph tier ride on the OWNER, so a line is priced through heroCardPower where the owner is
+   known and falls back to the unit alone where it is not. */
+function heroPower(h){ return unitCardPower(h, h&&h.key); }
 function buildRegisteredLines(u){
   const save=parseSaveOf(u);
   const rled=ensureLedger(u);   // AUDIT v229 (P0): only heroes this member actually OWNS count toward war power
   const mk=(heroes,i)=>({ memberId:u.id, line:i, name:u.name+' \u00b7 line '+(i+1),
     /* v785 - skill level is part of power now */
-    heroes, power:Math.round(heroes.reduce((s,h)=>s+heroPower(h),0)) });
+    /* v806 - a line is the sum of its heroes' CARDS */
+    heroes, power:Math.round(heroes.reduce((s,h)=>s+heroCardPower(u,h&&h.key),0)) });
 
   /* v740 - THE MEMBER'S OWN CHOICE WINS, when they have made one. Re-checked against the ledger on
      every read rather than trusted from when it was saved, and a hero that somehow appears twice is
@@ -1763,7 +1838,7 @@ function buildRegisteredLines(u){
 
   /* no choice made (or none of it survives): the automatic deal, strongest first, five at a time */
   const all=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
-  all.sort((a,b)=>heroPower(b)-heroPower(a));                     /* v785 - skill counts here too */
+  all.sort((a,b)=>heroCardPower(u,b&&b.key)-heroCardPower(u,a&&a.key));   /* v806 - by the card */
   const out=[];
   for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5) out.push(mk(all.slice(i,i+5), out.length));
   return out;
@@ -1775,13 +1850,14 @@ function warLinesView(u, editable, why){
   const card=(h)=>({ key:h.key, level:h.level|0, stars:h.stars|0, pips:h.pips|0,
     /* v785 - the same formula the line uses, so a line's power is the sum of its cards */
     skillLv:(Array.isArray(h.skillLv)?h.skillLv.slice():[1,1,1,1]),
-    power:Math.round(heroPower(h)) });
+    /* v806 - the card's own number, so a line is exactly the sum of the cards shown on it */
+    power:heroCardPower(u,h&&h.key) });
   const lines=buildRegisteredLines(u);
   const onALine=new Set();
   for(const L of lines) for(const h of L.heroes) onALine.add(h.key);
   const bench=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]&&!onALine.has(k))
     .map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean)
-    .sort((a,b)=>heroPower(b)-heroPower(a)).map(card);            /* v785 */
+    .sort((a,b)=>heroCardPower(u,b&&b.key)-heroCardPower(u,a&&a.key)).map(card);   /* v806 */
   return { ok:true, cap:WAR_LINES_MAX, chosen:!!(Array.isArray(u.warLines)&&u.warLines.length),
     owned:onALine.size+bench.length,
     lines:lines.map(L=>({ line:L.line|0, power:L.power, heroes:L.heroes.map(card) })),
@@ -4648,10 +4724,21 @@ async function api(req,res,url){
       const picked=rosterKeys(me.team).filter(k=>led.unlocked[k]).slice(0,5);
       squad=picked.length?picked:Object.keys(led.unlocked).filter(k=>led.unlocked[k]).slice(0,5);
       const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
-      yourPower=Math.round(snaps.reduce((a,u)=>a+(u.maxHp||0)/8+Math.max(u.atkP||0,u.atkM||0)*3+(u.heal||0)*2,0));
+      /* v809 (Phil: "it should all be the power, same power") - the CARD, like everywhere else.
+         This was a sixth formula - maxHp/8 + max(atkP,atkM)*3 + heal*2 - which weighted attack flat,
+         paid healers double and counted neither armour, magic resist, crit, swing speed nor the
+         ability-power role weighting. */
+      yourPower=Math.round(squad.reduce((a,k)=>a+cardPower(me,k),0));
     }catch(e){}
     const _led=ensureLedger(me), _pr=portalProg(_led,mode);
-    return send(res,200,{stage:st, mode, portal:PORTAL_LABEL[mode], yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
+    /* v809 - the stage's recommendation is AUTHORED and hand-tuned, so the encounter data is left
+       exactly as written and the number is put on the card's scale as it is served. Measured across
+       the roster and nine levels, a card reads 3.0908x what that old campaign formula read
+       (`Pipeline tools/power-scale.js`), so a stage stands where it was authored to stand. */
+    const CAMP_POWER_SCALE=3.0908;
+    const stOut=Object.assign({},st);
+    if(stOut.recommendedPower) stOut.recommendedPower=Math.round(stOut.recommendedPower*CAMP_POWER_SCALE);
+    return send(res,200,{stage:stOut, mode, portal:PORTAL_LABEL[mode], yourPower, squad, ladderMinLevel:GLYPH_MIN_LEVEL,
       bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(_led),
       locked:portalLocked(_led,mode)||portalChapterLocked(_led,mode,node), cleared:_pr.cleared|0,
       stars:(_pr.stars[node]|0), sweepUnlocked:(_pr.stars[node]|0)>=3,
