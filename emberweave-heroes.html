@@ -4571,16 +4571,41 @@ function fmtScale(mul,dps,sc){ if(!sc||sc==='—')return ''; let s='';
   if(dps) s+=(s?' + ':'')+Math.round(dps*100)+'%/s'+(mul?'':' of '+sc);
   return s; }
 function scaleLabelFor(t,sc){ const m=heroScaleMode({t}); if(m==='ap'&&sc==='Attack') return 'Ability Power'; if(m==='ad'&&sc==='Ability Power') return 'Attack'; return sc; }
+/* v791 (Phil: "all CC times, need to be added to skill descriptions ingame") - the control an
+   ability carries, read from CC_SECONDS, which is the table the FIGHT reads. One source of truth:
+   change a duration and every tooltip in the game changes with it, because nothing here is typed
+   by hand. Single and area are both named, because they are different numbers - a stun is 3.5s
+   single and 2s in an area - and that is exactly what a player is choosing between.
+   Taunt and freeze print their authored values: Phil's table does not set them, so v790 left them
+   as they were, and they are still control times he asked to see. */
+function ccMetaSegs(o){
+  if(!o || typeof CC_SECONDS==='undefined') return [];
+  const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
+  const LABEL={stun:'Stun', fear:'Fear', root:'Root', silence:'Silence', muSilence:'Silence',
+               sleep:'Sleep', slow:'Slow'};
+  const out=[], seen={};
+  for(const k in CC_SECONDS){
+    if(typeof o[k]!=='number' || !o[k]) continue;
+    const name=LABEL[k]||k; if(seen[name]) continue; seen[name]=1;
+    const sec=CC_SECONDS[k][aoe?'aoe':'single'];
+    out.push(name+' '+sec+'s'+(aoe?' (area)':''));
+  }
+  if(typeof o.tauntDur==='number' && o.tauntDur && !seen.Taunt) out.push('Taunt '+o.tauntDur+'s'+(aoe?' (area)':''));
+  if(typeof o.freeze==='number' && o.freeze && !seen.Freeze) out.push('Freeze '+o.freeze+'s'+(aoe?' (area)':''));
+  return out;
+}
 function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!kit)return ''; const seg=[];
   const mel=t.range<60, fakeU={key,t};
   const rng=(rad)=> rad?(+(rad/METER).toFixed(1)+' m') : (mel?(t.reach?('Melee · '+(+(t.reach/METER).toFixed(1))+' m reach'):'Melee'):(+(t.range/METER).toFixed(1)+' m'));
   if(idx===0){ const ab=t.ability, d=ULT_DEF[ab]||{}, sc=scaleLabelFor(t,ULT_SCALE[ab]);
     const s=fmtScale(d.mul||d.hpMul||d.healMul, d.dps, sc); if(s)seg.push(s);
+    for(const c of ccMetaSegs(d)) seg.push(c);                 /* v791 - the control it applies */
     seg.push('Range '+rng(d.radius)); seg.push('Cast '+castTimeFor(fakeU,'ult')+'s');
     if(d.dur)seg.push((d.channel?'Channels ':'Lasts ')+d.dur+'s'); seg.push('Ultimate — charges with energy'); }
   else if(idx===1||idx===2){ const ab=idx===1?kit.green:kit.blue; if(!ab)return ''; const sc=scaleLabelFor(t,KIT_SCALE[ab.type]);
     let rad=ab.radius; if(['hookline','frozenorb'].includes(ab.type)) rad=ab.range; if(!rad && ['freeze','chainlight','stun','slow','mortal','dot','creeprot'].includes(ab.type)) rad=t.range;
     const s=fmtScale(ab.mul, ab.dps, sc); if(s)seg.push(s);
+    for(const c of ccMetaSegs(ab)) seg.push(c);                /* v791 - the control it applies */
     seg.push('Range '+rng(rad)); seg.push('Cast '+castTimeFor(fakeU,idx===1?'green':'blue')+'s');
     if(ab.dur)seg.push('Lasts '+ab.dur+'s'); if(ab.cd)seg.push('Cooldown '+ab.cd+'s'); }
   else return '';
@@ -23924,7 +23949,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789948807000';
+const BUILD_ID = '1789950007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
