@@ -4582,17 +4582,19 @@ function ccMetaSegs(o){
   if(!o || typeof CC_SECONDS==='undefined') return [];
   const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
   const LABEL={stun:'Stun', fear:'Fear', root:'Root', silence:'Silence', muSilence:'Silence',
-               sleep:'Sleep', slow:'Slow'};
+               sleep:'Sleep', slow:'Slow', tauntDur:'Taunt', freeze:'Freeze'};   /* v793 */
   const out=[], seen={};
   for(const k in CC_SECONDS){
     if(typeof o[k]!=='number' || !o[k]) continue;
     const name=LABEL[k]||k; if(seen[name]) continue; seen[name]=1;
+    /* v794 - and if the ability both lasts and ticks, it RE-APPLIES: say so, generically, so any
+       future hazard gets the same sentence without anyone writing it. */
     const sec=CC_SECONDS[k][aoe?'aoe':'single'];
-    out.push(name+' '+sec+'s'+(aoe?' (area)':''));
+    const rep=(typeof o.dur==='number' && o.dur>0 && typeof o.tick==='number' && o.tick>0)
+      ? (', every '+o.tick+'s for '+o.dur+'s') : '';
+    out.push(name+' '+sec+'s'+(aoe?' (area'+rep+')':(rep?' ('+rep.slice(2)+')':'')));
   }
-  if(typeof o.tauntDur==='number' && o.tauntDur && !seen.Taunt) out.push('Taunt '+o.tauntDur+'s'+(aoe?' (area)':''));
-  if(typeof o.freeze==='number' && o.freeze && !seen.Freeze) out.push('Freeze '+o.freeze+'s'+(aoe?' (area)':''));
-  return out;
+  return out;   /* v793 - taunt and freeze are in CC_SECONDS now, so the loop above covers them */
 }
 function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!kit)return ''; const seg=[];
   const mel=t.range<60, fakeU={key,t};
@@ -4619,6 +4621,15 @@ function skillDesc(key,idx){ const t=HERO_TYPES[key],kit=KITS[key];
   return desc + abilityMeta(key,idx);
 }
 // a short "current effect" readout for a skill at its level, given the hero's effective attack/HP
+/* v792 - the control time an ability ACTUALLY applies, for any text that quotes one. Same table
+   and same single/area rule the fight uses, so a readout cannot drift from the fight again. Falls
+   back to the authored value only when the table has nothing to say about that control. */
+function ccSecFor(o,k){
+  if(!o) return 0;
+  if(typeof CC_SECONDS==='undefined' || !CC_SECONDS[k]) return o[k]||0;
+  const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
+  return CC_SECONDS[k][aoe?'aoe':'single'];
+}
 function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
   if(!apw) apw=atk;   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
@@ -4630,7 +4641,13 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     if(t.ability==='symphony') return '✚ '+Math.round(apw*(d.healMul||0.30)*sm)+' all allies + ⚔ '+Math.round(apw*(d.dmgMul||0.30)*sm)+' all enemies';
     if(t.ability==='thundershower') return '⚡ '+Math.round(apw*(d.mul||0.6)*sm)+'/tick · '+(d.dur||3)+'s';
     if(t.ability==='plumage') return '✚ cleanse + '+Math.round(apw*(d.heal||0.8)*sm)+' · −'+Math.round((d.shred||0.3)*100)+'% enemy defence';
-    if(t.ability==='quietwings') return '💤 '+(d.sleep||2.2)+'s sleep all · ⚔ team +'+Math.round(((d.buff||1.3)-1)*100)+'%';
+    /* v793b (Phil: "hers is specific because she heals allies per enemy ability silenced") -
+       NERISSE'S ULTIMATE HAD NO ENTRY HERE and fell through to the default, so a no-damage support
+       ult printed a damage number on its card. The `case 'deepchoir'` further down is in the switch
+       on a KIT type (green/blue) and has never run - deepchoir is an ultimate. Silence length comes
+       from ccSecFor, which keeps a channelled control at its channel. */
+    if(t.ability==='deepchoir') return '\uD83D\uDD07 '+ccSecFor(d,'silence')+'s silence in 8m, re-sung every '+(d.tick||1)+'s for '+(d.dur||5)+'s \u00b7 \u271a each silenced enemy heals the ally nearest it for '+Math.round(apw*0.30*sm)+' per second \u00b7 no damage';
+    if(t.ability==='quietwings') return '💤 '+ccSecFor(d,'sleep')+'s sleep all · ⚔ team +'+Math.round(((d.buff||1.3)-1)*100)+'%';
     if(t.ability==='openeverydoor') return '🔒 '+(d.lock||1.6)+'s lock all · ⚡ steal '+(d.steal||35);
     if(t.ability==='rewind') return '↺ team health from '+(d.back||5)+'s ago + revive';
     if(t.ability==='hivemind') return '🐝 '+(d.n||30)+' bees · ✚ '+Math.round(hp*(d.healPct||0.02)*sm*10)+' team heal';
@@ -4676,11 +4693,11 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'creeprot': case 'dot': case 'aoedot': return '⚔ '+(ab.mul?Math.round(atk*ab.mul*sm)+' + ':'')+'DoT '+Math.round(atk*(ab.dps||.5)*sm)+'/s';
     case 'punchflurry': return '⚔ '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5);
     case 'frozenorb': return '❄ '+Math.round(apw*(ab.mul||1.1)*sm)+' to every foe in a 28 m line + chill';
-    case 'freeze': return '❄ '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+(ab.stun||2)+'s stun';
+    case 'freeze': return '❄ '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+ccSecFor(ab,'stun')+'s stun';
     case 'sunburst': return '☀ '+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
     case 'duality': return '⚔/🛡 stance swap';
     case 'toxbreath': return '☠ '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
-    case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+' + '+(ab.root||2)+'s root';
+    case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+' + '+ccSecFor(ab,'root')+'s root';
     case 'crescendo': return '✚ '+Math.round(apw*2*sm)+' heal';
     case 'chantzone': return '✚ '+Math.round(apw*(ab.hps||0.6)*sm)+'/s allies · ⚔ '+Math.round(apw*(ab.dps||0.35)*sm)+'/s foes';
     case 'honeyglob': return '🍯 '+Math.round(apw*2*sm)+' + '+Math.round((ab.heal||0.14)*100)+'% HP heal';
@@ -4690,18 +4707,23 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     /* v527 — the design-pack behaviours */
     case 'shred': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% armour';
     case 'mrshred': return '✨ '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% resist';
-    case 'knockstun': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+(ab.stun||1)+'s stun + knockback';
-    case 'deepchoir': return '5s silence in 8m · each affected enemy heals its nearest ally for 30% of that enemy’s Ability Power each second · no damage';
-    case 'aoeStun': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+(ab.stun||2)+'s stun'+(ab.silence?' + '+ab.silence+'s silence':'');
+    case 'knockstun': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+ccSecFor(ab,'stun')+'s stun + knockback';
+    /* v792 - Nerisse's "Choir of the Deep Sky". This said 5s, typed by hand, while v790 made an
+       area silence 1.5s - the game was quoting a number the fight had stopped using. */
+    /* v793b - DEAD: this switch is on a green/blue KIT type and deepchoir is an ultimate, so this
+       has never run. The live one is the t.ability check in the ult chain above. Left in place
+       because it is harmless and a future kit could use the type. */
+    case 'deepchoir': return ccSecFor(d,'silence')+'s silence in 8m · each affected enemy heals its nearest ally for 30% of that enemy’s Ability Power each second · no damage';
+    case 'aoeStun': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+ccSecFor(ab,'stun')+'s stun'+(ab.silence?' + '+ccSecFor(ab,'silence')+'s silence':'');
     case 'evadecounter': return '🌀 evade + ⚔ '+Math.round(atk*(ab.mul||1.8)*sm)+' counter';
     case 'interruptslam': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + interrupt';
     case 'banner': return '🛡 team +'+Math.round((1-(ab.dr||0.82))*100)+'% DR · ⚡ +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
     case 'atkcrush': return '⚔ '+Math.round(atk*(ab.mul||1.5)*sm)+' + −'+Math.round((ab.pct||0.35)*100)+'% enemy attack';
     case 'energysteal': return '⚡ steal '+(ab.steal||30)+' energy + ⚔ '+Math.round(atk*(ab.mul||1.2)*sm);
     case 'energygift': return '⚡ ally +'+(ab.give||25)+' energy (+'+(ab.perKey||6)+'/key)';
-    case 'silencestrike': return '✨ '+Math.round(apw*(ab.mul||1.3)*sm)+' + '+(ab.silence||2.2)+'s silence';
+    case 'silencestrike': return '✨ '+Math.round(apw*(ab.mul||1.3)*sm)+' + '+ccSecFor(ab,'silence')+'s silence';
     case 'orbheal': return '✚ '+Math.round(apw*(ab.mul||0.35)*sm)+' to every ally';
-    case 'sleepbouquet': return '💤 '+(ab.sleep||2)+'s sleep on the fullest ult';
+    case 'sleepbouquet': return '💤 '+ccSecFor(ab,'sleep')+'s sleep on the fullest ult';
     case 'healbuff': return '✚ '+Math.round(apw*(ab.mul||0.9)*sm)+' + ⚔ +'+Math.round(((ab.atk||1.25)-1)*100)+'% attack';
     case 'linkheal': return '✚ '+Math.round(apw*(ab.mul||0.5)*sm)+' ×2 + shared healing';
     case 'lastbreath': return '🛡 '+Math.round(apw*(ab.mul||1.8)*sm)+' shield · cannot fall below 1';
@@ -4709,13 +4731,13 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'markreveal': return '✦ mark: +'+Math.round(((ab.mul||1.25)-1)*100)+'% damage taken';
     case 'summonmirage': return '✨ a mirage of herself · 30% stats · until it dies';
     case 'mirage': return '🛡 '+Math.round(hp*(ab.pct||0.18)*sm)+' shield + '+Math.round((ab.eva||0.15)*100)+'% dodge';
-    case 'effigy': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + effigy ('+(ab.stun||1)+'s stun on break)';
+    case 'effigy': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + effigy ('+ccSecFor(ab,'stun')+'s stun on break)';
     case 'gravknot': return '🌀 pull + slow'+(ab.mul?' · ✨ '+Math.round(apw*ab.mul*sm):'');
     case 'thornguard': return '🛡 '+Math.round(hp*(ab.pct||0.16)*sm)+' shield + '+Math.round((ab.thorn||0.55)*100)+'% retaliation';
     case 'incense': return '⚔ −'+Math.round((ab.pct||0.25)*100)+'% enemy attack · ✚ cleanse';
     case 'chainquench': return '⚔ '+Math.round(atk*(ab.mul||0.8)*sm)+' + pull + burn '+Math.round(atk*(ab.dps||0.35)*sm)+'/s';
     case 'chapterrewrite': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + strips buffs · −'+Math.round((ab.pct||0.3)*100)+'% stats';
-    case 'grapple': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' + pull + '+(ab.stun||1)+'s stun';
+    case 'grapple': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' + pull + '+ccSecFor(ab,'stun')+'s stun';
     case 'burrowguard': return '🕳 untargetable '+(ab.dur||1.4)+'s → ⚔ '+Math.round(atk*(ab.mul||1.7)*sm);
     default: return '⚔ '+Math.round(atk*(ab.mul||1)*sm)+(ab.stun?' + stun':'');
   }
@@ -9277,7 +9299,11 @@ const CC_SECONDS={
   silence:  {single:3.0, aoe:1.5},
   muSilence:{single:3.0, aoe:1.5},
   sleep:    {single:5.0, aoe:5.0},
-  slow:     {single:3.0, aoe:3.0}
+  slow:     {single:3.0, aoe:3.0},
+  /* v793 (Phil: "Taunt 5 seconds single target, 3 seconds AOE / Freeze 3 seconds single target and
+     1.5 seconds multiple") - the last two. tauntDur lands on silencedT, freeze lands on stunned. */
+  tauntDur: {single:5.0, aoe:3.0},
+  freeze:   {single:3.0, aoe:1.5}
 };
 /* v790 - a slow's STRENGTH, which never existed: `slow` is only a timer and the movement step had
    0.55 hardcoded, so every slow in the game slowed by 45% whoever cast it and whatever its level.
@@ -9296,7 +9322,14 @@ function skillScaleOpts(o, sm, lv){
     const v=o[k]; if(typeof v!=='number' || !v) continue;
     out=out||Object.assign({},o); out[k]=v*sm;
   }
-  /* v790 - control time is SET from the table, by kind and by whether this cast is an area. */
+  /* v790 - control time is SET from the table, by kind and by whether this cast is an area.
+     v794 (Phil: "it doesnt break the rule, she should silence every second during that 5 second
+     channel ... but she keeps reapplying") - NO CHANNEL EXCEPTION. v793 let a control authored
+     equal to its own `dur` keep the channel's length, which carved a hole in a table that had just
+     been made uniform. It is not needed: an ability that channels already re-applies its control
+     on every tick, so the table's own 1.5s area silence landing once a second for five seconds
+     silences for the whole channel and lets go 1.5s after the last tick. The rule holds and the
+     ability works. */
   { const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
     for(const k in CC_SECONDS){
       const v=o[k]; if(typeof v!=='number' || !v) continue;
@@ -9330,7 +9363,9 @@ function ccChanceFor(u, t){
    2.5, fear 2.5, sleep 2.5, slow 3.0, and silence 5.0 for deepchoir's channel - so nothing that
    exists is shortened by a frame, and nothing in future can climb past what a designer chose. */
 /* v790 - the ceiling only has to catch stacking and buffs now; CC_SECONDS sets the length. */
-const CC_DUR_MAX={ stunned:4.0, fearT:4.5, _sleepT:5.5, silencedT:5.0, slow:3.5 };
+/* v793 - silencedT carries BOTH a 5s single taunt and deepchoir's 5s channel; stunned carries a
+   3s single freeze as well as a 3.5s single stun. */
+const CC_DUR_MAX={ stunned:4.0, fearT:4.5, _sleepT:5.5, silencedT:5.5, slow:3.5 };
 function ccApply(u, t, field, dur){
   if(!t || !(dur > 0)) return false;
   { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
@@ -9444,8 +9479,14 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');abilShot(u,o,e,'#5ee89b');});break;}
     /* CHOIR OF THE DEEP SKY — Nerisse's aimed orb. No damage; nearest ally to each silenced enemy heals. */
     case 'deepchoir':{ const R=o.radius||8*METER, C=aimCtr||((tgt&&tgt.alive)?tgt:(nearestEnemy(u)||u));
+      /* v795 (Phil: "anyone in a different row can interrupt her channel restoring allies
+         silenced") - THE CHOIR KNOWS WHO IS SINGING IT. Without an owner this hazard ran its full
+         five seconds whether Nerisse was stunned, silenced, feared or dead, so the counterplay her
+         short 8m reach is meant to buy did not exist. `channel` is set here and nowhere else: a
+         burning patch is fire-and-forget on purpose, a song is not. */
       groundHazards.push({x:C.x,y:C.y,r:R,dmg:0,team:u.team,
         interval:o.tick||1.0,acc:0,life:o.dur||5,
+        owner:u, channel:true,
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
       floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
       ringBurst(C.x,C.y,0x4aa8d8,22); break; }
@@ -12320,7 +12361,15 @@ function updateBattle(dt){
     if(u.pullT>0){ u.pullT-=dt; const p=(u.immovable||(u._gearImmovableT||0)>0)?null:u.pulledBy; if(p&&p.alive){ const dx=p.x-u.x,dy=p.y-u.y,dd=Math.hypot(dx,dy)||1; const stop=(u.pullStop!=null?u.pullStop:u.r+p.r); if(dd>stop){ const step=Math.min((u.pullSpeed||22)*dt, dd-stop); u.x+=dx/dd*step; u.y+=dy/dd*step; } } } else if(u.pullStop!=null||u.pullSpeed!=null||u._pullGhost){ u.pullStop=null; u.pullSpeed=null; u._pullGhost=false; }   // drag toward the puller: stop-distance (default: touching) + speed (default 22). Grasping Vow overrides both to yank the farthest foe right up to Vulmar, phasing through bodies.
   });
   // Ashfall & other ground hazards: burn any enemy of the owner standing in the patch, tick by tick, until it burns out
-  for(let i=groundHazards.length-1;i>=0;i--){ const h=groundHazards[i]; h.life-=dt; h.acc+=dt;
+  for(let i=groundHazards.length-1;i>=0;i--){ const h=groundHazards[i];
+    /* v795 - a CHANNELLED hazard ends the moment its owner cannot sustain it: killed, stunned,
+       feared or silenced. Only the choir sets `channel`; a burning patch outlives its caster by
+       design. What has already landed is not taken back - the enemies keep the silence they were
+       last given and recover from it normally. It is the RE-APPLICATION that stops. */
+    if(h.channel){ const o=h.owner;
+      if(!o || !o.alive || (o.stunned||0)>0 || (o.fearT||0)>0 || (o.silencedT||0)>0){
+        groundHazards.splice(i,1); continue; } }
+    h.life-=dt; h.acc+=dt;
     if(h.acc>=h.interval){ h.acc-=h.interval; if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
       units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,h.slow); if(h.silence)e.silencedT=Math.max(e.silencedT||0,h.silence);
         if(h.choir){ let _b=null,_bd=Infinity;
@@ -23949,7 +23998,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789950007000';
+const BUILD_ID = '1789951207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
