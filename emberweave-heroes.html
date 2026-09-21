@@ -9226,16 +9226,57 @@ function gsplitScaleArea(u,o){
    `radius`/`n`/`angle`/`range`, which are shape, not magnitude.
    The fractions are clamped: an authored 0.40 damage reduction would otherwise reach 0.93 at
    level 100, and a skill must not approach immunity. */
-const SKILL_SCALE_KEYS=['stun','fear','tauntDur','sleep','freeze','root','silence','slow',
-  'shield','shieldPct','healPct','healMul','regen','shred','bleed'];
+/* v789 (Phil: "these CC times are too long" / "silence 11 seconds is crazy") - CONTROL TIME IS
+   NOT IN THIS LIST. It was, and on the damage curve the authored values became a lock-out:
+   silence 5.0 -> 11.68s, slow 3.0 -> 7.01s, stun and root 2.5 -> 5.84s. The 11.68s names the
+   mistake: that 5s silence is deepchoir's, authored as {dur:5, silence:5, tick:1.0} - a CHANNELLED
+   ult whose silence is meant to last exactly as long as the channel, so stretching one without the
+   other is not a stronger ability, it is a broken one.
+   Skill level still governs control, and harder than a duration ever did: since v787 it decides
+   whether the control LANDS at all, 1% of the chance per level below the target. Scaling the time
+   as well was skill double-dipping. Magnitude - shields, heals, shred, damage reduction - keeps
+   the full x2.337 below. */
+const SKILL_SCALE_KEYS=['shield','shieldPct','healPct','healMul','regen','shred','bleed'];
+/* v790 - CONTROL TIME IS A DESIGN TABLE, NOT A CURVE. Phil set these outright, and said what
+   levelling a skill buys instead: "the leveling skills increases chance to hit and damage" and
+   "slow speed for slows". Chance to land is v787, damage is dB/apB, slow strength is below.
+   SINGLE vs AOE is read from the ability's own shape data - the same radius / cone / n the engine
+   already uses to decide who gets hit. Checked against all 68 abilities that carry a control:
+   26 single, 42 AoE, and it splits `warcry` correctly, which exists as both "Bellow" (radius, AoE)
+   and "Warcry" (no radius, single).
+   TAUNT and FREEZE are not in Phil's table and keep exactly what they were authored. */
+const CC_SECONDS={
+  stun:     {single:3.5, aoe:2.0},
+  fear:     {single:4.0, aoe:2.0},
+  root:     {single:4.0, aoe:4.0},
+  silence:  {single:3.0, aoe:1.5},
+  muSilence:{single:3.0, aoe:1.5},
+  sleep:    {single:5.0, aoe:5.0},
+  slow:     {single:3.0, aoe:3.0}
+};
+/* v790 - a slow's STRENGTH, which never existed: `slow` is only a timer and the movement step had
+   0.55 hardcoded, so every slow in the game slowed by 45% whoever cast it and whatever its level.
+       0.55 at level 1 (45% slower)  ->  0.30 at level 100 (70% slower) */
+const SLOW_MUL_BASE=0.55, SLOW_MUL_PER_LEVEL=0.0025, SLOW_MUL_FLOOR=0.30;
+function slowMulFor(lv){
+  return Math.max(SLOW_MUL_FLOOR, SLOW_MUL_BASE-Math.max(0,((lv|0)||1)-1)*SLOW_MUL_PER_LEVEL);
+}
 const SKILL_SCALE_FRAC={dr:0.85, allyDr:0.85, thorn:0.85, slowPct:0.90};
-function skillScaleOpts(o, sm){
-  if(!o || !(sm>1)) return o;
+function skillScaleOpts(o, sm, lv){
+  /* v790 - runs for EVERY cast, not only a levelled one: the control table applies at level 1 too */
+  if(!o) return o;
   let out=null;
+  if(!(sm>1)) sm=1;
   for(const k of SKILL_SCALE_KEYS){
     const v=o[k]; if(typeof v!=='number' || !v) continue;
     out=out||Object.assign({},o); out[k]=v*sm;
   }
+  /* v790 - control time is SET from the table, by kind and by whether this cast is an area. */
+  { const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
+    for(const k in CC_SECONDS){
+      const v=o[k]; if(typeof v!=='number' || !v) continue;
+      out=out||Object.assign({},o); out[k]=CC_SECONDS[k][aoe?'aoe':'single'];
+    } }
   for(const k in SKILL_SCALE_FRAC){
     const v=o[k]; if(typeof v!=='number' || !v) continue;
     out=out||Object.assign({},o); out[k]=Math.min(SKILL_SCALE_FRAC[k], v*sm);
@@ -9258,8 +9299,20 @@ function ccChanceFor(u, t){
   const tl = ((t && t.level) | 0) || 1;
   return Math.max(0, Math.min(1, 1 - Math.max(0, tl - lv) * CC_MISS_PER_LEVEL));
 }
+/* v789 - THE CEILING ON CONTROL, per kind. Every control in the game passes through ccApply, so
+   this is the one place that can promise a stun is never a stun-lock however it was authored,
+   levelled, buffed or stacked. Each cap is set AT the highest value the game authors today - stun
+   2.5, fear 2.5, sleep 2.5, slow 3.0, and silence 5.0 for deepchoir's channel - so nothing that
+   exists is shortened by a frame, and nothing in future can climb past what a designer chose. */
+/* v790 - the ceiling only has to catch stacking and buffs now; CC_SECONDS sets the length. */
+const CC_DUR_MAX={ stunned:4.0, fearT:4.5, _sleepT:5.5, silencedT:5.0, slow:3.5 };
 function ccApply(u, t, field, dur){
   if(!t || !(dur > 0)) return false;
+  { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
+  /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
+     deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
+  if(field==='slow'){ const m=slowMulFor((u&&u._castLv)||(u&&u.level)||1);
+    t.slowMul=Math.min(t.slowMul==null?1:t.slowMul, m); }
   if(Math.random() >= ccChanceFor(u, t)){
     try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
     return false;
@@ -9268,7 +9321,7 @@ function ccApply(u, t, field, dur){
   return true;
 }
 function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
-  o=skillScaleOpts(o, sm);   /* v786 - before a single case reads it */
+  o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
@@ -11150,7 +11203,10 @@ function think(u,dt){
       enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:sx,y:sy},e)<R){ dealDamage(u,e,dmg,'#f2e07a'); if(Math.random()<0.5)burstAt(e.x,e.y,0xfff0a0,5); } });
       ringBurst(sx,sy,0xf2d84a,14); for(let i=0;i<3;i++){ const a=Math.random()*6.28, d=Math.random()*R; burstAt(sx+Math.cos(a)*d,sy+Math.sin(a)*d,0xfff0a0,3); } }
     return; }   // rooted: cannot auto-attack or cast during the channel (Static Veil grants 30% dodge throughout)
-  if(u.slow>0)u.slow-=dt; const spd=u.speed*(u.slow>0?0.55:1)*MOVE_MUL;   // v309: +20% travel to match the stride
+  /* v790 (Phil: "and slow speed for slows") - the slow's STRENGTH comes from the skill that cast
+     it, not a constant. This was 0.55 for every slow in the game from every hero at every level. */
+  if(u.slow>0)u.slow-=dt; else if(u.slowMul!=null) u.slowMul=null;
+  const spd=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*MOVE_MUL;   // v309: +20% travel to match the stride
   /* v542 (Phil, 9 Sep): "while a heroes ult animation is going on, they cannot use other animations including walk
      — unless CC'd then it breaks animation — since they cannot walk animation it also means they cannot move
      physically". The ULT CLIP ROOTS THE HERO: no step, no swing, no skill until the clip has played out (the lock
@@ -23868,7 +23924,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789947607000';
+const BUILD_ID = '1789948807000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
