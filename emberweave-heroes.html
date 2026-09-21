@@ -1520,6 +1520,15 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrk{position:absolute;top:3%;bottom:3%;left:120px;right:2%;z-index:9;display:flex;flex-direction:column;
   padding:2px 6px 8px;border-style:solid;border-color:transparent;border-width:14px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 20px stretch;box-shadow:0 12px 34px rgba(0,0,0,.7);}
 .skyBrkHd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
+/* v801 - one finished tournament per row: the week, the champion's crest and name, who they beat
+   and the tower score, and how many guilds were in it. */
+.skyHistRow{display:flex;align-items:center;gap:7px;padding:4px 6px;border-bottom:1px solid #1b2438;font-size:10.5px;}
+.skyHistRow .wk{flex:none;width:68px;color:#8b98a9;font-variant-numeric:tabular-nums;}
+.skyHistRow .cr{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
+.skyHistRow .cr svg{display:block;width:100%;height:100%;}
+.skyHistRow .nm{flex:1;min-width:0;font-weight:800;color:#ffe9b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyHistRow .rn{flex:none;max-width:44%;color:#8b98a9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skyHistRow .ct{flex:none;width:20px;text-align:right;color:#6f7d90;}
 .skyBrkHd{padding-top:2px;}
 .skyBrkHd b{font-family:Georgia,'Times New Roman',serif;font-size:12.5px;color:#ffe9b8;
   text-shadow:0 1px 2px #000,0 0 8px rgba(255,205,110,.35);}
@@ -15095,11 +15104,47 @@ function skyBracketOpen(){
     +'</div>';
 
   const body='<div class="skyBrkBody">'+svg+joinHTML+nodeHTML+cupHTML+'</div>';
-  return skyPanelFrame('<b>\u2694 Battle Bracket</b>', body, 'bracket');
+  /* v801 (Phil: "in battle Bracket at the top right next to the X put tournament history") */
+  const el=skyPanelFrame('<b>\u2694 Battle Bracket</b>', body, 'bracket',
+    '<button class="btn xs secondary" style="font-size:9px" data-hist="1">\uD83C\uDFC6 History</button>');
+  if(el){ const h=el.querySelector('[data-hist]'); if(h) h.onclick=()=>{ el.remove(); skyHistoryOpen(); }; }
+  return el;
 }
 /* v730b - one frame, three panels. Bracket, Rank and Schedule all open in the same box and close
    each other, so two can never be stacked on the board at once. */
-function skyPanelFrame(titleHTML, bodyHTML, cls){
+/* v801 - `rightHTML` sits immediately left of the close button. Every panel on this screen is
+   built by this one function, so the alternative was a second header to keep in step. */
+/* v801 - EVERY TOURNAMENT THAT HAS EVER FINISHED. This reads the results record v800 keeps
+   forever: who was in it, who beat whom, the tower counts, who lifted the cup. The reports - the
+   line-ups, the snapshots, the event logs - are dropped when sign-up opens for the next week, so
+   there is deliberately nothing to click into here. */
+async function skyHistoryOpen(){
+  let d=null; try{ d=await api('/api/guild-war/history','GET'); }catch(e){}
+  const list=(d&&d.history)||[];
+  let body;
+  if(!list.length){
+    body='<div class="skyBrkList" style="overflow:visible"><div class="skyLFEmpty">'
+      +'No tournament has finished yet.</div></div>';
+  } else {
+    body='<div class="skyBrkList">'+list.map(rec=>{
+      const fin=((rec.rounds||[])[(rec.rounds||[]).length-1]||{}).matches||[];
+      const f=fin[0]||null;
+      const champ=rec.champion||null;
+      const runner=f?[f.a,f.b].filter(Boolean).find(x=>x&&champ&&x.guildId!==champ.guildId):null;
+      const score=(f&&f.towers)?((f.a&&champ&&f.a.guildId===champ.guildId)
+        ? (f.towers.a+'\u2013'+f.towers.b) : (f.towers.b+'\u2013'+f.towers.a)):'';
+      const crest=(b)=>b?guildBannerSVG(b,22):'\u2694';
+      return '<div class="skyHistRow">'
+        +'<span class="wk">'+escapeHTML(rec.weekKey||'')+'</span>'
+        +'<span class="cr">'+(champ?crest(champ.banner):'\u2694')+'</span>'
+        +'<span class="nm">'+escapeHTML(champ?champ.name:'\u2014')+'</span>'
+        +(runner?'<span class="rn">beat '+escapeHTML(runner.name)+(score?' '+score:'')+'</span>':'<span class="rn"></span>')
+        +'<span class="ct">'+((rec.entrants||[]).length)+'</span>'
+      +'</div>'; }).join('')+'</div>';
+  }
+  return skyPanelFrame('<b>\uD83C\uDFC6 Tournament History</b>', body, 'history');
+}
+function skyPanelFrame(titleHTML, bodyHTML, cls, rightHTML){
   const stage=document.getElementById('skyStage'); if(!stage) return null;
   const was=stage.querySelector('.skyBrk'); const same=was&&was.dataset.kind===cls;
   if(was) was.remove();
@@ -15107,7 +15152,8 @@ function skyPanelFrame(titleHTML, bodyHTML, cls){
   const el=document.createElement('div');
   el.className='skyBrk'; el.dataset.kind=cls;
   el.innerHTML='<div class="skyBrkHd">'+titleHTML
-    +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></div>'+bodyHTML;
+    +'<span style="display:flex;align-items:center;gap:6px">'+(rightHTML||'')
+    +'<button class="btn xs secondary" style="font-size:9px" data-close="1">\u2715</button></span></div>'+bodyHTML;
   stage.appendChild(el);
   el.querySelector('[data-close]').onclick=()=>el.remove();
   return el;
@@ -24056,7 +24102,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789954807000';
+const BUILD_ID = '1789956007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

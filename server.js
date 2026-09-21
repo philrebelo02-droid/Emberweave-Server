@@ -1588,6 +1588,29 @@ function warNextPlacementAt(t){
   }catch(e){}
   return 0;
 }
+/* v800 (Phil: "thats only the reports, the results for who won is records forever") - THE RESULT
+   OF A WEEK, and nothing else. No lines, no hero snapshots, no hp states, no event logs - those are
+   the REPORTS, and they are what made the database 432 MB. This is who was in it, who beat whom,
+   and who lifted the cup: 3,353 bytes a week, which is 0.17 MB a year and 1.66 MB for a decade.
+   There is no cap. Forever means forever. */
+function warResultRecord(t){
+  const who=g=>{ if(!g) return null; const e=(t.entrants||[]).find(x=>x.guildId===g);
+    return { guildId:g, name:(e&&e.name)||'?', seed:(e&&e.seed)||0, banner:(e&&e.banner)||null }; };
+  return {
+    weekKey:t.weekKey, id:t.id, endedAt:warNow(),
+    championGuildId:t.championGuildId||null,
+    champion:t.championGuildId?who(t.championGuildId):null,
+    entrants:(t.entrants||[]).map(e=>({ guildId:e.guildId, name:e.name, seed:e.seed|0,
+      powerPool:e.powerPool|0, lines:(e.lines||[]).length, banner:e.banner||null })),
+    rounds:(t.rounds||[]).map(r=>({ name:r.name,
+      matches:(r.matchIds||[]).map(id=>{ const m=t.matches[id]; if(!m) return null;
+        const opp=g=>Object.keys(m.sides||{}).find(x=>x!==g);
+        const towers=g=>{ const o=opp(g); return o?((m.sides[o].citadels||[]).filter(c=>c.destroyed).length):0; };
+        return { a:who(m.aGuildId), b:who(m.bGuildId), winnerGuildId:m.winnerGuildId||null,
+          towers: (m.aGuildId&&m.bGuildId)?{ a:towers(m.aGuildId), b:towers(m.bGuildId) }:null };
+      }).filter(Boolean) }))
+  };
+}
 function warTierOfGuild(t,gid){
   if(!gid) return 'participant';
   if(t.championGuildId===gid) return 'champion';
@@ -1622,15 +1645,20 @@ function getTournament(){
                    on their account before the week is dropped. */
       try{ for(let i=0;i<8 && prev.state!=='finished';i++){ const v=prev.version; warAdvance(prev); if(prev.version===v) break; } }catch(err){}
       try{ if(prev.state==='finished') warEscrowRewards(prev); }catch(err){}
-      /* v799 - THE FINISHED TOURNAMENT IS NOT KEPT. Eight of them in full came to 432 MB at the
+      /* v799 - THE REPORTS ARE NOT KEPT. Eight finished tournaments in full came to 432 MB at the
          scale this is built for (a level 7 guild holds 60 players; 16 guilds x ~5 lines is 4,800
          registered lines and 9,000 board defenders across the four rounds, 48.1 MB a week), and
          writeDB serialises the WHOLE database on every debounced write - 1,323 ms of blocked event
-         loop against a 200 ms debounce. Node is single-threaded, so that is the entire game
+         loop against a 200 ms debounce. Node is single-threaded, so that was the entire game
          stopping for over a second at a time, for every player, most often on a war day.
-         Nothing read it. A player's reward lives on `u.pendingWarRewards`, written by
-         warEscrowRewards above and held on the USER, so letting the tournament go cannot cost
-         anyone anything. */
+         Nobody read them. A player's reward lives on `u.pendingWarRewards`, written by
+         warEscrowRewards above and held on the USER, so letting the reports go costs nobody
+         anything.
+         v800 (Phil: "the results for who won is records forever") - but the RESULT is kept. Who
+         was in it, who beat whom, the tower counts, who lifted the cup: 3,353 bytes a week, which
+         is 1.66 MB for a decade. No cap. */
+      try{ DB.tournaments.history=DB.tournaments.history||{};
+           DB.tournaments.history[prev.weekKey]=warResultRecord(prev); }catch(err){}
       delete DB.tournaments.archive;   /* and shed any archive an existing install is carrying */
     }
     const anchor=warWeekAnchor(now), sch=warSchedule(anchor);
@@ -3308,6 +3336,13 @@ async function api(req,res,url){
         registered:!!ent, yourPowerPool:ent?ent.powerPool:null, canRegister:isLeaderOrOfficer,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
         match:m?warMatchView(t,m,myGid,me.id):null });
+    }
+    /* v800 - every tournament that has ever finished, newest first. Results only - the reports
+       are gone by design, and this is what "who won" means. */
+    if(p==='/api/guild-war/history'){
+      const h=(DB.tournaments||{}).history||{};
+      const list=Object.keys(h).sort().reverse().map(k=>h[k]).filter(Boolean);
+      return send(res,200,{ ok:true, history:list });
     }
     if(p==='/api/guild-war/match'){ const m=myGid?warMatchOfGuild(t,myGid):null;
       if(!m) return send(res,200,{match:null});
