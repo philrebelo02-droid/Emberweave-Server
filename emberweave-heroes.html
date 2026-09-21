@@ -15004,7 +15004,29 @@ function skyTowerPanel(stage, side, lane, data, opts){
     +placeTopHTML;
   stage.appendChild(el);
   skyTowerPanelWire(el, stage, side, lane, data, opts);
+  /* v814 (Phil: Edit Team 5,624, the tower 5,524 - "fail man") - RE-ASK ON OPEN.
+     Nothing on this screen polls: `SKY.st` holds whatever the last skyStatus() fetched and the
+     board draws off that, so a war can sit on screen showing the state from whenever something
+     last happened to ask. Every other screen computes power in the CLIENT off the local save, so
+     an upgrade shows there at once and only Skyfall can be behind.
+     The panel opens immediately with what is in hand, and corrects itself a moment later only if
+     the answer actually moved. */
+  if(opts.live && !opts._refreshed) skyTowerRefresh(side, lane, opts);
   return el;
+}
+/* v814 - ask the server again, and redraw only if something changed. */
+async function skyTowerRefresh(side, lane, opts){
+  let before='';
+  try{ before=JSON.stringify(((SKY.st&&SKY.st.match&&SKY.st.match.you)||{}).yours||null)
+    +'|'+(((SKY.st&&SKY.st.match)||{}).version|0); }catch(e){}
+  try{ await skyStatus(); }catch(e){ return; }
+  let after='';
+  try{ after=JSON.stringify(((SKY.st&&SKY.st.match&&SKY.st.match.you)||{}).yours||null)
+    +'|'+(((SKY.st&&SKY.st.match)||{}).version|0); }catch(e){}
+  if(after===before) return;
+  const open=document.querySelector('.skyTowerPanel');
+  if(!open || open.dataset.key!==(side+':'+lane)) return;   /* they moved on - leave it alone */
+  await skyBoardReload(side, lane, Object.assign({}, opts, {_refreshed:true}));
 }
 /* v723 - the panel's buttons, hung again after every in-place refresh: the rows they live on are
    replaced, so a handler bound once would be bound to a node that is no longer in the document. */
@@ -24269,7 +24291,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789976407000';
+const BUILD_ID = '1789978207000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
