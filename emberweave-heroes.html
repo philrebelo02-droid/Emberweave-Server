@@ -13329,7 +13329,13 @@ function show(name){
      The Skyfall screen is not torn down by opening a battle (#skyStage survives it), so a running
      war has nothing to rebuild: show the screen it left, still being played. */
   if(name==='skyfall'){ let live=false; try{ live=!!(SKYSIM&&SKYSIM.running&&document.getElementById('skyStage')); }catch(e){}
-    if(!live) renderSkyfall(); }
+    /* v815 (Phil: "if i enter skyfall and click on the tower first, it doesnt register the proper
+       power") - draw at once with what is in hand, then FETCH and draw again. This rendered straight
+       off SKY.st - whatever the last skyStatus() fetched, possibly from app open - and only Edit
+       Team fetched on the way in, which is why opening it first was the only thing that worked. */
+    if(!live){ renderSkyfall();
+      (async()=>{ try{ await skyStatus(); }catch(e){ return; }
+        try{ if(!(SKYSIM&&SKYSIM.running)){ SKYFALL_VIEW=null; renderSkyfall(null); } }catch(e){} })(); } }
   if(name==='arenaShop') renderArenaShop();
   if(name==='market') renderMarket();
   if(name==='shadymarket') renderShadyMarket();
@@ -15014,15 +15020,20 @@ function skyTowerPanel(stage, side, lane, data, opts){
   if(opts.live && !opts._refreshed) skyTowerRefresh(side, lane, opts);
   return el;
 }
-/* v814 - ask the server again, and redraw only if something changed. */
+/* v814 - ask the server again, and redraw only if something changed.
+   v815 - "changed" is measured on WHAT THE TOWER READS. v814 watched only the match's own lines,
+   which do not exist during sign-up week - so before and after were both empty, it concluded
+   nothing had moved, and never redrew. With no match the tower reads SKY.st.placement. */
+function skyTowerPrint(){
+  try{ const st=(typeof SKY!=='undefined'&&SKY.st)||{}, m=st.match||null, pl=st.placement||null;
+    return JSON.stringify([ m&&m.you&&m.you.yours||null, m&&(m.version|0),
+      pl&&pl.lines||null, pl&&pl.lane, pl&&pl.open ]);
+  }catch(e){ return ''; }
+}
 async function skyTowerRefresh(side, lane, opts){
-  let before='';
-  try{ before=JSON.stringify(((SKY.st&&SKY.st.match&&SKY.st.match.you)||{}).yours||null)
-    +'|'+(((SKY.st&&SKY.st.match)||{}).version|0); }catch(e){}
+  const before=skyTowerPrint();
   try{ await skyStatus(); }catch(e){ return; }
-  let after='';
-  try{ after=JSON.stringify(((SKY.st&&SKY.st.match&&SKY.st.match.you)||{}).yours||null)
-    +'|'+(((SKY.st&&SKY.st.match)||{}).version|0); }catch(e){}
+  const after=skyTowerPrint();
   if(after===before) return;
   const open=document.querySelector('.skyTowerPanel');
   if(!open || open.dataset.key!==(side+':'+lane)) return;   /* they moved on - leave it alone */
@@ -24291,7 +24302,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789978207000';
+const BUILD_ID = '1789980007000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
