@@ -1520,6 +1520,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .skyBrk{position:absolute;top:3%;bottom:3%;left:120px;right:2%;z-index:9;display:flex;flex-direction:column;
   padding:2px 6px 8px;border-style:solid;border-color:transparent;border-width:14px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 20px stretch;box-shadow:0 12px 34px rgba(0,0,0,.7);}
 .skyBrkHd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
+/* v811 - a hero tile's own power, top-right: the level chip holds the top-left and the ascension
+   frame draws its stars along the BOTTOM, which is where this sat first and collided with them. */
+.skyTPw{position:absolute;right:1px;top:1px;z-index:4;padding:0 2px;border-radius:3px;
+  background:rgba(6,9,15,.88);color:#ffd45e;font-size:7px;font-weight:800;line-height:1.3;
+  pointer-events:none;font-variant-numeric:tabular-nums;}
 /* v802 - the lane move sits under the whole list, ruled off from the per-player rows above it */
 .skyMoveLane{margin-top:6px;padding-top:6px;border-top:1px solid #2a3550;}
 /* v801 - one finished tournament per row: the week, the champion's crest and name, who they beat
@@ -15422,7 +15427,12 @@ function skySchedOpen(){
 const SKYTEAM={ lines:[], bench:[], meta:{}, cap:7, editable:true, why:'', dirty:false,
   sel:0, pick:null, slot:0, msg:'', bad:false, ro:false, loading:false };
 
-function skyTeamPower(keys){ let n=0; for(const k of keys) n+=((SKYTEAM.meta[k]||{}).power|0); return n; }
+/* v811 (Phil: "these hero cards are truth for all features") - THE SUM OF THE CARDS. This summed
+   the per-hero power the SERVER sent with the line. Both come from the same formula and matched
+   hero for hero on a rig account, but Phil's five read 5,439 here against 5,389 on their cards, in
+   the arena, on the city wall and in the bonus stage - so the card wins, and the tiles now carry
+   their own numbers so a difference shows on the hero rather than only in the total. */
+function skyTeamPower(keys){ let n=0; for(const k of (keys||[])){ if(k) n+=myHeroPower(k); } return n; }
 function skyTeamOnLine(){ const s=new Set(); for(const L of SKYTEAM.lines) for(const k of L) s.add(k); return s; }
 
 /* read the server's answer into the buffer */
@@ -15510,11 +15520,15 @@ async function skyTeamSave(){ if(!SKYTEAM.editable||!SKYTEAM.dirty) return;
   skyTeamRender(); }
 
 /* ------------------------------------------------------------------ drawing */
+/* v811 (Phil: "things like vault, campaign, province dont show power") - and the Skyfall tile
+   carries the hero's own power, so a line's total can be read back to the hero it came from. */
 function skyTeamCard(k, cls){
   if(!k) return '<div class="'+(cls||'skyTroopCard')+' gap"></div>';
   const lv=((SKYTEAM.meta[k]||{}).level)|0;
+  const pw=myHeroPower(k);
   return '<div class="'+(cls||'skyTroopCard')+'" data-k="'+escapeHTML(k)+'" title="'+escapeHTML(((typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k])||{}).name||k)+'">'
-    +heroIcon(k,48)+(lv?('<span class="clv">'+lv+'</span>'):'')+'</div>';
+    +heroIcon(k,48)+(lv?('<span class="clv">'+lv+'</span>'):'')
+    +(pw?('<span class="skyTPw">\u2694'+pw.toLocaleString()+'</span>'):'')+'</div>';
 }
 
 /* v744 - the selected slot, written out. It fills the 148px the five slots leave and answers the
@@ -18592,7 +18606,7 @@ function renderRoster(){
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:'');
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span><br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
+    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
        Two separate things were wrong with picking a hero:
@@ -24255,7 +24269,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789968607000';
+const BUILD_ID = '1789971607000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
