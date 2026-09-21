@@ -14765,6 +14765,21 @@ function renderSkyfall(data){
 }
 let SKYFALL_VIEW=null;
 const WAR_LANE_NAMES=['Iron Gate','Storm Watch','Crown Spire','Verdant Sanctuary','Rift Tower'];
+/* v804 (Phil: "place lines here now just closes the tower, doesnt place heroes just closes the
+   window") - AFTER A PLACEMENT, REDRAW THE BOARD. What stood here was a call to `skyRefreshMatch`,
+   which is defined nowhere in this file; the `typeof` guard around it meant the miss was silent, so
+   every successful placement closed its panel and left the towers showing the state from before it.
+   `SKYFALL_VIEW` is the board's cached view and `renderSkyfall` rebuilds from it when it is given
+   nothing, so it has to be cleared or the redraw redraws the stale one. The panel is then reopened
+   on the tower that was just filled, which is the same thing the sandbox path has always done. */
+async function skyBoardReload(side, lane, opts){
+  try{ await skyStatus(); }catch(e){}
+  SKYFALL_VIEW=null;
+  try{ renderSkyfall(null); }catch(e){ return; }
+  if(lane==null) return;
+  try{ const st=document.getElementById('skyStage');
+    if(st) skyTowerPanel(st, side||'you', lane|0, SKYFALL_VIEW, opts||{}); }catch(e){}
+}
 function skyTowerPanel(stage, side, lane, data, opts){
   opts=opts||{};
   const cit=((side==='you'?data.you:data.foe)||{}).citadels||[];
@@ -15001,7 +15016,7 @@ function skyTowerPanelWire(el, stage, side, lane, data, opts){
       bannerMsg(q.standing ? ('\u2694 '+(q.note||'Your tower is set.'))
               : ('\u2694 '+q.moved+' line'+(q.moved===1?'':'s')+' placed.'));
       el.remove();
-      try{ if(typeof skyRefreshMatch==='function') skyRefreshMatch(); }catch(e){}
+      await skyBoardReload(side, lane|0, opts);
       return;
     }
     const n=skyPlaceMine(data, lane|0, null);
@@ -15014,7 +15029,9 @@ function skyTowerPanelWire(el, stage, side, lane, data, opts){
   /* v802 - the whole tower travels; same shape as the per-player mover above it */
   el.querySelectorAll('[data-mvlane]').forEach(b=>{ if(b.disabled) return; b.onclick=async()=>{
     const to=+b.dataset.mvlane;
-    if(opts.live){ b.disabled=true; await skyMoveLaneLive(lane|0, to); el.remove(); return; }
+    /* v804 - skyMoveLaneLive redraws the GUILD HALL; the board you are on is Skyfall */
+    if(opts.live){ b.disabled=true; const n=await skyMoveLaneLive(lane|0, to); el.remove();
+      await skyBoardReload(side, n?to:(lane|0), opts); return; }
     const n=skyMoveLane(data, side, lane|0, to);
     el.remove();
     if(!n){ bannerMsg('Nothing holds this tower.'); return; }
@@ -15025,7 +15042,9 @@ function skyTowerPanelWire(el, stage, side, lane, data, opts){
     if(st4) skyTowerPanel(st4, side, to, data, opts); }; });
   el.querySelectorAll('[data-mv]').forEach(b=>{ b.onclick=async()=>{
     const who=b.dataset.mv, to=+b.dataset.lane;
-    if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); el.remove(); return; }
+    /* v804 - and the same for the officer's per-player move */
+    if(typeof skyAssign==='function' && opts.live){ await skyAssign(who, to); el.remove();
+      await skyBoardReload(side, to, opts); return; }
     /* v716 - the sandbox moves them for real. It is the same rule as the live route: every line
        that member owns travels together. */
     const n=skyMoveMember(data, side, lane|0, to, who);
@@ -24178,7 +24197,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789959607000';
+const BUILD_ID = '1789961407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

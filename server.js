@@ -2032,6 +2032,15 @@ function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
     missedMembers:((s.missedMembers||[]).length)|0,
     missedLines:((s.missed||[]).length)|0,
     citadels:s.citadels.map(c=>({ lane:c.lane, key:c.key, destroyed:c.destroyed,
+      /* v804 - NAME, ALIVE AND TOTAL. Same fault as v774's `power` and v775's heroes/kills, and the
+         same cause: the client was built against the SIMULATOR's board, which carries all three.
+         The garrison disc on every tower reads `c.alive`/`c.total` and the tower panel titles
+         itself from `c.name`, so a REAL war drew "0/0" on every disc however many lines were
+         standing in it, and called every citadel "Lane 3". Nothing was missing - the defenders are
+         right there to be counted and the lane names are WAR_LANES - they were never sent. */
+      name:((WAR_LANES[c.lane]||{}).name)||('Lane '+((c.lane|0)+1)),
+      total:(c.defenders||[]).length,
+      alive:(c.defenders||[]).filter(d=>d && d.alive!==false).length,
     /* v775 - THE FIELDS THE CLIENT ACTUALLY READS. Confirmed off the wire, this object used to be
        exactly {memberId, line, power, you, name, alive, hpPct, assaultsLeft} - while the client
        reads `d.heroes` in four places and `d.kills` in two. So a real war drew "no line-up
