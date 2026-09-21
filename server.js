@@ -2159,7 +2159,16 @@ function warMatchView(t,m,meGid,meId){
   if(meId!=null && v.you){
     try{
       const ent=warEntrant(t,meGid), side=m.sides[meGid];
-      const mineLines=(ent?ent.lines:[]).filter(l=>String(l.memberId)===String(meId));
+      /* v810 (Phil, measured off his own screen: the tower said 5,439 where his five cards, the
+         Arena and the Edit Team panel all said 5,389) - YOUR LINES, AS THEY STAND NOW.
+         This read `ent.lines` - the entrant SNAPSHOT, stored when the guild registered - so the
+         one list on this screen that is meant to be your own lines was a different vintage from
+         every other number on it. The towers were already put on the live builder in v803c; this
+         is the same fix for the list beside them. The entrant is still the fallback, for a member
+         whose account cannot be read. */
+      const live=(m.state==='planning')?(warLiveLines(meId)||[]):[];
+      const mineLines=live.length?live
+        :(ent?ent.lines:[]).filter(l=>String(l.memberId)===String(meId));
       const laneOfLine={};
       (side?side.citadels:[]).forEach((c,ci)=>(c.defenders||[]).forEach(d=>{
         if(String(d.memberId)===String(meId)) laneOfLine[d.line|0]=ci; }));
