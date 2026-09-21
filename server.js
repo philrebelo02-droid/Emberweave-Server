@@ -411,10 +411,13 @@ function sanitizeRoster(arr){
 const CARD_POWER_CACHE = new Map();
 const CARD_POWER_TTL_MS = 15000;
 function cardPowerForget(uid){ const p=String(uid)+'|'; for(const k of CARD_POWER_CACHE.keys()) if(k.startsWith(p)) CARD_POWER_CACHE.delete(k); }
-function cardPower(u, key){
+/* v813 - `fresh` is passed whenever the hero belongs to the player who is ASKING. Their own five
+   heroes are five snapshots on a screen they are looking at, and they are the one person who will
+   notice the number being 15 seconds old, because they just changed it. */
+function cardPower(u, key, fresh){
   if(!u||!key) return 0;
   const ck=String(u.id)+'|'+key, hit=CARD_POWER_CACHE.get(ck), now=Date.now();
-  if(hit && (now-hit.t)<CARD_POWER_TTL_MS) return hit.v;
+  if(!fresh && hit && (now-hit.t)<CARD_POWER_TTL_MS) return hit.v;
   let v=0; try{ v=heroCardPower(u,key); }catch(e){ return hit?hit.v:0; }
   CARD_POWER_CACHE.set(ck,{t:now,v});
   return v;
@@ -2093,9 +2096,9 @@ function warDefPower(d){
    guilds are walked on every match view. */
 const WAR_LINES_CACHE = new Map();
 const WAR_LINES_TTL_MS = 15000;
-function warLiveLines(uid){
+function warLiveLines(uid, fresh){
   const k=String(uid), hit=WAR_LINES_CACHE.get(k), now=Date.now();
-  if(hit && (now-hit.t)<WAR_LINES_TTL_MS) return hit.v;
+  if(!fresh && hit && (now-hit.t)<WAR_LINES_TTL_MS) return hit.v;
   const u=DB.users[k]; let v=[];
   try{ v=u?buildRegisteredLines(u):[]; }catch(e){ return hit?hit.v:[]; }
   WAR_LINES_CACHE.set(k,{t:now,v});
@@ -2107,7 +2110,8 @@ function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
      battle. Live until the lock, frozen after it - the boundary the war itself uses. */
   const planning=(m.state==='planning');
   const liveOf=(d)=>{ if(!planning) return null;
-    try{ const ls=warLiveLines(d.memberId);
+    /* v813 - your own rows are read fresh; every other member's stays memoised */
+    try{ const ls=warLiveLines(d.memberId, meId!=null && String(d.memberId)===String(meId));
       return ls.find(L=>(L.line|0)===(d.line|0)) || (d.line==null?ls[0]:null) || null;
     }catch(e){ return null; } };
   /* v778 - how many of your own did not place before the lock. The penalty has to be visible or it
@@ -2176,7 +2180,8 @@ function warMatchView(t,m,meGid,meId){
          every other number on it. The towers were already put on the live builder in v803c; this
          is the same fix for the list beside them. The entrant is still the fallback, for a member
          whose account cannot be read. */
-      const live=(m.state==='planning')?(warLiveLines(meId)||[]):[];
+      /* v813 - this list is BY DEFINITION the caller's own lines, so it never comes from a cache */
+      const live=(m.state==='planning')?(warLiveLines(meId,true)||[]):[];
       const mineLines=live.length?live
         :(ent?ent.lines:[]).filter(l=>String(l.memberId)===String(meId));
       const laneOfLine={};
@@ -2192,7 +2197,7 @@ function warMatchView(t,m,meGid,meId){
     if(ent&&side){ const laneOf={}; side.citadels.forEach(c=>c.defenders.forEach(d=>{laneOf[d.memberId]=c.lane;}));
       /* v803c - the officer's roster reads live too, for the same reason the towers do */
       v.you.roster=ent.lines.map(l=>({memberId:l.memberId,line:l.line|0,name:l.name,
-        power:(function(){ try{ const x=warLiveLines(l.memberId).find(L=>(L.line|0)===(l.line|0));
+        power:(function(){ try{ const x=warLiveLines(l.memberId, meId!=null && String(l.memberId)===String(meId)).find(L=>(L.line|0)===(l.line|0));
           return x?(x.power|0):l.power; }catch(e){ return l.power; } })(),
         lane:(l.memberId in laneOf)?laneOf[l.memberId]:null})); } }
   return v;
@@ -4747,7 +4752,7 @@ async function api(req,res,url){
          This was a sixth formula - maxHp/8 + max(atkP,atkM)*3 + heal*2 - which weighted attack flat,
          paid healers double and counted neither armour, magic resist, crit, swing speed nor the
          ability-power role weighting. */
-      yourPower=Math.round(squad.reduce((a,k)=>a+cardPower(me,k),0));
+      yourPower=Math.round(squad.reduce((a,k)=>a+cardPower(me,k,true),0));   /* v813 - your own */
     }catch(e){}
     const _led=ensureLedger(me), _pr=portalProg(_led,mode);
     /* v809 - the stage's recommendation is AUTHORED and hand-tuned, so the encounter data is left
