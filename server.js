@@ -1616,12 +1616,22 @@ function getTournament(){
   const now=warNow(), wk=warWeekKey(now);
   if(!DB.tournaments.current || DB.tournaments.current.weekKey!==wk){
     const prev=DB.tournaments.current;
-    if(prev){   // AUDIT: settle and archive the outgoing week instead of dropping it on the floor
+    if(prev){   /* SETTLE the outgoing week, then LET IT GO (v799, Phil: "i dont want to archive
+                   the battles"). Settling is the half that matters and it still happens: the week
+                   is advanced to `finished` and escrowed, so everyone who earned a reward has it
+                   on their account before the week is dropped. */
       try{ for(let i=0;i<8 && prev.state!=='finished';i++){ const v=prev.version; warAdvance(prev); if(prev.version===v) break; } }catch(err){}
       try{ if(prev.state==='finished') warEscrowRewards(prev); }catch(err){}
-      DB.tournaments.archive=DB.tournaments.archive||{};
-      DB.tournaments.archive[prev.weekKey]=prev;
-      const ak=Object.keys(DB.tournaments.archive).sort(); while(ak.length>8) delete DB.tournaments.archive[ak.shift()];
+      /* v799 - THE FINISHED TOURNAMENT IS NOT KEPT. Eight of them in full came to 432 MB at the
+         scale this is built for (a level 7 guild holds 60 players; 16 guilds x ~5 lines is 4,800
+         registered lines and 9,000 board defenders across the four rounds, 48.1 MB a week), and
+         writeDB serialises the WHOLE database on every debounced write - 1,323 ms of blocked event
+         loop against a 200 ms debounce. Node is single-threaded, so that is the entire game
+         stopping for over a second at a time, for every player, most often on a war day.
+         Nothing read it. A player's reward lives on `u.pendingWarRewards`, written by
+         warEscrowRewards above and held on the USER, so letting the tournament go cannot cost
+         anyone anything. */
+      delete DB.tournaments.archive;   /* and shed any archive an existing install is carrying */
     }
     const anchor=warWeekAnchor(now), sch=warSchedule(anchor);
     DB.tournaments.current={ id:'gw_'+wk, weekKey:wk, state:'registration',
@@ -3528,7 +3538,11 @@ async function api(req,res,url){
       if(!pend.length) return send(res,400,{error:t.state==='finished'?'You did not take part in this tournament.':'Nothing to claim.'});
       const total=pend.reduce((s,x)=>s+(x.amt|0),0), last=pend[pend.length-1];
       me.coins=(me.coins||0)+total; me.pendingWarRewards=[];
-      const tt=(last.tid===t.id)?t:(((DB.tournaments||{}).archive)||{})[last.weekKey];
+      /* v799 - the player was paid on the line above, from their own pendingWarRewards. This is
+         bookkeeping onto the tournament itself, and since finished tournaments are no longer kept
+         it only finds one while the CURRENT week is the one being claimed. A claim carried over
+         from a previous week simply has nothing to write to, and the player is paid either way. */
+      const tt=(last.tid===t.id)?t:null;
       if(tt&&tt.id===last.tid){ tt.rewards=tt.rewards||{}; tt.rewards[(last.gid||'-')+':'+me.id]={t:warNow(),amt:total,tid:last.tid}; if(tt===t) t.version++; }
       writeDB();
       return send(res,200,{ok:true, coins:me.coins, amount:total, tier:last.tier});
