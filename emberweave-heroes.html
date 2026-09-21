@@ -9380,6 +9380,39 @@ function ccApply(u, t, field, dur){
   t[field] = Math.max(t[field] || 0, dur);
   return true;
 }
+/* v797 (Phil: "the cast time should start at the exact same time as the animation starts") -
+   THE ABILITY'S CLIP, STARTED WHEN THE CAST STARTS. This lived inside doEffect, so once the
+   effect moved to the end of the cast time the animation would have gone with it and a hero
+   would have stood still through their own wind-up. It is called when a cast begins, and by
+   doEffect for anything that fires without one - a passive flourish, a gear proc, a monster.
+   The follow-through is unchanged: `_abilHold` is the clip's own playthrough length and was
+   never tied to the cast time, so a long animation still plays on after the effect released. */
+function startAbilityClip(u,type){
+  { const aa=ABIL_ANIM[type];
+    let st=(u._castSlot && u.anim && u.anim[u._castSlot]) ? u._castSlot : (aa?aa.st:null);
+    if(!(st && u.anim && u.anim[st])) st=null;
+    /* v276 — A HERO WITHOUT AN ABILITY CLIP STILL HAS TO CAST.
+       14 of the 29 heroes have no green/blue/ult sheet yet. Until their art exists this fell through
+       to the ordinary state machine, so the hero STOOD IDLE while their ultimate went off — the effect
+       played and the character did nothing. Now the attack clip carries the cast, held for the length
+       of the ability and marked so the render can sell it as a cast (a brief rise, a flash) rather
+       than a plain swing. It is a stand-in for missing art, and it is honest about being one. */
+    u._abilFallback=false;
+    /* v313 — monsters now own a real cast clip (regenerated 30 Aug). An ability should read as a
+       cast, not as a recoloured swing, so cast wins over the attack stand-in for every monster. */
+    if(!st && u.t && u.t.monster && u.anim && u.anim.cast) st='cast';
+    if(!st && u.anim && u.anim.attack){ st='attack'; u._abilFallback=true; }
+    /* v521 (Phil, 8 Sep): "idle and passive is never interrupted once it starts except by ult
+       or hit". A passive flourish is a short one-shot at _abilPri 2; a skill firing on top of it
+       used to overwrite _abilAnim and the passive vanished mid-play. The skill still FIRES - this
+       is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
+    const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
+    if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4;   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
+      const once=ppPer(A)/(A.fps||10);
+      u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
+      if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
+    } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
+}
 function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
   o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
@@ -9414,30 +9447,8 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
   // Slot-aware clip pick. Shared ability TYPES (nova, aoedot, heal…) are reused by many heroes,
   // so the type alone cannot name the right clip. If this cast is the hero's own green/blue and
   // their own sheet has a matching state, that clip wins; otherwise fall back to ABIL_ANIM.
-  { const aa=ABIL_ANIM[type];
-    let st=(u._castSlot && u.anim && u.anim[u._castSlot]) ? u._castSlot : (aa?aa.st:null);
-    if(!(st && u.anim && u.anim[st])) st=null;
-    /* v276 — A HERO WITHOUT AN ABILITY CLIP STILL HAS TO CAST.
-       14 of the 29 heroes have no green/blue/ult sheet yet. Until their art exists this fell through
-       to the ordinary state machine, so the hero STOOD IDLE while their ultimate went off — the effect
-       played and the character did nothing. Now the attack clip carries the cast, held for the length
-       of the ability and marked so the render can sell it as a cast (a brief rise, a flash) rather
-       than a plain swing. It is a stand-in for missing art, and it is honest about being one. */
-    u._abilFallback=false;
-    /* v313 — monsters now own a real cast clip (regenerated 30 Aug). An ability should read as a
-       cast, not as a recoloured swing, so cast wins over the attack stand-in for every monster. */
-    if(!st && u.t && u.t.monster && u.anim && u.anim.cast) st='cast';
-    if(!st && u.anim && u.anim.attack){ st='attack'; u._abilFallback=true; }
-    /* v521 (Phil, 8 Sep): "idle and passive is never interrupted once it starts except by ult
-       or hit". A passive flourish is a short one-shot at _abilPri 2; a skill firing on top of it
-       used to overwrite _abilAnim and the passive vanished mid-play. The skill still FIRES - this
-       is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
-    const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
-    if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4;   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
-      const once=ppPer(A)/(A.fps||10);
-      u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
-      if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
-    } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
+  /* v797 - the cast already started this clip; anything with no cast starts it here */
+  if(u._clipStarted){ u._clipStarted=false; } else { startAbilityClip(u,type); }
   switch(type){
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(o.pfx||u.range>60)abilShot(u,o,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
@@ -10332,13 +10343,47 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       if(foes.length){ ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
     if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*1.45;           // a full pressure gauge empowers this spell
       floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); } }
-  u._castSlot=slot; doEffect(u,ab.type,ab);
-  if(u._gearRepeatSpell){ const rep=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rep; doEffect(u,ab.type,ab); u._castSM=prev; }
-  u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castNow=0; u._castT=ct; u.castAnim=Math.max(.32,ct);
+  /* v797 - the clip starts NOW, with the cast clock. `_castSlot` is set first because the picker
+     prefers the hero's own green/blue sheet over the shared clip for the type. */
+  u._castSlot=slot; startAbilityClip(u,ab.type); u._clipStarted=true; u._castSlot=null;
+  /* v796 - and the effect releases at the END of the cast time. `_castSM` / `_castLv` are captured
+     because the CALLER resets them one statement after this function returns. */
+  u._pend={ t:ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
+    fire:()=>{ u._castSlot=slot; doEffect(u,ab.type,ab);
+      if(u._gearRepeatSpell){ const rp=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rp; doEffect(u,ab.type,ab); u._castSM=prev; } } };
+  u._castNow=ct; u._castT=ct; u.castAnim=Math.max(.32,ct);
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
   // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
   // and re-tagging it 4 here would relabel the PASSIVE as a skill. Leave the tag where it is.
   if(!((u._abilPri|0)===2 && (u._abilHold||0)>0)){ u._lockPri=4; u._abilPri=4; u._animLockT=Math.max(u._abilHold||0, ct); } }
+/* v796 (Phil: "all abilities should be interruptable by heroes CC no matter if a ability or ult")
+   - THE CAST WIND-UP. A pending cast sits on the unit for its cast time and resolves at the end of
+   it; anything that controls or kills the caster in that window cancels it outright. The cost is
+   already spent - the cooldown was set and an ultimate's energy taken when the button was pressed -
+   which is exactly what makes an interrupt worth landing. */
+function castCancel(u, why){
+  if(!u || !u._pend) return false;
+  u._pend=null; u._castNow=0; u.castAnim=0; u._animLockT=0; u._clipStarted=false;
+  u._abilAnim=null; u._abilHold=0; u._abilPri=0;        /* the clip stops with the cast */
+  try{ floatTexts.push({x:u.x,y:u.y-16,txt:why||'INTERRUPTED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }catch(e){}
+  return true;
+}
+function castTick(u, dt){
+  const p=u&&u._pend; if(!p) return;
+  if(!u.alive || (u.stunned||0)>0 || (u.fearT||0)>0 || (u.silencedT||0)>0 || (u._sleepT||0)>0){
+    castCancel(u); return;
+  }
+  p.t-=dt; u._castNow=Math.max(0,p.t);
+  if(p.t>0) return;
+  u._pend=null; u._castNow=0;
+  /* restore the multiplier, level and aim the cast was STARTED with - the caller reset them long ago */
+  const sm=u._castSM, lv=u._castLv, ax=u._aimWX, ay=u._aimWY;
+  u._castSM=p.sm; u._castLv=p.lv; u._aimWX=p.ax; u._aimWY=p.ay;
+  try{ p.fire(); }catch(e){}
+  u._castSlot=null; u._aimWX=null; u._aimWY=null;
+  u._castSM=sm; u._castLv=lv;
+  if(ax!=null){ u._aimWX=ax; u._aimWY=ay; }
+}
 function healFrom(src,tgt,a){ return healUnit(tgt,a*((src&&src.healPowMul)||1)); }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a;
   /* v527 - healing that travels. Golden Thread (Threadseer) sends part of what SHE receives to
@@ -10383,7 +10428,12 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   try{ waxOnCaster(u); }catch(e){}
   u._animLockT=0;   // the ult outranks everything: it is the one action allowed to cut a clip short
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); u._castLv=((u.skillLv&&u.skillLv[0])|0)||1;   /* v787 */ const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
-  u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}));   /* v332: hero-specific ult plate */ u._castSlot=null; u._aimWX=null; u._aimWY=null; u._castSM=1; u._castLv=0; u._castNow=0; u._castT=_ct;
+  /* v797 - the ult's clip starts with its cast clock; v796 - its effect releases at the end. Its
+     energy is taken below, at the press, so an interrupt costs the ultimate. */
+  u._castSlot='ult'; startAbilityClip(u,ab); u._clipStarted=true; u._castSlot=null;
+  u._pend={ t:_ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
+    fire:()=>{ u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } };   /* v332: hero-specific ult plate */
+  u._castSM=1; u._castLv=0; u._castNow=_ct; u._castT=_ct;
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
   u._ultChanT=0;   // v525: clock for the wind-up / hold-at-apex / return of a CHANNELLED ult
@@ -11249,6 +11299,7 @@ function think(u,dt){
   /* Rewrite the Pattern reads this: one health sample every half-second, five seconds deep */
   u._hpSampT=(u._hpSampT||0)-dt;
   if(u._hpSampT<=0){ u._hpSampT=0.5; (u._hpHist=u._hpHist||[]).push(u.hp); if(u._hpHist.length>10) u._hpHist.shift(); }
+  castTick(u,dt);   /* v796 - a pending cast resolves, or a control takes it */
   if(u._castT>0)u._castT-=dt; if((u._ultRootT||0)>0)u._ultRootT-=dt; if(u._recentAtk>0)u._recentAtk-=dt;   // casting: locked out of auto-attacks. _recentAtk = 0.3s after an auto-attack, during which SKILLS won't fire (the swing is never cut off). The ultimate is exempt (fires anytime it's not mid-cast).
   // The Space He Isn't In recharges on a plain 4s timer, so the miss is banked, never rolled.
   if(u.pass&&u.pass.notthere){ if(u._ntReady===undefined){ u._ntReady=true; u._ntCd=0; }
@@ -23998,7 +24049,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1789951207000';
+const BUILD_ID = '1789952407000';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
