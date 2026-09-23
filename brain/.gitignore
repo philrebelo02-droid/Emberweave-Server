@@ -1,0 +1,20 @@
+# regenerable / heavyweight
+index/
+node_modules/
+__pycache__/
+NVIDIA Corporation/
+
+# logs, temp, backups
+*.log
+*.err
+*.tmp
+*.bak
+*.corrupt
+*.pyc
+_heartbeat.lock
+
+# test artifacts
+_ui_check*.png
+_v1.json
+_ai_payload.json
+_quiz_payload.json

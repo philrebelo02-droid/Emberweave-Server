@@ -1,0 +1,21 @@
+{
+  "domains": {
+    "Engineering / implementation": "Claude",
+    "Architecture / governance": "ChatGPT",
+    "Research / intelligence": "Grok",
+    "Visual intelligence / art": "Grok",
+    "Narrative systems / lore": "Claude",
+    "Reasoning / QA / creative analysis": "ChatGPT",
+    "Knowledge consultation": "Kimi (advisory)",
+    "Coordination / project state": "Emberweave Brain",
+    "Final authority": "Phil (Studio Director)"
+  },
+  "tasks": {
+    "7": "ChatGPT",
+    "8": "Kimi",
+    "9": "Kimi",
+    "10": "Kimi",
+    "11": "Kimi",
+    "12": "Kimi"
+  }
+}

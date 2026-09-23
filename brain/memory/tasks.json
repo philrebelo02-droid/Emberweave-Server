@@ -1,0 +1,360 @@
+[
+  {
+    "id": 1,
+    "task": "Brain: build memory core (Steps 2,3,4,10,11,12)",
+    "owner": "Kimi",
+    "priority": "high",
+    "status": "IN_PROGRESS",
+    "created": "2026-09-22 11:30",
+    "completed": null,
+    "state_since": "2026-09-22 11:30",
+    "history": [
+      {
+        "state": "IN_PROGRESS",
+        "at": "2026-09-22 11:30",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 2,
+    "task": "Brain: Step 9 workflow system (assign/execute/review/approve/merge)",
+    "owner": "Kimi",
+    "priority": "medium",
+    "status": "ASSIGNED",
+    "created": "2026-09-22 11:30",
+    "completed": null,
+    "state_since": "2026-09-22 11:30",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 11:30",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 3,
+    "task": "Brain: Step 18 automatic daily report (needs heartbeat ruling)",
+    "owner": "Phil",
+    "priority": "medium",
+    "status": "ASSIGNED",
+    "created": "2026-09-22 11:30",
+    "completed": null,
+    "state_since": "2026-09-22 11:30",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 11:30",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 4,
+    "task": "Brain: Step 17 git integration (needs repo access decision)",
+    "owner": "Phil",
+    "priority": "low",
+    "status": "ASSIGNED",
+    "created": "2026-09-22 11:30",
+    "completed": null,
+    "state_since": "2026-09-22 11:30",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 11:30",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 5,
+    "task": "Brain: Step 16 file tools expansion (write reports, manage tasks, create docs)",
+    "owner": "Kimi",
+    "priority": "medium",
+    "status": "ASSIGNED",
+    "created": "2026-09-22 11:30",
+    "completed": null,
+    "state_since": "2026-09-22 11:30",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 11:30",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 6,
+    "task": "verify the task system end to end",
+    "owner": "Kimi",
+    "priority": "high",
+    "status": "MERGED",
+    "created": "2026-09-22 11:34",
+    "completed": "2026-09-22 11:34",
+    "state_since": "2026-09-22 11:34",
+    "history": [
+      {
+        "state": "MERGED",
+        "at": "2026-09-22 11:34",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 7,
+    "task": "review the temple of ash design for risks",
+    "owner": "ChatGPT",
+    "priority": "high",
+    "status": "ASSIGNED",
+    "created": "2026-09-22 12:00",
+    "completed": null,
+    "state_since": "2026-09-22 12:00",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 12:00",
+        "by": "migration"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 8,
+    "task": "verify the Step 9 approval gate end to end",
+    "owner": "Kimi",
+    "priority": "high",
+    "status": "MERGED",
+    "created": "2026-09-22 14:02",
+    "completed": "2026-09-22 14:03",
+    "state_since": "2026-09-22 14:03",
+    "history": [
+      {
+        "state": "PROPOSED",
+        "at": "2026-09-22 14:02",
+        "by": "proposal"
+      },
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 14:02",
+        "by": "Phil"
+      },
+      {
+        "state": "IN_PROGRESS",
+        "at": "2026-09-22 14:02",
+        "by": "Phil"
+      },
+      {
+        "state": "IN_REVIEW",
+        "at": "2026-09-22 14:02",
+        "by": "Phil"
+      },
+      {
+        "state": "APPROVED",
+        "at": "2026-09-22 14:02",
+        "by": "Phil"
+      },
+      {
+        "state": "MERGED",
+        "at": "2026-09-22 14:03",
+        "by": "Phil"
+      }
+    ],
+    "reviews": [
+      {
+        "verdict": "approve",
+        "notes": "ChatGPT: gate logic verified, transitions clean",
+        "reviewer": "via Phil",
+        "date": "2026-09-22 14:02"
+      }
+    ],
+    "approvals": [
+      {
+        "by": "Phil",
+        "date": "2026-09-22 14:02"
+      }
+    ],
+    "work_type": "protected",
+    "interface_note": "test",
+    "overridden": null
+  },
+  {
+    "id": 9,
+    "task": "second gate test task",
+    "owner": "Kimi",
+    "priority": "low",
+    "status": "MERGED",
+    "created": "2026-09-22 14:03",
+    "completed": "2026-09-22 14:03",
+    "state_since": "2026-09-22 14:03",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 14:03",
+        "by": "Phil"
+      },
+      {
+        "state": "MERGED",
+        "at": "2026-09-22 14:03",
+        "by": "Phil"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": {
+      "by": "Phil",
+      "date": "2026-09-22 14:03"
+    }
+  },
+  {
+    "id": 10,
+    "task": "write the 1300 worklog entry for step 9",
+    "owner": "Kimi",
+    "priority": "low",
+    "status": "MERGED",
+    "created": "2026-09-22 14:03",
+    "completed": "2026-09-22 14:03",
+    "state_since": "2026-09-22 14:03",
+    "history": [
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 14:03",
+        "by": "Phil"
+      },
+      {
+        "state": "MERGED",
+        "at": "2026-09-22 14:03",
+        "by": "Phil"
+      }
+    ],
+    "reviews": [],
+    "approvals": [],
+    "work_type": "exempt",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 11,
+    "task": "reject-path test proposal",
+    "owner": "Kimi",
+    "priority": "low",
+    "status": "REJECTED",
+    "created": "2026-09-22 14:03",
+    "completed": null,
+    "state_since": "2026-09-22 14:03",
+    "history": [
+      {
+        "state": "PROPOSED",
+        "at": "2026-09-22 14:03",
+        "by": "proposal"
+      },
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 14:03",
+        "by": "Phil"
+      },
+      {
+        "state": "REJECTED",
+        "at": "2026-09-22 14:03",
+        "by": "review:via Phil"
+      }
+    ],
+    "reviews": [
+      {
+        "verdict": "reject",
+        "notes": "ChatGPT: superseded by the ruled design",
+        "reviewer": "via Phil",
+        "date": "2026-09-22 14:03"
+      }
+    ],
+    "approvals": [],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  },
+  {
+    "id": 12,
+    "task": "reflection-on-merge verification task",
+    "owner": "Kimi",
+    "priority": "low",
+    "status": "MERGED",
+    "created": "2026-09-22 14:31",
+    "completed": "2026-09-22 14:32",
+    "state_since": "2026-09-22 14:32",
+    "history": [
+      {
+        "state": "PROPOSED",
+        "at": "2026-09-22 14:31",
+        "by": "proposal"
+      },
+      {
+        "state": "ASSIGNED",
+        "at": "2026-09-22 14:32",
+        "by": "Phil"
+      },
+      {
+        "state": "APPROVED",
+        "at": "2026-09-22 14:32",
+        "by": "Phil"
+      },
+      {
+        "state": "MERGED",
+        "at": "2026-09-22 14:32",
+        "by": "Phil"
+      }
+    ],
+    "reviews": [
+      {
+        "verdict": "approve",
+        "notes": "ChatGPT: merge writes a reflection now",
+        "reviewer": "via Phil",
+        "date": "2026-09-22 14:32"
+      }
+    ],
+    "approvals": [
+      {
+        "by": "Phil",
+        "date": "2026-09-22 14:32"
+      }
+    ],
+    "work_type": "protected",
+    "interface_note": null,
+    "overridden": null
+  }
+]

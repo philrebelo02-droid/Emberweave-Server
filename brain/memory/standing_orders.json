@@ -1,0 +1,64 @@
+{
+  "ruled_by": "Phil",
+  "ruled": "2026-09-22 13:51",
+  "source": "5. STEP 9 WORKFLOW PROPOSAL.md - all 5 decisions ruled, recommendations accepted",
+  "pipeline": [
+    "PROPOSED",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "IN_REVIEW",
+    "APPROVED",
+    "MERGED",
+    "CHANGES_REQUESTED",
+    "REJECTED",
+    "BLOCKED"
+  ],
+  "exempt_classes": [
+    "memory",
+    "teachings",
+    "worklog",
+    "reports"
+  ],
+  "protected_classes": [
+    "archive_docs",
+    "repo_code"
+  ],
+  "self_promote_classes": [
+    "retrieval",
+    "research",
+    "dig"
+  ],
+  "stale_days": 7,
+  "approval_matrix": {
+    "brain_code": {
+      "reviewer": "ChatGPT",
+      "approver": "Phil",
+      "merge": "Kimi at Phil's direction"
+    },
+    "repo_code": {
+      "reviewer": "ChatGPT",
+      "approver": "Phil",
+      "merge": "Claude"
+    },
+    "architecture": {
+      "reviewer": "ChatGPT",
+      "approver": "Phil",
+      "merge": null
+    },
+    "art": {
+      "reviewer": "Grok",
+      "approver": "Phil",
+      "merge": "Grok/Claude pipeline"
+    },
+    "design_docs": {
+      "reviewer": "Kimi (advisory) or ChatGPT",
+      "approver": "Phil",
+      "merge": "Phil"
+    },
+    "world_state": {
+      "reviewer": null,
+      "approver": "Brain under standing orders",
+      "merge": "automatic"
+    }
+  }
+}

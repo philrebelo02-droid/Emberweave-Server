@@ -1,0 +1,30 @@
+{
+  "_about": "Regression probe suite. Run probe.py before/after ANY retrieval change. Each probe: question, expect (substring of a source file path that MUST appear in the retrieved context), facts (strings the top chunks should contain), optional history (prior turns for follow-up tests).",
+  "probes": [
+    {"id": "gold+2", "question": "what glyphs does greatbrow need at gold +2",
+     "expect": "GLYPH ENCYCLOPEDIA", "facts": ["Gigas Glyph", "Ullr Core"]},
+    {"id": "purple+2-followup", "question": "what about purple +2?",
+     "history": [["what glyphs does greatbrow need at gold +2", ""]],
+     "expect": "GLYPH ENCYCLOPEDIA", "facts": ["Colossus Glyph", "Unfallen Crown", "Blurwalk Core", "Unerring Core"]},
+    {"id": "witches-hut", "question": "what can I brew in the witches hut",
+     "expect": "WITCHES HUT", "facts": []},
+    {"id": "island-of-trials", "question": "how does the island of trials work",
+     "expect": "Island of Trials", "facts": []},
+    {"id": "emberdraft", "question": "what is the emberdraft mode design",
+     "expect": "EMBERDRAFT", "facts": []},
+    {"id": "arena", "question": "arena ranking rewards",
+     "expect": "Arena", "facts": []},
+    {"id": "guild-hall", "question": "what does the guild hall do",
+     "expect": "Guild Hall", "facts": []},
+    {"id": "greatbrow-lore", "question": "who is greatbrow",
+     "expect": "Greatbrow", "facts": []},
+    {"id": "irix", "question": "irix the sky-shard roc abilities",
+     "expect": "Irix", "facts": []},
+    {"id": "academy", "question": "hero skill upgrades at the academy",
+     "expect": "Academy", "facts": []},
+    {"id": "bulletin-board", "question": "bulletin board quests",
+     "expect": "Bulletin Board", "facts": []},
+    {"id": "no-rare-tokens", "question": "campaign chapter 3 boss",
+     "expect": "", "facts": [], "note": "known weak class: no rare tokens - tracks drift, not pass/fail"}
+  ]
+}

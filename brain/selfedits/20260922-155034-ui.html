@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/x-icon" href="/brain.ico">
+<title>Emberweave Brain</title>
+<style>
+  :root { --ember:#ff7a1a; --ember-soft:#fff3e8; --bg:#f6f6f4; --panel:#ffffff;
+          --line:#e6e4df; --text:#1f1e1c; --muted:#8a857d; --accent:#3370ff;
+          --shadow:0 1px 3px rgba(0,0,0,.06); }
+  body.dark { --ember-soft:#3a2a1c; --bg:#12100e; --panel:#1e1b17; --line:#3a332b;
+              --text:#e8e0d4; --muted:#9a8f7f; --accent:#6b9bff; --shadow:none; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column;
+         font-family:-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+  /* ---- header ---- */
+  header { height:56px; padding:0 12px; background:var(--panel); border-bottom:1px solid var(--line);
+           display:flex; align-items:center; gap:8px; flex-shrink:0; flex-wrap:nowrap; overflow:hidden;
+           -webkit-app-region: drag; user-select:none; }
+  header button, header .chips, header input { -webkit-app-region: no-drag; }
+  #sidebarBtn { width:34px; height:34px; border:none; background:transparent; border-radius:8px;
+                cursor:pointer; font-size:17px; color:var(--muted); display:flex;
+                align-items:center; justify-content:center; }
+  #sidebarBtn:hover { background:var(--bg); color:var(--text); }
+  #themeBtn { width:34px; height:34px; border:none; background:transparent; border-radius:8px;
+              cursor:pointer; font-size:16px; color:var(--muted); display:flex;
+              align-items:center; justify-content:center; }
+  #themeBtn:hover { background:var(--bg); color:var(--text); }
+  #newChatBtn { height:34px; border:1px solid var(--line); background:var(--panel); color:var(--muted);
+                border-radius:8px; cursor:pointer; font-size:12.5px; padding:0 12px;
+                white-space:nowrap; flex-shrink:0; }
+  #newChatBtn:hover { color:var(--text); border-color:var(--muted); }
+  /* custom window controls (Electron frameless) */
+  #winControls { display:none; margin-left:2px; flex-shrink:0; }
+  body.electron #winControls { display:flex; }
+  .wbtn { width:42px; height:56px; border:none; background:transparent;
+          color:var(--muted); font-size:14px; cursor:pointer; border-radius:0; }
+  .wbtn:hover { background:var(--bg); color:var(--text); }
+  .wbtn.close:hover { background:#e81123; color:#fff; }
+  #pulse { width:8px; height:8px; border-radius:50%; background:var(--ember);
+           box-shadow:0 0 6px var(--ember); animation:pulse 2.2s infinite; flex-shrink:0; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  header h1 { font-size:15px; font-weight:600; letter-spacing:.3px; white-space:nowrap; }
+  header h1 em { color:var(--ember); font-style:normal; }
+  header .sub { color:var(--muted); font-size:11.5px; white-space:nowrap; overflow:hidden;
+                text-overflow:ellipsis; max-width:180px; }
+  .chips { margin-left:auto; display:flex; gap:6px; flex-wrap:nowrap; flex-shrink:1;
+           overflow:hidden; }
+  .chip { font-size:10.5px; color:var(--muted); background:var(--bg);
+          border-radius:20px; padding:3px 9px; white-space:nowrap; flex-shrink:0; }
+  .chip b { color:var(--text); font-weight:600; }
+  /* ---- layout ---- */
+  #main { flex:1; display:flex; min-height:0; }
+  /* ---- sidebar (brain activity) ---- */
+  #growth { width:300px; border-right:1px solid var(--line); background:var(--panel);
+            display:flex; flex-direction:column; flex-shrink:0; transition:margin-left .22s ease; }
+  body.sidebar-hidden #growth { margin-left:-301px; }
+  #growth h2 { font-size:12px; font-weight:600; letter-spacing:1.2px; color:var(--text);
+               padding:14px 16px 10px; text-transform:uppercase; border-bottom:1px solid var(--line);
+               display:flex; align-items:center; gap:8px; }
+  #growth h2 .dot { width:7px; height:7px; border-radius:50%; background:var(--ember); }
+  #feed { flex:1; overflow-y:auto; padding:6px 16px 14px; }
+  .ev { font-size:12.5px; line-height:1.55; padding:9px 0; border-bottom:1px solid var(--bg);
+        color:var(--muted); }
+  .ev b { color:var(--text); font-weight:500; }
+  .ev .t { color:var(--muted); margin-right:7px; font-size:11px; font-variant-numeric:tabular-nums; }
+  .ev.ask { color:var(--muted); }
+  .ev.learn b { color:#1a9c4b; }
+  .ev.update b { color:#b37b00; }
+  .ev.forget b { color:#c93c3c; }
+  .ev.boot b, .ev.index b { color:var(--ember); }
+  .ev.warn b { color:#c93c3c; }
+  /* ---- collapsible trace blocks (Thinking / Coding) ---- */
+  details.trace { border-bottom:1px solid var(--bg); }
+  details.trace summary { list-style:none; cursor:pointer; padding:9px 0; display:flex;
+                          align-items:center; gap:7px; font-size:12.5px; color:var(--muted); }
+  details.trace summary::-webkit-details-marker { display:none; }
+  details.trace summary:hover { color:var(--text); }
+  details.trace .chev { font-size:10px; transition:transform .15s ease; flex-shrink:0; }
+  details.trace[open] .chev { transform:rotate(90deg); }
+  details.trace .t { color:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }
+  details.trace .lbl { font-weight:600; color:var(--ember); flex-shrink:0; }
+  details.trace.coding .lbl { color:var(--accent); }
+  details.trace.heartbeat .lbl { color:#1a9c4b; }
+  details.trace .hd { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .trace-body { padding:0 0 10px 20px; }
+  .trace-body div { font-size:11.5px; line-height:1.5; color:var(--muted); padding:2px 0;
+                    font-family:ui-monospace,Consolas,monospace; white-space:pre-wrap; }
+  /* ---- chat ---- */
+  #chatwrap { flex:1; display:flex; flex-direction:column; min-width:0; }
+  #chat { flex:1; overflow-y:auto; padding:26px 20px 10px; }
+  #chatInner { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+  .msg { display:flex; flex-direction:column; }
+  .msg.user { align-items:flex-end; }
+  .msg.brain { align-items:flex-start; }
+  .bubble { max-width:82%; padding:12px 16px; line-height:1.6; white-space:pre-wrap;
+            font-size:14.5px; border-radius:14px; box-shadow:var(--shadow); }
+  .msg.user .bubble { background:var(--ember); color:#fff; border-bottom-right-radius:4px; }
+  .msg.brain .bubble { background:var(--panel); border:1px solid var(--line);                       border-bottom-left-radius:4px; }
+  .thinking { color:var(--muted); font-style:italic; }
+  .bubble table { border-collapse:collapse; margin:10px 0; font-size:13px; white-space:normal; }
+  .bubble th, .bubble td { border:1px solid var(--line); padding:4px 10px; text-align:left; }
+  .bubble th { background:rgba(255,255,255,.05); font-weight:600; }
+  .sources { margin-top:8px; font-size:12px; color:var(--muted); max-width:82%; }
+  .sources b { font-weight:600; }
+  .sources span { display:inline-block; background:var(--panel); border:1px solid var(--line);
+                  border-radius:6px; padding:2px 8px; margin:4px 4px 0 0;
+                  font-family:ui-monospace,Consolas,monospace; font-size:11px; }
+  .imgs { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; max-width:82%; }
+  .imgs img { max-height:130px; max-width:130px; object-fit:contain; background:var(--bg);
+              border:1px solid var(--line); border-radius:10px; padding:6px; cursor:zoom-in; }
+  .imgs img.full { max-height:none; max-width:100%; cursor:zoom-out; }
+  /* ---- composer ---- */
+  #composer { padding:14px 20px 18px; }
+  #row { display:flex; gap:10px; max-width:780px; margin:0 auto; background:var(--panel);
+         border:1px solid var(--line); border-radius:16px; padding:8px 8px 8px 18px;
+         align-items:center; box-shadow:var(--shadow); }
+  #row:focus-within { border-color:var(--ember); }
+  #q { flex:1; border:none; background:transparent; color:var(--text);
+       padding:8px 0; font-size:15px; font-family:inherit; }
+  #q:focus { outline:none; }
+  #effort { border:1px solid var(--line); background:var(--panel); color:var(--text);
+            border-radius:9px; padding:6px 6px; font-size:12.5px; font-family:inherit;
+            cursor:pointer; }
+  #effort:focus { outline:none; border-color:var(--ember); }
+  #send { background:var(--ember); color:#fff; border:none; border-radius:11px;
+          padding:9px 20px; font-weight:600; font-size:14px; cursor:pointer; }
+  #send:disabled { opacity:.4; cursor:default; }
+  @media (max-width: 1100px) { header .sub { display:none; } }
+  @media (max-width: 860px) {
+    .chip { display:none; }
+    /* narrow window: sidebar slides over the chat as an overlay; ☰ toggles it */
+    #growth { position:fixed; top:56px; left:0; bottom:0; z-index:60; margin-left:-301px;
+              box-shadow:4px 0 18px rgba(0,0,0,.35); }
+    body.sidebar-open #growth { margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <button id="sidebarBtn" title="Toggle brain activity">☰</button>
+  <button id="themeBtn" title="Toggle dark mode">☾</button>
+  <div id="pulse"></div>
+  <h1>Emberweave <em>Brain</em></h1>
+  <div class="sub">institutional memory · local · private · growing</div>
+  <div class="chips">
+    <div class="chip"><b id="c-docs">–</b> docs</div>
+    <div class="chip"><b id="c-chunks">–</b> chunks</div>
+    <div class="chip"><b id="c-qs">0</b> questions</div>
+    <div class="chip">uptime <b id="c-up">–</b></div>
+    <div class="chip">reindex <b id="c-idx">–</b></div>
+    <div class="chip">avg match <b id="c-score">–</b></div>
+  </div>
+  <button id="newChatBtn" title="Start a fresh conversation">+ New chat</button>
+  <div id="winControls">
+    <button class="wbtn" id="wMin" title="Minimize">–</button>
+    <button class="wbtn" id="wMax" title="Maximize">▢</button>
+    <button class="wbtn close" id="wClose" title="Close (hides to tray)">✕</button>
+  </div>
+</header>
+<div id="main">
+  <div id="growth">
+    <h2><span class="dot"></span>Brain Activity</h2>
+    <div id="feed"></div>
+  </div>
+  <div id="chatwrap">
+    <div id="chat"><div id="chatInner"></div></div>
+    <div id="composer">
+      <div id="row">
+        <input id="q" placeholder='Ask anything… or prefix: reason: · plan: · remember: · how to: · fetch: URL — paste an image to show her' autocomplete="off">
+        <select id="effort" title="How hard she thinks before answering (Low = fast, Very High = two-pass)">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="very_high">Very High</option>
+        </select>
+        <button id="send">Ask</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const chatInner = document.getElementById('chatInner'), q = document.getElementById('q'),
+      send = document.getElementById('send'), feed = document.getElementById('feed'),
+      sidebarBtn = document.getElementById('sidebarBtn'),
+      themeBtn = document.getElementById('themeBtn'),
+      effortSel = document.getElementById('effort');
+effortSel.value = localStorage.getItem('brainEffort') || 'medium';
+effortSel.onchange = () => localStorage.setItem('brainEffort', effortSel.value);
+
+function applyTheme(dark) {
+  document.body.classList.toggle('dark', dark);
+  themeBtn.textContent = dark ? '☀' : '☾';
+  try { localStorage.setItem('ewb-theme', dark ? 'dark' : 'light'); } catch (e) {}
+}
+let savedTheme = 'light';
+try { savedTheme = localStorage.getItem('ewb-theme') || 'light'; } catch (e) {}
+applyTheme(savedTheme === 'dark');
+themeBtn.onclick = () => applyTheme(!document.body.classList.contains('dark'));
+
+// Electron frameless window: reveal custom controls + new-chat button
+if (window.ewbControls && window.ewbControls.isElectron) {
+  document.body.classList.add('electron');
+  document.getElementById('wMin').onclick = () => window.ewbControls.minimize();
+  document.getElementById('wMax').onclick = () => window.ewbControls.maximize();
+  document.getElementById('wClose').onclick = () => window.ewbControls.close();
+}
+document.getElementById('newChatBtn').onclick = async () => {
+  try { await fetch('/api/reset', { method:'POST' }); } catch (e) {}
+  chatInner.innerHTML = '';
+  addMsg('brain', 'Fresh cauldron. What are we working on?');
+  refreshEvents();
+};
+
+sidebarBtn.onclick = () => {
+  const narrow = window.matchMedia('(max-width: 860px)').matches;
+  if (narrow) document.body.classList.toggle('sidebar-open');
+  else document.body.classList.toggle('sidebar-hidden');
+};
+/* if the window is resized to narrow while the sidebar is docked, reset state */
+window.matchMedia('(max-width: 860px)').addEventListener('change', e => {
+  if (e.matches) document.body.classList.remove('sidebar-hidden');
+  else document.body.classList.remove('sidebar-open');
+});
+
+function renderRich(b, text) {
+  // DOM-built markdown-table renderer - every cell goes through textContent,
+  // so no HTML injection is possible. Non-table text keeps pre-wrap flow.
+  const lines = text.split('\n');
+  let i = 0, buf = [];
+  const flush = () => { if (buf.length) { b.appendChild(document.createTextNode(buf.join('\n') + '\n')); buf = []; } };
+  while (i < lines.length) {
+    if (lines[i].trim().startsWith('|')) {
+      const block = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) { block.push(lines[i]); i++; }
+      if (block.length >= 2 && /^\|[\s:|-]+\|?$/.test(block[1].trim()) && block[1].includes('-')) {
+        flush();
+        const tbl = document.createElement('table');
+        block.forEach((row, ri) => {
+          if (ri === 1) return; // separator row
+          const tr = document.createElement('tr');
+          row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').forEach(cell => {
+            const td = document.createElement(ri === 0 ? 'th' : 'td');
+            td.textContent = cell.trim(); tr.appendChild(td);
+          });
+          tbl.appendChild(tr);
+        });
+        b.appendChild(tbl);
+      } else { buf.push(...block); }
+    } else { buf.push(lines[i]); i++; }
+  }
+  flush();
+}
+function addMsg(who, text) {
+  const d = document.createElement('div'); d.className = 'msg ' + who;
+  const b = document.createElement('div'); b.className = 'bubble';
+  b.textContent = text;
+  d.appendChild(b);
+  chatInner.appendChild(d);
+  d.scrollIntoView({block:'end'});
+  return d;
+}
+function addAnswer(text, sources, images) {
+  const d = addMsg('brain', '');
+  renderRich(d.querySelector('.bubble'), text);
+  if (images && images.length) {
+    const g = document.createElement('div'); g.className = 'imgs';
+    images.forEach(im => { const img = document.createElement('img');
+      img.src = im.url; img.title = im.file;
+      img.onclick = () => img.classList.toggle('full');
+      g.appendChild(img); });
+    d.appendChild(g);
+  }
+  if (sources && sources.length) {
+    const s = document.createElement('div'); s.className = 'sources';
+    const lab = document.createElement('b'); lab.textContent = 'Sources: ';
+    s.appendChild(lab);
+    sources.forEach(x => { const sp = document.createElement('span');
+      sp.textContent = x.file; s.appendChild(sp); });
+    d.appendChild(s);
+  }
+  d.scrollIntoView({block:'end'});
+}
+async function ask() {
+  const question = q.value.trim(); if (!question) return;
+  q.value = ''; send.disabled = true;
+  addMsg('user', question);
+  const t = addMsg('brain', 'stirring the cauldron…');
+  t.querySelector('.bubble').classList.add('thinking');
+  try {
+    const r = await fetch('/api/ask', { method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify({question, effort: effortSel.value}) });
+    const data = await r.json();
+    if (data.effort) effortSel.value = data.effort;
+    t.remove(); addAnswer(data.answer, data.sources, data.images);
+    refreshStatus(data.status);
+  } catch (e) { t.remove(); addAnswer('Error: ' + e.message, []); }
+  send.disabled = false; q.focus();
+  refreshEvents();
+}
+send.onclick = ask;
+q.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+
+// paste or drop an image -> she sees it (vision model)
+async function sendImage(file) {
+  const question = q.value.trim() || 'Describe this and connect it to Emberweave if relevant.';
+  q.value = ''; send.disabled = true;
+  addMsg('user', `[image] ${question}`);
+  const t = addMsg('brain', 'opening her eyes…');
+  t.querySelector('.bubble').classList.add('thinking');
+  try {
+    const dataUrl = await new Promise((res, rej) => {
+      const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file);
+    });
+    const r = await fetch('/api/vision', { method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({image: dataUrl, question}) });
+    const data = await r.json();
+    t.remove(); addAnswer(data.answer, data.sources, data.images);
+    refreshStatus(data.status);
+  } catch (e) { t.remove(); addAnswer('Error: ' + e.message, []); }
+  send.disabled = false; q.focus(); refreshEvents();
+}
+q.addEventListener('paste', e => {
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (item) { e.preventDefault(); sendImage(item.getAsFile()); }
+});
+const row = document.getElementById('row');
+row.addEventListener('dragover', e => e.preventDefault());
+row.addEventListener('drop', e => {
+  e.preventDefault();
+  const f = [...(e.dataTransfer?.files || [])].find(f => f.type.startsWith('image/'));
+  if (f) sendImage(f);
+});
+
+function refreshStatus(s) {
+  if (!s) return;
+  document.getElementById('c-docs').textContent = s.files;
+  document.getElementById('c-chunks').textContent = s.chunks.toLocaleString();
+  document.getElementById('c-qs').textContent = s.questions;
+  document.getElementById('c-idx').textContent = s.last_index;
+  document.getElementById('c-up').textContent = s.uptime_min + 'm';
+  if (s.avg_score !== undefined) document.getElementById('c-score').textContent = Math.min(1, s.avg_score);
+}
+const openTraces = new Set();   // survives the 5s feed rebuild - an open block stays open
+function fmt(e) {
+  if (e.lines && e.lines.length) {
+    const key = e.t + '|' + e.kind + '|' + e.text;
+    const det = document.createElement('details'); det.className = 'trace ' + e.kind;
+    const sum = document.createElement('summary');
+    const t = document.createElement('span'); t.className = 't'; t.textContent = e.t;
+    const chev = document.createElement('span'); chev.className = 'chev'; chev.textContent = '▸';
+    const lbl = document.createElement('span'); lbl.className = 'lbl';
+    lbl.textContent = e.kind === 'coding' ? 'Coding' : e.kind === 'heartbeat' ? 'Heartbeat' : 'Thinking';
+    const hd = document.createElement('span'); hd.className = 'hd'; hd.textContent = e.text;
+    sum.appendChild(t); sum.appendChild(chev); sum.appendChild(lbl); sum.appendChild(hd);
+    const body = document.createElement('div'); body.className = 'trace-body';
+    e.lines.forEach(l => { const d = document.createElement('div'); d.textContent = l; body.appendChild(d); });
+    det.appendChild(sum); det.appendChild(body);
+    if (openTraces.has(key)) det.open = true;
+    det.addEventListener('toggle', () => {
+      if (det.open) openTraces.add(key); else openTraces.delete(key);
+    });
+    return det;
+  }
+  const d = document.createElement('div'); d.className = 'ev ' + e.kind;
+  const t = document.createElement('span'); t.className = 't'; t.textContent = e.t;
+  const b = document.createElement('b'); b.textContent = e.text;
+  d.appendChild(t); d.appendChild(b);
+  return d;
+}
+let lastFeed = '';
+async function refreshEvents() {
+  try {
+    const r = await fetch('/api/events'); const data = await r.json();
+    const key = JSON.stringify(data.events);
+    if (key === lastFeed) return;
+    lastFeed = key;
+    feed.innerHTML = '';
+    data.events.slice().reverse().forEach(e => feed.appendChild(fmt(e)));
+  } catch (e) { /* brain asleep */ }
+}
+fetch('/api/status').then(r=>r.json()).then(s => { refreshStatus(s); refreshEvents(); });
+setInterval(() => {
+  fetch('/api/status').then(r=>r.json()).then(refreshStatus);
+  refreshEvents();
+}, 5000);
+q.focus();
+</script>
+</body>
+</html>
