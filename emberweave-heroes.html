@@ -5105,11 +5105,11 @@ const MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sit
 // Troop XP: the table values are per-level INCREMENTS that accumulate — the XP to go from
 // level L->L+1 is the running sum of the increments (Lv1->2 = 8, 2->3 = 8+10 = 18, 3->4 = +35 = 53 …).
 // A dash in the source table means "no increment that level" (0), so the requirement holds steady.
-const TROOP_INC=[8,10,35,45,60,70,70,80,90,110,110,120,120,130,130,130,130,130,150,250,0,0,0,300,330,350,0,370,0,0,450,0,0,600,700,800,0,0,1200,1200,1300,1400,0,0,1900,0,0,0,3000,3250,0,3250,3250,3250,0,3400,0,3520,3640,0,3760,0,3880,4000,0,4120,4240,0,4360,0,4480,0,4600,4720,0,4840,4960,0,5080,0,5200,0,5320,5440,0,5560,5680,0,5800,0,5920,0,6040,6160,0,6280,6400,0,6520];
+const TROOP_INC=[8,8,35,45,60,70,70,80,90,110,110,120,120,120,130,130,130,130,150,250,250,260,270,300,330,350,360,370,380,400,450,500,550,600,650,800,1000,1000,1200,1200,1300,1400,1500,1700,1900,2200,2500,2750,3000,3250,3250,3250,3250,3250,3400,3400,3500,3520,3640,3880,4070,4270,4470,4670,4860,5090,5320,5550,5780,6000,6280,6550,6820,7100,7400,7700,8000,8300,8600,8900,12400,16880,21840,26800,31760,36720,41680,46640,60000,80000,90000,100000,110000,120000,130000,140000,150000,160000,170000];   /* v820 (Phil 25 Sep): Magic Rush's per-level XP, counted ONCE - the old troop table ran this column through a running sum and a cumulative sum */
 function runningSum(inc){ const out=[]; let r=0; for(let i=0;i<inc.length;i++){ r+=inc[i]; out.push(r); } return out; }
-const TROOP_STEP=runningSum(TROOP_INC);   // XP to go from level (i+1) -> (i+2)
+const TROOP_STEP=TROOP_INC;   // XP to go from level (i+1) -> (i+2) - v820: the table IS the step
 // Hero XP: per-level requirement straight from the table (index 0 = 1->2 … 58 = 59->60)
-const HERO_STEP=[8,10,12,26,40,60,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2500,2800,3100,3400,3700,4000,4300,4600,4900,5200,5500,5800,6900,7200,7500,7800,8100,8400,8700,9000,9300,10200,10500,10800,11100,11700,12300,12900,13500,14100,14700,15300,15900,16500,17100,17700,18300,18900,19500,20100,20700,21300,21900,22500,23100,23700,24300,24900,25500,26100,26700,27300,27900,28500,29100,29700,30300,30900,31500,32100,32700,33300,33900,34500,35100,35700,36300,36900,37500,38100,38700];
+const HERO_STEP=[8,10,12,25,40,65,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2620,2820,3010,3200,3390,3590,4410,4660,4920,5180,5450,5750,6880,7210,7550,7900,8250,8620,8990,9370,9760,10180,10590,11000,11420,11850,12280,12730,13180,13640,14110,16410,16960,17510,18080,18650,19230,19820,20420,21020,21640,22290,22930,23570,24230,24890,28370,29120,29890,30660,31450,32270,52760,67510,82940,106110,130320,162990,204640,248080,348088,379350,455760,592780,778710,972260,1173550,829740,847110,864660,882390];   /* v820: Magic Rush hero XP, levels 2..100 */
 function cumArr(steps){ const c=new Array(MAX_LEVEL+1); c[1]=0; for(let L=2;L<=MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const TROOP_CUM=cumArr(TROOP_STEP), HERO_CUM=cumArr(HERO_STEP);
 function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
@@ -24314,7 +24314,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790337689604';
+const BUILD_ID = '1790339876904';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
