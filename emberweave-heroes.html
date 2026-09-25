@@ -13420,7 +13420,7 @@ function renderHome(){
     {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
     {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
     {nav:'rankings',    label:'Bulletin Board', x:69, y:37, w:15, h:16, lx:69, ly:46},   // v256 (80/20 §7): rankings live on the physical Bulletin Board — there is no top-nav duplicate
-    {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(17)},
+    {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},   /* v819 (Phil 25 Sep): "Move vault to 10" - the server opens it at VAULT_UNLOCK_LEVEL=10 */
     {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
     {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
     {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, ...lk(20)},
@@ -24314,7 +24314,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790308749565';
+const BUILD_ID = '1790337689604';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
