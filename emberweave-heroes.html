@@ -9406,7 +9406,7 @@ function ccApply(u, t, field, dur){
      deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
   if(field==='slow'){ const m=slowMulFor((u&&u._castLv)||(u&&u.level)||1);
     t.slowMul=Math.min(t.slowMul==null?1:t.slowMul, m); }
-  if(Math.random() >= ccChanceFor(u, t)){
+  if(brnd() >= ccChanceFor(u, t)){   /* v823: the SEEDED battle roll - Math.random made the server replay disagree with the fight */
     try{ floatTexts.push({x:t.x, y:t.y-10, txt:'RESIST', t:.7, color:'#9fb4cc', vy:1.1, sz:10}); }catch(e){}
     return false;
   }
@@ -17077,7 +17077,7 @@ let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chap
 /* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
    own 100/100/18 fragment sources. PORTAL is which one the roadmap is showing. */
 const PORTAL_META={ normal:{label:'Normal', stages:160, icon:'🗺️'},
-  elite:{label:'Elite', stages:100, icon:'⚔️'}, veteran:{label:'Veteran', stages:18, icon:'🔶'} };
+  elite:{label:'Elite', stages:160, icon:'⚔️'}, veteran:{label:'Veteran', stages:18, icon:'🔶'} };
 let PORTAL='normal';
 function portalStages(m){ return (PORTAL_META[m]||PORTAL_META.normal).stages; }
 function portalCleared(m){ return m==='normal' ? (G.campaignCleared|0) : ((G.portals&&G.portals[m]&&G.portals[m].cleared)|0); }
@@ -24314,7 +24314,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790345585165';
+const BUILD_ID = '1790349504250';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
