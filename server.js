@@ -2808,7 +2808,7 @@ const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"):
 const PORTAL_MODES=Object.freeze(['normal','elite','veteran']);
 const PORTAL_LABEL=Object.freeze({normal:'Normal Portal', elite:'Elite Portal', veteran:'Veteran Portal'});
 const PORTAL_FILE=Object.freeze({normal:'campaign-encounters.json', elite:'elite-campaign-encounters.json', veteran:'veteran-campaign-encounters.json'});
-const PORTAL_SIZE=Object.freeze({normal:160, elite:100, veteran:18});   // v821: Normal 16 chapters; Elite follows in Batch B
+const PORTAL_SIZE=Object.freeze({normal:160, elite:160, veteran:18});   // v823: Normal and Elite both 16 chapters
 /* unlock gates (spec §"Campaign mode" table) */
 const PORTAL_GATE=Object.freeze({ normal:null,
   elite:{ afterNode:10, level:10, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
