@@ -60,7 +60,7 @@ const QUALITY_LADDER = ['Grey','Green','Green +1','Blue','Blue +1','Blue +2',
                         'Purple','Purple +1','Purple +2','Purple +3',
                         'Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange'];
 const CH_BONUS_TIER = (()=>{ const t={};
-  for(let ch=1; ch<=10; ch++) t[ch]=QUALITY_LADDER[ch-1];
+  for(let ch=1; ch<=16; ch++) t[ch]=QUALITY_LADDER[ch-1];   /* v822: 16 chapters walk all 16 bands - ch16 Orange (CHAPTERS is declared below) */
   return t; })();
 
 /* WHERE THE SIX SIT, AND WHAT THEY ARE CALLED. Phil, 16 Sep 2026:
@@ -72,12 +72,12 @@ const CH_BONUS_TIER = (()=>{ const t={};
 const BONUS_CODES = [3, 4, 6, 7, 9, 10];
 
 /* Phil's rate ladder, per hour, keyed by the code above — the first pair pays 1, the second 2, the
-   third 3. 1+1+2+2+3+3 = 12/hour once a chapter is fully cleared; all ten chapters = 120/hour. */
+   third 3. 1+1+2+2+3+3 = 12/hour once a chapter is fully cleared; all sixteen chapters = 192/hour (v822). */
 const SLOT_RATE  = { 3:1, 4:1, 6:2, 7:2, 9:3, 10:3 };
 
 const CAP_HOURS  = 36;          // "it maxes at 36 hours saved"
 const SLOTS      = 6;           // "6 buildings on every chapter"
-const CHAPTERS   = 10;          // CH_BONUS_SITES carries exactly 10 chapters × 6 sites
+const CHAPTERS   = 16;          // v822: CH_BONUS_SITES carries 16 chapters × 6 sites (ChatGPT's 10-15, ch16 = old ch10)
 const LANES      = 3;
 const WAVES      = 5;
 /* FOUR windows, one after each of waves 1-4. Phil, 17 Sep 2026: "five waves create FOUR firebreak
