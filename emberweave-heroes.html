@@ -4605,7 +4605,7 @@ function ccMetaSegs(o){
     const name=LABEL[k]||k; if(seen[name]) continue; seen[name]=1;
     /* v794 - and if the ability both lasts and ticks, it RE-APPLIES: say so, generically, so any
        future hazard gets the same sentence without anyone writing it. */
-    const sec=CC_SECONDS[k][aoe?'aoe':'single'];
+    const sec=+(CC_SECONDS[k][aoe?'aoe':'single']*((typeof CC_NERF==='number')?CC_NERF:1)).toFixed(2);   /* v818 */
     const rep=(typeof o.dur==='number' && o.dur>0 && typeof o.tick==='number' && o.tick>0)
       ? (', every '+o.tick+'s for '+o.dur+'s') : '';
     out.push(name+' '+sec+'s'+(aoe?' (area'+rep+')':(rep?' ('+rep.slice(2)+')':'')));
@@ -4644,7 +4644,8 @@ function ccSecFor(o,k){
   if(!o) return 0;
   if(typeof CC_SECONDS==='undefined' || !CC_SECONDS[k]) return o[k]||0;
   const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
-  return CC_SECONDS[k][aoe?'aoe':'single'];
+  const _s=CC_SECONDS[k][aoe?'aoe':'single'];
+  return (typeof CC_NERF==='number') ? +(_s*CC_NERF).toFixed(2) : _s;   /* v818: the card shows the cut length */
 }
 function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
@@ -4686,7 +4687,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     loadedhand:'🃏 every 4th attack draws a suit', pridemomentum:'⚔ +'+Math.round(22*sm)+'% after a block',
     weightless:'⚡ dodge → atk speed + crit', prismscales:'💧 dodge → water blade',
     slumber:'👁 attacks lower enemy accuracy',
-    hush:'🤫 every 5s one enemy is silenced for 1s', momentum:'⚡ atk speed ramps up to +'+Math.round(50*sm)+'%',
+    hush:'🤫 every 5s one enemy is silenced for 0.7s', momentum:'⚡ atk speed ramps up to +'+Math.round(50*sm)+'%',
     notthere:'👻 every 4s the next blow misses', packstats:'⚔ +5% per living summon',
     tidereserve:'✚ 1% HP and 1% energy per second', scriptorium:'⚡ the whole team charges faster',
     unwind:'✚ every 5s one ally is cleansed', wrath:'⚔ +12% every 5s, compounding',
@@ -9036,7 +9037,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   else if(kind!=='true'){ amt*=1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl); // Armor vs Armor Pen
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
-  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,src._gearNextStun); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
+  if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<cc))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
@@ -9059,10 +9060,10 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
     const _i=src._armIdx, _tx=tgt.x, _ty=tgt.y;
     try{ spawnArsenalShot(src,tgt,_i,()=>arsenalImpact(_i,_tx,_ty)); }catch(e){}
     switch(_i){
-      case 0: tgt.stunned=Math.max(tgt.stunned||0,0.4*pm); break;
+      case 0: tgt.stunned=Math.max(tgt.stunned||0,ccDur(0.4*pm)); break;
       case 1: enemiesOf(src).forEach(e=>{ if(e.alive&&dist(tgt,e)<1.6*METER) dealDamage(src,e,src.dmg*0.35*pm,'#ffa657'); }); break;
       case 2: pushDot(tgt,src.dmg*0.18*pm,3,1,'#c0392b'); break;
-      case 3: tgt.slow=Math.max(tgt.slow||0,1.5*pm); break;
+      case 3: tgt.slow=Math.max(tgt.slow||0,ccDur(1.5*pm)); break;
       case 4: { let nx=null,nd=1e9; enemiesOf(src).forEach(e=>{ if(e.alive&&e!==tgt){ const d=dist(tgt,e); if(d<nd&&d<3*METER){nd=d;nx=e;} } });
                if(nx){ const _nx=nx.x,_ny=nx.y; dealDamage(src,nx,src.dmg*0.45*pm,'#bfe6ff');
                        try{ spawnArsenalShot(tgt,nx,4,()=>arsenalImpact(4,_nx,_ny)); }catch(e){} } break; }
@@ -9313,6 +9314,15 @@ const SKILL_SCALE_KEYS=['shield','shieldPct','healPct','healMul','regen','shred'
    26 single, 42 AoE, and it splits `warcry` correctly, which exists as both "Bellow" (radius, AoE)
    and "Warcry" (no radius, single).
    TAUNT and FREEZE are not in Phil's table and keep exactly what they were authored. */
+/* v818 (Phil, 24 Sep 2026: "i wanted to nerf CC by about 30% duration. it seemed they are too strong" ·
+   "all CC needs a 30% duration nerf") - EVERY control in the game lasts CC_NERF of its authored length.
+   Applied ONCE, where controls land: ccApply() (41 calls - the table AND every typed-in duration) and
+   ccDur() on the 20 writes that set a control field directly. CC_SECONDS keeps Phil's v790/v793 numbers
+   as written; the card text shows the cut length (ccSecFor / the control line). The stacking ceilings
+   in CC_DUR_MAX drop by the same factor. The server's LINE resolver (Arena/Elite, combat-core.js)
+   counts a stun in whole rounds and is unchanged - an open question for Phil. */
+const CC_NERF=0.70;
+function ccDur(d){ return (+d||0)*CC_NERF; }
 const CC_SECONDS={
   stun:     {single:3.5, aoe:2.0},
   fear:     {single:4.0, aoe:2.0},
@@ -9387,8 +9397,10 @@ function ccChanceFor(u, t){
 /* v793 - silencedT carries BOTH a 5s single taunt and deepchoir's 5s channel; stunned carries a
    3s single freeze as well as a 3.5s single stun. */
 const CC_DUR_MAX={ stunned:4.0, fearT:4.5, _sleepT:5.5, silencedT:5.5, slow:3.5 };
+for(const _f in CC_DUR_MAX) CC_DUR_MAX[_f]=+(CC_DUR_MAX[_f]*CC_NERF).toFixed(3);   /* v818: the ceilings drop with the controls */
 function ccApply(u, t, field, dur){
   if(!t || !(dur > 0)) return false;
+  dur=ccDur(dur);   /* v818: every control 30% shorter - the one place they all land */
   { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
   /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
      deepest slow on a target wins, so a weak slow cannot overwrite a strong one. */
@@ -10434,7 +10446,7 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
   c._waxT=4; c._wax=(c._wax||0)+1;
   if(c._wax>=3){ c._wax=0; c._waxT=0;
     const dur=1.6*pm*(1-(c.ctrlRes||0));
-    c.stunned=Math.max(c.stunned||0,dur); c.silencedT=Math.max(c.silencedT||0,dur); c._castT=0; c.castAnim=0;
+    c.stunned=Math.max(c.stunned||0,ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
     floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); }
   else floatTexts.push({x:c.x,y:c.y-8,txt:'wax x'+c._wax,t:.7,color:'#e8d8b0',vy:1,sz:10}); }
@@ -11223,7 +11235,7 @@ function think(u,dt){
   // Umbral Cataclysm: at release the orb leaves his hand (fly); on land it spawns the void zone + slam.
   if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; } } }
   if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */
-      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,'#9b5cff'); e.silencedT=Math.max(e.silencedT||0,H.sil); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
+      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,'#9b5cff'); e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
       ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       u._horizon=null; } }
   if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null;
@@ -11316,7 +11328,7 @@ function think(u,dt){
   if((u._linkT||0)>0){ u._linkT-=dt; if(u._linkT<=0) u._linkTo=null; }
   if((u._effigyT||0)>0){ u._effigyT-=dt;
     if(u._effigyT<=0){   // the effigy is destroyed and the enemy it copied seizes up
-      u.stunned=Math.max(u.stunned||0,(u._effigyStun||1.0)*(1-(u.ctrlRes||0)));
+      u.stunned=Math.max(u.stunned||0,ccDur((u._effigyStun||1.0)*(1-(u.ctrlRes||0))));
       try{ ringBurst(u.x,u.y,0xe8d8b0,16); }catch(e){}
       floatTexts.push({x:u.x,y:u.y-10,txt:'SHATTERED',t:1.0,color:'#e8d8b0',vy:1,sz:12});
       u._effigyBy=null; } }
@@ -11338,7 +11350,7 @@ function think(u,dt){
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
     if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
-      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,1.2); if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
+      enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,ccDur(1.2)); if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
   if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
@@ -11422,7 +11434,7 @@ function think(u,dt){
         if(u.pass.loadedhand){ u._lhN=((u._lhN||0)+1)%4;
           if(u._lhN===0&&t){ const suit=Math.floor(brnd()*4)%4;
             if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
-            else if(suit===1){ t.stunned=Math.max(t.stunned||0,0.5*(1-(t.ctrlRes||0))); floatTexts.push({x:t.x,y:t.y-8,txt:'♠',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
+            else if(suit===1){ t.stunned=Math.max(t.stunned||0,ccDur(0.5*(1-(t.ctrlRes||0)))); floatTexts.push({x:t.x,y:t.y-8,txt:'♠',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
             else if(suit===2){ t._shredPct=Math.max(t._shredPct||0,0.25*_pm); t._shredT=Math.max(t._shredT||0,4); floatTexts.push({x:t.x,y:t.y-8,txt:'♦',t:.8,color:'#e0a83a',vy:1.2,sz:14}); }
             else { healUnit(u,dmg*0.5*_pm); floatTexts.push({x:t.x,y:t.y-8,txt:'♣',t:.8,color:'#8fe0a0',vy:1.2,sz:14}); } } }
         // Powdered Slumber (Lysara): her attacks gradually blind what she hits.
@@ -12284,7 +12296,7 @@ function updateBattle(dt){
            still inside the lane behind her, is hit once. */
         const near=dist(u,e)<=u._stampW+bodyR(u)+bodyR(e);
         if(near || (tt<=along+8 && tt>=-8 && Math.abs(side)<=u._stampW)){ u._stampHit.add(e);
-          dealDamage(u,e,u._stampDmg,'#ffcf40'); e.stunned=Math.max(e.stunned||0,(u._stampStun||1)*(1-(e.ctrlRes||0)));
+          dealDamage(u,e,u._stampDmg,'#ffcf40'); e.stunned=Math.max(e.stunned||0,ccDur((u._stampStun||1)*(1-(e.ctrlRes||0))));
           if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const s=side>=0?1:-1;
             e.x+=(-u._stampUY)*s*u._stampPush; e.y+=(u._stampUX)*s*u._stampPush;
             e.x=Math.max(40,Math.min(FW-40,e.x)); e.y=Math.max(90,Math.min(FD-40,e.y)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.35); }
@@ -12411,7 +12423,7 @@ function updateBattle(dt){
     if(u.pass.scriptorium){ const pm=(u.passMul||1); units.forEach(o=>{ if(o.alive&&o.team===u.team) o.energy=Math.min(100,o.energy+1*pm*dt); }); }
     // Hush (Lumi): every 5s the quietest hour takes one enemy's voice for a second
     if(u.pass.hush){ u._hushT=(u._hushT||0)+dt; if(u._hushT>=5){ u._hushT-=5; const foes=enemiesOf(u).filter(e=>e.alive);
-      if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.silencedT=Math.max(e.silencedT||0,1*(u.passMul||1));   // v268: seeded, not frame-count-derived
+      if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.silencedT=Math.max(e.silencedT||0,ccDur(1*(u.passMul||1)));   // v268: seeded, not frame-count-derived
         /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
@@ -12424,7 +12436,7 @@ function updateBattle(dt){
         if(a.dots&&a.dots.length)a.dots.pop(); else if(a.stunned>0)a.stunned=0; else if(a.silencedT>0)a.silencedT=0;
         else if(a.slow>0)a.slow=0; else a.mortalT=0;
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); } } }
-    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,1.2); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
+    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
   });
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // WoW-style status effects: DoT / HoT ticks + buff/debuff timers
@@ -12450,7 +12462,7 @@ function updateBattle(dt){
         groundHazards.splice(i,1); continue; } }
     h.life-=dt; h.acc+=dt;
     if(h.acc>=h.interval){ h.acc-=h.interval; if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
-      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,h.slow); if(h.silence)e.silencedT=Math.max(e.silencedT||0,h.silence);
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;
             const _d=Math.hypot(a.x-e.x,a.y-e.y); if(_d<_bd){_bd=_d;_b=a;} }
@@ -13835,9 +13847,9 @@ function castGearSkill(u,_fromTick){
   switch(ty){
     case 'dmg': { const ts=_gsFoes(u,p.target,p.n); ts.forEach(t=>{ try{ ringBurst(t.x,t.y,0xffd45e,12); }catch(e){} dealDamage(u,t,u.dmg*(p.mult||1),'#ffd45e'); if(p.burn) burn(t,p.burn,p.burnDur); if(p.knock&&!t.immovable&&!((t._gearImmovableT||0)>0)){ const dx=t.x-u.x,dy=t.y-u.y,dd=Math.hypot(dx,dy)||1; t.x+=dx/dd*(p.knock||50); t.y+=dy/dd*(p.knock||50); } }); break; }
     case 'stun': { const ts=p.target==='caster' ? [_gsNearCaster(u)||_gsNearFoe(u)].filter(Boolean) : _gsFoes(u,p.target==='aoe'?'aoe':'near',p.target==='aoe'?3:1);   /* v646: Static Crown stuns the nearest CASTER */
-      ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,(p.dur||0.75)); }); break; }
-    case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,p.dur||1.25); break; }
-    case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ t.slow=Math.max(t.slow||0,p.dur||2); if((p.pct||0)>=0.9) t.stunned=Math.max(t.stunned||0,(p.dur||1.25)*0.6); }); break; }
+      ts.forEach(t=>{ if(p.dmgMult) dealDamage(u,t,u.dmg*p.dmgMult,'#ffd45e'); t.stunned=Math.max(t.stunned||0,ccDur(p.dur||0.75)); }); break; }
+    case 'silence': { const t=p.target==='farCaster'?_gsFarCaster(u):_gsNearFoe(u); if(t) t.silencedT=Math.max(t.silencedT||0,ccDur(p.dur||1.25)); break; }
+    case 'slow': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':'near',3); ts.forEach(t=>{ t.slow=Math.max(t.slow||0,ccDur(p.dur||2)); if((p.pct||0)>=0.9) t.stunned=Math.max(t.stunned||0,ccDur((p.dur||1.25)*0.6)); }); break; }
     case 'shield': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.ap?Math.round((u.apow||u.dmg)*(p.ap||1)):Math.round(w.maxHp*(p.pct||0.1)); w.shield=(w.shield||0)+amt; w.shieldT=Math.max(w.shieldT||0,p.dur||5); if(p.energy) w.energy=Math.min(100,w.energy+p.energy); }); break; }
     case 'heal': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.missing?Math.round((w.maxHp-w.hp)*p.missing):Math.round(w.maxHp*(p.pct||0.1));
       if(p.delay){ (w._gearDelayedHeals||(w._gearDelayedHeals=[])).push({t:p.delay,amt}); }
@@ -13857,7 +13869,7 @@ function castGearSkill(u,_fromTick){
       if(p.blinkBack){ const f=_gsNearFoe(u); if(f){ const dx=u.x-f.x,dy=u.y-f.y,dd=Math.hypot(dx,dy)||1; u.x+=dx/dd*60; u.y+=dy/dd*60; u._ax=u.x; u._ay=u.y; } }
       if(p.who==='nearAllies'){ _gsAllies(u,'allies').forEach(w=>{ if(p.as){ w.hasteT=Math.max(w.hasteT||0,p.dur||3); w.hasteMul=Math.max(w.hasteMul||1,p.as); } }); } break; }
     case 'mark': { const ts=_gsFoes(u,p.target==='aoe'||p.target==='all'?'aoe':(p.target==='far'?'far':'near'),5);
-      ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,p.dur||2); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
+      ts.forEach(t=>{ if(p.kind==='asDebuff'){ t.slow=Math.max(t.slow||0,ccDur(p.dur||2)); } else { t.mortalT=Math.max(t.mortalT||0,p.dur||3); t._gsMark=p.mult||1.2; } if(p.burn) burn(t,p.burn,p.dur); }); break; }
     case 'taunt': { const ts=_gsFoes(u,'aoe',3); ts.forEach(t=>{ t.forcedTarget=u; t.forcedTargetT=Math.max(t.forcedTargetT||0,p.dur||1.5); }); break; }
     case 'cleanse': { _gsAllies(u,p.who||'allies').forEach(w=>{ w.stunned=0; w.fearT=0; w.slow=0; w.silencedT=0; }); break; }
     case 'untarget': { if(p.ccImmune){ u._gearImmovableT=Math.max(u._gearImmovableT||0,p.ccImmune); } else { u._noTarget=true; u._noTargetT=(p.dur||1.5); u.shield=(u.shield||0)+Math.round(u.maxHp*0.06); u.shieldT=Math.max(u.shieldT||0,2); } break; }   // v268: SIM-TIME countdown (was a wall-clock setTimeout that ignored pause, speed and the skip loop)
@@ -24302,7 +24314,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790221859000';
+const BUILD_ID = '1790308749565';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -26519,7 +26531,7 @@ if(!window._ewBackWired){ window._ewBackWired=true; let _leaving=false;
 /* Bruiser (was Brute) synergy: a chance to stun on hit (wraps the engine's dealDamage only while a match is being fought) */
 (function(){ if(typeof dealDamage!=='function') return; const _dd=dealDamage;
   dealDamage=function(src,tgt,amt,color,kind,silent){ const r=_dd.apply(this,arguments);
-    try{ if(ED.fighting && src && src._edStun && tgt && tgt.alive && tgt.team!==src.team && brnd()<src._edStun) tgt.stunned=Math.max(tgt.stunned||0,0.6); }catch(e){}
+    try{ if(ED.fighting && src && src._edStun && tgt && tgt.alive && tgt.team!==src.team && brnd()<src._edStun) tgt.stunned=Math.max(tgt.stunned||0,ccDur(0.6)); }catch(e){}
     return r; }; })();
 </script>
 

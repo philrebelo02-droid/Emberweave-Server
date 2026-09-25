@@ -48,7 +48,7 @@ ck('Heartward Pendant cannot be consumed above its low-health threshold',!highSh
 const conduit=gearProbe('energy',{n:45,selfArmorCut:.15,dur:2},'',`({energy:u.energy,cut:u._gearArmorCut,t:u._gearArmorCutT})`);
 ck('Mana Conduit applies its temporary armor penalty',conduit.energy===80&&conduit.cut===.15&&conduit.t===2);
 const silenced=gearProbe('silence',{target:'farCaster',dur:1.25},`const f=makeUnit('vael','enemy',900,100,20,{owned:false});units.push(f);`,`({caster:e.silencedT||0,farPhysical:f.silencedT||0})`);
-ck('Scrollkeeper Sash targets the farthest caster, not the nearest or farthest physical hero',silenced.caster===1.25&&silenced.farPhysical===0);
+ck('Scrollkeeper Sash targets the farthest caster, not the nearest or farthest physical hero',Math.abs(silenced.caster-1.25*0.70)<1e-9&&silenced.farPhysical===0);
 const vamp=gearProbe('buff',{as:1.25,vamp:.25,dur:3},'',`({v:u._gearVampPct,t:u._gearVampT})`);
 ck('Furnace Heart applies its written spell-vamp window',vamp.v===.25&&vamp.t===3);
 const pulled=gearProbe('heal',{who:'lowest',pct:.08,pull:1},'a.hp=1;',`({before:300,after:a.x})`);
