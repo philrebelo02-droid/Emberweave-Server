@@ -17353,7 +17353,7 @@ function stageDetailHTML(stg,node){
     return `<div class="smWave"><div class="smWaveLabel">${boss?'👑':'⚔️'} Wave ${wi+1}</div><div class="smEnemies">${list}</div></div>`;
   }).join('');
   // Blueprint v1: a chapter boss is a HARD player-level graduation gate; Stage 5/10 show a hint.
-  const gate=(stg.bossLevelGate|0), myLv=(typeof playerLevel==='function')?playerLevel():1;
+  const gate=0, myLv=(typeof playerLevel==='function')?playerLevel():1;   /* v825 (Phil): no level lock on any stage or boss */
   const gateLine=gate?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:2px">
       <span style="font-size:11px;color:#8b98a9">Chapter boss — required level</span>
       <span style="font-size:11px;font-weight:800;color:${myLv>=gate?'#5ee89b':'#ff9a9a'}">Lv ${gate}${myLv>=gate?' ✓':' — you are '+myLv}</span></div>`:'';
@@ -17415,7 +17415,7 @@ function openStageModal(i,mode){
   const canPay=G.stamina>=stageStamCost(i,mode);
   const _eb=mode==='elite'||isEliteStage(i)||isBossStage(i), _left=stageRunsLeft(i,mode), _farmable=!_eb||_left>0;
   // Blueprint v1: normal stages may be attempted early; a chapter boss is a hard player-level gate.
-  const _gate=(_stg&&(_stg.bossLevelGate|0))||((STAGE_GATE[i]&&STAGE_GATE[i].gate)|0);
+  const _gate=0;   /* v825 (Phil 25 Sep): "if they are strong enough to kill the boss, they can send it" */
   const _gateOK=!_gate||playerLevel()>=_gate;
   // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
   const _stars=portalStars(mode,i), _threeStar=_stars>=3;
@@ -23834,9 +23834,12 @@ const GEM_OFFERS=[
    credits the mirror only for the DEV test popup (the only caller), and says so out loud rather
    than looking like a real purchase that then evaporates on the next ledger sync. */
 function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.reward) return; const rw=o.reward;
-  if(rw.kind==='gems'){ G.gems=(G.gems||0)+rw.amount;
-    bannerMsg(ACC.token ? ('💎 +'+rw.amount+' (dev test — not banked: purchases need a verified receipt route)')
-                        : ('💎 +'+rw.amount+' diamonds!')); }
+  if(rw.kind==='gems'){
+    if(ACC.token){ api('/api/shop/devpack','POST',{i, requestId:uid8()}).then(r=>{   /* v825: banked by the server, logged to the dev inbox */
+        if(r&&r.ok){ adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg('💎 +'+r.gems+' diamonds (dev test - banked, sent to the dev inbox for review)'); }
+        else bannerMsg((r&&r.error)||'Could not reach the realm.'); });
+      return; }
+    G.gems=(G.gems||0)+rw.amount; bannerMsg('💎 +'+rw.amount+' diamonds!'); }
   else if(rw.kind==='dailyGems'||rw.kind==='dailyStamina'){
     G.dailyPacks=G.dailyPacks||[]; consolidateDailyPacks();
     const type=(rw.kind==='dailyGems'?'gems':'stamina'), key=type+'_'+rw.amount;
@@ -24314,7 +24317,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790349504250';
+const BUILD_ID = '1790373833743';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
