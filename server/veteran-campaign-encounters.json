@@ -1206,92 +1206,93 @@
   "waves": [
    [
     {
-     "key": "shellwark",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "sludgemaw",
+     "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "grushak",
+     "key": "vineback boar",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "whisp",
+     "key": "kelp hexer",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "blackquill",
+     "key": "wispweaver shade",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     }
    ],
    [
     {
-     "key": "trapjaw",
+     "key": "basalt mauler",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "ashen",
+     "key": "magma hound",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "vexmite",
+     "key": "nightcap mimic",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     }
    ],
    [
     {
-     "key": "rustclank",
+     "key": "bonepike guard",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "granith",
+     "key": "storm eel",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "volthex",
+     "key": "furnace gnawer",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "bitwraith",
+     "key": "sootwing imp",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     },
     {
-     "key": "lost soul",
+     "key": "clockwork lantern",
      "lvl": 100,
-     "hpMul": 163.8809,
-     "dmgMul": 53.9903
+     "hpMul": 116.288,
+     "dmgMul": 42.3253
     }
    ]
   ],
-  "difficultyTune": 0.6147,
+  "difficultyTune": 0.5708,
   "realEngineTuned": true,
-  "veteranTune": 2.265
+  "veteranTune": 1.5925,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-2",
@@ -1324,98 +1325,99 @@
   "waves": [
    [
     {
-     "key": "trapjaw",
+     "key": "bonepike guard",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "ashen",
+     "key": "skyroot dryad",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "cindertusk",
+     "key": "furnace gnawer",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "vexmite",
+     "key": "clockwork lantern",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "whisp",
+     "key": "nightcap mimic",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     }
    ],
    [
     {
-     "key": "granith",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "volthex",
+     "key": "riftling spider",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "nightgloom",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "skarrn",
+     "key": "sootwing imp",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "lost soul",
+     "key": "luminant orb",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     }
    ],
    [
     {
-     "key": "mordath",
+     "key": "ironjaw raider",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "gnashul",
+     "key": "magma hound",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "bitwraith",
+     "key": "storm eel",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     },
     {
-     "key": "blackquill",
+     "key": "kelp hexer",
      "lvl": 100,
-     "hpMul": 182.9111,
-     "dmgMul": 57.7302
+     "hpMul": 150.3049,
+     "dmgMul": 50.0855
     }
    ]
   ],
-  "difficultyTune": 0.6731,
+  "difficultyTune": 0.7187,
   "realEngineTuned": true,
-  "veteranTune": 2.0141
+  "veteranTune": 1.656,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-3",
@@ -1448,98 +1450,99 @@
   "waves": [
    [
     {
-     "key": "shellwark",
+     "key": "bonepike guard",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "trapjaw",
+     "key": "basalt mauler",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "cindertusk",
+     "key": "riftling spider",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "lost soul",
+     "key": "clockwork lantern",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "skarrn",
+     "key": "kelp hexer",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     }
    ],
    [
     {
-     "key": "rustclank",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "bilewretch",
+     "key": "crystalhorn grazer",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "ashen",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "bitwraith",
+     "key": "crucible acolyte",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "whisp",
+     "key": "mourn moth",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     }
    ],
    [
     {
-     "key": "nightgloom",
+     "key": "furnace gnawer",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "volthex",
+     "key": "ironjaw raider",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "blackquill",
+     "key": "zephyr harrier",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     },
     {
-     "key": "vexmite",
+     "key": "sootwing imp",
      "lvl": 100,
-     "hpMul": 107.1056,
-     "dmgMul": 41.198
+     "hpMul": 112.9917,
+     "dmgMul": 42.5213
     }
    ]
   ],
-  "difficultyTune": 0.3306,
+  "difficultyTune": 0.4502,
   "realEngineTuned": true,
-  "veteranTune": 1.5313
+  "veteranTune": 1.5276,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-4",
@@ -1572,104 +1575,105 @@
   "waves": [
    [
     {
-     "key": "shellwark",
+     "key": "basalt mauler",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "mordath",
+     "key": "crystalhorn grazer",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "skulk",
+     "key": "riftling spider",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "lost soul",
+     "key": "nightcap mimic",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "vexmite",
+     "key": "crucible acolyte",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     }
    ],
    [
     {
-     "key": "rustclank",
+     "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "ooznik",
+     "key": "furnace gnawer",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "volthex",
+     "key": "vineback boar",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "blackquill",
+     "key": "storm eel",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "bitwraith",
+     "key": "luminant orb",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     }
    ],
    [
     {
-     "key": "trapjaw",
+     "key": "bonepike guard",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "granith",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "nightgloom",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "whisp",
+     "key": "mourn moth",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     },
     {
-     "key": "skarrn",
+     "key": "sootwing imp",
      "lvl": 100,
-     "hpMul": 117.1872,
-     "dmgMul": 45.0116
+     "hpMul": 91.5922,
+     "dmgMul": 37.6179
     }
    ]
   ],
-  "difficultyTune": 0.3159,
+  "difficultyTune": 0.3167,
   "realEngineTuned": true,
-  "veteranTune": 1.7909
+  "veteranTune": 1.2045,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-5",
@@ -1702,87 +1706,88 @@
   "waves": [
    [
     {
-     "key": "grundle",
+     "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "bilewretch",
+     "key": "vineback boar",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "nightgloom",
+     "key": "riftling spider",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "blackquill",
+     "key": "luminant orb",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     }
    ],
    [
     {
-     "key": "trapjaw",
+     "key": "basalt mauler",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "mordath",
+     "key": "skyroot dryad",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "gnashul",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "whisp",
+     "key": "clockwork lantern",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     }
    ],
    [
     {
-     "key": "shellwark",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "cindertusk",
+     "key": "magma hound",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "lost soul",
+     "key": "wispweaver shade",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726
     },
     {
-     "key": "wintercrag",
+     "key": "asterion",
      "lvl": 100,
-     "hpMul": 188.4466,
-     "dmgMul": 58.3167,
+     "hpMul": 89.5677,
+     "dmgMul": 34.3726,
      "boss": true
     }
    ]
   ],
-  "difficultyTune": 0.5629,
+  "difficultyTune": 0.3405,
   "realEngineTuned": true,
-  "veteranTune": 2.8647
+  "veteranTune": 1.1661,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-6",
@@ -1815,80 +1820,81 @@
   "waves": [
    [
     {
-     "key": "mordath",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "bilewretch",
+     "key": "furnace gnawer",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "skarrn",
+     "key": "crucible acolyte",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "lost soul",
+     "key": "sootwing imp",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     }
    ],
    [
     {
-     "key": "trapjaw",
+     "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "skulk",
+     "key": "skyroot dryad",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "whisp",
+     "key": "clockwork lantern",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     }
    ],
    [
     {
-     "key": "grushak",
+     "key": "magma hound",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "cindertusk",
+     "key": "crystalhorn grazer",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "vexmite",
+     "key": "kelp hexer",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     },
     {
-     "key": "bitwraith",
+     "key": "nightcap mimic",
      "lvl": 100,
-     "hpMul": 185.854,
-     "dmgMul": 66.2154
+     "hpMul": 244.796,
+     "dmgMul": 79.5877
     }
    ]
   ],
-  "difficultyTune": 0.3676,
+  "difficultyTune": 0.613,
   "realEngineTuned": true,
-  "veteranTune": 2.0639
+  "veteranTune": 2.7246,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-7",
@@ -1921,80 +1927,81 @@
   "waves": [
    [
     {
-     "key": "granith",
+     "key": "basalt mauler",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "bilewretch",
+     "key": "magma hound",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "mordath",
+     "key": "crystalhorn grazer",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "blackquill",
+     "key": "zephyr harrier",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "whisp",
+     "key": "crucible acolyte",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     }
    ],
    [
     {
-     "key": "trapjaw",
+     "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "ashen",
+     "key": "vineback boar",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "lost soul",
+     "key": "mourn moth",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     }
    ],
    [
     {
-     "key": "rustclank",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "gnashul",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     },
     {
-     "key": "bitwraith",
+     "key": "luminant orb",
      "lvl": 100,
-     "hpMul": 164.127,
-     "dmgMul": 63.767
+     "hpMul": 140.3747,
+     "dmgMul": 56.604
     }
    ]
   ],
-  "difficultyTune": 0.2624,
+  "difficultyTune": 0.2826,
   "realEngineTuned": true,
-  "veteranTune": 2.3555
+  "veteranTune": 1.9367,
+  "lineup": "v827 late-game"
  },
  {
   "id": "2-8",
@@ -2027,97 +2034,98 @@
   "waves": [
    [
     {
-     "key": "trapjaw",
+     "key": "basalt mauler",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "bilewretch",
+     "key": "magma hound",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "ooznik",
+     "key": "furnace gnawer",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "blackquill",
+     "key": "kelp hexer",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     }
    ],
    [
     {
-     "key": "rustclank",
+     "key": "frostjaw troll",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "grundle",
+     "key": "bonepike guard",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "volthex",
+     "key": "reef prowler",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "lost soul",
+     "key": "sootwing imp",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "skarrn",
+     "key": "crucible acolyte",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     }
    ],
    [
     {
-     "key": "granith",
+     "key": "runic automaton",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "grushak",
+     "key": "skyroot dryad",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "nightgloom",
+     "key": "vineback boar",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "bitwraith",
+     "key": "clockwork lantern",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     },
     {
-     "key": "whisp",
+     "key": "mourn moth",
      "lvl": 100,
-     "hpMul": 148.7589,
-     "dmgMul": 51.8095
+     "hpMul": 126.1478,
+     "dmgMul": 45.6804
     }
    ]
   ],
-  "difficultyTune": 0.3601,
+  "difficultyTune": 0.3827,
   "realEngineTuned": true,
-  "veteranTune": 1.7306
+  "veteranTune": 1.654,
+  "lineup": "v827 late-game"
  }
 ]
