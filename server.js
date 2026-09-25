@@ -2801,18 +2801,18 @@ const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
-const CAMPAIGN_NODES=100;   // Blueprint v1: 10 chapters × 10 fixed stages. Chapters 11+ are explicitly OUT.
+const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"): 16 chapters x 10 fixed stages
 /* Glyph Fragment Farm Map. Ordinary Normal stages each advertise four fixed possibilities and pay
    two distinct server-seeded results per run; together those 60 stages cover all 218 types. Elite,
    Veteran, Guardian and boss stages retain their fixed target. */
 const PORTAL_MODES=Object.freeze(['normal','elite','veteran']);
 const PORTAL_LABEL=Object.freeze({normal:'Normal Portal', elite:'Elite Portal', veteran:'Veteran Portal'});
 const PORTAL_FILE=Object.freeze({normal:'campaign-encounters.json', elite:'elite-campaign-encounters.json', veteran:'veteran-campaign-encounters.json'});
-const PORTAL_SIZE=Object.freeze({normal:100, elite:100, veteran:18});
+const PORTAL_SIZE=Object.freeze({normal:160, elite:100, veteran:18});   // v821: Normal 16 chapters; Elite follows in Batch B
 /* unlock gates (spec §"Campaign mode" table) */
 const PORTAL_GATE=Object.freeze({ normal:null,
   elite:{ afterNode:10, level:10, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
-  veteran:{ afterNode:100, level:100, text:'Veteran Portal opens after Normal 10-10 at player level 100.' } });
+  veteran:{ afterNode:160, level:100, text:'Veteran Portal opens after Normal 16-10 at player level 100.' } });
 let PORTALS={};          // mode -> { byNode, list }
 let FRAG_SOURCES={};     // fragmentId -> [{ mode, stageId }]
 let CAMP_ENC=null;

@@ -17,7 +17,7 @@ const eliteFragmentIds=eliteStages.map(fid), vetIds=veteranStages.map(fid);
 
 console.log('== exact glyph fragment farm map v1 ==');
 // the spec's own assertion block
-ck('normalStages.length === 100', normalStages.length===100, String(normalStages.length));
+ck('normalStages.length === 160 (16 chapters, v821)', normalStages.length===160, String(normalStages.length));
 ck('eliteStages.length === 100', eliteStages.length===100, String(eliteStages.length));
 ck('every ordinary Normal stage offers four distinct glyph fragments and rolls two', ordinaryNormal.every(s=>s.rewards.glyphFragments.length===4
   && new Set(s.rewards.glyphFragments.map(f=>f.key)).size===4 && s.rewards.fragmentRolls===2));
@@ -46,7 +46,7 @@ ck('the catalog defines 218 raw fragment families', catalog.size===218, String(c
 ck('allGlyphFragmentIds.size === 218', uniq(all).size===218, String(uniq(all).size));
 ck('every fragment has at least one source', [...catalog].every(c=>all.includes(c)),
   [...catalog].filter(c=>!all.includes(c)).slice(0,5).join(', '));
-ck('all 60 ordinary Normal stages are used', ordinaryNormal.length===60, String(ordinaryNormal.length));
+ck('all 96 ordinary Normal stages are used (16 chapters x 6)', ordinaryNormal.length===96, String(ordinaryNormal.length));
 
 // the positional map itself — spot-checks straight out of the spec's own examples
 const nAt=id=>normalStages.find(s=>s.id===id).rewards.glyphFragments[0].key;

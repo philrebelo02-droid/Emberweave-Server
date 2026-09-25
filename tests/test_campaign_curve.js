@@ -16,9 +16,9 @@ const BANDS=[[1,5,'Grey'],[6,10,'Green'],[11,15,'Green +1'],[16,20,'Blue'],[21,2
   [51,55,'Purple +2'],[56,60,'Purple +3'],[61,65,'Gold'],[66,70,'Gold'],[71,75,'Gold +1'],
   [76,80,'Gold +2'],[81,85,'Gold +2'],[86,90,'Gold +3'],[91,95,'Gold +4'],[96,100,'Orange']];
 
-console.log('== launch progression blueprint v1 ==');
-ck('the campaign is exactly 10 chapters × 10 fixed stages', S.length===100, 'got '+S.length);
-ck('there are no chapters 11+', S.every(e=>e.node<=100 && !/^1[1-9]-/.test(e.id)));
+console.log('== the 16-chapter campaign (07 COMBAT RULE 16a, v821) ==');
+ck('the campaign is exactly 16 chapters × 10 fixed stages', S.length===160, 'got '+S.length);
+ck('stage ids run 1-1 .. 16-10 on nodes 1..160', S.every((e,i)=>e.node===i+1&&e.id===(Math.floor(i/10)+1)+'-'+(i%10+1)));
 ck('every stage has three fixed authored waves', S.every(e=>e.waves.length===3), 
   JSON.stringify([...new Set(S.map(e=>e.waves.length))]));
 ck('every stage-10 puts a distinct boss in wave 3',
@@ -44,26 +44,33 @@ ck('every stage names the quality it is built for and that quality is on the fro
 ck('each stage carries that quality\'s minimum hero level',
   S.every(e=>e.qualityMinHeroLevel===MIN_LEVEL[e.recommendedQuality]),
   JSON.stringify(S.filter(e=>e.qualityMinHeroLevel!==MIN_LEVEL[e.recommendedQuality]).slice(0,3).map(e=>e.id)));
-ck('the quality bands match the blueprint path table',
-  BANDS.every(([a,b,q])=>S.slice(a-1,b).every(e=>e.recommendedQuality===q)),
-  JSON.stringify(BANDS.filter(([a,b,q])=>!S.slice(a-1,b).every(e=>e.recommendedQuality===q))));
+// RULE 16a (Phil 25 Sep: "the expected level for clearing 1-10 should be green" / "Please make every chapter this way"): chapter c is
+// built for LADDER[c-1] and its boss for LADDER[c]. Chapter 1 is the RULE 16 tutorial and keeps its authored bands.
+const bandOf=e=>{const c=Math.ceil(e.node/10), k=((e.node-1)%10)+1; return LADDER[Math.min(15, k===10?c:c-1)];};
+ck('chapter 1 keeps its tutorial bands (1-1..1-5 Grey, 1-6..1-10 Green)',
+  BANDS.slice(0,2).every(([a,b,q])=>S.slice(a-1,b).every(e=>e.recommendedQuality===q)));
+ck('chapters 2-16: each chapter is built for its quality and its boss for the next',
+  S.slice(10).every(e=>e.recommendedQuality===bandOf(e)), JSON.stringify(S.slice(10).filter(e=>e.recommendedQuality!==bandOf(e)).slice(0,4).map(e=>e.id)));
 ck('no forbidden quality is ever named (Orange +1 / Grey +1 / Green +2 / Blue +3)',
   S.every(e=>!/Orange \+|Grey \+|Green \+2|Blue \+3/.test(e.recommendedQuality)));
-ck('Orange is the chapter-10 finish, at hero level 100',
-  S[99].recommendedQuality==='Orange' && S[99].qualityMinHeroLevel===100);
+ck('Orange is the chapter-16 finish, at hero level 100',
+  S[159].recommendedQuality==='Orange' && S[159].qualityMinHeroLevel===100);
 
-// recommended player level = stage number
-ck('early reference enemy levels follow XP attainable before each first clear',
-  S.slice(0,20).every((e,i)=>{const xp=i*30+(i>=10?30:0); const curve=[0,8,26,79,177,335,563,861];
-    const expected=curve.reduce((level,needed,j)=>xp>=needed?j+1:level,1);
-    return e.targetLevel===expected&&e.waves.every(w=>w.every(m=>m.lvl===expected));}));
-ck('later recommended player levels retain the authored ladder for balance review',
-  S.slice(20).every((e,i)=>e.targetLevel===i+21));
+// target level = the chapter-quality curve: inside chapter c it rises evenly to that quality's unlock level at c-10
+const END=[1,5,13,18,24,30,36,43,50,57,65,72,79,86,93,100,100];
+const curveLevel=n=>{const c=Math.ceil(n/10), k=((n-1)%10)+1; return Math.max(1,Math.round(END[c-1]+(END[c]-END[c-1])*k/10));};
+ck('chapters 2-16: the target level follows the chapter-quality curve',
+  S.slice(10).every(e=>e.targetLevel===curveLevel(e.node)), JSON.stringify(S.slice(10).filter(e=>e.targetLevel!==curveLevel(e.node)).slice(0,4).map(e=>e.id+':'+e.targetLevel)));
+// Phil 25 Sep: "without spending any $$ it should be possible to reach 2-10 as a gate on day 1" (v820 Magic Rush XP)
+{ const MR=[8,8,35,45,60,70,70,80,90,110,110,120]; const need13=MR.reduce((a,b)=>a+b,0);
+  const firstClears=S.slice(0,20).reduce((a,e)=>a+e.rewards.playerXpFirst,0);
+  ck('the 2-10 gate (level 13) is reachable on day 1: first clears of chapters 1-2 plus under 40 repeats',
+    firstClears+40*6>=need13 && S[19].bossLevelGate===13, 'first clears '+firstClears+' need '+need13); }
 
 // chapter graduation bosses
 const gates=S.filter(e=>e.node%10===0).map(e=>e.bossLevelGate);
-ck('early boss levels are attainable under the 5× first-clear XP rule',
-  JSON.stringify(gates)===JSON.stringify([5,7,30,40,50,60,70,80,90,100]), JSON.stringify(gates));
+ck("each chapter boss gates at its quality's unlock level",
+  JSON.stringify(gates)===JSON.stringify([5,13,18,24,30,36,43,50,57,65,72,79,86,93,100,100]), JSON.stringify(gates));
 ck('normal stages carry no hard level gate', S.filter(e=>e.node%10!==0).every(e=>!e.bossLevelGate));
 
 // XP: Phil's 15 Sep 2026 rule is five stamina-equivalent runs on the first
