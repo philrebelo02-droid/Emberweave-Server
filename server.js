@@ -985,7 +985,7 @@ const QUEST_DEFS_SRV={
   q_wish:   { reward:{gems:20},  cond:(u,led)=>((u.qc&&u.qc.wish)|0)>=3 }
 };
 function questChainStepsSrv(){ const steps=[{node:1,frags:2},{node:2,frags:2},{node:3,frags:3},{node:4,frags:3}];
-  for(let n=6;n<=100;n+=3) steps.push({node:n,gems:20}); return steps; }
+  for(let n=6;n<=CAMPAIGN_NODES;n+=3) steps.push({node:n,gems:20}); return steps; }   /* v825: to 160 like the client (was 100 - 20 unclaimable steps) */
 const TRIAL_KINDS={ tower:{mul:0.85, reward:f=>({gold:80+8*f, heroXp:60})},
                     gauntlet:{mul:1.0, reward:f=>({gold:100+10*f, heroXp:70})},
                     dungeon:{mul:0.9, reward:f=>({gold:200, px:100, heroXp:90})} };
@@ -2811,8 +2811,8 @@ const PORTAL_FILE=Object.freeze({normal:'campaign-encounters.json', elite:'elite
 const PORTAL_SIZE=Object.freeze({normal:160, elite:160, veteran:18});   // v823: Normal and Elite both 16 chapters
 /* unlock gates (spec §"Campaign mode" table) */
 const PORTAL_GATE=Object.freeze({ normal:null,
-  elite:{ afterNode:10, level:10, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
-  veteran:{ afterNode:160, level:100, text:'Veteran Portal opens after Normal 16-10 at player level 100.' } });
+  elite:{ afterNode:10, level:0, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
+  veteran:{ afterNode:160, level:0, text:'Veteran Portal opens after Normal 16-10.' } });   /* v825: no player-level locks (Phil) - progress only */
 let PORTALS={};          // mode -> { byNode, list }
 let FRAG_SOURCES={};     // fragmentId -> [{ mode, stageId }]
 let CAMP_ENC=null;
@@ -2901,7 +2901,7 @@ function campStageOf(node){ return CAMP_ENC&&CAMP_ENC.byNode[node|0]||null; }
 /* Blueprint v1 §"Chapter graduation bosses": normal stages may be attempted early, but each
    Stage 10 boss is a HARD graduation gate on Player Level (1-10 → 10 … 10-10 → 100). Never a
    star or evolution threshold. */
-function campBossLevelGate(node){ if(node%10!==0)return 0; if(node===10)return 5; if(node===20)return 7; return Math.min(100,Math.round(node/10)*10); }
+function campBossLevelGate(node){ return 0; }   /* v825 (Phil 25 Sep): "there should be no level lock on any level. if they are strong enough to kill the boss, they can send it." - no player-level gate on any stage or boss */
 function campIsBoss(node){ return node%10===0; }
 
 /* ==================== THE FORGE (Gear/Temper v2) — server-authoritative ====================
@@ -4460,6 +4460,18 @@ async function api(req,res,url){
       writeDB(); return {ok:true, results, cost, free, ledger:ledgerView(me), pity:{at:WISH_GEM_PITY,count:pool.pity}};
     });
     return send(res, out.ok===false?400:200, out); }
+  /* v825 DEV PACK TEST - the server credits the pack (amount from ITS list, never the client's) and files it to the dev inbox. */
+  if(p==='/api/shop/devpack' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(!isDev(me)) return send(res,403,{error:'Diamond packs are coming soon.'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const DEV_PACKS={2:{n:500,name:'500 Diamonds'},3:{n:1200,name:'1,200 Diamonds'},4:{n:2800,name:'2,800 Diamonds'},5:{n:6000,name:'6,000 Diamonds'}};
+    const pk=DEV_PACKS[b.i|0]; if(!pk) return send(res,400,{error:'Unknown pack.'});
+    const out=idem(me.id+':devpack:'+reqId,()=>{ const led=ensureLedger(me);
+      gemGain(me,pk.n,'devpack'); led.gems=Math.min(ECON_CAP.gems,(led.gems|0)+pk.n);
+      ledTx(me,'shop:devpack',{gems:pk.n,pack:pk.name});
+      devReport(me,'dev-pack',pk.n,me.name+' test-bought '+pk.name+' (+'+pk.n+' diamonds) - review');
+      writeDB(); return { ok:true, gems:pk.n, pack:pk.name, ledger:ledgerView(me) }; });
+    return send(res,200,out); }
   if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':shop:'+reqId,()=>{
@@ -6057,7 +6069,8 @@ async function api(req,res,url){
         return { ok:true, dmg, killed, reward, incident, raid:raidView(g), ledger:ledgerView(me) };
       });
       return send(res,200,out); }
-    if(p==='/api/guild/raid/assault-old'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+    if(p==='/api/guild/raid/assault-old'){ return send(res,400,{error:'The old raid assault is retired - fight the raid boss (Guild -> Raid).'}); }   /* v825: retired (it rolled damage from power with no fight, and a kill threw on the removed BOSS_NAMES) */
+    if(false){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'graid',30,60000)) return send(res,429,{error:'Slow down.'});
       const r=ensureRaid(g); if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       /* SECURITY (audit crit #5, re-closed v272): damage was driven by client b.power, then by
