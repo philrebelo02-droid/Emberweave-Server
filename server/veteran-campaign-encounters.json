@@ -4,7 +4,7 @@
   "node": 1,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 49739,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -32,96 +32,97 @@
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "sludgemaw",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "grushak",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 73.0223,
-     "dmgMul": 30.5594
+     "hpMul": 155.9683,
+     "dmgMul": 51.9818
     }
    ]
   ],
-  "difficultyTune": 0.3584,
-  "realEngineTuned": true
+  "difficultyTune": 0.7655,
+  "realEngineTuned": true,
+  "veteranTune": 2.1359
  },
  {
   "id": "1-2",
   "node": 2,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 51497,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -149,102 +150,103 @@
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     }
    ],
    [
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 90.7638,
-     "dmgMul": 35.186
+     "hpMul": 184.9403,
+     "dmgMul": 57.9099
     }
    ]
   ],
-  "difficultyTune": 0.434,
-  "realEngineTuned": true
+  "difficultyTune": 0.8843,
+  "realEngineTuned": true,
+  "veteranTune": 2.0376
  },
  {
   "id": "1-3",
   "node": 3,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 53278,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -272,102 +274,103 @@
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     }
    ],
    [
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 73.9668,
-     "dmgMul": 31.6082
+     "hpMul": 122.489,
+     "dmgMul": 44.9927
     }
    ]
   ],
-  "difficultyTune": 0.2947,
-  "realEngineTuned": true
+  "difficultyTune": 0.488,
+  "realEngineTuned": true,
+  "veteranTune": 1.656
  },
  {
   "id": "1-4",
   "node": 4,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 55060,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -395,108 +398,109 @@
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "skulk",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "ooznik",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 76.0417,
-     "dmgMul": 33.024
+     "hpMul": 116.5187,
+     "dmgMul": 44.5216
     }
    ]
   ],
-  "difficultyTune": 0.2629,
-  "realEngineTuned": true
+  "difficultyTune": 0.4028,
+  "realEngineTuned": true,
+  "veteranTune": 1.5323
  },
  {
   "id": "1-5",
   "node": 5,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 56862,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -524,91 +528,92 @@
     {
      "key": "grundle",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     }
    ],
    [
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073
     },
     {
      "key": "wintercrag",
      "lvl": 100,
-     "hpMul": 76.8096,
-     "dmgMul": 30.8672,
+     "hpMul": 173.9737,
+     "dmgMul": 54.7073,
      "boss": true
     }
    ]
   ],
-  "difficultyTune": 0.292,
-  "realEngineTuned": true
+  "difficultyTune": 0.6614,
+  "realEngineTuned": true,
+  "veteranTune": 2.265
  },
  {
   "id": "1-6",
   "node": 6,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 64058,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -636,84 +641,85 @@
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "skulk",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     }
    ],
    [
     {
      "key": "grushak",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 89.8466,
-     "dmgMul": 39.4579
+     "hpMul": 211.6337,
+     "dmgMul": 71.8774
     }
    ]
   ],
-  "difficultyTune": 0.225,
-  "realEngineTuned": true
+  "difficultyTune": 0.53,
+  "realEngineTuned": true,
+  "veteranTune": 2.3555
  },
  {
   "id": "1-7",
   "node": 7,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 66029,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -741,84 +747,85 @@
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 72.4814,
-     "dmgMul": 35.6372
+     "hpMul": 164.1704,
+     "dmgMul": 63.1613
     }
    ]
   ],
-  "difficultyTune": 0.1459,
-  "realEngineTuned": true
+  "difficultyTune": 0.3305,
+  "realEngineTuned": true,
+  "veteranTune": 2.265
  },
  {
   "id": "1-8",
   "node": 8,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 68016,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -846,102 +853,103 @@
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "ooznik",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "grundle",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "grushak",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 76.2683,
-     "dmgMul": 32.1185
+     "hpMul": 148.9825,
+     "dmgMul": 51.3227
     }
    ]
   ],
-  "difficultyTune": 0.2314,
-  "realEngineTuned": true
+  "difficultyTune": 0.452,
+  "realEngineTuned": true,
+  "veteranTune": 1.9534
  },
  {
   "id": "1-9",
   "node": 9,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 70000,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -969,90 +977,91 @@
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "ooznik",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     }
    ],
    [
     {
      "key": "sludgemaw",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 80.9463,
-     "dmgMul": 36.4224
+     "hpMul": 175.2892,
+     "dmgMul": 62.5546
     }
    ]
   ],
-  "difficultyTune": 0.1756,
-  "realEngineTuned": true
+  "difficultyTune": 0.3803,
+  "realEngineTuned": true,
+  "veteranTune": 2.1655
  },
  {
   "id": "1-10",
   "node": 10,
   "mode": "veteran",
   "checkpoint": "boss",
-  "recommendedPower": 72017,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1080,97 +1089,98 @@
     {
      "key": "grundle",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "skulk",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     }
    ],
    [
     {
      "key": "sludgemaw",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186
     },
     {
      "key": "magmourn",
      "lvl": 100,
-     "hpMul": 35.1522,
-     "dmgMul": 18.8021,
+     "hpMul": 79.6022,
+     "dmgMul": 33.3186,
      "boss": true
     }
    ]
   ],
-  "difficultyTune": 0.0783,
-  "realEngineTuned": true
+  "difficultyTune": 0.1773,
+  "realEngineTuned": true,
+  "veteranTune": 2.2645
  },
  {
   "id": "2-1",
   "node": 11,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 65283,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1198,96 +1208,97 @@
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "sludgemaw",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "grushak",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 72.3536,
-     "dmgMul": 30.4627
+     "hpMul": 163.8809,
+     "dmgMul": 53.9903
     }
    ]
   ],
-  "difficultyTune": 0.2714,
-  "realEngineTuned": true
+  "difficultyTune": 0.6147,
+  "realEngineTuned": true,
+  "veteranTune": 2.265
  },
  {
   "id": "2-2",
   "node": 12,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 67102,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1315,102 +1326,103 @@
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     }
    ],
    [
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 90.8153,
-     "dmgMul": 35.3628
+     "hpMul": 182.9111,
+     "dmgMul": 57.7302
     }
    ]
   ],
-  "difficultyTune": 0.3342,
-  "realEngineTuned": true
+  "difficultyTune": 0.6731,
+  "realEngineTuned": true,
+  "veteranTune": 2.0141
  },
  {
   "id": "2-3",
   "node": 13,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 68948,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1438,102 +1450,103 @@
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     }
    ],
    [
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 69.9442,
-     "dmgMul": 30.5727
+     "hpMul": 107.1056,
+     "dmgMul": 41.198
     }
    ]
   ],
-  "difficultyTune": 0.2159,
-  "realEngineTuned": true
+  "difficultyTune": 0.3306,
+  "realEngineTuned": true,
+  "veteranTune": 1.5313
  },
  {
   "id": "2-4",
   "node": 14,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 70792,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1561,108 +1574,109 @@
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "skulk",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "ooznik",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 65.4348,
-     "dmgMul": 29.9347
+     "hpMul": 117.1872,
+     "dmgMul": 45.0116
     }
    ]
   ],
-  "difficultyTune": 0.1764,
-  "realEngineTuned": true
+  "difficultyTune": 0.3159,
+  "realEngineTuned": true,
+  "veteranTune": 1.7909
  },
  {
   "id": "2-5",
   "node": 15,
   "mode": "veteran",
   "checkpoint": "guardian",
-  "recommendedPower": 72657,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1690,91 +1704,92 @@
     {
      "key": "grundle",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     }
    ],
    [
     {
      "key": "shellwark",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167
     },
     {
      "key": "wintercrag",
      "lvl": 100,
-     "hpMul": 65.7823,
-     "dmgMul": 27.915,
+     "hpMul": 188.4466,
+     "dmgMul": 58.3167,
      "boss": true
     }
    ]
   ],
-  "difficultyTune": 0.1965,
-  "realEngineTuned": true
+  "difficultyTune": 0.5629,
+  "realEngineTuned": true,
+  "veteranTune": 2.8647
  },
  {
   "id": "2-6",
   "node": 16,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 81371,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1802,84 +1817,85 @@
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "skulk",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     }
    ],
    [
     {
      "key": "grushak",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "cindertusk",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "vexmite",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 90.0499,
-     "dmgMul": 39.8728
+     "hpMul": 185.854,
+     "dmgMul": 66.2154
     }
    ]
   ],
-  "difficultyTune": 0.1781,
-  "realEngineTuned": true
+  "difficultyTune": 0.3676,
+  "realEngineTuned": true,
+  "veteranTune": 2.0639
  },
  {
   "id": "2-7",
   "node": 17,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 83405,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -1907,84 +1923,85 @@
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "mordath",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     }
    ],
    [
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "ashen",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "gnashul",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 69.6782,
-     "dmgMul": 35.0056
+     "hpMul": 164.127,
+     "dmgMul": 63.767
     }
    ]
   ],
-  "difficultyTune": 0.1114,
-  "realEngineTuned": true
+  "difficultyTune": 0.2624,
+  "realEngineTuned": true,
+  "veteranTune": 2.3555
  },
  {
   "id": "2-8",
   "node": 18,
   "mode": "veteran",
   "checkpoint": "normal",
-  "recommendedPower": 85456,
+  "recommendedPower": 68620,
   "targetLevel": 100,
   "recommendedQuality": "Orange",
   "qualityMinHeroLevel": 100,
@@ -2012,94 +2029,95 @@
     {
      "key": "trapjaw",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "bilewretch",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "ooznik",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "blackquill",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "grundle",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "volthex",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "lost soul",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "skarrn",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "grushak",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "nightgloom",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "bitwraith",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     },
     {
      "key": "whisp",
      "lvl": 100,
-     "hpMul": 85.958,
-     "dmgMul": 35.2916
+     "hpMul": 148.7589,
+     "dmgMul": 51.8095
     }
    ]
   ],
-  "difficultyTune": 0.2081,
-  "realEngineTuned": true
+  "difficultyTune": 0.3601,
+  "realEngineTuned": true,
+  "veteranTune": 1.7306
  }
 ]
