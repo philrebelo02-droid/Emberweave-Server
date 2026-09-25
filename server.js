@@ -894,6 +894,7 @@ function glyphHeroPower(u, heroKey){
    covered by the suite, so it ships ON BY DEFAULT — no Railway variable required. Set
    DUNGEON_V2_ENABLED=false to force it off. */
 const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'true')!=='false';
+let WELL2=null; try{ WELL2=require('./server/starless-well.js'); }catch(e){ console.error('THE STARLESS WELL module failed to load - /api/well/* will 404:', e&&e.message); }
 let BONUS=null; try{ BONUS=require('./server/bonus-stages.js'); }catch(e){ console.error('⚠ BONUS STAGES module failed to load — the 60 bonus stages will 404:', e&&e.message); }
 let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠ DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
@@ -4797,6 +4798,13 @@ async function api(req,res,url){
       GLYPHS, CAMP_ENC:CAMP_ENC?Object.values(CAMP_ENC.byNode):[], uid,
       playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!led.unlocked[k] });
     if(out) return send(res, out.status, out.body); }
+  /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
+  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'});
+    const led=ensureLedger(me);
+    const out=await WELL2.handle(p, req.method, { me, led, body:()=>body(req), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
+      simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, D_TROOP_INC, SIM, isDev,
+      playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
+    if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);

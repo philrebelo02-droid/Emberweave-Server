@@ -1933,6 +1933,71 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 .pmhead .ttl{font-family:Georgia,'Times New Roman',serif;color:#ffe6a8;}
 
 
+
+/* v825 THE STARLESS WELL map - ChatGPT's painted backgrounds fill the screen (cover, capped at 100cqw/0.94 so the outer platforms - 7%..97% of the art incl. square size - are never cropped on 4:3; narrow shapes letterbox) */
+.wlMap{position:fixed;inset:0;z-index:13400;color:#e8ecf5;background:#07050d;overflow:hidden;container-type:size}
+.wlArt{position:absolute;left:50%;top:50%;width:min(max(100cqw,calc(100cqh * 16 / 9)),calc(100cqw / 0.94));aspect-ratio:16/9;transform:translate(-50%,-50%);background:#07050d center/100% 100% no-repeat}
+.wl_standard .wlArt{background-image:url(/assets/img/well/well-void-standard-v1.webp),radial-gradient(ellipse at 50% 50%,#3a2466 0%,#140c26 60%,#07050d 100%)}
+.wl_normal .wlArt{background-image:url(/assets/img/well/well-void-normal-v1.webp),radial-gradient(ellipse at 50% 50%,#1f3f7a 0%,#0c1630 60%,#05080f 100%)}
+.wl_hard .wlArt{background-image:url(/assets/img/well/well-void-hard-v1.webp),radial-gradient(ellipse at 50% 50%,#7a2a1f 0%,#2a0d0a 60%,#0d0504 100%)}
+.wlArtIn{position:absolute;inset:0}
+.wlBr{position:absolute;aspect-ratio:6/1;background:url(/assets/img/well/well-bridge-v1.webp) center/100% 100% no-repeat;pointer-events:none;opacity:.8}.wlBrLive{opacity:1;filter:drop-shadow(0 0 6px #ffd98a) brightness(1.35)}
+.wlTop{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:calc(6px + env(safe-area-inset-top,0px)) 12px 6px;background:linear-gradient(#000a,#0000)}
+.wlTtl{font-weight:900;font-size:15px;flex:1;text-shadow:0 1px 3px #000}.wlClock{font-size:12px;color:#d6dcea;text-shadow:0 1px 3px #000}.wlMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.wlSq{position:absolute;width:9%;aspect-ratio:1;transform:translate(-50%,-44%);border:0;background:url(/assets/img/well/well-tile-v1.webp) center/contain no-repeat;box-shadow:none;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;font:inherit}
+.wlSq .wlIc{font-size:clamp(14px,2.6cqw,30px);line-height:1}.wlSq .wlPz{position:absolute;bottom:10%;font-size:9px;white-space:nowrap;color:#ffd98a;text-shadow:0 1px 2px #000,0 0 4px #000}
+.wlSq.wlReach{filter:drop-shadow(0 0 8px #ffd98a) brightness(1.15);cursor:pointer}.wlSq.wlHere{filter:drop-shadow(0 0 9px #8fe39a)}.wlSq .wlIcI{position:absolute;left:50%;top:5%;width:52%;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 3px 3px #000a)}.wlSq .wlIc{position:absolute;left:50%;top:14%;transform:translateX(-50%)}.wlSq.wl_boss .wlIcI{top:12%}
+.wlSq.wlGone{opacity:.55;filter:grayscale(.6)}.wlSq:disabled{cursor:default}.wlSq.wl_boss{width:14%;background-image:url(/assets/img/well/well-tile-boss-v1.webp)}.wlSq.wl_boss .wlIcI{width:40%}
+.wlDone{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#ffd98a;text-shadow:0 2px 8px #000;pointer-events:none}
+.wlBottom{position:absolute;left:0;right:0;bottom:0;z-index:2;pointer-events:none;padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;background:linear-gradient(#0000,#000a)}
+.wlStrip{display:flex;gap:8px;overflow-x:auto;pointer-events:auto;width:max-content;max-width:100%}.wlBuffs,.wlSweeps{pointer-events:auto}.wlHero{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px}
+.wlHero.wlDead img,.wlHero.wlDead canvas{filter:grayscale(1);opacity:.5}.wlHp{width:40px;height:4px;background:#301a1a;border-radius:2px;overflow:hidden}.wlHp i{display:block;height:100%;background:#8fe39a}
+.wlEn{font-size:9px;color:#9fe0ff}.wlRes{font-size:10px;padding:2px 6px}.wlBuffs{display:flex;flex-wrap:wrap;gap:4px}.wlBuff{font-size:10px;padding:2px 6px;border-radius:8px;background:#0008}
+.wlSweeps{display:flex;gap:8px;flex-wrap:wrap}
+.wlPortal{position:absolute;z-index:1;width:12%;height:21.33%;padding:0;transform:translate(-50%,-50%);border:0;background:none;color:#fff;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;animation:wlRise .7s cubic-bezier(.2,1.4,.4,1)}
+.wlPortal b{position:relative;font-size:clamp(11px,1.6cqw,18px);font-weight:900;text-shadow:0 2px 6px #000}.wlPortal i{position:relative;font-style:normal;font-size:clamp(9px,1.1cqw,12px);text-shadow:0 1px 4px #000}
+.wlSwirl{position:absolute;inset:0;animation:wlSpin 3.2s linear infinite;pointer-events:none}
+.wlSwirl2{inset:-6%;animation-duration:5.5s;animation-direction:reverse}
+.wlP_normal .wlSwirl{background:url(/assets/img/well/portal-blue-core-v1.webp) center/contain no-repeat}.wlP_normal .wlSwirl2{background-image:url(/assets/img/well/portal-blue-sparks-v1.webp)}
+.wlP_hard .wlSwirl{background:url(/assets/img/well/portal-purple-core-v1.webp) center/contain no-repeat}.wlP_hard .wlSwirl2{background-image:url(/assets/img/well/portal-purple-sparks-v1.webp)}
+
+.wlPortal.wlLocked{filter:grayscale(.8) brightness(.6);cursor:default}
+@keyframes wlSpin{to{transform:rotate(360deg)}}@keyframes wlFade{from{opacity:0}}@keyframes wlRise{from{transform:translate(-50%,-50%) scale(.2);opacity:0}}
+.wlBrPortal{animation:wlFade .6s ease-out}
+@media (prefers-reduced-motion:reduce){.wlSwirl,.wlPortal,.wlBrPortal{animation:none}}
+.wlOffer{position:absolute;inset:0;z-index:4;background:rgba(4,4,10,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+.wlOfferT{font-size:18px;font-weight:900}.wlCards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.wlCard{width:150px;min-height:120px;border-radius:12px;border:2px solid #9f7bff;background:#1a1330;color:#fff;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;padding:10px;font:inherit;cursor:pointer}
+.wlCard b{font-size:14px}.wlCard span{font-size:12px;color:#d6d0ea;text-align:center}
+
+/* match the rest of the game (Phil 25 Sep: "I want the ui to match the rest of the game"): the squad screen's back button, the gold
+   h1 on the HUD plaque, hud-panel frames, hero-card colours, Georgia gold labels, the HUD gold/gem icons */
+.wlTop{background:linear-gradient(#05070dcc,#05070d00)}
+.wlTtl{flex:0 1 auto;margin:0 auto;display:flex;flex-direction:column;align-items:center;border:0 solid transparent;border-width:0 16px;
+  border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 16px stretch;padding:2px 14px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.7));text-shadow:none}
+.wlH1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:clamp(13px,2cqw,18px);letter-spacing:2px;text-transform:uppercase;line-height:1.2}
+.wlSubT{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:11px;color:#d6c79f;line-height:1.1}
+.wlClock{font-family:Georgia,'Times New Roman',serif;color:#ffe9b8;font-size:12px;border:0 solid transparent;border-width:0 12px;
+  border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 12px stretch;padding:3px 6px;min-width:34px;text-align:center}
+.wlBackB{position:static!important}
+.wlCur{width:12px;height:12px;vertical-align:-2px;margin:0 1px 0 3px;filter:drop-shadow(0 1px 1px #000)}
+.wlSq .wlPz{font-family:Georgia,'Times New Roman',serif;font-size:10px;color:#ffe9b8;border:0 solid transparent;border-width:0 8px;
+  border-image:url(/assets/img/ui/hud-plaque.webp?v=1) 0 92 fill / 0 8px stretch;padding:1px 3px;bottom:2%}
+.wlHero{background:linear-gradient(180deg,#18223a,#0b1122);border:1px solid #6b5628;border-radius:8px;padding:3px 3px 2px;box-shadow:0 4px 10px rgba(0,0,0,.45),inset 0 1px rgba(255,230,168,.07);min-width:46px}
+.wlHp{height:5px;background:#2a1010;border:1px solid #6b5628;border-radius:3px}.wlHp i{background:linear-gradient(90deg,#5fd07a,#a6f0b0)}
+.wlEn{font-family:Georgia,'Times New Roman',serif;color:#9fe0ff;font-size:10px}
+.wlRes{padding:2px 6px!important;font-size:10px!important;margin-top:1px}
+.wlBuff{font-family:Georgia,'Times New Roman',serif;background:linear-gradient(180deg,#1a2440,#0b1122);border:1px solid #6b5628;color:#e3d3aa;border-radius:6px;
+  box-shadow:inset 0 1px rgba(255,230,168,.08),0 3px 8px rgba(0,0,0,.3)}
+.wlSweep{font-size:11px!important}
+.wlPortal b{font-family:Georgia,'Times New Roman',serif;letter-spacing:1.5px;text-transform:uppercase;color:#fff4d6;filter:drop-shadow(0 2px 3px #000)}
+.wlPortal i{font-family:Georgia,'Times New Roman',serif;color:#ffe9b8}
+.wlOffer{background:rgba(4,6,10,.72)}
+.wlOfferP{max-width:min(560px,92vw);display:flex;flex-direction:column;align-items:center;gap:10px}
+.wlCard{width:150px;min-height:0;border-radius:12px;border:2px solid #6b5628;background:linear-gradient(180deg,#18223a,#0b1122);box-shadow:0 6px 14px rgba(0,0,0,.4),inset 0 1px rgba(255,230,168,.07);gap:6px}
+.wlCard:hover{border-color:#c9a24e}.wlCard b{font-family:Georgia,'Times New Roman',serif;color:#ffe6a8;letter-spacing:.5px}.wlCard span{color:#d6c79f;font-family:Georgia,'Times New Roman',serif;font-style:italic}
+.wlCard i.btn{font-style:normal;pointer-events:none;margin-top:2px}
+.wlDone{font-family:Georgia,'Times New Roman',serif;letter-spacing:3px;text-transform:uppercase;color:#ffe9b8}
 </style>
 </head>
 <body>
@@ -3733,7 +3798,7 @@ function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
 const LOAD_ART={ vs:'/assets/img/loading/versus.webp', camp:'/assets/img/loading/camp.webp' };
 function battleModeTitle(){ const m=(typeof CUR!=='undefined'&&CUR&&CUR.mode)||'';
   return ({campaign:'Campaign', arena:'Arena Duel', raid:'City Raid', elite:'Elite Guard', dungeon:'Dungeon', vault:'The Vault', replay:'Replay',
-    emberdraft:'Emberdraft', bonus:'Bonus Round', tower:'Tower', trial:'Trial', province:((CUR&&CUR.prov&&CUR.prov.t==='rune')?'Drill Province':'Gold Province')})[m] || (m ? m.charAt(0).toUpperCase()+m.slice(1) : 'Battle'); }
+    emberdraft:'Emberdraft', bonus:'Bonus Round', tower:'Tower', trial:'Trial', well:'The Starless Well', province:((CUR&&CUR.prov&&CUR.prov.t==='rune')?'Drill Province':'Gold Province')})[m] || (m ? m.charAt(0).toUpperCase()+m.slice(1) : 'Battle'); }
 function _blHeroName(k){ const t=(typeof HERO_TYPES!=='undefined'&&HERO_TYPES[k])||(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[k]); return (t&&t.name)||k||''; }
 /* draw one card's art into its canvas. A hero with an idle sheet is drawn from the SAME texture the battle loads (its image is
    kept on the clip once it arrives), never a second download: frame 0, framed belly button to just above the head from the
@@ -4148,7 +4213,7 @@ const HERO_LORE = {
    rendered as a low-poly 3D figure standing among 28 drawn heroes. His art existed all along — the
    glossary cutout — it had simply never been wired as a battle sprite. */
 const HERO_SPRITES = {"carn":"/assets/img/miscellaneous/hero-sprites-carn.webp?v=1","vesper":"/assets/img/miscellaneous/hero-sprites-vesper.webp","sablewick":"/assets/img/miscellaneous/hero-sprites-sablewick.webp","vex":"/assets/img/miscellaneous/hero-sprites-vex.webp","arrears":"/assets/img/miscellaneous/hero-sprites-arrears.webp","tallow":"/assets/img/miscellaneous/hero-sprites-tallow.webp","astra":"/assets/img/miscellaneous/hero-sprites-astra.webp","magistrant":"/assets/img/miscellaneous/hero-sprites-magistrant.webp","vharn":"/assets/img/miscellaneous/hero-sprites-vharn.webp","fathom":"/assets/img/miscellaneous/hero-sprites-fathom.webp","lumi":"/assets/img/miscellaneous/hero-sprites-lumi.webp","meryln":"/assets/img/miscellaneous/hero-sprites-meryln.webp","hollow":"/assets/img/miscellaneous/hero-sprites-hollow.webp","sprocket":"/assets/img/miscellaneous/hero-sprites-sprocket.webp","meridian":"/assets/img/miscellaneous/hero-sprites-meridian.webp","hurne":"/assets/img/miscellaneous/hero-sprites-hurne.webp","bloatus":"/assets/img/miscellaneous/hero-sprites-bloatus.webp","vireo":"/assets/img/miscellaneous/hero-sprites-vireo.webp","fritz":"/assets/img/miscellaneous/hero-sprites-fritz.webp","tick":"/assets/img/miscellaneous/hero-sprites-tick.webp","sylthaine":"/assets/img/miscellaneous/hero-sprites-sylthaine.webp","aureth":"/assets/img/miscellaneous/hero-sprites-aureth.webp","vulmar":"/assets/img/miscellaneous/hero-sprites-vulmar.webp","konwu":"/assets/img/miscellaneous/hero-sprites-konwu.png","grosk":"/assets/img/miscellaneous/hero-sprites-grosk.png","umbris":"/assets/img/miscellaneous/hero-sprites-umbris.webp","vael":"/assets/img/miscellaneous/hero-sprites-vael.webp","oakmir":"/assets/img/miscellaneous/hero-sprites-oakmir.webp","rhukk":"/assets/img/miscellaneous/hero-sprites-rhukk.webp"};     // transparent battlefield sprites (2D billboards)
-const TOWN_BG = "/assets/img/world-map/townbg-wide-cauldron-v1.webp";           // painted town-map background for the home base
+const TOWN_BG = "/assets/img/world-map/townbg-wide-starless-well-v1.webp";   /* v825: ChatGPT inpainted the Starless Well black hole (Phil 25 Sep) */           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
 const SHOP_SOON = "/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
@@ -8495,7 +8560,7 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.armorRating=s.armorRating||0; u.mrRating=s.mrRating||0; u.armorPen=s.armorPen||0; u.magicPen=s.magicPen||0;
   u.critDmg=s.critDmg||0.6; u.lifestealStat=s.lifestealStat||0; u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
   u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
-  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; if(s.energy!=null)u.energy=s.energy; u.ctrlRes=s.ctrlRes||0;
+  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(u.maxHp,s.hp)); u.ctrlRes=s.ctrlRes||0;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune;
   /* v269: DEEP-COPY the passive block. It used to be shared by reference with the snapshot, so the first
      fight mutated the snapshot and the SECOND fight off the same snapshot ran differently — the exact
@@ -8841,7 +8906,7 @@ function buildEnemyWave(){
       units.push(u); buildFigure(u); });
     return;
   }
-  if((CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='graid')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way. v666: so does the guild raid */
+  if((CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='graid')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way. v666: so does the guild raid */
     // AUTHORED ENCOUNTER (audit C2): every attempt at this stage spawns exactly these units.
     const specs=CUR.cwaves[Math.min(waveIdx,CUR.cwaves.length-1)]||[];
     const _keys=specs.map(x=>x.key);
@@ -11551,7 +11616,7 @@ function clearBattle(){ waveXfer=null;
   voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 // per-mode battle maps: The Vault fights on the forest-road arena; everything else keeps the default painted map
-const BATTLE_MAPS={ vault:'/assets/img/battlefields/dungeon-forest-01.webp', dungeon:'/assets/img/battlefields/dungeon-forest-01.webp' };
+const BATTLE_MAPS={ vault:'/assets/img/battlefields/dungeon-forest-01.webp', dungeon:'/assets/img/battlefields/dungeon-forest-01.webp', well:'/assets/img/battlefields/starless-well-01.webp' };
 function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg) return;
   const edA=(CUR&&CUR.mode==='emberdraft'&&typeof ED!=='undefined'&&ED&&ED.arena)?ED.arena:null;   // v605 Emberdraft arenas
   const url=(edA&&edA.img)||(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
@@ -11569,7 +11634,7 @@ function battleKeysForMatch(){
     if(CUR.mode!=='emberdraft') (G.team||[]).forEach(x=>_k.push(x));   // v644: Emberdraft fields only the drafted boards - the campaign squad's full sheets were loaded, uploaded and evicted every round
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
-    if(CUR.mode==='province') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
+    if(CUR.mode==='province'||CUR.mode==='well') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
     if(CUR.mode==='graid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     (CUR.waves||[]).forEach(w=>(w||[]).forEach(m=>m&&_k.push(m.key)));
@@ -11612,11 +11677,11 @@ function _startBattleNow(){
   try{ const _k=(CUR.mode==='emberdraft')?[]:(G.team||[]).slice();   // v644
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
-    if(CUR.mode==='province') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
+    if(CUR.mode==='province'||CUR.mode==='well') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
     if(CUR.mode==='graid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   try{ preloadAimArt(); }catch(e){}   // v537: painted aim indicators
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
@@ -11624,11 +11689,11 @@ function _startBattleNow(){
     buildEnemyWave();
     actBegin();   // v275: tell the server the battle is running, so its clock starts with ours
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
-  else if(CUR.mode==='province'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:3; waveIdx=0;   /* v663: mirrors the campaign branch step for step - the server replays it with simCampaignReplay */
+  else if(CUR.mode==='province'||CUR.mode==='well'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:3; waveIdx=0;   /* v663: mirrors the campaign branch step for step - the server replays it with simCampaignReplay */
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
     buildEnemyWave();
     actBegin();   /* resets the action stream; province fights resolve from the submitted transcript (no live stream) */
-    bannerMsg(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+((CUR.prov&&CUR.prov.stage)|0)+'\nWAVE 1'); beginWaveEnter(); }
+    bannerMsg(CUR.mode==='well'?('THE STARLESS WELL — MAP '+((CUR.well&&CUR.well.map)|0)+'\nWAVE 1'):(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+((CUR.prov&&CUR.prov.stage)|0)+'\nWAVE 1')); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
     if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
@@ -12124,6 +12189,21 @@ function endBattle(won){
           +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
       document.getElementById('resultHint').textContent='Your whole guild chips the same boss down — every run counts, and the killing blow pays the most.';
+      updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
+  if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
+    const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
+    resultLater(async(ep)=>{ let r=null;
+      if(att&&ACC.token){ try{ r=await api('/api/well/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}); }catch(e){ r=null; } }
+      if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
+      if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.ok) WELL.state=r;
+      const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), rw=(r&&r.reward)||null;
+      setResultVerdict(sWon, sWon?(_st||null):null);
+      document.getElementById('resultTitle').textContent=sWon?(r.done?'THE WELL IS CLEARED':(Wl.type==='boss'?'BOSS DEFEATED':'VICTORY')):(_unv?'NOT COUNTED':'DEFEAT');
+      document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      document.getElementById('resultReward').innerHTML= sWon&&rw
+        ? `<div style="font-size:14px;font-weight:800;color:#ffd98a">+${(rw.gold|0).toLocaleString()} gold${rw.gems?` · +${rw.gems} 💎`:''}${rw.potions?` · +${rw.potions} Superior XP Potion${rw.potions>1?'s':''}`:''}</div>${rw.endXP?`<div style="font-size:15px;color:#9fe0ff;font-weight:800">+${(rw.endXP|0).toLocaleString()} XP</div>`:''}`
+        : (_unv?`<span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`:'');
+      document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='province'){ const att=CUR.attemptId, P=CUR.prov||{}; CUR.attemptId=null;   /* v663: Training Province */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
@@ -13360,7 +13440,7 @@ function show(name){
   if(name==='temple') renderTemple();
   if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
-  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='province'));
+  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='province'||CUR.mode==='well'));
   if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); const vm=document.getElementById('vaultSubModal'); if(vm) vm.remove(); VAULT_PICK_OPEN=false; }
   if(name==='heroesPanel') renderHeroList();
   if(name==='heroDetail') renderHeroDetail();
@@ -13428,6 +13508,7 @@ function renderHome(){
     {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},   // v604 (Phil, 18 Sep): "please move island of trials to 10" — was 30, which hid the Gold Province (10) and Drill (15) inside
     {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
     {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67, ...lk(25)},
+    {nav:'well',        label:'The Starless Well', x:90, y:70, w:16, h:34, lx:90, ly:88, well:true, ...lk(61)},   /* v825 Starless Well: the black hole (measured on ChatGPT's art: core x90 y71) */
   ];
   // Anchors measured against the wide city painting; all sixteen tap targets retain their destination.
   const wideHomePositions=[
@@ -13438,7 +13519,7 @@ function renderHome(){
     [75,38,14,22,75,52], [56,53,10,16,56,64],
     [72,56,15,20,72,69], [9,70,11,25,9,82],
     [38,68,17,23,38,83], [63,75,17,23,63,94],
-    [30,36,12,16,30,45], [28,54,12,16,28,64]
+    [30,36,12,16,30,45], [28,54,12,16,28,64], [90,70,16,34,90,88]
   ];
   hots.forEach((h,i)=>{ const p=wideHomePositions[i]; [h.x,h.y,h.w,h.h,h.lx,h.ly]=p; });
   const box=document.getElementById('townHots'); box.innerHTML='';
@@ -13448,6 +13529,7 @@ function renderHome(){
     const clickable = !h.locked || AUDIT_MODE();   // audit mode lets you open locked buildings
     const hit=document.createElement('div'); hit.className='hit';
     if(h.coming){ hit.onclick=()=>bannerMsg('🔒 '+h.label+' — coming soon'); }
+    else if(h.well&&clickable){ hit.onclick=()=>openWell(); }
     else if(clickable){ hit.onclick=()=>show(h.nav); }
     else { hit.style.cursor='not-allowed'; }
     el.appendChild(hit);
@@ -18535,7 +18617,7 @@ function glOpenFrom(ret, label){ const b=document.querySelector('#glossary .back
   document.querySelectorAll('.glTab').forEach(t=>t.addEventListener('click',()=>{ glTab=t.dataset.gtab; renderGlossary(); }));
   const m=document.getElementById('glModal'); if(m) m.addEventListener('click',(ev)=>{ if(ev.target.id==='glModal') closeGlossaryCard(); }); })();
 // ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
-function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='graid')?'graid':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':'campaign'; }   /* v666: the guild raid picks its own 5 fighters + 5 backups */
+function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='graid')?'graid':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':(m==='well')?'well':'campaign'; }   /* v666: the guild raid picks its own 5 fighters + 5 backups */
 function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?G.squads[k]:[]; const f=a.filter(x=>typeof x==='string'&&!!HERO_TYPES[x]); if(f.length!==a.length||G.squads[k]!==a) G.squads[k]=f; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
 /* v665: a squad entry the player cannot pick (a hero they no longer own, or a key dropped from the
    roster) still filled a slot - the screen showed 4 selected and refused the 5th, and the fight would
@@ -18543,7 +18625,7 @@ function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?
 function heroOwned(k){ return !!(k && HERO_TYPES[k] && G.unlocked && G.unlocked[k]); }
 function pruneSquadArr(arr){ if(!Array.isArray(arr)) return arr;
   let w=0; const seen=Object.create(null);
-  for(let i=0;i<arr.length;i++){ const k=arr[i]; if(heroOwned(k) && !seen[k]){ seen[k]=1; arr[w++]=k; } }
+  for(let i=0;i<arr.length;i++){ const k=arr[i]; if((heroOwned(k)||wellLoan(k)) && !seen[k]){ seen[k]=1; arr[w++]=k; } }
   if(w!==arr.length){ arr.length=w; try{ saveG(); }catch(e){} }
   return arr; }
 function syncActiveSquad(){ const k=squadModeKey(); G.team=pruneSquadArr(squadFor(k)).slice(); }   // call right before a battle so all G.team readers use this mode's squad
@@ -18630,6 +18712,8 @@ function renderRoster(){
     if(!isWall && teamCtx==='campaign' && CUR.mode==='province' && CUR.prov){ const _P=CUR.prov;   /* v663 */
       document.getElementById('menuTitle').textContent=((PROV_META[_P.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+(_P.stage|0);
       _sub.textContent='Boss: '+provBossName(_P.boss||provBossKey(_P.t,_P.stage),true)+' · 3 waves · reward '+provRewardStr(_P.t,_P.stage)+' · a loss costs nothing'; _sub.style.display=''; } }
+  if(!isWall && teamCtx==='campaign' && CUR.mode==='well' && CUR.well){ document.getElementById('menuTitle').textContent='THE STARLESS WELL — MAP '+(CUR.well.map|0)+(CUR.well.type==='boss'?' · BOSS':'');   /* v825 */
+    const _f=(CUR.well.foes||[]).map(k=>HERO_TYPES[k]?HERO_TYPES[k].name:k); const _s=document.getElementById('menuSub'); if(_f.length){ _s.textContent='vs '+_f.join(' · '); _s.style.display=''; } }
   document.getElementById('startBtn').style.display = setDef?'none':'block';
   { const _row=document.getElementById('startRow'); if(_row) _row.style.display = setDef?'none':'flex'; }
   const r=document.getElementById('roster'); r.innerHTML='';
@@ -18641,16 +18725,16 @@ function renderRoster(){
   // POWER, strongest first, and that order NEVER changes while you pick. Selecting a hero highlights
   // the card where it stands; it does not jump to the top. ("i didnt ask for an auto sort when
   // selecting heroes ... they should just be highlighted not auto sorted. the sort should be by power")
-  const _pickable=HERO_KEYS.filter(k=>G.unlocked[k]);
+  const _pickable=HERO_KEYS.filter(k=>G.unlocked[k]||wellLoan(k));
   _pickable.sort((a,b)=>heroPower(b)-heroPower(a));
   if(!_pickable.length){ r.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:18px">No heroes yet — summon one at the Wishing Pool.</div>'; }
   _pickable.forEach(key=>{
     const t=HERO_TYPES[key],unlocked=true,inTeam=teamArr.includes(key),away=marchers.has(key),elsewhere=otherLine[key];
-    const blocked = away || (elsewhere!=null);
+    const _wf=wellHeroTag(key); const blocked = away || (elsewhere!=null) || !!(_wf&&_wf.dead);
     const card=document.createElement('div'); card.className='hero-card'+(inTeam?' selected':'')+(!unlocked?' locked':'');
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
-      : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:'');
+      : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:(_wf?_wf.html:''));
     card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
@@ -18898,7 +18982,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
             normally sends that, and it stops running while hidden). Live PvP rooms are left alone —
             the other player is still fighting. */
          try{ if(state==='battle' && !ended && !paused && CUR.mode!=='online' && !(typeof OL!=='undefined'&&OL.active)
-                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province')){
+                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province'||CUR.mode==='well')){
            paused=true; document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
 // load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
 // the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
@@ -22296,6 +22380,107 @@ async function provLaunch(ctx){ const P=CUR.prov||{};
   CUR.attemptId=r.attemptId; CUR.cwaves=r.waves; CUR.prov.boss=r.boss||P.boss; CUR.prov.reward=r.reward||null;
   CUR.serverSnaps=Array.isArray(r.snaps)?r.snaps:null; CUR.seed=(r.seed!=null)?(r.seed>>>0):null; CUR.engine=r.engine||null;
   startBattle(); }
+/* ---- v825 THE STARLESS WELL (blueprint 22): a 72 h run - Map 1 Standard -> Normal | Hard portal -> 2 maps on that path. Every
+   square is a server call; fights ride the Province replay flow. HP and energy carry (the server keeps them). ---- */
+const WELL={ state:null, busy:false };
+const WELL_ICON={ fight:'⚔️', boss:'💀', chest:'🎁', tent:'⛺', spring:'✨', start:'◉' };
+function wellLoan(k){ return !!(CUR&&CUR.mode==='well'&&WELL.state&&Array.isArray(WELL.state.loans)&&WELL.state.loans.indexOf(k)>=0); }
+function wellHeroTag(k){ if(!(CUR&&CUR.mode==='well'&&WELL.state)) return null;
+  const h=(WELL.state.heroes||{})[k], loan=wellLoan(k)&&!G.unlocked[k]; if(!h&&!loan) return null;
+  const dead=!!(h&&h.dead), pct=h?Math.round(h.hpFrac*100):100;
+  return { dead, html:`<br><span style="color:${dead?'#ff8b8b':pct<50?'#f0c060':'#8fe39a'};font-size:9px">${dead?'Fallen':'HP '+pct+'%'}${loan?' · Loan':''}</span>` }; }
+async function wellRefresh(){ if(!ACC.token) return null; const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
+function wellBackToMap(){ show('home'); setTimeout(()=>{ try{ openWell(); }catch(e){} },0); }
+async function openWell(){
+  let ov=document.getElementById('wlMap'); if(ov) ov.remove();
+  ov=document.createElement('div'); ov.id='wlMap'; ov.className='wlMap wlStd'; document.body.appendChild(ov);
+  ov.innerHTML='<div class="wlTop"><button class="btn secondary sm wlBackB">◀</button><div class="wlTtl"><h1 class="wlH1">The Starless Well</h1></div></div>';
+  ov.querySelector('.wlBackB').onclick=()=>ov.remove();
+  const S=await wellRefresh();
+  if(!S){ ov.insertAdjacentHTML('beforeend','<div class="wlMsg">Connect to enter The Starless Well.</div>'); return; }
+  wellDraw(S); }
+/* THE MAP LAYOUT (Phil 25 Sep ~16:0x: "The boss should be a center tile seperate from the end ones, all 3 end tiles should connect
+   to it. After the boss tile the portals appear"): start tile left-centre -> 5 columns x 3 rows -> ONE boss tile centred on the right,
+   bridged to all 3 column-5 tiles. Positions are computed (percent of the 16:9 art box), so the layout is exact by construction. */
+const WELL_X=[7,21,34,47,60,73,89], WELL_Y=[24,50,76];
+function wellPt(c,r){ return c===0||c>=6 ? [WELL_X[Math.min(6,c)],50] : [WELL_X[c],WELL_Y[r]]; }
+function wellBridgeEl(p,q,cls){ const dx=q[0]-p[0], dy=(q[1]-p[1])*9/16, len=Math.sqrt(dx*dx+dy*dy), ang=Math.atan2(dy,dx)*180/Math.PI;
+  return `<i class="wlBr${cls?' '+cls:''}" style="left:${((p[0]+q[0])/2).toFixed(2)}%;top:${((p[1]+q[1])/2).toFixed(2)}%;width:${len.toFixed(2)}%;transform:translate(-50%,-50%) rotate(${ang.toFixed(1)}deg)"></i>`; }
+function wellBridges(S){ let out='';
+  for(let c=0;c<6;c++) for(let r=0;r<3;r++){ const A=S.grid[c]&&S.grid[c][r]; if(!A) continue;
+    for(let r2=0;r2<3;r2++){ const B=S.grid[c+1]&&S.grid[c+1][r2]; if(!B||Math.abs(r2-r)>1) continue;
+      const p=wellPt(c,r), q=wellPt(c+1,r2), dx=q[0]-p[0], dy=(q[1]-p[1])*9/16, len=Math.sqrt(dx*dx+dy*dy), ang=Math.atan2(dy,dx)*180/Math.PI;
+      const live=S.pos.col===c&&S.pos.row===r&&!S.done&&!S.offer&&!S.portals;
+      out+=`<i class="wlBr${live?' wlBrLive':''}" style="left:${((p[0]+q[0])/2).toFixed(2)}%;top:${((p[1]+q[1])/2).toFixed(2)}%;width:${len.toFixed(2)}%;transform:translate(-50%,-50%) rotate(${ang.toFixed(1)}deg)"></i>`; } }
+  return out; }
+/* square art (ChatGPT 25 Sep): guard / elite guard / chest / big chest; tent / spring / start icons wired 25 Sep (ChatGPT's set) - was: tent + spring keep a glyph until their icons land */
+function wellIcon(s){ const I='/assets/img/well/';
+  if(s.type==='fight') return `<img class="wlIcI" src="${I}icon-guard-v1.webp" alt="">`;
+  if(s.type==='boss') return `<img class="wlIcI" src="${I}icon-elite-guard-v1.webp" alt="">`;
+  if(s.type==='chest') return `<img class="wlIcI" src="${I}icon-${s.big?'big-chest':'chest'}-v1.webp" alt="">`;
+  if(s.type==='tent'||s.type==='spring'||s.type==='start') return `<img class="wlIcI" src="${I}icon-${s.type}-v1.webp" alt="">`;
+  return `<span class="wlIc">${WELL_ICON[s.type]||''}</span>`; }
+function wellDraw(S){ const ov=document.getElementById('wlMap'); if(!ov) return; WELL.state=S;
+  const kind=S.map===1?'standard':(S.path==='hard'?'hard':'normal');
+  ov.className='wlMap wl_'+kind;
+  const hrs=Math.max(0,Math.ceil((S.endsAt-Date.now())/3600000));
+  let sq='';
+  for(let c=0;c<7;c++) for(let r=0;r<3;r++){ const s=S.grid[c]&&S.grid[c][r]; if(!s) continue;
+    const here=S.pos.col===c&&S.pos.row===r;
+    const reach=!S.done&&!S.offer&&!S.portals&&c===S.pos.col+1&&Math.abs(r-S.pos.row)<=1;
+    const gone=c<=S.pos.col&&!here, xy=wellPt(c,r);
+    sq+=`<button class="wlSq wl_${s.type}${here?' wlHere':''}${reach?' wlReach':''}${gone?' wlGone':''}" data-c="${c}" data-r="${r}" style="left:${xy[0].toFixed(2)}%;top:${xy[1].toFixed(2)}%"${reach?'':' disabled'}>`
+      +wellIcon(s)
+      +`${s.prize&&!gone&&!here?`<span class="wlPz"><img class="wlCur" src="/assets/img/ui/hud-gold.webp?v=1" alt="">${(s.prize.gold|0).toLocaleString()}${s.prize.gems?'<img class="wlCur" src="/assets/img/ui/hud-gem.webp?v=1" alt="">'+s.prize.gems:''}</span>`:''}</button>`; }
+  const hs=Object.keys(S.heroes||{});
+  const strip=hs.map(k=>{ const h=S.heroes[k], pct=Math.round((h.hpFrac||0)*100);
+    return `<div class="wlHero${h.dead?' wlDead':''}">${heroIcon(k,38)}<div class="wlHp"><i style="width:${h.dead?0:pct}%"></i></div>`
+      +(h.dead?`<button class="btn sm wlRes" data-k="${k}">${S.resCost?'<img class="wlCur" src="/assets/img/ui/hud-gem.webp?v=1" alt="">'+S.resCost:'Free'}</button>`:`<div class="wlEn">⚡${h.energy|0}</div>`)+`</div>`; }).join('');
+  const sweeps=S.canSweep?Object.keys(S.cleared||{}).filter(p=>p==='normal'||S.hardOpen).map(p=>`<button class="btn sm wlSweep" data-p="${p}">Sweep ${p==='hard'?'Hard':'Normal'} · +${(S.endXP[p]|0).toLocaleString()} XP</button>`).join(''):'';
+  const buffs=(S.buffs||[]).map(b=>`<span class="wlBuff">${escapeHTML(b.label)}</span>`).join('');
+  /* Phil 25 Sep: "a blue and purple animated portal that appears when you reach the end ... swirling ... So you can choose between
+     them" + "The portals should open just north and south of the boss tile, to kind of show a path you are taking." -> Normal (blue) just
+     NORTH of the boss tile, Hard (purple) just SOUTH, each joined to the boss by a bridge that appears with it. */
+  const WELL_PORTAL={ normal:[WELL_X[6],23], hard:[WELL_X[6],77] };
+  const portals=S.portals&&!S.offer?S.portals.map(p=>{ const lock=p==='hard'&&!S.hardOpen, xy=WELL_PORTAL[p]||WELL_PORTAL.normal;
+      return wellBridgeEl(wellPt(6,1),xy,'wlBrPortal'+(lock?'':' wlBrLive'))
+        +`<button class="wlPortal wlP_${p}${lock?' wlLocked':''}" data-p="${p}"${lock?' disabled':''} style="left:${xy[0]}%;top:${xy[1]}%"><span class="wlSwirl"></span><span class="wlSwirl wlSwirl2"></span>`
+        +`<b>${p==='hard'?'Hard':'Normal'}</b>${lock?`<i>Lv ${S.opensAt.hard}</i>`:(S.map===1&&(S.endXP[p]|0)>0?`<i>+${(S.endXP[p]|0).toLocaleString()} XP</i>`:'')}</button>`; }).join(''):'';
+  ov.innerHTML=`<div class="wlArt"><div class="wlArtIn">${wellBridges(S)}${sq}${portals}</div></div>`
+    +`<div class="wlTop"><button class="btn secondary sm wlBackB">◀</button><div class="wlTtl"><h1 class="wlH1">The Starless Well</h1><div class="wlSubT">${S.map===1?'Standard':(S.path==='hard'?'Hard':'Normal')} · Map ${S.map}/3</div></div><div class="wlClock">${hrs} h</div></div>`
+    +(S.done?'<div class="wlDone">Cleared</div>':'')
+    +`<div class="wlBottom"><div class="wlStrip">${strip}</div>${buffs?`<div class="wlBuffs">${buffs}</div>`:''}${sweeps?`<div class="wlSweeps">${sweeps}</div>`:''}</div>`
+    +(S.offer?`<div class="wlOffer"><div class="panel wlOfferP"><h1 class="wlH1">Choose a Blessing</h1><div class="wlCards">${S.offer.map(b=>`<button class="wlCard" data-b="${b.id}"><b>${escapeHTML(b.cls==='All'?'All heroes':b.cls)}</b><span>${escapeHTML(b.label)}</span><i class="btn sm">Choose</i></button>`).join('')}</div></div></div>`:'');
+  ov.querySelector('.wlBackB').onclick=()=>ov.remove();
+  ov.querySelectorAll('.wlSq.wlReach').forEach(b=>b.onclick=()=>wellTap(+b.dataset.c,+b.dataset.r));
+  ov.querySelectorAll('.wlRes').forEach(b=>b.onclick=()=>wellPost('/api/well/resurrect',{hero:b.dataset.k}));
+  ov.querySelectorAll('.wlSweep').forEach(b=>b.onclick=()=>wellPost('/api/well/sweep',{path:b.dataset.p},r=>{ if(r.reward) bannerMsg('+'+(r.reward.xp|0).toLocaleString()+' XP'); }));
+  ov.querySelectorAll('.wlPortal:not([disabled])').forEach(b=>b.onclick=()=>wellPost('/api/well/portal',{to:b.dataset.p}));
+  ov.querySelectorAll('.wlCard').forEach(b=>b.onclick=()=>wellPost('/api/well/buff',{id:b.dataset.b})); }
+async function wellPost(path,body,after){ if(WELL.busy) return; WELL.busy=true;
+  try{ const r=await api(path,'POST',Object.assign({requestId:uid8()},body));
+    if(!r||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
+    if(r.ledger) adoptLedger(r.ledger); updateHubChrome(); wellDraw(r); if(after) after(r); }
+  finally{ WELL.busy=false; } }
+function wellTap(c,r){ const S=WELL.state, s=S&&S.grid[c]&&S.grid[c][r]; if(!s) return;
+  if(s.type==='fight'||s.type==='boss'){ const ov=document.getElementById('wlMap'); if(ov) ov.remove();
+    CUR={mode:'well', well:{col:c, row:r, map:S.map, type:s.type, foes:(s.foes||[]).slice()}}; teamCtx='campaign'; menuReturn='home'; show('menu'); return; }
+  wellPost('/api/well/move',{col:c,row:r},res=>{ const g=res.got||{};
+    if(g.loan) bannerMsg((HERO_TYPES[g.loan]?HERO_TYPES[g.loan].name:g.loan)+' joins the run');
+    else if(g.healed) bannerMsg('+50% HP');
+    else if(g.gold) bannerMsg('+'+(g.gold|0).toLocaleString()+' gold'+(g.gems?' · +'+g.gems+' 💎':'')+(g.potions?' · +'+g.potions+' Superior XP Potion'+(g.potions>1?'s':''):''));
+    }); }
+async function wellLaunch(ctx){ const Wl=CUR.well||{};
+  if(!ACC.token){ bannerMsg('Connect to play — Starless Well battles are verified by the server.'); return; }
+  if(online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const tm=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
+      fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(tm); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(tm); if(!d){d=true;res(true);} }); });
+    if(!_fresh){ bannerMsg('The game just updated — restarting…'); applyUpdate(); return; } }
+  const r=await api('/api/well/start','POST',{col:Wl.col, row:Wl.row, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
+  if(!r||!r.ok||!Array.isArray(r.waves)||!r.waves.length){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
+  if(state!=='menu' || ctx!==_startCtx()) return;
+  CUR.attemptId=r.attemptId; CUR.cwaves=r.waves;
+  CUR.serverSnaps=Array.isArray(r.snaps)?r.snaps:null; CUR.seed=(r.seed!=null)?(r.seed>>>0):null; CUR.engine=r.engine||null;
+  startBattle(); }
 /* SWEEP: the server pays the best cleared stage's reward for one play — no battle */
 async function provSweep(t){
   if(!ACC.token){ return {error:'Connect to sweep — Training Province rewards are paid by the server.'}; }
@@ -23596,7 +23781,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
     return; }
-  el.innerHTML=`${CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
+  el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
 // Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -24046,7 +24231,7 @@ document.addEventListener('focusout',()=>{ setTimeout(_zoomWatch,700); });
 { const _hmi=document.getElementById('heroesMenuIcon'); if(_hmi) setHead(_hmi,'konwu'); }   // v657: the Heroes entry is a painted medallion now
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
-document.getElementById('menuBack').onclick=()=>{ if(CUR&&CUR.mode==='province'&&CUR.prov&&teamCtx==='campaign'){ provBackToCard(CUR.prov.t); return; } show(menuReturn); };   /* v663: Back from the province squad screen reopens its card */
+document.getElementById('menuBack').onclick=()=>{ if(CUR&&CUR.mode==='well'&&teamCtx==='campaign'){ wellBackToMap(); return; } if(CUR&&CUR.mode==='province'&&CUR.prov&&teamCtx==='campaign'){ provBackToCard(CUR.prov.t); return; } show(menuReturn); };   /* v663: Back from the province squad screen reopens its card */
 let _startBusy=false;
 function _startCtx(){ return CUR.mode+':'+(CUR.portal||'normal')+':'+(CUR.node|0)+':'+teamCtx; }
 document.getElementById('startBtn').onclick=async()=>{
@@ -24078,6 +24263,7 @@ async function _startBtnGo(_ctx){
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
   if(CUR.mode==='graid'){ if(!squadFor('graid').length)return; await raidLaunch(); return; }   /* v666: the guild raid boss */
+  if(CUR.mode==='well'){ if(!G.team.length)return; await wellLaunch(_ctx); return; }   /* Starless Well */
   if(CUR.mode==='province'){ if(!G.team.length)return; await provLaunch(_ctx); return; }   /* v663: Training Province - server-frozen squad + seed + authored waves */
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; }
   if(CUR.mode==='campaign'){ regenStamina(); if(G.stamina<stageStamCost(CUR.node,CUR.portal)) return;
@@ -24113,6 +24299,7 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   try{ if(_actStreamOn){ _actSeq++; actSend({seq:_actSeq, kind:'abandon'}); } }catch(e){}
   _actStreamOn=false;
   const _wasCamp=(CUR&&CUR.mode==='campaign'), _portal=(CUR&&CUR.portal)||'normal';
+  if(CUR&&CUR.mode==='well'){ CUR.attemptId=null; clearBattle(); wellBackToMap(); return; }   /* Starless Well: quitting spends nothing (carried HP unchanged) */
   if(CUR&&CUR.mode==='province'){ const _pt=(CUR.prov&&CUR.prov.t)||'gold'; CUR.attemptId=null; clearBattle(); provBackToCard(_pt); return; }   /* v663: quitting a province fight spends nothing and lands back on its card */
   /* v758 - QUIT leaves a replay the same way CONTINUE does. resultBtn routes mode 'replay' through
      _replayReturn, which is what clears the Skyfall pause; this one did not, so skipping out of a
@@ -24122,6 +24309,7 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   clearBattle();
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
+  if(m==='well'){ wellBackToMap(); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v825: back to the Well's map */
   if(m==='province'){ provBackToCard((CUR.prov&&CUR.prov.t)||'gold'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v663: back to the province card */
   if(m==='graid'){ guildTab='raid'; show('guild'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v666: back to the guild raid tab */
   if(m==='replay'){ const rr=_replayReturn; _replayReturn=null; if(rr){ try{ rr(); return; }catch(e){} } show('mail'); return; }
@@ -24317,7 +24505,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790374249089';
+const BUILD_ID = '1790375654766';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
