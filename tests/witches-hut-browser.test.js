@@ -179,6 +179,7 @@ async function run(){
         mine:inner.querySelector('.wnode.mine')?.style.display,
         middle:inner.querySelector('#worldPictureMiddle')?.style.display,
         close:inner.querySelector('#worldPictureClose')?.style.display,
+        zoneLabel:inner.querySelector('.worldZoneLabel')?.style.display,
         regionBackground:[...inner.children].find(el=>el.style.width?.includes('%')&&el.style.height?.includes('%'))?.style.background};
       zone.scrollLeft=Number.MAX_SAFE_INTEGER;zone.scrollTop=Number.MAX_SAFE_INTEGER;
       const edge={right:zone.scrollLeft,bottom:zone.scrollTop,
@@ -197,6 +198,7 @@ async function run(){
     assert.equal(zoomRules.low.mine,'none','mines hide at the overview scale');
     assert.equal(zoomRules.low.middle,'none','middle pictures hide at the whole-map scale');
     assert.equal(zoomRules.low.close,'none','close pictures hide at the whole-map scale');
+    assert.equal(zoomRules.low.zoneLabel,'none','tiny region captions do not mark the whole-map picture');
     assert.equal(zoomRules.low.regionBackground,'transparent','region overlays do not darken the approved master picture');
     assert.ok(Math.abs(zoomRules.edge.right-zoomRules.edge.maxRight)<=2 &&
       Math.abs(zoomRules.edge.bottom-zoomRules.edge.maxBottom)<=2,'scrolling stops at the picture edges');
