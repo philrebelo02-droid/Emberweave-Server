@@ -19499,6 +19499,7 @@ async function renderCauldron(body){
   if(!w){ panel.textContent='The cauldron could not be reached. Please try again.'; return; }
   if(w.locked){ panel.textContent='The Witches Hut opens at player level '+WALL_UNLOCK_LEVEL+'.'; return; }
   const pct=Math.max(0,Math.min(100,w.capacity?100*w.brew/w.capacity:0));
+  const brewScene=pct<=0?'brew-4-empty.mp4':pct<50?'brew-3-half.mp4':pct<85?'brew-2-near-full.mp4':'brew-1-full-overflow.mp4';
   const rows=(w.heroes||[]).map(h=>{
     const name=(HERO_TYPES[h.key]||{}).name||h.key;
     return `<div class="row" style="align-items:center;gap:8px;padding:7px 0;border-top:1px solid #253047">
@@ -19507,6 +19508,7 @@ async function renderCauldron(body){
   }).join('');
   const offer=w.offer;
   panel.innerHTML=`<div style="font-weight:800;font-size:15px">🫙 Cauldron · Hut Lv ${w.level}</div>
+    <video src="assets/img/witches-hut/${brewScene}" poster="assets/img/witches-hut/cauldron-base.png" autoplay muted loop playsinline preload="metadata" aria-label="Witches Hut cauldron at ${Math.round(pct)} percent brew" style="display:block;width:min(100%,320px);aspect-ratio:1;margin:10px auto;border-radius:12px;object-fit:cover;background:#111"></video>
     <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()} · refills in about 18 hours from empty</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${rows&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>

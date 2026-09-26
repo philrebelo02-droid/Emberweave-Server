@@ -80,6 +80,10 @@ async function run(){
     const wall=await page.locator('#wallBody').textContent();
     assert.match(wall,/Cauldron · Hut Lv/);
     assert.match(wall,/Heal All · strongest first/);
+    const brewVideo=page.locator('#wallBody video');
+    assert.match(await brewVideo.getAttribute('src'),/^assets\/img\/witches-hut\/brew-[1-4]-/);
+    const brewAsset=await page.request.get(new URL(await brewVideo.getAttribute('src'),base+'/play').toString());
+    assert.equal(brewAsset.status(),200,'the selected brew-state video is served');
     await page.evaluate(()=>show('world'));
     await page.waitForFunction(()=>_worldServerAccount===ACC.token&&G.regionChosen,null,{timeout:10000});
     assert.equal(await page.locator('#regionPicker').count(),0,'no player starting-region picker');
