@@ -195,12 +195,22 @@ async function run() {
     assert.equal(forgedMarchEarn.ok,false,'unverified browser march cannot mint gold');
     const hurt=await request('GET','/api/witch/state',null,foe.token);
     assert.ok(hurt.heroes.length>0,'defending heroes keep permanent wounds');
-    const target=hurt.heroes[0];
+    const target=hurt.heroes.reduce((a,b)=>a.healCost>=b.healCost?a:b);
+    const fullCost=target.power*0.1*(10000-target.hp)/10000;
+    assert.ok(fullCost>0,'the wounded hero has a positive healing cost');
+    await stop();
+    const partlyFilled=JSON.parse(fs.readFileSync(db,'utf8'));
+    partlyFilled.users[foe.profile.id].witch.brew=fullCost/2;
+    partlyFilled.users[foe.profile.id].witch.tickAt=Date.now();
+    fs.writeFileSync(db,JSON.stringify(partlyFilled));
+    await start(admin.profile.id);
     const healed=await request('POST','/api/witch/heal',{
       hero:target.key,requestId:'witch-heal-1'
     },foe.token);
     assert.equal(healed.ok,true,JSON.stringify(healed));
     assert.ok(healed.result.after>healed.result.before);
+    assert.ok(healed.result.after<10000,'a half-cost pot heals only part of the missing health');
+    assert.ok(healed.result.spent<=fullCost/2+1e-6,'partial healing cannot overspend the pot');
     const healedRetry=await request('POST','/api/witch/heal',{
       hero:target.key,requestId:'witch-heal-1'
     },foe.token);
