@@ -2357,7 +2357,7 @@ const TH = window.THREE;
 const TERRAIN_IMGS = {"region":"/assets/img/world-map/terrain-region.jpg","wild":"/assets/img/world-map/terrain-wild.jpg","worldtree":"/assets/img/world-map/terrain-worldtree.jpg"};   // region (grass), wild (desert), worldtree (crystal waste) — used for picker thumbnails
 // ---- procedural terrain: seamless multi-tone ground (no seams / no repeating features) ----
 const GROUND_IMGS = {"region":"/assets/img/world-map/ground-region.jpg","wild":"/assets/img/world-map/ground-wild.jpg","worldtree":"/assets/img/world-map/ground-worldtree.jpg"};   // region=grass, wild=sand, worldtree=brown/purple — seamless noise textures
-const WORLDTREE_IMG = ({"worldtree":"/assets/img/world-map/worldtree-worldtree.png"}).worldtree || '';   // the great tree at the centre of the world
+const WORLDTREE_TERRAIN_IMG = '/assets/img/world-map/world-v02/overlays/worldtree-integrated-center-v1.png';
 // The World Tree core = the centre 16 tiles (4×4). No one can teleport onto it (no marker at all), but it still
 // counts for march-distance. The centre 4 tiles (2×2) hold the tree itself.
 function inWorldTreeCore(x,y){ const ci=cellIndex(x), cj=cellIndex(y), c=Math.floor(GRID_COLS/2); return ci>=c-2&&ci<=c+1&&cj>=c-2&&cj<=c+1; }
@@ -2372,14 +2372,18 @@ const BIOME = {
 };
 function scatterZone(inner, key){ const z=ZONES[key], biome=BIOME[z.terrain]; if(!biome||!DECOR_IMGS.tree)return;
   const pool=[]; biome.decor.forEach(([s,w])=>{ for(let i=0;i<w;i++) if(DECOR_IMGS[s]) pool.push(s); }); if(!pool.length)return;
-  const seed=(z.col*31+z.row*61+7)*997, third=100/3;
+  const seed=(z.col*31+z.row*61+7)*997;
+  const left=ZONE_EDGES[z.col]*GRID_CELL, top=ZONE_EDGES[z.row]*GRID_CELL;
+  const wide=(ZONE_EDGES[z.col+1]-ZONE_EDGES[z.col])*GRID_CELL;
+  const high=(ZONE_EDGES[z.row+1]-ZONE_EDGES[z.row])*GRID_CELL;
   for(let i=0;i<biome.count;i++){ const s=pool[Math.floor(rand01(seed+i*3)*pool.length)];
-    const x=(z.col+0.02+rand01(seed+i*5+1)*0.96)*third, y=(z.row+0.04+rand01(seed+i*7+2)*0.92)*third;
+    const x=left+(0.02+rand01(seed+i*5+1)*0.96)*wide;
+    const y=top+(0.04+rand01(seed+i*7+2)*0.92)*high;
     const big=(s==='pond'||s==='oasis'), h=big?(70+rand01(seed+i*11)*30):(30+rand01(seed+i*11)*40);
     const el=document.createElement('img'); el.src=DECOR_IMGS[s]; el.draggable=false;
     el.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;height:'+h.toFixed(0)+'px;transform:translate(-50%,-72%);pointer-events:none;z-index:'+(big?0:1);
     inner.appendChild(el); } }
-// 3×3 world: 4 regions in the corners, 4 Wild zones on the edges, the World Tree in the centre.
+// 3×3 geography: 90-cell corner regions, 40-cell wild corridors, a 40×40 center void.
 const ZONES = {
   crystor:  {type:'region',   name:'Crystor',  terrain:'region',    col:0, row:0},
   draymon:  {type:'region',   name:'Draymon',  terrain:'region',    col:2, row:0},
@@ -8556,11 +8560,14 @@ function buildUnitFromSnapshot(s,team,x,y){
   if(isServerSnapshot(s)) return buildUnitFromServerSnapshot(s,team,x,y);
   const u=makeUnit(s.key,team,x,y,s.level,{owned:false,rank:s.rank,boss:s.boss});   // structure + kit abilities by rank
   u.maxHp=u.hp=s.maxHp; u.dmg=s.dmg; u.range=s.range; u.speed=s.speed; u.atkInterval=s.atkInterval; u.combatDist=s.combatDist; u.r=s.r; u.melee=s.melee; u.reach=s.reach||0;
+  // A world-map fight cannot heal a hero above the HP they brought into it.
+  // Ordinary campaign/arena snapshots carry no cap and keep their existing behavior.
+  if(s.worldEntryHpCap!=null)u._worldEntryHpCap=Math.max(0,Math.min(u.maxHp,s.worldEntryHpCap));
   u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.defRating=s.defRating||0; u.penRating=s.penRating||0;
   u.armorRating=s.armorRating||0; u.mrRating=s.mrRating||0; u.armorPen=s.armorPen||0; u.magicPen=s.magicPen||0;
   u.critDmg=s.critDmg||0.6; u.lifestealStat=s.lifestealStat||0; u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
   u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
-  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(u.maxHp,s.hp)); u.ctrlRes=s.ctrlRes||0;
+  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(worldHealCap(u),s.hp)); u.ctrlRes=s.ctrlRes||0;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune;
   /* v269: DEEP-COPY the passive block. It used to be shared by reference with the snapshot, so the first
      fight mutated the snapshot and the SECOND fight off the same snapshot ran differently — the exact
@@ -10106,7 +10113,7 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       const back=o.back||5;
       alliesOf(u).forEach(a=>{ const h=a._hpHist&&a._hpHist.length?a._hpHist[0]:null; if(h==null)return;
         if(a.alive){ if(h>a.hp){ healFrom(u,a,h-a.hp); burstAt(a.x,a.y,0xf0c86a,12); } }
-        else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(a.maxHp,h*(o.revive||0.4)));
+        else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*(o.revive||0.4)));
           a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0;
           ringBurst(a.x,a.y,0xf0c86a,20);
           floatTexts.push({x:a.x,y:a.y-18,txt:'REWOVEN',t:1.4,color:'#f0c86a',vy:1,sz:14}); } });
@@ -10490,7 +10497,8 @@ function castTick(u, dt){
   if(ax!=null){ u._aimWX=ax; u._aimWY=ay; }
 }
 function healFrom(src,tgt,a){ return healUnit(tgt,a*((src&&src.healPowMul)||1)); }
-function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(u.maxHp-u.hp,a); if(a<=0)return; u.hp+=a;
+function worldHealCap(u){ return u._worldEntryHpCap==null?u.maxHp:Math.min(u.maxHp,u._worldEntryHpCap); }
+function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a;
   /* v527 - healing that travels. Golden Thread (Threadseer) sends part of what SHE receives to
      the ally nearest death; Dreamthread (Lysara) shares between the two allies she linked.
      _healing guards the one hop so a link can never feed itself in a loop. */
@@ -11091,7 +11099,7 @@ function updateBees(dt){
       if(b.spr){ const k=rt/rd, ease=k*k*(3-2*k); const hx=b.u.x, hy=b.u.y, hh=0.05+(b.u.sprH||3.2)*0.8; const sx=b.cx+Math.cos(b.ang)*b.rad, sy=b.cy+Math.sin(b.ang)*b.rad; const nx=sx+(hx-sx)*ease, ny=sy+(hy-sy)*ease, nh=1.1+(hh-1.1)*ease+Math.sin(k*Math.PI)*0.6; b.spr.material.rotation=((hx-sx)>=0?0:Math.PI); b.spr.position.set(wx(nx),nh,wz(ny)); b.spr.material.opacity=1-Math.max(0,k-0.8)*5; } continue; }
     if(b.ph===8){ const o=b.u, t=b.t;
       if(!o||!o.alive||!(o.pass&&o.pass.beeward)||!t||!t.alive||units.indexOf(t)<0){ beeDrop(b); _bees.splice(i,1); continue; }
-      b.acc+=dt; if(b.acc>=0.5){ b.acc-=0.5; const h=(t.maxHp*0.004+(o.apow||0)*0.08*(b.pm||1))*0.5; if(t.hp<t.maxHp) t.hp=Math.min(t.maxHp,t.hp+h); }
+      b.acc+=dt; if(b.acc>=0.5){ b.acc-=0.5; const h=(t.maxHp*0.004+(o.apow||0)*0.08*(b.pm||1))*0.5; if(t.hp<worldHealCap(t)) t.hp=Math.min(worldHealCap(t),t.hp+h); }
       if(TH&&scene){ try{ if(!b.spr){ b.spr=new TH.Sprite(new TH.SpriteMaterial({map:beeTex(),transparent:true,depthWrite:false,depthTest:false})); b.spr.scale.set(0.55,0.55,1); scene.add(b.spr); }
         b.ang+=2.6*dt; const c=Math.cos(b.ang), sn=Math.sin(b.ang);
         beeAbove(t,0.25,_bv); b.spr.position.set(_bv.x+c*0.55, _bv.y+Math.sin(b.ang*2.3)*0.12, _bv.z+sn*0.3);
@@ -12403,7 +12411,7 @@ function updateBattle(dt){
   });
   // Purple passives that tick over time (team-wide)
   units.forEach(u=>{ if(!u.alive||!u.pass)return;
-    if(u.pass.regen) units.forEach(o=>{if(o.alive&&o.team===u.team)o.hp=Math.min(o.maxHp,o.hp+o.maxHp*0.02*dt);});
+    if(u.pass.regen) units.forEach(o=>{if(o.alive&&o.team===u.team)o.hp=Math.min(worldHealCap(o),o.hp+o.maxHp*0.02*dt);});
     /* v487 (Phil): the passive keeps a bee circling the head of EVERY living ally, the Beekeeper included, until that
        hero dies. Depth flips with the orbit: on the far half the bee is travelling RIGHT past the head and draws one
        layer BEHIND the hero; on the near half it is travelling LEFT and draws one layer in FRONT of him. Units render
@@ -12417,13 +12425,13 @@ function updateBattle(dt){
       mates.forEach((m,i)=>{ if(!_bees.some(w=>w.ph===8&&w.u===u&&w.t===m)) _bees.push({ph:8,u,t:m,spr:null,ang:i*1.7,acc:0,pm}); });
     }
     if(u.pass.battery) units.forEach(o=>{if(o.alive&&o.team===u.team)o.energy=Math.min(100,o.energy+6*dt);});
-    if(u.pass.juggernaut) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.04*(u.passMul||1)*dt);   // Gruel self-heal 4% max HP/s (Grosk now runs mirewall instead)
+    if(u.pass.juggernaut) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.04*(u.passMul||1)*dt);   // Gruel self-heal 4% max HP/s (Grosk now runs mirewall instead)
     // The Mirewall (Grosk): re-pick the ally he is standing in front of every frame - always the one closest to dying.
     if(u.pass.mirewall){ if(u._mwWard&&u._mwWard._mwBy===u)u._mwWard._mwBy=null;
       let w=null; units.forEach(o=>{ if(o.alive&&o.team===u.team&&o!==u&&(!w||o.hp<w.hp))w=o; });
       u._mwWard=w; if(w)w._mwBy=u; u._mwFxT=Math.max(0,(u._mwFxT||0)-dt); }
     if(u.pass.warden){ u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1; ringBurst(u.x,u.y,0xE7B84B,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#E7B84B',vy:1}); } }
-    if(u.pass.selfregen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.02*dt);   // Serpentine Regen (Sylphice)
+    if(u.pass.selfregen) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.02*dt);   // Serpentine Regen (Sylphice)
     /* ==================== v527 — PACK PASSIVES ======================================== */
     // Sacred Bells (The Walking Cathedral): the bells ring and the ranks around him harden.
     if(u.pass.sacredbells){ u._sbT=(u._sbT||0)+dt; if(u._sbT>=4){ u._sbT-=4; let n=0;
@@ -12495,10 +12503,10 @@ function updateBattle(dt){
       u.armorPen=Math.max(u.armorPen||0,(u._dmBaseAP==null?(u._dmBaseAP=u.armorPen||0):u._dmBaseAP)+(u._dmPen||0));
       u.magicPen=Math.max(u.magicPen||0,(u._dmBaseMP==null?(u._dmBaseMP=u.magicPen||0):u._dmBaseMP)+(u._dmPen||0)); }
     if(u.pass.momentum){ u._momStk=Math.min(0.5,(u._momStk||0)+0.025*dt); u.hasteMul=Math.max(1+u._momStk, (u._ocT>0?(u._ocMul||1):1)); u.hasteT=Math.max(u.hasteT,0.15); }   // ramp respects an active Overclock (uses the separate _ocT/_ocMul so it never self-perpetuates)   // Momentum Gears (Tick): attack speed ramps up to +50% the longer he fights
-    if(u.pass.twinfonts){ if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt; dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=Math.min(u.maxHp,u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt); } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
+    if(u.pass.twinfonts){ if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt; dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=Math.min(worldHealCap(u),u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt); } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
     if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) damage(e,u.dmg*0.25,'#ff6a3a',true); }); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     // Deep Reserves (Old Maren): the sea keeps him topped up — health AND energy
-    if(u.pass.tidereserve){ const pm=(u.passMul||1); u.hp=Math.min(u.maxHp,u.hp+u.maxHp*0.01*pm*dt); u.energy=Math.min(100,u.energy+1*pm*dt); }
+    if(u.pass.tidereserve){ const pm=(u.passMul||1); u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.01*pm*dt); u.energy=Math.min(100,u.energy+1*pm*dt); }
     // Scriptorium (The Annotator): the whole team's ultimates charge faster
     if(u.pass.scriptorium){ const pm=(u.passMul||1); units.forEach(o=>{ if(o.alive&&o.team===u.team) o.energy=Math.min(100,o.energy+1*pm*dt); }); }
     // Hush (Lumi): every 5s the quietest hour takes one enemy's voice for a second
@@ -12518,7 +12526,7 @@ function updateBattle(dt){
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); } } }
     if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
   });
-  units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
+  units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // WoW-style status effects: DoT / HoT ticks + buff/debuff timers
   units.forEach(u=>{ if(!u.alive)return;
     for(let i=u.dots.length-1;i>=0;i--){ const d=u.dots[i]; d.acc+=dt; if(d.acc>=d.interval){ d.acc-=d.interval; damage(u,d.dps,d.color,true); d.remaining--; if(d.remaining<=0||!u.alive)u.dots.splice(i,1); } }
@@ -13506,7 +13514,7 @@ function renderHome(){
     {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, ...lk(20)},
     {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(13)},
     {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},   // v604 (Phil, 18 Sep): "please move island of trials to 10" — was 30, which hid the Gold Province (10) and Drill (15) inside
-    {nav:'coming1',     label:'Coming Soon',    x:24, y:40, w:19, h:17, lx:24, ly:49, coming:true},
+    {nav:'wall',        label:'Witches Hut',    x:24, y:40, w:19, h:17, lx:24, ly:49, cauldron:true, ...lk(WALL_UNLOCK_LEVEL)},
     {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67, ...lk(25)},
     {nav:'well',        label:'The Starless Well', x:90, y:70, w:16, h:34, lx:90, ly:88, well:true, ...lk(61)},   /* v825 Starless Well: the black hole (measured on ChatGPT's art: core x90 y71) */
   ];
@@ -13528,9 +13536,9 @@ function renderHome(){
     el.title=h.label;
     const clickable = !h.locked || AUDIT_MODE();   // audit mode lets you open locked buildings
     const hit=document.createElement('div'); hit.className='hit';
-    if(h.coming){ hit.onclick=()=>bannerMsg('🔒 '+h.label+' — coming soon'); }
+    if(h.cauldron&&clickable){ hit.onclick=()=>{ WALL_TAB='cauldron'; show('wall'); }; }
     else if(h.well&&clickable){ hit.onclick=()=>openWell(); }
-    else if(clickable){ hit.onclick=()=>show(h.nav); }
+    else if(clickable){ hit.onclick=()=>{ if(h.nav==='wall')WALL_TAB='wall'; show(h.nav); }; }
     else { hit.style.cursor='not-allowed'; }
     el.appendChild(hit);
     box.appendChild(el);
@@ -13935,8 +13943,8 @@ function castGearSkill(u,_fromTick){
     case 'shield': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.ap?Math.round((u.apow||u.dmg)*(p.ap||1)):Math.round(w.maxHp*(p.pct||0.1)); w.shield=(w.shield||0)+amt; w.shieldT=Math.max(w.shieldT||0,p.dur||5); if(p.energy) w.energy=Math.min(100,w.energy+p.energy); }); break; }
     case 'heal': { _gsAllies(u,p.who).forEach(w=>{ const amt=p.missing?Math.round((w.maxHp-w.hp)*p.missing):Math.round(w.maxHp*(p.pct||0.1));
       if(p.delay){ (w._gearDelayedHeals||(w._gearDelayedHeals=[])).push({t:p.delay,amt}); }
-      else if(p.over){ if(w.hots) pushHot(w,amt/(2*p.over),p.over,0.5); else { w.hp=Math.min(w.maxHp,w.hp+amt); } }
-      else { w.hp=Math.min(w.maxHp,w.hp+amt); floatTexts.push({x:w.x,y:w.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:12}); }
+      else if(p.over){ if(w.hots) pushHot(w,amt/(2*p.over),p.over,0.5); else { w.hp=Math.min(worldHealCap(w),w.hp+amt); } }
+      else { w.hp=Math.min(worldHealCap(w),w.hp+amt); floatTexts.push({x:w.x,y:w.y-6,txt:'+'+amt,t:.8,color:'#5ee89b',vy:1.1,sz:12}); }
       if(p.pull&&w!==u){ const dx=u.x-w.x,dy=u.y-w.y,dd=Math.hypot(dx,dy)||1,step=Math.min(60,Math.max(0,dd-bodyR(u)-bodyR(w))); w.x+=dx/dd*step; w.y+=dy/dd*step; w._ax=w.x; w._ay=w.y; }
     }); break; }
     case 'energy': u.energy=Math.min(100,(u.energy||0)+(p.n||20)); if(p.selfArmorCut){u._gearArmorCut=Math.max(u._gearArmorCut||0,p.selfArmorCut);u._gearArmorCutT=Math.max(u._gearArmorCutT||0,p.dur||2);} break;
@@ -17035,6 +17043,11 @@ function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!
         <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('')
     +`<div style="font-size:11px;color:#6f7d90;margin-top:8px">A shady dealer's premium stock — everything here costs diamonds.</div>`;
   b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return;
+    if(it.id==='tele'){
+      const r=await api('/api/world/buy-scrolls','POST',{offer:'targeted5',requestId:uid8()});
+      if(!r||!r.ok){ bannerMsg((r&&r.error)||'Teleport scroll purchase failed.'); return; }
+      adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG();
+      bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
     if(it.server){   // v274: a server-owned bundle — the server takes the diamonds and grants the goods
       const r=await api('/api/shop/buy','POST',{what:it.server, requestId:uid8()});
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'The dealer had nothing to sell.'); return; }
@@ -19213,12 +19226,12 @@ function regionBotRoster(regionKey){
   list.sort((a,b)=>a.power-b.power);                         // weakest first
   list=list.slice(Math.min(list.length-1, realN));           // each REAL player in this region replaces the weakest bot
   // place each bot on a cell inside THIS region's 32×32 sub-grid (deterministic)
-  const z=ZONES[regionKey], ox=z.col*ZONE_CELLS, oy=z.row*ZONE_CELLS, ZN=ZONE_CELLS*ZONE_CELLS;
+  const z=ZONES[regionKey], ox=zoneCellStart(z.col), oy=zoneCellStart(z.row), ZN=REGION_CELLS*REGION_CELLS;
   const used=new Set();
   if(regionKey===myRegion()){ const c=myCastlePos(); used.add(cellIndex(c.x)+','+cellIndex(c.y)); }   // don't overlap your castle
   realCitiesIn(regionKey).forEach(rc=>used.add(cellIndex(rc.x)+','+cellIndex(rc.y)));                 // don't overlap real players' castles
-  list.forEach((bt,i)=>{ let s=(i*7919+(bt.power%ZN))%ZN, li=s%ZONE_CELLS, lj=Math.floor(s/ZONE_CELLS), guard=0;
-    while(used.has((ox+li)+','+(oy+lj))&&guard++<ZN){ s=(s+7)%ZN; li=s%ZONE_CELLS; lj=Math.floor(s/ZONE_CELLS); }
+  list.forEach((bt,i)=>{ let s=(i*7919+(bt.power%ZN))%ZN, li=s%REGION_CELLS, lj=Math.floor(s/REGION_CELLS), guard=0;
+    while(used.has((ox+li)+','+(oy+lj))&&guard++<ZN){ s=(s+7)%ZN; li=s%REGION_CELLS; lj=Math.floor(s/REGION_CELLS); }
     const ci=ox+li, cj=oy+lj; used.add(ci+','+cj); bt.x=(ci+0.5)*GRID_CELL; bt.y=(cj+0.5)*GRID_CELL;
     bt.region=regionKey; bt.ally = false;   // bots are NEVER your guildmate — real guild membership is server-backed; real guildmates aren't sourced onto the world map yet
   });
@@ -19466,11 +19479,46 @@ function renderArenaShop(){
     list.appendChild(row); });
 }
 
+let WALL_TAB='wall';
+async function renderCauldron(body){
+  if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center">Sign in to tend your cauldron and keep your heroes\' recovery safe.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return; }
+  const panel=document.createElement('div'); panel.className='panel'; panel.innerHTML='Loading cauldron…'; body.appendChild(panel);
+  const w=await api('/api/witch/state');
+  if(!panel.isConnected || WALL_TAB!=='cauldron') return;
+  if(!w){ panel.textContent='The cauldron could not be reached. Please try again.'; return; }
+  if(w.locked){ panel.textContent='The Witches Hut opens at player level '+WALL_UNLOCK_LEVEL+'.'; return; }
+  const pct=Math.max(0,Math.min(100,w.capacity?100*w.brew/w.capacity:0));
+  const rows=(w.heroes||[]).map(h=>{
+    const name=(HERO_TYPES[h.key]||{}).name||h.key;
+    return `<div class="row" style="align-items:center;gap:8px;padding:7px 0;border-top:1px solid #253047">
+      ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ⚔ ${h.power.toLocaleString()} · Brew ${h.healCost}</span></div>
+      <button class="btn xs" data-witch-heal="${h.key}" ${w.brew<=0?'disabled':''}>Heal</button></div>`;
+  }).join('');
+  const offer=w.offer;
+  panel.innerHTML=`<div style="font-weight:800;font-size:15px">🫙 Cauldron · Hut Lv ${w.level}</div>
+    <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()} · refills in about 18 hours from empty</div>
+    <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
+    <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${rows&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
+    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}</div>
+    <div style="font-size:12px;font-weight:700;margin-bottom:5px">Damaged heroes</div>${rows||'<div style="font-size:12px;color:#aeb8c8">All your heroes are healthy.</div>'}`;
+  const act=async(btn,path,extra)=>{ if(btn.disabled)return; btn.disabled=true;
+    const r=await api(path,'POST',Object.assign({requestId:uid8()},extra||{}));
+    if(r&&r.ok){ if(r.witch&&r.witch.ledger)adoptLedger(r.witch.ledger); body.querySelectorAll('.panel').forEach(el=>el.remove()); renderCauldron(body); }
+    else { bannerMsg((r&&r.error)||'The cauldron could not complete that action.'); btn.disabled=false; } };
+  panel.querySelectorAll('[data-witch-heal]').forEach(btn=>btn.onclick=()=>act(btn,'/api/witch/heal',{hero:btn.dataset.witchHeal}));
+  const all=panel.querySelector('[data-witch-all]'); if(all) all.onclick=()=>act(all,'/api/witch/heal-all');
+  const buy=panel.querySelector('[data-witch-buy]'); if(buy) buy.onclick=()=>act(buy,'/api/witch/buy-brew',{tier:buy.dataset.witchBuy});
+}
 function renderWall(){
   const lv=playerLevel(), body=document.getElementById('wallBody'); body.innerHTML='';
   const locked = lv<WALL_UNLOCK_LEVEL;
   if(locked && !AUDIT_MODE()){ body.innerHTML=`<div class="panel" style="text-align:center">🔒 The City Wall world opens at player level ${WALL_UNLOCK_LEVEL}.<br><span style="color:#8b98a9;font-size:12px">You are level ${lv}. Clear campaign stages to level up.</span></div>`; return; }
-  document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : `Set defenders · then raid the world map`;
+  document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : (WALL_TAB==='cauldron'?'Heal heroes with private brew':'Set defenders · then raid the world map');
+  const tabs=document.createElement('div'); tabs.className='row'; tabs.style.cssText='gap:8px;margin:8px 0 12px';
+  tabs.innerHTML=`<button class="btn sm ${WALL_TAB==='wall'?'':'secondary'}" data-wall-tab="wall">City Wall</button><button class="btn sm ${WALL_TAB==='cauldron'?'':'secondary'}" data-wall-tab="cauldron">Cauldron</button>`;
+  body.appendChild(tabs);
+  tabs.querySelectorAll('[data-wall-tab]').forEach(btn=>btn.onclick=()=>{ WALL_TAB=btn.dataset.wallTab; renderWall(); });
+  if(WALL_TAB==='cauldron'){ renderCauldron(body); return; }
   const busyNow=committedHeroes();
   const defP=document.createElement('div'); defP.className='panel';
   let dh=``;   // Wall Defense header + tips removed (Phil) — lines bump up to the top of the panel
@@ -19504,18 +19552,15 @@ function renderWall(){
 function doTransfer(rk){ if(rk===myRegion())return;
   const free=transferFree();
   if(!free && (G.gems||0)<TRANSFER_COST){ const m=document.getElementById('xferMsg'); if(m)m.textContent='Need 💎'+TRANSFER_COST+' — your free monthly transfer is used.'; return; }
-  /* 30 Aug — THE TRANSFER WAS FREE. The 1,000-diamond cost was subtracted from the client mirror
-     only; the server never saw the spend, so the next ledgerSync (45s) handed the diamonds straight
-     back. Route it through /api/tx/spend like every other real cost. */
-  const apply=()=>{ if(!free){ G.gems=(G.gems||0)-TRANSFER_COST;
-      if(ACC.token) api('/api/tx/spend','POST',{what:'gems',amount:TRANSFER_COST,reason:'transfer',requestId:uid8()})
-        .then(r=>{ if(r&&r.ok)adoptLedger(r.ledger); else ledgerSync(); }).catch(()=>ledgerSync()); }
-    const cc=zoneCenter(rk); G.region=rk; G.zone=rk; G.castleX=snapToGrid(cc.x); G.castleY=snapToGrid(cc.y); G.lastTransfer=Date.now(); _worldCitiesCache=null; _botCache={}; saveG(); updateHubChrome(); bannerMsg('🏰 Region moved to '+ZONES[rk].name); renderWall(); };
+  const apply=async()=>{ const r=await api('/api/world/relocate','POST',{kind:'transfer',region:rk,requestId:uid8()});
+    if(!r||!r.ok){ bannerMsg((r&&r.error)||'Region transfer could not be verified.'); return; }
+    adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger);
+    _worldCitiesCache=null; saveG(); bannerMsg('🏰 Region moved to '+ZONES[rk].name); renderWall(); };
   const freeAfter=0;   // transferring consumes/blocks the monthly free window
   gameConfirm('Are you sure you want to transfer regions to <b>'+ZONES[rk].name+'</b>?<br><span style="font-size:11px;color:#8b98a9">After this region transfer you will have <b>'+freeAfter+'</b> free region transfers.'+(free?'':'<br>This transfer costs <b>💎'+TRANSFER_COST+'</b> (monthly free already used).')+'</span>', apply);
 }
 // a big open zone: ~20x a screen. Nodes/cities placed deterministically across it.
-const WORLD_W=9000, WORLD_H=9000;   // one continuous square world (3×3 zones of 60×60) — 50px cells so castles fit
+const WORLD_W=11000, WORLD_H=11000;   // 220×220 logical cells at 50 unzoomed pixels each
 function rand01(seed){ const x=Math.sin(seed*127.1+311.7)*43758.5453; return x-Math.floor(x); }
 function worldNodes(){
   const nodes=[]; const types=['iron','crystal','silver','coal'];
@@ -19526,11 +19571,50 @@ let worldZoom=0.62;   // opens zoomed in enough that castles are visible (< 500 
 // ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
 const GHOST_MAX_SQ=30;      // teleport ghost markers only render when the view spans ≤ 30×30 squares
 const CASTLE_MAX_SQ=500;    // castles only render when fewer than 500 squares are visible (zoom in to see them)
+// Picture hierarchy is one continuous world: 1 cover, 3×3 middle pieces, 9×9 close pieces.
+// A piece fills the map view at its own zoom, but keeps its original world coordinates.
+function worldPictureTile(divisions,col,row){
+  if(![1,3,9].includes(divisions)||!Number.isInteger(col)||!Number.isInteger(row)||col<0||row<0||col>=divisions||row>=divisions) return null;
+  const cells=GRID_COLS/divisions;  // art thirds are fractions of 220; they do not follow biome borders
+  return {divisions,col,row,cellX:col*cells,cellY:row*cells,cells,
+    left:col*WORLD_W/divisions,top:row*WORLD_H/divisions,width:WORLD_W/divisions,height:WORLD_H/divisions};
+}
+function worldPictureForViewport(left,top,right,bottom){
+  if(![left,top,right,bottom].every(Number.isFinite)||right<=left||bottom<=top) return null;
+  const x0=Math.max(0,Math.min(WORLD_W,left)), y0=Math.max(0,Math.min(WORLD_H,top));
+    const x1=Math.max(0,Math.min(WORLD_W,right)), y1=Math.max(0,Math.min(WORLD_H,bottom));
+  for(const divisions of [9,3,1]){
+    const w=WORLD_W/divisions,h=WORLD_H/divisions;
+    const col=Math.min(divisions-1,Math.floor(x0/w)), row=Math.min(divisions-1,Math.floor(y0/h));
+    if(x1<=((col+1)*w+1e-7)&&y1<=((row+1)*h+1e-7)) return worldPictureTile(divisions,col,row);
+  }
+  return worldPictureTile(1,0,0);
+}
+function visibleWorldPicture(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom)return null;
+  return worldPictureForViewport(zone.scrollLeft/worldZoom,zone.scrollTop/worldZoom,
+    (zone.scrollLeft+zone.clientWidth)/worldZoom,(zone.scrollTop+zone.clientHeight)/worldZoom); }
+const WORLD_PICTURE_ROOT='/assets/img/world-map/world-v02/';
+function worldPictureName(level,row,col){ return 'world-v02-l'+level+'-r'+String(row).padStart(2,'0')+'-c'+String(col).padStart(2,'0')+'.png'; }
 function mapVisibleSquares(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom) return null;
   const cellPx=WORLD_W/GRID_COLS;   // px per grid square in unzoomed world coords (≈50)
   const vx=(zone.clientWidth/worldZoom)/cellPx, vy=(zone.clientHeight/worldZoom)/cellPx;
   return {vx,vy,area:vx*vy}; }
 function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const s=mapVisibleSquares(); if(!s)return;
+  const picture=visibleWorldPicture();
+  if(picture){
+    inner.dataset.pictureLevel=String(picture.divisions); inner.dataset.pictureCol=String(picture.col); inner.dataset.pictureRow=String(picture.row);
+    const master=inner.querySelector('#worldPictureMaster'),middle=inner.querySelector('#worldPictureMiddle'),close=inner.querySelector('#worldPictureClose');
+    if(master)master.style.display=picture.divisions===1?'':'none';
+    if(middle){ middle.style.display=picture.divisions===3?'':'none';
+      if(picture.divisions===3){middle.style.left=picture.left/WORLD_W*100+'%';middle.style.top=picture.top/WORLD_H*100+'%';
+        middle.style.width=picture.width/WORLD_W*100+'%';middle.style.height=picture.height/WORLD_H*100+'%';
+        const src=WORLD_PICTURE_ROOT+worldPictureName(1,picture.row,picture.col);
+        if(!middle.src.endsWith(src))middle.src=src; } }
+    if(close){ close.style.display=picture.divisions===9?'':'none';
+      if(picture.divisions===9){close.style.left=picture.left/WORLD_W*100+'%';close.style.top=picture.top/WORLD_H*100+'%';
+        close.style.width=picture.width/WORLD_W*100+'%';close.style.height=picture.height/WORLD_H*100+'%';
+        close.src=WORLD_PICTURE_ROOT+worldPictureName(2,picture.row,picture.col); } }
+  }
   refreshTeleGhosts();
   const castlesOn=(s.area<CASTLE_MAX_SQ);
   inner.querySelectorAll('.wnode.city').forEach(el=>{ el.style.display=castlesOn?'':'none'; }); }
@@ -19539,7 +19623,7 @@ function occupiedCells(){ const s=new Set(); const add=(x,y)=>{ if(x!=null&&y!=n
   const me=myCastlePos(); add(me.x,me.y);
   try{ worldCities().forEach(c=>add(c.x,c.y)); }catch(e){}
   try{ worldMines().forEach(m=>{ if(mineAvailable(m)) add(m.x,m.y); }); }catch(e){}
-  const c=Math.floor(GRID_COLS/2); for(let i=c-2;i<=c+1;i++)for(let j=c-2;j<=c+1;j++) s.add(i+','+j);   // World Tree core
+  const c=Math.floor(GRID_COLS/2); for(let i=c-2;i<=c+1;i++)for(let j=c-2;j<=c+1;j++) s.add(i+','+j);   // protected World Tree object footprint
   return s; }
 // draw a faded green level-1 castle in each VISIBLE teleportable cell that isn't already occupied
 let _teleGhostRaf=0;
@@ -19554,7 +19638,7 @@ function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'),
   const occ=occupiedCells(), cellPx=WORLD_W/GRID_COLS; let html='',count=0; const CAP=800;
   for(let ci=i0; ci<=i1 && count<CAP; ci++) for(let cj=j0; cj<=j1 && count<CAP; cj++){
     if(occ.has(ci+','+cj)) continue;
-    const zkey=zoneAt(Math.floor(ci/ZONE_CELLS), Math.floor(cj/ZONE_CELLS)); if(!zoneAccessible(zkey)) continue;
+    const zkey=zoneAt(zoneIndexForCell(ci),zoneIndexForCell(cj)); if(!zoneAccessible(zkey)) continue;
     const cx=(ci+0.5)*GRID_CELL, cy=(cj+0.5)*GRID_CELL;
     html+=`<img src="${GHOST_CASTLE}" style="position:absolute;left:${cx}%;top:${cy}%;width:${cellPx}px;height:${cellPx}px;transform:translate(-50%,-50%);opacity:.42" draggable="false">`;
     count++; }
@@ -19572,28 +19656,23 @@ function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('
   const r=zone.getBoundingClientRect(), cx=(clientX!=null?clientX-r.left:r.width/2), cy=(clientY!=null?clientY-r.top:r.height/2);
   const px=(zone.scrollLeft+cx)/worldZoom, py=(zone.scrollTop+cy)/worldZoom;
   worldZoom=nz; applyWorldZoom();
-  zone.scrollLeft=px*worldZoom-cx; zone.scrollTop=py*worldZoom-cy; }
+  zone.scrollLeft=px*worldZoom-cx; zone.scrollTop=py*worldZoom-cy; applyMapLOD(); }
 // desktop click-drag panning (added once; operates on the current world-map zone)
 let curWorldZone=null,_wdrag=false,_wsx=0,_wsy=0,_wsl=0,_wst=0,_wMoved=false;
 document.addEventListener('mousemove',(e)=>{ if(!_wdrag||!curWorldZone)return; if(Math.abs(e.clientX-_wsx)+Math.abs(e.clientY-_wsy)>6)_wMoved=true; curWorldZone.scrollLeft=_wsl-(e.clientX-_wsx); curWorldZone.scrollTop=_wst-(e.clientY-_wsy); });
 document.addEventListener('mouseup',()=>{ if(_wdrag){ _wdrag=false; if(curWorldZone)curWorldZone.style.cursor='grab'; } });
-// ---- region picker (first world entry) ----
-function openRegionPicker(){
-  const prior=document.getElementById('regionPicker'); if(prior) prior.remove();
-  const ov=document.createElement('div'); ov.id='regionPicker'; ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:13000;display:flex;align-items:center;justify-content:center;padding:16px';
-  ov.innerHTML=`<div style="position:relative;background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:18px;width:100%;max-width:460px;text-align:center">
-    <button class="btn sm secondary" id="rpBack" style="position:absolute;left:12px;top:12px">◀ Wall</button>
-    <div style="font-weight:800;font-size:18px;margin:2px 82px 4px">Choose your Region</div>
-    <div style="font-size:12px;color:#8b98a9;margin-bottom:12px">This is your home region. You can only enter your own region — transferring later costs 💎${TRANSFER_COST} (first move each month is free).</div>
-    <div class="row" id="rpRow" style="gap:8px;justify-content:center;flex-wrap:wrap"></div></div>`;
-  document.body.appendChild(ov);
-  ov.querySelector('#rpBack').onclick=()=>{ ov.remove(); show('wall'); };
-  const row=ov.querySelector('#rpRow');
-  REGION_KEYS.forEach(rk=>{ const terr=TERRAIN_IMGS[ZONES[rk].terrain]||'';
-    const c=document.createElement('div'); c.style.cssText='width:130px;border-radius:12px;overflow:hidden;border:2px solid #33405e;cursor:pointer;background:#0f1420';
-    c.innerHTML=`<div style="height:76px;background:url(${terr});background-size:cover;background-position:center"></div><div style="padding:8px;font-weight:800">${ZONES[rk].name}</div>`;
-    c.onclick=()=>{ const cc=zoneCenter(rk); G.region=rk; G.zone=rk; G.castleX=snapToGrid(cc.x); G.castleY=snapToGrid(cc.y); G.regionChosen=true; _botCache={}; saveG(); updateHubChrome(); ov.remove(); bannerMsg('🏰 Welcome to '+ZONES[rk].name+'!'); renderWorldMap(); };
-    row.appendChild(c); });
+// At level 20 the server balances the four home regions and places the castle.
+// A browser save cannot choose its starting region or world coordinates.
+let _worldServerAccount='',_worldServerPending=null;
+function adoptWorldLocation(loc){
+  if(!loc||loc.locked||!ZONES[loc.region]) return false;
+  G.region=loc.region; G.zone=zoneOfPos(loc.x,loc.y);
+  G.castleX=loc.x; G.castleY=loc.y; G.regionChosen=true;
+  G.teleDay=loc.teleDay||''; G.teleUsed=loc.teleUsed|0; G.teleScrolls=loc.teleScrolls|0;
+  G.wildScrolls=loc.wildScrolls|0; G.wildTeleLast=loc.wildLast||0;
+  G.lastTransfer=loc.lastTransfer||0;
+  _worldServerAccount=ACC.token; _botCache={}; saveGLocalOnly(); updateHubChrome();
+  return true;
 }
 function renderWorldOverview(){ renderWorldMap(); }   // the World screen is now the continuous map
 // ---- Teleport (separate button): relocate your castle to your own region, the Wild, or the World Tree ----
@@ -19637,29 +19716,36 @@ function enterTeleMode(){ _teleMode=true; closeTelePopout(); renderWorldMap(); b
 function startTargetedTele(){
   if(teleportTotal()<=0){
     if((G.gems||0)<TELE_SCROLL_COST){ bannerMsg('Need a Teleport Scroll (💎'+TELE_SCROLL_COST+') or your free daily teleport.'); return; }
-    gameConfirm('Buy a <b>Teleport Scroll</b> for <b>💎'+TELE_SCROLL_COST+'</b>?',async()=>{ if(!(await txSpend('gems',TELE_SCROLL_COST,'teleport')))return; G.teleScrolls=(G.teleScrolls||0)+1; saveG(); updateHubChrome(); enterTeleMode(); });
+    gameConfirm('Buy a <b>Teleport Scroll</b> for <b>💎'+TELE_SCROLL_COST+'</b>?',async()=>{
+      const r=await api('/api/world/buy-scrolls','POST',{offer:'targeted1',requestId:uid8()});
+      if(!r||!r.ok){ bannerMsg((r&&r.error)||'Scroll purchase failed.'); return; }
+      adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG(); enterTeleMode(); });
     return;
   }
   enterTeleMode();
 }
-function randSpotInRegion(rk){ const z=ZONES[rk]; const ox=z.col*ZONE_CELLS, oy=z.row*ZONE_CELLS;
-  for(let t=0;t<50;t++){ const ci=ox+Math.floor(Math.random()*ZONE_CELLS), cj=oy+Math.floor(Math.random()*ZONE_CELLS);
+function randSpotInRegion(rk){ const z=ZONES[rk]; const ox=zoneCellStart(z.col), oy=zoneCellStart(z.row);
+  for(let t=0;t<50;t++){ const ci=ox+Math.floor(Math.random()*REGION_CELLS), cj=oy+Math.floor(Math.random()*REGION_CELLS);
     const x=(ci+0.5)*GRID_CELL, y=(cj+0.5)*GRID_CELL;
     if(zoneOfPos(x,y)!==rk) continue;
     return {x,y}; }
   const c=zoneCenter(rk); return {x:snapToGrid(c.x), y:snapToGrid(c.y)}; }
-function performWildTele(free){ const rk=myRegion(); const pos=randSpotInRegion(rk);
-  if(free) G.wildTeleLast=Date.now(); else G.wildScrolls=Math.max(0,(G.wildScrolls||0)-1);
-  G.castleX=pos.x; G.castleY=pos.y; G.zone=rk; _botCache={}; saveG(); updateHubChrome();
+async function performWildTele(){ const rk=myRegion();
+  const r=await api('/api/world/relocate','POST',{kind:'wild',requestId:uid8()});
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'Wild teleport could not be verified.'); return; }
+  adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG();
   closeTelePopout(); bannerMsg('🌀 Wild Teleport! Relocated within '+ZONES[rk].name); renderWorldMap();
   requestAnimationFrame(()=>centerOnCastle()); }
 function doWildTeleport(){ const free=wildTeleFreeReady();
   if(!free && (G.wildScrolls||0)<=0){
     if((G.gems||0)<WILD_SCROLL_COST){ bannerMsg('Wild relocation on cooldown — buy a Wild Scroll (💎'+WILD_SCROLL_COST+') to jump now.'); return; }
-    gameConfirm('Buy a <b>Wild Teleport Scroll</b> for <b>💎'+WILD_SCROLL_COST+'</b> and jump now?',async()=>{ if(!(await txSpend('gems',WILD_SCROLL_COST,'teleport')))return; performWildTele(false); });
+    gameConfirm('Buy a <b>Wild Teleport Scroll</b> for <b>💎'+WILD_SCROLL_COST+'</b> and jump now?',async()=>{
+      const r=await api('/api/world/buy-scrolls','POST',{offer:'wild1',requestId:uid8()});
+      if(!r||!r.ok){ bannerMsg((r&&r.error)||'Scroll purchase failed.'); return; }
+      adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG(); performWildTele(); });
     return;
   }
-  performWildTele(free);
+  performWildTele();
 }
 // convert a screen tap to a snapped world %-coordinate {x,y}
 function tapToWorldPct(zone, clientX, clientY){ const r=zone.getBoundingClientRect();
@@ -19670,9 +19756,10 @@ function teleportPlace(x,y){
   const key=zoneOfPos(x,y);
   if(!zoneAccessible(key)){ dropTelePin(x,y,false); bannerMsg('🔒 '+ZONES[key].name+' is another region — you can’t teleport there.'); return; }
   dropTelePin(x,y,true);
-  gameConfirm('Teleport your castle to this square in <b>'+ZONES[key].name+'</b>?',()=>{
-    if(!useTeleport()){ bannerMsg('No free teleport left today.'); return; }
-    G.castleX=x; G.castleY=y; G.zone=key; _teleMode=false; _botCache={}; saveG();
+  gameConfirm('Teleport your castle to this square in <b>'+ZONES[key].name+'</b>?',async()=>{
+    const r=await api('/api/world/relocate','POST',{kind:'targeted',x,y,requestId:uid8()});
+    if(!r||!r.ok){ bannerMsg((r&&r.error)||'Teleport could not be verified.'); return; }
+    adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); _teleMode=false; saveG();
     bannerMsg('✨ Teleported to '+ZONES[key].name); renderWorldMap();
     requestAnimationFrame(()=>centerOnCastle());
   });
@@ -19682,8 +19769,18 @@ function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner');
   const pin=document.createElement('div'); pin.id='telePin'; pin.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)';
   pin.textContent=ok?'📍':'⛔'; inner.appendChild(pin); }
 function renderWorldMap(keepView){
-  if(!G.regionChosen){ openRegionPicker(); return; }
   const body=document.getElementById('worldBody'); if(!body)return;
+  if(!ACC.token){ body.innerHTML='<div class="panel">Sign in to enter the World Map.</div>'; return; }
+  if(_worldServerAccount!==ACC.token){
+    body.innerHTML='<div class="panel">Locating your castle…</div>';
+    if(!_worldServerPending) _worldServerPending=api('/api/world/state').then(loc=>{
+      if(!loc||loc.error){ body.innerHTML='<div class="panel">Castle location unavailable. Try the World Map again.</div>'; return; }
+      if(loc.locked){ body.innerHTML='<div class="panel">The World Map opens at level '+(loc.needLevel||20)+'.</div>'; return; }
+      if(adoptWorldLocation(loc)) renderWorldMap();
+    }).catch(()=>{ body.innerHTML='<div class="panel">Castle location unavailable. Try the World Map again.</div>'; })
+      .finally(()=>{ _worldServerPending=null; });
+    return;
+  }
   const _oldZone=document.getElementById('wzone');                              // keepView: poll/grid rebuilds must not yank the pan
   const _keep=(keepView&&_oldZone)?{sl:_oldZone.scrollLeft,st:_oldZone.scrollTop}:null;
   body.innerHTML='';
@@ -19702,20 +19799,31 @@ function renderWorldMap(keepView){
   head.querySelector('#wmCity').onclick=()=>{ closeCityMenu(); show('home'); };        // return to your city (town)
   head.querySelector('#wmBack').onclick=()=>{ closeCityMenu(); centerOnCastle(); };   // snap the view back to your castle
   const zone=document.createElement('div'); zone.id='wzone'; const inner=document.createElement('div'); inner.id='wzoneInner'; inner.style.width=WORLD_W+'px'; inner.style.height=WORLD_H+'px'; inner.style.background='#0c1018';
-  // 9 zone terrain panels tiled into one continuous map
+  const pictureLayer=document.createElement('div'); pictureLayer.id='worldPictureLayer'; pictureLayer.style.cssText='position:absolute;inset:0;pointer-events:none';
+  const masterPicture=document.createElement('img'); masterPicture.id='worldPictureMaster'; masterPicture.src=WORLD_PICTURE_ROOT+worldPictureName(0,0,0);
+  masterPicture.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block'; pictureLayer.appendChild(masterPicture);
+  const middlePicture=document.createElement('img'); middlePicture.id='worldPictureMiddle'; middlePicture.style.cssText='position:absolute;display:none';
+  pictureLayer.appendChild(middlePicture);
+  const closePicture=document.createElement('img'); closePicture.id='worldPictureClose'; closePicture.style.cssText='position:absolute;display:none';
+  pictureLayer.appendChild(closePicture); inner.appendChild(pictureLayer);
+  // Nine unequal gameplay zones (90/40/90 cells per axis) cover one continuous map.
   const ghostImg=GHOST_CASTLE||'';                        // level-1 castle art (square-padded) shown at 50% in each teleportable square
   const ghostCellPx=WORLD_W*GRID_CELL/100;                // one grid square in px (≈50px)
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){ const key=zoneAt(col,row), z=ZONES[key], biome=BIOME[z.terrain];
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
     const pane=document.createElement('div');
     const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 34px rgba(70,224,122,.16);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 34px rgba(230,72,63,.14);') : 'box-shadow:inset 0 0 0 2px rgba(0,0,0,.28);';
-    const gimg=GROUND_IMGS[z.terrain]||''; const tpx=(2*GRID_CELL/100*WORLD_W); const bg = gimg ? `background:url(${gimg}) repeat;background-size:${tpx}px ${tpx}px;` : `background:${biome?biome.base:'#26331a'};`;   // one tile ≈ a 2×2 block of grid squares
-    pane.style.cssText=`position:absolute;left:${col*100/3}%;top:${row*100/3}%;width:${100/3}%;height:${100/3}%;${bg}${teleTint}${locked&&!_teleMode?'filter:grayscale(.5) brightness(.6)':''}`;
+    pane.style.cssText=`position:absolute;left:${ZONE_EDGES[col]*GRID_CELL}%;top:${ZONE_EDGES[row]*GRID_CELL}%;width:${(ZONE_EDGES[col+1]-ZONE_EDGES[col])*GRID_CELL}%;height:${(ZONE_EDGES[row+1]-ZONE_EDGES[row])*GRID_CELL}%;background:${locked&&!_teleMode?'rgba(0,0,0,.35)':'transparent'};${teleTint}`;
     pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
     // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
   // optional grid overlay across the whole world
   if(G.showGrid!==false){ const go=document.createElement('div'); go.style.cssText=`position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:${GRID_CELL}% ${GRID_CELL}%`; inner.appendChild(go); }
+  // The landmark is part of the terrain at the same world coordinates at every picture level.
+  // Feather only its outer edge; the middle preserves the tree, rooted stone and contact shadow.
+  const treeTerrain=document.createElement('img'); treeTerrain.id='worldTreeTerrain'; treeTerrain.src=WORLDTREE_TERRAIN_IMG;
+  treeTerrain.style.cssText='position:absolute;left:44.444444%;top:44.444444%;width:11.111111%;height:11.111111%;z-index:1;pointer-events:none;mask-image:radial-gradient(ellipse closest-side at center,#000 0%,#000 58%,transparent 98%);-webkit-mask-image:radial-gradient(ellipse closest-side at center,#000 0%,#000 58%,transparent 98%)';
+  inner.appendChild(treeTerrain);
   zone.appendChild(inner);
   const mapWrap=document.createElement('div'); mapWrap.style.cssText='position:relative'; mapWrap.appendChild(zone); body.appendChild(mapWrap);
   const now=Date.now();
@@ -19733,12 +19841,13 @@ function renderWorldMap(keepView){
   const meIc = myImg ? `<img class="castle-spr" src="${myImg}" style="height:${myH}px" draggable="false">` : `<div class="ic">🏰</div>`;
   meEl.innerHTML=`${meIc}<div class="wlab"><div class="nl">${escapeHTML(G.playerName||'You')} · YOU</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${playerLevel()}</div></div>`;
   meEl.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); show('home'); }; inner.appendChild(meEl);   // tap your own castle → back to your city
-  // the World Tree — centered on the middle 2×2 tiles of the world
-  if(WORLDTREE_IMG){ const wt=document.createElement('div'); wt.className='wnode'; wt.style.cssText='left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;min-width:0';
-    const twPx=(8*GRID_CELL/100*WORLD_W);   // ~8 cells wide, scales with the map
-    wt.innerHTML=`<img src="${WORLDTREE_IMG}" draggable="false" style="width:${twPx}px;height:auto;max-width:none;display:block;filter:drop-shadow(0 6px 12px rgba(0,0,0,.6))">`;
-    wt.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openWorldTreeMenu(); };
-    inner.appendChild(wt); }
+  // A transparent four-cell hit target retains the Tree menu without a floating sprite.
+  const wt=document.createElement('div'); wt.className='wnode'; wt.id='worldTreeTarget';
+  wt.style.cssText=`left:50%;top:50%;width:${4*WORLD_W/GRID_COLS}px;height:${4*WORLD_H/GRID_COLS}px;z-index:4;min-width:0;background:transparent`;
+  wt.title='World Tree'; wt.setAttribute('aria-label','World Tree'); wt.tabIndex=0;
+  wt.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openWorldTreeMenu(); };
+  wt.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); wt.click(); } };
+  inner.appendChild(wt);
   zone.addEventListener('click',(e)=>{ closeCityMenu();
     if(_teleMode && !_wMoved){ const p=tapToWorldPct(zone, e.clientX, e.clientY); teleportPlace(p.x,p.y); } });
   zone.addEventListener('wheel',(e)=>{ e.preventDefault(); closeCityMenu(); worldZoomTo(worldZoom*(e.deltaY<0?1.12:1/1.12), e.clientX, e.clientY); },{passive:false});
@@ -19746,7 +19855,7 @@ function renderWorldMap(keepView){
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
   zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
-  zone.addEventListener('scroll',()=>{ if(_teleMode) queueTeleGhosts(); },{passive:true});   // ghosts follow the viewport as you pan
+  zone.addEventListener('scroll',()=>{ if(_teleMode) queueTeleGhosts(); applyMapLOD(); },{passive:true});   // picture scale and ghosts follow the viewport as you pan
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   applyWorldZoom();
@@ -19799,18 +19908,22 @@ function openCoordSearch(){ closeCityMenu(); const cur=viewCenterCoord();
 function raidCity(c){ CUR={mode:'raid',oppName:c.name,oppPower:c.power||0,tId:c.id||null}; startVersus(c.team,false); }   // v253: the PvP header shows both sides' power
 
 /* =============================== WORLD MARCHES ============================== */
-// The world is ONE continuous map of 3×3 zones. Each zone is ZONE_CELLS×ZONE_CELLS squares (~1000 per region).
-const ZONE_CELLS=60, GRID_COLS=ZONE_CELLS*3, GRID_CELL=100/GRID_COLS;   // 60×60 per region (3600 sq) → 180×180 whole world
+// World layout along each axis is 90 home + 40 wild/void + 90 home = 220 cells.
+const REGION_CELLS=90, WILD_CELLS=40, GRID_COLS=REGION_CELLS*2+WILD_CELLS, GRID_CELL=100/GRID_COLS;
+const ZONE_EDGES=[0,REGION_CELLS,REGION_CELLS+WILD_CELLS,GRID_COLS];
+function zoneCellStart(index){ return ZONE_EDGES[index]; }
+function zoneIndexForCell(i){ return i<ZONE_EDGES[1]?0:i<ZONE_EDGES[2]?1:2; }
 const MARCH_MS_PER_SQUARE=60000;      // attack/scout: 1 min/square; defend = half
 function cellIndex(v){ return Math.max(0,Math.min(GRID_COLS-1, Math.round(v/GRID_CELL-0.5))); }
 function snapToGrid(v){ return (cellIndex(v)+0.5)*GRID_CELL; }               // snap a %-coord to its grid-cell centre
 // which zone a %-position falls in
-function zoneOfPos(x,y){ const col=Math.max(0,Math.min(2,Math.floor(x/(100/3)))), row=Math.max(0,Math.min(2,Math.floor(y/(100/3)))); return zoneAt(col,row); }
-function zoneCenter(key){ const z=ZONES[key]; return {x:(z.col+0.5)*(100/3), y:(z.row+0.5)*(100/3)}; }
+function zoneOfPos(x,y){ return zoneAt(zoneIndexForCell(cellIndex(x)),zoneIndexForCell(cellIndex(y))); }
+function zoneCenter(key){ const z=ZONES[key]; return {x:(ZONE_EDGES[z.col]+ZONE_EDGES[z.col+1])*GRID_CELL/2,
+  y:(ZONE_EDGES[z.row]+ZONE_EDGES[z.row+1])*GRID_CELL/2}; }
 // your castle's world position (defaults to the centre of your home region; teleport relocates it)
 function myCastlePos(){ if(G.castleX!=null&&G.castleY!=null) return {x:G.castleX,y:G.castleY}; const c=zoneCenter(myRegion()); return {x:c.x,y:c.y}; }
 function myCastleZone(){ const p=myCastlePos(); return zoneOfPos(p.x,p.y); }
-// ---- map grid coordinates: every %-position maps to a cell (X,Y) in the 0..179 world grid ----
+// ---- map grid coordinates: every %-position maps to a cell (X,Y) in the 0..219 world grid ----
 function coordOf(x,y){ return {cx:cellIndex(x), cy:cellIndex(y)}; }
 function coordStr(x,y){ const c=coordOf(x,y); return c.cx+':'+c.cy; }
 // scroll the map so a given grid coordinate is centred (used by search + city jumps)
@@ -19845,12 +19958,22 @@ function myHeroPower(k){ try{ return heroPower(k)|0; }catch(e){ return 0; } }
 function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHeroPower(k); } return p; }
 function marchPower(heroes){ return myTeamPower(heroes); }
 function marchVerb(ct){ return ct==='attack'?'⚔ Attacking':ct==='group'?'⚔ Group attacking':ct==='defend'?'🛡 Defending':'🔭 Scouting'; }
-function startMarch(ctype,c,heroes){
-  const out=marchOutMs(ctype,c.x,c.y), t=Date.now();
+async function startMarch(ctype,c,heroes){
+  let out=marchOutMs(ctype,c.x,c.y), t=Date.now(), serverMarch=null;
+  if((ctype==='attack'||ctype==='group') && c.real && ACC.token){
+    try{serverMarch=await api('/api/world/city/start','POST',{
+      defId:c.id,heroIds:(heroes||[]).slice(0,5),requestId:uid8()});}catch(_e){serverMarch=null;}
+    if(!serverMarch||!serverMarch.ok){
+      bannerMsg((serverMarch&&serverMarch.error)||'The city march could not be registered. Try again.'); return;
+    }
+    t=serverMarch.depart; out=serverMarch.travel;
+  }
   if(ctype==='attack'||ctype==='group'||ctype==='scout') breakBeginnerShield();   // scouting/attacking a player ends beginner peace
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg('🛡 Protection shield broke — you launched an attack.'); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, real:!!c.real, fx:c.x, fy:c.y,
-    tRank:c.rank, tPower:c.power||1, ally:!!c.ally, heroes:(heroes||[]).slice(), dTeam:(c.team||[]).slice(), depart:t, arrive:t+out, home:t+out*2, out, resolved:false });
+    serverCityId:serverMarch&&serverMarch.marchId,
+    tRank:c.rank, tPower:c.power||1, ally:!!c.ally, heroes:(heroes||[]).slice(), dTeam:(c.team||[]).slice(), depart:t,
+    arrive:serverMarch?serverMarch.arriveAt:t+out,home:serverMarch?serverMarch.homeAt:t+out*2,out,resolved:false });
   saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+' each way');
   if(document.getElementById('wzone')) drawMarches();
   if(typeof pushWatchReport==='function') pushWatchReport();   // publish live activity to guild watch tower
@@ -19895,7 +20018,7 @@ function warPending(name,incoming){ return pruneWars().some(w=>w.name===name && 
 function warPrepRemaining(name,incoming){ const w=pruneWars().find(x=>x.name===name && !!x.incoming===!!incoming && !warReady(x)); return w?warPrepLeft(w):0; }
 function addMail(kind,m){ ensureMail(); m.t=m.t||Date.now(); m.read=false; G.mail[kind].unshift(m); if(G.mail[kind].length>40)G.mail[kind].length=40; }
 function mailUnread(kind){ ensureMail(); const list=kind?(G.mail[kind]||[]):MAIL_KINDS.reduce((a,k)=>a.concat(G.mail[k]||[]),[]); return list.filter(x=>!x.read).length; }
-function pushWar(c,incoming){ ensureMail(); const now=Date.now(), readyAt=now+WAR_PREP_MS, expireAt=now+WAR_TOTAL_MS;   // 30-min prep, 72h total
+function pushWar(c,incoming,timing){ ensureMail(); const now=Date.now(), readyAt=timing?.readyAt||now+WAR_PREP_MS, expireAt=timing?.expireAt||now+WAR_TOTAL_MS;   // 30-min prep, 72h total
   G.wars=G.wars.filter(w=>!(!!w.incoming===!!incoming && w.name===c.name));   // one war per foe per direction
   G.wars.push({name:c.name,x:c.x,y:c.y,power:c.power||300,readyAt,expireAt,incoming}); saveG(); updateMailBadges(); }
 // relationship of a world-map castle → text colour: guild ally = green, at war = red, otherwise neutral = blue
@@ -19904,7 +20027,15 @@ function cityNameColor(c){ const r=cityRelation(c); return r==='ally'?'#5eff8f':
 // an enemy declares war ON you → 30-min countdown, THEN they may raid you (for 1h)
 function declareWarOnMe(c){ pushWar(c,true); }
 // YOU declare war on an enemy → 30-min countdown, THEN you may attack them (for 1h)
-function declareWarByMe(c){ pushWar(c,false); }
+async function declareWarByMe(c){
+  if(c.real&&ACC.token){
+    let r; try{r=await api('/api/world/war/declare','POST',{defId:c.id,requestId:uid8()});}catch(_e){}
+    if(!r||!r.ok){bannerMsg((r&&r.error)||'War declaration could not be verified. Try again.');return false;}
+    pushWar(c,false,r);
+  }else pushWar(c,false);
+  marchReport('🔥 War declared','You declared war on '+c.name+'. Combat begins in 30 minutes — you cannot attack until then.');
+  return true;
+}
 // Bots are PASSIVE — they never declare war on you. (Kept as a no-op; real players will declare via the server.)
 function maybeDeclareWar(){ /* bots don't start wars */ }
 // Bots only fight BACK: a raid can only come from a bot you have declared war on (a live outgoing war). No war = no attack.
@@ -19961,6 +20092,36 @@ function resolveMarch(m){
     marchReport('⚠ Raided by '+m.tName,'An enemy raided your castle and stole 🪙 '+loss+'. Consider a protection shield.'); updateMailBadges(); return;
   }
   if(m.ctype==='mine'){   // mining = fight the mine's 5 monster guardians on full auto; win → haul the resources
+    if(ACC.token){
+      if(!m.serverMineId){ marchReport('⛏ Old mine trip','This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.'); return; }
+      if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
+      m.resolving=true; m.resolvingAt=Date.now();
+      api('/api/world/mine/resolve','POST',{marchId:m.serverMineId,requestId:uid8()}).then(r=>{
+        m.resolving=false; m.resolvingAt=0;
+        if(!r||!r.ok){
+          m.arrive=Math.max(Date.now()+5000,(r&&r.arriveAt)||0);
+          bannerMsg((r&&r.error)||'Mine result could not be verified. Retrying shortly.');
+          saveG(); return;
+        }
+        m.resolved=true;
+        if(r.res) G.res=Object.assign({},G.res||{},r.res);
+        if(r.witch&&r.witch.ledger) adoptLedger(r.witch.ledger);
+        const label=mnResName(m.res), got=r.granted|0;
+        const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,
+          foe:r.replay.foe,won:!!r.won,oppName:mineLabel({level:m.mineLevel,res:m.res})}:null;
+        if(r.won){
+          addMail('mines',{from:'⛏ '+label+' Mine',subj:'⛏ Mine cleared — '+label,
+            body:'Your squad defeated five guardians and brought home '+mnResIcon(m.res)+' '+got+' '+label+'.',battle:replay});
+          marchReport('⛏ Mining complete','The guardians fell. Your squad hauled '+mnResIcon(m.res)+' '+got+' '+label+'.');
+        } else {
+          addMail('mines',{from:'⛏ '+label+' Mine',subj:'⛏ Guardians held — '+label,
+            body:'The mine guardians drove your squad off. No resources were granted; surviving injuries remain until healed at the Witches Hut.',battle:replay});
+          marchReport('⛏ Mining failed','The mine guardians held. Heal your wounded heroes at the Witches Hut.');
+        }
+        updateMailBadges(); updateHubChrome(); saveG();
+      }).catch(()=>{ m.resolving=false; m.resolvingAt=0; m.arrive=Date.now()+5000; saveG(); });
+      return false;
+    }
     const garrison=trimTeam((m.garrison&&m.garrison.length)?m.garrison:mineGarrison({id:m.mineId,level:m.mineLevel||1,x:m.fx,y:m.fy}));
     const allySnap=snapAllySquad(m.heroes), seed=newFightSeed(), win=simFightResult(allySnap, garrison, seed);
     const rlabel=mnResName(m.res), rpt={ v:2, seed, mine:snapSquad(m.heroes), mineSnap:allySnap, foe:garrison, won:win, oppName:mineLabel({level:m.mineLevel,res:m.res}) };
@@ -19971,13 +20132,7 @@ function resolveMarch(m){
         else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — no haul',body:'Your squad defeated the mine\'s 5 guardians, but no '+rlabel+' made it home.'+(extra||''),battle:rpt});
           marchReport('⛏ Mining — no haul','Your miners cleared the guardians but hauled no '+rlabel+' home.'+(extra||'')); }
         updateMailBadges(); };
-      if(ACC.token){ api('/api/world/mine','POST',{res:m.res,amount:amt,requestId:uid8()}).then(function(r){
-          if(r&&r.res){ G.res=Object.assign({},G.res,r.res); saveGLocalOnly();
-            const got=(typeof r.granted==='number')?r.granted:amt, cl=(typeof r.capLeft==='number')?r.capLeft:-1;   // old server: no granted → fall back to amt
-            mineFinish(got,(cl===0?' Your daily '+rlabel+' mining cap is now spent — it resets tomorrow.':'')); }
-          else { const em=(r&&r.error)?String(r.error):'The haul could not be registered.'; bannerMsg(em); mineFinish(0,' '+em); } })
-        .catch(function(){ mineFinish(0,' The haul could not be registered — check your connection.'); }); }
-      else { G.res[m.res]=(G.res[m.res]||0)+amt; mineFinish(amt,''); }   // v249: signed-in mining is a CAPPED SERVER GRANT
+      G.res[m.res]=(G.res[m.res]||0)+amt; mineFinish(amt,'');   // offline practice only; signed-in hauls use the verified server battle above
     }
     else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
       marchReport('⛏ Mining failed','The mine\'s guardians drove your miners off — no resources gathered.'); }
@@ -19985,6 +20140,47 @@ function resolveMarch(m){
   if(m.ctype==='scout'){ const body='Rank #'+m.tRank+' · defence power ~'+(m.tPower||'?')+'. Their walls look '+(( m.tPower||300)>420?'heavily guarded':'lightly held')+'.';
     addMail('scouts',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
   if(m.ctype==='defend'){ addMail('war',{from:m.tName,subj:'🛡 Defending '+m.tName,body:'Your heroes are stationed at '+m.tName+', defending a guild member. They stay until you Retreat them from Info.'}); marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); updateMailBadges(); return; }
+  if(m.real && m.tId && ACC.token){
+    if(!m.serverCityId){
+      m.resolved=true;
+      marchReport('⚠ Old city trip','This trip predates verified city marches and cannot resolve a battle. Send a fresh squad.');
+      saveG(); return false;
+    }
+    if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
+    const mIds=((m.heroes&&m.heroes.length)?m.heroes:[]).filter(Boolean).slice(0,5);
+    if(!mIds.length){
+      m.resolved=true;
+      marchReport('⚠ City attack could not be verified','No heroes marched with this army. No outcome or loot was awarded.');
+      saveG(); return false;
+    }
+    m.pvpRequestId=m.pvpRequestId||uid8();
+    m.resolving=true; m.resolvingAt=Date.now();
+    api('/api/pvp/attack','POST',{defId:m.tId,marchId:m.serverCityId,requestId:m.pvpRequestId}).then(r=>{
+      m.resolving=false; m.resolvingAt=0;
+      if(!r||!r.ok){
+        if(r&&r.arriveAt){
+          m.arrive=Math.max(Date.now()+1000,r.arriveAt);
+          m.pvpRequestId=null; // a premature idempotent receipt remains a refusal; the later attempt needs a new ID
+          saveG(); return;
+        }
+        m.resolved=true;
+        const reason=(r&&r.error)||'The city attack was refused by the server.';
+        addMail('war',{from:m.tName,subj:'⚠ City attack not resolved',body:reason+' No outcome or loot was awarded.'});
+        marchReport('⚠ City attack not resolved',reason); updateMailBadges(); saveG(); return;
+      }
+      m.resolved=true;
+      const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,
+        foe:r.replay.foe,won:!!r.won,oppName:m.tName}:null;
+      const loot=r.loot||{}, gold=loot.gold|0, coins=loot.guildCoins|0;
+      const body=r.won?'Your army broke '+m.tName+'’s wall and brought home 🪙 '+gold+
+        (coins>0?' and 🎖 '+coins+' guild coins':'')+'. Injuries remain until healed at the Witches Hut.'
+        :m.tName+'’s defenders held. Your surviving heroes retreat with their injuries.';
+      addMail('war',{from:m.tName,subj:(r.won?'⚔ Victory — ':'⚔ Defeat — ')+m.tName,body,battle:replay});
+      marchReport((r.won?'⚔ Victory at ':'⚔ Defeat at ')+m.tName,body);
+      updateMailBadges(); ledgerSync&&ledgerSync(); saveG();
+    }).catch(()=>{ m.resolving=false; m.resolvingAt=0; m.arrive=Date.now()+5000; saveG(); });
+    return false;
+  }
   const enemy=m.tPower||1, foeTeam=(m.dTeam&&m.dTeam.length)?trimTeam(m.dTeam):trimTeam(genFoeTeam(enemy,m.tName));
   const allySnap=snapAllySquad(m.heroes), seed=newFightSeed(), win=simFightResult(allySnap, foeTeam, seed);   // Rule 3: your army vs their wall, full auto
   const rptBattle={ v:2, seed, mine:snapSquad(m.heroes), mineSnap:allySnap, foe:foeTeam, won:win, oppName:m.tName };
@@ -20047,10 +20243,10 @@ const STATION_HOME=3153600000000;   // ~100 years — defenders garrison "foreve
 function marchTick(){
   if((state==='battle' || _resultTimer) && !window._p2guard) return;   // never run the headless sim over a live fight, nor while an ended fight's result/submit is still pending
   const now=Date.now(); let changed=false;
-  activeMarches().forEach(m=>{ if(!m.resolved && now>=m.arrive){ resolveMarch(m); m.resolved=true;
+  activeMarches().forEach(m=>{ if(!m.resolved && now>=m.arrive){ const settled=resolveMarch(m); if(settled!==false)m.resolved=true;
       if(m.dir==='out' && m.ctype==='defend' && !m.retreated){ m.stationed=true; m.home=now+STATION_HOME; }  // defenders stay until recalled
       changed=true; } });
-  const before=activeMarches().length; G.marches=activeMarches().filter(m=> now<m.home ); if(G.marches.length!==before) changed=true;
+  const before=activeMarches().length; G.marches=activeMarches().filter(m=> now<m.home || !m.resolved ); if(G.marches.length!==before) changed=true;
   if(changed) saveG();
   if(changed && typeof pushWatchReport==='function' && ACC.token){ const nn=Date.now(); if(nn-(_lastWatchPush||0)>15000){ _lastWatchPush=nn; pushWatchReport(); } }
   if(document.getElementById('wzone')) drawMarches();
@@ -20166,21 +20362,26 @@ function mineGatherMs(level){ return (20+level*18)*60000; }                     
 // each mine is guarded by 5 monsters (deterministic per node) — you must beat them to mine it
 function mineGarrison(m){ const rows=['tank','fighter','fighter','mid','back'], lvl=mineReqLevel(m.level), rank=Math.min(3,Math.floor((m.level-1)/2));
   let sd=m.level*911; const idstr=String(m.id||(m.x+'_'+m.y)); for(let i=0;i<idstr.length;i++)sd+=idstr.charCodeAt(i);
-  const out=[]; rows.forEach((row,i)=>{ const pool=MONSTER_ROLE_POOL[row]; if(pool&&pool.length){ out.push({key:pool[(sd+i*7)%pool.length], level:lvl, rank}); } });
+  // The generic monster row classifier puts Warrior monsters in back; its fighter/mid
+  // pools are empty. Mines have their own five-guardian composition and must fill it.
+  const warriors=MONSTER_POOL.filter(k=>(MONSTER_TYPES[k]||{}).role==='Warrior');
+  const ranged=warriors.filter(k=>((MONSTER_TYPES[k]||{}).range||0)>=100);
+  const pools={tank:MONSTER_ROLE_POOL.tank,fighter:warriors,mid:ranged.length?ranged:MONSTER_ROLE_POOL.back,back:MONSTER_ROLE_POOL.back};
+  const out=[]; rows.forEach((row,i)=>{ const pool=pools[row]; if(pool&&pool.length){ out.push({key:pool[(sd+i*7)%pool.length], level:lvl, rank}); } });
   return out; }
 // deterministic RNG so every device sees the same mine field this epoch
 function mineRand(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 let _mineCache=null, _mineCacheEpoch=-1;
 function worldMines(){ const ep=mineEpoch(); if(_mineCache&&_mineCacheEpoch===ep) return _mineCache;
   const out=[], resKeys=RES.map(r=>r[0]), rnd=mineRand((ep*2654435761)>>>0); let guard=0;
-  const T=100/3;   // one zone = a third of the map
   while(out.length<MINE_COUNT && guard++<MINE_COUNT*12){
     // spawn on a GRID-LINE INTERSECTION (integer cell corner) → mines sit on the lines between squares.
     const gx=2+Math.floor(rnd()*(GRID_COLS-3)), gy=2+Math.floor(rnd()*(GRID_COLS-3));
     const x=gx*GRID_CELL, y=gy*GRID_CELL;
     const zk=zoneOfPos(x,y), z=ZONES[zk];
     if(!z || z.type==='worldtree') continue;             // NO mines in the Tree of Life / World Tree zone
-    const fx=(x-z.col*T)/T, fy=(y-z.row*T)/T;             // 0..1 position within the zone
+    const fx=(gx-ZONE_EDGES[z.col])/(ZONE_EDGES[z.col+1]-ZONE_EDGES[z.col]);
+    const fy=(gy-ZONE_EDGES[z.row])/(ZONE_EDGES[z.row+1]-ZONE_EDGES[z.row]);
     let level;
     if(z.type==='region'){
       const edge=Math.min(fx,1-fx,fy,1-fy);              // distance to the nearest region edge
@@ -20244,9 +20445,18 @@ function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(
     ov.querySelector('#mcGo').onclick=()=>{ if(!ok)return; startMine(m,[...sel]); ov.remove(); }; }
   render(); document.body.appendChild(ov); }
 // send a squad to mine: a march with a travel-out → gather → travel-home timeline
-function startMine(m, heroes){ const travel=marchOutMs('mine',m.x,m.y), gather=mineGatherMs(m.level), t=Date.now();
-  activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype:'mine', mineId:m.id, res:m.res, mineLevel:m.level, yieldAmt:mineYield(m.res,m.level),
-    tName:mineLabel(m), fx:m.x, fy:m.y, heroes:(heroes||[]).slice(), garrison:mineGarrison(m), depart:t, reachAt:t+travel, arrive:t+travel+gather, home:t+travel+gather+travel, out:travel, resolved:false });
+async function startMine(m, heroes){ let travel=marchOutMs('mine',m.x,m.y), gather=mineGatherMs(m.level), t=Date.now(), serverMarch=null;
+  if(ACC.token){
+    try{ serverMarch=await api('/api/world/mine/start','POST',{mineId:m.id,heroIds:(heroes||[]).slice(0,5),requestId:uid8()}); }
+    catch(_e){ serverMarch=null; }
+    if(!serverMarch||!serverMarch.ok){ bannerMsg((serverMarch&&serverMarch.error)||'The mine march could not be registered. Try again.'); return; }
+    t=serverMarch.depart; travel=serverMarch.travel; gather=serverMarch.gather;
+  }
+  activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype:'mine', mineId:m.id, serverMineId:serverMarch&&serverMarch.marchId,
+    res:m.res, mineLevel:m.level, yieldAmt:mineYield(m.res,m.level),
+    tName:mineLabel(m), fx:m.x, fy:m.y, heroes:(heroes||[]).slice(), garrison:mineGarrison(m), depart:t,
+    reachAt:t+travel, arrive:serverMarch?serverMarch.arriveAt:t+travel+gather,
+    home:serverMarch?serverMarch.homeAt:t+travel+gather+travel, out:travel, resolved:false });
   mineClaimedSet().push(m.id);   // reserve this node so it can't be double-mined this epoch
   saveG(); bannerMsg('⛏ Mining '+mineLabel(m)+'\nHome in '+fmtDur(travel*2+gather));
   if(document.getElementById('wzone')) drawMarches(); renderWorldMap(); }
@@ -20321,7 +20531,7 @@ function cityAction(a,c){ closeCityMenu();
     renderChat(); return; }
   if(a==='war'){ if(atWarWith(c.name,false)){ bannerMsg('⚔ War with '+c.name+' is already live — attack now!'); return; }
     if(warPending(c.name,false)){ bannerMsg('🔥 War already declared — combat begins in ⏳ '+fmtDur(warPrepRemaining(c.name,false))); return; }
-    declareWarByMe(c); marchReport('🔥 War declared','You declared war on '+c.name+'. Combat begins in 30 minutes — you cannot attack until then.'); return; }
+    declareWarByMe(c); return; }
   if(a==='scout'){ startMarch('scout',c,[]); return; }
   // attack / group attack: only allowed once a declared war has gone LIVE (30-min countdown elapsed)
   if(a==='attack'||a==='group'){
@@ -20330,7 +20540,7 @@ function cityAction(a,c){ closeCityMenu();
       if(!squad.length){ bannerMsg('⚠ No wall heroes available to attack — assign heroes to your wall lines first (and make sure they aren\'t mining or marching).'); return; }
       startMarch(a,c,squad); return; }
     if(warPending(c.name,false)){ bannerMsg('⏳ Cannot attack yet — war with '+c.name+' begins in '+fmtDur(warPrepRemaining(c.name,false))); return; }
-    gameConfirm('You are not at war with <b>'+escapeHTML(c.name)+'</b>. Declare war? Combat begins after a <b>30-minute</b> countdown — you cannot attack until it ends.',()=>{ declareWarByMe(c); marchReport('🔥 War declared','You declared war on '+c.name+'. Combat begins in 30 minutes.'); });
+    gameConfirm('You are not at war with <b>'+escapeHTML(c.name)+'</b>. Declare war? Combat begins after a <b>30-minute</b> countdown — you cannot attack until it ends.',()=>{ declareWarByMe(c); });
     return;
   }
   openMarchSelect(a,c);   // defend → choose heroes
@@ -26728,7 +26938,3 @@ if(!window._ewBackWired){ window._ewBackWired=true; let _leaving=false;
 
 </body>
 </html>
-
-
-
-

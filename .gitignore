@@ -1,0 +1,10 @@
+node_modules/
+backups/
+tools/__pycache__/
+assets/img/world-map/drafts/
+assets/img/world-map/world-v02/candidates/
+assets/img/world-map/world-v02/qa/
+assets/img/world-map/worldtree-worldtree-v2.png
+gsave.json
+save1.json
+wsave.json

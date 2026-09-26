@@ -122,8 +122,11 @@ function load(htmlPath){
   catch(e){ const err=new Error('sim-host: the game script threw while loading — '+e.message); err.cause=e; throw err; }
   const need=['simFightResult','simFightReplay','seedBattle','snapAllySquad','snapSquadFromSpecs','simCampaignReplay','simRaidReplay'];   /* v666: the guild raid boss is replayed here too */
   for(const n of need) if(typeof sandbox[n]!=='function') throw new Error('sim-host: '+n+' is not defined after load');
+  const monsterCatalog=JSON.parse(vm.runInContext('JSON.stringify(MONSTER_TYPES)',ctx));
   return {
     ctx, sandbox,
+    mineGarrison(node){ return JSON.parse(JSON.stringify(sandbox.mineGarrison(node))); },
+    monsterBase(key){ const m=monsterCatalog[key]; return m?{hp:m.hp,dmg:m.dmg,role:m.role,range:m.range}:null; },
     /* BUILD_ID is a top-level const inside the game script (script-scoped, never on the sandbox), so
        read the shipped build straight out of the file — this is the engine version a result is tied to. */
     buildVersion: (html.match(/const\s+BUILD_ID\s*=\s*'(\d+)'/)||[])[1]||null,   /* v559: the shipped client writes `const BUILD_ID = '...'` WITH spaces, so this never matched and every campaign session and incident recorded a null engine id. */
