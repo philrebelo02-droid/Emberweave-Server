@@ -1,7 +1,0 @@
-[
-  {"name": "Claude", "title": "Chief Engineering Officer", "owns": ["agents/", "memory/", "orchestration/", "backend/"], "authority": "final on implementation"},
-  {"name": "ChatGPT", "title": "Chief Systems Architect", "owns": ["architecture/", "reasoning/", "governance/"], "authority": "final on architecture"},
-  {"name": "Grok", "title": "Director of Research & Intelligence", "owns": ["research/", "intelligence/", "analytics/"], "authority": "recommendations"},
-  {"name": "Kimi", "title": "Senior Knowledge Consultant", "status": "advisory", "reports_to": ["Claude", "ChatGPT"], "authority": "advisor when available"},
-  {"name": "Phil", "title": "Studio Director", "authority": "highest - no AI overrides"}
-]
