@@ -87,6 +87,61 @@ async function run(){
     await page.evaluate(()=>show('world'));
     await page.waitForFunction(()=>_worldServerAccount===ACC.token&&G.regionChosen,null,{timeout:10000});
     assert.equal(await page.locator('#regionPicker').count(),0,'no player starting-region picker');
+    const teleportMap=await page.evaluate(async ()=>{
+      let zone=document.getElementById('wzone');
+      const settle=()=>new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
+      const blocked=_worldTerrainBlocked;
+      const samples=[]; let paneBorders=0,veiledPanes=0;
+      for(const factor of [0,0.5,1]){
+        const {min,max}=worldZoomBounds(zone);
+        worldZoomTo(min+(max-min)*factor);
+        const home=myCastlePos();
+        zone.scrollLeft=Math.max(0,home.x/100*WORLD_W*worldZoom-zone.clientWidth/2);
+        zone.scrollTop=Math.max(0,home.y/100*WORLD_H*worldZoom-zone.clientHeight/2);
+        enterTeleMode(); await settle(); zone=document.getElementById('wzone'); refreshTeleGhosts();
+        const ghosts=[...document.querySelectorAll('#teleGhostLayer img')].map(img=>{
+          const x=Math.floor(parseFloat(img.style.left)/GRID_CELL);
+          const y=Math.floor(parseFloat(img.style.top)/GRID_CELL);
+          return x+','+y;
+        });
+        const panes=[...document.querySelectorAll('#wzoneInner .worldZonePane')];
+        paneBorders+=panes.filter(p=>p.style.boxShadow||p.style.border).length;
+        veiledPanes=Math.max(veiledPanes,panes.filter(p=>p.style.background==='rgba(0, 0, 0, 0.35)').length);
+        samples.push({zoom:worldZoom,count:ghosts.length,
+          blockedGhosts:ghosts.filter(key=>blocked.has(key)).length,
+          closedGhosts:ghosts.filter(key=>{
+            const [x,y]=key.split(',').map(Number);
+            return !zoneAccessible(zoneAt(zoneIndexForCell(x),zoneIndexForCell(y)));
+          }).length});
+        toggleTeleMode(); await settle(); zone=document.getElementById('wzone');
+      }
+      worldZoomTo(worldZoomBounds(zone).max);
+      zone.scrollLeft=Math.min(zone.scrollWidth-zone.clientWidth,zone.scrollLeft+180);
+      zone.scrollTop=Math.min(zone.scrollHeight-zone.clientHeight,zone.scrollTop+120);
+      const snap=()=>{ const current=document.getElementById('wzone');
+        return {left:current.scrollLeft,top:current.scrollTop,zoom:worldZoom}; };
+      const before=snap();
+      enterTeleMode(); await settle(); const entered=snap();
+      toggleTeleMode(); await settle(); const cancelled=snap();
+      enterTeleMode(); await settle();
+      const [bx,by]=[...blocked][0].split(',').map(Number);
+      teleportPlace((bx+0.5)*GRID_CELL,(by+0.5)*GRID_CELL);
+      await settle(); const refused=snap();
+      const confirmOpen=!!document.getElementById('_gcYes');
+      toggleTeleMode(); await settle();
+      return {blockedCount:blocked.size,samples,before,entered,cancelled,refused,confirmOpen,
+        paneBorders,veiledPanes};
+    });
+    assert.equal(teleportMap.blockedCount,1039,'browser receives the server-owned terrain mask');
+    assert.ok(teleportMap.samples.every(s=>s.blockedGhosts===0&&s.closedGhosts===0),
+      'teleport ghosts never occupy blocked terrain or closed zones at any zoom');
+    assert.ok(teleportMap.samples.some(s=>s.count>0),'available floor still shows teleport ghosts at close zoom');
+    assert.deepEqual(teleportMap.entered,teleportMap.before,'entering teleport keeps scroll and zoom');
+    assert.deepEqual(teleportMap.cancelled,teleportMap.before,'cancelling teleport keeps scroll and zoom');
+    assert.deepEqual(teleportMap.refused,teleportMap.before,'refused terrain tap keeps scroll and zoom');
+    assert.equal(teleportMap.confirmOpen,false,'blocked terrain never opens teleport confirmation');
+    assert.equal(teleportMap.paneBorders,0,'teleport zones have no bright boundary line');
+    assert.ok(teleportMap.veiledPanes>0,'closed teleport regions have the soft dark veil');
     const pictureGrid=await page.evaluate(()=>{
       const sizes=[1,3,9].map(n=>worldPictureTile(n,Math.floor(n/2),Math.floor(n/2)));
       const landmark={x:5500,y:5500};
@@ -306,7 +361,7 @@ async function run(){
     await signedIn.evaluate(()=>show('world'));
     await signedIn.locator('#wzone').waitFor({state:'visible',timeout:10000});
     const target=await signedIn.evaluate(()=>{
-      const occupied=new Set(worldMines().map(m=>cellIndex(m.x)+','+cellIndex(m.y)));
+      const occupied=occupiedCells();
       const home=myCastlePos(),homeKey=cellIndex(home.x)+','+cellIndex(home.y);
       for(let cy=0;cy<GRID_COLS;cy++) for(let cx=0;cx<GRID_COLS;cx++){
         const x=(cx+0.5)*GRID_CELL,y=(cy+0.5)*GRID_CELL,key=cx+','+cy;
@@ -314,9 +369,18 @@ async function run(){
       }
       throw Error('No browser teleport square');
     });
+    const beforeSuccess=await signedIn.evaluate(()=>{
+      const zone=document.getElementById('wzone');
+      return {left:zone.scrollLeft,top:zone.scrollTop,zoom:worldZoom};
+    });
     await signedIn.evaluate(p=>teleportPlace(p.x,p.y),target);
     await signedIn.locator('#_gcYes').click({timeout:5000});
     await signedIn.waitForFunction(p=>G.castleX===p.x&&G.castleY===p.y,target,{timeout:10000});
+    const afterSuccess=await signedIn.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>{
+      const zone=document.getElementById('wzone');
+      resolve({left:zone.scrollLeft,top:zone.scrollTop,zoom:worldZoom});
+    })));
+    assert.deepEqual(afterSuccess,beforeSuccess,'successful teleport keeps scroll and zoom');
     const currentToken=await signedIn.evaluate(()=>ACC.token);
     const afterTele=await request('GET','/api/world/state',null,currentToken);
     assert.equal(afterTele.x,target.x,'visible teleport updates server castle position');

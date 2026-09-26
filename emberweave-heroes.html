@@ -515,6 +515,7 @@
   /* world map zone */
   #wzone{position:relative;width:100%;max-width:none;margin:0;height:100%;overflow:auto;scrollbar-width:none;border-radius:12px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
   #wzone::-webkit-scrollbar{display:none;}
+  .wmGridOverlay{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,var(--wm-grid-alpha,.08)) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,var(--wm-grid-alpha,.08)) 1px,transparent 1px);}
   #worldBody{display:flex;flex-direction:column;flex:1;width:100%;min-height:0;}
   #worldBody>div:last-child{flex:1;min-height:0;width:100%;}
   #world{padding:8px 10px 10px;justify-content:flex-start;}
@@ -19682,6 +19683,7 @@ function occupiedCells(){ const s=new Set(); const add=(x,y)=>{ if(x!=null&&y!=n
   try{ worldCities().forEach(c=>add(c.x,c.y)); }catch(e){}
   try{ worldMines().forEach(m=>{ if(mineAvailable(m)) add(m.x,m.y); }); }catch(e){}
   const c=Math.floor(GRID_COLS/2); for(let i=c-2;i<=c+1;i++)for(let j=c-2;j<=c+1;j++) s.add(i+','+j);   // protected World Tree object footprint
+  for(const key of _worldTerrainBlocked) s.add(key);
   return s; }
 // draw a faded green level-1 castle in each VISIBLE teleportable cell that isn't already occupied
 let _teleGhostRaf=0;
@@ -19708,7 +19710,12 @@ function worldZoomBounds(zone){
   const max=Math.min(zone.clientWidth/(16*cell),zone.clientHeight/(9*cell));
   return {min,max:Math.max(min,max)};
 }
-function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); }
+function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone');
+  if(inner){ inner.style.zoom=worldZoom;
+    if(zone){ const {min,max}=worldZoomBounds(zone), span=Math.log(max/min);
+      const progress=span>0?Math.max(0,Math.min(1,Math.log(worldZoom/min)/span)):0;
+      inner.style.setProperty('--wm-grid-alpha',(.08+.10*progress).toFixed(3)); } }
+  applyMapLOD(); }
 // scroll so the player's castle is centered in the viewport (castle can be anywhere in the world now)
 function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!zone)return;
   const p=myCastlePos(), fx=p.x/100, fy=p.y/100;
@@ -19717,7 +19724,7 @@ function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!
 function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('wzone'); if(!zone)return;
   const bounds=worldZoomBounds(zone);
   nz=Math.max(bounds.min,Math.min(bounds.max,+nz));
-  if(nz===worldZoom){ applyMapLOD(); return; }
+  if(nz===worldZoom){ applyWorldZoom(); return; }
   const r=zone.getBoundingClientRect(), cx=(clientX!=null?clientX-r.left:r.width/2), cy=(clientY!=null?clientY-r.top:r.height/2);
   const px=(zone.scrollLeft+cx)/worldZoom, py=(zone.scrollTop+cy)/worldZoom;
   worldZoom=nz; applyWorldZoom();
@@ -19731,8 +19738,10 @@ document.addEventListener('mouseup',()=>{ if(_wdrag){ _wdrag=false; if(curWorldZ
 // At level 20 the server balances the four home regions and places the castle.
 // A browser save cannot choose its starting region or world coordinates.
 let _worldServerAccount='',_worldServerPending=null;
+let _worldTerrainBlocked=new Set();
 function adoptWorldLocation(loc){
   if(!loc||loc.locked||!ZONES[loc.region]) return false;
+  if(Array.isArray(loc.terrainBlockedCells)) _worldTerrainBlocked=new Set(loc.terrainBlockedCells);
   G.region=loc.region; G.zone=zoneOfPos(loc.x,loc.y);
   G.castleX=loc.x; G.castleY=loc.y; G.regionChosen=true;
   G.teleDay=loc.teleDay||''; G.teleUsed=loc.teleUsed|0; G.teleScrolls=loc.teleScrolls|0;
@@ -19741,9 +19750,9 @@ function adoptWorldLocation(loc){
   _worldServerAccount=ACC.token; _botCache={}; saveGLocalOnly(); updateHubChrome();
   return true;
 }
-function renderWorldOverview(){ renderWorldMap(); }   // the World screen is now the continuous map
+function renderWorldOverview(){ renderWorldMap(!!document.getElementById('wzone')); }   // opening again keeps the current view
 // ---- Teleport (separate button): relocate your castle to your own region, the Wild, or the World Tree ----
-// Teleport MODE: tap any square to place your castle. Accessible zones are tinted green, other kingdoms red.
+// Teleport MODE: open squares remain visible; inaccessible kingdoms get a soft veil.
 let _teleMode=false;
 // ---- teleport scrolls: targeted (tap-to-place, own lands only) + wild (random spot in your kingdom) ----
 const WILD_TELE_FREE_MS=6*3600000;                  // one free wild relocation per 6h
@@ -19751,7 +19760,7 @@ const TELE_SCROLL_COST=120, WILD_SCROLL_COST=60;    // diamond price to buy a sc
 function wildTeleFreeReady(){ return (Date.now()-(G.wildTeleLast||0))>=WILD_TELE_FREE_MS; }
 function wildTeleNextMs(){ return Math.max(0, WILD_TELE_FREE_MS-(Date.now()-(G.wildTeleLast||0))); }
 function toggleTeleMode(){
-  if(_teleMode){ _teleMode=false; renderWorldMap(); return; }   // in tap-to-place mode → the button reads "Cancel"
+  if(_teleMode){ _teleMode=false; renderWorldMap(true); return; }   // in tap-to-place mode → the button reads "Cancel"
   openTelePopout();
 }
 function closeTelePopout(){ const o=document.getElementById('telePopout'); if(o)o.remove(); }
@@ -19779,7 +19788,7 @@ function openTelePopout(){ closeTelePopout();
   ov.querySelector('#tpTargeted').onclick=startTargetedTele;
   ov.querySelector('#tpWild').onclick=doWildTeleport;
 }
-function enterTeleMode(){ _teleMode=true; closeTelePopout(); renderWorldMap(); bannerMsg('✨ Teleport: tap a green square to move your castle there. Red regions are off-limits.'); }
+function enterTeleMode(){ _teleMode=true; closeTelePopout(); renderWorldMap(true); bannerMsg('✨ Teleport: tap an available square to move your castle. Dimmed regions are off-limits.'); }
 function startTargetedTele(){
   if(teleportTotal()<=0){
     if((G.gems||0)<TELE_SCROLL_COST){ bannerMsg('Need a Teleport Scroll (💎'+TELE_SCROLL_COST+') or your free daily teleport.'); return; }
@@ -19801,8 +19810,7 @@ async function performWildTele(){ const rk=myRegion();
   const r=await api('/api/world/relocate','POST',{kind:'wild',requestId:uid8()});
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Wild teleport could not be verified.'); return; }
   adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG();
-  closeTelePopout(); bannerMsg('🌀 Wild Teleport! Relocated within '+ZONES[rk].name); renderWorldMap();
-  requestAnimationFrame(()=>centerOnCastle()); }
+  closeTelePopout(); bannerMsg('🌀 Wild Teleport! Relocated within '+ZONES[rk].name); renderWorldMap(true); }
 function doWildTeleport(){ const free=wildTeleFreeReady();
   if(!free && (G.wildScrolls||0)<=0){
     if((G.gems||0)<WILD_SCROLL_COST){ bannerMsg('Wild relocation on cooldown — buy a Wild Scroll (💎'+WILD_SCROLL_COST+') to jump now.'); return; }
@@ -19819,7 +19827,8 @@ function tapToWorldPct(zone, clientX, clientY){ const r=zone.getBoundingClientRe
   const ux=(zone.scrollLeft+(clientX-r.left))/worldZoom, uy=(zone.scrollTop+(clientY-r.top))/worldZoom;
   return {x:snapToGrid(Math.max(0,Math.min(100,ux/WORLD_W*100))), y:snapToGrid(Math.max(0,Math.min(100,uy/WORLD_H*100)))}; }
 function teleportPlace(x,y){
-  if(inWorldTreeCore(x,y)) return;   // the World Tree core: no teleport, no marker at all (still counts for distance)
+  if(occupiedCells().has(cellIndex(x)+','+cellIndex(y))){
+    dropTelePin(x,y,false); bannerMsg('That square is occupied.'); return; }
   const key=zoneOfPos(x,y);
   if(!zoneAccessible(key)){ dropTelePin(x,y,false); bannerMsg('🔒 '+ZONES[key].name+' is another region — you can’t teleport there.'); return; }
   dropTelePin(x,y,true);
@@ -19827,8 +19836,7 @@ function teleportPlace(x,y){
     const r=await api('/api/world/relocate','POST',{kind:'targeted',x,y,requestId:uid8()});
     if(!r||!r.ok){ bannerMsg((r&&r.error)||'Teleport could not be verified.'); return; }
     adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); _teleMode=false; saveG();
-    bannerMsg('✨ Teleported to '+ZONES[key].name); renderWorldMap();
-    requestAnimationFrame(()=>centerOnCastle());
+    bannerMsg('✨ Teleported to '+ZONES[key].name); renderWorldMap(true);
   });
 }
 function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner'); if(!inner)return;
@@ -19878,14 +19886,14 @@ function renderWorldMap(keepView){
   const ghostCellPx=WORLD_W*GRID_CELL/100;                // one grid square in px (≈50px)
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){ const key=zoneAt(col,row), z=ZONES[key], biome=BIOME[z.terrain];
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
-    const pane=document.createElement('div');
-    const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 34px rgba(70,224,122,.16);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 34px rgba(230,72,63,.14);') : '';
+    const pane=document.createElement('div'); pane.className='worldZonePane';
+    const teleTint=_teleMode&&!accessible?'background:rgba(0,0,0,.35);':'';
     pane.style.cssText=`position:absolute;left:${ZONE_EDGES[col]*GRID_CELL}%;top:${ZONE_EDGES[row]*GRID_CELL}%;width:${(ZONE_EDGES[col+1]-ZONE_EDGES[col])*GRID_CELL}%;height:${(ZONE_EDGES[row+1]-ZONE_EDGES[row])*GRID_CELL}%;background:transparent;${teleTint}`;
     pane.innerHTML=`<div class="worldZoneLabel" style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
     // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
   // optional grid overlay across the whole world
-  if(G.showGrid!==false){ const go=document.createElement('div'); go.style.cssText=`position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:${GRID_CELL}% ${GRID_CELL}%`; inner.appendChild(go); }
+  if(G.showGrid!==false){ const go=document.createElement('div'); go.className='wmGridOverlay'; go.style.backgroundSize=`${GRID_CELL}% ${GRID_CELL}%`; inner.appendChild(go); }
   // The landmark is part of the terrain at the same world coordinates at every picture level.
   // Feather only its outer edge; the middle preserves the tree, rooted stone and contact shadow.
   const treeTerrain=document.createElement('img'); treeTerrain.id='worldTreeTerrain'; treeTerrain.src=WORLDTREE_TERRAIN_IMG;
@@ -20550,7 +20558,7 @@ async function startMine(m, heroes){ let travel=marchOutMs('mine',m.x,m.y), gath
     home:serverMarch?serverMarch.homeAt:t+travel+gather+travel, out:travel, resolved:false });
   mineClaimedSet().push(m.id);   // reserve this node so it can't be double-mined this epoch
   saveG(); bannerMsg('⛏ Mining '+mineLabel(m)+'\nHome in '+fmtDur(travel*2+gather));
-  if(document.getElementById('wzone')) drawMarches(); renderWorldMap(); }
+  if(document.getElementById('wzone')) drawMarches(); renderWorldMap(true); }
 // ---- wall defense: THREE ordered teams. On a raid they fight in sequence — team 2 steps in only if
 //      team 1 falls, then team 3. Heroes away marching/mining are greyed out and don't count as defenders. ----
 const WALL_CTXS=['wall','wall2','wall3'], WALL_NUM={wall:1,wall2:2,wall3:3};
@@ -20709,7 +20717,7 @@ function openShield(){ const s=modalShell(), active=shieldActive();
       :`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:8px"><span>Shields owned</span><b>${G.shieldItems||0}</b></div>
         <button class="btn" id="shUse" ${(G.shieldItems||0)>0?'':'disabled'} style="width:100%">Activate 12-hour Shield</button>
         <button class="btn secondary sm" id="shBuy" style="width:100%;margin-top:8px">Buy in Guild Shop →</button>`}`;
-  const u=s.body.querySelector('#shUse'); if(u)u.onclick=()=>{ if(useShieldItem()){ s.close(); bannerMsg('🛡 Shield active for 12 hours.'); if(document.getElementById('wzone'))renderWorldMap(); } };
+  const u=s.body.querySelector('#shUse'); if(u)u.onclick=()=>{ if(useShieldItem()){ s.close(); bannerMsg('🛡 Shield active for 12 hours.'); if(document.getElementById('wzone'))renderWorldMap(true); } };
   const b=s.body.querySelector('#shBuy'); if(b)b.onclick=openGuildShop;
 }
 // Guild shop modal (world-map Shield button) — reuses the level-scaled catalogue

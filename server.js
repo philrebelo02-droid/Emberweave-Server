@@ -23,6 +23,7 @@ const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_LOCATION=require('./server/world-location.js');
+const WORLD_TERRAIN_BLOCKED=new Set(require('./server/world-terrain-blocked.json').cells);
 
 const PORT = process.env.PORT || 8080;
 const GAME_FILE = path.join(__dirname, 'emberweave-heroes.html');
@@ -2714,10 +2715,12 @@ function ledTx(u,src,delta){ const led=u.led; const id=uid();
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
 function worldLocation(u){
   if(ledPlayerLevel(ensureLedger(u))<WITCH.UNLOCK_LEVEL) return null;
-  if(WORLD_LOCATION.valid(u.worldLocation)) return u.worldLocation;
+  if(WORLD_LOCATION.valid(u.worldLocation)
+    &&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(u.worldLocation.x,u.worldLocation.y))) return u.worldLocation;
   const taken=Object.values(DB.users).filter(v=>v.id!==u.id).map(v=>v.worldLocation);
   const mines=WORLD_MINES.field(WORLD_MINES.epochAt(Date.now()));
-  u.worldLocation=WORLD_LOCATION.place(taken,crypto.randomInt,mines.map(n=>n.gx+','+n.gy));
+  u.worldLocation=WORLD_LOCATION.place(taken,crypto.randomInt,
+    [...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
   writeDBNow(); // the assigned region and square must survive a restart before a client sees them
   return u.worldLocation;
 }
@@ -2735,16 +2738,29 @@ function worldView(u,now){
   const t=worldTravelState(u),day=worldTravelDay(now);
   return {ok:true,locked:false,...loc,teleUsed:t.teleDay===day?t.teleUsed:0,
     teleScrolls:t.teleScrolls,wildScrolls:t.wildScrolls,wildLast:t.wildLast,
-    lastTransfer:t.lastTransfer,teleDay:day};
+    lastTransfer:t.lastTransfer,teleDay:day,terrainBlockedCells:[...WORLD_TERRAIN_BLOCKED]};
 }
 function worldBlockedKeys(u,now){
-  const blocked=new Set(Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
-    .map(v=>WORLD_LOCATION.cellKey(v.worldLocation.x,v.worldLocation.y)));
+  const blocked=new Set(WORLD_TERRAIN_BLOCKED);
+  for(const key of Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
+    .map(v=>WORLD_LOCATION.cellKey(v.worldLocation.x,v.worldLocation.y))) blocked.add(key);
   for(const n of WORLD_MINES.field(WORLD_MINES.epochAt(now))) blocked.add(n.gx+','+n.gy);
   return blocked;
 }
 function worldSquareTaken(u,x,y,now){
   return worldBlockedKeys(u,now).has(WORLD_LOCATION.cellKey(x,y));
+}
+function migrateBlockedWorldCastles(){
+  const now=Date.now(); let moved=0;
+  for(const u of Object.values(DB.users)){
+    const loc=u.worldLocation;
+    if(!WORLD_LOCATION.valid(loc)||!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(loc.x,loc.y))) continue;
+    const next=WORLD_LOCATION.nearestOpen(loc.region,loc.x,loc.y,worldBlockedKeys(u,now));
+    if(!next) throw Error('No open world square remains for a terrain-blocked castle.');
+    u.worldLocation=next; moved++;
+  }
+  if(moved) writeDBNow();
+  console.log('🌍 Terrain-blocked castles moved at boot: '+moved);
 }
 const WORLD_WAR_PREP_MS=30*60000, WORLD_WAR_TOTAL_MS=72*3600000;
 function worldWarState(u){
@@ -6861,6 +6877,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  migrateBlockedWorldCastles();
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)

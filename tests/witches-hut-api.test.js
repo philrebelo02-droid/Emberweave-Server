@@ -294,6 +294,20 @@ async function run() {
     const occupied=new Set(map.nodes.map(n=>n.gx+','+n.gy));
     const otherCities=await request('GET','/api/world/cities',null,admin.token);
     for(const c of otherCities.cities||[]) occupied.add(L.cellKey(c.x,c.y));
+    const terrainKeys=new Set(castle.terrainBlockedCells);
+    assert.equal(terrainKeys.size,1039,'world state gives the picker the approved terrain outline');
+    for(const [i,key] of ['85,98','90,95','130,110','115,110'].entries()){
+      assert.ok(terrainKeys.has(key));
+      const [cx,cy]=key.split(',').map(Number);
+      const denied=await request('POST','/api/world/relocate',{
+        kind:'targeted',x:L.center(cx),y:L.center(cy),requestId:'blocked-terrain-'+i
+      },admin.token);
+      assert.equal(denied.ok,false,'server rejects a crystal or World Tree square');
+    }
+    const afterBlocked=await request('GET','/api/world/state',null,admin.token);
+    assert.equal(afterBlocked.teleUsed,0,'a blocked teleport does not consume the daily move');
+    assert.equal(L.cellKey(afterBlocked.x,afterBlocked.y),L.cellKey(castle.x,castle.y));
+    for(const key of terrainKeys) occupied.add(key);
     function freeTarget(home,except){
       for(let cy=0;cy<L.GRID_COLS;cy++) for(let cx=0;cx<L.GRID_COLS;cx++){
         const x=L.center(cx),y=L.center(cy),key=cx+','+cy;
@@ -301,7 +315,20 @@ async function run() {
       }
       throw Error('No free teleport target in the fixture');
     }
-    const firstTarget=freeTarget(castle.region,L.cellKey(castle.x,castle.y));
+    let firstTarget=null;
+    for(const key of terrainKeys){
+      const [cx,cy]=key.split(',').map(Number);
+      if(cx>=103&&cx<=117&&cy>=103&&cy<=117) continue; // use a crystal edge, not the tree
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx=cx+dx,ny=cy+dy,neighbor=nx+','+ny;
+        if(nx<0||ny<0||nx>=L.GRID_COLS||ny>=L.GRID_COLS||occupied.has(neighbor)
+          ||neighbor===L.cellKey(castle.x,castle.y)) continue;
+        const x=L.center(nx),y=L.center(ny);
+        if(L.targetAllowed(castle.region,x,y)){ firstTarget={x,y}; break; }
+      }
+      if(firstTarget) break;
+    }
+    assert.ok(firstTarget,'an open floor square next to the crystal footprint exists');
     const move=await request('POST','/api/world/relocate',{
       kind:'targeted',...firstTarget,requestId:'world-free-teleport'
     },admin.token);
@@ -549,6 +576,20 @@ async function run() {
       hero:'vael',requestId:'heal-after-return'
     },warClock.token);
     assert.equal(homeHeal.ok,true,'the same hero becomes healable after arriving home');
+    await stop();
+    const blockedDb=JSON.parse(fs.readFileSync(db,'utf8'));
+    const priorRegion=blockedDb.users[warClock.profile.id].worldLocation.region;
+    blockedDb.users[warClock.profile.id].worldLocation={region:priorRegion,
+      x:locationRules.center(85),y:locationRules.center(98)};
+    fs.writeFileSync(db,JSON.stringify(blockedDb));
+    await start(admin.profile.id,'20','0','0');
+    const migrated=await request('GET','/api/world/state',null,warClock.token);
+    assert.equal(migrated.region,priorRegion,'boot migration preserves the home region');
+    assert.ok(!new Set(migrated.terrainBlockedCells).has(locationRules.cellKey(migrated.x,migrated.y)),
+      'boot migration moves a castle away from crystal terrain');
+    assert.ok(locationRules.valid(migrated),'boot migration persists a valid nearby location');
+    const persisted=JSON.parse(fs.readFileSync(db,'utf8')).users[warClock.profile.id].worldLocation;
+    assert.equal(locationRules.cellKey(persisted.x,persisted.y),locationRules.cellKey(migrated.x,migrated.y));
     console.log('Witches Hut API integration passed');
   } finally { await stop(); fs.rmSync(dir,{recursive:true,force:true}); }
 }

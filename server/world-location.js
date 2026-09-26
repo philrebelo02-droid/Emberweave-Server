@@ -41,6 +41,19 @@ function openInRegion(region,blocked=[],randomInt=crypto.randomInt,preferred){
   }
   return null;
 }
+function nearestOpen(home,x,y,blocked=[]){
+  if(!REGIONS[home]||!Number.isFinite(x)||!Number.isFinite(y)) return null;
+  const occupied=new Set(blocked);
+  const fromX=cellIndex(x),fromY=cellIndex(y);
+  let best=null,bestDistance=Infinity;
+  for(let cy=0;cy<GRID_COLS;cy++) for(let cx=0;cx<GRID_COLS;cx++){
+    const px=center(cx),py=center(cy),key=cx+','+cy;
+    if(occupied.has(key)||!targetAllowed(home,px,py)) continue;
+    const distance=(cx-fromX)**2+(cy-fromY)**2;
+    if(distance<bestDistance){ best={region:home,x:px,y:py}; bestDistance=distance; }
+  }
+  return best;
+}
 function valid(loc){
   if(!loc||!REGIONS[loc.region]||!Number.isFinite(loc.x)||!Number.isFinite(loc.y)) return false;
   return targetAllowed(loc.region,loc.x,loc.y);
@@ -67,4 +80,4 @@ function place(existing,randomInt=crypto.randomInt,blocked=[]){
   throw Error('No free castle square remains in the home regions.');
 }
 module.exports={GRID_COLS,REGION_CELLS,WILD_CELLS,ZONE_EDGES,CELL,REGIONS,REGION_KEYS,cellIndex,center,zoneIndex,regionStart,zoneOf,cellKey,
-  treeCore,targetAllowed,openInRegion,valid,place};
+  treeCore,targetAllowed,openInRegion,nearestOpen,valid,place};
