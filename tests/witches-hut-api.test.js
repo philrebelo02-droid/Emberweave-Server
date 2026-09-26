@@ -441,6 +441,14 @@ async function run() {
     assert.deepEqual(undefFight.loot,{gold:70,guildCoins:7});
     await stop();
     await start(admin.profile.id,'0','0','0');
+    const cityRetryAfterRestart=await request('POST','/api/pvp/attack',{
+      defId:foe.profile.id,marchId:undefStart.marchId,requestId:'undef-retry-after-restart'
+    },undefRaider.token);
+    assert.deepEqual(cityRetryAfterRestart,undefFight,
+      'a resolved real-city march replays its receipt after restart with a new request ID');
+    const cappedAfterRestart=await request('GET','/api/ledger',null,undefRaider.token);
+    assert.equal(cappedAfterRestart.gold,cappedAfter.gold,'city retry cannot grant gold twice');
+    assert.equal(cappedAfterRestart.guildCoins,cappedAfter.guildCoins,'city retry cannot grant guild coins twice');
     const warClock=await request('POST','/api/register',{name:'witchWarClock',pass:'password1'});
     assert.ok(warClock.token);
     const clockGrant=await request('POST','/api/admin/led-grant',{
