@@ -513,7 +513,8 @@
   .ctree{position:absolute;z-index:2;font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));transform:translate(-50%,-50%);pointer-events:none;}
   .smStageCard{max-width:720px;margin:0 auto;text-align:left;color:#e8edf5}.smStageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:linear-gradient(135deg,#382111,#181018);border:1px solid #9c6b31;border-radius:13px 13px 6px 6px;box-shadow:inset 0 0 0 1px #ffda7330}.smStageTitle{font:900 20px Georgia,serif;color:#ffe29a}.smStageSub{font-size:10px;color:#c9ad82;letter-spacing:.8px}.smStars{font-size:25px;letter-spacing:3px;color:#ffd45e;text-shadow:0 0 8px #ffb629}.smMeta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:7px 0}.smMeta>div{padding:7px 6px;text-align:center;border-radius:8px;background:#151c2a;border:1px solid #303d55}.smMeta span{display:block;color:#7f8da3;font-size:9px;text-transform:uppercase;letter-spacing:.7px}.smMeta b{display:block;color:#f4dfad;font-size:12px;margin-top:2px}.smWave{padding:6px 0;border-top:1px solid #29334a}.smWaveLabel{font-size:10px;font-weight:900;color:#d6bb80;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}.smEnemies{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}.smEnemy{position:relative;width:62px;text-align:center}.smEnemy img,.smEnemy>span{display:grid;place-items:center;width:52px;height:52px;margin:auto;border-radius:50%;object-fit:cover;object-position:center 18%;background:#172033;border:3px solid #8190a5;box-shadow:0 3px 7px #000b}.smEnemy b{display:block;font-size:8px;line-height:1.1;margin-top:3px;color:#dbe5f4}.smEnemy em{position:absolute;right:1px;top:35px;background:#111a;color:#fff;border:1px solid #8da0b8;border-radius:8px;padding:1px 4px;font:800 9px Arial}.smActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}.smActions .btn{min-height:44px;padding:8px 6px}.smActions .smCancel{grid-column:1/-1;min-height:30px}.smStageScroll{max-height:min(69vh,650px);overflow-y:auto;padding-right:2px}@media(max-width:560px){.smStageHead{padding:8px}.smStageTitle{font-size:16px}.smStars{font-size:19px}.smMeta{gap:4px}.smActions{grid-template-columns:1fr 1fr}.smActions .smBattle{grid-column:1/-1}.smEnemy{width:54px}.smEnemy img,.smEnemy>span{width:46px;height:46px}}
   /* world map zone */
-  #wzone{position:relative;width:100%;max-width:none;margin:0;height:100%;overflow:auto;border-radius:12px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
+  #wzone{position:relative;width:100%;max-width:none;margin:0;height:100%;overflow:auto;scrollbar-width:none;border-radius:12px;border:1px solid #2a3550;background:#12241b;cursor:grab;}
+  #wzone::-webkit-scrollbar{display:none;}
   #worldBody{display:flex;flex-direction:column;flex:1;width:100%;min-height:0;}
   #worldBody>div:last-child{flex:1;min-height:0;width:100%;}
   #world{padding:8px 10px 10px;justify-content:flex-start;}
@@ -19588,7 +19589,6 @@ function worldNodes(){
 let worldZoom=0.62;   // opens zoomed in enough that castles are visible (< 500 squares) on phone and desktop
 // ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
 const GHOST_MAX_SQ=30;      // teleport ghost markers only render when the view spans ≤ 30×30 squares
-const CASTLE_MAX_SQ=500;    // castles only render when fewer than 500 squares are visible (zoom in to see them)
 // Picture hierarchy is one continuous world: 1 cover, 3×3 middle pieces, 9×9 close pieces.
 // A piece fills the map view at its own zoom, but keeps its original world coordinates.
 function worldPictureTile(divisions,col,row){
@@ -19611,31 +19611,70 @@ function worldPictureForViewport(left,top,right,bottom){
 function visibleWorldPicture(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom)return null;
   return worldPictureForViewport(zone.scrollLeft/worldZoom,zone.scrollTop/worldZoom,
     (zone.scrollLeft+zone.clientWidth)/worldZoom,(zone.scrollTop+zone.clientHeight)/worldZoom); }
+function worldPictureTilesForViewport(left,top,right,bottom,divisions){
+  if(![3,9].includes(divisions)||![left,top,right,bottom].every(Number.isFinite)||right<=left||bottom<=top) return [];
+  const w=WORLD_W/divisions,h=WORLD_H/divisions;
+  const x0=Math.max(0,Math.min(WORLD_W,left)),y0=Math.max(0,Math.min(WORLD_H,top));
+  const x1=Math.max(0,Math.min(WORLD_W,right)),y1=Math.max(0,Math.min(WORLD_H,bottom));
+  const c0=Math.min(divisions-1,Math.floor(x0/w)),r0=Math.min(divisions-1,Math.floor(y0/h));
+  const c1=Math.min(divisions-1,Math.floor(Math.max(0,x1-1e-7)/w));
+  const r1=Math.min(divisions-1,Math.floor(Math.max(0,y1-1e-7)/h));
+  const out=[];
+  for(let row=r0;row<=r1;row++) for(let col=c0;col<=c1;col++) out.push(worldPictureTile(divisions,col,row));
+  return out;
+}
+function worldPictureLevelForViewport(width,height){
+  const close=WORLD_W/9,middle=WORLD_W/3;
+  if(width<=close*3&&height<=close*3) return 9;
+  if(width<=middle*2&&height<=middle*2) return 3;
+  return 1;
+}
 const WORLD_PICTURE_ROOT='/assets/img/world-map/world-v02/';
 function worldPictureName(level,row,col){ return 'world-v02-l'+level+'-r'+String(row).padStart(2,'0')+'-c'+String(col).padStart(2,'0')+'.png'; }
 function mapVisibleSquares(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom) return null;
   const cellPx=WORLD_W/GRID_COLS;   // px per grid square in unzoomed world coords (≈50)
   const vx=(zone.clientWidth/worldZoom)/cellPx, vy=(zone.clientHeight/worldZoom)/cellPx;
   return {vx,vy,area:vx*vy}; }
-function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const s=mapVisibleSquares(); if(!s)return;
-  const picture=visibleWorldPicture();
-  if(picture){
-    inner.dataset.pictureLevel=String(picture.divisions); inner.dataset.pictureCol=String(picture.col); inner.dataset.pictureRow=String(picture.row);
-    const master=inner.querySelector('#worldPictureMaster'),middle=inner.querySelector('#worldPictureMiddle'),close=inner.querySelector('#worldPictureClose');
-    if(master)master.style.display=picture.divisions===1?'':'none';
-    if(middle){ middle.style.display=picture.divisions===3?'':'none';
-      if(picture.divisions===3){middle.style.left=picture.left/WORLD_W*100+'%';middle.style.top=picture.top/WORLD_H*100+'%';
-        middle.style.width=picture.width/WORLD_W*100+'%';middle.style.height=picture.height/WORLD_H*100+'%';
-        const src=WORLD_PICTURE_ROOT+worldPictureName(1,picture.row,picture.col);
-        if(!middle.src.endsWith(src))middle.src=src; } }
-    if(close){ close.style.display=picture.divisions===9?'':'none';
-      if(picture.divisions===9){close.style.left=picture.left/WORLD_W*100+'%';close.style.top=picture.top/WORLD_H*100+'%';
-        close.style.width=picture.width/WORLD_W*100+'%';close.style.height=picture.height/WORLD_H*100+'%';
-        close.src=WORLD_PICTURE_ROOT+worldPictureName(2,picture.row,picture.col); } }
+function paintWorldPictureTiles(layer,tiles,level){
+  if(!layer)return;
+  const keys=tiles.map(t=>t.row+':'+t.col).join(',');
+  if(layer.dataset.tiles===keys){layer.style.display=tiles.length?'':'none';return;}
+  const prior=new Map([...layer.children].map(img=>[img.dataset.tileKey,img]));
+  for(const tile of tiles){
+    const key=tile.row+':'+tile.col;
+    let img=prior.get(key);
+    if(img) prior.delete(key);
+    else {
+      img=document.createElement('img'); img.dataset.tileKey=key; img.draggable=false;
+      img.style.visibility='hidden';
+      img.onload=()=>{img.style.visibility='visible';};
+      img.onerror=()=>{img.style.visibility='hidden';};
+      img.src=WORLD_PICTURE_ROOT+worldPictureName(level,tile.row,tile.col);
+      layer.appendChild(img);
+    }
+    img.style.position='absolute';
+    img.style.left=tile.left+'px'; img.style.top=tile.top+'px';
+    img.style.width=tile.width+'px'; img.style.height=tile.height+'px';
   }
-  refreshTeleGhosts();
-  const castlesOn=(s.area<CASTLE_MAX_SQ);
-  inner.querySelectorAll('.wnode.city').forEach(el=>{ el.style.display=castlesOn?'':'none'; }); }
+  for(const img of prior.values())img.remove();
+  layer.dataset.tiles=keys; layer.style.display=tiles.length?'':'none';
+}
+function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const s=mapVisibleSquares(); if(!s)return;
+  const zone=document.getElementById('wzone');
+  const left=zone.scrollLeft/worldZoom,top=zone.scrollTop/worldZoom;
+  const right=(zone.scrollLeft+zone.clientWidth)/worldZoom,bottom=(zone.scrollTop+zone.clientHeight)/worldZoom;
+  const level=worldPictureLevelForViewport(right-left,bottom-top);
+  const middle=inner.querySelector('#worldPictureMiddle'),close=inner.querySelector('#worldPictureClose');
+  const middleTiles=level>=3?worldPictureTilesForViewport(left,top,right,bottom,3):[];
+  const closeTiles=level===9?worldPictureTilesForViewport(left,top,right,bottom,9):[];
+  paintWorldPictureTiles(middle,middleTiles,1);
+  paintWorldPictureTiles(close,closeTiles,2);
+  inner.dataset.pictureLevel=String(level);
+  inner.dataset.pictureCol=String((closeTiles[0]||middleTiles[0]||{col:0}).col);
+  inner.dataset.pictureRow=String((closeTiles[0]||middleTiles[0]||{row:0}).row);
+  queueTeleGhosts();
+  const detailsOn=level===9;
+  inner.querySelectorAll('.wnode.city,.wnode.mine').forEach(el=>{ el.style.display=detailsOn?'':'none'; }); }
 // cells that already hold a real castle / mine / the World Tree — teleport ghosts skip these
 function occupiedCells(){ const s=new Set(); const add=(x,y)=>{ if(x!=null&&y!=null) s.add(cellIndex(x)+','+cellIndex(y)); };
   const me=myCastlePos(); add(me.x,me.y);
@@ -19662,19 +19701,28 @@ function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'),
     count++; }
   layer.innerHTML=html; }
 function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimationFrame(()=>{ _teleGhostRaf=0; refreshTeleGhosts(); }); }
-function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); }
+function worldZoomBounds(zone){
+  const cell=WORLD_W/GRID_COLS;
+  const min=zone.clientWidth/WORLD_W;
+  const max=Math.min(zone.clientWidth/(16*cell),zone.clientHeight/(9*cell));
+  return {min,max:Math.max(min,max)};
+}
+function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); drawMarches(); }
 // scroll so the player's castle is centered in the viewport (castle can be anywhere in the world now)
 function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!zone)return;
   const p=myCastlePos(), fx=p.x/100, fy=p.y/100;
   zone.scrollLeft=zone.scrollWidth*fx - zone.clientWidth/2; zone.scrollTop=zone.scrollHeight*fy - zone.clientHeight/2; }
-const WORLD_ZMIN=0.1, WORLD_ZMAX=1.6;
 // zoom toward a screen point (mouse cursor / pinch centre) so that point stays put under the finger/cursor
 function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('wzone'); if(!zone)return;
-  nz=Math.max(WORLD_ZMIN,Math.min(WORLD_ZMAX,+(+nz).toFixed(3))); if(nz===worldZoom)return;
+  const bounds=worldZoomBounds(zone);
+  nz=Math.max(bounds.min,Math.min(bounds.max,+nz));
+  if(nz===worldZoom){ applyMapLOD(); return; }
   const r=zone.getBoundingClientRect(), cx=(clientX!=null?clientX-r.left:r.width/2), cy=(clientY!=null?clientY-r.top:r.height/2);
   const px=(zone.scrollLeft+cx)/worldZoom, py=(zone.scrollTop+cy)/worldZoom;
   worldZoom=nz; applyWorldZoom();
-  zone.scrollLeft=px*worldZoom-cx; zone.scrollTop=py*worldZoom-cy; applyMapLOD(); }
+  zone.scrollLeft=Math.max(0,Math.min(WORLD_W*worldZoom-zone.clientWidth,px*worldZoom-cx));
+  zone.scrollTop=Math.max(0,Math.min(WORLD_H*worldZoom-zone.clientHeight,py*worldZoom-cy)); applyMapLOD(); }
+window.addEventListener('resize',()=>{ const zone=document.getElementById('wzone'); if(zone)worldZoomTo(worldZoom); });
 // desktop click-drag panning (added once; operates on the current world-map zone)
 let curWorldZone=null,_wdrag=false,_wsx=0,_wsy=0,_wsl=0,_wst=0,_wMoved=false;
 document.addEventListener('mousemove',(e)=>{ if(!_wdrag||!curWorldZone)return; if(Math.abs(e.clientX-_wsx)+Math.abs(e.clientY-_wsy)>6)_wMoved=true; curWorldZone.scrollLeft=_wsl-(e.clientX-_wsx); curWorldZone.scrollTop=_wst-(e.clientY-_wsy); });
@@ -19820,9 +19868,9 @@ function renderWorldMap(keepView){
   const pictureLayer=document.createElement('div'); pictureLayer.id='worldPictureLayer'; pictureLayer.style.cssText='position:absolute;inset:0;pointer-events:none';
   const masterPicture=document.createElement('img'); masterPicture.id='worldPictureMaster'; masterPicture.src=WORLD_PICTURE_ROOT+worldPictureName(0,0,0);
   masterPicture.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block'; pictureLayer.appendChild(masterPicture);
-  const middlePicture=document.createElement('img'); middlePicture.id='worldPictureMiddle'; middlePicture.style.cssText='position:absolute;display:none';
+  const middlePicture=document.createElement('div'); middlePicture.id='worldPictureMiddle'; middlePicture.style.cssText='position:absolute;inset:0;display:none';
   pictureLayer.appendChild(middlePicture);
-  const closePicture=document.createElement('img'); closePicture.id='worldPictureClose'; closePicture.style.cssText='position:absolute;display:none';
+  const closePicture=document.createElement('div'); closePicture.id='worldPictureClose'; closePicture.style.cssText='position:absolute;inset:0;display:none';
   pictureLayer.appendChild(closePicture); inner.appendChild(pictureLayer);
   // Nine unequal gameplay zones (90/40/90 cells per axis) cover one continuous map.
   const ghostImg=GHOST_CASTLE||'';                        // level-1 castle art (square-padded) shown at 50% in each teleportable square
@@ -19873,10 +19921,10 @@ function renderWorldMap(keepView){
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
   zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
-  zone.addEventListener('scroll',()=>{ if(_teleMode) queueTeleGhosts(); applyMapLOD(); },{passive:true});   // picture scale and ghosts follow the viewport as you pan
+  zone.addEventListener('scroll',()=>{ applyMapLOD(); },{passive:true});   // picture scale and ghosts follow the viewport as you pan
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
-  applyWorldZoom();
+  { const bounds=worldZoomBounds(zone); worldZoom=Math.max(bounds.min,Math.min(bounds.max,worldZoom)); applyWorldZoom(); }
   // ---- bottom-right control cluster: resources · coordinate readout · search · zoom ----
   const ctl=document.createElement('div'); ctl.id='mapCtl';
   ctl.innerHTML=RES.map(([k,ic])=>`<span class="pill">${resIconHtml(k,15)} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')
@@ -20331,10 +20379,11 @@ function drawMarches(){
     p=Math.max(0,Math.min(1,p));
     if(showLine){ const NS='http://www.w3.org/2000/svg';
       const dx=legEnd.x-legStart.x, dy=legEnd.y-legStart.y, len=Math.hypot(dx,dy);
-      // thin dotted trail showing the route
+      // Keep the dotted trail legible as the map changes scale.
       const ln=document.createElementNS(NS,'line');
       ln.setAttribute('x1',legStart.x);ln.setAttribute('y1',legStart.y);ln.setAttribute('x2',legEnd.x);ln.setAttribute('y2',legEnd.y);
-      ln.setAttribute('stroke',col);ln.setAttribute('stroke-width','0.07');ln.setAttribute('stroke-dasharray','0.06 0.5');
+      ln.setAttribute('stroke',col);ln.setAttribute('vector-effect','non-scaling-stroke');
+      ln.setAttribute('stroke-width',String(3/worldZoom));ln.setAttribute('stroke-dasharray',`${3/worldZoom} ${8/worldZoom}`);
       ln.setAttribute('stroke-linecap','round');ln.setAttribute('opacity','0.5'); g.appendChild(ln);
       // small chevron arrows every ~2 tiles, pointing the way the ship is travelling
       if(len>0.01){ const ang=Math.atan2(dy,dx)*180/Math.PI, step=2*GRID_CELL, a=0.06;

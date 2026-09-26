@@ -102,7 +102,7 @@ async function run(){
       const inner=document.getElementById('wzoneInner');
       const zoneKeys=[[89,89],[90,89],[129,129],[130,130]].map(([cx,cy])=>zoneOfPos((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL));
       const close=inner.querySelector('#worldPictureClose');
-      return {sizes,positions,one,three,nine,zoneKeys,closeSrc:close.src,
+      return {sizes,positions,one,three,nine,zoneKeys,closeSrc:close.querySelector('img')?.src,
         live:{level:inner.dataset.pictureLevel,col:inner.dataset.pictureCol,row:inner.dataset.pictureRow}};
     });
     assert.deepEqual(pictureGrid.sizes.map(t=>t.cells),[220,220/3,220/9],'art thirds preserve the 220-cell gameplay world');
@@ -115,12 +115,34 @@ async function run(){
     assert.equal(pictureGrid.nine.divisions,9,'a viewport inside one close piece selects that piece');
     assert.deepEqual(pictureGrid.live,{level:'9',col:'4',row:'4'},'live map selects the close picture at its world position');
     assert.match(pictureGrid.closeSrc,/world-v02-l2-r04-c04\.png$/,'close picture uses its exact indexed filename');
-    await page.waitForFunction(()=>document.getElementById('worldPictureClose')?.naturalWidth===1254,{timeout:10000});
+    await page.waitForFunction(()=>document.querySelector('#worldPictureClose img')?.naturalWidth===1254,{timeout:10000});
     await page.waitForFunction(()=>document.getElementById('worldTreeTerrain')?.naturalWidth===1254,{timeout:10000});
     assert.equal(await page.locator('#worldTreeTarget img').count(),0,'World Tree is integrated terrain, not a floating sprite');
     await page.locator('#worldTreeTarget').click({force:true});
     assert.match(await page.locator('.citymenu .cm-t').textContent(),/World Tree/,'integrated landmark keeps its menu');
     await page.evaluate(()=>closeCityMenu());
+    const boundaryTiles=await page.evaluate(()=>{
+      const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner');
+      const inspect=x=>{
+        zone.scrollLeft=x*worldZoom-zone.clientWidth/2;
+        zone.scrollTop=5500*worldZoom-zone.clientHeight/2;
+        applyMapLOD();
+        return {level:inner.dataset.pictureLevel,
+          close:[...inner.querySelectorAll('#worldPictureClose img')].map(img=>img.dataset.tileKey),
+          middle:[...inner.querySelectorAll('#worldPictureMiddle img')].map(img=>img.dataset.tileKey)};
+      };
+      return {ninth:inspect(WORLD_W/9),third:inspect(WORLD_W/3)};
+    });
+    assert.equal(boundaryTiles.ninth.level,'9','crossing a ninth seam keeps close-detail art');
+    assert.ok(boundaryTiles.ninth.close.length>=2,'the viewport loads both neighboring ninths');
+    assert.equal(boundaryTiles.third.level,'9','crossing a third seam keeps close-detail art at this zoom');
+    assert.ok(boundaryTiles.third.close.length>=2 && boundaryTiles.third.middle.length>=2,
+      'the viewport loads close pieces and both middle placeholders across a third seam');
+    if(process.env.WORLD_MAP_QA_BOUNDARY_SCREENSHOT){
+      await page.waitForFunction(()=>[...document.querySelectorAll('#worldPictureClose img')]
+        .every(img=>img.complete&&img.naturalWidth===1254),{timeout:10000});
+      await page.locator('#wzone').screenshot({path:process.env.WORLD_MAP_QA_BOUNDARY_SCREENSHOT});
+    }
     if(process.env.WORLD_MAP_QA_SCREENSHOT){
       const screenshotState=await page.evaluate(()=>{
         worldZoomTo(1.6);
@@ -141,14 +163,43 @@ async function run(){
       zone.scrollTop=600*worldZoom-zone.clientHeight/2;
       applyMapLOD();
       const inner=document.getElementById('wzoneInner');
-      const local={level:inner.dataset.pictureLevel,closeSrc:inner.querySelector('#worldPictureClose').src};
+      const local={level:inner.dataset.pictureLevel,closeSrc:inner.querySelector('#worldPictureClose img')?.src};
       worldZoomTo(0.1); applyMapLOD();
       return {local,overview:{level:inner.dataset.pictureLevel,master:inner.querySelector('#worldPictureMaster').style.display}};
     });
     assert.equal(fallback.local.level,'9','all completed close areas select their own detail picture');
     assert.match(fallback.local.closeSrc,/world-v02-l2-r00-c00\.png$/);
     assert.equal(fallback.overview.level,'1','crossing middle pictures selects the whole approved map');
-    assert.equal(fallback.overview.master,'');
+    assert.equal(fallback.overview.master,'block');
+    const zoomRules=await page.evaluate(()=>{
+      const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner');
+      worldZoomTo(0);
+      const low={zoom:worldZoom,expected:zone.clientWidth/WORLD_W,
+        horizontalRange:zone.scrollWidth-zone.clientWidth,city:inner.querySelector('.wnode.city')?.style.display,
+        mine:inner.querySelector('.wnode.mine')?.style.display};
+      zone.scrollLeft=Number.MAX_SAFE_INTEGER;zone.scrollTop=Number.MAX_SAFE_INTEGER;
+      const edge={right:zone.scrollLeft,bottom:zone.scrollTop,
+        maxRight:zone.scrollWidth-zone.clientWidth,maxBottom:zone.scrollHeight-zone.clientHeight};
+      worldZoomTo(999);
+      const high={zoom:worldZoom,expected:worldZoomBounds(zone).max,
+        cellsX:zone.clientWidth/worldZoom/(WORLD_W/GRID_COLS),
+        cellsY:zone.clientHeight/worldZoom/(WORLD_H/GRID_COLS),
+        city:inner.querySelector('.wnode.city')?.style.display,mine:inner.querySelector('.wnode.mine')?.style.display,
+        level:inner.dataset.pictureLevel};
+      return {low,edge,high,scrollbar:getComputedStyle(zone).scrollbarWidth};
+    });
+    assert.ok(Math.abs(zoomRules.low.zoom-zoomRules.low.expected)<1e-6,'minimum zoom fits the full world width');
+    assert.ok(Math.abs(zoomRules.low.horizontalRange)<=2,'no sideways play past the whole picture');
+    assert.equal(zoomRules.low.city,'none','castles hide at the overview scale');
+    assert.equal(zoomRules.low.mine,'none','mines hide at the overview scale');
+    assert.ok(Math.abs(zoomRules.edge.right-zoomRules.edge.maxRight)<=2 &&
+      Math.abs(zoomRules.edge.bottom-zoomRules.edge.maxBottom)<=2,'scrolling stops at the picture edges');
+    assert.ok(Math.abs(zoomRules.high.zoom-zoomRules.high.expected)<1e-6,'maximum zoom follows the view size');
+    assert.ok(zoomRules.high.cellsX>=15.99 && zoomRules.high.cellsY>=8.99,'closest view shows at least 16 by 9 cells');
+    assert.equal(zoomRules.high.level,'9','closest view uses close detail');
+    assert.notEqual(zoomRules.high.city,'none','castles return at close detail');
+    assert.notEqual(zoomRules.high.mine,'none','mines return at close detail');
+    assert.equal(zoomRules.scrollbar,'none','map hides the scrollbar while retaining pan');
     const march=await page.evaluate(async ({token,node})=>{
       ACC.token=token;
       G.playerXP=900000;
