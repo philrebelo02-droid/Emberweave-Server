@@ -55,6 +55,17 @@ async function run() {
       userId:foe.profile.id,unlock:['vael','sylthaine','vireo'],heroKeys:['vael','sylthaine','vireo'],px:900000
     },admin.token);
     assert.equal(grantFoe.ok,true);
+    const assignedBeforeMap=JSON.parse(fs.readFileSync(db,'utf8')).users;
+    const locationRules=require('../server/world-location.js');
+    assert.ok(locationRules.valid(assignedBeforeMap[admin.profile.id].worldLocation),
+      'reaching level 20 assigns and saves the first castle before the player opens the map');
+    assert.ok(locationRules.valid(assignedBeforeMap[foe.profile.id].worldLocation),
+      'a second level-20 player is also placed without visiting the map');
+    assert.notEqual(locationRules.cellKey(assignedBeforeMap[admin.profile.id].worldLocation.x,
+      assignedBeforeMap[admin.profile.id].worldLocation.y),
+      locationRules.cellKey(assignedBeforeMap[foe.profile.id].worldLocation.x,
+        assignedBeforeMap[foe.profile.id].worldLocation.y),
+      'automatic placement never puts two castles on the same square');
     await request('POST','/api/save',{wall:[{key:'vael'},{key:'sylthaine'},{key:'vireo'}]},foe.token);
     const worldCities=await request('GET','/api/world/cities',null,admin.token);
     assert.equal(worldCities.cities.length,1);
