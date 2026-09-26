@@ -229,6 +229,16 @@ async function run() {
     // It verifies the server refuses early settlement without waiting hours for arrival.
     await stop();
     await start(admin.profile.id,'0');
+    const botWoundsAfterRestart=await request('GET','/api/witch/state',null,botRaider.token);
+    assert.deepEqual(botWoundsAfterRestart.heroes.map(h=>[h.key,h.hp]),
+      botWounds.heroes.map(h=>[h.key,h.hp]),'NPC battle injuries survive a server restart');
+    const botReceiptAfterRestart=await request('POST','/api/pvp/attack',{
+      defId:targetBot.id,marchId:botMarch.marchId,requestId:'bot-retry-after-restart'
+    },botRaider.token);
+    assert.deepEqual(botReceiptAfterRestart,botFight,'a resolved NPC march cannot pay again after restart');
+    const botLedgerAfterRestart=await request('GET','/api/ledger',null,botRaider.token);
+    assert.equal(botLedgerAfterRestart.gold,afterBotLedger.gold);
+    assert.equal(botLedgerAfterRestart.guildCoins,afterBotLedger.guildCoins);
     const persistedCastle=await request('GET','/api/world/state',null,admin.token);
     assert.equal(persistedCastle.region,castle.region,'assigned home region survives a server restart');
     assert.equal(persistedCastle.x,castle.x,'random castle square survives a server restart');
