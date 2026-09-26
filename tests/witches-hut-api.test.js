@@ -406,6 +406,23 @@ async function run() {
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'production-prep-refusal'
     },warClock.token);
     assert.equal(prepRefusal.ok,false,'cannot attack during production war prep');
+    await stop();
+    const history=JSON.parse(fs.readFileSync(db,'utf8'));
+    const t=Date.now(), marches=history.users[warClock.profile.id].worldMineMarches=[];
+    for(let i=0;i<101;i++) marches.push({id:'expired-'+i,resolved:true,
+      resolvedAt:t-3*86400000,homeAt:t-3*86400000,receipt:{ok:true}});
+    marches.push({id:'recent-receipt',resolved:true,resolvedAt:t-3600000,
+      homeAt:t-3600000,receipt:{ok:true,retained:true}});
+    marches.push({id:'unfinished-trip',resolved:false,homeAt:t-3*86400000,heroIds:['vex']});
+    fs.writeFileSync(db,JSON.stringify(history));
+    await start(admin.profile.id,'20','0','0');
+    const stillRetryable=await request('POST','/api/world/mine/resolve',{
+      marchId:'recent-receipt',requestId:'recent-receipt-retry'
+    },warClock.token);
+    assert.deepEqual(stillRetryable,{ok:true,retained:true},'recent settled mine receipt survives a restart');
+    const cleaned=JSON.parse(fs.readFileSync(db,'utf8')).users[warClock.profile.id].worldMineMarches;
+    assert.equal(cleaned.some(m=>m.id==='expired-0'),false,'expired settled mine history is bounded');
+    assert.equal(cleaned.some(m=>m.id==='unfinished-trip'),true,'unresolved mine trips are never discarded');
     console.log('Witches Hut API integration passed');
   } finally { await stop(); fs.rmSync(dir,{recursive:true,force:true}); }
 }

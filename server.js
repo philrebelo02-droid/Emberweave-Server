@@ -2745,6 +2745,17 @@ function worldCityMarches(u){
   if(!Array.isArray(u.worldCityMarches)) u.worldCityMarches=[];
   return u.worldCityMarches;
 }
+// Resolve receipts outlive the 24-hour idempotency cache so a late retry cannot
+// pay again. Keep every unfinished trip; discard only old, settled mine history.
+function worldMineMarches(u,now){
+  if(!Array.isArray(u.worldMineMarches)) u.worldMineMarches=[];
+  if(u.worldMineMarches.length>100){
+    const keepAfter=now-2*86400000;
+    u.worldMineMarches=u.worldMineMarches.filter(m=>!m.resolved
+      ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
+  }
+  return u.worldMineMarches;
+}
 function worldBotRoster(u,regionKey){
   const loc=worldLocation(u),host=loc&&simHost();
   if(!host||!WORLD_LOCATION.REGION_KEYS.includes(regionKey)) return [];
@@ -4548,7 +4559,7 @@ async function api(req,res,url){
     const out=idem(me.id+':worldmine:'+p+':'+rid,()=>{
       const now=Date.now(), w=witchState(me,now), led=ensureLedger(me);
       if(!w) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
-      me.worldMineMarches=Array.isArray(me.worldMineMarches)?me.worldMineMarches:[];
+      worldMineMarches(me,now);
       if(p==='/api/world/mine/start'){
         const castle=worldLocation(me);
         if(!castle) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
@@ -4626,7 +4637,7 @@ async function api(req,res,url){
         A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
         capLeft=60-A.mineDay[march.node.res];
       }
-      march.resolved=true;
+      march.resolved=true; march.resolvedAt=now;
       march.receipt={ok:true,won:battle.won,durationSec:digest.t,injuries,granted,
         res:A.res,capLeft,garrison,replay:{seed,snaps:march.snaps,foe:garrison,engine:host.buildVersion},
         witch:witchView(me,now)};
@@ -5905,7 +5916,7 @@ async function api(req,res,url){
       const led=ensureLedger(me),w=witchState(me,now);
       if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
         return {ok:false,error:'Pick up to five heroes you own.'};
-      const mines=Array.isArray(me.worldMineMarches)?me.worldMineMarches:[];
+      const mines=worldMineMarches(me,now);
       const marches=worldCityMarches(me);
       if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
         return {ok:false,error:'A selected hero is already marching.'};
