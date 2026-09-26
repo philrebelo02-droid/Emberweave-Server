@@ -40,7 +40,7 @@ note "phase 2: restart with ADMIN_IDS and run the endpoint suites"
 env $FLAGS ADMIN_IDS=$DID DB_FILE="$DB" PORT=$PORT node "$SRV" > "$DBDIR/srv2.log" 2>&1 & SRV_PID=$!
 sleep 1.5
 for T in test_transform.sh test_glyphs.sh test_dungeon.sh test_gear.sh test_war.sh; do
-  note "$T"; bash $T | tee "$DBDIR/$T.out" | tail -3
+  note "$T"; bash "tests/$T" | tee "$DBDIR/$T.out" | tail -3
   grep -q "FAIL: 0" "$DBDIR/$T.out" || FAILED=1
 done
 note "test_ws_revoke.js"
@@ -64,6 +64,8 @@ node tests/test_action_stream.js || FAILED=1
 note "test_forged_state.js (v274: forged local gear/wallet/progression cannot reach a battle)"
 node tests/test_forged_state.js || FAILED=1
 cleanup
+note "Witches Hut and world-map mechanics (server-side checks)"
+node --test tests/witches-hut.test.js tests/witches-hut-api.test.js tests/world-location.test.js tests/world-mines.test.js tests/world-mine-realtime.test.js tests/world-pvp-realtime.test.js tests/world-war-current.test.js tests/world-bot-roster.test.js || FAILED=1
 note "test_crash_idempotency.sh (v273: a reward cannot be paid twice across a crash)"
 bash tests/test_crash_idempotency.sh || FAILED=1
 

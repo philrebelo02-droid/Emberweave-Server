@@ -175,7 +175,7 @@ function defToDR(flatDef,lvl){ return flatDef>0 ? flatDef/(flatDef+CORE.defK(lvl
 
 /* Build a battle line from resolved stats + optional carried state.
    snaps: [heroCombatStats...] (≤5) · carry: [{hp,energy}] aligned or null */
-function makeLine(snaps, carry){
+function makeLine(snaps, carry, capToEntry){
   const coerced=snaps.filter(Boolean).slice(0,5).map(s2=>{
     if(s2.atkP!==undefined) return s2;                                  // already a typed core unit
     // legacy line-model unit (old fixtures/tests): map onto the typed model without changing power
@@ -184,7 +184,7 @@ function makeLine(snaps, carry){
       critDmg:0.6, dmgBonus:1, dmgRed:Math.min(0.6,s2.dr||0),           // legacy composite dr rides as flat reduction
       lifesteal:0, eva:0, acc:0, block:0, haste:1, shieldStr:1, ctrlHit:0,
       kit:CORE.KITS[s2.key]||{kind:s2.healer?'heal':'phys',shape:'nuke',coef:2.2,who:'allies'} }); });
-  return CORE.lineUp(coerced, carry);
+  return CORE.lineUp(coerced, carry, capToEntry);
 }
 function lineState(units){ return units.map(u=>({key:u.key, hp:Math.max(0,Math.round(u.hp)), maxHp:u.maxHp, energy:Math.round(u.energy), alive:u.hp>0})); }
 function anyAlive(units){ return units.some(u=>u.hp>0); }

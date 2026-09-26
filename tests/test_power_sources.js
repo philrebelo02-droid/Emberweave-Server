@@ -68,8 +68,10 @@ const b=html.indexOf('let aimCtr=',a);
 const head=html.slice(a,b);
 ck('Academy AP is not multiplied a second time inside the shared ability resolver',
   !/let apB=[^;]*apMul/.test(head) && !/let dB=[^;]*apMul/.test(head));
-const hpLine=(html.match(/const hp\s*=\s*heroStat[^\n]+/)||[''])[0];
-const atkLine=(html.match(/const atkP\s*=\s*heroStat[^\n]+/)||[''])[0];
+const powerStart=html.indexOf('function heroPower(key)');
+const powerHead=html.slice(powerStart,html.indexOf('const armor=',powerStart));
+const hpLine=(powerHead.match(/const hp\s*=[^\n]+/)||[''])[0];
+const atkLine=(powerHead.match(/const atkP\s*=[^\n]+/)||[''])[0];
 const critLine=(html.match(/const crit\s*=\s*Math\.min[^\n]+/)||[''])[0];
 ck('displayed Hero Power includes Academy HP and Attack flats',/techTotal\('hp'\)/.test(hpLine)&&/techTotal\('atk'\)/.test(atkLine));
 ck('displayed Hero Power counts socket and gear Crit once',!/tt\.crit\|\|/.test(critLine));

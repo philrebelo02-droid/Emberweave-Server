@@ -122,8 +122,31 @@ function load(htmlPath){
   catch(e){ const err=new Error('sim-host: the game script threw while loading — '+e.message); err.cause=e; throw err; }
   const need=['simFightResult','simFightReplay','seedBattle','snapAllySquad','snapSquadFromSpecs','simCampaignReplay','simRaidReplay'];   /* v666: the guild raid boss is replayed here too */
   for(const n of need) if(typeof sandbox[n]!=='function') throw new Error('sim-host: '+n+' is not defined after load');
+  const monsterCatalog=JSON.parse(vm.runInContext('JSON.stringify(MONSTER_TYPES)',ctx));
+  // Keep the current client NPC rules as one calculation while server-owned
+  // account progress and castle positions supply every input. Isolate the VM's
+  // mutable browser state so one player's roster cannot affect another's.
+  const botRosterScript=new vm.Script(`(function(){
+    const priorG=G, priorCities=REAL_CITIES, priorCache=_botCache;
+    try {
+      G=Object.assign({},G,{playerXP:_worldBotInput.playerXP,region:_worldBotInput.homeRegion,
+        castleX:_worldBotInput.castleX,castleY:_worldBotInput.castleY,guild:null});
+      REAL_CITIES=_worldBotInput.realCities;
+      _botCache={};
+      return JSON.stringify(regionBotRoster(_worldBotInput.regionKey));
+    } finally { G=priorG; REAL_CITIES=priorCities; _botCache=priorCache; }
+  })()`);
   return {
     ctx, sandbox,
+    mineGarrison(node){ return JSON.parse(JSON.stringify(sandbox.mineGarrison(node))); },
+    botRoster(input){
+      sandbox._worldBotInput={regionKey:String(input.regionKey),homeRegion:String(input.homeRegion),
+        playerXP:Math.max(0,+input.playerXP||0),castleX:+input.castleX,castleY:+input.castleY,
+        realCities:JSON.parse(JSON.stringify(input.realCities||[]))};
+      try{ return JSON.parse(botRosterScript.runInContext(ctx,{timeout:10000})); }
+      finally{ delete sandbox._worldBotInput; }
+    },
+    monsterBase(key){ const m=monsterCatalog[key]; return m?{hp:m.hp,dmg:m.dmg,role:m.role,range:m.range}:null; },
     /* BUILD_ID is a top-level const inside the game script (script-scoped, never on the sandbox), so
        read the shipped build straight out of the file — this is the engine version a result is tied to. */
     buildVersion: (html.match(/const\s+BUILD_ID\s*=\s*'(\d+)'/)||[])[1]||null,   /* v559: the shipped client writes `const BUILD_ID = '...'` WITH spaces, so this never matched and every campaign session and incident recorded a null engine id. */

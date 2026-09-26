@@ -172,9 +172,10 @@ function buildUnit(key, base, mul, defScale, r, extra){
 }
 
 const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Assassin:2,Mage:3,Marksman:3,Support:4};
-function lineUp(units, carry){
+function lineUp(units, carry, capToEntry){
   const out=units.filter(Boolean).slice(0,5).map((u,i)=>{ const c=Object.assign({},u);
     c.hp=carry&&carry[i]?Math.max(0,Math.min(u.maxHp,carry[i].hp|0)):u.maxHp;
+    c.healCap=capToEntry?c.hp:u.maxHp;
     c.energy=carry&&carry[i]?Math.max(0,Math.min(100,carry[i].energy|0)):(u.startEnergy||0);
     c.shieldPool=0; c._stunR=0; c._skipR=0; c._buffR=0; c._buffMul=1; c._drR=0; c._markR=0; c._markMul=1; c._gearSkillUsed=false;
     return c; });
@@ -220,12 +221,12 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   tgt.hp-=dmg; removed+=dmg;
   if(log.length<600) log.push([round,side,src.key,'>',tgt.key,removed,opts.ult?1:0,kind,crit?1:0]);
   // lifesteal off damage actually removed
-  if((src.lifesteal||0)>0 && removed>0 && src.hp>0){ const ls=Math.round(removed*src.lifesteal); src.hp=Math.min(src.maxHp,src.hp+ls); }
+  if((src.lifesteal||0)>0 && removed>0 && src.hp>0){ const ls=Math.round(removed*src.lifesteal); src.hp=Math.min(src.healCap==null?src.maxHp:src.healCap,src.hp+ls); }
   return removed;
 }
 function applyHeal(log, round, side, src, tgt, amt, ult){
   const a=Math.round(amt*(1+(src.healPow||0)));
-  tgt.hp=Math.min(tgt.maxHp,tgt.hp+a);
+  tgt.hp=Math.min(tgt.healCap==null?tgt.maxHp:tgt.healCap,tgt.hp+a);
   if(log.length<600) log.push([round,side,src.key,'+',tgt.key,a,ult?1:0,'heal',0]);
   return a;
 }
@@ -346,7 +347,7 @@ function resolveBattle(a, b, seed){
     round++;
     for(const u of a.concat(b)){ if(u.hp<=0) continue;
       if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.haste||1));
-      if(u.regen) u.hp=Math.min(u.maxHp,u.hp+u.maxHp*u.regen);
+      if(u.regen) u.hp=Math.min(u.healCap==null?u.maxHp:u.healCap,u.hp+u.maxHp*u.regen);
       if(u._buffR>0){ u._buffR--; if(u._buffR<=0) u._buffMul=1; }
       if(u._drR>0) u._drR--;
       if(u._markR>0){ u._markR--; if(u._markR<=0) u._markMul=1; } }

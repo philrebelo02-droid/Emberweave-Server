@@ -20,6 +20,10 @@ const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
 const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
+const WITCH=require('./server/witches-hut.js');
+const WORLD_MINES=require('./server/world-mines.js');
+const WORLD_LOCATION=require('./server/world-location.js');
+const WORLD_TERRAIN_BLOCKED=new Set(require('./server/world-terrain-blocked.json').cells);
 
 const PORT = process.env.PORT || 8080;
 const GAME_FILE = path.join(__dirname, 'emberweave-heroes.html');
@@ -329,7 +333,7 @@ function sendChangeCode(to, name, code, toCurrent){
     codeHtml(name, 'A request was made to change the recovery email on your account. Your confirmation code is:', code, toCurrent?'Enter it in the game to confirm the change (expires in 15 minutes). If this wasn\'t you, do NOT enter this code and change your password right away.':'Enter it in the game to confirm the change. Expires in 15 minutes. If you didn\'t request this, you can ignore this email.')); }
 
 const HERO_KEYS=['konwu','grosk','vulmar','tick','sylthaine','aureth','bloatus','vireo','fritz'];
-function defaultTeam(){ return [ {key:'konwu',level:1,rank:0},{key:'grosk',level:1,rank:0},{key:'vulmar',level:1,rank:0} ]; }
+function defaultTeam(){ return [ {key:'vael',level:1,rank:0},{key:'sylthaine',level:1,rank:0},{key:'vireo',level:1,rank:0} ]; }
 
 /* --------------------------- NPC / world seeding -------------------------- */
 const NPC_NAMES=['Ironhold','Stormgate','Ashvale','Highcliff','Duskmere','Ravenspire','Frostholm','Emberton','Wolfden','Goldreach','Thornwick','Mistfall','Grimwater','Sunspear','Blackmoor','Oakenshield','Redkeep','Silverbrook','Winterfell','Stonehaven','Bramblewood','Nightvale','Dawnkeep','Shadowfen','Windmere','Coldharbor','Firebrand','Greymarch','Hollowreach','Larkspur','Direhold','Kingsmoor','Valebright','Ashenford','Cragmaw','Elmsworth','Ferncove','Gale’s Rest','Hearthglen','Ivywatch'];
@@ -1817,6 +1821,46 @@ function heroCardPower(u,key){
   try{ p+=glyphHeroPower(u,key); }catch(e){}
   return Math.round(p);
 }
+
+/* Witches Hut balance seam. The benchmark is an earned-power reference line, never the
+   account's paid-up hero power. Its exact curve is isolated here for the planned simulation;
+   the cauldron state and 18-hour refill law do not depend on the final tuning. */
+function witchBenchmarkCapacity(hutLevel){
+  const level=Math.max(WITCH.UNLOCK_LEVEL,Math.min(100,hutLevel|0));
+  // Ledger-backed heroes cap at five stars. Do not price an impossible sixth
+  // star while this provisional earnable-power benchmark awaits simulation.
+  const stars=Math.min(5,1+Math.floor(level/20));
+  const keys=['vael','sylthaine','vireo','vex','tallow'];
+  return Math.max(1,Math.round(keys.reduce((sum,key)=>{
+    const snap=SIM.heroCombatStats(key,{level,stars,pips:0});
+    return sum+(snap?unitCardPower(snap,key):0);
+  },0)));
+}
+function witchState(u,now){
+  const level=ledPlayerLevel(ensureLedger(u));
+  if(level<WITCH.UNLOCK_LEVEL) return null;
+  if(!u.witch){ u.witch=WITCH.create(witchBenchmarkCapacity(WITCH.UNLOCK_LEVEL),now); u.witch.level=WITCH.UNLOCK_LEVEL; writeDB(); }
+  u.witch.level=Math.max(WITCH.UNLOCK_LEVEL,Math.min(level,u.witch.level|0));
+  const cap=witchBenchmarkCapacity(u.witch.level);
+  WITCH.settle(u.witch,cap,now);
+  WITCH.shopRefresh(u.witch,nyDayKey(now));
+  return {state:u.witch,capacity:cap,playerLevel:level};
+}
+function witchView(u,now){
+  const w=witchState(u,now);
+  if(!w) return {ok:true,locked:true,unlockLevel:WITCH.UNLOCK_LEVEL,
+    playerLevel:ledPlayerLevel(ensureLedger(u))};
+  const led=ensureLedger(u);
+  const heroes=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k])
+    .map(key=>{ const power=heroCardPower(u,key), hp=WITCH.health(w.state,key);
+      return {key,power,hp,healCost:Math.ceil(power*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL),
+        returnAt:worldHeroReturnAt(u,key,now)}; })
+    .filter(h=>h.hp<WITCH.HP_FULL).sort((a,b)=>b.power-a.power||a.key.localeCompare(b.key));
+  return {ok:true,locked:false,level:w.state.level,playerLevel:w.playerLevel,
+    brew:w.state.brew,capacity:w.capacity,refillMs:WITCH.TICK_MS*WITCH.FULL_TICKS,
+    heroes,offer:WITCH.shopOffer(w.state),shopUses:w.state.shopUses,
+    surgeUntil:w.state.surgeUntil,ledger:ledgerView(u)};
+}
 /* the line's own heroes are already resolved units - price them the same way. The skill bonus and
    the glyph tier ride on the OWNER, so a line is priced through heroCardPower where the owner is
    known and falls back to the unit alone where it is not. */
@@ -1975,9 +2019,18 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
     const seen=new Set();
     /* v774 - `power` comes along. The client orders every list of lines weakest-to-strongest by
        it, and dropping it here made that sort a no-op in every real war. */
-    const hydrate=(L)=>({ memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
-      lineSnapshot:JSON.parse(JSON.stringify(L.heroes)),
-      hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true });
+    const huts=new Map();
+    const hydrate=(L)=>{
+      if(!huts.has(L.memberId)){
+        const owner=DB.users[L.memberId];
+        huts.set(L.memberId,owner?witchState(owner,Date.now()):null);
+      }
+      const hut=huts.get(L.memberId);
+      const hpState=L.heroes.map(h=>({hp:hut?WITCH.combatHp(hut.state,h.key,h.maxHp):h.maxHp,energy:0}));
+      return { memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
+        lineSnapshot:JSON.parse(JSON.stringify(L.heroes)), hpState,
+        alive:hpState.some(h=>h.hp>0) };
+    };
     for(const c of side.citadels){
       const out=[];
       for(const d of c.defenders){
@@ -2660,6 +2713,105 @@ function ledTx(u,src,delta){ const led=u.led; const id=uid();
   led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
   led.rev++; writeDBNow(); return id; }
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
+function worldLocation(u){
+  if(ledPlayerLevel(ensureLedger(u))<WITCH.UNLOCK_LEVEL) return null;
+  if(WORLD_LOCATION.valid(u.worldLocation)
+    &&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(u.worldLocation.x,u.worldLocation.y))) return u.worldLocation;
+  const taken=Object.values(DB.users).filter(v=>v.id!==u.id).map(v=>v.worldLocation);
+  const mines=WORLD_MINES.field(WORLD_MINES.epochAt(Date.now()));
+  u.worldLocation=WORLD_LOCATION.place(taken,crypto.randomInt,
+    [...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
+  writeDBNow(); // the assigned region and square must survive a restart before a client sees them
+  return u.worldLocation;
+}
+function worldTravelState(u){
+  if(!u.worldTravel||typeof u.worldTravel!=='object') u.worldTravel={};
+  const t=u.worldTravel;
+  t.teleUsed=Math.max(0,t.teleUsed|0); t.teleScrolls=Math.max(0,t.teleScrolls|0);
+  t.wildScrolls=Math.max(0,t.wildScrolls|0);
+  t.wildLast=Math.max(0,+t.wildLast||0); t.lastTransfer=Math.max(0,+t.lastTransfer||0);
+  return t;
+}
+function worldTravelDay(now){ return nyDayKey(now-9*3600000); }
+function worldView(u,now){
+  const loc=worldLocation(u); if(!loc) return {ok:true,locked:true,needLevel:WITCH.UNLOCK_LEVEL};
+  const t=worldTravelState(u),day=worldTravelDay(now);
+  return {ok:true,locked:false,...loc,teleUsed:t.teleDay===day?t.teleUsed:0,
+    teleScrolls:t.teleScrolls,wildScrolls:t.wildScrolls,wildLast:t.wildLast,
+    lastTransfer:t.lastTransfer,teleDay:day,terrainBlockedCells:[...WORLD_TERRAIN_BLOCKED]};
+}
+function worldBlockedKeys(u,now){
+  const blocked=new Set(WORLD_TERRAIN_BLOCKED);
+  for(const key of Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
+    .map(v=>WORLD_LOCATION.cellKey(v.worldLocation.x,v.worldLocation.y))) blocked.add(key);
+  for(const n of WORLD_MINES.field(WORLD_MINES.epochAt(now))) blocked.add(n.gx+','+n.gy);
+  return blocked;
+}
+function worldSquareTaken(u,x,y,now){
+  return worldBlockedKeys(u,now).has(WORLD_LOCATION.cellKey(x,y));
+}
+function migrateBlockedWorldCastles(){
+  const now=Date.now(); let moved=0;
+  for(const u of Object.values(DB.users)){
+    const loc=u.worldLocation;
+    if(!WORLD_LOCATION.valid(loc)||!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(loc.x,loc.y))) continue;
+    const next=WORLD_LOCATION.nearestOpen(loc.region,loc.x,loc.y,worldBlockedKeys(u,now));
+    if(!next) throw Error('No open world square remains for a terrain-blocked castle.');
+    u.worldLocation=next; moved++;
+  }
+  if(moved) writeDBNow();
+  console.log('🌍 Terrain-blocked castles moved at boot: '+moved);
+}
+const WORLD_WAR_PREP_MS=30*60000, WORLD_WAR_TOTAL_MS=72*3600000;
+function worldWarState(u){
+  if(!u.worldWars||typeof u.worldWars!=='object'||Array.isArray(u.worldWars)) u.worldWars={};
+  return u.worldWars;
+}
+function worldCityMarches(u,now=Date.now()){
+  if(!Array.isArray(u.worldCityMarches)) u.worldCityMarches=[];
+  if(u.worldCityMarches.length>100){
+    const keepAfter=now-2*86400000;
+    u.worldCityMarches=u.worldCityMarches.filter(m=>!m.resolved
+      ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
+  }
+  return u.worldCityMarches;
+}
+// Resolve receipts outlive the 24-hour idempotency cache so a late retry cannot
+// pay again. Keep every unfinished trip; discard only old, settled mine history.
+function worldMineMarches(u,now){
+  if(!Array.isArray(u.worldMineMarches)) u.worldMineMarches=[];
+  if(u.worldMineMarches.length>100){
+    const keepAfter=now-2*86400000;
+    u.worldMineMarches=u.worldMineMarches.filter(m=>!m.resolved
+      ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
+  }
+  return u.worldMineMarches;
+}
+function worldHeroReturnAt(u,key,now=Date.now()){
+  let returnAt=0;
+  for(const list of [u.worldMineMarches,u.worldCityMarches]){
+    if(!Array.isArray(list)) continue;
+    for(const march of list){
+      if(march && +march.homeAt>now && Array.isArray(march.heroIds) && march.heroIds.includes(key))
+        returnAt=Math.max(returnAt,+march.homeAt);
+    }
+  }
+  return returnAt;
+}
+function worldBotRoster(u,regionKey){
+  const loc=worldLocation(u),host=loc&&simHost();
+  if(!host||!WORLD_LOCATION.REGION_KEYS.includes(regionKey)) return [];
+  const realCities=Object.values(DB.users)
+    .filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
+    .map(v=>({id:v.id,region:v.worldLocation.region,x:v.worldLocation.x,y:v.worldLocation.y}));
+  return host.botRoster({regionKey,homeRegion:loc.region,
+    playerXP:ensureLedger(u).px||0,castleX:loc.x,castleY:loc.y,realCities});
+}
+function worldBotTarget(u,id){
+  const match=/^bot_([a-z]+)_(\d{1,3})$/.exec(String(id||''));
+  if(!match) return null;
+  return worldBotRoster(u,match[1]).find(bot=>bot.id===id)||null;
+}
 function ledHeroLevel(led,k){ const h=led.hero[k]; if(!h) return 1;
   return Math.max(1,Math.min(ledPlayerLevel(led), d_levelForXP(h.xp||0, D_HERO_CUM))); }
 const STAM_MAX_BASE=59, STAM_REGEN_MS=360000, STAM_COST_NORMAL=6, STAM_COST_BOSS=12;
@@ -2686,7 +2838,7 @@ function ledAddPlayerXP(led,amount){
   }
   return gained;
 }
-function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led);
+function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, prayer:Math.max(0,Math.min(200,led.prayer|0)),
@@ -3800,13 +3952,22 @@ async function api(req,res,url){
         m.version++; writeDB();
         return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
       const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
-      const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState);
-      const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState);
+      // World-map wounds carried between assaults cap in-battle healing at entry HP.
+      const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState, true);
+      const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState, true);
       const r=SIM.resolveLineBattle(aLine,bLine,seed);
       // persist survivor HP/energy on BOTH lines (keyed back to snapshot order)
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
       attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
       defender.hpState=mapBack(defender.lineSnapshot, r.bState);
+      // A guild-war assault is a world fight for both real owners. Match HP alone
+      // disappears with the tournament; carry the measured losses into the Hut.
+      const warInjuries={attacker:[],defender:[]};
+      const attackOwner=DB.users[attacker.memberId], defendOwner=DB.users[defender.memberId];
+      const attackHut=attackOwner&&witchState(attackOwner,Date.now());
+      const defendHut=defendOwner&&witchState(defendOwner,Date.now());
+      if(attackHut) warInjuries.attacker=WITCH.applyBattle(attackHut.state,r.aState,attacker.lineSnapshot.map(h=>h.key));
+      if(defendHut) warInjuries.defender=WITCH.applyBattle(defendHut.state,r.bState,defender.lineSnapshot.map(h=>h.key));
       /* v678: the march settles it - the loser's line is eliminated, the winner banks a kill */
       if(r.won){ defender.alive=false; attacker.kills=(attacker.kills|0)+1; }
       else { attacker.alive=false; defender.kills=(defender.kills|0)+1; }
@@ -3823,7 +3984,7 @@ async function api(req,res,url){
       m.version++; writeDB();
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
-        result:{ aState:r.aState, bState:r.bState, rounds:r.rounds },
+        result:{ aState:r.aState, bState:r.bState, rounds:r.rounds }, injuries:warInjuries,
         match:warMatchView(t,m,myGid,me.id) });
     }
     if(p==='/api/guild-war/claim-reward'){
@@ -4396,6 +4557,142 @@ async function api(req,res,url){
     return send(res,404,{error:'glyphs'});
   }
 
+  if(p==='/api/witch/state' && req.method==='GET'){
+    if(!me) return send(res,401,{error:'auth'});
+    return send(res,200,witchView(me,Date.now()));
+  }
+  if(['/api/witch/heal','/api/witch/heal-all','/api/witch/buy-brew'].includes(p) && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req), rid=String(b.requestId||'').slice(0,48);
+    if(!rid) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':witch:'+rid,()=>{
+      const now=Date.now(), w=witchState(me,now);
+      if(!w) return {ok:false,error:'The Witches Hut opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+      const led=ensureLedger(me);
+      if(p==='/api/witch/heal'){
+        const key=String(b.hero||'');
+        if(!SIM.HERO_BASE[key] || !led.unlocked[key]) return {ok:false,error:'You do not own that hero.'};
+        if(worldHeroReturnAt(me,key,now)>now)
+          return {ok:false,error:'That hero is still marching. Heal them when they return to your city.'};
+        const result=WITCH.heal(w.state,key,heroCardPower(me,key),w.capacity,now);
+        if(!(result.spent>0)) return {ok:false,error:'That hero needs no heal, or the cauldron is empty.'};
+        return {ok:true,result,witch:witchView(me,now)};
+      }
+      if(p==='/api/witch/heal-all'){
+        const heroes=Object.keys(led.unlocked||{}).filter(key=>led.unlocked[key]&&SIM.HERO_BASE[key]
+          && WITCH.health(w.state,key)<WITCH.HP_FULL && worldHeroReturnAt(me,key,now)<=now)
+          .map(key=>({key,power:heroCardPower(me,key)}));
+        const results=WITCH.healAll(w.state,heroes,w.capacity,now).filter(h=>h.spent>0);
+        if(!results.length) return {ok:false,error:'No damaged heroes at your city could be healed.'};
+        return {ok:true,results,witch:witchView(me,now)};
+      }
+      const offer=WITCH.shopOffer(w.state);
+      if(!offer || b.tier!==offer.tier) return {ok:false,error:'That brew offer is not available.'};
+      if(w.state.brew>=w.capacity-1e-9) return {ok:false,error:'The cauldron is full.'};
+      if((led.gems|0)<offer.gems) return {ok:false,error:'Not enough diamonds.'};
+      const bought=WITCH.buy(w.state,offer.tier,w.capacity);
+      if(!bought || !(bought.added>0)) return {ok:false,error:'The cauldron is full.'};
+      led.gems-=offer.gems; ledTx(me,'witch:brew',{gems:-offer.gems});
+      return {ok:true,result:bought,witch:witchView(me,now)};
+    });
+    return send(res,out.ok?200:400,out);
+  }
+
+  if((p==='/api/world/mine/start'||p==='/api/world/mine/resolve') && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req), rid=String(b.requestId||'').slice(0,48);
+    if(!rid) return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':worldmine:'+p+':'+rid,()=>{
+      const now=Date.now(), w=witchState(me,now), led=ensureLedger(me);
+      if(!w) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+      worldMineMarches(me,now);
+      if(p==='/api/world/mine/start'){
+        const castle=worldLocation(me);
+        if(!castle) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+        const node=WORLD_MINES.nodeById(String(b.mineId||''),now);
+        if(!node) return {ok:false,error:'That mine is not in the current field.'};
+        const epoch=WORLD_MINES.epochAt(now);
+        if(!me.mineClaims||me.mineClaims.epoch!==epoch) me.mineClaims={epoch,ids:[]};
+        if(me.mineClaims.ids.includes(node.id)) return {ok:false,error:'That mine was already claimed this cycle.'};
+        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
+        if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
+          return {ok:false,error:'Pick up to five heroes you own.'};
+        if([...me.worldMineMarches,...worldCityMarches(me)]
+          .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
+          return {ok:false,error:'A selected hero is already marching.'};
+        const needLevel=[1,8,16,26,36,44,52,58][node.level-1];
+        if(!ids.some(k=>ledHeroLevel(led,k)>=needLevel))
+          return {ok:false,error:'One hero must be level '+needLevel+' for this mine.'};
+        const power=ids.reduce((sum,k)=>sum+heroCardPower(me,k),0);
+        const needPower=Math.round(300*Math.pow(1.75,node.level-1)*1.4276);
+        if(power<needPower) return {ok:false,error:'The squad needs '+needPower+' card power.'};
+        const host=simHost();
+        if(!host) return {ok:false,error:'Mine battle engine unavailable.'};
+        const specs=ids.map(k=>campaignHeroSpec(me,k));
+        if(specs.some(s=>!s)) return {ok:false,error:'A selected hero could not be resolved.'};
+        let snaps;
+        try{ snaps=host.snapFromSpecs(specs); }
+        catch(e){ return {ok:false,error:'Mine squad could not be resolved.'}; }
+        if(snaps.length!==ids.length) return {ok:false,error:'Mine squad is incomplete.'};
+        snaps=snaps.map(s=>{
+          const hp=WITCH.combatHp(w.state,s.key,s.maxHp);
+          return {...s,hp,worldEntryHpCap:hp};
+        });
+        // Phil: a 0%-HP hero cannot join a world fight until healed with brew.
+        if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
+        const wx=castle.x,wy=castle.y;
+        const cx=Math.round(wx/WORLD_MINES.GRID_CELL-0.5),cy=Math.round(wy/WORLD_MINES.GRID_CELL-0.5);
+        const distance=Math.max(1,Math.round(Math.hypot(node.gx-cx,node.gy-cy)));
+        const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_MINE_TEST_MS||0):0;
+        const travel=fixtureMs||distance*60000, gather=fixtureMs||(20+node.level*18)*60000;
+        const march={id:uid(),node,heroIds:ids,snaps,depart:now,arriveAt:now+travel+gather,
+          homeAt:now+travel*2+gather,resolved:false};
+        me.worldMineMarches.push(march); me.mineClaims.ids.push(node.id);
+        return {ok:true,marchId:march.id,mineId:node.id,heroIds:ids,depart:now,
+          arriveAt:march.arriveAt,homeAt:march.homeAt,travel,gather};
+      }
+      const march=me.worldMineMarches.find(m=>m.id===String(b.marchId||''));
+      if(!march) return {ok:false,error:'Unknown mine march.'};
+      if(march.resolved) return march.receipt;
+      if(now<march.arriveAt) return {ok:false,error:'The miners have not reached the guardians.',arriveAt:march.arriveAt};
+      const host=simHost();
+      if(!host) return {ok:false,error:'Mine battle engine unavailable.'};
+      const garrison=host.mineGarrison(march.node);
+      if(garrison.length!==5) return {ok:false,error:'Mine garrison is incomplete.'};
+      const seed=srvSeed('world-mine',me.id,march.id);
+      const battle=host.auto(march.snaps,garrison,seed);
+      let digest;
+      try{ digest=JSON.parse(battle.digest); }catch(e){ return {ok:false,error:'Mine battle result was incomplete.'}; }
+      if(!digest||!Array.isArray(digest.u)||digest.won!==battle.won)
+        return {ok:false,error:'Mine battle result was incomplete.'};
+      const outcomes=march.snaps.map(s=>{
+        const row=digest.u.find(u=>u[0]===s.key&&u[1]==='ally');
+        // The real-time engine removes some fallen units before its final digest.
+        // A missing member of the frozen squad therefore has zero surviving HP.
+        return {key:s.key,hp:row?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp};
+      });
+      const injuries=WITCH.applyBattle(w.state,outcomes,march.heroIds);
+      const A=ensureAcad(me); acadCollect(A);
+      const dk=nyDayKey(now);
+      if(!A.mineDay||A.mineDay.k!==dk) A.mineDay={k:dk};
+      let granted=0,capLeft=Math.max(0,60-(A.mineDay[march.node.res]|0));
+      if(battle.won){
+        const used=A.mineDay[march.node.res]|0;
+        granted=Math.min(15,Math.max(0,60-used));
+        A.mineDay[march.node.res]=used+granted;
+        A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
+        capLeft=60-A.mineDay[march.node.res];
+      }
+      march.resolved=true; march.resolvedAt=now;
+      march.receipt={ok:true,won:battle.won,durationSec:digest.t,injuries,granted,
+        res:A.res,capLeft,garrison,replay:{seed,snaps:march.snaps,foe:garrison,engine:host.buildVersion},
+        witch:witchView(me,now)};
+      delete march.snaps;
+      return march.receipt;
+    });
+    return send(res,out.ok?200:400,out);
+  }
+
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req, BODY_MAX_SAVE);
     /* v272 (full-game audit): `team`/`wall` are the player's chosen line-up — UI state, not power.
        They used to be stored verbatim, unbounded, and a forged `level`/`rank` inside them reached a
@@ -4403,10 +4700,8 @@ async function api(req,res,url){
     if(Array.isArray(b.team)) me.team=sanitizeRoster(b.team);
     if(Array.isArray(b.wall)) me.wall=sanitizeRoster(b.wall);
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
-    if(b.world && typeof b.world==='object'){   // world-map presence: region + castle position + display stats
-      const w=b.world;
-      me.world={ region:String(w.region||'').slice(0,16), x:Math.max(0,Math.min(100,+w.x||0)), y:Math.max(0,Math.min(100,+w.y||0)),
-                 level:Math.max(1,Math.min(100,parseInt(w.level,10)||1)), power:Math.max(0,Math.min(99999999,parseInt(w.power,10)||0)), t:Date.now() }; }
+    // World position is server-owned. Ignore the legacy browser world blob; it must not
+    // change mine travel or another player's visible castle position.
     writeDB(); return send(res,200,{ok:true}); }
 
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
@@ -4726,6 +5021,7 @@ async function api(req,res,url){
     const out=idem(me.id+':earn:'+reqId,()=>{
       const led=ensureLedger(me); const what=String(b.what||''); const reason=String(b.reason||'misc').slice(0,24);
       const amt=Math.floor(+b.amount||0);
+      if(reason==='march') return {ok:false,error:'World battles now require a verified server march.'};
       const rules=(EARN_RULES[what]||{})[reason]; if(!rules) return {ok:false,error:'No earn rule for '+what+'/'+reason+'.'};
       if(what==='gold' && reason==='misc' && String(b.sub||'')==='province') return {ok:false,error:'The Training Province is a real battle now — please update the game.'};   /* v663: an old cached client's instant province grant */
       if(!(amt>0&&amt<=rules.max)) return {ok:false,error:'Amount exceeds the '+reason+' rule.'};
@@ -5432,6 +5728,8 @@ async function api(req,res,url){
      Academy research lives on the LEDGER (levels, timers, resource wallet, costs mirrored from the
      client tables); world-map mining is a capped server grant; City PvP is resolved BY THE SERVER
      through the shared combat core, and the verified result is what both mailboxes receive. */
+  if(p==='/api/world/mine' && process.env.ALLOW_LEGACY_MINE_GRANTS!=='1')
+    return send(res,410,{ok:false,error:'Old mine claims are retired. Send a verified mine march.'});
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
     const led=ensureLedger(me); const A=ensureAcad(me);
@@ -5466,31 +5764,131 @@ async function api(req,res,url){
         writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:CAP-A.mineDay[rk]};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/pvp/attack'){ const out=idem(me.id+':pvpatk:'+reqId,()=>{
-        const d=DB.users[String(b.defId||'')];
+        const march=worldCityMarches(me).find(m=>m.id===String(b.marchId||''));
+        if(!march||march.defId!==String(b.defId||'')) return {ok:false,error:'No registered city march.'};
+        if(march.resolved) return march.receipt;
+        if(Date.now()<march.arriveAt)
+          return {ok:false,error:'The army has not reached the city.',arriveAt:march.arriveAt};
+        if(march.botTeam){
+          const host=simHost(),ids=march.heroIds;
+          if(!host||!Array.isArray(march.botTeam)||!march.botTeam.length||!ids?.length)
+            return {ok:false,error:'The bot battle could not be resolved.'};
+          if(!march.snaps?.some(s=>s.hp>0))
+            return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
+          const seed=srvSeed('worldbot',me.id,march.id);
+          const fight=host.auto(march.snaps,march.botTeam,seed);
+          let digest;
+          try{digest=JSON.parse(fight.digest);}catch(e){return {ok:false,error:'The bot battle result was incomplete.'};}
+          if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
+            return {ok:false,error:'The bot battle result was incomplete.'};
+          const outcomes=march.snaps.map(s=>{
+            const row=digest.u.find(u=>u[0]===s.key&&u[1]==='ally');
+            return {key:s.key,hp:row?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp};
+          });
+          const w=witchState(me,Date.now());
+          const injuries={attacker:WITCH.applyBattle(w.state,outcomes,ids),defender:[]};
+          const loot={gold:0,guildCoins:0};
+          if(fight.won){
+            const led=ensureLedger(me),dk=nyDayKey();
+            if(!led.earnDay||led.earnDay.k!==dk) led.earnDay={k:dk};
+            const guild=me.guildId&&DB.guilds?.[me.guildId];
+            const guildMul=guild?1+((guild.level||1)*0.04):1;
+            const rolled=200+(srvSeed('worldbot-loot',me.id,march.id)%400);
+            const gold=Math.min(EARN_RULES.gold.march.max,Math.round(rolled*guildMul));
+            const goldLeft=Math.max(0,EARN_RULES.gold.march.day-(led.earnDay['gold:march']|0));
+            const coinLeft=Math.max(0,EARN_RULES.guildCoins.march.day-(led.earnDay['guildCoins:march']|0));
+            loot.gold=Math.max(0,Math.min(gold,goldLeft,ECON_CAP.gold-led.gold));
+            loot.guildCoins=Math.max(0,Math.min(40,coinLeft,ECON_CAP.guildCoins-(led.guildCoins|0)));
+            if(loot.gold||loot.guildCoins){
+              led.gold+=loot.gold; led.guildCoins=(led.guildCoins|0)+loot.guildCoins;
+              led.earnDay['gold:march']=(led.earnDay['gold:march']|0)+loot.gold;
+              led.earnDay['guildCoins:march']=(led.earnDay['guildCoins:march']|0)+loot.guildCoins;
+            }
+          }
+          const receipt={ok:true,won:fight.won,rounds:0,loot,injuries,
+            replay:{seed,snaps:march.snaps,foe:march.botTeam,engine:host.buildVersion,durationSec:digest.t}};
+          march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
+          // ledTx flushes synchronously: include the settled receipt before its payout write.
+          if(loot.gold||loot.guildCoins)
+            ledTx(me,'world-bot-march',{gold:loot.gold,guildCoins:loot.guildCoins});
+          writeDB(); return receipt;
+        }
+        const d=DB.users[march.defId];
         if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
         const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0,coins:0};
         if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
-        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
+        const ids=march.heroIds;
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
         for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'You have not unlocked '+k+'.'}; }
         const mySnaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         const defRoster=(Array.isArray(d.wall)&&d.wall.length?d.wall:(Array.isArray(d.team)?d.team:[])).filter(Boolean).slice(0,5);
         if(!mySnaps.length) return {ok:false,error:'Bad squad.'};
-        const defSnaps=(d.isNpc?defRoster.map(function(e){ return snapshotNpcHero(e); }):rosterKeys(defRoster).map(function(k){ return snapshotHeroFromServer(d,k); })).filter(Boolean);
+        const battleAt=Date.now(), myWitch=witchState(me,battleAt), defWitch=d.isNpc?null:witchState(d,battleAt);
+        const defLedger=d.isNpc?null:ensureLedger(d), defKeys=d.isNpc?[]:rosterKeys(defRoster);
+        const defenderCanFight=k=>!!defLedger.unlocked[k]&&(!defWitch||WITCH.health(defWitch.state,k)>0);
+        const defOwned=defKeys.filter(defenderCanFight);
+        // Old accounts can have a nonempty monster placeholder wall without owning any
+        // of those heroes. Defend with their starters. An owned wall whose heroes are all
+        // at 0% HP must remain undefended under Phil's fallen-hero rule.
+        if(!d.isNpc && !defOwned.length && !defKeys.some(k=>defLedger.unlocked[k]))
+          defOwned.push(...STARTER_HEROES.filter(defenderCanFight));
+        const defSnaps=(d.isNpc?defRoster.map(function(e){ return snapshotNpcHero(e); }):defOwned
+          .map(function(k){ return snapshotHeroFromServer(d,k); })).filter(Boolean);
         // v328: an unresolvable defence must FAIL CLOSED. This used to leave won=true when the
         // wall produced no snapshots (empty roster via sanitizeRoster, or any future shape change),
         // handing the attacker capped gold + guild coins + hero XP with no battle ever simulated.
         // Returned before me.pvpDay.n++ so a phantom fight costs the attacker no daily attack.
-        if(!defSnaps.length) return {ok:false,error:'That city has no defenders.'};
-        let won=false, rounds=0, log=[];
-        if(defSnaps.length){ const r=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(defSnaps),SIM.seedFrom('citypvp:'+me.id+':'+reqId));
-          won=r.won; rounds=r.rounds; log=r.log.slice(0,200); }
+        if(!defSnaps.length && d.isNpc) return {ok:false,error:'That city has no defenders.'};
+        const carry=(snaps,w)=>snaps.map(s=>({hp:w?WITCH.combatHp(w.state,s.key,s.maxHp):s.maxHp,energy:0}));
+        const myCarry=carry(mySnaps,myWitch), defCarry=carry(defSnaps,defWitch);
+        if(!march.snaps.some(s=>s.hp>0)) return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
+        let won=false, rounds=0, log=[], injuries={attacker:[],defender:[]}, replay=null;
+        const seed=srvSeed('citypvp',me.id,reqId);
+        if(!defSnaps.length){
+          // Phil: a 0%-HP wall hero cannot fight. With no standing defenders the arriving
+          // attacker wins an undefended castle without fabricating combat or fresh wounds.
+          won=true;
+        }else if(!d.isNpc){
+          const host=simHost();
+          if(!host) return {ok:false,error:'City battle engine unavailable.'};
+          const bSpecs=defOwned.map(k=>campaignHeroSpec(d,k));
+          if(bSpecs.some(s=>!s)) return {ok:false,error:'City squad could not be resolved.'};
+          let aSnaps,bSnaps;
+          try{ aSnaps=march.snaps; bSnaps=host.snapFromSpecs(bSpecs); }
+          catch(e){ return {ok:false,error:'City squads could not be resolved.'}; }
+          if(aSnaps.length!==ids.length||bSnaps.length!==defOwned.length)
+            return {ok:false,error:'City squads are incomplete.'};
+          const cap=(snaps,w)=>snaps.map(s=>{
+            const hp=w?WITCH.combatHp(w.state,s.key,s.maxHp):s.maxHp;
+            return {...s,hp,worldEntryHpCap:hp};
+          });
+          bSnaps=cap(bSnaps,defWitch);
+          if(!aSnaps.some(s=>s.hp>0)) return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
+          const fight=host.auto(aSnaps,bSnaps,seed);
+          let digest;
+          try{ digest=JSON.parse(fight.digest); }catch(e){ return {ok:false,error:'City battle result was incomplete.'}; }
+          if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
+            return {ok:false,error:'City battle result was incomplete.'};
+          const outcomes=(snaps,side)=>snaps.map(s=>{
+            const row=digest.u.find(u=>u[0]===s.key&&u[1]===side);
+            return {key:s.key,hp:row?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp};
+          });
+          const aOut=outcomes(aSnaps,'ally'),bOut=outcomes(bSnaps,'enemy');
+          won=fight.won;
+          if(myWitch) injuries.attacker=WITCH.applyBattle(myWitch.state,aOut,ids);
+          if(defWitch) injuries.defender=WITCH.applyBattle(defWitch.state,bOut,defOwned);
+          replay={seed,snaps:aSnaps,foe:bSnaps,engine:host.buildVersion,durationSec:digest.t};
+        }else{
+          const r=SIM.resolveLineBattle(SIM.makeLine(mySnaps,myCarry,true),SIM.makeLine(defSnaps,defCarry,true),seed);
+          won=r.won; rounds=r.rounds; log=r.log.slice(0,200);
+          if(myWitch) injuries.attacker=WITCH.applyBattle(myWitch.state,r.aState,ids);
+        }
         me.pvpDay.n++;
-        let loot=null;
-        if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold));
-          if(g>0){ led.gold=Math.min(ECON_CAP.gold,led.gold+g); me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0};
-          const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)));
-          if(c>0){ led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+c); me.pvpDay.coins=(me.pvpDay.coins|0)+c; ledTx(me,'city-pvp',{guildCoins:c}); }
+        let loot=null,paidGold=0,paidCoins=0;
+        if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold),Math.max(0,ECON_CAP.gold-led.gold));
+          if(g>0){ led.gold+=g; me.pvpDay.gold+=g; paidGold=g; loot={gold:g}; } else loot={gold:0};
+          const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)),Math.max(0,ECON_CAP.guildCoins-(led.guildCoins|0)));
+          if(c>0){ led.guildCoins=(led.guildCoins|0)+c; me.pvpDay.coins=(me.pvpDay.coins|0)+c; paidCoins=c; }
           loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         d.pvpMail=d.pvpMail||[];
@@ -5498,7 +5896,12 @@ async function api(req,res,url){
         if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
-        writeDB(); return {ok:true, won, rounds, loot, log, attacksLeft:20-me.pvpDay.n};
+        const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:20-me.pvpDay.n};
+        march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
+        // A synchronous currency write must include the settled march and retry receipt.
+        if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
+        if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});
+        writeDB(); return receipt;
       }); return send(res, out.ok===false?400:200, out); }
   }
   if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -5519,17 +5922,160 @@ async function api(req,res,url){
     me.pvpMail=(me.pvpMail||[]).filter(r=>!ids.has(String(r.id)));
     writeDB(); return send(res,200,{ok:true, remaining:(me.pvpMail||[]).length}); }
 
-  // ---- WORLD MAP: every registered player's castle (real positions from their save).
+  // ---- WORLD MAP: every registered player's castle (server-assigned position).
   //      The client shows these as REAL cities and fills the rest of each region with NPC bots. ----
+  if(p==='/api/world/state' && req.method==='GET'){
+    if(!me) return send(res,401,{error:'auth'});
+    return send(res,200,worldView(me,Date.now()));
+  }
+  if(p==='/api/world/war/declare' && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req),rid=String(b.requestId||'').slice(0,48);
+    if(!rid) return send(res,400,{ok:false,error:'requestId required'});
+    const out=idem(me.id+':worldwar:'+rid,()=>{
+      const now=Date.now(),loc=worldLocation(me),defId=String(b.defId||'');
+      const d=DB.users[defId],bot=!d&&worldBotTarget(me,defId);
+      if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+      if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
+      if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot declare war on a guild ally.'};
+      const targetId=d?d.id:bot.id,wars=worldWarState(me),prior=wars[targetId];
+      if(prior&&prior.expireAt>now) return {ok:true,defId:targetId,...prior,existing:true};
+      const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_WAR_TEST_MS||0):0;
+      const war={readyAt:now+(fixtureMs||WORLD_WAR_PREP_MS),expireAt:now+WORLD_WAR_TOTAL_MS};
+      wars[targetId]=war;
+      if(d){
+        d.pvpMail=d.pvpMail||[];
+        d.pvpMail.push({id:uid(),from:me.name,kind:'war-declared',t:now,readyAt:war.readyAt,expireAt:war.expireAt});
+        if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
+      }
+      return {ok:true,defId:targetId,...war};
+    });
+    return send(res,out.ok?200:400,out);
+  }
+  if(p==='/api/world/city/start' && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req),rid=String(b.requestId||'').slice(0,48);
+    if(!rid) return send(res,400,{ok:false,error:'requestId required'});
+    const out=idem(me.id+':worldcity:start:'+rid,()=>{
+      const now=Date.now(),loc=worldLocation(me),defId=String(b.defId||'');
+      const d=DB.users[defId],bot=!d&&worldBotTarget(me,defId);
+      if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+      if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
+      if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot attack a guild ally.'};
+      const targetId=d?d.id:bot.id,war=worldWarState(me)[targetId];
+      if(!war||war.expireAt<=now||war.readyAt>now)
+        return {ok:false,error:'War preparation has not ended, or this war has expired.',readyAt:war?.readyAt||null};
+      const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
+      const led=ensureLedger(me),w=witchState(me,now);
+      if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
+        return {ok:false,error:'Pick up to five heroes you own.'};
+      const mines=worldMineMarches(me,now);
+      const marches=worldCityMarches(me,now);
+      if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
+        return {ok:false,error:'A selected hero is already marching.'};
+      const host=simHost(); if(!host) return {ok:false,error:'City battle engine unavailable.'};
+      const specs=ids.map(k=>campaignHeroSpec(me,k));
+      if(specs.some(s=>!s)) return {ok:false,error:'City squad could not be resolved.'};
+      let snaps;
+      try{snaps=host.snapFromSpecs(specs);}catch(e){return {ok:false,error:'City squad could not be resolved.'};}
+      if(snaps.length!==ids.length) return {ok:false,error:'City squad is incomplete.'};
+      snaps=snaps.map(s=>{const hp=WITCH.combatHp(w.state,s.key,s.maxHp);
+        return {...s,hp,worldEntryHpCap:hp};});
+      if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
+      const fromX=WORLD_LOCATION.cellIndex(loc.x),fromY=WORLD_LOCATION.cellIndex(loc.y);
+      const toX=WORLD_LOCATION.cellIndex(d?d.worldLocation.x:bot.x);
+      const toY=WORLD_LOCATION.cellIndex(d?d.worldLocation.y:bot.y);
+      const distance=Math.max(1,Math.round(Math.hypot(toX-fromX,toY-fromY)));
+      const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
+      const travel=fixtureMs||distance*60000;
+      const march={id:uid(),defId:targetId,heroIds:ids,snaps,depart:now,arriveAt:now+travel,
+        homeAt:now+travel*2,resolved:false};
+      if(bot) march.botTeam=bot.team.map(h=>({key:h.key,level:h.level,rank:h.rank}));
+      marches.push(march);
+      return {ok:true,marchId:march.id,defId:targetId,depart:now,arriveAt:march.arriveAt,
+        homeAt:march.homeAt,travel,heroIds:ids};
+    });
+    return send(res,out.ok?200:400,out);
+  }
+  if((p==='/api/world/relocate'||p==='/api/world/buy-scrolls') && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req),rid=String(b.requestId||'').slice(0,48);
+    if(!rid) return send(res,400,{ok:false,error:'requestId required'});
+    const out=idem(me.id+':worldmove:'+p+':'+rid,()=>{
+      const now=Date.now(),loc=worldLocation(me);
+      if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+      const t=worldTravelState(me),led=ensureLedger(me);
+      if(p==='/api/world/buy-scrolls'){
+        const offers={targeted1:{gems:120,tele:1},targeted5:{gems:500,tele:5},wild1:{gems:60,wild:1}};
+        const offer=offers[String(b.offer||'')];
+        if(!offer) return {ok:false,error:'Unknown teleport scroll offer.'};
+        if((led.gems|0)<offer.gems) return {ok:false,error:'Not enough diamonds.'};
+        t.teleScrolls+=(offer.tele||0); t.wildScrolls+=(offer.wild||0);
+        led.gems-=offer.gems; ledTx(me,'world:scrolls',{gems:-offer.gems});
+        return {...worldView(me,now),ledger:ledgerView(me)};
+      }
+      const kind=String(b.kind||'');
+      if(kind==='targeted'){
+        if(typeof b.x!=='number'||typeof b.y!=='number'||!Number.isFinite(b.x)||!Number.isFinite(b.y))
+          return {ok:false,error:'Pick a world square.'};
+        if(!WORLD_LOCATION.targetAllowed(loc.region,b.x,b.y))
+          return {ok:false,error:'That world square is not available for your castle.'};
+        const x=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.x));
+        const y=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.y));
+        if(worldSquareTaken(me,x,y,now)) return {ok:false,error:'That square is occupied.'};
+        const day=worldTravelDay(now);
+        if(t.teleDay!==day){t.teleDay=day;t.teleUsed=0;}
+        if(t.teleUsed<1) t.teleUsed++;
+        else if(t.teleScrolls>0) t.teleScrolls--;
+        else return {ok:false,error:'No free teleport or scroll remains.'};
+        me.worldLocation={region:loc.region,x,y};
+      }else if(kind==='wild'){
+        const blocked=worldBlockedKeys(me,now);
+        const next=WORLD_LOCATION.openInRegion(loc.region,blocked);
+        if(!next) return {ok:false,error:'No free square remains in your region.'};
+        if(now-t.wildLast>=6*3600000) t.wildLast=now;
+        else if(t.wildScrolls>0) t.wildScrolls--;
+        else return {ok:false,error:'Wild teleport is on cooldown and no scroll remains.'};
+        me.worldLocation=next;
+      }else if(kind==='transfer'){
+        const region=String(b.region||'');
+        if(!WORLD_LOCATION.REGIONS[region]||region===loc.region)
+          return {ok:false,error:'Choose a different home region.'};
+        const blocked=worldBlockedKeys(me,now);
+        const next=WORLD_LOCATION.openInRegion(region,blocked,crypto.randomInt,30*WORLD_LOCATION.REGION_CELLS+30);
+        if(!next) return {ok:false,error:'No free square remains in that region.'};
+        const paid=t.lastTransfer&&now-t.lastTransfer<30*24*3600000;
+        if(paid){
+          if((led.gems|0)<1000) return {ok:false,error:'Not enough diamonds for region transfer.'};
+        }
+        t.lastTransfer=now; me.worldLocation=next;
+        if(paid){ led.gems-=1000; ledTx(me,'world:transfer',{gems:-1000}); }
+      }else return {ok:false,error:'Unknown castle move.'};
+      return {...worldView(me,now),ledger:ledgerView(me)};
+    });
+    return send(res,out.ok?200:400,out);
+  }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
-    const cities=Object.values(DB.users)
-      .filter(u=>u.id!==me.id && u.world && u.world.region)
+    const placed=Object.values(DB.users).filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation));
+    const cities=placed
       .slice(0,500)
-      .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:u.world.level||1,
+      .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
                  power:serverTeamPower((Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])), u)|0,   // v249: SERVER-computed power, never client-uploaded
-                 region:u.world.region, x:u.world.x, y:u.world.y, guildId:u.guildId||null,
+                 region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null,
                  team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));
-    return send(res,200,{ cities, myGuildId: me.guildId||null }); }
+    // NPCs use the shipped client's existing team/power/placement formula, but
+    // every input comes from server-owned progression and world positions.
+    const bots=[];
+    if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS)
+      bots.push(...worldBotRoster(me,regionKey));
+    return send(res,200,{ cities, bots, myGuildId: me.guildId||null }); }
+
+  if(p==='/api/world/mines' && req.method==='GET'){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!worldLocation(me)) return send(res,200,{ok:false,locked:true,needLevel:WITCH.UNLOCK_LEVEL});
+    const epoch=WORLD_MINES.epochAt(Date.now());
+    return send(res,200,{ok:true,epoch,nodes:WORLD_MINES.field(epoch)});
+  }
 
   /* v582: buy an extra arena attempt with diamonds. Idempotent per requestId (same idem() receipt
      pattern as every other purchase), capped per day, spent only when the diamonds actually leave. */
@@ -6331,6 +6877,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  migrateBlockedWorldCastles();
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
