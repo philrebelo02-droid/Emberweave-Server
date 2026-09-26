@@ -19975,7 +19975,7 @@ function marchPower(heroes){ return myTeamPower(heroes); }
 function marchVerb(ct){ return ct==='attack'?'⚔ Attacking':ct==='group'?'⚔ Group attacking':ct==='defend'?'🛡 Defending':'🔭 Scouting'; }
 async function startMarch(ctype,c,heroes){
   let out=marchOutMs(ctype,c.x,c.y), t=Date.now(), serverMarch=null;
-  if((ctype==='attack'||ctype==='group') && c.real && ACC.token){
+  if((ctype==='attack'||ctype==='group') && (c.real||c.bot) && ACC.token){
     try{serverMarch=await api('/api/world/city/start','POST',{
       defId:c.id,heroIds:(heroes||[]).slice(0,5),requestId:uid8()});}catch(_e){serverMarch=null;}
     if(!serverMarch||!serverMarch.ok){
@@ -20043,7 +20043,7 @@ function cityNameColor(c){ const r=cityRelation(c); return r==='ally'?'#5eff8f':
 function declareWarOnMe(c){ pushWar(c,true); }
 // YOU declare war on an enemy → 30-min countdown, THEN you may attack them (for 1h)
 async function declareWarByMe(c){
-  if(c.real&&ACC.token){
+  if((c.real||c.bot)&&ACC.token){
     let r; try{r=await api('/api/world/war/declare','POST',{defId:c.id,requestId:uid8()});}catch(_e){}
     if(!r||!r.ok){bannerMsg((r&&r.error)||'War declaration could not be verified. Try again.');return false;}
     pushWar(c,false,r);
@@ -20054,7 +20054,7 @@ async function declareWarByMe(c){
 // Bots are PASSIVE — they never declare war on you. (Kept as a no-op; real players will declare via the server.)
 function maybeDeclareWar(){ /* bots don't start wars */ }
 // Bots only fight BACK: a raid can only come from a bot you have declared war on (a live outgoing war). No war = no attack.
-function maybeSpawnRaid(){ if(shieldActive())return; if(activeMarches().some(m=>m.dir==='in'&&m.ctype!=='defend'))return;
+function maybeSpawnRaid(){ if(ACC.token||shieldActive())return; if(activeMarches().some(m=>m.dir==='in'&&m.ctype!=='defend'))return;
   const foes=outgoingWars().filter(warReady);   // bots retaliate only while your war on them is live
   if(!foes.length)return;
   if(rand01(Date.now())<0.5){ const w=foes[Math.floor(rand01(Date.now()*7)*foes.length)]; spawnIncoming('attack',w.name,w.power||300,w.x,w.y); } }
@@ -20093,6 +20093,10 @@ function watchBattle(meta){ if(!meta)return;
   startVersus(trimTeam(meta.foe), true, meta.mine.map(h=>h.key)); }
 function resolveMarch(m){
   if(m.dir==='in'){   // something arriving AT your castle
+    if(ACC.token&&m.ctype!=='defend'){
+      marchReport('⚠ Old raid trip','This browser-only raid was not verified by the server. No fight or loot change was applied.');
+      return;
+    }
     if(m.ctype==='defend'){ addMail('war',{from:m.tName||'Guild ally',subj:'🛡 Ally reinforced you',body:'A guild ally reinforced your castle, then marched home.'}); marchReport('🛡 Ally reinforced you','A guild ally reinforced your castle, then marched home.'); updateMailBadges(); return; }
     if(shieldActive()){ marchReport('🛡 Attack blocked!','Your protection shield held — '+m.tName+' could not raid you.'); return; }
     const atk=m.tPower||300, n=wallActiveTeamCount();
@@ -20155,7 +20159,7 @@ function resolveMarch(m){
   if(m.ctype==='scout'){ const body='Rank #'+m.tRank+' · defence power ~'+(m.tPower||'?')+'. Their walls look '+(( m.tPower||300)>420?'heavily guarded':'lightly held')+'.';
     addMail('scouts',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
   if(m.ctype==='defend'){ addMail('war',{from:m.tName,subj:'🛡 Defending '+m.tName,body:'Your heroes are stationed at '+m.tName+', defending a guild member. They stay until you Retreat them from Info.'}); marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); updateMailBadges(); return; }
-  if(m.real && m.tId && ACC.token){
+  if(m.tId && ACC.token && (m.real||String(m.tId).startsWith('bot_'))){
     if(!m.serverCityId){
       m.resolved=true;
       marchReport('⚠ Old city trip','This trip predates verified city marches and cannot resolve a battle. Send a fresh squad.');

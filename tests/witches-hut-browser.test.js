@@ -287,6 +287,39 @@ async function run(){
     assert.ok(cityMail?.battle,'signed-in city march has a verified watchable report');
     assert.equal(cityMail.battle.won,verifiedRaid.won,'visible city result matches server receipt');
     assert.equal(cityMail.battle.seed,verifiedRaid.replay.seed);
+    const botPlayer=await request('POST','/api/register',{name:'witchBotBrowser',pass:'password1'});
+    assert.ok(botPlayer.token);
+    const botPlayerGrant=await request('POST','/api/admin/led-grant',{
+      userId:botPlayer.profile.id,unlock:['vael','sylthaine','vireo'],
+      heroKeys:['vael','sylthaine','vireo'],px:900000,heroXp:200000
+    },currentToken);
+    assert.equal(botPlayerGrant.ok,true);
+    const botPage=await browser.newPage();
+    botPage.on('pageerror',e=>errors.push(e.message));
+    await botPage.goto(base+'/play',{waitUntil:'domcontentloaded'});
+    await botPage.evaluate(token=>{ ACC.token=token; G.playerXP=900000; },botPlayer.token);
+    if(await botPage.locator('#tutSkip').isVisible()) await botPage.locator('#tutSkip').click();
+    await botPage.locator('#splashPlay').click();
+    await botPage.waitForFunction(()=>document.getElementById('rotateGate')?.style.display==='none',{timeout:10000});
+    const botTrip=await botPage.evaluate(async()=>{
+      await fetchRealCities(true);
+      const bot=SERVER_BOTS[0];
+      if(!bot||!await declareWarByMe(bot)) throw Error('Server bot war was not registered');
+      await new Promise(ok=>setTimeout(ok,35));
+      await startMarch('attack',bot,['vael','sylthaine','vireo']);
+      const m=G.marches.find(x=>x.tId===bot.id&&x.ctype==='attack');
+      return m?{id:m.serverCityId,target:bot.id}:null;
+    });
+    assert.ok(botTrip?.id,'signed-in bot trip has a server march receipt');
+    await new Promise(ok=>setTimeout(ok,70));
+    await botPage.evaluate(()=>marchTick());
+    await botPage.waitForFunction(id=>G.marches.some(m=>m.serverCityId===id&&m.resolved),botTrip.id,{timeout:10000});
+    const botReport=await botPage.evaluate(id=>({
+      march:G.marches.find(m=>m.serverCityId===id),
+      report:(G.mail?.war||[]).find(m=>m.battle?.oppName===G.marches.find(x=>x.serverCityId===id)?.tName)
+    }),botTrip.id);
+    assert.equal(botReport.march.resolved,true);
+    assert.ok(botReport.report?.battle?.mineSnap?.length,'bot result shows the verified server replay');
     assert.deepEqual(errors,[],'signed-in browser page errors');
     console.log('Witches Hut browser smoke passed');
   } finally {

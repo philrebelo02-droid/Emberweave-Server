@@ -2745,6 +2745,20 @@ function worldCityMarches(u){
   if(!Array.isArray(u.worldCityMarches)) u.worldCityMarches=[];
   return u.worldCityMarches;
 }
+function worldBotRoster(u,regionKey){
+  const loc=worldLocation(u),host=loc&&simHost();
+  if(!host||!WORLD_LOCATION.REGION_KEYS.includes(regionKey)) return [];
+  const realCities=Object.values(DB.users)
+    .filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
+    .map(v=>({id:v.id,region:v.worldLocation.region,x:v.worldLocation.x,y:v.worldLocation.y}));
+  return host.botRoster({regionKey,homeRegion:loc.region,
+    playerXP:ensureLedger(u).px||0,castleX:loc.x,castleY:loc.y,realCities});
+}
+function worldBotTarget(u,id){
+  const match=/^bot_([a-z]+)_(\d{1,3})$/.exec(String(id||''));
+  if(!match) return null;
+  return worldBotRoster(u,match[1]).find(bot=>bot.id===id)||null;
+}
 function ledHeroLevel(led,k){ const h=led.hero[k]; if(!h) return 1;
   return Math.max(1,Math.min(ledPlayerLevel(led), d_levelForXP(h.xp||0, D_HERO_CUM))); }
 const STAM_MAX_BASE=59, STAM_REGEN_MS=360000, STAM_COST_NORMAL=6, STAM_COST_BOSS=12;
@@ -4949,6 +4963,7 @@ async function api(req,res,url){
     const out=idem(me.id+':earn:'+reqId,()=>{
       const led=ensureLedger(me); const what=String(b.what||''); const reason=String(b.reason||'misc').slice(0,24);
       const amt=Math.floor(+b.amount||0);
+      if(reason==='march') return {ok:false,error:'World battles now require a verified server march.'};
       const rules=(EARN_RULES[what]||{})[reason]; if(!rules) return {ok:false,error:'No earn rule for '+what+'/'+reason+'.'};
       if(what==='gold' && reason==='misc' && String(b.sub||'')==='province') return {ok:false,error:'The Training Province is a real battle now — please update the game.'};   /* v663: an old cached client's instant province grant */
       if(!(amt>0&&amt<=rules.max)) return {ok:false,error:'Amount exceeds the '+reason+' rule.'};
@@ -5691,13 +5706,55 @@ async function api(req,res,url){
         writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:CAP-A.mineDay[rk]};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/pvp/attack'){ const out=idem(me.id+':pvpatk:'+reqId,()=>{
-        const d=DB.users[String(b.defId||'')];
-        if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
         const march=worldCityMarches(me).find(m=>m.id===String(b.marchId||''));
-        if(!march||march.defId!==d.id) return {ok:false,error:'No registered city march.'};
+        if(!march||march.defId!==String(b.defId||'')) return {ok:false,error:'No registered city march.'};
         if(march.resolved) return march.receipt;
         if(Date.now()<march.arriveAt)
           return {ok:false,error:'The army has not reached the city.',arriveAt:march.arriveAt};
+        if(march.botTeam){
+          const host=simHost(),ids=march.heroIds;
+          if(!host||!Array.isArray(march.botTeam)||!march.botTeam.length||!ids?.length)
+            return {ok:false,error:'The bot battle could not be resolved.'};
+          if(!march.snaps?.some(s=>s.hp>0))
+            return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
+          const seed=srvSeed('worldbot',me.id,march.id);
+          const fight=host.auto(march.snaps,march.botTeam,seed);
+          let digest;
+          try{digest=JSON.parse(fight.digest);}catch(e){return {ok:false,error:'The bot battle result was incomplete.'};}
+          if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
+            return {ok:false,error:'The bot battle result was incomplete.'};
+          const outcomes=march.snaps.map(s=>{
+            const row=digest.u.find(u=>u[0]===s.key&&u[1]==='ally');
+            return {key:s.key,hp:row?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp};
+          });
+          const w=witchState(me,Date.now());
+          const injuries={attacker:WITCH.applyBattle(w.state,outcomes,ids),defender:[]};
+          const loot={gold:0,guildCoins:0};
+          if(fight.won){
+            const led=ensureLedger(me),dk=nyDayKey();
+            if(!led.earnDay||led.earnDay.k!==dk) led.earnDay={k:dk};
+            const guild=me.guildId&&DB.guilds?.[me.guildId];
+            const guildMul=guild?1+((guild.level||1)*0.04):1;
+            const rolled=200+(srvSeed('worldbot-loot',me.id,march.id)%400);
+            const gold=Math.min(EARN_RULES.gold.march.max,Math.round(rolled*guildMul));
+            const goldLeft=Math.max(0,EARN_RULES.gold.march.day-(led.earnDay['gold:march']|0));
+            const coinLeft=Math.max(0,EARN_RULES.guildCoins.march.day-(led.earnDay['guildCoins:march']|0));
+            loot.gold=Math.max(0,Math.min(gold,goldLeft,ECON_CAP.gold-led.gold));
+            loot.guildCoins=Math.max(0,Math.min(40,coinLeft,ECON_CAP.guildCoins-(led.guildCoins|0)));
+            if(loot.gold||loot.guildCoins){
+              led.gold+=loot.gold; led.guildCoins=(led.guildCoins|0)+loot.guildCoins;
+              led.earnDay['gold:march']=(led.earnDay['gold:march']|0)+loot.gold;
+              led.earnDay['guildCoins:march']=(led.earnDay['guildCoins:march']|0)+loot.guildCoins;
+              ledTx(me,'world-bot-march',{gold:loot.gold,guildCoins:loot.guildCoins});
+            }
+          }
+          const receipt={ok:true,won:fight.won,rounds:0,loot,injuries,
+            replay:{seed,snaps:march.snaps,foe:march.botTeam,engine:host.buildVersion,durationSec:digest.t}};
+          march.resolved=true; march.receipt=receipt;
+          writeDB(); return receipt;
+        }
+        const d=DB.users[march.defId];
+        if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
         const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0,coins:0};
         if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
         const ids=march.heroIds;
@@ -5811,19 +5868,22 @@ async function api(req,res,url){
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
     const out=idem(me.id+':worldwar:'+rid,()=>{
-      const now=Date.now(),loc=worldLocation(me),d=DB.users[String(b.defId||'')];
+      const now=Date.now(),loc=worldLocation(me),defId=String(b.defId||'');
+      const d=DB.users[defId],bot=!d&&worldBotTarget(me,defId);
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
-      if(!d||d.id===me.id||!worldLocation(d)) return {ok:false,error:'No such world castle.'};
-      if(me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot declare war on a guild ally.'};
-      const wars=worldWarState(me),prior=wars[d.id];
-      if(prior&&prior.expireAt>now) return {ok:true,defId:d.id,...prior,existing:true};
+      if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
+      if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot declare war on a guild ally.'};
+      const targetId=d?d.id:bot.id,wars=worldWarState(me),prior=wars[targetId];
+      if(prior&&prior.expireAt>now) return {ok:true,defId:targetId,...prior,existing:true};
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_WAR_TEST_MS||0):0;
       const war={readyAt:now+(fixtureMs||WORLD_WAR_PREP_MS),expireAt:now+WORLD_WAR_TOTAL_MS};
-      wars[d.id]=war;
-      d.pvpMail=d.pvpMail||[];
-      d.pvpMail.push({id:uid(),from:me.name,kind:'war-declared',t:now,readyAt:war.readyAt,expireAt:war.expireAt});
-      if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
-      return {ok:true,defId:d.id,...war};
+      wars[targetId]=war;
+      if(d){
+        d.pvpMail=d.pvpMail||[];
+        d.pvpMail.push({id:uid(),from:me.name,kind:'war-declared',t:now,readyAt:war.readyAt,expireAt:war.expireAt});
+        if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
+      }
+      return {ok:true,defId:targetId,...war};
     });
     return send(res,out.ok?200:400,out);
   }
@@ -5832,11 +5892,12 @@ async function api(req,res,url){
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
     const out=idem(me.id+':worldcity:start:'+rid,()=>{
-      const now=Date.now(),loc=worldLocation(me),d=DB.users[String(b.defId||'')];
+      const now=Date.now(),loc=worldLocation(me),defId=String(b.defId||'');
+      const d=DB.users[defId],bot=!d&&worldBotTarget(me,defId);
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
-      if(!d||d.id===me.id||!worldLocation(d)) return {ok:false,error:'No such world castle.'};
-      if(me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot attack a guild ally.'};
-      const war=worldWarState(me)[d.id];
+      if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
+      if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot attack a guild ally.'};
+      const targetId=d?d.id:bot.id,war=worldWarState(me)[targetId];
       if(!war||war.expireAt<=now||war.readyAt>now)
         return {ok:false,error:'War preparation has not ended, or this war has expired.',readyAt:war?.readyAt||null};
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
@@ -5857,15 +5918,17 @@ async function api(req,res,url){
         return {...s,hp,worldEntryHpCap:hp};});
       if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
       const fromX=WORLD_LOCATION.cellIndex(loc.x),fromY=WORLD_LOCATION.cellIndex(loc.y);
-      const toX=WORLD_LOCATION.cellIndex(d.worldLocation.x),toY=WORLD_LOCATION.cellIndex(d.worldLocation.y);
+      const toX=WORLD_LOCATION.cellIndex(d?d.worldLocation.x:bot.x);
+      const toY=WORLD_LOCATION.cellIndex(d?d.worldLocation.y:bot.y);
       const distance=Math.max(1,Math.round(Math.hypot(toX-fromX,toY-fromY)));
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
       const travel=fixtureMs||distance*60000;
-      const march={id:uid(),defId:d.id,heroIds:ids,snaps,depart:now,arriveAt:now+travel,
+      const march={id:uid(),defId:targetId,heroIds:ids,snaps,depart:now,arriveAt:now+travel,
         homeAt:now+travel*2,resolved:false};
+      if(bot) march.botTeam=bot.team.map(h=>({key:h.key,level:h.level,rank:h.rank}));
       marches.push(march);
       if(marches.length>100) me.worldCityMarches=marches.filter(m=>!m.resolved||m.homeAt>now).slice(-100);
-      return {ok:true,marchId:march.id,defId:d.id,depart:now,arriveAt:march.arriveAt,
+      return {ok:true,marchId:march.id,defId:targetId,depart:now,arriveAt:march.arriveAt,
         homeAt:march.homeAt,travel,heroIds:ids};
     });
     return send(res,out.ok?200:400,out);
@@ -5937,14 +6000,9 @@ async function api(req,res,url){
                  team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));
     // NPCs use the shipped client's existing team/power/placement formula, but
     // every input comes from server-owned progression and world positions.
-    const loc=worldLocation(me), host=loc&&simHost(), bots=[];
-    if(host){
-      const realCities=placed.map(u=>({id:u.id,region:u.worldLocation.region,
-        x:u.worldLocation.x,y:u.worldLocation.y}));
-      for(const regionKey of WORLD_LOCATION.REGION_KEYS) bots.push(...host.botRoster({
-        regionKey,homeRegion:loc.region,playerXP:ensureLedger(me).px||0,
-        castleX:loc.x,castleY:loc.y,realCities}));
-    }
+    const bots=[];
+    if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS)
+      bots.push(...worldBotRoster(me,regionKey));
     return send(res,200,{ cities, bots, myGuildId: me.guildId||null }); }
 
   if(p==='/api/world/mines' && req.method==='GET'){

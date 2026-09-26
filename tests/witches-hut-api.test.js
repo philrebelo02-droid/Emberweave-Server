@@ -60,6 +60,20 @@ async function run() {
     assert.equal(worldCities.cities.length,1);
     assert.equal(worldCities.bots.length,399,'server bots fill four regions around the one other real city');
     assert.ok(worldCities.bots.every(bot=>bot.bot&&bot.team.length===5));
+    const botId=worldCities.bots[0].id;
+    const botWar=await request('POST','/api/world/war/declare',{
+      defId:botId,requestId:'witch-bot-war-1'
+    },admin.token);
+    assert.equal(botWar.ok,true,JSON.stringify(botWar));
+    assert.equal(botWar.defId,botId);
+    const botWarRetry=await request('POST','/api/world/war/declare',{
+      defId:botId,requestId:'witch-bot-war-1'
+    },admin.token);
+    assert.deepEqual(botWarRetry,botWar,'bot war declaration is idempotent');
+    const phantomBot=await request('POST','/api/world/war/declare',{
+      defId:'bot_'+worldCities.bots[0].region+'_999',requestId:'witch-bot-forged'
+    },admin.token);
+    assert.equal(phantomBot.ok,false,'client cannot declare war on a fabricated bot');
     const initial=await request('GET','/api/witch/state',null,admin.token);
     assert.equal(initial.locked,false);
     assert.equal(initial.level,20);
@@ -110,6 +124,55 @@ async function run() {
       defId:foe.profile.id,marchId:cityMarch.marchId,requestId:'witch-raid-1'
     },admin.token);
     assert.deepEqual(retry,attack,'retry cannot inflict damage twice');
+    const botRaider=await request('POST','/api/register',{name:'witchBotRaider',pass:'password1'});
+    assert.ok(botRaider.token);
+    const botGrant=await request('POST','/api/admin/led-grant',{
+      userId:botRaider.profile.id,unlock:['vael','sylthaine','vireo'],
+      heroKeys:['vael','sylthaine','vireo'],px:900000,heroXp:200000
+    },admin.token);
+    assert.equal(botGrant.ok,true);
+    const botCities=await request('GET','/api/world/cities',null,botRaider.token);
+    const targetBot=botCities.bots[0];
+    const noBotMarch=await request('POST','/api/world/city/start',{
+      defId:targetBot.id,heroIds:['vael','sylthaine','vireo'],requestId:'bot-before-war'
+    },botRaider.token);
+    assert.equal(noBotMarch.ok,false,'signed-in bot march requires a registered war');
+    const verifiedBotWar=await request('POST','/api/world/war/declare',{
+      defId:targetBot.id,requestId:'bot-verified-war'
+    },botRaider.token);
+    assert.equal(verifiedBotWar.ok,true,JSON.stringify(verifiedBotWar));
+    await new Promise(resolve=>setTimeout(resolve,35));
+    const beforeBotLedger=await request('GET','/api/ledger',null,botRaider.token);
+    const botMarch=await request('POST','/api/world/city/start',{
+      defId:targetBot.id,heroIds:['vael','sylthaine','vireo'],requestId:'bot-verified-start'
+    },botRaider.token);
+    assert.equal(botMarch.ok,true,JSON.stringify(botMarch));
+    await new Promise(resolve=>setTimeout(resolve,35));
+    const botFight=await request('POST','/api/pvp/attack',{
+      defId:targetBot.id,marchId:botMarch.marchId,requestId:'bot-verified-fight'
+    },botRaider.token);
+    assert.equal(botFight.ok,true,JSON.stringify(botFight));
+    assert.equal(mineHost.auto(botFight.replay.snaps,botFight.replay.foe,botFight.replay.seed).won,botFight.won,
+      'bot receipt replays with the real-time fight engine');
+    const botDigest=JSON.parse(mineHost.auto(botFight.replay.snaps,botFight.replay.foe,botFight.replay.seed).digest);
+    const botWounds=await request('GET','/api/witch/state',null,botRaider.token);
+    for(const snap of botFight.replay.snaps){
+      const row=botDigest.u.find(u=>u[0]===snap.key&&u[1]==='ally');
+      const hero=botWounds.heroes.find(h=>h.key===snap.key);
+      assert.ok(row&&hero,'the bot replay and Hut both identify the marched hero');
+      assert.equal(hero.hp,Math.round(Math.max(0,Math.min(snap.worldEntryHpCap,row[3]))/snap.maxHp*10000),
+        'bot battle end health persists in the Witches Hut');
+    }
+    assert.deepEqual(await request('POST','/api/pvp/attack',{
+      defId:targetBot.id,marchId:botMarch.marchId,requestId:'bot-verified-fight'
+    },botRaider.token),botFight,'retry cannot pay bot loot or wound heroes twice');
+    const afterBotLedger=await request('GET','/api/ledger',null,botRaider.token);
+    assert.equal(afterBotLedger.gold-beforeBotLedger.gold,botFight.loot.gold);
+    assert.equal(afterBotLedger.guildCoins-beforeBotLedger.guildCoins,botFight.loot.guildCoins);
+    const forgedMarchEarn=await request('POST','/api/tx/earn',{
+      what:'gold',reason:'march',amount:500,requestId:'bot-forged-earn'
+    },botRaider.token);
+    assert.equal(forgedMarchEarn.ok,false,'unverified browser march cannot mint gold');
     const hurt=await request('GET','/api/witch/state',null,foe.token);
     assert.ok(hurt.heroes.length>0,'defending heroes keep permanent wounds');
     const target=hurt.heroes[0];
