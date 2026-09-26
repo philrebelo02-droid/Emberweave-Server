@@ -378,6 +378,20 @@ async function run() {
     },foe.token);
     assert.equal(fallenCity.ok,false,'a 0%-HP hero cannot depart for a city fight');
     assert.match(fallenCity.error,/0% HP/);
+    await stop();
+    const minimallyHealed=JSON.parse(fs.readFileSync(db,'utf8'));
+    minimallyHealed.users[foe.profile.id].witch.hp.vael=1;
+    fs.writeFileSync(db,JSON.stringify(minimallyHealed));
+    await start(admin.profile.id,'0','20');
+    const revivedCity=await request('POST','/api/world/city/start',{
+      defId:admin.profile.id,heroIds:['vael'],requestId:'revived-city-start'
+    },foe.token);
+    assert.equal(revivedCity.ok,true,'a positive partial heal gives the hero at least one combat HP');
+    await stop();
+    const fallenAgain=JSON.parse(fs.readFileSync(db,'utf8'));
+    fallenAgain.users[foe.profile.id].witch.hp.vael=0;
+    fs.writeFileSync(db,JSON.stringify(fallenAgain));
+    await start(admin.profile.id,'0','20');
     const undefRaider=await request('POST','/api/register',{name:'witchUndefRaider',pass:'password1'});
     assert.ok(undefRaider.token);
     const undefGrant=await request('POST','/api/admin/led-grant',{
