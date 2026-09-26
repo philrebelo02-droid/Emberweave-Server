@@ -320,6 +320,15 @@ async function run(){
     }),botTrip.id);
     assert.equal(botReport.march.resolved,true);
     assert.ok(botReport.report?.battle?.mineSnap?.length,'bot result shows the verified server replay');
+    const botReceipt=await request('POST','/api/pvp/attack',{
+      defId:botTrip.target,marchId:botTrip.id,requestId:'bot-browser-replay'
+    },botPlayer.token);
+    assert.equal(botReceipt.ok,true);
+    assert.equal(botReport.report.battle.seed,botReceipt.replay.seed);
+    assert.equal(botReport.report.battle.won,botReceipt.won);
+    const localBotReplay=await botPage.evaluate(meta=>simFightResult(meta.mineSnap,meta.foe,meta.seed),
+      botReport.report.battle);
+    assert.equal(localBotReplay,botReceipt.won,'browser real-time NPC replay agrees with the server result');
     assert.deepEqual(errors,[],'signed-in browser page errors');
     console.log('Witches Hut browser smoke passed');
   } finally {
