@@ -170,6 +170,19 @@ async function run(){
     assert.equal(report.mine.resolved,true);
     assert.ok(report.mail.length>0,'browser displays verified mine result');
     assert.equal(report.mail[0].battle?.v,2,'mine mail retains a watchable replay');
+    await page.evaluate(()=>{
+      const lost={id:'lost-server-mine',ctype:'mine',dir:'out',serverMineId:'not-in-server-history',
+        arrive:Date.now()+60000,home:Date.now()+120000,res:'iron',mineLevel:1};
+      G.marches.push(lost);
+      resolveMarch(lost);
+    });
+    await page.waitForFunction(()=>G.marches.find(m=>m.id==='lost-server-mine')?.resolved,{timeout:10000});
+    const lostTrip=await page.evaluate(()=>({
+      march:G.marches.find(m=>m.id==='lost-server-mine'),
+      mail:(G.mail?.mines||[])[0]
+    }));
+    assert.equal(lostTrip.march.resolved,true,'an unknown server mine march stops retrying');
+    assert.match(lostTrip.mail.body,/Unknown mine march/,'permanent refusal is visible in mine mail');
     await page.evaluate(()=>{ show('mail'); mailTab='mines'; renderMail(); });
     await page.locator('#mailBody [data-battle]').last().click();
     const replay=await page.evaluate(()=>({mode:CUR.mode,seed:CUR.seed,
@@ -301,7 +314,8 @@ async function run(){
     if(await botPage.locator('#tutSkip').isVisible()) await botPage.locator('#tutSkip').click();
     await botPage.locator('#splashPlay').click();
     await botPage.waitForFunction(()=>document.getElementById('rotateGate')?.style.display==='none',{timeout:10000});
-    const botTrip=await botPage.evaluate(async()=>{
+    const botTrip=await botPage.evaluate(async(token)=>{
+      ACC.token=token; G.playerXP=900000;
       await fetchRealCities(true);
       const bot=SERVER_BOTS[0];
       if(!bot||!await declareWarByMe(bot)) throw Error('Server bot war was not registered: '+(bot?.id||'no bot'));
@@ -309,7 +323,7 @@ async function run(){
       await startMarch('attack',bot,['vael','sylthaine','vireo','vex','tallow','grosk']);
       const m=G.marches.find(x=>x.tId===bot.id&&x.ctype==='attack');
       return m?{id:m.serverCityId,target:bot.id,heroes:m.heroes,extraBusy:committedHeroes().has('grosk')}:null;
-    });
+    },botPlayer.token);
     assert.ok(botTrip?.id,'signed-in bot trip has a server march receipt');
     assert.deepEqual(botTrip.heroes,['vael','sylthaine','vireo','vex','tallow'],
       'browser marks only the five server-registered fighters as marching');

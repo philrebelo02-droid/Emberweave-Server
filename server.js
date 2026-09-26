@@ -5784,11 +5784,13 @@ async function api(req,res,url){
         const defRoster=(Array.isArray(d.wall)&&d.wall.length?d.wall:(Array.isArray(d.team)?d.team:[])).filter(Boolean).slice(0,5);
         if(!mySnaps.length) return {ok:false,error:'Bad squad.'};
         const battleAt=Date.now(), myWitch=witchState(me,battleAt), defWitch=d.isNpc?null:witchState(d,battleAt);
-        const defenderCanFight=k=>!!ensureLedger(d).unlocked[k]&&(!defWitch||WITCH.health(defWitch.state,k)>0);
-        const defOwned=d.isNpc?[]:rosterKeys(defRoster).filter(defenderCanFight);
-        // Pre-Hut accounts can still carry the old monster placeholder wall; defend with
-        // their real starter heroes instead of spawning heroes they cannot later heal.
-        if(!d.isNpc && !defOwned.length && !defRoster.length)
+        const defLedger=d.isNpc?null:ensureLedger(d), defKeys=d.isNpc?[]:rosterKeys(defRoster);
+        const defenderCanFight=k=>!!defLedger.unlocked[k]&&(!defWitch||WITCH.health(defWitch.state,k)>0);
+        const defOwned=defKeys.filter(defenderCanFight);
+        // Old accounts can have a nonempty monster placeholder wall without owning any
+        // of those heroes. Defend with their starters. An owned wall whose heroes are all
+        // at 0% HP must remain undefended under Phil's fallen-hero rule.
+        if(!d.isNpc && !defOwned.length && !defKeys.some(k=>defLedger.unlocked[k]))
           defOwned.push(...STARTER_HEROES.filter(defenderCanFight));
         const defSnaps=(d.isNpc?defRoster.map(function(e){ return snapshotNpcHero(e); }):defOwned
           .map(function(k){ return snapshotHeroFromServer(d,k); })).filter(Boolean);

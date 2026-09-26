@@ -449,6 +449,26 @@ async function run() {
     const cappedAfterRestart=await request('GET','/api/ledger',null,undefRaider.token);
     assert.equal(cappedAfterRestart.gold,cappedAfter.gold,'city retry cannot grant gold twice');
     assert.equal(cappedAfterRestart.guildCoins,cappedAfter.guildCoins,'city retry cannot grant guild coins twice');
+    await stop();
+    const oldWall=JSON.parse(fs.readFileSync(db,'utf8'));
+    oldWall.users[foe.profile.id].wall=[{key:'konwu'},{key:'grosk'},{key:'vulmar'}];
+    oldWall.users[foe.profile.id].witch.hp={vael:10000,sylthaine:10000,vireo:10000};
+    fs.writeFileSync(db,JSON.stringify(oldWall));
+    await start(admin.profile.id,'0','20','0');
+    const legacyMarch=await request('POST','/api/world/city/start',{
+      defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'old-wall-start'
+    },undefRaider.token);
+    assert.equal(legacyMarch.ok,true,JSON.stringify(legacyMarch));
+    await new Promise(resolve=>setTimeout(resolve,35));
+    const legacyFight=await request('POST','/api/pvp/attack',{
+      defId:foe.profile.id,marchId:legacyMarch.marchId,requestId:'old-wall-resolve'
+    },undefRaider.token);
+    assert.equal(legacyFight.ok,true,JSON.stringify(legacyFight));
+    assert.ok(legacyFight.replay,'an old unowned placeholder wall must fight with real starters');
+    assert.deepEqual(legacyFight.replay.foe.map(h=>h.key),['vael','sylthaine','vireo'],
+      'the old placeholder wall must resolve against its owned starter heroes');
+    assert.equal(legacyFight.injuries.defender.length,3,
+      'the placeholder wall cannot give a no-combat free win');
     const warClock=await request('POST','/api/register',{name:'witchWarClock',pass:'password1'});
     assert.ok(warClock.token);
     const clockGrant=await request('POST','/api/admin/led-grant',{
