@@ -5644,11 +5644,14 @@ function clipDur(A){ if(!A) return 0; const st=ppPer(A); return st/(A.fps||16); 
 function noxSpendKeys(u){ if(!(u&&u.pass&&u.pass.skeletonkey)) return false;
   if((u._keys||0)<5) return false;
   u._keys=0; u._masterT=0;
+  firePassiveFx(u);
   try{ ringBurst(u.x,u.y,0xc9a6ff,20); }catch(e){}
   floatTexts.push({x:u.x,y:u.y-20,txt:'MASTER-UNLOCKED',t:1.3,color:'#c9a6ff',vy:1,sz:13});
   return true; }
-function firePassiveClip(o,hold){
-  if(!(o&&o.anim&&o.anim.passive)) return;
+function firePassiveClip(o,hold,target,options){
+  if(!o) return;
+  firePassiveFx(o,target,options);   // a triggered passive fires its authored plate even without a body clip
+  if(!(o.anim&&o.anim.passive)) return;
   o._passFired=true;                                   // v522: a timed passive is never idle filler
   const h=hold||clipDur(o.anim.passive);
   /* v539 (Phil: Hurne "must be canceling his ult animation with walk" - it was not walk). Feed Them kills the pack INSIDE
@@ -9089,10 +9092,12 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
     if(tgt.pass&&tgt.pass.weightless){ const pm=(tgt.passMul||1);
       tgt.hasteMul=Math.min(1.6,Math.max(tgt.hasteMul||1,1)+0.08*pm); tgt.hasteT=Math.max(tgt.hasteT||0,5);
       tgt.glyphCrit=Math.min(0.6,(tgt.glyphCrit||0)+0.05*pm);
+      firePassiveFx(tgt);
       floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'WEIGHTLESS',t:.8,color:'#3a5fa8',vy:1,sz:11}); }
     if(tgt.pass&&tgt.pass.prismscales&&src.alive&&!tgt._ctring){ tgt._ctring=1;
       try{ dealDamage(tgt,src,(tgt.apow||tgt.dmg)*0.55*(tgt.passMul||1),'#3aa0d8','magic'); }catch(e){}
       tgt._ctring=0;
+      firePassiveFx(tgt,src);
       floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'PRISM',t:.8,color:'#3aa0d8',vy:1,sz:11}); }
     return; }
   if(tgt) tgt._untouched=0;   // v527: "untouched" passives (Perfect Camouflage, Silent Altitude) read this
@@ -9308,6 +9313,18 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
     if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; if(_o.d&&_o.d.upright){ _o.grip=c; if(c.sprite)c.sprite.renderOrder=-1; } _o.gripHold=c; _o.puller=u; if(_o.frontFx){ _o.frontFx.gripHold=c; _o.frontFx.puller=u; } }   /* v489 (Phil): the fist holds him for the WHOLE drag and pops on arrival - see updateGroundFx */   /* v470: the grabbed unit drops to layer -1 for the life of the hand: behind the fingers (-0.5), in front of the palm (-2), every other unit stays at 0 */ if(_o&&_o.m&&_holdsUnit(type,o)){ u._holdFx=_o; Promise.resolve().then(()=>{ if(u._holdFx===_o) u._holdFx=null; }); if(type==='tendrilpull'&&c&&c.alive&&c!==u&&!(_o.d&&_o.d.upright)) holdUnder(_o,c); }   /* v829 (Phil 25 Sep): a bind/freeze plate holds the unit it controls - see holdUnder */ }catch(e){}
+}
+/* Discrete passive procs use the same plate renderer as green/blue/ult. The
+   caller owns the proc timing; persistent stat and aura passives never call it. */
+function firePassiveFx(u,target,options){
+  if(!u||!u.key||typeof FX2_DEF==='undefined'||typeof abilArt!=='function') return false;
+  const key=u.key+'_passive', def=FX2_DEF[key];
+  if(!def) return false;   // sheets can be wired incrementally without changing combat
+  const at=target||u, opt=options||{}, prev=_fxAllow;
+  const art={gfx:key,gdur:def.dur||1.6,gfxAt:at===u?'self':'target',gfxR:opt.radius||2.4*METER};
+  try{ _fxAllow=true; abilArt(u,art,at,at,opt.aboveBar?'heal':'passive'); }
+  finally{ _fxAllow=prev; }
+  return true;
 }
 /* A shot that prefers the ability's own projectile art, falling back to the plain coloured tracer. */
 function abilShot(u,o,e,color,onHit){
@@ -10455,8 +10472,9 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
     if(u.pass.staticcharge&&u._scReady){ u._scReady=0; u._scStk=0;                          // Static Charge - the cast chains
       const foes=enemiesOf(u).filter(e=>e.alive).slice(0,3);
       foes.forEach(e=>{ try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
-      if(foes.length){ ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
+      if(foes.length){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
     if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*1.45;           // a full pressure gauge empowers this spell
+      firePassiveFx(u);
       floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); } }
   /* v797 - the clip starts NOW, with the cast clock. `_castSlot` is set first because the picker
      prefers the hero's own green/blue sheet over the shared clip for the type. */
@@ -11513,14 +11531,17 @@ function think(u,dt){
         // Venom Rhythm (Silkcoil): every third attack injects venom - less healing, slower energy.
         if(u.pass.venomrhythm){ u._vrN=((u._vrN||0)+1)%3;
           if(u._vrN===0&&t){ t.mortalT=Math.max(t.mortalT||0,4); t._nrgSlowT=Math.max(t._nrgSlowT||0,4); t._nrgSlowPct=Math.max(t._nrgSlowPct||0,0.4*_pm);
+            firePassiveFx(u,t,{aboveBar:true});
             floatTexts.push({x:t.x,y:t.y-8,txt:'VENOM',t:.8,color:'#3f8f5c',vy:1.1,sz:11}); } }
         // Killer Instinct (Vex, 11 Sep 2026): EVERY auto leaves a mortal wound that keeps refreshing.
         // Phil: "her passive should apply a mortal wound that lasts 3 seconds everytime she keeps auto attacking it re applies".
         if(u.pass.killerinstinct&&t){ t.mortalT=Math.max(t.mortalT||0,3*_pm);
+          firePassiveFx(u,t,{aboveBar:true});
           floatTexts.push({x:t.x,y:t.y-8,txt:'-heal',t:.7,color:'#c0392b',vy:1.1,sz:11}); }
         // Loaded Hand (Cardwraith): every fourth basic attack draws a stronger random suit.
         if(u.pass.loadedhand){ u._lhN=((u._lhN||0)+1)%4;
           if(u._lhN===0&&t){ const suit=Math.floor(brnd()*4)%4;
+            firePassiveFx(u,t);
             if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
             else if(suit===1){ t.stunned=Math.max(t.stunned||0,ccDur(0.5*(1-(t.ctrlRes||0)))); floatTexts.push({x:t.x,y:t.y-8,txt:'♠',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
             else if(suit===2){ t._shredPct=Math.max(t._shredPct||0,0.25*_pm); t._shredT=Math.max(t._shredT||0,4); floatTexts.push({x:t.x,y:t.y-8,txt:'♦',t:.8,color:'#e0a83a',vy:1.2,sz:14}); }
@@ -11537,10 +11558,12 @@ function think(u,dt){
         // Pirate's Instinct (Corsair): every few shots one goes straight through the armour.
         if(u.pass.instinct){ u._piN=((u._piN||0)+1)%4;
           if(u._piN===0&&t){ dealDamage(u,t,dmg*0.45*_pm,'#ffe08a','true');
+            firePassiveFx(u,t);
             floatTexts.push({x:t.x,y:t.y-8,txt:'THROUGH',t:.8,color:'#ffe08a',vy:1.2,sz:11}); } }
         // Living Pages (Librarian): a page written by a spell is spent on the next swing.
         if(u.pass.livingpages&&(u._pages||0)>0&&t){ u._pages--;
           dealDamage(u,t,dmg*0.6*_pm,'#c8b9e8','magic');
+          firePassiveFx(u,t);
           floatTexts.push({x:t.x,y:t.y-8,txt:'PAGE',t:.8,color:'#c8b9e8',vy:1.2,sz:11}); }
         // Rising Heat (Pyroclast): every scorched enemy she strikes stokes her own power.
         if(u.pass.risingheat){ let sc=0; enemiesOf(u).forEach(e=>{ if(e.alive&&e.dots&&e.dots.length)sc++; });
@@ -12445,7 +12468,7 @@ function updateBattle(dt){
     if(u.pass.mirewall){ if(u._mwWard&&u._mwWard._mwBy===u)u._mwWard._mwBy=null;
       let w=null; units.forEach(o=>{ if(o.alive&&o.team===u.team&&o!==u&&(!w||o.hp<w.hp))w=o; });
       u._mwWard=w; if(w)w._mwBy=u; u._mwFxT=Math.max(0,(u._mwFxT||0)-dt); }
-    if(u.pass.warden){ u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1; ringBurst(u.x,u.y,0xE7B84B,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#E7B84B',vy:1}); } }
+    if(u.pass.warden){ u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1; firePassiveFx(u); ringBurst(u.x,u.y,0xE7B84B,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#E7B84B',vy:1}); } }
     if(u.pass.selfregen) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.02*dt);   // Serpentine Regen (Sylphice)
     /* ==================== v527 — PACK PASSIVES ======================================== */
     // Sacred Bells (The Walking Cathedral): the bells ring and the ranks around him harden.
@@ -12458,11 +12481,13 @@ function updateBattle(dt){
     if(u.pass.unbroken && !u._ubUsed && u.hp>0 && u.hp/u.maxHp<0.30){ u._ubUsed=1;
       u.shield=(u.shield||0)+u.maxHp*0.30*(u.passMul||1);
       u.ctrlRes=Math.min(0.85,(u.ctrlRes||0)+0.4); u._ctrlBonus=0.4; u._ctrlBonusT=8;
+      firePassiveFx(u);
       ringBurst(u.x,u.y,0xf0d070,22);
       floatTexts.push({x:u.x,y:u.y-16,txt:'UNBROKEN',t:1.4,color:'#f0d070',vy:1,sz:14}); }
     // Layered Hide (Ironcoil): each direct hit hardens one scale layer; at full plate he shrugs off control.
     if(u.pass.layered){ if((u._layT||0)>0) u._layT-=dt;
       if((u._layStk||0)>=(u._layMax||5)){ u._layStk=0; u._layT=2.0*(u.passMul||1);
+        firePassiveFx(u);
         ringBurst(u.x,u.y,0xb8863a,14); floatTexts.push({x:u.x,y:u.y-8,txt:'PLATED',t:1.0,color:'#b8863a',vy:1,sz:12}); }
       if((u._layT||0)>0){ u.stunned=0; u.fearT=0; u._airT=0; u.pullT=0; } }
     // Unshaken Herd (Greatbrow): when an ally is controlled he gains energy and briefly covers them.
@@ -12471,10 +12496,12 @@ function updateBattle(dt){
         if(a.stunned>0||a.fearT>0||(a.silencedT||0)>0||(a._airT||0)>0){
           u.energy=Math.min(100,u.energy+4*(u.passMul||1));
           a.drMul=Math.min(a.drMul||1,0.75); a.drT=Math.max(a.drT||0,1.5);
+          firePassiveFx(u,a,{aboveBar:true});
           burstAt(a.x,a.y,0x8a6b3f,6); } }); } }
     // Trail of Splendor (Velvetplume): every buff she lands also leaves a small stacking shield.
     if(u.pass.splendor){ alliesOf(u).forEach(a=>{ if(!a.alive)return;
       if((a._buffedT||0)>0){ a._buffedT=0; a.shield=(a.shield||0)+a.maxHp*0.04*(u.passMul||1);
+        firePassiveFx(u,a,{aboveBar:true});
         burstAt(a.x,a.y,0x6fe0ff,6); } }); }
     // Golden Thread (Threadseer): she is tied to the ally nearest death and shares what she is given.
     if(u.pass.goldthread){ let w=null; alliesOf(u).forEach(a=>{ if(a.alive&&a!==u&&(!w||a.hp/a.maxHp<w.hp/w.maxHp))w=a; }); u._gtTo=w; }
@@ -12482,10 +12509,12 @@ function updateBattle(dt){
     if(u.pass.camouflage){ const on=(u._untouched||0)>=3;
       if(on&&!u._camOn){ u._camOn=1; u.evaStat=Math.min(0.5,(u.evaStat||0)+0.18*(u.passMul||1)); u._camEva=0.18*(u.passMul||1);
         u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1.25); u.dmgBuffT=99;
+        firePassiveFx(u);
         floatTexts.push({x:u.x,y:u.y-10,txt:'UNSEEN',t:.9,color:'#e8a0c0',vy:1,sz:11}); }
       else if(!on&&u._camOn){ u._camOn=0; u.evaStat=Math.max(0,(u.evaStat||0)-(u._camEva||0)); u._camEva=0; u.dmgBuffT=0; } }
     if(u.pass.silentalt){ const on=(u._untouched||0)>=3;
       if(on&&!u._saOn){ u._saOn=1; u.critDmg=(u.critDmg||0.6)+0.5*(u.passMul||1); u._saAdd=0.5*(u.passMul||1);
+        firePassiveFx(u);
         floatTexts.push({x:u.x,y:u.y-10,txt:'ALTITUDE',t:.9,color:'#d8d0e0',vy:1,sz:11}); }
       else if(!on&&u._saOn){ u._saOn=0; u.critDmg=Math.max(0,(u.critDmg||0)-(u._saAdd||0)); u._saAdd=0; } }
     // Abyssal Reserve (Orryn): every cast stores pressure; a full gauge empowers the next spell.
@@ -12496,12 +12525,13 @@ function updateBattle(dt){
     // Unmovable Mass (Pellucid Rook): he cannot be shifted, and every blow builds molten armour.
     if(u.pass.unmovable){ u._airT=0; u.pullT=0;
       u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1;
+        firePassiveFx(u);
         ringBurst(u.x,u.y,0x6fb7c9,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#6fb7c9',vy:1}); } }
     // Skeleton-Key Savant (Nox): keys accumulate, and the fifth unlocks the next ability outright.
     if(u.pass.skeletonkey){ if((u._keys||0)>=5 && !u._masterT){ u._masterT=1;
         u.critDmg=(u.critDmg||0.6)+0.05; u.evaStat=Math.min(0.5,(u.evaStat||0)+0.03);   // permanent Fortune
         floatTexts.push({x:u.x,y:u.y-12,txt:'5 KEYS',t:1.0,color:'#c9a6ff',vy:1,sz:12}); ringBurst(u.x,u.y,0x6b3f8f,16); } }
-    if(u.pass.wrath){ if(u._baseDmg==null)u._baseDmg=u.dmg; u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
+    if(u.pass.wrath){ if(u._baseDmg==null)u._baseDmg=u.dmg; u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; firePassiveFx(u); floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
     /* v545 Desert Momentum (Zahri). Phil, 9 Sep: "per auto attack increases her attack speed 4% and armor pen 6. per 5
        meters traveled does 1% attack speed and 2 armor pen, maxed at the 50% attack speed and 120 penetration as its
        stated. make sure the attack speed effects the animation speed of her attacks. and crits". Two counters, both
@@ -12519,7 +12549,7 @@ function updateBattle(dt){
       u.magicPen=Math.max(u.magicPen||0,(u._dmBaseMP==null?(u._dmBaseMP=u.magicPen||0):u._dmBaseMP)+(u._dmPen||0)); }
     if(u.pass.momentum){ u._momStk=Math.min(0.5,(u._momStk||0)+0.025*dt); u.hasteMul=Math.max(1+u._momStk, (u._ocT>0?(u._ocMul||1):1)); u.hasteT=Math.max(u.hasteT,0.15); }   // ramp respects an active Overclock (uses the separate _ocT/_ocMul so it never self-perpetuates)   // Momentum Gears (Tick): attack speed ramps up to +50% the longer he fights
     if(u.pass.twinfonts){ if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt; dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=Math.min(worldHealCap(u),u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt); } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
-    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R) damage(e,u.dmg*0.25,'#ff6a3a',true); }); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
+    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,u.dmg*0.25,'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     // Deep Reserves (Old Maren): the sea keeps him topped up — health AND energy
     if(u.pass.tidereserve){ const pm=(u.passMul||1); u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.01*pm*dt); u.energy=Math.min(100,u.energy+1*pm*dt); }
     // Scriptorium (The Annotator): the whole team's ultimates charge faster
@@ -12530,7 +12560,7 @@ function updateBattle(dt){
         /* 29 Aug — Hush fired every 5s with Lumi standing perfectly still: the enemy went quiet and she
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
-        firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0);
+        firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0,e,{aboveBar:true});
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; if(u._uwT>=5){ u._uwT-=5;
@@ -12538,8 +12568,9 @@ function updateBattle(dt){
       if(hurt.length){ const a=hurt[Math.floor(brnd()*hurt.length)%hurt.length];   // v268: seeded, not frame-count-derived
         if(a.dots&&a.dots.length)a.dots.pop(); else if(a.stunned>0)a.stunned=0; else if(a.silencedT>0)a.silencedT=0;
         else if(a.slow>0)a.slow=0; else a.mortalT=0;
+        firePassiveFx(u,a,{aboveBar:true});
         burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); } } }
-    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
+    if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); firePassiveFx(u,e,{aboveBar:true}); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
   });
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
   // WoW-style status effects: DoT / HoT ticks + buff/debuff timers
