@@ -3915,8 +3915,9 @@ async function api(req,res,url){
         m.version++; writeDB();
         return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
       const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
-      const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState);
-      const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState);
+      // World-map wounds carried between assaults cap in-battle healing at entry HP.
+      const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState, true);
+      const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState, true);
       const r=SIM.resolveLineBattle(aLine,bLine,seed);
       // persist survivor HP/energy on BOTH lines (keyed back to snapshot order)
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
