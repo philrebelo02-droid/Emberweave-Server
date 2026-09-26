@@ -21,6 +21,13 @@ assert.equal(healed[0].key, 'strong');
 assert.equal(healed[0].after, W.HP_FULL);
 assert.equal(healed[1].after, 0, 'strongest takes the remaining brew first');
 assert.equal(h.surgeUntil, t + W.SURGE_MS, '80% spend in two hours unlocks surge');
+const partialPot = W.create(10, t);
+partialPot.brew = 2.5;
+partialPot.hp = { injured: 0 };
+const proportional = W.heal(partialPot, 'injured', 1000, 10, t);
+assert.deepEqual(proportional, { key:'injured', before:0, after:250, spent:2.5 },
+  'insufficient brew restores the proportional share of health');
+assert.equal(partialPot.brew, 0, 'partial healing cannot overspend the cauldron');
 assert.deepEqual(W.applyBattle(h,[{key:'strong',hp:900,maxHp:1000}],['strong']),
   [{key:'strong',before:W.HP_FULL,after:9000}]);
 assert.deepEqual(W.applyBattle(h,[{key:'strong',hp:990,maxHp:1000}],['strong']),
