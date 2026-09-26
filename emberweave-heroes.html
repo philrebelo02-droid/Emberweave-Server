@@ -19225,7 +19225,8 @@ function worldPlayersJoined(){ return Math.max(0, G.worldPlayers||0); }   // rea
 let _botCache={};
 let _lastPin=null;   // last coord-search pin {cx,cy,until} so a keepView rebuild can re-drop it
 function regionBotRoster(regionKey){
-  const realN = (typeof REAL_CITIES!=='undefined'&&REAL_CITIES) ? realCitiesIn(regionKey).length : worldPlayersJoined();
+  const realN = (typeof REAL_CITIES!=='undefined'&&REAL_CITIES)
+    ? realCitiesIn(regionKey).length+(regionKey===myRegion()?1:0) : worldPlayersJoined();
   const cacheKey=regionKey+'|'+playerLevel()+'|'+(!!G.guild)+'|'+realN+'|'+Math.round((G.castleX||0))+'|'+Math.round((G.castleY||0));
   if(_botCache[cacheKey]) return _botCache[cacheKey];
   const rIdx=Math.max(0,REGION_KEYS.indexOf(regionKey)), base=(rIdx+1)*100003;
@@ -19235,7 +19236,7 @@ function regionBotRoster(regionKey){
     const name=NPC_NAMES[seed%NPC_NAMES.length]+' '+ARENA_SURNAMES[Math.floor(seed/NPC_NAMES.length)%ARENA_SURNAMES.length];
     list.push({id:'bot_'+regionKey+'_'+i, name, level, team, power:teamPower(team), bot:true, rank:100+(seed%4900)}); }
   list.sort((a,b)=>a.power-b.power);                         // weakest first
-  list=list.slice(Math.min(list.length-1, realN));           // each REAL player in this region replaces the weakest bot
+  list=list.slice(Math.min(list.length, realN));             // each REAL player, including the viewer, replaces one weakest bot
   // place each bot on a cell inside THIS region's 32×32 sub-grid (deterministic)
   const z=ZONES[regionKey], ox=zoneCellStart(z.col), oy=zoneCellStart(z.row), ZN=REGION_CELLS*REGION_CELLS;
   const used=new Set();

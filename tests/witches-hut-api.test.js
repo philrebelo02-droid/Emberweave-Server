@@ -58,7 +58,7 @@ async function run() {
     await request('POST','/api/save',{wall:[{key:'vael'},{key:'sylthaine'},{key:'vireo'}]},foe.token);
     const worldCities=await request('GET','/api/world/cities',null,admin.token);
     assert.equal(worldCities.cities.length,1);
-    assert.equal(worldCities.bots.length,399,'server bots fill four regions around the one other real city');
+    assert.equal(worldCities.bots.length,398,'each of the two placed players replaces one of 400 filler bots');
     assert.ok(worldCities.bots.every(bot=>bot.bot&&bot.team.length===5));
     const botId=worldCities.bots[0].id;
     const botWar=await request('POST','/api/world/war/declare',{

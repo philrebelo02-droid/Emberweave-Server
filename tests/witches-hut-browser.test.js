@@ -200,8 +200,8 @@ async function run(){
     await signedIn.waitForFunction(()=>document.getElementById('wallBody')?.textContent?.includes('Cauldron · Hut Lv'),{timeout:10000});
     await signedIn.evaluate(()=>show('world'));
     await signedIn.waitForFunction(()=>_worldServerAccount===ACC.token&&G.regionChosen,null,{timeout:10000});
-    await signedIn.waitForFunction(()=>Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length===400,null,{timeout:10000});
-    assert.equal(await signedIn.evaluate(()=>worldCities().filter(c=>c.bot).length),400,
+    await signedIn.waitForFunction(()=>Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length===399,null,{timeout:10000});
+    assert.equal(await signedIn.evaluate(()=>worldCities().filter(c=>c.bot).length),399,
       'signed-in map renders the server-published NPC roster');
     assert.equal(await signedIn.evaluate(()=>{
       const local=REGION_KEYS.flatMap(regionBotRoster);
@@ -304,7 +304,7 @@ async function run(){
     const botTrip=await botPage.evaluate(async()=>{
       await fetchRealCities(true);
       const bot=SERVER_BOTS[0];
-      if(!bot||!await declareWarByMe(bot)) throw Error('Server bot war was not registered');
+      if(!bot||!await declareWarByMe(bot)) throw Error('Server bot war was not registered: '+(bot?.id||'no bot'));
       await new Promise(ok=>setTimeout(ok,35));
       await startMarch('attack',bot,['vael','sylthaine','vireo']);
       const m=G.marches.find(x=>x.tId===bot.id&&x.ctype==='attack');
