@@ -1826,7 +1826,9 @@ function heroCardPower(u,key){
    the cauldron state and 18-hour refill law do not depend on the final tuning. */
 function witchBenchmarkCapacity(hutLevel){
   const level=Math.max(WITCH.UNLOCK_LEVEL,Math.min(100,hutLevel|0));
-  const stars=Math.min(6,1+Math.floor(level/20));
+  // Ledger-backed heroes cap at five stars. Do not price an impossible sixth
+  // star while this provisional earnable-power benchmark awaits simulation.
+  const stars=Math.min(5,1+Math.floor(level/20));
   const keys=['vael','sylthaine','vireo','vex','tallow'];
   return Math.max(1,Math.round(keys.reduce((sum,key)=>{
     const snap=SIM.heroCombatStats(key,{level,stars,pips:0});
