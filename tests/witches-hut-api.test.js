@@ -357,6 +357,13 @@ async function run() {
       heroKeys:['vael','sylthaine','vireo'],px:900000,heroXp:200000
     },admin.token);
     assert.equal(undefGrant.ok,true);
+    await stop();
+    const capped=JSON.parse(fs.readFileSync(db,'utf8'));
+    capped.users[undefRaider.profile.id].led.gold=2000000000-70;
+    capped.users[undefRaider.profile.id].led.guildCoins=50000000-7;
+    fs.writeFileSync(db,JSON.stringify(capped));
+    await start(admin.profile.id,'0','20');
+    const cappedBefore=await request('GET','/api/ledger',null,undefRaider.token);
     const undefWar=await request('POST','/api/world/war/declare',{
       defId:foe.profile.id,requestId:'undef-war'
     },undefRaider.token);
@@ -374,6 +381,12 @@ async function run() {
     assert.equal(undefFight.won,true,'an undefended castle falls without a fabricated battle');
     assert.equal(undefFight.replay,null,'no defenders means no battle replay');
     assert.deepEqual(undefFight.injuries.attacker,[],'no fight means no new attacker injury');
+    const cappedAfter=await request('GET','/api/ledger',null,undefRaider.token);
+    assert.equal(undefFight.loot.gold,cappedAfter.gold-cappedBefore.gold,
+      'city receipt names only gold actually credited at the wallet ceiling');
+    assert.equal(undefFight.loot.guildCoins,cappedAfter.guildCoins-cappedBefore.guildCoins,
+      'city receipt names only guild coins actually credited at the wallet ceiling');
+    assert.deepEqual(undefFight.loot,{gold:70,guildCoins:7});
     await stop();
     await start(admin.profile.id,'0','0','0');
     const warClock=await request('POST','/api/register',{name:'witchWarClock',pass:'password1'});

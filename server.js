@@ -5824,10 +5824,10 @@ async function api(req,res,url){
         }
         me.pvpDay.n++;
         let loot=null;
-        if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold));
-          if(g>0){ led.gold=Math.min(ECON_CAP.gold,led.gold+g); me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0};
-          const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)));
-          if(c>0){ led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+c); me.pvpDay.coins=(me.pvpDay.coins|0)+c; ledTx(me,'city-pvp',{guildCoins:c}); }
+        if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold),Math.max(0,ECON_CAP.gold-led.gold));
+          if(g>0){ led.gold+=g; me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0};
+          const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)),Math.max(0,ECON_CAP.guildCoins-(led.guildCoins|0)));
+          if(c>0){ led.guildCoins=(led.guildCoins|0)+c; me.pvpDay.coins=(me.pvpDay.coins|0)+c; ledTx(me,'city-pvp',{guildCoins:c}); }
           loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         d.pvpMail=d.pvpMail||[];
