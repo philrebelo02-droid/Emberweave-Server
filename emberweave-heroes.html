@@ -19248,16 +19248,18 @@ function regionBotRoster(regionKey){
   });
   _botCache[cacheKey]=list; return list;
 }
-function allBots(){ let out=[]; REGION_KEYS.forEach(rk=>{ out=out.concat(regionBotRoster(rk)); }); return out; }
+function allBots(){ if(ACC.token&&online()) return SERVER_BOTS||[];
+  let out=[]; REGION_KEYS.forEach(rk=>{ out=out.concat(regionBotRoster(rk)); }); return out; }
 // ---- REAL player cities (server-sourced, build 1787085000000): every registered account's castle at its
 //      real position. Bots only FILL each region up to the population cap around the real players. ----
-let REAL_CITIES=null, _rcMyGuild=null, _rcFetchedAt=0, _rcTimer=null;
+let REAL_CITIES=null, SERVER_BOTS=null, _rcMyGuild=null, _rcFetchedAt=0, _rcTimer=null;
 function fetchRealCities(force){
   if(!ACC.token||!online()) return Promise.resolve(null);
   if(!force && REAL_CITIES && (Date.now()-_rcFetchedAt)<45000) return Promise.resolve(REAL_CITIES);
   return api('/api/world/cities').then(d=>{
     if(d&&Array.isArray(d.cities)){
       _rcMyGuild=d.myGuildId||null; _rcFetchedAt=Date.now();
+      SERVER_BOTS=Array.isArray(d.bots)?d.bots:[];
       const used=new Set(); const mc=myCastlePos(); used.add(cellIndex(mc.x)+','+cellIndex(mc.y));
       REAL_CITIES=d.cities.filter(c=>REGION_KEYS.indexOf(c.region)>=0).map(c=>{
         let x=snapToGrid(c.x), y=snapToGrid(c.y), guard=0;                       // real position, cell-snapped;
@@ -19277,7 +19279,7 @@ function fetchRealCities(force){
 function realCitiesIn(regionKey){ return (REAL_CITIES||[]).filter(c=>c.region===regionKey); }
 function startCityPoll(){ if(_rcTimer)return; _rcTimer=setInterval(()=>{ if(document.getElementById('wzone')&&ACC.token) fetchRealCities(true); else { clearInterval(_rcTimer); _rcTimer=null; } },60000); }
 // the whole world's cities: REAL players first, NPC bots fill the rest of each region's population
-function worldCities(){ let out=(REAL_CITIES||[]).slice(); REGION_KEYS.forEach(rk=>{ out=out.concat(regionBotRoster(rk)); }); return out; }
+function worldCities(){ let out=(REAL_CITIES||[]).slice(); return out.concat(allBots()); }
 // you can march on / attack any rival castle in ANY region — bots AND real players.
 // (Only TELEPORTING your castle is region-locked — see zoneAccessible.)
 function canAttackCity(c){ return !!(c && (c.bot||c.real) && !c.ally); }

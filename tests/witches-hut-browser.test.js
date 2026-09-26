@@ -200,6 +200,18 @@ async function run(){
     await signedIn.waitForFunction(()=>document.getElementById('wallBody')?.textContent?.includes('Cauldron · Hut Lv'),{timeout:10000});
     await signedIn.evaluate(()=>show('world'));
     await signedIn.waitForFunction(()=>_worldServerAccount===ACC.token&&G.regionChosen,null,{timeout:10000});
+    await signedIn.waitForFunction(()=>Array.isArray(SERVER_BOTS)&&SERVER_BOTS.length===400,null,{timeout:10000});
+    assert.equal(await signedIn.evaluate(()=>worldCities().filter(c=>c.bot).length),400,
+      'signed-in map renders the server-published NPC roster');
+    assert.equal(await signedIn.evaluate(()=>{
+      const local=REGION_KEYS.flatMap(regionBotRoster);
+      return local.every((bot,i)=>{
+        const server=SERVER_BOTS[i];
+        return server&&bot.id===server.id&&bot.level===server.level
+          &&bot.power===server.power&&bot.x===server.x&&bot.y===server.y
+          &&JSON.stringify(bot.team)===JSON.stringify(server.team);
+      });
+    }),true,'server NPC roster matches the existing client rules at the same account state');
     await signedIn.locator('#wzone').waitFor({state:'visible',timeout:10000});
     await signedIn.evaluate(m=>openMineInfo(m),secondNode);
     await signedIn.locator('.citymenu [data-a="mine"]').click({timeout:5000});

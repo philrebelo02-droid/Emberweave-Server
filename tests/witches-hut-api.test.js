@@ -56,6 +56,10 @@ async function run() {
     },admin.token);
     assert.equal(grantFoe.ok,true);
     await request('POST','/api/save',{wall:[{key:'vael'},{key:'sylthaine'},{key:'vireo'}]},foe.token);
+    const worldCities=await request('GET','/api/world/cities',null,admin.token);
+    assert.equal(worldCities.cities.length,1);
+    assert.equal(worldCities.bots.length,399,'server bots fill four regions around the one other real city');
+    assert.ok(worldCities.bots.every(bot=>bot.bot&&bot.team.length===5));
     const initial=await request('GET','/api/witch/state',null,admin.token);
     assert.equal(initial.locked,false);
     assert.equal(initial.level,20);

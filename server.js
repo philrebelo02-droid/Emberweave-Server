@@ -5928,14 +5928,24 @@ async function api(req,res,url){
     return send(res,out.ok?200:400,out);
   }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
-    const cities=Object.values(DB.users)
-      .filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation))
+    const placed=Object.values(DB.users).filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation));
+    const cities=placed
       .slice(0,500)
       .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
                  power:serverTeamPower((Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])), u)|0,   // v249: SERVER-computed power, never client-uploaded
                  region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null,
                  team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));
-    return send(res,200,{ cities, myGuildId: me.guildId||null }); }
+    // NPCs use the shipped client's existing team/power/placement formula, but
+    // every input comes from server-owned progression and world positions.
+    const loc=worldLocation(me), host=loc&&simHost(), bots=[];
+    if(host){
+      const realCities=placed.map(u=>({id:u.id,region:u.worldLocation.region,
+        x:u.worldLocation.x,y:u.worldLocation.y}));
+      for(const regionKey of WORLD_LOCATION.REGION_KEYS) bots.push(...host.botRoster({
+        regionKey,homeRegion:loc.region,playerXP:ensureLedger(me).px||0,
+        castleX:loc.x,castleY:loc.y,realCities}));
+    }
+    return send(res,200,{ cities, bots, myGuildId: me.guildId||null }); }
 
   if(p==='/api/world/mines' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
