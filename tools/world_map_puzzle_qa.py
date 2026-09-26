@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageStat
 
 from world_map_puzzle import bounds
 
@@ -35,7 +35,7 @@ def main(root: Path) -> None:
     preview.save(out, optimize=True)
     diff = ImageChops.difference(preview, master)
     print(f"9/9 exact source edges; assembled preview {out}; mean source difference "
-          f"{sum(sum(px) for px in diff.getdata())/(3*master.width*master.height):.1f}/255")
+          f"{sum(ImageStat.Stat(diff).mean)/3:.1f}/255")
 
 
 if __name__ == "__main__":

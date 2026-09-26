@@ -48,6 +48,20 @@ def verify(require_complete: bool) -> None:
     tiles = {(t["level"], t["row"], t["col"]): t for t in index["tiles"]}
     if len(tiles) != 91:
         raise AssertionError(f"Expected 91 unique names, found {len(tiles)}")
+    for level, width in ((0, 1), (1, 3)):
+        for row in range(width):
+            for col in range(width):
+                record = tiles[(level, row, col)]
+                name = f"world-v02-l{level}-r{row:02d}-c{col:02d}.png"
+                if record["file"] != name:
+                    raise AssertionError(f"Wrong indexed name: {record['file']}")
+                path = ROOT / name
+                with Image.open(path) as image:
+                    if image.size != SIZE:
+                        raise AssertionError(f"Wrong size: {name}")
+                digest = hashlib.sha256(path.read_bytes()).hexdigest().upper()
+                if record.get("sha256") != digest:
+                    raise AssertionError(f"Indexed digest drift: {name}")
     preview = Image.new("RGB", SIZE)
     existing = 0
     for row in range(9):
