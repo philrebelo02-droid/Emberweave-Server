@@ -5763,12 +5763,14 @@ async function api(req,res,url){
               led.gold+=loot.gold; led.guildCoins=(led.guildCoins|0)+loot.guildCoins;
               led.earnDay['gold:march']=(led.earnDay['gold:march']|0)+loot.gold;
               led.earnDay['guildCoins:march']=(led.earnDay['guildCoins:march']|0)+loot.guildCoins;
-              ledTx(me,'world-bot-march',{gold:loot.gold,guildCoins:loot.guildCoins});
             }
           }
           const receipt={ok:true,won:fight.won,rounds:0,loot,injuries,
             replay:{seed,snaps:march.snaps,foe:march.botTeam,engine:host.buildVersion,durationSec:digest.t}};
           march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
+          // ledTx flushes synchronously: include the settled receipt before its payout write.
+          if(loot.gold||loot.guildCoins)
+            ledTx(me,'world-bot-march',{gold:loot.gold,guildCoins:loot.guildCoins});
           writeDB(); return receipt;
         }
         const d=DB.users[march.defId];
@@ -5840,11 +5842,11 @@ async function api(req,res,url){
           if(myWitch) injuries.attacker=WITCH.applyBattle(myWitch.state,r.aState,ids);
         }
         me.pvpDay.n++;
-        let loot=null;
+        let loot=null,paidGold=0,paidCoins=0;
         if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold),Math.max(0,ECON_CAP.gold-led.gold));
-          if(g>0){ led.gold+=g; me.pvpDay.gold+=g; ledTx(me,'city-pvp',{gold:g}); loot={gold:g}; } else loot={gold:0};
+          if(g>0){ led.gold+=g; me.pvpDay.gold+=g; paidGold=g; loot={gold:g}; } else loot={gold:0};
           const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)),Math.max(0,ECON_CAP.guildCoins-(led.guildCoins|0)));
-          if(c>0){ led.guildCoins=(led.guildCoins|0)+c; me.pvpDay.coins=(me.pvpDay.coins|0)+c; ledTx(me,'city-pvp',{guildCoins:c}); }
+          if(c>0){ led.guildCoins=(led.guildCoins|0)+c; me.pvpDay.coins=(me.pvpDay.coins|0)+c; paidCoins=c; }
           loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         d.pvpMail=d.pvpMail||[];
@@ -5854,6 +5856,9 @@ async function api(req,res,url){
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
         const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:20-me.pvpDay.n};
         march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
+        // A synchronous currency write must include the settled march and retry receipt.
+        if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
+        if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});
         writeDB(); return receipt;
       }); return send(res, out.ok===false?400:200, out); }
   }
