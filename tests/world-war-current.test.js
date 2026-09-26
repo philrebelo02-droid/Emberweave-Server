@@ -94,6 +94,14 @@ async function run(){
         assert.equal(wound.hp,Math.round(row.hp/row.maxHp*10000));
       }
     }
+    await new Promise(r=>setTimeout(r,350));
+    await stop();
+    await start(dev.profile.id);
+    for(const [u,view] of [[a,afterA],[b,afterB]]){
+      const reloaded=await req('GET','/api/witch/state',null,u.token);
+      assert.deepEqual(reloaded.heroes.map(h=>[h.key,h.hp]),view.heroes.map(h=>[h.key,h.hp]),
+        'both owners keep their guild-war wounds across a server restart');
+    }
   }finally{await stop();}
 }
 run().catch(e=>{console.error(e);process.exitCode=1;});
