@@ -142,6 +142,48 @@ async function run(){
     assert.equal(teleportMap.confirmOpen,false,'blocked terrain never opens teleport confirmation');
     assert.equal(teleportMap.paneBorders,0,'teleport zones have no bright boundary line');
     assert.ok(teleportMap.veiledPanes>0,'closed teleport regions have the soft dark veil');
+    const terrainSamples=await page.evaluate(async ()=>{
+      const pairs=[['105,86','105,83'],['96,122','96,123'],['100,90','101,90'],['116,110','117,110']];
+      const settle=()=>new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
+      const results=[];
+      for(const fraction of [0,0.5,1]){
+        let zone=document.getElementById('wzone');
+        const {min,max}=worldZoomBounds(zone);
+        worldZoomTo(min+(max-min)*fraction);
+        enterTeleMode(); await settle();
+        zone=document.getElementById('wzone');
+        for(const [blocked,control] of pairs){
+          const [bx,by]=blocked.split(',').map(Number);
+          const [cx,cy]=control.split(',').map(Number);
+          zone.scrollLeft=Math.max(0,(bx+0.5)/GRID_COLS*WORLD_W*worldZoom-zone.clientWidth/2);
+          zone.scrollTop=Math.max(0,(by+0.5)/GRID_COLS*WORLD_H*worldZoom-zone.clientHeight/2);
+          await settle(); refreshTeleGhosts();
+          const ghosts=new Set([...document.querySelectorAll('#teleGhostLayer img')].map(img=>
+            Math.floor(parseFloat(img.style.left)/GRID_CELL)+','+
+            Math.floor(parseFloat(img.style.top)/GRID_CELL)));
+          teleportPlace((bx+0.5)*GRID_CELL,(by+0.5)*GRID_CELL);
+          const refused=!document.getElementById('_gcYes');
+          const floorOpen=!occupiedCells().has(control)&&
+            zoneAccessible(zoneAt(zoneIndexForCell(cx),zoneIndexForCell(cy)));
+          let floorAccepted=null;
+          if(fraction===1&&floorOpen){
+            teleportPlace((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL);
+            floorAccepted=!!document.getElementById('_gcYes');
+            document.getElementById('_gcNo')?.click();
+          }
+          results.push({fraction,blocked,control,maskBlocked:_worldTerrainBlocked.has(blocked),
+            maskFloorOpen:!_worldTerrainBlocked.has(control),blockedGhost:ghosts.has(blocked),
+            floorGhost:ghosts.has(control),refused,floorOpen,floorAccepted});
+        }
+        toggleTeleMode(); await settle();
+      }
+      return results;
+    });
+    assert.equal(terrainSamples.length,12,'four Phil-approved terrain examples checked at three zooms');
+    assert.ok(terrainSamples.every(s=>s.maskBlocked&&s.maskFloorOpen&&!s.blockedGhost&&s.refused),
+      'crystal centre, rock edge, shard, and World Tree edge remain ghost-free and refused');
+    assert.ok(terrainSamples.filter(s=>s.fraction===1).every(s=>s.floorOpen&&s.floorGhost&&s.floorAccepted),
+      'all four nearby floor controls show ghosts and open confirmation at close zoom');
     const pictureGrid=await page.evaluate(()=>{
       const sizes=[1,3,9].map(n=>worldPictureTile(n,Math.floor(n/2),Math.floor(n/2)));
       const landmark={x:5500,y:5500};
