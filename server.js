@@ -5963,8 +5963,8 @@ async function api(req,res,url){
         const offer=offers[String(b.offer||'')];
         if(!offer) return {ok:false,error:'Unknown teleport scroll offer.'};
         if((led.gems|0)<offer.gems) return {ok:false,error:'Not enough diamonds.'};
-        led.gems-=offer.gems; ledTx(me,'world:scrolls',{gems:-offer.gems});
         t.teleScrolls+=(offer.tele||0); t.wildScrolls+=(offer.wild||0);
+        led.gems-=offer.gems; ledTx(me,'world:scrolls',{gems:-offer.gems});
         return {...worldView(me,now),ledger:ledgerView(me)};
       }
       const kind=String(b.kind||'');
@@ -5997,11 +5997,12 @@ async function api(req,res,url){
         const blocked=worldBlockedKeys(me,now);
         const next=WORLD_LOCATION.openInRegion(region,blocked,crypto.randomInt,30*WORLD_LOCATION.REGION_CELLS+30);
         if(!next) return {ok:false,error:'No free square remains in that region.'};
-        if(t.lastTransfer&&now-t.lastTransfer<30*24*3600000){
+        const paid=t.lastTransfer&&now-t.lastTransfer<30*24*3600000;
+        if(paid){
           if((led.gems|0)<1000) return {ok:false,error:'Not enough diamonds for region transfer.'};
-          led.gems-=1000; ledTx(me,'world:transfer',{gems:-1000});
         }
         t.lastTransfer=now; me.worldLocation=next;
+        if(paid){ led.gems-=1000; ledTx(me,'world:transfer',{gems:-1000}); }
       }else return {ok:false,error:'Unknown castle move.'};
       return {...worldView(me,now),ledger:ledgerView(me)};
     });
