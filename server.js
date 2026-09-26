@@ -4616,9 +4616,10 @@ async function api(req,res,url){
       });
       const injuries=WITCH.applyBattle(w.state,outcomes,march.heroIds);
       const A=ensureAcad(me); acadCollect(A);
-      let granted=0,capLeft=Math.max(0,60-((A.mineDay||{})[march.node.res]|0));
+      const dk=nyDayKey(now);
+      if(!A.mineDay||A.mineDay.k!==dk) A.mineDay={k:dk};
+      let granted=0,capLeft=Math.max(0,60-(A.mineDay[march.node.res]|0));
       if(battle.won){
-        const dk=nyDayKey(now); if(!A.mineDay||A.mineDay.k!==dk) A.mineDay={k:dk};
         const used=A.mineDay[march.node.res]|0;
         granted=Math.min(15,Math.max(0,60-used));
         A.mineDay[march.node.res]=used+granted;
