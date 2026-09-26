@@ -20229,7 +20229,9 @@ let _pvpPollN=0;
 function pollPvpReports(){ if(!ACC.token||!online())return;
   api('/api/pvp/reports').then(d=>{ if(!d||!Array.isArray(d.reports)||!d.reports.length)return;
     d.reports.forEach(r=>{ const when=r.t?new Date(r.t).toLocaleTimeString():'';
-      if(r.won) addMail('war',{from:r.from,subj:'⚠ '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall. Strengthen your defense lines or raise a shield.',battle:r.battle||undefined});
+      if(r.unverified) addMail('war',{from:r.from,subj:'⚠ Unverified attack report — '+r.from,
+        body:r.from+' submitted an old battle report'+(when?' at '+when:'')+'. The server did not verify a fight, outcome, injuries, or loot.'});
+      else if(r.won) addMail('war',{from:r.from,subj:'⚠ '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall. Strengthen your defense lines or raise a shield.',battle:r.battle||undefined});
       else addMail('war',{from:r.from,subj:'🛡 Wall held vs '+r.from,body:r.from+' attacked your castle'+(when?' at '+when:'')+' — your wall drove them off.',battle:r.battle||undefined}); });
     updateMailBadges(); bannerMsg('⚔ '+d.reports.length+' attack report'+(d.reports.length===1?'':'s')+' — check War mail.');
     // RE-AUDIT: acknowledge only AFTER the mail is stored locally — a dropped response no longer loses reports
