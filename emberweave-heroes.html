@@ -19499,7 +19499,7 @@ async function renderCauldron(body){
   if(!w){ panel.textContent='The cauldron could not be reached. Please try again.'; return; }
   if(w.locked){ panel.textContent='The Witches Hut opens at player level '+WALL_UNLOCK_LEVEL+'.'; return; }
   const pct=Math.max(0,Math.min(100,w.capacity?100*w.brew/w.capacity:0));
-  const brewScene=pct<=0?'brew-4-empty.mp4':pct<50?'brew-3-half.mp4':pct<85?'brew-2-near-full.mp4':'brew-1-full-overflow.mp4';
+  const brewScene=pct<=0?'brew-4-empty.mp4':pct<50?'brew-3-half.mp4':pct<100?'brew-2-near-full.mp4':'brew-1-full-overflow.mp4';
   const rows=(w.heroes||[]).map(h=>{
     const name=(HERO_TYPES[h.key]||{}).name||h.key;
     return `<div class="row" style="align-items:center;gap:8px;padding:7px 0;border-top:1px solid #253047">
