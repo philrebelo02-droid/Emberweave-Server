@@ -4594,7 +4594,7 @@ async function api(req,res,url){
         catch(e){ return {ok:false,error:'Mine squad could not be resolved.'}; }
         if(snaps.length!==ids.length) return {ok:false,error:'Mine squad is incomplete.'};
         snaps=snaps.map(s=>{
-          const hp=Math.round(s.maxHp*WITCH.health(w.state,s.key)/WITCH.HP_FULL);
+          const hp=WITCH.combatHp(w.state,s.key,s.maxHp);
           return {...s,hp,worldEntryHpCap:hp};
         });
         // Phil: a 0%-HP hero cannot join a world fight until healed with brew.
@@ -5794,7 +5794,7 @@ async function api(req,res,url){
         // handing the attacker capped gold + guild coins + hero XP with no battle ever simulated.
         // Returned before me.pvpDay.n++ so a phantom fight costs the attacker no daily attack.
         if(!defSnaps.length && d.isNpc) return {ok:false,error:'That city has no defenders.'};
-        const carry=(snaps,w)=>snaps.map(s=>({hp:w?Math.round(s.maxHp*WITCH.health(w.state,s.key)/WITCH.HP_FULL):s.maxHp,energy:0}));
+        const carry=(snaps,w)=>snaps.map(s=>({hp:w?WITCH.combatHp(w.state,s.key,s.maxHp):s.maxHp,energy:0}));
         const myCarry=carry(mySnaps,myWitch), defCarry=carry(defSnaps,defWitch);
         if(!march.snaps.some(s=>s.hp>0)) return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
         let won=false, rounds=0, log=[], injuries={attacker:[],defender:[]}, replay=null;
@@ -5814,7 +5814,7 @@ async function api(req,res,url){
           if(aSnaps.length!==ids.length||bSnaps.length!==defOwned.length)
             return {ok:false,error:'City squads are incomplete.'};
           const cap=(snaps,w)=>snaps.map(s=>{
-            const hp=w?Math.round(s.maxHp*WITCH.health(w.state,s.key)/WITCH.HP_FULL):s.maxHp;
+            const hp=w?WITCH.combatHp(w.state,s.key,s.maxHp):s.maxHp;
             return {...s,hp,worldEntryHpCap:hp};
           });
           bSnaps=cap(bSnaps,defWitch);
@@ -5931,7 +5931,7 @@ async function api(req,res,url){
       let snaps;
       try{snaps=host.snapFromSpecs(specs);}catch(e){return {ok:false,error:'City squad could not be resolved.'};}
       if(snaps.length!==ids.length) return {ok:false,error:'City squad is incomplete.'};
-      snaps=snaps.map(s=>{const hp=Math.round(s.maxHp*WITCH.health(w.state,s.key)/WITCH.HP_FULL);
+      snaps=snaps.map(s=>{const hp=WITCH.combatHp(w.state,s.key,s.maxHp);
         return {...s,hp,worldEntryHpCap:hp};});
       if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
       const fromX=WORLD_LOCATION.cellIndex(loc.x),fromY=WORLD_LOCATION.cellIndex(loc.y);

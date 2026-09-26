@@ -41,6 +41,12 @@ function health(state, key) {
   return Math.round(clamp(state.hp[key] == null ? HP_FULL : state.hp[key], 0, HP_FULL));
 }
 
+function combatHp(state, key, maxHp) {
+  const fraction = health(state, key);
+  if (fraction <= 0 || !(maxHp > 0)) return 0;
+  return Math.max(1, Math.round(maxHp * fraction / HP_FULL));
+}
+
 function recordSpend(state, amount, capacity, now) {
   if (!(amount > 0)) return;
   state.spent.push({ t: now, amount });
@@ -104,4 +110,4 @@ function buy(state, tier, capacity) {
 }
 
 module.exports = { UNLOCK_LEVEL, TICK_MS, FULL_TICKS, HP_FULL, SPEND_WINDOW_MS, SURGE_MS,
-  create, settle, health, heal, healAll, applyBattle, shopRefresh, shopOffer, buy };
+  create, settle, health, combatHp, heal, healAll, applyBattle, shopRefresh, shopOffer, buy };

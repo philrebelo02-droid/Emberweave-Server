@@ -28,6 +28,12 @@ const proportional = W.heal(partialPot, 'injured', 1000, 10, t);
 assert.deepEqual(proportional, { key:'injured', before:0, after:250, spent:2.5 },
   'insufficient brew restores the proportional share of health');
 assert.equal(partialPot.brew, 0, 'partial healing cannot overspend the cauldron');
+partialPot.hp.injured = 1;
+assert.equal(W.combatHp(partialPot, 'injured', 1000), 1,
+  'any positive healed health gives a playable minimum of one combat HP');
+partialPot.hp.injured = 0;
+assert.equal(W.combatHp(partialPot, 'injured', 1000), 0,
+  'a fallen hero still has zero combat HP');
 assert.deepEqual(W.applyBattle(h,[{key:'strong',hp:900,maxHp:1000}],['strong']),
   [{key:'strong',before:W.HP_FULL,after:9000}]);
 assert.deepEqual(W.applyBattle(h,[{key:'strong',hp:990,maxHp:1000}],['strong']),
