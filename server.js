@@ -2741,8 +2741,13 @@ function worldWarState(u){
   if(!u.worldWars||typeof u.worldWars!=='object'||Array.isArray(u.worldWars)) u.worldWars={};
   return u.worldWars;
 }
-function worldCityMarches(u){
+function worldCityMarches(u,now=Date.now()){
   if(!Array.isArray(u.worldCityMarches)) u.worldCityMarches=[];
+  if(u.worldCityMarches.length>100){
+    const keepAfter=now-2*86400000;
+    u.worldCityMarches=u.worldCityMarches.filter(m=>!m.resolved
+      ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
+  }
   return u.worldCityMarches;
 }
 // Resolve receipts outlive the 24-hour idempotency cache so a late retry cannot
@@ -5762,7 +5767,7 @@ async function api(req,res,url){
           }
           const receipt={ok:true,won:fight.won,rounds:0,loot,injuries,
             replay:{seed,snaps:march.snaps,foe:march.botTeam,engine:host.buildVersion,durationSec:digest.t}};
-          march.resolved=true; march.receipt=receipt;
+          march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
           writeDB(); return receipt;
         }
         const d=DB.users[march.defId];
@@ -5847,7 +5852,7 @@ async function api(req,res,url){
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
         const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:20-me.pvpDay.n};
-        march.resolved=true; march.receipt=receipt;
+        march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
         writeDB(); return receipt;
       }); return send(res, out.ok===false?400:200, out); }
   }
@@ -5917,7 +5922,7 @@ async function api(req,res,url){
       if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
         return {ok:false,error:'Pick up to five heroes you own.'};
       const mines=worldMineMarches(me,now);
-      const marches=worldCityMarches(me);
+      const marches=worldCityMarches(me,now);
       if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
         return {ok:false,error:'A selected hero is already marching.'};
       const host=simHost(); if(!host) return {ok:false,error:'City battle engine unavailable.'};
@@ -5939,7 +5944,6 @@ async function api(req,res,url){
         homeAt:now+travel*2,resolved:false};
       if(bot) march.botTeam=bot.team.map(h=>({key:h.key,level:h.level,rank:h.rank}));
       marches.push(march);
-      if(marches.length>100) me.worldCityMarches=marches.filter(m=>!m.resolved||m.homeAt>now).slice(-100);
       return {ok:true,marchId:march.id,defId:targetId,depart:now,arriveAt:march.arriveAt,
         homeAt:march.homeAt,travel,heroIds:ids};
     });

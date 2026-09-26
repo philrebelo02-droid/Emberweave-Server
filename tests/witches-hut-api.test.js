@@ -414,15 +414,28 @@ async function run() {
     marches.push({id:'recent-receipt',resolved:true,resolvedAt:t-3600000,
       homeAt:t-3600000,receipt:{ok:true,retained:true}});
     marches.push({id:'unfinished-trip',resolved:false,homeAt:t-3*86400000,heroIds:['vex']});
+    const cityHistory=history.users[warClock.profile.id].worldCityMarches=[];
+    for(let i=0;i<101;i++) cityHistory.push({id:'expired-city-'+i,defId:foe.profile.id,
+      resolved:true,resolvedAt:t-3*86400000,homeAt:t-3*86400000,receipt:{ok:true}});
+    cityHistory.push({id:'recent-city',defId:foe.profile.id,resolved:true,
+      resolvedAt:t-3600000,homeAt:t-3600000,receipt:{ok:true,retained:true}});
+    cityHistory.push({id:'unfinished-city',defId:foe.profile.id,resolved:false,
+      homeAt:t-3*86400000,heroIds:['vex']});
     fs.writeFileSync(db,JSON.stringify(history));
     await start(admin.profile.id,'20','0','0');
     const stillRetryable=await request('POST','/api/world/mine/resolve',{
       marchId:'recent-receipt',requestId:'recent-receipt-retry'
     },warClock.token);
     assert.deepEqual(stillRetryable,{ok:true,retained:true},'recent settled mine receipt survives a restart');
-    const cleaned=JSON.parse(fs.readFileSync(db,'utf8')).users[warClock.profile.id].worldMineMarches;
-    assert.equal(cleaned.some(m=>m.id==='expired-0'),false,'expired settled mine history is bounded');
-    assert.equal(cleaned.some(m=>m.id==='unfinished-trip'),true,'unresolved mine trips are never discarded');
+    const recentCity=await request('POST','/api/pvp/attack',{
+      defId:foe.profile.id,marchId:'recent-city',requestId:'recent-city-retry'
+    },warClock.token);
+    assert.deepEqual(recentCity,{ok:true,retained:true},'recent settled city receipt survives a restart');
+    const cleaned=JSON.parse(fs.readFileSync(db,'utf8')).users[warClock.profile.id];
+    assert.equal(cleaned.worldMineMarches.some(m=>m.id==='expired-0'),false,'expired settled mine history is bounded');
+    assert.equal(cleaned.worldMineMarches.some(m=>m.id==='unfinished-trip'),true,'unresolved mine trips are never discarded');
+    assert.equal(cleaned.worldCityMarches.some(m=>m.id==='expired-city-0'),false,'expired settled city history is bounded');
+    assert.equal(cleaned.worldCityMarches.some(m=>m.id==='unfinished-city'),true,'unresolved city trips are never discarded');
     console.log('Witches Hut API integration passed');
   } finally { await stop(); fs.rmSync(dir,{recursive:true,force:true}); }
 }
