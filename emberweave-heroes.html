@@ -19988,9 +19988,12 @@ async function startMarch(ctype,c,heroes){
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg('🛡 Protection shield broke — you launched an attack.'); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, real:!!c.real, fx:c.x, fy:c.y,
     serverCityId:serverMarch&&serverMarch.marchId,
-    tRank:c.rank, tPower:c.power||1, ally:!!c.ally, heroes:(heroes||[]).slice(), dTeam:(c.team||[]).slice(), depart:t,
+    tRank:c.rank, tPower:c.power||1, ally:!!c.ally,
+    heroes:serverMarch?serverMarch.heroIds.slice():(heroes||[]).slice(),
+    dTeam:(c.team||[]).slice(), depart:t,
     arrive:serverMarch?serverMarch.arriveAt:t+out,home:serverMarch?serverMarch.homeAt:t+out*2,out,resolved:false });
-  saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+' each way');
+  saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+' each way'+
+    (serverMarch&&(heroes||[]).length>serverMarch.heroIds.length?'\nOnly the first '+serverMarch.heroIds.length+' wall heroes marched; the others stayed home.':''));
   if(document.getElementById('wzone')) drawMarches();
   if(typeof pushWatchReport==='function') pushWatchReport();   // publish live activity to guild watch tower
 }

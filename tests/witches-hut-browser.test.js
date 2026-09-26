@@ -290,8 +290,8 @@ async function run(){
     const botPlayer=await request('POST','/api/register',{name:'witchBotBrowser',pass:'password1'});
     assert.ok(botPlayer.token);
     const botPlayerGrant=await request('POST','/api/admin/led-grant',{
-      userId:botPlayer.profile.id,unlock:['vael','sylthaine','vireo'],
-      heroKeys:['vael','sylthaine','vireo'],px:900000,heroXp:200000
+      userId:botPlayer.profile.id,unlock:['vael','sylthaine','vireo','vex','tallow','grosk'],
+      heroKeys:['vael','sylthaine','vireo','vex','tallow','grosk'],px:900000,heroXp:200000
     },currentToken);
     assert.equal(botPlayerGrant.ok,true);
     const botPage=await browser.newPage();
@@ -306,11 +306,14 @@ async function run(){
       const bot=SERVER_BOTS[0];
       if(!bot||!await declareWarByMe(bot)) throw Error('Server bot war was not registered: '+(bot?.id||'no bot'));
       await new Promise(ok=>setTimeout(ok,35));
-      await startMarch('attack',bot,['vael','sylthaine','vireo']);
+      await startMarch('attack',bot,['vael','sylthaine','vireo','vex','tallow','grosk']);
       const m=G.marches.find(x=>x.tId===bot.id&&x.ctype==='attack');
-      return m?{id:m.serverCityId,target:bot.id}:null;
+      return m?{id:m.serverCityId,target:bot.id,heroes:m.heroes,extraBusy:committedHeroes().has('grosk')}:null;
     });
     assert.ok(botTrip?.id,'signed-in bot trip has a server march receipt');
+    assert.deepEqual(botTrip.heroes,['vael','sylthaine','vireo','vex','tallow'],
+      'browser marks only the five server-registered fighters as marching');
+    assert.equal(botTrip.extraBusy,false,'the sixth wall hero remains available');
     await new Promise(ok=>setTimeout(ok,70));
     await botPage.evaluate(()=>marchTick());
     await botPage.waitForFunction(id=>G.marches.some(m=>m.serverCityId===id&&m.resolved),botTrip.id,{timeout:10000});
