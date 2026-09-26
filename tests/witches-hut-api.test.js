@@ -361,6 +361,23 @@ async function run() {
     saved.users[foe.profile.id].witch.hp={vael:0,sylthaine:0,vireo:0};
     fs.writeFileSync(db,JSON.stringify(saved));
     await start(admin.profile.id,'0','20');
+    const fallenField=await request('GET','/api/world/mines',null,foe.token);
+    const fallenMine=await request('POST','/api/world/mine/start',{
+      mineId:fallenField.nodes.find(n=>n.level===1).id,
+      heroIds:['vael','sylthaine','vireo'],requestId:'fallen-mine-start'
+    },foe.token);
+    assert.equal(fallenMine.ok,false,'a 0%-HP hero cannot depart for a mine fight');
+    assert.match(fallenMine.error,/0% HP/);
+    const fallenWar=await request('POST','/api/world/war/declare',{
+      defId:admin.profile.id,requestId:'fallen-city-war'
+    },foe.token);
+    assert.equal(fallenWar.ok,true,JSON.stringify(fallenWar));
+    await new Promise(resolve=>setTimeout(resolve,250));
+    const fallenCity=await request('POST','/api/world/city/start',{
+      defId:admin.profile.id,heroIds:['vael'],requestId:'fallen-city-start'
+    },foe.token);
+    assert.equal(fallenCity.ok,false,'a 0%-HP hero cannot depart for a city fight');
+    assert.match(fallenCity.error,/0% HP/);
     const undefRaider=await request('POST','/api/register',{name:'witchUndefRaider',pass:'password1'});
     assert.ok(undefRaider.token);
     const undefGrant=await request('POST','/api/admin/led-grant',{
