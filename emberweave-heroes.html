@@ -19707,7 +19707,7 @@ function worldZoomBounds(zone){
   const max=Math.min(zone.clientWidth/(16*cell),zone.clientHeight/(9*cell));
   return {min,max:Math.max(min,max)};
 }
-function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); drawMarches(); }
+function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'); if(inner) inner.style.zoom=worldZoom; applyMapLOD(); }
 // scroll so the player's castle is centered in the viewport (castle can be anywhere in the world now)
 function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!zone)return;
   const p=myCastlePos(), fx=p.x/100, fy=p.y/100;
@@ -20379,12 +20379,11 @@ function drawMarches(){
     p=Math.max(0,Math.min(1,p));
     if(showLine){ const NS='http://www.w3.org/2000/svg';
       const dx=legEnd.x-legStart.x, dy=legEnd.y-legStart.y, len=Math.hypot(dx,dy);
-      // Keep the dotted trail legible as the map changes scale.
+      // Keep the dotted trail legible close up while it thins naturally as the map zooms out.
       const ln=document.createElementNS(NS,'line');
       ln.setAttribute('x1',legStart.x);ln.setAttribute('y1',legStart.y);ln.setAttribute('x2',legEnd.x);ln.setAttribute('y2',legEnd.y);
-      ln.setAttribute('stroke',col);ln.setAttribute('vector-effect','non-scaling-stroke');
-      ln.setAttribute('stroke-width',String(3/worldZoom));ln.setAttribute('stroke-dasharray',`${3/worldZoom} ${8/worldZoom}`);
-      ln.setAttribute('stroke-linecap','round');ln.setAttribute('opacity','0.5'); g.appendChild(ln);
+      ln.setAttribute('stroke',col);ln.setAttribute('stroke-width','0.07');ln.setAttribute('stroke-dasharray','0.07 0.2');
+      ln.setAttribute('stroke-linecap','round');ln.setAttribute('opacity','0.85'); g.appendChild(ln);
       // small chevron arrows every ~2 tiles, pointing the way the ship is travelling
       if(len>0.01){ const ang=Math.atan2(dy,dx)*180/Math.PI, step=2*GRID_CELL, a=0.06;
         for(let d=step; d<len-a*0.6; d+=step){ const t=d/len, px=legStart.x+dx*t, py=legStart.y+dy*t;
