@@ -529,7 +529,7 @@
   #mapCtl .coordRead{font-size:12px;font-weight:800;color:#9fc0d6;font-variant-numeric:tabular-nums;padding:0 4px;letter-spacing:.5px;white-space:nowrap;}
   #mapCtl .btn{padding:5px 10px;}
   #wzone:active{cursor:grabbing;}
-  #wzoneInner{position:relative;
+  #wzoneInner{position:relative;overflow:hidden;
          background:radial-gradient(circle at 20% 15%,#356048,#183025 55%),radial-gradient(circle at 75% 70%,#2a4a5a,#16261f 60%),linear-gradient(160deg,#1e3e2e,#122019);}
   .wnode{position:absolute;transform:translate(-50%,-50%);min-width:58px;text-align:center;cursor:pointer;z-index:3;}
   .wnode .ic{width:46px;height:46px;margin:0 auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(10,18,14,.7);border:2px solid #3a5a48;box-shadow:0 3px 8px rgba(0,0,0,.4);}
@@ -19496,7 +19496,7 @@ function renderArenaShop(){
 
 let WALL_TAB='wall';
 async function renderCauldron(body){
-  if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center">Sign in to tend your cauldron and keep your heroes\' recovery safe.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return; }
+  if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center">Sign in to view your heroes and cauldron.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return; }
   const panel=document.createElement('div'); panel.className='panel'; panel.innerHTML='Loading cauldron…'; body.appendChild(panel);
   const w=await api('/api/witch/state');
   if(!panel.isConnected || WALL_TAB!=='cauldron') return;
@@ -19506,7 +19506,7 @@ async function renderCauldron(body){
   const brewScene=pct<=0?'brew-4-empty.mp4':pct<50?'brew-3-half.mp4':pct<100?'brew-2-near-full.mp4':'brew-1-full-overflow.mp4';
   const now=Date.now(), canHeal=(w.heroes||[]).some(h=>!(h.returnAt>now));
   const rows=(w.heroes||[]).map(h=>{
-    const name=(HERO_TYPES[h.key]||{}).name||h.key;
+    const name=(HERO_TYPES[h.key]||{}).name||'Unknown hero';
     const away=h.returnAt>now;
     return `<div class="row" style="align-items:center;gap:8px;padding:7px 0;border-top:1px solid #253047">
       ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ⚔ ${h.power.toLocaleString()} · Brew ${h.healCost}${away?' · Returns in '+fmtDur(h.returnAt-now):''}</span></div>
@@ -19514,8 +19514,8 @@ async function renderCauldron(body){
   }).join('');
   const offer=w.offer;
   panel.innerHTML=`<div style="font-weight:800;font-size:15px">🫙 Cauldron · Hut Lv ${w.level}</div>
-    <video src="assets/img/witches-hut/${brewScene}" poster="assets/img/witches-hut/cauldron-base.png" autoplay muted loop playsinline preload="metadata" aria-label="Witches Hut cauldron at ${Math.round(pct)} percent brew" style="display:block;width:min(100%,320px);aspect-ratio:1;margin:10px auto;border-radius:12px;object-fit:cover;background:#111"></video>
-    <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()} · refills in about 18 hours from empty</div>
+    <video src="/assets/img/witches-hut/${brewScene}?v=1" poster="/assets/img/witches-hut/cauldron-base.png?v=1" autoplay muted loop playsinline preload="metadata" aria-label="Witches Hut cauldron at ${Math.round(pct)} percent brew" style="display:block;width:min(100%,320px);aspect-ratio:1;margin:10px auto;border-radius:12px;object-fit:cover;background:#111"></video>
+    <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()} · brew returns over time</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${canHeal&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
     ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}</div>
@@ -19532,7 +19532,7 @@ function renderWall(){
   const lv=playerLevel(), body=document.getElementById('wallBody'); body.innerHTML='';
   const locked = lv<WALL_UNLOCK_LEVEL;
   if(locked && !AUDIT_MODE()){ body.innerHTML=`<div class="panel" style="text-align:center">🔒 The City Wall world opens at player level ${WALL_UNLOCK_LEVEL}.<br><span style="color:#8b98a9;font-size:12px">You are level ${lv}. Clear campaign stages to level up.</span></div>`; return; }
-  document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : (WALL_TAB==='cauldron'?'Heal heroes with private brew':'Set defenders · then raid the world map');
+  document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : (WALL_TAB==='cauldron'?'Heal wounded heroes after they return':'Set defenders · then raid the world map');
   const tabs=document.createElement('div'); tabs.className='row'; tabs.style.cssText='gap:8px;margin:8px 0 12px';
   tabs.innerHTML=`<button class="btn sm ${WALL_TAB==='wall'?'':'secondary'}" data-wall-tab="wall">City Wall</button><button class="btn sm ${WALL_TAB==='cauldron'?'':'secondary'}" data-wall-tab="cauldron">Cauldron</button>`;
   body.appendChild(tabs);
@@ -19878,8 +19878,8 @@ function renderWorldMap(keepView){
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){ const key=zoneAt(col,row), z=ZONES[key], biome=BIOME[z.terrain];
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
     const pane=document.createElement('div');
-    const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 34px rgba(70,224,122,.16);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 34px rgba(230,72,63,.14);') : 'box-shadow:inset 0 0 0 2px rgba(0,0,0,.28);';
-    pane.style.cssText=`position:absolute;left:${ZONE_EDGES[col]*GRID_CELL}%;top:${ZONE_EDGES[row]*GRID_CELL}%;width:${(ZONE_EDGES[col+1]-ZONE_EDGES[col])*GRID_CELL}%;height:${(ZONE_EDGES[row+1]-ZONE_EDGES[row])*GRID_CELL}%;background:${locked&&!_teleMode?'rgba(0,0,0,.35)':'transparent'};${teleTint}`;
+    const teleTint=_teleMode ? (accessible?'box-shadow:inset 0 0 0 3px #46e07a, inset 0 0 34px rgba(70,224,122,.16);':'box-shadow:inset 0 0 0 3px #e6483f, inset 0 0 34px rgba(230,72,63,.14);') : '';
+    pane.style.cssText=`position:absolute;left:${ZONE_EDGES[col]*GRID_CELL}%;top:${ZONE_EDGES[row]*GRID_CELL}%;width:${(ZONE_EDGES[col+1]-ZONE_EDGES[col])*GRID_CELL}%;height:${(ZONE_EDGES[row+1]-ZONE_EDGES[row])*GRID_CELL}%;background:transparent;${teleTint}`;
     pane.innerHTML=`<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' ✅':' ⛔'):(key===myRegion()?' 🏰':locked?' 🔒':'')}</div>`;
     // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
@@ -20024,11 +20024,15 @@ function myHeroPower(k){ try{ return heroPower(k)|0; }catch(e){ return 0; } }
 function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHeroPower(k); } return p; }
 function marchPower(heroes){ return myTeamPower(heroes); }
 function marchVerb(ct){ return ct==='attack'?'⚔ Attacking':ct==='group'?'⚔ Group attacking':ct==='defend'?'🛡 Defending':'🔭 Scouting'; }
+let cityMarchStartPending=false;
 async function startMarch(ctype,c,heroes){
   let out=marchOutMs(ctype,c.x,c.y), t=Date.now(), serverMarch=null;
   if((ctype==='attack'||ctype==='group') && (c.real||c.bot) && ACC.token){
+    if(cityMarchStartPending)return;
+    cityMarchStartPending=true;
     try{serverMarch=await api('/api/world/city/start','POST',{
       defId:c.id,heroIds:(heroes||[]).slice(0,5),requestId:uid8()});}catch(_e){serverMarch=null;}
+    finally{cityMarchStartPending=false;}
     if(!serverMarch||!serverMarch.ok){
       bannerMsg((serverMarch&&serverMarch.error)||'The city march could not be registered. Try again.'); return;
     }

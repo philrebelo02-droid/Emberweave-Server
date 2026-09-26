@@ -81,7 +81,7 @@ async function run(){
     assert.match(wall,/Cauldron · Hut Lv/);
     assert.match(wall,/Heal All · strongest first/);
     const brewVideo=page.locator('#wallBody video');
-    assert.match(await brewVideo.getAttribute('src'),/^assets\/img\/witches-hut\/brew-[1-4]-/);
+    assert.match(await brewVideo.getAttribute('src'),/^\/assets\/img\/witches-hut\/brew-[1-4]-.*\?v=1$/);
     const brewAsset=await page.request.get(new URL(await brewVideo.getAttribute('src'),base+'/play').toString());
     assert.equal(brewAsset.status(),200,'the selected brew-state video is served');
     await page.evaluate(()=>show('world'));
@@ -176,7 +176,10 @@ async function run(){
       worldZoomTo(0);
       const low={zoom:worldZoom,expected:zone.clientWidth/WORLD_W,
         horizontalRange:zone.scrollWidth-zone.clientWidth,city:inner.querySelector('.wnode.city')?.style.display,
-        mine:inner.querySelector('.wnode.mine')?.style.display};
+        mine:inner.querySelector('.wnode.mine')?.style.display,
+        middle:inner.querySelector('#worldPictureMiddle')?.style.display,
+        close:inner.querySelector('#worldPictureClose')?.style.display,
+        regionBackground:[...inner.children].find(el=>el.style.width?.includes('%')&&el.style.height?.includes('%'))?.style.background};
       zone.scrollLeft=Number.MAX_SAFE_INTEGER;zone.scrollTop=Number.MAX_SAFE_INTEGER;
       const edge={right:zone.scrollLeft,bottom:zone.scrollTop,
         maxRight:zone.scrollWidth-zone.clientWidth,maxBottom:zone.scrollHeight-zone.clientHeight};
@@ -185,18 +188,22 @@ async function run(){
         cellsX:zone.clientWidth/worldZoom/(WORLD_W/GRID_COLS),
         cellsY:zone.clientHeight/worldZoom/(WORLD_H/GRID_COLS),
         city:inner.querySelector('.wnode.city')?.style.display,mine:inner.querySelector('.wnode.mine')?.style.display,
-        level:inner.dataset.pictureLevel};
+        level:inner.dataset.pictureLevel,overflow:zone.scrollWidth-WORLD_W*worldZoom};
       return {low,edge,high,scrollbar:getComputedStyle(zone).scrollbarWidth};
     });
     assert.ok(Math.abs(zoomRules.low.zoom-zoomRules.low.expected)<1e-6,'minimum zoom fits the full world width');
     assert.ok(Math.abs(zoomRules.low.horizontalRange)<=2,'no sideways play past the whole picture');
     assert.equal(zoomRules.low.city,'none','castles hide at the overview scale');
     assert.equal(zoomRules.low.mine,'none','mines hide at the overview scale');
+    assert.equal(zoomRules.low.middle,'none','middle pictures hide at the whole-map scale');
+    assert.equal(zoomRules.low.close,'none','close pictures hide at the whole-map scale');
+    assert.equal(zoomRules.low.regionBackground,'transparent','region overlays do not darken the approved master picture');
     assert.ok(Math.abs(zoomRules.edge.right-zoomRules.edge.maxRight)<=2 &&
       Math.abs(zoomRules.edge.bottom-zoomRules.edge.maxBottom)<=2,'scrolling stops at the picture edges');
     assert.ok(Math.abs(zoomRules.high.zoom-zoomRules.high.expected)<1e-6,'maximum zoom follows the view size');
     assert.ok(zoomRules.high.cellsX>=15.99 && zoomRules.high.cellsY>=8.99,'closest view shows at least 16 by 9 cells');
     assert.equal(zoomRules.high.level,'9','closest view uses close detail');
+    assert.ok(Math.abs(zoomRules.high.overflow)<=2,'node labels cannot expand the map beyond its picture');
     assert.notEqual(zoomRules.high.city,'none','castles return at close detail');
     assert.notEqual(zoomRules.high.mine,'none','mines return at close detail');
     assert.equal(zoomRules.scrollbar,'none','map hides the scrollbar while retaining pan');
