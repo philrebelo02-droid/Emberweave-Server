@@ -12,7 +12,7 @@ const ZONES=[
 function epochAt(now){ return Math.floor(now/EPOCH_MS); }
 function mineRand(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 function field(epoch){
-  const out=[],rnd=mineRand((epoch*2654435761)>>>0); let guard=0;
+  const out=[],occupied=new Set(),rnd=mineRand((epoch*2654435761)>>>0); let guard=0;
   while(out.length<COUNT && guard++<COUNT*12){
     const gx=2+Math.floor(rnd()*(GRID_COLS-3)), gy=2+Math.floor(rnd()*(GRID_COLS-3));
     const x=gx*GRID_CELL, y=gy*GRID_CELL;
@@ -20,6 +20,9 @@ function field(epoch){
     const row=gy<EDGES[1]?0:gy<EDGES[2]?1:2;
     const z=ZONES[row][col];
     if(z.type==='worldtree') continue;
+    const square=gx+','+gy;
+    if(occupied.has(square)) continue;
+    occupied.add(square);
     const fx=(gx-EDGES[col])/(EDGES[col+1]-EDGES[col]);
     const fy=(gy-EDGES[row])/(EDGES[row+1]-EDGES[row]);
     let level;

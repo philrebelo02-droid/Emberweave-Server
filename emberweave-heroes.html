@@ -20386,13 +20386,16 @@ function mineGarrison(m){ const rows=['tank','fighter','fighter','mid','back'], 
 function mineRand(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 let _mineCache=null, _mineCacheEpoch=-1;
 function worldMines(){ const ep=mineEpoch(); if(_mineCache&&_mineCacheEpoch===ep) return _mineCache;
-  const out=[], resKeys=RES.map(r=>r[0]), rnd=mineRand((ep*2654435761)>>>0); let guard=0;
+  const out=[], occupied=new Set(), resKeys=RES.map(r=>r[0]), rnd=mineRand((ep*2654435761)>>>0); let guard=0;
   while(out.length<MINE_COUNT && guard++<MINE_COUNT*12){
     // spawn on a GRID-LINE INTERSECTION (integer cell corner) → mines sit on the lines between squares.
     const gx=2+Math.floor(rnd()*(GRID_COLS-3)), gy=2+Math.floor(rnd()*(GRID_COLS-3));
     const x=gx*GRID_CELL, y=gy*GRID_CELL;
     const zk=zoneOfPos(x,y), z=ZONES[zk];
     if(!z || z.type==='worldtree') continue;             // NO mines in the Tree of Life / World Tree zone
+    const square=gx+','+gy;
+    if(occupied.has(square)) continue;
+    occupied.add(square);
     const fx=(gx-ZONE_EDGES[z.col])/(ZONE_EDGES[z.col+1]-ZONE_EDGES[z.col]);
     const fy=(gy-ZONE_EDGES[z.row])/(ZONE_EDGES[z.row+1]-ZONE_EDGES[z.row]);
     let level;

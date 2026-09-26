@@ -21,6 +21,11 @@ vm.createContext(ctx);
 vm.runInContext(source.slice(start,end)+'\nthis.result=worldMines();',ctx);
 assert.equal(ctx.result.length,mines.COUNT);
 assert.deepEqual(JSON.parse(JSON.stringify(ctx.result)),mines.field(30_000),'server field matches client node-for-node');
+for(let epoch=30_000;epoch<30_100;epoch++){
+  const field=mines.field(epoch);
+  assert.equal(new Set(field.map(n=>n.gx+','+n.gy)).size,mines.COUNT,
+    'each mine occupies its own grid intersection');
+}
 assert.equal(mines.nodeById('mn30000_0',30_000*mines.EPOCH_MS).id,'mn30000_0');
 assert.equal(mines.nodeById('mn29999_0',30_000*mines.EPOCH_MS),null,'stale epoch cannot be claimed');
 console.log('World mine field parity passed');
