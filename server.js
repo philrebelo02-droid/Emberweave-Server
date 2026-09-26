@@ -3892,6 +3892,14 @@ async function api(req,res,url){
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
       attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
       defender.hpState=mapBack(defender.lineSnapshot, r.bState);
+      // A guild-war assault is a world fight for both real owners. Match HP alone
+      // disappears with the tournament; carry the measured losses into the Hut.
+      const warInjuries={attacker:[],defender:[]};
+      const attackOwner=DB.users[attacker.memberId], defendOwner=DB.users[defender.memberId];
+      const attackHut=attackOwner&&witchState(attackOwner,Date.now());
+      const defendHut=defendOwner&&witchState(defendOwner,Date.now());
+      if(attackHut) warInjuries.attacker=WITCH.applyBattle(attackHut.state,r.aState,attacker.lineSnapshot.map(h=>h.key));
+      if(defendHut) warInjuries.defender=WITCH.applyBattle(defendHut.state,r.bState,defender.lineSnapshot.map(h=>h.key));
       /* v678: the march settles it - the loser's line is eliminated, the winner banks a kill */
       if(r.won){ defender.alive=false; attacker.kills=(attacker.kills|0)+1; }
       else { attacker.alive=false; defender.kills=(defender.kills|0)+1; }
@@ -3908,7 +3916,7 @@ async function api(req,res,url){
       m.version++; writeDB();
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
-        result:{ aState:r.aState, bState:r.bState, rounds:r.rounds },
+        result:{ aState:r.aState, bState:r.bState, rounds:r.rounds }, injuries:warInjuries,
         match:warMatchView(t,m,myGid,me.id) });
     }
     if(p==='/api/guild-war/claim-reward'){
