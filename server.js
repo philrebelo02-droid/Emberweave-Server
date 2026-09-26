@@ -4560,7 +4560,8 @@ async function api(req,res,url){
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
         if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
           return {ok:false,error:'Pick up to five heroes you own.'};
-        if(me.worldMineMarches.some(m=>m.homeAt>now&&m.heroIds.some(k=>ids.includes(k))))
+        if([...me.worldMineMarches,...worldCityMarches(me)]
+          .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
           return {ok:false,error:'A selected hero is already marching.'};
         const needLevel=[1,8,16,26,36,44,52,58][node.level-1];
         if(!ids.some(k=>ledHeroLevel(led,k)>=needLevel))
@@ -4580,8 +4581,7 @@ async function api(req,res,url){
           const hp=Math.round(s.maxHp*WITCH.health(w.state,s.key)/WITCH.HP_FULL);
           return {...s,hp,worldEntryHpCap:hp};
         });
-        // Phil has not settled whether a 0%-HP hero may join a world fight. Fail closed
-        // without starting or charging a march until that rule is decided.
+        // Phil: a 0%-HP hero cannot join a world fight until healed with brew.
         if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
         const wx=castle.x,wy=castle.y;
         const cx=Math.round(wx/WORLD_MINES.GRID_CELL-0.5),cy=Math.round(wy/WORLD_MINES.GRID_CELL-0.5);

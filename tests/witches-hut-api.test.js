@@ -22,7 +22,7 @@ async function run() {
     const response=await fetch(base+route,{method,headers:{...(token?{'x-token':token}:{}),...(data?{'content-type':'application/json'}:{})},body:data?JSON.stringify(data):undefined});
     return response.json();
   }
-  async function start(adminId, mineTestMs='20', cityTestMs='20', warTestMs='20') {
+  async function start(adminId, mineTestMs='20', cityTestMs='20', warTestMs='200') {
     child=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),windowsHide:true,
       stdio:'ignore',env:{...process.env,PORT:String(port),DB_FILE:db,ADMIN_IDS:adminId||'',REG_PER_MIN:'200',REG_ACCOUNTS_PER_IP:'200',
         NODE_ENV:'test',WORLD_MINE_TEST_MS:mineTestMs,WORLD_WAR_TEST_MS:warTestMs,WORLD_CITY_TEST_MS:cityTestMs}});
@@ -105,7 +105,7 @@ async function run() {
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'witch-early-city'
     },admin.token);
     assert.equal(earlyMarch.ok,false,'war preparation is enforced by the server');
-    await new Promise(resolve=>setTimeout(resolve,35));
+    await new Promise(resolve=>setTimeout(resolve,250));
     const cityMarch=await request('POST','/api/world/city/start',{
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'witch-city-start'
     },admin.token);
@@ -141,15 +141,24 @@ async function run() {
       defId:targetBot.id,requestId:'bot-verified-war'
     },botRaider.token);
     assert.equal(verifiedBotWar.ok,true,JSON.stringify(verifiedBotWar));
-    await new Promise(resolve=>setTimeout(resolve,35));
+    await new Promise(resolve=>setTimeout(resolve,250));
     const beforeBotLedger=await request('GET','/api/ledger',null,botRaider.token);
     const botMarch=await request('POST','/api/world/city/start',{
       defId:targetBot.id,heroIds:['vael','sylthaine','vireo'],requestId:'bot-verified-start'
     },botRaider.token);
     assert.equal(botMarch.ok,true,JSON.stringify(botMarch));
+    const botHeroDoubleBooked=await request('POST','/api/world/mine/start',{
+      mineId:map.nodes[0].id,heroIds:['vael','sylthaine','vireo'],requestId:'bot-hero-double-book'
+    },botRaider.token);
+    assert.equal(botHeroDoubleBooked.ok,false,'a city march keeps its heroes off a simultaneous mine trip');
+    assert.match(botHeroDoubleBooked.error,/already marching/);
     await new Promise(resolve=>setTimeout(resolve,35));
+    const forgedBotTarget=await request('POST','/api/pvp/attack',{
+      defId:'bot_crystor_999',marchId:botMarch.marchId,requestId:'bot-forged-target'
+    },botRaider.token);
+    assert.equal(forgedBotTarget.ok,false,'a valid march cannot be redirected to a fabricated bot');
     const botFight=await request('POST','/api/pvp/attack',{
-      defId:targetBot.id,marchId:botMarch.marchId,requestId:'bot-verified-fight'
+      defId:targetBot.id,marchId:botMarch.marchId,heroIds:['hollow'],requestId:'bot-verified-fight'
     },botRaider.token);
     assert.equal(botFight.ok,true,JSON.stringify(botFight));
     assert.equal(mineHost.auto(botFight.replay.snaps,botFight.replay.foe,botFight.replay.seed).won,botFight.won,
@@ -325,7 +334,7 @@ async function run() {
       defId:foe.profile.id,requestId:'travel-war'
     },traveler.token);
     assert.equal(travelWar.ok,true,JSON.stringify(travelWar));
-    await new Promise(resolve=>setTimeout(resolve,35));
+    await new Promise(resolve=>setTimeout(resolve,250));
     const longCity=await request('POST','/api/world/city/start',{
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'travel-city'
     },traveler.token);
@@ -352,7 +361,7 @@ async function run() {
       defId:foe.profile.id,requestId:'undef-war'
     },undefRaider.token);
     assert.equal(undefWar.ok,true);
-    await new Promise(resolve=>setTimeout(resolve,35));
+    await new Promise(resolve=>setTimeout(resolve,250));
     const undefStart=await request('POST','/api/world/city/start',{
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'undef-start'
     },undefRaider.token);
