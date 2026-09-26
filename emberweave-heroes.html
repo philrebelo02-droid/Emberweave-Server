@@ -19503,18 +19503,20 @@ async function renderCauldron(body){
   if(w.locked){ panel.textContent='The Witches Hut opens at player level '+WALL_UNLOCK_LEVEL+'.'; return; }
   const pct=Math.max(0,Math.min(100,w.capacity?100*w.brew/w.capacity:0));
   const brewScene=pct<=0?'brew-4-empty.mp4':pct<50?'brew-3-half.mp4':pct<100?'brew-2-near-full.mp4':'brew-1-full-overflow.mp4';
+  const now=Date.now(), canHeal=(w.heroes||[]).some(h=>!(h.returnAt>now));
   const rows=(w.heroes||[]).map(h=>{
     const name=(HERO_TYPES[h.key]||{}).name||h.key;
+    const away=h.returnAt>now;
     return `<div class="row" style="align-items:center;gap:8px;padding:7px 0;border-top:1px solid #253047">
-      ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ⚔ ${h.power.toLocaleString()} · Brew ${h.healCost}</span></div>
-      <button class="btn xs" data-witch-heal="${h.key}" ${w.brew<=0?'disabled':''}>Heal</button></div>`;
+      ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ⚔ ${h.power.toLocaleString()} · Brew ${h.healCost}${away?' · Returns in '+fmtDur(h.returnAt-now):''}</span></div>
+      <button class="btn xs" data-witch-heal="${h.key}" ${w.brew<=0||away?'disabled':''}>${away?'Marching':'Heal'}</button></div>`;
   }).join('');
   const offer=w.offer;
   panel.innerHTML=`<div style="font-weight:800;font-size:15px">🫙 Cauldron · Hut Lv ${w.level}</div>
     <video src="assets/img/witches-hut/${brewScene}" poster="assets/img/witches-hut/cauldron-base.png" autoplay muted loop playsinline preload="metadata" aria-label="Witches Hut cauldron at ${Math.round(pct)} percent brew" style="display:block;width:min(100%,320px);aspect-ratio:1;margin:10px auto;border-radius:12px;object-fit:cover;background:#111"></video>
     <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()} · refills in about 18 hours from empty</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
-    <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${rows&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
+    <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${canHeal&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
     ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}</div>
     <div style="font-size:12px;font-weight:700;margin-bottom:5px">Damaged heroes</div>${rows||'<div style="font-size:12px;color:#aeb8c8">All your heroes are healthy.</div>'}`;
   const act=async(btn,path,extra)=>{ if(btn.disabled)return; btn.disabled=true;

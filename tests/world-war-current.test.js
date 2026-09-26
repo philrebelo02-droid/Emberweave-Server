@@ -74,9 +74,32 @@ async function run(){
     const afterLock=await req('GET','/api/guild-war/status',null,a.token);
     const firstRound=afterLock.tournament.bracket[0];
     assert.ok(firstRound&&firstRound.schedule);
+    const aWitch=await req('GET','/api/witch/state',null,a.token);
+    const bWitch=await req('GET','/api/witch/state',null,b.token);
+    assert.equal(aWitch.locked,false,JSON.stringify(aWitch));
+    assert.equal(bWitch.locked,false,JSON.stringify(bWitch));
+    await new Promise(r=>setTimeout(r,350));
+    await stop();
+    const injured=JSON.parse(fs.readFileSync(db,'utf8'));
+    injured.users[a.profile.id].witch.hp.vael=2500;
+    injured.users[b.profile.id].witch.hp.sylthaine=0;
+    fs.writeFileSync(db,JSON.stringify(injured));
+    await start(dev.profile.id);
     await warp(firstRound.schedule.lockAt+60000);
     const live=await req('GET','/api/guild-war/match',null,a.token);
     assert.equal(live.match?.state,'live',JSON.stringify(live));
+    await new Promise(r=>setTimeout(r,350));
+    const locked=JSON.parse(fs.readFileSync(db,'utf8')).tournaments.current.matches;
+    const lockedMatch=Object.values(locked).find(m=>m.state==='live');
+    const lineFor=id=>Object.values(lockedMatch.sides).flatMap(side=>side.citadels)
+      .flatMap(c=>c.defenders).find(d=>d.memberId===id);
+    const entryHp=(line,key)=>line.hpState[line.lineSnapshot.findIndex(h=>h.key===key)].hp;
+    const WITCH=require('../server/witches-hut.js');
+    const aLine=lineFor(a.profile.id),bLine=lineFor(b.profile.id);
+    const vael=aLine.lineSnapshot.find(h=>h.key==='vael');
+    assert.equal(entryHp(aLine,'vael'),WITCH.combatHp(injured.users[a.profile.id].witch,'vael',vael.maxHp),
+      'Skyfall locks the injured hero at their persistent Hut HP');
+    assert.equal(entryHp(bLine,'sylthaine'),0,'a 0%-HP hero cannot regain full health at Skyfall lock');
     const beforeA=await req('GET','/api/witch/state',null,a.token);
     const beforeB=await req('GET','/api/witch/state',null,b.token);
     const assault=await req('POST','/api/guild-war/assault',{fromLane:0},a.token);
@@ -84,7 +107,8 @@ async function run(){
     assert.ok(assault.result?.aState&&assault.result?.bState,'a real fight occurred');
     const afterA=await req('GET','/api/witch/state',null,a.token);
     const afterB=await req('GET','/api/witch/state',null,b.token);
-    assert.equal(beforeA.heroes.length+beforeB.heroes.length,0);
+    assert.equal(beforeA.heroes.find(h=>h.key==='vael').hp,2500);
+    assert.equal(beforeB.heroes.find(h=>h.key==='sylthaine').hp,0);
     assert.ok([...assault.result.aState,...assault.result.bState].some(h=>h.hp<h.maxHp),
       'the war battle caused at least one wound');
     for(const [rows,view] of [[assault.result.aState,afterA],[assault.result.bState,afterB]]){

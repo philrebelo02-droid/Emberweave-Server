@@ -1852,7 +1852,8 @@ function witchView(u,now){
   const led=ensureLedger(u);
   const heroes=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k])
     .map(key=>{ const power=heroCardPower(u,key), hp=WITCH.health(w.state,key);
-      return {key,power,hp,healCost:Math.ceil(power*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL)}; })
+      return {key,power,hp,healCost:Math.ceil(power*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL),
+        returnAt:worldHeroReturnAt(u,key,now)}; })
     .filter(h=>h.hp<WITCH.HP_FULL).sort((a,b)=>b.power-a.power||a.key.localeCompare(b.key));
   return {ok:true,locked:false,level:w.state.level,playerLevel:w.playerLevel,
     brew:w.state.brew,capacity:w.capacity,refillMs:WITCH.TICK_MS*WITCH.FULL_TICKS,
@@ -2017,9 +2018,18 @@ function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unass
     const seen=new Set();
     /* v774 - `power` comes along. The client orders every list of lines weakest-to-strongest by
        it, and dropping it here made that sort a no-op in every real war. */
-    const hydrate=(L)=>({ memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
-      lineSnapshot:JSON.parse(JSON.stringify(L.heroes)),
-      hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true });
+    const huts=new Map();
+    const hydrate=(L)=>{
+      if(!huts.has(L.memberId)){
+        const owner=DB.users[L.memberId];
+        huts.set(L.memberId,owner?witchState(owner,Date.now()):null);
+      }
+      const hut=huts.get(L.memberId);
+      const hpState=L.heroes.map(h=>({hp:hut?WITCH.combatHp(hut.state,h.key,h.maxHp):h.maxHp,energy:0}));
+      return { memberId:L.memberId, line:L.line|0, name:L.name, power:L.power|0,
+        lineSnapshot:JSON.parse(JSON.stringify(L.heroes)), hpState,
+        alive:hpState.some(h=>h.hp>0) };
+    };
     for(const c of side.citadels){
       const out=[];
       for(const d of c.defenders){
@@ -2760,6 +2770,17 @@ function worldMineMarches(u,now){
       ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
   }
   return u.worldMineMarches;
+}
+function worldHeroReturnAt(u,key,now=Date.now()){
+  let returnAt=0;
+  for(const list of [u.worldMineMarches,u.worldCityMarches]){
+    if(!Array.isArray(list)) continue;
+    for(const march of list){
+      if(march && +march.homeAt>now && Array.isArray(march.heroIds) && march.heroIds.includes(key))
+        returnAt=Math.max(returnAt,+march.homeAt);
+    }
+  }
+  return returnAt;
 }
 function worldBotRoster(u,regionKey){
   const loc=worldLocation(u),host=loc&&simHost();
@@ -4535,15 +4556,18 @@ async function api(req,res,url){
       if(p==='/api/witch/heal'){
         const key=String(b.hero||'');
         if(!SIM.HERO_BASE[key] || !led.unlocked[key]) return {ok:false,error:'You do not own that hero.'};
+        if(worldHeroReturnAt(me,key,now)>now)
+          return {ok:false,error:'That hero is still marching. Heal them when they return to your city.'};
         const result=WITCH.heal(w.state,key,heroCardPower(me,key),w.capacity,now);
         if(!(result.spent>0)) return {ok:false,error:'That hero needs no heal, or the cauldron is empty.'};
         return {ok:true,result,witch:witchView(me,now)};
       }
       if(p==='/api/witch/heal-all'){
         const heroes=Object.keys(led.unlocked||{}).filter(key=>led.unlocked[key]&&SIM.HERO_BASE[key]
-          && WITCH.health(w.state,key)<WITCH.HP_FULL).map(key=>({key,power:heroCardPower(me,key)}));
+          && WITCH.health(w.state,key)<WITCH.HP_FULL && worldHeroReturnAt(me,key,now)<=now)
+          .map(key=>({key,power:heroCardPower(me,key)}));
         const results=WITCH.healAll(w.state,heroes,w.capacity,now).filter(h=>h.spent>0);
-        if(!results.length) return {ok:false,error:'No damaged heroes could be healed.'};
+        if(!results.length) return {ok:false,error:'No damaged heroes at your city could be healed.'};
         return {ok:true,results,witch:witchView(me,now)};
       }
       const offer=WITCH.shopOffer(w.state);

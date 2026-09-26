@@ -516,6 +516,39 @@ async function run() {
     assert.equal(cleaned.worldMineMarches.some(m=>m.id==='unfinished-trip'),true,'unresolved mine trips are never discarded');
     assert.equal(cleaned.worldCityMarches.some(m=>m.id==='expired-city-0'),false,'expired settled city history is bounded');
     assert.equal(cleaned.worldCityMarches.some(m=>m.id==='unfinished-city'),true,'unresolved city trips are never discarded');
+    await request('GET','/api/witch/state',null,warClock.token);
+    await stop();
+    const awayDb=JSON.parse(fs.readFileSync(db,'utf8'));
+    const awayUser=awayDb.users[warClock.profile.id],awayAt=Date.now()+3600000;
+    awayUser.witch.hp.vael=5000;
+    awayUser.witch.hp.sylthaine=5000;
+    awayUser.worldCityMarches.push({id:'heal-away-city',heroIds:['vael'],homeAt:awayAt,resolved:true});
+    fs.writeFileSync(db,JSON.stringify(awayDb));
+    await start(admin.profile.id,'20','0','0');
+    const awayView=await request('GET','/api/witch/state',null,warClock.token);
+    assert.equal(awayView.heroes.find(h=>h.key==='vael').returnAt,awayAt,
+      'the Hut marks a wounded marching hero unavailable until home');
+    const blockedHeal=await request('POST','/api/witch/heal',{
+      hero:'vael',requestId:'heal-away-blocked'
+    },warClock.token);
+    assert.equal(blockedHeal.ok,false,'a hero away on a city march cannot use the cauldron');
+    assert.match(blockedHeal.error,/return to your city/);
+    const availableHeal=await request('POST','/api/witch/heal-all',{
+      requestId:'heal-all-home-only'
+    },warClock.token);
+    assert.equal(availableHeal.ok,true,JSON.stringify(availableHeal));
+    assert.ok(availableHeal.results.some(h=>h.key==='sylthaine'));
+    assert.ok(!availableHeal.results.some(h=>h.key==='vael'),
+      'Heal All skips wounded heroes who are still marching');
+    await stop();
+    const homeDb=JSON.parse(fs.readFileSync(db,'utf8'));
+    homeDb.users[warClock.profile.id].worldCityMarches.find(m=>m.id==='heal-away-city').homeAt=Date.now()-1;
+    fs.writeFileSync(db,JSON.stringify(homeDb));
+    await start(admin.profile.id,'20','0','0');
+    const homeHeal=await request('POST','/api/witch/heal',{
+      hero:'vael',requestId:'heal-after-return'
+    },warClock.token);
+    assert.equal(homeHeal.ok,true,'the same hero becomes healable after arriving home');
     console.log('Witches Hut API integration passed');
   } finally { await stop(); fs.rmSync(dir,{recursive:true,force:true}); }
 }
