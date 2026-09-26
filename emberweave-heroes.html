@@ -9305,7 +9305,7 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
-    if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; if(_o.d&&_o.d.upright){ _o.grip=c; if(c.sprite)c.sprite.renderOrder=-1; } _o.gripHold=c; _o.puller=u; if(_o.frontFx){ _o.frontFx.gripHold=c; _o.frontFx.puller=u; } }   /* v489 (Phil): the fist holds him for the WHOLE drag and pops on arrival - see updateGroundFx */   /* v470: the grabbed unit drops to layer -1 for the life of the hand: behind the fingers (-0.5), in front of the palm (-2), every other unit stays at 0 */ }catch(e){}
+    if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; if(_o.d&&_o.d.upright){ _o.grip=c; if(c.sprite)c.sprite.renderOrder=-1; } _o.gripHold=c; _o.puller=u; if(_o.frontFx){ _o.frontFx.gripHold=c; _o.frontFx.puller=u; } }   /* v489 (Phil): the fist holds him for the WHOLE drag and pops on arrival - see updateGroundFx */   /* v470: the grabbed unit drops to layer -1 for the life of the hand: behind the fingers (-0.5), in front of the palm (-2), every other unit stays at 0 */ if(_o&&_o.m&&_holdsUnit(type,o)){ u._holdFx=_o; Promise.resolve().then(()=>{ if(u._holdFx===_o) u._holdFx=null; }); if(type==='tendrilpull'&&c&&c.alive&&c!==u&&!(_o.d&&_o.d.upright)) holdUnder(_o,c); }   /* v829 (Phil 25 Sep): a bind/freeze plate holds the unit it controls - see holdUnder */ }catch(e){}
 }
 /* A shot that prefers the ability's own projectile art, falling back to the plain coloured tracer. */
 function abilShot(u,o,e,color,onHit){
@@ -9472,6 +9472,7 @@ const CC_DUR_MAX={ stunned:4.0, fearT:4.5, _sleepT:5.5, silencedT:5.5, slow:3.5 
 for(const _f in CC_DUR_MAX) CC_DUR_MAX[_f]=+(CC_DUR_MAX[_f]*CC_NERF).toFixed(3);   /* v818: the ceilings drop with the controls */
 function ccApply(u, t, field, dur){
   if(!t || !(dur > 0)) return false;
+  if(field==='stunned' && u && u._holdFx && t!==u){ try{ holdUnder(u._holdFx,t); }catch(e){} }   /* v829: bind/freeze - the held unit draws behind its spell */
   dur=ccDur(dur);   /* v818: every control 30% shorter - the one place they all land */
   { const cap=CC_DUR_MAX[field]; if(cap && dur>cap) dur=cap; }
   /* v790 - a slow remembers HOW HARD it slows, from the level of the skill that cast it. The
@@ -10919,6 +10920,15 @@ function fx2SetFrame(target,d,fr){ fr=((fr%d.n)+d.n)%d.n; const c=fr%d.cols, r=M
 const _FX2_PLANE=(typeof TH!=='undefined'&&TH)?new TH.PlaneGeometry(1,1):null;     // one shared quad; zones scale it
 // Ground zone: a flat animated quad laid on the battlefield, sized to the ability RADIUS, looping for `life` seconds.
 const _groundFx=[];
+/* v829 (Phil 25 Sep: "make sure spells populate behind heroes? except abilities that are meant to Bind or freeze someone then
+   that 1 hero is placed a layer behind the spell"). Ability plates now draw behind the unit sprites (spawnGroundFx). A cast
+   that binds or freezes marks its plate on the caster for that cast; ccApply drops every unit that cast stuns half a layer
+   behind the plate, and updateGroundFx returns it to 0 when the plate ends. Projectiles/beams (994) and health-bar badges
+   (upAbove) keep their layers. Vulmar's upright hand keeps its own v470 grip layers (fx.grip). */
+const _HOLD_TYPES={freeze:1,swamproot:1,tendrilpull:1};
+function _holdsUnit(type,o){ return !!(_HOLD_TYPES[type] || (o&&o.gfx&&/prison|freez/i.test(o.gfx))); }
+function holdUnder(fx,t){ if(!fx||!fx.m||!(fx.life>0)||!t||!t.sprite||fx.grip===t) return;
+  fx.holds=fx.holds||[]; if(fx.holds.indexOf(t)<0) fx.holds.push(t); t.sprite.renderOrder=fx.m.renderOrder-0.5; }
 let _ownFxCast=false,_fxAllow=false;   /* v451 FX-OWNERSHIP  a hero with their own gfx suppresses the shared type plate */
 function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
   /* v498: a buff/heal marker is drawn as an upright badge whose BOTTOM sits just over the target's health bar,
@@ -10958,7 +10968,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
         const gap=(tu&&typeof restHeadOff==='function')?restHeadOff(tu):th;
         sp.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(gap+th*(d.upAboveM||0.0))); }
       sp.renderOrder=ro; scene.add(sp); return sp; };
-    const sp=mk(tex,d.ro!=null?d.ro:-2); fx2Hook(sp);   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
+    const sp=mk(tex,d.upAbove?(d.ro!=null?d.ro:-2):Math.min(d.ro!=null?d.ro:-2,-1)); fx2Hook(sp);   /* v829 (Phil 25 Sep: "make sure spells populate behind heroes"): every upright ability plate draws BEHIND the unit sprites (0); only a badge over a health bar (upAbove) keeps its own layer */   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
     if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,-0.5); const fd2=Object.assign({},fd,{n:d.n,dur:d.dur,hold:d.hold}); fx2Hook(sp2); fx2SetFrame(sp2,fd2,0); const fo={m:sp2,d:fd2,tex:ft,t:0,life,front:true,upY:y};   /* v469 (Phil: 'both animations need to synchronize'): front layer runs on the back layer's n/dur */ _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
     return o; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
@@ -11014,6 +11024,7 @@ function updateGroundFx(dt){ for(let i=_groundFx.length-1;i>=0;i--){ const o=_gr
   if(o.gripHold && !o._popped && o.t>=o.d.dur*0.98){ o._popped=true; const v=o.gripHold;
     try{ burstAt(v.x,v.y,0x8B5CF6,16); ringBurst(v.x,v.y,0x8B5CF6,12); }catch(_){} }
   if(o.grip&&o.grip.sprite){ o.grip.sprite.renderOrder=o.life<=0?0:-1; }
+  if(o.holds){ for(const h of o.holds){ if(h&&h.sprite) h.sprite.renderOrder=o.life<=0?0:(o.m.renderOrder-0.5); } }   /* v829: held units stay behind their spell, back to 0 when it ends */
   if(o.life<=0){ scene.remove(o.m); o.m.material.dispose(); _groundFx.splice(i,1); } } }   // geometry + texture are shared: never disposed
 // Traveling projectile: a billboard that flies from->to, its sheet looping (rubberband is baked in), rotated so the
 // orb FRONT (baked pointing +x) faces the direction of travel. onHit fires on arrival.
@@ -24715,7 +24726,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790375654766';
+const BUILD_ID = '1790394944240';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
