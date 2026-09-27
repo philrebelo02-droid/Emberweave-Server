@@ -399,13 +399,16 @@
   .hero-card .hc-imgwrap{position:relative;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#0c0f16;margin-bottom:3px;}
   .ascw{position:relative;display:block;overflow:hidden;flex:0 0 auto}
   .ascf{position:absolute;inset:0;pointer-events:none;border:0 solid transparent;border-image-repeat:stretch;z-index:2}
-  /* TEMPLE OF ASH fire-orb studs (Phil 27 Sep: "on the left of their hero card art" / "1 orb is added as a stud" / a 5th, larger, centred
-     between the four). Five sockets straddle the card's LEFT border: small, small, BIG centre (5th), small, small. Placeholder orb until
-     ChatGPT's ember-orb art lands (swap .tOrb's background for the art file). */
-  .tOrbs{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);height:62%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;pointer-events:none;z-index:5}
-  .tOrb{width:clamp(7px,9cqw,16px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 38% 34%,#fff3c4 0 10%,#ffb347 26%,#ff6a1a 55%,#8a2a06 82%,#3a1203 100%);box-shadow:0 0 5px 1px rgba(255,120,30,.75),inset 0 0 3px rgba(0,0,0,.6)}
-  .tOrb.c{width:clamp(11px,14.5cqw,26px)}
-  .tOrb.off{visibility:hidden}
+  /* Phil's chosen Temple orbs: five visible sockets straddling the LEFT card edge. In display order
+     1,2,5,3,4; only the fifth is large. Empty sockets use his dark art, earned sockets his lit art. */
+  .tOrbs{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);height:62%;width:26px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;pointer-events:none;z-index:5}
+  .ascw:has(.tOrbs){container-type:inline-size}
+  #battleLoader .bl-card:has(.tOrbs){container-type:inline-size}
+  .tOrb{display:block;flex:0 0 auto;width:clamp(7px,9cqw,22px);aspect-ratio:1;background:url('/assets/img/temple/card-orb-unlit-v1.png?v=1') center/150% 150% no-repeat;filter:drop-shadow(0 1px 2px #000b)}
+  .tOrb.c{width:clamp(11px,14.5cqw,35px)}
+  .tOrb.lit{background-image:url('/assets/img/temple/card-orb-lit-v1.png?v=1')}
+  .ascw:has(.tOrbs),.arHero:has(.tOrbs),#battleLoader .bl-card:has(.tOrbs){overflow:visible}
+  .ascw:has(.tOrbs)>img,.arHero:has(.tOrbs) img,#battleLoader .bl-card:has(.tOrbs) canvas{border-radius:inherit}
   .ascf-st{position:absolute;left:7%;right:7%;bottom:0;height:16%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:4;line-height:0}
   .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
   .ascf-gem svg{width:100%;height:100%;display:block}
@@ -3931,6 +3934,7 @@ function showBattleLoader(spec){
     #battleLoader.bl-vs .bl-card{--cw:clamp(40px,calc((39vw - 44px)/5),96px)}
     #battleLoader.bl-vs .bl-row{flex-wrap:wrap;--g:6px;max-width:calc(var(--cw)*5 + 30px)}
     #battleLoader.bl-solo .bl-card{--cw:clamp(60px,calc((88vw - 60px)/5),150px)}
+    #battleLoader.bl-solo .bl-row{--g:14px}
     #battleLoader.bl-cards .bl-grid{display:grid;grid-template-columns:repeat(4,auto);gap:10px 12px}
     #battleLoader.bl-cards .bl-card{--cw:min(calc((100vh - 150px)/2*3/4),calc((80vw - 60px)/4),130px)}
     #battleLoader .bl-lanes{display:flex;flex-direction:column;gap:6px}
@@ -4283,7 +4287,7 @@ function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIn
   let h=`<div class="ascf" style="border-image-source:url('/assets/img/frames/asc-${String(bi).padStart(2,'0')}.webp?v=${ASC_FRAME_V}');border-image-slice:${s[0]} ${s[1]} ${s[2]} ${s[3]} fill;border-image-width:${pc(s[0],ASC_FRAME_H)} ${pc(s[1],ASC_FRAME_W)} ${pc(s[2],ASC_FRAME_H)} ${pc(s[3],ASC_FRAME_W)}"></div>`;
   if(o.banner) h+=rarityBannerHtml(key,{name:o.name});   // v614: the name banner on the frame's bottom edge
   if(o.stars){ let row=''; try{ row=starFillRow(key,20); }catch(e){} if(row) h+=`<div class="ascf-st${o.banner?' onb':''}">${row}</div>`; }
-  h+=templeOrbsHtml(key);   /* Temple of Ash orb studs (27 Sep) - empty until a hero has orbs (or the dev preview is on) */   // on the bottom edge (on top of the banner when there is one)
+  if(o.orbs!==false) h+=templeOrbsHtml(key);   /* Temple of Ash: five visible left-edge sockets, dark until earned */
   return h; }
 /* v614 (Phil: "make the mythical banner actually good looking, make a Grey one for 1 star starter heroes, make a green one
    for 2star starter heroes, and a Blue one for 3 star starter heroes" / "the mythical one should look much more flashy and say
@@ -4298,18 +4302,18 @@ function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMy
    today only the DEV preview sets it (Phil: "add an option in game for me to raise all my heroes 1 total orb ... so i can view each art").
    Fill order: orbs 1-2 above the centre, 3-4 below it, the 5th is the big centre one. */
 function templeOrbCount(key){ return Math.max(0, Math.min(5, (DEV && DEV.orbPreview) | 0)); }
-function templeOrbsHtml(key){ const n=templeOrbCount(key); if(!n) return '';
-  const slot=(lit,big)=>`<span class="tOrb${big?' c':''}${lit?'':' off'}"></span>`;
+function templeOrbsHtml(key){ if(!HERO_TYPES[key]) return ''; const n=templeOrbCount(key);
+  const slot=(lit,big)=>`<span class="tOrb${big?' c':''}${lit?' lit':''}"></span>`;
   return `<div class="tOrbs">${slot(n>=1)}${slot(n>=2)}${slot(n>=5,true)}${slot(n>=3)}${slot(n>=4)}</div>`; }
 function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
   const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
   const _mt=(typeof MONSTER_TYPES!=='undefined'&&!HERO_TYPES[key])?MONSTER_TYPES[key]:null;   /* v663: monsters on the loader carry their in-game name, never the key */
   const nm=o.name||t.name||(_mt&&_mt.name?String(_mt.name).split(',')[0]:'')||key;
   return `<div class="rbn rbn-${r}${o.word?' w':''}${nm.length>11?' long':''}" style="background-image:url('${img}')">${o.word?'':`<span>${escapeHTML(nm)}</span>`}</div>`; }
-function heroIcon(key,px){ px=px||48; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
+function heroIcon(key,px,opts){ px=px||48; opts=opts||{}; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
   if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`;
   const own=!!(typeof G!=='undefined'&&G.unlocked&&G.unlocked[key]);   /* v612: every hero icon wears its ascension border, with its stars on the border's bottom edge once it's big enough to read */
-  return `<span class="ascw" style="width:${px}px;height:${px}px;border-radius:9px;box-shadow:0 2px 7px rgba(0,0,0,.45)"><img src="${p}" style="width:100%;height:100%;object-fit:cover;display:block">${ascFrameHtml(key,{stars:own&&px>=44})}</span>`; }
+  return `<span class="ascw" style="width:${px}px;height:${px}px;border-radius:9px;box-shadow:0 2px 7px rgba(0,0,0,.45)"><img src="${p}" style="width:100%;height:100%;object-fit:cover;display:block">${ascFrameHtml(key,{stars:own&&px>=44,orbs:opts.orbs===true||px>=80})}</span>`; }
 // symmetric head-shot crop of a portrait (auto-detects the figure and frames head+shoulders centered)
 const HERO_HEAD={};
 function heroHead(key,cb){
@@ -17257,16 +17261,17 @@ function setPortal(m){ if(!PORTAL_META[m]) return; PORTAL=m; campViewCh=0; rende
 function totalCampaignStars(){ let t=0; const ss=G.stageStars||{}; for(const k in ss)t+=(ss[k]|0); return t; }
 function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
   const tier=Math.floor(idx/4)+1, cyc=idx%4;
-  if(cyc===0) return {desc:'🪙 '+(2000*tier).toLocaleString()+' gold', give:()=>{ G.gold=(G.gold||0)+2000*tier; return txEarnP('gold',2000*tier,'stars'); }};
-  if(cyc===1) return {desc:'⧗ '+(60*tier)+' stamina', give:()=>{ G.stamina=(G.stamina||0)+60*tier; return txEarnP('stamina',60*tier,'stars'); }};
-  if(cyc===2) return {desc:'💎 '+(100*tier)+' diamonds', give:()=>{ G.gems=(G.gems||0)+100*tier; return txEarnP('gems',100*tier,'stars'); }};
+  const requestBase='stars:'+idx;   // stable even if the first response is lost before the ledger mirror arrives
+  if(cyc===0) return {desc:'🪙 '+(2000*tier).toLocaleString()+' gold', give:()=>{ if(!ACC.token) G.gold=(G.gold||0)+2000*tier; return txEarnP('gold',2000*tier,'stars',{requestId:requestBase+':gold'}); }};
+  if(cyc===1) return {desc:'⧗ '+(60*tier)+' stamina', give:()=>{ if(!ACC.token) G.stamina=(G.stamina||0)+60*tier; return txEarnP('stamina',60*tier,'stars',{requestId:requestBase+':stamina'}); }};
+  if(cyc===2) return {desc:'💎 '+(100*tier)+' diamonds', give:()=>{ if(!ACC.token) G.gems=(G.gems||0)+100*tier; return txEarnP('gems',100*tier,'stars',{requestId:requestBase+':gems'}); }};
   return {desc:'🧩 '+(5*tier)+' random hero fragments', give:()=>{ const cnt={}; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); if(!hk) continue; cnt[hk]=(cnt[hk]||0)+1; }
       const keys=Object.keys(cnt); if(!keys.length) return Promise.resolve(true);
       /* one grant per distinct hero, SEQUENTIALLY: each response carries a whole ledger, and two in
          flight at once can land out of order and adopt the older one. */
       let ok=true, p=Promise.resolve(true);
-      keys.forEach(function(hk){ giveHeroFrag(hk,cnt[hk]);
-        p=p.then(function(){ return txEarnP('frag',cnt[hk],'stars',{heroKey:hk}); })
+      keys.forEach(function(hk){ if(!ACC.token) giveHeroFrag(hk,cnt[hk]);
+        p=p.then(function(){ return txEarnP('frag',cnt[hk],'stars',{heroKey:hk,requestId:requestBase+':'+hk}); })
            .then(function(r){ if(r===false) ok=false; return true; }); });
       return p.then(function(){ return ok; }); }};
 }
@@ -18818,7 +18823,7 @@ function renderRoster(){
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:(_wf?_wf.html:''));
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52)}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
+    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52,{orbs:true})}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
        Two separate things were wrong with picking a hero:
@@ -19388,7 +19393,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   const defKeys=(G.arenaDef||[]).slice(0,5);
   const defPower=myTeamPower(defKeys.filter(Boolean));   /* v805 - your own heroes: the card */
   const defCell=(k)=>{ if(!k) return `<div class="arHero empty">\u2014</div>`;
-    return `<div class="arHero" title="${escapeHTML((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,64)}<span class="arHeroLv">Lv${heroLevel(k)}</span></div>`; };
+    return `<div class="arHero" title="${escapeHTML((HERO_TYPES[k]||{}).name||k)}">${heroIcon(k,64,{orbs:true})}<span class="arHeroLv">Lv${heroLevel(k)}</span></div>`; };
   /* an opponent card: portrait, its rank and power beside it, the name, then Challenge */
   const oppCard=(o,i)=>{ const lead=(o.team&&o.team[0])||null;
     const gems=(typeof o.gems==='number')?o.gems:previewWinGems(o.rank);
@@ -21891,7 +21896,7 @@ function renderHeroDetail(){
   else { starSubLine = ''; }   // owned: no sub-line — tap the stars themselves to open the Stars panel (star-up / refine)
   const left=`<div class="hd-left">
     <div class="hd-name">${t.name}${myth?'':`<span class="hd-starbadge">${stars}★</span>`}</div>
-    <div style="display:flex;justify-content:center"><div id="hdPortrait" style="width:92px;height:92px;border-radius:12px;overflow:hidden;border:2px solid ${myth?'#ffcf40':gi.col};box-shadow:0 2px 10px #0009${myth?',0 0 14px #ffcf4055':''}">${heroIcon(key,92)}</div></div>
+    <div style="display:flex;justify-content:center"><div id="hdPortrait" style="width:92px;height:92px;border-radius:12px;border:2px solid ${myth?'#ffcf40':gi.col};box-shadow:0 2px 10px #0009${myth?',0 0 14px #ffcf4055':''}">${heroIcon(key,92)}</div></div>
     ${rarBanner}
     <div class="hd-starrow" id="hdStars" title="${owned?'Tap the stars to manage / refine':''}" style="display:flex;gap:2px;justify-content:center;align-items:center;cursor:${owned?'pointer':'default'};padding:6px 16px;border-radius:10px">${starFillRow(key,22)}</div>
     ${starSubLine?`<div style="font-size:11px;color:#8b98a9;margin:3px 0 4px">${starSubLine}</div>`:''}
@@ -22338,7 +22343,7 @@ function questStateSync(force){
 }
 function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
   if(ACC.token){ api('/api/quest/claim','POST',{id:q.id,requestId:uid8()}).then(sr=>{   // v250: the SERVER validates + pays quests
-      if(sr&&sr.ok){ const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); tutReturnAfterAction(); }
+      if(sr&&sr.ok){ const r=q.reward||''; G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); tutReturnAfterAction(); }
       else if(sr&&sr.error){ bannerMsg(sr.error); } }).catch(()=>{}); return; }
   const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
 /* 30 Aug — THE STAGE-QUEST CHAIN BURNED THE STEP AND PAID NOTHING.
