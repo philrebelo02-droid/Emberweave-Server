@@ -123,13 +123,17 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     await page.setViewportSize({width:320,height:700});
     const narrow=await page.evaluate(()=>Object.fromEntries(['templeClassTabs','templeHeroGrid','templeTierGrid'].map(name=>{
       const el=document.querySelector('.'+name);
-      return [name,{width:el.clientWidth,scrollWidth:el.scrollWidth,columns:getComputedStyle(el).gridTemplateColumns.split(' ').length}];
+      return [name,{width:el.clientWidth,scrollWidth:el.scrollWidth,columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
+        rows:new Set([...el.children].map(x=>Math.round(x.getBoundingClientRect().top))).size}];
     })));
     for(const [name,box] of Object.entries(narrow))assert(box.scrollWidth<=box.width,name+' fits a 320px phone '+JSON.stringify(box));
-    assert.strictEqual(narrow.templeClassTabs.columns,7,'seven tabs remain in one row on a narrow phone');
+    assert.deepStrictEqual([narrow.templeClassTabs.columns,narrow.templeClassTabs.rows],[4,2],'seven tabs remain legible in two rows on a narrow phone');
     assert.strictEqual(narrow.templeHeroGrid.columns,10,'ten heroes remain in one row on a narrow phone');
     assert.strictEqual(narrow.templeTierGrid.columns,2,'prayer choices remain two across on a narrow phone');
-    if(process.env.TEMPLE_SCREENSHOT_PATH)await page.locator('.templeClassTabs').screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-narrow-tabs.png')});
+    if(process.env.TEMPLE_SCREENSHOT_PATH){
+      await page.locator('.templeClassTabs').screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-narrow-tabs.png')});
+      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-narrow-full.png')});
+    }
     assert.deepStrictEqual(errors,[],'browser errors');
     console.log('temple UI and three-hero card power parity: pass');
   }finally{
