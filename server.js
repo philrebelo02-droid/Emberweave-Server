@@ -3623,9 +3623,10 @@ async function api(req,res,url){
     }
     if(led.portals!==undefined) delete led.portals;
     me.led=led; me.econ=null; delete me.flag;
-    try{ if(me.roster && typeof me.roster.__save==='string'){ const g=JSON.parse(me.roster.__save);
-      for(const k of SERVER_OWNED_SAVE_FIELDS) delete g[k];
-      me.roster.__save=JSON.stringify(g); } }catch(e){}
+    // A full reset must also clear the cloud-only tutorial and per-mode squad fields. Keeping the
+    // old __save advanced the guide to quest11 while the fresh ledger still had 0 stages cleared.
+    // Keep an explicit empty blob so a resumed guest cannot re-seed it from a stale device cache.
+    me.roster={__save:'{}'}; me.team=defaultTeam(); me.wall=defaultTeam();
     ledTx(me,'account:reset',{});
     writeDB(); return send(res,200,{ok:true, ledger:ledgerView(me)}); }
 

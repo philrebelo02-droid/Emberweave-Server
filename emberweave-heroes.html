@@ -5164,6 +5164,7 @@ const DEFAULT_G = {
   // (BETA_ALL_HEROES above is the single switch that still grants the whole roster during beta.)
   unlocked:{vael:true, sylthaine:true, vireo:true},
   team:['vael','sylthaine','vireo'],
+  squads:{campaign:['vael','sylthaine','vireo']}, // a fresh/reset player fields all three owned starters at Stage 1-1
   glyphRank:Object.fromEntries(HERO_KEYS.map(k=>[k,0])),       // 0..12 (Grey → Purple+3); colour tier = quality
   starLevel:Object.fromEntries(HERO_KEYS.map(k=>[k,1])),       // hero stars (start 1, max 6) — grow from elite stages
   starShards:Object.fromEntries(HERO_KEYS.map(k=>[k,0])),      // star fragments toward the next star
@@ -18780,7 +18781,7 @@ function glOpenFrom(ret, label){ const b=document.querySelector('#glossary .back
   const m=document.getElementById('glModal'); if(m) m.addEventListener('click',(ev)=>{ if(ev.target.id==='glModal') closeGlossaryCard(); }); })();
 // ---- per-mode squads: campaign / dungeon / raid each keep their OWN selection (arena-defense & wall are already separate) ----
 function squadModeKey(){ const m=CUR&&CUR.mode; return (m==='vault')?'vault':(m==='graid')?'graid':(m==='dungeon')?'dungeon':(m==='pvp')?'pvp':(m==='well')?'well':'campaign'; }   /* v666: the guild raid picks its own 5 fighters + 5 backups */
-function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?G.squads[k]:[]; const f=a.filter(x=>typeof x==='string'&&!!HERO_TYPES[x]); if(f.length!==a.length||G.squads[k]!==a) G.squads[k]=f; return G.squads[k]; }   // each mode starts with an empty squad — you choose per mode
+function squadFor(k){ G.squads=G.squads||{}; const a=Array.isArray(G.squads[k])?G.squads[k]:[]; const f=a.filter(x=>typeof x==='string'&&!!HERO_TYPES[x]); if(f.length!==a.length||G.squads[k]!==a) G.squads[k]=f; return G.squads[k]; }   // campaign starts with the owned starters; other modes remain player-selected
 /* v665: a squad entry the player cannot pick (a hero they no longer own, or a key dropped from the
    roster) still filled a slot - the screen showed 4 selected and refused the 5th, and the fight would
    not start. Every read of a squad prunes to owned heroes and de-duplicates, so a stuck save heals. */
