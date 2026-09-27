@@ -1,7 +1,7 @@
 // test_temple_of_ash.js - every Phil ruling in temple-of-ash.js, checked (Claude 27 Sep 2026). Run: node test_temple_of_ash.js [path/to/temple-of-ash.js]
 // Goes into the repo as tests/test_temple_of_ash.js next to server/temple-of-ash.js (pass that path).
 const path = require('path');
-const T = require(path.resolve(process.argv[2] || path.join(__dirname, 'temple-of-ash.js')));
+const T = require(path.resolve(process.argv[2] || path.join(__dirname, '..', 'server', 'temple-of-ash.js')));
 let ok = 0, bad = 0;
 const ck = (name, cond) => { if (cond) ok++; else { bad++; console.log('FAIL', name); } };
 const near = (a, b, e) => Math.abs(a - b) <= e;

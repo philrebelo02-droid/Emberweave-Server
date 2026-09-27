@@ -17069,7 +17069,7 @@ function renderTemple(){
     ${unlocked?'':`<div style="color:#ff9a9a">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
     <select id="templeHero" ${pending?'disabled':''} style="width:100%;margin:10px 0">${owned.map(k=>`<option value="${k}" ${k===key?'selected':''}>${escapeHTML((HERO_TYPES[k]||{}).name||k)} · Lv ${heroLevel(k)}</option>`).join('')}</select>
     ${eligible?'':`<div style="font-size:12px;color:#ff9a9a">This hero needs Purple ascension to pray.</div>`}
-    <div style="font-size:12px">Four class effects for ${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}% complete</div>
+    <div style="font-size:12px">${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}%</div>
     ${barHtml}<div aria-label="Earned hero orbs">${orbHtml}</div>
     ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${templeLastRolls?' · '+Object.values(templeLastRolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):' · save or discard'}</div>
        <button class="btn" id="templeSave">Save</button> <button class="btn" id="templeDiscard">Discard</button>`:
