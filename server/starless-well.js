@@ -20,7 +20,7 @@
 const WELL_EPOCH = Date.UTC(2026, 8, 25, 6, 0, 0), CYCLE_MS = 72 * 3600 * 1000;
 const COLS = 7, ROWS = 3, RES_COST = 50;
 const OPEN = { normal: 61, hard: 75 }, PCT = { normal: 0.02, hard: 0.04 };
-const SESSION_MS = 24 * 3600 * 1000, MIN_BATTLE_MS = +(process.env.WELL_MIN_BATTLE_MS || 8000), STRICT = process.env.WELL_STRICT_REPLAY === '1';
+const SESSION_MS = 24 * 3600 * 1000, MIN_BATTLE_MS = +(process.env.WELL_MIN_BATTLE_MS || 8000);
 let TABLE = null; try { TABLE = require('./starless-well-heroes.json'); } catch (e) { console.error('starless-well-heroes.json missing - The Starless Well is OFF (' + e.message + ')'); }
 let HERO_BASE = {}; try { HERO_BASE = require('./sim.js').HERO_BASE; } catch (e) {}
 
@@ -108,8 +108,8 @@ function prizeFor(ctx, W, sq, col) { const R = W.run, lvl = R.level || ctx.playe
 function payPrize(ctx, W, pr, tag) { const led = ctx.led, out = Object.assign({}, pr);
   const bonus = W.cleared[W.run.path || 'normal'] && W.run.path ? ['gems', 'gold', 'potions'][Math.floor(rng(ctx.srvSeed('well2bonus', ctx.me.id, tag))() * 3)] : null;
   if (bonus && out[bonus] > 0) { const pct = 0.10 + rng(ctx.srvSeed('well2pct', ctx.me.id, tag))() * 0.05; out[bonus] = Math.round(out[bonus] * (1 + pct) + (bonus === 'potions' ? 0.5 : 0)); out.bonus = bonus; }
-  led.gold = Math.min(2000000000, (led.gold | 0) + (out.gold | 0));
-  if (out.gems) led.gems = Math.min(2000000, (led.gems | 0) + out.gems);
+  ctx.creditGold(ctx.me, led, out.gold | 0, 'well:prize');
+  if (out.gems) ctx.creditGems(ctx.me, led, out.gems, 'well:prize');
   if (out.potions) { led.xpPotions = led.xpPotions || {}; led.xpPotions.superior = Math.min(999999, (led.xpPotions.superior | 0) + out.potions); }
   ctx.ledTx(ctx.me, 'well2:prize:' + tag, { gold: out.gold, gems: out.gems || 0, xpPotions: out.potions || 0 });
   W.run.prizes.push(out); return out; }
@@ -196,7 +196,7 @@ async function handle(p, method, ctx) {
       const path = String(b.path || ''); if (!W.cleared[path]) return no('Clear the ' + path + ' path once before sweeping it.');
       if (R.started) return no('This run has already started - finish it instead.');
       if (path === 'hard' && !dev && lvl < OPEN.hard) return no('The Hard path opens at account level ' + OPEN.hard + '.');
-      const xp = endXP(ctx, path); if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp);
+      const xp = endXP(ctx, path); if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp, ctx.me);
       R.done = true; R.path = path; ctx.ledTx(ctx.me, 'well2:sweep:' + path, { px: xp }); ctx.writeDB();
       return { status: 200, body: Object.assign(view(ctx, W), { reward: { xp, swept: true } }) };
     }
@@ -230,14 +230,21 @@ async function handle(p, method, ctx) {
       const inputLog = ctx.sanitizeInputLog(b.inputLog), host = ctx.simHost(); let rep = null;
       try { if (host && a.snaps && a.snaps.length) rep = host.campaign(a.snaps, a.waves, a.seed >>> 0, inputLog); } catch (e) { console.error('sim-host replay failed (well2):', e.message); }
       const srv = rep ? String(rep.digest || '') : '', match = !!srv && ctx.sha256hex(clientEnd) === ctx.sha256hex(srv), led = ctx.led;
-      /* the game's rule (Province, Campaign): what the player watched is the result; a replay difference is an incident, and
-         WELL_STRICT_REPLAY=1 refuses an unconfirmed win */
+       /* A replay difference is an incident for review; the witnessed result remains the payout truth. */
       if (!match) { led.battleIncidents = (led.battleIncidents || []).concat([{ t: Date.now(), stage: 'well-' + R.map + '-' + a.col, mode: 'well:' + (R.path || 'standard'),
-          why: rep ? 'digest-mismatch' : 'replay-unavailable', source: 'submitted-log', playerTruth: !STRICT, engine: a.engine, seed: a.seed >>> 0, inputs: inputLog.length,
+           why: rep ? 'digest-mismatch' : 'replay-unavailable', source: 'submitted-log', playerTruth: true, engine: a.engine, seed: a.seed >>> 0, inputs: inputLog.length,
           server: srv ? ctx.sha256hex(srv) : null, client: ctx.sha256hex(clientEnd), serverWon: rep ? !!rep.won : null, witnessedWon: witnessed.won,
-          witnessedStars: witnessed.stars, transcript: inputLog }]).slice(-20); console.warn('well replay incident - map ' + R.map + ' col ' + a.col); }
-      if (witnessed.won && STRICT && !(rep && rep.won)) { ctx.writeDB(); return no('The server could not confirm this win - nothing was spent. Fight it again.'); }
-      if (witnessed.won && Date.now() - a.startedAt < MIN_BATTLE_MS) { ctx.writeDB(); return no('That was too fast to be a real battle - nothing was spent.'); }
+           witnessedStars: witnessed.stars, transcript: inputLog }]).slice(-20); console.warn('well replay incident - map ' + R.map + ' col ' + a.col);
+         if (rep && srv) ctx.feedbackCheatSignal(ctx.me, 'well-replay:' + a.id,
+           'Well replay mismatch at map ' + R.map + ' column ' + a.col + ': serverWon ' + !!rep.won +
+             ', serverStars ' + (rep.stars | 0) + ', witnessedWon ' + witnessed.won +
+             ', witnessedStars ' + witnessed.stars + ', seed ' + (a.seed >>> 0) +
+             ', serverDigest ' + ctx.sha256hex(srv) + ', clientDigest ' + ctx.sha256hex(clientEnd) + '.',
+           'battle integrity'); }
+      const battleMs=Date.now()-a.startedAt;
+      if (witnessed.won && battleMs < MIN_BATTLE_MS) ctx.feedbackCheatSignal(ctx.me, 'well-fast:' + a.id,
+        'Well fast win at map ' + R.map + ' column ' + a.col + ': ' + battleMs + ' ms against ' + MIN_BATTLE_MS + ' ms minimum.',
+        'battle timing');
       led.battleReceipts = (led.battleReceipts || []).concat([{ t: Date.now(), stage: 'well-' + R.map + '-' + a.col, mode: 'well:' + (R.path || 'standard'), node: a.col,
         seed: a.seed >>> 0, engine: a.engine, source: 'submitted-log', heroes: a.heroIds.slice(), inputs: inputLog.length, won: witnessed.won, stars: witnessed.stars,
         digest: srv ? ctx.sha256hex(srv) : null, transcript: inputLog, clientDigest: ctx.sha256hex(clientEnd), match }]).slice(-40);
@@ -254,7 +261,7 @@ async function handle(p, method, ctx) {
         while (pick.length < 3) { const id = pool[Math.floor(r() * pool.length)]; if (pick.indexOf(id) < 0) pick.push(id); }
         R.offer = pick;
         if (sq.type === 'boss') { if (R.map === 3) { R.done = true; W.cleared[R.path] = (W.cleared[R.path] | 0) + 1; const xp = endXP(ctx, R.path);
-            if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp); reward.endXP = xp; ctx.ledTx(ctx.me, 'well2:complete:' + R.path, { px: xp }); R.offer = null; }
+            if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp, ctx.me); reward.endXP = xp; ctx.ledTx(ctx.me, 'well2:complete:' + R.path, { px: xp }); R.offer = null; }
         }
       }
       ctx.ledTx(ctx.me, 'well2:' + (witnessed.won ? 'win' : 'loss'), { match });

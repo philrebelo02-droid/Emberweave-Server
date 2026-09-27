@@ -117,7 +117,7 @@
   /* live resource numbers overlaid on the painted top bar (positioned as % so they scale with the image) */
   .resnum{position:absolute;transform:translateY(-50%);font-weight:800;color:#fff;font-size:clamp(11px,2.4vw,18px);text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.75);white-space:nowrap;z-index:4;pointer-events:none;}
   #resGold{color:#ffe08a;} #resGems{color:#c9b6ff;} #resStamina{color:#bff0a8;}
-  /* clickable ornate hero portrait (original frame, Magic-Rush-style) */
+  /* clickable ornate hero portrait with its original frame */
   #profileBtn{position:relative;width:clamp(56px,10vh,92px);aspect-ratio:1;cursor:pointer;z-index:6;transition:.12s;filter:drop-shadow(0 3px 9px rgba(0,0,0,.65));margin-right:clamp(30px,4.7vh,46px);margin-bottom:clamp(20px,3.4vh,30px);}
   #profileBtn:hover{transform:scale(1.05);}
   /* thin XP progress arc sits just inside the gold frame */
@@ -4918,7 +4918,7 @@ function doStarStep(key){ if(!canStarStep(key))return false; if(!G.heroFrag)G.he
   else { G.starPip[key]=starPips(key)+1; }                                                // otherwise fill one pip
   return true; }
 // accumulated FLAT stats from stars: full totals for completed stars + per-pip shares of the in-progress star
-// ---- STAR STAT MULTIPLIER (Magic-Rush style: TOTAL stat power vs the 1★ baseline; replaces the old flat per-star bonus) ----
+// ---- STAR STAT MULTIPLIER (total stat power vs the 1★ baseline; replaces the old flat per-star bonus) ----
 const STAR_MULT=[1.00,1.15,1.35,1.60,1.90];                    // 1★..5★ whole-star anchors
 const REFINE_ANCHORS=[1.90,2.25,2.65,2.90];                   // 5★ · Bronze-done · Silver-done · Gold-done  (5 refine steps per tier)
 /* v270 (PLAYER-TRUTH): the star/refine curve as a pure function of progression, so the SERVER can
@@ -5358,7 +5358,7 @@ function heroStat(key,base,which){ const t=HERO_TYPES[key], lv=heroLevel(key), s
   if(t&&ROLE_GROWTH[t.role]){ const b=baseAtLevel(t,lv);
     const w=which || (base===t.hp?'hp':base===t.dmg?'dmg':(t.apow&&base===t.apow)?'apow':(t.armor&&base===t.armor)?'armor':(t.mr&&base===t.mr)?'mr':null);
     if(w&&b[w]!=null) return b[w]*sm; }
-  return base*lvlScale(lv)*sm; }   // stars multiply base HP/ATK (Magic-Rush style)
+  return base*lvlScale(lv)*sm; }   // stars multiply base HP/ATK
 function grantTeamXP(a){ (G.team||[]).forEach(k=>{ G.heroXP[k]=(G.heroXP[k]||0)+a; }); }
 const TEAM_SIZE=5, WALL_UNLOCK_LEVEL=20;   // City Wall opens with the Watch Tower city loop (Blueprint v1)
 // ---- Campaign: 16 chapters × 10 stages (v821), addressed by a GLOBAL stage index g (1..160). All 16 chapters playable. ----
