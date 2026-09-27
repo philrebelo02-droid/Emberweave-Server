@@ -22930,35 +22930,68 @@ function gauntRunsLeft(){ return Math.max(0,GAUNT_RUNS_DAY-gauntDay().runs); }
 // the run itself is persisted in G (localStorage + cloud) so a reload or a discarded mobile tab
 // no longer burns the daily run and destroys every unbanked coin of loot
 function gauntDayKey(){ try{ return arenaDayKey(); }catch(e){ return ''; } }
-function gauntSave(){ try{ G.gauntRun=(_gaunt&&_gaunt.alive)?_gaunt:null; saveG(); }catch(e){} }
+function gauntSave(){ try{ G.gauntRun=(_gaunt&&(_gaunt.alive||_gaunt.pendingBank))?_gaunt:null; saveG(); }catch(e){} }
 function gauntRestore(){ if(_gaunt) return; var r=(typeof G==='object'&&G)?G.gauntRun:null;
-  if(!r||typeof r!=='object'||r.alive!==true||typeof r.wave!=='number'||typeof r.gold!=='number'||typeof r.gems!=='number'){ try{ if(G) G.gauntRun=null; }catch(e){} return; }
+  if(!r||typeof r!=='object'||(!r.alive&&!r.pendingBank)||typeof r.wave!=='number'||typeof r.gold!=='number'||typeof r.gems!=='number'){ try{ if(G) G.gauntRun=null; }catch(e){} return; }
   if(!Array.isArray(r.perks)) r.perks=[]; if(typeof r.runes!=='number') r.runes=0;
   _gaunt=r;
   var dk=gauntDayKey();   // a run left open across the daily reset is banked, not resumed, so it cannot be parked and climbed later at a higher power
-  if(dk && r.day && r.day!==dk){ try{ gauntBank(); }catch(e){} }
+  if(r.pendingBank || (dk && r.day && r.day!==dk)){ try{ gauntBank(); }catch(e){} }
 }
 function gauntWaveReq(w){ return Math.round(520*Math.pow(1.24,w-1)); }
 function gauntEff(w,isBoss){ const r=_gaunt; let m=r.banner*(1+r.momentum*(Math.max(0,w-1)))*(w<=r.overloadUntil?1.4:1); if(isBoss)m*=(1+r.slayer); return battlePow()*m; }
-function gauntStart(){ const d=gauntDay(); if(gauntRunsLeft()<=0) return false; d.runs++; saveG();
-  _gaunt={wave:0, banner:1, momentum:0, slayer:0, rewardMul:1, phantom:0, overloadUntil:0, fortune:0, wind:false, perks:[], gold:0, gems:0, runes:0, alive:true, pendingPerk:false, day:gauntDayKey()}; gauntSave(); return true; }
+function gauntStart(){ if(_gaunt&&_gaunt.pendingBank) return false; const d=gauntDay(); if(gauntRunsLeft()<=0) return false; d.runs++; saveG();
+  _gaunt={id:uid8(),wave:0, banner:1, momentum:0, slayer:0, rewardMul:1, phantom:0, overloadUntil:0, fortune:0, wind:false, perks:[], gold:0, gems:0, runes:0, alive:true, pendingPerk:false, day:gauntDayKey()}; gauntSave(); return true; }
 function gauntApplyPerk(id){ const r=_gaunt; if(!r)return; r.perks.push(id);
   if(id==='banner')r.banner*=1.22; else if(id==='momentum')r.momentum+=0.06; else if(id==='wind')r.wind=true; else if(id==='slayer')r.slayer+=0.50;
   else if(id==='treasure')r.rewardMul*=1.80; else if(id==='phantom')r.phantom=Math.min(0.6,r.phantom+0.30); else if(id==='overload')r.overloadUntil=r.wave+3; else if(id==='fortune')r.fortune+=2;
   r.pendingPerk=false; }
-function gauntBank(){ const r=_gaunt; if(!r)return; if(r.wave>gauntDay().best){ gauntDay().best=r.wave; } const _rg=r.gold+(r.runes>0?r.runes*300:0); G.gold=(G.gold||0)+_rg; if(r.gems>0){ G.gems=(G.gems||0)+r.gems; txEarn('gems',r.gems,'gauntlet'); } if(_rg>0) txEarn('gold',_rg,'gauntlet'); r.gold=0; r.gems=0; r.runes=0; r.alive=false; G.gauntRun=null; updateHubChrome(); saveG(); }   // legacy rune payout → bonus gold (300 each)
+let _gauntBankBusy=null;
+function gauntBank(){ const r=_gaunt; if(!r)return Promise.resolve(false); if(_gauntBankBusy)return _gauntBankBusy;
+  r.pendingBank=true; gauntSave(); // a refused/offline grant must not destroy unbanked loot
+  const gold=r.gold+(r.runes>0?r.runes*300:0); // legacy rune payout → bonus gold (300 each)
+  if(!r.id){ r.id='legacy-'+String(r.day||'')+'-'+String(gauntDay().runs)+'-'+String(r.wave); gauntSave(); }
+  const runId=r.id;
+  _gauntBankBusy=(async()=>{
+    if(ACC.token){
+      // The authored generic earn rule accepts at most 200k gold / 500 gems per request.
+      // Keep chunks deterministic so a partial/uncertain response can replay without double pay.
+      for(let i=0;i<Math.ceil(gold/200000);i++){
+        const amount=Math.min(200000,gold-i*200000);
+        if(!await txEarnP('gold',amount,'gauntlet',{requestId:'gaunt:'+runId+':gold:'+i}))return false;
+      }
+      for(let i=0;i<Math.ceil(r.gems/500);i++){
+        const amount=Math.min(500,r.gems-i*500);
+        if(!await txEarnP('gems',amount,'gauntlet',{requestId:'gaunt:'+runId+':gems:'+i}))return false;
+      }
+    }else{ G.gold=(G.gold||0)+gold; G.gems=(G.gems||0)+r.gems; }
+    if(r.wave>gauntDay().best) gauntDay().best=r.wave;
+    r.gold=0; r.gems=0; r.runes=0; r.alive=false; r.pendingBank=false; G.gauntRun=null;
+    updateHubChrome(); saveG(); return true;
+  })().finally(()=>{ _gauntBankBusy=null; });
+  return _gauntBankBusy; }
 function gauntFight(){ const r=_gaunt; if(!r||!r.alive) return {ended:true};
   const w=r.wave+1, isBoss=(w%5===0);
   if(r.phantom && Math.random()<r.phantom){ r.wave=w; const rw=gauntWaveReward(w,isBoss); r.pendingPerk=(w%3===0); return {wave:w,skipped:true,reward:rw,isBoss,perk:r.pendingPerk}; }
   const eff=gauntEff(w,isBoss), req=gauntWaveReq(w);
   if(eff>=req){ r.wave=w; const rw=gauntWaveReward(w,isBoss); r.pendingPerk=(w%3===0); return {wave:w,cleared:true,reward:rw,isBoss,perk:r.pendingPerk}; }
   if(r.wind){ r.wind=false; r.wave=w; return {wave:w,revived:true,isBoss,perk:(w%3===0)&&(r.pendingPerk=true)}; }
-  r.alive=false; return {defeat:true, wave:r.wave}; }
+  r.alive=false; r.pendingBank=true; return {defeat:true, wave:r.wave}; }
 function gauntWaveReward(w,isBoss){ const r=_gaunt; const g=Math.round(220*w*r.rewardMul); r.gold+=g; let s='🪙 '+g;
   const runes=(isBoss?2:0)+r.fortune; if(runes>0){ r.runes+=runes; s+=' · 💰 +'+(runes*300); }
   if(isBoss){ const gm=Math.round(4*r.rewardMul); r.gems+=gm; s+=' · 💎 '+gm; } return s; }
 function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
   function render(msg,mc){
+    if(_gaunt&&_gaunt.pendingBank){
+      ov.innerHTML=isleCard(`<div style="font-weight:800;font-size:15px;text-align:center;margin-bottom:8px">🎲 Gauntlet loot pending</div>
+        <div style="font-size:12px;text-align:center;color:#ffd45e;margin-bottom:12px">🪙 ${(_gaunt.gold+_gaunt.runes*300).toLocaleString()}${_gaunt.gems?' · 💎 '+_gaunt.gems.toLocaleString():''}</div>
+        <button class="btn" id="gaRetryBank" style="width:100%">Bank saved loot</button>
+        <button class="btn secondary" id="gaX" style="width:100%;margin-top:8px">Close</button>
+        ${msg?`<div style="text-align:center;font-size:12px;color:${mc};margin-top:8px">${msg}</div>`:''}`);
+      ov.querySelector('#gaX').onclick=()=>ov.remove();
+      ov.querySelector('#gaRetryBank').onclick=()=>{ gauntBank().then(ok=>render(ok?'✔ Loot banked.':'Still waiting for the server. Retry when connected.',ok?'#5ee89b':'#ff8b8b')); };
+      return;
+    }
     if(!_gaunt || !_gaunt.alive){
       const left=gauntRunsLeft(), best=gauntDay().best;
       ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🎲 The Gauntlet</div><button class="btn sm secondary" id="gaX">✕</button></div>
@@ -22989,9 +23022,9 @@ function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
       <button class="btn secondary" id="gaRetire" style="width:100%">🏳 Retire &amp; bank loot</button>
       <div id="gaMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#gaX').onclick=()=>{ ov.remove(); };
-    ov.querySelector('#gaRetire').onclick=()=>{ gauntBank(); _gaunt.alive=false; render('🏳 Retired at wave '+_gaunt.wave+' — loot banked.','#5ee89b'); };
+    ov.querySelector('#gaRetire').onclick=()=>{ const wave=_gaunt.wave; gauntBank().then(ok=>render(ok?'🏳 Retired at wave '+wave+' — loot banked.':'Loot is saved locally; retry banking when connected.',ok?'#5ee89b':'#ff8b8b')); render('Banking loot…','#c9a2ff'); };
     ov.querySelector('#gaFight').onclick=()=>{ const res=gauntFight(); gauntSave();
-      if(res.defeat){ gauntBank(); render('💀 Defeated at wave '+(res.wave+1)+'. Reached wave '+res.wave+' — loot banked.','#ff8b8b'); }
+      if(res.defeat){ gauntBank().then(ok=>render(ok?'💀 Defeated at wave '+(res.wave+1)+'. Reached wave '+res.wave+' — loot banked.':'Run ended; loot is saved locally until the server confirms it.',ok?'#ff8b8b':'#c9a2ff')); render('Banking loot…','#c9a2ff'); }
       else if(res.perk){ render(); }
       else render((res.skipped?'👻 Skipped wave '+res.wave:(res.revived?'💚 Second Wind! Survived wave '+res.wave:'✔ Wave '+res.wave+' cleared'))+' · '+(res.reward||''),'#5ee89b'); };
   }
@@ -23002,13 +23035,20 @@ function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
         recorded forever. Elite floors (every 5th) are tougher Wardens; every 10th pays diamonds. Once-daily tribute. ---- */
 function towerState(){ if(!G.tower)G.tower={floor:0,trib:''}; return G.tower; }
 function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)*POWER_SCALE); if(floor%5===0)r=Math.round(r*1.3); return r; }   /* v809 - on the card's scale */
-function towerFloorReward(floor){ let gold=Math.round(400*floor*Math.pow(1.08,floor)); if(gold>190000)gold=190000; let s='🪙 '+gold.toLocaleString(); let gg=gold;
+async function towerFloorReward(floor){ let gold=Math.round(400*floor*Math.pow(1.08,floor)); if(gold>190000)gold=190000; let s='🪙 '+gold.toLocaleString(); let gg=gold;
   if(floor%2===0){ const bg=200+floor*25; gg+=bg; s+=' · 🪙 +'+bg+' bonus'; }
-  if(gg>0){ if(gg>200000)gg=200000; G.gold=(G.gold||0)+gg; try{ txEarn('gold',gg,'tower'); }catch(e){} }
-  if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; txEarn('gems',gm,'tower'); s+=' · 💎 '+gm; } updateHubChrome(); return s; }
-function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next); if(battlePow()<req) return {wall:true,req}; st.floor=next; const rw=towerFloorReward(next); saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
+  if(gg>0){ if(gg>200000)gg=200000; if(ACC.token){ if(!await txEarnP('gold',gg,'tower',{requestId:'tower:floor:'+floor+':gold'}))return null; }
+    else G.gold=(G.gold||0)+gg; }
+  if(floor%10===0){ const gm=Math.round(floor*1.5); if(ACC.token){ if(!await txEarnP('gems',gm,'tower',{requestId:'tower:floor:'+floor+':gems'}))return null; }
+    else G.gems=(G.gems||0)+gm; s+=' · 💎 '+gm; } updateHubChrome(); return s; }
+async function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next); if(battlePow()<req) return {wall:true,req};
+  const rw=await towerFloorReward(next); if(rw===null)return {pending:true}; st.floor=next; saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
 function towerTribReady(){ return towerState().trib!==arenaDayKey() && towerState().floor>0; }
-function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; st.trib=arenaDayKey(); const bonus=250*(1+Math.floor(st.floor/4)); let gold=Math.round(500*st.floor)+bonus; if(gold>200000)gold=200000; G.gold=(G.gold||0)+gold; try{ txEarn('gold',gold,'tower'); }catch(e){} updateHubChrome(); saveG(); return {gold}; }
+async function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; const day=arenaDayKey();
+  const bonus=250*(1+Math.floor(st.floor/4)); let gold=Math.round(500*st.floor)+bonus; if(gold>200000)gold=200000;
+  if(ACC.token){ if(!await txEarnP('gold',gold,'tower',{requestId:'tower:tribute:'+day}))return {pending:true}; }
+  else G.gold=(G.gold||0)+gold;
+  st.trib=day; updateHubChrome(); saveG(); return {gold}; }
 function openTower(){ const ov=isleOverlay();
   function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
     ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🗼 Tower of Trials</div><button class="btn sm secondary" id="twX">✕</button></div>
@@ -23023,8 +23063,8 @@ function openTower(){ const ov=isleOverlay();
         <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?'🎖 Claim tribute':(st.floor>0?'✔ Claimed today':'Locked')}</button></div>
       <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#twX').onclick=()=>ov.remove();
-    ov.querySelector('#twGo').onclick=()=>{ const r=towerAscend(); render(r.win?((r.elite?'👑 Warden felled! ':'⚔ ')+'Floor '+r.floor+' conquered! '+r.reward):'Squad too weak for this floor.', r.win?'#5ee89b':'#ff8b8b'); };
-    ov.querySelector('#twTrib').onclick=()=>{ const r=towerTribute(); render(r.none?'Already claimed today.':('🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()), r.none?'#ff8b8b':'#5ee89b'); };
+    ov.querySelector('#twGo').onclick=async()=>{ const r=await towerAscend(); render(r.win?((r.elite?'👑 Warden felled! ':'⚔ ')+'Floor '+r.floor+' conquered! '+r.reward):(r.pending?'Reward is saved on the server only after confirmation. Retry when connected.':'Squad too weak for this floor.'), r.win?'#5ee89b':'#ff8b8b'); };
+    ov.querySelector('#twTrib').onclick=async()=>{ const r=await towerTribute(); render(r.none?'Already claimed today.':(r.pending?'Tribute not confirmed. Retry when connected.':'🎖 Tribute claimed! 🪙 '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); };
   }
   render();
 }

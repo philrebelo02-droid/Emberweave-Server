@@ -1,0 +1,24 @@
+// Earn refusals are retryable, while successful receipts stay idempotent across retries.
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const src = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+const start = src.indexOf('function idem(key, fn, opts)');
+const end = src.indexOf('/* Monster roster mirror', start);
+assert(start >= 0 && end > start, 'idem source found');
+let writes = 0;
+const ctx = vm.createContext({ DB: {}, writeDBNow: () => { writes++; }, Date });
+vm.runInContext(src.slice(start, end), ctx);
+const id = 'account:earn:ledger-born:gaunt:run:gold:0';
+assert.strictEqual(ctx.idem(id, () => ({ ok: false, error: 'Daily cap reached.' }), { retryFailed: true }).ok, false);
+assert.strictEqual(Object.keys(ctx.DB.idem).length, 0, 'refused earn has no durable receipt');
+assert.strictEqual(writes, 0, 'refusal does not flush a receipt');
+assert.strictEqual(ctx.idem(id, () => ({ ok: true, amount: 200000 }), { retryFailed: true }).ok, true);
+assert.strictEqual(writes, 1, 'accepted earn is durable');
+assert.strictEqual(ctx.idem(id, () => { throw new Error('duplicate grant'); }, { retryFailed: true }).amount, 200000);
+assert.strictEqual(writes, 1, 'duplicate success only replays receipt');
+assert(src.includes("const earnEpoch=ensureLedger(me).migratedAt||0"), 'earn idempotency is reset-scoped');
+assert(src.includes("},{retryFailed:true});"), 'earn route opts into refusal retry');
+assert(!/Math\.min\((?:100000000|2000000),led\.(?:gold|gems)/.test(src), 'all old low wallet caps removed');
+console.log('wallet idem retry: pass');

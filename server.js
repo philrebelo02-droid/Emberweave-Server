@@ -1167,10 +1167,11 @@ function writeDBNow(){
   }catch(e){ console.error('⚠ DB durable write failed:', e.message); }
   try{ pgSave(); }catch(e){}
 }
-function idem(key, fn){ DB.idem=DB.idem||{}; const now=Date.now();
+function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
-  if(DB.idem[key]) return DB.idem[key].resp;
+  if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
   const resp=fn(); DB.idem[key]={t:now,resp};
+  if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
   writeDBNow();                       // the receipt lands with the reward, or neither does
   return resp; }
 
@@ -2374,8 +2375,8 @@ function ensureLedger(u){
      and a guest who spent down is topped back up (harmless, and in the player's favour). */
   const STARTER_GOLD=1000, STARTER_GEMS=300;
   const led={ v:1, migratedAt:Date.now(), rev:1,
-    gold:Math.max(0,Math.min(100000000, (sv.gold|0)||0)),
-    gems:Math.max(0,Math.min(2000000, (sv.gems|0)||0)),
+    gold:Math.max(0,Math.min(ECON_CAP.gold, Math.floor(Number(sv.gold)||0))),
+    gems:Math.max(0,Math.min(ECON_CAP.gems, Math.floor(Number(sv.gems)||0))),
     px:Math.max(0,Math.min(99000000,(sv.playerXP|0)||0)),
     hero:{}, unlocked:{}, frags:{},
     camp:{ cleared:Math.max(0,Math.min(100,(sv.campaignCleared|0)||0)), stars:{}, att:null },
@@ -2928,8 +2929,8 @@ function poolRollGold(u){ const led=u.led; const h=Math.random();
   const r=Math.random();
   if(r<0.46) return poolGlyphFrag(u,'Grey', 4+Math.floor(Math.random()*5));
   if(r<0.72) return poolGlyphFrag(u,'Green', 2+Math.floor(Math.random()*3));
-  if(r<0.94){ const g=300+Math.floor(Math.random()*500); led.gold=Math.min(100000000,led.gold+g); return {type:'gold', n:g}; }
-  const gm=5+Math.floor(Math.random()*11); gemGain(u,gm,'wish'); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
+  if(r<0.94){ const g=300+Math.floor(Math.random()*500); led.gold=Math.min(ECON_CAP.gold,led.gold+g); return {type:'gold', n:g}; }
+  const gm=5+Math.floor(Math.random()*11); gemGain(u,gm,'wish'); led.gems=Math.min(ECON_CAP.gems,led.gems+gm); return {type:'gems', n:gm}; }
 function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   if(rigged) return poolGrantHero(u, poolPick(POOL_P2));
   if(pool.pity+1>=WISH_GEM_PITY){ pool.pity=0;
@@ -2948,7 +2949,7 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   if(r<0.36) return poolGlyphFrag(u,'Blue', 2+Math.floor(Math.random()*3));
   if(r<0.60) return poolGlyphFrag(u,'Green', 4+Math.floor(Math.random()*4));
   if(r<0.80) return poolGlyphFrag(u,'Blue +1', 1+Math.floor(Math.random()*2));
-  const gm=20+Math.floor(Math.random()*40); gemGain(u,gm,'wish'); led.gems=Math.min(2000000,led.gems+gm); return {type:'gems', n:gm}; }
+  const gm=20+Math.floor(Math.random()*40); gemGain(u,gm,'wish'); led.gems=Math.min(ECON_CAP.gems,led.gems+gm); return {type:'gems', n:gm}; }
 /* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
 const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
@@ -4780,7 +4781,7 @@ async function api(req,res,url){
       if(what==='gold'){ if(sh.gold>=SHOP_GOLD_COSTS.length) return {ok:false,error:'No more gold today.'};
         const c=SHOP_GOLD_COSTS[sh.gold]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         const amt=1000+(ledPlayerLevel(led)-1)*100;
-        led.gems-=c; sh.gold++; led.gold=Math.min(100000000,led.gold+amt);
+        led.gems-=c; sh.gold++; led.gold=Math.min(ECON_CAP.gold,led.gold+amt);
         ledTx(me,'shop:gold',{gems:-c,gold:amt});
         writeDB(); return {ok:true, gold:amt, cost:c, ledger:ledgerView(me)}; }
       /* v274: equipment materials became ledger-owned, so the diamond bundle that used to be granted
@@ -4813,8 +4814,8 @@ async function api(req,res,url){
     if(pos>0 && group.slice(0,pos).some(id=>!led.tut[id])) return send(res,409,{error:'Claim the previous reward in this Stage lesson first.'});
     led.tut[step]=Date.now();
     const out={gold:0,gems:0,stam:0,frag:null};
-    if(rw.gold){ led.gold=Math.min(100000000,led.gold+rw.gold); out.gold=rw.gold; }
-    if(rw.gems){ led.gems=Math.min(9999999,led.gems+rw.gems); out.gems=rw.gems; }
+    if(rw.gold){ led.gold=Math.min(ECON_CAP.gold,led.gold+rw.gold); out.gold=rw.gold; }
+    if(rw.gems){ led.gems=Math.min(ECON_CAP.gems,led.gems+rw.gems); out.gems=rw.gems; }
     if(rw.stam){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+rw.stam); out.stam=rw.stam; }
     if(rw.xpPotion){ led.xpPotions=led.xpPotions||{}; led.xpPotions[rw.xpPotion]=(led.xpPotions[rw.xpPotion]|0)+1; out.xpPotion={tier:rw.xpPotion,qty:1}; if(step==='quest14')led.tutVexXpBase=(led.xpPotionUsed||{}).vexMinor|0; }
     if(rw.frag){ // a fixed, named starter hero — never a random pick made by the browser
@@ -4864,7 +4865,7 @@ async function api(req,res,url){
       if(elite) prog.runs['n'+node]=(prog.runs['n'+node]|0)+times;
       const rw=st.rewards;
       const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
-      led.gold=Math.min(100000000,led.gold+gold);
+      led.gold=Math.min(ECON_CAP.gold,led.gold+gold);
       ledAddPlayerXP(led,px);
       const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
@@ -4907,8 +4908,8 @@ async function api(req,res,url){
     if(b.stars&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue;
       const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k].stars,pips:0});
       h.stars=Math.max(SIM.HERO_BASE[k].stars,Math.min(5,b.stars|0)); }
-    if(b.gold) led.gold=Math.min(100000000,led.gold+(b.gold|0));
-    if(b.gems) led.gems=Math.min(2000000,led.gems+(b.gems|0));
+    if(b.gold) led.gold=Math.min(ECON_CAP.gold,led.gold+(b.gold|0));
+    if(b.gems) led.gems=Math.min(ECON_CAP.gems,led.gems+(b.gems|0));
     if(b.px) ledAddPlayerXP(led,b.px|0);
     if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
     if(b.stamina){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+(b.stamina|0)); }
@@ -5018,31 +5019,32 @@ async function api(req,res,url){
   if(p==='/api/tx/earn' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     // capped earn table for LEGACY client-resolved loops only. Every grant is logged with a source tx.
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const out=idem(me.id+':earn:'+reqId,()=>{
+    const earnEpoch=ensureLedger(me).migratedAt||0; // reset-progress creates a fresh ledger: old earn receipts must not shadow new rewards
+    const out=idem(me.id+':earn:'+earnEpoch+':'+reqId,()=>{
       const led=ensureLedger(me); const what=String(b.what||''); const reason=String(b.reason||'misc').slice(0,24);
       const amt=Math.floor(+b.amount||0);
       if(reason==='march') return {ok:false,error:'World battles now require a verified server march.'};
       const rules=(EARN_RULES[what]||{})[reason]; if(!rules) return {ok:false,error:'No earn rule for '+what+'/'+reason+'.'};
+      if(!['gold','guildCoins','gems','stamina','px','heroXp','frag'].includes(what)) return {ok:false,error:'Unknown earn currency.'};
       if(what==='gold' && reason==='misc' && String(b.sub||'')==='province') return {ok:false,error:'The Training Province is a real battle now — please update the game.'};   /* v663: an old cached client's instant province grant */
       if(!(amt>0&&amt<=rules.max)) return {ok:false,error:'Amount exceeds the '+reason+' rule.'};
-      led.earnDay=led.earnDay||{}; const dk=nyDayKey();
-      if(led.earnDay.k!==dk){ led.earnDay={k:dk}; }
-      const used=(led.earnDay[what+':'+reason]|0);
+      const dk=nyDayKey(), earnDay=led.earnDay&&led.earnDay.k===dk?led.earnDay:{k:dk};
+      const used=(earnDay[what+':'+reason]|0);
       if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
-      led.earnDay[what+':'+reason]=used+amt;
-      if(what==='gold') led.gold=Math.min(100000000,led.gold+amt);
+      if(what==='frag' && !validHero(String(b.heroKey||''))) return {ok:false,error:'Unknown hero.'};
+      led.earnDay=earnDay; earnDay[what+':'+reason]=used+amt;
+      if(what==='gold') led.gold=Math.min(ECON_CAP.gold,led.gold+amt);
       else if(what==='guildCoins') led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+amt);
-      else if(what==='gems'){ gemGain(me,amt,reason); led.gems=Math.min(2000000,led.gems+amt); }
+      else if(what==='gems'){ gemGain(me,amt,reason); led.gems=Math.min(ECON_CAP.gems,led.gems+amt); }
       else if(what==='stamina'){ ledStamRegen(led); led.stam.v=Math.min(999,led.stam.v+amt); }
       else if(what==='px') ledAddPlayerXP(led,amt);
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?[...new Set(b.heroKeys.map(String))].slice(0,10):[]);   /* v559: the daily counter moved once per request but the loop paid once per ELEMENT, so ten copies of one key multiplied the award tenfold. */
         for(const k of keys){ if(!led.unlocked[k]) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
-      else if(what==='frag'){ const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'};
+      else if(what==='frag'){ const k=String(b.heroKey||'');
         led.frags[k]=Math.min(9999,(led.frags[k]|0)+amt); }
-      else return {ok:false,error:'Unknown earn currency.'};
       const tx=ledTx(me,'earn:'+reason,{[what]:amt});
       writeDB(); return {ok:true, tx, ledger:ledgerView(me)};
-    });
+    },{retryFailed:true});
     return send(res, out.ok===false?400:200, out); }
   if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'});
     const mode=portalModeOf(url.searchParams.get('mode'));
@@ -5284,7 +5286,7 @@ async function api(req,res,url){
         reward={ gold:rewarded?(first?rw.firstGold:rw.repeatGold):0, playerXp:rewarded?(first?rw.playerXpFirst:rw.playerXpRepeat):0,
                  heroXp:rewarded?(first?rw.heroXpFirst:rw.heroXpRepeat):0, first, dailyCapped:!rewarded, runCounted:(capStage&&!first&&rewarded),
                  xpPotions:rewarded?xpPotionGrant(led,mode,a.node,1,srvSeed('campxp-clear',me.id,mode,a.node,reqId)):{} };
-        led.gold=Math.min(100000000,led.gold+reward.gold);
+        led.gold=Math.min(ECON_CAP.gold,led.gold+reward.gold);
         ledAddPlayerXP(led,reward.playerXp);
         for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
         if(first) prog.cleared=a.node;
@@ -6159,7 +6161,7 @@ async function api(req,res,url){
       led.earnDay=led.earnDay||{}; const adk=nyDayKey(); if(led.earnDay.k!==adk){ led.earnDay={k:adk}; }
       const aused=(led.earnDay['gold:arena']|0), ACAP=8000;
       goldReward=Math.min(Math.max(0,200+Math.floor((5000-me.rank)/20)), Math.max(0,ACAP-aused));
-      if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; led.gold=Math.min(100000000,led.gold+goldReward); ledTx(me,'arena:win',{gold:goldReward}); } }
+      if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; led.gold=Math.min(ECON_CAP.gold,led.gold+goldReward); ledTx(me,'arena:win',{gold:goldReward}); } }
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
@@ -6171,7 +6173,7 @@ async function api(req,res,url){
     { const led=ensureLedger(me); const best=(me.bestRank!=null)?me.bestRank:5000;
       if(me.rank<best){ let d=0; for(let rr=me.rank; rr<best; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1)));
         me.bestRank=me.rank; me._gemFrac=(me._gemFrac||0)+d; milestoneGems=Math.floor(me._gemFrac); me._gemFrac-=milestoneGems;
-        if(milestoneGems>0){ gemGain(me,milestoneGems,'arena'); led.gems=Math.min(9999999,led.gems+milestoneGems); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
+        if(milestoneGems>0){ gemGain(me,milestoneGems,'arena'); led.gems=Math.min(ECON_CAP.gems,led.gems+milestoneGems); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
     DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
