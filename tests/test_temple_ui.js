@@ -87,6 +87,14 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     const locked=page.locator('[data-temple-tier="kindled"]');
     assert(await locked.isDisabled(),'locked prayer cannot be chosen');
     assert.strictEqual(await locked.evaluate(el=>getComputedStyle(el).filter),'grayscale(1)','locked prayer art is greyed out');
+    await page.evaluate(()=>{G.playerXP=0;renderTemple();});
+    assert(await page.locator('[data-temple-tier="gold"]').isDisabled(),'Gold is greyed out before the player unlocks the Temple');
+    await page.evaluate(()=>{G.playerXP=Number.MAX_SAFE_INTEGER;RUNE2.enabled=false;G.glyphRank={};renderTemple();});
+    assert(await page.locator('[data-temple-tier="gold"]').isDisabled(),'Gold is greyed out before the hero reaches Purple ascension');
+    await page.evaluate(()=>{G.glyphRank[templeSelectedHero]=TempleOfAsh.CONFIG.MIN_ASCENSION_INDEX;renderTemple();});
+    assert(await page.locator('[data-temple-tier="gold"]').isEnabled(),'Gold is selectable once the player and hero qualify');
+    await page.evaluate(()=>{TempleOfAsh.freeRitualAvailable(G.temple);G.temple._freeClaimedDay=G.temple.freeRitualDay;renderTemple();});
+    assert(await page.locator('[data-temple-tier="free"]').isDisabled(),'used daily free prayer is greyed out');
     await page.evaluate(()=>{G.temple.bonusPrayers=1;renderTemple();});
     assert.strictEqual(await page.locator('.templeTierGrid .templeTierTile').count(),6,'banked bonus does not displace a regular choice');
     await page.locator('.templeBonusChoice').click();

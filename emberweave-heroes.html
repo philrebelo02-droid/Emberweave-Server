@@ -17094,6 +17094,7 @@ function renderTemple(){
     ...T.CONFIG.PRAYER_TIERS.map(x=>({id:x.id,name:x.name,cost:x.id==='gold'?`🪙 ${T.nextGoldCost(st).toLocaleString()}`:`💎 ${x.gems}`,locked:level<x.unlockKeeper,need:x.unlockKeeper}))];
   if(!tiers.some(x=>x.id===templeSelectedTier&&!x.locked)&&!(templeSelectedTier==='bonus'&&bonusAvailable))templeSelectedTier='gold';
   const eligible=key&&glyphRank(key)>=T.CONFIG.MIN_ASCENSION_INDEX;
+  const choicesBlocked=!unlocked||!eligible;
   const barHtml=bars.map((label,i)=>{const open=level>=T.CONFIG.BAR_UNLOCK_TEMPLE[i],v=(h.cinders||{})['bar'+(i+1)]||0;
     return `<div style="margin:8px 0;text-align:left"><div style="font-size:12px">${open?label:'🔒 '+label} <span style="float:right">${open?v+' / '+max:'Temple '+T.CONFIG.BAR_UNLOCK_TEMPLE[i]}</span></div><div style="height:9px;border:1px solid #704d27;border-radius:8px;background:#201813"><div style="height:100%;width:${open?Math.min(100,100*v/max):0}%;background:#ef8a32;border-radius:8px"></div></div></div>`;}).join('');
   const orbHtml=[0,1,4,2,3].map((i)=>`<img alt="Orb ${i+1} ${h.boonsUnlocked&&h.boonsUnlocked[i]?'earned':'unearned'}" src="/assets/img/temple/card-orb-${h.boonsUnlocked&&h.boonsUnlocked[i]?'lit':'unlit'}-v2.webp?v=2" style="width:${i===4?38:25}px;height:${i===4?38:25}px;object-fit:cover;margin:0 2px">`).join('');
@@ -17103,7 +17104,7 @@ function renderTemple(){
   const tabsHtml=classes.map(c=>`<button type="button" class="templeClassTab" role="tab" data-temple-class="${c}" aria-selected="${templeClassFilter===c}" ${pending?'disabled':''}>${c}</button>`).join('');
   const rosterHtml=visible.map(k=>{const name=(HERO_TYPES[k]||{}).name||k,portrait=HERO_PORTRAITS[k];
     return `<button type="button" class="templeHeroTile" data-temple-hero="${k}" aria-label="${escapeHTML(name)} · Level ${heroLevel(k)}" aria-pressed="${k===key}" ${pending?'disabled':''}>${portrait?`<img src="${portrait}" alt="">`:heroIcon(k,28,{orbs:false})}</button>`;}).join('');
-  const tiersHtml=tiers.map(x=>`<button type="button" class="templeTierTile" data-temple-tier="${x.id}" aria-pressed="${templeSelectedTier===x.id}" ${x.locked?'disabled':''}><img src="${tierArt[x.id]}" alt=""><span><b>${escapeHTML(x.name)}</b><small>${x.locked&&x.need?'Temple '+x.need:x.cost}</small></span></button>`).join('');
+  const tiersHtml=tiers.map(x=>`<button type="button" class="templeTierTile" data-temple-tier="${x.id}" aria-pressed="${templeSelectedTier===x.id}" ${x.locked||choicesBlocked?'disabled':''}><img src="${tierArt[x.id]}" alt=""><span><b>${escapeHTML(x.name)}</b><small>${x.locked&&x.need?'Temple '+x.need:x.cost}</small></span></button>`).join('');
   b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-size:25px">🔥 Temple of Ash</div>
     <div style="font-size:12px;color:#ad9b87">Flamekeeper ${level} · ${st.keeperPoints||0} points · ${st.bonusPrayers||0} bonus prayers</div>
     ${unlocked?'':`<div style="color:#ff9a9a">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
@@ -17116,7 +17117,7 @@ function renderTemple(){
     ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${templeLastRolls?' · '+Object.values(templeLastRolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):' · save or discard'}</div>
        <button class="btn" id="templeSave">Save</button> <button class="btn" id="templeDiscard">Discard</button>`:
       `<div class="templeTierGrid" aria-label="Prayer choices">${tiersHtml}</div>
-       ${bonusAvailable?`<button type="button" class="templeTierTile templeBonusChoice" data-temple-tier="bonus" aria-pressed="${templeSelectedTier==='bonus'}"><img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt=""><span><b>Bonus prayer</b><small>Free</small></span></button>`:''}
+       ${bonusAvailable?`<button type="button" class="templeTierTile templeBonusChoice" data-temple-tier="bonus" aria-pressed="${templeSelectedTier==='bonus'}" ${choicesBlocked?'disabled':''}><img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt=""><span><b>Bonus prayer</b><small>Free</small></span></button>`:''}
        <button class="btn" id="templePray" ${!unlocked||!eligible||!templeSelectedTier?'disabled':''}>Pray</button>`}
     <div id="templeMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>`;
   b.querySelectorAll('[data-temple-class]').forEach(tab=>tab.onclick=()=>{templeClassFilter=tab.dataset.templeClass;templeSelectedHero='';renderTemple();});
