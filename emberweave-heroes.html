@@ -399,6 +399,13 @@
   .hero-card .hc-imgwrap{position:relative;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#0c0f16;margin-bottom:3px;}
   .ascw{position:relative;display:block;overflow:hidden;flex:0 0 auto}
   .ascf{position:absolute;inset:0;pointer-events:none;border:0 solid transparent;border-image-repeat:stretch;z-index:2}
+  /* TEMPLE OF ASH fire-orb studs (Phil 27 Sep: "on the left of their hero card art" / "1 orb is added as a stud" / a 5th, larger, centred
+     between the four). Five sockets straddle the card's LEFT border: small, small, BIG centre (5th), small, small. Placeholder orb until
+     ChatGPT's ember-orb art lands (swap .tOrb's background for the art file). */
+  .tOrbs{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);height:62%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;pointer-events:none;z-index:5}
+  .tOrb{width:clamp(7px,9cqw,16px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 38% 34%,#fff3c4 0 10%,#ffb347 26%,#ff6a1a 55%,#8a2a06 82%,#3a1203 100%);box-shadow:0 0 5px 1px rgba(255,120,30,.75),inset 0 0 3px rgba(0,0,0,.6)}
+  .tOrb.c{width:clamp(11px,14.5cqw,26px)}
+  .tOrb.off{visibility:hidden}
   .ascf-st{position:absolute;left:7%;right:7%;bottom:0;height:16%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:4;line-height:0}
   .ascf-gem{position:absolute;aspect-ratio:60/96;transform:translate(-50%,-50%);z-index:3;pointer-events:none;line-height:0;filter:drop-shadow(0 1px 2px #000c)}
   .ascf-gem svg{width:100%;height:100%;display:block}
@@ -4275,7 +4282,8 @@ function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIn
   const pc=(v,d)=>(v/d*100).toFixed(2)+'%';
   let h=`<div class="ascf" style="border-image-source:url('/assets/img/frames/asc-${String(bi).padStart(2,'0')}.webp?v=${ASC_FRAME_V}');border-image-slice:${s[0]} ${s[1]} ${s[2]} ${s[3]} fill;border-image-width:${pc(s[0],ASC_FRAME_H)} ${pc(s[1],ASC_FRAME_W)} ${pc(s[2],ASC_FRAME_H)} ${pc(s[3],ASC_FRAME_W)}"></div>`;
   if(o.banner) h+=rarityBannerHtml(key,{name:o.name});   // v614: the name banner on the frame's bottom edge
-  if(o.stars){ let row=''; try{ row=starFillRow(key,20); }catch(e){} if(row) h+=`<div class="ascf-st${o.banner?' onb':''}">${row}</div>`; }   // on the bottom edge (on top of the banner when there is one)
+  if(o.stars){ let row=''; try{ row=starFillRow(key,20); }catch(e){} if(row) h+=`<div class="ascf-st${o.banner?' onb':''}">${row}</div>`; }
+  h+=templeOrbsHtml(key);   /* Temple of Ash orb studs (27 Sep) - empty until a hero has orbs (or the dev preview is on) */   // on the bottom edge (on top of the banner when there is one)
   return h; }
 /* v614 (Phil: "make the mythical banner actually good looking, make a Grey one for 1 star starter heroes, make a green one
    for 2star starter heroes, and a Blue one for 3 star starter heroes" / "the mythical one should look much more flashy and say
@@ -4286,6 +4294,13 @@ function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIn
    On a card the name banner sits on the frame's bottom edge with the stars on top of it. */
 const RARITY_V=4, RARITY_READY=true;    // flips to true once the Hailuo banners are in assets/img/banners
 function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMythic==='function'&&isMythic(key))) return 'mythical'; const st=t.stars|0; return st>=3?'rare':st===2?'uncommon':'common'; }
+/* Temple of Ash orbs on the card (27 Sep 2026). N = the hero's unlocked prayer bonuses (0-5); the Temple itself is not wired yet, so
+   today only the DEV preview sets it (Phil: "add an option in game for me to raise all my heroes 1 total orb ... so i can view each art").
+   Fill order: orbs 1-2 above the centre, 3-4 below it, the 5th is the big centre one. */
+function templeOrbCount(key){ return Math.max(0, Math.min(5, (DEV && DEV.orbPreview) | 0)); }
+function templeOrbsHtml(key){ const n=templeOrbCount(key); if(!n) return '';
+  const slot=(lit,big)=>`<span class="tOrb${big?' c':''}${lit?'':' off'}"></span>`;
+  return `<div class="tOrbs">${slot(n>=1)}${slot(n>=2)}${slot(n>=5,true)}${slot(n>=3)}${slot(n>=4)}</div>`; }
 function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
   const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
   const _mt=(typeof MONSTER_TYPES!=='undefined'&&!HERO_TYPES[key])?MONSTER_TYPES[key]:null;   /* v663: monsters on the loader carry their in-game name, never the key */
@@ -13393,7 +13408,7 @@ function _wireIntegrity(host){
 // ---- Developer mode: account-gated dev tools in Settings ----
 // NOTE: no passwords live here. Dev access is decided by the SERVER (isDev() checks the account name
 // against its own role stamp). The client shows dev UI only when the server's profile says admin.
-const DEV={ on:false, god:false, who:'' };   // session-only (resets each launch; never saved)
+const DEV={ on:false, god:false, who:'', orbPreview:0 };   // session-only (resets each launch; never saved)
 // Developer Panel gate: the SERVER's confirmed admin role (profile.admin), never a name list.
 // Every /api/admin/* route 403s for non-admins regardless — this only controls whether the UI shows.
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.admin); }
@@ -14386,7 +14401,16 @@ function renderForge(){
    through the capped, logged /api/tx endpoints — a tampered client changes its own mirror only,
    never the ledger. */
 let LED={st:null};
-function adoptLedger(st){ if(!st||typeof st!=='object') return; LED.st=st;
+function adoptLedger(st){ if(!st||typeof st!=='object') return;
+  /* 27 Sep 2026 (Phil: "the server takes back diamonds when i 'buy' diamonds from shop the server takes it back within seconds" /
+     "players cant have their purchased diamonds dissapearing" / "no rollbacks should happen"). The server kept the purchase (tested:
+     300 -> 1500 and still 1500 after saves); the CLIENT rolled it back - any response that left the server BEFORE the purchase
+     (a ledger poll, a battle result, a save) and arrived AFTER it was adopted wholesale and put the old diamonds back. Every ledger
+     change bumps rev (server ledTx), so a snapshot of the SAME account and SAME ledger (born) with a LOWER rev is stale: drop it.
+     A different account or a new ledger (progress reset) is always taken. */
+  const _acct=(typeof ACC!=='undefined'&&ACC)?ACC.id:null;
+  if(LED.st && LED.acct===_acct && (+st.born||0)===(+LED.st.born||0) && st.rev!=null && LED.st.rev!=null && (st.rev|0)<(LED.st.rev|0)) return;
+  LED.st=st; LED.acct=_acct;
   /* 28 Aug — THE LEVEL-1 BUG. This read the ledger's player XP into `G.xp`, a field NOTHING else in
      the game reads: playerLevel() reads G.playerXP. And playerXP is on the server's
      SERVER_OWNED_SAVE_FIELDS list, so it is deleted out of every save the browser uploads. So for a
@@ -23237,7 +23261,7 @@ function renderSettings(){
       <div class="dvp-sec">Diagnostics</div>
       <div class="dvp-grid">${act('perf','\ud83d\udcc9','Performance HUD on/off')}</div>
       <div class="dvp-sec">Roster</div>
-      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('lv100','\ud83d\udd1f','ALL heroes \u2192 level '+MAX_LEVEL)}${act('maxteam','\u2728','Max ALL heroes glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
+      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('lv100','\ud83d\udd1f','ALL heroes \u2192 level '+MAX_LEVEL)}${act('maxteam','\u2728','Max ALL heroes glyph+star')}${act('orbs','\ud83d\udd25','Temple orbs +1 (all heroes, '+(DEV.orbPreview|0)+'/5)')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
       <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
     const accountsTab = dt!=='accounts'?'':`
       <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
@@ -23644,6 +23668,7 @@ function devAction(a,b){
     api('/api/admin/led-grant','POST',{unlock:['konwu'],heroKeys:['konwu'],stars:MAX_STARS}).then(r=>{
       if(r&&r.ok&&r.ledger){ adoptLedger(r.ledger); done('KonWu unlocked at '+MAX_STARS+'★ — put him in your team, then battle'); }
       else done('✖ server refused — not applied'); }).catch(()=>done('✖ server unavailable — not applied')); return; }
+  else if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); return; }   /* Phil 27 Sep: view each orb count's art */
   else if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs (server walks each board to Orange). */
     const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
     done('Maxing '+keys.length+' heroes…');
@@ -24848,7 +24873,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790482670331';
+const BUILD_ID = '1790517459164';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
