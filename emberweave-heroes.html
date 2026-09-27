@@ -19664,6 +19664,7 @@ function worldPictureLevelForViewport(width,height){
   return 1;
 }
 const WORLD_PICTURE_ROOT='/assets/img/world-map/world-v02/';
+const WORLD_PICTURE_V='831';   /* v831 (SHIPPING RULE 2.5): map pictures are versioned - bump this whenever any world-v02 picture's bytes change, or phones keep the old one */
 function worldPictureName(level,row,col){ return 'world-v02-l'+level+'-r'+String(row).padStart(2,'0')+'-c'+String(col).padStart(2,'0')+'.png'; }
 function mapVisibleSquares(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom) return null;
   const cellPx=WORLD_W/GRID_COLS;   // px per grid square in unzoomed world coords (≈50)
@@ -19683,7 +19684,7 @@ function paintWorldPictureTiles(layer,tiles,level){
       img.style.visibility='hidden';
       img.onload=()=>{img.style.visibility='visible';};
       img.onerror=()=>{img.style.visibility='hidden';};
-      img.src=WORLD_PICTURE_ROOT+worldPictureName(level,tile.row,tile.col);
+      img.src=WORLD_PICTURE_ROOT+worldPictureName(level,tile.row,tile.col)+'?v='+WORLD_PICTURE_V;
       layer.appendChild(img);
     }
     img.style.position='absolute';
@@ -19908,7 +19909,7 @@ function renderWorldMap(keepView){
   head.querySelector('#wmBack').onclick=()=>{ closeCityMenu(); centerOnCastle(); };   // snap the view back to your castle
   const zone=document.createElement('div'); zone.id='wzone'; const inner=document.createElement('div'); inner.id='wzoneInner'; inner.style.width=WORLD_W+'px'; inner.style.height=WORLD_H+'px'; inner.style.background='#0c1018';
   const pictureLayer=document.createElement('div'); pictureLayer.id='worldPictureLayer'; pictureLayer.style.cssText='position:absolute;inset:0;pointer-events:none';
-  const masterPicture=document.createElement('img'); masterPicture.id='worldPictureMaster'; masterPicture.src=WORLD_PICTURE_ROOT+worldPictureName(0,0,0);
+  const masterPicture=document.createElement('img'); masterPicture.id='worldPictureMaster'; masterPicture.src=WORLD_PICTURE_ROOT+worldPictureName(0,0,0)+'?v='+WORLD_PICTURE_V;
   masterPicture.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block'; pictureLayer.appendChild(masterPicture);
   const middlePicture=document.createElement('div'); middlePicture.id='worldPictureMiddle'; middlePicture.style.cssText='position:absolute;inset:0;display:none';
   pictureLayer.appendChild(middlePicture);
@@ -24847,7 +24848,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790471366561';
+const BUILD_ID = '1790472372770';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

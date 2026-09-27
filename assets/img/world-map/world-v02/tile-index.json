@@ -18,7 +18,7 @@
         "top": 0,
         "bottom": 1
       },
-      "sha256": "69B8D5DAF4682F4851155FE1D1CDEF75AC8D43B916A6093BA6F8FE2763525E8F"
+      "sha256": "69b8d5daf4682f4851155fe1d1cdef75ac8d43b916a6093ba6f8fe2763525e8f"
     },
     {
       "file": "world-v02-l1-r00-c00.png",
@@ -37,7 +37,7 @@
         "top": 0,
         "bottom": 1
       },
-      "sha256": "A96226CD12CA3E6E8B7CE14D289052B632A965EBE93A361AF79ABB0F584A5B04"
+      "sha256": "8b3d99bad19470cee844644c13a2bca271708e02265be8604c2ae82bc8b643f9"
     },
     {
       "file": "world-v02-l1-r00-c01.png",
@@ -56,7 +56,7 @@
         "top": 0,
         "bottom": 1
       },
-      "sha256": "374E0F9D21A0C0FBB6A71384D24446F23DE58391CDAA0D0EBF1A608998EDDBF8"
+      "sha256": "99c9f3596ad65431b21e3b1ea326873cda2861fad29ec7accc58d6e2a2f37372"
     },
     {
       "file": "world-v02-l1-r00-c02.png",
@@ -75,7 +75,7 @@
         "top": 0,
         "bottom": 1
       },
-      "sha256": "A78699E7900FC4E6A5C154BB1CDB2B88D6E0A826F0135B9080F2D16BFF75DA48"
+      "sha256": "50f81557611085d0472ac09bc52fdf5994e15885d6c94a420a15df046b7bf938"
     },
     {
       "file": "world-v02-l1-r01-c00.png",
@@ -94,7 +94,7 @@
         "top": 1,
         "bottom": 2
       },
-      "sha256": "B63248EF5A2F146FF33517CAFF2F4ADBE257A6C2CAE14815FD1F723DD457CA95"
+      "sha256": "de4c788588a76310d13162bea3b4fa0fccb3d60e1e025d181f071f410886c2ec"
     },
     {
       "file": "world-v02-l1-r01-c01.png",
@@ -113,7 +113,7 @@
         "top": 1,
         "bottom": 2
       },
-      "sha256": "A98A97BA26A4159B8F2DDC016EB4EA30BA00E6AEEDDCAA6F21C64E373A820A78"
+      "sha256": "4cb261b82005d5ea4a39fdc8f4c1ef4e1f3123240e87ccb34a4f552e546ed292"
     },
     {
       "file": "world-v02-l1-r01-c02.png",
@@ -132,7 +132,7 @@
         "top": 1,
         "bottom": 2
       },
-      "sha256": "D7C77C6BC2FE67E279FAAA27EB2E0D8B6E0A1B9EBC7F128F86E998952C4E4B8D"
+      "sha256": "360320b381423369dce893d509e3a2d252fd48974059ef05f79660ec80b74acb"
     },
     {
       "file": "world-v02-l1-r02-c00.png",
@@ -151,7 +151,7 @@
         "top": 2,
         "bottom": 3
       },
-      "sha256": "1D31CEA18EF47F505047BFC7D3FD5DAC9586FEDCF784EAC43220C55BC14A4F49"
+      "sha256": "32d5b05fe11c99c0b5b2453536f69896c20ea5421153455d147ad2b3ab8af722"
     },
     {
       "file": "world-v02-l1-r02-c01.png",
@@ -170,7 +170,7 @@
         "top": 2,
         "bottom": 3
       },
-      "sha256": "BB9F36947A337C70D2E16064868C1F07F854948D004EA43BA0784C98863D5B8B"
+      "sha256": "44ea39a751d9044daa7b015fdd91c1851e26c73086b91d7b568bc97f3b17b8d1"
     },
     {
       "file": "world-v02-l1-r02-c02.png",
@@ -189,7 +189,7 @@
         "top": 2,
         "bottom": 3
       },
-      "sha256": "31DCC83F4A650F4EF6878DE6742E65F0A655E5AA959209F368ABB2BE32241CEE"
+      "sha256": "0ec115b45c356b0010b4d2a1aa508c8a9dc77a4d872aa8e18f87d472ff222cb4"
     },
     {
       "file": "world-v02-l2-r00-c00.png",
@@ -208,7 +208,7 @@
         "top": 0,
         "bottom": 1
       },
-      "sha256": "b7097d3f510338542cdca01b381543afd536d6e8d7e067b1471115924537c592"
+      "sha256": "eceb12049230b02ac8eb7b9d0cd5d6631cc7ef4a20a4313cac222c0173a23a1e"
     },
     {
       "file": "world-v02-l2-r00-c01.png",
@@ -1196,7 +1196,7 @@
         "top": 5,
         "bottom": 6
       },
-      "sha256": "d1d4dab301f98d86814f8bf23e58903e73f0959948f84d893bb7ffcb63a16b54"
+      "sha256": "a81cefbe928f7aceadb6f9ef92418baa33416ee494c3c9e761a351127f5832f3"
     },
     {
       "file": "world-v02-l2-r05-c08.png",
@@ -1367,7 +1367,7 @@
         "top": 6,
         "bottom": 7
       },
-      "sha256": "b31b2d7780f4b716185a1060e04b55964bbcf52a20f376a4d2c13e2de7c01e1e"
+      "sha256": "01bfe934909607077315666c832fc2d45498826a457f15f950d41b1b1ae3ffcd"
     },
     {
       "file": "world-v02-l2-r06-c08.png",
@@ -1519,7 +1519,7 @@
         "top": 7,
         "bottom": 8
       },
-      "sha256": "0caf0faf3dd9fe462519e256357185ce27cafcb723ee67c32893e9a0b865a70b"
+      "sha256": "3b13b70a0ad65423321ad0a2853114b74fed36c8784e7d1fbe61dd37f8fbd2a2"
     },
     {
       "file": "world-v02-l2-r07-c07.png",
@@ -1690,7 +1690,7 @@
         "top": 8,
         "bottom": 9
       },
-      "sha256": "0edce36a557b44a33ab6b11e3181e1482fdeff985be927530eb9c3abe9b0f026"
+      "sha256": "cbb1a61a0ee78ec19f4fd07b9768896eb1b3d494aa2a7245e44ba6554b41336a"
     },
     {
       "file": "world-v02-l2-r08-c07.png",

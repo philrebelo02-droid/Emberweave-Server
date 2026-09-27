@@ -211,7 +211,7 @@ async function run(){
     assert.equal(pictureGrid.three.divisions,3,'crossing a close-piece border selects a middle picture');
     assert.equal(pictureGrid.nine.divisions,9,'a viewport inside one close piece selects that piece');
     assert.deepEqual(pictureGrid.live,{level:'9',col:'4',row:'4'},'live map selects the close picture at its world position');
-    assert.match(pictureGrid.closeSrc,/world-v02-l2-r04-c04\.png$/,'close picture uses its exact indexed filename');
+    assert.match(pictureGrid.closeSrc,/world-v02-l2-r04-c04\.png\?v=\d+$/,'close picture uses its exact indexed filename');
     await page.waitForFunction(()=>document.querySelector('#worldPictureClose img')?.naturalWidth===1254,{timeout:10000});
     await page.waitForFunction(()=>document.getElementById('worldTreeTerrain')?.naturalWidth===1254,{timeout:10000});
     assert.equal(await page.locator('#worldTreeTarget img').count(),0,'World Tree is integrated terrain, not a floating sprite');
@@ -265,7 +265,7 @@ async function run(){
       return {local,overview:{level:inner.dataset.pictureLevel,master:inner.querySelector('#worldPictureMaster').style.display}};
     });
     assert.equal(fallback.local.level,'9','all completed close areas select their own detail picture');
-    assert.match(fallback.local.closeSrc,/world-v02-l2-r00-c00\.png$/);
+    assert.match(fallback.local.closeSrc,/world-v02-l2-r00-c00\.png\?v=\d+$/);
     assert.equal(fallback.overview.level,'1','crossing middle pictures selects the whole approved map');
     assert.equal(fallback.overview.master,'block');
     const zoomRules=await page.evaluate(()=>{
