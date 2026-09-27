@@ -19664,8 +19664,8 @@ function worldPictureLevelForViewport(width,height){
   return 1;
 }
 const WORLD_PICTURE_ROOT='/assets/img/world-map/world-v02/';
-const WORLD_PICTURE_V='832';   /* v831 (SHIPPING RULE 2.5): map pictures are versioned - bump this whenever any world-v02 picture's bytes change, or phones keep the old one */
-function worldPictureName(level,row,col){ return 'world-v02-l'+level+'-r'+String(row).padStart(2,'0')+'-c'+String(col).padStart(2,'0')+'.png'; }
+const WORLD_PICTURE_V='833';   /* v831 (SHIPPING RULE 2.5): map pictures are versioned - bump this whenever any world-v02 picture's bytes change, or phones keep the old one */
+function worldPictureName(level,row,col){ return 'world-v02-l'+level+'-r'+String(row).padStart(2,'0')+'-c'+String(col).padStart(2,'0')+'.webp'; }   /* v833: served as WebP q95 (03 ART 7.0, Phil 26 Sep: "just send the lower mbs one"); lossless PNGs live in the archive */
 function mapVisibleSquares(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom) return null;
   const cellPx=WORLD_W/GRID_COLS;   // px per grid square in unzoomed world coords (≈50)
   const vx=(zone.clientWidth/worldZoom)/cellPx, vy=(zone.clientHeight/worldZoom)/cellPx;
@@ -24848,7 +24848,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790473968467';
+const BUILD_ID = '1790474793927';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
