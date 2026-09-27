@@ -14,15 +14,17 @@ for(const k of ['maxHp','atkP','armor','mr']){
   const tolerance=(k==='armor'||k==='mr')?1e-9:0.002;
   ck('refinement scales '+k+' with the same multiplier',Math.abs(got-expected)<tolerance,'got '+got+' expected '+expected);
 }
-const prayer0=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:0,extra:{prayerMul:1}});
-const prayer10=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:0,extra:{prayerMul:1.2}});
-ck('Prayer raises authoritative base HP by 20% at level 10',prayer10.maxHp===Math.round(prayer0.maxHp*1.2),
-  'got '+prayer10.maxHp+' from '+prayer0.maxHp);
-/* Each snapshot rounds once from the unrounded base, so multiplying the already rounded baseline
-   may differ by one point. That point is display rounding, not lost Prayer power. */
-ck('Prayer raises authoritative base Attack by 20% at level 10',Math.abs(prayer10.atkP-Math.round(prayer0.atkP*1.2))<=1,
-  'got '+prayer10.atkP+' from '+prayer0.atkP);
-ck('Prayer does not multiply defenses',prayer10.armor===prayer0.armor && prayer10.mr===prayer0.mr);
+const temple=require('../server/temple-of-ash.js'),effects=require('../server/temple-effects.js');
+const full=temple.effectMax(temple.CONFIG.BAR_FULL_AT_TEMPLE);
+const templeHero={cinders:{bar1:full,bar2:full,bar3:0,bar4:0},boonsUnlocked:[false,false,false,false,false]};
+const templeBonus=temple.heroBonuses(templeHero,'Bruiser');
+const temple0=sim.heroCombatStats('tick',{level:100,stars:5,pips:0,ref:0});
+const templeUp=effects.applyCore({...temple0},templeBonus);
+ck('Temple full Bruiser health bar raises authoritative HP by 20%',templeUp.maxHp===temple0.maxHp*1.2,
+  'got '+templeUp.maxHp+' from '+temple0.maxHp);
+ck('Temple full Bruiser attack bar raises authoritative Attack by 20%',templeUp.atkP===temple0.atkP*1.2,
+  'got '+templeUp.atkP+' from '+temple0.atkP);
+ck('Temple typed Attack and HP bars do not multiply defenses',templeUp.armor===temple0.armor && templeUp.mr===temple0.mr);
 
 const host=require('../server/sim-host.js').load(path.join(ROOT,'emberweave-heroes.html'));
 const gearSkill={name:'Power-source probe',slot:'Weapon',defId:'E01',type:'energy',params:{n:20},desc:'probe'};
@@ -30,8 +32,8 @@ const spec={key:'vael',level:30,stars:3,pips:0,ref:0,glyphRank:6,tt:{},ex:{},fAt
 const snap=host.snapFromSpecs([spec])[0];
 ck('equipped Gear Active survives the server-frozen campaign snapshot',!!snap.gearSkill && snap.gearSkill.defId==='E01' && snap.gearSkill.type==='energy');
 ck('snapshot starts Gear Active unused',snap.gearSkill && snap.gearSkill.used===false);
-const prayed=host.snapFromSpecs([Object.assign({},spec,{ex:{prayerPct:20}})])[0];
-ck('Prayer reaches the frozen playable campaign snapshot',prayed.maxHp>snap.maxHp && prayed.dmg>snap.dmg);
+const kindled=host.snapFromSpecs([Object.assign({},spec,{templeBonuses:templeBonus})])[0];
+ck('Temple bonuses reach the frozen playable campaign snapshot',kindled.maxHp>snap.maxHp && kindled.dmg>snap.dmg);
 function gearProbe(type,params,setup,read){
   return vm.runInContext(`(()=>{ units=[]; ended=false; paused=false;
     const u=makeUnit('vael','ally',100,100,20,{owned:false});
