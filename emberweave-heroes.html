@@ -13553,6 +13553,15 @@ function updateHubChrome(){
   const ring=document.getElementById('xpRing'); if(ring) ring.style.setProperty('--xp',(xpIntoLevel()*3.6)+'deg');
   if(typeof checkTutorial==='function') checkTutorial();
 }
+/* Phil 27 Sep 13:10 (phone): "I cannot see the unlock level of starless because it goes off the screen". A town lock tip is centred
+   over its padlock, so a building at the map's edge pushes it past the visible map. When a tip shows, slide it sideways just enough
+   to sit inside #townWrap (6 px margin). One delegated listener covers every building. */
+function clampLockTip(w){ const tip=w&&w.querySelector('.locktip'), box=document.getElementById('townWrap'); if(!tip||!box) return;
+  tip.style.marginLeft='0px'; const r=tip.getBoundingClientRect(), b=box.getBoundingClientRect(); if(!r.width) return;
+  let dx=0; if(r.right>b.right-6) dx=(b.right-6)-r.right; if(r.left+dx<b.left+6) dx=(b.left+6)-r.left;
+  tip.style.marginLeft=dx+'px'; }
+['touchstart','mouseover'].forEach(ev=>document.addEventListener(ev,e=>{ const w=e.target&&e.target.closest&&e.target.closest('.townlbl .lockwrap');
+  if(w) setTimeout(()=>clampLockTip(w),0); },{passive:true}));   // after the wrap's own touch handler has shown the tip
 function renderHome(){
   updateHubChrome();
   if(typeof updateMailBadges==='function') updateMailBadges();
