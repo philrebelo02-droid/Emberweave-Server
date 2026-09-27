@@ -61,8 +61,8 @@ const END=[1,5,13,18,24,30,36,43,50,57,65,72,79,86,93,100,100];
 const curveLevel=n=>{const c=Math.ceil(n/10), k=((n-1)%10)+1; return Math.max(1,Math.round(END[c-1]+(END[c]-END[c-1])*k/10));};
 ck('chapters 2-16: the target level follows the chapter-quality curve',
   S.slice(10).every(e=>e.targetLevel===curveLevel(e.node)), JSON.stringify(S.slice(10).filter(e=>e.targetLevel!==curveLevel(e.node)).slice(0,4).map(e=>e.id+':'+e.targetLevel)));
-// Phil 25 Sep: "without spending any $$ it should be possible to reach 2-10 as a gate on day 1" (v820 Magic Rush XP)
-{ const MR=[8,8,35,45,60,70,70,80,90,110,110,120]; const need13=MR.reduce((a,b)=>a+b,0);
+// Phil 25 Sep: "without spending any $$ it should be possible to reach 2-10 as a gate on day 1" (v820 XP table)
+{ const XP_STEPS=[8,8,35,45,60,70,70,80,90,110,110,120]; const need13=XP_STEPS.reduce((a,b)=>a+b,0);
   const firstClears=S.slice(0,20).reduce((a,e)=>a+e.rewards.playerXpFirst,0);
   ck('the 2-10 gate (level 13) is reachable on day 1: first clears of chapters 1-2 plus under 40 repeats',
     firstClears+40*6>=need13 && S[19].bossLevelGate===13, 'first clears '+firstClears+' need '+need13); }

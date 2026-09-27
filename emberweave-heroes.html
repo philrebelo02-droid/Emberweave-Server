@@ -598,7 +598,7 @@
        background:linear-gradient(0deg,rgba(11,14,20,.92),rgba(11,14,20,0));z-index:15;pointer-events:none;}
   #hud.active{display:flex;}
   #ultHint{font-size:11px;color:#ffd45e;margin-bottom:6px;}
-  /* Magic Rush HUD: a row of 5 framed hero tiles, anchored bottom-right */
+  /* Battle HUD: a row of 5 framed hero tiles, anchored bottom-right */
   #portraitBar{display:flex;gap:3px;justify-content:flex-end;align-items:flex-end;flex-wrap:nowrap;width:100%;box-sizing:border-box;padding-right:6px;}
   #abilityTip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);width:max-content;max-width:min(88vw,420px);
     background:linear-gradient(#1b2334,#111823);border:1px solid #3a4a6e;border-radius:11px;padding:9px 13px;font-size:12px;line-height:1.35;color:#e6edf3;
@@ -657,11 +657,11 @@
   .pEnergyBar{position:absolute;left:12%;top:85%;width:76.5%;height:8.4%;background:#0a1120;border-radius:2px;overflow:hidden;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.8);}   /* v253: energy fill is the manual-play cue — make it readable */
   .pEnergyBar .pEnFill{height:100%;width:0;background:linear-gradient(90deg,#4aa3ff,#8a7bff);transition:width .1s;}
   .pslot.ready .pEnergyBar .pEnFill{background:linear-gradient(90deg,#ffd45e,#ffb347);}
-  /* enemy team bar removed in Magic Rush UI (enemy HP now floats over the head, drawn on the overlay canvas) */
+  /* Enemy team bar removed (enemy HP now floats over the head, drawn on the overlay canvas) */
   #enemyBar{display:none!important;}
   #topStatus{position:absolute;top:8px;left:58px;right:auto;display:none;justify-content:flex-start;gap:8px;font-size:12px;z-index:15;pointer-events:none;}
   #topStatus.active{display:none!important;} .tag{background:rgba(21,27,43,.85);padding:5px 11px;border-radius:20px;}
-  /* Magic Rush-style top battle banner */
+  /* Top battle banner */
   #battleBanner{position:absolute;top:0;left:50%;transform:translateX(-50%);display:none;z-index:15;pointer-events:none;
     background:linear-gradient(180deg,#5a1414,#3a0d0d);border:2px solid #d9a441;border-top:none;border-radius:0 0 14px 14px;
     box-shadow:0 4px 14px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,220,150,.25);padding:5px 6px 9px;}
@@ -1223,7 +1223,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #skyfall .backbtn{z-index:30;}
 #skyfall>#skyfallBody{flex:1;min-height:0;width:100%;display:flex;}
 #skyfallBody .skyStage{flex:1;min-height:0;aspect-ratio:auto;width:100%;}
-/* v694 THE WAR HUD - Magic Rush's alliance-war layout in our painted kit */
+/* v694 THE WAR HUD - alliance-war layout in our painted kit */
 /* v695 the tower panel - who is standing in this tower */
 /* v723 - a FIXED height, and the list scrolls inside it. With max-height alone the panel resized
    every time a line died, which throws whatever you are reading up the screen. */
@@ -1886,7 +1886,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   border-top:1px solid #2a3550;font-size:9.5px;color:#c9b78d;}
 .skyTroopFoot .n{color:#ffe9b8;font-weight:800;}
 .skyTroopFoot .sp{flex:1;}
-/* v726 - A FIGHT AS A ROW, the way Phil's Magic Rush reference lays it out: each side's line-up
+/* v726 - A FIGHT AS A ROW, per Phil's reference layout: each side's line-up
    facing the other across the verdict, with the watch button in the middle. */
 .skyBout{display:flex;align-items:stretch;gap:5px;margin-bottom:6px;}
 .skyBoutSide{flex:1;min-width:0;border-radius:9px;padding:5px 6px;display:flex;flex-direction:column;gap:4px;}
@@ -2323,7 +2323,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <div class="tag" id="waveTag">Wave 1</div>
     <div class="tag">🟥 <span id="enemyCount">0</span></div>
   </div>
-  <!-- Magic Rush-style top battle banner: Time (countdown) + Progress (wave/total) -->
+  <!-- Top battle banner: Time (countdown) + Progress (wave/total) -->
   <div id="battleBanner">
     <div class="bbCell"><div class="bbLabel">Wave Time</div><div class="bbVal" id="bbTime">1:30</div></div>
     <div class="bbDiv"></div>
@@ -4267,9 +4267,9 @@ function playerCastleImg(){ return CASTLE_IMGS['castle'+castleTier(playerLevel()
    9-SLICE (CSS border-image): the corners keep their shape and the edges stretch, and the border thickness is a percentage of
    the card, so one image fits every card size - roster card, squad icon, loading-screen card. The hero's stars sit on the
    frame's bottom plate (ASC_FRAME[i].p = the plate's box, same pixels). */
-/* v612 rev (Phil: "Go review magic rush hero card" / "And so it similar" / "Dont copy them verbatim though" / "I dont really like
+/* v612 rev (Phil: "Go review [the reference] hero card" / "And so it similar" / "Dont copy them verbatim though" / "I dont really like
    the oval plate at the bottom" / "you took my teeth example too literally" / "Can use a wavy teeth art style" / "Be creative";
-   chose "Gem studs like Magic Rush"): SQUARE borders, no plate. Each colour has a plain border and an ornate one with a wavy trim
+   chose "Gem studs like [the reference]"): SQUARE borders, no plate. Each colour has a plain border and an ornate one with a wavy trim
    in its own motif (leaf curls, sea waves, arcane smoke, sun rays, flame tongues). The +N is counted in ember-crystal studs set
    on the left and right edges, drawn by the game so the count is always exact; +3 and +4 studs are larger jewels. */
 const ASC_FRAME_W=720, ASC_FRAME_H=720;
@@ -5195,11 +5195,11 @@ const MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sit
 // Troop XP: the table values are per-level INCREMENTS that accumulate — the XP to go from
 // level L->L+1 is the running sum of the increments (Lv1->2 = 8, 2->3 = 8+10 = 18, 3->4 = +35 = 53 …).
 // A dash in the source table means "no increment that level" (0), so the requirement holds steady.
-const TROOP_INC=[8,8,35,45,60,70,70,80,90,110,110,120,120,120,130,130,130,130,150,250,250,260,270,300,330,350,360,370,380,400,450,500,550,600,650,800,1000,1000,1200,1200,1300,1400,1500,1700,1900,2200,2500,2750,3000,3250,3250,3250,3250,3250,3400,3400,3500,3520,3640,3880,4070,4270,4470,4670,4860,5090,5320,5550,5780,6000,6280,6550,6820,7100,7400,7700,8000,8300,8600,8900,12400,16880,21840,26800,31760,36720,41680,46640,60000,80000,90000,100000,110000,120000,130000,140000,150000,160000,170000];   /* v820 (Phil 25 Sep): Magic Rush's per-level XP, counted ONCE - the old troop table ran this column through a running sum and a cumulative sum */
+const TROOP_INC=[8,8,35,45,60,70,70,80,90,110,110,120,120,120,130,130,130,130,150,250,250,260,270,300,330,350,360,370,380,400,450,500,550,600,650,800,1000,1000,1200,1200,1300,1400,1500,1700,1900,2200,2500,2750,3000,3250,3250,3250,3250,3250,3400,3400,3500,3520,3640,3880,4070,4270,4470,4670,4860,5090,5320,5550,5780,6000,6280,6550,6820,7100,7400,7700,8000,8300,8600,8900,12400,16880,21840,26800,31760,36720,41680,46640,60000,80000,90000,100000,110000,120000,130000,140000,150000,160000,170000];   /* v820 (Phil 25 Sep): per-level XP, counted ONCE - the old troop table ran this column through a running sum and a cumulative sum */
 function runningSum(inc){ const out=[]; let r=0; for(let i=0;i<inc.length;i++){ r+=inc[i]; out.push(r); } return out; }
 const TROOP_STEP=TROOP_INC;   // XP to go from level (i+1) -> (i+2) - v820: the table IS the step
 // Hero XP: per-level requirement straight from the table (index 0 = 1->2 … 58 = 59->60)
-const HERO_STEP=[8,10,12,25,40,65,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2620,2820,3010,3200,3390,3590,4410,4660,4920,5180,5450,5750,6880,7210,7550,7900,8250,8620,8990,9370,9760,10180,10590,11000,11420,11850,12280,12730,13180,13640,14110,16410,16960,17510,18080,18650,19230,19820,20420,21020,21640,22290,22930,23570,24230,24890,28370,29120,29890,30660,31450,32270,52760,67510,82940,106110,130320,162990,204640,248080,348088,379350,455760,592780,778710,972260,1173550,829740,847110,864660,882390];   /* v820: Magic Rush hero XP, levels 2..100 */
+const HERO_STEP=[8,10,12,25,40,65,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2620,2820,3010,3200,3390,3590,4410,4660,4920,5180,5450,5750,6880,7210,7550,7900,8250,8620,8990,9370,9760,10180,10590,11000,11420,11850,12280,12730,13180,13640,14110,16410,16960,17510,18080,18650,19230,19820,20420,21020,21640,22290,22930,23570,24230,24890,28370,29120,29890,30660,31450,32270,52760,67510,82940,106110,130320,162990,204640,248080,348088,379350,455760,592780,778710,972260,1173550,829740,847110,864660,882390];   /* v820: hero XP, levels 2..100 */
 function cumArr(steps){ const c=new Array(MAX_LEVEL+1); c[1]=0; for(let L=2;L<=MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const TROOP_CUM=cumArr(TROOP_STEP), HERO_CUM=cumArr(HERO_STEP);
 function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
@@ -5630,7 +5630,7 @@ function pumpInputs(){
   const q=_inputQ; _inputQ=[];
   for(let i=0;i<q.length;i++) applyInput(q[i]);
 }
-const BATTLE_TIME_LIMIT=90;                 // Magic Rush-style battle countdown shown in the top banner (display)
+const BATTLE_TIME_LIMIT=90;                 // Battle countdown shown in the top banner (display)
 let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state (stars + hero cards)
 /* AUDIT #20: the star row and squad panel were snapshotted ONCE from the local sim and never revised,
    so every server-verdict path (arena/vault/raid/campaign) could paint DEFEAT next to three golden
@@ -9243,7 +9243,7 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
   dealDamage(u,tg,dB*(o.mul||2)*rm*1.2,'#c9b6ff');   // +20% empowered arrival strike
   floatTexts.push({x:u.x,y:u.y-8,txt:'+20%',t:.8,color:'#c9b6ff',vy:1});
   u.target=tg; u._blinkO=null; HERO_FX_MUL=1; }
-/* v367 (Phil): "Magic Rush's spell FX are so much larger than ours … double all spell effects 2× larger."
+/* v367 (Phil): "[The reference] spell FX are so much larger than ours … double all spell effects 2× larger."
    FX_SIZE scales SPELL visuals — ground plates, billboard plates, beams (fatter), spell particle rings
    and rains — and nothing about hitboxes. v368 (Phil): "auto-attack effects aren't spells" — projectiles,
    auto-attack balls, bullets, arrows and plain hit sparks are never scaled. */
@@ -11301,7 +11301,7 @@ function updateStaffFx(dt){ if(!staffFx.length)return;
 }
 /* ---- Vulmar placed effect plates (ult crush / sling collision / grasp pull) ---- */
 const _fxPlates=[];
-/* Magic Rush battle UI assets (HUD frame plate + silence/stun mask icons) — inlined data URIs */
+/* Battle UI assets (HUD frame plate + silence/stun mask icons) — inlined data URIs */
 const MR_UI={frame:'/assets/img/miscellaneous/mr-ui-frame.png',silence:'/assets/img/miscellaneous/mr-ui-silence.png',stun:'/assets/img/miscellaneous/mr-ui-stun.png'};
 const _mrSilImg=new Image(); _mrSilImg.src=MR_UI.silence;
 const SHIELD_ICON="/assets/img/miscellaneous/shield-icon.png"; const _absorbShieldImg=new Image(); _absorbShieldImg.src=SHIELD_ICON;
@@ -12378,7 +12378,7 @@ function updateBattle(dt){
   simTick++;
   battleTime+=dt; rageMul=(CUR&&CUR.mode==='emberdraft')?1:(battleTime>22?1+(battleTime-22)*.16:1); screenFlash=Math.max(0,screenFlash-dt);   // v636: Emberdraft ramps attack speed instead (edAtkRamp). v644: the flash decay had been swallowed by this comment since v636 - every mode kept a permanent gold tint after the first ally ult
   if(CUR && CUR.mode==='emberdraft' && window.ED && ED.fighting){ edTick(dt); if(ended) return; }   // v604 Emberdraft: item actives, leaps, the 30 s draw, instant end
-  if(!ended && CUR.mode!=='online' && CUR.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // v644: Emberdraft draws at ED_FIGHT_LIMIT in edTick   // ⏱ time's up → defeat (Magic Rush timer)
+  if(!ended && CUR.mode!=='online' && CUR.mode!=='emberdraft' && battleTime>=BATTLE_TIME_LIMIT){ endBattle(false); return; }   // v644: Emberdraft draws at ED_FIGHT_LIMIT in edTick   // ⏱ time's up → defeat (battle timer)
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
     think(u,dt);if(u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
@@ -13200,7 +13200,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
       if((u._absorbT||0)>0&&_rdy(_absorbShieldImg))_ic.push(_absorbShieldImg);
       let ix=si.x-((_ic.length-1)*(isz+2))/2;
       _ic.forEach(img=>{ octx.drawImage(img, ix-isz/2, si.y-isz, isz, isz); ix+=isz+2; }); } });
-  // Magic Rush-style juicy combat text: thick-outlined, color-coded, crits are bigger with a starburst
+  // Combat text: thick-outlined, color-coded, crits are bigger with a starburst
   octx.textAlign='center'; octx.textBaseline='middle'; octx.lineJoin='round';
   const _ftBn=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active);   // v589: bonus-run numbers float just over a 0.28-scale head (they still grow with zoom)
   /* v593 (Phil, 18 Sep: "Texts are way too big also" / "Should scale the same way as heroes and spells"): v589 drew bonus
@@ -19227,7 +19227,7 @@ function arenaLeaderboard(){ if(ACC.token&&ARENA.ladder&&ARENA.ladder.length) re
   }
   return list; }
 /* v679 - a COSMETIC league band read off the rank the player already holds, so the arena can wear
-   a medal the way Magic Rush's does. rankTier() below only ever named ranks 1, 2 and 3. This changes
+   a medal. rankTier() below only ever named ranks 1, 2 and 3. This changes
    no reward, no matchmaking and no maths - it is a name and a colour. */
 function arenaLeague(rank){ const r=Math.max(1,rank|0);
   if(r===1)      return {name:'Champion', col:'#ffe9b8', art:'/assets/img/ui/hud-shield.webp?v=1'};
@@ -19449,7 +19449,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     </div>
   </div>`;
   b.querySelector('#arenaRulesBtn').onclick=arenaRules;
-  /* v681 - TOP PICK, Phil's reference has one. Magic Rush picks a recommended target; the nearest
+  /* v681 - TOP PICK, Phil's reference has one. It picks a recommended target; the nearest
      honest equivalent here is the highest-ranked opponent on the board whose power is below yours,
      falling back to the weakest on offer when every one of them outguns you. Nothing is hidden: it
      simply scrolls that card into view and marks it. */
@@ -21490,7 +21490,7 @@ function renderHeroList(){
       ? `<img class="hc-img" id="rcp_${key}" src="${HERO_PORTRAITS[key]}"${_cpos?` style="object-position:center ${_cpos}"`:''}>`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:46px">${t.emoji}</div>`;
     const mythTag = (myth && MYTHICAL_BANNER && isAssetRef(MYTHICAL_BANNER)) ? `<img class="hc-myth" src="${MYTHICAL_BANNER}" alt="Mythical">` : '';
-    /* v612 (Phil: "Go review magic rush hero card" / "And so it similar"): a Magic Rush tile - one square art card for every
+    /* v612 (Phil: "Go review [the reference] hero card" / "And so it similar"): one square art card for every
        hero, the ascension border round it, Lv in the top-left, the stars ON the border's bottom edge, the mythical banner across
        the bottom of the art; name, role and power underneath. Every card is the same size, mythical or not. */
     card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
@@ -24165,7 +24165,7 @@ function updatePortraits(){ for(let i=0;i<units.length;i++){ const u=units[i]; i
     if(u.slotEl){ const cn='pslot'+(!u.alive?' dead':(ready?' ready':'')); if(u._slotCN!==cn){ u._slotCN=cn; u.slotEl.className=cn; } } }
   updateEnemyBar();
 }
-// Magic Rush UI: enemies have NO bottom/top HUD — their health floats over the head (drawn on the overlay canvas).
+// Enemies have NO bottom/top HUD — their health floats over the head (drawn on the overlay canvas).
 // These remain as harmless no-ops so the many call sites don't need touching.
 function buildEnemyBar(){ const bar=document.getElementById('enemyBar'); if(bar){ bar.innerHTML=''; bar.classList.remove('active'); } }
 function updateEnemyBar(){ /* over-head enemy HP handled in drawOverlay */ }
@@ -24195,7 +24195,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(CUR.oppName)):''} · 1/1`;
     return; }
   el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
-// Magic Rush-style top banner: Time countdown + Progress (current wave / total waves)
+// Top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
   /* v635 (Phil: "I lost from nothing, no time up, didnt lose my heroes just lost"): an Emberdraft fight ends at ED_FIGHT_LIMIT (30 s then; 90 s since v639) as

@@ -1,5 +1,5 @@
-/* THE STARLESS WELL v2 - Magic Rush's Fractalia, inside the black hole (blueprint 22). Claude, 25 Sep 2026.
-   Phil: "I want the well to be almost like fractalia" / "You clear one map, then at the end there is portals/ hard and normal · hard and
+/* THE STARLESS WELL v2 - branching path inside the black hole (blueprint 22). Claude, 25 Sep 2026.
+   Phil: "I want the well to be almost like [the reference]" / "You clear one map, then at the end there is portals/ hard and normal · hard and
    normal has 2 maps to push each" / "you choose 1 lane to choose the difficulty" / "energy levels is kept each fight, used for ultimates
    the same as other modes" / "tent heroes are loaned maxed for your level" / "resurrect is free for the first res, 50 diamonds per res
    after that" / "If you clear it once you can sweep after that for minimum rewards, or you can not sweep and possible get different
@@ -7,7 +7,7 @@
 
    A RUN (one per 72 h cycle): Map 1 Standard -> portal Normal | Hard (the pick is the difficulty) -> 2 maps on that path.
    A MAP: 7 columns x 3 rows of squares. Column 0 = where you stand; you step to a square in the NEXT column whose row is within 1 of yours;
-   the rest of that column is gone (Magic Rush's rule). Column 6 = the boss (map 1: the Gatekeeper); when it falls the portals APPEAR (map 1: blue Normal + purple Hard; map 2: one). Every column keeps its middle square,
+   the rest of that column is gone. Column 6 = the boss (map 1: the Gatekeeper); when it falls the portals APPEAR (map 1: blue Normal + purple Hard; map 2: one). Every column keeps its middle square,
    so a path always exists. Generated from a server seed per player per cycle - fixed until the reset.
    SQUARES: fight | chest | tent (a LOANED hero, maxed for your level, joins the run) | spring (surviving heroes +50% HP) | boss.
    FIGHTS: real battles (Training Province flow: frozen snapshots + seed, transcript replayed on the server). Each is ONE wave of 5 enemy
@@ -24,7 +24,7 @@ const SESSION_MS = 24 * 3600 * 1000, MIN_BATTLE_MS = +(process.env.WELL_MIN_BATT
 let TABLE = null; try { TABLE = require('./starless-well-heroes.json'); } catch (e) { console.error('starless-well-heroes.json missing - The Starless Well is OFF (' + e.message + ')'); }
 let HERO_BASE = {}; try { HERO_BASE = require('./sim.js').HERO_BASE; } catch (e) {}
 
-/* ---- buffs: 1 of 3 after every win (Magic Rush's sizes; class = the hero's role family) ---- */
+/* ---- buffs: 1 of 3 after every win (class = the hero's role family) ---- */
 const CLASS_OF = { Tank: 'Tank', Bruiser: 'Tank', Brute: 'Tank', Warrior: 'Warrior', Assassin: 'Warrior', Marksman: 'Marksman', Mage: 'Mage', Support: 'Support' };
 const BUFFS = [];
 for (const c of ['Tank', 'Warrior', 'Marksman', 'Mage', 'Support']) {
@@ -42,7 +42,7 @@ function cycleEnds(c) { return WELL_EPOCH + (c + 1) * CYCLE_MS; }
 function band(level) { const A = TABLE.anchors; let i = 0; for (let k = 0; k < A.length; k++) if (level >= A[k]) i = k; return i; }
 
 /* Phil 25 Sep ~16:00: "Well fights should be 1 fight not waves" / "And it should be 5 heroes against 5 heroes".
-   A Well fight = ONE wave of 5 enemy HEROES (Magic Rush Fractalia's defenders): a front-liner, a bruiser, a marksman/assassin, a mage
+   A Well fight = ONE wave of 5 enemy HEROES: a front-liner, a bruiser, a marksman/assassin, a mage
    and a support, picked by the map seed (fixed for the cycle, shown on the square). They fight at the band start level, quality
    tier 3, stats x d where d = k[mode][band] x ramp[mode][idx] (the table: server/starless-well-heroes.json, whole-run tuned). */
 const FOE_SLOTS = [['Tank'], ['Bruiser'], ['Marksman', 'Assassin'], ['Mage'], ['Support']];

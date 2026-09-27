@@ -905,8 +905,8 @@ function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED |
 
 // ---- client-exact level curves (mirrors emberweave-heroes.html tables) ----
 const D_MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sits at level 100.
-const D_TROOP_INC=[8,8,35,45,60,70,70,80,90,110,110,120,120,120,130,130,130,130,150,250,250,260,270,300,330,350,360,370,380,400,450,500,550,600,650,800,1000,1000,1200,1200,1300,1400,1500,1700,1900,2200,2500,2750,3000,3250,3250,3250,3250,3250,3400,3400,3500,3520,3640,3880,4070,4270,4470,4670,4860,5090,5320,5550,5780,6000,6280,6550,6820,7100,7400,7700,8000,8300,8600,8900,12400,16880,21840,26800,31760,36720,41680,46640,60000,80000,90000,100000,110000,120000,130000,140000,150000,160000,170000];   /* v820 (Phil 25 Sep): Magic Rush's per-level XP, counted ONCE - the old troop table ran this column through a running sum and a cumulative sum */
-const D_HERO_STEP=[8,10,12,25,40,65,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2620,2820,3010,3200,3390,3590,4410,4660,4920,5180,5450,5750,6880,7210,7550,7900,8250,8620,8990,9370,9760,10180,10590,11000,11420,11850,12280,12730,13180,13640,14110,16410,16960,17510,18080,18650,19230,19820,20420,21020,21640,22290,22930,23570,24230,24890,28370,29120,29890,30660,31450,32270,52760,67510,82940,106110,130320,162990,204640,248080,348088,379350,455760,592780,778710,972260,1173550,829740,847110,864660,882390];   /* v820: Magic Rush hero XP, levels 2..100 */
+const D_TROOP_INC=[8,8,35,45,60,70,70,80,90,110,110,120,120,120,130,130,130,130,150,250,250,260,270,300,330,350,360,370,380,400,450,500,550,600,650,800,1000,1000,1200,1200,1300,1400,1500,1700,1900,2200,2500,2750,3000,3250,3250,3250,3250,3250,3400,3400,3500,3520,3640,3880,4070,4270,4470,4670,4860,5090,5320,5550,5780,6000,6280,6550,6820,7100,7400,7700,8000,8300,8600,8900,12400,16880,21840,26800,31760,36720,41680,46640,60000,80000,90000,100000,110000,120000,130000,140000,150000,160000,170000];   /* v820 (Phil 25 Sep): per-level XP, counted ONCE - the old troop table ran this column through a running sum and a cumulative sum */
+const D_HERO_STEP=[8,10,12,25,40,65,80,100,120,140,200,260,320,380,440,500,560,620,680,740,800,1000,1200,1400,1600,1800,2000,2200,2620,2820,3010,3200,3390,3590,4410,4660,4920,5180,5450,5750,6880,7210,7550,7900,8250,8620,8990,9370,9760,10180,10590,11000,11420,11850,12280,12730,13180,13640,14110,16410,16960,17510,18080,18650,19230,19820,20420,21020,21640,22290,22930,23570,24230,24890,28370,29120,29890,30660,31450,32270,52760,67510,82940,106110,130320,162990,204640,248080,348088,379350,455760,592780,778710,972260,1173550,829740,847110,864660,882390];   /* v820: hero XP, levels 2..100 */
 function d_runSum(inc){ const o=[]; let r=0; for(const v of inc){ r+=v; o.push(r); } return o; }
 function d_cum(steps){ const c=new Array(D_MAX_LEVEL+1); c[1]=0; for(let L=2;L<=D_MAX_LEVEL;L++) c[L]=c[L-1]+steps[L-2]; return c; }
 const D_TROOP_CUM=d_cum(D_TROOP_INC), D_HERO_CUM=d_cum(D_HERO_STEP);   // v820: counted once (was d_cum(d_runSum(...)))
@@ -3917,7 +3917,7 @@ async function api(req,res,url){
       const attacker=mineAlive.find(d=>(d.kills|0)<WAR_KILL_CAP) || mineAlive[0];
       if(!attacker) return send(res,400,{error:'Your line is not deployed (alive) in this citadel.'});
       /* v677: five is the cap on MARCHING. A line defends for as long as it lives, and the weakest
-         living line is the one that meets the march - the simulator's rule, and Magic Rush's. */
+         living line is the one that meets the march - the simulator's rule. */
       const warStanding=d=>d.alive!==false;
       const warFresh=d=>d.alive!==false && (d.kills|0)<WAR_KILL_CAP;
       /* v678: a line retires at five kills. */
@@ -4132,7 +4132,7 @@ async function api(req,res,url){
          can kill a hundred. A retired line is still alive and still stands in the way. */
       const standing=d=>d.alive!==false;
       const canMarch=d=>d.alive!==false && (d.kills|0)<WAR_KILL_CAP;
-      /* weakest-first, both ways: Magic Rush's Alliance War order, and the order Phil asked the tower
+      /* weakest-first, both ways: the alliance-war order and the order Phil asked the tower
          list to read in. Ties keep their placed order, so the run stays deterministic. */
       const weakest=(cit,ok)=>{ let best=null;
         for(const d of cit.defenders){ if(!ok(d)) continue; if(!best||(d.power|0)<(best.power|0)) best=d; }
