@@ -1,0 +1,50 @@
+// Detection files reviewable cases without changing the player's wallet or banning them.
+const assert=require('assert');
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+const src=fs.readFileSync(path.join(__dirname,'..','server.js'),'utf8');
+const start=src.indexOf('const SPIKE_GEMS =');
+const end=src.indexOf('/* A player\'s diamond history',start);
+assert(start>=0&&end>start,'resource detector source found');
+let clock=Date.UTC(2026,8,27,15,0,0),writes=0,ids=0;
+class TestDate extends Date { static now(){return clock;} }
+const DB={reports:[],feedback:[]};
+const ctx=vm.createContext({DB,Date:TestDate,console:{log:()=>{}},
+  uid:()=>`case-${++ids}`,writeDB:()=>{writes++;},nyDayKey:t=>new Date(t||clock).toISOString().slice(0,10)});
+vm.runInContext(src.slice(start,end),ctx);
+const user={id:'player-1',name:'Player',led:{gold:9000000,gems:100000}};
+ctx.resourceGain(user,'gold',4900000,'test');
+assert.strictEqual(DB.feedback.length,0,'below window threshold has no case');
+ctx.resourceGain(user,'gold',100000,'test');
+assert.strictEqual(DB.feedback.length,0,'exact threshold has no case');
+ctx.resourceGain(user,'gold',1,'test');
+assert.strictEqual(DB.feedback.length,1,'over threshold files a case');
+assert.strictEqual(DB.feedback[0].kind,'cheat');
+assert.strictEqual(DB.feedback[0].resource,'gold');
+assert.strictEqual(DB.feedback[0].received,false);
+assert.strictEqual(DB.feedback[0].purchased,0,'no unverified purchase credit');
+assert.strictEqual(user.led.gold,9000000,'detector cannot change wallet');
+ctx.resourceGain(user,'gold',1,'test');
+assert.strictEqual(DB.feedback.length,1,'burst is deduplicated');
+clock+=61000;
+ctx.resourceGain(user,'frags',301,'dev-grant',{devPanel:true});
+assert(DB.feedback.some(f=>f.kind==='cheat'&&f.resource==='frags'&&f.text.startsWith('TEST dev panel:')));
+assert.strictEqual(DB.feedback.filter(f=>f.resource==='frags').length,1,'one dev case for one action');
+user.gainDay={k:'2026-09-27',gold:49999999};
+user.gainLog=Array.from({length:2000},()=>({t:clock-120000,res:'gold',n:1,r:'old'}));
+ctx.resourceGain(user,'gold',2,'daily-boundary');
+assert(DB.feedback.some(f=>f.resource==='gold'&&f.scope==='day'&&f.amount===50000001),
+  'day threshold survives diagnostic log truncation');
+DB.feedback=Array.from({length:1000},(_,i)=>({id:`pending-${i}`,t:clock+i,received:false}));
+ctx.feedbackAppend({id:'newest',t:clock+1001,received:false});
+assert.strictEqual(DB.feedback.length,1001,'unreceived feedback is never silently discarded');
+DB.feedback=[];
+ctx.feedbackCheatSignal(user,'campaign-replay','Digest mismatch','battle integrity');
+ctx.feedbackCheatSignal(user,'campaign-replay','Digest mismatch','battle integrity');
+assert.strictEqual(DB.feedback.length,1,'same replay signal is deduplicated within one minute');
+assert.strictEqual(DB.feedback[0].purchased,0,'a replay signal is not a purchase');
+assert.strictEqual(user.led.gold,9000000,'report-only signals cannot change the wallet');
+assert.strictEqual(user.banned,undefined,'detector cannot ban');
+assert(writes>0,'new cases are persisted');
+console.log('cheat resource gain: pass');

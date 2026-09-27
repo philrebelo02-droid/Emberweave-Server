@@ -1011,20 +1011,19 @@ async function handle(p, method, ctx){
     if(cleared+lost > LANES) return { status:400, body:{ok:false,error:'Impossible lane count.'} };
     const won = (cleared>=2) && (lost<=1);
 
-    /* SECURITY 17 Sep - deny a forged instant clear WITHOUT consuming the attempt: b.att is left
-       intact (not nulled) on either rejection, so an honest client that hit a bug can still play
-       the run out and resolve it for real.
-
-       BOTH checks below are gated on `won` ONLY, and deliberately so - a real ally wipe can and does
+    /* A fast claimed win is review evidence, not an automatic payout denial. A missing boon window
+       remains incomplete server evidence, so its attempt stays open for an honest client to finish.
+       Both checks are gated on `won` ONLY - a real ally wipe can and does
        happen in under ten seconds (a genuinely bad opening wave, or a squad that was too weak) and
        before wave 1's own window has opened, so a loss report must never be held to a win's timing
        or evidence bar. Only a claimed WIN - the path that pays a permanent reward - is checked. */
-    if(won && now - (a.startedAt||0) < MIN_RESOLVE_MS){
-      return { status:400, body:{ok:false,error:'That was too fast to be a real run.'} };
-    }
+    const runMs=now-(a.startedAt||0);
     if(won && (a.windowsSeen|0) < WINDOWS){
       return { status:400, body:{ok:false,error:'That run is missing '+(WINDOWS-(a.windowsSeen|0))+' boon window(s) of evidence.'} };
     }
+    if(won && runMs < MIN_RESOLVE_MS) ctx.feedbackCheatSignal(ctx.me,'bonus-fast:'+a.id,
+      'Bonus stage fast win at '+a.stage+': '+runMs+' ms against '+MIN_RESOLVE_MS+' ms minimum.',
+      'battle timing');
     b.att=null;
     const id=a.stage, ch=chOf(id), slot=slotOf(id);
     /* heroesSent is taken from the ATTEMPT the server issued, never from the client's report —
