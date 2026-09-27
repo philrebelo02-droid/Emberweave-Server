@@ -5,8 +5,8 @@ const { chromium } = require('playwright');
 
 const root = path.resolve(__dirname, '..');
 const asData = (p, mime = 'image/png') => `data:${mime};base64,${fs.readFileSync(path.join(root, p)).toString('base64')}`;
-const lit = asData('assets/img/temple/card-orb-lit-v1.png');
-const unlit = asData('assets/img/temple/card-orb-unlit-v1.png');
+const lit = asData('assets/img/temple/card-orb-lit-v2.webp', 'image/webp');
+const unlit = asData('assets/img/temple/card-orb-unlit-v2.webp', 'image/webp');
 const portrait = asData('assets/img/hero-portraits/hero-vael.png');
 const card = (size, count) => {
   const slot = (index, big = false) => `<span class="tOrb${big ? ' c' : ''}${count >= index ? ' lit' : ''}"></span>`;
