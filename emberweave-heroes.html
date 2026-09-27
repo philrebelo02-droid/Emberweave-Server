@@ -2358,6 +2358,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js"></script>
 <script src="/hero-paths.js"></script>
+<script src="/server/temple-of-ash.js"></script>
+<script src="/server/temple-effects.js"></script>
 <script>
 /* ==========================================================================
    EMBERWEAVE HEROES v0.5 — hub + campaign + runes + tech + PvP + 3D battles
@@ -4298,13 +4300,17 @@ function ascFrameHtml(key,o){ o=o||{}; const bi=ASC_STEP[o.asc!=null?o.asc:ascIn
    On a card the name banner sits on the frame's bottom edge with the stars on top of it. */
 const RARITY_V=4, RARITY_READY=true;    // flips to true once the Hailuo banners are in assets/img/banners
 function heroRarity(key){ const t=HERO_TYPES[key]||{}; if(t.myth || (typeof isMythic==='function'&&isMythic(key))) return 'mythical'; const st=t.stars|0; return st>=3?'rare':st===2?'uncommon':'common'; }
-/* Temple of Ash orbs on the card (27 Sep 2026). N = the hero's unlocked prayer bonuses (0-5); the Temple itself is not wired yet, so
-   today only the DEV preview sets it (Phil: "add an option in game for me to raise all my heroes 1 total orb ... so i can view each art").
+/* Temple of Ash orbs on the card: earned server-owned boons, with a dev art preview before a hero has Temple state.
    Fill order: orbs 1-2 above the centre, 3-4 below it, the 5th is the big centre one. */
-function templeOrbCount(key){ return Math.max(0, Math.min(5, (DEV && DEV.orbPreview) | 0)); }
-function templeOrbsHtml(key){ if(!HERO_TYPES[key]) return ''; const n=templeOrbCount(key);
+function templeOrbCount(key){
+  const h=G.temple&&G.temple.heroes&&G.temple.heroes[key];
+  if(h&&Array.isArray(h.boonsUnlocked)) return h.boonsUnlocked.filter(Boolean).length;
+  return Math.max(0,Math.min(5,(DEV&&DEV.orbPreview)|0));
+}
+function templeOrbsHtml(key){ if(!HERO_TYPES[key]) return ''; const n=templeOrbCount(key),h=G.temple&&G.temple.heroes&&G.temple.heroes[key];
   const slot=(lit,big)=>`<span class="tOrb${big?' c':''}${lit?' lit':''}"></span>`;
-  return `<div class="tOrbs">${slot(n>=1)}${slot(n>=2)}${slot(n>=5,true)}${slot(n>=3)}${slot(n>=4)}</div>`; }
+  const lit=i=>h&&Array.isArray(h.boonsUnlocked)?!!h.boonsUnlocked[i-1]:n>=i;
+  return `<div class="tOrbs">${slot(lit(1))}${slot(lit(2))}${slot(lit(5),true)}${slot(lit(3))}${slot(lit(4))}</div>`; }
 function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES[key]||{};
   const img=`/assets/img/banners/${r}${o.word?'-word':''}.webp?v=${RARITY_V}`;
   const _mt=(typeof MONSTER_TYPES!=='undefined'&&!HERO_TYPES[key])?MONSTER_TYPES[key]:null;   /* v663: monsters on the loader carry their in-game name, never the key */
@@ -5100,7 +5106,7 @@ function skillPowerBonus(key){ let s=0; for(let i=0;i<4;i++) s+=Math.max(0,(skil
    still lead on EHP and carries still lead on DPS, and the two land in the same band. */
 const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) lifted every class's EHP; K retuned so an Orange board reads ~25k power across classes
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
-  if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return heroPower(key)+glyphPowerFor(key); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
+  if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(templeBonusesClient(key))); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
   /* v807 - ROUND WHERE THE FIGHT ROUNDS. `buildUnit` rounds HP and attack to whole points before
      anything reads them, so those are the numbers the hero actually fights with; pricing the raw
@@ -5157,7 +5163,6 @@ const DEFAULT_G = {
   arenaRank:5000,                 // local arena rank (climbs toward #1)
   bestArenaRank:5000, gemFrac:0,  // best rank ever + fractional diamond accumulator (first-time rank rewards)
   arenaCoins:0, lastArenaDaily:0, // arena points (spent in the arena shop) + last daily-claim timestamp
-  prayer:0,                       // Temple prayer level — permanent stat boost bought with gold
   playerName:'Commander', nameChanged:false, avatarHero:'vael',
   res:{iron:0,crystal:0,silver:0,coal:0}, // world-map resources for Academy research
   nodeCd:{},                      // per-node gather cooldowns (id -> ready timestamp)
@@ -5186,10 +5191,11 @@ const NODE_GATHER_MS=8*60*1000; // a node refills 8 min after you gather it
 // AUDIT_MODE(): lets locked buildings/stages be opened for a look — DEVS with GOD MODE ON only
 // (Phil, 26 Aug: God Mode is the switch that opens every building regardless of level).
 function AUDIT_MODE(){ try{ return typeof isDevAcct==='function' && isDevAcct() && !!DEV.god; }catch(e){ return false; } }
-// Temple prayer: unlocks at level 40, costs major gold, permanently boosts every hero's ATK & HP.
-const PRAYER_UNLOCK_LEVEL=40, PRAYER_MAX_LEVEL=200;
-function prayerCost(lvl){ return 50000 + lvl*30000; }
-function prayerBonusPct(lvl){ return lvl*2; } // +2% ATK & HP per prayer level
+function templeBonusesClient(key){
+  const h=G.temple&&G.temple.heroes&&G.temple.heroes[key];
+  const role=HERO_TYPES[key]&&HERO_TYPES[key].role;
+  return h&&role?TempleOfAsh.heroBonuses(h,role):{};
+}
 // ---- progression tables (max level 60) ----
 const MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sits at level 100.
 // Troop XP: the table values are per-level INCREMENTS that accumulate — the XP to go from
@@ -5416,7 +5422,6 @@ function mulsFromTotals(gf, ex){
   let atk=1, hp=1;
   let dr=(ex.techDef||0)/100 + (ex.baseDr||0);
   let crit=(ex.techCrit||0)/100, critRes=(ex.techCritRes||0)/100, regen=0, energyReg=0;
-  const pray=1+(ex.prayerPct||0)/100; atk*=pray; hp*=pray;
   const em=ex.equip||{}; atk+=(em.atk||0); hp+=(em.hp||0); dr+=(em.dr||0); crit+=(em.crit||0); regen+=(em.regen||0); energyReg+=(em.energy||0);
   dr+=Math.min(0.30,(gf.dmgRed||0)*0.004); crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005;
   /* v364: HP Regen is a RATING — 0.01% of max HP per second per point, capped at 6%/s. It was 0.1%/pt
@@ -5429,7 +5434,7 @@ function mulsFromTotals(gf, ex){
 function heroMuls(key){
   // glyphs + Forge gear (CR-3) and the AUDIT C6 distinct stats now live in mulsFromTotals — one formula.
   return mulsFromTotals(sockStatTotal(key), { techDef:techTotal('def'), techCrit:techTotal('crit'), techCritRes:techTotal('critres'),
-    prayerPct:prayerBonusPct(G.prayer||0), equip:equipMul(key), baseDr:(HERO_TYPES[key]||{}).dr||0 });
+    equip:equipMul(key), baseDr:(HERO_TYPES[key]||{}).dr||0 });
 }
 
 /* -------------------------- logical field + 3D map ------------------------- */
@@ -8556,7 +8561,7 @@ function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, bo
   critDmg:u.critDmg||0.6, lifestealStat:u.lifestealStat||0, evaStat:u.evaStat||0, accStat:u.accStat||0, blockStat:u.blockStat||0,
   dmgBonusMul2:u.dmgBonusMul2||1, shieldStrMul:u.shieldStrMul||1, ctrlHitF:u.ctrlHitF||0, hasteEnergyMul:u.hasteEnergyMul||1,
   glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
-  critRes:u.critRes||0, energyReg:u.energyReg||0, energy:u.energy, ctrlRes:u.ctrlRes||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
+  critRes:u.critRes||0, energyReg:u.energyReg||0, templeDamageEnergy:u.templeDamageEnergy||0, energy:u.energy, ctrlRes:u.ctrlRes||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
     immovable:!!u.immovable, stunImmune:!!u.stunImmune, pass:u.pass?JSON.parse(JSON.stringify(u.pass)):null,
     gearSkill:u.gearSkill?JSON.parse(JSON.stringify(u.gearSkill)):null }; }
 /* v757 - IS THIS THE CLIENT'S SNAPSHOT OR THE SERVER'S? They are different objects and only one of
@@ -8591,7 +8596,7 @@ function buildUnitFromSnapshot(s,team,x,y){
   u.armorRating=s.armorRating||0; u.mrRating=s.mrRating||0; u.armorPen=s.armorPen||0; u.magicPen=s.magicPen||0;
   u.critDmg=s.critDmg||0.6; u.lifestealStat=s.lifestealStat||0; u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
   u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
-  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(worldHealCap(u),s.hp)); u.ctrlRes=s.ctrlRes||0;
+  u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; u.templeDamageEnergy=s.templeDamageEnergy||0; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(worldHealCap(u),s.hp)); u.ctrlRes=s.ctrlRes||0;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune;
   /* v269: DEEP-COPY the passive block. It used to be shared by reference with the snapshot, so the first
      fight mutated the snapshot and the SECOND fight off the same snapshot ran differently — the exact
@@ -8834,6 +8839,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   u.id=u.uid;        // v327: the ONLINE network id. It lives here, not in hostStartMatch, because units
                      // summoned mid-match (Hurne's pack) never went through that one-shot index sweep and
                      // shipped id:undefined — every summon collapsed into one slot on the guest.
+  if(owned) TempleEffects.applyClient(u,S?S.templeBonuses:templeBonusesClient(key));
   return u;
 }
 /* ---------------------------------------------------------------------------------------------
@@ -9025,6 +9031,7 @@ function damage(u,a,c,noEnergy,crit){
   if(u.pass&&u.pass.pridemomentum&&u.shield>0){ u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1+0.22*(u.passMul||1)); u.dmgBuffT=Math.max(u.dmgBuffT||0,4); }
   if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
   a=Math.max(0,a); u.hp-=a; u.flash=.14;
+  if(a>0&&u.templeDamageEnergy)u.energy=Math.min(100,u.energy+100*a/Math.max(1,u.maxHp)*u.templeDamageEnergy);
   /* v669 — THE RAID METER. A guild raid credits CUMULATIVE damage dealt, not the boss's missing HP.
      Sylphice heals herself back to full inside 90 seconds, so an HP-at-the-end meter scored a whole
      squad's run as zero (found in the rig). Every point that lands is counted here, once, on the
@@ -13569,7 +13576,7 @@ function renderHome(){
     {nav:'wall',        label:'',               x:6,  y:40, w:13, h:54, lx:6,  ly:40, z:1, ...lk(WALL_UNLOCK_LEVEL)},
     {nav:'market',      label:'Market',         x:47, y:11, w:22, h:16, lx:47, ly:20},
     {nav:'shadymarket', label:'Shady Market',   x:31, y:24, w:13, h:14, lx:31, ly:31},
-    {nav:'temple',      label:'Temple',         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(40)},
+    {nav:'temple',      label:'Temple',         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(50)},
     {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
     {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
     {nav:'rankings',    label:'Bulletin Board', x:69, y:37, w:15, h:16, lx:69, ly:46},   // v256 (80/20 §7): rankings live on the physical Bulletin Board — there is no top-nav duplicate
@@ -14452,7 +14459,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
      don't merge — server truth, no more and no less. Guard kept so a response without eqMats is a no-op. */
   if(st.eqMats){ const _m={}; for(const _k in (G.eqMats||{})) _m[_k]=0; for(const _k in st.eqMats) _m[_k]=st.eqMats[_k]|0; G.eqMats=_m; }
   if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
-  if(st.prayer!=null) G.prayer=Math.max(0,Math.min(200,st.prayer|0));
+  if(st.temple) G.temple=st.temple;
   // day-boundary: HUD shop counters are server-owned (ET-midnight day). Mirror them when the server reports them;
   // an old server without `shop` leaves the local fallback untouched.
   if(st.shop&&typeof st.shop==='object'){ G.foodBuys=st.shop.food|0; G.goldBuys=st.shop.gold|0; }
@@ -17039,24 +17046,45 @@ function renderDungeon(){
   }
   b.querySelector('#dgStart').onclick=startDg;
 }
+let templeSelectedHero='',templeSelectedTier='gold',templeLastRolls=null;
 function renderTemple(){
-  const b=document.getElementById('templeBody');
-  const lv=playerLevel(), unlocked=lv>=PRAYER_UNLOCK_LEVEL, plvl=Math.max(0,Math.min(PRAYER_MAX_LEVEL,G.prayer||0)), cost=prayerCost(plvl), canPray=unlocked&&plvl<PRAYER_MAX_LEVEL&&G.gold>=cost;
-  const now=Date.now(), ready=(now-(G.lastBless||0))>=20*60*60*1000;
-  const lockNote = unlocked ? '' : `<div style="font-size:12px;color:#ff9a9a;margin:4px 0 8px">🔒 Prayer opens at player level ${PRAYER_UNLOCK_LEVEL}. You are level ${lv}.${AUDIT_MODE()?' (Audit view — you can still see it.)':''}</div>`;
-  b.innerHTML=`<div style="text-align:center"><div style="font-size:40px">🙏</div>
-      <div style="font-weight:800;margin:6px 0">Prayer of Power</div>
-      <div style="font-size:12px;color:#8b98a9;margin-bottom:6px">Offer great sums of gold to permanently strengthen <b>every</b> hero. Each prayer adds <b>+2% ATK &amp; HP</b> to your whole roster.</div>
-      ${lockNote}
-      <div style="margin:8px 0;font-size:13px"><span class="pill">Prayer Lv ${plvl}</span> <span class="pill">now +${prayerBonusPct(plvl)}% ATK/HP</span></div>
-      <button class="btn" id="prayBtn" ${(canPray||(AUDIT_MODE()&&unlocked&&plvl<PRAYER_MAX_LEVEL))?'':'disabled'}>${plvl>=PRAYER_MAX_LEVEL?'🙏 Prayer at maximum':'🙏 Pray → Lv '+(plvl+1)+' · 🪙 '+cost.toLocaleString()}</button>
-      <div id="prayMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div>
-    </div>`;
-  const pray=b.querySelector('#prayBtn'); if(pray) pray.onclick=async()=>{ if(!unlocked)return; const c=prayerCost(G.prayer||0);
-    if(G.gold<c){ document.getElementById('prayMsg').textContent='Not enough gold for this offering.'; return; }
-    const r=await api('/api/temple/pray','POST',{requestId:uid8()});
-    if(!(r&&r.ok)){ bannerMsg((r&&r.error)||'Prayer failed.'); await ledgerSync(); return; }
-    adoptLedger(r.ledger); updateHubChrome(); renderTemple(); document.getElementById('prayMsg').textContent='The gods answer — all heroes grow stronger.'; };
+  const b=document.getElementById('templeBody'),T=TempleOfAsh,st=G.temple||T.newState();
+  const unlocked=playerLevel()>=T.CONFIG.UNLOCK_PLAYER_LEVEL;
+  const owned=HERO_KEYS.filter(k=>G.unlocked[k]);
+  if(!owned.includes(templeSelectedHero))templeSelectedHero=owned[0]||'';
+  const key=st._pending?st._pending.heroId:templeSelectedHero;
+  const h=(st.heroes&&st.heroes[key])||{cinders:{},boonsUnlocked:[false,false,false,false,false]};
+  const role=HERO_TYPES[key]&&HERO_TYPES[key].role,level=T.keeperLevel(st.keeperPoints,playerLevel());
+  const bars=T.CONFIG.CLASS_BARS[role]||[],max=T.effectMax(level),pending=st._pending;
+  const tiers=T.CONFIG.PRAYER_TIERS.map(x=>({id:x.id,name:x.name,cost:x.id==='gold'?`🪙 ${T.nextGoldCost(st).toLocaleString()}`:`💎 ${x.gems}`,locked:level<x.unlockKeeper,need:x.unlockKeeper}));
+  if(T.freeRitualAvailable(st))tiers.unshift({id:'free',name:'Daily free prayer',cost:'Free'});
+  if(st.bonusPrayers>0)tiers.unshift({id:'bonus',name:'Bonus prayer',cost:'Free'});
+  if(!tiers.some(x=>x.id===templeSelectedTier&&!x.locked))templeSelectedTier='gold';
+  const eligible=key&&glyphRank(key)>=T.CONFIG.MIN_ASCENSION_INDEX;
+  const barHtml=bars.map((label,i)=>{const open=level>=T.CONFIG.BAR_UNLOCK_TEMPLE[i],v=(h.cinders||{})['bar'+(i+1)]||0;
+    return `<div style="margin:8px 0;text-align:left"><div style="font-size:12px">${open?label:'🔒 '+label} <span style="float:right">${open?v+' / '+max:'Temple '+T.CONFIG.BAR_UNLOCK_TEMPLE[i]}</span></div><div style="height:9px;border:1px solid #704d27;border-radius:8px;background:#201813"><div style="height:100%;width:${open?Math.min(100,100*v/max):0}%;background:#ef8a32;border-radius:8px"></div></div></div>`;}).join('');
+  const orbHtml=[0,1,4,2,3].map((i)=>`<img alt="Orb ${i+1} ${h.boonsUnlocked&&h.boonsUnlocked[i]?'earned':'unearned'}" src="/assets/img/temple/card-orb-${h.boonsUnlocked&&h.boonsUnlocked[i]?'lit':'unlit'}-v2.webp?v=2" style="width:${i===4?38:25}px;height:${i===4?38:25}px;object-fit:cover;margin:0 2px">`).join('');
+  b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-size:25px">🔥 Temple of Ash</div>
+    <div style="font-size:12px;color:#ad9b87">Flamekeeper ${level} · ${st.keeperPoints||0} points · ${st.bonusPrayers||0} bonus prayers</div>
+    ${unlocked?'':`<div style="color:#ff9a9a">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
+    <select id="templeHero" ${pending?'disabled':''} style="width:100%;margin:10px 0">${owned.map(k=>`<option value="${k}" ${k===key?'selected':''}>${escapeHTML((HERO_TYPES[k]||{}).name||k)} · Lv ${heroLevel(k)}</option>`).join('')}</select>
+    ${eligible?'':`<div style="font-size:12px;color:#ff9a9a">This hero needs Purple ascension to pray.</div>`}
+    <div style="font-size:12px">Four class effects for ${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}% complete</div>
+    ${barHtml}<div aria-label="Earned hero orbs">${orbHtml}</div>
+    ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${templeLastRolls?' · '+Object.values(templeLastRolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):' · save or discard'}</div>
+       <button class="btn" id="templeSave">Save</button> <button class="btn" id="templeDiscard">Discard</button>`:
+      `<select id="templeTier" style="width:100%;margin:9px 0">${tiers.map(x=>`<option value="${x.id}" ${x.id===templeSelectedTier?'selected':''} ${x.locked?'disabled':''}>${escapeHTML(x.name)} · ${x.locked?'Temple '+x.need:x.cost}</option>`).join('')}</select>
+       <button class="btn" id="templePray" ${!unlocked||!eligible||!templeSelectedTier?'disabled':''}>Pray</button>`}
+    <div id="templeMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>`;
+  const hero=b.querySelector('#templeHero');if(hero)hero.onchange=()=>{templeSelectedHero=hero.value;renderTemple();};
+  const tier=b.querySelector('#templeTier');if(tier)tier.onchange=()=>{templeSelectedTier=tier.value;};
+  const act=async(path,payload)=>{const r=await api(path,'POST',Object.assign({requestId:uid8()},payload));
+    if(!(r&&r.ok)){b.querySelector('#templeMsg').textContent=(r&&r.error)||'Prayer failed.';return;}
+    if(path.endsWith('/pray'))templeLastRolls=r.rolls;else templeLastRolls=null;
+    adoptLedger(r.ledger);updateHubChrome();renderTemple();};
+  const pray=b.querySelector('#templePray');if(pray)pray.onclick=()=>act('/api/temple/pray',{heroKey:key,tier:templeSelectedTier});
+  const save=b.querySelector('#templeSave');if(save)save.onclick=()=>act('/api/temple/save',{});
+  const discard=b.querySelector('#templeDiscard');if(discard)discard.onclick=()=>act('/api/temple/discard',{});
 }
 function startDungeon(){
   syncActiveSquad();   // per-mode squad

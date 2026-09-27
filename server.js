@@ -23,6 +23,9 @@ const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_LOCATION=require('./server/world-location.js');
+const TEMPLE=require('./server/temple-of-ash.js');
+const TEMPLE_EFFECTS=require('./server/temple-effects.js');
+TEMPLE.setDayKey(nyDayKey);
 const WORLD_TERRAIN_BLOCKED=new Set(require('./server/world-terrain-blocked.json').cells);
 
 const PORT = process.env.PORT || 8080;
@@ -222,10 +225,9 @@ const MAP_CAP=10000000, GEM_SPIKE=200000, GOLD_SPIKE=200000000;
 const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP','starLevel','starPip',
   'starRefine','heroFrag','heroFrags','unlocked','stamina','campaignCleared','stageStars','tech',
   'techLearn','skillLevel','dust','starShards','eqMats','mats',
-  /* Prayer became ledger-owned with /api/temple/pray: legacy progress imports once, every purchase
-     is atomic on the server, ledgerView hands it back, and both combat models read led.prayer.
-     arenaCoins still has no ledger owner and therefore remains in the client save. */
-  'prayer','guildCoins',
+  /* Retired Prayer of Power is stripped from old saves. The Temple is ledger-owned too;
+     arenaCoins still has no ledger owner and remains in the client save. */
+  'prayer','temple','guildCoins',
   /* v274 (hardening directive §2.4): gear and equipment too. The Forge (u.gear) is server-owned and
      the legacy equip bundle no longer reaches combat, so there is no reason to keep either in a blob
      the client writes. */
@@ -1115,12 +1117,12 @@ function snapshotHeroFromServer(u, key, save, sOpts){
   // v249: Academy research is SERVER-owned and reaches combat here (flats, ratings, fractions, AP multiplier)
   const AC=acadCombat(u);
   if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
-  const prayerMul=1+Math.max(0,Math.min(200,u.led.prayer|0))*0.02;
-  return SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill,
+  const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill,
     /* v762 - THE SKILL LEVELS TRAVEL WITH THE HERO. They were on the client snapshot only, so a
        war line fought as though every skill were level 1 however much the player had spent. */
-    extra:Object.assign({prayerMul, skillLv:ledSkillArr(u.led,key).slice()},
+    extra:Object.assign({skillLv:ledSkillArr(u.led,key).slice()},
       AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{})});
+  return sOpts&&sOpts.noTempleEffects?unit:TEMPLE_EFFECTS.applyCore(unit,templeBonusesFor(u,key));
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -1820,10 +1822,10 @@ function unitCardPower(s,key){
 function heroCardPower(u,key){
   if(!u||!SIM.HERO_BASE[key]) return 0;
   let p=0;
-  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true}),key); }catch(e){ return 0; }
+  try{ p=unitCardPower(snapshotHeroFromServer(u,key,null,{noGlyphStats:true,noTempleEffects:true}),key); }catch(e){ return 0; }
   try{ const sk=ledSkillArr(u.led,key)||[]; for(let i=0;i<4;i++) p+=Math.max(0,((sk[i]|0)||1)-1)*20; }catch(e){}
   try{ p+=glyphHeroPower(u,key); }catch(e){}
-  return Math.round(p);
+  return Math.round(p*TEMPLE_EFFECTS.powerMultiplier(templeBonusesFor(u,key)));
 }
 
 /* Witches Hut balance seam. The benchmark is an earned-power reference line, never the
@@ -2433,7 +2435,10 @@ function isBanned(u){ return !!(u && (u.bannedUntil||0) > Date.now()); }
 
 function ensureLedger(u){
 
-  if(u.led && u.led.migratedAt) return u.led;
+  if(u.led && u.led.migratedAt){
+    if(!u.led.temple) u.led.temple=TEMPLE.newState();
+    return u.led;
+  }
   // AUDIT v229 (P0): only accounts that EXISTED before the v227 transformation may seed their
   // ledger from the uploaded save (their real pre-ledger progress, one time). Accounts created
   // after the cutoff get the fixed STARTER ledger — a forged client save can never become
@@ -2463,7 +2468,7 @@ function ensureLedger(u){
     px:Math.max(0,Math.min(99000000,(sv.playerXP|0)||0)),
     hero:{}, unlocked:{}, frags:{},
     camp:{ cleared:Math.max(0,Math.min(100,(sv.campaignCleared|0)||0)), stars:{}, att:null },
-    stam:{ v:60, ts:Date.now() },
+    stam:{ v:60, ts:Date.now() }, temple:TEMPLE.newState(),
     txs:[] };
   const hx=sv.heroXP||{}, st=sv.starLevel||{}, sp=sv.starPip||{}, un=sv.unlocked||{}, fr=sv.heroFrag||sv.heroFrags||{}, rf=sv.starRefine||{};
   for(const k of Object.keys(SIM.HERO_BASE)){
@@ -2704,15 +2709,13 @@ const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=24*60*60*1000; // a player may spend hours fighting or leave a solo battle paused
 const SKILL_MAX_SRV=100, SKILL_COST_R_SRV=1.04;  /* 12 Sep 2026 - must match the client's SKILL_MAX / SKILL_COST_R exactly. */
 const SKILL_UP_BASE_SRV=[300,220,260,400];   // mirrors the client's SKILL_UP_BASE (ult / green / blue / passive)
-const PRAYER_UNLOCK_LEVEL_SRV=40, PRAYER_MAX_SRV=200;
-function prayerCostSrv(lvl){ return 50000+Math.max(0,lvl|0)*30000; }
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
   if(!Array.isArray(a)||a.length!==4){ led.skill[key]=[1,1,1,1]; }
   return led.skill[key]; }
 /* One-time import: skill levels have only ever lived in the browser save, so an existing player would
    otherwise lose what they bought. Imported once, clamped, and server-owned from then on. */
 function ledSkillImport(u){ const led=u.led; if(!led || led.skillImported) return;
-  led.skill=led.skill||{}; led.prayer=led.prayer|0;
+  led.skill=led.skill||{};
   /* v273 (audit response P0): ONLY an account that predates the ledger may seed from the uploaded
      save — exactly the rule ensureLedger() uses. Importing for everyone (as v270 did) meant a
      modified client could post skill levels and prayer and have the server adopt them once. */
@@ -2721,7 +2724,6 @@ function ledSkillImport(u){ const led=u.led; if(!led || led.skillImported) retur
   try{ const sv=parseSaveOf(u)||{}; const sl=sv.skillLevel||{};
     for(const k in sl){ const a=sl[k]; if(!Array.isArray(a)) continue;
       led.skill[k]=[0,1,2,3].map(i=>Math.max(1,Math.min(SKILL_MAX_SRV,(a[i]|0)||1))); }
-    led.prayer=Math.max(0,Math.min(200,(sv.prayer|0)||0));
   }catch(e){}
   led.skillImported=Date.now(); }
 /* The transcript is player-supplied data, so it is normalised before it is allowed anywhere near the
@@ -2778,14 +2780,14 @@ function campaignHeroSpec(u,key){
     stars:Math.max(base.stars,Math.min(5,h.stars|0)), pips:Math.max(0,Math.min(5,h.pips|0)), ref:Math.max(0,Math.min(15,h.ref|0)),
     glyphRank:Math.max(0,Math.min(16,(board&&board.ascensionIndex)|0)),
     tt,
-    /* Academy research and Temple prayer are server-owned and reach the frozen fight spec.
+    /* Academy research and Temple effects are server-owned and reach the frozen fight spec.
        The legacy client equip bundle contributes nothing — a browser cannot grant power. */
     ex:{ techDef:AC?AC.dmgRedFrac*100:0, techCrit:AC?AC.critFrac*100:0, techCritRes:AC?AC.critResFrac*100:0,
-         prayerPct:Math.max(0,Math.min(PRAYER_MAX_SRV,led.prayer|0))*2, equip:{} },
+         equip:{} },
     fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow,
     techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0,
     apMul:AC?AC.apMul:1,
-    skillLv:ledSkillArr(led,key).slice(), gearSkill
+    skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses:templeBonusesFor(u,key)
   };
 }
 /* v273 (audit response P0) — EVERY VALUE MOVEMENT IS DURABLE.
@@ -2921,13 +2923,32 @@ function ledAddPlayerXP(led,amount,u,opts){
     led.stam.v=Math.min(999,led.stam.v+STAMINA_PER_PLAYER_LEVEL*gained);
     if(u) resourceGain(u,'stamina',led.stam.v-stamBefore,'player-level',opts);
     led.stam.ts=Date.now();
+    if(led.temple){ led.temple.playerLevel=ledPlayerLevel(led); TEMPLE.grantLevelUps(led.temple); }
   }
   return gained;
+}
+function templeState(led){
+  if(!led.temple) led.temple=TEMPLE.newState();
+  led.temple.playerLevel=ledPlayerLevel(led);
+  return led.temple;
+}
+function templeBonusesFor(u,key){
+  if(!u||!u.led||!SIM.HERO_BASE[key]) return {};
+  const state=templeState(u.led), hero=state.heroes&&state.heroes[key];
+  const role=SIM.HERO_BASE[key].role;
+  return hero?TEMPLE.heroBonuses(hero,role):{};
+}
+function templeClientState(led){
+  const state=JSON.parse(JSON.stringify(templeState(led)));
+  if(state._pending){ const p=state._pending;
+    state._pending={heroId:p.heroId,tier:p.tier,completion:p.completion,chance:p.chance,
+      levelUps:p.levelUps||0,bonusPrayer:!!p.bonusPrayer}; }
+  return state;
 }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
-    skill:led.skill||{}, prayer:Math.max(0,Math.min(200,led.prayer|0)),
+    skill:led.skill||{}, temple:templeClientState(led),
     camp:{cleared:led.camp.cleared, stars:led.camp.stars},
     prov:(function(){ try{ return provLedgerView(u,led); }catch(e){ return null; } })(),   /* v663: Training Province stage + plays */
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
@@ -5107,19 +5128,68 @@ async function api(req,res,url){
     return send(res, out&&out.ok?200:400, out); }
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     const v=ledgerView(me); writeDB(); return send(res,200,v); }
-  if(p==='/api/temple/pray' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const out=idem(me.id+':prayer:'+reqId,()=>{
-      const led=ensureLedger(me); ledSkillImport(me);
-      if(ledPlayerLevel(led)<PRAYER_UNLOCK_LEVEL_SRV) return {ok:false,error:'Prayer is still locked.'};
-      const level=Math.max(0,Math.min(PRAYER_MAX_SRV,led.prayer|0));
-      if(level>=PRAYER_MAX_SRV) return {ok:false,error:'Prayer is at maximum level.'};
-      const cost=prayerCostSrv(level);
-      if(led.gold<cost) return {ok:false,error:'Not enough gold.'};
-      led.gold-=cost; led.prayer=level+1; led.rev++;
-      const tx=ledTx(me,'temple:prayer',{gold:-cost,prayer:1});
-      writeDB();
-      return {ok:true,level:led.prayer,cost,tx,ledger:ledgerView(me)};
+  if(p==='/api/temple/pray'||p==='/api/temple/save'||p==='/api/temple/discard'){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='POST')return send(res,404,{error:'temple'});
+    const b=await body(req),reqId=String(b.requestId||'').slice(0,48);
+    if(!reqId)return send(res,400,{error:'requestId required'});
+    const out=idem(me.id+':temple:1:'+p+':'+reqId,()=>{
+      const led=ensureLedger(me),state=templeState(led);
+      if(!TEMPLE.templeUnlocked(state.playerLevel))return {ok:false,error:'The Temple opens at player level 50.'};
+      if(p==='/api/temple/pray'){
+        const key=String(b.heroKey||''),tier=String(b.tier||'');
+        if(!SIM.HERO_BASE[key]||!led.unlocked[key])return {ok:false,error:'Choose an owned hero.'};
+        glyphMigrate(me);glyphFlowMigrate(me);
+        const board=(ensureGlyphs(me).boards||{})[key];
+        if(!TEMPLE.heroCanKindle(board))return {ok:false,error:'This hero needs Purple ascension.'};
+        if(state._pending)return {ok:false,error:'Save or discard the pending prayer first.'};
+        const level=TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel);
+        let gold=0,gems=0;
+        if(tier==='gold'){
+          gold=TEMPLE.nextGoldCost(state);
+        }
+        else if(tier==='free'){
+          if(!TEMPLE.freeRitualAvailable(state))return {ok:false,error:'The daily prayer is not available.'};
+        }else if(tier==='bonus'){
+          if((state.bonusPrayers|0)<1)return {ok:false,error:'No bonus prayers remain.'};
+        }else{
+          const t=TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier);
+          if(!t||level<t.unlockKeeper)return {ok:false,error:'That prayer tier is locked.'};
+          TEMPLE.freeRitualAvailable(state); // also advances day-bound tier counters before the spend
+          const cap=TEMPLE.CONFIG.GEM_TIER_DAILY_SOFT_CAP;
+          if(cap>0&&(state.gemTierCounts[tier]|0)>=cap)return {ok:false,error:'That tier reached its daily limit.'};
+          gems=t.gems;
+        }
+        if(led.gold<gold||led.gems<gems)return {ok:false,error:'Not enough currency.'};
+        if(!state.heroes[key])state.heroes[key]={cinders:{bar1:0,bar2:0,bar3:0,bar4:0},boonsUnlocked:[false,false,false,false,false]};
+        led.gold-=gold;led.gems-=gems;
+        if(tier==='gold')TEMPLE.buyGoldRitual(state);
+        else if(gems)TEMPLE.buyGemTier(state,tier);
+        let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,reqId,rollIndex++));
+        const session=tier==='free'?TEMPLE.freeDailyPray(state,key):tier==='bonus'?TEMPLE.useBonusPrayer(state,key):TEMPLE.pray(state,key,tier);
+        const tx=ledTx(me,'temple:pray',{hero:key,tier,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
+        return {ok:true,rolls:session.rolls,completion:session.completion,chance:session.chance,
+          bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,tx,ledger:ledgerView(me)};
+      }
+      const pending=state._pending;
+      if(!pending)return {ok:false,error:'No prayer is pending.'};
+      if(p==='/api/temple/discard'){
+        TEMPLE.discardSession(state);
+        const tx=ledTx(me,'temple:discard',{hero:pending.heroId,tier:pending.tier||null});
+        return {ok:true,tx,ledger:ledgerView(me)};
+      }
+      const key=pending.heroId;
+      TEMPLE.saveSession(state);
+      const hero=state.heroes[key],heroLevel=ledHeroLevel(led,key),templeLevel=TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel);
+      const unlocked=[];
+      for(const slot of TEMPLE.boonsFor(state.keeperPoints,hero,heroLevel)){
+        if(!hero.boonsUnlocked[slot.slot-1]&&slot.canUnlock&&templeLevel>=slot.keeperGate){hero.boonsUnlocked[slot.slot-1]=true;unlocked.push(slot.slot);}
+      }
+      if(!hero.boonsUnlocked[4]&&TEMPLE.fifthOrbReachable(state,heroLevel)){
+        hero.boonsUnlocked[4]=true;unlocked.push(5);
+      }
+      const tx=ledTx(me,'temple:save',{hero:key,unlocked});
+      return {ok:true,unlocked,tx,ledger:ledgerView(me)};
     });
     return send(res,out&&out.ok?200:400,out); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -6884,6 +6954,8 @@ const server=http.createServer((req,res)=>{
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript');
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
+  if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
+  if(p==='/server/temple-effects.js') return serveFile(res,'server/temple-effects.js','application/javascript',null,req);
   if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});
     const lb=localBuildId();                                  // v581: the build we actually serve wins — see localBuildId()
     if(lb){ res.end(JSON.stringify({build:lb})); return; }

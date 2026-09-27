@@ -10,6 +10,7 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
 (async()=>{
   let b; try{ b=await chromium.launch(); }catch(e){ b=await chromium.launch({channel:'chrome'}); }
   const pg=await (await b.newContext({viewport:{width:1000,height:600}})).newPage();
+  if(process.env.TEMPLE_TEST_NAME)await pg.addInitScript(n=>{window.__templeTestName=n;},process.env.TEMPLE_TEST_NAME);
   const errs=[]; pg.on('pageerror',e=>errs.push(String(e.message)));
   await pg.goto('http://localhost:'+PORT+'/play',{waitUntil:'domcontentloaded'});
   await pg.waitForTimeout(2500);
@@ -18,9 +19,12 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
   console.log('== v270: the fight the player played IS the fight the server recorded ==');
 
   const r=await pg.evaluate(async()=>{
-    const name='live'+Date.now().toString(36);
-    const reg=await api('/api/register','POST',{name,pass:'password1'});
+    const name=window.__templeTestName||('live'+Date.now().toString(36));
+    const reg=window.__templeTestName
+      ?await api('/api/login','POST',{name,pass:'password1'})
+      :await api('/api/register','POST',{name,pass:'password1'});
     ACC.token=reg.token; ACC.id=reg.profile.id;
+    if(window.__templeTestName)adoptLedger(await api('/api/ledger'));
     // start the stage exactly the way the Battle button does
     CUR={node:1, mode:'campaign', portal:'normal'};
     const s=await api('/api/campaign/start','POST',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:'live'+Date.now()});

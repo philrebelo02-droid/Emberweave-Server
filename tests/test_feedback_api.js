@@ -134,6 +134,33 @@ async function call(route,method='GET',data){
     'fast Well win sends timing evidence for review');
   assert(wellFeed.data.items.some(x=>x.signal==='well-replay:'+wellStart.data.attemptId),
     'Well replay mismatch sends digest evidence for review');
+  assert.strictEqual((await call('/api/admin/led-grant','POST',{
+    gold:10000,maxGlyphs:true,heroKeys:[vaultHeroes[0]]})).status,200);
+  const templeBefore=(await call('/api/ledger')).data;
+  const templeRefused=await call('/api/temple/pray','POST',{
+    requestId:'feedback-temple-refused',heroKey:'not-a-hero',tier:'gold'});
+  assert.strictEqual(templeRefused.status,400,'an invalid hero cannot pray');
+  assert.strictEqual((await call('/api/ledger')).data.gold,templeBefore.gold,'refusal spends nothing');
+  const templePray=await call('/api/temple/pray','POST',{
+    requestId:'feedback-temple-pray',heroKey:vaultHeroes[0],tier:'gold'});
+  assert.strictEqual(templePray.status,200,'eligible hero can pray');
+  assert(templePray.data.rolls&&templePray.data.ledger.temple._pending,'the rolled prayer persists as pending');
+  const templeRetry=await call('/api/temple/pray','POST',{
+    requestId:'feedback-temple-pray',heroKey:vaultHeroes[0],tier:'gold'});
+  assert.strictEqual(templeRetry.data.ledger.rev,templePray.data.ledger.rev,'idempotent retry cannot charge twice');
+  await delay(300);await stop();await start();
+  assert((await call('/api/ledger')).data.temple._pending,'pending prayer survives a server restart');
+  const templeSave=await call('/api/temple/save','POST',{requestId:'feedback-temple-save'});
+  assert.strictEqual(templeSave.status,200,'pending prayer can be saved');
+  assert.strictEqual(templeSave.data.ledger.temple._pending,null,'save clears pending');
+  const nextPrayer=await call('/api/temple/pray','POST',{
+    requestId:'feedback-temple-next',heroKey:vaultHeroes[0],tier:'gold'});
+  assert.strictEqual(nextPrayer.status,200);
+  const afterCharge=nextPrayer.data.ledger.gold;
+  const discarded=await call('/api/temple/discard','POST',{requestId:'feedback-temple-discard'});
+  assert.strictEqual(discarded.status,200);
+  assert.strictEqual(discarded.data.ledger.gold,afterCharge,'discard keeps the prayer cost spent');
+  assert.strictEqual(discarded.data.ledger.temple._pending,null);
   await delay(400);await stop();
   const persisted=JSON.parse(fs.readFileSync(dbFile,'utf8'));
   assert(!persisted.feedback.some(x=>x.id==='old-acked'),'old acknowledged feedback is pruned');

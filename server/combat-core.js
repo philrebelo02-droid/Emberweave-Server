@@ -131,13 +131,12 @@ function buildUnit(key, base, mul, defScale, r, extra){
   r=r||{}; extra=extra||{};
   const armor=(base.armor||0)*defScale + (r.armor||0)*CONV.defPtMul + (extra.armorRating||0);
   const mr=(base.mr||0)*defScale + (r.mr||0)*CONV.defPtMul + (extra.mrRating||0);
-  const prayerMul=Math.max(1,+extra.prayerMul||1);
-  const atkP=Math.round((base.dmg||0)*mul*prayerMul)+(r.atkFlat|0);
+  const atkP=Math.round((base.dmg||0)*mul)+(r.atkFlat|0);
   // AP flats never create an ability line where none exists — a pure physical hero gains NOTHING from AP
   const atkM=Math.round(((base.apow||0)>0 ? Math.round(base.apow*mul)+(r.apowFlat|0) : 0)*(extra.apMul||1));   // Academy AP research scales spells only
   return {
     key, role:base.role||'Bruiser', healer:!!base.healer, level:Math.max(1,(extra.level|0)||1),
-    maxHp:Math.round((base.hp||100)*mul*prayerMul)+(r.hpFlat|0),
+    maxHp:Math.round((base.hp||100)*mul)+(r.hpFlat|0),
     hp:0, energy:0,
     atkP, atkM,
     heal: base.healer? Math.round((Math.max(10,base.apow||10)*mul+(r.apowFlat|0))*0.9)+(r.healFlat|0) : 0,
@@ -219,6 +218,7 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   let removed=0;
   if(tgt.shieldPool>0){ const ab=Math.min(tgt.shieldPool,dmg); tgt.shieldPool-=ab; dmg-=ab; removed+=ab; }
   tgt.hp-=dmg; removed+=dmg;
+  if(dmg>0&&tgt.templeDamageEnergy) tgt.energy=Math.min(100,tgt.energy+100*dmg/Math.max(1,tgt.maxHp)*tgt.templeDamageEnergy);
   if(log.length<600) log.push([round,side,src.key,'>',tgt.key,removed,opts.ult?1:0,kind,crit?1:0]);
   // lifesteal off damage actually removed
   if((src.lifesteal||0)>0 && removed>0 && src.hp>0){ const ls=Math.round(removed*src.lifesteal); src.hp=Math.min(src.healCap==null?src.maxHp:src.healCap,src.hp+ls); }
