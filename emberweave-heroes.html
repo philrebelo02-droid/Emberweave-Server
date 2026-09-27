@@ -962,6 +962,32 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
    bronze-to-midnight gradient lit by an ember glow from below - in the gold frame. */
 .panel{border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 16px stretch!important;background:linear-gradient(180deg,rgba(10,12,22,.52),rgba(12,8,6,.62))!important;
   -webkit-backdrop-filter:blur(3px) saturate(1.2);backdrop-filter:blur(3px) saturate(1.2);}
+#temple{padding:6px 8px;overflow:hidden;gap:5px;justify-content:center;}
+.templeHeader{width:100%;display:flex;align-items:center;gap:10px;min-height:34px;flex:none;color:#ffe4ac;font-family:Georgia,'Times New Roman',serif;font-size:clamp(12px,1.35vw,18px);font-weight:700;white-space:nowrap;}
+.templeHeader .btn{flex:none;margin:0;}
+#templeHeading{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+#templeBody{max-width:none;width:100%;height:min(540px,calc(100dvh - 54px));min-height:0;flex:none;margin:0;padding:9px;box-sizing:border-box;overflow:hidden;}
+.templeLayout{height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);gap:9px;}
+.templeLeft,.templeRight,.templeBars,.templePrayers{min-width:0;min-height:0;}
+.templeLeft{display:flex;flex-direction:column;}
+.templeRight{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:9px;}
+.templeHeroGrid{overflow-y:auto;align-content:start;}
+.templeHeroInfo,.templeBarHeading{font-size:12px;color:#f3e0bb;line-height:1.25;}
+.templeHeroInfo{margin-top:3px;}
+.templeGate{color:#ff9a9a;}
+.templeBar{margin:7px 0;text-align:left;}
+.templeBarLabel{display:flex;justify-content:space-between;gap:4px;font-size:11px;line-height:1.2;}
+.templeBarLabel span{white-space:nowrap;}
+.templeBarTrack{height:8px;border:1px solid #704d27;border-radius:8px;background:#201813;overflow:hidden;}
+.templeBarFill{height:100%;background:#ef8a32;border-radius:8px;}
+.templeOrbs{display:flex;align-items:center;justify-content:center;gap:2px;margin-top:4px;}
+.templeOrbs img{width:22px;height:22px;object-fit:contain;}
+.templeOrbs img:nth-child(3){width:32px;height:32px;}
+.templeCounters{font-size:11px;color:#ad9b87;line-height:1.2;text-align:center;}
+.templeActions{display:flex;justify-content:center;gap:7px;align-items:center;}
+.templeActions .btn{min-width:72px;}
+.templePending{font-size:11px;color:#ffd45e;text-align:center;}
+#templeMsg{font-size:11px;color:#ffd45e;min-height:13px;text-align:center;}
 .templeClassTabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:10px 0 7px;}
 .templeClassTab{min-width:0;min-height:28px;padding:3px 1px;border:1px solid #76552f;border-radius:5px;background:#201810;color:#d9c7a5;font-size:clamp(8px,2.3vw,11px);font-weight:700;white-space:nowrap;cursor:pointer;}
 .templeClassTab[aria-selected="true"]{border-color:#ffcf69;background:#654015;color:#fff4d4;box-shadow:inset 0 0 8px #ffb84b55;}
@@ -982,6 +1008,43 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .templeTierTile:disabled{opacity:.52;filter:grayscale(1);cursor:default;}
 .templeBonusChoice{width:100%;justify-content:center;min-height:48px;}
 .templeBonusChoice img{width:32px;height:32px;}
+@media (min-width:700px) and (orientation:landscape){
+  .templeClassTabs{display:flex;gap:3px;margin:0 0 5px;overflow-x:auto;overflow-y:hidden;flex:none;}
+  .templeClassTab{flex:0 0 auto;min-width:55px;min-height:25px;font-size:10px;}
+  .templeHeroGrid{margin:0;}
+  .templeTierGrid{gap:4px;margin:5px 0;}
+  .templeTierTile{min-height:clamp(54px,15dvh,76px);padding:4px;gap:5px;}
+  .templeTierTile img{width:clamp(29px,7dvh,44px);height:clamp(29px,7dvh,44px);}
+  .templeTierTile b{font-size:10px;line-height:1.1;}
+  .templeTierTile small{font-size:9px;line-height:1.1;}
+  .templeBonusChoice{min-height:29px;}
+  .templeBonusChoice img{width:22px;height:22px;}
+  .templeBar{margin:7px 0;}
+  .templeBarTrack{height:7px;}
+  .templeActions .btn{min-height:28px;padding:3px 10px;font-size:12px;}
+}
+@media (min-width:700px) and (min-height:500px) and (orientation:landscape){
+  .templeLeft{justify-content:center;}
+  .templeRight{align-items:center;}
+  .templeTierTile{min-height:clamp(72px,10dvh,100px);padding:8px;gap:9px;}
+  .templeTierTile img{width:clamp(42px,6dvh,60px);height:clamp(42px,6dvh,60px);}
+  .templeTierTile b{font-size:14px;}
+  .templeTierTile small,.templeCounters{font-size:12px;}
+  .templeBar{margin:13px 0;}
+  .templeBarLabel{font-size:14px;}
+  .templeBarTrack{height:11px;}
+  .templeBarHeading,.templeHeroInfo{font-size:14px;}
+  .templeOrbs img{width:31px;height:31px;}
+  .templeOrbs img:nth-child(3){width:43px;height:43px;}
+}
+@media (max-width:699px), (orientation:portrait){
+  #temple{overflow-y:auto;justify-content:flex-start;}
+  #templeBody{height:auto;min-height:auto;flex:none;overflow:visible;}
+  .templeLayout{display:block;height:auto;}
+  .templeRight{display:block;}
+  .templeHeroGrid{overflow:visible;}
+  .templeHeader{font-size:12px;}
+}
 .hero-card,.qcard,.mailrow,.gemcard,.si-cell{border-style:solid;border-color:transparent;border-width:3px;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 12px stretch;border-radius:0;border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 / 12px stretch!important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;
   background:radial-gradient(130% 70% at 50% 112%,rgba(255,130,40,.62),transparent 62%),radial-gradient(100% 60% at 50% -12%,rgba(255,210,120,.20),transparent 60%),
     linear-gradient(180deg,#2b2016 0%,#1c1712 50%,#3a1e0c 100%)!important;}
@@ -2213,9 +2276,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   </div>
   <!-- TEMPLE -->
   <div class="screen hub" id="temple">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>TEMPLE</h1></div>
-    <div class="panel" id="templeBody" style="max-width:480px"></div>
+    <div class="templeHeader"><button class="btn secondary sm" data-nav="home">◀ Base</button><div id="templeHeading"></div></div>
+    <div class="panel" id="templeBody"></div>
   </div>
 
   <!-- MARKET -->
@@ -17101,8 +17163,8 @@ function renderTemple(){
   const eligible=key&&glyphRank(key)>=T.CONFIG.MIN_ASCENSION_INDEX;
   const choicesBlocked=!unlocked||!eligible;
   const barHtml=bars.map((label,i)=>{const open=level>=T.CONFIG.BAR_UNLOCK_TEMPLE[i],v=(h.cinders||{})['bar'+(i+1)]||0;
-    return `<div style="margin:8px 0;text-align:left"><div style="font-size:12px">${open?label:'🔒 '+label} <span style="float:right">${open?v+' / '+max:'Temple '+T.CONFIG.BAR_UNLOCK_TEMPLE[i]}</span></div><div style="height:9px;border:1px solid #704d27;border-radius:8px;background:#201813"><div style="height:100%;width:${open?Math.min(100,100*v/max):0}%;background:#ef8a32;border-radius:8px"></div></div></div>`;}).join('');
-  const orbHtml=[0,1,4,2,3].map((i)=>`<img alt="Orb ${i+1} ${h.boonsUnlocked&&h.boonsUnlocked[i]?'earned':'unearned'}" src="/assets/img/temple/card-orb-${h.boonsUnlocked&&h.boonsUnlocked[i]?'lit':'unlit'}-v2.webp?v=2" style="width:${i===4?38:25}px;height:${i===4?38:25}px;object-fit:cover;margin:0 2px">`).join('');
+    return `<div class="templeBar"><div class="templeBarLabel">${open?label:'🔒 '+label}<span>${open?v+' / '+max:'Temple '+T.CONFIG.BAR_UNLOCK_TEMPLE[i]}</span></div><div class="templeBarTrack"><div class="templeBarFill" style="width:${open?Math.min(100,100*v/max):0}%"></div></div></div>`;}).join('');
+  const orbHtml=[0,1,4,2,3].map((i)=>`<img alt="Orb ${i+1} ${h.boonsUnlocked&&h.boonsUnlocked[i]?'earned':'unearned'}" src="/assets/img/temple/card-orb-${h.boonsUnlocked&&h.boonsUnlocked[i]?'lit':'unlit'}-v2.webp?v=2">`).join('');
   const tierArt={free:'/assets/img/temple/card-orb-lit-v2.webp?v=2',gold:'/assets/img/temple/tier-gold-v1.png',
     kindled:'/assets/img/temple/tier-kindled-v1.png',stoked:'/assets/img/temple/tier-stoked-v1.png',
     blazing:'/assets/img/temple/tier-blazing-v1.png',inferno:'/assets/img/temple/tier-inferno-v1.png'};
@@ -17110,21 +17172,24 @@ function renderTemple(){
   const rosterHtml=visible.map(k=>{const name=(HERO_TYPES[k]||{}).name||k,portrait=HERO_PORTRAITS[k];
     return `<button type="button" class="templeHeroTile" data-temple-hero="${k}" aria-label="${escapeHTML(name)} · Level ${heroLevel(k)}" aria-pressed="${k===key}" ${pending?'disabled':''}>${portrait?`<img src="${portrait}" alt="">`:heroIcon(k,28,{orbs:false})}</button>`;}).join('');
   const tiersHtml=tiers.map(x=>`<button type="button" class="templeTierTile" data-temple-tier="${x.id}" aria-pressed="${templeSelectedTier===x.id}" ${x.locked||choicesBlocked?'disabled':''}><img src="${tierArt[x.id]}" alt=""><span><b>${escapeHTML(x.name)}</b><small>${x.keeperLocked?'Temple '+x.need:x.cost}</small></span></button>`).join('');
-  b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-size:25px">🔥 Temple of Ash</div>
-    <div style="font-size:12px;color:#ad9b87">Flamekeeper ${level} · ${st.keeperPoints||0} points · ${st.bonusPrayers||0} bonus prayers</div>
-    ${unlocked?'':`<div style="color:#ff9a9a">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
+  document.getElementById('templeHeading').textContent=`🔥 Temple of Ash · Flamekeeper ${level} · ${st.keeperPoints||0} pts · ${st.bonusPrayers||0} bonus`;
+  b.innerHTML=`<div class="templeLayout"><section class="templeLeft" aria-label="Choose hero">
     <div class="templeClassTabs" role="tablist" aria-label="Hero class">${tabsHtml}</div>
     <div class="templeHeroGrid" aria-label="Select a hero">${rosterHtml}</div>
-    ${visible.length?'':`<div style="font-size:12px;color:#ad9b87">No owned heroes</div>`}
-    ${key?`<div style="font-size:12px;margin:8px 0 3px">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv ${heroLevel(key)}</div>`:''}
-    ${key&&!eligible?`<div style="font-size:12px;color:#ff9a9a">Purple ascension required</div>`:''}
-    ${key?`<div style="font-size:12px">${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}%</div>${barHtml}<div aria-label="Earned hero orbs">${orbHtml}</div>`:''}
-    ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${templeLastRolls?' · '+Object.values(templeLastRolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):' · save or discard'}</div>
-       <button class="btn" id="templeSave">Save</button> <button class="btn" id="templeDiscard">Discard</button>`:
+    ${visible.length?'':`<div class="templeHeroInfo">No owned heroes</div>`}
+    ${key?`<div class="templeHeroInfo">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv ${heroLevel(key)}</div>`:''}
+    ${unlocked?'':`<div class="templeHeroInfo templeGate">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
+    ${key&&!eligible?`<div class="templeHeroInfo templeGate">Purple ascension required</div>`:''}
+    </section><section class="templeRight" aria-label="Temple powers and prayer">
+    <div class="templeBars">${key?`<div class="templeBarHeading">${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}%</div>${barHtml}<div class="templeOrbs" aria-label="Earned hero orbs">${orbHtml}</div>`:''}</div>
+    <div class="templePrayers"><div class="templeCounters">Free: ${freeAvailable?'ready':'used'} · Bonus: ${st.bonusPrayers||0}</div>
+    ${pending?`<div class="templePending">Prayer pending${templeLastRolls?' · '+Object.values(templeLastRolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):''}</div>
+       <div class="templeActions"><button class="btn" id="templeSave">Save</button><button class="btn" id="templeDiscard">Discard</button></div>`:
       `<div class="templeTierGrid" aria-label="Prayer choices">${tiersHtml}</div>
        ${bonusAvailable?`<button type="button" class="templeTierTile templeBonusChoice" data-temple-tier="bonus" aria-pressed="${templeSelectedTier==='bonus'}" ${choicesBlocked?'disabled':''}><img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt=""><span><b>Bonus prayer</b><small>Free</small></span></button>`:''}
-       <button class="btn" id="templePray" ${!unlocked||!eligible||!templeSelectedTier?'disabled':''}>Pray</button>`}
-    <div id="templeMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>`;
+       <div class="templeActions"><button class="btn" id="templePray" ${!unlocked||!eligible||!templeSelectedTier?'disabled':''}>Pray</button></div>`}
+    <div id="templeMsg"></div></div>
+    </section></div>`;
   b.querySelectorAll('[data-temple-class]').forEach(tab=>tab.onclick=()=>{templeClassFilter=tab.dataset.templeClass;templeSelectedHero='';renderTemple();});
   b.querySelectorAll('[data-temple-hero]').forEach(hero=>hero.onclick=()=>{templeSelectedHero=hero.dataset.templeHero;renderTemple();});
   b.querySelectorAll('[data-temple-tier]').forEach(tier=>tier.onclick=()=>{templeSelectedTier=tier.dataset.templeTier;

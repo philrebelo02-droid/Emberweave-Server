@@ -40,7 +40,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     fs.writeFileSync(dbFile,JSON.stringify(db));start();
     for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)break;}catch(_){}await delay(100);}
     try{browser=await chromium.launch();}catch(_){browser=await chromium.launch({channel:'chrome'});}
-    const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+    const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3}),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(base+'/play',{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(2000);
@@ -48,7 +48,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     await page.waitForTimeout(700);
     if(await page.locator('#tutSkip').isVisible())await page.locator('#tutSkip').click();
     await page.evaluate(()=>renderTemple());
-    assert(await page.locator('#templeBody').getByText('Temple of Ash').count());
+    assert(await page.locator('#templeHeading').getByText('Temple of Ash').count());
     const parity=await page.evaluate(async({token,keys})=>{
       ACC.token=token;ACC.id='temple-test';
       adoptLedger(await api('/api/ledger'));
@@ -112,14 +112,37 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     if(process.env.TEMPLE_SCREENSHOT_PATH)await page.locator('#templeBody').screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH});
     await page.locator('#templePray').scrollIntoViewIfNeeded({timeout:3000});
     assert(await page.locator('#templePray').isVisible(),'phone can reach Pray button');
-    if(process.env.TEMPLE_SCREENSHOT_PATH){
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-prayer.png')});
-      await page.setViewportSize({width:844,height:390});
-      await page.locator('.templeClassTabs').scrollIntoViewIfNeeded({timeout:3000});
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-landscape-top.png')});
-      await page.locator('.templeTierGrid').scrollIntoViewIfNeeded({timeout:3000});
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-landscape-tiers.png')});
+    if(process.env.TEMPLE_SCREENSHOT_PATH)await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-prayer.png')});
+    for(const [width,height] of [[844,390],[915,412],[740,360],[1920,1080],[1366,768],[1280,720]]){
+      await page.setViewportSize({width,height});
+      const fit=await page.evaluate(()=>{
+        const screen=document.getElementById('temple'),pray=document.getElementById('templePray'),r=pray.getBoundingClientRect();
+        const hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+        const parts=['templeHeading','templeBody'].map(id=>document.getElementById(id).getBoundingClientRect());
+        return {pageScroll:document.scrollingElement.scrollHeight,screenScroll:screen.scrollHeight,screenHeight:screen.clientHeight,
+          prayHit:hit===pray,prayTop:r.top,prayBottom:r.bottom,partsFit:parts.every(x=>x.top>=0&&x.bottom<=innerHeight+1),
+          columns:getComputedStyle(document.querySelector('.templeLayout')).gridTemplateColumns.split(' ').length};
+      });
+      assert(fit.pageScroll<=height+1,`${width}x${height} document scroll ${JSON.stringify(fit)}`);
+      assert(fit.screenScroll<=fit.screenHeight+1,`${width}x${height} Temple scroll ${JSON.stringify(fit)}`);
+      assert(fit.prayHit&&fit.prayTop>=0&&fit.prayBottom<=height+1,`${width}x${height} Pray hit ${JSON.stringify(fit)}`);
+      assert(fit.partsFit&&fit.columns===2,`${width}x${height} two-column fit ${JSON.stringify(fit)}`);
+      if(process.env.TEMPLE_SCREENSHOT_PATH&&[[844,390],[740,360],[1366,768]].some(([w,h])=>w===width&&h===height))
+        await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,`-${width}x${height}.png`)});
     }
+    await page.evaluate(()=>{G.temple._pending={heroId:templeSelectedHero};renderTemple();});
+    for(const [width,height] of [[740,360],[1280,720]]){
+      await page.setViewportSize({width,height});
+      const pendingFit=await page.evaluate(()=>{
+        const screen=document.getElementById('temple');
+        return {screenScroll:screen.scrollHeight,screenHeight:screen.clientHeight,
+          buttons:['templeSave','templeDiscard'].map(id=>{const el=document.getElementById(id),r=el.getBoundingClientRect();
+            return {id,hit:document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===el,bottom:r.bottom};})};
+      });
+      assert(pendingFit.screenScroll<=pendingFit.screenHeight+1,`${width}x${height} pending Temple scroll ${JSON.stringify(pendingFit)}`);
+      assert(pendingFit.buttons.every(x=>x.hit&&x.bottom<=height+1),`${width}x${height} Save/Discard hit ${JSON.stringify(pendingFit)}`);
+    }
+    await page.evaluate(()=>{G.temple._pending=null;renderTemple();});
     await page.setViewportSize({width:320,height:700});
     const narrow=await page.evaluate(()=>Object.fromEntries(['templeClassTabs','templeHeroGrid','templeTierGrid'].map(name=>{
       const el=document.querySelector('.'+name);
