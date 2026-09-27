@@ -17091,9 +17091,13 @@ function renderTemple(){
   const role=HERO_TYPES[key]&&HERO_TYPES[key].role,level=T.keeperLevel(st.keeperPoints,playerLevel());
   const bars=T.CONFIG.CLASS_BARS[role]||[],max=T.effectMax(level);
   const freeAvailable=T.freeRitualAvailable(st),bonusAvailable=(st.bonusPrayers|0)>0;
+  const goldCost=T.nextGoldCost(st);
   const tiers=[{id:'free',name:'Daily free prayer',cost:freeAvailable?'Free':'Used today',locked:!freeAvailable},
-    ...T.CONFIG.PRAYER_TIERS.map(x=>({id:x.id,name:x.name,cost:x.id==='gold'?`🪙 ${T.nextGoldCost(st).toLocaleString()}`:`💎 ${x.gems}`,locked:level<x.unlockKeeper,need:x.unlockKeeper}))];
-  if(!tiers.some(x=>x.id===templeSelectedTier&&!x.locked)&&!(templeSelectedTier==='bonus'&&bonusAvailable))templeSelectedTier='gold';
+    ...T.CONFIG.PRAYER_TIERS.map(x=>({id:x.id,name:x.name,cost:x.id==='gold'?`🪙 ${goldCost.toLocaleString()}`:`💎 ${x.gems}`,
+      keeperLocked:level<x.unlockKeeper,
+      locked:level<x.unlockKeeper||(x.id==='gold'?(G.gold||0)<goldCost:(G.gems||0)<x.gems),need:x.unlockKeeper}))];
+  if(!tiers.some(x=>x.id===templeSelectedTier&&!x.locked)&&!(templeSelectedTier==='bonus'&&bonusAvailable))
+    templeSelectedTier=(tiers.find(x=>x.id==='gold'&&!x.locked)||tiers.find(x=>!x.locked)||{}).id||'';
   const eligible=key&&glyphRank(key)>=T.CONFIG.MIN_ASCENSION_INDEX;
   const choicesBlocked=!unlocked||!eligible;
   const barHtml=bars.map((label,i)=>{const open=level>=T.CONFIG.BAR_UNLOCK_TEMPLE[i],v=(h.cinders||{})['bar'+(i+1)]||0;
@@ -17105,7 +17109,7 @@ function renderTemple(){
   const tabsHtml=classes.map(c=>`<button type="button" class="templeClassTab" role="tab" data-temple-class="${c}" aria-selected="${templeClassFilter===c}" ${pending?'disabled':''}>${c}</button>`).join('');
   const rosterHtml=visible.map(k=>{const name=(HERO_TYPES[k]||{}).name||k,portrait=HERO_PORTRAITS[k];
     return `<button type="button" class="templeHeroTile" data-temple-hero="${k}" aria-label="${escapeHTML(name)} · Level ${heroLevel(k)}" aria-pressed="${k===key}" ${pending?'disabled':''}>${portrait?`<img src="${portrait}" alt="">`:heroIcon(k,28,{orbs:false})}</button>`;}).join('');
-  const tiersHtml=tiers.map(x=>`<button type="button" class="templeTierTile" data-temple-tier="${x.id}" aria-pressed="${templeSelectedTier===x.id}" ${x.locked||choicesBlocked?'disabled':''}><img src="${tierArt[x.id]}" alt=""><span><b>${escapeHTML(x.name)}</b><small>${x.locked&&x.need?'Temple '+x.need:x.cost}</small></span></button>`).join('');
+  const tiersHtml=tiers.map(x=>`<button type="button" class="templeTierTile" data-temple-tier="${x.id}" aria-pressed="${templeSelectedTier===x.id}" ${x.locked||choicesBlocked?'disabled':''}><img src="${tierArt[x.id]}" alt=""><span><b>${escapeHTML(x.name)}</b><small>${x.keeperLocked?'Temple '+x.need:x.cost}</small></span></button>`).join('');
   b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-size:25px">🔥 Temple of Ash</div>
     <div style="font-size:12px;color:#ad9b87">Flamekeeper ${level} · ${st.keeperPoints||0} points · ${st.bonusPrayers||0} bonus prayers</div>
     ${unlocked?'':`<div style="color:#ff9a9a">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
