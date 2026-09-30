@@ -1,25 +1,47 @@
 {
   "patches": [
-    {
-      "ver": "0.16",
-      "date": "August 2026",
-      "title": "Animation & studio update",
-      "items": [
-        "New size-normalization pipeline: heroes render at a consistent size with no bouncing across every clip.",
-        "Role-based battlefield sizing \u2014 tanks are largest, backline mages smallest.",
-        "Fritz, Aureth, and Vireo animations rebuilt and cleaned up.",
-        "Xanthyr Games branding + studio logo added."
-      ]
-    },
-    {
-      "ver": "0.15",
-      "date": "August 2026",
-      "title": "Terms & accounts",
-      "items": [
-        "Added a first-sign-in Terms of Service acceptance step.",
-        "Cloud accounts: sign in and sync progress across devices.",
-        "Installable app support (add Emberweave to your home screen)."
-      ]
-    }
+    {"ver": "0.84", "date": "27 September 2026", "title": "The Temple of Ash opens", "items": [
+      "The Temple of Ash is open in your town, with its rituals from Kindled to Inferno.",
+      "Temple orbs now glow on your hero cards, and the town has a new Temple backdrop.",
+      "New players can fight one-on-one straight after a reset.",
+      "Hero levels now sit in the corner of each card.",
+      "Fixed: purchased diamonds and wallet changes could roll back."
+    ]},
+    {"ver": "0.83", "date": "26 September 2026", "title": "The World Map, in full detail", "items": [
+      "81 hand-painted close-up pieces of the world map, sharp right to their edges.",
+      "The whole-map view is now as detailed as the zoomed-in views.",
+      "The map loads far faster (309 MB down to 76 MB)."
+    ]},
+    {"ver": "0.82", "date": "25 September 2026", "title": "The Starless Well and the 16-chapter campaign", "items": [
+      "New: The Starless Well - a three-day run of 5v5 fights toward the boss at the centre, with Normal and Hard portals.",
+      "The campaign now runs to 16 chapters and 160 stages, with six new maps and the World Tree.",
+      "Elite stages cover all 16 chapters, and chapters 11 to 16 add 96 new bonus stages.",
+      "The quest chain now runs all the way to level 160.",
+      "The Vault now opens at level 10."
+    ]},
+    {"ver": "0.81", "date": "20 September 2026", "title": "Skyfall and guild banners", "items": [
+      "Skyfall, the weekly guild war: hold towers, place your lines and climb the bracket to the cup.",
+      "Officers can move a whole tower at once, and finished tournaments keep their results forever.",
+      "Guild banners: 20 shapes, 20 emblems and 20 colours, or upload your own picture.",
+      "Every hero shows its power wherever you pick it."
+    ]},
+    {"ver": "0.80", "date": "19 September 2026", "title": "Emberdraft and the guild raid", "items": [
+      "New: Emberdraft - draft a team round by round on the Island of Trials and watch it fight.",
+      "The guild raid boss is now a real 90-second battle your whole guild fights."
+    ]},
+    {"ver": "0.79", "date": "18 September 2026", "title": "The Gauntlet and a new title screen", "items": [
+      "Bonus stages arrive in the campaign with the Gauntlet.",
+      "A new animated title splash."
+    ]},
+    {"ver": "0.16", "date": "August 2026", "title": "Animation & studio update", "items": [
+      "Heroes render at a consistent size across every animation.",
+      "Role-based battlefield sizing: tanks are largest, backline mages smallest.",
+      "Xanthyr Games branding and studio logo added."
+    ]},
+    {"ver": "0.15", "date": "August 2026", "title": "Terms & accounts", "items": [
+      "A Terms of Service step on first sign-in.",
+      "Cloud accounts: sign in and sync progress across devices.",
+      "Installable app support."
+    ]}
   ]
 }
