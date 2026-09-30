@@ -55,18 +55,22 @@
   .studio svg{width:18px;height:18px}
   .bar nav{margin-left:auto;display:flex;gap:22px;font-weight:600;font-size:15px;color:var(--muted)}
   .bar nav a:hover{color:var(--gold2)}
-  .bar .play{padding:8px 16px;border-radius:999px;background:var(--gold);color:#1b1006;font-weight:700;font-size:14px}
+  .bar .play{padding:8px 16px;border-radius:999px;background:var(--gold);color:#1b1006;font-weight:700;font-size:14px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .25s,transform .25s,visibility .25s}
+  /* Phil 29 Sep: not over the heroes' faces - it appears once the splash has scrolled away */
+  .bar.past .play{opacity:1;visibility:visible;transform:none}
   @media (max-width:760px){ .bar nav{display:none} .bar .play{margin-left:auto} }
 
   /* ---------- splash ---------- */
-  .splash{position:relative;background:#000}
-  .splash .art{position:relative;width:100%;aspect-ratio:16/9;max-height:92vh;overflow:hidden;background:#000 center/cover no-repeat url('/assets/img/miscellaneous/splash-v2.jpg')}
+  .splash{position:relative;background:#000;overflow:hidden}
+  /* Phil 29 Sep: never crop the heroes. The art keeps its whole 16:9 frame (sized by the screen's height on wide,
+     short windows) and the spare width either side is a blurred copy of the same art. */
+  .splash::before{content:"";position:absolute;inset:-40px;background:center/cover no-repeat url('/assets/img/miscellaneous/splash-v2.jpg');filter:blur(28px) brightness(.45);transform:scale(1.1)}
+  .splash .art{position:relative;width:min(100%,calc(92vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;overflow:hidden;background:#000 center/cover no-repeat url('/assets/img/miscellaneous/splash-v2.jpg')}
   .splash video,.splash .still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .splash video{opacity:0;transition:opacity 1s}
   .splash video.on{opacity:1}
   .splash .fade{position:absolute;inset:auto 0 0 0;height:28%;background:linear-gradient(transparent,var(--bg))}
-  .cta{position:relative;margin-top:-3vw;padding-bottom:38px;text-align:center}
-  @media (max-width:760px){ .cta{margin-top:10px} }
+  .cta{position:relative;margin-top:14px;padding-bottom:38px;text-align:center}
   .cta .tag{font:700 12px/1 Cinzel,serif;letter-spacing:.3em;color:var(--ember2);text-transform:uppercase}
   .cta p.lede{max-width:640px;margin:14px auto 22px;font-size:clamp(17px,2.2vw,20px);color:var(--text)}
   .btns{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
@@ -266,7 +270,8 @@
 (function(){
   /* ---------- top bar goes solid after the splash ---------- */
   var bar=document.getElementById('bar');
-  function onScroll(){ bar.classList.toggle('solid', window.scrollY > 40); }
+  var splashEl=document.querySelector('.splash');
+  function onScroll(){ bar.classList.toggle('solid', window.scrollY > 40); bar.classList.toggle('past', !!splashEl && splashEl.getBoundingClientRect().bottom < 70); }
   addEventListener('scroll', onScroll, {passive:true}); onScroll();
 
   /* ---------- splash video: larger screens only, never on reduced motion / data saver ---------- */
