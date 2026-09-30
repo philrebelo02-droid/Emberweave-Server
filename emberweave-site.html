@@ -61,10 +61,14 @@
   @media (max-width:760px){ .bar nav{display:none} .bar .play{margin-left:auto} }
 
   /* ---------- splash ---------- */
-  .splash{position:relative;background:#000;overflow:hidden}
+  .splash{position:relative;overflow:hidden}
   /* Phil 29 Sep: never crop the heroes. The art keeps its whole 16:9 frame (sized by the screen's height on wide,
      short windows) and the spare width either side is a blurred copy of the same art. */
-  .splash::before{content:"";position:absolute;inset:-40px;background:center/cover no-repeat url('/assets/img/miscellaneous/splash-v2.jpg');filter:blur(28px) brightness(.45);transform:scale(1.1)}
+  /* Phil 29 Sep: the blurred copy looked weird - the spare width is a lava-cave glow the art melts into, with embers rising */
+  .splash{background:radial-gradient(60% 90% at 50% 100%,#6a2208 0%,#2a0e05 45%,#0f0a07 80%),radial-gradient(40% 60% at 50% 0%,#7a3a0a55,#0000 70%),#0f0a07}
+  .splash .art{-webkit-mask-image:linear-gradient(90deg,#0000 0,#000 7%,#000 93%,#0000 100%);mask-image:linear-gradient(90deg,#0000 0,#000 7%,#000 93%,#0000 100%)}
+  @media (max-aspect-ratio:16/9.6){ .splash .art{-webkit-mask-image:none;mask-image:none} }
+  #embers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
   .splash .art{position:relative;width:min(100%,calc(92vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;overflow:hidden;background:#000 center/cover no-repeat url('/assets/img/miscellaneous/splash-v2.jpg')}
   .splash video,.splash .still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .splash video{opacity:0;transition:opacity 1s}
@@ -172,6 +176,7 @@
       <video id="splashVid" muted loop playsinline preload="none" poster="/assets/img/miscellaneous/splash-v2.jpg" aria-hidden="true"></video>
       <div class="fade"></div>
     </div>
+    <canvas id="embers" aria-hidden="true"></canvas>
   </div>
 
   <div class="cta wrap">
@@ -282,6 +287,26 @@
     vid.addEventListener('playing', function(){ vid.classList.add('on'); }, {once:true});
     vid.play().catch(function(){});
   }
+
+  /* ---------- embers rising across the whole splash (skipped on reduced motion) ---------- */
+  (function(){
+    var c=document.getElementById('embers'); if(!c || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var x=c.getContext('2d'), dpr=Math.min(2,window.devicePixelRatio||1), W=0, H=0, P=[], run=true;
+    function size(){ var r=c.getBoundingClientRect(); W=r.width; H=r.height; c.width=W*dpr; c.height=H*dpr; x.setTransform(dpr,0,0,dpr,0,0);
+      var n=Math.round(Math.min(140, W*H/9000)); while(P.length<n) P.push(spawn(true)); P.length=n; }
+    function spawn(any){ return {x:Math.random()*W, y:any?Math.random()*H:H+10, r:.6+Math.random()*1.9, vy:.25+Math.random()*.8,
+      vx:(Math.random()-.5)*.25, a:.35+Math.random()*.6, w:Math.random()*6.28, h:18+Math.random()*28}; }
+    function tick(){ if(!run) return; x.clearRect(0,0,W,H);
+      for(var i=0;i<P.length;i++){ var p=P[i]; p.y-=p.vy; p.w+=.02; p.x+=p.vx+Math.sin(p.w)*.25;
+        if(p.y<-10) P[i]=p=spawn(false);
+        var f=Math.min(1,p.y/(H*.35)); x.globalAlpha=p.a*f;
+        var g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3); g.addColorStop(0,'hsl('+p.h+',100%,70%)'); g.addColorStop(1,'hsla('+p.h+',100%,50%,0)');
+        x.fillStyle=g; x.beginPath(); x.arc(p.x,p.y,p.r*3,0,6.283); x.fill(); }
+      requestAnimationFrame(tick); }
+    size(); addEventListener('resize', size);
+    new IntersectionObserver(function(e){ var v=e[0].isIntersecting; if(v&&!run){ run=true; requestAnimationFrame(tick);} run=v; }).observe(c);
+    requestAnimationFrame(tick);
+  })();
 
   /* ---------- install: a real one-tap install where the browser allows it ----------
      Chrome/Edge/Samsung hand the page a 'beforeinstallprompt' permission, often a few seconds after load. The button
