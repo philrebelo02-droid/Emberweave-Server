@@ -2380,6 +2380,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/hero-paths.js"></script>
 <script src="/server/temple-of-ash.js"></script>
 <script src="/server/temple-effects.js"></script>
+<script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
 <script>
 /* ==========================================================================
    EMBERWEAVE HEROES v0.5 — hub + campaign + runes + tech + PvP + 3D battles
@@ -15616,7 +15617,7 @@ function skySchedOpen(){
         +'<td style="white-space:normal">'+x.d+'</td>'
         +'<td class="tag">'+(live?'NOW':'')+'</td></tr>'; }).join('');
     head='<tr><th>TIME</th><th>WHAT</th><th>MEANS</th><th></th></tr>';
-    foot='Every war day, 02:00 \u2192 02:00 ET. This week\u2019s bracket is not drawn yet \u2014 rounds appear here with their dates.';
+    foot='Guild Wars run every other week. Sign-ups Sat 02:00 \u2192 Mon 00:00 server time, on weekends opposite World Tree. Battles Tue\u2013Fri 18:00\u201320:00 ET.';
   }
 
   /* v750 (Phil: "A calendar would be nice also") - four weeks from the start of this one, with the
@@ -15639,8 +15640,9 @@ function skySchedOpen(){
       const k=dk(d.getTime());
       const dow=(todayDow+n-todayDow+ (start.getDay()) )%7;
       const wd=(start.getDay()+n)%7;                      /* 0 Sun .. 6 Sat */
-      const isWar = warDays[k] || (!rounds.length && wd>=2 && wd<=5);   /* Tue-Fri fight */
-      const isReg = regDays[k] || (!rounds.length && (wd===6||wd===0||wd===1)); /* Sat-Mon register */
+      const predicted=window.EmberweaveGuildWarCalendar.dayType(k);
+      const isWar = !!warDays[k] || predicted==='war';
+      const isReg = predicted==='registration'; // Monday lock is 00:00, not an extra signup day
       const num=(function(){ try{ return new Date(d).toLocaleDateString('en-US',Object.assign({},ET,{day:'numeric'})); }catch(e){ return d.getDate(); } })();
       cells.push('<div class="skyCalDay'+(isWar?' war':(isReg?' reg':''))+(k===todayKey?' today':'')+'">'+num+'</div>');
     }
@@ -17018,7 +17020,7 @@ function skyPanelHTML(){
   const s=SKY.st, t=s.tournament;
   let head=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center">
     <b style="font-size:14px">☁️ Skyfall Tournament</b><span class="pill" style="font-size:9px">${t.state==='registration'?'📝 Registration open':t.state==='bracket'?'⚔️ Round '+((t.roundIndex||0)+1):'🏁 Finished'}</span></div>
-    <div style="font-size:10px;color:#8b98a9;margin-top:3px">Weekly guild knockout — register Sat–Mon, fight Tue–Fri 6–8 PM ET across five citadels.</div>
+    <div style="font-size:10px;color:#8b98a9;margin-top:3px">Every-other-week guild knockout — sign-ups opposite World Tree weekends, Sat 02:00–Mon 00:00 server time. Fight Tue–Fri 6–8 PM ET across five citadels.</div>
     <button class="btn" style="width:100%;margin-top:8px" onclick="show('skyfall')">☁️ Enter the Skyfall</button>`;
   if(t.state==='registration'){
     head+=`<div style="font-size:11px;margin-top:6px">Locks at <b>${skyWhen(t.registrationLocksAt)}</b> · ${t.entrants.length} guild${t.entrants.length===1?'':'s'} registered</div>
@@ -24997,7 +24999,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790737769522';
+const BUILD_ID = '1790792383167';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

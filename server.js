@@ -23,6 +23,7 @@ const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_LOCATION=require('./server/world-location.js');
+const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
 const TEMPLE=require('./server/temple-of-ash.js');
 const TEMPLE_EFFECTS=require('./server/temple-effects.js');
 TEMPLE.setDayKey(nyDayKey);
@@ -1547,7 +1548,7 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
 }
 /* ====================== end Aether Vault module (routes in api()) ====================== */
 /* ==================== SKYFALL TOURNAMENT (Guild Wars v2) — server-authoritative ====================
-   SPEC-guild-wars-skyfall.md. Weekly knockout: register Sat→Mon, lock+seed top 16 by Tournament
+   SPEC-guild-wars-skyfall.md. Fortnightly knockout: register alternate Sat→Mon, lock+seed top 16 by Tournament
    Power Pool, rounds Tue–Fri with planning until 6 PM ET and a 2-hour live window. Five locked
    citadels per side; a citadel falls when its last committed defender line is defeated; first to
    three destroyed citadels wins, else the spec's tie-breaker (never a coin flip).
@@ -1588,20 +1589,15 @@ const WAR_LINES_MAX=7;
 const WAR_KILL_CAP=5;
 const WAR_ROUND_NAMES=['R16','QF','SF','F'];
 
-function warWeekAnchor(now){ // most recent Saturday 00:00 ET (DST-exact)
-  const off=etOffsetMs(now);
-  const et=new Date(now-off);
-  const day=et.getUTCDay();                       // 0 Sun … 6 Sat
-  const back=(day-6+7)%7;
-  const sat=Date.UTC(et.getUTCFullYear(),et.getUTCMonth(),et.getUTCDate()-back);
-  return sat+etOffsetMs(sat+off);                 // offset AT the anchor (handles a DST flip mid-week)
+function warWeekAnchor(now){ // v854: the selected FORTNIGHTLY Saturday 00:00 ET (DST-exact; the week turns at 02:00)
+  return GUILD_WAR_CALENDAR.anchor(now); // selected Saturday, fortnightly; turns at 02:00 ET
 }
 /* v775b - THE WEEK TURNS AT 02:00, NOT MIDNIGHT. The anchor stays Saturday 00:00 because every
    round time is measured from it, but which WEEK you are in is read two hours later - so the
    Friday final's reports, which stand until Saturday 02:00 by their own resultsUntil, are still
    there when a player looks. Measured before this: at 01:59 on Saturday the board already showed
    the next week, ten weeks out of ten. */
-function warWeekKey(now){ const d=new Date(warWeekAnchor(now-WAR_PREP_OPENS_H*3600000)); return d.toISOString().slice(0,10); }
+function warWeekKey(now){ return GUILD_WAR_CALENDAR.key(now); }
 /* v728 (Phil): "The reports of the lanes stay up until 0200 in the morning then the lanes reset to
    prepare prep stage for the next day. Starting 0200 players can re place their lines in the
    towers."
@@ -1621,14 +1617,7 @@ function warSchedule(anchor){ const D=86400000, H=3600000;
   /* v775b - registration opens at 02:00 with the week, not at midnight. It used to claim Saturday
      00:00 while the previous week's tournament was still the current one until 02:00, so for two
      hours the board advertised a registration window that could not be entered. */
-  return { registrationOpensAt:anchor+WAR_PREP_OPENS_H*H, registrationLocksAt:anchor+2*D,   // Sat 02:00 → Mon 00:00 ET
-    rounds:[0,1,2,3].map(i=>({ name:WAR_ROUND_NAMES[i],
-      planningOpensAt:anchor+(3+i)*D+WAR_PREP_OPENS_H*H,                         // Tue–Fri 02:00 ET — prep opens, lines may be re-placed, opponents reveal here and NOT when the Monday bracket is computed
-      lockAt:anchor+(3+i)*D+WAR_LOCK_H*H,                                        // Tue–Fri 6 PM ET
-      endsAt:anchor+(3+i)*D+WAR_BELL_H*H,                                        // Tue–Fri 8 PM ET
-      /* the reports stand from this round's bell until the NEXT day's prep opens; on the last
-         round there is no next day, so they stand a full 24h before the bracket is done with. */
-      resultsUntil:anchor+(4+i)*D+WAR_PREP_OPENS_H*H })) };
+  return GUILD_WAR_CALENDAR.schedule(anchor); // local calendar dates, not elapsed-day DST drift
 }
 /* v779b - an ET stamp for a message a player reads, e.g. "Tue 02:00 ET". The war runs on ET and
    every deadline in it is quoted in ET, so a refusal that names a time has to use the same clock. */
@@ -1717,6 +1706,9 @@ function warEscrowRewards(t){   // AUDIT: pay into a per-USER pending list the m
 function getTournament(){
   DB.tournaments=DB.tournaments||{};
   const now=warNow(), wk=warWeekKey(now);
+  // A schedule migration must not erase an already-open weekly tournament or its reports.
+  const running=DB.tournaments.current, reportEnd=running&&running.schedule&&running.schedule.length?running.schedule[running.schedule.length-1].resultsUntil:0;
+  if(running && running.weekKey!==wk && now>=running.registrationOpensAt && now<reportEnd) return running;
   if(!DB.tournaments.current || DB.tournaments.current.weekKey!==wk){
     const prev=DB.tournaments.current;
     if(prev){   /* SETTLE the outgoing week, then LET IT GO (v799, Phil: "i dont want to archive
@@ -3822,6 +3814,7 @@ async function api(req,res,url){
       const ent=myGid?warEntrant(t,myGid):null; const m=myGid?warMatchOfGuild(t,myGid):null;
       return send(res,200,{ enabled:true, tournament:{ id:t.id, weekKey:t.weekKey, state:t.state,
           registrationOpensAt:t.registrationOpensAt, registrationLocksAt:t.registrationLocksAt,
+          cycleDays:14, nextRegistrationOpensAt:GUILD_WAR_CALENDAR.nextRegistration(warNow()),
           /* v781 - and its banner, or every guild in the tournament is drawn as the same sword */
           entrants:t.entrants.map(e=>({guildId:e.guildId,name:e.name,banner:e.banner||null,seed:e.seed,powerPool:e.powerPool,lines:e.lines.length})),
           /* v730 - THE BRACKET. Who plays whom and who won, which the client needs to draw the

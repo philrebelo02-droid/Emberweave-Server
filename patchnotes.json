@@ -1,5 +1,10 @@
 {
   "patches": [
+    {"ver": "0.85", "date": "30 September 2026", "title": "Guild Wars every other week", "items": [
+      "Skyfall Guild Wars now run every other week. Sign-ups open Saturday 02:00 and close Monday 00:00 server time; battles stay Tuesday to Friday, 6-8 PM ET.",
+      "The first fortnightly sign-up opens Saturday 10 October, then every two weeks.",
+      "The Skyfall calendar marks the sign-up and battle days ahead."
+    ]},
     {"ver": "0.84", "date": "27 September 2026", "title": "The Temple of Ash opens", "items": [
       "The Temple of Ash is open in your town, with its rituals from Kindled to Inferno.",
       "Temple orbs now glow on your hero cards, and the town has a new Temple backdrop.",
