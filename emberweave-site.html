@@ -359,7 +359,7 @@
       if(!waiting) return;
       waiting=false; btns.forEach(function(b){ b.removeAttribute('aria-busy'); });
       if(isAndroid){ say('If nothing appears, it may already be installed. Otherwise open the browser menu <b>&#8942;</b> and choose <b>Install app</b> or <b>Add to Home screen</b>.'); }
-      else { say('Use <b>Chrome</b> or <b>Edge</b> and click the install icon in the address bar, or open the browser menu and choose <b>Install Emberweave Heroes</b>.'); }
+      else { say('It looks like Emberweave is <b>already installed</b> on this computer - open it from your Start menu or desktop, or click <b>Open in app</b> at the right of the address bar. If it is not installed, use <b>Chrome</b> or <b>Edge</b>.'); }
     }, 6000);
   }
   btns.forEach(function(b){ b.addEventListener('click', doInstall); });
