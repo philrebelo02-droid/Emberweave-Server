@@ -7054,12 +7054,22 @@ try{
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
-  const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   // world/region chat messages disappear 6h after being typed
+  const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
+  const _chatHits={}; setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_chatHits)){ if(!_chatHits[k].some(t=>now-t<10000)) delete _chatHits[k]; } }, 60000).unref();   // world/region chat messages disappear 6h after being typed
   const clip = (s,n)=> String(s==null?'':s).slice(0,n);
   function chatStore(){ if(!DB.chat)DB.chat={world:[],region:[]}; if(!Array.isArray(DB.chat.world))DB.chat.world=[]; if(!Array.isArray(DB.chat.region))DB.chat.region=[]; return DB.chat; }
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
-  WSS.on('connection', ws=>{
+  /* 30 Sep 2026 hardening: no cap on sockets meant one machine could open thousands, and half-open ones were never
+     dropped. At most 12 per IP (a family on one router still fits); a 30 s ping drops sockets that stop answering. */
+  const _wsPerIp=new Map(), WS_PER_IP=12;
+  const _wsBeat=setInterval(()=>{ WSS.clients.forEach(c=>{ if(c._alive===false){ try{ c.terminate(); }catch(e){} return; } c._alive=false; try{ c.ping(); }catch(e){} }); }, 30000);
+  if(_wsBeat.unref) _wsBeat.unref();
+  WSS.on('connection', (ws, req)=>{
+    const _ip=(req&&clientIP(req))||'?'; const _n=(_wsPerIp.get(_ip)||0)+1;
+    if(_n>WS_PER_IP){ try{ ws.close(1013,'too many connections'); }catch(e){} return; }
+    _wsPerIp.set(_ip,_n); ws._alive=true; ws.on('pong',()=>{ ws._alive=true; });
+    ws.on('close',()=>{ const k=(_wsPerIp.get(_ip)||1)-1; if(k>0) _wsPerIp.set(_ip,k); else _wsPerIp.delete(_ip); });
     ws.on('message', raw=>{ try{ if(raw && raw.length>WS_MSG_MAX) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
       // 30 Sep 2026 hardening: the frame `null` threw at m.t below and, uncaught inside a ws handler, killed the whole server.
       if(!m || typeof m!=='object' || Array.isArray(m)) return;
@@ -7102,7 +7112,11 @@ try{
       else if(m.t==='msg'){ if(wsNeedAuth(ws)) return;   // RE-AUDIT round 3: the room relay was the one branch that skipped auth — a revoked token could keep relaying
         const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
       else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
-      else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return; const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
+      else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return;
+        // 30 Sep 2026 hardening: at most 6 chat lines per 10 s per ACCOUNT across all its sockets (one socket could wipe the
+        // 100-line history in ~25 s, and N sockets multiplied that).
+        { const key=ws._uid||('ip:'+(ws._ipKey||'')); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);
+          if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
         if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); writeDB();
