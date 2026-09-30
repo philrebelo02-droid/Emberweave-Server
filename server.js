@@ -186,7 +186,11 @@ function tokHash(t){ return crypto.createHash('sha256').update(String(t)).digest
    restart used to disappear with the debounced write, logging them out and, for a new account,
    losing the account itself. Issuing a token is rare; make it durable. */
 function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; writeDBNow(); return raw; }
-function lookupToken(raw){ if(!raw) return null; const e=DB.tokens[tokHash(raw)]||DB.tokens[raw];
+function lookupToken(raw){ if(!raw) return null;
+  /* 30 Sep 2026 hardening: `||DB.tokens[raw]` let the stored HASH itself sign in - and every backup (GitHub push,
+     /api/admin/backup, backups/db-*.json) holds those hashes, admins included. Only a pre-migration plaintext
+     straggler (a string value) may still be looked up by its raw key; migrateTokenHashes clears those at boot. */
+  const e=DB.tokens[tokHash(raw)]||(typeof DB.tokens[raw]==='string'?DB.tokens[raw]:null);
   if(!e) return null;
   if(typeof e==='string') return e;                              // pre-migration straggler
   if(e.exp && Date.now()>e.exp){ delete DB.tokens[tokHash(raw)]; writeDB(); return null; }
@@ -3384,6 +3388,8 @@ async function api(req,res,url){
     let u = deviceId && DB.guestByDevice[deviceId] && DB.users[DB.guestByDevice[deviceId]];
     if(u && !u.guest){ u=null; if(deviceId) delete DB.guestByDevice[deviceId]; }   // was upgraded to a real account → make a fresh guest
     if(!u){
+      // 30 Sep 2026 hardening: 20/min per IP still allowed ~28,800 real accounts a day per IP (each a full DB write).
+      if(rateLimited(req,'guestday',15,86400000)) return send(res,429,{error:'Too many new guest accounts from this network today.'});
       const id=uid(); let name; do{ name='Guest-'+crypto.randomBytes(2).toString('hex').toUpperCase(); }while(DB.byName[name.toLowerCase()]);
       u={ id, name, guest:true, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
           roster:{}, lastDaily:0,
@@ -3400,11 +3406,15 @@ async function api(req,res,url){
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     const id=DB.byName[(b.name||'').trim().toLowerCase()];
     const u=id&&DB.users[id]; if(!u) return send(res,401,{error:'Wrong name or password'});
+    // 30 Sep 2026 hardening: 10 wrong passwords in an hour lock THIS account for 15 min, from any IP.
+    const lf=u.loginFails&&Date.now()-u.loginFails.t<3600000?u.loginFails:{n:0,t:Date.now()};
+    if(lf.until&&Date.now()<lf.until) return send(res,429,{error:'Too many wrong passwords for this account — try again in 15 minutes.'});
     // SECURITY (audit crit #1): the old `if(u.mustReset)` branch returned BEFORE the password check,
     // so knowing an account name was enough to set a new password and get a live token — account
     // takeover. It is deleted. Password recovery goes through the verified email flow only
     // (/api/reset-request → /api/reset-verify), which requires a one-time code sent to the account's email.
-    if(!checkPass(u,b.pass)) return send(res,401,{error:'Wrong name or password'});
+    if(!checkPass(u,b.pass)){ lf.n++; if(lf.n>=10) lf.until=Date.now()+15*60000; u.loginFails=lf; writeDB(); return send(res,401,{error:'Wrong name or password'}); }
+    delete u.loginFails;
     if(!u.iters){ const c=makeCred(b.pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
     dropTokens(id);   // single session: signing in here kicks any other device
     const tok=issueToken(id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -3414,7 +3424,11 @@ async function api(req,res,url){
   if(p==='/api/reset-request' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
     const id=DB.byName[(b.name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
-    if(u && !u.isNpc && u.email){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+    // 30 Sep 2026 hardening: at most 5 codes and 10 wrong guesses per account per 24 h, whatever the IP -
+    // before, every new code reset tries to 0, so many IPs could brute-force the 6 digits.
+    const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
+    if(u && !u.isNpc && u.email && rl.codes<5 && rl.bad<10){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+      rl.codes++; u.resetLog=rl;
       u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
       sendResetEmail(u.email, u.name, code); }
     return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration
@@ -3427,7 +3441,8 @@ async function api(req,res,url){
     if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return send(res,400,{error:'That code expired — request a new one.'}); }
     if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return send(res,400,{error:'Too many wrong codes — request a new one.'}); }
     const code=(b.code||'').toString().replace(/\D/g,'');
-    if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
+    if(u.resetLog && Date.now()-u.resetLog.t<86400000 && u.resetLog.bad>=10){ delete u.reset; writeDB(); return send(res,400,{error:'Too many wrong codes today — try again tomorrow.'}); }
+    if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog) u.resetLog.bad=(u.resetLog.bad||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
     const np=(b.newPass||'').toString(); if(np.length<8) return send(res,400,{error:'New password must be at least 8 characters.'});
     const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
     dropTokens(id); const tok=issueToken(id); writeDB();   // invalidate other sessions, sign this one in
@@ -7032,7 +7047,9 @@ try{
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
   WSS.on('connection', ws=>{
-    ws.on('message', raw=>{ if(raw && raw.length>WS_MSG_MAX) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
+    ws.on('message', raw=>{ try{ if(raw && raw.length>WS_MSG_MAX) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
+      // 30 Sep 2026 hardening: the frame `null` threw at m.t below and, uncaught inside a ws handler, killed the whole server.
+      if(!m || typeof m!=='object' || Array.isArray(m)) return;
       const _isAct=(m && m.t==='act') ? (String(m.kind||'')==='abandon' ? 2 : 1) : 0;
       if(!wsRateOk(ws, _isAct)){ if(_isAct) wsend(ws,{t:'actack', seq:(m.seq|0), ok:false, reason:'rate'}); return; }
       // RE-AUDIT (26 Aug): the token is REVALIDATED on every frame (the client sends it on every
@@ -7064,8 +7081,8 @@ try{
         wsend(ws, Object.assign({t:'actack', seq:(m.seq|0)}, r));
         return;
       }
-      if(m.t==='host'){ if(wsNeedAuth(ws)) return; const c=roomCode(); rooms[c]={host:ws,guest:null,t:Date.now()}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
-      else if(m.t==='join'){ if(wsNeedAuth(ws)) return; const c=(m.code||'').toUpperCase(); const r=rooms[c];
+      if(m.t==='host'){ if(wsNeedAuth(ws)) return; if(ws._room && rooms[ws._room] && rooms[ws._room].host===ws) delete rooms[ws._room]; const c=roomCode(); rooms[c]={host:ws,guest:null,t:Date.now()}; ws._room=c; ws._role='host'; wsend(ws,{t:'hosted',code:c}); }
+      else if(m.t==='join'){ if(wsNeedAuth(ws)) return; const c=String(m.code||'').slice(0,12).toUpperCase(); const r=rooms[c];
         if(!r){ wsend(ws,{t:'joinfail',reason:'no such room'}); return; }
         if(r.guest){ wsend(ws,{t:'joinfail',reason:'room full'}); return; }
         r.guest=ws; ws._room=c; ws._role='guest'; r.t=Date.now(); wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
@@ -7080,7 +7097,7 @@ try{
       else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
         const fromName=ws._acctName||ws._chatName||'Player';
         WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt})); }catch(e){} } }); }
-    });
+    }catch(e){ console.error('⚠ ws frame refused (handler error): '+(e&&e.message)); } });
     ws.on('close', ()=>{ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
     ws.on('error', ()=>{});
   });
@@ -7090,6 +7107,14 @@ try{
   if(_roomPrune.unref) _roomPrune.unref();
 }catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
+/* 30 Sep 2026 hardening: last line of defence. One bad frame used to be one crash (and systemd gives up after 5 in 10 s).
+   A stray error is logged and the server keeps serving; 20 inside a minute means something is really broken -> exit for a clean restart. */
+let _fatalN=0, _fatalT=0;
+function _backstop(kind, e){ const now=Date.now(); if(now-_fatalT>60000){ _fatalT=now; _fatalN=0; } _fatalN++;
+  console.error('⚠ '+kind+' (#'+_fatalN+' this minute): '+(e&&e.stack||e));
+  if(_fatalN>=20){ console.error('⚠ 20 errors in a minute - exiting for a clean restart'); try{ writeDBNow(); }catch(_){} process.exit(1); } }
+process.on('uncaughtException', e=>_backstop('uncaughtException', e));
+process.on('unhandledRejection', e=>_backstop('unhandledRejection', e));
 campCompile(); portalCompile(); vaultCompile(); provCompile(); readDB(); pgInit();   /* v663: provCompile — Training Province */
 const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(e){ return 0; } })();   // v327: sampled BEFORE seed()/migrations can refresh the file's mtime
 /* v327 (critical): boot used to seed + writeDB() synchronously while the PG restore was still awaiting
