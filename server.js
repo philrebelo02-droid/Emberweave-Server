@@ -107,6 +107,15 @@ function writeDB(){ if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: s
 
 /* ------------------------------- helpers ---------------------------------- */
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
+/* 30 Sep 2026 hardening: a NEW name (account or guild) may not carry invisible or direction-flipping characters, stacks of
+   combining marks, or a reserved name - 'Ph\u200Bil' or 'Emberweave' in chat read as the real thing. Existing names are untouched. */
+const RESERVED_NAMES=new Set(['phil','admin','administrator','emberweave','ember','dev','developer','mod','moderator','system','support','staff','xanthyr','claude','chatgpt','grok','kimi']);
+function badNewName(n){ const s=String(n||'');
+  if(/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff]/.test(s)) return 'That name uses hidden characters — please use normal letters.';
+  if(/\p{M}{2,}/u.test(s)) return 'That name has too many accent marks stacked together.';
+  const plain=s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+  if(RESERVED_NAMES.has(plain) || /^guest[0-9a-f]{0,4}$/.test(plain)) return 'That name is reserved — please choose another.';
+  return ''; }
 function hashPass(pass, salt, iters){ return crypto.pbkdf2Sync(pass, salt, iters||60000, 32, 'sha256').toString('hex'); }
 // AUDIT (26 Aug, high): 60k PBKDF2 is below current guidance. NEW password hashes use 210k iterations
 // with a 16-byte salt and store their iteration count on the account; old 60k hashes keep verifying
@@ -2982,14 +2991,14 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
    runaway loop, not a design limit. */
 const EARN_RULES={
   frag:{ arena:{max:10,day:60}, signin:{max:20,day:40}, stars:{max:200,day:600} },
-  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, stars:{max:1500,day:6000}, pack:{max:200,day:600} },
+  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, stars:{max:1500,day:6000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{ signin:{max:200,day:2000}, tower:{max:500,day:5000}, gauntlet:{max:500,day:5000},
          stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
-         wish:{max:500,day:8000}, quest:{max:500,day:4000}, convert:{max:1000,day:6000},
-         pack:{max:20000,day:60000}, misc:{max:200,day:2000}, arenashop:{max:40,day:800} },
+         quest:{max:500,day:4000}, convert:{max:1000,day:6000},
+         pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
-         stars:{max:200000,day:2000000}, city:{max:100000,day:1000000}, wish:{max:100000,day:1000000},
-         quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000}, misc:{max:50000,day:500000},
+         stars:{max:200000,day:2000000}, city:{max:100000,day:1000000},
+         quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000},   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
   guildCoins:{ march:{max:40,day:400} } };
@@ -3330,6 +3339,7 @@ async function api(req,res,url){
       dailyCaps:{ cityAttacks:20, vaultSweeps:2, trainingProvincePlays:PROV_PLAYS, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
     }); }
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
+    { const why=badNewName(name); if(why) return send(res,400,{error:why}); }
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
@@ -6795,6 +6805,8 @@ async function api(req,res,url){
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps,
           boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
+      // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.
+      if(me.raidDay && me.raidDay.d===r.day && (me.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       if(r.hp<=0) return send(res,400,{error:'This boss is already down — the next tier is spawning.'});
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad.'});
@@ -6810,6 +6822,7 @@ async function api(req,res,url){
          level rises with the tier so his damage keeps pace with the guilds fighting him. */
       const bossLvl=raidBossLvl(r.level);
       r.used[me.id]=((r.used[me.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
+      me.raidDay={ d:r.day, n:((me.raidDay&&me.raidDay.d===r.day)?(me.raidDay.n|0):0)+1 };
       r.att[me.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
         startedAt:Date.now(), reqId, tier:r.level, bossKey:bb.key, bossHp:r.hp, bossLvl };
       writeDB();
@@ -6867,7 +6880,7 @@ async function api(req,res,url){
          {level:9999,rank:999} still inflated raid damage ~560×. Power now comes from the ledger. */
       let power=Math.max(1,Math.min(5000000, ledgerTeamPower(me)||1));
       const dmg=Math.max(1, Math.round(power*(1.4+Math.random()*0.8)));
-      r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1;
+      r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1; me.raidDay={ d:r.day, n:((me.raidDay&&me.raidDay.d===r.day)?(me.raidDay.n|0):0)+1 };
       let killed=false, reward=null;
       if(r.hp<=0){ killed=true; const lv=r.level;
         g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
