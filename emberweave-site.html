@@ -25,7 +25,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=lumi1">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=lumi1">
-<link rel="preload" as="image" href="/assets/img/miscellaneous/splash-v2.jpg">
+<link rel="preload" as="image" href="/assets/img/miscellaneous/splash-wide-v1.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
@@ -65,11 +65,11 @@
   /* Phil 29 Sep: never crop the heroes. The art keeps its whole 16:9 frame (sized by the screen's height on wide,
      short windows) and the spare width either side is a blurred copy of the same art. */
   /* Phil 29 Sep: the blurred copy looked weird - the spare width is a lava-cave glow the art melts into, with embers rising */
-  .splash{background:#0f0a07}   /* plain until ChatGPT's painted wide splash lands (Phil: ember glow was bad) */
-  .splash .art{-webkit-mask-image:linear-gradient(90deg,#0000 0,#000 7%,#000 93%,#0000 100%);mask-image:linear-gradient(90deg,#0000 0,#000 7%,#000 93%,#0000 100%)}
-  @media (max-aspect-ratio:16/9.6){ .splash .art{-webkit-mask-image:none;mask-image:none} }
+  /* ChatGPT's painted wide splash (29 Sep): the whole cave scene fills any width; the 16:9 box only sets the height, so
+     the heroes (23%-79% of the painting) always sit inside the visible 59% at 16:9 and more cave shows on wider screens */
+  .splash{background:#0f0a07 center/cover no-repeat url('/assets/img/miscellaneous/splash-wide-v1.webp')}
   #embers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
-  .splash .art{position:relative;width:min(100%,calc(92vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;overflow:hidden;background:#000 center/cover no-repeat url('/assets/img/miscellaneous/splash-v2.jpg')}
+  .splash .art{position:static;width:min(100%,calc(92vh * 16 / 9));margin:0 auto;aspect-ratio:16/9;overflow:hidden}
   .splash video,.splash .still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .splash video{opacity:0;transition:opacity 1s}
   .splash video.on{opacity:1}
@@ -173,7 +173,6 @@
 <main id="top">
   <div class="splash">
     <div class="art" role="img" aria-label="Emberweave Heroes - six heroes in an ember cave beneath the golden title">
-      <video id="splashVid" muted loop playsinline preload="none" poster="/assets/img/miscellaneous/splash-v2.jpg" aria-hidden="true"></video>
       <div class="fade"></div>
     </div>
   </div>
