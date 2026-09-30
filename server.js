@@ -7061,8 +7061,8 @@ try{
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
   /* 30 Sep 2026 hardening: no cap on sockets meant one machine could open thousands, and half-open ones were never
-     dropped. At most 12 per IP (a family on one router still fits); a 30 s ping drops sockets that stop answering. */
-  const _wsPerIp=new Map(), WS_PER_IP=12;
+     dropped. At most 20 per IP (a household on one router still fits); a 30 s ping drops sockets that stop answering. */
+  const _wsPerIp=new Map(), WS_PER_IP=20;   // 20 not 12: a home shares one IP (Phil's house runs the game + Ember's tester)
   const _wsBeat=setInterval(()=>{ WSS.clients.forEach(c=>{ if(c._alive===false){ try{ c.terminate(); }catch(e){} return; } c._alive=false; try{ c.ping(); }catch(e){} }); }, 30000);
   if(_wsBeat.unref) _wsBeat.unref();
   WSS.on('connection', (ws, req)=>{
