@@ -10109,10 +10109,20 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
       if(u.range>60)spawnShot(u,tgt,u.t.color); break; }
 
     case 'orbheal':{                                                // "sends her orb between allies, healing each one"
-      const hs=(u.apow||0)*(o.mul||0.35)*sm; let i=0;
+      /* v860 (Grok's Drifting Constellation art, 1 Oct): the HEALS are unchanged and still land at once - the server replays
+         this fight without a 3D scene, so the game logic must not depend on art timing. Only the ART travels: Grok's star
+         orb leaves the caster, drifts to the nearest ally, bursts there, then on to the next-nearest unvisited ally, until
+         every ally has been visited. Without the orb art the old per-ally bursts show instead. */
+      const hs=(u.apow||0)*(o.mul||0.35)*sm; let i=0; const visited=[];
       alliesOf(u).forEach(a=>{ if(!a.alive)return; i++;
-        healFrom(u,a,hs); if(o.hot)pushHot(a,a.maxHp*(o.hot||0.02),o.dur||4,1);
-        burstAt(a.x,a.y,0x8fd8ff,8); });
+        healFrom(u,a,hs); if(o.hot)pushHot(a,a.maxHp*(o.hot||0.02),o.dur||4,1); visited.push(a); });
+      const canFly=(o.gfx&&typeof FX2_DEF!=='undefined'&&FX2_DEF[o.gfx]&&typeof spawnProjFx==='function'&&typeof TH!=='undefined'&&TH&&typeof scene!=='undefined'&&scene);
+      if(!canFly){ visited.forEach(a=>burstAt(a.x,a.y,0x8fd8ff,8)); }
+      else{ const left=visited.slice(); let from=u; const hop=()=>{ let nx=null,nd=1e9; for(const a of left){ const dd=dist(from,a); if(dd<nd){nd=dd;nx=a;} }
+          if(!nx)return; left.splice(left.indexOf(nx),1); const src=from, dst=nx;
+          try{ window._projTgtU=dst; window._fxCaster=u; spawnProjFx(o.gfx,src.x,src.y,dst.x,dst.y,o.pscale||3.2,Math.max(0.18,Math.min(0.6,dist(src,dst)/(14*METER))),()=>{ burstAt(dst.x,dst.y,0x8fd8ff,8); from=dst; hop(); },1.6*gsplitFxMul()); }
+          catch(e){ burstAt(dst.x,dst.y,0x8fd8ff,8); from=dst; hop(); } };
+        hop(); }
       if(i)floatTexts.push({x:u.x,y:u.y-16,txt:'CONSTELLATION',t:1.0,color:'#8fd8ff',vy:1,sz:11}); break; }
 
     case 'sleepbouquet':{                                           // "puts the highest-energy enemy to sleep"
@@ -10780,7 +10790,7 @@ const FX2_DEF={
   lysara_blue:{u:'/assets/anim/fx/lysara_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   meryln_blue:{u:'/assets/anim/fx/meryln_blue.webp?v=32',n:48,fw:505,fh:587,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
-  nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=2',n:48,fw:210,fh:187,cols:6,rows:8,dur:6.04},   // v860 Grok: Drifting Constellation - the star orb that drifts ally to ally (projectile, see orbheal)
   nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=2',n:48,fw:210,fh:108,cols:6,rows:8,dur:5.79,cone:true,coneFoot:0.29},   // v859 Grok: Resonant Star; fork tip 0.29 in from the back edge
   orryn_blue:{u:'/assets/anim/fx/orryn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.79,disc:{cy:0.502,dh:0.672,dw:0.884}},
   pellucid_blue:{u:'/assets/anim/fx/pellucid_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -25011,7 +25021,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790828526806';
+const BUILD_ID = '1790830775017';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
