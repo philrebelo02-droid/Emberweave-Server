@@ -9051,6 +9051,12 @@ function damage(u,a,c,noEnergy,crit){
   if(u.glyphDR)a*=(1-u.glyphDR);          // Armor / Magic Resist glyphs
   if(u.pass&&u.pass.bulwark)a*=(1-0.18*(u.passMul||1));   // passive mitigation (scales with skill level)
   if(u.pass&&u.pass.warden&&u.wardenStk)a*=(1-Math.min(0.20,0.04*(u.passMul||1)*u.wardenStk));   // Adamant Discipline: stacking armour/MR
+  /* v894 - Unmovable Mass: every 3 direct hits build a molten-armour stack (max 5), and the stacks cut damage taken */
+  if(u.pass&&u.pass.unmovable){ if(!noEnergy){ u._mmHits=(u._mmHits||0)+1; if(u._mmHits>=3&&(u.wardenStk||0)<5){ u._mmHits=0; u.wardenStk=(u.wardenStk||0)+1;
+      try{ firePassiveFx(u); ringBurst(u.x,u.y,0x6fb7c9,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#6fb7c9',vy:1}); }catch(_e){} } }
+    if(u.wardenStk) a*=(1-Math.min(0.20,0.04*(u.passMul||1)*u.wardenStk)); }
+  /* v894 - Layered Hide: each direct hit hardens one layer (was never counted) */
+  if(u.pass&&u.pass.layered&&!noEnergy&&!((u._layT||0)>0)) u._layStk=(u._layStk||0)+1;
 
   /* v527 Relentless Digger (Deepcleft): being hit winds him up; control winds him up twice as fast.
      Pride's Momentum (Chainwheel Gladiator): what he blocks is loaded into his next swing. */
@@ -10237,7 +10243,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
 
     case 'rewind':{                                                 // "restores every ally to the health they had several seconds earlier"
       const back=o.back||5;
-      alliesOf(u).forEach(a=>{ const h=a._hpHist&&a._hpHist.length?a._hpHist[0]:null; if(h==null)return;
+      units.filter(a=>a.team===u.team&&!a._dropHidden&&!a._summon).forEach(a=>{ const h=a._hpHist&&a._hpHist.length?a._hpHist[0]:null; if(h==null)return;   /* v894 - the fallen too: the revive could never run */
         if(a.alive){ if(h>a.hp){ healFrom(u,a,h-a.hp); burstAt(a.x,a.y,0xf0c86a,12); } }
         else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*(o.revive||0.4)));
           a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0;
@@ -12696,10 +12702,7 @@ function updateBattle(dt){
     // Pelagic Insight (Nerisse): every spell she casts leaves her a little harder to hurt.
     if(u.pass.pelagic){ if((u._piT||0)>0){ u._piT-=dt; if(u._piT<=0&&u._piAdd){ u.glyphDR=Math.max(0,(u.glyphDR||0)-u._piAdd); u._piAdd=0; } } }
     // Unmovable Mass (Pellucid Rook): he cannot be shifted, and every blow builds molten armour.
-    if(u.pass.unmovable){ u._airT=0; u.pullT=0;
-      u.wardenT=(u.wardenT||0)+dt; if(u.wardenT>=3 && (u.wardenStk||0)<5){ u.wardenT-=3; u.wardenStk=(u.wardenStk||0)+1;
-        firePassiveFx(u);
-        ringBurst(u.x,u.y,0x6fb7c9,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#6fb7c9',vy:1}); } }
+    if(u.pass.unmovable){ u._airT=0; u.pullT=0; u.immovable=true; }   /* v894 - immovable; the armour now builds from hits taken (damage()) */
     // Skeleton-Key Savant (Nox): keys accumulate, and the fifth unlocks the next ability outright.
     if(u.pass.skeletonkey){ if((u._keys||0)>=5 && !u._masterT){ u._masterT=1;
         u.critDmg=(u.critDmg||0.6)+0.05; u.evaStat=Math.min(0.5,(u.evaStat||0)+0.03);   // permanent Fortune
@@ -25231,7 +25234,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790871757111';
+const BUILD_ID = '1790871981503';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
