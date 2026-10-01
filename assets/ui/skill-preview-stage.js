@@ -71,41 +71,31 @@
         let sx=nw*0.14, sy=nh*0.12, sw=nw*0.72, sh=nh*0.62;   /* v906 (Phil: "zoom them in a bit") */ const want=W/H; if(sw/sh>want){ const nsw=sh*want; sx+=(sw-nsw)/2; sw=nsw; } else { const nsh=sw/want; sy+=(sh-nsh)/2; sh=nsh; }
         g.drawImage(bg,sx,sy,sw,sh,0,0,W,H); }
       else { const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#24324a'); gr.addColorStop(1,'#3b2f22'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
-      const sp=st.sp, clip=st.clip, t=(now-st.t0)/1000;
-      const clipDur=clip?Math.min(2.4,clip.n/((clip.fps||12)*1.5)):0.8;
-      const rel=st.idx===3?0.3:Math.min(clipDur,Math.max(0.2,sp.cast/1.5));
-      const fx=fxDef(sp.gfx), pf=fxDef(sp.pfx);
-      const travel=sp.shot?0.35:0;
-      const fxDur=fx?Math.min(2.2,(fx.dur||1.6)/1.5):0.6;
-      const period=Math.max(clipDur,rel+travel+fxDur)+0.9;
-      const tt=t%period, hitT=rel+travel;
-      // positions (centred group): heroes left, monsters right
-      const base=H*0.86, uh=H*0.53;   /* v906: zoomed in */
-      const hero={x:W*0.36,f:base,h:uh*1.05}, mates=[{x:W*0.16,f:base-H*0.1,h:uh*0.88},{x:W*0.22,f:base+H*0.08,h:uh*0.93}];
-      const foes=[{x:W*0.63,f:base,h:uh},{x:W*0.79,f:base-H*0.1,h:uh*0.88},{x:W*0.84,f:base+H*0.08,h:uh*0.93}];
-      const hitTargets=sp.mode==='single'?[foes[0]]:(sp.mode==='aoe'||sp.mode==='cone')?foes:[];
-      const healed=sp.mode==='team'?[hero,...mates]:sp.mode==='self'?[hero]:[];
-      const draw=[];
-      mates.forEach((m,i)=>{ const c=st.mates[i]&&anim(st.mates[i]); if(c&&c.idle) draw.push({f:m.f,fn:()=>drawUnit(g,c.idle,Math.floor(t*(c.idle.fps||12))%c.idle.n,m.x,m.f,m.h,true,(healed.includes(m)&&tt>hitT&&tt<hitT+0.5)?'rgba(120,255,170,.28)':null)}); });
-      { const an=anim(st.key); const casting=clip&&tt<clipDur; const c=casting?clip:(an&&an.idle); if(c){ const fr=casting?Math.floor(tt/clipDur*c.n):Math.floor(t*(c.fps||12))%c.n; draw.push({f:hero.f,fn:()=>drawUnit(g,c,fr,hero.x,hero.f,hero.h,true,(healed.includes(hero)&&tt>hitT&&tt<hitT+0.5)?'rgba(120,255,170,.28)':null)}); } }
-      foes.forEach((m,i)=>{ const c=anim(FOES[i]); if(!c||!c.idle) return; const hit=hitTargets.includes(m)&&tt>hitT&&tt<hitT+0.45; const hc=hit&&c.hit?c.hit:c.idle;
-        const fr=hit&&c.hit?Math.floor((tt-hitT)/0.45*c.hit.n):Math.floor(t*(c.idle.fps||12)+i*5)%c.idle.n;
-        draw.push({f:m.f,fn:()=>drawUnit(g,hc,fr,m.x+(hit?5:0),m.f,m.h,false,hit?'rgba(255,90,60,.30)':null)}); });
-      /* v906 (Phil: "Spell art should be under the heroes and enemy"): the spell art is painted first, the figures stand over it */
-      // the projectile, then the spell art where it lands
-      if(sp.shot&&tt>rel&&tt<hitT){ const k=(tt-rel)/travel, x0=hero.x+W*0.04, y0=hero.f-hero.h*0.55, x1=foes[0].x, y1=foes[0].f-foes[0].h*0.5;
-        if(pf){ const fr=Math.floor(k*pf.n*0.999); drawFx(g,pf,fr,x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.4,false,Math.atan2(y1-y0,x1-x0)); }
-        else { g.fillStyle='rgba(255,220,140,.9)'; g.beginPath(); g.arc(x0+(x1-x0)*k,y0+(y1-y0)*k,4,0,6.283); g.fill(); } }
-      if(fx&&tt>=hitT&&tt<hitT+fxDur){ const fr=Math.floor((tt-hitT)/fxDur*fx.n);
-        if(sp.mode==='single') drawFx(g,fx,fr,foes[0].x,foes[0].f,fx.upright?H*0.7:W*0.22,false,0);
-        else if(sp.mode==='aoe') drawFx(g,fx,fr,(foes[0].x+foes[1].x+foes[2].x)/3,base,fx.upright?H*0.82:W*0.36,false,0);
-        else if(sp.mode==='cone') drawFx(g,fx,fr,(hero.x+foes[0].x)/2,hero.f-hero.h*0.4,W*0.42,false,0);
-        else if(sp.mode==='team') drawFx(g,fx,fr,(hero.x+mates[0].x+mates[1].x)/3,base,fx.upright?H*0.82:W*0.34,false,0);
-        else drawFx(g,fx,fr,hero.x,hero.f,fx.upright?H*0.7:W*0.2,false,0); }
-      else if(!fx&&tt>=hitT&&tt<hitT+0.7){ const k=(tt-hitT)/0.7, list=sp.mode==='team'?[hero,...mates]:sp.mode==='self'?[hero]:hitTargets;   // no art yet: a soft glow where it lands
-        list.forEach(m=>{ const r=m.h*(0.35+0.4*k), gr=g.createRadialGradient(m.x,m.f-m.h*0.4,0,m.x,m.f-m.h*0.4,r);
-          const col=(sp.mode==='team'||sp.mode==='self')?'120,255,170':'255,190,90'; gr.addColorStop(0,'rgba('+col+','+(0.55*(1-k))+')'); gr.addColorStop(1,'rgba('+col+',0)'); g.fillStyle=gr; g.beginPath(); g.arc(m.x,m.f-m.h*0.4,r,0,6.283); g.fill(); }); }
-      draw.sort((a,b)=>a.f-b.f).forEach(d=>d.fn());
+      /* v907 (Phil 1 Oct: "Just do the hero by itself doing the spell animation then the spell FX next to it timed perfectly to go off
+         over a 6 second clip" / "Any buffs go over their own head"): one hero, one spell, a 6 s loop. The clip plays at its own speed;
+         the spell's art goes off at the moment the clip releases it (the same cast time the fight uses) and plays out inside the 6 s -
+         beside the hero for an attack, over the hero's head for a buff, heal or passive. */
+      const sp=st.sp, clip=st.clip, t=(now-st.t0)/1000, LOOP=6;
+      const tt=t%LOOP, fx=fxDef(sp.gfx), pf=fxDef(sp.pfx);
+      const buff=(sp.mode==='self'||sp.mode==='team');
+      const clipDur=clip?Math.min(4,clip.n/(clip.fps||12)):1;
+      const rel=st.idx===3?0.4:Math.min(clipDur,Math.max(0.2,sp.cast||0.5));
+      const travel=(!buff&&sp.shot&&pf)?0.3:0, fxStart=rel+travel;
+      const fxDur=fx?Math.max(0.6,Math.min(fx.dur||1.6,LOOP-fxStart-0.3)):0;
+      const base=H*0.94, hero=buff?{x:W*0.5,f:base,h:H*0.52}:{x:W*0.3,f:H*0.92,h:H*0.66};
+      const spot=buff?{x:hero.x,f:base-hero.h*1.02}:{x:W*0.7,f:H*0.8};   // a buff sits just above the head
+      const aboveSize=H*0.3;
+      const drawSpell=()=>{
+        if(travel&&tt>=rel&&tt<fxStart){ const k=(tt-rel)/travel, x0=hero.x+W*0.06, y0=hero.f-hero.h*0.55, x1=spot.x, y1=spot.f-hero.h*0.45;
+          drawFx(g,pf,Math.floor(k*pf.n*0.999),x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.45,false,Math.atan2(y1-y0,x1-x0)); }
+        if(fx&&tt>=fxStart&&tt<fxStart+fxDur){ const fr=Math.floor((tt-fxStart)/fxDur*fx.n);
+          if(buff){ const s=aboveSize, im=img(fx.u); if(im){ const r=frameRect(fx,fr), sc=s/Math.max(r[2],r[3]); g.drawImage(im,r[0],r[1],r[2],r[3],spot.x-r[2]*sc/2,spot.f-r[3]*sc,r[2]*sc,r[3]*sc); } }
+          else drawFx(g,fx,fr,spot.x,spot.f,fx.upright?H*0.86:(fx.disc?W*0.42:H*0.7),false,0); }
+        else if(!fx&&tt>=fxStart&&tt<fxStart+0.9){ const k=(tt-fxStart)/0.9, r=H*(0.1+0.2*k), cy=buff?spot.f-aboveSize*0.5:spot.f-hero.h*0.4, gr=g.createRadialGradient(spot.x,cy,0,spot.x,cy,r);
+          const col=buff?'140,255,180':'255,215,140'; gr.addColorStop(0,'rgba('+col+','+(0.6*(1-k))+')'); gr.addColorStop(1,'rgba('+col+',0)'); g.fillStyle=gr; g.beginPath(); g.arc(spot.x,cy,r,0,6.283); g.fill(); } };
+      if(!buff) drawSpell();   // an attack's art is under the hero's feet line; a buff is drawn over the head, after the hero
+      { const an=anim(st.key); const casting=clip&&tt<clipDur; const c=casting?clip:(an&&an.idle); if(c){ const fr=casting?Math.floor(tt/clipDur*c.n):Math.floor(t*(c.fps||12))%c.n; drawUnit(g,c,fr,hero.x,hero.f,hero.h,true,null); } }
+      if(buff) drawSpell();
       requestAnimationFrame(loop); }
     requestAnimationFrame(loop);
     cur=st; return st; }
