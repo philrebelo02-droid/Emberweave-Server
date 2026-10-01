@@ -17276,50 +17276,62 @@ async function pushWatchReport(){
   const mine=myWatchMarches();
   try{ await api('/api/watch/report','POST',{ attacks:mine.attacks, defends:mine.defends, scouts:mine.scouts }); }catch(e){}
 }
+let _watchRenderSequence=0;
 async function renderWatchTower(){
-  const b=document.getElementById('watchBody'); if(!b)return;
-  // tab chrome
+  const b=document.getElementById('watchBody');if(!b)return;
+  const sequence=++_watchRenderSequence,token=ACC.token,tab=_watchTab;
   document.querySelectorAll('#watchTabs button[data-wt]').forEach(btn=>{
-    const on=btn.dataset.wt===_watchTab; btn.className='btn sm'+(on?'':' secondary');
-    btn.onclick=()=>{ _watchTab=btn.dataset.wt; renderWatchTower(); };
+    btn.className='btn sm'+(btn.dataset.wt===tab?'':' secondary');
+    btn.onclick=()=>{_watchTab=btn.dataset.wt;renderWatchTower();};
   });
-  b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">Loading…</div>';
+  const empty=t=>`<div class="panel" style="font-size:12px;padding:14px">${escapeHTML(t)}</div>`;
+  if(!token){b.innerHTML=empty('Sign in to share live activity with your guild.');return;}
+  b.innerHTML=empty('Loading…');
   const mine=myWatchMarches();
-  let mates=[], scoutedBy=[], guilded=false;
-  if(ACC.token){
-    await pushWatchReport();
-    try{ const d=await api('/api/watch'); if(d){ mates=d.mates||[]; scoutedBy=d.scoutedBy||[]; guilded=!!d.guilded; } }catch(e){}
-  }
-  const line=(who,tgt,eta,ret,you)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 8px;border-radius:6px;${you?'background:#1a2b1f;border:1px solid #2f5e3f':'border-bottom:1px solid #222b40'}">
-    <span><b style="color:${you?'#5ee89b':'#cdd6e4'}">${escapeHTML(who)}</b>${you?' (you)':''} → ${escapeHTML(tgt)}</span>
-    <span style="color:#8b98a9">${ret?'↩ returning':(eta!=null?'⏱ '+fmtDur(eta):'')}</span></div>`;
-  const empty=t=>`<div class="panel" style="color:#8b98a9;font-size:12px;text-align:center;padding:14px">${t}</div>`;
+  await pushWatchReport();
+  const [reported,recorded]=await Promise.all([
+    api('/api/watch').catch(()=>null),api('/api/watch/world','GET').catch(()=>null)
+  ]);
+  if(sequence!==_watchRenderSequence||token!==ACC.token||tab!==_watchTab)return;
+  const mates=Array.isArray(reported?.mates)?reported.mates:[];
+  const scoutedBy=Array.isArray(reported?.scoutedBy)?reported.scoutedBy:[];
+  const line=(who,target,status,you)=>`<div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:6px 8px;${you?'background:#1a2b1f;':''}"><span><b>${escapeHTML(who)}</b>${you?' (you)':''} → ${escapeHTML(target)}</span><span>${escapeHTML(status)}</span></div>`;
+  const reportLine=(who,a,you)=>line(who,a.name||'?',a.ret?'Returning (reported)':a.eta!=null?'Reported ETA '+fmtDur(a.eta):'Reported',you);
   let html='';
-  if(!ACC.token){ b.innerHTML=empty('Sign in to share live activity with your guild.'); return; }
-
-  if(_watchTab==='attack'){
-    const rows=[];
-    // your attacks pinned top
-    mine.attacks.forEach(a=>rows.push(line(ACC.name||'You', a.name, a.eta, a.ret, true)));
-    mates.filter(w=>!w.you).forEach(w=>(w.attacks||[]).forEach(a=>rows.push(line(w.name, a.name, a.eta, a.ret, false))));
-    html = `<div class="panel"><div style="font-weight:800;margin-bottom:6px">⚔ Attacks in progress</div>${rows.length?rows.join(''):'<div style="color:#8b98a9;font-size:12px">No active attacks.</div>'}</div>`;
-    if(!guilded) html+=empty('Join a guild to see your guildmates’ attacks here.');
-  } else if(_watchTab==='defend'){
-    const rows=[];
-    mine.defends.forEach(a=>rows.push(line(ACC.name||'You', a.name, a.eta, a.ret, true)));
-    mates.filter(w=>!w.you).forEach(w=>(w.defends||[]).forEach(a=>rows.push(line(w.name, a.name, a.eta, a.ret, false))));
-    html = `<div class="panel"><div style="font-weight:800;margin-bottom:6px">🛡 Guild defenses</div>${rows.length?rows.join(''):'<div style="color:#8b98a9;font-size:12px">No one is defending right now.</div>'}</div>`;
-    if(!guilded) html+=empty('Join a guild to coordinate defenses.');
-  } else {
-    // scout tab: my scouts + who is scouting me
-    const outRows=mine.scouts.map(a=>line(ACC.name||'You', a.name, a.eta, a.ret, true));
-    const inRows=scoutedBy.map(s=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 8px;border-bottom:1px solid #222b40">
-      <span>🔭 <b style="color:#ff9a6b">${escapeHTML(s.by)}</b> is scouting you</span><span style="color:#8b98a9">${s.eta!=null?'⏱ '+fmtDur(s.eta):''}</span></div>`);
-    html = `<div class="panel"><div style="font-weight:800;margin-bottom:6px">🔭 Your scouts</div>${outRows.length?outRows.join(''):'<div style="color:#8b98a9;font-size:12px">No scouts out.</div>'}</div>`
-         + `<div class="panel"><div style="font-weight:800;margin-bottom:6px">👁 Incoming scouts</div>${inRows.length?inRows.join(''):'<div style="color:#8b98a9;font-size:12px">No one is scouting you.</div>'}</div>`;
+  if(tab==='attack'){
+    const trusted=recorded?.ok&&!recorded.locked&&recorded.source==='server-recorded'&&Array.isArray(recorded.mates);
+    if(trusted){
+      const rows=[];
+      recorded.mates.forEach(w=>(Array.isArray(w.marches)?w.marches:[]).forEach(m=>{
+        if(m.kind!=='city'&&m.kind!=='mine')return;
+        const target=m.kind==='mine'?`Lv ${m.level??'?'} ${m.resource||'resource'} mine`:`City ${m.defId||'target'}`;
+        const status=m.resolveReady?'Outcome awaiting resolution':m.phase==='returning'?'Returning · home in '+fmtDur(m.homeInMs):'Arrival in '+fmtDur(m.arriveInMs);
+        rows.push(line(w.name||'Player',target,status,!!w.you));
+      }));
+      html='<div class="panel"><div style="font-weight:800;margin-bottom:6px">Server-recorded attacks and mine trips</div>'+ (rows.join('')||'<div>No active server-recorded trips.</div>')+'</div>';
+      if(!recorded.guilded)html+=empty('Join a guild to see your guildmates’ server-recorded trips.');
+    }else if(recorded?.locked){
+      html=empty('Server-recorded trips unlock at Lv '+(recorded.needLevel||20)+'.');
+    }else{
+      const rows=mine.attacks.map(a=>reportLine(ACC.name||'You',a,true));
+      mates.filter(w=>!w.you).forEach(w=>(w.attacks||[]).forEach(a=>rows.push(reportLine(w.name,a,false))));
+      html='<div class="panel"><b>Reported (stale)</b>'+(rows.join('')||'<div>No reported attacks.</div>')+'</div>';
+    }
+  }else if(tab==='defend'){
+    const rows=mine.defends.map(a=>reportLine(ACC.name||'You',a,true));
+    mates.filter(w=>!w.you).forEach(w=>(w.defends||[]).forEach(a=>rows.push(reportLine(w.name,a,false))));
+    html='<div class="panel"><b>Reported defenses</b>'+(rows.join('')||'<div>No reported defenses.</div>')+'</div>';
+    if(!reported)html+=empty('Guild reports unavailable.');
+  }else{
+    const outgoing=mine.scouts.map(a=>reportLine(ACC.name||'You',a,true));
+    const incoming=scoutedBy.map(s=>line(s.by||'Player','Scouting you',s.eta!=null?'Reported ETA '+fmtDur(s.eta):'Reported',false));
+    html='<div class="panel"><b>Your reported scouts</b>'+(outgoing.join('')||'<div>No scouts out.</div>')+'</div><div class="panel"><b>Incoming reports</b>'+(incoming.join('')||'<div>No incoming reports.</div>')+'</div>';
+    if(!reported)html+=empty('Guild reports unavailable.');
   }
-  b.innerHTML=html;
+  b.innerHTML='<button class="btn sm secondary" data-watch-refresh>Refresh</button>'+html;
+  const refresh=b.querySelector('[data-watch-refresh]');if(refresh)refresh.onclick=()=>renderWatchTower();
 }
+
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
@@ -25047,7 +25059,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790837706277';
+const BUILD_ID = '1790838296434';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
