@@ -27,12 +27,12 @@ assert.deepEqual([89,90,129,130].map(cy=>L.zoneOf(L.center(45),L.center(cy))),
   ['crystor','wildW','wildW','tefron'],'vertical region/wild edges');
 assert.equal(L.zoneOf(L.center(110),L.center(110)),'worldtree','center void is 40×40');
 assert.equal(L.valid({...at('crystor',0),region:'alumron'}),false);
-assert.equal(terrain.cells.length,995,'approved crystal and World Tree outline is complete');
+assert.equal(terrain.cells.length,331,'crystals-only outline (v900, Phil 1 Oct) plus the World Tree ring');
 const terrainKeys=new Set(terrain.cells);
 assert.equal(terrainKeys.size,terrain.cells.length,'terrain-blocked cells are unique');
 assert.ok(terrainKeys.has('110,110')&&terrainKeys.has('115,110')&&terrainKeys.has('105,110'),
   'World Tree centre and symmetrical protected ring are blocked');
-const from={x:L.center(85),y:L.center(98)};
+const from={x:L.center(89),y:L.center(96)};
 assert.ok(terrainKeys.has(L.cellKey(from.x,from.y)),'crystal footprint contains the fixture square');
 const nearest=L.nearestOpen('crystor',from.x,from.y,terrainKeys);
 assert.ok(nearest&&L.targetAllowed('crystor',nearest.x,nearest.y));
@@ -42,9 +42,9 @@ let best=Infinity;
 for(let cy=0;cy<L.GRID_COLS;cy++) for(let cx=0;cx<L.GRID_COLS;cx++){
   const x=L.center(cx),y=L.center(cy);
   if(terrainKeys.has(cx+','+cy)||!L.targetAllowed('crystor',x,y)) continue;
-  best=Math.min(best,(cx-85)**2+(cy-98)**2);
+  best=Math.min(best,(cx-89)**2+(cy-96)**2);
 }
-assert.equal((L.cellIndex(nearest.x)-85)**2+(L.cellIndex(nearest.y)-98)**2,best,
+assert.equal((L.cellIndex(nearest.x)-89)**2+(L.cellIndex(nearest.y)-96)**2,best,
   'boot migration chooses the nearest permissible square');
 const tied=L.place([],max=>max-1);
 assert.ok(L.REGION_KEYS.includes(tied.region),'a tie picks an eligible region');
