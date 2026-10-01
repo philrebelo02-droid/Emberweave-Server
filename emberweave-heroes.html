@@ -9356,6 +9356,12 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
      radius whenever the radius is a real circle (≤ 8 m). gfxR only sizes the sentinel/"everyone" abilities (Shade Nova
      15 m, Ignite All 99999). 23 abilities were drawing a smaller circle than they actually hit. */
   const R = (o.artR>0) ? o.artR : ((o.radius>0 && o.radius<=30*METER) ? o.radius : (o.gfxR || 2.4*METER));   /* v451: 15/20/25 m AoEs draw at their real size; only sentinels fall back to gfxR. v483: artR = explicit art size (Umbris Shadeburst covered the whole screen) */
+  /* v859 (Grok, 1 Oct - Calypsa's Fighting Current): `feet:{off,r}` draws the SAME ground disc under EACH of the caster's
+     feet - two copies, off metres either side of her, r metres each - flat on the ground under the hero, for the ability's
+     own duration. */
+  { const _fd=FX2_DEF[o.gfx]; if(_fd&&_fd.feet&&u&&u.alive!==false){ const _fl=o.dur||_fd.dur||1.6, _fr=(_fd.feet.r||0.55)*METER, _fo=(_fd.feet.off||0.28)*METER;
+      for(const _s of [-1,1]){ try{ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; spawnGroundFx(o.gfx, u.x+_s*_fo, u.y, _fr, _fl); }catch(e){} }
+      return; } }
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
   try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!((_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef); window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
@@ -10775,7 +10781,7 @@ const FX2_DEF={
   lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   meryln_blue:{u:'/assets/anim/fx/meryln_blue.webp?v=32',n:48,fw:505,fh:587,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
   nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
-  nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
+  nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=2',n:48,fw:210,fh:108,cols:6,rows:8,dur:5.79,cone:true,coneFoot:0.29},   // v859 Grok: Resonant Star; fork tip 0.29 in from the back edge
   orryn_blue:{u:'/assets/anim/fx/orryn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.79,disc:{cy:0.502,dh:0.672,dw:0.884}},
   pellucid_blue:{u:'/assets/anim/fx/pellucid_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   pellucid_green:{u:'/assets/anim/fx/pellucid_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.498,dh:0.578,dw:0.894}},
@@ -10856,7 +10862,7 @@ const FX2_DEF={
   bloatus_green:{u:'/assets/anim/fx/bloatus_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.04,cone:true,coneFoot:0.05},
   cacklefang_blue:{u:'/assets/anim/fx/cacklefang_blue.webp?v=32',n:48,fw:474,fh:479,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.973,upAnchor:[0.5,0.0],ro:1},
   cacklefang_green:{u:'/assets/anim/fx/cacklefang_green.webp?v=32',n:48,fw:578,fh:548,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
-  calypsa_blue:{u:'/assets/anim/fx/calypsa_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  calypsa_blue:{u:'/assets/anim/fx/calypsa_blue.webp?v=2',n:48,fw:210,fh:100,cols:6,rows:8,dur:5.0,disc:{cy:0.465,dh:0.53,dw:0.54},feet:{off:0.28,r:0.55}},   // v859 Grok: Fighting Current - a water swirl under each foot
   calypsa_green:{u:'/assets/anim/fx/calypsa_green.webp?v=32',n:48,fw:680,fh:645,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
   carn_blue:{u:'/assets/anim/fx/carn_blue.webp?v=32',n:48,fw:375,fh:467,cols:6,rows:8,dur:1.6,disc:{cy:0.537,dh:0.28,dw:0.885}},
   carn_green:{u:'/assets/anim/fx/carn_green.webp?v=32',n:48,fw:307,fh:334,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.951,upAnchor:[0.5,0.0],ro:1},
@@ -20583,8 +20589,8 @@ function drawMarches(){
    Mines scatter across the 4 regions and refresh every epoch. Send a hero squad to mine one —
    they're "marching" (committed) for travel + gather + travel, so they can't defend the wall or
    join another march until home. Higher-level mines yield more but demand more squad power / level. */
-const MINE_IMGS = { iron:'/assets/img/miscellaneous/mine-iron.png', crystal:'/assets/img/miscellaneous/mine-crystal.png', silver:'/assets/img/miscellaneous/mine-silver.png', coal:'/assets/img/miscellaneous/mine-coal.png' };
-const MINE_ICONS = { iron:'/assets/img/miscellaneous/mine-icons-iron.png', crystal:'/assets/img/miscellaneous/mine-icons-crystal.png', silver:'/assets/img/miscellaneous/mine-icons-silver.png', coal:'/assets/img/miscellaneous/mine-icons-coal.png' };   // tiny versions for inline resource icons
+const MINE_IMGS = { iron:'/assets/img/miscellaneous/mine-iron.png?v=mapnodes1', crystal:'/assets/img/miscellaneous/mine-crystal.png?v=mapnodes1', silver:'/assets/img/miscellaneous/mine-silver.png?v=mapnodes1', coal:'/assets/img/miscellaneous/mine-coal.png?v=mapnodes1' };
+const MINE_ICONS = { iron:'/assets/img/miscellaneous/mine-icons-iron.png?v=mapnodes1', crystal:'/assets/img/miscellaneous/mine-icons-crystal.png?v=mapnodes1', silver:'/assets/img/miscellaneous/mine-icons-silver.png?v=mapnodes1', coal:'/assets/img/miscellaneous/mine-icons-coal.png?v=mapnodes1' };   // tiny versions for inline resource icons
 const MINE_EPOCH_MS = 8*3600000;        // the field of mines relocates/refreshes every 8 hours
 const MINE_COUNT = 240;                  // mine nodes scattered across the WHOLE map per epoch (dense: ~1 per few tiles)
 function mnResName(k){ const r=RES.find(x=>x[0]===k); return r?r[2]:k; }
@@ -20646,8 +20652,8 @@ function worldMines(){ const ep=mineEpoch(); if(_mineCache&&_mineCacheEpoch===ep
   }
   _mineCache=out; _mineCacheEpoch=ep; return out; }
 // tiny resource icon: uses the mine art at a small size, falls back to the emoji before art is injected
-function resIconHtml(k,px){ px=px||16; const img=(MINE_ICONS[k]&&MINE_ICONS[k].indexOf('data:image')===0)?MINE_ICONS[k]:MINE_IMGS[k];
-  return (img&&img.indexOf('data:image')===0) ? `<img src="${img}" style="width:${px}px;height:${px}px;object-fit:contain;vertical-align:middle;display:inline-block">` : mnResIcon(k); }
+function resIconHtml(k,px){ px=px||16; const img=MINE_ICONS[k]||MINE_IMGS[k];
+  return img ? `<img src="${img}" style="width:${px}px;height:${px}px;object-fit:contain;vertical-align:middle;display:inline-block">` : mnResIcon(k); }
 function mineClaimedSet(){ if(G.mineEpoch!==mineEpoch()){ G.mineEpoch=mineEpoch(); G.mineClaimed=[]; } if(!Array.isArray(G.mineClaimed))G.mineClaimed=[]; return G.mineClaimed; }
 function mineIsActive(id){ const now=Date.now(); return activeMarches().some(m=>m.ctype==='mine'&&m.mineId===id&&now<m.home); }
 function mineAvailable(m){ return !mineClaimedSet().includes(m.id) && !mineIsActive(m.id); }
@@ -20656,7 +20662,7 @@ function mineLabel(m){ return 'Lv '+m.level+' '+mnResName(m.res)+' Mine'; }
 function drawMines(inner){ if(!inner)return;
   worldMines().forEach(m=>{ if(!mineAvailable(m))return;
     const el=document.createElement('div'); el.className='wnode mine'; el.style.left=m.x+'%'; el.style.top=m.y+'%';
-    const img=MINE_IMGS[m.res]; const pic=(img&&img.indexOf('data:image')===0)?`<img src="${img}" style="height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}⛏</div>`;
+    const img=MINE_IMGS[m.res]; const pic=img?`<img src="${img}" style="height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}⛏</div>`;
     el.innerHTML=`${pic}<div class="wlab"><div class="nl" style="color:${mnResColor(m.res)};font-weight:800">${mnResName(m.res)}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${m.level} ${'★'.repeat(m.level)}</div></div>`;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); openMineInfo(m); };
     inner.appendChild(el); }); }
@@ -25005,7 +25011,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790825113297';
+const BUILD_ID = '1790828526806';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
