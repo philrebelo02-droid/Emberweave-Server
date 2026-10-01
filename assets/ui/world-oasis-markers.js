@@ -25,10 +25,12 @@
       if(!rows||!inner.isConnected)return false;
       inner.querySelectorAll('.worldOasisMarker').forEach(el=>el.remove());
       for(const s of rows){
-        const el=inner.ownerDocument.createElement('div'),b=s.bounds;
-        el.className='worldOasisMarker';el.dataset.siteId=s.id;el.textContent='⛲';
-        el.setAttribute('aria-label',s.direction+' oasis');
-        el.style.cssText='position:absolute;left:'+b.left+'%;top:'+b.top+'%;width:'+(b.right-b.left)+'%;height:'+(b.bottom-b.top)+'%;box-sizing:border-box;border:1px solid #8fffd9;border-radius:25%;background:radial-gradient(ellipse,#37cabb 0%,#177c77 48%,#3a5d48 72%);display:flex;align-items:center;justify-content:center;font-size:clamp(8px,1vw,18px);z-index:3;pointer-events:none;overflow:hidden';
+        const el=inner.ownerDocument.createElement('img'),b=s.bounds;
+        el.className='worldOasisMarker';el.dataset.siteId=s.id;
+        el.src='/assets/img/world-map/oases/oasis-'+s.direction+'-painted-01oct-v1.webp';
+        el.alt=s.direction+' healing oasis';el.draggable=false;el.decoding='async';
+        el.onerror=()=>el.remove();
+        el.style.cssText='position:absolute;left:'+b.left+'%;top:'+b.top+'%;width:'+(b.right-b.left)+'%;height:'+(b.bottom-b.top)+'%;object-fit:contain;z-index:3;pointer-events:none';
         inner.appendChild(el);
       }
       return true;
