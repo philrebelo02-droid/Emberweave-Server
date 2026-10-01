@@ -9643,9 +9643,14 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'volley':{const _vt=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||3);
       /* v527 - Marked Deal throws every card into ONE target and the last one marks it. */
       const _one=!!o.single, _list=_one?(_vt.length?[_vt[0]]:[]):_vt, _reps=_one?(o.n||3):1;
-      for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{dealDamage(u,e,dB*(o.mul||.9)*rm,'#5ee89b');abilShot(u,o,e,u.t.color);});
-      if(o.mark&&_list.length){ const m=_list[0]; m._markT=Math.max(m._markT||0,o.markDur||6); m._markMul=Math.max(m._markMul||1,o.mark);
-        floatTexts.push({x:m.x,y:m.y-8,txt:'MARKED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }
+      /* v891 - each projectile's damage lands when IT arrives (o.pdur), not at the cast */
+      const _pd=o.pdur||0.30, _VD=dB*(o.mul||.9)*rm;
+      for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ const _fire=function(){ if(!e.alive)return; abilShot(u,o,e,u.t.color);
+          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive) dealDamage(u,e,_VD,'#5ee89b'); }}); };
+        if(_r===0) _fire(); else groundHazards.push({arrival:true,delay:_r*0.15,run:_fire}); });
+      if(o.mark&&_list.length){ const m=_list[0]; groundHazards.push({arrival:true,delay:(_reps-1)*0.15+_pd,run:function(){ if(!m.alive)return;
+        m._markT=Math.max(m._markT||0,o.markDur||6); m._markMul=Math.max(m._markMul||1,o.mark);
+        floatTexts.push({x:m.x,y:m.y-8,txt:'MARKED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }}); }
       break;}
     case 'nova':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
@@ -9679,7 +9684,10 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
         dealDamage(u,prime,_sD*0.40*pm,'#ffe08a');
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
         break; }
-      enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{dealDamage(u,e,dB*(o.mul||1.6)*rm,'#5ee89b');abilShot(u,o,e,'#5ee89b');});break;}
+      { const _pd=o.pdur||0.30, _MD=dB*(o.mul||1.6)*rm;   /* v891 - each shot's damage lands when it arrives */
+        enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{ abilShot(u,o,e,'#5ee89b');
+          groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive) dealDamage(u,e,_MD,'#5ee89b'); }}); }); }
+      break;}
     /* CHOIR OF THE DEEP SKY — Nerisse's aimed orb. No damage; nearest ally to each silenced enemy heals. */
     case 'deepchoir':{ const R=o.radius||8*METER, C=aimCtr||((tgt&&tgt.alive)?tgt:(nearestEnemy(u)||u));
       /* v795 (Phil: "anyone in a different row can interrupt her channel restoring allies
@@ -25210,7 +25218,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790871088237';
+const BUILD_ID = '1790871326567';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
