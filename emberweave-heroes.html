@@ -4657,7 +4657,7 @@ const ULT_DEF={finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,sh
   rewind:{back:5,revive:0.4}
 };
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
-const ABILITY_CAST={ konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
+const ABILITY_CAST={ vael:{ult:0.3}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
 /* v481 (audit): per-HERO ultimate text — the shared type text named the wrong hero or weapon (Nerisse's ult read "Oakmir calls the first bloom…", Carn's read "three cuts with both daggers"). */
@@ -5515,7 +5515,7 @@ let _inputQ=[];        // actions taken this frame, applied on the next tick bou
 let REPLAY_IN=null;    // when set, the fight is driven by a recorded log instead of live input
 let _riIdx=0;
 function battleInputsReset(){ autoPendingTarget=null; simTick=0; _uidSeq=0; INPUT_LOG=[]; _inputQ=[]; _riIdx=0;
-  _actSeq=0; _actRejects=[]; _actSched={}; _actSent={}; _actWait=0; _actWaitFrom=0; _actWaitAt=0; _actStreamOn=false; _stallOn=false; _stallOff=false; }
+  _actOpt={}; _actSeq=0; _actRejects=[]; _actSched={}; _actSent={}; _actWait=0; _actWaitFrom=0; _actWaitAt=0; _actStreamOn=false; _stallOn=false; _stallOff=false; }
 function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i++) if(units[i].uid===uid) return units[i]; return null; }
 /* record + queue one player action. Aim is stored in FIELD coordinates and by target uid — never in
    screen coordinates, which depend on the device's viewport and zoom. */
@@ -5529,13 +5529,14 @@ function unitByUid(uid){ if(uid==null) return null; for(let i=0;i<units.length;i
    hitch on a bad connection, never a battle that disagrees with its own record. With no socket at
    all we fall back to applying locally and submitting the log, and the server says so in the result
    (`transcript: submitted-log`), so a report can never blur the two. */
+let _actOpt={};   /* v897: taps applied at once, waiting only for the server to agree on the tick */
 let _actSeq=0, _actRejects=[], _actSched={}, _actSent={}, _actWait=0, _actWaitFrom=0, _actWaitAt=0, _actStreamOn=false, _actDrift=0;
 let _stallOn=false, _stallOff=false;   // v327: is the server's clock currently held, and has an old server refused to hold it
 function actStreamLive(){ return _actStreamOn && (ACC&&ACC.token) && typeof chatNetSend==='function'
   && typeof CHATNET!=='undefined' && CHATNET.ws && CHATNET.ws.readyState===1; }
 function actSend(o){ try{ return chatNetSend(Object.assign({t:'act', sessionId:CUR.attemptId}, o)); }catch(e){ return false; } }
 function actBegin(){
-  _actStreamOn=false; _actSched={}; _actWait=0; _actSeq=0; _actRejects=[];
+  _actStreamOn=false; _actSched={}; _actOpt={}; _actWait=0; _actSeq=0; _actRejects=[];
   if(!(ACC&&ACC.token)) return;
   if(!(CUR&&CUR.mode==='campaign'&&CUR.attemptId)) return;
   if(!(typeof CHATNET!=='undefined' && CHATNET.ws && CHATNET.ws.readyState===1)) return;
@@ -5546,7 +5547,8 @@ function actBegin(){
 function streamAct(inp){
   if(!actStreamLive()) return false;
   _actSeq++;
-  const ok=actSend({ seq:_actSeq, tick:simTick,   // tick is diagnostics; the server assigns the real one
+  const _opt=(inp.k==='ult'||inp.k==='gear');   /* v897: a tap lands on the tick it was pressed */
+  const ok=actSend({ seq:_actSeq, tick:simTick, opt:(_opt?1:0),   // ult/gear: the tick asked for; anything else: diagnostics
     kind:(inp.k==='auto'?'auto':inp.k), casterUid:(inp.uid==null?-1:inp.uid),
     targetUid:(inp.tid==null?-1:inp.tid), value:(inp.k==='auto'?(inp.tid?1:0):0),
     wx:(inp.wx==null?null:inp.wx), wy:(inp.wy==null?null:inp.wy) });
@@ -5559,6 +5561,10 @@ function streamAct(inp){
     if(_actStreamOn){ try{ actGiveUp(); }catch(e){} }
     _actStreamOn=false;
     return false; }
+  if(_opt){ const T=simTick; _actOpt[_actSeq]=T; (_actSched[T]=_actSched[T]||[]).push(inp);
+    if(INPUT_LOG.length<400) INPUT_LOG.push([T, inp.k, (inp.uid==null?-1:inp.uid), (inp.tid==null?-1:inp.tid),
+      (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]);
+    return true; }
   _actSent[_actSeq]=inp;
   _actWait++; if(_actWait===1){ _actWaitFrom=simTick; _actWaitAt=Date.now(); }
   return true;
@@ -5582,6 +5588,11 @@ function onActAck(m){
   /* v327: a stall receipt (seq 0) is out of band — it must never touch the pending-action
      bookkeeping below. A server that does not know the kind refuses it once, and we stop sending. */
   if(m.stall || (m.seq|0)===0){ if(m.ok===false && m.reason!=='not-begun') _stallOff=true; return; }
+  /* v897: an instant tap. Agreed -> nothing to do. Refused or moved -> this fight resolves from the local log (already has it). */
+  if(_actOpt[m.seq]!=null){ const T=_actOpt[m.seq]; delete _actOpt[m.seq];
+    if(m.ok===false||(m.tick|0)!==T){ _actRejects.push({seq:m.seq, reason:(m.ok===false?m.reason:'tick-moved'), t:Date.now()});
+      if(_actStreamOn){ try{ actGiveUp(); }catch(e){} } }
+    return; }
   if(m.ok===false){ _actRejects.push({seq:m.seq, reason:m.reason, t:Date.now()});
     if(_actRejects.length>20) _actRejects.shift();
     if(_actWait>0) _actWait--;
@@ -24703,7 +24714,8 @@ function attachUltPress(el,u,relayMode){
     const ab=u.abilityOverride||u.t.ability;
     { const why=ultBlockedReason(u); if(why){ try{ floatTexts.push({x:u.x,y:u.y-18,txt:why.toUpperCase(),t:1.2,color:'#ffb347',vy:1,sz:11}); }catch(_){} notReady(); return; } }   // v538: Feed Them with no pack etc.
     if(ULT_AIMED.includes(ab)){ enterAim(u); holdAim=true; sx=e.clientX; sy=e.clientY; moved=false; hideAbilityTip(); try{el.setPointerCapture(e.pointerId);}catch(_){} }
-    else { pending=true; }
+    else { pending=false; hideAbilityTip();   /* v897 (Phil): a no-aim ult fires on the PRESS, not the release */
+      if(relayMode) relay({k:'ult',id:u.id,tid:-1}); else queueInput({k:'ult', uid:u.uid, tid:((u.target&&u.target.alive)?u.target.uid:null), wx:null, wy:null}); }
   });
   el.addEventListener('pointermove',(e)=>{ if(!holdAim)return; e.preventDefault();
     if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>8) moved=true;
@@ -25247,7 +25259,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790872469367';
+const BUILD_ID = '1790873857015';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

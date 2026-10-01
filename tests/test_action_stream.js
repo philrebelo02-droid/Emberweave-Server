@@ -127,6 +127,25 @@ const ackFor=(acks,seq)=>acks.filter(a=>a.seq===seq).pop();   // the LATEST rece
      o2.transcript==='submitted-log-after-stream-loss', String(o2.transcript));
   S2.ws.close();
 
+  /* --- v897: an ult tap lands on the tick it was pressed (Phil: "activate it instantly") ------- */
+  const st3=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:SQUAD,requestId:rid()},T);
+  const S3=await sock(T);
+  S3.send({t:'act', sessionId:st3.attemptId, seq:1, kind:'begin'}); await wait(150);
+  await wait(800);                                    // the clock is now ~20 ticks on
+  S3.send({t:'act', sessionId:st3.attemptId, seq:2, tick:18, opt:1, kind:'ult', casterUid:0, targetUid:3}); await wait(150);
+  const o1=ackFor(S3.acks,2);
+  ck('an instant ult tap keeps the tick it was pressed on', o1 && o1.ok===true && o1.tick===18, JSON.stringify(o1));
+  S3.send({t:'act', sessionId:st3.attemptId, seq:3, tick:5000, opt:1, kind:'ult', casterUid:1, targetUid:3}); await wait(150);
+  const o2b=ackFor(S3.acks,3);
+  ck('a tap far ahead of the session clock does not get its tick', o2b && o2b.ok===true && o2b.tick!==5000 && o2b.tick<200, JSON.stringify(o2b));
+  S3.send({t:'act', sessionId:st3.attemptId, seq:4, tick:2, opt:1, kind:'ult', casterUid:2, targetUid:3}); await wait(150);
+  const o3=ackFor(S3.acks,4);
+  ck('a tap before the last accepted action does not get its tick', o3 && o3.ok===true && o3.tick!==2 && o3.tick>=o2b.tick, JSON.stringify(o3));
+  S3.send({t:'act', sessionId:st3.attemptId, seq:5, tick:o3.tick, kind:'auto', casterUid:-1, targetUid:-1, value:1, opt:1}); await wait(150);
+  const o4=ackFor(S3.acks,5);
+  ck('only ult/gear taps may name their tick (auto still gets the server delay)', o4 && o4.ok===true && o4.tick>o3.tick, JSON.stringify(o4));
+  S3.ws.close();
+
   S.ws.close();
   console.log(''); console.log('PASS: '+pass+'  FAIL: '+fail);
   process.exit(fail?1:0);

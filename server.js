@@ -2571,6 +2571,7 @@ function findOpenSession(u, sid){
    If the round trip is slower than that, the client holds the simulation rather than guessing — a
    brief hitch on a bad network, never a fight that disagrees with its own record. */
 const STALL_BUDGET_MS=24*60*60*1000; // match the full attempt lifetime so pause/aim cannot desync the server clock
+const ACT_OPT_BACK=45, ACT_OPT_FWD=20;   // v897: how far a tap's own tick may sit from the session clock
 const ACT_INPUT_DELAY=9;               // ≈300 ms of headroom at the client's real tick rate
 const SIM_HZ_SRV=30, BATTLE_PACE_SRV=0.82;   // must match the client's constants exactly
 function sessionClock(a){
@@ -2683,6 +2684,12 @@ function streamAction(u, m, ws){
   let acceptedTick=Math.ceil(c.tick)+ACT_INPUT_DELAY;
   if(acceptedTick<=lastTick) acceptedTick=lastTick+1;
   if(acceptedTick>SIM_TICK_MAX) return bad('past-the-end');
+  /* v897 (Phil 1 Oct: "Clicking an ult should activate it instantly"): an ult/gear tap is applied by the client on the tick it
+     was pressed. Accept that tick when it is plausible against this clock - not before the last action, at most ACT_OPT_BACK
+     behind and ACT_OPT_FWD ahead. Otherwise the server's own tick stands, the client sees the mismatch and resolves from its
+     log. The fight is the player's either way (server never decides fights, 28 Sep). */
+  if(m.opt && (kind==='ult'||kind==='gear')){ const ct=m.tick|0;
+    if(ct>=Math.max(0,lastTick) && ct>=Math.floor(c.tick)-ACT_OPT_BACK && ct<=Math.ceil(c.tick)+ACT_OPT_FWD && ct<=SIM_TICK_MAX) acceptedTick=ct; }
 
   if(kind==='speed'){
     const v=+m.value; const sp=(v===0.5||v===1||v===2)?v:null;
