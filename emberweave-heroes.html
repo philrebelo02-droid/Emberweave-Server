@@ -2589,7 +2589,7 @@ const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHA
 const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1790342893337",11:ART_BASE+"Campaign/ch11.webp?v=1790342893337",12:ART_BASE+"Campaign/ch12.webp?v=1790342893337",13:ART_BASE+"Campaign/ch13.webp?v=1790342893337",14:ART_BASE+"Campaign/ch14.webp?v=1790342893337",15:ART_BASE+"Campaign/ch15.webp?v=1790342893337",16:ART_BASE+"Campaign/ch16.webp?v=1790342893337"};
-const CHAPTER_MAP_BOSS_KEYS=[null,'brukk','miregor','wintercrag','nerissa','sable vesper','vharok','maelvara','orryx','nameless admiral','irix'];
+const CHAPTER_MAP_BOSS_KEYS=[null,'brukk','miregor','wintercrag','nerissa','sable vesper','vharok','maelvara','orryx','nameless admiral','barrowmaw','asterion','nymira','kharos','thorneveil','magmourn','irix'];   // v883: all 16 chapters, the x-10 boss in server/campaign-encounters.json
 const CHAPTER_VETERAN_BOSS_KEYS={1:'irix'}; // authored Veteran 1-10; future entries follow the server encounter table
 const CH_WIDE_MAPS={1:ART_BASE+"Campaign/ch1-wide-v1.webp",2:ART_BASE+"Campaign/ch2-wide-v1.webp",3:ART_BASE+"Campaign/ch3-wide-v1.webp",4:ART_BASE+"Campaign/ch4-wide-v1.webp",5:ART_BASE+"Campaign/ch5-wide-v1.webp",6:ART_BASE+"Campaign/ch6-wide-v1.webp",7:ART_BASE+"Campaign/ch7-wide-v1.webp",8:ART_BASE+"Campaign/ch8-wide-v1.webp",9:ART_BASE+"Campaign/ch9-wide-v1.webp",16:ART_BASE+"Campaign/ch16-wide-v1.webp?v=1790342893337"};
 const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024],11:[1536,1024],12:[1536,1024],13:[1536,1024],14:[1536,1024],15:[1536,1024],16:[1536,1024]};
@@ -11925,7 +11925,13 @@ const CHAPTER_BOSS_CUE=[   /* v337: one boss per chapter, each its own monster �
   'Maelvara claws in threes and drops a cyclone that slows the field — do not stand still in it',        // 7  Maelvara, Stormnest Matriarch
   'Orryx charges and hurls three glass axes down the line — spread out, he cannot be moved',             // 8  Orryx, the Glass Minotaur
   'The Admiral\'s broadside pierces the whole line and his anchor drags a hero in — burst him early',    // 9  The Nameless Admiral
-  'Irix rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish'];    // 10 Irix, the Sky-Shard Roc
+  'Barrowmaw breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front',   // 10 Barrowmaw
+  'Asterion throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops',   // 11 Asterion
+  'Nymira\'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst',   // 12 Nymira
+  'Kharos stacks deep bleeds with his blades, slips behind whoever strikes him and executes the weakest — keep hitting him and heal the wounded',   // 13 Kharos Bloomknife
+  'Thorneveil sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse',   // 14 Thorneveil
+  'Magmourn hurls fireballs into your group and sets every hero burning at once — spread out and bring healing',   // 15 Magmourn
+  'Irix rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish'];    // 16 Irix, the Sky-Shard Roc (v883: was slot 10)
 
 function bossCueFor(u){
   try{
@@ -23076,7 +23082,7 @@ async function provSweep(t){
 /* leave a province fight / squad screen back to the Floating Isle with the province card open */
 function provBackToCard(t){ show('skyisland'); setTimeout(()=>{ try{ openProvince(t||'gold'); }catch(e){} },0); }
 /* the boss's one mechanic cue for the intro banner (in-game names only) */
-function provBossCue(k){ const ch={brukk:0,miregor:1,wintercrag:2,nerissa:3,'sable vesper':4,vharok:5,maelvara:6,orryx:7,'nameless admiral':8,irix:9};
+function provBossCue(k){ const ch={brukk:0,miregor:1,wintercrag:2,nerissa:3,'sable vesper':4,vharok:5,maelvara:6,orryx:7,'nameless admiral':8,barrowmaw:9,asterion:10,nymira:11,kharos:12,thorneveil:13,magmourn:14,irix:15};   /* v883: the 16-chapter cue list */
   if(ch[k]!=null && typeof CHAPTER_BOSS_CUE!=='undefined') return CHAPTER_BOSS_CUE[ch[k]]||null;
   return ({ barrowmaw:'Barrowmaw breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front',
     asterion:'Asterion throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops',
@@ -25130,7 +25136,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790864571100';
+const BUILD_ID = '1790865223937';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
