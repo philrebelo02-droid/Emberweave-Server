@@ -27,6 +27,7 @@ const WORLD_MARCH_ROUTE=require('./server/world-march-route.js');
 const WORLD_WATCH_STATE=require('./server/world-watch-state.js');
 const WORLD_LOCATION=require('./server/world-location.js');
 const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
+const WORLD_TREE_SITES=require('./server/world-tree-sites.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
 const TEMPLE=require('./server/temple-of-ash.js');
 const TEMPLE_EFFECTS=require('./server/temple-effects.js');
@@ -6304,6 +6305,14 @@ async function api(req,res,url){
       return {...worldView(me,now),ledger:ledgerView(me)};
     });
     return send(res,out.ok?200:400,out);
+  }
+  if(p==='/api/world-tree/sites'){
+    if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
+    res.setHeader('Cache-Control','no-store');
+    try{
+      // Read only: no environment anchor or save callback, so an absent calendar stays absent.
+      return send(res,200,WORLD_TREE_SITES.snapshot(WORLD_TREE_CALENDAR.snapshot(DB)));
+    }catch(error){console.error('World Tree sites:',error.message);return send(res,503,{error:'World Tree sites unavailable'});}
   }
   if(p==='/api/world-tree/status'){
     if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
