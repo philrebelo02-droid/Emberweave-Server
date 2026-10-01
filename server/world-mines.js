@@ -1,7 +1,9 @@
 'use strict';
 
-// Mirrors the client map's deterministic eight-hour field. Keep order and RNG calls exact.
+// Server-owned deterministic eight-hour field; pre-cutover fields retain exact legacy RNG/IDs.
 const EPOCH_MS=8*3600000, COUNT=240, GRID_COLS=220, GRID_CELL=100/GRID_COLS;
+const TERRAIN_CUTOVER_EPOCH=62184;
+const TERRAIN_BLOCKED=new Set(require('./world-terrain-blocked.json').cells);
 const EDGES=[0,90,130,GRID_COLS];
 const RESOURCES=['iron','crystal','silver','coal'];
 const ZONES=[
@@ -21,6 +23,7 @@ function field(epoch){
     const z=ZONES[row][col];
     if(z.type==='worldtree') continue;
     const square=gx+','+gy;
+    if(epoch>=TERRAIN_CUTOVER_EPOCH&&TERRAIN_BLOCKED.has(square)) continue;
     if(occupied.has(square)) continue;
     occupied.add(square);
     const fx=(gx-EDGES[col])/(EDGES[col+1]-EDGES[col]);
