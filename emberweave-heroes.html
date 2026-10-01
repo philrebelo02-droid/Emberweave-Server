@@ -10918,7 +10918,7 @@ const FX2_DEF={
   verdantshade_blue:{u:'/assets/anim/fx/verdantshade_blue.webp?v=2',n:48,fw:620,fh:593,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
   verdantshade_green:{u:'/assets/anim/fx/verdantshade_green.webp?v=2',n:48,fw:370,fh:408,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
   vex_blue:{u:'/assets/anim/fx/vex_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.25,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vex_green:{u:'/assets/anim/fx/vex_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.58,cone:true,coneFoot:0.05},
+  vex_green:{u:'/assets/anim/fx/vex_green.webp?v=21',n:48,fw:300,fh:236,cols:6,rows:8,dur:2.0,cone:true,coneFoot:0.05},
   veyr_blue:{u:'/assets/anim/fx/veyr_blue.webp?v=21',n:48,fw:265,fh:300,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   veyr_green:{u:'/assets/anim/fx/veyr_green.webp?v=21',n:48,fw:286,fh:300,cols:6,rows:8,dur:3.33,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vharn_green:{u:'/assets/anim/fx/vharn_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,cone:true,coneFoot:0.05},
@@ -11092,7 +11092,7 @@ const FX2_DEF={
      backdrop. This is deliberately the exception to the ro:1 default, not a mistake to tidy up. */
   vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=25',n:48,fw:204,fh:243,cols:6,rows:8,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.21,disc:{cy:0.498,dh:0.391,dw:0.912}},
+  waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=21',n:48,fw:299,fh:300,cols:6,rows:8,dur:2.0,disc:{cy:0.5,dh:0.95,dw:0.95}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_ult:{u:'/assets/anim/fx/waxenduchess_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.5,disc:{cy:0.498,dh:0.622,dw:0.919}},
   ironcoil_ult:{u:'/assets/anim/fx/ironcoil_ult.webp?v=24',n:48,fw:706,fh:750,cols:6,rows:8,dur:5.88,disc:{cy:0.511,dh:0.553,dw:0.875}},
@@ -25285,7 +25285,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790892435612';
+const BUILD_ID = '1790892848537';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
