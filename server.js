@@ -29,6 +29,8 @@ const WORLD_WATCH_STATE=require('./server/world-watch-state.js');
 const WORLD_LOCATION=require('./server/world-location.js');
 const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
 const WORLD_TREE_SITES=require('./server/world-tree-sites.js');
+const WORLD_TREE_CONTROL=require('./server/world-tree-control.js');
+const WORLD_TREE_BATTLE=require('./server/world-tree-battle.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
 const TEMPLE=require('./server/temple-of-ash.js');
 const TEMPLE_EFFECTS=require('./server/temple-effects.js');
@@ -2893,6 +2895,9 @@ function worldMineMarches(u,now){
 }
 function worldHeroReturnAt(u,key,now=Date.now()){
   let returnAt=0;
+  if(WORLD_TREE_CONTROL.busy(DB.worldTreeControl,u?.id,key,now)){
+    for(const m of Object.values(DB.worldTreeControl.marches))if(m.ownerId===u.id&&m.heroIds.includes(key)&&m.phase!=='home')returnAt=Math.max(returnAt,m.homeAt,now+1);
+  }
   for(const list of [u.worldMineMarches,u.worldCityMarches]){
     if(!Array.isArray(list)) continue;
     for(const march of list){
@@ -2902,6 +2907,52 @@ function worldHeroReturnAt(u,key,now=Date.now()){
   }
   return returnAt;
 }
+
+// World Tree capture slice remains OFF until the reviewed enable CR.
+const WORLD_TREE_CONTROL_ENABLED=false;
+let _worldTreeBattleHost=null,_worldTreeBattle=null;
+function worldTreeWindow(now){return WORLD_TREE_SITES.snapshot(WORLD_TREE_CALENDAR.snapshot(DB,{now}));}
+function worldTreeHooks(now,sites){
+  const guildValid=(gid,owner)=>!!(DB.users[owner]&&DB.users[owner].guildId===gid&&DB.guilds?.[gid]?.members?.includes(owner));
+  return {guildValid,uid,seed:(...parts)=>srvSeed('world-tree',...parts),
+    heroBusy:(owner,key)=>[DB.users[owner]?.worldMineMarches,DB.users[owner]?.worldCityMarches].some(list=>Array.isArray(list)&&list.some(m=>m.homeAt>now&&m.heroIds?.includes(key))),
+    squad:(owner,ids)=>{
+      const u=DB.users[owner],led=ensureLedger(u),w=witchState(u,now),host=simHost();
+      if(!w||!host||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))return null;
+      const specs=ids.map(k=>campaignHeroSpec(u,k));if(specs.some(s=>!s))return null;
+      return host.snapFromSpecs(specs).map(s=>{const hp=WITCH.combatHp(w.state,s.key,s.maxHp);return {...s,hp,worldEntryHpCap:hp,energy:0};});
+    },
+    route:(owner,siteId)=>{
+      const from=worldLocation(DB.users[owner]),to=sites.sites.find(s=>s.id===siteId)?.centre;
+      if(!from||!to)return null;
+      const distance=Math.max(1,Math.round(Math.hypot(to.x-from.x,to.y-from.y)/(100/220)));
+      const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_TREE_TEST_MS||0):0;
+      const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(from,to,distance*60000),travelMs=fixtureMs||timing.travelMs;
+      return {travelMs,route:WORLD_MARCH_ROUTE.capture(from,to,siteId,travelMs,0,timing?.pacing)};
+    },
+    battle:(a,d,seed)=>{const host=simHost();if(!host)throw Error('World Tree battle unavailable');
+      if(_worldTreeBattleHost!==host){_worldTreeBattle=WORLD_TREE_BATTLE.create(host);_worldTreeBattleHost=host;}
+      return _worldTreeBattle(a,d,seed);
+    }
+  };
+}
+function worldTreeRun(actor,action,payload,now=Date.now()){
+  if(!WORLD_TREE_CONTROL_ENABLED)return {ok:false,error:'World Tree event disabled'};
+  const sites=worldTreeWindow(now),prior=DB.worldTreeControl;
+  const result=WORLD_TREE_CONTROL.dispatch(prior,{enabled:WORLD_TREE_CONTROL_ENABLED,window:sites.eventWindow,now,
+    actorId:actor?.id,guildId:actor?.guildId,action,payload},worldTreeHooks(now,sites));
+  if(!result.ok)return result;
+  // Build all injury changes before replacing shared DB state. No brew spending.
+  const injured=new Map();
+  for(const e of result.effects){const u=DB.users[e.ownerId];if(!u||!u.witch)throw Error('Missing garrison injury owner');
+    if(!injured.has(u.id))injured.set(u.id,JSON.parse(JSON.stringify(u.witch)));
+    WITCH.applyBattle(injured.get(u.id),e.outcomes,e.heroIds);
+  }
+  result.state.effects=[];DB.worldTreeControl=result.state;
+  for(const [id,witch]of injured)DB.users[id].witch=witch;
+  return {ok:true,marchId:result.marchId,control:WORLD_TREE_CONTROL.publicState(result.state,actor?.id,actor?.guildId,now)};
+}
+
 function worldBotRoster(u,regionKey){
   const loc=worldLocation(u),host=loc&&simHost();
   if(!host||!WORLD_LOCATION.REGION_KEYS.includes(regionKey)) return [];
@@ -4787,7 +4838,7 @@ async function api(req,res,url){
         if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
           return {ok:false,error:'Pick up to five heroes you own.'};
         if([...me.worldMineMarches,...worldCityMarches(me)]
-          .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
+          .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
           return {ok:false,error:'A selected hero is already marching.'};
         const needLevel=[1,8,16,26,36,44,52,58][node.level-1];
         if(!ids.some(k=>ledHeroLevel(led,k)>=needLevel))
@@ -6230,7 +6281,7 @@ async function api(req,res,url){
         return {ok:false,error:'Pick up to five heroes you own.'};
       const mines=worldMineMarches(me,now);
       const marches=worldCityMarches(me,now);
-      if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k))))
+      if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
         return {ok:false,error:'A selected hero is already marching.'};
       const host=simHost(); if(!host) return {ok:false,error:'City battle engine unavailable.'};
       const specs=ids.map(k=>campaignHeroSpec(me,k));
@@ -6315,6 +6366,23 @@ async function api(req,res,url){
       return {...worldView(me,now),ledger:ledgerView(me)};
     });
     return send(res,out.ok?200:400,out);
+  }
+  if(p==='/api/world-tree/control'){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
+    res.setHeader('Cache-Control','no-store');
+    const now=Date.now();return send(res,200,{ok:true,enabled:WORLD_TREE_CONTROL_ENABLED,
+      ...WORLD_TREE_CONTROL.publicState(DB.worldTreeControl,me.id,DB.guilds?.[me.guildId]?.members?.includes(me.id)?me.guildId:null,now)});
+  }
+  if(['/api/world-tree/march/start','/api/world-tree/march/resolve','/api/world-tree/march/retreat'].includes(p)){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='POST'){res.setHeader('Allow','POST');return send(res,405,{error:'method'});}
+    if(!WORLD_TREE_CONTROL_ENABLED)return send(res,409,{ok:false,error:'World Tree event disabled'});
+    const b=await body(req),rid=String(b.requestId||'').slice(0,48);
+    if(!rid)return send(res,400,{error:'requestId required'});
+    try{const action=p.slice(p.lastIndexOf('/')+1),out=idem(me.id+':worldtree:'+p+':'+rid,()=>worldTreeRun(me,action,b),{retryFailed:true});
+      return send(res,out.ok?200:400,out);
+    }catch(error){console.error('World Tree control:',error.message);return send(res,503,{error:'World Tree control unavailable'});}
   }
   if(p==='/api/world-tree/sites'){
     if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
@@ -7210,4 +7278,6 @@ if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port st
   setTimeout(function(){ if(!_booted) console.error('⚠ PG boot timed out after 15s — continuing on the JSON file.'); bootFinish(); }, 15000);
 } else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
+// Disabled capture settlement cannot touch live data until the enable CR.
+setInterval(()=>{if(!WORLD_TREE_CONTROL_ENABLED||!DB.worldTreeControl)return;try{const out=worldTreeRun(null,'tick',{});if(out.ok)writeDBNow();}catch(e){console.error('World Tree tick:',e.message);}},1000).unref();
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
