@@ -32,6 +32,7 @@ const WORLD_TREE_SITES=require('./server/world-tree-sites.js');
 const WORLD_TREE_CONTROL=require('./server/world-tree-control.js');
 const WORLD_TREE_BATTLE=require('./server/world-tree-battle.js');
 const WORLD_TREE_SCORE=require('./server/world-tree-score.js');
+const WORLD_TREE_LIFECYCLE=require('./server/world-tree-lifecycle.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
 const TEMPLE=require('./server/temple-of-ash.js');
 const TEMPLE_EFFECTS=require('./server/temple-effects.js');
@@ -2913,12 +2914,13 @@ function worldHeroReturnAt(u,key,now=Date.now()){
 const WORLD_TREE_CONTROL_ENABLED=false;
 let _worldTreeBattleHost=null,_worldTreeBattle=null;
 function worldTreeWindow(now){return WORLD_TREE_SITES.snapshot(WORLD_TREE_CALENDAR.snapshot(DB,{now}));}
-function worldTreeHooks(now,sites){
+function worldTreeHooks(now,sites,snapshots=null){
   const guildValid=(gid,owner)=>!!(DB.users[owner]&&DB.users[owner].guildId===gid&&DB.guilds?.[gid]?.members?.includes(owner));
   return {guildValid,uid,seed:(...parts)=>srvSeed('world-tree',...parts),
     heroBusy:(owner,key)=>[DB.users[owner]?.worldMineMarches,DB.users[owner]?.worldCityMarches].some(list=>Array.isArray(list)&&list.some(m=>m.homeAt>now&&m.heroIds?.includes(key))),
     squad:(owner,ids)=>{
-      const u=DB.users[owner],led=ensureLedger(u),w=witchState(u,now),host=simHost();
+      const u=JSON.parse(JSON.stringify(DB.users[owner])),led=ensureLedger(u),w=witchState(u,now),host=simHost();
+      if(snapshots&&u.witch)snapshots.set(owner,u.witch);
       if(!w||!host||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))return null;
       const specs=ids.map(k=>campaignHeroSpec(u,k));if(specs.some(s=>!s))return null;
       return host.snapFromSpecs(specs).map(s=>{const hp=WITCH.combatHp(w.state,s.key,s.maxHp);return {...s,hp,worldEntryHpCap:hp,energy:0};});
@@ -2943,14 +2945,15 @@ function worldTreePublicControl(me,now){const view=WORLD_TREE_CONTROL.publicStat
     sites:view.sites.map(s=>{const label=worldTreeGuildLabel(s.holderGuildId);return {...s,holderGuildName:s.holderGuildId?label.guildName:null,holderGuildTag:s.holderGuildId?label.guildTag:null};})};}
 function worldTreePublicScore(now){const view=WORLD_TREE_SCORE.view(DB.worldTreeScore,now,WORLD_TREE_CONTROL_ENABLED);return {...view,scores:view.scores.map(row=>({...row,...worldTreeGuildLabel(row.guildId)}))};}
 
-function worldTreeRun(actor,action,payload,now=Date.now()){
+function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
   if(!WORLD_TREE_CONTROL_ENABLED)return {ok:false,error:'World Tree event disabled'};
-  const sites=worldTreeWindow(now),prior=DB.worldTreeControl;
-  const result=WORLD_TREE_CONTROL.dispatch(prior,{enabled:WORLD_TREE_CONTROL_ENABLED,window:sites.eventWindow,now,
-    actorId:actor?.id,guildId:actor?.guildId,action,payload},worldTreeHooks(now,sites));
+  const injured=new Map();
+  if(receiptKey&&DB.idem?.[receiptKey]&&now-DB.idem[receiptKey].t<86400000)return DB.idem[receiptKey].resp;
+  const sites=worldTreeWindow(now),prior={version:1,control:DB.worldTreeControl||null,score:DB.worldTreeScore||null,finals:DB.worldTreeFinals||{},guilds:DB.worldTreeGuilds||{}};
+  const result=WORLD_TREE_LIFECYCLE.run(prior,{enabled:WORLD_TREE_CONTROL_ENABLED,window:sites.eventWindow,now,
+    actorId:actor?.id,guildId:actor?.guildId,action,payload},worldTreeHooks(now,sites,injured),DB.guilds);
   if(!result.ok)return result;
   // Build all injury changes before replacing shared DB state. No brew spending.
-  const injured=new Map();
   for(const e of result.effects){const u=DB.users[e.ownerId];if(!u||!u.witch)throw Error('Missing garrison injury owner');
     if(!injured.has(u.id))injured.set(u.id,JSON.parse(JSON.stringify(u.witch)));
     const witch=injured.get(u.id);
@@ -2960,10 +2963,18 @@ function worldTreeRun(actor,action,payload,now=Date.now()){
       witch.hp[row.key]=before>0?Math.max(0,Math.min(WITCH.HP_FULL,after)):0;
     }}else WITCH.applyBattle(witch,e.outcomes,e.heroIds);
   }
-  const score=WORLD_TREE_SCORE.advance(DB.worldTreeScore,result.state,now);
-  result.state.effects=[];DB.worldTreeControl=result.state;DB.worldTreeScore=score;
+  const reply={ok:true,marchId:result.marchId,control:WORLD_TREE_CONTROL.publicState(result.state.control,actor?.id,actor?.guildId,now)};
+  const fields={worldTreeControl:result.state.control,worldTreeScore:result.state.score,worldTreeFinals:result.state.finals,worldTreeGuilds:result.state.guilds};
+  const users={...DB.users};for(const [id,witch]of injured)users[id]={...users[id],witch};
+  const receipts=receiptKey?{...(DB.idem||{}),[receiptKey]:{t:now,resp:reply}}:DB.idem;
+  if(PG_BOOT_PENDING)throw Error('World Tree storage restore pending');
+  // This lane must not use writeDBNow: it swallows disk failures. Persist before memory/ack.
+  const tmp=DB_FILE+'.world-tree.tmp';
+  fs.writeFileSync(tmp,JSON.stringify({...DB,...fields,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+  Object.assign(DB,fields);if(receiptKey)DB.idem=receipts;
   for(const [id,witch]of injured)DB.users[id].witch=witch;
-  return {ok:true,marchId:result.marchId,control:WORLD_TREE_CONTROL.publicState(result.state,actor?.id,actor?.guildId,now)};
+  try{pgSave();}catch(error){console.error('World Tree replica:',error.message);}
+  return reply;
 }
 
 function worldBotRoster(u,regionKey){
@@ -6386,6 +6397,13 @@ async function api(req,res,url){
     res.setHeader('Cache-Control','no-store');
     return send(res,200,{ok:true,...worldTreePublicScore(Date.now())});
   }
+  if(p==='/api/world-tree/final'){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
+    res.setHeader('Cache-Control','no-store');
+    const now=Date.now(),latest=Object.values(DB.worldTreeFinals||{}).filter(r=>r.endedAt<=now).sort((a,b)=>b.endedAt-a.endedAt)[0]||null;
+    return send(res,200,{ok:true,enabled:WORLD_TREE_CONTROL_ENABLED,serverNow:now,final:latest});
+  }
   if(p==='/api/world-tree/control'){
     if(!me)return send(res,401,{error:'auth'});
     if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
@@ -6399,7 +6417,7 @@ async function api(req,res,url){
     if(!WORLD_TREE_CONTROL_ENABLED)return send(res,409,{ok:false,error:'World Tree event disabled'});
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid)return send(res,400,{error:'requestId required'});
-    try{const action=p.slice(p.lastIndexOf('/')+1),out=idem(me.id+':worldtree:'+p+':'+rid,()=>worldTreeRun(me,action,b),{retryFailed:true});
+    try{const action=p.slice(p.lastIndexOf('/')+1),out=worldTreeRun(me,action,b,Date.now(),me.id+':worldtree:'+p+':'+rid);
       return send(res,out.ok?200:400,out);
     }catch(error){console.error('World Tree control:',error.message);return send(res,503,{error:'World Tree control unavailable'});}
   }
@@ -7298,5 +7316,5 @@ if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port st
 } else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 // Disabled capture settlement cannot touch live data until the enable CR.
-setInterval(()=>{if(!WORLD_TREE_CONTROL_ENABLED||!DB.worldTreeControl)return;try{const out=worldTreeRun(null,'tick',{});if(out.ok)writeDBNow();}catch(e){console.error('World Tree tick:',e.message);}},1000).unref();
+setInterval(()=>{if(!WORLD_TREE_CONTROL_ENABLED||!DB.worldTreeControl)return;try{worldTreeRun(null,'tick',{});}catch(e){console.error('World Tree tick:',e.message);}},1000).unref();
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);

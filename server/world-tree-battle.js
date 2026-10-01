@@ -1,13 +1,24 @@
 'use strict';
 const vm=require('node:vm');
-function once(source,old,next){if(source.split(old).length!==2)throw Error('World Tree battle anchor drift');return source.replace(old,next);}
+function once(source,old,next){if(source.split(old).length!==2)throw Error('World Tree battle anchor drift: '+old.slice(0,100));return source.replace(old,next);}
 function prepare(source){
-  let s=once(source,'function simFightResult(','function worldTreeFightResult(');
+  // Git/archive and Windows checkouts may retain CRLF inside Function.toString().
+  let s=once(source.replace(/\r\n/g,'\n'),'function simFightResult(','function worldTreeFightResult(');
   s=once(s,'const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx};','const sv={units,state,ended,CUR,battleTime,gameSpeed,waveXfer,chapterWaves,waveIdx,REPLAY_IN};');
   s=once(s,'  window._p2guard=true;','  try{\n  window._p2guard=true;');
   s=once(s,'  if(manualReplay) autoUlt=false;','  autoUlt=true; REPLAY_IN=null;');
   s=once(s,'  for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);',
     `  const wtTracked=units.slice(),wtDeaths=[],wtSeen=new Set();
+  // A killed defender leaves immediately: even a same-update Rewoven cannot recall it.
+  // Accessors belong only to the fresh World Tree units, never the ordinary engine.
+  for(const u of wtTracked)if(u.team==='enemy'){
+    let wtAlive=u.alive;
+    Object.defineProperty(u,'alive',{configurable:true,enumerable:true,get:()=>wtAlive,set:value=>{
+      if(!value&&wtAlive){wtAlive=false;u._dropHidden=true;
+        if(!wtSeen.has(u.uid)){wtSeen.add(u.uid);wtDeaths.push({key:u.key,team:u.team,atMs:Math.min(45000,Math.ceil(battleTime*500))});}
+      }else if(!wtSeen.has(u.uid))wtAlive=value;
+    }});
+  }
   const wtBenefited=new Set();let wtRegenTick=0;
   for(const u of units){u.energy=0;const s=(u.team==='ally'?allySnaps:foeTeam).find(s=>s.key===u.key);if(s?.worldTreeBenefit){wtBenefited.add(u.uid);u.dmgBonusMul2=(u.dmgBonusMul2||1)*1.1;}}
   for(let i=0;i<Math.ceil(90/SIM_STEP) && !ended;i++){

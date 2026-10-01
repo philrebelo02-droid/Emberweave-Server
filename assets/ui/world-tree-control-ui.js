@@ -14,23 +14,27 @@
     });
     const scores=score.scores.map(x=>{if(typeof x.guildId!=='string'||x.guildId.length>200||!Number.isSafeInteger(x.points)||x.points<0)throw Error('Invalid score');return {guildId:x.guildId,guildName:typeof x.guildName==='string'?x.guildName:'Guild',guildTag:typeof x.guildTag==='string'?x.guildTag:'',points:x.points};});
     const active=control.enabled&&control.eventActive===true&&Number.isSafeInteger(control.startsAt)&&Number.isSafeInteger(control.endsAt)&&Number.isSafeInteger(control.serverNow)&&control.serverNow>=control.startsAt&&control.serverNow<control.endsAt;
-    return {enabled:control.enabled,active,sites,scores,asOf:Number.isSafeInteger(score.asOf)?score.asOf:null};
+    const marches=(control.marches||[]).map(m=>{
+      if(typeof m.id!=='string'||!IDS.includes(m.siteId)||!Array.isArray(m.heroIds)||m.heroIds.some(k=>typeof k!=='string')||!['outbound','queued','fighting','garrison','returning','home'].includes(m.phase)||!Number.isSafeInteger(m.homeAt)||!Number.isFinite(m.healthPercent)||m.healthPercent<0||m.healthPercent>100)throw Error('Invalid own march');
+      return {id:m.id,siteId:m.siteId,heroIds:m.heroIds.slice(0,5),phase:m.phase,homeAt:m.homeAt,healthPercent:m.healthPercent,canRetreat:m.canRetreat===true};
+    });
+    return {enabled:control.enabled,active,sites,scores,marches,guildId:typeof control.guildId==='string'?control.guildId:null,serverNow:control.serverNow,asOf:Number.isSafeInteger(score.asOf)?score.asOf:null};
   }
   function create(hooks){
-    let identity=null,pending=null,data=null,failed=false,epoch=0,loadedAt=0,mounted=null,timer=null;
-    function reset(){identity=hooks.identity();pending=null;data=null;failed=false;loadedAt=0;epoch++;}
+    let identity=null,pending=null,data=null,failed=false,epoch=0,loadedAt=0,mounted=null,timer=null,knownMarches=[];
+    function reset(){identity=hooks.identity();pending=null;data=null;knownMarches=[];failed=false;loadedAt=0;epoch++;}
     function current(){if(identity!==hooks.identity())reset();return data;}
     async function load(force=false){current();if(!identity)return null;if(pending)return pending;
       if(!force&&data&&hooks.now()-loadedAt<5000)return data;
       const key=identity,generation=epoch;
       pending=Promise.all([hooks.api('/api/world-tree/control'),hooks.api('/api/world-tree/score'),hooks.layout()]).then(([c,s,l])=>{
-        const next=read(c,s,l);if(generation!==epoch||key!==hooks.identity())return null;data=next;failed=false;loadedAt=hooks.now();return data;
+        const next=read(c,s,l);if(generation!==epoch||key!==hooks.identity())return null;data=next;knownMarches=next.marches;failed=false;loadedAt=hooks.now();if(hooks.changed)hooks.changed();return data;
       }).catch(()=>{if(generation===epoch&&key===hooks.identity()){data=null;failed=true;}return null;}).finally(()=>{if(generation===epoch)pending=null;});return pending;
     }
     function state(){current();return {data,failed,signedIn:!!identity};}
     function node(doc,tag,text){const el=doc.createElement(tag);if(text!==undefined)el.textContent=text;return el;}
     function render(inner,board){const st=state(),doc=inner.ownerDocument;
-      inner.querySelectorAll('.worldTreeHolder').forEach(x=>x.remove());board.replaceChildren();
+      inner.querySelectorAll('.worldTreeHolder,.worldTreeSiteHit').forEach(x=>x.remove());board.replaceChildren();
       board.style.display=st.data?.active?'block':'none';if(!st.data?.active)return;
       const heading=node(doc,'b','World Tree');board.appendChild(heading);
       if(!st.data){board.appendChild(node(doc,'div',!st.signedIn?'Sign in':st.failed?'Unavailable':'Loading…'));return;}
@@ -40,6 +44,7 @@
       for(const row of st.data.scores){const el=node(doc,'span',(row.guildTag?'['+row.guildTag+'] ':'')+row.guildName+' · '+row.points);el.style.color=colour(row.guildId);list.appendChild(el);}
       for(const s of st.data.sites){const label=(s.holderGuildId?(s.holderTag?'['+s.holderTag+'] ':'')+s.holderName:'Unclaimed')+(s.benefit?' · +10% DMG · 1% HP/30s':'');const el=node(doc,'div',label),b=s.bounds;el.className='worldTreeHolder';el.dataset.siteId=s.id;el.title=title(s.id)+' · '+label;
         el.style.cssText='position:absolute;left:'+((b.left+b.right)/2)+'%;top:'+b.bottom+'%;transform:translate(-50%,4px);color:'+s.colour+';font-size:10px;font-weight:800;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;pointer-events:none;z-index:7;zoom:'+1/hooks.zoom();inner.appendChild(el);
+        if(hooks.openSite){const hit=node(doc,'button');hit.className='worldTreeSiteHit';hit.dataset.siteId=s.id;hit.setAttribute('aria-label',title(s.id));hit.style.cssText='position:absolute;left:'+b.left+'%;top:'+b.top+'%;width:'+(b.right-b.left)+'%;height:'+(b.bottom-b.top)+'%;background:transparent;border:0;padding:0;z-index:8;cursor:pointer';hit.onclick=e=>{if(hooks.canOpen&&!hooks.canOpen())return;e.stopPropagation();hooks.openSite(s.id);};inner.appendChild(hit);}
       }
     }
     async function mount(inner,container){const doc=inner.ownerDocument;let board=container.querySelector('.worldTreeScoreboard');if(!board){board=node(doc,'section');board.className='worldTreeScoreboard';board.style.cssText='padding:6px 8px;background:#141b2b;border-radius:8px;font-size:12px;margin:4px 0';container.insertBefore(board,container.firstChild);}
@@ -48,7 +53,9 @@
     }
     function poll(){if(!hooks.schedule||timer!==null)return;timer=hooks.schedule(async()=>{timer=null;const m=mounted;if(!m?.inner.isConnected||!m.board.isConnected){mounted=null;return;}await load(true);if(mounted===m&&m.inner.isConnected){render(m.inner,m.board);poll();}},5000);}
     function zoom(inner){if(!inner)return;inner.querySelectorAll('.worldTreeHolder').forEach(el=>{el.style.zoom=1/hooks.zoom();});}
-    return {load,state,mount,zoom,reset};
+    function heroes(){current();const now=hooks.now();return new Set(knownMarches.filter(m=>m.phase!=='home'&&(m.phase!=='returning'||m.homeAt>now)).flatMap(m=>m.heroIds));}
+    function adopt(receipt){current();if(!identity||!Array.isArray(receipt?.marches))return;epoch++;pending=null;loadedAt=0;knownMarches=receipt.marches.filter(m=>typeof m.id==='string'&&IDS.includes(m.siteId)&&Array.isArray(m.heroIds)&&m.heroIds.every(k=>typeof k==='string')&&Number.isSafeInteger(m.homeAt)&&['outbound','queued','fighting','garrison','returning','home'].includes(m.phase)).map(m=>({id:m.id,siteId:m.siteId,heroIds:m.heroIds.slice(0,5),phase:m.phase,homeAt:m.homeAt}));}
+    return {load,state,mount,zoom,reset,heroes,adopt};
   }
   const api={create,read,colour};if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveWorldTreeControlUI=api;
 })(typeof globalThis==='object'?globalThis:this);

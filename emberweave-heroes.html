@@ -2391,7 +2391,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
-<script src="/assets/ui/world-tree-control-ui.js?v=wc2"></script>
+<script src="/assets/ui/world-tree-control-ui.js?v=wc3"></script>
+<script src="/assets/ui/world-tree-actions-ui.js?v=wa1"></script>
 <script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
 <script>
 /* ==========================================================================
@@ -19216,7 +19217,7 @@ let ACC={token:null,name:null,rank:null,coins:0,id:null,created:0};
    glyph board and the wishing pool showed the PREVIOUS player's data until something happened to
    refetch it. Every account transition now goes through this. */
 function clearServerCaches(){
-  try{if(_worldTreeControlUI)_worldTreeControlUI.reset();}catch(e){}
+  try{if(_worldTreeControlUI)_worldTreeControlUI.reset();if(_worldTreeActionsUI)_worldTreeActionsUI.reset();}catch(e){}
   try{ if(typeof FORGE!=='undefined'){ FORGE.st=null; FORGE.cat=null; FORGE.eqPick=null; } }catch(e){}
   try{ if(typeof VAULT!=='undefined'){ VAULT.st=null; VAULT.result=null; VAULT.pick=null; VAULT.salv=null; } }catch(e){}
   try{ if(typeof RUNE2!=='undefined'){ RUNE2.st=null; RUNE2.enabled=null; RUNE2.pick=null; } }catch(e){}
@@ -20369,9 +20370,15 @@ function drawServerMarchInfo(body,local){
 let _worldTreeControlUI=null;
 function worldTreeControlUI(){if(!_worldTreeControlUI&&window.EmberweaveWorldTreeControlUI)_worldTreeControlUI=window.EmberweaveWorldTreeControlUI.create({
   identity:()=>ACC.token?ACC.id+':'+ACC.token:null,now:()=>Date.now(),zoom:()=>worldZoom,schedule:(fn,ms)=>setTimeout(fn,ms),cancel:id=>clearTimeout(id),
+  openSite:id=>{const actions=worldTreeActionsUI();if(actions)actions.open(id);},canOpen:()=>!_teleMode,changed:()=>{if(_worldTreeActionsUI)_worldTreeActionsUI.render();},
   api:path=>api(path,'GET'),layout:()=>fetch('/api/world-tree/sites',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Sites unavailable');return r.json();})});return _worldTreeControlUI;}
+let _worldTreeActionsUI=null;
+function worldTreeActionsUI(){if(!_worldTreeActionsUI&&window.EmberweaveWorldTreeActionsUI)_worldTreeActionsUI=window.EmberweaveWorldTreeActionsUI.create({
+  document,identity:()=>ACC.token?ACC.id+':'+ACC.token:null,control:()=>worldTreeControlUI(),requestId:()=>crypto.randomUUID(),post:(path,body)=>api(path,'POST',body),
+  heroes:()=>HERO_KEYS.filter(k=>G.unlocked[k]).map(key=>({key,name:HERO_TYPES[key].name,level:heroLevel(key)})),power:keys=>myTeamPower(keys),cachedBusy:()=>committedHeroes(),
+  busy:async()=>{await syncWorldMarches(true);const cache=worldMarchCache(),s=cache&&cache.state();if(!s?.loaded||s.failed)throw Error('Busy roster unavailable');return committedHeroes();}});return _worldTreeActionsUI;}
 
-function committedHeroes(){ const s=new Set(); const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
+function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI();if(treeUI){treeUI.heroes().forEach(k=>s.add(k));treeUI.load();} const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
 /* v805 (Phil: "have everything in the game that uses a real hero off your bench calculate directly
    off your hero cards") - YOUR OWN HEROES, STRAIGHT OFF THEIR CARDS.
    `heroPower(key)` is the card, and the card is the only formula in the game that counts everything
@@ -20990,7 +20997,7 @@ function wallActiveTeamCount(){ return wallActiveTeams().length; }
 let cityMenuEl=null;
 function closeCityMenu(){ if(cityMenuEl){ cityMenuEl.remove(); cityMenuEl=null; } }
 // The World Tree can be attacked — but that's locked behind a Coming Soon gate for now.
-function openWorldTreeMenu(){ closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
+function openWorldTreeMenu(){ closeCityMenu();const actions=worldTreeActionsUI();if(actions){actions.open('tree');return;} const inner=document.getElementById('wzoneInner'); if(!inner)return;
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left='50%'; pop.style.top='50%'; pop.style.transform='translate(-50%,-140%)'; pop.style.zoom=(1/worldZoom);
   pop.innerHTML=`<div class="cm-t">🌳 The World Tree</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">The heart of the world — everyone can teleport around it, but not onto it.</div><button class="cm-b" data-a="wtattack">⚔ Attack · 🔒 Coming Soon</button>`;
   inner.appendChild(pop); cityMenuEl=pop; pop.addEventListener('click',e=>e.stopPropagation());
@@ -25275,7 +25282,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790882831239';
+const BUILD_ID = '1790886739345';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
