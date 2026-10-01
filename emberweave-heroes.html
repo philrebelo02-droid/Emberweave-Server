@@ -10853,7 +10853,7 @@ const FX2_DEF={
   oakmir_blue:{u:'/assets/anim/fx/oakmir_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.29,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   oakmir_green:{u:'/assets/anim/fx/oakmir_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.83,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   orryn_green:{u:'/assets/anim/fx/orryn_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  pyroclast_blue:{u:'/assets/anim/fx/pyroclast_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.501,dh:0.305,dw:0.875}},
+  pyroclast_blue:{u:'/assets/anim/fx/pyroclast_blue.webp?v=2',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v877 Grok: Blazing Orbit - hollow flame ring at the caster's feet
   pyroclast_green:{u:'/assets/anim/fx/pyroclast_green.webp?v=2',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v874 Grok: Ember Lash - volcanic scorch disc at the strike point
   rhukk_blue:{u:'/assets/anim/fx/rhukk_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.498,dh:0.616,dw:0.912}},
   rhukk_green:{u:'/assets/anim/fx/rhukk_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.0,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -18410,7 +18410,7 @@ Object.assign(BATTLE_ANIM, {
   },
 });
 Object.assign(KITS, {
-  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',gdur:1.6,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
+  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',gdur:6.04,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
   stormwarden:{green:{name:'Volt Pike',type:'piercethrow',mul:1.5,width:34,cd:7,desc:"A piercing spear thrust damages enemies in a narrow line.",pfx:'stormwarden_green_fx',pscale:2.6,gfx:'stormwarden_green',gfxR:3*METER,gdur:2.62},blue:{name:'Thunder Guard',type:'thornguard',pct:0.18,thorn:0.6,dur:5,cd:9,desc:"A defensive brace shields him and retaliates against direct attacks.",gfxAt:'self',gdur:5.29,gfx:'stormwarden_blue',gfxR:3*METER},purple:{name:'Static Charge',pass:'staticcharge',desc:"Attacks build Charge; at maximum, his next ability chains."}},
   verdantshade:{green:{name:'Thornshot',type:'shred',mul:1.55,shred:0.32,dur:5,cd:6,desc:"A piercing arrow lowers the target's armor.",pfx:'verdantshade_green_fx',pscale:2.4,gfx:'verdantshade_green',gfxR:3*METER},blue:{name:'Vine Snare',type:'swamproot',mul:0.85,root:2.2,radius:2.4*METER,cd:10,desc:"A delayed forest mark roots an advancing enemy.",gdur:1.8,gfx:'verdantshade_blue'},purple:{name:"Hunter's Patience",pass:'patience',desc:"Continuous attacks against one target gain critical chance."}},
   voidweaver:{green:{name:'Abyssal Needle',type:'mrshred',mul:1.5,shred:0.32,dur:5,cd:6,desc:"Compressed void energy lowers enemy magic resistance.",pfx:'voidweaver_green_fx',pscale:2.2,gfx:'voidweaver_green',gfxR:3*METER},blue:{name:'Gravity Knot',type:'gravknot',mul:0.6,radius:4*METER,pull:2.2*METER,slow:3,cd:10,desc:"Nearby enemies are pulled together and slowed.",gdur:1.8,ring:0x6a3fb0,spark:0x9b5cff,gfx:'voidweaver_blue'},purple:{name:'Dark Convergence',pass:'convergence',desc:"Multi-target spells restore additional energy."}},
@@ -25125,7 +25125,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790851816547';
+const BUILD_ID = '1790852641865';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
