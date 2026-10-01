@@ -31,6 +31,7 @@ const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
 const WORLD_TREE_SITES=require('./server/world-tree-sites.js');
 const WORLD_TREE_CONTROL=require('./server/world-tree-control.js');
 const WORLD_TREE_BATTLE=require('./server/world-tree-battle.js');
+const WORLD_TREE_SCORE=require('./server/world-tree-score.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
 const TEMPLE=require('./server/temple-of-ash.js');
 const TEMPLE_EFFECTS=require('./server/temple-effects.js');
@@ -2948,7 +2949,8 @@ function worldTreeRun(actor,action,payload,now=Date.now()){
     if(!injured.has(u.id))injured.set(u.id,JSON.parse(JSON.stringify(u.witch)));
     WITCH.applyBattle(injured.get(u.id),e.outcomes,e.heroIds);
   }
-  result.state.effects=[];DB.worldTreeControl=result.state;
+  const score=WORLD_TREE_SCORE.advance(DB.worldTreeScore,result.state,now);
+  result.state.effects=[];DB.worldTreeControl=result.state;DB.worldTreeScore=score;
   for(const [id,witch]of injured)DB.users[id].witch=witch;
   return {ok:true,marchId:result.marchId,control:WORLD_TREE_CONTROL.publicState(result.state,actor?.id,actor?.guildId,now)};
 }
@@ -6366,6 +6368,12 @@ async function api(req,res,url){
       return {...worldView(me,now),ledger:ledgerView(me)};
     });
     return send(res,out.ok?200:400,out);
+  }
+  if(p==='/api/world-tree/score'){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
+    res.setHeader('Cache-Control','no-store');
+    return send(res,200,{ok:true,...WORLD_TREE_SCORE.view(DB.worldTreeScore,Date.now(),WORLD_TREE_CONTROL_ENABLED)});
   }
   if(p==='/api/world-tree/control'){
     if(!me)return send(res,401,{error:'auth'});
