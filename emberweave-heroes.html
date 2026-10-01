@@ -10960,6 +10960,7 @@ const FX2_DEF={
   sylthaine_ult:{u:'/assets/anim/fx/sylthaine_ult.webp?v=21',n:48,fw:210,fh:202,cols:6,rows:8,dur:4.0,disc:{cy:0.74,dh:0.40,dw:0.87}},
   tallow_ult:{u:'/assets/anim/fx/tallow_ult.webp?v=32',n:48,fw:326,fh:288,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.616,dw:0.912}},
   tick_ult:{u:'/assets/anim/fx/tick_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.71,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  pellucid_passive:{u:'/assets/anim/fx/pellucid_passive.webp?v=1',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v873 Grok: Unmovable Mass - molten-armour ring under Pellucid Rook on every warden stack
   orryn_passive:{u:'/assets/anim/fx/orryn_passive.webp?v=1',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.498,dh:0.82,dw:0.82}},   // v865 Grok: Abyssal Reserve - flat pressure-burst ring under Orryn (gauge fills / pressure released)
   orryn_ult:{u:'/assets/anim/fx/orryn_ult.webp?v=1',n:48,fw:400,fh:439,cols:6,rows:8,dur:6.04,upright:true,upSize:2.0,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v86x Grok: Ocean Without Shore
   umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -25077,7 +25078,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790845218919';
+const BUILD_ID = '1790847123442';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
