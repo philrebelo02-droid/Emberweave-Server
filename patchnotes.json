@@ -1,5 +1,10 @@
 {
   "patches": [
+    {"ver": "0.86", "date": "30 September 2026", "title": "The World Tree wakes", "items": [
+      "The World Tree on the world map now withers and regrows on a two-week cycle, and a timer under the tree counts down to its next event.",
+      "The first World Tree event is Saturday 3 October at 8 AM ET, then every two weeks - on the weekends between Guild Wars.",
+      "The event itself (capturing and healing the tree) is not open yet - this is the tree and its timer."
+    ]},
     {"ver": "0.85", "date": "30 September 2026", "title": "Guild Wars every other week", "items": [
       "Skyfall Guild Wars now run every other week. Sign-ups open Saturday 02:00 and close Monday 00:00 server time; battles stay Tuesday to Friday, 6-8 PM ET.",
       "The first fortnightly sign-up opens Saturday 10 October, then every two weeks.",
