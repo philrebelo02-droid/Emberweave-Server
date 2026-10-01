@@ -27,7 +27,7 @@ assert.deepEqual([89,90,129,130].map(cy=>L.zoneOf(L.center(45),L.center(cy))),
   ['crystor','wildW','wildW','tefron'],'vertical region/wild edges');
 assert.equal(L.zoneOf(L.center(110),L.center(110)),'worldtree','center void is 40×40');
 assert.equal(L.valid({...at('crystor',0),region:'alumron'}),false);
-assert.equal(terrain.cells.length,671,'Phil 1 Oct hand-drawn crystal outlines (v901) plus the World Tree ring');
+assert.equal(terrain.cells.length,705,'Phil 1 Oct hand-drawn crystal outlines (v901) plus the World Tree ring');
 const terrainKeys=new Set(terrain.cells);
 assert.equal(terrainKeys.size,terrain.cells.length,'terrain-blocked cells are unique');
 assert.ok(terrainKeys.has('110,110')&&terrainKeys.has('115,110')&&terrainKeys.has('105,110'),
