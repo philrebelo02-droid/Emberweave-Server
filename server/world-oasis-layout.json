@@ -1,6 +1,6 @@
 [
   {"direction":"north","x":109,"y":97},
-  {"direction":"south","x":110,"y":121},
-  {"direction":"east","x":121,"y":106},
+  {"direction":"south","x":109,"y":121},
+  {"direction":"east","x":121,"y":109},
   {"direction":"west","x":97,"y":109}
 ]
