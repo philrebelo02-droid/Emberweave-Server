@@ -9997,9 +9997,13 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'charge':{ const foes=enemiesOf(u); if(!foes.length)break;   // dash to the farthest foe, then AoE-slam everyone near the landing
       const tg2=foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const lx=Math.max(60,Math.min(FW-60,tg2.x)), ly=Math.max(110,Math.min(FD-60,tg2.y));   /* v493: charge radius 2.6->5 m, so the landing clamp moves in to keep the wider blast fully in frame */
-      ringBurst(u.x,u.y,0xff8844,12); u.x=lx; u.y=ly; u._ax=lx; u._ay=ly; u.attackAnim=.2;
-      const R=o.radius||2.4*METER; enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<R){ dealDamage(u,e,dB*(o.mul||1.6)*rm,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
-      burstAt(lx,ly,0xffcf40,20); break; }
+      ringBurst(u.x,u.y,0xff8844,12);
+      /* v892 - a real dash: he travels there, and the slam lands when he ARRIVES (it used to teleport and slam at once) */
+      const _dd=Math.hypot(lx-u.x,ly-u.y), _dur=Math.max(0.15,Math.min(0.8,_dd/(o.dashSpeed||22*METER))), _cD=dB*(o.mul||1.6)*rm, _cR=o.radius||2.4*METER;
+      u._dash={x0:u.x,y0:u.y,x1:lx,y1:ly,t:0,dur:_dur,run:function(){ u.attackAnim=.2;
+        enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
+        burstAt(lx,ly,0xffcf40,20); }};
+      u._castT=Math.max(u._castT||0,_dur); break; }
     /* v534 NOONDAY STAMPEDE (Zahri) - Phil, 9 Sep: "a line aimed up that can go up to 20 meter, when you use it she charges to the
        last target of that line hitting anyone along the way"; "its not an instant ability, it knocks anyone left and right of the path
        she takes". The cast only sets the path: the charge itself runs over time in the unit tick (see _stampT), and every foe the
@@ -11598,6 +11602,10 @@ function think(u,dt){
   if(u._vpT>0){ u._vpT-=dt; u.target=null; u.attackAnim=0; u.castAnim=0;
     if(u._vpT<=0){ u._vpT=0; hollowStrike(u); } return; }   // off the field between hops
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
+  if(u._dash){ const _D=u._dash; _D.t+=dt; const _k=Math.min(1,_D.t/_D.dur);   /* v892 a dash in progress: travel, then the landing */
+    u.x=_D.x0+(_D.x1-_D.x0)*_k; u.y=_D.y0+(_D.y1-_D.y0)*_k; u._ax=u.x; u._ay=u.y;
+    if(_k>=1){ u._dash=null; try{ _D.run(); }catch(_e){} }
+    return; }
   if((u._danceT||0)>0){ const _st=Math.min(dt,u._danceT); u._danceT-=dt;   /* v885 Serpent's Last Dance: rooted while the star circles */
     const _w=(u._danceSpins*2*Math.PI)/u._danceDur, _a0=u._danceA, _a1=_a0+_w*_st, _TP=2*Math.PI; u._danceA=_a1;
     enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>u._danceR+(e.r||0)) return;
@@ -12067,7 +12075,7 @@ function purgeTransientFx(){
 function beginWaveEnter(){ purgeDead(); purgeTransientFx();
   const allies=units.filter(u=>u.team==='ally'&&u.alive); const n=allies.length;
   battleTime=0; groundHazards.length=0; units.filter(u=>u.team==='ally'&&!u.alive).forEach(u=>{ const st=heroOffscreenStart(u.homeX||u.x,u.homeY||u.y); u.x=st.x;u.y=st.y; });
-  allies.forEach((u,i)=>{ /* Phil 26 Aug: HP & Energy carry between waves — only combat states clear */ u.target=null; u.attackAnim=0; u.castAnim=0; u._danceT=0; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._chillStacks=0; u._chillT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._noTargetT=0; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
+  allies.forEach((u,i)=>{ /* Phil 26 Aug: HP & Energy carry between waves — only combat states clear */ u.target=null; u.attackAnim=0; u.castAnim=0; u._danceT=0; u._dash=null; u.stunned=0; u.fearT=0; u.slow=0; u.dots=[]; u.hots=[]; u.shield=0; u.shieldT=0; u.silencedT=0; u.mortalT=0; u.dmgBuffT=0; u.hasteT=0; u.drT=0; u.forcedTargetT=0; u._castT=0; u._blinkT=0; u._lifestealT=0; u.pullT=0; if(u._baseDmg!=null)u.dmg=u._baseDmg; u._wrathT=0; u.wardenStk=0; u.wardenT=0; u._blizzT=0; u._chillStacks=0; u._chillT=0; u._stormT=0; u._vpT=0; u._vpO=null; u._vpStep=0; u._noTarget=false; u._noTargetT=0; u._fallT=0; u._fallH=0; u._ntReady=true; u._ntCd=0; u._crescStk=0; u._contagion=false; u._darkStance=false;
     const sl=laneSlot('ally',u.key,i,n,allies.map(a=>a.key)); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
     if(u._backHunter){   // Hollow never marches — he goes back up into the dark and waits again
       u._dropT=3.5; u._dropHidden=true; u._dropHome={x:sl.x,y:sl.y}; u._fallT=0; u._fallH=0; u._noTarget=false;
@@ -18511,7 +18519,7 @@ Object.assign(KITS, {
   lastfurnace:{green:{deliver:'land',name:'Forge Strike',type:'cleave',mul:1.8,radius:3*METER,cd:7,desc:"Command the molten hammer to crash down and deal heavy damage.",gfxAt:'target',gdur:1.4,gfx:'lastfurnace_green'},blue:{name:'Chain Quench',type:'chainquench',mul:0.85,dps:0.35,dur:4,radius:4.5*METER,pull:2.4*METER,cd:10,desc:"Lash out with molten chains, pulling enemies together and burning them.",gfxAt:'self',gdur:1.8,gfx:'lastfurnace_blue'},purple:{name:'Tempered Steel',pass:'warden',desc:"Each successful hit hardens his armor and increases Defense."}},
   beekeeper:{green:{name:'Hornet Cloud',type:'hornetswarm',n:30,dps:0.42,dur:4,radius:2.8*METER,cd:7,desc:"Send enraged hornets forward to damage and poison enemies.",gfx:'beekeeper_green',gdur:5.88},blue:{name:'Royal Nectar',type:'honeyglob',heal:0.15,hot:0.045,dur:5,cd:8,desc:"Coat allies in enchanted honey, restoring health and increasing Attack Speed.",gfx:'beekeeper_blue',gdur:5.88},purple:{name:'Worker Swarm',pass:'beeward',desc:"A small swarm continuously heals nearby allies."}},
   librarian:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,dur:16,radius:1.6*METER,cd:11,desc:"Summon a Lesser Ink Spirit that hunts enemies and can only basic attack."},blue:{name:'Chapter Rewrite',type:'chapterrewrite',mul:1.1,pct:0.30,shred:0.25,dur:6,cd:9,desc:"Rewrite an enemy's story, reducing its stats and reversing beneficial effects.",gfxAt:'target',gdur:1.6,gfx:'librarian_blue',gfxR:3*METER},purple:{name:'Living Pages',pass:'livingpages',desc:"Each spell writes a Living Page that empowers his next basic attack."}},
-  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.85,n:4,cd:6,desc:"Fire a rapid volley from both pistols, striking multiple enemies.",pfx:'bullet',pscale:CORSAIR_BULLET_SCALE,pdur:0.14,gfxAt:'muzzle',gfx:'corsair_green',gfxR:3*METER},blue:{name:'Grappling Hook',type:'grapple',mul:1.25,stun:1.1,pull:5*METER,cd:9,desc:"Launch a hook that pulls an enemy inward and stuns it.",pfx:'corsair_blue_fx',pscale:2.4,gfx:'corsair_blue',gfxR:3*METER},purple:{name:"Pirate's Instinct",pass:'instinct',desc:"Every few shots, the next attack ignores part of the target's Defense."}},
+  corsair:{green:{name:'Pistol Barrage',type:'volley',mul:0.85,n:4,cd:6,desc:"Fire a rapid volley from both pistols, striking multiple enemies.",pfx:'bullet',pscale:CORSAIR_BULLET_SCALE,pdur:0.14,gfxAt:'muzzle',gfx:'corsair_green',gfxR:3*METER},blue:{name:'Grappling Hook',type:'grapple',mul:1.25,stun:1.1,pull:5*METER,cd:9,desc:"Launch a hook that pulls an enemy inward and stuns it.",pfx:'corsair_blue_fx',pscale:2.4,gfx:'corsair_blue',gfxR:3*METER,deliver:'shot',speed:18*METER},purple:{name:"Pirate's Instinct",pass:'instinct',desc:"Every few shots, the next attack ignores part of the target's Defense."}},
   waxenduchess:{green:{name:'Waxen Effigy',type:'effigy',mul:1.1,stun:1.1,mark:1.18,dur:6,cd:7,desc:"Creates a wax copy of the enemy with the highest Attack. Damage dealt to the effigy transfers to that enemy, and destroying it briefly stuns them.",gfx:'waxenduchess_green',gdur:5.88},blue:{deliver:'form',name:'Mourning Bell',type:'nova',at:'cluster',mul:1.0,radius:8*METER,cd:9,desc:"Damages all enemies and detonates every active Waxen Effigy for additional area damage.",gfx:'waxenduchess_blue',gdur:2.21},purple:{name:'Living Tallow',pass:'tallow',desc:"Enemy abilities apply wax. At three stacks, the enemy becomes encased and temporarily cannot attack or cast."}},
 });
 Object.assign(ABILITY_CAST, {pyroclast:{ult:1.0,green:0.5,blue:0.6}, stormwarden:{ult:1.0,green:0.5,blue:0.6}, verdantshade:{ult:1.0,green:0.5,blue:0.6}, voidweaver:{ult:1.0,green:0.5,blue:0.6}, dawnbringer:{ult:1.0,green:0.5,blue:0.6}, cathedral:{ult:1.0,green:0.5,blue:0.6}, lastfurnace:{ult:1.0,green:0.5,blue:0.6}, beekeeper:{ult:1.0,green:0.5,blue:0.6}, librarian:{ult:1.0,green:0.5,blue:0.6}, corsair:{ult:1.0,green:0.5,blue:0.6}, waxenduchess:{ult:1.0,green:0.5,blue:0.6}});
@@ -25218,7 +25226,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790871326567';
+const BUILD_ID = '1790871544779';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
