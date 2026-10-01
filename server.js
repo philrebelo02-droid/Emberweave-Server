@@ -6341,8 +6341,9 @@ async function api(req,res,url){
   if(p==='/api/world/mines' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
     if(!worldLocation(me)) return send(res,200,{ok:false,locked:true,needLevel:WITCH.UNLOCK_LEVEL});
-    const epoch=WORLD_MINES.epochAt(Date.now());
-    return send(res,200,{ok:true,epoch,nodes:WORLD_MINES.field(epoch)});
+    const serverNow=Date.now(), epoch=WORLD_MINES.epochAt(serverNow);
+    return send(res,200,{ok:true,epoch,nodes:WORLD_MINES.field(epoch),
+      serverNow,epochEndsAt:(epoch+1)*WORLD_MINES.EPOCH_MS});
   }
 
   /* v582: buy an extra arena attempt with diamonds. Idempotent per requestId (same idem() receipt
