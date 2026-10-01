@@ -6,7 +6,8 @@
     if(!phase||!Number.isFinite(phase.lifeFraction))return null;
     // wt_01 is fully dead, reserved for previews. The live tree never reaches death.
     const life=Math.max(0,Math.min(1,(phase.lifeFraction-1/28)/(27/28)));
-    return 2+Math.round(life*26);
+    // 27 frames (2..28) share the phase in EQUAL time slices: 13 d / 27 = 11 h 33 m each while decaying
+    return 2+Math.min(26,Math.floor(life*27));
   }
   function mount(inner){
     if(current)current.stop();

@@ -16,7 +16,9 @@
     const live=now>=start&&now<start+EVENT;
     const decayStart=now<firstEventAt?initialDecay:start+EVENT, eventStart=now<firstEventAt?firstEventAt:start, end=live?start+EVENT:(now<firstEventAt?firstEventAt:next);
     const progress=live?(now-start)/EVENT:(now-decayStart)/(end-decayStart);
-    const smooth=progress*progress*(3-2*progress), life=live?smooth:1-smooth;
+    // Phil 30 Sep: "the frames should make the time" - life moves at a steady rate (was an ease-in/out curve that
+    // showed frame 4 with 2 d 9 h left instead of frame 6)
+    const life=live?progress:1-progress;
     return {phase:live?'event':'decay',phaseStartedAt:live?eventStart:decayStart,
       phaseEndsAt:end,nextEventAt:now<firstEventAt?firstEventAt:next,
       remainingMs:Math.max(0,end-now),lifeFraction:1/28+life*27/28,
