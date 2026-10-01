@@ -2382,7 +2382,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/server/temple-effects.js"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
-<script src="/assets/ui/world-march-visual.js?v=wv1"></script>
+<script src="/assets/ui/world-march-visual.js?v=wv2"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -2442,7 +2442,7 @@ function zoneAt(col,row){ return Object.keys(ZONES).find(k=>ZONES[k].col===col&&
 function myRegion(){ return G.region||'crystor'; }
 function currentZone(){ const z=G.zone||myRegion(); return ZONES[z]?z:myRegion(); }
 function zoneAccessible(key){ const z=ZONES[key]; if(!z)return false; return z.type!=='region' || key===myRegion(); }   // your own region + all wild + world tree
-function marchZoneMul(){ return currentZone()==='worldtree'?3:1; }   // marches take 3× longer inside the World Tree
+function marchZoneMul(tx,ty){const c=myCastlePos();return window.EmberweaveWorldMarchVisual?window.EmberweaveWorldMarchVisual.multiplier(c,{x:tx,y:ty}):1;} // estimate only; launched trips use server receipts
 // free daily teleport (Teleport Scrolls buyable later); resets on the 09:00 EST arena-day boundary
 const FREE_TELEPORTS=1;
 function teleportsLeft(){ return G.teleDay===arenaDayKey()? Math.max(0,FREE_TELEPORTS-(G.teleUsed||0)) : FREE_TELEPORTS; }
@@ -20333,7 +20333,7 @@ function viewCenterCoord(){ const zone=document.getElementById('wzone'); if(!zon
 function updateCoordReadout(){ const el=document.getElementById('coordRead'); if(!el)return; const p=myCastlePos(); el.textContent='🏰 X'+cellIndex(p.x)+' Y'+cellIndex(p.y); }
 function gridDist(tx,ty){ const c=myCastlePos(); const dc=cellIndex(tx)-cellIndex(c.x), dr=cellIndex(ty)-cellIndex(c.y); return Math.max(1, Math.round(Math.hypot(dc,dr))); }
 function marchOutMs(ctype,tx,ty){ const per=(ctype==='defend')?MARCH_MS_PER_SQUARE/2:MARCH_MS_PER_SQUARE;
-  let ms=gridDist(tx,ty)*per*marchZoneMul();   // ×3 inside the World Tree
+  let ms=gridDist(tx,ty)*per*marchZoneMul(tx,ty); // half speed only along the Void segment
   if(ctype==='scout') ms/=10;                  // scouting is 10× faster than the resulting march time
   return Math.max(1000,Math.round(ms)); }
 function activeMarches(){ if(!G.marches)G.marches=[]; return G.marches; }
@@ -25259,7 +25259,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790878266905';
+const BUILD_ID = '1790878641430';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
