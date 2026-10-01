@@ -2381,6 +2381,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/server/temple-of-ash.js"></script>
 <script src="/server/temple-effects.js"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
+<script src="/assets/ui/world-march-visual.js?v=wv1"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt3"></script>
@@ -20560,6 +20561,18 @@ function retreatMarch(id){ const m=activeMarches().find(x=>x.id===id); if(!m||m.
   bannerMsg('↩ Retreating from '+escapeHTML(m.tName)+' — troops returning home.'); if(document.getElementById('wzone')) drawMarches(); return true;
 }
 // draw arrow paths + moving ship vehicles for every active march
+function worldVisualMarchRows(local){
+  const cache=worldMarchCache(),s=cache&&cache.state();
+  if(cache)syncWorldMarches(false);
+  if(!s||!s.loaded||!window.EmberweaveWorldMarchVisual)return local;
+  const views=window.EmberweaveWorldMarchVisual.views(s.rows,s.now,local);
+  const replaced=new Set(views.map(v=>v.localId).filter(Boolean));
+  return local.filter(m=>!replaced.has(m.id)).concat(views.map(v=>({
+    id:'server-visual:'+v.key,dir:'out',ctype:v.kind==='mine'?'mine':'attack',serverVisual:v,
+    fx:v.to.x,fy:v.to.y
+  })));
+}
+
 function drawMarches(){
   const inner=document.getElementById('wzoneInner'); if(!inner)return;
   let svg=document.getElementById('marchSvg');
@@ -20570,15 +20583,20 @@ function drawMarches(){
     inner.appendChild(svg); }
   let veh=document.getElementById('marchVeh'); if(!veh){ veh=document.createElement('div'); veh.id='marchVeh'; veh.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:5'; inner.appendChild(veh); }
   const g=svg.querySelector('#marchG'); g.innerHTML=''; veh.innerHTML='';
-  const now=Date.now(), home=myCastlePos();   // marches originate at your castle's world position
-  activeMarches().forEach(m=>{ const far={x:m.fx,y:m.fy};
+  const now=Date.now(), home=myCastlePos();
+  worldVisualMarchRows(activeMarches()).forEach(m=>{ const far={x:m.fx,y:m.fy};
     // scouting marches are private — only the scouter and the scouted ever see the ship + arrows.
     // every march in this client's list is one the player is party to (their own, or incoming to them),
     // so scouts here are correctly visible; third-party scouts are never sent to this client.
     let legStart, legEnd, p, col, showLine=true, etaMs=0, stationed=false, mining=false;
     // COLOURS: blue = you marching out (attack/defend/scout); red = an enemy marching to you;
     //          green = a guild ally marching to you / parked at your castle. (Returning ships are your own → blue.)
-    if(m.retreated){                          // recalled → sailing home from where it turned around
+    if(m.serverVisual){
+      const v=m.serverVisual;legStart=v.from;legEnd=v.to;p=v.progress;etaMs=v.etaMs;
+      col=v.phase==='returning'?'#6ea8ff':v.kind==='mine'?'#ffd45e':'#6ea8ff';
+      showLine=v.phase==='outbound'||v.phase==='returning';
+      mining=v.kind==='mine'&&(v.phase==='gathering'||v.phase==='awaiting-resolution');
+    } else if(m.retreated){                          // recalled → sailing home from where it turned around
       legStart=m.retFrom||far; legEnd=home; p=(now-m.retStart)/m.retDur; col='#6ea8ff'; etaMs=(m.retStart+m.retDur)-now;
     } else if(m.ctype==='mine'){               // mining: travel out → gather at the node → travel home
       if(now < m.reachAt){ legStart=home; legEnd=far; p=(now-m.depart)/m.out; col='#ffd45e'; etaMs=m.reachAt-now; }
@@ -20628,7 +20646,7 @@ function drawMarches(){
       }
       veh.appendChild(wrap);
     }
-    const t=document.createElement('div'); t.textContent=mining?('⛏ '+fmtDur(etaMs)):(stationed?'🛡 stationed':fmtDur(etaMs));
+    const t=document.createElement('div'); t.textContent=m.serverVisual?.phase==='awaiting-resolution'?'Pending result':mining?('⛏ '+fmtDur(etaMs)):(stationed?'🛡 stationed':fmtDur(etaMs));
     t.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,22px);font-size:9px;font-weight:800;color:'+col+';text-shadow:0 1px 2px #000;white-space:nowrap'; veh.appendChild(t);
   });
 }
@@ -25059,7 +25077,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790840569904';
+const BUILD_ID = '1790840751423';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
