@@ -2937,6 +2937,12 @@ function worldTreeHooks(now,sites){
     }
   };
 }
+function worldTreeGuildLabel(gid){const g=gid&&DB.guilds?.[gid];return {guildName:g&&typeof g.name==='string'?g.name.slice(0,100):'Guild',guildTag:g&&typeof g.tag==='string'?g.tag.slice(0,20):''};}
+function worldTreePublicControl(me,now){const view=WORLD_TREE_CONTROL.publicState(DB.worldTreeControl,me.id,DB.guilds?.[me.guildId]?.members?.includes(me.id)?me.guildId:null,now),window=worldTreeWindow(now).eventWindow;
+  return {...view,startsAt:window?.startsAt??null,endsAt:window?.endsAt??null,eventActive:window?.active===true,
+    sites:view.sites.map(s=>{const label=worldTreeGuildLabel(s.holderGuildId);return {...s,holderGuildName:s.holderGuildId?label.guildName:null,holderGuildTag:s.holderGuildId?label.guildTag:null};})};}
+function worldTreePublicScore(now){const view=WORLD_TREE_SCORE.view(DB.worldTreeScore,now,WORLD_TREE_CONTROL_ENABLED);return {...view,scores:view.scores.map(row=>({...row,...worldTreeGuildLabel(row.guildId)}))};}
+
 function worldTreeRun(actor,action,payload,now=Date.now()){
   if(!WORLD_TREE_CONTROL_ENABLED)return {ok:false,error:'World Tree event disabled'};
   const sites=worldTreeWindow(now),prior=DB.worldTreeControl;
@@ -6373,14 +6379,14 @@ async function api(req,res,url){
     if(!me)return send(res,401,{error:'auth'});
     if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
     res.setHeader('Cache-Control','no-store');
-    return send(res,200,{ok:true,...WORLD_TREE_SCORE.view(DB.worldTreeScore,Date.now(),WORLD_TREE_CONTROL_ENABLED)});
+    return send(res,200,{ok:true,...worldTreePublicScore(Date.now())});
   }
   if(p==='/api/world-tree/control'){
     if(!me)return send(res,401,{error:'auth'});
     if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
     res.setHeader('Cache-Control','no-store');
     const now=Date.now();return send(res,200,{ok:true,enabled:WORLD_TREE_CONTROL_ENABLED,
-      ...WORLD_TREE_CONTROL.publicState(DB.worldTreeControl,me.id,DB.guilds?.[me.guildId]?.members?.includes(me.id)?me.guildId:null,now)});
+      ...worldTreePublicControl(me,now)});
   }
   if(['/api/world-tree/march/start','/api/world-tree/march/resolve','/api/world-tree/march/retreat'].includes(p)){
     if(!me)return send(res,401,{error:'auth'});

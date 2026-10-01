@@ -2391,6 +2391,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
+<script src="/assets/ui/world-tree-control-ui.js?v=wc1"></script>
 <script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
 <script>
 /* ==========================================================================
@@ -19215,6 +19216,7 @@ let ACC={token:null,name:null,rank:null,coins:0,id:null,created:0};
    glyph board and the wishing pool showed the PREVIOUS player's data until something happened to
    refetch it. Every account transition now goes through this. */
 function clearServerCaches(){
+  try{if(_worldTreeControlUI)_worldTreeControlUI.reset();}catch(e){}
   try{ if(typeof FORGE!=='undefined'){ FORGE.st=null; FORGE.cat=null; FORGE.eqPick=null; } }catch(e){}
   try{ if(typeof VAULT!=='undefined'){ VAULT.st=null; VAULT.result=null; VAULT.pick=null; VAULT.salv=null; } }catch(e){}
   try{ if(typeof RUNE2!=='undefined'){ RUNE2.st=null; RUNE2.enabled=null; RUNE2.pick=null; } }catch(e){}
@@ -20031,6 +20033,7 @@ function worldZoomBounds(zone){
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone');
   if(inner){ inner.style.zoom=worldZoom;
     if(window.EmberweaveWorldTreeCountdown) window.EmberweaveWorldTreeCountdown.setZoom(worldZoom);
+    if(_worldTreeControlUI)_worldTreeControlUI.zoom(inner);
     if(zone){ const {min,max}=worldZoomBounds(zone), span=Math.log(max/min);
       const progress=span>0?Math.max(0,Math.min(1,Math.log(worldZoom/min)/span)):0;
       inner.style.setProperty('--wm-grid-alpha',(.08+.10*progress).toFixed(3)); } }
@@ -20221,6 +20224,7 @@ function renderWorldMap(keepView){
   zone.appendChild(inner);
   if(globalThis.EmberweaveWorldOasisMarkers)globalThis.EmberweaveWorldOasisMarkers.mount(inner);
   const mapWrap=document.createElement('div'); mapWrap.style.cssText='position:relative'; mapWrap.appendChild(zone); body.appendChild(mapWrap);
+  const treeUI=worldTreeControlUI();if(treeUI)treeUI.mount(inner,mapWrap);
   const now=Date.now();
   // all rival castles (bots) across every region
   const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
@@ -20361,6 +20365,11 @@ function drawServerMarchInfo(body,local){
     if(s.failed){const line=document.createElement('div');line.textContent='Refresh failed; showing the last server snapshot.';box.appendChild(line);}
   };render();syncWorldMarches(true).then(render);
 }
+
+let _worldTreeControlUI=null;
+function worldTreeControlUI(){if(!_worldTreeControlUI&&window.EmberweaveWorldTreeControlUI)_worldTreeControlUI=window.EmberweaveWorldTreeControlUI.create({
+  identity:()=>ACC.token?ACC.id+':'+ACC.token:null,now:()=>Date.now(),zoom:()=>worldZoom,schedule:(fn,ms)=>setTimeout(fn,ms),cancel:id=>clearTimeout(id),
+  api:path=>api(path,'GET'),layout:()=>fetch('/api/world-tree/sites',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Sites unavailable');return r.json();})});return _worldTreeControlUI;}
 
 function committedHeroes(){ const s=new Set(); const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
 /* v805 (Phil: "have everything in the game that uses a real hero off your bench calculate directly
@@ -25266,7 +25275,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790881548665';
+const BUILD_ID = '1790882446655';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
