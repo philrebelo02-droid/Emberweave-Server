@@ -9,7 +9,8 @@
     const sites=IDS.map(id=>{const rows=layout.sites.filter(x=>x.id===id),held=control.sites.filter(x=>x.id===id);if(rows.length!==1||held.length>1)throw Error('Site mismatch');
       const b=rows[0].bounds;if(!b||!['left','top','right','bottom'].every(k=>Number.isFinite(b[k])&&b[k]>=0&&b[k]<=100)||b.left>=b.right||b.top>=b.bottom)throw Error('Invalid bounds');
       const gid=held[0]?.holderGuildId??null;if(gid!==null&&(typeof gid!=='string'||gid.length>200))throw Error('Invalid holder');
-      return {id,bounds:{...b},holderGuildId:gid,holderName:typeof held[0]?.holderGuildName==='string'?held[0].holderGuildName:'Guild',holderTag:typeof held[0]?.holderGuildTag==='string'?held[0].holderGuildTag:'',colour:colour(gid)};
+      const benefit=held[0]?.benefit;
+      return {id,bounds:{...b},holderGuildId:gid,holderName:typeof held[0]?.holderGuildName==='string'?held[0].holderGuildName:'Guild',holderTag:typeof held[0]?.holderGuildTag==='string'?held[0].holderGuildTag:'',colour:colour(gid),benefit:benefit?.damagePercent===10&&benefit?.regenPercent===1&&benefit?.regenEveryMs===30000};
     });
     const scores=score.scores.map(x=>{if(typeof x.guildId!=='string'||x.guildId.length>200||!Number.isSafeInteger(x.points)||x.points<0)throw Error('Invalid score');return {guildId:x.guildId,guildName:typeof x.guildName==='string'?x.guildName:'Guild',guildTag:typeof x.guildTag==='string'?x.guildTag:'',points:x.points};});
     const active=control.enabled&&control.eventActive===true&&Number.isSafeInteger(control.startsAt)&&Number.isSafeInteger(control.endsAt)&&Number.isSafeInteger(control.serverNow)&&control.serverNow>=control.startsAt&&control.serverNow<control.endsAt;
@@ -37,7 +38,7 @@
       const list=node(doc,'div');list.style.cssText='display:flex;gap:10px;flex-wrap:wrap;max-height:90px;overflow:auto';board.appendChild(list);
       if(!st.data.scores.length)list.appendChild(node(doc,'span','No scores'));
       for(const row of st.data.scores){const el=node(doc,'span',(row.guildTag?'['+row.guildTag+'] ':'')+row.guildName+' · '+row.points);el.style.color=colour(row.guildId);list.appendChild(el);}
-      for(const s of st.data.sites){const label=s.holderGuildId?(s.holderTag?'['+s.holderTag+'] ':'')+s.holderName:'Unclaimed';const el=node(doc,'div',label),b=s.bounds;el.className='worldTreeHolder';el.dataset.siteId=s.id;el.title=title(s.id)+' · '+label;
+      for(const s of st.data.sites){const label=(s.holderGuildId?(s.holderTag?'['+s.holderTag+'] ':'')+s.holderName:'Unclaimed')+(s.benefit?' · +10% DMG · 1% HP/30s':'');const el=node(doc,'div',label),b=s.bounds;el.className='worldTreeHolder';el.dataset.siteId=s.id;el.title=title(s.id)+' · '+label;
         el.style.cssText='position:absolute;left:'+((b.left+b.right)/2)+'%;top:'+b.bottom+'%;transform:translate(-50%,4px);color:'+s.colour+';font-size:10px;font-weight:800;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;pointer-events:none;z-index:7;zoom:'+1/hooks.zoom();inner.appendChild(el);
       }
     }

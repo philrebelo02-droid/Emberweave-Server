@@ -6,6 +6,7 @@ const safeId=x=>typeof x==='string'&&x.length>0&&x.length<=200&&!['__proto__','c
 const ms=x=>Number.isSafeInteger(x)&&x>=0;
 const LIMIT=id=>id==='tree'?15:10;
 const HOLD=id=>id==='tree'?12*3600000:8*3600000;
+const BENEFIT=require('./world-tree-benefit.js');
 function initial(window){
   if(!window||!ms(window.startsAt)||!ms(window.endsAt)||window.endsAt-window.startsAt!==86400000)throw Error('Invalid event window');
   return {version:1,eventId:'world-tree-'+window.startsAt,startsAt:window.startsAt,endsAt:window.endsAt,through:window.startsAt,sequence:0,
@@ -14,7 +15,8 @@ function initial(window){
 function publicState(state,userId,guildId,now){
   if(!state)return {serverNow:now,sites:[],marches:[]};
   return {eventId:state.eventId,startsAt:state.startsAt,endsAt:state.endsAt,serverNow:now,
-    sites:SITE_IDS.map(id=>{const s=state.sites[id],out={id,holderGuildId:s.holderGuildId,heldSince:s.heldSince};
+    sites:SITE_IDS.map(id=>{const s=state.sites[id],out={id,holderGuildId:s.holderGuildId,heldSince:s.heldSince,
+      benefit:id!=='tree'&&s.holderGuildId&&s.holderGuildId===state.sites.tree.holderGuildId?{damagePercent:10,regenPercent:1,regenEveryMs:30000}:null};
       // Only a holder's guild sees garrison membership, never snapshots/HP/energy.
       if(guildId&&guildId===s.holderGuildId)out.lines=s.lines.map(mid=>{const m=state.marches[mid];return {id:m.id,ownerId:m.ownerId,heroIds:m.heroIds.slice(),arrivedAt:m.arriveAt,returnAt:m.holdUntil};});
       return out;}),
@@ -40,21 +42,24 @@ function dispatch(saved,input,hooks){
     const siteId=SITE_IDS.find(id=>state.sites[id]===s);
     state.controlChanges.push({sequence:state.controlChanges.length+1,siteId,at,fromGuildId:s.holderGuildId,toGuildId:gid});
     s.holderGuildId=gid;s.heldSince=gid?at:null;
+    if(siteId==='tree')for(const m of Object.values(state.marches))if(m.siteId!=='tree'&&m.phase==='garrison')m.regenAt=gid===m.guildId?at+30000:null;
   }}
   function garrison(m,at){const s=state.sites[m.siteId];
     if(s.lines.length>=LIMIT(m.siteId)){home(m,at,'site-full');return;}
     holder(s,m.guildId,at);m.phase='garrison';m.holdUntil=at+HOLD(m.siteId);m.homeAt=m.holdUntil+m.travelMs;s.lines.push(m.id);
+    m.regenAt=BENEFIT.eligible(state,m)?at+30000:null;
   }
   function fight(s,m,at){
     const did=s.lines[s.lines.length-1],d=state.marches[did];
     if(!d){garrison(m,at);return;}
-    const aSnaps=m.snaps.filter(x=>x.hp>0).map(x=>({...clone(x),energy:0})),dSnaps=d.snaps.filter(x=>x.hp>0).map(x=>({...clone(x),energy:0}));
+    const benefit=BENEFIT.eligible(state,d)&&hooks.guildValid(d.guildId,d.ownerId);
+    const aSnaps=m.snaps.filter(x=>x.hp>0).map(x=>({...clone(x),energy:0})),dSnaps=d.snaps.filter(x=>x.hp>0).map(x=>({...clone(x),energy:0,worldTreeBenefit:benefit}));
     const seed=hooks.seed(state.eventId,m.id,d.id,m.fights||0);
     const result=hooks.battle(aSnaps,dSnaps,seed);
     if(!result||typeof result.won!=='boolean'||!ms(result.durationMs)||result.durationMs>45000||!Array.isArray(result.ally)||!Array.isArray(result.foe)||!Array.isArray(result.deaths))throw Error('Invalid authoritative battle');
     for(const [rows,snaps]of [[result.ally,aSnaps],[result.foe,dSnaps]]){
       if(rows.length!==snaps.length||new Set(rows.map(r=>r.key)).size!==rows.length)throw Error('Incomplete battle outcomes');
-      for(const row of rows){const original=snaps.find(x=>x.key===row.key);if(!original||!Number.isFinite(row.hp)||row.hp<0||row.hp>original.hp||row.maxHp!==original.maxHp)throw Error('Invalid battle HP');}
+      for(const row of rows){const original=snaps.find(x=>x.key===row.key);const cap=original?Math.min(original.maxHp,original.hp+(original.worldTreeBenefit?Math.floor(result.durationMs/30000)*original.maxHp*.01:0)):0;if(!original||!Number.isFinite(row.hp)||row.hp<0||row.hp>cap||row.maxHp!==original.maxHp)throw Error('Invalid battle HP');}
     }
     const aliveA=result.ally.some(r=>r.hp>0),aliveD=result.foe.some(r=>r.hp>0);
     // Full death and timeout always defend. Never trust a client winner.
@@ -63,7 +68,7 @@ function dispatch(saved,input,hooks){
     if(new Set(deaths.map(x=>x.key)).size!==deaths.length||deaths.some(x=>!ms(x.atMs)||x.atMs>result.durationMs||!result.foe.some(r=>r.key===x.key&&r.hp===0)))throw Error('Invalid death schedule');
     if(result.foe.filter(r=>r.hp===0).length!==deaths.length)throw Error('Missing defender death schedule');
     m.phase='fighting';m.fights=(m.fights||0)+1;
-    s.active={attacker:m.id,defender:d.id,startedAt:at,endsAt:at+result.durationMs,seed,result:{...clone(result),won},deaths:deaths.map((x,i)=>({...x,at:at+x.atMs,done:false,order:i}))};
+    s.active={attacker:m.id,defender:d.id,startedAt:at,endsAt:at+result.durationMs,seed,benefit,result:{...clone(result),won},deaths:deaths.map((x,i)=>({...x,at:at+x.atMs,done:false,order:i}))};
   }
   function nextAttack(s,at){if(s.active)return;while(s.queue.length){const m=state.marches[s.queue.shift()];
     if(!hooks.guildValid(m.guildId,m.ownerId)){home(m,at,'guild-changed');continue;}
@@ -75,17 +80,25 @@ function dispatch(saved,input,hooks){
         if(m.phase==='outbound')events.push({at:m.arriveAt,rank:2,seq:m.sequence,type:'arrive',m});
         if(m.phase==='garrison'&&ms(m.holdUntil)&&!Object.values(state.sites).some(s=>s.active?.defender===m.id))events.push({at:Math.max(m.holdUntil,state.through),rank:3,seq:m.sequence,type:'hold',m});
         if(m.phase==='returning')events.push({at:m.homeAt,rank:4,seq:m.sequence,type:'home',m});
+        if(BENEFIT.eligible(state,m)&&ms(m.regenAt)&&!Object.values(state.sites).some(s=>s.active?.defender===m.id))events.push({at:m.regenAt,rank:5,seq:m.sequence,type:'regen',m});
       }
       for(const [id,s]of Object.entries(state.sites))if(s.active){const f=s.active;
         for(const x of f.deaths)if(!x.done)events.push({at:x.at,rank:0,seq:x.order,type:'death',s,f,x,id});
         events.push({at:f.endsAt,rank:1,seq:0,type:'finish',s,f,id});}
-      events.sort((a,b)=>a.at-b.at||a.rank-b.rank||a.seq-b.seq||(a.id||a.m.id).localeCompare(b.id||b.m.id));
+      const eventRank=e=>(e.id==='tree'||e.m?.siteId==='tree')?e.rank-10:e.rank;
+      events.sort((a,b)=>a.at-b.at||eventRank(a)-eventRank(b)||a.seq-b.seq||(a.id||a.m.id).localeCompare(b.id||b.m.id));
       const e=events[0];if(!e||e.at>to)break;if(++steps>2000)throw Error('Control settlement limit');
       if(e.type==='arrive'){const m=e.m,s=state.sites[m.siteId];m.phase='queued';
         if(!hooks.guildValid(m.guildId,m.ownerId))home(m,e.at,'guild-changed');
         else{s.queue.push(m.id);nextAttack(s,e.at);}}
       if(e.type==='hold'){home(e.m,e.at,'hold-expired');if(!state.sites[e.m.siteId].lines.length&&!state.sites[e.m.siteId].active)holder(state.sites[e.m.siteId],null,e.at);nextAttack(state.sites[e.m.siteId],e.at);}
       if(e.type==='home')e.m.phase='home';
+      if(e.type==='regen'){const m=e.m;
+        // Batch only until before the next non-regen event: no credit across a capture, fight or return.
+        const stop=Math.min(to,...events.filter(x=>x.type!=='regen').map(x=>x.at-1)),ticks=Math.floor((stop-e.at)/30000)+1,last=e.at+(ticks-1)*30000;
+        if(ticks<1)throw Error('Invalid regeneration ordering');
+        if(hooks.guildValid(m.guildId,m.ownerId)){const r=BENEFIT.settle(m.snaps,null,e.at-30000,last,true);m.snaps=r.snaps;effect(m,m.snaps,last,'regen:'+m.id+':'+last);state.effects[state.effects.length-1].benefit=true;}m.regenAt=last+30000;
+      }
       if(e.type==='death'){
         e.x.done=true;const d=state.marches[e.f.defender],row=e.f.result.foe.find(r=>r.key===e.x.key);
         const childId=d.id+':death:'+e.x.key;if(state.marches[childId])throw Error('Duplicate defender return');
@@ -97,7 +110,9 @@ function dispatch(saved,input,hooks){
         const a=state.marches[e.f.attacker],d=state.marches[e.f.defender],r=e.f.result;
         const update=(m,rows)=>{for(const x of m.snaps){const row=rows.find(z=>z.key===x.key);x.hp=row.hp;x.worldEntryHpCap=row.hp;x.energy=0;}};
         update(a,r.ally);update(d,r.foe);effect(a,r.ally,e.at,'fight:'+a.id+':'+a.fights);effect(d,r.foe.filter(x=>d.heroIds.includes(x.key)),e.at,'defend:'+a.id+':'+a.fights);
+        if(e.f.benefit)state.effects[state.effects.length-1].benefit=true;
         e.s.active=null;
+        d.regenAt=BENEFIT.eligible(state,d)?e.at+30000:null;
         if(d.phase==='garrison'&&d.holdUntil<e.at)d.holdUntil=e.at;
         if(!d.heroIds.length){e.s.lines=e.s.lines.filter(id=>id!==d.id);d.phase='home';d.homeAt=e.at;}
         if(r.won){if(e.s.lines.length)fight(e.s,a,e.at);else garrison(a,e.at);}else{home(a,e.at,'defeated');}

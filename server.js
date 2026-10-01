@@ -2953,7 +2953,12 @@ function worldTreeRun(actor,action,payload,now=Date.now()){
   const injured=new Map();
   for(const e of result.effects){const u=DB.users[e.ownerId];if(!u||!u.witch)throw Error('Missing garrison injury owner');
     if(!injured.has(u.id))injured.set(u.id,JSON.parse(JSON.stringify(u.witch)));
-    WITCH.applyBattle(injured.get(u.id),e.outcomes,e.heroIds);
+    const witch=injured.get(u.id);
+    if(e.benefit===true){const owned=new Set(e.heroIds);for(const row of e.outcomes){
+      if(!owned.has(row.key)||!Number.isFinite(row.hp)||!Number.isFinite(row.maxHp)||row.maxHp<=0||row.hp<0||row.hp>row.maxHp)throw Error('Invalid Tree benefit outcome');
+      const before=WITCH.health(witch,row.key),after=Math.round(row.hp/row.maxHp*WITCH.HP_FULL);
+      witch.hp[row.key]=before>0?Math.max(0,Math.min(WITCH.HP_FULL,after)):0;
+    }}else WITCH.applyBattle(witch,e.outcomes,e.heroIds);
   }
   const score=WORLD_TREE_SCORE.advance(DB.worldTreeScore,result.state,now);
   result.state.effects=[];DB.worldTreeControl=result.state;DB.worldTreeScore=score;

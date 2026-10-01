@@ -8,9 +8,12 @@ function prepare(source){
   s=once(s,'  if(manualReplay) autoUlt=false;','  autoUlt=true; REPLAY_IN=null;');
   s=once(s,'  for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);',
     `  const wtTracked=units.slice(),wtDeaths=[],wtSeen=new Set();
-  for(const u of units)u.energy=0;
+  const wtBenefited=new Set();let wtRegenTick=0;
+  for(const u of units){u.energy=0;const s=(u.team==='ally'?allySnaps:foeTeam).find(s=>s.key===u.key);if(s?.worldTreeBenefit){wtBenefited.add(u.uid);u.dmgBonusMul2=(u.dmgBonusMul2||1)*1.1;}}
   for(let i=0;i<Math.ceil(90/SIM_STEP) && !ended;i++){
     updateBattle(SIM_STEP);
+    const wtTick=Math.floor((battleTime*500+1e-6)/30000);
+    if(wtTick>wtRegenTick){for(const u of wtTracked)if(wtBenefited.has(u.uid)&&u.alive){const gain=u.maxHp*.01*(wtTick-wtRegenTick);u._worldEntryHpCap=Math.min(u.maxHp,(u._worldEntryHpCap??u.maxHp)+gain);u.hp=Math.min(u.maxHp,u.hp+gain);}wtRegenTick=wtTick;}
     for(const u of wtTracked)if(!u.alive&&!wtSeen.has(u.uid)){
       wtSeen.add(u.uid);wtDeaths.push({key:u.key,team:u.team,atMs:Math.min(45000,Math.ceil(battleTime*500))});
     }
@@ -32,9 +35,9 @@ function create(host){
     host.sandbox.worldTreeFightResult(a,d,seed>>>0,false);
     const digest=JSON.parse(host.sandbox._p2digest||'null');
     if(!digest||!Array.isArray(digest.u)||!Array.isArray(digest.deaths)||!Number.isFinite(digest.t))throw Error('Incomplete World Tree battle digest');
-    const outcomes=(snaps,team)=>snaps.map(s=>{const row=digest.u.find(r=>r[0]===s.key&&r[1]===team);return {key:s.key,maxHp:s.maxHp,hp:row&&row[2]?Math.max(0,Math.min(s.hp,+row[3]||0)):0};});
-    const ao=outcomes(a,'ally'),fo=outcomes(d,'enemy');
     const durationMs=Math.min(45000,Math.max(Math.ceil(digest.t*500),...digest.deaths.map(x=>x.atMs)));
+    const outcomes=(snaps,team)=>snaps.map(s=>{const row=digest.u.find(r=>r[0]===s.key&&r[1]===team),cap=Math.min(s.maxHp,s.hp+(s.worldTreeBenefit?Math.floor(durationMs/30000)*s.maxHp*.01:0));return {key:s.key,maxHp:s.maxHp,hp:row&&row[2]?Math.max(0,Math.min(cap,+row[3]||0)):0};});
+    const ao=outcomes(a,'ally'),fo=outcomes(d,'enemy');
     return {won:digest.won===true,durationMs,ally:ao,foe:fo,
       deaths:digest.deaths.filter(x=>x.team==='enemy'&&fo.some(r=>r.key===x.key&&r.hp===0)),digest,seed:seed>>>0,engine:host.buildVersion};
   };
