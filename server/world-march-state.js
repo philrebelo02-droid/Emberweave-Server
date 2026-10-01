@@ -1,4 +1,5 @@
 'use strict';
+const WORLD_MARCH_ROUTE=require('./world-march-route.js');
 // Pure read projection: never prune records, settle battles, award resources or
 // expose frozen combat snapshots. Pending results survive even after home time.
 function summarize(user,now=Date.now()){
@@ -16,6 +17,7 @@ function summarize(user,now=Date.now()){
         depart:m.depart,arriveAt:m.arriveAt,homeAt:m.homeAt,phase,resultPending,
         resolveReady:resultPending&&now>=m.arriveAt,homeReached:now>=m.homeAt,
         arriveInMs:Math.max(0,m.arriveAt-now),homeInMs:Math.max(0,m.homeAt-now)};
+      item.route=WORLD_MARCH_ROUTE.project(m);
       if(kind==='mine'&&m.node){item.mineId=typeof m.node.id==='string'?m.node.id:null;
         item.resource=typeof m.node.res==='string'?m.node.res:null;
         item.level=Number.isInteger(m.node.level)?m.node.level:null;}

@@ -23,6 +23,7 @@ const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_MARCH_STATE=require('./server/world-march-state.js');
+const WORLD_MARCH_ROUTE=require('./server/world-march-route.js');
 const WORLD_WATCH_STATE=require('./server/world-watch-state.js');
 const WORLD_LOCATION=require('./server/world-location.js');
 const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
@@ -4805,7 +4806,8 @@ async function api(req,res,url){
         const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_MINE_TEST_MS||0):0;
         const travel=fixtureMs||distance*60000, gather=fixtureMs||(20+node.level*18)*60000;
         const march={id:uid(),node,heroIds:ids,snaps,depart:now,arriveAt:now+travel+gather,
-          homeAt:now+travel*2+gather,resolved:false};
+          homeAt:now+travel*2+gather,resolved:false,
+          route:WORLD_MARCH_ROUTE.capture(castle,node,null,travel,gather)};
         me.worldMineMarches.push(march); me.mineClaims.ids.push(node.id);
         return {ok:true,marchId:march.id,mineId:node.id,heroIds:ids,depart:now,
           arriveAt:march.arriveAt,homeAt:march.homeAt,travel,gather};
@@ -6236,7 +6238,8 @@ async function api(req,res,url){
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
       const travel=fixtureMs||distance*60000;
       const march={id:uid(),defId:targetId,heroIds:ids,snaps,depart:now,arriveAt:now+travel,
-        homeAt:now+travel*2,resolved:false};
+        homeAt:now+travel*2,resolved:false,
+        route:WORLD_MARCH_ROUTE.capture(loc,d?d.worldLocation:bot,d?d.name:null,travel,0)};
       if(bot) march.botTeam=bot.team.map(h=>({key:h.key,level:h.level,rank:h.rank}));
       marches.push(march);
       return {ok:true,marchId:march.id,defId:targetId,depart:now,arriveAt:march.arriveAt,
