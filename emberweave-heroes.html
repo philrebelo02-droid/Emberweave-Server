@@ -9599,7 +9599,8 @@ function startAbilityClip(u,type){
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
 }
-function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
+function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
+  o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
   o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
@@ -9607,16 +9608,17 @@ function doEffect(u,type,o){ o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u.
   // Ability Power research multiplier. Buffs and per-cast skill scaling still apply here once.
   let apB=(u.apow||0)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm; let dB=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm;
   const _mode=heroScaleMode(u); if(_mode==='ap'){ dB=apB; } else if(_mode==='ad'){ apB=dB; }
+  if(u.pass&&u.pass.risingheat&&(u.apMul||1)>1){ apB*=u.apMul; dB*=u.apMul; }   /* v886 Rising Heat: the scorched-count bonus now reaches her spells */
   const _sD=(_mode==='ap')?(u.apow||0):u.dmg, _sA=(_mode==='ad')?u.dmg:(u.apow||0);   // the role's stat, for the cases that read u.dmg / u.apow directly
   // Monster/boss abilities scale off POWER: Mage-role casters deal +30% ability damage; brutes/warriors/tanks unchanged.
   // (apMul carries a boss's magic multiplier, e.g. Magmourn 1.6.) Basic auto-attacks are unaffected — they never route through doEffect.
   if(u.t && u.t.monster){ dB = u.dmg*(u.t.role==='Mage'?1.3:1)*(u.dmgBuffT>0?u.dmgBuffMul:1)*sm*(u.apMul||1); }
-  let aimCtr=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
+  let aimCtr=o._aim?{x:o._aim.x,y:o._aim.y}:((u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null);
   /* v483 (Phil: Astra's Starfire/Nebula 'should cast on an area with the most congested enemy group and do damage in that range'):
      at:'cluster' picks the densest enemy group (most foes inside the radius) and casts THERE, any distance — not around the caster. */
   if(!aimCtr&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aimCtr=c; }
   HERO_FX_MUL=1;   // effect FX play at NORMAL speed (Phil: don't slow/double the effect). Kept as a tunable hook; 1 = no change.
-  const tgt=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
+  const tgt=(o._arrived&&o._tgtU)?o._tgtU:((u.target&&u.target.alive)?u.target:nearestEnemy(u));
   _ownFxCast = !!(o && o.gfx); setTimeout(()=>{_ownFxCast=false;},0);   /* v451 FX-OWNERSHIP */
   fxFor(type,u,tgt,o);   // ability visual effect
   /* v552 (Phil: 'buff abilities like vireos heal and shield + any buff abilities should generate above everyone's health bar that's effected'):
@@ -10590,6 +10592,27 @@ function castTick(u, dt){
   if(ax!=null){ u._aimWX=ax; u._aimWY=ay; }
 }
 /* v885 Drifting Constellation: pick the next ally for the orb and launch its art for exactly that hop. */
+/* v886 DELIVERY - launch the art, queue the effect for when it arrives (see doEffect). */
+function deliverLaunch(u,type,o){ try{
+  const mode=o.deliver; let aim=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
+  if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
+  const tU=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
+  if(mode==='shot'&&!tU) return false;
+  const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
+  const delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
+  if(u._clipStarted){ u._clipStarted=false; } else { try{ startAbilityClip(u,type); }catch(_e){} }
+  const sm0=u._castSM, lv0=u._castLv, slot0=u._castSlot;
+  try{ if(TH&&scene){ window._fxCaster=u;
+    if(mode==='shot'){ const k=o.pfx||o.gfx; if(k&&FX2_DEF[k]){ const co=castOrigin(u,tU.x,tU.y); window._projTgtU=tU; spawnProjFx(k,co.x,co.y,tU.x,tU.y,o.pscale||2.6,delay,function(){},co.h); } }
+    else if(mode==='land'){ const k=o.gfx; if(k&&FX2_DEF[k]) spawnProjFx(k,P.x,P.y,P.x,P.y,o.pscale||3.0,delay,function(){},9); }
+    else if(mode==='form'){ _fxAllow=true; try{ abilArt(u,o,tU,aim,type); }finally{ _fxAllow=false; } } } }catch(_e){}
+  groundHazards.push({arrival:true,delay,run:function(){
+    let T=tU;
+    if(mode==='shot'&&T&&!T.alive){ let b=null,bd=1.5*METER; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-T.x,e.y-T.y); if(d<bd){bd=d;b=e;} }); T=b; if(!T) return; }
+    const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true;
+    try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:T,_aim:aim?aim:(mode==='land'?P:null),pfx:(mode==='shot'?null:o.pfx),noArt:(mode==='form')||!!o.noArt})); }
+    finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; } }});
+  return true; }catch(_e){ return false; } }
 function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)continue; const dd=Math.hypot(a.x-h.x,a.y-h.y); if(dd<nd){nd=dd;nx=a;} }
   if(!nx){ h.done=true; return; } h.left.splice(h.left.indexOf(nx),1); h.tgt=nx; h.hopT=0; h.hopDur=Math.max(0.18,Math.min(0.6,nd/(14*METER)));
   try{ if(h.gfx&&typeof FX2_DEF!=='undefined'&&FX2_DEF[h.gfx]&&typeof spawnProjFx==='function'&&TH&&scene){ window._projTgtU=nx; window._fxCaster=h.owner;
@@ -12699,6 +12722,7 @@ function updateBattle(dt){
        feared or silenced. Only the choir sets `channel`; a burning patch outlives its caster by
        design. What has already landed is not taken back - the enemies keep the silence they were
        last given and recover from it normally. It is the RE-APPLICATION that stops. */
+    if(h.arrival){ h.delay-=dt; if(h.delay<=0){ groundHazards.splice(i,1); try{ h.run(); }catch(_e){} } continue; }   /* v886 DELIVERY */
     if(h.orb){ if(h.done){ groundHazards.splice(i,1); continue; } h.hopT+=dt;   /* v885 Drifting Constellation: heal on arrival, then bounce on */
       if(h.hopT>=h.hopDur){ const t=h.tgt; if(t&&t.alive){ healFrom(h.owner,t,h.hs); if(h.hot)pushHot(t,t.maxHp*h.hot,h.hotDur,1); burstAt(t.x,t.y,0x8fd8ff,8); h.x=t.x; h.y=t.y; }
         orbNextHop(h); if(h.done) groundHazards.splice(i,1); }
@@ -18448,7 +18472,7 @@ Object.assign(BATTLE_ANIM, {
   },
 });
 Object.assign(KITS, {
-  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',gdur:6.04,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
+  pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',deliver:'shot',speed:16*METER,gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',deliver:'form',form:0.35,gdur:6.04,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
   stormwarden:{green:{name:'Volt Pike',type:'piercethrow',mul:1.5,width:34,cd:7,desc:"A piercing spear thrust damages enemies in a narrow line.",pfx:'stormwarden_green_fx',pscale:2.6,gfx:'stormwarden_green',gfxR:3*METER,gdur:2.62},blue:{name:'Thunder Guard',type:'thornguard',pct:0.18,thorn:0.6,dur:5,cd:9,desc:"A defensive brace shields him and retaliates against direct attacks.",gfxAt:'self',gdur:5.29,gfx:'stormwarden_blue',gfxR:3*METER},purple:{name:'Static Charge',pass:'staticcharge',desc:"Attacks build Charge; at maximum, his next ability chains."}},
   verdantshade:{green:{name:'Thornshot',type:'shred',mul:1.55,shred:0.32,dur:5,cd:6,desc:"A piercing arrow lowers the target's armor.",pfx:'verdantshade_green_fx',pscale:2.4,gfx:'verdantshade_green',gfxR:3*METER},blue:{name:'Vine Snare',type:'swamproot',mul:0.85,root:2.2,radius:2.4*METER,cd:10,desc:"A delayed forest mark roots an advancing enemy.",gdur:1.8,gfx:'verdantshade_blue'},purple:{name:"Hunter's Patience",pass:'patience',desc:"Continuous attacks against one target gain critical chance."}},
   voidweaver:{green:{name:'Abyssal Needle',type:'mrshred',mul:1.5,shred:0.32,dur:5,cd:6,desc:"Compressed void energy lowers enemy magic resistance.",pfx:'voidweaver_green_fx',pscale:2.2,gfx:'voidweaver_green',gfxR:3*METER},blue:{name:'Gravity Knot',type:'gravknot',mul:0.6,radius:4*METER,pull:2.2*METER,slow:3,cd:10,desc:"Nearby enemies are pulled together and slowed.",gdur:1.8,ring:0x6a3fb0,spark:0x9b5cff,gfx:'voidweaver_blue'},purple:{name:'Dark Convergence',pass:'convergence',desc:"Multi-target spells restore additional energy."}},
@@ -18506,7 +18530,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult',gdur:6.04}, orryn:{gfx:'orryn_ult',gdur:6.04}, cathedral:{gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies'}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{gfx:'dawnbringer_ult',gdur:5.88}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04}, cathedral:{gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{gfx:'astra_ult',gdur:5.83}, aureth:{gfx:'aureth_ult',gdur:5.88}, carn:{gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{gfx:'bloatus_ult',gdur:3.79}, fathom:{gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies'}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{gfx:'dawnbringer_ult',gdur:5.88}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -25164,7 +25188,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790869301574';
+const BUILD_ID = '1790869972408';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
