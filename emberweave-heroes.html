@@ -2380,6 +2380,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/hero-paths.js"></script>
 <script src="/server/temple-of-ash.js"></script>
 <script src="/server/temple-effects.js"></script>
+<script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv1"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
@@ -20781,6 +20782,52 @@ async function startMine(m, heroes){ let travel=marchOutMs('mine',m.x,m.y), gath
   mineClaimedSet().push(m.id);   // reserve this node so it can't be double-mined this epoch
   saveG(); bannerMsg('⛏ Mining '+mineLabel(m)+'\nHome in '+fmtDur(travel*2+gather));
   if(document.getElementById('wzone')) drawMarches(); renderWorldMap(true); }
+// Server field receipts never fall back to the device's next epoch while signed in.
+let _worldMineFieldCache=null,_worldMineFieldPoll=null,_worldMineFieldInner=null;
+function worldMineFieldCache(){
+  if(!_worldMineFieldCache&&window.EmberweaveWorldMineSync)_worldMineFieldCache=window.EmberweaveWorldMineSync.create({
+    token:()=>ACC.token,online:()=>online(),fetchState:()=>api('/api/world/mines','GET')});
+  return _worldMineFieldCache;
+}
+function worldMineFieldState(){const c=worldMineFieldCache();return c?c.state():{status:'unavailable',epoch:null,nodes:[],now:null};}
+const _offlineMineEpoch=mineEpoch,_offlineMineEndsIn=mineEpochEndsIn,_offlineWorldMines=worldMines;
+mineEpoch=function(){return mineSignedIn()?worldMineFieldState().epoch:_offlineMineEpoch();};
+mineEpochEndsIn=function(){if(!mineSignedIn())return _offlineMineEndsIn();const s=worldMineFieldState();return s.status==='ready'?Math.max(0,s.epochEndsAt-s.now):0;};
+worldMines=function(){return mineSignedIn()?worldMineFieldState().nodes:_offlineWorldMines();};
+mineClaimedSet=function(){const ep=mineEpoch();if(Number.isInteger(ep)&&G.mineEpoch!==ep){G.mineEpoch=ep;G.mineClaimed=[];}if(!Array.isArray(G.mineClaimed))G.mineClaimed=[];return G.mineClaimed;};
+const _offlineMineIsActive=mineIsActive;
+mineIsActive=function(id){if(!mineSignedIn())return _offlineMineIsActive(id);const s=worldMineFieldState();return s.now!==null&&activeMarches().some(m=>m.ctype==='mine'&&m.mineId===id&&s.now<m.home);};
+const _localMineAvailable=mineAvailable;
+mineAvailable=function(m){return (!mineSignedIn()||worldMineFieldState().nodes.some(n=>n.id===m.id))&&_localMineAvailable(m);};
+const _drawMineField=drawMines;
+function paintWorldMineField(inner){
+  if(!inner||!inner.isConnected)return;
+  inner.querySelectorAll('.wnode.mine').forEach(el=>el.remove());
+  inner.dataset.mineField=mineSignedIn()?worldMineFieldState().status:'offline';
+  _drawMineField(inner);
+}
+function refreshWorldMineField(){
+  const inner=_worldMineFieldInner;
+  if(!inner||!inner.isConnected||!mineSignedIn()){
+    if(_worldMineFieldPoll){clearInterval(_worldMineFieldPoll);_worldMineFieldPoll=null;}
+    _worldMineFieldInner=null;return;
+  }
+  paintWorldMineField(inner);
+  const cache=worldMineFieldCache();if(cache)cache.sync(false).then(()=>{if(inner===_worldMineFieldInner)paintWorldMineField(inner);});
+}
+drawMines=function(inner){
+  if(!inner)return;
+  // Initial map construction may occur before append; the original draw remains safe.
+  if(!mineSignedIn()){_drawMineField(inner);return;}
+  _worldMineFieldInner=inner;inner.dataset.mineField=worldMineFieldState().status;
+  _drawMineField(inner);
+  const cache=worldMineFieldCache();if(cache)cache.sync(false).then(()=>{if(inner===_worldMineFieldInner)paintWorldMineField(inner);});
+  if(!_worldMineFieldPoll)_worldMineFieldPoll=setInterval(refreshWorldMineField,5000);
+};
+const _openMineFieldInfo=openMineInfo,_startMineField=startMine;
+openMineInfo=function(m){if(mineSignedIn()&&!mineAvailable(m))return;return _openMineFieldInfo(m);};
+startMine=async function(m,heroes){if(mineSignedIn()&&!mineAvailable(m)){refreshWorldMineField();return;}return _startMineField(m,heroes);};
+
 // ---- wall defense: THREE ordered teams. On a raid they fight in sequence — team 2 steps in only if
 //      team 1 falls, then team 3. Heroes away marching/mining are greyed out and don't count as defenders. ----
 const WALL_CTXS=['wall','wall2','wall3'], WALL_NUM={wall:1,wall2:2,wall3:3};
@@ -25078,7 +25125,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790850303341';
+const BUILD_ID = '1790851816547';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
