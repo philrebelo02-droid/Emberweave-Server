@@ -2386,7 +2386,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp5"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp6"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -10919,11 +10919,12 @@ const FX2_DEF={
   verdantshade_green:{u:'/assets/anim/fx/verdantshade_green.webp?v=2',n:48,fw:370,fh:408,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
   vex_blue:{u:'/assets/anim/fx/vex_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.25,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vex_green:{u:'/assets/anim/fx/vex_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.58,cone:true,coneFoot:0.05},
-  veyr_blue:{u:'/assets/anim/fx/veyr_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  veyr_green:{u:'/assets/anim/fx/veyr_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.33,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  veyr_blue:{u:'/assets/anim/fx/veyr_blue.webp?v=21',n:48,fw:265,fh:300,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  veyr_green:{u:'/assets/anim/fx/veyr_green.webp?v=21',n:48,fw:286,fh:300,cols:6,rows:8,dur:3.33,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vharn_green:{u:'/assets/anim/fx/vharn_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,cone:true,coneFoot:0.05},
-  voidweaver_blue:{u:'/assets/anim/fx/voidweaver_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.568,dh:0.255,dw:0.89}},
-  voidweaver_green:{u:'/assets/anim/fx/voidweaver_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  voidweaver_blue:{u:'/assets/anim/fx/voidweaver_blue.webp?v=2',n:48,fw:297,fh:300,cols:6,rows:8,dur:2.0,disc:{cy:0.5,dh:0.95,dw:0.95}},
+  voidweaver_ult:{u:'/assets/anim/fx/voidweaver_ult.webp?v=1',n:48,fw:300,fh:296,cols:6,rows:8,dur:2.4,upright:true,upSize:2.0,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v912 Grok: Event Horizon - singularity at the aim
+  voidweaver_green:{u:'/assets/anim/fx/voidweaver_green.webp?v=2',n:48,fw:64,fh:200,cols:6,rows:8,dur:2.0,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   fathom_blue:{u:'/assets/anim/fx/fathom_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,cone:true,coneFoot:0.05},
   fritz_blue:{u:'/assets/anim/fx/fritz_blue.webp?v=32',n:48,fw:373,fh:382,cols:6,rows:8,dur:5.88,cone:true,coneFoot:0.05},
   fritz_green:{u:'/assets/anim/fx/fritz_green.webp?v=32',n:48,fw:386,fh:486,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.966,upAnchor:[0.5,0.0],ro:1},
@@ -10965,6 +10966,7 @@ const FX2_DEF={
   sablewick_blue:{u:'/assets/anim/fx/sablewick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAbove:true,upSize:0.7,upExtent:1.0,ro:1},
   sablewick_green:{u:'/assets/anim/fx/sablewick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   sprocket_blue:{u:'/assets/anim/fx/sprocket_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  sprocket_ult:{u:'/assets/anim/fx/sprocket_ult.webp?v=1',n:48,fw:300,fh:275,cols:6,rows:8,dur:2.0},   // v912 Grok: Full Arsenal - scrap volley burst at the aim
   sprocket_green:{u:'/assets/anim/fx/sprocket_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:0.9,upExtent:0.7,upAnchor:[0.04,0.3],upFlip:true,ro:2},
   stormwarden_blue:{u:'/assets/anim/fx/stormwarden_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.29,disc:{cy:0.5,dh:0.369,dw:0.9}},
   stormwarden_green:{u:'/assets/anim/fx/stormwarden_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.62,cone:true,coneFoot:0.05},
@@ -11076,8 +11078,9 @@ const FX2_DEF={
   umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vael_ult:{u:'/assets/anim/fx/vael_ult.webp?v=21',n:48,fw:396,fh:420,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.970,upAnchor:[0.5,0.0],ro:1},
   velvetplum_ult:{u:'/assets/anim/fx/velvetplum_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.62,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.75,cone:true,coneFoot:0.05},
-  veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.12,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  vex_passive:{u:'/assets/anim/fx/vex_passive.webp?v=1',n:48,fw:296,fh:300,cols:6,rows:8,dur:1.4},   // v912 Grok: Killer Instinct - the wound mark (fired on each auto-attack wound)
+  vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=21',n:48,fw:300,fh:299,cols:6,rows:8,dur:4.75,cone:true,coneFoot:0.05},
+  veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=21',n:48,fw:300,fh:276,cols:6,rows:8,dur:5.12,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vharn_blue:{u:'/assets/anim/fx/vharn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,cone:true,coneFoot:0.05},
   vharn_ult:{u:'/assets/anim/fx/vharn_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vireo_blue:{u:'/assets/anim/fx/vireo_blue.webp?v=24',n:30,fw:320,fh:246,cols:6,rows:5,dur:11.76,upright:true,upAbove:true,upAboveM:0.10,upAnchor:[0.498,0.787],upMetric:true,upExtent:0.909,ro:-1}   /* v559 (Phil: 'the shield needs to last longer ... slow down the flames a bit on that by about half' + 'the shield should be 1 layer behind heroes'): dur 5.88 -> 11.76 is half speed, matched by gdur and the ability's own dur so the dome is on screen exactly as long as the shield it represents. ro 1 -> -1 puts it one layer behind the unit sprites (which sit at 0). */   /* v558 (Phil: 'the note be over the targets health bar ... total dome should be 14 meters, 7 meter radius from the intended target'): the NOTE, at cell (0.498,0.787), is the anchor and it hangs over the target ally's bar; upMetric sizes the plate from the ability radius so the painted dome (0.909 of the cell) is exactly 2R = 14 m, not a multiple of the hero's sprite */,
@@ -11087,7 +11090,7 @@ const FX2_DEF={
      board and buried the fight it is supposed to frame. ro:-2 puts it behind every unit sprite
      (which render at 0) while still sitting above the ground plates (-6), status FX (-4) and the
      backdrop. This is deliberately the exception to the ro:1 default, not a mistake to tidy up. */
-  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=24',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
+  vireo_ult:{u:'/assets/anim/fx/vireo_ult.webp?v=25',n:48,fw:204,fh:243,cols:6,rows:8,dur:2.0,upright:true,upSize:14,upExtent:0.9,upAnchor:[0.5,0.42],ro:-2}   /* v553 (Phil: 'expand to the size of the screen when activated so notes go all over the place') */,
   vulmar_ult:{u:'/assets/anim/fx/vulmar_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.21,disc:{cy:0.498,dh:0.391,dw:0.912}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -18606,7 +18609,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={sablewick:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form'}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, cathedral:{deliver:'form',gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, fathom:{deliver:'form',gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies'}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{deliver:'land',gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{deliver:'form',gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{deliver:'land',gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{deliver:'form',gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{deliver:'form',gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{deliver:'form',gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{deliver:'form',gfx:'dawnbringer_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={voidweaver:{gfx:'voidweaver_ult',gdur:2.4}, sprocket:{gfx:'sprocket_ult',gdur:2.4}, sablewick:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form'}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, cathedral:{deliver:'form',gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, meryln:{gfx:'meryln_ult',gdur:2.6}, arrears:{gfx:'arrears_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, fathom:{deliver:'form',gfx:'fathom_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies'}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{deliver:'land',gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, tallow:{gfx:'tallow_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{deliver:'form',gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, vharn:{deliver:'land',gfx:'vharn_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, vulmar:{deliver:'form',gfx:'vulmar_ult',gdur:3.21}, waxenduchess:{deliver:'form',gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{deliver:'form',gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{deliver:'form',gfx:'dawnbringer_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -25282,7 +25285,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790888126671';
+const BUILD_ID = '1790888808553';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

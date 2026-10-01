@@ -90,7 +90,7 @@
           drawFx(g,pf,Math.floor(k*pf.n*0.999),x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.45,false,Math.atan2(y1-y0,x1-x0)); }
         if(fx&&tt>=fxStart&&tt<fxStart+fxDur){ const fr=Math.floor((tt-fxStart)/fxDur*fx.n);
           if(buff){ const s=aboveSize, im=img(fx.u); if(im){ const r=frameRect(fx,fr), sc=s/Math.max(r[2],r[3]); g.drawImage(im,r[0],r[1],r[2],r[3],spot.x-r[2]*sc/2,spot.f-r[3]*sc,r[2]*sc,r[3]*sc); } }
-          else drawFx(g,fx,fr,spot.x,spot.f,fx.upright?H*0.86:(fx.disc?W*0.42:H*0.7),false,0); }
+          else drawFx(g,fx,fr,spot.x,(fx.upright||fx.disc)?spot.f:spot.f-hero.h*0.42,fx.upright?H*0.86:(fx.disc?W*0.42:H*0.7),false,0); }   // a plain plate sits at chest height
         else if(!fx&&tt>=fxStart&&tt<fxStart+0.9){ const k=(tt-fxStart)/0.9, r=H*(0.1+0.2*k), cy=buff?spot.f-aboveSize*0.5:spot.f-hero.h*0.4, gr=g.createRadialGradient(spot.x,cy,0,spot.x,cy,r);
           const col=buff?'140,255,180':'255,215,140'; gr.addColorStop(0,'rgba('+col+','+(0.6*(1-k))+')'); gr.addColorStop(1,'rgba('+col+',0)'); g.fillStyle=gr; g.beginPath(); g.arc(spot.x,cy,r,0,6.283); g.fill(); } };
       if(!buff) drawSpell();   // an attack's art is under the hero's feet line; a buff is drawn over the head, after the hero
