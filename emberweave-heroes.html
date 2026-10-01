@@ -216,6 +216,9 @@
   .sk-clipcap{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:#ffd45e;text-shadow:0 1px 3px #000;pointer-events:none;}
   .sk-cliphint{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:9px;color:#8b98a9;pointer-events:none;}
   .skrow.sksel{background:#141c2c;}
+  .sk-stagewrap{height:200px;display:block;background:#141a24;}   /* v905: the battle preview fills the box */
+  .sk-stage{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .sk-stagewrap .sk-clipcap{z-index:2;}
   .hd-rarb{width:100%;max-width:190px;margin:-12px auto -16px;line-height:0;pointer-events:none}
   .hd-rarb img{width:100%;height:auto;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.55))}
   .hd-rarb.rb-mythical{margin-top:-6px}
@@ -2383,6 +2386,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -22280,10 +22284,10 @@ function renderHeroDetail(){
       {idx:3,name:kit.purple.name,tier:'Purple',col:RANK_COLOR[3]},
     ];
     ensureSkillPreview(key);
-    const hasClips=heroHasClips(key);
-    if(hasClips && !HERO_SKILL_CLIPS[key][skClipIdx]) skClipIdx=0;
+    const hasClips=heroHasClips(key), stageOK=!!(window.EmberSkillStage&&BATTLE_ANIM[key]);   /* v905 battle preview */
+    if(!stageOK && hasClips && !HERO_SKILL_CLIPS[key][skClipIdx]) skClipIdx=0;
     const rows=skills.map(s=>{ const on=skillUnlocked(key,s.idx), lv=skillLevel(key,s.idx), atMax=lv>=SKILL_MAX, cost=skillUpCost(s.idx,lv), can=on&&!atMax&&(G.gold||0)>=cost;
-      const tip=(skillDesc(key,s.idx)+(on?'':' (Unlocks at '+s.tier+' quality)')).replace(/"/g,'&quot;'); const hasClip=hasClips&&!!HERO_SKILL_CLIPS[key][s.idx];
+      const tip=(skillDesc(key,s.idx)+(on?'':' (Unlocks at '+s.tier+' quality)')).replace(/"/g,'&quot;'); const hasClip=stageOK||(hasClips&&!!HERO_SKILL_CLIPS[key][s.idx]);
       return `<div class="skrow${hasClip&&s.idx===skClipIdx?' sksel':''}" data-skill="${s.idx}" title="${tip}" style="display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #1c2434;opacity:${on?1:.5};cursor:${hasClip?'pointer':'help'}">
         <span style="width:10px;height:10px;border-radius:50%;background:${s.col};flex:none"></span>
         <div style="flex:1;min-width:0">
@@ -22295,7 +22299,8 @@ function renderHeroDetail(){
           ${atMax?`<span style="font-size:10px;color:#ffd45e;font-weight:800">MAX</span>`:`<button class="btn xs" data-skillup="${s.idx}" ${can?'':'disabled'}>＋ 🪙${cost}</button>`}
         </div>`:''}
       </div>`; }).join('');
-    const clipBox=hasClips?`<div class="sk-clipwrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div><div id="skClip">${skillClipHTML(key,skClipIdx)}</div><div class="sk-cliphint">${MOBILE?'Tap':'Hover'} a skill to preview its ability</div></div>`:'';
+    /* v905 (Phil): the preview is a small battle - hero + 2 allies vs 3 monsters on a real arena, the skill's own clip and spell art */
+    const clipBox=(stageOK||hasClips)?`<div class="sk-clipwrap sk-stagewrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div>${stageOK?'<canvas id="skStage" class="sk-stage"></canvas>':`<div id="skClip">${skillClipHTML(key,skClipIdx)}</div>`}</div>`:'';
     /* v767 (Phil: "these little notes all around are useless") - the how-to paragraph is gone. */
     tab=`<div class="panel">${clipBox}${rows}</div>`;
   } else if(heroTab==='glyphs'){
@@ -22336,12 +22341,14 @@ function renderHeroDetail(){
   // skill leveling
   body.querySelectorAll('[data-skillup]').forEach(el=>el.onclick=async()=>{ if(await skillUpgrade(key,+el.dataset.skillup)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
   // skill ability-clip preview: hover (desktop) or tap (mobile) a skill row to play its clip
-  if(heroHasClips(key)){ const setClip=(idx)=>{ if(!HERO_SKILL_CLIPS[key][idx])return; skClipIdx=+idx;
+  const _stg=(window.EmberSkillStage&&document.getElementById('skStage'))?window.EmberSkillStage.mount(document.getElementById('skStage'),key):null;
+  if(_stg) _stg.play(skClipIdx);
+  if(_stg||heroHasClips(key)){ const setClip=(idx)=>{ if(!_stg&&!HERO_SKILL_CLIPS[key][idx])return; skClipIdx=+idx;
       const box=document.getElementById('skClip'), cap=document.getElementById('skClipCap');
-      if(box) box.innerHTML=skillClipHTML(key,idx);
+      if(_stg) _stg.play(idx); else if(box) box.innerHTML=skillClipHTML(key,idx);
       if(cap){ const nm={0:HERO_TYPES[key].abilityName,1:KITS[key].green.name,2:KITS[key].blue.name,3:KITS[key].purple.name}; cap.textContent=nm[idx]||''; }
       body.querySelectorAll('.skrow[data-skill]').forEach(r=>r.classList.toggle('sksel',+r.dataset.skill===+idx)); };
-    body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=r.dataset.skill; if(!HERO_SKILL_CLIPS[key][idx])return;
+    body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=r.dataset.skill; if(!_stg&&!HERO_SKILL_CLIPS[key][idx])return;
       r.addEventListener('mouseenter',()=>setClip(idx));
       r.addEventListener('click',(e)=>{ if(e.target.closest('[data-skillup]'))return; setClip(idx); }); });
   }
@@ -25259,7 +25266,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790878641430';
+const BUILD_ID = '1790880874978';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
