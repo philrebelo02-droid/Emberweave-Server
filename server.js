@@ -2923,7 +2923,7 @@ function worldTreeHooks(now,sites,snapshots=null){
       if(snapshots&&u.witch)snapshots.set(owner,u.witch);
       if(!w||!host||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))return null;
       const specs=ids.map(k=>campaignHeroSpec(u,k));if(specs.some(s=>!s))return null;
-      return host.snapFromSpecs(specs).map(s=>{const hp=WITCH.combatHp(w.state,s.key,s.maxHp);return {...s,hp,worldEntryHpCap:hp,energy:0};});
+      return host.snapFromSpecs(specs).map(s=>{const hp=Math.min(s.maxHp,WITCH.combatHp(w.state,s.key,s.maxHp));return {...s,hp,worldEntryHpCap:hp,energy:0};});
     },
     route:(owner,siteId)=>{
       const from=worldLocation(DB.users[owner]),to=sites.sites.find(s=>s.id===siteId)?.centre;
