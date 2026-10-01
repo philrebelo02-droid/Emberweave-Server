@@ -6,7 +6,7 @@
    hits. Heals and buffs land on the hero's side. Cosmetic only - nothing here touches the fight. */
 (function(root){
   'use strict';
-  const BG='/assets/img/miscellaneous/battlebg.jpg';   // the arena the fights use
+  const BG='/assets/img/battlefields/emberdraft/cinderforge.webp';   // v906 (Phil: "Dont use campaign map please. Use a battle art"): the Cinderforge arena
   const FOES=['boar warrior','boar shaman','boar warrior'];
   const MATES=['vael','nerisse','oakmir','lumi'];
   const ALLY_WORDS=/heal|hot|shield|ward|bless|regen|rally|spring|cleanse|haste|aura|buff|mend|font|duality|laststand|taunt|barrier|sanct|prayer|revive|rewind/i;
@@ -67,7 +67,9 @@
       if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){ canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr); }
       const g=canvas.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
       // arena - cover-fit, centred on the arena floor
-      const bg=img(BG); if(bg){ const s=Math.max(W/bg.naturalWidth,H/bg.naturalHeight)*1.35, bw=bg.naturalWidth*s, bh=bg.naturalHeight*s; g.drawImage(bg,(W-bw)/2,(H-bh)*0.55,bw,bh); g.fillStyle='rgba(8,10,18,.18)'; g.fillRect(0,0,W,H); }
+      const bg=img(BG); if(bg){ const nw=bg.naturalWidth, nh=bg.naturalHeight;   // the arena floor inside its walls, cover-fit, centre line in the middle
+        let sx=nw*0.14, sy=nh*0.12, sw=nw*0.72, sh=nh*0.62;   /* v906 (Phil: "zoom them in a bit") */ const want=W/H; if(sw/sh>want){ const nsw=sh*want; sx+=(sw-nsw)/2; sw=nsw; } else { const nsh=sw/want; sy+=(sh-nsh)/2; sh=nsh; }
+        g.drawImage(bg,sx,sy,sw,sh,0,0,W,H); }
       else { const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#24324a'); gr.addColorStop(1,'#3b2f22'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
       const sp=st.sp, clip=st.clip, t=(now-st.t0)/1000;
       const clipDur=clip?Math.min(2.4,clip.n/((clip.fps||12)*1.5)):0.8;
@@ -78,9 +80,9 @@
       const period=Math.max(clipDur,rel+travel+fxDur)+0.9;
       const tt=t%period, hitT=rel+travel;
       // positions (centred group): heroes left, monsters right
-      const base=H*0.84, uh=H*0.40;
-      const hero={x:W*0.36,f:base,h:uh*1.05}, mates=[{x:W*0.19,f:base-H*0.13,h:uh*0.9},{x:W*0.23,f:base+H*0.1,h:uh*0.95}];
-      const foes=[{x:W*0.62,f:base,h:uh},{x:W*0.77,f:base-H*0.13,h:uh*0.9},{x:W*0.81,f:base+H*0.1,h:uh*0.95}];
+      const base=H*0.86, uh=H*0.53;   /* v906: zoomed in */
+      const hero={x:W*0.36,f:base,h:uh*1.05}, mates=[{x:W*0.16,f:base-H*0.1,h:uh*0.88},{x:W*0.22,f:base+H*0.08,h:uh*0.93}];
+      const foes=[{x:W*0.63,f:base,h:uh},{x:W*0.79,f:base-H*0.1,h:uh*0.88},{x:W*0.84,f:base+H*0.08,h:uh*0.93}];
       const hitTargets=sp.mode==='single'?[foes[0]]:(sp.mode==='aoe'||sp.mode==='cone')?foes:[];
       const healed=sp.mode==='team'?[hero,...mates]:sp.mode==='self'?[hero]:[];
       const draw=[];
@@ -89,20 +91,21 @@
       foes.forEach((m,i)=>{ const c=anim(FOES[i]); if(!c||!c.idle) return; const hit=hitTargets.includes(m)&&tt>hitT&&tt<hitT+0.45; const hc=hit&&c.hit?c.hit:c.idle;
         const fr=hit&&c.hit?Math.floor((tt-hitT)/0.45*c.hit.n):Math.floor(t*(c.idle.fps||12)+i*5)%c.idle.n;
         draw.push({f:m.f,fn:()=>drawUnit(g,hc,fr,m.x+(hit?5:0),m.f,m.h,false,hit?'rgba(255,90,60,.30)':null)}); });
-      draw.sort((a,b)=>a.f-b.f).forEach(d=>d.fn());
+      /* v906 (Phil: "Spell art should be under the heroes and enemy"): the spell art is painted first, the figures stand over it */
       // the projectile, then the spell art where it lands
       if(sp.shot&&tt>rel&&tt<hitT){ const k=(tt-rel)/travel, x0=hero.x+W*0.04, y0=hero.f-hero.h*0.55, x1=foes[0].x, y1=foes[0].f-foes[0].h*0.5;
-        if(pf){ const fr=Math.floor(k*pf.n*0.999); drawFx(g,pf,fr,x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.32,false,Math.atan2(y1-y0,x1-x0)); }
+        if(pf){ const fr=Math.floor(k*pf.n*0.999); drawFx(g,pf,fr,x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.4,false,Math.atan2(y1-y0,x1-x0)); }
         else { g.fillStyle='rgba(255,220,140,.9)'; g.beginPath(); g.arc(x0+(x1-x0)*k,y0+(y1-y0)*k,4,0,6.283); g.fill(); } }
       if(fx&&tt>=hitT&&tt<hitT+fxDur){ const fr=Math.floor((tt-hitT)/fxDur*fx.n);
-        if(sp.mode==='single') drawFx(g,fx,fr,foes[0].x,foes[0].f,fx.upright?H*0.55:W*0.17,false,0);
-        else if(sp.mode==='aoe') drawFx(g,fx,fr,(foes[0].x+foes[1].x+foes[2].x)/3,base,fx.upright?H*0.66:W*0.3,false,0);
-        else if(sp.mode==='cone') drawFx(g,fx,fr,(hero.x+foes[0].x)/2,hero.f-hero.h*0.4,W*0.36,false,0);
-        else if(sp.mode==='team') drawFx(g,fx,fr,(hero.x+mates[0].x+mates[1].x)/3,base,fx.upright?H*0.66:W*0.28,false,0);
-        else drawFx(g,fx,fr,hero.x,hero.f,fx.upright?H*0.55:W*0.16,false,0); }
+        if(sp.mode==='single') drawFx(g,fx,fr,foes[0].x,foes[0].f,fx.upright?H*0.7:W*0.22,false,0);
+        else if(sp.mode==='aoe') drawFx(g,fx,fr,(foes[0].x+foes[1].x+foes[2].x)/3,base,fx.upright?H*0.82:W*0.36,false,0);
+        else if(sp.mode==='cone') drawFx(g,fx,fr,(hero.x+foes[0].x)/2,hero.f-hero.h*0.4,W*0.42,false,0);
+        else if(sp.mode==='team') drawFx(g,fx,fr,(hero.x+mates[0].x+mates[1].x)/3,base,fx.upright?H*0.82:W*0.34,false,0);
+        else drawFx(g,fx,fr,hero.x,hero.f,fx.upright?H*0.7:W*0.2,false,0); }
       else if(!fx&&tt>=hitT&&tt<hitT+0.7){ const k=(tt-hitT)/0.7, list=sp.mode==='team'?[hero,...mates]:sp.mode==='self'?[hero]:hitTargets;   // no art yet: a soft glow where it lands
         list.forEach(m=>{ const r=m.h*(0.35+0.4*k), gr=g.createRadialGradient(m.x,m.f-m.h*0.4,0,m.x,m.f-m.h*0.4,r);
           const col=(sp.mode==='team'||sp.mode==='self')?'120,255,170':'255,190,90'; gr.addColorStop(0,'rgba('+col+','+(0.55*(1-k))+')'); gr.addColorStop(1,'rgba('+col+',0)'); g.fillStyle=gr; g.beginPath(); g.arc(m.x,m.f-m.h*0.4,r,0,6.283); g.fill(); }); }
+      draw.sort((a,b)=>a.f-b.f).forEach(d=>d.fn());
       requestAnimationFrame(loop); }
     requestAnimationFrame(loop);
     cur=st; return st; }
