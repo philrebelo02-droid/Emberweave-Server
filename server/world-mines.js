@@ -4,6 +4,7 @@
 const EPOCH_MS=8*3600000, COUNT=240, GRID_COLS=220, GRID_CELL=100/GRID_COLS;
 const TERRAIN_CUTOVER_EPOCH=62184;
 const TERRAIN_BLOCKED=new Set(require('./world-terrain-blocked.json').cells);
+const VOID_CRATER_R=29;   // cells from the Tree centre: no resource node inside the crater (from the 20:00 ET 1 Oct field)
 const EDGES=[0,90,130,GRID_COLS];
 const RESOURCES=['iron','crystal','silver','coal'];
 const ZONES=[
@@ -24,6 +25,9 @@ function field(epoch){
     if(z.type==='worldtree') continue;
     const square=gx+','+gy;
     if(epoch>=TERRAIN_CUTOVER_EPOCH&&TERRAIN_BLOCKED.has(square)) continue;
+    /* v914 (Phil 1 Oct: "There should be no nodes at all spawning in the void zone"): the visible crater - Phil's crystal ring reaches 26.9 cells
+       from the Tree centre (110,110) - plus a 2-cell margin. The 40x40 worldtree square alone left 2-5 nodes per field inside it. */
+    if(epoch>=TERRAIN_CUTOVER_EPOCH&&Math.hypot(gx+0.5-110,gy+0.5-110)<VOID_CRATER_R) continue;
     if(occupied.has(square)) continue;
     occupied.add(square);
     const fx=(gx-EDGES[col])/(EDGES[col+1]-EDGES[col]);
