@@ -10799,8 +10799,8 @@ const FX2_DEF={
   orryn_blue:{u:'/assets/anim/fx/orryn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.79,disc:{cy:0.502,dh:0.672,dw:0.884}},
   pellucid_blue:{u:'/assets/anim/fx/pellucid_blue.webp?v=21',n:48,fw:217,fh:400,cols:6,rows:8,dur:6.04,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},   // v870 Grok: Infernal Clinch - crystal clamp jaws on the grabbed enemy
   pellucid_green:{u:'/assets/anim/fx/pellucid_green.webp?v=21',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v868 Grok: Meteor Knuckle - flat crystal ground disc at the strike point
-  silkcoil_blue:{u:'/assets/anim/fx/silkcoil_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
-  silkcoil_green:{u:'/assets/anim/fx/silkcoil_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
+  silkcoil_blue:{u:'/assets/anim/fx/silkcoil_blue.webp?v=2',n:48,fw:260,fh:264,cols:6,rows:8,dur:2.0,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  silkcoil_green:{u:'/assets/anim/fx/silkcoil_green.webp?v=2',n:48,fw:260,fh:271,cols:6,rows:8,dur:2.0},
   sylthaine_blue:{u:'/assets/anim/fx/sylthaine_blue.webp?v=21',n:30,fw:210,fh:182,cols:6,rows:5,dur:5.54,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   tallow_blue:{u:'/assets/anim/fx/tallow_blue.webp?v=32',n:48,fw:392,fh:453,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.969,upAnchor:[0.5,0.0],ro:1},
   tallow_green:{u:'/assets/anim/fx/tallow_green.webp?v=32',n:48,fw:616,fh:587,cols:6,rows:8,dur:5.88,cone:true,coneFoot:0.05},
@@ -10964,6 +10964,7 @@ const FX2_DEF={
   tick_ult:{u:'/assets/anim/fx/tick_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.71,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   pellucid_passive:{u:'/assets/anim/fx/pellucid_passive.webp?v=1',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v873 Grok: Unmovable Mass - molten-armour ring under Pellucid Rook on every warden stack
   orryn_passive:{u:'/assets/anim/fx/orryn_passive.webp?v=1',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.498,dh:0.82,dw:0.82}},   // v865 Grok: Abyssal Reserve - flat pressure-burst ring under Orryn (gauge fills / pressure released)
+  pyroclast_passive:{u:'/assets/anim/fx/pyroclast_passive.webp?v=1',n:48,fw:244,fh:338,cols:6,rows:8,dur:2.0,upright:true,upSize:1.4,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},   // v884 Grok: Rising Heat - a hollow fire ring around Pyroclast when another enemy is scorched
   silkcoil_ult:{u:'/assets/anim/fx/silkcoil_ult.webp?v=2',n:48,fw:396,fh:395,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v882 Grok: Serpent's Last Dance - a rotating serpent-ribbon volley burst at the aimed cluster
   silkcoil_passive:{u:'/assets/anim/fx/silkcoil_passive.webp?v=1',n:48,fw:200,fh:221,cols:6,rows:8,dur:2.0},   // v882 Grok: Venom Rhythm - fang strike + venom splash on every third attack's target
   pyroclast_ult:{u:'/assets/anim/fx/pyroclast_ult.webp?v=2',n:48,fw:433,fh:440,cols:6,rows:8,dur:6.04,upright:true,upSize:2.0,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v878 Grok: Crownfire - a crown of fire erupting from a volcanic vent at the aimed cluster
@@ -11644,6 +11645,7 @@ function think(u,dt){
           floatTexts.push({x:t.x,y:t.y-8,txt:'PAGE',t:.8,color:'#c8b9e8',vy:1.2,sz:11}); }
         // Rising Heat (Pyroclast): every scorched enemy she strikes stokes her own power.
         if(u.pass.risingheat){ let sc=0; enemiesOf(u).forEach(e=>{ if(e.alive&&e.dots&&e.dots.length)sc++; });
+          if(sc>(u._rhSc||0)) firePassiveFx(u); u._rhSc=sc;   /* v884: art only - the aura flares as the scorched count rises */
           u.apMul=1+Math.min(0.45,0.09*_pm*sc); }
       }
       if(u.key==='umbris'){
@@ -25136,7 +25138,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790865223937';
+const BUILD_ID = '1790868040061';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
