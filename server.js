@@ -22,6 +22,7 @@ const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json
 const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
 const WORLD_MINES=require('./server/world-mines.js');
+const WORLD_MARCH_STATE=require('./server/world-march-state.js');
 const WORLD_LOCATION=require('./server/world-location.js');
 const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
@@ -6163,6 +6164,12 @@ async function api(req,res,url){
 
   // ---- WORLD MAP: every registered player's castle (server-assigned position).
   //      The client shows these as REAL cities and fills the rest of each region with NPC bots. ----
+  if(p==='/api/world/marches' && req.method==='GET'){
+    if(!me) return send(res,401,{error:'auth'});
+    if(!me.led||ledPlayerLevel(me.led)<WITCH.UNLOCK_LEVEL)
+      return send(res,200,{ok:true,locked:true,needLevel:WITCH.UNLOCK_LEVEL});
+    return send(res,200,{ok:true,locked:false,...WORLD_MARCH_STATE.summarize(me,Date.now())});
+  }
   if(p==='/api/world/state' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
     return send(res,200,worldView(me,Date.now()));
