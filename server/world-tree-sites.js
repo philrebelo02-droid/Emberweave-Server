@@ -1,5 +1,6 @@
 'use strict';
 const GRID_COLS=220,CELL=100/GRID_COLS;
+const OASIS_LAYOUT=require('./world-oasis-layout.json');
 const DISTANCE_READINGS=Object.freeze({FIRST_TELEPORTABLE_TO_OASIS_CENTRE_TILES:6,FIRST_TELEPORTABLE_TO_OASIS_NEAR_EDGE_TILES:6,OASIS_HALF_EXTENT_TILES:1});
 const DEFINITIONS=Object.freeze([
   {id:'tree',kind:'tree',direction:null,widthCells:4,heightCells:4},
@@ -15,11 +16,17 @@ function snapshot(calendar){
     if(!Number.isSafeInteger(start)||start<0)throw Error('Invalid event start');
     eventWindow={startsAt:start,endsAt:start+calendar.eventDurationMs,active:calendar.phase==='event'};
   }
-  // Human six-tile instruction is settled; its edge-to-centre interpretation is not.
-  // No invented oasis positions may escape this disabled contract draft.
-  const sites=DEFINITIONS.map(d=>{const centre=d.kind==='tree'?{x:50,y:50}:null;
-    return {...d,centre,bounds:centre?bounds(centre,d.widthCells,d.heightCells):null};});
-  return {schemaVersion:1,enabled:false,layoutConfirmed:false,coordinateSpace:'world-percent',gridColumns:GRID_COLS,
+  // One movable cell-origin row per oasis; placement does not enable the event.
+  const sites=DEFINITIONS.map(d=>{
+    if(d.kind==='tree'){const centre={x:50,y:50};return {...d,centre,bounds:bounds(centre,d.widthCells,d.heightCells)};}
+    const rows=OASIS_LAYOUT.filter(row=>row.direction===d.direction);
+    if(rows.length!==1)throw Error('Invalid oasis layout');
+    const row=rows[0];
+    if(!Number.isInteger(row.x)||!Number.isInteger(row.y)||row.x<0||row.y<0||row.x>GRID_COLS-2||row.y>GRID_COLS-2)throw Error('Invalid oasis origin');
+    const centre={x:(row.x+1)*CELL,y:(row.y+1)*CELL};
+    return {...d,cellOrigin:{x:row.x,y:row.y},centre,bounds:bounds(centre,d.widthCells,d.heightCells)};
+  });
+  return {schemaVersion:1,enabled:false,layoutConfirmed:false,layoutPlaced:true,coordinateSpace:'world-percent',gridColumns:GRID_COLS,
     serverNow:calendar.serverNow,calendarConfigured:calendar.configured,eventWindow,
     requestedOasisDistanceTiles:6,distanceReference:'first-tree-teleportable-square',distanceReadings:{...DISTANCE_READINGS},sites};
 }
