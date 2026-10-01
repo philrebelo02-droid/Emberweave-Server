@@ -35,26 +35,26 @@
     function node(doc,tag,text){const el=doc.createElement(tag);if(text!==undefined)el.textContent=text;return el;}
     function render(inner,board){const st=state(),doc=inner.ownerDocument;
       const focus=doc.activeElement,focusSite=focus?.classList&&(focus.classList.contains('worldTreeCompactSite')||focus.classList.contains('worldTreeSiteHit'))?focus.dataset.siteId:null;
-      inner.querySelectorAll('.worldTreeHolder,.worldTreeSiteHit').forEach(x=>x.remove());board.replaceChildren();
-      board.style.display=st.data?.active?'block':'none';if(!st.data?.active)return;
+      const boardScroll=board.scrollLeft;inner.querySelectorAll('.worldTreeHolder,.worldTreeSiteHit').forEach(x=>x.remove());board.replaceChildren();
+      board.style.display=st.data?.active?'flex':'none';if(!st.data?.active)return;
       const z=hooks.zoom(),physicalWidth=inner.clientWidth*z;
       const compact=st.data.sites.some(s=>(s.bounds.right-s.bounds.left)*physicalWidth/100<44);
       board.dataset.compact=String(compact);
       const heading=node(doc,'b','World Tree');board.appendChild(heading);
       if(!st.data){board.appendChild(node(doc,'div',!st.signedIn?'Sign in':st.failed?'Unavailable':'Loading…'));return;}
       board.appendChild(node(doc,'span',st.data.enabled?' · Active':' · Disabled'));
-      const list=node(doc,'div');list.style.cssText='display:flex;gap:10px;flex-wrap:wrap;max-height:90px;overflow:auto';board.appendChild(list);
+      const list=node(doc,'div');list.style.cssText='display:flex;gap:10px;flex-wrap:nowrap;max-height:44px;overflow:auto;flex:0 0 auto;white-space:nowrap';board.appendChild(list);
       if(!st.data.scores.length)list.appendChild(node(doc,'span','No scores'));
       for(const row of st.data.scores){const el=node(doc,'span',(row.guildTag?'['+row.guildTag+'] ':'')+row.guildName+' · '+row.points);el.style.color=colour(row.guildId);list.appendChild(el);}
-      const controls=node(doc,'div');controls.className='worldTreeCompactSites';controls.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-top:4px';if(compact)board.appendChild(controls);
+      const controls=node(doc,'div');controls.className='worldTreeCompactSites';controls.style.cssText='display:flex;flex-wrap:nowrap;gap:4px;margin-left:4px;flex:0 0 auto';if(compact)board.appendChild(controls);
       for(const s of st.data.sites){const label=(s.holderGuildId?(s.holderTag?'['+s.holderTag+'] ':'')+s.holderName:'Unclaimed')+(s.benefit?' · +10% DMG · 1% HP/30s':'');const el=node(doc,'div',label),b=s.bounds;el.className='worldTreeHolder';el.dataset.siteId=s.id;el.title=title(s.id)+' · '+label;
         el.style.cssText='position:absolute;left:'+((b.left+b.right)/2)+'%;top:'+b.bottom+'%;transform:translate(-50%,4px);color:'+s.colour+';font-size:10px;font-weight:800;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;pointer-events:none;z-index:7;zoom:'+1/hooks.zoom();inner.appendChild(el);if(compact)el.style.display='none';
-        if(compact&&hooks.openSite){const pick=node(doc,'button');pick.type='button';pick.className='worldTreeCompactSite';pick.dataset.siteId=s.id;pick.setAttribute('aria-label',title(s.id));pick.style.cssText='flex:1 1 145px;min-width:0;min-height:44px;padding:6px;border:1px solid #596778;border-radius:5px;background:#26354c;color:'+s.colour+';font-size:11px;text-align:left;overflow:hidden';const name=node(doc,'b',title(s.id)),holder=node(doc,'div',label);holder.style.cssText='white-space:nowrap;overflow:hidden;text-overflow:ellipsis';pick.appendChild(name);pick.appendChild(holder);pick.onclick=e=>{if(hooks.canOpen&&!hooks.canOpen())return;e.stopPropagation();hooks.openSite(s.id);};controls.appendChild(pick);}
+        if(compact&&hooks.openSite){const pick=node(doc,'button');pick.type='button';pick.className='worldTreeCompactSite';pick.dataset.siteId=s.id;pick.setAttribute('aria-label',title(s.id));pick.style.cssText='flex:0 0 145px;min-width:145px;min-height:44px;padding:6px;border:1px solid #596778;border-radius:5px;background:#26354c;color:'+s.colour+';font-size:11px;text-align:left;overflow:hidden';const name=node(doc,'b',title(s.id)),holder=node(doc,'div',label);holder.style.cssText='white-space:nowrap;overflow:hidden;text-overflow:ellipsis';pick.appendChild(name);pick.appendChild(holder);pick.onclick=e=>{if(hooks.canOpen&&!hooks.canOpen())return;e.stopPropagation();hooks.openSite(s.id);};controls.appendChild(pick);}
         if(hooks.openSite){const hit=node(doc,'button');hit.className='worldTreeSiteHit';hit.dataset.siteId=s.id;hit.setAttribute('aria-label',title(s.id));hit.style.cssText='position:absolute;left:'+b.left+'%;top:'+b.top+'%;width:'+(b.right-b.left)+'%;height:'+(b.bottom-b.top)+'%;background:transparent;border:0;padding:0;z-index:8;cursor:pointer';hit.onclick=e=>{if(hooks.canOpen&&!hooks.canOpen())return;e.stopPropagation();hooks.openSite(s.id);};inner.appendChild(hit);if(compact)hit.style.display='none';}
       }
-      if(focusSite){const next=[...board.querySelectorAll('.worldTreeCompactSite'),...inner.querySelectorAll('.worldTreeSiteHit')].find(x=>x.dataset.siteId===focusSite&&x.style.display!=='none');if(next)next.focus({preventScroll:true});}
+      board.scrollLeft=boardScroll;if(focusSite){const next=[...board.querySelectorAll('.worldTreeCompactSite'),...inner.querySelectorAll('.worldTreeSiteHit')].find(x=>x.dataset.siteId===focusSite&&x.style.display!=='none');if(next)next.focus({preventScroll:true});}
     }
-    async function mount(inner,container){const doc=inner.ownerDocument;let board=container.querySelector('.worldTreeScoreboard');if(!board){board=node(doc,'section');board.className='worldTreeScoreboard';board.style.cssText='padding:6px 8px;background:#141b2b;border-radius:8px;font-size:12px;margin:4px 0';container.insertBefore(board,container.firstChild);}
+    async function mount(inner,container){const doc=inner.ownerDocument;let board=container.querySelector('.worldTreeScoreboard');if(!board){board=node(doc,'section');board.className='worldTreeScoreboard';board.style.cssText='display:flex;align-items:center;gap:4px;flex:0 0 auto;padding:4px 6px;background:#141b2b;border-radius:8px;font-size:12px;margin:4px 0;overflow-x:auto;white-space:nowrap;max-width:100%;box-sizing:border-box';container.insertBefore(board,container.firstChild);}
       mounted={inner,board};if(timer!==null&&hooks.cancel)hooks.cancel(timer);timer=null;
       render(inner,board);await load();if(!inner.isConnected||!board.isConnected||mounted.inner!==inner)return;render(inner,board);poll();
     }

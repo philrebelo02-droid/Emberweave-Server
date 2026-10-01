@@ -2886,6 +2886,24 @@ function worldCityMarches(u,now=Date.now()){
 }
 // Resolve receipts outlive the 24-hour idempotency cache so a late retry cannot
 // pay again. Keep every unfinished trip; discard only old, settled mine history.
+function worldMineDurable(user,key,fn){
+  const now=Date.now(), prior=DB.idem?.[key];
+  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'Mine storage restore pending.'};
+  const draft=JSON.parse(JSON.stringify(user));
+  const reply=fn(draft);
+  if(!reply?.ok)return reply;
+  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
+  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const users={...DB.users,[user.id]:draft};
+  try{
+    const tmp=DB_FILE+'.world-mine.tmp';
+    fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+  }catch(error){console.error('Mine durable write failed:',error.message);return {ok:false,storageFailed:true,error:'Mine save failed. Retry the same request.'};}
+  DB.users[user.id]=draft;DB.idem=receipts;
+  try{pgSave();}catch(error){console.error('Mine replica:',error.message);}
+  return reply;
+}
 function worldMineMarches(u,now){
   if(!Array.isArray(u.worldMineMarches)) u.worldMineMarches=[];
   if(u.worldMineMarches.length>100){
@@ -4846,7 +4864,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req), rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{error:'requestId required'});
-    const out=idem(me.id+':worldmine:'+p+':'+rid,()=>{
+    const out=worldMineDurable(me,me.id+':worldmine:'+p+':'+rid,(me)=>{
       const now=Date.now(), w=witchState(me,now), led=ensureLedger(me);
       if(!w) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       worldMineMarches(me,now);
@@ -4936,7 +4954,7 @@ async function api(req,res,url){
       delete march.snaps;
       return march.receipt;
     });
-    return send(res,out.ok?200:400,out);
+    return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
 
   if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req, BODY_MAX_SAVE);
