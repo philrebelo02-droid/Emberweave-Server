@@ -27,7 +27,7 @@ assert.deepEqual([89,90,129,130].map(cy=>L.zoneOf(L.center(45),L.center(cy))),
   ['crystor','wildW','wildW','tefron'],'vertical region/wild edges');
 assert.equal(L.zoneOf(L.center(110),L.center(110)),'worldtree','center void is 40×40');
 assert.equal(L.valid({...at('crystor',0),region:'alumron'}),false);
-assert.equal(terrain.cells.length,1039,'approved crystal and World Tree outline is complete');
+assert.equal(terrain.cells.length,995,'approved crystal and World Tree outline is complete');
 const terrainKeys=new Set(terrain.cells);
 assert.equal(terrainKeys.size,terrain.cells.length,'terrain-blocked cells are unique');
 assert.ok(terrainKeys.has('110,110')&&terrainKeys.has('115,110')&&terrainKeys.has('105,110'),

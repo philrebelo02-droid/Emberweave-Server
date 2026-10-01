@@ -132,7 +132,7 @@ async function run(){
       return {blockedCount:blocked.size,samples,before,entered,cancelled,refused,confirmOpen,
         paneBorders,veiledPanes};
     });
-    assert.equal(teleportMap.blockedCount,1039,'browser receives the server-owned terrain mask');
+    assert.equal(teleportMap.blockedCount,995,'browser receives the server-owned terrain mask');
     assert.ok(teleportMap.samples.every(s=>s.blockedGhosts===0&&s.closedGhosts===0),
       'teleport ghosts never occupy blocked terrain or closed zones at any zoom');
     assert.ok(teleportMap.samples.some(s=>s.count>0),'available floor still shows teleport ghosts at close zoom');

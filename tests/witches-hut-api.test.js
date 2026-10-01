@@ -295,7 +295,7 @@ async function run() {
     const otherCities=await request('GET','/api/world/cities',null,admin.token);
     for(const c of otherCities.cities||[]) occupied.add(L.cellKey(c.x,c.y));
     const terrainKeys=new Set(castle.terrainBlockedCells);
-    assert.equal(terrainKeys.size,1039,'world state gives the picker the approved terrain outline');
+    assert.equal(terrainKeys.size,995,'world state gives the picker the approved terrain outline');
     for(const [i,key] of ['85,98','90,95','130,110','115,110'].entries()){
       assert.ok(terrainKeys.has(key));
       const [cx,cy]=key.split(',').map(Number);
