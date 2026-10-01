@@ -10959,6 +10959,7 @@ const FX2_DEF={
   sylthaine_ult:{u:'/assets/anim/fx/sylthaine_ult.webp?v=21',n:48,fw:210,fh:202,cols:6,rows:8,dur:4.0,disc:{cy:0.74,dh:0.40,dw:0.87}},
   tallow_ult:{u:'/assets/anim/fx/tallow_ult.webp?v=32',n:48,fw:326,fh:288,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.616,dw:0.912}},
   tick_ult:{u:'/assets/anim/fx/tick_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.71,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  orryn_passive:{u:'/assets/anim/fx/orryn_passive.webp?v=1',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.498,dh:0.82,dw:0.82}},   // v865 Grok: Abyssal Reserve - flat pressure-burst ring under Orryn (gauge fills / pressure released)
   orryn_ult:{u:'/assets/anim/fx/orryn_ult.webp?v=1',n:48,fw:400,fh:439,cols:6,rows:8,dur:6.04,upright:true,upSize:2.0,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v86x Grok: Ocean Without Shore
   umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vael_ult:{u:'/assets/anim/fx/vael_ult.webp?v=21',n:48,fw:396,fh:420,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.970,upAnchor:[0.5,0.0],ro:1},
@@ -12588,6 +12589,7 @@ function updateBattle(dt){
       else if(!on&&u._saOn){ u._saOn=0; u.critDmg=Math.max(0,(u.critDmg||0)-(u._saAdd||0)); u._saAdd=0; } }
     // Abyssal Reserve (Orryn): every cast stores pressure; a full gauge empowers the next spell.
     if(u.pass.abyssres){ if((u._prS||0)>=3 && !u._prReady){ u._prReady=1; u._prS=0;
+        firePassiveFx(u);   /* v865: Grok's pressure ring under him as the gauge fills (art only) */
         floatTexts.push({x:u.x,y:u.y-10,txt:'PRESSURE',t:1.0,color:'#2f8fa8',vy:1,sz:12}); ringBurst(u.x,u.y,0x2f8fa8,12); } }
     // Pelagic Insight (Nerisse): every spell she casts leaves her a little harder to hurt.
     if(u.pass.pelagic){ if((u._piT||0)>0){ u._piT-=dt; if(u._piT<=0&&u._piAdd){ u.glyphDR=Math.max(0,(u.glyphDR||0)-u._piAdd); u._piAdd=0; } } }
@@ -25045,7 +25047,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790833099728';
+const BUILD_ID = '1790837706277';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
