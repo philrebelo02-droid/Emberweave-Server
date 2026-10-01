@@ -4510,7 +4510,7 @@ const KITS={
   vesper:{green:{name:'Errata',type:'erratafield',dps:0.2,dur:5,radius:3*METER,silence:0.6,cd:9,gfx:'vesper_green'},blue:{name:'Loose Leaf',type:'pagestorm',mul:1.1,backMul:0.7,width:34,back:0.45,cd:8,gfx:'vesper_blue',gfxR:3*METER},purple:{name:'Scriptorium',pass:'scriptorium'}},
   sablewick:{green:{name:'Accelerate',type:'dmgbuff',mul:1.3,dur:6,cd:8,gfx:'sablewick_green',gfxR:3*METER},blue:{name:'Sleight of Hours',type:'spdsteal',dur:5,pct:0.35,cd:10,gfx:'sablewick_blue',gfxR:3*METER},purple:{name:'Unwind',pass:'unwind'}},
   threadseer:{green:{name:'Mending Stitch',type:'mendburst',mul:0.5,hot:0.065,dur:6,cd:7,desc:"Immediately heals the most injured ally and continues restoring their health for several seconds.",gfx:'threadseer_green'},blue:{name:'Reinforced Seam',type:'lastbreath',mul:1.8,dur:5,cd:10,desc:"Shields the weakest ally and prevents their health from falling below 1 until the shield expires.",gfx:'threadseer_blue',gfxR:3*METER},purple:{name:'Golden Thread',pass:'goldthread',desc:"Connects Threadseer to the lowest-health ally and transfers part of all healing she receives to them."}},
-  calypsa:{green:{name:'Tidal Ribbon',type:'piercethrow',mul:1.55,width:36,cd:6,desc:"Cuts through a line with both water sabers.",gfx:'calypsa_green'},blue:{name:'Fighting Current',type:'evadecounter',mul:1.6,dur:2.6,dr:0.6,cd:9,desc:"Dashes in place through an attack stance and gains dodge.",gfx:'calypsa_blue',gfxR:3*METER},purple:{name:'Prismatic Scales',pass:'prismscales',desc:"Dodges release a small retaliating water blade."}},
+  calypsa:{green:{name:'Tidal Ribbon',type:'piercethrow',mul:1.55,width:36,cd:6,desc:"Cuts through a line with both water sabers.",gfx:'calypsa_green',deliver:'line',speed:20*METER},blue:{name:'Fighting Current',type:'evadecounter',mul:1.6,dur:2.6,dr:0.6,cd:9,desc:"Dashes in place through an attack stance and gains dodge.",gfx:'calypsa_blue',gfxR:3*METER},purple:{name:'Prismatic Scales',pass:'prismscales',desc:"Dodges release a small retaliating water blade."}},
   lysara:{green:{name:'Dreamthread',type:'linkheal',mul:0.55,hot:0.022,dur:8,cd:8,desc:"Links two allies so healing and shields are shared.",gfx:'lysara_green'},blue:{name:'Moon Cocoon',type:'harmonyshield',mul:2.2,radius:3*METER,dur:6,cd:9,desc:"Wraps the weakest ally in protective dream silk.",gfx:'lysara_blue',gfxR:3*METER},purple:{name:'Powdered Slumber',pass:'slumber',desc:"Attacks gradually reduce enemy accuracy."}},
   nerisse:{green:{name:'Resonant Star',type:'silencestrike',mul:1.35,silence:2.4,cd:7,desc:"Strikes an enemy with a tuning-fork pulse that silences casting.",gfx:'nerisse_green',deliver:'shot',speed:18*METER},blue:{name:'Drifting Constellation',type:'orbheal',mul:0.38,hot:0.022,dur:4,cd:9,desc:"Sends her star orb between allies, healing each one.",gfx:'nerisse_blue',gfxR:3*METER},purple:{name:'Pelagic Insight',pass:'pelagic',desc:"Every spell reveals the next enemy ability and grants resistance."}},
   nox:{green:{name:'Lockpick Soul',type:'energysteal',mul:1.25,steal:30,cd:7,muSilence:1.6,desc:"Hooks the highest-Energy enemy, steals part of its Energy, and creates a Skeleton Key. When Master-Unlocked, it strikes three enemies and briefly silences them.",gfx:'nox_green',gdur:5.88},blue:{name:'Forbidden Key',type:'energygift',give:25,perKey:6,ultMul:1.25,dur:6,cd:9,muUltMul:1.5,desc:"Transfers stolen Energy to the ally nearest its Ultimate and increases that Ultimate's power. Its bonus grows with every held Skeleton Key; when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and uninterruptible.",gfx:'nox_blue',gfxR:3*METER,gdur:2.5},purple:{name:'Skeleton-Key Savant',pass:'skeletonkey',desc:"Every ability creates one Skeleton Key, up to five. At five keys the next ability is Master-Unlocked, and the keys build permanent Fortune - Dodge and critical damage."}},
@@ -4525,7 +4525,7 @@ const KITS={
   greatbrow:{green:{name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'greatbrow_green',gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'greatbrow_blue',gfxAt:'front',allyBadge:true,badgeSize:0.2,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
   ironcoil:{green:{name:'Scale Ram',type:'knockstun',mul:1.45,stun:1.1,push:1.8*METER,cd:8,desc:"Drives both striking blocks forward, stunning the nearest enemy and pushing it backward.",gfx:'ironcoil_green',gdur:5.88},blue:{name:'Fortress Curl',type:'defensive',mul:0.35,dur:3.5,cd:9,desc:"Curls behind his plated tail, greatly reducing incoming damage before bursting back open.",gfx:'ironcoil_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Layered Hide',pass:'layered',desc:"Each direct hit hardens one scale layer; at maximum layers he becomes immune to control briefly."}},
   kilnmask:{green:{name:'Glazebreaker',type:'shred',mul:1.55,shred:0.30,dur:5,cd:6,desc:"Smashes with the pottery paddle and reduces enemy armor.",gfx:'kilnmask_green',gdur:3.96},blue:{name:'Sealed Vessel',type:'defensive',mul:0.45,dur:5,cd:9,desc:"Breaks a belt jar to gain one of several defensive glazes.",gfx:'kilnmask_blue',gfxR:3*METER,gdur:5.71},purple:{name:'Fired Clay',pass:'warden',desc:"Repeated hits harden his ceramic plates."}},
-  orryn:{green:{name:'Pressure Sphere',type:'strike',mul:1.75,color:'#2f8fa8',cd:6,desc:"Crushes an enemy inside a sphere of deep-sea pressure.",gfx:'orryn_green',gdur:5.88,deliver:'form',form:0.4},blue:{name:'Spiral Current',type:'ashfall',dps:0.5,dur:4,radius:3.4*METER,slow:2,nrgSlow:0.4,color:'#2f8fa8',cd:9,desc:"Sends a whirlpool through the enemy formation, slowing energy gain.",gfx:'orryn_blue',gfxR:3*METER,gdur:3.79},purple:{name:'Abyssal Reserve',pass:'abyssres',desc:"Casting stores pressure; full pressure strengthens his next spell."}},
+  orryn:{green:{name:'Pressure Sphere',type:'strike',mul:1.75,color:'#2f8fa8',cd:6,desc:"Crushes an enemy inside a sphere of deep-sea pressure.",gfx:'orryn_green',gdur:5.88,deliver:'form',form:0.4},blue:{name:'Spiral Current',type:'ashfall',dps:0.5,dur:4,radius:3.4*METER,slow:2,nrgSlow:0.4,color:'#2f8fa8',cd:9,desc:"Sends a whirlpool through the enemy formation, slowing energy gain.",gfx:'orryn_blue',gfxR:3*METER,gdur:3.79,deliver:'travel',speed:6*METER,noArt:true},purple:{name:'Abyssal Reserve',pass:'abyssres',desc:"Casting stores pressure; full pressure strengthens his next spell."}},
   pellucid:{green:{name:'Meteor Knuckle',type:'aoeStun',mul:1.25,stun:1.2,radius:2.6*METER,cd:8,desc:"Drives one colossal fist down, stunning nearby enemies.",gfx:'pellucid_green',gdur:6.04,deliver:'land',fall:0.45},blue:{name:'Infernal Clinch',type:'atkcrush',mul:1.5,pct:0.35,stun:0.6,dur:5,cd:10,desc:"Grabs the strongest enemy and crushes its Attack for several seconds.",gfx:'pellucid_blue',gfxR:3*METER,gdur:6.04},purple:{name:'Unmovable Mass',pass:'unmovable',desc:"Cannot be displaced; damage taken builds molten armor."}},
   velvetplum:{green:{name:'Scent of Courage',type:'healbuff',mul:0.95,atk:1.28,dur:6,cd:7,desc:"Sprays the weakest ally with restorative perfume, healing them and increasing their Attack.",gfx:'velvetplum_green',gdur:5.88},blue:{name:'Soporific Bouquet',type:'sleepbouquet',sleep:2.2,slow:3,cd:10,desc:"Releases a drifting fragrance that puts the highest-energy enemy to sleep.",gfx:'velvetplum_blue',gfxR:3*METER,gdur:4.42},purple:{name:'Trail of Splendor',pass:'splendor',desc:"Whenever an ally receives a buff, they also gain a small stacking shield."}},
   veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
@@ -9963,7 +9963,13 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
          lands during it, then dur seconds of ticks. life = lead + dur so the hazard outlives its own lead-in. */
       groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35)*sm,heal:apB*(o.hps||0.6)*sm,team:u.team,interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
       floatTexts.push({x:C.x,y:C.y-12,txt:'BONE CHANT',t:1.0,color:'#8fe08f',vy:1,sz:13}); ringBurst(C.x,C.y,0x5fbf5f,16); break; }
-    case 'ashfall':{ const _aC=aimCtr||((tgt&&tgt.alive)?tgt:u), px=_aC.x, py=_aC.y;   // v544: aimed (radius) - lands on the aim point, else the target   // throw a burning/icy patch to the ground: ticks damage (+optional slow) to foes within radius for a few seconds
+    case 'ashfall':{ if(o.deliver==='travel'){   /* v888 Spiral Current: the whirlpool moves through the formation */
+        const _tC=aimCtr||((tgt&&tgt.alive)?tgt:u), _dx=_tC.x-u.x, _dy=_tC.y-u.y, _L=Math.hypot(_dx,_dy)||1, _ux=_dx/_L, _uy=_dy/_L, _spd=o.speed||6*METER, _tt=(_L+3*METER)/_spd;
+        const _h={x:u.x+_ux*METER,y:u.y+_uy*METER,vx:_ux*_spd,vy:_uy*_spd,travelLeft:_tt,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,interval:0.5,acc:0,life:_tt+0.6,color:o.color||'#2f8fa8',slow:o.slow||0,nrgSlow:o.nrgSlow||0,nrgDur:o.dur||4};
+        groundHazards.push(_h);
+        try{ if(TH&&scene&&o.gfx&&FX2_DEF[o.gfx]){ window._fxCaster=u; _fxAllow=true; const _fx=spawnGroundFx(o.gfx,_h.x,_h.y,o.gfxR||_h.r,_h.life); if(_fx) _fx.follow=_h; } }catch(_e){} finally{ _fxAllow=false; }
+        break; }
+      const _aC=aimCtr||((tgt&&tgt.alive)?tgt:u), px=_aC.x, py=_aC.y;   // v544: aimed (radius) - lands on the aim point, else the target   // throw a burning/icy patch to the ground: ticks damage (+optional slow) to foes within radius for a few seconds
       groundHazards.push({x:px,y:py,r:o.radius||3*METER,dmg:_sD*(o.dps||0.5)*sm,team:u.team,interval:0.5,acc:0,life:o.dur||3,color:o.color||'#ff6a3a',slow:o.slow||0});
       /* v527 Spiral Current - the whirlpool does not just hurt, it slows what the formation is charging. */
       if(o.nrgSlow){ enemiesOf(u).forEach(e=>{ if(!e.alive||dist({x:px,y:py},e)>(o.radius||3*METER))return;
@@ -10000,6 +10006,10 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'piercethrow':{ const foes=enemiesOf(u); if(!foes.length)break;   // Granith: hurls a pickaxe at the FARTHEST hero, hitting everyone in the line's path
       const tg2=foes.slice().sort((a,b)=>dist(u,b)-dist(u,a))[0];
       const ddx=tg2.x-u.x, ddy=tg2.y-u.y, len=Math.hypot(ddx,ddy)||1, ux=ddx/len, uy=ddy/len, W=o.width||34;
+      if(o.deliver==='line'){ const _spd=o.speed||20*METER, _D=dB*(o.mul||1.6)*rm;   /* v888 Tidal Ribbon: each enemy is hit when the sabers reach it */
+        foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>len+24||Math.abs(rx*uy-ry*ux)>W)return;
+          groundHazards.push({arrival:true,delay:Math.max(0.05,proj/_spd),run:function(){ if(!e.alive)return; dealDamage(u,e,_D,'#5ed0e8'); burstAt(e.x,e.y,0x5ed0e8,8); }}); });
+        break; }
       foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>len+24)return;
         if(Math.abs(rx*uy-ry*ux)<=W) (o.frost?dealFrostDamage:dealDamage)(u,e,dB*(o.mul||1.6)*rm,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); });
       abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
@@ -10594,7 +10604,8 @@ function castTick(u, dt){
 /* v885 Drifting Constellation: pick the next ally for the orb and launch its art for exactly that hop. */
 /* v886 DELIVERY - launch the art, queue the effect for when it arrives (see doEffect). */
 function deliverLaunch(u,type,o){ try{
-  const mode=o.deliver; let aim=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
+  const mode=o.deliver; if(mode!=='shot'&&mode!=='land'&&mode!=='form') return false;   /* v888: line/travel are the spell's own */
+  let aim=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
   const tU=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
   if(mode==='shot'&&!tU) return false;
@@ -12730,9 +12741,10 @@ function updateBattle(dt){
     if(h.channel){ const o=h.owner;
       if(!o || !o.alive || (o.stunned||0)>0 || (o.fearT||0)>0 || (o.silencedT||0)>0){
         groundHazards.splice(i,1); continue; } }
+    if(h.vx||h.vy){ h.x+=h.vx*dt; h.y+=h.vy*dt; h.travelLeft-=dt; if(h.travelLeft<=0){ h.vx=0; h.vy=0; } }   /* v888 a travelling hazard */
     h.life-=dt; h.acc+=dt;
     if(h.acc>=h.interval){ h.acc-=h.interval; if(h.heal) units.forEach(e=>{ if(e.alive&&e.team===h.team&&!(e._riseT>0)&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ healUnit(e,h.heal); } });   // v548 Bone Chant: the circle mends its own side
-      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
+      units.forEach(e=>{ if(e.alive&&e.team!==h.team&&Math.hypot(e.x-h.x,e.y-h.y)<=h.r){ damage(e,h.dmg,h.color,true); if(h.slow)e.slow=Math.max(e.slow||0,ccDur(h.slow)); if(h.nrgSlow){ e._nrgSlowT=Math.max(e._nrgSlowT||0,h.nrgDur||4); e._nrgSlowPct=Math.max(e._nrgSlowPct||0,h.nrgSlow); } if(h.silence)e.silencedT=Math.max(e.silencedT||0,ccDur(h.silence));
         if(h.choir){ let _b=null,_bd=Infinity;
           for(const a of units){ if(!a.alive||a.team!==h.team||a._riseT>0) continue;
             const _d=Math.hypot(a.x-e.x,a.y-e.y); if(_d<_bd){_bd=_d;_b=a;} }
@@ -25188,7 +25200,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790870590166';
+const BUILD_ID = '1790870766350';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
