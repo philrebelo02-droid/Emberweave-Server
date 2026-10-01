@@ -2386,7 +2386,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om1"></script>
-<script src="/assets/ui/world-tree-countdown.js?v=wt3"></script>
+<script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
 <script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
 <script>
 /* ==========================================================================
@@ -25259,7 +25259,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790874085998';
+const BUILD_ID = '1790874421668';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

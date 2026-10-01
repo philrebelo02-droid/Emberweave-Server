@@ -4,9 +4,9 @@
   function mount(inner){
     if(current)current.stop();
     const node=document.createElement('div');node.id='worldTreeCountdown';node.className='wnode';
-    node.style.cssText='left:50%;top:55.7%;transform:translate(-50%,0);z-index:6;pointer-events:none;cursor:default';
+    node.style.cssText='left:50%;top:51.98%;transform:translate(-50%,0);z-index:6;pointer-events:none;cursor:default';   /* v899: the bottom of the roots (wt_02..28 root tips end at y~845/1254; overlay spans 44.444-55.556%) */
     const box=document.createElement('div');box.className='wlab';
-    box.style.cssText='position:relative;left:auto;top:auto;transform:none;transform-origin:center top;background:rgba(13,18,29,.88);border:1px solid #8f7650;border-radius:8px;padding:5px 10px;box-shadow:0 2px 8px #0008';
+    box.style.cssText='position:relative;left:auto;top:auto;transform:none;transform-origin:center top;background:none;border:0;padding:0;box-shadow:none;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px #000c';   /* v899 (Phil): no box, just the text */
     const label=document.createElement('div');label.className='nl';label.textContent='World Tree';
     const time=document.createElement('div');time.className='nl';time.style.cssText='color:#ffd45e;font-variant-numeric:tabular-nums;font-size:12px';time.textContent='Syncing event timer…';
     time.setAttribute('role','timer'); // Not an every-second screen-reader announcement.
@@ -44,7 +44,7 @@
     function visible(){if(!document.hidden){draw();sync();}}
     document.addEventListener('visibilitychange',visible);
     let ticks=0;interval=setInterval(()=>{draw();if(++ticks%30===0)sync();},1000);
-    current={node,stop,setZoom:zoom=>{if(Number.isFinite(zoom)&&zoom>0){box.style.zoom=String(1/zoom);node.style.marginTop=8/zoom+'px';}}};sync();return current;
+    current={node,stop,setZoom:zoom=>{if(Number.isFinite(zoom)&&zoom>0){box.style.zoom=String(1/zoom);node.style.marginTop='0';}}};sync();return current;
   }
   root.EmberweaveWorldTreeCountdown={mount,stop:()=>current?.stop(),setZoom:zoom=>current?.setZoom(zoom)};
 })(window);
