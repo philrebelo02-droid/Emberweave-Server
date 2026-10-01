@@ -23,6 +23,7 @@ const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_LOCATION=require('./server/world-location.js');
+const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
 const TEMPLE=require('./server/temple-of-ash.js');
 const TEMPLE_EFFECTS=require('./server/temple-effects.js');
@@ -6292,6 +6293,15 @@ async function api(req,res,url){
       return {...worldView(me,now),ledger:ledgerView(me)};
     });
     return send(res,out.ok?200:400,out);
+  }
+  if(p==='/api/world-tree/status'){
+    if(req.method!=='GET'){res.setHeader('Allow','GET');return send(res,405,{error:'method'});}
+    res.setHeader('Cache-Control','no-store');
+    try{
+      const configured=process.env.WORLD_TREE_FIRST_EVENT_AT;
+      const firstEventAt=configured?Date.parse(configured):null;
+      return send(res,200,WORLD_TREE_CALENDAR.snapshot(DB,{firstEventAt,save:writeDBNow}));
+    }catch(error){console.error('World Tree calendar:',error.message);return send(res,503,{error:'World Tree timer unavailable'});}
   }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
     const placed=Object.values(DB.users).filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation));
