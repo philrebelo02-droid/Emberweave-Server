@@ -6657,11 +6657,16 @@ async function api(req,res,url){
       // prune stale entries
       for(const k of Object.keys(DB.watch)){ if(now-(DB.watch[k].t||0) > WFRESH) delete DB.watch[k]; }
       const fresh=Object.values(DB.watch).filter(w=>now-(w.t||0)<=WFRESH);
-      const mates = me.guildId
-        ? fresh.filter(w=>w.guildId===me.guildId)
-              .map(w=>({ id:w.id, name:w.name, you:w.id===me.id, attacks:w.attacks||[], defends:w.defends||[], scouts:w.scouts||[], t:w.t }))
-        : fresh.filter(w=>w.id===me.id)
-              .map(w=>({ id:w.id, name:w.name, you:true, attacks:w.attacks||[], defends:w.defends||[], scouts:w.scouts||[], t:w.t }));
+      // Reported activity must use CURRENT membership, not a cached report guild.
+      const guild=me.guildId&&Object.prototype.hasOwnProperty.call(DB.guilds||{},me.guildId)?DB.guilds[me.guildId]:null;
+      const roster=Array.isArray(guild?.members)?guild.members:[];
+      const guilded=!!(guild&&roster.includes(me.id));
+      const mates=fresh.filter(w=>{
+        if(w.id===me.id)return true;
+        const user=Object.prototype.hasOwnProperty.call(DB.users,w.id)?DB.users[w.id]:null;
+        return guilded&&roster.includes(w.id)&&user?.id===w.id&&user.guildId===me.guildId;
+      }).map(w=>({id:w.id,name:DB.users[w.id]?.name||w.name,you:w.id===me.id,
+        attacks:w.attacks||[],defends:w.defends||[],scouts:w.scouts||[],t:w.t}));
       const myName=(me.name||'').toLowerCase();
       const scoutedBy=[];
       for(const w of fresh){
@@ -6670,7 +6675,7 @@ async function api(req,res,url){
           if((s.name||'').toLowerCase()===myName){ scoutedBy.push({ by:w.name, eta:s.eta||null, t:w.t }); }
         }
       }
-      return send(res,200,{ mates, scoutedBy, guilded:!!me.guildId });
+      return send(res,200,{ mates, scoutedBy, guilded });
     }
     return send(res,404,{error:'watch'});
   }
