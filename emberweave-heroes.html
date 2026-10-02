@@ -20976,7 +20976,7 @@ function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left=m.x+'%'; pop.style.top=m.y+'%'; pop.style.transform='translate(-50%,-135%)'; pop.style.zoom=(1/worldZoom);
   pop.innerHTML=`<div class="cm-t">${resIconHtml(m.res,18)} Lv ${m.level} ${escapeHTML(mnResName(m.res))} Mine</div>
     <div style="font-size:10px;color:#cdd6e4;padding:3px 6px 5px;line-height:1.6">
-      Yield <b style="color:#ffd45e">${resIconHtml(m.res,16)} ${y}</b>${mineSignedIn()?' <span style="color:#8b98a9">per haul · 60/day cap</span>':''}<br>
+      Yield <b style="color:#ffd45e">${resIconHtml(m.res,16)} ${y}</b>${mineSignedIn()?' <span style="color:#8b98a9">per haul</span>':''}<br>
       🛡 Guarded by <b style="color:#ff9a6b">5 monsters</b> — beat them to mine it<br>
       Needs squad ⚔ <b style="color:#ff9a6b">${reqP}</b> · a hero Lv <b style="color:#ff9a6b">${reqL}+</b><br>
       ⛏ Mine ${fmtDur(gm)} · 🚩 travel ${fmtDur(travel)} each way<br>

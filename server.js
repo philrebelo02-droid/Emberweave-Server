@@ -5145,13 +5145,13 @@ async function api(req,res,url){
       const A=ensureAcad(me); acadCollect(A);
       const dk=nyDayKey(now);
       if(!A.mineDay||A.mineDay.k!==dk) A.mineDay={k:dk};
-      let granted=0,capLeft=Math.max(0,60-(A.mineDay[march.node.res]|0));
+      let granted=0,capLeft=null;
       if(battle.won){
         const used=A.mineDay[march.node.res]|0;
-        granted=Math.min(15,Math.max(0,60-used));
+        // Every authored mine yields at least 95; retain the server-owned 15 per-haul ceiling.
+        granted=15;
         A.mineDay[march.node.res]=used+granted;
         A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
-        capLeft=60-A.mineDay[march.node.res];
       }
       march.resolved=true; march.resolvedAt=now;
       march.receipt={ok:true,won:battle.won,durationSec:digest.t,injuries,granted,
@@ -6314,11 +6314,10 @@ async function api(req,res,url){
         const rk=String(b.res||''); if(!['iron','crystal','silver','coal'].includes(rk)) return {ok:false,error:'Unknown resource.'};
         const amt=Math.max(1,Math.min(15,Math.floor(+b.amount||0)));
         const dk=nyDayKey(); if(!A.mineDay||A.mineDay.k!==dk) A.mineDay={k:dk};
-        const used=(A.mineDay[rk]|0); const CAP=60;
-        if(used>=CAP) return {ok:false,error:'Daily mining cap reached for '+rk+'.'};
-        const grant=Math.min(amt,CAP-used);
+        const used=(A.mineDay[rk]|0);
+        const grant=amt;
         A.mineDay[rk]=used+grant; A.res[rk]=(A.res[rk]|0)+grant;
-        writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:CAP-A.mineDay[rk]};
+        writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:null};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/pvp/attack'){ const out=worldSettlementDurable(me,me.id+':pvpatk:'+reqId,String(b.defId||''),(me,DB)=>{
         const led=ensureLedger(me);acadCollect(ensureAcad(me));
