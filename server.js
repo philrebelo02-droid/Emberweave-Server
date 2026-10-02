@@ -1307,7 +1307,7 @@ const VAULT_BOSSES=['wintercrag','magmourn','voraxis','grommash','leviath','sylp
 const VAULT_MIN_BATTLE_MS=+(process.env.VAULT_MIN_BATTLE_MS||6000);   // a real two-wave fight can't finish faster than this
 const VAULT_BOSS_STATS={'wintercrag':{hp:300,dmg:26},'magmourn':{hp:450,dmg:26},'voraxis':{hp:300,dmg:26},'grommash':{hp:300,dmg:26},'leviath':{hp:300,dmg:26},'sylphice':{hp:300,dmg:26},
   /* v337 — the 14 new bosses: Brutes 300/26, Mages 450/26 (same archetypes as the originals) */
-  'vharok':{hp:300,dmg:26},'barrowmaw':{hp:300,dmg:26},'asterion':{hp:300,dmg:26},'maelvara':{hp:300,dmg:26},'brukk':{hp:300,dmg:26},'irix':{hp:300,dmg:26},'kharos':{hp:300,dmg:26},'miregor':{hp:300,dmg:26},'orryx':{hp:300,dmg:26},'nameless admiral':{hp:300,dmg:26},
+  'vharok':{hp:300,dmg:26},'barrowmaw':{hp:300,dmg:26},'asterion':{hp:300,dmg:26},'maelvara':{hp:300,dmg:26},'brukk':{hp:300,dmg:26},'irix':{hp:300,dmg:26},'hourglass sentinel':{hp:300,dmg:26},'miregor':{hp:300,dmg:26},'orryx':{hp:300,dmg:26},'nameless admiral':{hp:300,dmg:26},
   'nerissa':{hp:450,dmg:26},'nymira':{hp:450,dmg:26},'sable vesper':{hp:450,dmg:26},'thorneveil':{hp:450,dmg:26}};
 function vaultMonsterLevel(floor){ return Math.max(1,Math.min(D_MAX_LEVEL, Math.round(2+floor*0.6))); }
 // deterministic per floor+wave — NO per-attempt randomness anywhere in here
@@ -6917,7 +6917,7 @@ async function api(req,res,url){
       {key:'barrowmaw',name:'Barrowmaw, Ossuary Devourer'}, {key:'asterion',name:'Asterion, Mirror Warden'},
       {key:'maelvara',name:'Maelvara, Stormnest Matriarch'}, {key:'brukk',name:'Brukk, Master of the Black Kiln'},
       {key:'nymira',name:'Nymira, the Sunken Bloom'}, {key:'irix',name:'Irix, the Sky-Shard Roc'},
-      {key:'kharos',name:'Kharos, Hourglass Sentinel'},
+      {key:'hourglass sentinel',name:'Kharos, Hourglass Sentinel'},
       /* v673 (Phil): Sylphice HEALS HERSELF back to full inside 90 seconds (measured). She belongs
          where a guild can out-damage the heal, so she sits at tier 15, not tier 6. The other
          self-healers: Nerissa t7, Nymira t12, Thorneveil t19; Voraxis ~24% and Asterion ~8% partial. */

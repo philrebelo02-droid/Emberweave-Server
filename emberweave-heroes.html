@@ -2595,7 +2595,7 @@ const MYTHICAL_BANNER = "/assets/img/miscellaneous/mythical-banner.png";  // SHA
 const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1790342893337",11:ART_BASE+"Campaign/ch11.webp?v=1790342893337",12:ART_BASE+"Campaign/ch12.webp?v=1790342893337",13:ART_BASE+"Campaign/ch13.webp?v=1790342893337",14:ART_BASE+"Campaign/ch14.webp?v=1790342893337",15:ART_BASE+"Campaign/ch15.webp?v=1790342893337",16:ART_BASE+"Campaign/ch16.webp?v=1790342893337"};
-const CHAPTER_MAP_BOSS_KEYS=[null,'brukk','miregor','wintercrag','nerissa','sable vesper','vharok','maelvara','orryx','nameless admiral','barrowmaw','asterion','nymira','kharos','thorneveil','magmourn','irix'];   // v883: all 16 chapters, the x-10 boss in server/campaign-encounters.json
+const CHAPTER_MAP_BOSS_KEYS=[null,'brukk','miregor','wintercrag','nerissa','sable vesper','vharok','maelvara','orryx','nameless admiral','barrowmaw','asterion','nymira','hourglass sentinel','thorneveil','magmourn','irix'];   // v883: all 16 chapters, the x-10 boss in server/campaign-encounters.json
 const CHAPTER_VETERAN_BOSS_KEYS={1:'irix'}; // authored Veteran 1-10; future entries follow the server encounter table
 const CH_WIDE_MAPS={1:ART_BASE+"Campaign/ch1-wide-v1.webp",2:ART_BASE+"Campaign/ch2-wide-v1.webp",3:ART_BASE+"Campaign/ch3-wide-v1.webp",4:ART_BASE+"Campaign/ch4-wide-v1.webp",5:ART_BASE+"Campaign/ch5-wide-v1.webp",6:ART_BASE+"Campaign/ch6-wide-v1.webp",7:ART_BASE+"Campaign/ch7-wide-v1.webp",8:ART_BASE+"Campaign/ch8-wide-v1.webp",9:ART_BASE+"Campaign/ch9-wide-v1.webp",16:ART_BASE+"Campaign/ch16-wide-v1.webp?v=1790342893337"};
 const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024],11:[1536,1024],12:[1536,1024],13:[1536,1024],14:[1536,1024],15:[1536,1024],16:[1536,1024]};
@@ -10205,12 +10205,10 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       if(u.range>60)spawnShot(u,tgt,u.t.color); break; }
 
     case 'orbheal':{                                                // "sends her orb between allies, healing each one"
-      /* v860 (Grok's Drifting Constellation art, 1 Oct): the HEALS are unchanged and still land at once - the server replays
-         this fight without a 3D scene, so the game logic must not depend on art timing. Only the ART travels: Grok's star
-         orb leaves the caster, drifts to the nearest ally, bursts there, then on to the next-nearest unvisited ally, until
-         every ally has been visited. Without the orb art the old per-ally bursts show instead. */
       const hs=(u.apow||0)*(o.mul||0.35)*sm;
-      /* v885 (Phil 1 Oct): "The orb should bounce from hero to hero, and the heal happens once it hits the ally". The orb is fight
+      /* v934: the stale v860 note ("the heals still land at once") is gone - Phil read it as the behaviour. It is not: since v885 the
+         heal lands only when the orb ARRIVES at each ally (groundHazards tick, "heal on arrival, then bounce on").
+         v885 (Phil 1 Oct): "The orb should bounce from hero to hero, and the heal happens once it hits the ally". The orb is fight
          logic - a groundHazards entry moved by updateBattle at a fixed speed - so the replay runs the same bounces; the art is
          launched per hop with the same duration and only draws it. */
       const _left=alliesOf(u).filter(a=>a.alive);
@@ -18069,7 +18067,7 @@ Object.assign(MONSTER_TYPES,{
   'brukk':{name:'Brukk, Master of the Black Kiln',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:5917258,isboss:true},
   'nymira':{name:'Nymira, the Sunken Bloom',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:7325872,isboss:true,ap:1.6},
   'irix':{name:'Irix, the Sky-Shard Roc',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:16765567,fly:true,isboss:true},
-  'kharos':{name:'Kharos, Hourglass Sentinel',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:14202986,isboss:true},
+  'hourglass sentinel':{name:'Kharos, Hourglass Sentinel',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:14202986,isboss:true},
   'miregor':{name:'Miregor, King of the Briar March',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:7311162,isboss:true},
   'sable vesper':{name:'Sable Vesper, Choir of Crows',stars:5,swing:2.0,monster:true,role:'Mage',hp:450,dmg:26,range:150,speed:44,color:3813194,fly:true,isboss:true,ap:1.6},
   'orryx':{name:'Orryx, the Glass Minotaur',stars:5,swing:2.0,monster:true,role:'Brute',hp:300,dmg:26,range:46,speed:44,color:12159999,isboss:true},
@@ -18113,7 +18111,7 @@ Object.assign(MONSTER_KITS,{
   'brukk':{green:{name:'Anvil Drop',type:'aoeStun',mul:2.0,stun:2.5,radius:4*METER,cd:8,gfx:'groundslam',gfxR:4*METER,gdur:1.4},blue:{name:'Quench Chain',type:'tendrilpull',knockback:15*METER,stop:1,dur:1.4,cd:10},pass:'bulwark'},
   'nymira':{green:{name:'Abyssal Pollen',type:'ashfall',dps:0.45,dur:4,radius:3.0*METER,slow:2,color:'#9fd6c8',cd:11,gfx:'poison',gfxR:3.0*METER,gdur:4.0},blue:{name:'Tendril Verdict',type:'cleave',mul:1.3,radius:2.6*METER,cd:8,gfx:'rallyroots',gfxR:2.6*METER,gdur:1.6},pass:'selfregen'},
   'irix':{green:{name:'Meteor Pinions',type:'volley',mul:1.0,n:4,color:'#ffd27f',cd:8,pfx:'featherbolt',pscale:2.6,pdur:0.26},blue:{name:'Talon Eclipse',type:'stun',mul:1.8,stun:1.2,cd:10,gfx:'featherstorm',gfxR:1.6*METER,gdur:1.8},pass:'stardust'},
-  'kharos':{green:{name:'Secondhand Cleave',type:'cleavecone',mul:1.5,radius:2.8*METER,angle:180,cd:9,gfx:'cleave',gfxR:2.6*METER,gdur:1.2},blue:{name:'Time Lock',type:'stun',mul:0.8,stun:2.0,cd:11,gfx:'glacialprison',gfxR:1.4*METER,gdur:2.2},pass:'unwind'},
+  'hourglass sentinel':{green:{name:'Secondhand Cleave',type:'cleavecone',mul:1.5,radius:2.8*METER,angle:180,cd:9,gfx:'cleave',gfxR:2.6*METER,gdur:1.2},blue:{name:'Time Lock',type:'stun',mul:0.8,stun:2.0,cd:11,gfx:'glacialprison',gfxR:1.4*METER,gdur:2.2},pass:'unwind'},
   'miregor':{green:{name:'Thornstampede',type:'charge',mul:1.7,radius:2.4*METER,stun:0.8,cd:10,gfx:'rallyroots',gfxR:2.4*METER,gdur:1.6},blue:{name:'King\'s Goring',type:'punchflurry',hits:3,mul:0.7,tauntChance:0,cd:8,gfx:'bleed',gfxR:1.2*METER,gdur:1.6},pass:'mirewall'},
   'sable vesper':{green:{name:'Dirge Crescendo',type:'crescendo',dur:4,cd:9,gfx:'voidzone',radius:2.8*METER},blue:{name:'Murder of One',type:'multiShot',mul:1.1,n:5,cd:9,pfx:'featherbolt',pscale:2.4,pdur:0.26},pass:'hush'},
   'orryx':{green:{name:'Labyrinth Charge',type:'charge',mul:1.8,radius:2.4*METER,stun:0.9,cd:10,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},blue:{name:'Prismatic Axe',type:'volley',mul:0.9,n:3,color:'#b98bff',cd:8,pfx:'crystalshard',pscale:2.4,pdur:0.26},pass:'unstepped'},
@@ -18157,7 +18155,7 @@ Object.assign(ABILITY_CAST_MON,{
   'brukk':{green:0.9,blue:0.7},
   'nymira':{green:0.8,blue:0.6},
   'irix':{green:0.6,blue:0.8},
-  'kharos':{green:0.9,blue:0.7},
+  'hourglass sentinel':{green:0.9,blue:0.7},
   'miregor':{green:0.8,blue:0.6},
   'sable vesper':{green:0.8,blue:0.6},
   'orryx':{green:0.9,blue:0.7},
@@ -18381,7 +18379,7 @@ Object.assign(BATTLE_ANIM,{
    attack:{u:'/assets/anim/mon/irixskyshardroc_attack_2k.webp?v=2',n:12,fw:514,fh:453,cols:6,rows:2,figH:398,feet:447,cx:229,fps:12,flip:true,hold:0.9,top:58},
    cast:{u:'/assets/anim/mon/irixskyshardroc_cast_2k.webp?v=2',n:12,fw:856,fh:737,cols:6,rows:2,figH:557,feet:731,cx:420,fps:10,flip:true,hold:0.8,top:113}
   },
-  'kharos':{
+  'hourglass sentinel':{
    idle:{u:'/assets/anim/mon/kharoshourglasssentinel_walk_xl.webp?v=1',n:6,fw:404,fh:532,cols:6,rows:2,figH:448,feet:522,cx:198,fps:6,flip:false,pingpong:true,top:74},
    walk:{u:'/assets/anim/mon/kharoshourglasssentinel_walk_xl.webp?v=1',n:12,fw:404,fh:532,cols:6,rows:2,figH:448,feet:522,cx:198,fps:10,flip:false,top:74},
    attack:{u:'/assets/anim/mon/kharoshourglasssentinel_attack_xl.webp?v=1',n:12,fw:651,fh:486,cols:6,rows:2,figH:448,feet:474,cx:295,fps:12,flip:false,hold:0.9,top:26},
@@ -18454,7 +18452,7 @@ GLOSSARY_ART['bosses/maelvara']='/assets/img/glossary/glossary-bosses-maelvara.w
 GLOSSARY_ART['bosses/brukk']='/assets/img/glossary/glossary-bosses-brukk.webp?v=1';
 GLOSSARY_ART['bosses/nymira']='/assets/img/glossary/glossary-bosses-nymira.webp?v=1';
 GLOSSARY_ART['bosses/irix']='/assets/img/glossary/glossary-bosses-irix.webp?v=1';
-GLOSSARY_ART['bosses/kharos']='/assets/img/glossary/glossary-bosses-kharos.webp?v=1';
+GLOSSARY_ART['bosses/hourglass sentinel']='/assets/img/glossary/glossary-bosses-kharos.webp?v=1';
 GLOSSARY_ART['bosses/miregor']='/assets/img/glossary/glossary-bosses-miregor.webp?v=1';
 GLOSSARY_ART['bosses/sable vesper']='/assets/img/glossary/glossary-bosses-sable-vesper.webp?v=1';
 GLOSSARY_ART['bosses/orryx']='/assets/img/glossary/glossary-bosses-orryx.webp?v=1';
@@ -23290,7 +23288,7 @@ async function provSweep(t){
 /* leave a province fight / squad screen back to the Floating Isle with the province card open */
 function provBackToCard(t){ show('skyisland'); setTimeout(()=>{ try{ openProvince(t||'gold'); }catch(e){} },0); }
 /* the boss's one mechanic cue for the intro banner (in-game names only) */
-function provBossCue(k){ const ch={brukk:0,miregor:1,wintercrag:2,nerissa:3,'sable vesper':4,vharok:5,maelvara:6,orryx:7,'nameless admiral':8,barrowmaw:9,asterion:10,nymira:11,kharos:12,thorneveil:13,magmourn:14,irix:15};   /* v883: the 16-chapter cue list */
+function provBossCue(k){ const ch={brukk:0,miregor:1,wintercrag:2,nerissa:3,'sable vesper':4,vharok:5,maelvara:6,orryx:7,'nameless admiral':8,barrowmaw:9,asterion:10,nymira:11,'hourglass sentinel':12,thorneveil:13,magmourn:14,irix:15};   /* v883: the 16-chapter cue list */
   if(ch[k]!=null && typeof CHAPTER_BOSS_CUE!=='undefined') return CHAPTER_BOSS_CUE[ch[k]]||null;
   return ({ barrowmaw:'Barrowmaw breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front',
     asterion:'Asterion throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops',
@@ -25345,7 +25343,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790906770167';
+const BUILD_ID = '1790909399540';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
