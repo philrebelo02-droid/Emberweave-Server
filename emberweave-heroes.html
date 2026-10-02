@@ -2596,7 +2596,7 @@ const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1790342893337",11:ART_BASE+"Campaign/ch11.webp?v=1790342893337",12:ART_BASE+"Campaign/ch12.webp?v=1790342893337",13:ART_BASE+"Campaign/ch13.webp?v=1790342893337",14:ART_BASE+"Campaign/ch14.webp?v=1790342893337",15:ART_BASE+"Campaign/ch15.webp?v=1790342893337",16:ART_BASE+"Campaign/ch16.webp?v=1790342893337"};
 const CHAPTER_MAP_BOSS_KEYS=[null,'brukk','miregor','wintercrag','nerissa','sable vesper','vharok','maelvara','orryx','nameless admiral','barrowmaw','asterion','nymira','hourglass sentinel','thorneveil','magmourn','irix'];   // v883: all 16 chapters, the x-10 boss in server/campaign-encounters.json
-const CHAPTER_VETERAN_BOSS_KEYS={1:'irix'}; // authored Veteran 1-10; future entries follow the server encounter table
+const CHAPTER_VETERAN_BOSS_KEYS={1:'magmourn'};   /* v935: the server's Veteran 1-10 boss is Magmourn (veteran-campaign-encounters.json); the map showed Irix */ // authored Veteran 1-10; future entries follow the server encounter table
 const CH_WIDE_MAPS={1:ART_BASE+"Campaign/ch1-wide-v1.webp",2:ART_BASE+"Campaign/ch2-wide-v1.webp",3:ART_BASE+"Campaign/ch3-wide-v1.webp",4:ART_BASE+"Campaign/ch4-wide-v1.webp",5:ART_BASE+"Campaign/ch5-wide-v1.webp",6:ART_BASE+"Campaign/ch6-wide-v1.webp",7:ART_BASE+"Campaign/ch7-wide-v1.webp",8:ART_BASE+"Campaign/ch8-wide-v1.webp",9:ART_BASE+"Campaign/ch9-wide-v1.webp",16:ART_BASE+"Campaign/ch16-wide-v1.webp?v=1790342893337"};
 const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024],11:[1536,1024],12:[1536,1024],13:[1536,1024],14:[1536,1024],15:[1536,1024],16:[1536,1024]};
 const CH_NODES={"1":[[5.0,40.0],[14.0,48.5],[24.6,46.5],[34.6,43.5],[45.2,47.0],[54.8,51.7],[65.3,52.0],[74.9,56.5],[85.2,52.3],[95.0,47.0]],"2":[[5.0,39.1],[14.2,46.5],[24.8,48.3],[34.5,41.8],[45.1,40.0],[54.3,46.4],[64.6,48.5],[74.6,41.0],[85.1,43.7],[95.0,49.1]],"3":[[5.0,44.8],[15.1,40.0],[25.4,40.7],[34.2,49.0],[44.3,52.8],[54.6,49.8],[64.4,44.5],[74.4,49.0],[84.6,53.5],[95.0,50.0]],"4":[[5.0,40.7],[14.3,48.7],[24.1,54.6],[34.6,55.6],[44.2,47.2],[54.6,44.5],[64.9,48.5],[75.1,52.7],[85.6,51.8],[95.0,43.4]],"5":[[5.0,39.6],[15.2,44.0],[25.1,49.4],[35.4,53.0],[45.8,50.1],[54.8,42.6],[64.4,48.3],[74.5,53.8],[85.1,51.6],[95.0,46.0]],"6":[[5.0,40.5],[15.4,43.0],[25.2,43.5],[35.6,37.5],[45.7,41.5],[54.0,50.5],[64.1,54.2],[74.2,49.7],[84.6,48.2],[95.0,48.4]],"7":[[5.0,55.4],[15.4,56.8],[25.7,57.9],[36.0,57.5],[45.4,51.2],[54.9,43.7],[65.1,42.0],[75.2,46.1],[84.8,41.0],[95.0,37.2]],"8":[[5.0,34.5],[15.5,34.3],[24.5,43.2],[34.6,47.8],[44.9,44.4],[54.9,38.4],[64.3,45.5],[74.4,51.1],[84.9,49.5],[95.0,43.7]],"9":[[5.0,32.1],[14.4,39.5],[24.5,46.0],[35.2,45.9],[45.1,39.7],[55.6,41.7],[63.9,52.3],[74.2,54.0],[84.8,53.0],[95.0,47.8]],"10":[[10.4,28.1],[16.3,39.0],[25.0,44.7],[35.0,46.3],[45.0,50.9],[56.6,51.2],[65.0,56.2],[75.0,62.0],[89.2,54.5],[95.0,52.0]],"11":[[8.3,25.9],[15.0,36.6],[25.0,45.7],[35.0,46.9],[45.0,49.8],[55.0,51.8],[65.0,58.2],[75.0,62.5],[85.0,56.4],[93.7,41.5]],"12":[[18.6,44.4],[25.1,50.6],[31.2,53.9],[38.0,55.0],[47.0,52.0],[56.0,42.0],[66.0,43.6],[76.0,48.4],[89.6,38.3],[95.0,31.0]],"13":[[8.3,41.4],[15.0,43.9],[23.0,51.5],[35.0,55.9],[45.0,54.3],[55.0,44.4],[65.0,50.3],[75.0,55.0],[85.0,51.8],[93.4,42.0]],"14":[[9.1,41.0],[15.0,46.7],[25.0,53.5],[40.0,50.7],[45.8,44.7],[55.0,44.7],[65.0,52.1],[75.0,53.3],[85.0,58.3],[95.0,65.1]],"15":[[10.8,28.8],[17.6,36.1],[25.0,37.8],[35.0,40.8],[45.0,50.3],[56.8,56.6],[65.0,58.7],[75.0,56.7],[85.0,52.0],[90.0,41.7]],"16":[[5.0,43.4],[15.5,46.0],[25.5,52.3],[36.2,53.7],[46.4,49.3],[55.1,39.3],[65.6,38.0],[75.0,46.0],[84.8,52.2],[95.0,47.3]]};
@@ -9691,7 +9691,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
   switch(type){
     case 'strike': if(tgt){dealDamage(u,tgt,dB*(o.mul||1)*rm,o.color||'#fff'); if(o.pfx||u.range>60)abilShot(u,o,tgt,u.t.color);} break;
     case 'double': if(tgt){dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');dealDamage(u,tgt,dB*(o.mul||.8)*rm,'#ffd9a8');if(u.range>60)spawnShot(u,tgt,u.t.color);} break;
-    case 'volley':{const _vt=enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||3);
+    case 'volley':{const _vt=enemiesOf(u).sort((a,b)=>o.backline?dist(u,b)-dist(u,a):dist(u,a)-dist(u,b)).slice(0,o.n||3);   /* v935: o.backline = the farthest first (Verdant Shade's text) */
       /* v527 - Marked Deal throws every card into ONE target and the last one marks it. */
       const _one=!!o.single, _list=_one?(_vt.length?[_vt[0]]:[]):_vt, _reps=_one?(o.n||3):1;
       /* v891 - each projectile's damage lands when IT arrives (o.pdur), not at the cast */
@@ -9708,7 +9708,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
         m._waxCoatT=0; m._waxCoatBy=null; ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
       const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
-      if(o.push&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
+      if(o.push&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds */ const dx=e.x-C.x, dy=e.y-C.y, L=Math.hypot(dx,dy)||1;
         e.x+=dx/L*o.push; e.y+=dy/L*o.push; e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); }
       if(o.burn)pushDot(e,_sD*(o.burn||0.3)*sm,o.burnDur||3,1,'#ff6a2a');}});burstAt(C.x,C.y,o.slow?0x7fb0ff:0xff8844,12);break;}
     case 'cleavecone':{ const dir=tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI); const R=o.radius||3*METER, half=((o.angle||45)*Math.PI/180)/2;
@@ -9737,6 +9737,13 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
         enemiesOf(u).forEach(e=>{ if(e.alive&&dist(prime,e)<1.6*METER) dealDamage(u,e,_sD*0.35*pm,'#ffa657'); });
         dealDamage(u,prime,_sD*0.40*pm,'#ffe08a');
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
+        break; }
+      if(o.evadeEva){ const _add=Math.max(0,Math.min(o.evadeEva,0.75-(u.evaStat||0))); u.evaStat=(u.evaStat||0)+_add; u._miragEva=(u._miragEva||0)+_add;
+        u._miragT=Math.max(u._miragT||0,o.evadeDur||3); floatTexts.push({x:u.x,y:u.y-18,txt:'EVADING',t:1.0,color:'#ffe08a',vy:1,sz:11}); }   /* v935 Corsair: evades while the barrage runs */
+      if(o.ricochet){ const _marked=enemiesOf(u).filter(e=>e.alive&&(e._markT||0)>0);   /* v935 Cacklefang: the boomerang ricochets between every MARKED enemy */
+        const _ring=_marked.length?_marked:enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,3);
+        if(_ring.length){ const _H=Math.min(8,Math.max(4,2*_ring.length)), _per=dB*(o.mul||1.6)*rm*(o.n||4)/_H;   /* the same total as before, split over the hops */
+          for(let _h=0;_h<_H;_h++){ const e=_ring[_h%_ring.length]; groundHazards.push({arrival:true,delay:0.22*(_h+1),run:function(){ if(!e.alive)return; abilShot(u,o,e,'#e8dcc0'); dealDamage(u,e,_per,'#e8dcc0'); }}); } }
         break; }
       { const _pd=o.pdur||0.30, _MD=dB*(o.mul||1.6)*rm;   /* v891 - each shot's damage lands when it arrives */
         enemiesOf(u).sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,o.n||4).forEach(e=>{ abilShot(u,o,e,'#5ee89b');
@@ -9850,7 +9857,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       burstAt(l.x,l.y,0xffe08a,16); ringBurst(l.x,l.y,0x8a5fd0,12);
       floatTexts.push({x:l.x,y:l.y-14,txt:'SEEDLIGHT',t:1.0,color:'#ffe08a',vy:1,sz:12}); break; }
     case 'spdsteal':{ const pct=o.pct||0.35, dur=o.dur||5;
-      let victim=null,vs=-1; enemiesOf(u).forEach(e=>{ if(e.alive){ const s=(e.atkSpeed||1)*(e.hasteMul||1); if(s>vs){vs=s;victim=e;} } });
+      let victim=(o._tgtU&&o._tgtU.alive)?o._tgtU:null,vs=-1; if(!victim) enemiesOf(u).forEach(e=>{ if(e.alive){ const s=(e.atkSpeed||1)*(e.hasteMul||1); if(s>vs){vs=s;victim=e;} } });   /* v935: the enemy the shot reached */
       let ally=null,as=-1; alliesOf(u).forEach(a=>{ if(a.alive){ const s=(a.atkSpeed||1)*(a.hasteMul||1); if(s>as){as=s;ally=a;} } });
       if(!victim||!ally)break;
       victim.hasteMul=Math.min(victim.hasteMul||1,1-pct); victim.hasteT=Math.max(victim.hasteT||0,dur);
@@ -10054,6 +10061,16 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       ringBurst(u.x,u.y,0xff8844,12);
       /* v892 - a real dash: he travels there, and the slam lands when he ARRIVES (it used to teleport and slam at once) */
       const _dd=Math.hypot(lx-u.x,ly-u.y), _dur=Math.max(0.15,Math.min(0.8,_dd/(o.dashSpeed||22*METER))), _cD=dB*(o.mul||1.6)*rm, _cR=o.radius||2.4*METER;
+      /* v935 - the ult text says what happens ON THE WAY: Ironcoil and Chainwheel roll THROUGH (each enemy on the path is struck as he
+         reaches it, o.pathHit x the slam), Greatbrow shields every ally (o.allyShield x max HP) and knocks the enemies on his path aside. */
+      if(o.pathHit||o.knockAside){ const _px=lx-u.x, _py=ly-u.y, _pl=Math.hypot(_px,_py)||1, _ux=_px/_pl, _uy=_py/_pl, _W=o.pathW||1.4*METER;
+        foes.forEach(e=>{ if(!e.alive)return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*_ux+ry*_uy, side=rx*_uy-ry*_ux;
+          if(pr<0||pr>_pl||Math.abs(side)>_W||dist({x:lx,y:ly},e)<_cR) return;
+          groundHazards.push({arrival:true,delay:Math.max(0.03,_dur*pr/_pl),run:function(){ if(!e.alive)return;
+            if(o.pathHit){ dealDamage(u,e,_cD*o.pathHit,'#ffcf40'); burstAt(e.x,e.y,0xffcf40,8); }
+            if(o.knockAside&&!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){ const sg=side>=0?1:-1;
+              e.x=Math.max(40,Math.min(FW-40,e.x+(-_uy)*-sg*o.knockAside)); e.y=Math.max(90,Math.min(FD-40,e.y+_ux*-sg*o.knockAside)); e._ax=e.x; e._ay=e.y; e._airT=Math.max(e._airT||0,0.25); } }}); }); }
+      if(o.allyShield) alliesOf(u).forEach(a=>{ if(!a.alive)return; a.shield=(a.shield||0)+a.maxHp*o.allyShield; burstAt(a.x,a.y,0x9fe0ff,8); });
       u._dash={x0:u.x,y0:u.y,x1:lx,y1:ly,t:0,dur:_dur,run:function(){ u.attackAnim=.2;
         enemiesOf(u).forEach(e=>{ if(dist({x:lx,y:ly},e)<_cR){ dealDamage(u,e,_cD,'#ffcf40'); if(o.stun)ccApply(u,e,'stunned',o.stun); } });
         burstAt(lx,ly,0xffcf40,20); }};
@@ -10165,7 +10182,8 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const _mu=noxSpendKeys(u);
       const _picks=[]; const _foes=enemiesOf(u).filter(e=>e.alive).sort((a,b)=>(b.energy||0)-(a.energy||0));
       if(!_foes.length)break;
-      _picks.push(_foes[0]); if(_mu){ for(let i=1;i<_foes.length&&_picks.length<3;i++) _picks.push(_foes[i]); }
+      { const _hit=(o._tgtU&&o._tgtU.alive&&_foes.includes(o._tgtU))?o._tgtU:_foes[0]; _picks.push(_hit);   /* v935: the hook's target first */
+        if(_mu){ for(let i=0;i<_foes.length&&_picks.length<3;i++) if(_foes[i]!==_hit) _picks.push(_foes[i]); } }
       let _tot=0;
       _picks.forEach(best=>{
         dealDamage(u,best,dB*(o.mul||1.2)*rm,o.color||'#c9a6ff');
@@ -10217,7 +10235,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       break; }
 
     case 'sleepbouquet':{                                           // "puts the highest-energy enemy to sleep"
-      let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; if((e.energy||0)>bv){bv=e.energy||0;best=e;} });
+      let best=(o._tgtU&&o._tgtU.alive)?o._tgtU:null,bv=-1; if(!best) enemiesOf(u).forEach(e=>{ if(!e.alive)return; if((e.energy||0)>bv){bv=e.energy||0;best=e;} });   /* v935: the enemy the shot reached */
       if(!best)break;
       best._sleepT=o.sleep||2.0; ccApply(u,best,'stunned',(o.sleep||2.0)*(1-(best.ctrlRes||0)));
       ccApply(u,best,'slow',o.slow||2);
@@ -10370,7 +10388,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'chainquench':{                                            // "molten chains, pulling enemies together and burning them"
       const R=o.radius||4.5*METER; const bd=_sD*(o.dps||0.35)*sm;
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(u,e)>R)return;
-        if(!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
+        if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
           const dx=u.x-e.x, dy=u.y-e.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.6,o.pull||2.4*METER);
           e.x+=dx/L*pull; e.y+=dy/L*pull; e._ax=e.x; e._ay=e.y; e.pullT=Math.max(e.pullT||0,0.3); }
         dealDamage(u,e,dB*(o.mul||0.8)*rm,'#ff8a3a');
@@ -10398,7 +10416,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
 
     case 'grapple':{ if(!tgt)break;                                 // "launch a hook that pulls an enemy inward and stuns it"
       dealDamage(u,tgt,dB*(o.mul||1.2)*rm,o.color||'#d8b06a');
-      if(!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){
+      if(!tgt.immovable&&!(tgt.pass&&(tgt.pass.unstepped||tgt.pass.unstoppable))&&!((tgt._gearImmovableT||0)>0)){   /* v935: immovable holds (Pellucid) */
         const dx=u.x-tgt.x, dy=u.y-tgt.y, L=Math.hypot(dx,dy)||1, pull=Math.min(L*0.75,o.pull||5*METER);
         tgt.x+=dx/L*pull; tgt.y+=dy/L*pull; tgt._ax=tgt.x; tgt._ay=tgt.y; tgt.pullT=Math.max(tgt.pullT||0,0.35); }
       ccApply(u,tgt,'stunned',(o.stun||1.0)*(1-(tgt.ctrlRes||0)));
@@ -10419,7 +10437,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
-      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,dur); e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } });
+      enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ ccApply(u,e,'silencedT',dur); e.forcedTarget=u; e.forcedTargetT=Math.max(e.forcedTargetT||0,dur); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy=u; e.pullT=Math.max(e.pullT||0,dur); e.pullStop=null; e.pullSpeed=null; } } });   /* v935: immovable is taunted and silenced but not dragged */
       /* v413 (Phil: "void weaver is somehow back to using vulmars spell FX ... i asked you to use
          her own"). This burst was hardcoded gold-brown, which is Grosk's palette — he is the other
          hero on `pullsilence` — so Void Weaver's Gravity Knot painted his colours over her own
@@ -10696,11 +10714,16 @@ function castTick(u, dt){
 }
 /* v885 Drifting Constellation: pick the next ally for the orb and launch its art for exactly that hop. */
 /* v886 DELIVERY - launch the art, queue the effect for when it arrives (see doEffect). */
+/* v935 - spells whose effect picks its own victim: the shot is aimed at that victim, and the effect keeps it (o._tgtU). */
+function deliverPick(u,type){ const foes=enemiesOf(u).filter(e=>e.alive); if(!foes.length) return null;
+  if(type==='spdsteal'){ let v=null,vs=-1; foes.forEach(e=>{ const sp=(1/Math.max(0.05,e.atkInterval||1))*(e.hasteMul||1); if(sp>vs){vs=sp;v=e;} }); return v; }
+  if(type==='sleepbouquet'||type==='energysteal'){ let v=null,ve=-1; foes.forEach(e=>{ if((e.energy||0)>ve){ve=e.energy||0;v=e;} }); return v; }
+  return null; }
 function deliverLaunch(u,type,o){ try{
   const mode=o.deliver; if(mode!=='shot'&&mode!=='land'&&mode!=='form') return false;   /* v888: line/travel are the spell's own */
   let aim=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
-  const tU=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
+  const tU=deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u));   /* v935: the shot flies to the enemy the spell will affect */
   if(mode==='shot'&&!tU) return false;
   const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
   const delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
@@ -12093,7 +12116,7 @@ const CHAPTER_BOSS_CUE=[   /* v337: one boss per chapter, each its own monster �
   'Barrowmaw breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front',   // 10 Barrowmaw
   'Asterion throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops',   // 11 Asterion
   'Nymira\'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst',   // 12 Nymira
-  'Kharos stacks deep bleeds with his blades, slips behind whoever strikes him and executes the weakest — keep hitting him and heal the wounded',   // 13 Kharos Bloomknife
+  'Kharos sweeps a half-circle cleave in front of him and locks one hero in place for two seconds, and every few seconds he cleanses an ally of its controls — spread out of the cleave and burst him while the lock is down',   // 13 Kharos, Hourglass Sentinel (v935: was the hero Kharos Bloomknife's kit)
   'Thorneveil sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse',   // 14 Thorneveil
   'Magmourn hurls fireballs into your group and sets every hero burning at once — spread out and bring healing',   // 15 Magmourn
   'Irix rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish'];    // 16 Irix, the Sky-Shard Roc (v883: was slot 10)
@@ -18650,7 +18673,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={kharos:{gfx:'kharos_ult',gdur:2.0}, lastfurnace:{gfx:'lastfurnace_ult',gdur:2.4}, voidweaver:{gfx:'voidweaver_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, cathedral:{deliver:'form',gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies'}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{deliver:'land',gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{deliver:'form',gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, waxenduchess:{deliver:'form',gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88}, kilnmask:{deliver:'form',gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88}, dawnbringer:{deliver:'form',gfx:'dawnbringer_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={corsair:{evadeEva:0.5,evadeDur:3}, verdantshade:{backline:true}, kharos:{gfx:'kharos_ult',gdur:2.0}, lastfurnace:{gfx:'lastfurnace_ult',gdur:2.4}, voidweaver:{gfx:'voidweaver_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, cathedral:{deliver:'form',gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:5.67}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{deliver:'land',gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{deliver:'form',gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, waxenduchess:{deliver:'form',gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88,pathHit:0.5}, kilnmask:{deliver:'form',gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88,pathHit:0.5}, dawnbringer:{deliver:'form',gfx:'dawnbringer_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -25343,7 +25366,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790909399540';
+const BUILD_ID = '1790910195373';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
