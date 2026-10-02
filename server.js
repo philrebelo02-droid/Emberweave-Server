@@ -236,7 +236,102 @@ function migrateAdminRoles(){ let n=0;
   for(const id of ADMIN_IDS){ const u=DB.users[id];
     if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
   if(n){ console.log('🔐 stamped role:admin on '+n+' account(s) from ADMIN_IDS'); writeDB(); } }
-function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id))); }
+function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id) || (u.gid && ADMIN_IDS.has(u.gid)))); }   // v946: gid = the game-wide account id
+
+/* v946 (Phil, 2 Oct 2026: "the same account should be Game wide "user" "pass". the only thing that should start over is their
+   player progress if they go on another server" / "so phil or dev1 should be able to sign on any server").
+   Server 1 is the ACCOUNT SERVER: the one home of every name, password and email. Servers 2-3 (ACCOUNT_AUTHORITY set) check a
+   login / register / password reset with it over the LAN, and keep their OWN player (progress) per account, linked by gid = the
+   account's id on Server 1. A satellite keeps a local copy of the password hash after each good login, so a returning player can
+   still sign in while Server 1 is down; a first sign-in needs Server 1. The account endpoints answer only with the shared
+   ACCOUNT_LINK_SECRET and never through Cloudflare (a request carrying cf-connecting-ip is refused). */
+const ACCOUNT_AUTHORITY=(process.env.ACCOUNT_AUTHORITY||'').replace(/\/+$/,'');   // Servers 2-3: http://192.168.1.220:8080
+const ACCOUNT_LINK_SECRET=process.env.ACCOUNT_LINK_SECRET||'';
+function linkSecretOk(req){
+  if(!ACCOUNT_LINK_SECRET || ACCOUNT_AUTHORITY || req.headers['cf-connecting-ip']) return false;
+  const a=crypto.createHash('sha256').update(String(req.headers['x-link-secret']||'')).digest(), b=crypto.createHash('sha256').update(ACCOUNT_LINK_SECRET).digest();
+  return crypto.timingSafeEqual(a,b); }
+async function authorityCall(path, payload){
+  if(!ACCOUNT_AUTHORITY || !ACCOUNT_LINK_SECRET) return null;
+  try{ const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(), 6000);
+    const r=await fetch(ACCOUNT_AUTHORITY+path,{ method:'POST', signal:ctl.signal,
+      headers:{'content-type':'application/json','x-link-secret':ACCOUNT_LINK_SECRET}, body:JSON.stringify(payload||{}) });
+    clearTimeout(t); return { status:r.status, body:await r.json().catch(()=>({})) };
+  }catch(e){ return null; } }
+// the local player of a game-wide account on THIS server; made fresh (progress starts over) on its first sign-in here
+function linkedUser(gid, name, pass){
+  DB.byGid=DB.byGid||{};
+  let u=DB.byGid[gid] && DB.users[DB.byGid[gid]];
+  if(!u){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
+    if(lu && !lu.guest && !lu.gid && !lu.isNpc) u=lu; }   // a local account made before linking, same name: adopt it
+  if(!u){ const id=uid();
+    u={ id, name, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(), roster:{}, lastDaily:0,
+        cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+    DB.users[id]=u; }
+  if(u.name && u.name.toLowerCase()!==String(name).toLowerCase() && DB.byName[u.name.toLowerCase()]===u.id) delete DB.byName[u.name.toLowerCase()];
+  u.gid=gid; u.name=name; DB.byName[String(name).toLowerCase()]=u.id; DB.byGid[gid]=u.id;
+  if(pass){ const c=makeCred(pass); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // local copy for sign-in while Server 1 is down
+  delete u.guest;
+  return u; }
+// v946: the account checks, shared by this server's own endpoints and the account-server endpoints (bodies moved unchanged
+// from /api/login, /api/register, /api/reset-request and /api/reset-verify). Callers write the DB.
+function acctVerify(name, pass){
+  const id=DB.byName[String(name||'').trim().toLowerCase()];
+  const u=id&&DB.users[id]; if(!u) return {status:401,error:'Wrong name or password'};
+  // 30 Sep 2026 hardening: 10 wrong passwords in an hour lock THIS account for 15 min, from any IP.
+  const lf=u.loginFails&&Date.now()-u.loginFails.t<3600000?u.loginFails:{n:0,t:Date.now()};
+  if(lf.until&&Date.now()<lf.until) return {status:429,error:'Too many wrong passwords for this account — try again in 15 minutes.'};
+  // SECURITY (audit crit #1): no mustReset shortcut before the password check - recovery is the verified email flow only.
+  if(!checkPass(u,pass)){ lf.n++; if(lf.n>=10) lf.until=Date.now()+15*60000; u.loginFails=lf; return {status:401,error:'Wrong name or password'}; }
+  delete u.loginFails;
+  if(!u.iters){ const c=makeCred(pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
+  return {u}; }
+function acctCreate(rawName, pass){
+  const name=String(rawName||'').replace(/[<>]/g,'').trim().slice(0,16);
+  { const why=badNewName(name); if(why) return {status:400,error:why}; }
+  if(name.length<2||!pass) return {status:400,error:'Name (2+) and password required'};
+  if(String(pass).length<8) return {status:400,error:'Password must be at least 8 characters.'};
+  if(DB.byName[name.toLowerCase()]) return {status:409,error:'That Profile name is already taken'};
+  const id=uid(), c=makeCred(pass);
+  const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
+    roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
+  DB.users[id]=u; DB.byName[name.toLowerCase()]=id; return {u}; }
+function acctResetRequest(name){
+  const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
+  // 30 Sep 2026 hardening: at most 5 codes and 10 wrong guesses per account per 24 h, whatever the IP.
+  const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
+  if(u && !u.isNpc && u.email && rl.codes<5 && rl.bad<10){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+    rl.codes++; u.resetLog=rl;
+    u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
+    sendResetEmail(u.email, u.name, code); } }
+function acctResetVerify(name, rawCode, newPass){
+  const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
+  if(!u||u.isNpc||!u.reset) return {status:400,error:'No active reset — request a new code.'};
+  if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return {status:400,error:'That code expired — request a new one.'}; }
+  if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes — request a new one.'}; }
+  const code=(rawCode||'').toString().replace(/\D/g,'');
+  if(u.resetLog && Date.now()-u.resetLog.t<86400000 && u.resetLog.bad>=10){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes today — try again tomorrow.'}; }
+  if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog) u.resetLog.bad=(u.resetLog.bad||0)+1; writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
+  const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
+  const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
+  dropTokens(id); writeDB(); return {u}; }
+function acctEmailRequest(me, rawEmail){   // v946: moved unchanged from /api/email-request -> {status, body}
+  const email=normalizeEmail(rawEmail);
+  if(!email) return {status:400,body:{error:'Enter a valid email address.'}};
+  if(me.email && email===me.email) return {status:400,body:{error:'That is already your recovery email.'}};
+  const toCurrent=!!me.email, target=toCurrent?me.email:email;
+  const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+  me.emailChange={ newEmail:email, hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0, toCurrent };
+  writeDB(); sendChangeCode(target, me.name, code, toCurrent);
+  return {status:200,body:{ ok:true, toCurrent, sentTo:maskEmail(target) }}; }
+function acctEmailVerify(me, rawCode){   // v946: moved unchanged from /api/email-verify -> {status, body}
+  if(!me.emailChange) return {status:400,body:{error:'No pending email change — start again.'}};
+  if(Date.now()>me.emailChange.exp){ delete me.emailChange; writeDB(); return {status:400,body:{error:'That code expired — start again.'}}; }
+  if((me.emailChange.tries||0)>=5){ delete me.emailChange; writeDB(); return {status:400,body:{error:'Too many wrong codes — start again.'}}; }
+  const code=(rawCode||'').toString().replace(/\D/g,'');
+  if(hashPass(code,me.emailChange.salt)!==me.emailChange.hash){ me.emailChange.tries=(me.emailChange.tries||0)+1; writeDB(); return {status:400,body:{error:'Incorrect code — check your email and try again.'}}; }
+  me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
+  return {status:200,body:{ ok:true, email:me.email }}; }
 // headless/cloud DB backups: a shared secret lets an unattended job pull /api/admin/backup
 // without a logged-in admin browser session. Set BACKUP_TOKEN in the deployment env to enable.
 function backupTokenValid(tok){
@@ -3652,6 +3747,28 @@ async function api(req,res,url){
       const times=Array.isArray(rec)?rec.filter(t=>now-t<WINDOW):[];
       if(times.length>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many new accounts from this network today — try again tomorrow.'});
       DB.ipAccounts[ip]=times; }
+    // v946: on Servers 2-3 the account is made on the account server (one name, one password, game-wide); this server's player
+    // links to it - a signed-in guest keeps its progress here, as before.
+    if(ACCOUNT_AUTHORITY){
+      const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
+      const gu=authUser(req); let u;
+      if(gu && gu.guest){
+        delete DB.byName[(gu.name||'').toLowerCase()];
+        if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
+        if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }
+        DB.byGid=DB.byGid||{}; DB.byGid[r.body.gid]=gu.id;   // linkedUser() then names it, stores the local password copy, drops guest
+        u=linkedUser(r.body.gid, r.body.name, b.pass);
+      } else {
+        u=linkedUser(r.body.gid, r.body.name, b.pass);
+        if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);
+      }
+      if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;
+      DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50);
+      dropTokens(u.id); const tok=issueToken(u.id); writeDB();
+      return send(res,200,{ token:tok, profile:profileFor(u) });
+    }
     // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
     // all progress — instead of spawning a new account. This is what "Create account" does for a guest.
     const gu=authUser(req);
@@ -3707,20 +3824,38 @@ async function api(req,res,url){
     dropTokens(u.id); const tok=issueToken(u.id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
+  /* v946: the account server's endpoints (Server 1 only: link secret, never through Cloudflare - see ACCOUNT_AUTHORITY). */
+  if(p.startsWith('/api/internal/account/') && req.method==='POST'){
+    if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
+    const b=await body(req);
+    if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass); writeDB();
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
+    if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
+      writeDB(); return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
+    if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name); return send(res,200,{ ok:true }); }
+    if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass);
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
+    if(p==='/api/internal/account/email-request' || p==='/api/internal/account/email-verify'){
+      const u=DB.users[String(b.gid||'')]; if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      const r = p.endsWith('request') ? acctEmailRequest(u, b.email) : acctEmailVerify(u, b.code);
+      return send(res,r.status,r.body); }
+    return send(res,404,{error:'not found'}); }
+
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
-    const id=DB.byName[(b.name||'').trim().toLowerCase()];
-    const u=id&&DB.users[id]; if(!u) return send(res,401,{error:'Wrong name or password'});
-    // 30 Sep 2026 hardening: 10 wrong passwords in an hour lock THIS account for 15 min, from any IP.
-    const lf=u.loginFails&&Date.now()-u.loginFails.t<3600000?u.loginFails:{n:0,t:Date.now()};
-    if(lf.until&&Date.now()<lf.until) return send(res,429,{error:'Too many wrong passwords for this account — try again in 15 minutes.'});
-    // SECURITY (audit crit #1): the old `if(u.mustReset)` branch returned BEFORE the password check,
-    // so knowing an account name was enough to set a new password and get a live token — account
-    // takeover. It is deleted. Password recovery goes through the verified email flow only
-    // (/api/reset-request → /api/reset-verify), which requires a one-time code sent to the account's email.
-    if(!checkPass(u,b.pass)){ lf.n++; if(lf.n>=10) lf.until=Date.now()+15*60000; u.loginFails=lf; writeDB(); return send(res,401,{error:'Wrong name or password'}); }
-    delete u.loginFails;
-    if(!u.iters){ const c=makeCred(b.pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
+    // v946: on Servers 2-3 the password is checked by the account server (Server 1); this server keeps its own player.
+    if(ACCOUNT_AUTHORITY){
+      const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass });
+      if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
+        dropTokens(u.id); const tok=issueToken(u.id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+      if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
+      // the account server did not answer: a player who has signed in here before can still get in with the local copy
+      const lid=DB.byName[name.toLowerCase()], lu=lid&&DB.users[lid];
+      if(!(lu && lu.gid && lu.hash)) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+    }
+    const r=acctVerify(b.name, b.pass);
+    if(!r.u){ writeDB(); return send(res,r.status,{error:r.error}); }
+    const u=r.u, id=u.id;
     dropTokens(id);   // single session: signing in here kicks any other device
     const tok=issueToken(id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
@@ -3728,30 +3863,24 @@ async function api(req,res,url){
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
   if(p==='/api/reset-request' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
-    const id=DB.byName[(b.name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
-    // 30 Sep 2026 hardening: at most 5 codes and 10 wrong guesses per account per 24 h, whatever the IP -
-    // before, every new code reset tries to 0, so many IPs could brute-force the 6 digits.
-    const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
-    if(u && !u.isNpc && u.email && rl.codes<5 && rl.bad<10){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
-      rl.codes++; u.resetLog=rl;
-      u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
-      sendResetEmail(u.email, u.name, code); }
+    // v946: the account (and its email) lives on the account server; Servers 2-3 pass the request on
+    if(ACCOUNT_AUTHORITY) await authorityCall('/api/internal/account/reset-request',{ name:b.name });
+    else acctResetRequest(b.name);
     return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration
 
   // email password reset — step 2: verify the code and set a new password. Signs the user in on success.
   if(p==='/api/reset-verify' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetver',12,10*60000)) return send(res,429,{error:'Too many attempts — wait a few minutes.'});
-    const id=DB.byName[(b.name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
-    if(!u||u.isNpc||!u.reset) return send(res,400,{error:'No active reset — request a new code.'});
-    if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return send(res,400,{error:'That code expired — request a new one.'}); }
-    if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return send(res,400,{error:'Too many wrong codes — request a new one.'}); }
-    const code=(b.code||'').toString().replace(/\D/g,'');
-    if(u.resetLog && Date.now()-u.resetLog.t<86400000 && u.resetLog.bad>=10){ delete u.reset; writeDB(); return send(res,400,{error:'Too many wrong codes today — try again tomorrow.'}); }
-    if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog) u.resetLog.bad=(u.resetLog.bad||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
-    const np=(b.newPass||'').toString(); if(np.length<8) return send(res,400,{error:'New password must be at least 8 characters.'});
-    const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
-    dropTokens(id); const tok=issueToken(id); writeDB();   // invalidate other sessions, sign this one in
-    return send(res,200,{ ok:true, token:tok, profile:profileFor(u) }); }
+    if(ACCOUNT_AUTHORITY){   // v946: the account server checks the code and sets the password; this server signs its own player in
+      const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Reset failed.'});
+      const lu=linkedUser(r.body.gid, r.body.name, b.newPass); dropTokens(lu.id); const tok=issueToken(lu.id); writeDB();
+      return send(res,200,{ ok:true, token:tok, profile:profileFor(lu) }); }
+    const r=acctResetVerify(b.name, b.code, b.newPass);
+    if(!r.u) return send(res,r.status,{error:r.error});
+    const tok=issueToken(r.u.id); writeDB();   // invalidate other sessions (done in acctResetVerify), sign this one in
+    return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u) }); }
 
   const me=authUser(req);
   if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
@@ -3851,6 +3980,11 @@ async function api(req,res,url){
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
     if(name.length<2||!b.pass||String(b.pass).length<8) return send(res,400,{error:'Name (2+) and a password of 8+ characters required'});
+    if(ACCOUNT_AUTHORITY){   // v946: accounts are made on the account server; this server links its own player to it
+      const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
+      const lu=linkedUser(r.body.gid, r.body.name, b.pass); lu.rank=5000; writeDB(); return send(res,200,{ok:true, name:lu.name}); }
     if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
     const id=uid(), c=makeCred(b.pass);
     DB.users[id]={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
@@ -3955,25 +4089,24 @@ async function api(req,res,url){
   // redirect account recovery); if none is on file yet the code goes to the NEW email to prove ownership.
   if(p==='/api/email-request' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'emailreq',6,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes.'});
-    const b=await body(req); const email=normalizeEmail(b.email);
-    if(!email) return send(res,400,{error:'Enter a valid email address.'});
-    if(me.email && email===me.email) return send(res,400,{error:'That is already your recovery email.'});
-    const toCurrent=!!me.email, target=toCurrent?me.email:email;
-    const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
-    me.emailChange={ newEmail:email, hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0, toCurrent };
-    writeDB(); sendChangeCode(target, me.name, code, toCurrent);
-    return send(res,200,{ ok:true, toCurrent, sentTo:maskEmail(target) }); }
+    const b=await body(req);
+    if(ACCOUNT_AUTHORITY){   // v946: the recovery email belongs to the game-wide account on the account server
+      if(!me.gid) return send(res,400,{error:'Create an account first.'});
+      const r=await authorityCall('/api/internal/account/email-request',{ gid:me.gid, email:b.email });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      return send(res,r.status,r.body||{}); }
+    const r=acctEmailRequest(me, b.email); return send(res,r.status,r.body); }
 
   // change / link recovery email — STEP 2: verify the code and commit the new email. Signed-in only.
   if(p==='/api/email-verify' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'emailver',12,10*60000)) return send(res,429,{error:'Too many attempts — wait a few minutes.'});
-    const b=await body(req); if(!me.emailChange) return send(res,400,{error:'No pending email change — start again.'});
-    if(Date.now()>me.emailChange.exp){ delete me.emailChange; writeDB(); return send(res,400,{error:'That code expired — start again.'}); }
-    if((me.emailChange.tries||0)>=5){ delete me.emailChange; writeDB(); return send(res,400,{error:'Too many wrong codes — start again.'}); }
-    const code=(b.code||'').toString().replace(/\D/g,'');
-    if(hashPass(code,me.emailChange.salt)!==me.emailChange.hash){ me.emailChange.tries=(me.emailChange.tries||0)+1; writeDB(); return send(res,400,{error:'Incorrect code — check your email and try again.'}); }
-    me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
-    return send(res,200,{ ok:true, email:me.email }); }
+    const b=await body(req);
+    if(ACCOUNT_AUTHORITY){   // v946: see /api/email-request
+      if(!me.gid) return send(res,400,{error:'Create an account first.'});
+      const r=await authorityCall('/api/internal/account/email-verify',{ gid:me.gid, code:b.code });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      return send(res,r.status,r.body||{}); }
+    const r=acctEmailVerify(me, b.code); return send(res,r.status,r.body); }
 
   /* ------------------------- THE FORGE (Gear v2) routes -------------------------
      The client sends only ids + expectedRevision. Costs, outputs, temper progress,
