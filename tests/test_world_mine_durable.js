@@ -54,3 +54,8 @@ check('worldMoveDurable');
   assert.equal(b.durableUserCommit(att,{id:'a',v:2},{},'world-war',[{id:'d',mail:[1]}]).ok,true);
   assert.equal(DB.users.a,att); assert.equal(DB.users.d,def,'the defender keeps its live object too'); assert.equal(att.v,2); assert.equal(def.mail.length,1);
   console.log('PASS world-war: attacker + defender commit together, related only for world-war, live objects kept'); }
+// CR2108 (v929): a PvP/city settlement refused BEFORE arrival is not cached; the same request id settles once it may
+{ const at=source.indexOf("if(p==='/api/pvp/attack'){"),end=source.indexOf("if(p==='/api/pvp/attack-report'",at);
+  assert.ok(at>0&&end>at,'pvp attack route found');
+  assert.ok(source.slice(at,end).includes('},{retryFailed:true}); return send(res, out.ok===false?400:200, out); }'),'settlement refusals are retried, not cached');
+  console.log('PASS pvp settlement: an early refusal is re-evaluated on the same request id'); }

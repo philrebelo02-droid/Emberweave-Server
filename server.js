@@ -6282,7 +6282,7 @@ async function api(req,res,url){
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
         if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});
         writeDB(); return receipt;
-      }); return send(res, out.ok===false?400:200, out); }
+      },{retryFailed:true}); return send(res, out.ok===false?400:200, out); }
   }
   if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});
