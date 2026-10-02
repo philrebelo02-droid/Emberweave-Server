@@ -2822,7 +2822,7 @@ function ledTx(u,src,delta){ const led=u.led; const id=uid();
   led.rev++; writeDBNow(); return id; }
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
 function durableUserCommit(user,draft,receipts,tag){
-  if(!['world-location','world-move','world-mine'].includes(tag))throw Error('Unknown durable user transaction');
+  if(!['world-location','world-move','world-mine','world-city-recall'].includes(tag))throw Error('Unknown durable user transaction');
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
   const users={...DB.users,[user.id]:draft};
   try{
@@ -6328,6 +6328,26 @@ async function api(req,res,url){
       return {ok:true,defId:targetId,...war};
     });
     return send(res,out.ok?200:400,out);
+  }
+  if(p==='/api/world/city/recall'){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='POST')return send(res,405,{ok:false,error:'POST required'});
+    const b=await body(req),rid=String(b.requestId||'').slice(0,48);
+    if(!rid||typeof b.marchId!=='string'||!b.marchId)return send(res,400,{ok:false,error:'March and requestId required'});
+    const key=me.id+':worldcity:recall:'+rid,now=Date.now(),prior=DB.idem?.[key];
+    if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return send(res,200,prior.resp);
+    if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'World storage restore pending.'});
+    const draft=JSON.parse(JSON.stringify(me)),march=worldCityMarches(draft,now).find(m=>m.id===b.marchId);
+    if(!march)return send(res,400,{ok:false,error:'No owned city march.'});
+    if(march.recall)return send(res,200,march.receipt);
+    const planned=require('./server/world-city-recall.js').plan(march,now);
+    if(!planned.ok)return send(res,400,planned);
+    const reply={ok:true,recalled:true,marchId:march.id,heroIds:march.heroIds.slice(),depart:planned.depart,arriveAt:planned.arriveAt,homeAt:planned.homeAt,route:planned.route};
+    Object.assign(march,{depart:planned.depart,arriveAt:planned.arriveAt,homeAt:planned.homeAt,route:planned.route,recall:planned.recall,resolved:true,resolvedAt:now,receipt:reply});
+    const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
+    for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+    const out=durableUserCommit(me,draft,receipts,'world-city-recall');
+    return send(res,out.ok?200:503,out.ok?reply:out);
   }
   if(p==='/api/world/city/start' && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});

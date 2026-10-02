@@ -20380,7 +20380,7 @@ function drawServerMarchInfo(body,local){
     if(!extra.length){const line=document.createElement('div');line.textContent='No additional server trips.';box.appendChild(line);}
     for(const m of extra){const line=document.createElement('div');const name=m.kind==='mine'?'Lv '+m.level+' '+m.resource+' mine':'City march';
       const status=m.resultPending&&s.now>=m.arriveAt?'Battle result awaiting resolution':s.now<m.arriveAt?'Ready in '+fmtDur(m.arriveAt-s.now):'Returning · '+fmtDur(Math.max(0,m.homeAt-s.now));
-      line.textContent=name+' — '+status;line.style.padding='5px 0';box.appendChild(line);}
+      line.textContent=name+' — '+status;line.style.padding='5px 0';box.appendChild(line);if(m.kind==='city'&&m.resultPending&&s.now<m.arriveAt){const btn=document.createElement('button');btn.textContent='↩ Retreat';btn.className='btn xs secondary';btn.style.minHeight='44px';btn.onclick=async()=>{btn.disabled=true;await recallServerCity(m.id);if(box.isConnected)render();};line.appendChild(btn);}}
     if(s.failed){const line=document.createElement('div');line.textContent='Refresh failed; showing the last server snapshot.';box.appendChild(line);}
   };render();syncWorldMarches(true).then(render);
 }
@@ -20396,7 +20396,7 @@ function worldTreeActionsUI(){if(!_worldTreeActionsUI&&window.EmberweaveWorldTre
   heroes:()=>HERO_KEYS.filter(k=>G.unlocked[k]).map(key=>({key,name:HERO_TYPES[key].name,level:heroLevel(key)})),power:keys=>myTeamPower(keys),cachedBusy:()=>committedHeroes(),
   busy:async()=>{await syncWorldMarches(true);const cache=worldMarchCache(),s=cache&&cache.state();if(!s?.loaded||s.failed)throw Error('Busy roster unavailable');return committedHeroes();}});return _worldTreeActionsUI;}
 
-function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI();if(treeUI){treeUI.heroes().forEach(k=>s.add(k));treeUI.load();} const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
+function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI();if(treeUI){treeUI.heroes().forEach(k=>s.add(k));treeUI.load();} const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); for(const trip of Object.values(G.cityRecallBusy||{}))if(Number.isFinite(trip.homeAt)&&now<trip.homeAt)for(const key of trip.heroIds||[])s.add(key); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
 /* v805 (Phil: "have everything in the game that uses a real hero off your bench calculate directly
    off your hero cards") - YOUR OWN HEROES, STRAIGHT OFF THEIR CARDS.
    `heroPower(key)` is the card, and the card is the only formula in the game that counts everything
@@ -20726,7 +20726,24 @@ function marchTick(){
 }
 let _lastWatchPush=0;
 // instantly recall a march: turn around at the current position and sail home over the distance already travelled
-function retreatMarch(id){ const m=activeMarches().find(x=>x.id===id); if(!m||m.dir!=='out'||m.retreated)return false; const now=Date.now();
+const _cityRecallPending=new Set();
+async function recallServerCity(marchId){
+  const who=ACC.token;if(!who||_cityRecallPending.has(who+':'+marchId))return false;
+  const stamp=who+':'+marchId;_cityRecallPending.add(stamp);
+  G.cityRecallRequests=G.cityRecallRequests||{};
+  const requestId=G.cityRecallRequests[marchId]||(G.cityRecallRequests[marchId]=uid8());saveG();
+  try{
+    const reply=await api('/api/world/city/recall','POST',{marchId,requestId});
+    if(ACC.token!==who)return false;
+    if(!reply?.ok){bannerMsg(reply?.error||'Recall failed. Try again.');return false;}
+    G.cityRecallBusy=G.cityRecallBusy||{};G.cityRecallBusy[marchId]={homeAt:reply.homeAt,heroIds:reply.heroIds};
+    G.marches=activeMarches().filter(m=>m.serverCityId!==marchId);saveG();_worldMarchCache=null;
+    await syncWorldMarches(true);if(ACC.token!==who)return false;
+    bannerMsg('Army returning home.');if(document.getElementById('wzone'))drawMarches();return true;
+  }catch(_e){if(ACC.token===who)bannerMsg('Recall could not be confirmed. Retry the same march.');return false;}
+  finally{_cityRecallPending.delete(stamp);}
+}
+function retreatMarch(id){ const m=activeMarches().find(x=>x.id===id); if(m?.serverCityId)return recallServerCity(m.serverCityId); if(!m||m.dir!=='out'||m.retreated)return false; const now=Date.now();
   if(now<m.arrive){ const h=myCastlePos(); const p=(now-m.depart)/m.out; m.retFrom={x:h.x+(m.fx-h.x)*p, y:h.y+(m.fy-h.y)*p}; m.retDur=Math.max(800, now-m.depart); m.resolved=true; }  // cancel the pending action
   else if(m.stationed){ m.retFrom={x:m.fx, y:m.fy}; m.retDur=m.out; m.stationed=false; }   // recall a stationed defender: full march home
   else return false;                                                                        // already sailing home
@@ -21148,7 +21165,7 @@ function openMarchInfo(){ const s=modalShell(), now=Date.now();
     <div style="font-size:11px;color:#8b98a9;margin:12px 0 4px">Your marches (${out.length})</div>
     ${out.length?out.map(row).join(''):'<div style="font-size:11px;color:#6f7d90;padding:4px 0">No active marches.</div>'}`;
   drawServerMarchInfo(s.body,out);
-  s.body.querySelectorAll('[data-retreat]').forEach(btn=>btn.onclick=()=>{ retreatMarch(btn.dataset.retreat); openMarchInfo(); });
+  s.body.querySelectorAll('[data-retreat]').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;await retreatMarch(btn.dataset.retreat);openMarchInfo();});
 }
 // Shield: activate a 12h protection consumable (bought in the guild shop)
 function openShield(){ const s=modalShell(), active=shieldActive();
@@ -25300,7 +25317,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790901429974';
+const BUILD_ID = '1790902363394';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
