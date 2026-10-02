@@ -6826,14 +6826,25 @@ async function api(req,res,url){
         if(b[key]!==undefined&&(!Array.isArray(b[key])||watchEntries(b[key]).length!==Math.min(20,b[key].length)))
           return send(res,400,{ok:false,error:'Invalid watch report entries.'});
       }
-      DB.watch[me.id] = {
+      if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'Watch storage restore pending.'});
+      const stagedWatch={...DB.watch,[me.id]:{
         id:me.id, name:me.name, guildId:me.guildId||null,
         attacks:watchEntries(b.attacks),
         defends:watchEntries(b.defends),
         scouts:watchEntries(b.scouts),
         t:Date.now()
-      };
-      writeDB();
+      }};
+      // Persist the complete snapshot before publishing this report or acknowledging.
+      try{
+        const tmp=DB_FILE+'.watch-report.tmp';
+        fs.writeFileSync(tmp,JSON.stringify({...DB,watch:stagedWatch}));
+        fs.renameSync(tmp,DB_FILE);
+      }catch(error){
+        console.error('Watch report durable write failed:',error.message);
+        return send(res,503,{ok:false,storageFailed:true,error:'Watch save failed. Retry the same report.'});
+      }
+      DB.watch=stagedWatch;
+      try{pgSave();}catch(error){console.error('Watch report replica:',error.message);}
       return send(res,200,{ok:true});
     }
     if(p==='/api/watch'){

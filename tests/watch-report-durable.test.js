@@ -1,0 +1,36 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),net=require('node:net'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'emberweave-watch-report-')),file=path.join(dir,'db.json'),start=Date.parse('2026-10-01T21:00:00-04:00');const W=require(path.join(root,'server/witches-hut.js')),T=require(path.join(root,'server/temple-of-ash.js')),L=require(path.join(root,'server/world-location.js'));
+const token='isolated-city-user',hash=crypto.createHash('sha256').update(token).digest('hex');
+const u={id:'city-user',name:'City Fixture',created:start-10000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},worldLocation:{region:'crystor',x:L.center(20),y:L.center(20)},witch:W.create(1000,start),worldWars:{'foreign-user':{readyAt:start+5000,expireAt:start+90*86400000}},led:{v:1,migratedAt:start-10000,rev:1,gold:1000,gems:3000,px:1000000,hero:{vael:{xp:100000,stars:1,pips:0,ref:0}},unlocked:{vael:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:T.newState(),txs:[]}};
+const foreign=JSON.parse(JSON.stringify(u));foreign.id='foreign-user';foreign.name='Foreign Fixture';foreign.worldLocation={region:'crystor',x:L.center(30),y:L.center(30)};foreign.worldWars={};
+const foreignToken='isolated-city-foreign';fs.writeFileSync(file,JSON.stringify({users:{[u.id]:u,[foreign.id]:foreign},byName:{'city fixture':u.id,'foreign fixture':foreign.id},tokens:{[hash]:{id:u.id,iat:start,exp:start+90*86400000},[crypto.createHash('sha256').update(foreignToken).digest('hex')]:{id:foreign.id,iat:start,exp:start+90*86400000}},seeded:true,seedVersion:3,heroIdV:3,guilds:{}}));
+let child,port,log='',now=start;
+async function launch(){const s=net.createServer();await new Promise(r=>s.listen(0,'127.0.0.1',r));port=s.address().port;await new Promise(r=>s.close(r));child=cp.spawn(process.execPath,['--require',path.join(dir,'clock.cjs'),path.join(root,'server.js')],{cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe','ipc'],env:{...process.env,PORT:String(port),DB_FILE:file,DATABASE_URL:'',NODE_ENV:'test',FIXTURE_NOW:String(now),GAME_URL:'http://127.0.0.1:1'}});child.stdout.on('data',x=>log+=x);child.stderr.on('data',x=>log+=x);for(let i=0;i<100;i++){if(child.exitCode!==null)throw Error(log);try{await fetch('http://127.0.0.1:'+port+'/api/world/mines');return;}catch{}await new Promise(r=>setTimeout(r,50));}throw Error('readiness timeout');}
+async function stop(){if(child&&child.exitCode===null)await new Promise(r=>{child.once('exit',r);child.kill();});child=null;}
+async function clock(t,fail=false){now=t;await new Promise((r,j)=>{const timer=setTimeout(()=>j(Error('clock timeout')),3000);child.once('message',()=>{clearTimeout(timer);r();});child.send({now:t,fail});});}
+async function call(p,b,auth=token){const r=await fetch('http://127.0.0.1:'+port+p,{method:b?'POST':'GET',headers:{'content-type':'application/json',...(auth?{'x-token':auth}:{})},body:b?JSON.stringify(b):undefined});return {status:r.status,data:await r.json()};}
+const disk=()=>JSON.parse(fs.readFileSync(file,'utf8'));
+
+// Fault injector lives only in this disposable test directory.
+fs.writeFileSync(path.join(dir,'clock.cjs'),"'use strict';const fs=require('node:fs'),RealDate=Date,rename=fs.renameSync;let clock=Number(process.env.FIXTURE_NOW),fail=false;global.Date=class extends RealDate{constructor(...a){super(...(a.length?a:[clock]));}static now(){return clock;}};fs.renameSync=function(from,to){if(fail&&to===process.env.DB_FILE)throw Error('fixture DB rename failure');return rename.apply(this,arguments);};process.on('message',m=>{if(m&&Number.isSafeInteger(m.now)){clock=m.now;fail=m.fail===true;process.send?.({now:clock});}});");
+(async()=>{try{
+const seed=disk();seed.guilds.g={id:'g',members:[u.id,foreign.id]};seed.users[u.id].guildId='g';seed.users[foreign.id].guildId='g';
+seed.watch={[u.id]:{id:u.id,name:u.name,guildId:'g',attacks:[{name:'Previous',eta:1,ret:false}],defends:[],scouts:[],t:start},[foreign.id]:{id:foreign.id,name:foreign.name,guildId:'g',attacks:[{name:'Guild visible',eta:2}],defends:[],scouts:[],t:start}};
+fs.writeFileSync(file,JSON.stringify(seed));await launch();await clock(start);
+assert.equal((await call('/api/watch/report',{attacks:[]},null)).status,401);
+for(const attacks of [null,{},[{name:''}],[{name:'x',eta:-1}],[{name:'x',eta:'1'}],[{name:'x',ret:1}],[{name:'x'.repeat(161)}]])assert.equal((await call('/api/watch/report',{attacks})).status,400);
+const before=fs.readFileSync(file,'utf8'),beforeRows=(await call('/api/watch')).data;
+assert.equal(beforeRows.guilded,true);assert.equal(beforeRows.mates.length,2);
+const packet={id:foreign.id,name:'Spoofed',guildId:'other',t:0,attacks:[{name:'Target',eta:5,ret:false,private:'must drop'}],defends:[],scouts:[]};
+await clock(start,true);const failed=await call('/api/watch/report',packet);const afterRows=(await call('/api/watch')).data;
+console.log(JSON.stringify({saveFailureStatus:failed.status,ok:failed.data.ok,diskUnchanged:before===fs.readFileSync(file,'utf8'),memoryUnchanged:JSON.stringify(beforeRows)===JSON.stringify(afterRows)}));
+assert.equal(failed.status,503,'Watch report failed save must not acknowledge200');assert.equal(fs.readFileSync(file,'utf8'),before);assert.deepEqual(afterRows,beforeRows,'Watch failed save must not publish the staged report');
+await clock(start);assert.equal((await call('/api/watch/report',packet)).status,200);const saved=disk().watch[u.id];assert.equal(saved.id,u.id);assert.equal(saved.name,u.name);assert.equal(saved.guildId,'g');assert.equal(saved.t,start);assert.deepEqual(saved.attacks,[{name:'Target',eta:5,ret:false}]);assert.equal(disk().watch[foreign.id].attacks[0].name,'Guild visible');
+const durable=fs.readFileSync(file,'utf8');assert.equal((await call('/api/watch/report',packet)).status,200);assert.equal(fs.readFileSync(file,'utf8'),durable,'Exact same-clock retry overwrites once, no duplicate report');await stop();await launch();assert.deepEqual(disk().watch[u.id],saved);assert.equal((await call('/api/watch')).data.mates.find(x=>x.you).attacks[0].name,'Target');
+await stop();const changed=disk();changed.users[foreign.id].guildId='other';fs.writeFileSync(file,JSON.stringify(changed));await launch();assert.equal((await call('/api/watch')).data.mates.length,1,'Stale guildId report cannot grant visibility');
+const many=Array.from({length:21},(_,i)=>({name:'Row'+i,eta:i}));assert.equal((await call('/api/watch/report',{attacks:many})).status,200);assert.equal(disk().watch[u.id].attacks.length,20,'Existing20 row cap retained');
+await clock(start+600000);assert.equal((await call('/api/watch')).data.mates.length,1,'Report remains fresh at exact10 minute boundary');await clock(start+600001);assert.equal((await call('/api/watch')).data.mates.length,0,'Report expires beyond10 minutes');
+console.log('PASS Watch actual HTTP save503/nonpublication/exact retry/restart/auth/input/server-owned identity/current reciprocal guild privacy/20-row cap/10minute TTL. Legacy report schema only, not authoritative Scout or Defend.');
+}finally{await stop();}})().catch(e=>{console.error(e);console.error(log.slice(-1000));process.exitCode=1;});
+
