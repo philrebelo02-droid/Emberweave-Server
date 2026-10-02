@@ -24533,9 +24533,24 @@ function svrPing(s,ms){ return new Promise(res=>{ let done=false; const fin=v=>{
          .then(r=>r.ok?r.json():null).then(j=>fin(!!(j&&j.build))).catch(()=>fin(false)); }catch(e){ fin(false); } }); }
 function svrRecentGet(){ try{ return parseInt(localStorage.getItem('ew_server')||'',10)||0; }catch(e){ return 0; } }
 function svrRecentSet(id){ try{ localStorage.setItem('ew_server',String(id)); }catch(e){} }
-function svrGo(id){
-  if(svrFront()){ svrRecentSet(id); if(id===1){ svrClose(); return; } location.href=svrUrl(id); return; }
-  location.href='https://'+SVR_FRONT+'/play?server='+id; }
+/* v947 (Phil: "it logs me as guest when i switch" / "the account needs to be consistent when switching servers"): a signed-in
+   account switches signed in. The server being left gets a one-time code (60 s, single use) from the account server; it rides in the
+   #fragment (never sent to Cloudflare or any log) and the server arrived on redeems it. Guests switch as guests. */
+function svrHandoffCode(){
+  if(!(ACC && ACC.token && !ACC.guest)) return Promise.resolve(null);
+  return api('/api/handoff','POST',{}).then(d=>(d&&d.code)||null).catch(()=>null); }
+async function svrGo(id){
+  const code=await svrHandoffCode(), h=code?('#handoff='+code):'';
+  if(svrFront()){ svrRecentSet(id); if(id===1){ svrClose(); return; } location.href=svrUrl(id)+h; return; }
+  location.href='https://'+SVR_FRONT+'/play?server='+id+h; }
+function svrRedeem(code){
+  fetch('/api/handoff-redeem',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code}) })
+    .then(r=>r.json()).then(d=>{ if(d && d.token && d.profile){
+      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',
+           created:(d.profile.created||0),admin:!!d.profile.admin,guest:false};
+      try{ clearServerCaches(); }catch(e){} saveAcc(); } })
+    .catch(()=>{}).then(()=>{ location.replace(location.pathname); });   // boot again, now signed in (or as before if the code failed)
+}
 function svrClose(){ const p=document.getElementById('svrPanel'); if(p) p.remove(); }
 function svrOpen(){
   svrClose(); const here=svrHere();
@@ -24553,12 +24568,18 @@ function svrBoot(){
   if(!svrOn()) return;
   const mi=document.getElementById('miServer');
   if(mi){ mi.style.display=''; mi.onclick=()=>{ try{ document.getElementById('hubMenu').classList.remove('open'); }catch(e){} svrOpen(); }; }
+  // v947: a switch code in the #fragment - hold the guest start-up (window._svrHandoff) and sign in with it
+  const hm=(location.hash||'').match(/handoff=([a-f0-9]{48})/i), code=hm&&hm[1];
+  if(code){ window._svrHandoff=true; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} }
   if(svrFront()){
     let q=null; try{ q=new URLSearchParams(location.search).get('server'); }catch(e){}
     if(q){ const id=parseInt(q,10); if(SVR_LIST.some(s=>s.id===id)) svrRecentSet(id); try{ history.replaceState(null,'',location.pathname); }catch(e){} }
     const want=SVR_LIST.find(s=>s.id===svrRecentGet())||SVR_LIST[0];
-    svrPing(want).then(up=>{ if(!up){ svrOpen(); return; } if(want.id!==1) location.replace(svrUrl(want.id)); });
+    if(code){ if(want.id===1) svrRedeem(code); else location.replace(svrUrl(want.id)+'#handoff='+code); return; }   // pass it on, unused
+    svrPing(want).then(up=>{ if(!up){ svrOpen(); return; }
+      if(want.id!==1) svrHandoffCode().then(c=>location.replace(svrUrl(want.id)+(c?('#handoff='+c):''))); });
   } else {
+    if(code){ svrRedeem(code); return; }
     svrPing(SVR_LIST.find(s=>s.id===svrHere())).then(up=>{ if(!up) svrOpen(); });
   } }
 function myRoster(){ return G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
@@ -25505,7 +25526,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790978311825';
+const BUILD_ID = '1790979479708';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -25784,8 +25805,8 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
-  if(!ACC.token && online()){ ensureGuest(); }   // no session → provision a persistent level-1 guest account
-  if(ACC.token && online()){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
+  if(!ACC.token && online() && !window._svrHandoff){ ensureGuest(); }   // no session → provision a persistent level-1 guest account (v947: not while a server-switch sign-in is being redeemed - the page reloads signed in)
+  if(ACC.token && online() && !window._svrHandoff){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
       const adopted=(_cloudReady=true,applyCloudSave(d.profile,true)); _cloudReady=true;   // CLOUD IS THE TRUTH (Phil 26 Aug): adopt the cloud save FIRST, only then may this session push
       if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); }
       try{ questStateSync(true).then(function(){ updateMailBadges(); if(state==='quest') renderQuests(); }); }catch(e){} }   // server-owned quest claims must be adopted before badges or claim buttons are trusted

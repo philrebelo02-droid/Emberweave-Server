@@ -315,6 +315,18 @@ function acctResetVerify(name, rawCode, newPass){
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
   dropTokens(id); writeDB(); return {u}; }
+// v947: one-time server-switch codes, held by the account server in memory only (a restart simply expires them).
+const HANDOFF=new Map();   // sha256(code) -> {gid, exp}
+function handoffIssue(gid){
+  const now=Date.now(); for(const [k,v] of HANDOFF){ if(v.exp<now) HANDOFF.delete(k); }
+  if(HANDOFF.size>5000) return null;
+  const code=crypto.randomBytes(24).toString('hex');
+  HANDOFF.set(crypto.createHash('sha256').update(code).digest('hex'), { gid, exp:now+60000 }); return code; }
+function handoffRedeem(code){
+  if(!/^[a-f0-9]{48}$/.test(String(code||''))) return null;
+  const k=crypto.createHash('sha256').update(String(code)).digest('hex'), v=HANDOFF.get(k);
+  HANDOFF.delete(k);   // single use, valid or not
+  return (v && v.exp>=Date.now()) ? v.gid : null; }
 function acctEmailRequest(me, rawEmail){   // v946: moved unchanged from /api/email-request -> {status, body}
   const email=normalizeEmail(rawEmail);
   if(!email) return {status:400,body:{error:'Enter a valid email address.'}};
@@ -3835,11 +3847,41 @@ async function api(req,res,url){
     if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name); return send(res,200,{ ok:true }); }
     if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass);
       return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
+    if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
+      if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      return send(res,200,{ code:handoffIssue(u.id) }); }
+    if(p==='/api/internal/account/handoff-redeem'){ const g=handoffRedeem(b.code); const u=g&&DB.users[g];
+      return u ? send(res,200,{ ok:true, gid:u.id, name:u.name }) : send(res,400,{error:'expired'}); }
     if(p==='/api/internal/account/email-request' || p==='/api/internal/account/email-verify'){
       const u=DB.users[String(b.gid||'')]; if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       const r = p.endsWith('request') ? acctEmailRequest(u, b.email) : acctEmailVerify(u, b.code);
       return send(res,r.status,r.body); }
     return send(res,404,{error:'not found'}); }
+
+  /* v947 (Phil, 2 Oct 2026: "it logs me as guest when i switch" / "the account needs to be consistent when switching servers").
+     A browser keeps a sign-in per address, so a switch landed as a guest. Now the server you leave asks the account server for a
+     one-time code (60 s, single use) and the page carries it in the #fragment (never sent to Cloudflare or logged); the server you
+     arrive on redeems it with the account server and signs its own player of that account in. */
+  if(p==='/api/handoff' && req.method==='POST'){ const hm=authUser(req);
+    if(!hm || hm.guest || hm.isNpc) return send(res,400,{error:'Only a signed-in account can switch servers signed in.'});
+    if(rateLimited(req,'handoff',20,60000)) return send(res,429,{error:'Slow down.'});
+    if(ACCOUNT_AUTHORITY){ if(!hm.gid) return send(res,400,{error:'This player is not linked to an account.'});
+      const r=await authorityCall('/api/internal/account/handoff-issue',{ gid:hm.gid });
+      if(!r || r.status!==200 || !r.body || !r.body.code) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      return send(res,200,{ code:r.body.code }); }
+    return send(res,200,{ code:handoffIssue(hm.id) }); }
+  if(p==='/api/handoff-redeem' && req.method==='POST'){ const b=await body(req);
+    if(rateLimited(req,'handoffr',20,60000)) return send(res,429,{error:'Slow down.'});
+    const code=String(b.code||'');
+    let gid=null, name=null;
+    if(ACCOUNT_AUTHORITY){ const r=await authorityCall('/api/internal/account/handoff-redeem',{ code });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status===200 && r.body && r.body.gid){ gid=r.body.gid; name=r.body.name; } }
+    else { const g=handoffRedeem(code); const au=g&&DB.users[g]; if(au){ gid=au.id; name=au.name; } }
+    if(!gid) return send(res,400,{error:'That switch link expired - sign in on this server.'});
+    const u = ACCOUNT_AUTHORITY ? linkedUser(gid, name, null) : DB.users[gid];
+    dropTokens(u.id); const tok=issueToken(u.id); writeDB();
+    return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
