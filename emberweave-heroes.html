@@ -8410,8 +8410,30 @@ function initThree(){
   const line=new TH.Mesh(new TH.PlaneGeometry(gW,.14),new TH.MeshBasicMaterial({color:0x7c8aa8,transparent:true,opacity:.7}));line.rotation.x=-Math.PI/2;line.position.y=.02;groundGroup.add(line);
   const grid=new TH.GridHelper(Math.max(gW,gD),18,0x415577,0x33405e);grid.position.y=.015;grid.material.transparent=true;grid.material.opacity=.35;groundGroup.add(grid);
   groundGroup.visible=false;   // the painted battle map (#battleBg) is the ground now
+  fxShaderPin();
   resize3D();
 }
+/* v943 (Phil, 2 Oct 2026: "The game battles has been very laggy lately") - SHADER RECOMPILE STALLS. Shots, orbs and ground
+   effects each build their own material and dispose it when they end. Three.js frees a compiled shader the moment no live
+   material uses it, so the NEXT shot after a quiet gap compiled and linked the shader again: measured 46 relinks in one
+   50 s fight (stage 80), 46-70 ms each on a desktop and far longer on a phone. These pinned materials are compiled once in
+   the battle scene (same lights, so the same shader) and never disposed, so every shader variant the effects use stays
+   alive for the session. Display only - nothing here touches the fight. Variants = every shader-key option the effect
+   materials use: lit, basic, basic+map, double-sided basic with and without a map, sprite+map. */
+var _fxPins=null;   // var, not let: init3D may run before this line is reached
+function fxShaderPin(){ if(_fxPins||!TH||!renderer||!scene||!camera) return;
+  try{ const px=new TH.DataTexture(new Uint8Array([255,255,255,255]),1,1,TH.RGBAFormat); px.needsUpdate=true;
+    _fxPins=[ new TH.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:1}),
+      new TH.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,transparent:true,depthWrite:false}),
+      new TH.MeshBasicMaterial({color:0xffffff}),
+      new TH.MeshBasicMaterial({map:px,transparent:true}),
+      new TH.MeshBasicMaterial({map:px,transparent:true,depthTest:false,side:TH.DoubleSide}),
+      new TH.MeshBasicMaterial({color:0xffffff,transparent:true,depthTest:false,side:TH.DoubleSide}) ];
+    const g=new TH.Group(), q=new TH.PlaneGeometry(1,1);
+    _fxPins.forEach(m=>{ const me=new TH.Mesh(q,m); me.visible=false; g.add(me); });
+    const sp=new TH.Sprite(new TH.SpriteMaterial({map:px,transparent:true,depthTest:false})); sp.visible=false; g.add(sp); _fxPins.push(sp.material);
+    scene.add(g); renderer.compile(scene,camera); scene.remove(g);   // compiled with the battle lights; the materials keep the shaders alive
+  }catch(e){ _fxPins=null; } }
 /* 28 Aug (v286 §1.5) — RENDER RESOLUTION IS THE BIGGEST GPU COST ON A PHONE, and it was pinned at
    2.0. A 3x phone rendered at 2x means FOUR TIMES the pixels of 1x, every frame, for a picture whose
    sprites are ~150px of source art. The renderer now starts at a safe mobile resolution and EARNS its
@@ -25383,7 +25405,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790961518061';
+const BUILD_ID = '1790962863512';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
