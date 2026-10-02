@@ -37,3 +37,10 @@ check('worldMoveDurable');
   assert.equal(DB.users.me,me,'the DB keeps the request account object, not a copy');
   assert.deepEqual(JSON.parse(JSON.stringify(me.worldLocation)),{x:50,y:60});
   console.log('PASS worldLocation: failed save publishes nothing; saved placement keeps the same account object in the DB'); }
+// CR2035 (v925): a city march launch goes through the staged transaction too, and a failed save answers 503
+{ const at=source.indexOf("if(p==='/api/world/city/start' && req.method==='POST'){"),end=source.indexOf("if((p==='/api/world/relocate'",at);
+  const sec=source.slice(at,end); assert.ok(at>0&&end>at,'city start route found');
+  assert.ok(sec.includes("worldMoveDurable(me,me.id+':worldcity:start:'"),'city launch uses the staged transaction');
+  assert.ok(!sec.includes("idem(me.id+':worldcity:start:'"),'no generic idem on the city launch');
+  assert.ok(sec.includes('out.storageFailed?503'),'a failed save answers 503');
+  console.log('PASS city launch: staged transaction, no generic idem, 503 on a failed save'); }

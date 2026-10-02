@@ -6333,7 +6333,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
-    const out=idem(me.id+':worldcity:start:'+rid,()=>{
+    const out=worldMoveDurable(me,me.id+':worldcity:start:'+rid,(me)=>{
       const now=Date.now(),loc=worldLocation(me),defId=String(b.defId||'');
       const d=DB.users[defId],bot=!d&&worldBotTarget(me,defId);
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
@@ -6374,7 +6374,7 @@ async function api(req,res,url){
       return {ok:true,marchId:march.id,defId:targetId,depart:now,arriveAt:march.arriveAt,
         homeAt:march.homeAt,travel,heroIds:ids};
     });
-    return send(res,out.ok?200:400,out);
+    return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
   if((p==='/api/world/relocate'||p==='/api/world/buy-scrolls') && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
