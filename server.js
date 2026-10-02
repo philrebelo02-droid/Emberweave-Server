@@ -163,9 +163,14 @@ function migrateHeroIdsBlob(g){ return _renameIdKeysDeep(g); }   // save-blob tr
 let saveTimer=null;
 var _worldSettlementPlanning=null;
 function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
+function saveDB(snapshot,suffix='.tmp'){
+  // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
+  if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');
+  const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
+}
 function writeDB(){ if(_worldSettlementPlanning)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
-  try{ const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE); }   // atomic: write temp, then rename
+  try{ saveDB(DB); }   // atomic: write temp, then rename
   catch(e){ console.error('⚠ DB write failed:', e.message); }
   pgSave(); },200); }
 
@@ -1248,7 +1253,7 @@ function writeDBNow(){
   if(_worldSettlementPlanning)return;
   if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: boot restore window — see bootFinish()
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
-    const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE);
+    saveDB(DB);
   }catch(e){ console.error('⚠ DB durable write failed:', e.message); }
   try{ pgSave(); }catch(e){}
 }
@@ -2889,6 +2894,37 @@ function _adoptUser(id,draft){ const live=DB.users[id];
   if(!live||live===draft||typeof live!=='object'){ DB.users[id]=draft; return; }
   for(const k of Object.keys(live)) if(!Object.prototype.hasOwnProperty.call(draft,k)) delete live[k];
   Object.assign(live,draft); DB.users[id]=live; }
+function durableCommit(user,key,fn,opts={}){
+  // Trusted synchronous migration contract: mutate only draft/declared staged fields.
+  // Never write raw DB or another live user in fn; shared/cross-user routes need a
+  // separately reviewed planner. No async work may escape this planning window.
+  if(!user||DB.users[user.id]!==user||typeof key!=='string'||!key||key.length>256||typeof fn!=='function')throw Error('Invalid durable commit caller');
+  if(fn.constructor?.name==='AsyncFunction')throw Error('Durable planner must be synchronous');
+  if(!opts||typeof opts!=='object'||Array.isArray(opts))throw Error('Invalid durable options');
+  const fields=opts.fields===undefined?['feedback','reports']:opts.fields;
+  const allowed=['feedback','reports','watch','dungeonProgress','guilds','wars'];
+  if(!Array.isArray(fields)||new Set(fields).size!==fields.length||fields.some(k=>!allowed.includes(k)))throw Error('Invalid durable staged fields');
+  const now=Date.now(),prior=DB.idem?.[key];
+  if(prior&&now<prior.t)return {ok:false,error:'Request clock precedes its saved receipt.'};
+  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'Storage restore pending.'};
+  if(_worldSettlementPlanning)throw Error('Nested durable planning');
+  const draft=JSON.parse(JSON.stringify(user)),staged={...DB,users:{...DB.users,[user.id]:draft}},extra={};
+  for(const field of fields){const value=DB[field]===undefined?(field==='feedback'||field==='reports'?[]:{}):DB[field];staged[field]=JSON.parse(JSON.stringify(value));}
+  const diagnostics=[];let reply;_worldSettlementPlanning={db:staged,diagnostics};
+  try{reply=fn(draft,staged);if(reply&&typeof reply.then==='function')throw Error('Durable planner must be synchronous');}
+  finally{_worldSettlementPlanning=null;}
+  if(reply?.ok!==true)return reply;
+  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
+  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  for(const field of fields)extra[field]=staged[field];
+  try{saveDB({...DB,...extra,users:{...DB.users,[user.id]:draft},idem:receipts},'.durable-commit.tmp');}
+  catch(error){console.error('Durable commit save:',error.message);return {ok:false,storageFailed:true,error:'Save failed. Retry the same request.'};}
+  _adoptUser(user.id,draft);Object.assign(DB,extra);DB.idem=receipts;
+  for(const message of diagnostics)console.log(message);
+  try{pgSave();}catch(error){console.error('Durable commit replica:',error.message);}
+  return reply;
+}
 function worldSettlementDurable(user,key,defId,fn){
   const now=Date.now(),prior=DB.idem?.[key];
   if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
@@ -2954,8 +2990,7 @@ function durableUserCommit(user,draft,receipts,tag,related=[],extra=null){
   const users={...DB.users,[user.id]:draft};
   for(const other of related){if(!other||typeof other.id!=='string'||other.id===user.id||!DB.users[other.id])throw Error('Invalid related world account');users[other.id]=other;}
   try{
-    const tmp=DB_FILE+'.'+tag+'.tmp';
-    fs.writeFileSync(tmp,JSON.stringify({...DB,...(extra||{}),users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+    saveDB({...DB,...(extra||{}),users,idem:receipts},'.'+tag+'.tmp');
   }catch(error){console.error(tag+' durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World save failed. Retry the same request.'};}
   _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);if(extra)Object.assign(DB,extra);DB.idem=receipts;
   try{pgSave();}catch(error){console.error(tag+' replica:',error.message);}
@@ -3140,8 +3175,7 @@ function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
   const receipts=receiptKey?{...(DB.idem||{}),[receiptKey]:{t:now,resp:reply}}:DB.idem;
   if(PG_BOOT_PENDING)throw Error('World Tree storage restore pending');
   // This lane must not use writeDBNow: it swallows disk failures. Persist before memory/ack.
-  const tmp=DB_FILE+'.world-tree.tmp';
-  fs.writeFileSync(tmp,JSON.stringify({...DB,...fields,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+  saveDB({...DB,...fields,users,idem:receipts},'.world-tree.tmp');
   Object.assign(DB,fields);if(receiptKey)DB.idem=receipts;
   for(const [id,witch]of injured)DB.users[id].witch=witch;
   try{pgSave();}catch(error){console.error('World Tree replica:',error.message);}
@@ -5145,7 +5179,7 @@ async function api(req,res,url){
        enough gold", "Unknown pool", the Diamond Pool cooldown) still counted toward "wish N times",
        and a retried request counted twice. It now increments only on a roll that actually happened. */
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const out=idem(me.id+':wish:'+reqId,()=>{
+    const out=durableCommit(me,me.id+':wish:'+reqId,(me)=>{
       const led=ensureLedger(me), pool=poolState(me); const which=String(b.pool||''); const n=(b.n|0)===10?10:1;
       const now=Date.now(), dk=nyDayKey();
       if(pool.goldUsedDay!==dk){ pool.goldUsedDay=dk; pool.goldFree=0; }
@@ -5172,7 +5206,7 @@ async function api(req,res,url){
       me.qc=me.qc||{}; me.qc.wish=(me.qc.wish|0)+n;   // counted once per roll that actually resolved
       writeDB(); return {ok:true, results, cost, free, ledger:ledgerView(me), pity:{at:WISH_GEM_PITY,count:pool.pity}};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v825 DEV PACK TEST - the server credits the pack (amount from ITS list, never the client's) and files it to the dev inbox. */
   if(p==='/api/shop/devpack' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!isDev(me)) return send(res,403,{error:'Diamond packs are coming soon.'});
@@ -6836,9 +6870,7 @@ async function api(req,res,url){
       }};
       // Persist the complete snapshot before publishing this report or acknowledging.
       try{
-        const tmp=DB_FILE+'.watch-report.tmp';
-        fs.writeFileSync(tmp,JSON.stringify({...DB,watch:stagedWatch}));
-        fs.renameSync(tmp,DB_FILE);
+        saveDB({...DB,watch:stagedWatch},'.watch-report.tmp');
       }catch(error){
         console.error('Watch report durable write failed:',error.message);
         return send(res,503,{ok:false,storageFailed:true,error:'Watch save failed. Retry the same report.'});
