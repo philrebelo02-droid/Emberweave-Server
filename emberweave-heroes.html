@@ -3811,10 +3811,41 @@ function gpuWarmKeys(keys){
         if(i<list.length) setTimeout(step,0); else res(); };
       step();
     }catch(e){ res(); } }); }
+/* v944 (Phil, 2 Oct 2026: "Graphic memory goes away after battle is done?" / "It needs to close after a battle. The art load
+   should include spells"). Spell sheets (FX2_DEF, FX_PLATE_DEF) were loaded on a spell's FIRST CAST - a one-frame freeze while
+   the sheet decoded and uploaded mid-fight (~110 ms on a desktop for one of Fritz's) - and were then kept for the whole
+   session, so graphics memory only ever grew. Now the battle loader also loads every spell sheet the fighters can use and
+   pushes it to the GPU behind the loading screen, and leaving the battlefield frees every spell sheet. A sheet the list
+   misses still loads on cast, as before. */
+function fxSheetKeys(keys){ const out=new Set(), F=(typeof FX2_DEF!=='undefined')?FX2_DEF:{}, P=(typeof FX_PLATE_DEF!=='undefined')?FX_PLATE_DEF:{};
+  const walk=(o,d)=>{ if(o==null||d>3) return; if(typeof o==='string'){ if(F[o]||P[o]) out.add(o); return; } if(typeof o==='object') for(const k in o) walk(o[k],d+1); };
+  (keys||[]).filter(Boolean).forEach(k=>{ walk((typeof KITS!=='undefined')&&KITS[k],0); walk((typeof MONSTER_KITS!=='undefined')&&MONSTER_KITS[k],0);
+    const pre=String(k)+'_'; for(const n in F) if(n.indexOf(pre)===0) out.add(n); for(const n in P) if(n.indexOf(pre)===0) out.add(n); });   // sheets named after the fighter (ults wired by name)
+  return [...out]; }
+function fxSheetTex(n){ try{ return (typeof FX2_DEF!=='undefined'&&FX2_DEF[n]) ? fx2Tex(n) : _fxPlateTex(n); }catch(e){ return null; } }
+function fxWarmKeys(keys, timeoutMs){
+  return new Promise(res=>{
+    try{
+      if(typeof renderer==='undefined' || !renderer || typeof renderer.initTexture!=='function') return res();
+      const list=fxSheetKeys(keys).map(fxSheetTex).filter(Boolean); if(!list.length) return res();
+      const t0=performance.now(), cap=timeoutMs||8000, done=new Set();
+      const txt=document.getElementById('blTxt');
+      const step=()=>{ const s0=performance.now();
+        for(const t of list){ if(done.has(t)) continue; if(!(t.image&&(t.image.complete!==false)&&(t.image.width||t.image.naturalWidth))) continue;
+          try{ renderer.initTexture(t); }catch(e){} done.add(t); if(performance.now()-s0>10) break; }   // one big sheet per slice, so the loader keeps animating
+        try{ if(txt) txt.textContent='Loading spells… '+done.size+' / '+list.length; }catch(e){}
+        if(done.size>=list.length || performance.now()-t0>cap) return res();
+        setTimeout(step, 30); };
+      step();
+    }catch(e){ res(); } }); }
+function fxFreeAll(){
+  try{ [(typeof _fx2Tex!=='undefined')?_fx2Tex:null, (typeof _fxTexCache!=='undefined')?_fxTexCache:null].forEach(c=>{ if(!c) return;
+    for(const k in c){ const t=c[k]; try{ (t.__waiters||[]).forEach(w=>{ try{ w.dispose(); }catch(e){} }); t.dispose(); }catch(e){} delete c[k]; } }); }catch(e){} }
 function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
   return new Promise(resolve=>{
     let off=null, done=false;
-    const finish=()=>{ if(done) return; done=true; if(off) off(); gpuWarmKeys(keys).then(resolve, resolve); };
+    const finish=()=>{ if(done) return; done=true; if(off) off(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
+    try{ fxSheetKeys(keys).forEach(fxSheetTex); }catch(e){}   // v944: spell sheets start downloading with everything else
     try{
       if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
       const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
@@ -10973,22 +11004,22 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
 const FX2_DEF={
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=32',n:48,fw:386,fh:381,cols:6,rows:8,dur:5.83,upright:true,upSize:2.0,upExtent:0.966,upAnchor:[0.5,0.0],ro:1},
   aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=32',n:48,fw:299,fh:292,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.959,upAnchor:[0.5,0.0],ro:1},
-  carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=32',n:48,fw:546,fh:876,cols:6,rows:8,dur:2.6,upright:true,upSize:1.7,upExtent:0.984,upAnchor:[0.18,0.08],upFlip:true,ro:2},
-  cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=32',n:48,fw:746,fh:726,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
+  carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=33',n:48,fw:319,fh:512,cols:6,rows:8,dur:2.6,upright:true,upSize:1.7,upExtent:0.984,upAnchor:[0.18,0.08],upFlip:true,ro:2},
+  cardwraith_ult:{u:'/assets/anim/fx/cardwraith_ult.webp?v=33',n:48,fw:526,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
   deepcleft_ult:{u:'/assets/anim/fx/deepcleft_ult.webp?v=32',n:48,fw:406,fh:386,cols:6,rows:8,dur:2.42,upright:true,upSize:2.0,upExtent:0.97,upAnchor:[0.5,0.0],ro:1},
-  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=32',n:48,fw:738,fh:598,cols:6,rows:8,dur:5.67,upright:true,upSize:2.0,upExtent:0.981,upAnchor:[0.5,0.0],ro:1},
-  dandra_ult:{u:'/assets/anim/fx/dandra_ult.webp?v=32',n:48,fw:744,fh:702,cols:6,rows:8,dur:2.6,disc:{cy:0.317,dh:0.247,dw:0.506},upright:true,upAbove:true,upAboveM:0.1,upAnchor:[0.5,0.48],upSize:1.7,upExtent:0.981},
+  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=33',n:48,fw:631,fh:512,cols:6,rows:8,dur:5.67,upright:true,upSize:2.0,upExtent:0.981,upAnchor:[0.5,0.0],ro:1},
+  dandra_ult:{u:'/assets/anim/fx/dandra_ult.webp?v=33',n:48,fw:542,fh:512,cols:6,rows:8,dur:2.6,disc:{cy:0.317,dh:0.247,dw:0.506},upright:true,upAbove:true,upAboveM:0.1,upAnchor:[0.5,0.48],upSize:1.7,upExtent:0.981},
   librarian_ult:{u:'/assets/anim/fx/librarian_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.92,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  vael_green:{u:'/assets/anim/fx/vael_green.webp?v=21',n:48,fw:697,fh:648,cols:6,rows:8,dur:2.25,upright:true,upSize:1.3,upExtent:0.976,upAnchor:[0.5,0.0],ro:1},
-  vesper_blue:{u:'/assets/anim/fx/vesper_blue.webp?v=2',n:48,fw:856,fh:843,cols:6,rows:8,dur:1.5,upright:true,upSize:1.25,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  vael_green:{u:'/assets/anim/fx/vael_green.webp?v=22',n:48,fw:550,fh:512,cols:6,rows:8,dur:2.25,upright:true,upSize:1.3,upExtent:0.976,upAnchor:[0.5,0.0],ro:1},
+  vesper_blue:{u:'/assets/anim/fx/vesper_blue.webp?v=3',n:48,fw:519,fh:512,cols:6,rows:8,dur:1.5,upright:true,upSize:1.25,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
   vesper_green:{u:'/assets/anim/fx/vesper_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.537,dh:0.415,dw:0.885}},
-  dawnbringer_green:{u:'/assets/anim/fx/dawnbringer_green.webp?v=32',n:48,fw:621,fh:642,cols:6,rows:8,dur:1.2,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
-  lumi_green:{u:'/assets/anim/fx/lumi_green.webp?v=32',n:48,fw:897,fh:761,cols:6,rows:8,dur:2.54,upright:true,upSize:1.3,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
-  lumi_blue:{u:'/assets/anim/fx/lumi_blue.webp?v=32',n:48,fw:633,fh:590,cols:6,rows:8,dur:3.58,upright:true,upSize:1.3,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
+  dawnbringer_green:{u:'/assets/anim/fx/dawnbringer_green.webp?v=33',n:48,fw:495,fh:512,cols:6,rows:8,dur:1.2,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
+  lumi_green:{u:'/assets/anim/fx/lumi_green.webp?v=33',n:48,fw:603,fh:512,cols:6,rows:8,dur:2.54,upright:true,upSize:1.3,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
+  lumi_blue:{u:'/assets/anim/fx/lumi_blue.webp?v=33',n:48,fw:549,fh:512,cols:6,rows:8,dur:3.58,upright:true,upSize:1.3,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
   lysara_blue:{u:'/assets/anim/fx/lysara_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
-  dandra_blue:{u:'/assets/anim/fx/dandra_blue.webp?v=32',n:48,fw:505,fh:587,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
+  dandra_blue:{u:'/assets/anim/fx/dandra_blue.webp?v=33',n:48,fw:440,fh:512,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
   nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=2',n:48,fw:210,fh:187,cols:6,rows:8,dur:6.04},   // v860 Grok: Drifting Constellation - the star orb that drifts ally to ally (projectile, see orbheal)
   nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=2',n:48,fw:210,fh:108,cols:6,rows:8,dur:5.79,cone:true,coneFoot:0.29},   // v859 Grok: Resonant Star; fork tip 0.29 in from the back edge
   orryn_blue:{u:'/assets/anim/fx/orryn_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.79,disc:{cy:0.502,dh:0.672,dw:0.884}},
@@ -10998,7 +11029,7 @@ const FX2_DEF={
   silkcoil_green:{u:'/assets/anim/fx/silkcoil_green.webp?v=2',n:48,fw:260,fh:271,cols:6,rows:8,dur:2.0},
   sylthaine_blue:{u:'/assets/anim/fx/sylthaine_blue.webp?v=21',n:30,fw:210,fh:182,cols:6,rows:5,dur:5.54,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   gruel_blue:{u:'/assets/anim/fx/gruel_blue.webp?v=32',n:48,fw:392,fh:453,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.969,upAnchor:[0.5,0.0],ro:1},
-  gruel_green:{u:'/assets/anim/fx/gruel_green.webp?v=32',n:48,fw:616,fh:587,cols:6,rows:8,dur:5.88,cone:true,coneFoot:0.05},
+  gruel_green:{u:'/assets/anim/fx/gruel_green.webp?v=33',n:48,fw:537,fh:512,cols:6,rows:8,dur:5.88,cone:true,coneFoot:0.05},
   tick_blue:{u:'/assets/anim/fx/tick_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.21,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   umbris_blue:{u:'/assets/anim/fx/umbris_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.38,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   umbris_green:{u:'/assets/anim/fx/umbris_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.503,dh:0.275,dw:0.9}},
@@ -11006,7 +11037,7 @@ const FX2_DEF={
   vaelora_blue:{u:'/assets/anim/fx/vaelora_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   velvetplum_blue:{u:'/assets/anim/fx/velvetplum_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.42,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   velvetplum_green:{u:'/assets/anim/fx/velvetplum_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  verdantshade_blue:{u:'/assets/anim/fx/verdantshade_blue.webp?v=2',n:48,fw:620,fh:593,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
+  verdantshade_blue:{u:'/assets/anim/fx/verdantshade_blue.webp?v=3',n:48,fw:535,fh:512,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
   verdantshade_green:{u:'/assets/anim/fx/verdantshade_green.webp?v=2',n:48,fw:370,fh:408,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
   vex_blue:{u:'/assets/anim/fx/vex_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.25,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vex_green:{u:'/assets/anim/fx/vex_green.webp?v=21',n:48,fw:300,fh:236,cols:6,rows:8,dur:2.0,cone:true,coneFoot:0.05},
@@ -11019,10 +11050,10 @@ const FX2_DEF={
   maren_blue:{u:'/assets/anim/fx/maren_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.21,cone:true,coneFoot:0.05},
   fritz_blue:{u:'/assets/anim/fx/fritz_blue.webp?v=32',n:48,fw:373,fh:382,cols:6,rows:8,dur:5.88,cone:true,coneFoot:0.05},
   fritz_green:{u:'/assets/anim/fx/fritz_green.webp?v=32',n:48,fw:386,fh:486,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.966,upAnchor:[0.5,0.0],ro:1},
-  greatbrow_blue:{u:'/assets/anim/fx/greatbrow_blue.webp?v=32',n:48,fw:256,fh:551,cols:6,rows:8,dur:5.88,upright:true,upAnchor:[0.5,0.02],upSize:0.44,upExtent:0.95}   /* v594 (Phil, 18 Sep: "his banner should animation a large banner infront of him standing up, this signifies he activated it. Not a laying down banner" / "The banner should be roughly the same size as him"): planted upright at his front, pole foot on the ground, as tall as he is (width 0.44/0.95 of his height x 551/256 = 1.0x) */,
+  greatbrow_blue:{u:'/assets/anim/fx/greatbrow_blue.webp?v=33',n:48,fw:237,fh:512,cols:6,rows:8,dur:5.88,upright:true,upAnchor:[0.5,0.02],upSize:0.44,upExtent:0.95}   /* v594 (Phil, 18 Sep: "his banner should animation a large banner infront of him standing up, this signifies he activated it. Not a laying down banner" / "The banner should be roughly the same size as him"): planted upright at his front, pole foot on the ground, as tall as he is (width 0.44/0.95 of his height x 551/256 = 1.0x) */,
   greatbrow_green:{u:'/assets/anim/fx/greatbrow_green.webp?v=32',n:48,fw:387,fh:453,cols:6,rows:8,dur:5.88,upright:true,upAnchor:[0.5,0.15],upMetric:true,upExtent:0.93}   /* v594: the crest STANDS; laid flat as a disc it was stretched 19.5 m back across the ground. The gold ring at its foot spans the hit diameter */,
   grosk_blue:{u:'/assets/anim/fx/grosk_blue.webp?v=32',n:48,fw:227,fh:223,cols:6,rows:8,dur:3.92,upright:true,upSize:1.3,upExtent:0.946,upAnchor:[0.5,0.0],ro:1},
-  grosk_green:{u:'/assets/anim/fx/grosk_green.webp?v=32',n:48,fw:865,fh:845,cols:6,rows:8,dur:4.38,upright:true,upSize:1.3,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  grosk_green:{u:'/assets/anim/fx/grosk_green.webp?v=33',n:48,fw:524,fh:512,cols:6,rows:8,dur:4.38,upright:true,upSize:1.3,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
   hollow_blue:{u:'/assets/anim/fx/hollow_blue.webp?v=24',n:48,fw:173,fh:298,cols:6,rows:8,dur:3.79,upright:true,upSize:1.3,upExtent:0.960,upAnchor:[0.5,0.0],ro:1},
   hollow_green:{u:'/assets/anim/fx/hollow_green.webp?v=24',n:48,fw:242,fh:353,cols:6,rows:8,dur:2.75,cone:true,coneFoot:0.05},
   maren_green:{u:'/assets/anim/fx/maren_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.498,dh:0.259,dw:0.916}},
@@ -11038,13 +11069,13 @@ const FX2_DEF={
   konwu_green:{u:'/assets/anim/fx/konwu_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,cone:true,coneFoot:0.05},
   lastfurnace_blue:{u:'/assets/anim/fx/lastfurnace_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAnchor:[0.5,0.2],upMetric:true,upExtent:0.9}   /* v594: the chains rise from the burst; their fan spans the hit diameter */,
   lastfurnace_green:{u:'/assets/anim/fx/lastfurnace_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
-  librarian_blue:{u:'/assets/anim/fx/librarian_blue.webp?v=2',n:48,fw:908,fh:872,cols:6,rows:8,dur:1.5,upright:true,upSize:1.25,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  librarian_blue:{u:'/assets/anim/fx/librarian_blue.webp?v=3',n:48,fw:533,fh:512,cols:6,rows:8,dur:1.5,upright:true,upSize:1.25,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
   librarian_green:{u:'/assets/anim/fx/librarian_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.314,dh:0.058,dw:0.275}},
-  magistrant_green:{u:'/assets/anim/fx/magistrant_green.webp?v=21',n:48,fw:968,fh:843,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  magistrant_green:{u:'/assets/anim/fx/magistrant_green.webp?v=22',n:48,fw:587,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
   magistrant_blue:{u:'/assets/anim/fx/magistrant_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   meridian_blue:{u:'/assets/anim/fx/meridian_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.83,cone:true,coneFoot:0.05},
   meridian_green:{u:'/assets/anim/fx/meridian_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.62,cone:true,coneFoot:0.05},
-  dandra_green:{u:'/assets/anim/fx/dandra_green.webp?v=32',n:48,fw:819,fh:770,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
+  dandra_green:{u:'/assets/anim/fx/dandra_green.webp?v=33',n:48,fw:544,fh:512,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
   nox_blue:{u:'/assets/anim/fx/nox_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.5,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   nox_green:{u:'/assets/anim/fx/nox_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   oakmir_blue:{u:'/assets/anim/fx/oakmir_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.29,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -11067,31 +11098,31 @@ const FX2_DEF={
   sylthaine_green:{u:'/assets/anim/fx/sylthaine_green.webp?v=21',n:30,fw:210,fh:204,cols:6,rows:5,dur:3.92,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   threadseer_blue:{u:'/assets/anim/fx/threadseer_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   threadseer_green:{u:'/assets/anim/fx/threadseer_green.webp?v=2',n:48,fw:398,fh:394,cols:6,rows:8,dur:1.5,cone:true,coneFoot:0.05},
-  tick_green:{u:'/assets/anim/fx/tick_green.webp?v=21',n:48,fw:728,fh:713,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
-  aureth_blue:{u:'/assets/anim/fx/aureth_blue.webp?v=32',n:48,fw:588,fh:581,cols:6,rows:8,dur:3.54,upright:true,upSize:1.3,upExtent:0.976,upAnchor:[0.5,0.0],ro:1},
-  aureth_green:{u:'/assets/anim/fx/aureth_green.webp?v=32',n:48,fw:565,fh:555,cols:6,rows:8,dur:4.92,upright:true,upSize:1.3,upExtent:0.979,upAnchor:[0.5,0.0],ro:1},
+  tick_green:{u:'/assets/anim/fx/tick_green.webp?v=22',n:48,fw:522,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
+  aureth_blue:{u:'/assets/anim/fx/aureth_blue.webp?v=33',n:48,fw:518,fh:512,cols:6,rows:8,dur:3.54,upright:true,upSize:1.3,upExtent:0.976,upAnchor:[0.5,0.0],ro:1},
+  aureth_green:{u:'/assets/anim/fx/aureth_green.webp?v=33',n:48,fw:521,fh:512,cols:6,rows:8,dur:4.92,upright:true,upSize:1.3,upExtent:0.979,upAnchor:[0.5,0.0],ro:1},
   beekeeper_blue:{u:'/assets/anim/fx/beekeeper_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.498,dh:0.559,dw:0.916}},
   beekeeper_green:{u:'/assets/anim/fx/beekeeper_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   bloatus_blue:{u:'/assets/anim/fx/bloatus_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.88,disc:{cy:0.495,dh:0.909,dw:0.575}},
   bloatus_green:{u:'/assets/anim/fx/bloatus_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.04,cone:true,coneFoot:0.05},
   cacklefang_blue:{u:'/assets/anim/fx/cacklefang_blue.webp?v=32',n:48,fw:474,fh:479,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.973,upAnchor:[0.5,0.0],ro:1},
-  cacklefang_green:{u:'/assets/anim/fx/cacklefang_green.webp?v=32',n:48,fw:578,fh:548,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
+  cacklefang_green:{u:'/assets/anim/fx/cacklefang_green.webp?v=33',n:48,fw:540,fh:512,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
   calypsa_blue:{u:'/assets/anim/fx/calypsa_blue.webp?v=2',n:48,fw:210,fh:100,cols:6,rows:8,dur:5.0,disc:{cy:0.465,dh:0.53,dw:0.54},feet:{off:0.28,r:0.55}},   // v859 Grok: Fighting Current - a water swirl under each foot
-  calypsa_green:{u:'/assets/anim/fx/calypsa_green.webp?v=32',n:48,fw:680,fh:645,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
+  calypsa_green:{u:'/assets/anim/fx/calypsa_green.webp?v=33',n:48,fw:539,fh:512,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
   carn_blue:{u:'/assets/anim/fx/carn_blue.webp?v=32',n:48,fw:375,fh:467,cols:6,rows:8,dur:1.6,disc:{cy:0.537,dh:0.28,dw:0.885}},
   carn_green:{u:'/assets/anim/fx/carn_green.webp?v=32',n:48,fw:307,fh:334,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.951,upAnchor:[0.5,0.0],ro:1},
   cathedral_blue:{u:'/assets/anim/fx/cathedral_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   cathedral_green:{u:'/assets/anim/fx/cathedral_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.583,dh:0.365,dw:0.75}},
-  chainwheel_blue:{u:'/assets/anim/fx/chainwheel_blue.webp?v=32',n:48,fw:854,fh:853,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
-  chainwheel_green:{u:'/assets/anim/fx/chainwheel_green.webp?v=32',n:48,fw:673,fh:663,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
+  chainwheel_blue:{u:'/assets/anim/fx/chainwheel_blue.webp?v=33',n:48,fw:512,fh:511,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  chainwheel_green:{u:'/assets/anim/fx/chainwheel_green.webp?v=33',n:48,fw:519,fh:512,cols:6,rows:8,dur:1.6,cone:true,coneFoot:0.05},
   corsair_blue:{u:'/assets/anim/fx/corsair_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   corsair_green:{u:'/assets/anim/fx/corsair_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.655,dh:0.185,dw:0.6},upright:true,upSize:0.8,upExtent:0.57,upAnchor:[0.025,0.26],upFlip:true,ro:2},
-  dawnbringer_blue:{u:'/assets/anim/fx/dawnbringer_blue.webp?v=32',n:48,fw:440,fh:574,cols:6,rows:8,dur:1.6,disc:{cy:0.578,dh:0.295,dw:0.925}},
+  dawnbringer_blue:{u:'/assets/anim/fx/dawnbringer_blue.webp?v=33',n:48,fw:392,fh:512,cols:6,rows:8,dur:1.6,disc:{cy:0.578,dh:0.295,dw:0.925}},
   deepcleft_blue:{u:'/assets/anim/fx/deepcleft_blue.webp?v=32',n:48,fw:530,fh:397,cols:6,rows:8,dur:5.88,disc:{cy:0.5,dh:0.562,dw:0.894}},
-  deepcleft_green:{u:'/assets/anim/fx/deepcleft_green.webp?v=32',n:48,fw:564,fh:521,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.975,upAnchor:[0.5,0.0],ro:1},
-  grimsby_green:{u:'/assets/anim/fx/grimsby_green.webp?v=32',n:48,fw:588,fh:644,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.98,upAnchor:[0.5,0.0],ro:1},
-  astra_blue:{u:'/assets/anim/fx/astra_blue.webp?v=32',n:48,fw:666,fh:693,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.98,upAnchor:[0.5,0.0],ro:1},
-  astra_green:{u:'/assets/anim/fx/astra_green.webp?v=32',n:48,fw:611,fh:587,cols:6,rows:8,dur:3.5,upright:true,upSize:1.3,upExtent:0.973,upAnchor:[0.5,0.0],ro:1},
+  deepcleft_green:{u:'/assets/anim/fx/deepcleft_green.webp?v=33',n:48,fw:554,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.975,upAnchor:[0.5,0.0],ro:1},
+  grimsby_green:{u:'/assets/anim/fx/grimsby_green.webp?v=33',n:48,fw:467,fh:511,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.98,upAnchor:[0.5,0.0],ro:1},
+  astra_blue:{u:'/assets/anim/fx/astra_blue.webp?v=33',n:48,fw:492,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.98,upAnchor:[0.5,0.0],ro:1},
+  astra_green:{u:'/assets/anim/fx/astra_green.webp?v=33',n:48,fw:532,fh:512,cols:6,rows:8,dur:3.5,upright:true,upSize:1.3,upExtent:0.973,upAnchor:[0.5,0.0],ro:1},
   vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=21',n:48,fw:216,fh:300,cols:8,rows:6,dur:1.21,upright:true,upSize:1.3,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},   // v924 Grok: Grasping Vow tendril cage. dur stays 1.21: tendrilpull times the DRAG and its stun off this number
   vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=3',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4},
   vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.75,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -11137,21 +11168,21 @@ const FX2_DEF={
   grimsby_ult:{u:'/assets/anim/fx/grimsby_ult.webp?v=32',n:48,fw:361,fh:344,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.967,upAnchor:[0.5,0.0],ro:1},
   beekeeper_ult:{u:'/assets/anim/fx/beekeeper_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   bloatus_ult:{u:'/assets/anim/fx/bloatus_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.79,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  cardwraith_blue:{u:'/assets/anim/fx/cardwraith_blue.webp?v=32',n:48,fw:544,fh:547,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
-  cardwraith_green:{u:'/assets/anim/fx/cardwraith_green.webp?v=32',n:48,fw:598,fh:764,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
+  cardwraith_blue:{u:'/assets/anim/fx/cardwraith_blue.webp?v=33',n:48,fw:509,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
+  cardwraith_green:{u:'/assets/anim/fx/cardwraith_green.webp?v=33',n:48,fw:400,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
   maren_ult:{u:'/assets/anim/fx/maren_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.17,disc:{cy:0.5,dh:0.425,dw:0.919}},
   greatbrow_ult:{u:'/assets/anim/fx/greatbrow_ult.webp?v=32',n:48,fw:280,fh:240,cols:6,rows:8,dur:2.29,disc:{cy:0.5,dh:0.262,dw:0.919}},
-  grosk_ult:{u:'/assets/anim/fx/grosk_ult.webp?v=32',n:48,fw:573,fh:536,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.397,dw:0.894}},
-  hollow_ult:{u:'/assets/anim/fx/hollow_ult.webp?v=24',n:48,fw:765,fh:712,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
-  cacklefang_ult:{u:'/assets/anim/fx/cacklefang_ult.webp?v=2',n:48,fw:822,fh:652,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.985,upAnchor:[0.5,0.0],ro:1},
+  grosk_ult:{u:'/assets/anim/fx/grosk_ult.webp?v=33',n:48,fw:547,fh:512,cols:6,rows:8,dur:5.88,disc:{cy:0.498,dh:0.397,dw:0.894}},
+  hollow_ult:{u:'/assets/anim/fx/hollow_ult.webp?v=25',n:48,fw:550,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
+  cacklefang_ult:{u:'/assets/anim/fx/cacklefang_ult.webp?v=3',n:48,fw:645,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.985,upAnchor:[0.5,0.0],ro:1},
   calypsa_ult:{u:'/assets/anim/fx/calypsa_ult.webp?v=2',n:48,fw:394,fh:401,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.970,upAnchor:[0.5,0.0],ro:1},
-  chainwheel_ult:{u:'/assets/anim/fx/chainwheel_ult.webp?v=2',n:48,fw:864,fh:866,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  chainwheel_ult:{u:'/assets/anim/fx/chainwheel_ult.webp?v=3',n:48,fw:510,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
   dawnbringer_ult:{u:'/assets/anim/fx/dawnbringer_ult.webp?v=2',n:48,fw:324,fh:296,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.963,upAnchor:[0.5,0.0],ro:1},
-  cathedral_ult:{u:'/assets/anim/fx/cathedral_ult.webp?v=1',n:48,fw:730,fh:580,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
-  vaelora_ult:{u:'/assets/anim/fx/vaelora_ult.webp?v=1',n:48,fw:874,fh:472,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
-  hurne_ult:{u:'/assets/anim/fx/hurne_ult.webp?v=2',n:48,fw:768,fh:768,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
+  cathedral_ult:{u:'/assets/anim/fx/cathedral_ult.webp?v=2',n:48,fw:644,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
+  vaelora_ult:{u:'/assets/anim/fx/vaelora_ult.webp?v=2',n:48,fw:682,fh:368,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.986,upAnchor:[0.5,0.0],ro:1},
+  hurne_ult:{u:'/assets/anim/fx/hurne_ult.webp?v=3',n:48,fw:512,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.984,upAnchor:[0.5,0.0],ro:1},
   konwu_ult:{u:'/assets/anim/fx/konwu_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
-  lumi_ult:{u:'/assets/anim/fx/lumi_ult.webp?v=32',n:48,fw:688,fh:834,cols:6,rows:8,dur:1.04,upright:true,upSize:2.0,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
+  lumi_ult:{u:'/assets/anim/fx/lumi_ult.webp?v=33',n:48,fw:422,fh:511,cols:6,rows:8,dur:1.04,upright:true,upSize:2.0,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
   magistrant_ult:{u:'/assets/anim/fx/magistrant_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.67,disc:{cy:0.503,dh:0.312,dw:0.844}},
   meridian_ult:{u:'/assets/anim/fx/meridian_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.75,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   nox_ult:{u:'/assets/anim/fx/nox_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.17,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -11189,7 +11220,7 @@ const FX2_DEF={
   waxenduchess_blue:{u:'/assets/anim/fx/waxenduchess_blue.webp?v=21',n:48,fw:299,fh:300,cols:6,rows:8,dur:2.0,disc:{cy:0.5,dh:0.95,dw:0.95}},
   waxenduchess_green:{u:'/assets/anim/fx/waxenduchess_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   waxenduchess_ult:{u:'/assets/anim/fx/waxenduchess_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.5,disc:{cy:0.498,dh:0.622,dw:0.919}},
-  ironcoil_ult:{u:'/assets/anim/fx/ironcoil_ult.webp?v=24',n:48,fw:706,fh:750,cols:6,rows:8,dur:5.88,disc:{cy:0.511,dh:0.553,dw:0.875}},
+  ironcoil_ult:{u:'/assets/anim/fx/ironcoil_ult.webp?v=25',n:48,fw:481,fh:512,cols:6,rows:8,dur:5.88,disc:{cy:0.511,dh:0.553,dw:0.875}},
   kilnmask_ult:{u:'/assets/anim/fx/kilnmask_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.5,disc:{cy:0.5,dh:0.569,dw:0.916}}
 };
 const _fx2Tex={};
@@ -25327,6 +25358,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     if(_wasLive){ _wasLive=false;                                  // leaving the battlefield: wipe it once
       try{ if(octx&&overlay) octx.clearRect(0,0,overlay.width,overlay.height); }catch(e){}
       try{ if(renderer&&scene&&camera) renderer.render(scene,camera); }catch(e){}   // one last clean frame
+      if(!(typeof ED!=='undefined' && ED.active)) fxFreeAll();      // v944: spell sheets leave graphics memory with the battle
     }
     requestAnimationFrame(loop); return; }
   if(!_wasLive){ _wasLive=true; CW=0; }                            // re-entering: force one resize//rebuild
@@ -25405,7 +25437,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790962863512';
+const BUILD_ID = '1790964929218';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
