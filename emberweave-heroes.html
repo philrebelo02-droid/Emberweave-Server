@@ -4501,7 +4501,7 @@ const KITS={
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2,gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7,gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Second Wind',pass:'selfregen'}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Twin Fonts',pass:'twinfonts'}},
-   rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:4.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
+   rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
   hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
   meridian:{green:{name:'Golden Quill',type:'piercethrow',mul:1.5,width:34,cd:7,gfx:'meridian_green',gfxR:3*METER,gdur:4.62},blue:{deliver:'shot',name:'Plumb Line',type:'plumbline',mul:1.2,farBonus:0.9,cd:6,gfx:'meridian_blue',gfxR:3*METER,gdur:2.83},purple:{name:'Well-Read',pass:'momentum'}},
   tallow:{green:{deliver:'form',name:'Coinflail',type:'cleavecone',mul:1.3,radius:3*METER,angle:70,cd:7,gfx:'tallow_green',gdur:5.88},blue:{name:'Weigh the Debt',type:'weighdebt',mul:1.0,pct:0.35,dur:6,cd:10,gfx:'tallow_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Gluttony',pass:'juggernaut'}},
@@ -10965,7 +10965,7 @@ const FX2_DEF={
   pyroclast_blue:{u:'/assets/anim/fx/pyroclast_blue.webp?v=2',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v877 Grok: Blazing Orbit - hollow flame ring at the caster's feet
   pyroclast_green:{u:'/assets/anim/fx/pyroclast_green.webp?v=2',n:48,fw:320,fh:320,cols:6,rows:8,dur:6.04,disc:{cy:0.5,dh:0.97,dw:0.97}},   // v874 Grok: Ember Lash - volcanic scorch disc at the strike point
   rhukk_blue:{u:'/assets/anim/fx/rhukk_blue.webp?v=21',n:48,fw:298,fh:300,cols:6,rows:8,dur:2.0,upright:true,upSize:1.4,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},
-  rhukk_green:{u:'/assets/anim/fx/rhukk_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.0,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  rhukk_green:{u:'/assets/anim/fx/rhukk_green.webp?v=21',n:48,fw:300,fh:296,cols:8,rows:6,dur:2.0,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},   // v927 Grok: Carapace - see-through plates lock around him
   sablewick_blue:{u:'/assets/anim/fx/sablewick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAbove:true,upSize:0.7,upExtent:1.0,ro:1},
   sablewick_green:{u:'/assets/anim/fx/sablewick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   sprocket_blue:{u:'/assets/anim/fx/sprocket_blue.webp?v=2',n:48,fw:195,fh:300,cols:8,rows:6,dur:2.0,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},   // v924 Grok: Smoke Bomb plume
@@ -25317,7 +25317,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790902363394';
+const BUILD_ID = '1790902766272';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
