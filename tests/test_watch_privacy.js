@@ -17,6 +17,14 @@ const DB={guilds:{g1:{members:['own','mate']},g2:{members:['left']}},users:{
 // every report still carries the OLD cached guildId g1
 const fresh=['own','mate','left','removed','foreign','ghost'].map(id=>({id,name:id,guildId:'g1',attacks:[],defends:[],scouts:[],t:1}));
 const box={DB,me:DB.users.own,fresh};vm.createContext(box);
+const helperStart=source.indexOf('function watchEntries(rows){'),helperEnd=source.indexOf("if(p==='/api/watch/report'",helperStart);
+assert(helperStart>=0&&helperEnd>helperStart,'watch report helper source found');
+vm.runInContext(source.slice(helperStart,helperEnd),box);
 vm.runInContext(block+'\n;globalThis.__ids=mates.map(m=>m.id);',box);
 assert.deepEqual(box.__ids,['own','mate'],'only the caller and current roster members whose account still points at this guild');
 console.log('PASS /api/watch reported activity uses current guild membership (no departed, removed, foreign or unknown members)');
+// CR2136 (v931): stored or posted watch entries are validated - a malformed scout no longer breaks the GET
+{ const W=box.watchEntries;
+  assert.deepEqual(JSON.parse(JSON.stringify(W([{name:'Castle',eta:5,ret:false},{name:null,eta:1},{name:7},null,{name:'X',eta:-1},{name:'Y',eta:'5'}]))),[{name:'Castle',eta:5,ret:false}]);
+  assert.deepEqual(JSON.parse(JSON.stringify(W('nope'))),[]);
+  console.log('PASS watch entries: malformed scouts are dropped, valid client entries kept'); }

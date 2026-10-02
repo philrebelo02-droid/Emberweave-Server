@@ -6728,13 +6728,25 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     DB.watch = DB.watch || {};
     const WFRESH = 10*60*1000;
+    function watchEntries(rows){
+      if(!Array.isArray(rows))return [];
+      return rows.slice(0,20).filter(s=>s&&typeof s==='object'&&!Array.isArray(s)&&
+        typeof s.name==='string'&&s.name.length>0&&s.name.length<=160&&
+        (s.eta===undefined||(typeof s.eta==='number'&&Number.isFinite(s.eta)&&s.eta>=0&&s.eta<=Number.MAX_SAFE_INTEGER))&&
+        (s.ret===undefined||typeof s.ret==='boolean')).map(s=>({name:s.name,eta:s.eta??0,ret:s.ret??false}));
+    }
+
     if(p==='/api/watch/report' && req.method==='POST'){
       const b=await body(req)||{};
+      for(const key of ['attacks','defends','scouts']){
+        if(b[key]!==undefined&&(!Array.isArray(b[key])||watchEntries(b[key]).length!==Math.min(20,b[key].length)))
+          return send(res,400,{ok:false,error:'Invalid watch report entries.'});
+      }
       DB.watch[me.id] = {
         id:me.id, name:me.name, guildId:me.guildId||null,
-        attacks:Array.isArray(b.attacks)?b.attacks.slice(0,20):[],
-        defends:Array.isArray(b.defends)?b.defends.slice(0,20):[],
-        scouts: Array.isArray(b.scouts) ?b.scouts.slice(0,20):[],
+        attacks:watchEntries(b.attacks),
+        defends:watchEntries(b.defends),
+        scouts:watchEntries(b.scouts),
         t:Date.now()
       };
       writeDB();
@@ -6754,12 +6766,12 @@ async function api(req,res,url){
         const user=Object.prototype.hasOwnProperty.call(DB.users,w.id)?DB.users[w.id]:null;
         return guilded&&roster.includes(w.id)&&user?.id===w.id&&user.guildId===me.guildId;
       }).map(w=>({id:w.id,name:DB.users[w.id]?.name||w.name,you:w.id===me.id,
-        attacks:w.attacks||[],defends:w.defends||[],scouts:w.scouts||[],t:w.t}));
+        attacks:watchEntries(w.attacks),defends:watchEntries(w.defends),scouts:watchEntries(w.scouts),t:w.t}));
       const myName=(me.name||'').toLowerCase();
       const scoutedBy=[];
       for(const w of fresh){
         if(w.id===me.id) continue;
-        for(const s of (w.scouts||[])){
+        for(const s of watchEntries(w.scouts)){
           if((s.name||'').toLowerCase()===myName){ scoutedBy.push({ by:w.name, eta:s.eta||null, t:w.t }); }
         }
       }

@@ -20206,7 +20206,7 @@ function renderWorldMap(keepView){
   const head=document.createElement('div'); head.style='display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;margin:0 0 4px';
   head.innerHTML=`<button class="btn sm secondary" id="wmCity">🏰 City</button>`
     +`<button class="btn sm secondary" id="wmBack">🎯 Base</button>`
-    +`<span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · ×3':''}</span>`
+    +`<span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · Void: half speed':''}</span>`
     +`<button class="btn sm secondary" id="wbInfo">ℹ️</button>`
     +`<button class="btn sm secondary" id="wbTele" style="${_teleMode?'color:#46e07a;border-color:#2f6b45':''}">✨ ${_teleMode?'Cancel':teleportTotal()+'('+teleportsLeft()+')'}</button>`
     +`<button class="btn sm secondary" id="wbGrid">▦</button>`
@@ -20396,7 +20396,7 @@ function worldTreeActionsUI(){if(!_worldTreeActionsUI&&window.EmberweaveWorldTre
   heroes:()=>HERO_KEYS.filter(k=>G.unlocked[k]).map(key=>({key,name:HERO_TYPES[key].name,level:heroLevel(key)})),power:keys=>myTeamPower(keys),cachedBusy:()=>committedHeroes(),
   busy:async()=>{await syncWorldMarches(true);const cache=worldMarchCache(),s=cache&&cache.state();if(!s?.loaded||s.failed)throw Error('Busy roster unavailable');return committedHeroes();}});return _worldTreeActionsUI;}
 
-function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI();if(treeUI){treeUI.heroes().forEach(k=>s.add(k));treeUI.load();} const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); for(const trip of Object.values(G.cityRecallBusy||{}))if(Number.isFinite(trip.homeAt)&&now<trip.homeAt)for(const key of trip.heroIds||[])s.add(key); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
+function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI();if(treeUI){treeUI.heroes().forEach(k=>s.add(k));treeUI.load();} const now=Date.now(); activeMarches().forEach(m=>{ if(now<m.home) m.heroes.forEach(k=>s.add(k)); }); let pruned=false; for(const [id,trip] of Object.entries(G.cityRecallBusy||{})){ if(trip&&Number.isFinite(trip.homeAt)){ if(now>=trip.homeAt){delete G.cityRecallBusy[id];pruned=true;}else for(const key of trip.heroIds||[])s.add(key); } } if(pruned)saveG(); const cache=worldMarchCache(); if(cache){cache.heroes().forEach(k=>s.add(k));syncWorldMarches(false);} return s; }
 /* v805 (Phil: "have everything in the game that uses a real hero off your bench calculate directly
    off your hero cards") - YOUR OWN HEROES, STRAIGHT OFF THEIR CARDS.
    `heroPower(key)` is the card, and the card is the only formula in the game that counts everything
@@ -25317,7 +25317,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790904677887';
+const BUILD_ID = '1790905422718';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
