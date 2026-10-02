@@ -7416,7 +7416,9 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
   if(p==='/server/temple-effects.js') return serveFile(res,'server/temple-effects.js','application/javascript',null,req);
-  if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});
+  // v945 (2 Oct 2026, three servers): the server list on every server's page asks the OTHER servers "are you up?" through this
+  // file; it holds only the public build number, so any origin may read it.
+  if(p==='/version.json'){ res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});
     const lb=localBuildId();                                  // v581: the build we actually serve wins — see localBuildId()
     if(lb){ res.end(JSON.stringify({build:lb})); return; }
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }

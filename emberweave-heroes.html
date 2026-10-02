@@ -850,6 +850,24 @@
 #menuBtn .mbIc{position:absolute;left:-30px;top:50%;transform:translateY(-50%);width:46px;height:46px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7));transition:transform .15s;}
 #menuBtn:hover .mbIc{transform:translateY(-50%) rotate(-6deg) scale(1.05);}
 #menuBtn .chev{color:#e9c66c;}
+/* v945: the server list (svr* = this panel only) */
+#svrPanel{position:fixed;inset:0;z-index:100050;background:rgba(6,8,14,.72);display:flex;align-items:center;justify-content:center;padding:16px;}
+#svrPanel .svrBox{width:min(360px,100%);background:linear-gradient(#1f1a14,#14110d);border:1px solid #6b5326;border-radius:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(233,198,108,.18);padding:14px;display:flex;flex-direction:column;gap:8px;}
+#svrPanel .svrBox{font-family:Georgia,"Times New Roman",serif;}
+#svrPanel .svrHead{display:flex;align-items:center;justify-content:space-between;color:#e9c66c;font-weight:700;font-size:20px;letter-spacing:.06em;
+  padding:2px 4px 10px;margin-bottom:2px;border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,#a8853a,transparent) 1;}
+#svrPanel .svrX{background:none;border:1px solid #6b5326;color:#e9c66c;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;}
+#svrPanel .svrRow{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 12px;border-radius:10px;border:1px solid #3a3022;
+  background:#221c15;color:#efe6d2;font-size:16px;font-family:inherit;text-align:left;cursor:pointer;}
+#svrPanel .svrRow:disabled{cursor:default;}
+#svrPanel .svrDot{width:12px;height:12px;border-radius:50%;background:#6c665c;flex:none;}
+#svrPanel .svrName{flex:1;font-weight:700;}
+#svrPanel .svrTag{font-size:11px;font-weight:700;color:#e9c66c;border:1px solid #6b5326;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
+#svrPanel .svrState{font-size:14px;font-weight:700;color:#a49b8b;}
+#svrPanel .svrUp{border-color:#2f7a45;} #svrPanel .svrUp .svrDot{background:#3ecf6e;box-shadow:0 0 8px #3ecf6e;} #svrPanel .svrUp .svrState{color:#3ecf6e;}
+#svrPanel .svrDown{border-color:#7a2f2c;background:#1b1612;} #svrPanel .svrDown .svrName{color:#8f8676;}
+#svrPanel .svrUp:not(:disabled):hover,#svrPanel .svrUp:not(:disabled):focus-visible{background:#2a2219;outline:none;box-shadow:0 0 0 1px #3ecf6e inset;} #svrPanel .svrDown .svrDot{background:#e0504a;box-shadow:0 0 8px #e0504a;} #svrPanel .svrDown .svrState{color:#e0504a;}
 #menuPanel{top:46px;min-width:0;width:max-content;grid-template-columns:repeat(4,66px);gap:4px 4px;padding:12px 10px 10px;overflow:visible;
   background:radial-gradient(ellipse at 50% -10%,rgba(255,160,70,.16),transparent 62%),linear-gradient(#18223b,#0a0f1e);
   border:2px solid #c9a24e;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.72),inset 0 0 0 1px #05070d,inset 0 0 0 3px rgba(201,162,78,.22);}
@@ -2083,6 +2101,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
         <div class="mitem" data-pop data-nav="signin"><span class="mi"><img src="/assets/img/ui/mi-signin.webp?v=1" alt=""></span><span class="ml">Sign-In</span> <span id="signinDot" class="menuDot" style="display:none">!</span></div>
         <div class="mitem" data-pop data-nav="mail"><span class="mi"><img src="/assets/img/ui/mi-mail.webp?v=1" alt=""></span><span class="ml">Mail</span> <span id="mailDot" class="menuDot" style="display:none"></span></div>
         <div class="mitem" data-pop data-nav="settings"><span class="mi"><img src="/assets/img/ui/mi-settings.webp?v=1" alt=""></span><span class="ml">Settings</span></div>
+        <div class="mitem" id="miServer" style="display:none"><span class="mi"><img src="/assets/img/ui/mi-server.webp?v=1" alt=""></span><span class="ml">Server</span></div>
       </div>
     </div>
     </div><!-- /cornerHud -->
@@ -24493,6 +24512,55 @@ function devForceUpdate(){
 const NET={ws:null,role:null,code:null,connected:false};
 const OL={active:false,host:false,byId:{},guestRoster:null,tick:0};
 function netURL(){ if(location.protocol==='file:')return null; return (location.protocol==='https:'?'wss://':'ws://')+location.host; }
+/* v945 (Phil, 2 Oct 2026: "Node 1 - server 1, Node 2 - server 2, Node 3 - Server 3" / "when someone loads into the game it loads
+   their recent server, if the Server is down then it Pulls up the server list, it says which servers are Up (green color) and what
+   server is down (red color)" / "after settings in menu panel, put a server button").
+   Each server is its own world on its own tower. Server 1 is ALSO the front door (emberweaveheroes.com / www), so every existing
+   login stays where it is; s1/s2/s3.emberweaveheroes.com are each server's own address. The front door remembers the last server
+   (localStorage ew_server, front-door origin only) and sends the player there when it answers; a server that does not answer opens
+   the list. A switch made on s2/s3 goes through the front door (?server=N) so the front door's memory is the one that changes.
+   Off on every other host (local rigs, file:, the headless replay host). */
+const SVR_LIST=[{id:1,name:'Server 1',host:'s1.emberweaveheroes.com'},{id:2,name:'Server 2',host:'s2.emberweaveheroes.com'},
+                {id:3,name:'Server 3',host:'s3.emberweaveheroes.com'}];
+const SVR_FRONT='emberweaveheroes.com';
+function svrOn(){ try{ return typeof location!=='undefined' && location.protocol==='https:' && /(^|\.)emberweaveheroes\.com$/i.test(location.hostname); }catch(e){ return false; } }
+function svrFront(){ return /^(www\.)?emberweaveheroes\.com$/i.test(location.hostname); }
+function svrHere(){ if(svrFront()) return 1; const s=SVR_LIST.find(x=>x.host===location.hostname.toLowerCase()); return s?s.id:1; }
+function svrUrl(id){ return id===1 ? 'https://'+SVR_FRONT+'/play' : 'https://'+SVR_LIST.find(x=>x.id===id).host+'/play'; }
+function svrPing(s,ms){ return new Promise(res=>{ let done=false; const fin=v=>{ if(!done){ done=true; clearTimeout(t); res(v); } };
+  const t=setTimeout(()=>fin(false), ms||4000);
+  try{ fetch('https://'+s.host+'/version.json?ts='+Date.now(),{cache:'no-store',mode:'cors'})
+         .then(r=>r.ok?r.json():null).then(j=>fin(!!(j&&j.build))).catch(()=>fin(false)); }catch(e){ fin(false); } }); }
+function svrRecentGet(){ try{ return parseInt(localStorage.getItem('ew_server')||'',10)||0; }catch(e){ return 0; } }
+function svrRecentSet(id){ try{ localStorage.setItem('ew_server',String(id)); }catch(e){} }
+function svrGo(id){
+  if(svrFront()){ svrRecentSet(id); if(id===1){ svrClose(); return; } location.href=svrUrl(id); return; }
+  location.href='https://'+SVR_FRONT+'/play?server='+id; }
+function svrClose(){ const p=document.getElementById('svrPanel'); if(p) p.remove(); }
+function svrOpen(){
+  svrClose(); const here=svrHere();
+  const p=document.createElement('div'); p.id='svrPanel';
+  p.innerHTML='<div class="svrBox"><div class="svrHead"><span>Servers</span><button class="svrX" aria-label="Close">✕</button></div>'+
+    SVR_LIST.map(s=>'<button class="svrRow" data-id="'+s.id+'" disabled><span class="svrDot"></span><span class="svrName">'+s.name+
+      (s.id===here?' <span class="svrTag">Current</span>':'')+'</span><span class="svrState">…</span></button>').join('')+'</div>';
+  document.body.appendChild(p);
+  p.querySelector('.svrX').onclick=svrClose;
+  p.addEventListener('click',e=>{ if(e.target===p) svrClose(); });
+  p.querySelectorAll('.svrRow').forEach(b=>{ const s=SVR_LIST.find(x=>x.id===+b.dataset.id);
+    svrPing(s).then(up=>{ b.classList.add(up?'svrUp':'svrDown'); b.querySelector('.svrState').textContent=up?'Online':'Offline';
+      b.disabled=!up; if(up) b.onclick=()=>svrGo(s.id); }); }); }
+function svrBoot(){
+  if(!svrOn()) return;
+  const mi=document.getElementById('miServer');
+  if(mi){ mi.style.display=''; mi.onclick=()=>{ try{ document.getElementById('hubMenu').classList.remove('open'); }catch(e){} svrOpen(); }; }
+  if(svrFront()){
+    let q=null; try{ q=new URLSearchParams(location.search).get('server'); }catch(e){}
+    if(q){ const id=parseInt(q,10); if(SVR_LIST.some(s=>s.id===id)) svrRecentSet(id); try{ history.replaceState(null,'',location.pathname); }catch(e){} }
+    const want=SVR_LIST.find(s=>s.id===svrRecentGet())||SVR_LIST[0];
+    svrPing(want).then(up=>{ if(!up){ svrOpen(); return; } if(want.id!==1) location.replace(svrUrl(want.id)); });
+  } else {
+    svrPing(SVR_LIST.find(s=>s.id===svrHere())).then(up=>{ if(!up) svrOpen(); });
+  } }
 function myRoster(){ return G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQuality(k)})); }
 function netConnect(cb){ const url=netURL(); if(!url){cb&&cb(false);return;} try{NET.ws=new WebSocket(url);}catch(e){cb&&cb(false);return;}
   NET.ws.onopen=()=>{NET.connected=true;cb&&cb(true);};
@@ -25437,7 +25505,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790964929218';
+const BUILD_ID = '1790978311825';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -25701,7 +25769,7 @@ if(!TH){ /* three.js bundle never loaded (blocked CDN / cache miss / proxy). The
   document.getElementById('home').innerHTML='<h1>3D engine failed to load</h1>';
   try{ setupLandscape(); }catch(e){ console.error('splash setup failed:', e); }
   setSplashStatus('off'); }
-else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAcc();
+else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAcc(); try{ svrBoot(); }catch(e){}   /* v945: recent server / server list */
   // SPLASH FIRST, ENGINE SECOND. initThree() throws on any device that cannot give us a WebGL
   // context, and everything after it on this line used to be skipped — so the splash never got its
   // artwork, its version or its Play button and the player just saw a black screen with a broken
