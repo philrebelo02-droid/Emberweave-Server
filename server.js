@@ -2894,7 +2894,33 @@ function _adoptUser(id,draft){ const live=DB.users[id];
   if(!live||live===draft||typeof live!=='object'){ DB.users[id]=draft; return; }
   for(const k of Object.keys(live)) if(!Object.prototype.hasOwnProperty.call(draft,k)) delete live[k];
   Object.assign(live,draft); DB.users[id]=live; }
+const DURABLE_USER_POLICIES=Object.freeze({
+  'quest-chain':{related:false,fields:['feedback','reports']},
+  'world-location':{related:false,fields:null},'world-move':{related:false,fields:null},
+  'world-mine':{related:false,fields:null},'world-city-recall':{related:false,fields:null},
+  'world-war':{related:true,fields:null},
+  'world-city-settlement':{related:true,fields:['watch','feedback','reports','meta']}
+});
 function durableCommit(user,key,fn,opts={}){
+  function finish(draft,receipts,extra,related,diagnostics,legacyTag){
+    const users={...DB.users,[user.id]:draft};for(const other of related)users[other.id]=other;
+    try{saveDB({...DB,...extra,users,idem:receipts},'.durable-commit.tmp');}
+    catch(error){console.error(legacyTag?legacyTag+' durable write failed:':'Durable commit save:',error.message);return {ok:false,storageFailed:true,error:legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.'};}
+    _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);DB.idem=receipts;
+    for(const message of diagnostics)console.log(message);
+    try{pgSave();}catch(error){console.error(legacyTag?legacyTag+' replica:':'Durable commit replica:',error.message);}
+    return {ok:true};
+  }
+  // Internal preplanned compatibility path; no route accepts these options from clients.
+  // Keeps old transaction whitelists, related-account atomicity and exact error replies.
+  if(opts?.prepared){const {draft,receipts,tag,related=[],extra=null}=opts.prepared;
+    const policy=Object.prototype.hasOwnProperty.call(DURABLE_USER_POLICIES,tag)?DURABLE_USER_POLICIES[tag]:null;if(!policy)throw Error('Unknown durable user transaction');
+    if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
+    if(related.length&&!policy.related)throw Error('Related accounts require world-war transaction');
+    if(extra&&(!policy.fields||Object.keys(extra).some(k=>!policy.fields.includes(k))))throw Error(tag==='quest-chain'?'Invalid quest diagnostic fields':'Invalid settlement fields');
+    for(const other of related)if(!other||typeof other.id!=='string'||other.id===user.id||!DB.users[other.id])throw Error('Invalid related world account');
+    return finish(draft,receipts,extra||{},related,[],tag);
+  }
   // Trusted synchronous migration contract: mutate only draft/declared staged fields.
   // Never write raw DB or another live user in fn; shared/cross-user routes need a
   // separately reviewed planner. No async work may escape this planning window.
@@ -2918,12 +2944,8 @@ function durableCommit(user,key,fn,opts={}){
   const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
   for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
   for(const field of fields)extra[field]=staged[field];
-  try{saveDB({...DB,...extra,users:{...DB.users,[user.id]:draft},idem:receipts},'.durable-commit.tmp');}
-  catch(error){console.error('Durable commit save:',error.message);return {ok:false,storageFailed:true,error:'Save failed. Retry the same request.'};}
-  _adoptUser(user.id,draft);Object.assign(DB,extra);DB.idem=receipts;
-  for(const message of diagnostics)console.log(message);
-  try{pgSave();}catch(error){console.error('Durable commit replica:',error.message);}
-  return reply;
+  const committed=finish(draft,receipts,extra,[],diagnostics,null);
+  return committed.ok?reply:committed;
 }
 function worldSettlementDurable(user,key,defId,fn){
   const now=Date.now(),prior=DB.idem?.[key];
@@ -2977,24 +2999,12 @@ function questChainDurable(user,rid){
   }finally{_worldSettlementPlanning=null;}
   const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
   for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
-  const saved=durableUserCommit(user,draft,receipts,'quest-chain',[],{feedback:staged.feedback,reports:staged.reports});
+  const saved=durableCommit(user,null,null,{prepared:{draft,receipts,tag:'quest-chain',extra:{feedback:staged.feedback,reports:staged.reports}}});
   if(saved.ok)for(const message of diagnostics)console.log(message);
   return saved.ok?reply:saved;
 }
 function durableUserCommit(user,draft,receipts,tag,related=[],extra=null){
-  if(!['quest-chain','world-location','world-move','world-mine','world-city-recall','world-war','world-city-settlement'].includes(tag))throw Error('Unknown durable user transaction');
-  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
-  if(related.length&&!['world-war','world-city-settlement'].includes(tag))throw Error('Related accounts require world-war transaction');
-  if(extra&&tag!=='quest-chain'&&(tag!=='world-city-settlement'||Object.keys(extra).some(k=>!['watch','feedback','reports','meta'].includes(k))))throw Error('Invalid settlement fields');
-  if(extra&&tag==='quest-chain'&&Object.keys(extra).some(k=>!['feedback','reports'].includes(k)))throw Error('Invalid quest diagnostic fields');
-  const users={...DB.users,[user.id]:draft};
-  for(const other of related){if(!other||typeof other.id!=='string'||other.id===user.id||!DB.users[other.id])throw Error('Invalid related world account');users[other.id]=other;}
-  try{
-    saveDB({...DB,...(extra||{}),users,idem:receipts},'.'+tag+'.tmp');
-  }catch(error){console.error(tag+' durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World save failed. Retry the same request.'};}
-  _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);if(extra)Object.assign(DB,extra);DB.idem=receipts;
-  try{pgSave();}catch(error){console.error(tag+' replica:',error.message);}
-  return {ok:true};
+  return durableCommit(user,null,null,{prepared:{draft,receipts,tag,related,extra}});
 }
 function worldLocation(u){
   if(ledPlayerLevel(ensureLedger(u))<WITCH.UNLOCK_LEVEL) return null;
@@ -3021,7 +3031,7 @@ function worldMoveDurable(user,key,fn){
   if(!reply?.ok)return reply;
   const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
   for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
-  const committed=durableUserCommit(user,draft,receipts,'world-move');
+  const committed=durableCommit(user,null,null,{prepared:{draft,receipts,tag:'world-move'}});
   if(!committed.ok)return committed;
   return reply;
 }
@@ -3986,16 +3996,23 @@ async function api(req,res,url){
       return send(res,200,{ version:1, sources:GEAR_SOURCES,
         note:'Gear fragments come only from the authored Aether Vault floors listed here. Sweeping a floor grants the same two fragments it lists.' });
     }
-    const g=ensureGear(me);
-    if(p==='/api/gear/state'){ return send(res,200,{ enabled:true, revision:g.revision, dust:me.dust||0,
+    if(p==='/api/gear/state'){ const g=ensureGear(me); return send(res,200,{ enabled:true, revision:g.revision, dust:me.dust||0,
       fragments:g.fragments, subs:g.subs, items:g.items, equipped:g.equipped, active:g.active,
       resonance:gearResonanceRank(g) }); }
     if(req.method!=='POST') return send(res,404,{error:'gear'});
+    // Permission is rechecked BEFORE successful receipt replay after role revocation.
+    if(p==='/api/gear/grant'&&!isDev(me))return send(res,403,{error:'forbidden'});
     const b=await body(req);
+    // Exact packet identity retains revision-only clients' successful reply.
+    // A different packet at the stale revision remains a409, not a second grant.
+    const key=me.id+':gear:'+p+':'+crypto.createHash('sha256').update(JSON.stringify(b)).digest('hex');
+    let status=200;
+    const out=durableCommit(me,key,(me)=>{
+    const g=ensureGear(me);
     const er=parseInt(b.expectedRevision,10);
-    if(er!==g.revision) return send(res,409,{error:'STALE', revision:g.revision});
-    const ok=(extra)=>{ g.revision++; writeDB(); return send(res,200,Object.assign({ok:true, revision:g.revision, dust:me.dust||0},extra||{})); };
-    const bad=(msg)=>send(res,400,{error:msg, revision:g.revision});
+    if(er!==g.revision){status=409;return {error:'STALE', revision:g.revision};}
+    const ok=(extra)=>{ g.revision++; writeDB(); return Object.assign({ok:true, revision:g.revision, dust:me.dust||0},extra||{}); };
+    const bad=(msg)=>{status=400;return {error:msg, revision:g.revision};};
 
     if(p==='/api/gear/craft-sub'){
       const def=GEARCAT.byId[String(b.gearId||'')]; if(!def) return bad('Unknown gear.');
@@ -4083,14 +4100,16 @@ async function api(req,res,url){
       return ok({ hero, itemId:iid, active:def.active });
     }
     if(p==='/api/gear/grant'){ // dev-only test faucet
-      if(!isDev(me)) return send(res,403,{error:'forbidden'});
+      if(!isDev(me)){status=403;return {error:'forbidden'};}
       if(b.dust){ me.dust=(me.dust||0)+Math.max(0,Math.min(10000000,parseInt(b.dust,10)||0)); }
       if(b.frag){ const def=GEARCAT.byName[String(b.frag)]||GEARCAT.byId[String(b.frag)];
         const key=def?def.frag:String(b.frag); const n=Math.max(1,Math.min(999,parseInt(b.n,10)||10));
         g.fragments[key]=(g.fragments[key]||0)+n; }
       return ok({ fragments:g.fragments });
     }
-    return send(res,404,{error:'gear'});
+    status=404;return {error:'gear'};
+    });
+    return send(res,out?.storageFailed?503:status,out);
   }
 
   /* ------------------------- SKYFALL TOURNAMENT (Guild Wars v2) routes -------------------------
@@ -5213,15 +5232,15 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const DEV_PACKS={2:{n:500,name:'500 Diamonds'},3:{n:1200,name:'1,200 Diamonds'},4:{n:2800,name:'2,800 Diamonds'},5:{n:6000,name:'6,000 Diamonds'}};
     const pk=DEV_PACKS[b.i|0]; if(!pk) return send(res,400,{error:'Unknown pack.'});
-    const out=idem(me.id+':devpack:'+reqId,()=>{ const led=ensureLedger(me);
+    const out=durableCommit(me,me.id+':devpack:'+reqId,(me)=>{ const led=ensureLedger(me);
       creditGems(me,led,pk.n,'devpack',{devPanel:true});
       ledTx(me,'shop:devpack',{gems:pk.n,pack:pk.name});
       devReport(me,'dev-pack',pk.n,me.name+' test-bought '+pk.name+' (+'+pk.n+' diamonds) - review');
       writeDB(); return { ok:true, gems:pk.n, pack:pk.name, ledger:ledgerView(me) }; });
-    return send(res,200,out); }
+    return send(res,out.storageFailed?503:200,out); }
   if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const out=idem(me.id+':shop:'+reqId,()=>{
+    const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{
       const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
       if(what==='food'){ if(sh.food>=SHOP_FOOD_COSTS.length) return {ok:false,error:'No more meals today.'};
         const c=SHOP_FOOD_COSTS[sh.food]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
@@ -5252,7 +5271,7 @@ async function api(req,res,url){
         writeDB(); return {ok:true, mats:got, cost:c, ledger:ledgerView(me)}; }
       return {ok:false,error:'Unknown item.'};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v267: Getting Started rewards are server-granted, once each, from the authored table above. */
   if(p==='/api/tutorial/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const step=String(b.step||'').slice(0,16);
@@ -6238,7 +6257,7 @@ async function api(req,res,url){
         ledTx(me,'quest-chain:'+st.node,got);
         writeDB(); return {ok:true, step:led.quests.chainStep, got, ledger:ledgerView(me)};
       }); return send(res, out.ok===false?400:200, out); }
-    if(p==='/api/market/frag'){ const out=idem(me.id+':mfrag:'+reqId,()=>{
+    if(p==='/api/market/frag'){ const out=durableCommit(me,me.id+':mfrag:'+reqId,(me)=>{ const led=ensureLedger(me);
         const hk=String(b.heroKey||''); if(!validHero(hk)) return {ok:false,error:'Unknown hero.'};
         const qty=Math.max(1,Math.min(4,b.qty|0));
         const pay=b.pay==='gems'?'gems':'gold';
@@ -6250,8 +6269,8 @@ async function api(req,res,url){
         led.marketDay.frags+=qty; creditFrags(me,led,hk,qty,'market-frag');
         ledTx(me,'market-frag:'+hk,{[pay]:-price,frag:qty});
         writeDB(); return {ok:true, heroKey:hk, qty, paid:{[pay]:price}, ledger:ledgerView(me)};
-      }); return send(res, out.ok===false?400:200, out); }
-    if(p==='/api/arena/daily-claim'){ const out=idem(me.id+':adaily:'+reqId,()=>{
+      }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
+    if(p==='/api/arena/daily-claim'){ const out=durableCommit(me,me.id+':adaily:'+reqId,(me)=>{ const led=ensureLedger(me);
         const dk=nyDayKey(); me.arenaDaily=me.arenaDaily||{};
         if(me.arenaDaily.k===dk) return {ok:false,error:'Already claimed today.'};
         me.arenaDaily={k:dk};
@@ -6260,7 +6279,7 @@ async function api(req,res,url){
         creditGems(me,led,rw.gems,'arena-daily');
         ledTx(me,'arena-daily',rw);
         writeDB(); return {ok:true, reward:rw, ledger:ledgerView(me)};
-      }); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   }
   /* =================== v249 (full-game audit P0): THE CITY LOOP IS SERVER-SIDE ===================
      Academy research lives on the LEDGER (levels, timers, resource wallet, costs mirrored from the
