@@ -110,7 +110,9 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
 let saveTimer=null;
-function writeDB(){ if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
+var _worldSettlementPlanning=null;
+function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
+function writeDB(){ if(_worldSettlementPlanning)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   try{ const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE); }   // atomic: write temp, then rename
   catch(e){ console.error('⚠ DB write failed:', e.message); }
@@ -1191,6 +1193,7 @@ function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid
    record along with the reward — and the client's retry would then be paid a second time. Every
    idem() result is now flushed to disk BEFORE the response is written. */
 function writeDBNow(){
+  if(_worldSettlementPlanning)return;
   if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: boot restore window — see bootFinish()
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
     const tmp=DB_FILE+'.tmp'; fs.writeFileSync(tmp, JSON.stringify(DB)); fs.renameSync(tmp, DB_FILE);
@@ -2310,18 +2313,21 @@ const RESOURCE_ALARMS = Object.freeze({
 const BAN_DAYS_ALLOWED = [1, 7, 30];
 
 function devReport(u, kind, amount, detail){
+  const DB=worldPlanningDB();
   DB.reports = Array.isArray(DB.reports) ? DB.reports : [];
   const r = { id: uid(), t: Date.now(), userId: u.id, name: u.name || u.id,
               kind, amount: amount|0, detail: String(detail||'').slice(0,300),
               resolved: false, action: null };
   DB.reports.push(r);
   if(DB.reports.length > REPORTS_KEEP) DB.reports = DB.reports.slice(-REPORTS_KEEP);
-  console.log('🚩 integrity report — ' + (u.name||u.id) + ': ' + r.detail);
+  const message='🚩 integrity report — ' + (u.name||u.id) + ': ' + r.detail;
+  if(_worldSettlementPlanning)_worldSettlementPlanning.diagnostics.push(message);else console.log(message);
   writeDB();
   return r;
 }
 
 function feedbackAppend(item){
+  const DB=worldPlanningDB();
   DB.feedback=Array.isArray(DB.feedback)?DB.feedback:[];
   DB.feedback.push(item);
 }
@@ -2333,6 +2339,7 @@ function feedbackSweep(){
   if(DB.feedback.length!==before) writeDB();
 }
 function feedbackCheatSignal(u,signal,detail,meta,amount,extra){
+  const DB=worldPlanningDB();
   const now=Date.now();
   DB.feedback=Array.isArray(DB.feedback)?DB.feedback:[];
   if(meta!=='dev panel'&&DB.feedback.some(f=>f.userId===u.id&&f.kind==='cheat'&&f.signal===signal&&now-f.t<60000)) return;
@@ -2344,6 +2351,7 @@ function feedbackCheatSignal(u,signal,detail,meta,amount,extra){
 /* Detection observes an accepted resource gain; it never changes or refuses the grant. A verified
    purchase is the only source allowed to populate purchased; ordinary and dev grants count as zero. */
 function resourceGain(u, res, amount, reason, opts){
+  const DB=worldPlanningDB();
   const rule=RESOURCE_ALARMS[res];
   amount = Math.floor(+amount || 0);
   if(!rule || !(amount > 0)) return amount;
@@ -2530,6 +2538,7 @@ function simHost(){
    the deployment's own secret; otherwise one generated ONCE and written durably before it is used. */
 let _secretWarned=false;
 function serverSecret(){
+  const DB=worldPlanningDB();
   if(process.env.SERVER_SECRET) return process.env.SERVER_SECRET;
   DB.meta=DB.meta||{};
   if(!DB.meta.rollSecret){
@@ -2828,17 +2837,49 @@ function _adoptUser(id,draft){ const live=DB.users[id];
   if(!live||live===draft||typeof live!=='object'){ DB.users[id]=draft; return; }
   for(const k of Object.keys(live)) if(!Object.prototype.hasOwnProperty.call(draft,k)) delete live[k];
   Object.assign(live,draft); DB.users[id]=live; }
-function durableUserCommit(user,draft,receipts,tag,related=[]){
-  if(!['world-location','world-move','world-mine','world-city-recall','world-war'].includes(tag))throw Error('Unknown durable user transaction');
+function worldSettlementDurable(user,key,defId,fn){
+  const now=Date.now(),prior=DB.idem?.[key];
+  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
-  if(related.length&&tag!=='world-war')throw Error('Related accounts require world-war transaction');
+  if(_worldSettlementPlanning)throw Error('Nested world settlement planning');
+  const actor=JSON.parse(JSON.stringify(user)),related=[];
+  const staged={...DB,users:{...DB.users,[user.id]:actor},watch:JSON.parse(JSON.stringify(DB.watch||{})),
+    feedback:JSON.parse(JSON.stringify(DB.feedback||[])),reports:JSON.parse(JSON.stringify(DB.reports||[])),meta:JSON.parse(JSON.stringify(DB.meta||{}))};
+  if(DB.users[defId]&&defId!==user.id){const defender=JSON.parse(JSON.stringify(DB.users[defId]));staged.users[defId]=defender;related.push(defender);}
+  // A fallback roll secret must be durable BEFORE a roll, even when the settlement save later fails.
+  if(!process.env.SERVER_SECRET&&!DB.meta?.rollSecret){
+    const meta={...(DB.meta||{}),rollSecret:crypto.randomBytes(32).toString('hex')};
+    const initialized=durableUserCommit(user,JSON.parse(JSON.stringify(user)),DB.idem,'world-city-settlement',[],{meta});
+    if(!initialized.ok)return initialized;
+    staged.meta=JSON.parse(JSON.stringify(meta));
+  }
+  let reply;
+  // The existing battle and its helpers are synchronous. No request can interleave this planning window.
+  // DB itself is never swapped; account-independent helper fields explicitly use worldPlanningDB().
+  const diagnostics=[];
+  _worldSettlementPlanning={db:staged,diagnostics};
+  try{reply=fn(actor,staged);if(reply&&typeof reply.then==='function')throw Error('Settlement planner must be synchronous');}
+  finally{_worldSettlementPlanning=null;}
+  if(!reply?.ok)return reply;
+  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
+  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const extra={watch:staged.watch,feedback:staged.feedback,reports:staged.reports,meta:staged.meta};
+  const out=durableUserCommit(user,actor,receipts,'world-city-settlement',related,extra);
+  if(out.ok)for(const message of diagnostics)console.log(message);
+  return out.ok?reply:out;
+}
+function durableUserCommit(user,draft,receipts,tag,related=[],extra=null){
+  if(!['world-location','world-move','world-mine','world-city-recall','world-war','world-city-settlement'].includes(tag))throw Error('Unknown durable user transaction');
+  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
+  if(related.length&&!['world-war','world-city-settlement'].includes(tag))throw Error('Related accounts require world-war transaction');
+  if(extra&&(tag!=='world-city-settlement'||Object.keys(extra).some(k=>!['watch','feedback','reports','meta'].includes(k))))throw Error('Invalid settlement fields');
   const users={...DB.users,[user.id]:draft};
   for(const other of related){if(!other||typeof other.id!=='string'||other.id===user.id||!DB.users[other.id])throw Error('Invalid related world account');users[other.id]=other;}
   try{
     const tmp=DB_FILE+'.'+tag+'.tmp';
-    fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+    fs.writeFileSync(tmp,JSON.stringify({...DB,...(extra||{}),users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
   }catch(error){console.error(tag+' durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World save failed. Retry the same request.'};}
-  _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);DB.idem=receipts;
+  _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);if(extra)Object.assign(DB,extra);DB.idem=receipts;
   try{pgSave();}catch(error){console.error(tag+' replica:',error.message);}
   return {ok:true};
 }
@@ -6111,8 +6152,8 @@ async function api(req,res,url){
     return send(res,410,{ok:false,error:'Old mine claims are retired. Send a verified mine march.'});
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
-    const led=ensureLedger(me); const A=ensureAcad(me);
-    acadCollect(A);   // finished research applies on every touch
+    const led=p==='/api/pvp/attack'?null:ensureLedger(me); const A=p==='/api/pvp/attack'?null:ensureAcad(me);
+    if(A)acadCollect(A);   // finished research applies on every touch
     if(p==='/api/academy') return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV });
     if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -6142,7 +6183,8 @@ async function api(req,res,url){
         A.mineDay[rk]=used+grant; A.res[rk]=(A.res[rk]|0)+grant;
         writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:CAP-A.mineDay[rk]};
       }); return send(res, out.ok===false?400:200, out); }
-    if(p==='/api/pvp/attack'){ const out=idem(me.id+':pvpatk:'+reqId,()=>{
+    if(p==='/api/pvp/attack'){ const out=worldSettlementDurable(me,me.id+':pvpatk:'+reqId,String(b.defId||''),(me,DB)=>{
+        const led=ensureLedger(me);acadCollect(ensureAcad(me));
         const march=worldCityMarches(me).find(m=>m.id===String(b.marchId||''));
         if(!march||march.defId!==String(b.defId||'')) return {ok:false,error:'No registered city march.'};
         if(march.resolved) return march.receipt;
@@ -6282,7 +6324,7 @@ async function api(req,res,url){
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
         if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});
         writeDB(); return receipt;
-      },{retryFailed:true}); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   }
   if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});

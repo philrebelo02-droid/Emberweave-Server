@@ -57,5 +57,8 @@ check('worldMoveDurable');
 // CR2108 (v929): a PvP/city settlement refused BEFORE arrival is not cached; the same request id settles once it may
 { const at=source.indexOf("if(p==='/api/pvp/attack'){"),end=source.indexOf("if(p==='/api/pvp/attack-report'",at);
   assert.ok(at>0&&end>at,'pvp attack route found');
-  assert.ok(source.slice(at,end).includes('},{retryFailed:true}); return send(res, out.ok===false?400:200, out); }'),'settlement refusals are retried, not cached');
-  console.log('PASS pvp settlement: an early refusal is re-evaluated on the same request id'); }
+  const sec=source.slice(at,end);
+  assert.ok(sec.includes("worldSettlementDurable(me,me.id+':pvpatk:'"),'v930 CR2129: settlement runs through the staged world transaction');
+  assert.ok(sec.includes('out.storageFailed?503'),'a failed settlement save answers 503');
+  assert.ok(!sec.includes("idem(me.id+':pvpatk:'"),'no generic idem (it cached early refusals and swallowed save errors)');
+  console.log('PASS pvp settlement: staged transaction (refusals re-evaluated, 503 on a failed save)'); }
