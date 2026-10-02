@@ -1,7 +1,7 @@
 {
   "version": 1,
   "heroes": {
-    "arrears": {
+    "grimsby": {
       "name": "Grimsby",
       "tiers": [
         [
@@ -1863,7 +1863,7 @@
         ]
       ]
     },
-    "fathom": {
+    "maren": {
       "name": "Old Maren",
       "tiers": [
         [
@@ -3991,7 +3991,7 @@
         ]
       ]
     },
-    "meryln": {
+    "dandra": {
       "name": "Dandra",
       "tiers": [
         [
@@ -5055,7 +5055,7 @@
         ]
       ]
     },
-    "sablewick": {
+    "tessit": {
       "name": "Tessit",
       "tiers": [
         [
@@ -5321,7 +5321,7 @@
         ]
       ]
     },
-    "sprocket": {
+    "rivet": {
       "name": "Rivet",
       "tiers": [
         [
@@ -5720,7 +5720,7 @@
         ]
       ]
     },
-    "tallow": {
+    "gruel": {
       "name": "Gruel",
       "tiers": [
         [
@@ -6785,7 +6785,7 @@
       ]
     },
     "vesper": {
-      "name": "The Annotator",
+      "name": "Vesper "The Annotator"",
       "tiers": [
         [
           "Stoneheart",
@@ -7183,7 +7183,7 @@
         ]
       ]
     },
-    "vharn": {
+    "korvux": {
       "name": "Korvux",
       "tiers": [
         [

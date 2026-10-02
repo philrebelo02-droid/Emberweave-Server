@@ -1854,7 +1854,7 @@ function witchBenchmarkCapacity(hutLevel){
   // Ledger-backed heroes cap at five stars. Do not price an impossible sixth
   // star while this provisional earnable-power benchmark awaits simulation.
   const stars=Math.min(5,1+Math.floor(level/20));
-  const keys=['vael','sylthaine','vireo','vex','tallow'];
+  const keys=['vael','sylthaine','vireo','vex','gruel'];
   return Math.max(1,Math.round(keys.reduce((sum,key)=>{
     const snap=SIM.heroCombatStats(key,{level,stars,pips:0});
     return sum+(snap?unitCardPower(snap,key):0);
@@ -3192,10 +3192,10 @@ const TUTORIAL_GROUPS=Object.freeze([
    spec exactly; the pity rule (a full hero guaranteed within 40 diamond wishes) is server-added per
    the audit's pity requirement and shown to players. Legacy material prizes are returned for the
    client's local (non-competitive) material bag. */
-const POOL_P2=["fritz","rhukk","tallow","astra","magistrant","vharn","fathom","lumi","vesper","sablewick"];
-const POOL_P3=["bloatus","umbris","oakmir","meridian","sprocket","arrears"];
-const POOL_GOLD_HEROES=["tick","meryln","carn"];
-const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,tallow:2,astra:2,magistrant:2,vharn:2,fathom:2,lumi:2,hollow:3,sprocket:3,carn:1,vesper:2,sablewick:2,vex:1,arrears:3,meryln:1};
+const POOL_P2=["fritz","rhukk","gruel","astra","magistrant","korvux","maren","lumi","vesper","tessit"];
+const POOL_P3=["bloatus","umbris","oakmir","meridian","rivet","grimsby"];
+const POOL_GOLD_HEROES=["tick","dandra","carn"];
+const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,gruel:2,astra:2,magistrant:2,korvux:2,maren:2,lumi:2,hollow:3,rivet:3,carn:1,vesper:2,tessit:2,vex:1,grimsby:3,dandra:1};
 const POOL_DUPE_FRAG={1:7,2:14,3:30};
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300, WISH10_MULT=9;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000, WISH_FIRST_GEM_CLEAR_NODE=5;

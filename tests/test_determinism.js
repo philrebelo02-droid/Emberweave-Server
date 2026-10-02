@@ -36,7 +36,7 @@ const { chromium } = require('playwright');
     seedBattle(4242); const s3=[brnd(),brnd(),brnd(),brnd()].join(',');
     // and a longer, busier fight (five a side, more kits firing)
     const big=['vael','sylthaine','vireo','tick','meridian'];
-    const bigFoes=[{key:'grosk',level:30},{key:'umbris',level:30},{key:'hollow',level:30},{key:'astra',level:30},{key:'tallow',level:30}];
+    const bigFoes=[{key:'grosk',level:30},{key:'umbris',level:30},{key:'hollow',level:30},{key:'astra',level:30},{key:'gruel',level:30}];
     const c1=(()=>{ simFightResult(snapAllySquad(big), bigFoes, 777); return window._p2digest; })();
     const c2=(()=>{ simFightResult(snapAllySquad(big), bigFoes, 777); return window._p2digest; })();
     /* v269 — DOES YOUR ULTIMATE TIMING REPLAY? Fire the same ult on different ticks and the fight

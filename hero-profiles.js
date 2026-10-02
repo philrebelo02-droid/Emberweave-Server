@@ -8,7 +8,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
   return Object.freeze({
-  "arrears": {
+  "grimsby": {
     "class": "Bruiser",
     "combatRow": "Mid",
     "damageProfile": "Attack",
@@ -148,7 +148,7 @@
     "formationDepth": 1.35,
     "minimumReachMeters": 3.5
   },
-  "fathom": {
+  "maren": {
     "class": "Mage",
     "combatRow": "Mid",
     "damageProfile": "Magic",
@@ -308,7 +308,7 @@
     "formationDepth": 3.4,
     "minimumReachMeters": 3.5
   },
-  "meryln": {
+  "dandra": {
     "class": "Support",
     "combatRow": "Back",
     "damageProfile": "Healer",
@@ -388,7 +388,7 @@
     "formationDepth": 0,
     "minimumReachMeters": 1.0
   },
-  "sablewick": {
+  "tessit": {
     "class": "Support",
     "combatRow": "Mid",
     "damageProfile": "Magic",
@@ -408,7 +408,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "sprocket": {
+  "rivet": {
     "class": "Marksman",
     "combatRow": "Mid",
     "damageProfile": "Attack",
@@ -438,7 +438,7 @@
     "formationDepth": 3.4,
     "minimumReachMeters": 3.5
   },
-  "tallow": {
+  "gruel": {
     "class": "Tank",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -548,7 +548,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "vharn": {
+  "korvux": {
     "class": "Bruiser",
     "combatRow": "Mid",
     "damageProfile": "Attack",

@@ -700,7 +700,7 @@
     "armor": 22,
     "mr": 22
   },
-  "tallow": {
+  "gruel": {
     "hp": 560,
     "dmg": 26,
     "apow": 0,
@@ -760,7 +760,7 @@
     "armor": 40,
     "mr": 30
   },
-  "vharn": {
+  "korvux": {
     "hp": 430,
     "dmg": 32,
     "apow": 0,
@@ -780,7 +780,7 @@
     "armor": 40,
     "mr": 30
   },
-  "fathom": {
+  "maren": {
     "hp": 300,
     "dmg": 16,
     "apow": 30,
@@ -840,7 +840,7 @@
     "armor": 25,
     "mr": 20
   },
-  "sprocket": {
+  "rivet": {
     "hp": 380,
     "dmg": 30,
     "apow": 0,
@@ -900,7 +900,7 @@
     "armor": 15,
     "mr": 40
   },
-  "sablewick": {
+  "tessit": {
     "hp": 200,
     "dmg": 15,
     "apow": 31,
@@ -940,7 +940,7 @@
     "armor": 25,
     "mr": 20
   },
-  "arrears": {
+  "grimsby": {
     "hp": 360,
     "dmg": 28,
     "apow": 0,
@@ -960,7 +960,7 @@
     "armor": 40,
     "mr": 30
   },
-  "meryln": {
+  "dandra": {
     "hp": 200,
     "dmg": 12,
     "apow": 30,
