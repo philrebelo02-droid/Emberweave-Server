@@ -2920,11 +2920,37 @@ function worldSettlementDurable(user,key,defId,fn){
   if(out.ok)for(const message of diagnostics)console.log(message);
   return out.ok?reply:out;
 }
+function questChainDurable(user,rid){
+  const now=Date.now(),key=user.id+':qchain:'+rid,prior=DB.idem?.[key];
+  if(prior&&now<prior.t)return {ok:false,error:'Quest request clock precedes its saved receipt.'};
+  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'Quest storage restore pending.'};
+  if(_worldSettlementPlanning)throw Error('Nested quest planning');
+  const draft=JSON.parse(JSON.stringify(user)),staged={...DB,users:{...DB.users,[user.id]:draft},feedback:JSON.parse(JSON.stringify(DB.feedback||[])),reports:JSON.parse(JSON.stringify(DB.reports||[]))},diagnostics=[];
+  let reply;_worldSettlementPlanning={db:staged,diagnostics};
+  try{
+    const led=ensureLedger(draft);led.quests=led.quests||{claimed:{},chainStep:0};
+    const index=led.quests.chainStep;
+    if(!Number.isSafeInteger(index)||index<0)return {ok:false,error:'Invalid quest chain state.'};
+    const steps=questChainStepsSrv(),st=steps[index];if(!st)return {ok:false,error:'Chain complete.'};
+    if(!Number.isSafeInteger(led.camp?.cleared)||led.camp.cleared<st.node)return {ok:false,error:'Clear stage '+st.node+' first.'};
+    led.quests.chainStep=index+1;const got={};
+    if(st.frags){creditFrags(draft,led,'vex',st.frags,'quest-chain:'+st.node);got.vexFrags=st.frags;}
+    if(st.gems){creditGems(draft,led,st.gems,'quest-chain:'+st.node);got.gems=st.gems;}
+    ledTx(draft,'quest-chain:'+st.node,got);reply={ok:true,step:led.quests.chainStep,got,ledger:ledgerView(draft)};
+  }finally{_worldSettlementPlanning=null;}
+  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
+  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const saved=durableUserCommit(user,draft,receipts,'quest-chain',[],{feedback:staged.feedback,reports:staged.reports});
+  if(saved.ok)for(const message of diagnostics)console.log(message);
+  return saved.ok?reply:saved;
+}
 function durableUserCommit(user,draft,receipts,tag,related=[],extra=null){
-  if(!['world-location','world-move','world-mine','world-city-recall','world-war','world-city-settlement'].includes(tag))throw Error('Unknown durable user transaction');
+  if(!['quest-chain','world-location','world-move','world-mine','world-city-recall','world-war','world-city-settlement'].includes(tag))throw Error('Unknown durable user transaction');
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
   if(related.length&&!['world-war','world-city-settlement'].includes(tag))throw Error('Related accounts require world-war transaction');
-  if(extra&&(tag!=='world-city-settlement'||Object.keys(extra).some(k=>!['watch','feedback','reports','meta'].includes(k))))throw Error('Invalid settlement fields');
+  if(extra&&tag!=='quest-chain'&&(tag!=='world-city-settlement'||Object.keys(extra).some(k=>!['watch','feedback','reports','meta'].includes(k))))throw Error('Invalid settlement fields');
+  if(extra&&tag==='quest-chain'&&Object.keys(extra).some(k=>!['feedback','reports'].includes(k)))throw Error('Invalid quest diagnostic fields');
   const users={...DB.users,[user.id]:draft};
   for(const other of related){if(!other||typeof other.id!=='string'||other.id===user.id||!DB.users[other.id])throw Error('Invalid related world account');users[other.id]=other;}
   try{
@@ -6071,6 +6097,12 @@ async function api(req,res,url){
      Elite stages, Tower/Gauntlet/legacy-dungeon trials, quests, market fragment offers, and the
      arena daily are each their own server-verified transaction. Generic /api/tx/earn no longer
      accepts these reasons. */
+  if(p==='/api/quest/chain-claim'){
+    if(!me)return send(res,401,{error:'auth'});
+    if(req.method!=='POST')return send(res,404,{error:'loop'});
+    const b=await body(req);if(!b||typeof b!=='object'||Array.isArray(b)||typeof b.requestId!=='string'||!b.requestId.trim()||b.requestId.length>48)return send(res,400,{ok:false,error:'Strict requestId required'});
+    const out=questChainDurable(me,b.requestId);return send(res,out.storageFailed?503:out.ok?200:400,out);
+  }
   if(p==='/api/elite/resolve'||p==='/api/trial/resolve'||p==='/api/quest/state'||p==='/api/quest/claim'||p==='/api/quest/chain-claim'||p==='/api/market/frag'||p==='/api/arena/daily-claim'){
     if(!me) return send(res,401,{error:'auth'});
     const led=ensureLedger(me);
