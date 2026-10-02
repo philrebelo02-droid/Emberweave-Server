@@ -6,7 +6,7 @@ const vm=require('node:vm'),assert=require('node:assert/strict');
 const source=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','server.js'),'utf8').split(String.fromCharCode(13)).join('');
 function fnSource(name){ const at=source.indexOf('function '+name+'('); assert.notEqual(at,-1,name+' exists');
   let i=source.indexOf('{',at),d=0; for(;i<source.length;i++){ if(source[i]==='{')d++; else if(source[i]==='}'&&--d===0)break; } return source.slice(at,i+1); }
-const SHARED=fnSource('durableUserCommit');
+const SHARED=fnSource('_adoptUser')+';'+fnSource('durableUserCommit');
 function box(DB){ const b={DB,DB_FILE:'isolated.json',PG_BOOT_PENDING:false,Date:{now:()=>1000},console:{error:()=>{}},pgSave:()=>{},fs:{writeFileSync:()=>{},renameSync:()=>{}},JSON,Object,Error,Array};
   vm.createContext(b); vm.runInContext(SHARED,b); return b; }
 function check(name){
@@ -16,7 +16,7 @@ function check(name){
   for(const action of ['writeFileSync','renameSync']){const old=b.fs[action];b.fs[action]=()=>{throw Error('injected');};const r=fn(user,'k',mutate);assert.equal(r.storageFailed,true);assert.equal(JSON.stringify(DB),before);b.fs[action]=old;}
   b.PG_BOOT_PENDING=true;let called=false;const pr=fn(user,'k',()=>{called=true;return {ok:true};});assert.equal(pr.storageFailed,true);b.PG_BOOT_PENDING=false;
   assert.equal(fn(user,'bad',u=>{u.value=20;return {ok:false};}).ok,false);assert.equal(JSON.stringify(DB),before);
-  assert.equal(fn(user,'k',mutate).ok,true);assert.equal(DB.users.u.value,2);assert.equal(DB.users.other.value,9);assert.equal(user.value,1,'Old user reference must not mutate during staging');
+  assert.equal(fn(user,'k',mutate).ok,true);assert.equal(DB.users.u.value,2);assert.equal(DB.users.other.value,9);assert.equal(DB.users.u,user,'v928: the live account object is kept (a request still holding it must not write to an orphan)');assert.equal(user.value,2);
   let reran=false;assert.equal(fn(DB.users.u,'k',()=>{reran=true;}).value,2);assert.equal(reran,false);
   console.log('PASS '+name+': write/rename/restore-pending failures, rejected draft discard, unrelated user preservation and receipt short circuit');
 }
@@ -44,3 +44,13 @@ check('worldMoveDurable');
   assert.ok(!sec.includes("idem(me.id+':worldcity:start:'"),'no generic idem on the city launch');
   assert.ok(sec.includes('out.storageFailed?503'),'a failed save answers 503');
   console.log('PASS city launch: staged transaction, no generic idem, 503 on a failed save'); }
+// CR2102 (v928): a war declaration commits the attacker AND the defender in one write; related accounts only on world-war
+{ const att={id:'a',v:1},def={id:'d',mail:[]},DB={users:{a:att,d:def,x:{id:'x'}},idem:{}},b=box(DB);
+  assert.throws(()=>b.durableUserCommit(att,{id:'a',v:2},{},'world-move',[{id:'d',mail:[1]}]),/world-war/);
+  b.fs.renameSync=()=>{throw Error('injected');};
+  assert.equal(b.durableUserCommit(att,{id:'a',v:2},{},'world-war',[{id:'d',mail:[1]}]).storageFailed,true);
+  assert.equal(att.v,1); assert.equal(def.mail.length,0,'a failed save publishes neither account');
+  b.fs.renameSync=()=>{};
+  assert.equal(b.durableUserCommit(att,{id:'a',v:2},{},'world-war',[{id:'d',mail:[1]}]).ok,true);
+  assert.equal(DB.users.a,att); assert.equal(DB.users.d,def,'the defender keeps its live object too'); assert.equal(att.v,2); assert.equal(def.mail.length,1);
+  console.log('PASS world-war: attacker + defender commit together, related only for world-war, live objects kept'); }

@@ -2821,15 +2821,24 @@ function ledTx(u,src,delta){ const led=u.led; const id=uid();
   led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
   led.rev++; writeDBNow(); return id; }
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
-function durableUserCommit(user,draft,receipts,tag){
-  if(!['world-location','world-move','world-mine','world-city-recall'].includes(tag))throw Error('Unknown durable user transaction');
+/* v928 (Claude): publish a committed draft INTO the live account object instead of swapping the object. A request of the
+   same player (or the defender) that is still in flight holds the live object; a swap left it writing to an orphan, so its
+   changes vanished at the next save. The live object takes the draft's exact fields (dropped fields are removed). */
+function _adoptUser(id,draft){ const live=DB.users[id];
+  if(!live||live===draft||typeof live!=='object'){ DB.users[id]=draft; return; }
+  for(const k of Object.keys(live)) if(!Object.prototype.hasOwnProperty.call(draft,k)) delete live[k];
+  Object.assign(live,draft); DB.users[id]=live; }
+function durableUserCommit(user,draft,receipts,tag,related=[]){
+  if(!['world-location','world-move','world-mine','world-city-recall','world-war'].includes(tag))throw Error('Unknown durable user transaction');
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
+  if(related.length&&tag!=='world-war')throw Error('Related accounts require world-war transaction');
   const users={...DB.users,[user.id]:draft};
+  for(const other of related){if(!other||typeof other.id!=='string'||other.id===user.id||!DB.users[other.id])throw Error('Invalid related world account');users[other.id]=other;}
   try{
     const tmp=DB_FILE+'.'+tag+'.tmp';
     fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
   }catch(error){console.error(tag+' durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World save failed. Retry the same request.'};}
-  DB.users[user.id]=draft;DB.idem=receipts;
+  _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);DB.idem=receipts;
   try{pgSave();}catch(error){console.error(tag+' replica:',error.message);}
   return {ok:true};
 }
@@ -6309,9 +6318,13 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
-    const out=idem(me.id+':worldwar:'+rid,()=>{
+    const key=me.id+':worldwar:'+rid,at=Date.now(),prior=DB.idem?.[key];
+    if(prior&&at-prior.t<=86400000&&prior.resp?.ok===true)return send(res,200,prior.resp);
+    if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'World storage restore pending.'});
+    const actor=JSON.parse(JSON.stringify(me)),related=[];
+    const reply=((me)=>{
       const now=Date.now(),loc=worldLocation(me),defId=String(b.defId||'');
-      const d=DB.users[defId],bot=!d&&worldBotTarget(me,defId);
+      const d=DB.users[defId]?JSON.parse(JSON.stringify(DB.users[defId])):null,bot=!d&&worldBotTarget(me,defId);
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
       if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot declare war on a guild ally.'};
@@ -6325,9 +6338,14 @@ async function api(req,res,url){
         d.pvpMail.push({id:uid(),from:me.name,kind:'war-declared',t:now,readyAt:war.readyAt,expireAt:war.expireAt});
         if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
       }
+      if(d)related.push(d);
       return {ok:true,defId:targetId,...war};
-    });
-    return send(res,out.ok?200:400,out);
+    })(actor);
+    if(!reply?.ok)return send(res,400,reply);
+    const receipts={...(DB.idem||{}),[key]:{t:at,resp:reply}};
+    for(const k of Object.keys(receipts))if(at-receipts[k].t>86400000)delete receipts[k];
+    const out=durableUserCommit(me,actor,receipts,'world-war',related);
+    return send(res,out.ok?200:503,out.ok?reply:out);
   }
   if(p==='/api/world/city/recall'){
     if(!me)return send(res,401,{error:'auth'});
