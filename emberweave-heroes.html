@@ -5515,6 +5515,23 @@ let FIELD_Y_MIN=80;
 let FIELD_X_MAX=FW-60;   // v591: and its right edge (a bonus run relaxes it too: the top road's last firebreak is at field x 957)
 let FIELD_X_MIN=60;   // v591: the combat field's left edge - 60 everywhere; a bonus run relaxes it (gsplitBoundsEnter) so heroes can stand before the top road's first firebreak (field x 25)
 let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],chains=[];
+/* v942 (Phil, 2 Oct 2026: "See the buffs? Make them smaller. Also make it so that new buffs go to the top of the buffs, then sort of
+   like scrolling battle texts the go down and fade" / "Instead of them overlapping each other" / "Buffs and debuffs scrill from top to
+   bottom then fade"). A STATUS word - a buff or debuff name: capitals, no digits (STUN, FROZEN, REWRITTEN, WILL NOT FALL) - no longer
+   rises on its own and no longer lands on top of the last one. The status words over one unit form a column: the newest at the TOP,
+   each older one a line lower, drifting down as it ages and fading out; drawn at 75% size. Damage and heal numbers are unchanged. */
+const FT_STATUS_SCALE=0.75, FT_STATUS_TOP=14, FT_STATUS_LINE=13, FT_STATUS_DRIFT=10, FT_STATUS_MIN_LIFE=1.6, FT_STATUS_GROUP=1.6*METER;   // TOP/LINE/DRIFT are SCREEN pixels (x the bonus-run scale): field units shrink in depth on screen and the lines piled up
+function ftIsStatus(f){ return !!f && typeof f.txt==='string' && !f.label && /[A-Z]/.test(f.txt) && !/[a-z0-9]/.test(f.txt); }
+function statusTextStack(dt,k){ k=k||1;
+  const st=floatTexts.filter(ftIsStatus); if(!st.length) return;
+  st.forEach(f=>{ if(f._ax==null){ f._ax=f.x; f._ay=f.y; f._age=0; f._oy=0; f._seq=++statusTextStack.n; f.t=Math.max(f.t,FT_STATUS_MIN_LIFE); } f._age+=dt; });
+  const groups=[];
+  st.forEach(f=>{ let g=groups.find(g=>Math.hypot(g.x-f._ax,g.y-f._ay)<=FT_STATUS_GROUP); if(!g){ g={x:f._ax,y:f._ay,list:[]}; groups.push(g); } g.list.push(f); });
+  groups.forEach(g=>{ g.list.sort((a,b)=>b._seq-a._seq);   // newest first = the top line
+    g.list.forEach((f,i)=>{ const target=(-FT_STATUS_TOP+i*FT_STATUS_LINE+f._age*FT_STATUS_DRIFT)*k;
+      f._oy+=(target-f._oy)*Math.min(1,dt*12);           // slide, never jump (applied in SCREEN pixels at draw time)
+      f.x=g.x; f.y=g.y; f._fade=Math.max(0.35,1-i*0.22); }); }); }
+statusTextStack.n=0;
 /* v273 (audit response §5.5) — THE SIMULATION DOES NOT READ THE DOM.
    The wave-clear test used to be gated on `document.getElementById('vaultSubModal')`, so whether a
    wave counted as won depended on a DOM query — something a headless server replay cannot answer the
@@ -12607,7 +12624,7 @@ function battleFrameTail(dt){
   shots.forEach(s=>{s.t+=dt;}); shots.filter(s=>s.t>=s.dur).forEach(s=>{if(s.onDone)s.onDone(); scene.remove(s.mesh);s.mesh.material.dispose();}); shots=shots.filter(s=>s.t<s.dur);
   particles.forEach(p=>{p.t+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=6*dt;p.mesh.material.opacity=Math.max(0,1-p.t/p.life);});
   particles.filter(p=>p.t>=p.life).forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=particles.filter(p=>p.t<p.life);
-  { const _ftD=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active)?BONUS_UNIT_SCALE:1; floatTexts.forEach(f=>{f.t-=dt;f.y-=(f.vy||1)*(60*dt)*_ftD;}); } floatTexts=floatTexts.filter(f=>f.t>0);   // v593: in a bonus run numbers rise a 0.28-scale distance
+  { const _ftD=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active)?BONUS_UNIT_SCALE:1; floatTexts.forEach(f=>{f.t-=dt; if(ftIsStatus(f)) return; f.y-=(f.vy||1)*(60*dt)*_ftD;}); statusTextStack(dt,_ftD); } floatTexts=floatTexts.filter(f=>f.t>0);   // v593: in a bonus run numbers rise a 0.28-scale distance
   updateStaffFx(dt);   // KonWu ultimate phantom-staff slams
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
@@ -13468,9 +13485,9 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
      part of the text now takes BONUS_UNIT_SCALE, the factor the heroes and (v592) their spell areas take: font, outline,
      name plate padding/corners, and the rise. Zooming in still grows them with the units. */
   const _ftK=_ftBn?BONUS_UNIT_SCALE:1;
-  floatTexts.forEach(f=>{const p=project(f.x,f.y,(f.hz||(f.label?3.1:1.8))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));if(!p.vis)return;   // v253: ability NAMES float higher, clear of the melee cluster
-    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK, col=f.color||'#fff';
-    octx.globalAlpha=life;
+  floatTexts.forEach(f=>{const p=project(f.x,f.y,(f.hz||(f.label?3.1:1.8))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));if(!p.vis)return; if(f._oy!=null) p.y+=f._oy;   // v942: a status word's place in its unit's column   // v253: ability NAMES float higher, clear of the melee cluster
+    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK*(ftIsStatus(f)?FT_STATUS_SCALE:1), col=f.color||'#fff';
+    octx.globalAlpha=life*(f._fade==null?1:f._fade);
     // v253 (visual audit #5): an ability NAME gets a dark plate behind it so it never competes with
     // characters, damage numbers and FX; damage numbers keep the outlined treatment.
     if(f.label){ octx.font='900 '+sz+'px sans-serif';
@@ -25366,7 +25383,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790911443648';
+const BUILD_ID = '1790961518061';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
