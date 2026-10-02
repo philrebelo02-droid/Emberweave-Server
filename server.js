@@ -109,13 +109,22 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
     .catch(e=>console.error('⚠ PG write failed:', e.message))
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
-/* HERO-ID RENAME (v926, Phil 01OCT2026): old concept keys -> in-game-name keys.
+/* HERO-ID RENAME (v926, Phil 01OCT2026; v929 audit extension): old concept keys -> in-game-name keys.
    tallow->gruel, vharn->korvux, fathom->maren, sprocket->rivet, sablewick->tessit,
    arrears->grimsby, meryln->dandra. Mirror of the client's HERO_ID_RENAME in emberweave-heroes.html.
-   (1) boot migrates every stored ledger/profile once and stamps led.idv=2; (2) sanitizeSave translates
-   incoming save blobs, so a not-yet-updated client keeps talking to the renamed game. `tallow` as
+   (1) boot migrates every stored profile once (DB.heroIdV stamp; led.idv=3 per-ledger); (2) sanitizeSave
+   translates incoming save blobs, so a not-yet-updated client keeps talking to the renamed game. `tallow` as
    Waxen's passive id is a code id, not player data, and is absent from this map; squad NAMES are
-   player-chosen and are never renamed (only their hero-id CONTENTS are). */
+   player-chosen and are never renamed (only their hero-id CONTENTS are).
+   v929 (audit on a COPY of the LIVE player DB, 5009 accounts, Claude 21:23): the v926 pass reached only
+   u.led + team/wall and MISSED u.roster line-ups (incl. ladder bots, which have NO ledger), glyphs.boards,
+   glyph application receipts, and frozen battle snapshots (arenaDefenses mineSnap/foe). The whole-profile
+   walk below covers all of them, plus the roster.__save cloud-blob STRING (parsed, translated, re-stored).
+   Ledger tx history (led.txs[].d) is rewritten too: txs are plain {id,t,src,d} records with no hash chain,
+   so renaming keeps the player-visible audit trail consistent.
+   DB.idem receipts are LEFT AS WRITTEN on purpose: they expire within 24 h, a stored receipt belongs to the
+   request that wrote it (a stale client's retry must replay the exact old-key response it committed), and
+   rewriting them would rewrite payment proofs. */
 const HERO_ID_RENAME={tallow:'gruel',vharn:'korvux',fathom:'maren',sprocket:'rivet',sablewick:'tessit',arrears:'grimsby',meryln:'dandra'};
 function _renameIdKeysDeep(o){
   if(!o||typeof o!=='object')return false;
@@ -130,17 +139,26 @@ function _renameIdKeysDeep(o){
       continue; }
     const v=o[k]; const nk=HERO_ID_RENAME[k];
     if(nk){ if(o[nk]===undefined){ o[nk]=v; if(v&&typeof v==='object') _renameIdKeysDeep(o[nk]); } delete o[k]; ch=true; continue; }
-    if(typeof v==='string'){ const nv=HERO_ID_RENAME[v]; if(nv&&(k==='key'||k==='avatarHero')){o[k]=nv;ch=true;} }
+    if(typeof v==='string'){ const nv=HERO_ID_RENAME[v]; if(nv&&(k==='key'||k==='avatarHero'||k==='hero')){o[k]=nv;ch=true;} }
     else if(v&&typeof v==='object'){ if(_renameIdKeysDeep(v))ch=true; } }
   return ch; }
 function migrateHeroIdsUser(u){
   if(!u||typeof u!=='object')return false;
+  if(u.led&&typeof u.led==='object'&&(u.led.idv||0)>=3) return false;   // already migrated (stamped)
   let ch=false;
-  if(u.led&&typeof u.led==='object'&&(u.led.idv||0)<2){ if(_renameIdKeysDeep(u.led))ch=true; u.led.idv=2; ch=true; }
-  for(const f of ['team','wall']) if(Array.isArray(u[f])) for(const h of u[f]){ if(h&&typeof h==='object'&&HERO_ID_RENAME[h.key]){h.key=HERO_ID_RENAME[h.key];ch=true;} }
+  if(_renameIdKeysDeep(u))ch=true;   // WHOLE profile: led, team, wall, roster line-ups (incl. bots), glyphs boards/receipts, battle snapshots
+  if(u.roster&&typeof u.roster.__save==='string'){   // the stored client save blob is a STRING: ids invisible to the walker until parsed
+    try{ const g=JSON.parse(u.roster.__save); if(_renameIdKeysDeep(g)){ u.roster.__save=JSON.stringify(g); ch=true; } }catch(e){} }
+  if(u.led&&typeof u.led==='object'){ u.led.idv=3; ch=true; }
   return ch; }
-function migrateHeroIdsAll(){ let n=0; for(const id in DB.users){ if(migrateHeroIdsUser(DB.users[id]))n++; }
-  if(n){ console.log('🔑 hero-id rename: migrated '+n+' account(s) to in-game-name keys (idv=2)'); _bootDirty=true; } return n; }
+function migrateHeroIdsAll(){
+  if((DB.heroIdV||0)>=3) return 0;   // one-time sweep (idempotent: rename map + per-ledger idv stamps)
+  let n=0; for(const id in DB.users){ if(migrateHeroIdsUser(DB.users[id]))n++; }
+  if(DB.dungeonProgress&&typeof DB.dungeonProgress==='object'){ if(_renameIdKeysDeep(DB.dungeonProgress))n++; }   // lastTeamHeroIds / activeAttempt
+  if(DB.worldTreeControl&&DB.worldTreeControl.marches&&typeof DB.worldTreeControl.marches==='object') _renameIdKeysDeep(DB.worldTreeControl.marches);   // empty while WorldTreeOFF; cheap insurance
+  DB.heroIdV=3; _bootDirty=true;
+  console.log('🔑 hero-id rename: migrated '+n+' account(s)/store(s) to in-game-name keys (idv=3)');
+  return n; }
 function migrateHeroIdsBlob(g){ return _renameIdKeysDeep(g); }   // save-blob translate (idempotent, unstamped)
 let saveTimer=null;
 var _worldSettlementPlanning=null;

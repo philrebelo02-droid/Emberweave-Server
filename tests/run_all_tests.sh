@@ -71,6 +71,7 @@ bash tests/test_crash_idempotency.sh || FAILED=1
 
 note "probes (no server needed)"
 node tests/test_hero_profiles.js || FAILED=1
+node tests/test_hero_id_rename.js || FAILED=1
 node tests/test_sim_parity.js || FAILED=1
 node tests/test_glyph_flow.js || FAILED=1
 node tests/test_vault_gate.js || FAILED=1
