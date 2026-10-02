@@ -24,8 +24,8 @@ for(const key of keys){
   else ok(p.minimumReachMeters>=3.5,'every non-Tank needs 2.5 m more reach: '+key);
 }
 ok(!html.includes("role:'Fighter'"),'obsolete Fighter hero remains');
-ok(html.includes('<script src="/hero-profiles.js"></script>'),'client profile source missing');
-ok(html.includes('<script src="/hero-paths.js"></script>'),'client path source missing');
+ok(/<script src="\/hero-profiles\.js(\?v=[a-z0-9]+)?"><\/script>/.test(html),'client profile source missing');   // v936: versioned so no cache keeps a stale copy
+ok(/<script src="\/hero-paths\.js(\?v=[a-z0-9]+)?"><\/script>/.test(html),'client path source missing');
 ok(html.includes("const hold=2.5*METER"),'assassin Tank leash missing');
 const out=cp.execFileSync(process.execPath,[path.resolve(root,'..','Operating procedure','tools','glyph_paths.js')],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});
 const report=JSON.parse(out);

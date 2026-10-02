@@ -113,7 +113,10 @@ function load(htmlPath){
        page. Load those exact local files into the same lexical VM context before the inline game
        script, matching browser execution order and preventing the replay host from drifting. */
     const baseDir=require('path').dirname(htmlPath);
-    for(const src of [...html.matchAll(/<script\s+src=["']\/([^"']+)["'][^>]*><\/script>/g)].map(m=>m[1])){
+    for(const raw of [...html.matchAll(/<script\s+src=["']\/([^"']+)["'][^>]*><\/script>/g)].map(m=>m[1])){
+      /* v936: the page versions these tags (?v=) so no cache keeps a stale copy; the file on disk has no query.
+         /assets/ UI scripts always carried ?v= and were never loaded here - they stay out (browser-only). */
+      const src=raw.split('?')[0]; if(src.startsWith('assets/')) continue;
       const dep=require('path').join(baseDir,src);
       if(fs.existsSync(dep)) new vm.Script(fs.readFileSync(dep,'utf8'),{filename:src}).runInContext(ctx,{timeout:60000});
     }
