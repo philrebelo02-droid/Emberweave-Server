@@ -2832,6 +2832,23 @@ function worldLocation(u){
   writeDBNow(); // the assigned region and square must survive a restart before a client sees them
   return u.worldLocation;
 }
+function worldMoveDurable(user,key,fn){
+  const now=Date.now(), prior=DB.idem?.[key];
+  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World move storage restore pending.'};
+  const draft=JSON.parse(JSON.stringify(user)),reply=fn(draft);
+  if(!reply?.ok)return reply;
+  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
+  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const users={...DB.users,[user.id]:draft};
+  try{
+    const tmp=DB_FILE+'.world-move.tmp';
+    fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+  }catch(error){console.error('World move durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World move save failed. Retry the same request.'};}
+  DB.users[user.id]=draft;DB.idem=receipts;
+  try{pgSave();}catch(error){console.error('World move replica:',error.message);}
+  return reply;
+}
 function worldTravelState(u){
   if(!u.worldTravel||typeof u.worldTravel!=='object') u.worldTravel={};
   const t=u.worldTravel;
@@ -6355,7 +6372,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
-    const out=idem(me.id+':worldmove:'+p+':'+rid,()=>{
+    const out=worldMoveDurable(me,me.id+':worldmove:'+p+':'+rid,(me)=>{
       const now=Date.now(),loc=worldLocation(me);
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       const t=worldTravelState(me),led=ensureLedger(me);
@@ -6407,7 +6424,7 @@ async function api(req,res,url){
       }else return {ok:false,error:'Unknown castle move.'};
       return {...worldView(me,now),ledger:ledgerView(me)};
     });
-    return send(res,out.ok?200:400,out);
+    return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
   if(p==='/api/world-tree/score'){
     if(!me)return send(res,401,{error:'auth'});
