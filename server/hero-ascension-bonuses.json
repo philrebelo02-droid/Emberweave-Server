@@ -806,7 +806,7 @@
         }
       ]
     },
-    "meryln": {
+    "dandra": {
       "name": "Dandra",
       "kitAbilities": [
         "Queen's Call",
@@ -1381,7 +1381,7 @@
         }
       ]
     },
-    "arrears": {
+    "grimsby": {
       "name": "Grimsby",
       "kitAbilities": [
         "Foreclosure",
@@ -1611,7 +1611,7 @@
         }
       ]
     },
-    "tallow": {
+    "gruel": {
       "name": "Gruel",
       "kitAbilities": [
         "The Reckoning",
@@ -2531,7 +2531,7 @@
         }
       ]
     },
-    "vharn": {
+    "korvux": {
       "name": "Korvux",
       "kitAbilities": [
         "Falling Star",
@@ -3336,7 +3336,7 @@
         }
       ]
     },
-    "fathom": {
+    "maren": {
       "name": "Old Maren",
       "kitAbilities": [
         "Maelstrom",
@@ -3911,7 +3911,7 @@
         }
       ]
     },
-    "sprocket": {
+    "rivet": {
       "name": "Rivet",
       "kitAbilities": [
         "Full Arsenal",
@@ -4371,7 +4371,7 @@
         }
       ]
     },
-    "sablewick": {
+    "tessit": {
       "name": "Tessit",
       "kitAbilities": [
         "Hourglass",
@@ -4487,7 +4487,7 @@
       ]
     },
     "vesper": {
-      "name": "The Annotator",
+      "name": "Vesper "The Annotator"",
       "kitAbilities": [
         "Puncture",
         "Errata",

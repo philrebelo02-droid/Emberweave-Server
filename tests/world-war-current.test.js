@@ -46,7 +46,7 @@ async function run(){
     const a=await req('POST','/api/register',{name:'warAlpha',pass:'password1'});
     const b=await req('POST','/api/register',{name:'warBeta',pass:'password1'});
     assert.ok(a.token&&b.token);
-    const keys=['vael','sylthaine','vireo','vex','tallow'];
+    const keys=['vael','sylthaine','vireo','vex','gruel'];
     for(const u of [a,b]){
       const grant=await req('POST','/api/admin/led-grant',{userId:u.profile.id,unlock:keys,heroKeys:keys,heroXp:200000,px:900000},dev.token);
       assert.equal(grant.ok,true,JSON.stringify(grant));

@@ -50,7 +50,7 @@ const B = (fam,id,name,v,scale,text,needs,req)=>({fam,id,name,v,scale:!!scale,te
      summoners — Hurne the Chained, Zahri Sunhorn, The Librarian of Monsters
      healers   — Oakmir, Threadseer, Nerisse Bellglass, Dandra                                      */
 const SUMMONER_KEYS = ['hurne','zahri','librarian'];
-const HEALER_KEYS   = ['oakmir','threadseer','nerisse','meryln'];
+const HEALER_KEYS   = ['oakmir','threadseer','nerisse','dandra'];
 
 /* What a road looks like, from the heroes on it. `hero(key)` hands back whatever the caller knows
    about a hero — role, row, apow — and anything missing simply fails its test rather than throwing. */

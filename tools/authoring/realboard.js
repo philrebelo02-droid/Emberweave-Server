@@ -23,5 +23,5 @@ function boardFor(hero, tier){
 }
 function tierForLevel(lv){ let t=0; for(let i=0;i<MIN_LEVEL.length;i++) if(lv>=MIN_LEVEL[i]) t=i; return t; }
 module.exports={ boardFor, tierForLevel, LADDER, MIN_LEVEL, GLYPHS:ctx.GLYPHS };
-if(require.main===module){ const b=boardFor(process.argv[2]||'tallow', +(process.argv[3]||16));
+if(require.main===module){ const b=boardFor(process.argv[2]||'gruel', +(process.argv[3]||16));
   const flat={}; for(const k in b.ascended) flat[k]=b.ascended[k].val; console.log(JSON.stringify(flat)); }

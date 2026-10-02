@@ -105,20 +105,20 @@ const KITS={
   rhukk:     {kind:'phys',  shape:'nuke',  coef:2.6},
   hurne:     {kind:'phys',  shape:'cleave', coef:2.3, n:2},
   meridian:  {kind:'phys',  shape:'lowest', coef:2.8},
-  tallow:    {kind:'shieldTeam', pct:0.20},
+  gruel:    {kind:'shieldTeam', pct:0.20},
   astra:     {kind:'magic', shape:'aoe',   coef:1.3, n:3, stun:1},
   magistrant:{kind:'phys',  shape:'nuke',  coef:2.5},
-  vharn:     {kind:'phys',  shape:'cleave', coef:2.4, n:2},
-  fathom:    {kind:'magic', shape:'aoe',   coef:1.5, n:3},
+  korvux:     {kind:'phys',  shape:'cleave', coef:2.4, n:2},
+  maren:    {kind:'magic', shape:'aoe',   coef:1.5, n:3},
   lumi:      {kind:'heal',  who:'allies',  coef:1.15},
   hollow:    {kind:'phys',  shape:'lowest', coef:3.0},
-  sprocket:  {kind:'phys',  shape:'nuke',  coef:2.5},
+  rivet:  {kind:'phys',  shape:'nuke',  coef:2.5},
   carn:      {kind:'phys',  shape:'nuke',  coef:2.5},
   vesper:    {kind:'magic', shape:'nuke',  coef:3.0},
-  sablewick: {kind:'magic', shape:'aoe',   coef:1.0, n:3, stun:1},
+  tessit: {kind:'magic', shape:'aoe',   coef:1.0, n:3, stun:1},
   vex:       {kind:'phys',  shape:'lowest', coef:2.9},
-  arrears:   {kind:'phys',  shape:'nuke',  coef:2.5},
-  meryln:    {kind:'heal',  who:'allies',  coef:1.1}
+  grimsby:   {kind:'phys',  shape:'nuke',  coef:2.5},
+  dandra:    {kind:'heal',  who:'allies',  coef:1.1}
 };
 const DEFAULT_KIT={kind:'phys',shape:'nuke',coef:2.2};
 
