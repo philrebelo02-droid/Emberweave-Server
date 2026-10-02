@@ -109,6 +109,39 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
     .catch(e=>console.error('⚠ PG write failed:', e.message))
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
+/* HERO-ID RENAME (v926, Phil 01OCT2026): old concept keys -> in-game-name keys.
+   tallow->gruel, vharn->korvux, fathom->maren, sprocket->rivet, sablewick->tessit,
+   arrears->grimsby, meryln->dandra. Mirror of the client's HERO_ID_RENAME in emberweave-heroes.html.
+   (1) boot migrates every stored ledger/profile once and stamps led.idv=2; (2) sanitizeSave translates
+   incoming save blobs, so a not-yet-updated client keeps talking to the renamed game. `tallow` as
+   Waxen's passive id is a code id, not player data, and is absent from this map; squad NAMES are
+   player-chosen and are never renamed (only their hero-id CONTENTS are). */
+const HERO_ID_RENAME={tallow:'gruel',vharn:'korvux',fathom:'maren',sprocket:'rivet',sablewick:'tessit',arrears:'grimsby',meryln:'dandra'};
+function _renameIdKeysDeep(o){
+  if(!o||typeof o!=='object')return false;
+  let ch=false;
+  if(Array.isArray(o)){ for(let i=0;i<o.length;i++){ const v=o[i];
+      if(typeof v==='string'){ const nk=HERO_ID_RENAME[v]; if(nk){o[i]=nk;ch=true;} }
+      else if(v&&typeof v==='object'){ if(_renameIdKeysDeep(v))ch=true; } } return ch; }
+  for(const k of Object.keys(o)){
+    if(k==='squads'){ const sq=o[k];   // squad NAMES are player-chosen: migrate only their hero-id CONTENTS
+      if(sq&&typeof sq==='object') for(const sn of Object.keys(sq)){ const v=sq[sn];
+        if(Array.isArray(v)) for(let i=0;i<v.length;i++){ const nk=HERO_ID_RENAME[v[i]]; if(nk){v[i]=nk;ch=true;} } }
+      continue; }
+    const v=o[k]; const nk=HERO_ID_RENAME[k];
+    if(nk){ if(o[nk]===undefined){ o[nk]=v; if(v&&typeof v==='object') _renameIdKeysDeep(o[nk]); } delete o[k]; ch=true; continue; }
+    if(typeof v==='string'){ const nv=HERO_ID_RENAME[v]; if(nv&&(k==='key'||k==='avatarHero')){o[k]=nv;ch=true;} }
+    else if(v&&typeof v==='object'){ if(_renameIdKeysDeep(v))ch=true; } }
+  return ch; }
+function migrateHeroIdsUser(u){
+  if(!u||typeof u!=='object')return false;
+  let ch=false;
+  if(u.led&&typeof u.led==='object'&&(u.led.idv||0)<2){ if(_renameIdKeysDeep(u.led))ch=true; u.led.idv=2; ch=true; }
+  for(const f of ['team','wall']) if(Array.isArray(u[f])) for(const h of u[f]){ if(h&&typeof h==='object'&&HERO_ID_RENAME[h.key]){h.key=HERO_ID_RENAME[h.key];ch=true;} }
+  return ch; }
+function migrateHeroIdsAll(){ let n=0; for(const id in DB.users){ if(migrateHeroIdsUser(DB.users[id]))n++; }
+  if(n){ console.log('🔑 hero-id rename: migrated '+n+' account(s) to in-game-name keys (idv=2)'); _bootDirty=true; } return n; }
+function migrateHeroIdsBlob(g){ return _renameIdKeysDeep(g); }   // save-blob translate (idempotent, unstamped)
 let saveTimer=null;
 var _worldSettlementPlanning=null;
 function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
@@ -154,7 +187,7 @@ const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || 4*1024*1024);  // 4 MB for 
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
   let d='', len=0, done=false;
   req.on('data',c=>{ if(done) return; len+=c.length; if(len>max){ done=true; try{req.pause();}catch(_){} const e=new Error('body too large'); e.code='BODY_TOO_LARGE'; reject(e); return; } d+=c; });
-  req.on('end',()=>{ if(done) return; done=true; try{resolve(JSON.parse(d||'{}'));}catch(e){resolve({});} });
+  req.on('end',()=>{ if(done) return; done=true; try{ const p=JSON.parse(d||'{}'); _renameIdKeysDeep(p); resolve(p); }catch(e){resolve({});} });
   req.on('error',()=>{ if(!done){ done=true; resolve({}); } });
 }); }
 function authUser(req){ const id=lookupToken(req.headers['x-token']); return id?DB.users[id]:null; }
@@ -269,6 +302,7 @@ function sanitizeSave(u, roster){
   if(!roster || typeof roster.__save!=='string') return roster;
   let g; try{ g=JSON.parse(roster.__save); }catch(e){ return roster; }   // unparseable → store as-is, nothing to validate
   let clamped=false;
+  if(migrateHeroIdsBlob(g)) clamped=true;   // v926: translate old hero ids from not-yet-updated clients (idempotent)
   for(const k in ECON_CAP){ if(typeof g[k]==='number'){ const nv=clampNum(g[k],ECON_CAP[k]); if(nv!==g[k]){ g[k]=nv; clamped=true; } } }
   for(const map of ['mats','eqMats','starShards','heroFrag','glyphRank','eqInv']){ const o=g[map]; if(o&&typeof o==='object'){ for(const k in o){ if(typeof o[k]==='number'){ const nv=clampNum(o[k],MAP_CAP); if(nv!==o[k]){ o[k]=nv; clamped=true; } } } } }
   const prev=u.econ||{}, now=Date.now(); const dGems=(g.gems||0)-(prev.gems||0), dGold=(g.gold||0)-(prev.gold||0);
@@ -7439,6 +7473,7 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
+  migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
