@@ -10968,7 +10968,7 @@ const FX2_DEF={
   rhukk_green:{u:'/assets/anim/fx/rhukk_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.0,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   sablewick_blue:{u:'/assets/anim/fx/sablewick_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upAbove:true,upSize:0.7,upExtent:1.0,ro:1},
   sablewick_green:{u:'/assets/anim/fx/sablewick_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
-  sprocket_blue:{u:'/assets/anim/fx/sprocket_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
+  sprocket_blue:{u:'/assets/anim/fx/sprocket_blue.webp?v=2',n:48,fw:195,fh:300,cols:8,rows:6,dur:2.0,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},   // v924 Grok: Smoke Bomb plume
   sprocket_ult:{u:'/assets/anim/fx/sprocket_ult.webp?v=1',n:48,fw:300,fh:275,cols:6,rows:8,dur:2.0},   // v912 Grok: Full Arsenal - scrap volley burst at the aim
   kharos_ult:{u:'/assets/anim/fx/kharos_ult.webp?v=1',n:48,fw:210,fh:209,cols:6,rows:8,dur:2.0},   // v919 Grok (filed 17 Sep, never wired): Orchid Execution - blade swirl on the target
   lysara_ult:{u:'/assets/anim/fx/lysara_ult.webp?v=1',n:48,fw:177,fh:210,cols:6,rows:8,dur:2.4,upright:true,upSize:1.6,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v919 Grok: Queen of Quiet Wings - winged moon
@@ -11004,7 +11004,7 @@ const FX2_DEF={
   arrears_green:{u:'/assets/anim/fx/arrears_green.webp?v=32',n:48,fw:588,fh:644,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.98,upAnchor:[0.5,0.0],ro:1},
   astra_blue:{u:'/assets/anim/fx/astra_blue.webp?v=32',n:48,fw:666,fh:693,cols:6,rows:8,dur:5.88,upright:true,upSize:1.3,upExtent:0.98,upAnchor:[0.5,0.0],ro:1},
   astra_green:{u:'/assets/anim/fx/astra_green.webp?v=32',n:48,fw:611,fh:587,cols:6,rows:8,dur:3.5,upright:true,upSize:1.3,upExtent:0.973,upAnchor:[0.5,0.0],ro:1},
-  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.21,disc:{cy:0.503,dh:0.262,dw:0.909}},
+  vulmar_blue:{u:'/assets/anim/fx/vulmar_blue.webp?v=21',n:48,fw:216,fh:300,cols:8,rows:6,dur:1.21,upright:true,upSize:1.3,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},   // v924 Grok: Grasping Vow tendril cage. dur stays 1.21: tendrilpull times the DRAG and its stun off this number
   vulmar_blue_front:{u:'/assets/anim/fx/vulmar_blue_front.webp?v=3',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.4},
   vulmar_green:{u:'/assets/anim/fx/vulmar_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.75,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   voidzone:  {u:'/assets/anim/fx/voidzone.webp?v=3',  n:20, fw:210, fh:172, cols:6, rows:4, dur:3.0, disc:{cy:0.50,dh:0.90,dw:0.95}},
@@ -25300,7 +25300,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790899654453';
+const BUILD_ID = '1790901101076';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

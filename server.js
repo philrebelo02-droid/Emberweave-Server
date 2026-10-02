@@ -2821,16 +2821,34 @@ function ledTx(u,src,delta){ const led=u.led; const id=uid();
   led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
   led.rev++; writeDBNow(); return id; }
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
+function durableUserCommit(user,draft,receipts,tag){
+  if(!['world-location','world-move','world-mine'].includes(tag))throw Error('Unknown durable user transaction');
+  if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
+  const users={...DB.users,[user.id]:draft};
+  try{
+    const tmp=DB_FILE+'.'+tag+'.tmp';
+    fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
+  }catch(error){console.error(tag+' durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World save failed. Retry the same request.'};}
+  DB.users[user.id]=draft;DB.idem=receipts;
+  try{pgSave();}catch(error){console.error(tag+' replica:',error.message);}
+  return {ok:true};
+}
 function worldLocation(u){
   if(ledPlayerLevel(ensureLedger(u))<WITCH.UNLOCK_LEVEL) return null;
   if(WORLD_LOCATION.valid(u.worldLocation)
     &&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(u.worldLocation.x,u.worldLocation.y))) return u.worldLocation;
   const taken=Object.values(DB.users).filter(v=>v.id!==u.id).map(v=>v.worldLocation);
   const mines=WORLD_MINES.field(WORLD_MINES.epochAt(Date.now()));
-  u.worldLocation=WORLD_LOCATION.place(taken,crypto.randomInt,
+  const next=WORLD_LOCATION.place(taken,crypto.randomInt,
     [...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
-  writeDBNow(); // the assigned region and square must survive a restart before a client sees them
-  return u.worldLocation;
+  // A staged move or mine account is committed by its outer transaction, never here.
+  if(DB.users[u.id]!==u){u.worldLocation=next;return next;}
+  const draft=JSON.parse(JSON.stringify(u));draft.worldLocation=next;
+  const out=durableUserCommit(u,draft,DB.idem,'world-location');
+  if(!out.ok){const error=Error(out.error);error.code='WORLD_STORAGE_FAILURE';throw error;}
+  Object.assign(u,draft); // Existing callers retain their authenticated account reference.
+  DB.users[u.id]=u;   // v924 (Claude): and the DB keeps THAT object - a later write in the same request must not land on an orphan
+  return next;
 }
 function worldMoveDurable(user,key,fn){
   const now=Date.now(), prior=DB.idem?.[key];
@@ -2840,13 +2858,8 @@ function worldMoveDurable(user,key,fn){
   if(!reply?.ok)return reply;
   const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
   for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
-  const users={...DB.users,[user.id]:draft};
-  try{
-    const tmp=DB_FILE+'.world-move.tmp';
-    fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
-  }catch(error){console.error('World move durable write failed:',error.message);return {ok:false,storageFailed:true,error:'World move save failed. Retry the same request.'};}
-  DB.users[user.id]=draft;DB.idem=receipts;
-  try{pgSave();}catch(error){console.error('World move replica:',error.message);}
+  const committed=durableUserCommit(user,draft,receipts,'world-move');
+  if(!committed.ok)return committed;
   return reply;
 }
 function worldTravelState(u){
@@ -2912,13 +2925,8 @@ function worldMineDurable(user,key,fn){
   if(!reply?.ok)return reply;
   const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
   for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
-  const users={...DB.users,[user.id]:draft};
-  try{
-    const tmp=DB_FILE+'.world-mine.tmp';
-    fs.writeFileSync(tmp,JSON.stringify({...DB,users,idem:receipts}));fs.renameSync(tmp,DB_FILE);
-  }catch(error){console.error('Mine durable write failed:',error.message);return {ok:false,storageFailed:true,error:'Mine save failed. Retry the same request.'};}
-  DB.users[user.id]=draft;DB.idem=receipts;
-  try{pgSave();}catch(error){console.error('Mine replica:',error.message);}
+  const committed=durableUserCommit(user,draft,receipts,'world-mine');
+  if(!committed.ok)return committed;
   return reply;
 }
 function worldMineMarches(u,now){
@@ -7162,6 +7170,7 @@ const server=http.createServer((req,res)=>{
   const p=url.pathname;
   if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{
     if(res.headersSent) return;
+    if(err && err.code==='WORLD_STORAGE_FAILURE')return send(res,503,{ok:false,storageFailed:true,error:err.message});
     if(err && err.code==='BODY_TOO_LARGE'){ send(res,413,{error:'Request too large.'}); try{req.destroy();}catch(_){} return; }
     console.error('⚠ api error:', err && err.message); return send(res,500,{error:'server error'}); });
   if(p==='/health'){ res.writeHead(200);res.end('ok');return; }
