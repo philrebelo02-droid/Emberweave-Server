@@ -6199,8 +6199,8 @@ async function api(req,res,url){
     if(req.method!=='POST') return send(res,404,{error:'emberdraft'});
     const led=ensureLedger(me); const b=await body(req);
     const ED_FREE=3, ED_PACK=3, ED_PACK_COST=[100,150], ED_STAM=[0,36,30,24,18,12,6,0,0];
-    const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null};
-    const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0;
+    const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null,open:(led.edraft&&Array.isArray(led.edraft.open))?led.edraft.open:[]};   /* 3 Oct audit: unclaimed matches survive the day reset */
+    const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0; if(!Array.isArray(E.open)) E.open=[];
     /* v610 (Phil: "during God mode in dev panel I have unlimited tries on the mode"): God Mode is a session switch in the
        dev panel, so the client says god:true - and it only counts for a dev account. Such a start spends no attempt. */
     const god = b.god===true && isDev(me);
@@ -6249,9 +6249,12 @@ async function api(req,res,url){
         else if(rounds<prev.r) flags.push('claimed round '+rounds+' but round '+prev.r+' was already reported');
         if(place>prev.alive) flags.push('claimed place '+place+' but only '+prev.alive+' players (you included) were left at round '+prev.r); }
       return { flags:flags.slice(0,20), floor }; };
-    /* 3 Oct audit (Island of Trials #7): a start on another device must not strand this match's claim - the previous UNCLAIMED
-       attempt is kept (one only) and can still report rounds and be claimed once, under the same rules. */
-    const edAttFor=id=>{ id=String(id||''); return (E.att&&E.att.id===id)?E.att:((E.prevAtt&&E.prevAtt.id===id)?E.prevAtt:null); };
+    /* 3 Oct audit (Island of Trials #7, ChatGPT HOLD 03:43): a start (here or on another device) must not strand an earlier match's
+       claim. Every UNCLAIMED match from the last 24 h is kept in E.open (plus the latest in E.att, kept as before with no age limit),
+       across the day reset; each can still report rounds and be claimed once, under the same rules. 24 h of starts cannot exceed
+       2 x the daily maximum, so ED_OPEN_MAX is a fence that refuses BEFORE spending, never a silent drop. */
+    const ED_OPEN_MS=24*3600000, ED_OPEN_MAX=2*(ED_FREE+ED_PACK*ED_PACK_COST.length);
+    const edAttFor=id=>{ id=String(id||''); return (E.att&&E.att.id===id)?E.att:(E.open.find(x=>x&&x.id===id)||null); };
     if(p==='/api/emberdraft/round'){ const att=edAttFor(b.attemptId);
       if(!att) return send(res,400,{ok:false,error:'No Emberdraft match in progress.'});
       if(!att.claimed){ edCpIngest(att,b.cps,false); writeDB(); }
@@ -6268,8 +6271,10 @@ async function api(req,res,url){
     if(p==='/api/emberdraft/start'){ const out=idem(me.id+':edstart:'+reqId,()=>{
         if(!god && ledPlayerLevel(led)<25) return {ok:false, error:'Emberdraft opens at level 25.', edraft:view()};   // v654 (Phil: "yes"): the client's Island gate, checked here too (same XP table as the client's playerLevel)
         if(!god && view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
+        { const now=Date.now(), keep=E.open.filter(x=>x&&!x.claimed&&now-(x.startedAt||0)<=ED_OPEN_MS); if(E.att&&!E.att.claimed) keep.push(E.att);
+          if(keep.length>ED_OPEN_MAX) return {ok:false, error:'Claim your earlier Emberdraft matches first.', edraft:view()};   /* fence before any spend */
+          E.open=keep; }
         if(!god) E.used++;
-        E.prevAtt=(E.att&&!E.att.claimed)?E.att:null;
         E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false, god:!!god };   // v654: remember a God-mode start
         writeDB(); return { ok:true, attemptId:E.att.id, edraft:view() }; });
       return send(res,out.storageFailed?503:(out.ok?200:400),out); }
