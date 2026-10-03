@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const file='C:/Users/Home/Downloads/ew-audit/tests/test_academy_economy.js',raw=fs.readFileSync(file,'utf8');
+assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'b948d2d8ca5dbb065b79cf38b785edcaf5d667d87bc068c15796a9d5686c2716');
+const needle="  const a2=await call('/api/academy');";assert.equal(raw.split(needle).length,2);
+const insertion=`  await delay(800); await stop(); const persisted=JSON.parse(fs.readFileSync(dbFile,'utf8')).users[id].led.acad;
+  const evidence={atET:new Date().toLocaleString('sv-SE',{timeZone:'America/New_York'}),sourceSHA256:sha,reported:a1.data.res,persisted:persisted.res,reportedUnits:want,persistedClock:persisted.incAt,limits:'Independent private real HTTP after GET income; own child stopped, no live or Brain probe.'};
+  fs.writeFileSync(${JSON.stringify(path.join(__dirname,'academy-income-restart-review.json'))},JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
+  assert(R.every(r=>persisted.res[r]>=want),'reported Academy income must be persisted before restart'); return;
+`;
+const code=raw.replace(needle,insertion+needle),mod=new Module(file);mod.filename=file;mod.paths=Module._nodeModulePaths(path.dirname(file));mod._compile(code,file);

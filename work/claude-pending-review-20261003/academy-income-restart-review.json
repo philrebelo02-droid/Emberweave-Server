@@ -1,0 +1,19 @@
+{
+  "atET": "2026-10-03 10:24:35",
+  "sourceSHA256": "c8ae213610d2ed6d230b8ff09293669e707cb1101b08f4b7a325b6aade933875",
+  "reported": {
+    "iron": 405,
+    "crystal": 405,
+    "silver": 405,
+    "coal": 405
+  },
+  "persisted": {
+    "iron": 0,
+    "crystal": 0,
+    "silver": 0,
+    "coal": 0
+  },
+  "reportedUnits": 405,
+  "persistedClock": 1791001470875,
+  "limits": "Independent private real HTTP after GET income; own child stopped, no live or Brain probe."
+}

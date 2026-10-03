@@ -1,0 +1,148 @@
+{
+  "atET": "2026-10-03 10:26:35",
+  "sourceSHA256": "5077a36e3fb5bfcabdbb27280055f8b666aeb6ca90e1394920efa4e262d782b1",
+  "baselineSHA256": "98c690891899ec3b9fb0845cf34c1e58739863328d4f1ddcf57ae0521788b1d5",
+  "rows": [
+    {
+      "epoch": 30000,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "legacyUnchanged": true,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62183,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "legacyUnchanged": true,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62184,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "legacyUnchanged": false,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62185,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "legacyUnchanged": false,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62189,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "legacyUnchanged": false,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62190,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "legacyUnchanged": false,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62199,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "legacyUnchanged": false,
+      "identityResourcePositionsUnchanged": true
+    },
+    {
+      "epoch": 62250,
+      "nodes": 240,
+      "levels": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "legacyUnchanged": false,
+      "identityResourcePositionsUnchanged": true
+    }
+  ],
+  "limits": "Independent source-level multi-epoch field qualification against actual preceding Git module, not live march/combat/reward yield/balance or deployment approval."
+}
