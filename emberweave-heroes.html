@@ -12524,7 +12524,7 @@ function endBattle(won){
          answer, which was not a replay of this fight at all but a re-simulation with a skill band
          standing in for manual play — and when that estimate disagreed, the screen said one thing
          and the result screen said the other. Campaign has worked this way since v270. */
-      if(att){ const _va=ACC.id, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else vaultPendingSettle(_va,r); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
+      if(att){ const _va=ACC.id, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else vaultPendingSettle(_va,r,_vb.requestId); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
@@ -12627,7 +12627,7 @@ function endBattle(won){
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
-      if(att&&ACC.token){ const _wa=ACC.id, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else wellPendingSettle(_wa,r); }
+      if(att&&ACC.token){ const _wa=ACC.id, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else wellPendingSettle(_wa,r,_wb.requestId); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.ok) WELL.state=r;
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), rw=(r&&r.reward)||null;
@@ -14176,14 +14176,20 @@ let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
    and the next Vault status read re-sends it with the SAME requestId (the server replays the stored answer) before anything can start a new floor. */
 /* a server answer that settles a saved request: anything but a lost reply (offline), a refused save (storageFailed), a signed-out
    token (auth) or a reply that is not the server's (null / not an object). Those keep the saved request for an exact re-send. */
-function pendingDefinite(r){ return !!(r&&typeof r==='object'&&r.error!=='offline'&&r.error!=='auth'&&!r.storageFailed&&(r.ok===true||r.ok===false||typeof r.error==='string')); }
+function pendingDefinite(r){ return !!(r&&typeof r==='object'&&!r.storageFailed&&(r.ok===true||r.ok===false)); }   /* only the route's own ok:true/ok:false - a generic body (429 'Slow down', auth, offline) has no ok and settles nothing */
+const PENDING_MEM={};   /* when the device cannot store a result, the exact packet is kept here for a retry this session */
 function vaultPendingKey(acct){ return 'ew_vaultPending_'+acct; }
-function vaultPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; try{ const k=vaultPendingKey(acct), v=JSON.stringify(Object.assign({acct},body)); localStorage.setItem(k,v); return localStorage.getItem(k)===v; }catch(e){ return false; } }
-function vaultPendingSettle(acct,r){ if(!acct||!pendingDefinite(r)) return; try{ localStorage.removeItem(vaultPendingKey(acct)); }catch(e){} }
+function vaultPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; const job=Object.assign({acct},body); let stored=false;
+  try{ const k=vaultPendingKey(acct), v=JSON.stringify(job); localStorage.setItem(k,v); stored=localStorage.getItem(k)===v; }catch(e){}
+  PENDING_MEM['vault']=stored?null:job; return stored; }
+function vaultPendingSettle(acct,r,reqId){ if(!acct||!pendingDefinite(r)) return;   /* clears only THIS request - a newer saved result stays */
+  const m=PENDING_MEM['vault']; if(m&&m.acct===acct&&m.requestId===reqId) PENDING_MEM['vault']=null;
+  try{ const k=vaultPendingKey(acct), cur=JSON.parse(localStorage.getItem(k)||'null'); if(cur&&cur.requestId===reqId) localStorage.removeItem(k); }catch(e){} }
 async function vaultResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey(acct))||'null'); }catch(e){}
+  if(!job){ const m=PENDING_MEM['vault']; if(m&&m.acct===acct) job=m; }
   if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
   const r=await api('/api/dungeon/resolve-battle','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
-  vaultPendingSettle(acct,r); if(r&&r.ledger) adoptLedger(r.ledger); }
+  vaultPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
 async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
@@ -23371,12 +23377,17 @@ function wellHeroTag(k){ if(!(CUR&&CUR.mode==='well'&&WELL.state)) return null;
 /* 3 Oct audit (Well F4): a fight result is saved before it is sent; a lost reply (offline) or a refused save (storageFailed) keeps it,
    and the next Well load re-sends it with the SAME requestId (the server replays the stored answer) before reading the state. */
 function wellPendingKey(acct){ return 'ew_wellPending_'+acct; }
-function wellPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; try{ const k=wellPendingKey(acct), v=JSON.stringify(Object.assign({acct},body)); localStorage.setItem(k,v); return localStorage.getItem(k)===v; }catch(e){ return false; } }
-function wellPendingSettle(acct,r){ if(!acct||!pendingDefinite(r)) return; try{ localStorage.removeItem(wellPendingKey(acct)); }catch(e){} }
+function wellPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; const job=Object.assign({acct},body); let stored=false;
+  try{ const k=wellPendingKey(acct), v=JSON.stringify(job); localStorage.setItem(k,v); stored=localStorage.getItem(k)===v; }catch(e){}
+  PENDING_MEM['well']=stored?null:job; return stored; }
+function wellPendingSettle(acct,r,reqId){ if(!acct||!pendingDefinite(r)) return;   /* clears only THIS request - a newer saved result stays */
+  const m=PENDING_MEM['well']; if(m&&m.acct===acct&&m.requestId===reqId) PENDING_MEM['well']=null;
+  try{ const k=wellPendingKey(acct), cur=JSON.parse(localStorage.getItem(k)||'null'); if(cur&&cur.requestId===reqId) localStorage.removeItem(k); }catch(e){} }
 async function wellResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey(acct))||'null'); }catch(e){}
+  if(!job){ const m=PENDING_MEM['well']; if(m&&m.acct===acct) job=m; }
   if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
   const r=await api('/api/well/resolve','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
-  wellPendingSettle(acct,r); if(r&&r.ledger) adoptLedger(r.ledger); }
+  wellPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
 async function wellRefresh(){ if(!ACC.token) return null; await wellResendPending(); const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
 function wellBackToMap(){ show('home'); setTimeout(()=>{ try{ openWell(); }catch(e){} },0); }
 async function openWell(){
