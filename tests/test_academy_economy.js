@@ -43,6 +43,8 @@ const R=['iron','crystal','silver','coal'], each=(o,n)=>R.every(r=>(o[r]|0)===n)
   const a1=await call('/api/academy'); const want=Math.floor(E.ratePerHour(lv)*HOURS);
   ok(a1.status===200&&R.every(r=>a1.data.res[r]>=want&&a1.data.res[r]<=want+1),'Academy L'+lv+' pays '+want+' of each for '+HOURS+' h ('+JSON.stringify(a1.data.res)+')');
   ok(Math.abs(a1.data.incomePerHour-E.ratePerHour(lv))<1e-9&&a1.data.academyMax===120,'GET /api/academy reports the income rate and max');
+  { const d=await readDB(); const A=d.users[id].led.acad;   // 3 Oct release review (ChatGPT): the income a read reports is on disk
+    ok(JSON.stringify(A.res)===JSON.stringify(a1.data.res)&&A.incAt>Date.now()-HOURS*3600000,'the income the read reported is saved, with the clock moved on ('+JSON.stringify(A.res)+')'); }
   const a2=await call('/api/academy'); ok(JSON.stringify(a2.data.res)===JSON.stringify(a1.data.res),'a second read straight after pays nothing more');
   await editDB(db=>{ const A=db.users[id].led.acad; delete A.incAt; A.res={iron:0,crystal:0,silver:0,coal:0}; });
   const a3=await call('/api/academy'); ok(each(a3.data.res,0),'first touch with no saved clock starts the clock - no back-pay ('+JSON.stringify(a3.data.res)+')');
@@ -57,6 +59,10 @@ const R=['iron','crystal','silver','coal'], each=(o,n)=>R.every(r=>(o[r]|0)===n)
   ok(st.data.locked===false&&P>21&&P<100,'fixture player level '+P+' sits between the Hut floor and its top');
   const cost21=E.hutUpgradeCost(21), BREW=1000;
   await editDB(db=>{ const u=db.users[id]; u.led.acad.lv.academy=0; u.led.acad.res={iron:cost21+7,crystal:cost21+7,silver:cost21+7,coal:cost21+7}; u.witch.level=20; u.witch.brew=BREW; u.witch.tickAt=Date.now(); });
+  await editDB(db=>{ const A=db.users[id].led.acad; A.lv.academy=5; A.incAt=Date.now()-5*3600000; });
+  const vh=await call('/api/witch/state'); { const d=await readDB(); const A=d.users[id].led.acad;
+    ok(JSON.stringify(A.res)===JSON.stringify(vh.data.res)&&A.res.iron>cost21+7,'a Hut read that collects Academy income saves it ('+A.res.iron+')'); }
+  await editDB(db=>{ const u=db.users[id]; u.led.acad.lv.academy=0; u.led.acad.res={iron:cost21+7,crystal:cost21+7,silver:cost21+7,coal:cost21+7}; u.witch.brew=BREW; u.witch.tickAt=Date.now(); });
   const v=await call('/api/witch/state'); ok(v.data.upgrade&&v.data.upgrade.level===21&&each(v.data.upgrade.cost,cost21)&&v.data.upgrade.affordable===true&&v.data.upgrade.brewFraction===0.75,'the Hut shows Lv 21 for '+cost21+' of each + 75% brew');
   const stale=await call('/api/witch/upgrade',{requestId:'ae-stale',level:22}); ok(stale.status===400&&/changed/.test(stale.data.error),'a stale panel (level 22) buys nothing');
   const u1=await call('/api/witch/upgrade',{requestId:'ae-up1',level:21});

@@ -5295,7 +5295,9 @@ async function api(req,res,url){
   if(p==='/api/witch/state' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
     if(rateLimited(req,'witchstate',60,60000)) return send(res,429,{error:'Slow down — too many requests.'});   /* 3 Oct audit (Hut #12): each read recomputes every hero's power; the panel reads once per open */
-    return send(res,200,witchView(me,Date.now()));
+    const acadBefore=JSON.stringify(ensureAcad(me)), view=witchView(me,Date.now());
+    if(JSON.stringify(ensureAcad(me))!==acadBefore) writeDB();   // the Hut view collects Academy income: save it (3 Oct release review)
+    return send(res,200,view);
   }
   if(['/api/witch/heal','/api/witch/heal-all','/api/witch/buy-brew','/api/witch/upgrade'].includes(p) && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
@@ -6625,8 +6627,9 @@ async function api(req,res,url){
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
     const led=p==='/api/pvp/attack'?null:ensureLedger(me); const A=p==='/api/pvp/attack'?null:ensureAcad(me);
-    if(A)acadCollect(A);   // finished research applies on every touch
-    if(p==='/api/academy') return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(A.lv.academy|0) });
+    const acadChanged=A?acadCollect(A):false;   // finished research and hourly income apply on every touch
+    if(p==='/api/academy'){ if(acadChanged) writeDB();   /* 3 Oct release review (ChatGPT): a read that paid income saves it, like the Well read (F11) */
+      return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(A.lv.academy|0) }); }
     if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
