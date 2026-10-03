@@ -48,8 +48,18 @@ async function round(name,run,observe){
   await round('witch buy-brew',()=>call('/api/witch/buy-brew',{requestId:'wb1',tier:'first'}),
     async()=>{ const w=(await call('/api/witch/state')).data; return {brew:Math.round(w.brew),gems:(await led()).gems,offer:w.offer}; });
   // EMBERDRAFT: start a free attempt
-  await round('emberdraft start',()=>call('/api/emberdraft/start',{requestId:'es1',heroIds:heroes}),
+  const es=await round('emberdraft start',()=>call('/api/emberdraft/start',{requestId:'es1',heroIds:heroes}),
     async()=>{ const e=(await call('/api/emberdraft/state',{})).data; return e.edraft||e; });
+  // ChatGPT review: a flagged result (1st after 0 rounds) under a failed save must not leave its review flag behind
+  const attId=es.data.attemptId; const flagsOnDisk=async()=>{ await delay(400); await stop(); const d=JSON.parse(fs.readFileSync(dbFile,'utf8')); await start();
+    return {fb:(d.feedback||[]).filter(f=>f.signal==='emberdraft:'+attId).length, rp:(d.reports||[]).filter(r=>r.kind==='emberdraft-flag'&&r.userId===id).length}; };
+  fail(true); let er; try{ er=await call('/api/emberdraft/result',{requestId:'er1',attemptId:attId,place:1,rounds:0}); } finally { fail(false); }
+  ok(er.status===503&&er.data.storageFailed===true,'emberdraft flagged result under a failed save answers 503');
+  ok((await call('/api/witch/buy-brew',{requestId:'wb-other',tier:'first'})).status<500,'an unrelated later save succeeds');
+  let fl=await flagsOnDisk(); ok(fl.fb===0&&fl.rp===0,'no review flag or report survives the refused result ('+JSON.stringify(fl)+')');
+  const er2=await call('/api/emberdraft/result',{requestId:'er1',attemptId:attId,place:1,rounds:0}); ok(er2.status===200&&er2.data.ok===true,'same request succeeds once the disk works (review-first: paid '+er2.data.stamina+')');
+  await call('/api/emberdraft/result',{requestId:'er1',attemptId:attId,place:1,rounds:0});
+  fl=await flagsOnDisk(); ok(fl.fb===1&&fl.rp===1,'exactly one flag and one report after the saved result + replay ('+JSON.stringify(fl)+')');
   // ISLAND TRIAL: a dungeon trial floor
   await round('trial resolve',()=>call('/api/trial/resolve',{kind:'dungeon',floor:1,heroIds:heroes,requestId:'tr1'}),
     async()=>{ const l=await led(); return {gold:l.gold,trial:l.trial,eq:l.eqMats}; });
