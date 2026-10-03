@@ -19516,7 +19516,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
   { const gb=b.querySelector('#guestBtn'); if(gb) gb.onclick=()=>{ gb.disabled=true; playAsGuest(()=>{ renderAccount(); show('home'); }); }; }
   const finishAuth=(d,isReg)=>{ const _prevId=ACC&&ACC.id; clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(acctSwitchReload(_prevId, d.profile.id, isReg)) return;   // v401: switching account reboots the app (see acctSwitchReload)
-      if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); }
+      if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } else { loginReload(); return; }   /* v957 */
       updateHubChrome(); renderAccount(); };
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
     if(!tosOK()){ requireTos(()=>go(path), ()=>{ const m=b.querySelector('#acMsg'); if(m){ m.style.color='#ff8b8b'; m.textContent='You must accept the Terms to sign in.'; } }); return; }
@@ -19543,7 +19543,7 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
     api('/api/login','POST',{name, newPass:np, roster:rosterPayload()}).then(d=>{ if(d.error){ m.textContent=d.error; return; }
       if(!d.token){ m.textContent='Could not set password.'; return; }
       ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
-      if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); updateHubChrome(); renderAccount(); }); };
+      if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; } updateHubChrome(); renderAccount(); }); };   /* v957 */
 }
 /* 4 Sep (Phil): "when I log into another account its stuck level 1 until I close the game ... best to
    force someone back to the loading screen when they log into another account so it auto refreshes".
@@ -19553,6 +19553,18 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
    every one of those, an account SWITCH now reboots the app: the token is already persisted, so the
    reload comes straight back up signed in as the new account with everything rebuilt from scratch.
    Only a switch reloads - signing into the SAME account, or creating one, is left alone. */
+/* v957 (Phil, 3 Oct 2026: "it takes me reloading the game to load my heroes quality when logging into an account" / "so i think when
+   someone clicks log in, they should be force reloaded"). Signing in pulled the account's cloud save into G, but state built at boot
+   (hero quality, ranks - and with them which skills are unlocked) kept the pre-login values until a reload, so spells and buffs looked
+   broken. Every successful LOG IN now reboots the app once its cloud save is in, exactly like an account switch (v401). Not on
+   register, and not when the account has no save yet (that path pushes this device's progress first). */
+function loginReload(){
+  try{ document.body.innerHTML='<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0f17;color:#e6edf3;font-family:system-ui,sans-serif;gap:10px;z-index:99999">'
+    +'<div style="font-size:30px">⚔</div><div style="font-weight:800">Signing in…</div>'
+    +'<div style="font-size:12px;color:#8b98a9">Loading your heroes</div></div>'; }catch(e){}
+  setTimeout(()=>{ try{ location.reload(); }catch(e){} }, 450);
+  return true;
+}
 function acctSwitchReload(prevId, newId, isCreate){
   if(isCreate || !prevId || !newId || prevId===newId) return false;
   try{ document.body.innerHTML='<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0f17;color:#e6edf3;font-family:system-ui,sans-serif;gap:10px;z-index:99999">'
@@ -23965,7 +23977,7 @@ function renderSettings(){
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
         clearServerCaches();   // 31 Aug: this is an account SWITCH — or the reset player sees the previous account's Forge, Vault, glyphs and pool
-        if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave();
+        if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; }   /* v957 */
         _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
         bannerMsg('🔑 Password reset — you\'re signed in.'); }); };
     fgSubmit.onclick=doSubmit;
@@ -23989,7 +24001,7 @@ function renderSettings(){
         clearServerCaches();   // 31 Aug: settings-screen sign-in is an account switch too — mirror finishAuth()
         if(acctSwitchReload(_prevId, d.profile.id, isCreate)) return;   // v401: a switch reboots the app (see acctSwitchReload)
         if(isCreate){ _cloudReady=true; pushSave(); }                            // new account → seed the cloud with your current progress
-        else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } // sign in → load THIS account's own cloud save
+        else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } else { loginReload(); return; } // sign in → load THIS account's own cloud save (v957: then reboot)
         acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
       }); };
     acGo.onclick=go;
@@ -24007,7 +24019,7 @@ function renderSettings(){
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
         clearServerCaches();   // 31 Aug: armed-recovery sign-in is an account switch too
-        if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave();
+        if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; }   /* v957 */
         _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
     acSet.onclick=doSet;
     ['#acNew','#acNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSet(); });
@@ -25534,7 +25546,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791055645687';
+const BUILD_ID = '1791056838424';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
