@@ -107,6 +107,8 @@ note "test_audit_small_fixes.js (3 Oct audit: Vault paid sweep floor check first
 node tests/test_audit_small_fixes.js || FAILED=1
 note "test_well_state_read.js (3 Oct audit: a Well state read saves only when it changed the run)"
 node tests/test_well_state_read.js || FAILED=1
+note "test_vault_status_client.js (3 Oct audit: an unreachable Vault no longer renders the legacy Challenge Dungeon)"
+node tests/test_vault_status_client.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -14150,7 +14150,10 @@ async function vaultResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acc
   vaultPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
 function vaultPendingHeld(){ const acct=ACC&&ACC.id; if(!acct) return false; if(PENDING_MEM['vault:'+acct]) return true;   /* an unsent result blocks a new fight: the server keeps one open attempt */
   try{ return !!localStorage.getItem(vaultPendingKey(acct)); }catch(e){ return false; } }
-async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
+async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status');
+  /* 3 Oct audit (Vault F6): a reply that is not the server's status (offline / 429 / auth / null) no longer reads as "Vault disabled" - that
+     rendered the legacy Challenge Dungeon. Server answers are handled exactly as before. */
+  VAULT.st=(r&&typeof r==='object'&&typeof r.enabled==='boolean')?(r.enabled?r:{enabled:false}):{enabled:false,unreachable:true}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
     <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
@@ -17394,6 +17397,10 @@ function renderDungeon(){
   // this screen becomes the Vault; otherwise the legacy Challenge Dungeon below renders unchanged.
   if(VAULT.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Entering the Vault…</div>';
     vaultStatus().then(()=>renderDungeon()); return; }
+  if(VAULT.st.unreachable){ b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto"><div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">
+      <div class="panel" style="text-align:center;padding:26px"><div style="font-size:44px">🏛️</div><div style="font-weight:900;font-size:16px;color:#c9a2ff;margin:6px 0">COULD NOT REACH THE VAULT</div>
+      <button class="btn" id="vaultRetry">Retry</button></div></div></div>`;
+    const rb=document.getElementById('vaultRetry'); if(rb) rb.onclick=()=>{ VAULT.st=null; renderDungeon(); }; return; }
   if(VAULT.st.locked){   // v364: the Vault opens at player level 10 (server-decided)
     b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto"><div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">
       <div class="panel" style="text-align:center;padding:26px"><div style="font-size:44px">🏛️</div>
