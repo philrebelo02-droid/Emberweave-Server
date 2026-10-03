@@ -11348,10 +11348,10 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
    down"). Over-head badges (followAbove) on one unit no longer pile on the same spot: the NEWEST stays in the top place, drawn above the
    rest; every older one scrolls down by BADGE_SCROLL of its own height while shrinking to BADGE_SHRINK and fading, over BADGE_RETIRE s,
    then is gone. Visual only - buffs, their timers and their numbers are untouched. */
-const BADGE_RETIRE=1.0, BADGE_SCROLL=0.6, BADGE_SHRINK=0.45, BADGE_ENTER=0.3; let _badgeSeq=0;   /* v954 (Phil: "the new buff should come in and remove the older one over a 1 seconds timer"): retire 0.45 -> 1.0 s; the newest drops in from above over BADGE_ENTER s */
+const BADGE_RETIRE=1.0, BADGE_SCROLL=1.0, BADGE_SHRINK=0.45, BADGE_ENTER=1.0; let _badgeSeq=0; const _bEase=q=>q*q*(3-2*q);   /* v955 (Phil: "the buffed should not overlap the need buff comes above the old one, then slides down, pushing the old buff out"): the new badge starts one full badge-height ABOVE the old one and both slide down together over 1 s - the new into the top place, the old pushed down one height, shrinking and fading - so they never overlap */   /* v954 (Phil: "the new buff should come in and remove the older one over a 1 seconds timer"): retire 0.45 -> 1.0 s; the newest drops in from above over BADGE_ENTER s */
 function updateGroundFx(dt){ const _bTop=new Map(); for(const q of _groundFx){ if(q.followAbove&&q.aboveOff&&q.life>0){ if(q._seq==null) q._seq=++_badgeSeq; if(q._seq>(_bTop.get(q.followAbove)||0)) _bTop.set(q.followAbove,q._seq); } }
   for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
-  if(o.followAbove&&o.aboveOff){ const a=o.followAbove; if(a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); o.m.position.copy(p).add(o.aboveOff); } if(!a.alive) o.life=Math.min(o.life,0.18); } if(o.followAbove&&o.aboveOff&&o._seq<(_bTop.get(o.followAbove)||0)){ if(o._ret==null){ o._ret=0; o._s0=o.m.scale.clone(); } o._ret+=dt; const _q=Math.min(1,o._ret/BADGE_RETIRE), _k=1-(1-BADGE_SHRINK)*_q; o.m.position.y-=o._s0.y*BADGE_SCROLL*_q; o.m.scale.set(o._s0.x*_k,o._s0.y*_k,o._s0.z); o._retFade=1-_q; o.m.renderOrder=0; if(_q>=1) o.life=Math.min(o.life,0); } else if(o.followAbove&&o.aboveOff){ o.m.renderOrder=2; if(o.t<BADGE_ENTER) o.m.position.y+=o.m.scale.y*0.5*(1-o.t/BADGE_ENTER); }   /* v552: a buff badge rides above its unit's bar */
+  if(o.followAbove&&o.aboveOff){ const a=o.followAbove; if(a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); o.m.position.copy(p).add(o.aboveOff); } if(!a.alive) o.life=Math.min(o.life,0.18); } if(o.followAbove&&o.aboveOff&&o._seq<(_bTop.get(o.followAbove)||0)){ if(o._ret==null){ o._ret=0; o._s0=o.m.scale.clone(); } o._ret+=dt; const _q=_bEase(Math.min(1,o._ret/BADGE_RETIRE)), _k=1-(1-BADGE_SHRINK)*_q; o.m.position.y-=o._s0.y*BADGE_SCROLL*_q; o.m.scale.set(o._s0.x*_k,o._s0.y*_k,o._s0.z); o._retFade=1-_q; o.m.renderOrder=0; if(_q>=1) o.life=Math.min(o.life,0); } else if(o.followAbove&&o.aboveOff){ o.m.renderOrder=2; if(o.t<BADGE_ENTER) o.m.position.y+=o.m.scale.y*(1-_bEase(o.t/BADGE_ENTER)); }   /* v552: a buff badge rides above its unit's bar */
   if(o.follow){ const f=o.follow, fx=(f.rx==null?f.x:f.rx), fy=(f.ry==null?f.y:f.ry); if(o.front) o.m.position.set(wx(fx),o.upY!=null?o.upY:0.2,wz(fy)); else o.m.position.x=wx(fx), o.m.position.z=wz(fy)+(o.zoff||0); }
   { let fr=Math.floor((o.t/o.d.dur)*o.d.n);
     /* v489 (Phil): Grasping Vow's fist is driven by HOW FAR THE VICTIM HAS COME, not by a clock — "get to f14 faster, and
@@ -25534,7 +25534,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791055261530';
+const BUILD_ID = '1791055512772';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
