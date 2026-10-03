@@ -12,7 +12,7 @@ const sha=t=>crypto.createHash('sha256').update(t).digest('hex').slice(0,16);
 let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };
 const line=(src,sig)=>{ const i=src.indexOf(sig); assert(i>=0,'found '+sig); return src.slice(i,src.indexOf('\n',i)); };
 try{
-  const ctx=vm.createContext({}); vm.runInContext(line(html,'function learnResCost('),ctx); vm.runInContext(line(srv,'function learnResCostSrv('),ctx);
+  const ctx=vm.createContext({}); vm.runInContext(line(html,'function learnResCost('),ctx); { const i=srv.indexOf('function learnResCostSrv('); assert(i>=0,'found learnResCostSrv'); ctx.ACADEMY_ECON={levelCost:()=>0,RESOURCES:[]}; vm.runInContext(srv.slice(i,srv.indexOf('\nconst ACADEMY_CUTOFF',i)),ctx); }   // spans two lines since the Academy level costs all four (3 Oct)
   const TRACKS=['atk','ap','hp','def','armor','mr','crit','critres'], uses={iron:0,crystal:0,silver:0,coal:0};
   for(const t of TRACKS) for(const lv of [0,7,40]){
     const c=vm.runInContext('learnResCost('+JSON.stringify(t)+','+lv+')',ctx), s=vm.runInContext('learnResCostSrv('+JSON.stringify(t)+','+lv+')',ctx);

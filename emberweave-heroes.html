@@ -5319,7 +5319,7 @@ function academySpeedup(){ return Math.min(0.6, academyLevel()*0.02); }   // Aca
 function learnDur(lvl){ return Math.round((120 + lvl*lvl*45) * 1000 * (1-academySpeedup())); } // ms — sped up by the Academy's level
 function fmtDur(ms){ ms=Math.max(0,ms); let s=Math.ceil(ms/1000); const h=Math.floor(s/3600); s-=h*3600; const m=Math.floor(s/60); s-=m*60; const p=n=>String(n).padStart(2,'0'); return h>0?`${h}:${p(m)}:${p(s)}`:`${m}:${p(s)}`; }
 // finish any research whose timer has elapsed (applies the level, clears the timer)
-function collectLearns(){ let changed=false; for(const k in G.techLearn){ const done=G.techLearn[k]; if(done&&Date.now()>=done){ G.tech[k]=Math.min((typeof TECH_MAX!=='undefined'?TECH_MAX:60),(G.tech[k]||0)+1); G.techLearn[k]=0; changed=true; } }
+function collectLearns(){ let changed=false; for(const k in G.techLearn){ const done=G.techLearn[k]; if(done&&Date.now()>=done){ G.tech[k]=Math.min((k==='academy'?ACADEMY_MAX:(typeof TECH_MAX!=='undefined'?TECH_MAX:60)),(G.tech[k]||0)+1); G.techLearn[k]=0; changed=true; } }
   if(changed){ saveG(); if(ACC.token) api('/api/academy/collect','POST',{requestId:uid8()}).then(r=>{ if(r&&r.lv){ G.tech=Object.assign({},G.tech,r.lv); saveGLocalOnly(); } }).catch(()=>{}); }   // v249: the server applies the level too
   return changed; }
 // soonest-completing active research, or null
@@ -5327,7 +5327,12 @@ function nextLearn(){ let best=null; for(const k in G.techLearn){ const d=G.tech
 // is any research currently running?
 function learnBusy(){ for(const k in G.techLearn){ if(G.techLearn[k]>Date.now()) return k; } return null; }
 // resource cost to research a track at its current level (needs world-map resources)
-function learnResCost(track,lvl){ const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+/* Phil 3 Oct 2026 - copy of server/academy-economy.js (tests/test_academy_economy.js holds them equal): the Academy level costs all four,
+   equal, to level 120; it pays its next upgrade's cost over 24 + 2(N-1) hours, never less than the level below. */
+const ACADEMY_MAX=120, ACAD_COST=[64,109,203,349,575,667,763,1048,1349,1529,1701,1880,2065,2257,2455,2817,3193,3583,3986,4424,4609,4812,5031,5269,5526,5804,6105,6430,6779,7158,7493,7850,8231,8639,9075,9539,10033,10558,11115,11706,12334,13000,13701,14446,15230,16061,16935,17858,18828,19850,20927,22056,23243,24487,25797,27168,28604,30107,31681,33329,35054,36853,38735,40699,42750,44891,47122,49447,51872,54395,57023,59757,62604,65566,68642,73279,78172,83334,88781,94516,100559,106922,113616,120659,128061,135839,144012,152585,161588,171032,178190,185595,193260,201182,209376,239633,271920,306342,342990,381969,396922,412360,428299,444751,461719,479230,497296,515931,535135,554940,575358,596401,618085,640429,663441,687922,713306,739627,766919,795218];
+const ACAD_RATE=(()=>{ const r=[0]; for(let n=1;n<=ACADEMY_MAX;n++) r.push(Math.max(r[n-1], n<ACADEMY_MAX?ACAD_COST[n]/(24+2*(n-1)):0)); return r; })();
+function acadRatePerHour(lvl){ return ACAD_RATE[Math.max(0,Math.min(ACADEMY_MAX,lvl|0))]; }
+function learnResCost(track,lvl){ if(track==='academy'){ const n=ACAD_COST[(lvl|0)]||0; return {iron:n,crystal:n,silver:n,coal:n}; } const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 function canAffordRes(c){ for(const k in c){ if((G.res[k]||0)<c[k]) return false; } return true; }
 function payRes(c){ for(const k in c){ G.res[k]=(G.res[k]||0)-c[k]; } }
 function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+v).join(' '); }
@@ -19366,7 +19371,7 @@ function renderTech(){
   const isAcad=techSel==='academy';
   const sel=isAcad?['academy','🏛️','Academy','research speed']:(tracks.find(t=>t[0]===techSel)||tracks[0]);
   const [k,ic,name,desc]=sel;
-  const lvl=G.tech[k]||0, maxed=lvl>=TECH_MAX, cost=60+lvl*70, rc=learnResCost(k,lvl), learning=G.techLearn[k]||0, remain=learning-Date.now();
+  const tmax=isAcad?ACADEMY_MAX:TECH_MAX, lvl=G.tech[k]||0, maxed=lvl>=tmax, cost=60+lvl*70, rc=learnResCost(k,lvl), learning=G.techLearn[k]||0, remain=learning-Date.now();
   const affordable=G.gold>=cost&&canAffordRes(rc), blocked=busy&&busy!==k;
   const acadLocked=!isAcad && lvl>=(G.tech.academy||0) && lvl<TECH_MAX;   // can't research a tech above your Academy level
   const flat=!!TECH_FLAT[k];
@@ -19374,7 +19379,7 @@ function renderTech(){
   if(isAcad){ per=2; now=Math.round(academySpeedup()*100); perStr='−2%'; nowStr='−'+now+'%'; }   // Academy speeds research
   else { per=techGainAt(k,lvl); now=techTotal(k,lvl); const unit=flat?'':'%'; perStr='+'+(flat?per.toFixed(1):per.toFixed(2))+unit; nowStr='+'+(flat?Math.round(now):now.toFixed(1))+unit; }
   let btn;
-  if(maxed){ btn=`<button class="btn secondary" disabled>MAX · Lv ${TECH_MAX}</button>`; }
+  if(maxed){ btn=`<button class="btn secondary" disabled>MAX · Lv ${tmax}</button>`; }
   else if(learning&&remain>0){ btn=`<button class="btn" disabled>⏳ ${fmtDur(remain)} · upgrading to Lv ${lvl+1}</button>`; }
   else if(acadLocked){ btn=`<button class="btn secondary" disabled>🔒 Raise Academy to Lv ${lvl+1} first</button>`; }
   else if(blocked){ btn=`<button class="btn secondary" disabled>Academy busy elsewhere</button>`; }
@@ -19382,12 +19387,13 @@ function renderTech(){
   const card=document.createElement('div'); card.className='tw-detail';
   card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="font-size:26px">${ic}</div>
-      <div><div style="font-weight:800;font-size:16px">${name} · Lv ${lvl}${maxed?' <span style="color:#ffd45e">MAX</span>':'/'+TECH_MAX}</div>
+      <div><div style="font-weight:800;font-size:16px">${name} · Lv ${lvl}${maxed?' <span style="color:#ffd45e">MAX</span>':'/'+tmax}</div>
       <div style="font-size:12px;color:#8b98a9">${isAcad?`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc} (all research is faster)`:`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`}</div></div></div>
+    ${isAcad?`<div style="font-size:12px;color:#8b98a9;margin-bottom:4px">Income <b style="color:#5ee89b">+${Math.floor(acadRatePerHour(lvl)).toLocaleString()}</b> each / h${maxed?'':` · Lv ${lvl+1} <b style="color:#5ee89b">+${Math.floor(acadRatePerHour(lvl+1)).toLocaleString()}</b> each / h`}</div>`:''}
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${maxed?'Fully upgraded.':`Learn time: ${fmtDur(learnDur(lvl))}${learning&&remain>0?` · <span style="color:#8fe3ff">in progress…</span>`:''}`}</div>
     <div style="text-align:center">${btn}</div>`;
   p.appendChild(card);
-  const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=async()=>{ if(learnBusy()||lvl>=TECH_MAX||acadLocked)return;
+  const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=async()=>{ if(learnBusy()||lvl>=tmax||acadLocked)return;
     if(ACC.token){ const r=await api('/api/academy/research','POST',{track:k,requestId:uid8()});   // v249: SERVER debits gold + resources and owns the timer
       if(r&&r.error){ bannerMsg(r.error); return; }
       if(r&&r.completesAt){ G.techLearn[k]=r.completesAt; if(r.res) G.res=Object.assign({},G.res,r.res); if(r.ledger&&r.ledger.gold!=null) G.gold=r.ledger.gold; saveGLocalOnly(); updateHubChrome(); renderTech(); }
@@ -20022,23 +20028,28 @@ async function renderCauldron(body){
       ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ⚔ ${h.power.toLocaleString()} · Brew ${h.healCost}${away?' · Returns in '+fmtDur(h.returnAt-now):''}</span></div>
       <button class="btn xs" data-witch-heal="${h.key}" ${w.brew<=0||away?'disabled':''}>${away?'Marching':'Heal'}</button></div>`;
   }).join('');
-  const offer=w.offer;
+  const offer=w.offer, up=w.upgrade;
+  if(w.res&&typeof w.res==='object') G.res=Object.assign(G.res||{},w.res);   /* the Hut spends the Academy's resources (Phil 3 Oct) */
+  const upBtn=(!up||up.maxed)?'':(up.needPlayerLevel?`<button class="btn sm secondary" disabled>Hut Lv ${up.level} · player Lv ${up.needPlayerLevel}</button>`
+    :`<button class="btn sm secondary" data-witch-upgrade ${up.affordable?'':'disabled'}>Upgrade Hut Lv ${up.level} · ${resCostStr(up.cost)} · 🫙 −${Math.floor(w.brew*up.brewFraction).toLocaleString()}</button>`);
   panel.innerHTML=`<div style="font-weight:800;font-size:15px">🫙 Cauldron · Hut Lv ${w.level}</div>
     <video src="/assets/img/witches-hut/${brewScene}?v=1" poster="/assets/img/witches-hut/cauldron-base.png?v=1" autoplay muted loop playsinline preload="metadata" aria-label="Witches Hut cauldron at ${Math.round(pct)} percent brew" style="display:block;width:min(100%,320px);aspect-ratio:1;margin:10px auto;border-radius:12px;object-fit:cover;background:#111"></video>
     <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()}</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${canHeal&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
-    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}</div>
+    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}${upBtn}</div>
     <div style="font-size:12px;font-weight:700;margin-bottom:5px">Damaged heroes</div>${rows||'<div style="font-size:12px;color:#aeb8c8">All your heroes are healthy.</div>'}`;
   const act=async(btn,path,extra)=>{ if(btn.disabled)return; btn.disabled=true;
     const rk=path+'|'+JSON.stringify(extra||{}), rid=WITCH_RID[rk]||(WITCH_RID[rk]=uid8());
     const r=await api(path,'POST',Object.assign({requestId:rid},extra||{}));
     if(!(r&&(r.error==='offline'||r.storageFailed))) delete WITCH_RID[rk];
-    if(r&&r.ok){ if(r.witch&&r.witch.ledger)adoptLedger(r.witch.ledger); body.querySelectorAll('.panel').forEach(el=>el.remove()); renderCauldron(body); }
+    if(r&&r.ok){ if(r.witch&&r.witch.ledger)adoptLedger(r.witch.ledger); if(r.witch&&r.witch.res)G.res=Object.assign(G.res||{},r.witch.res); body.querySelectorAll('.panel').forEach(el=>el.remove()); renderCauldron(body); }
     else { bannerMsg((r&&r.error)||'The cauldron could not complete that action.'); btn.disabled=false; } };
   panel.querySelectorAll('[data-witch-heal]').forEach(btn=>btn.onclick=()=>act(btn,'/api/witch/heal',{hero:btn.dataset.witchHeal}));
   const all=panel.querySelector('[data-witch-all]'); if(all) all.onclick=()=>act(all,'/api/witch/heal-all');
   const buy=panel.querySelector('[data-witch-buy]'); if(buy) buy.onclick=()=>act(buy,'/api/witch/buy-brew',{tier:buy.dataset.witchBuy});
+  const upg=panel.querySelector('[data-witch-upgrade]');   // spends 75% of the brew: the first tap arms it, the second upgrades
+  if(upg) upg.onclick=()=>{ if(upg.dataset.armed){ act(upg,'/api/witch/upgrade',{level:up.level}); return; } upg.dataset.armed='1'; upg.textContent='Confirm · Upgrade Hut Lv '+up.level; };
 }
 function renderWall(){
   const lv=playerLevel(), body=document.getElementById('wallBody'); body.innerHTML='';
