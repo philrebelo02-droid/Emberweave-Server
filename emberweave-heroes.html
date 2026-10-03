@@ -19972,6 +19972,8 @@ function renderArenaShop(){
 }
 
 let WALL_TAB='wall';
+/* one requestId per Hut action until a definite answer: a lost response (offline) or a refused save (storageFailed) retries the SAME id, so it cannot be bought or healed twice */
+const WITCH_RID={};
 async function renderCauldron(body){
   if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center"><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return; }
   const panel=document.createElement('div'); panel.className='panel'; panel.innerHTML='Loading cauldron…'; body.appendChild(panel);
@@ -19998,7 +20000,9 @@ async function renderCauldron(body){
     ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}</div>
     <div style="font-size:12px;font-weight:700;margin-bottom:5px">Damaged heroes</div>${rows||'<div style="font-size:12px;color:#aeb8c8">All your heroes are healthy.</div>'}`;
   const act=async(btn,path,extra)=>{ if(btn.disabled)return; btn.disabled=true;
-    const r=await api(path,'POST',Object.assign({requestId:uid8()},extra||{}));
+    const rk=path+'|'+JSON.stringify(extra||{}), rid=WITCH_RID[rk]||(WITCH_RID[rk]=uid8());
+    const r=await api(path,'POST',Object.assign({requestId:rid},extra||{}));
+    if(!(r&&(r.error==='offline'||r.storageFailed))) delete WITCH_RID[rk];
     if(r&&r.ok){ if(r.witch&&r.witch.ledger)adoptLedger(r.witch.ledger); body.querySelectorAll('.panel').forEach(el=>el.remove()); renderCauldron(body); }
     else { bannerMsg((r&&r.error)||'The cauldron could not complete that action.'); btn.disabled=false; } };
   panel.querySelectorAll('[data-witch-heal]').forEach(btn=>btn.onclick=()=>act(btn,'/api/witch/heal',{hero:btn.dataset.witchHeal}));
