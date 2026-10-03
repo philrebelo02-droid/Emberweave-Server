@@ -1364,11 +1364,27 @@ function writeDBNow(){
   }catch(e){ console.error('⚠ DB durable write failed:', e.message); }
   try{ pgSave(); }catch(e){}
 }
+/* 3 Oct 2026 audit (P1, every building): writeDBNow() catches a failed disk write and the reply still says ok, so a
+   player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
+   account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
+   caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
+const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2']);
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
   if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
+  let du=opts&&opts.durableUser;
+  if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
+  if(du&&PG_BOOT_PENDING) return {ok:false,storageFailed:true,error:'Storage restore pending. Retry the same request.'};
+  const snap=du?JSON.parse(JSON.stringify(du)):null;
+  /* the Vault keeps its climb outside the account (DB.dungeonProgress[id]) - it rolls back with the account */
+  const dpHad=!!(du&&DB.dungeonProgress&&DB.dungeonProgress[du.id]), dpSnap=dpHad?JSON.parse(JSON.stringify(DB.dungeonProgress[du.id])):null;
   const resp=fn(); DB.idem[key]={t:now,resp};
   if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
+  if(du&&!_worldSettlementPlanning){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
+    catch(e){ console.error('Durable idem save failed - account rolled back:', e.message); _adoptUser(du.id,snap); delete DB.idem[key];
+      if(DB.dungeonProgress){ if(dpHad) DB.dungeonProgress[du.id]=dpSnap; else delete DB.dungeonProgress[du.id]; }
+      return {ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}; }
+    try{ pgSave(); }catch(e){} return resp; }
   writeDBNow();                       // the receipt lands with the reward, or neither does
   return resp; }
 
@@ -4976,7 +4992,7 @@ async function api(req,res,url){
         prog.version++; writeDB();
         return { ok:true, result:{won:true}, reward, dust:me.dust||0, progress:dungeonView(prog) };
       });
-      return send(res, out.ok===false?400:200, out);
+      return send(res, out.storageFailed?503:(out.ok===false?400:200), out);
     }
     if(p==='/api/dungeon/sweep'){
       const out=idem(me.id+':dsweep:'+reqId,()=>{
@@ -4998,7 +5014,7 @@ async function api(req,res,url){
         if(sweepCost===0) prog.sweep.freeUsesRemaining--; prog.sweep.totalSweepsToday++; prog.version++; writeDB();
         return { ok:true, totalDust:dust, fragments:frags, gearFragments:gfrags, floors:prog.highestClearedFloor, heroXp:sweepTeam.length?heroXp:0, heroXpTeam:sweepTeam, perFloor:rewards, heroXpPerFloor:sweepTeam.length?VAULT_HERO_XP_PER_FLOOR:0, /* v372: the sweep pop-up lists every floor's drops */ sweep:{freeUsesRemaining:prog.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(prog.sweep)}, dust:me.dust||0, gemsSpent:sweepCost, ledger:ledgerView(me) };
       });
-      return send(res, out.ok===false?400:200, out);
+      return send(res, out.storageFailed?503:(out.ok===false?400:200), out);
     }
     if(p==='/api/fragments/salvage'){
       const out=idem(me.id+':salv:'+reqId,()=>{
@@ -5021,7 +5037,7 @@ async function api(req,res,url){
         g.revision++; me.dust=(me.dust||0)+dust; writeDB();
         return { ok:true, dustGained:dust, dust:me.dust, fragments:g.fragments };
       });
-      return send(res, out.ok===false?400:200, out);
+      return send(res, out.storageFailed?503:(out.ok===false?400:200), out);
     }
     return send(res,404,{error:'dungeon'});
   }
@@ -5253,7 +5269,7 @@ async function api(req,res,url){
       led.gems-=offer.gems; ledTx(me,'witch:brew',{gems:-offer.gems});
       return {ok:true,result:bought,witch:witchView(me,now)};
     });
-    return send(res,out.ok?200:400,out);
+    return send(res,out.storageFailed?503:(out.ok?200:400),out);
   }
 
   if((p==='/api/world/mine/start'||p==='/api/world/mine/resolve') && req.method==='POST'){
@@ -5431,14 +5447,25 @@ async function api(req,res,url){
   /* 3 Oct audit (P0): Tower of Trials - see towerReqS(). /state also carries a pre-v949 client's own floor over ONCE,
      capped at the highest floor the account's power can stand on today and paying nothing (those floors were paid). */
   if(p.startsWith('/api/tower/') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
+    /* ChatGPT review 3 Oct: request ids are exact - a string of 1-48 characters, never coerced or truncated (two long ids
+       must not collapse into one receipt). */
+    const towerRid=v=>(typeof v==='string'&&v.length>=1&&v.length<=48)?v:null;
     if(p==='/api/tower/state'){ const led=ensureLedger(me), T=towerLed(led);
+      const view=t=>({ok:true,floor:t.floor,trib:t.trib,today:towerDayKey(),power:ledgerTeamPower(me),nextReq:towerReqS(t.floor+1)});
       /* Cross-device: until the first SERVER climb, the highest local floor any of the player's devices reports counts
-         (capped by power, paying nothing); after it, the server's floor is the floor. A tribute a device says it took
-         today stays taken (never paid twice). */
-      if(!T.srv){ const legacy=Math.max(0,Math.min(5000,Math.floor(+b.legacyFloor||0))); const f=Math.min(legacy,towerMaxForPower(ledgerTeamPower(me)));
-        let ch=!T.mig; if(f>T.floor){ T.floor=f; ch=true; } if(String(b.legacyTrib||'')===towerDayKey()&&T.trib!==towerDayKey()){ T.trib=towerDayKey(); ch=true; } T.mig=1; if(ch) writeDB(); }
-      return send(res,200,{ok:true,floor:T.floor,trib:T.trib,today:towerDayKey(),power:ledgerTeamPower(me),nextReq:towerReqS(T.floor+1)}); }
-    const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+         (capped by the power floor, paying nothing - every floor up to it is one a climb would reach and be PAID for, so
+         the claim can only cost the player those floor rewards, never gain). A tribute a device says it took today stays
+         taken; so does today's tribute if any old client-side 'earn:tower' landed today (a device that forgot to say so
+         cannot be paid twice). The migration commits to disk BEFORE it is acknowledged (503 on a failed save). */
+      if(!T.srv){ const legacy=(typeof b.legacyFloor==='number'&&Number.isFinite(b.legacyFloor))?Math.max(0,Math.min(5000,Math.floor(b.legacyFloor))):0;
+        const f=Math.min(legacy,towerMaxForPower(ledgerTeamPower(me))), day=towerDayKey();
+        const earnedToday=(led.txs||[]).some(x=>x&&x.src==='earn:tower'&&typeof x.t==='number'&&nyDayKey(x.t-9*3600000)===day);
+        const wantTrib=(b.legacyTrib===day||earnedToday)&&T.trib!==day;
+        if(!T.mig||f>T.floor||wantTrib){
+          const out=durableCommit(me,me.id+':tower:mig:'+uid(),(me)=>{ const T2=towerLed(ensureLedger(me)); if(f>T2.floor) T2.floor=f; if(wantTrib) T2.trib=day; T2.mig=1; return view(T2); });
+          return send(res,out.storageFailed?503:200,out); } }
+      return send(res,200,view(T)); }
+    const reqId=towerRid(b.requestId); if(!reqId) return send(res,400,{error:'requestId must be a string of 1-48 characters'});
     if(p==='/api/tower/ascend'){ const out=durableCommit(me,me.id+':tower:ascend:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
         if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
@@ -5854,6 +5881,7 @@ async function api(req,res,url){
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
       feedbackCheatSignal, D_TROOP_INC, SIM, isDev,
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
+    if(out&&out.storageFailed) return send(res, 503, out);   /* 3 Oct audit: durable idem refused a failed save */
     if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
   if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
@@ -6212,14 +6240,14 @@ async function api(req,res,url){
         if((led.gems|0)<cost) return {ok:false,error:'Not enough diamonds — '+ED_PACK+' more attempts cost '+cost+'.',edraft:view()};
         led.gems-=cost; E.bought++; ledTx(me,'emberdraft:buy-attempts',{gems:-cost});
         writeDB(); return {ok:true, gems:led.gems, edraft:view(), ledger:ledgerView(me)}; });
-      return send(res,out.ok?200:400,out); }
+      return send(res,out.storageFailed?503:(out.ok?200:400),out); }
     if(p==='/api/emberdraft/start'){ const out=idem(me.id+':edstart:'+reqId,()=>{
         if(!god && ledPlayerLevel(led)<25) return {ok:false, error:'Emberdraft opens at level 25.', edraft:view()};   // v654 (Phil: "yes"): the client's Island gate, checked here too (same XP table as the client's playerLevel)
         if(!god && view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
         if(!god) E.used++;
         E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false, god:!!god };   // v654: remember a God-mode start
         writeDB(); return { ok:true, attemptId:E.att.id, edraft:view() }; });
-      return send(res,out.ok?200:400,out); }
+      return send(res,out.storageFailed?503:(out.ok?200:400),out); }
     const out=idem(me.id+':edresult:'+reqId,()=>{
       const att=E.att; if(!att||att.id!==String(b.attemptId||'')) return {ok:false,error:'No Emberdraft match in progress.'};
       if(att.claimed) return {ok:false,error:'This match was already claimed.'};
@@ -6253,7 +6281,7 @@ async function api(req,res,url){
       ledTx(me,'emberdraft:place'+place,{stamina:got});
       writeDB();
       return { ok:true, stamina:got, note:got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : '', edraft:view(), ledger:ledgerView(me) }; });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   /* =================== v663: TRAINING PROVINCE (Gold / Drill) — real battles, server-paid ===================
      state  GET  → the stage table (gates, bosses, rewards) + today's plays
      start  POST {type, stage, heroIds, requestId} → frozen squad snapshots + seed + the authored waves
@@ -6450,7 +6478,7 @@ async function api(req,res,url){
           ledTx(me,'dungeon:mats:'+floor,mats);
         } }
         writeDB(); return {ok:true, won:true, first, best:T.best, reward, mats, matsCapped, matsLeft, matsCap:DUNGEON_MATS_PER_DAY, eqMats:(led.eqMats||null), ledger:ledgerView(me)};
-      }); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     if(p==='/api/quest/claim'){ const out=idem(me.id+':quest:'+reqId,()=>{
         led.quests=led.quests||{claimed:{},chainStep:0};
         const id=String(b.id||''); const q=QUEST_DEFS_SRV[id]; if(!q) return {ok:false,error:'Unknown quest.'};

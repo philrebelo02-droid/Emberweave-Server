@@ -85,6 +85,10 @@ node tests/test_prayer_authority.js || FAILED=1
 node tests/test_world_mine_durable.js || FAILED=1
 node tests/test_watch_privacy.js || FAILED=1
 node tests/test_world_city_recall.js || FAILED=1
+note "test_tower_server.js (3 Oct audit P0: the Tower of Trials is server-owned; v948 numbers floor by floor)"
+node tests/test_tower_server.js || FAILED=1
+note "test_durable_buildings.js (3 Oct audit: Vault/Hut/Emberdraft/trial/Well answer 503 on a failed save, nothing moves)"
+node tests/test_durable_buildings.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
