@@ -79,11 +79,15 @@ ck "band 1-10 = Grey fragments" 'True' "$GREY"
 SW=$(curl -s -X POST $B/api/dungeon/sweep -H "$H" -H 'content-type: application/json' -d '{"requestId":"sw1"}')
 ck "sweep ok" '"totalDust"' "$SW"
 SWFR=$(echo "$SW" | python3 -c "import sys,json;d=json.load(sys.stdin);print(sum(d['fragments'].values()))" 2>/dev/null)
-[ "$SWFR" = "2" ] && { PASS=$((PASS+1)); echo "  ✓ sweep pays standard 2 boss fragments"; } || { FAIL=$((FAIL+1)); echo "  ✗ sweep fragments = $SWFR"; }
+# blueprint 08 (v478): 1 glyph fragment per floor, 2 on a boss floor -> floors 1..5 = 1+1+1+1+2 = 6
+[ "$SWFR" = "6" ] && { PASS=$((PASS+1)); echo "  ✓ sweep pays 1 glyph fragment per floor, 2 on the boss floor (6)"; } || { FAIL=$((FAIL+1)); echo "  ✗ sweep fragments = $SWFR (want 6)"; }
 SW2=$(curl -s -X POST $B/api/dungeon/sweep -H "$H" -H 'content-type: application/json' -d '{"requestId":"sw2"}')
 ck "second sweep ok" '"freeUsesRemaining":0' "$SW2"
 SW3=$(curl -s -X POST $B/api/dungeon/sweep -H "$H" -H 'content-type: application/json' -d '{"requestId":"sw3"}')
-ck "third sweep blocked" 'No free Sweeps' "$SW3"
+# blueprint 08 (v372): 2 free, then 3 paid at 200 / 400 / 600 diamonds, then none
+ck "third sweep is the first PAID sweep" '"totalDust"' "$SW3"
+SW4=$(curl -s -X POST $B/api/dungeon/sweep -H "$H" -H 'content-type: application/json' -d '{"requestId":"sw4"}')
+ck "fourth sweep costs 400 diamonds (refused without them)" 'this Sweep costs 400' "$SW4"
 
 # salvage: sell 1 Grey glyph fragment stack from the sweep income
 STATE=$(curl -s $B/api/glyphs/state -H "$H")
@@ -100,7 +104,9 @@ curl -s -X POST $B/api/admin/led-grant -H "x-token: $TD" -H 'content-type: appli
 ST2=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H2" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"w1"}')
 A2=$(echo "$ST2"|jq "['attemptId']")
 RES4=$(curl -s -X POST $B/api/dungeon/resolve-battle -H "$H2" -H 'content-type: application/json' -d "{\"attemptId\":\"$A2\",\"requestId\":\"w2\",\"won\":false}")
-ck "AUTHORITATIVE: client-declared loss is overridden by the server sim (floor 1 winnable → advances)" '"currentFloor":2' "$RES4"
+# Phil 28 Sep 2026: the player's fight is the result - a reported loss keeps the floor (supersedes the server-sim override)
+ck "PLAYER TRUTH: a reported loss is the result (floor stays 1)" '"currentFloor":1' "$RES4"
+ck "PLAYER TRUTH: the loss is marked playerTruth" '"playerTruth":true' "$RES4"
 # abandoning an attempt doesn't lock the Vault: a new start discards the old attempt
 ST3=$(curl -s -X POST $B/api/dungeon/start-battle -H "$H2" -H 'content-type: application/json' -d '{"heroIds":["vael","sylthaine","vireo","tick","fritz"],"requestId":"w3"}')
 ck "restart after abandon works" '"attemptId"' "$ST3"
