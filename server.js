@@ -3394,16 +3394,31 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
 const EARN_RULES={
   frag:{ arena:{max:10,day:60}, signin:{max:20,day:40}, stars:{max:200,day:600} },
   stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, stars:{max:1500,day:6000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
-  gems:{ signin:{max:200,day:2000}, tower:{max:500,day:5000}, gauntlet:{max:500,day:5000},
+  gems:{ signin:{max:200,day:2000},   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
          stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
          quest:{max:500,day:4000}, convert:{max:1000,day:6000},
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
-  gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000}, tower:{max:200000,day:2000000}, gauntlet:{max:200000,day:2000000},
+  gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000},   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          stars:{max:200000,day:2000000}, city:{max:100000,day:1000000},
          quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000},   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
   guildCoins:{ march:{max:40,day:400} } };
+/* 3 Oct 2026 audit (P0, Phil: "finish the audit and fixes tonight"): THE TOWER OF TRIALS IS SERVER-OWNED.
+   The client used to work out its own floor and tribute gold/diamonds and post them to /api/tx/earn with
+   reason 'tower'; the server only checked a per-request max and a daily cap, so any account could take
+   2,000,000 gold + 5,000 diamonds a day with no climb. The SAME numbers now live here: floor requirement
+   = the client's towerReq() (POWER_SCALE 1.4276, Elite x1.3), floor reward = towerFloorReward(), tribute =
+   towerTribute(), tribute day = arenaDayKey() (New York date at 09:00). Power = ledgerTeamPower(), the card
+   sum of the chosen five (RULE 26 - one power). Nothing a player earns per floor changed. */
+const TOWER_POWER_SCALE=1.4276;   /* = the client's POWER_SCALE (v809). Change both or neither. */
+function towerReqS(f){ let r=Math.round(560*Math.pow(1.185,f-1)*TOWER_POWER_SCALE); if(f%5===0)r=Math.round(r*1.3); return r; }
+function towerFloorPay(f){ let gold=Math.round(400*f*Math.pow(1.08,f)); if(gold>190000)gold=190000; if(f%2===0)gold+=200+f*25; if(gold>200000)gold=200000;
+  return {gold, gems:(f%10===0)?Math.round(f*1.5):0}; }
+function towerTribPay(floor){ let gold=Math.round(500*floor)+250*(1+Math.floor(floor/4)); if(gold>200000)gold=200000; return gold; }
+function towerDayKey(){ return nyDayKey(Date.now()-9*3600000); }
+function towerLed(led){ if(!led.tower||typeof led.tower!=='object'||Array.isArray(led.tower)) led.tower={floor:0,trib:'',mig:0,srv:0}; return led.tower; }
+function towerMaxForPower(pow){ let f=0; while(f<5000&&towerReqS(f+1)<=pow) f++; return f; }
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
@@ -5413,6 +5428,37 @@ async function api(req,res,url){
       devReport(me,'dev-pack',pk.n,me.name+' test-bought '+pk.name+' (+'+pk.n+' diamonds) - review');
       writeDB(); return { ok:true, gems:pk.n, pack:pk.name, ledger:ledgerView(me) }; });
     return send(res,out.storageFailed?503:200,out); }
+  /* 3 Oct audit (P0): Tower of Trials - see towerReqS(). /state also carries a pre-v949 client's own floor over ONCE,
+     capped at the highest floor the account's power can stand on today and paying nothing (those floors were paid). */
+  if(p.startsWith('/api/tower/') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req);
+    if(p==='/api/tower/state'){ const led=ensureLedger(me), T=towerLed(led);
+      /* Cross-device: until the first SERVER climb, the highest local floor any of the player's devices reports counts
+         (capped by power, paying nothing); after it, the server's floor is the floor. A tribute a device says it took
+         today stays taken (never paid twice). */
+      if(!T.srv){ const legacy=Math.max(0,Math.min(5000,Math.floor(+b.legacyFloor||0))); const f=Math.min(legacy,towerMaxForPower(ledgerTeamPower(me)));
+        let ch=!T.mig; if(f>T.floor){ T.floor=f; ch=true; } if(String(b.legacyTrib||'')===towerDayKey()&&T.trib!==towerDayKey()){ T.trib=towerDayKey(); ch=true; } T.mig=1; if(ch) writeDB(); }
+      return send(res,200,{ok:true,floor:T.floor,trib:T.trib,today:towerDayKey(),power:ledgerTeamPower(me),nextReq:towerReqS(T.floor+1)}); }
+    const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    if(p==='/api/tower/ascend'){ const out=durableCommit(me,me.id+':tower:ascend:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
+        if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
+        if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
+        const next=T.floor+1, need=towerReqS(next), pow=ledgerTeamPower(me);
+        if(pow<need) return {ok:false,wall:true,req:need,power:pow,error:'Squad too weak for Floor '+next+'.'};
+        const pay=towerFloorPay(next), g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+pay.gold); resourceGain(me,'gold',led.gold-g0,'tower');
+        if(pay.gems){ const e0=led.gems; led.gems=Math.min(ECON_CAP.gems,led.gems+pay.gems); resourceGain(me,'gems',led.gems-e0,'tower'); }
+        T.floor=next; T.srv=1; ledTx(me,'tower:floor:'+next,{gold:pay.gold,gems:pay.gems});
+        return {ok:true,floor:next,gold:pay.gold,gems:pay.gems,elite:next%5===0,nextReq:towerReqS(next+1),ledger:ledgerView(me)}; });
+      return send(res,out.storageFailed?503:200,out); }
+    if(p==='/api/tower/tribute'){ const out=durableCommit(me,me.id+':tower:trib:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
+        if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
+        if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
+        if(T.floor<1) return {ok:false,error:'Reach Floor 1 to unlock the tribute.'};
+        const day=towerDayKey(); if(T.trib===day) return {ok:false,already:true,error:'Tribute already claimed today.'};
+        const gold=towerTribPay(T.floor), g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+gold); resourceGain(me,'gold',led.gold-g0,'tower');
+        T.trib=day; ledTx(me,'tower:tribute:'+day,{gold});
+        return {ok:true,gold,trib:day,ledger:ledgerView(me)}; });
+      return send(res,out.storageFailed?503:200,out); }
+    return send(res,404,{error:'not found'}); }
   if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{
