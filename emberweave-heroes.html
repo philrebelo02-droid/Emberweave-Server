@@ -8821,8 +8821,8 @@ function simRaidReplay(allySnaps, bossSpec, seed, inputLog, manual){
   const keep=REPLAY_IN;
   ended=false; state='battle'; battleTime=0; gameSpeed=1; window._p2win=null; cancelResult();
   const B=bossSpec||{};
-  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]],
-       raid:{key:B.key, tier:B.tier|0, hp:Math.max(1,B.hp|0)},
+  CUR={mode:'graid', seed, cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0)||1, boss:true, hp:Math.max(1,Number.isFinite(B.hp)?Math.trunc(B.hp):0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]],
+       raid:{key:B.key, tier:B.tier|0, hp:Math.max(1,Number.isFinite(B.hp)?Math.trunc(B.hp):0)},
        backups:allySnaps.slice(TEAM_SIZE).map(s=>s.key), backupSnaps:allySnaps.slice(TEAM_SIZE),
        manualReplay:!!manual, headless:true};
   if(manual) autoUlt=false;
@@ -12582,7 +12582,7 @@ function endBattle(won){
       try{ r=await api('/api/guild/raid/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, dmg:_dmg}); }catch(e){ r=null; }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger);
-      const ok=!!(r&&r.ok), dealt=ok?(r.dmg|0):_dmg, fell=!!(r&&r.killed);
+      const ok=!!(r&&r.ok), dealt=ok?Math.max(0,Number.isFinite(r.dmg)?Math.trunc(r.dmg):0):_dmg, fell=!!(r&&r.killed);
       setResultVerdict(fell||dealt>0, null);
       document.getElementById('resultTitle').textContent=fell?'BOSS FELLED':(dealt>0?'DAMAGE DEALT':'NO DAMAGE');
       document.getElementById('resultTitle').className='result-big '+((fell||dealt>0)?'win':'lose');
@@ -12592,7 +12592,7 @@ function endBattle(won){
           +(fell?`<div style="color:#ffd45e;font-weight:700">💥 Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!</div>`
                  +`<div style="margin-top:3px">🪙 ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · 💎 ${((r.reward&&r.reward.gems)|0)} · 🏅 ${((r.reward&&r.reward.guildCoins)|0)}</div>`
              :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins <span style="color:#8b98a9;font-size:10.5px">· spend them in the Guild Shop</span></div>`)
-          +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
+          +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${Math.max(0,Number.isFinite(r.raid.hp)?Math.trunc(r.raid.hp):0).toLocaleString()} / ${Math.max(1,Number.isFinite(r.raid.max)?Math.trunc(r.raid.max):0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
       document.getElementById('resultHint').textContent='Your whole guild chips the same boss down — every run counts, and the killing blow pays the most.';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
@@ -14172,8 +14172,8 @@ async function raidLaunch(){
   const _sn=Array.isArray(st.snaps)?st.snaps:null;
   CUR={mode:'graid', attemptId:st.attemptId, seed:(st.seed!=null?(st.seed>>>0):null), serverSnaps:_sn,
        backupSnaps:_sn?_sn.slice(TEAM_SIZE):null,   /* the bench fights with the SERVER's numbers too */
-       backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,B.hp|0), lvl:Math.max(1,B.lvl|0)},
-       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,B.hp|0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]], engine:st.engine||null};
+       backups:sq.slice(TEAM_SIZE), raid:{key:B.key, name:B.name, tier:B.tier|0, hp:Math.max(1,Number.isFinite(B.hp)?Math.trunc(B.hp):0), lvl:Math.max(1,B.lvl|0)},
+       cwaves:[[{key:B.key, lvl:Math.max(1,B.lvl|0), boss:true, hp:Math.max(1,Number.isFinite(B.hp)?Math.trunc(B.hp):0), def:Math.max(0,B.def|0), dmgMul:(B.dmgMul||1)}]], engine:st.engine||null};
   startBattle();
 }
 /* The damage this fight has done to the raid boss: what he came in with, minus what he has left.
@@ -14181,7 +14181,7 @@ async function raidLaunch(){
 function raidDamageDone(){
   const b=units.find(u=>u.team==='enemy'&&u._raidBoss);
   if(!b) return 0;
-  const start=Math.max(1, b._raidStartHp|0);
+  const start=Math.max(1, Number.isFinite(b._raidStartHp)?Math.trunc(b._raidStartHp):0);
   /* v669: cumulative damage dealt, capped at the pool he walked in with — a boss that heals or
      shields cannot erase the squad's work, and an overkill cannot take more than he had. */
   const dealt=Math.round(b._raidDmgTaken||0);

@@ -1,0 +1,14 @@
+{
+  "atET": "2026-10-03 10:17:35",
+  "sourceSHA256": "62d79e6d2611fceaa813587777b6583a42e6b118746eb44ebef594360622f8c0",
+  "helperSHA256": "791b6d122bb2a8073d1d27122457acd1dfcc91bb584a4f0bdeaba3a1a3cd2b6b",
+  "checks": 47,
+  "scripts": 3,
+  "naturalControl": {
+    "base": "bbbc3a662a4f106153abafafec691cc6d70149a0",
+    "input": 2147483648,
+    "parentDamage": 1,
+    "candidateDamage": 2147483648
+  },
+  "limits": "Extracted actual damage function, numeric bootstrap/result expressions and all inline script parse only. No witnessed fight, natural tier reachability, quit/retry/recovery/full client integration/balance/deployment qualification."
+}
