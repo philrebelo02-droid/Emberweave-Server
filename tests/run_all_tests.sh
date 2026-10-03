@@ -109,6 +109,8 @@ note "test_well_state_read.js (3 Oct audit: a Well state read saves only when it
 node tests/test_well_state_read.js || FAILED=1
 note "test_vault_status_client.js (3 Oct audit: an unreachable Vault no longer renders the legacy Challenge Dungeon)"
 node tests/test_vault_status_client.js || FAILED=1
+note "test_witch_state_rate.js (3 Oct audit: Witches Hut state reads limited to 60 a minute)"
+node tests/test_witch_state_rate.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
