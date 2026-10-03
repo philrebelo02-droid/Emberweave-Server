@@ -12524,7 +12524,7 @@ function endBattle(won){
          answer, which was not a replay of this fight at all but a re-simulation with a skill band
          standing in for manual play — and when that estimate disagreed, the screen said one thing
          and the result screen said the other. Campaign has worked this way since v270. */
-      if(att){ r=await api('/api/dungeon/resolve-battle','POST',{attemptId:att, won:!!won, requestId:uid8()}); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
+      if(att){ const _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); vaultPendingSettle(r); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
@@ -14172,7 +14172,14 @@ setInterval(()=>{
 },1000);
 /* ================= AETHER VAULT + SKYFALL — client (server-authoritative, render-only) ================= */
 let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
-async function vaultStatus(){ const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
+/* 3 Oct audit (Vault F5): a floor result is saved before it is sent; a lost reply (offline) or a refused save (storageFailed) keeps it,
+   and the next Vault status read re-sends it with the SAME requestId (the server replays the stored answer) before anything can start a new floor. */
+function vaultPendingKey(){ return 'ew_vaultPending_'+((ACC.profile&&ACC.profile.id)||''); }
+function vaultPendingSave(body){ try{ localStorage.setItem(vaultPendingKey(),JSON.stringify(body)); }catch(e){} }
+function vaultPendingSettle(r){ if(r&&(r.error==='offline'||r.storageFailed)) return; try{ localStorage.removeItem(vaultPendingKey()); }catch(e){} }
+async function vaultResendPending(){ if(!ACC.token) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey())||'null'); }catch(e){}
+  if(!job||!job.attemptId||!job.requestId) return; const r=await api('/api/dungeon/resolve-battle','POST',job); vaultPendingSettle(r); if(r&&r.ledger) adoptLedger(r.ledger); }
+async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
     <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
@@ -14241,6 +14248,7 @@ async function vaultDevJump(toBoss){   // v362 (Phil): God Mode only — set the
   if(squadFor('vault').slice(0,TEAM_SIZE).length<TEAM_SIZE){ renderDungeon(); bannerMsg('Pick 5 fighters first'); return; }
   VAULT.devWave2=!!toBoss; await vaultLaunch(); VAULT.devWave2=false; }
 async function vaultLaunch(){ if(VAULT.busy) return; VAULT.busy=true;
+  await vaultResendPending();   /* a saved floor result goes first - a new start would abandon its attempt */
   const sq=squadFor('vault').slice(0,TEAM_SIZE*2);
   const st=await api('/api/dungeon/start-battle','POST',{heroIds:sq, requestId:uid8()});
   VAULT.busy=false;

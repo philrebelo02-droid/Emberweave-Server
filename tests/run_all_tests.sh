@@ -97,6 +97,8 @@ note "test_ed_buy_rid.js (3 Oct audit: Emberdraft buy keeps one requestId until 
 node tests/test_ed_buy_rid.js || FAILED=1
 note "test_well_pending_resend.js (3 Oct audit: a lost Well result is re-sent with the same requestId on the next Well load)"
 node tests/test_well_pending_resend.js || FAILED=1
+note "test_vault_pending_resend.js (3 Oct audit: a lost Vault floor result is re-sent with the same requestId before any new floor)"
+node tests/test_vault_pending_resend.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
