@@ -105,6 +105,8 @@ note "test_ed_prev_attempt.js (3 Oct audit: a match started on another device do
 node tests/test_ed_prev_attempt.js || FAILED=1
 note "test_audit_small_fixes.js (3 Oct audit: Vault paid sweep floor check first; Emberdraft buy level 25; Emberdraft state by GET)"
 node tests/test_audit_small_fixes.js || FAILED=1
+note "test_well_state_read.js (3 Oct audit: a Well state read saves only when it changed the run)"
+node tests/test_well_state_read.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
