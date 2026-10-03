@@ -1,0 +1,326 @@
+{
+  "atET": "2026-10-03 09:33:45",
+  "sourceSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+  "helperSHA256": "cb440e95f77c37852159bd31e7fec07b86b71063aec3c15a366ea6171cc769d6",
+  "calls": [
+    {
+      "label": "unauthenticated",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 401,
+      "body": {
+        "error": "auth"
+      }
+    },
+    {
+      "label": "unknown recovery",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "recoveryUnknown": true,
+        "error": "Matching active raid entry unavailable. No new attempt was spent."
+      }
+    },
+    {
+      "label": "extra field",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ],
+        "extra": true
+      },
+      "status": 400,
+      "body": {
+        "ok": false,
+        "error": "Exact raid entry packet required."
+      }
+    },
+    {
+      "label": "temporary write failure",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 503,
+      "body": {
+        "error": "World save failed. Retry the same request."
+      }
+    },
+    {
+      "label": "retry after failed write and restart",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "3eafdc9b3fc71480",
+        "seed": 3181825736,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "control-guild",
+          "requestId": "r3:2026-10-02:identity",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "label": "same id changed squad",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael",
+          "not-unlocked"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryUsed": true,
+        "error": "That saved raid request belongs to a different squad or guild."
+      }
+    },
+    {
+      "label": "same actor new id",
+      "packet": {
+        "requestId": "r3:2026-10-02:other",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "bossBusy": true,
+        "error": "The raid boss is reserved. No new attempt was spent."
+      }
+    },
+    {
+      "label": "foreign actor same id",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "bossBusy": true,
+        "error": "The raid boss is reserved. No new attempt was spent."
+      }
+    },
+    {
+      "label": "owner exact recovery after restart",
+      "packet": {
+        "requestId": "r3:2026-10-02:identity",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "resumed": true,
+        "attemptId": "3eafdc9b3fc71480",
+        "seed": 3181825736,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "control-guild",
+          "requestId": "r3:2026-10-02:identity",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "engine": "1790961518061",
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    }
+  ],
+  "checks": [
+    "Unauthenticated start401 with unchanged disk",
+    "Unknown explicit recovery refuses without spend",
+    "Nonexact start packet400 unchanged",
+    "Write failure503 is atomic; restart and exact retry enroll once",
+    "Same saved id changed squad409 before resume with unchanged disk",
+    "Same actor different id cannot replace reservation or spend again",
+    "Other member same request id cannot resume owner attempt",
+    "Owner exact explicit recovery survives restart without another commit"
+  ],
+  "status": "Eight identity/input/write-fault/restart checks newly qualified on cumulative ac915324, not an unchanged parent rerun",
+  "limits": "Private synthetic HTTP. This run qualifies start identity only; cumulative settlement/damage changes have separate certificates. No release/expiry/day rollover/legacy resume migration, actual witnessed combat, balance, live baseline, or deployment approval. Q11/Q10 remain open. Do not install."
+}

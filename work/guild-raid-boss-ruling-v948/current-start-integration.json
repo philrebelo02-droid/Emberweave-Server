@@ -1,0 +1,158 @@
+{
+  "atET": "2026-10-03 09:28:22",
+  "helperSHA256": "e34e1d175d475d2601c0575118296a43d66a6c8a00c1dacfd81ab6b7b481c55d",
+  "rows": [
+    {
+      "sourceName": "private-server-flag-history-hold.js",
+      "sourceSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+      "kind": "malformed",
+      "reply": {
+        "status": 409,
+        "body": {
+          "ok": false,
+          "bossBusy": true,
+          "error": "Saved raid attempts require recovery. No new attempt was spent."
+        }
+      },
+      "noDiskMutation": true
+    },
+    {
+      "sourceName": "private-server-flag-history-hold.js",
+      "sourceSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+      "kind": "race",
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "ok": true,
+            "attemptId": "6e55e2edfb0ea1e9",
+            "seed": 334189616,
+            "snaps": [
+              {
+                "key": "vael",
+                "level": 1,
+                "rank": 0,
+                "boss": false,
+                "maxHp": 400,
+                "dmg": 30,
+                "range": 28,
+                "speed": 70,
+                "atkInterval": 2.3,
+                "combatDist": 24,
+                "r": 18,
+                "melee": true,
+                "reach": 28.2,
+                "apow": 0,
+                "apMul": 1,
+                "hybrid": false,
+                "glyphDR": 0,
+                "defRating": 100,
+                "penRating": 0,
+                "armorRating": 60,
+                "mrRating": 40,
+                "armorPen": 0,
+                "magicPen": 0,
+                "critDmg": 0.6,
+                "lifestealStat": 0,
+                "evaStat": 0,
+                "accStat": 0,
+                "blockStat": 0,
+                "dmgBonusMul2": 1,
+                "shieldStrMul": 1,
+                "ctrlHitF": 0,
+                "hasteEnergyMul": 1,
+                "glyphRegen": 0,
+                "glyphCrit": 0,
+                "critRes": 0,
+                "energyReg": 0,
+                "templeDamageEnergy": 0,
+                "energy": 35,
+                "ctrlRes": 0,
+                "skillLv": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "passMul": 1,
+                "immovable": false,
+                "stunImmune": false,
+                "pass": null,
+                "gearSkill": null
+              }
+            ],
+            "engine": "1790961518061",
+            "entryBinding": {
+              "v": 1,
+              "accountId": "fixture-user",
+              "guildId": "control-guild",
+              "requestId": "r3:2026-10-02:first",
+              "heroIds": [
+                "vael"
+              ]
+            },
+            "boss": {
+              "key": "wintercrag",
+              "name": "Wintercrag",
+              "tier": 1,
+              "hp": 400000,
+              "lvl": 15,
+              "def": 30000,
+              "dmgMul": 1
+            },
+            "raid": {
+              "level": 1,
+              "max": 400000,
+              "hp": 400000,
+              "kills": 0,
+              "yourDmg": 0,
+              "guildDmg": 0,
+              "attemptsLeft": 2,
+              "top": [],
+              "name": "Wintercrag",
+              "bossKey": "wintercrag",
+              "attemptsMax": 3
+            }
+          }
+        },
+        {
+          "status": 409,
+          "body": {
+            "ok": false,
+            "bossBusy": true,
+            "error": "The raid boss is reserved. No new attempt was spent."
+          }
+        }
+      ],
+      "used": {
+        "fixture-user": 1
+      },
+      "reservation": {
+        "v": 1,
+        "accountId": "fixture-user",
+        "guildId": "control-guild",
+        "attemptId": "6e55e2edfb0ea1e9",
+        "requestId": "r3:2026-10-02:first",
+        "tier": 1,
+        "bossKey": "wintercrag",
+        "startedAt": 1790928000000
+      }
+    },
+    {
+      "sourceName": "private-server-flag-history-hold.js",
+      "sourceSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+      "kind": "legacy",
+      "reply": {
+        "status": 409,
+        "body": {
+          "ok": false,
+          "bossBusy": true,
+          "error": "The raid boss is reserved. No new attempt was spent."
+        }
+      },
+      "noDiskMutation": true
+    }
+  ],
+  "status": "Three start invariants newly qualified on cumulative ac915324 candidate: malformed attempt-map safe hold, two-player exclusive paid-start race, legacy attempt safe hold. Prior parent failing-control evidence remains start-extra-http.json; no unchanged parent rerun. NOT complete Q6/deploy/balance.",
+  "limits": "Private synthetic HTTP only. No settlement/release/expiry/dayrollover/legacyresume migration or witnessed damage fix. Q11/Q10 remain OPEN; no install/deploy."
+}
