@@ -19973,7 +19973,7 @@ function renderArenaShop(){
 
 let WALL_TAB='wall';
 async function renderCauldron(body){
-  if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center">Sign in to view your heroes and cauldron.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return; }
+  if(!ACC.token){ body.innerHTML+='<div class="panel" style="text-align:center"><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return; }
   const panel=document.createElement('div'); panel.className='panel'; panel.innerHTML='Loading cauldron…'; body.appendChild(panel);
   const w=await api('/api/witch/state');
   if(!panel.isConnected || WALL_TAB!=='cauldron') return;
@@ -19992,7 +19992,7 @@ async function renderCauldron(body){
   const offer=w.offer;
   panel.innerHTML=`<div style="font-weight:800;font-size:15px">🫙 Cauldron · Hut Lv ${w.level}</div>
     <video src="/assets/img/witches-hut/${brewScene}?v=1" poster="/assets/img/witches-hut/cauldron-base.png?v=1" autoplay muted loop playsinline preload="metadata" aria-label="Witches Hut cauldron at ${Math.round(pct)} percent brew" style="display:block;width:min(100%,320px);aspect-ratio:1;margin:10px auto;border-radius:12px;object-fit:cover;background:#111"></video>
-    <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()} · brew returns over time</div>
+    <div style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()}</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${canHeal&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
     ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}</div>
@@ -20009,7 +20009,7 @@ function renderWall(){
   const lv=playerLevel(), body=document.getElementById('wallBody'); body.innerHTML='';
   const locked = lv<WALL_UNLOCK_LEVEL;
   if(locked && !AUDIT_MODE()){ body.innerHTML=`<div class="panel" style="text-align:center">🔒 The City Wall world opens at player level ${WALL_UNLOCK_LEVEL}.<br><span style="color:#8b98a9;font-size:12px">You are level ${lv}. Clear campaign stages to level up.</span></div>`; return; }
-  document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : (WALL_TAB==='cauldron'?'Heal wounded heroes after they return':'Set defenders · then raid the world map');
+  document.getElementById('wallSub').textContent = locked ? `🔒 Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view` : (WALL_TAB==='cauldron'?'':'Set defenders · then raid the world map');
   const tabs=document.createElement('div'); tabs.className='row'; tabs.style.cssText='gap:8px;margin:8px 0 12px';
   tabs.innerHTML=`<button class="btn sm ${WALL_TAB==='wall'?'':'secondary'}" data-wall-tab="wall">City Wall</button><button class="btn sm ${WALL_TAB==='cauldron'?'':'secondary'}" data-wall-tab="cauldron">Cauldron</button>`;
   body.appendChild(tabs);
