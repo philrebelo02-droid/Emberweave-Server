@@ -1,0 +1,762 @@
+{
+  "base": "f3c572ca84cf1592299b2a08eeaa82869d7789a5",
+  "sourceSHA256": "de718b2fba1db5c354b6670c2be92eb6598b3bc33276be917ffbc2f4a2246f1c",
+  "scope": "Actual extracted renderer with geometry stubs; not interactive battle/visual proof",
+  "parseCount": 3,
+  "parentFailure": {
+    "oldPresent": true,
+    "otherPresent": true,
+    "ret": 0.05,
+    "samples": [
+      {
+        "ret": 0.05,
+        "opacity": 0.4136458333333334,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.8272916666666668,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      },
+      {
+        "ret": 0.05,
+        "opacity": 0.99275,
+        "present": true
+      }
+    ]
+  },
+  "cases": {
+    "short": {
+      "oldPresent": false,
+      "otherPresent": true,
+      "ret": 1.0000000000000002,
+      "samples": [
+        {
+          "ret": 0.05,
+          "opacity": 0.4136458333333334,
+          "present": true
+        },
+        {
+          "ret": 0.1,
+          "opacity": 0.81,
+          "present": true
+        },
+        {
+          "ret": 0.15000000000000002,
+          "opacity": 0.93925,
+          "present": true
+        },
+        {
+          "ret": 0.2,
+          "opacity": 0.896,
+          "present": true
+        },
+        {
+          "ret": 0.25,
+          "opacity": 0.84375,
+          "present": true
+        },
+        {
+          "ret": 0.3,
+          "opacity": 0.784,
+          "present": true
+        },
+        {
+          "ret": 0.35,
+          "opacity": 0.71825,
+          "present": true
+        },
+        {
+          "ret": 0.39999999999999997,
+          "opacity": 0.648,
+          "present": true
+        },
+        {
+          "ret": 0.44999999999999996,
+          "opacity": 0.5747500000000001,
+          "present": true
+        },
+        {
+          "ret": 0.49999999999999994,
+          "opacity": 0.5000000000000001,
+          "present": true
+        },
+        {
+          "ret": 0.5499999999999999,
+          "opacity": 0.42525000000000013,
+          "present": true
+        },
+        {
+          "ret": 0.6,
+          "opacity": 0.352,
+          "present": true
+        },
+        {
+          "ret": 0.65,
+          "opacity": 0.28174999999999994,
+          "present": true
+        },
+        {
+          "ret": 0.7000000000000001,
+          "opacity": 0.21599999999999986,
+          "present": true
+        },
+        {
+          "ret": 0.7500000000000001,
+          "opacity": 0.15624999999999978,
+          "present": true
+        },
+        {
+          "ret": 0.8000000000000002,
+          "opacity": 0.10399999999999987,
+          "present": true
+        },
+        {
+          "ret": 0.8500000000000002,
+          "opacity": 0.06074999999999986,
+          "present": true
+        },
+        {
+          "ret": 0.9000000000000002,
+          "opacity": 0.027999999999999914,
+          "present": true
+        },
+        {
+          "ret": 0.9500000000000003,
+          "opacity": 0.007249999999999979,
+          "present": true
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        }
+      ]
+    },
+    "rapid": {
+      "oldPresent": false,
+      "otherPresent": true,
+      "ret": 1.0000000000000002,
+      "samples": [
+        {
+          "ret": 0.05,
+          "opacity": 0.4136458333333334,
+          "present": true
+        },
+        {
+          "ret": 0.1,
+          "opacity": 0.81,
+          "present": true
+        },
+        {
+          "ret": 0.15000000000000002,
+          "opacity": 0.93925,
+          "present": true
+        },
+        {
+          "ret": 0.2,
+          "opacity": 0.896,
+          "present": true
+        },
+        {
+          "ret": 0.25,
+          "opacity": 0.84375,
+          "present": true
+        },
+        {
+          "ret": 0.3,
+          "opacity": 0.784,
+          "present": true
+        },
+        {
+          "ret": 0.35,
+          "opacity": 0.71825,
+          "present": true
+        },
+        {
+          "ret": 0.39999999999999997,
+          "opacity": 0.648,
+          "present": true
+        },
+        {
+          "ret": 0.44999999999999996,
+          "opacity": 0.5747500000000001,
+          "present": true
+        },
+        {
+          "ret": 0.49999999999999994,
+          "opacity": 0.5000000000000001,
+          "present": true
+        },
+        {
+          "ret": 0.5499999999999999,
+          "opacity": 0.42525000000000013,
+          "present": true
+        },
+        {
+          "ret": 0.6,
+          "opacity": 0.352,
+          "present": true
+        },
+        {
+          "ret": 0.65,
+          "opacity": 0.28174999999999994,
+          "present": true
+        },
+        {
+          "ret": 0.7000000000000001,
+          "opacity": 0.21599999999999986,
+          "present": true
+        },
+        {
+          "ret": 0.7500000000000001,
+          "opacity": 0.15624999999999978,
+          "present": true
+        },
+        {
+          "ret": 0.8000000000000002,
+          "opacity": 0.10399999999999987,
+          "present": true
+        },
+        {
+          "ret": 0.8500000000000002,
+          "opacity": 0.06074999999999986,
+          "present": true
+        },
+        {
+          "ret": 0.9000000000000002,
+          "opacity": 0.027999999999999914,
+          "present": true
+        },
+        {
+          "ret": 0.9500000000000003,
+          "opacity": 0.007249999999999979,
+          "present": true
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        },
+        {
+          "ret": 1.0000000000000002,
+          "opacity": 0,
+          "present": false
+        }
+      ]
+    },
+    "dead": {
+      "oldPresent": false,
+      "otherPresent": true,
+      "ret": 0.35,
+      "samples": [
+        {
+          "ret": 0.05,
+          "opacity": 0.4136458333333334,
+          "present": true
+        },
+        {
+          "ret": 0.1,
+          "opacity": 0.81,
+          "present": true
+        },
+        {
+          "ret": 0.15000000000000002,
+          "opacity": 0.93925,
+          "present": true
+        },
+        {
+          "ret": 0.2,
+          "opacity": 0.6471111111111112,
+          "present": true
+        },
+        {
+          "ret": 0.25,
+          "opacity": 0.375,
+          "present": true
+        },
+        {
+          "ret": 0.3,
+          "opacity": 0.13066666666666665,
+          "present": true
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        },
+        {
+          "ret": 0.35,
+          "opacity": -0.07980555555555557,
+          "present": false
+        }
+      ]
+    },
+    "single": {
+      "oldPresent": true,
+      "otherPresent": true,
+      "samples": [
+        {
+          "opacity": 0.4166666666666667,
+          "present": true
+        },
+        {
+          "opacity": 0.8333333333333334,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        },
+        {
+          "opacity": 1,
+          "present": true
+        }
+      ]
+    }
+  }
+}
