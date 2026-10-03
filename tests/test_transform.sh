@@ -144,11 +144,11 @@ ck "MINE: retrying a legacy claim still grants nothing" 'Old mine claims are ret
 AC1=$(curl -s $B/api/academy -H "$H")
 ck "MINE: refused claims leave iron at zero" '"iron":0' "$AC1"
 # A fresh account has not completed a verified mine march, so it cannot pay
-# the Academy track's authored iron cost.
+# the Academy track's authored iron cost. (3 Oct 2026: players see iron as Emberite - Phil "Set a is good".)
 RS=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs1"}')
-ck "ACADEMY: research without mined iron is refused" 'Not enough iron' "$RS"
+ck "ACADEMY: research without mined iron is refused" 'Not enough Emberite' "$RS"
 RS2=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs2"}')
-ck "ACADEMY: a new request cannot bypass the resource cost" 'Not enough iron' "$RS2"
+ck "ACADEMY: a new request cannot bypass the resource cost" 'Not enough Emberite' "$RS2"
 RSA=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"atk","requestId":"rs3"}')
 ck "ACADEMY: tech above the Academy level is locked" 'Academy must be upgraded' "$RSA"
 # A city battle can only resolve a registered, arrived war march. Combat and
