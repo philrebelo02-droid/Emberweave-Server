@@ -660,6 +660,7 @@
   .pEnergyBar{position:absolute;left:12%;top:85%;width:76.5%;height:8.4%;background:#0a1120;border-radius:2px;overflow:hidden;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.8);}   /* v253: energy fill is the manual-play cue — make it readable */
   .pEnergyBar .pEnFill{height:100%;width:0;background:linear-gradient(90deg,#4aa3ff,#8a7bff);transition:width .1s;}
   .pslot.ready .pEnergyBar .pEnFill{background:linear-gradient(90deg,#ffd45e,#ffb347);}
+  .pHp,.pEnergyBar{box-sizing:border-box;border-style:solid;border-color:transparent;border-radius:0;box-shadow:none;background-clip:padding-box;}   /* v962 (Phil 3 Oct: "create clean health bars" / "make it for the health/ energy bar at the bottom also"): the Hailuo frames (Game Art/UI/Health bars HAILUO 03OCT2026) drawn by 3-slice border-image - caps keep their shape, the middle stretches, the fill sits in the window */  .pHp{border-width:2px 4px;border-image:url('/assets/ui/bars/bar_hud_hp.png?v=1') 9 16 9 16 stretch;height:10%;top:73.5%;}  .pEnergyBar{border-width:2px 4px;border-image:url('/assets/ui/bars/bar_hud_en.png?v=1') 13 22 14 23 stretch;}
   /* Enemy team bar removed (enemy HP now floats over the head, drawn on the overlay canvas) */
   #enemyBar{display:none!important;}
   #topStatus{position:absolute;top:8px;left:58px;right:auto;display:none;justify-content:flex-start;gap:8px;font-size:12px;z-index:15;pointer-events:none;}
@@ -13522,6 +13523,12 @@ function edBadgeAt(u, x, y){ let el=u._badgeEl;
 /* v645 (Phil: "slow down the FPS on their idle please"): Emberdraft heroes play their idle clip at this fraction of its frame rate */
 const ED_IDLE_FPS_MUL=0.6;
 let _olPrev=0, _olDt=0;
+/* v962: the over-head bar frame (assets/ui/bars/bar_overhead.png, 1088x64; window T14 R31 B13 L30), drawn 3-slice so the pointed
+   caps keep their shape at any bar width: s = bar height / window height, caps beside the bar, the middle stretched over it. */
+const BAR_FRAME={img:null,W:1088,H:64,T:14,R:31,B:13,L:30};
+function barFrameReady(){ if(!BAR_FRAME.img){ try{ BAR_FRAME.img=new Image(); BAR_FRAME.img.src='/assets/ui/bars/bar_overhead.png?v=1'; }catch(e){ return false; } } return BAR_FRAME.img.complete&&BAR_FRAME.img.naturalWidth>0; }
+function drawBarFrame(g,x,y,w,h){ const F=BAR_FRAME, im=F.img, s=h/(F.H-F.T-F.B), top=y-F.T*s, H=F.H*s, lw=F.L*s, rw=F.R*s;
+  g.drawImage(im,0,0,F.L,F.H, x-lw,top,lw,H); g.drawImage(im,F.L,0,F.W-F.L-F.R,F.H, x,top,w,H); g.drawImage(im,F.W-F.R,0,F.R,F.H, x+w,top,rw,H); }
 function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
   if(state==='battle' && typeof CUR!=='undefined' && CUR && CUR.mode==='emberdraft' && window.ED && ED.active){ try{ edAvFrame(_olDt); }catch(e){} }   /* v648: your avatar + loot orbs */
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
@@ -13557,9 +13564,17 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
       // gets a wider, gold-framed bar that cannot be mistaken for a normal enemy's.
       const eb=_ebw, eh=_bn?Math.max(1.25, Math.round(eb*0.16*4)/4):Math.max(3, Math.round((u.boss?9:6)*(_ebw/(u.boss?96:44)))), ex=p.x-eb/2, ey=p.y-eh, pct=Math.max(0,Math.min(1,u.hp/u.maxHp));   // v577: thickness scales with width, 3 px floor; ey uses eh (was a third copy of the literal)
       const pad=_bn?1:2;
-      octx.fillStyle='rgba(0,0,0,.72)'; octx.fillRect(ex-pad,ey-pad,eb+2*pad,eh+2*pad);
-      octx.fillStyle=(u.team==='ally')?'#57e08a':(u.boss?'#ff4757':'#ff7a5a'); octx.fillRect(ex,ey,eb*pct,eh);
-      if(!_bn){ octx.strokeStyle=u.boss?'rgba(255,212,94,.95)':'rgba(0,0,0,.85)'; octx.lineWidth=u.boss?2:1.5; octx.strokeRect(ex-1,ey-1,eb+2,eh+2); } }
+      /* v962 (Phil 3 Oct: "I want these health bars changed, they look bad" / "create clean health bars in hailou"): the Hailuo
+         frame (iron rim, gold edge, pointed caps) drawn 3-slice round the bar, a soft vertical gradient fill, and a pale DAMAGE TRAIL
+         that holds for a moment after a hit and then slides down to the new value, so every hit shows its size. Display only. */
+      if(u._hpTrail==null||pct>u._hpTrail) u._hpTrail=pct; if(pct<u._hpTrailHold) u._hpTrailT=0.35; u._hpTrailHold=pct;
+      if((u._hpTrailT||0)>0) u._hpTrailT-=_olDt; else u._hpTrail=Math.max(pct,u._hpTrail-_olDt*0.9);
+      const _fr=!_bn&&barFrameReady();
+      octx.fillStyle='rgba(8,10,16,.82)'; if(_fr) octx.fillRect(ex,ey,eb,eh); else octx.fillRect(ex-pad,ey-pad,eb+2*pad,eh+2*pad);
+      if(u._hpTrail>pct){ octx.fillStyle='rgba(255,236,200,.85)'; octx.fillRect(ex+eb*pct,ey,eb*(u._hpTrail-pct),eh); }
+      { const c0=(u.team==='ally')?'#7af0a4':(u.boss?'#ff6a74':'#ff9a76'), c1=(u.team==='ally')?'#2fae62':(u.boss?'#c8202e':'#d84a30'); const gr=octx.createLinearGradient(0,ey,0,ey+eh); gr.addColorStop(0,c0); gr.addColorStop(1,c1); octx.fillStyle=gr; octx.fillRect(ex,ey,eb*pct,eh); }
+      if(_fr) drawBarFrame(octx,ex,ey,eb,eh);
+      else if(!_bn){ octx.strokeStyle=u.boss?'rgba(255,212,94,.95)':'rgba(0,0,0,.85)'; octx.lineWidth=u.boss?2:1.5; octx.strokeRect(ex-1,ey-1,eb+2,eh+2); } }
     if(u.boss){ octx.textAlign='center';
       const nm=(u.t&&u.t.name)?String(u.t.name).toUpperCase():'BOSS';
       octx.font='900 12px sans-serif'; octx.lineWidth=3.5; octx.strokeStyle='rgba(0,0,0,.9)';
@@ -25570,7 +25585,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791058750333';
+const BUILD_ID = '1791059480497';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
